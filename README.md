@@ -1,37 +1,10 @@
-## Welcome to GitHub Pages
+[![CircleCI](https://circleci.com/gh/jcputney/scorm-again.svg?style=svg)](https://circleci.com/gh/jcputney/scorm-again) [![Maintainability](https://api.codeclimate.com/v1/badges/e0495751f495319f3372/maintainability)](https://codeclimate.com/github/jcputney/scorm-again/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/e0495751f495319f3372/test_coverage)](https://codeclimate.com/github/jcputney/scorm-again/test_coverage) 
 
-You can use the [editor on GitHub](https://github.com/jcputney/scorm-again/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+## SCORM Again
+This project was created to modernize the SCORM JavaScript runtime, and to provide a stable, tested platform for running AICC, SCORM 1.2, and SCORM 2004 modules. This module is designed to be LMS agnostic, and is written to be able to be run without a backing LMS, logging all function calls and data instead of committing, if an LMS endpoint is not configured.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
-
-### Markdown
-
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/jcputney/scorm-again/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+### What is this not?
+1. This is not an LMS
+1. This does not handle the uploading and verification of SCORM/AICC modules
+1. This project does not **currently** support the TinCan/xAPI runtime, but is it something I am considering in the very near future.
+1. This project is __NOT__ complete!! 

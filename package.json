@@ -16,12 +16,12 @@
     "@babel/preset-flow": "^7.0.0",
     "@babel/register": "^7.7.0",
     "chai": "^4.2.0",
+    "eslint": "^6.6.0",
     "mocha": "^6.2.2",
-    "nodemon": "^1.19.4",
     "nyc": "^14.1.1"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha --compilers js:@babel/register"
+    "test": "./node_modules/.bin/mocha --require @babel/register"
   },
   "repository": {
     "type": "git",
