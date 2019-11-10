@@ -1,0 +1,42 @@
+{
+  "name": "scorm-again",
+  "version": "1.0.0",
+  "description": "A modern SCORM JavaScript runtime library for AICC, Scorm 1.2, and Scorm 2004",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.7.0",
+    "@babel/core": "^7.7.2",
+    "@babel/node": "^7.7.0",
+    "@babel/plugin-proposal-class-properties": "^7.7.0",
+    "@babel/plugin-proposal-private-methods": "^7.6.0",
+    "@babel/preset-env": "^7.7.1",
+    "@babel/preset-flow": "^7.0.0",
+    "@babel/register": "^7.7.0",
+    "chai": "^4.2.0",
+    "mocha": "^6.2.2",
+    "nodemon": "^1.19.4",
+    "nyc": "^14.1.1"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/mocha --compilers js:@babel/register"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jcputney/scorm-again.git"
+  },
+  "keywords": [
+    "scorm",
+    "aicc",
+    "tincan",
+    "cmi"
+  ],
+  "author": "Jonathan Putney <jonathan@putney.io>",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/jcputney/scorm-again/issues"
+  },
+  "homepage": "https://github.com/jcputney/scorm-again#readme"
+}
