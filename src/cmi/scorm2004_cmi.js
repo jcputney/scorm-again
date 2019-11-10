@@ -1,9 +1,17 @@
 import {BaseCMI, CMIArray, CMIScore} from './common';
-import {learner_responses, scorm2004_constants} from "../constants";
+import {learner_responses, scorm2004_constants, scorm2004_error_codes} from "../constants";
 import {scorm2004_regex} from "../regex";
 
 const constants = scorm2004_constants;
 const regex = scorm2004_regex;
+
+function throwReadOnlyError(API) {
+    API.throwSCORMError(scorm2004_error_codes.READ_ONLY_ELEMENT);
+}
+
+function throwWriteOnlyError(API) {
+    API.throwSCORMError(scorm2004_error_codes.WRITE_ONLY_ELEMENT);
+}
 
 export class CMI extends BaseCMI {
     constructor(API) {
@@ -34,10 +42,10 @@ export class CMI extends BaseCMI {
     #total_time: "0";
 
     get _version() { return this.#_version; }
-    set _version(_version) { this.throwReadOnlyError(); }
+    set _version(_version) { throwReadOnlyError(); }
 
     get _children() { return this.#_children; }
-    set _children(_children) { this.throwReadOnlyError(); }
+    set _children(_children) { throwReadOnlyError(); }
 
     get completion_status() { return this.#completion_status; }
     set completion_status(completion_status) {
@@ -47,15 +55,15 @@ export class CMI extends BaseCMI {
     }
 
     get completion_threshold() { return this.#completion_threshold; }
-    set completion_threshold(completion_threshold) { this.API.isNotInitialized() ? this.#completion_threshold = completion_threshold : this.throwReadOnlyError(); }
+    set completion_threshold(completion_threshold) { this.API.isNotInitialized() ? this.#completion_threshold = completion_threshold : throwReadOnlyError(); }
 
     get credit() { return this.#credit; }
-    set credit(credit) { this.API.isNotInitialized() ? this.#credit = credit : this.throwReadOnlyError(); }
+    set credit(credit) { this.API.isNotInitialized() ? this.#credit = credit : throwReadOnlyError(); }
 
     get entry() { return this.#entry; }
-    set entry(entry) { this.API.isNotInitialized() ? this.#entry = entry : this.throwReadOnlyError(); }
+    set entry(entry) { this.API.isNotInitialized() ? this.#entry = entry : throwReadOnlyError(); }
 
-    get exit() { return (!this.jsonString) ? this.throwWriteOnlyError() : this.#exit; }
+    get exit() { return (!this.jsonString) ? throwWriteOnlyError() : this.#exit; }
     set exit(exit) {
         if(this.API.checkValidFormat(exit, regex.CMIExit)) {
             this.#exit = exit;
@@ -63,13 +71,13 @@ export class CMI extends BaseCMI {
     }
 
     get launch_data() { return this.#launch_data; }
-    set launch_data(launch_data) { this.API.isNotInitialized() ? this.#launch_data = launch_data : this.throwReadOnlyError(); }
+    set launch_data(launch_data) { this.API.isNotInitialized() ? this.#launch_data = launch_data : throwReadOnlyError(); }
 
     get learner_id() { return this.#learner_id; }
-    set learner_id(learner_id) { this.API.isNotInitialized() ? this.#learner_id = learner_id : this.throwReadOnlyError(); }
+    set learner_id(learner_id) { this.API.isNotInitialized() ? this.#learner_id = learner_id : throwReadOnlyError(); }
 
     get learner_name() { return this.#learner_name; }
-    set learner_name(learner_name) { this.API.isNotInitialized() ? this.#learner_name = learner_name : this.throwReadOnlyError(); }
+    set learner_name(learner_name) { this.API.isNotInitialized() ? this.#learner_name = learner_name : throwReadOnlyError(); }
 
     get location() { return this.#location; }
     set location(location) {
@@ -79,10 +87,10 @@ export class CMI extends BaseCMI {
     }
 
     get max_time_allowed() { return this.#max_time_allowed; }
-    set max_time_allowed(max_time_allowed) { this.API.isNotInitialized() ? this.#max_time_allowed = max_time_allowed : this.throwReadOnlyError(); }
+    set max_time_allowed(max_time_allowed) { this.API.isNotInitialized() ? this.#max_time_allowed = max_time_allowed : throwReadOnlyError(); }
 
     get mode() { return this.#mode; }
-    set mode(mode) { this.API.isNotInitialized() ? this.#mode = mode : this.throwReadOnlyError(); }
+    set mode(mode) { this.API.isNotInitialized() ? this.#mode = mode : throwReadOnlyError(); }
 
     get progress_measure() { return this.#progress_measure; }
     set progress_measure(progress_measure) {
@@ -93,7 +101,7 @@ export class CMI extends BaseCMI {
     }
 
     get scaled_passing_score() { return this.#scaled_passing_score; }
-    set scaled_passing_score(scaled_passing_score) { this.API.isNotInitialized() ? this.#scaled_passing_score = scaled_passing_score : this.throwReadOnlyError(); }
+    set scaled_passing_score(scaled_passing_score) { this.API.isNotInitialized() ? this.#scaled_passing_score = scaled_passing_score : throwReadOnlyError(); }
 
     get session_time() { return (!this.jsonString) ? this.API.throwSCORMError(405) : this.#session_time; }
     set session_time(session_time) {
@@ -117,10 +125,10 @@ export class CMI extends BaseCMI {
     }
 
     get time_limit_action() { return this.#time_limit_action; }
-    set time_limit_action(time_limit_action) { this.API.isNotInitialized() ? this.#time_limit_action = time_limit_action : this.throwReadOnlyError(); }
+    set time_limit_action(time_limit_action) { this.API.isNotInitialized() ? this.#time_limit_action = time_limit_action : throwReadOnlyError(); }
 
     get total_time() { return this.#total_time; }
-    set total_time(total_time) { this.API.isNotInitialized() ? this.#total_time = total_time : this.throwReadOnlyError(); }
+    set total_time(total_time) { this.API.isNotInitialized() ? this.#total_time = total_time : throwReadOnlyError(); }
 
     comments_from_learner = new class extends CMIArray {
         constructor(API) {
@@ -175,7 +183,7 @@ class CMILearnerPreference extends BaseCMI {
     #audio_captioning: "0";
 
     get _children() { return this.#_children; }
-    set _children(_children) { this.throwReadOnlyError(); }
+    set _children(_children) { throwReadOnlyError(); }
 
     get audio_level() { return this.#audio_level; }
     set audio_level(audio_level) {
@@ -435,11 +443,11 @@ export class CMICommentsFromLMSObject extends CMICommentsFromLearnerObject {
         super(API);
     }
 
-    set comment(comment) { this.API.isNotInitialized() ? this.comment = comment : this.throwReadOnlyError(); }
+    set comment(comment) { this.API.isNotInitialized() ? this.comment = comment : throwReadOnlyError(); }
 
-    set location(location) { this.API.isNotInitialized() ? this.location = location : this.throwReadOnlyError(); }
+    set location(location) { this.API.isNotInitialized() ? this.location = location : throwReadOnlyError(); }
 
-    set timestamp(timestamp) { this.API.isNotInitialized() ? this.timestamp = timestamp : this.throwReadOnlyError(); }
+    set timestamp(timestamp) { this.API.isNotInitialized() ? this.timestamp = timestamp : throwReadOnlyError(); }
 }
 
 export class CMIInteractionsObjectivesObject extends BaseCMI {
