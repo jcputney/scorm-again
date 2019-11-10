@@ -1,20 +1,17 @@
-/*
- * Copyright (C) Noverant, Inc - All Rights Reserved Unauthorized copying of this file, via any
- * medium is strictly prohibited Proprietary and confidential
- */
-
 // @flow
 import BaseAPI from './BaseAPI';
 import {
-    CMI,
     ADL,
-    CMIObjectivesObject,
-    CMIInteractionsObject,
+    CMI,
     CMICommentsFromLearnerObject,
-    CMICommentsFromLMSObject, CMIInteractionsCorrectResponsesObject, CMIInteractionsObjectivesObject
+    CMICommentsFromLMSObject,
+    CMIInteractionsCorrectResponsesObject,
+    CMIInteractionsObject,
+    CMIInteractionsObjectivesObject,
+    CMIObjectivesObject
 } from './cmi/scorm2004_cmi';
 import * as Utilities from "./utilities";
-import {scorm2004_constants, correct_responses, scorm2004_error_codes} from "./constants";
+import {correct_responses, scorm2004_constants, scorm2004_error_codes} from "./constants";
 import {scorm2004_regex} from "./regex";
 
 const constants = scorm2004_constants;

@@ -1,14 +1,10 @@
-/*
- * Copyright (C) Noverant, Inc - All Rights Reserved Unauthorized copying of this file, via any
- * medium is strictly prohibited Proprietary and confidential
- */
-
 // @flow
 import BaseAPI from './BaseAPI';
 import {
     CMI,
     CMIInteractionsCorrectResponsesObject,
-    CMIInteractionsObject, CMIInteractionsObjectivesObject,
+    CMIInteractionsObject,
+    CMIInteractionsObjectivesObject,
     CMIObjectivesObject
 } from "./cmi/scorm12_cmi";
 import * as Utilities from './utilities';

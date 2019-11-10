@@ -1,10 +1,5 @@
-/*
- * Copyright (C) Noverant, Inc - All Rights Reserved Unauthorized copying of this file, via any
- * medium is strictly prohibited Proprietary and confidential
- */
-
-import {BaseCMI, CMIScore, CMIArray} from './common';
-import {scorm2004_constants, learner_responses} from "../constants";
+import {BaseCMI, CMIArray, CMIScore} from './common';
+import {learner_responses, scorm2004_constants} from "../constants";
 import {scorm2004_regex} from "../regex";
 
 const constants = scorm2004_constants;

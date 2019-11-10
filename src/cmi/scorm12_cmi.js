@@ -1,8 +1,3 @@
-/*
- * Copyright (C) Noverant, Inc - All Rights Reserved Unauthorized copying of this file, via any
- * medium is strictly prohibited Proprietary and confidential
- */
-
 import {BaseCMI, CMIArray, CMIScore} from './common';
 import {scorm12_constants, scorm12_error_codes} from "../constants";
 import {scorm12_regex} from "../regex";

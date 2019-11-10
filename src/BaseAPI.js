@@ -1,11 +1,5 @@
-/*
- * Copyright (C) Noverant, Inc - All Rights Reserved Unauthorized copying of this file, via any
- * medium is strictly prohibited Proprietary and confidential
- */
-
 // @flow
 import {CMIArray} from "./cmi/common";
-import {base_error_codes} from "./constants";
 
 const api_constants = {
     SCORM_TRUE: "true",

@@ -1,11 +1,4 @@
-/*
- * Copyright (C) Noverant, Inc - All Rights Reserved Unauthorized copying of this file, via any
- * medium is strictly prohibited Proprietary and confidential
- */
-
 // @flow
-
-
 import {scorm2004_regex} from "./regex";
 
 export const base_error_codes = {
