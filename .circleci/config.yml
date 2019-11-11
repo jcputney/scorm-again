@@ -49,11 +49,11 @@ jobs:
           when: always
 
       # Run eslint
-      #      - run:
-      #          name: eslint
-      #          command: |
-      #            ./node_modules/.bin/eslint ./ --format junit --output-file ./reports/eslint/eslint.xml
-      #          when: always
+      - run:
+          name: eslint
+          command: |
+            ./node_modules/.bin/eslint ./ --format junit --output-file ./reports/eslint/eslint.xml
+          when: always
 
       # Run coverage report for Code Climate
       - run:

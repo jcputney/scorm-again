@@ -24,7 +24,7 @@ let _self;
  * API class for SCORM 2004
  */
 class Scorm2004API extends BaseAPI {
-  version: '1.0';
+  #version: '1.0';
 
   /**
    * Constructor for SCORM 2004 API
@@ -36,28 +36,36 @@ class Scorm2004API extends BaseAPI {
     _self.cmi = new CMI(_self);
     _self.adl = new ADL(_self);
 
-    // Rename functions to match 2004 Spec
-    _self.Initialize = _self.LMSInitialize;
-    _self.Terminate = _self.LMSTerminate;
-    _self.GetValue = _self.LMSGetValue;
-    _self.SetValue = _self.LMSSetValue;
-    _self.Commit = _self.LMSCommit;
-    _self.GetLastError = _self.LMSGetLastError;
-    _self.GetErrorString = _self.LMSGetErrorString;
-    _self.GetDiagnostic = _self.LMSGetDiagnostic;
+    // Rename functions to match 2004 Spec and expose to modules
+    _self.Initialize = _self.lmsInitialize;
+    _self.Terminate = _self.lmsTerminate;
+    _self.GetValue = _self.lmsGetValue;
+    _self.SetValue = _self.lmsSetValue;
+    _self.Commit = _self.lmsCommit;
+    _self.GetLastError = _self.lmsGetLastError;
+    _self.GetErrorString = _self.lmsGetErrorString;
+    _self.GetDiagnostic = _self.lmsGetDiagnostic;
+  }
+
+  /**
+   * Getter for #version
+   * @return {string}
+   */
+  get version() {
+    return this.#version;
   }
 
   /**
    * @return {string} bool
    */
-  LMSInitialize() {
+  lmsInitialize() {
     return _self.initialize('Initialize');
   }
 
   /**
    * @return {string} bool
    */
-  LMSTerminate() {
+  lmsTerminate() {
     return _self.terminate('Terminate', true);
   }
 
@@ -65,7 +73,7 @@ class Scorm2004API extends BaseAPI {
    * @param {string} CMIElement
    * @return {string}
    */
-  LMSGetValue(CMIElement) {
+  lmsGetValue(CMIElement) {
     return _self.getValue('GetValue', true, CMIElement);
   }
 
@@ -74,7 +82,7 @@ class Scorm2004API extends BaseAPI {
    * @param {any} value
    * @return {string}
    */
-  LMSSetValue(CMIElement, value) {
+  lmsSetValue(CMIElement, value) {
     return _self.setValue('SetValue', true, CMIElement, value);
   }
 
@@ -83,7 +91,7 @@ class Scorm2004API extends BaseAPI {
    *
    * @return {string} bool
    */
-  LMSCommit() {
+  lmsCommit() {
     return _self.commit('Commit');
   }
 
@@ -92,27 +100,27 @@ class Scorm2004API extends BaseAPI {
    *
    * @return {string}
    */
-  LMSGetLastError() {
+  lmsGetLastError() {
     return _self.getLastError('GetLastError');
   }
 
   /**
    * Returns the errorNumber error description
    *
-   * @param CMIErrorCode
+   * @param {(string|number)} CMIErrorCode
    * @return {string}
    */
-  LMSGetErrorString(CMIErrorCode) {
+  lmsGetErrorString(CMIErrorCode) {
     return _self.getErrorString('GetErrorString', CMIErrorCode);
   }
 
   /**
    * Returns a comprehensive description of the errorNumber error.
    *
-   * @param CMIErrorCode
+   * @param {(string|number)} CMIErrorCode
    * @return {string}
    */
-  LMSGetDiagnostic(CMIErrorCode) {
+  lmsGetDiagnostic(CMIErrorCode) {
     return _self.getDiagnostic('GetDiagnostic', CMIErrorCode);
   }
 
@@ -160,7 +168,7 @@ class Scorm2004API extends BaseAPI {
         const response_type = correct_responses[interaction_type];
         let nodes = [];
         if (response_type.delimiter !== '') {
-          nodes = value.split(response_type.delimiter);
+          nodes = String(value).split(response_type.delimiter);
         } else {
           nodes[0] = value;
         }
@@ -191,7 +199,7 @@ class Scorm2004API extends BaseAPI {
   /**
    * Validate correct response.
    * @param {string} CMIElement
-   * @param {any} value
+   * @param {*} value
    */
   validateCorrectResponse(CMIElement, value) {
     const parts = CMIElement.split('.');
@@ -215,7 +223,7 @@ class Scorm2004API extends BaseAPI {
         response_type.limit) {
       let nodes = [];
       if (response_type.delimiter !== '') {
-        nodes = value.split(response_type.delimiter);
+        nodes = String(value).split(response_type.delimiter);
       } else {
         nodes[0] = value;
       }
@@ -258,8 +266,8 @@ class Scorm2004API extends BaseAPI {
   /**
    * Returns the message that corresponds to errorNumber.
    *
-   * @param {string,number} errorNumber
-   * @param {string} detail
+   * @param {(string|number)} errorNumber
+   * @param {boolean} detail
    * @return {string}
    */
   getLmsErrorMessageDetails(errorNumber, detail) {
@@ -276,6 +284,13 @@ class Scorm2004API extends BaseAPI {
     return detail ? detailMessage : basicMessage;
   }
 
+  /**
+   * Check to see if a correct_response value has been duplicated
+   * @param {CMIArray} correct_response
+   * @param {number} current_index
+   * @param {*} value
+   * @return {boolean}
+   */
   #checkDuplicatedPattern = (correct_response, current_index, value) => {
     let found = false;
     const count = correct_response._count;
@@ -287,6 +302,12 @@ class Scorm2004API extends BaseAPI {
     return found;
   };
 
+  /**
+   * Checks for a valid correct_response value
+   * @param {string} interaction_type
+   * @param {Array} nodes
+   * @param {*} value
+   */
   #checkCorrectResponseValue = (interaction_type, nodes, value) => {
     const response = correct_responses[interaction_type];
     const formatRegex = new RegExp(response.format);
@@ -334,6 +355,11 @@ class Scorm2004API extends BaseAPI {
     }
   };
 
+  /**
+   * Remove prefixes from correct_response
+   * @param {string} node
+   * @return {*}
+   */
   #removeCorrectResponsePrefixes = (node) => {
     let seenOrder = false;
     let seenCase = false;
@@ -404,11 +430,7 @@ class Scorm2004API extends BaseAPI {
     const totalTime = _self.cmi.total_time;
     const sessionTime = _self.cmi.session_time;
 
-    const durationRegex = scorm2004_regex.CMITimespan;
-    const totalSeconds = Util.getDurationAsSeconds(totalTime, durationRegex);
-    const sessionSeconds = Util.getDurationAsSeconds(sessionTime,
-        durationRegex);
-
-    return Util.getSecondsAsISODuration(totalSeconds + sessionSeconds);
+    return Util.addTwoDurations(totalTime, sessionTime,
+        scorm2004_regex.CMITimespan);
   }
 }

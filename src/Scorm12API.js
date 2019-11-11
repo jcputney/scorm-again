@@ -13,134 +13,170 @@ import {scorm12_error_codes} from './constants/error_codes';
 import {scorm12_regex} from './regex';
 
 const constants = scorm12_constants;
+let _self;
 
+/**
+ * API class for SCORM 1.2
+ */
 export default class Scorm12API extends BaseAPI {
+  /**
+   * Constructor for SCORM 1.2 API
+   */
   constructor() {
     super(scorm12_error_codes);
+    _self = this;
 
-    this.cmi = new CMI(this);
+    _self.cmi = new CMI(this);
+    // Rename functions to match 1.2 Spec and expose to modules
+    _self.LMSInitialize = _self.lmsInitialize;
+    _self.LMSFinish = _self.lmsFinish;
+    _self.LMSGetValue = _self.lmsGetValue;
+    _self.LMSSetValue = _self.lmsSetValue;
+    _self.LMSCommit = _self.lmsCommit;
+    _self.LMSGetLastError = _self.lmsGetLastError;
+    _self.LMSGetErrorString = _self.lmsGetErrorString;
+    _self.LMSGetDiagnostic = _self.lmsGetDiagnostic;
   }
 
   /**
-     * @return {string} bool
-     */
-  LMSInitialize() {
-    return this.initialize('LMSInitialize', 'LMS was already initialized!',
+   * lmsInitialize function from SCORM 1.2 Spec
+   *
+   * @return {string} bool
+   */
+  lmsInitialize() {
+    return _self.initialize('LMSInitialize', 'LMS was already initialized!',
         'LMS is already finished!');
   }
 
   /**
-     * @return {string} bool
-     */
-  LMSFinish() {
-    return this.terminate('LMSFinish', false);
+   * LMSFinish function from SCORM 1.2 Spec
+   *
+   * @return {string} bool
+   */
+  lmsFinish() {
+    return _self.terminate('LMSFinish', false);
   }
 
   /**
-     * @param CMIElement
-     * @return {string}
-     */
-  LMSGetValue(CMIElement) {
-    return this.getValue('LMSGetValue', false, CMIElement);
+   * LMSGetValue function from SCORM 1.2 Spec
+   *
+   * @param {string} CMIElement
+   * @return {string}
+   */
+  lmsGetValue(CMIElement) {
+    return _self.getValue('LMSGetValue', false, CMIElement);
   }
 
   /**
-     * @param CMIElement
-     * @param value
-     * @return {string}
-     */
-  LMSSetValue(CMIElement, value) {
-    return this.setValue('LMSSetValue', false, CMIElement, value);
+   * LMSSetValue function from SCORM 1.2 Spec
+   *
+   * @param {string} CMIElement
+   * @param {*} value
+   * @return {string}
+   */
+  lmsSetValue(CMIElement, value) {
+    return _self.setValue('LMSSetValue', false, CMIElement, value);
   }
 
   /**
-     * Orders LMS to store all content parameters
-     *
-     * @return {string} bool
-     */
-  LMSCommit() {
-    return this.commit('LMSCommit', false);
+   * LMSCommit function from SCORM 1.2 Spec
+   *
+   * @return {string} bool
+   */
+  lmsCommit() {
+    return _self.commit('LMSCommit', false);
   }
 
   /**
-     * Returns last error code
-     *
-     * @return {string}
-     */
-  LMSGetLastError() {
-    return this.getLastError('LMSGetLastError');
+   * LMSGetLastError function from SCORM 1.2 Spec
+   *
+   * @return {string}
+   */
+  lmsGetLastError() {
+    return _self.getLastError('LMSGetLastError');
   }
 
   /**
-     * Returns the errorNumber error description
-     *
-     * @param CMIErrorCode
-     * @return {string}
-     */
-  LMSGetErrorString(CMIErrorCode) {
-    return this.getErrorString('LMSGetErrorString', CMIErrorCode);
+   * LMSGetErrorString function from SCORM 1.2 Spec
+   *
+   * @param {string} CMIErrorCode
+   * @return {string}
+   */
+  lmsGetErrorString(CMIErrorCode) {
+    return _self.getErrorString('LMSGetErrorString', CMIErrorCode);
   }
 
   /**
-     * Returns a comprehensive description of the errorNumber error.
-     *
-     * @param CMIErrorCode
-     * @return {string}
-     */
-  LMSGetDiagnostic(CMIErrorCode) {
-    return this.getDiagnostic('LMSGetDiagnostic', CMIErrorCode);
+   * LMSGetDiagnostic function from SCORM 1.2 Spec
+   *
+   * @param {string} CMIErrorCode
+   * @return {string}
+   */
+  lmsGetDiagnostic(CMIErrorCode) {
+    return _self.getDiagnostic('LMSGetDiagnostic', CMIErrorCode);
   }
 
   /**
-     * Sets a value on the CMI Object
-     *
-     * @param CMIElement
-     * @param value
-     * @return {string}
-     */
+   * Sets a value on the CMI Object
+   *
+   * @param {string} CMIElement
+   * @param {*} value
+   */
   setCMIValue(CMIElement, value) {
-    this._commonSetCMIValue('LMSSetValue', false, CMIElement, value);
+    _self._commonSetCMIValue('LMSSetValue', false, CMIElement, value);
   }
 
   /**
-     * Gets a value from the CMI Object
-     *
-     * @param CMIElement
-     * @return {*}
-     */
+   * Gets a value from the CMI Object
+   *
+   * @param {string} CMIElement
+   * @return {*}
+   */
   getCMIValue(CMIElement) {
-    return this._commonGetCMIValue('getCMIValue', false, CMIElement);
+    return _self._commonGetCMIValue('getCMIValue', false, CMIElement);
   }
 
   /**
    * Gets or builds a new child element to add to the array.
    *
-   * @param CMIElement
-   * @param value
+   * @param {string} CMIElement
+   * @param {*} value
+   * @return {object}
    */
   getChildElement(CMIElement, value) {
     let newChild;
 
-    if (this.stringContains(CMIElement, 'cmi.objectives')) {
+    if (_self.stringContains(CMIElement, 'cmi.objectives')) {
       newChild = new CMIObjectivesObject(this);
-    } else if (this.stringContains(CMIElement, '.correct_responses')) {
+    } else if (_self.stringContains(CMIElement, '.correct_responses')) {
       newChild = new CMIInteractionsCorrectResponsesObject(this);
-    } else if (this.stringContains(CMIElement, '.objectives')) {
+    } else if (_self.stringContains(CMIElement, '.objectives')) {
       newChild = new CMIInteractionsObjectivesObject(this);
-    } else if (this.stringContains(CMIElement, 'cmi.interactions')) {
+    } else if (_self.stringContains(CMIElement, 'cmi.interactions')) {
       newChild = new CMIInteractionsObject(this);
     }
 
     return newChild;
   }
 
+  /**
+   * Validates Correct Response values
+   *
+   * @param {string} CMIElement
+   * @param {*} value
+   * @return {boolean}
+   */
   validateCorrectResponse(CMIElement, value) {
     return true;
   }
 
   /**
-     * Returns the message that corresponds to errorNumber.
-     */
+   * Returns the message that corresponds to errorNumber.
+   *
+   * @param {*} errorNumber
+   * @param {boolean }detail
+   * @return {string}
+   */
   getLmsErrorMessageDetails(errorNumber, detail) {
     let basicMessage = 'No Error';
     let detailMessage = 'No Error';
@@ -156,25 +192,26 @@ export default class Scorm12API extends BaseAPI {
   }
 
   /**
-     * Adds the current session time to the existing total time.
-     */
+   * Adds the current session time to the existing total time.
+   *
+   * @return {string}
+   */
   getCurrentTotalTime() {
     const timeRegex = new RegExp(scorm12_regex.CMITime);
 
-    const totalTime = this.cmi.core.total_time;
-    const sessionTime = this.cmi.core.session_time;
+    const totalTime = _self.cmi.core.total_time;
+    const sessionTime = _self.cmi.core.session_time;
 
-    const totalSeconds = Utilities.getTimeAsSeconds(totalTime, timeRegex);
-    const sessionSeconds = Utilities.getTimeAsSeconds(sessionTime, timeRegex);
-
-    return Utilities.getSecondsAsHHMMSS(totalSeconds + sessionSeconds);
+    return Utilities.addHHMMSSTimeStrings(totalTime, sessionTime, timeRegex);
   }
 
   /**
-     * Replace the whole API with another
-     */
+   * Replace the whole API with another
+   *
+   * @param {Scorm12API} newAPI
+   */
   replaceWithAnotherScormAPI(newAPI) {
     // Data Model
-    this.cmi = newAPI.cmi;
+    _self.cmi = newAPI.cmi;
   }
 }

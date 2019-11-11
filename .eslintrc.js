@@ -1,5 +1,5 @@
 module.exports = {
-  parser: "babel-eslint",
+  parser: 'babel-eslint',
   env: {
     browser: true,
     es6: true,
@@ -10,18 +10,19 @@ module.exports = {
     SharedArrayBuffer: 'readonly',
   },
   parserOptions: {
-    sourceType: "module",
+    sourceType: 'module',
     allowImportExportEverywhere: false,
     classPrivateMethods: true,
     ecmaFeatures: {
       globalReturn: false,
     },
     babelOptions: {
-      configFile: "./.babelrc",
+      configFile: './.babelrc',
     },
   },
   rules: {
-    camelcase: 'off',
+    'camelcase': 'off',
     'max-len': 'off',
+    'no-unused-vars': 'off',
   },
 };

@@ -39,17 +39,18 @@ class CMIEvaluation extends BaseCMI {
    */
   constructor(API) {
     super(API);
-  }
 
-  comments = new class extends CMIArray {
-    /**
-     * Constructor for AICC Evaluation Comments object
-     * @param {AICC} API
-     */
-    constructor(API) {
-      super(API, constants.comments_children, 402);
-    }
-  };
+    this.comments = new class extends CMIArray {
+      /**
+       * Constructor for AICC Evaluation Comments object
+       * @param {AICC} API
+       */
+      constructor(API) {
+        super(API, constants.comments_children,
+            scorm12_error_codes.INVALID_SET_VALUE);
+      }
+    }(API);
+  }
 }
 
 /**
@@ -62,6 +63,16 @@ class AICCCMIStudentData extends Scorm12CMI.CMIStudentData {
    */
   constructor(API) {
     super(API, constants.student_data_children);
+
+    this.tries = new class extends CMIArray {
+      /**
+       * Constructor for inline Tries Array class
+       * @param {AICC} API
+       */
+      constructor(API) {
+        super(API, aicc_constants.tries_children);
+      }
+    }(API);
   }
 
   #tries_during_lesson = '';
@@ -84,34 +95,20 @@ class AICCCMIStudentData extends Scorm12CMI.CMIStudentData {
         this.#tries_during_lesson = tries_during_lesson :
         throwReadOnlyError();
   }
-
-  tries = new class extends CMIArray {
-    /**
-     * Constructor for inline Tries Array class
-     * @param {AICC} API
-     */
-    constructor(API) {
-      super(API, aicc_constants.tries_children);
-    }
-  };
 }
-
-let _self;
 
 /**
  * Class for AICC Tries
  */
 export class CMITriesObject extends BaseCMI {
-  #API;
-
   /**
    * Constructor for AICC Tries object
    * @param {AICC} API
    */
   constructor(API) {
     super(API);
-    this.#API = API;
-    _self = this;
+
+    this.score = new CMIScore(API);
   }
 
   #status = '';
@@ -152,8 +149,6 @@ export class CMITriesObject extends BaseCMI {
       this.#time = time;
     }
   }
-
-  score = new CMIScore(_self.#API);
 }
 
 /**
@@ -246,7 +241,9 @@ export class NAV extends BaseCMI {
    * @return {string}
    */
   get event() {
-    return (!this.jsonString) ? this.API.throwSCORMError(404) : this.#event;
+    return (!this.jsonString) ?
+        this.API.throwSCORMError(scorm12_error_codes.WRITE_ONLY_ELEMENT) :
+        this.#event;
   }
 
   /**

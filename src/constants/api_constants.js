@@ -30,7 +30,7 @@ export const scorm12_constants = {
     },
     '301': {
       basicMessage: 'Not initialized',
-      detailMessage: 'Indicates that an API call was made before the call to LMSInitialize.',
+      detailMessage: 'Indicates that an API call was made before the call to lmsInitialize.',
     },
     '401': {
       basicMessage: 'Not implemented error',

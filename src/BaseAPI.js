@@ -134,7 +134,7 @@ export default class BaseAPI {
    * @param {string} callbackName
    * @param {boolean} checkTerminated
    * @param {string} CMIElement
-   * @param {any} value
+   * @param {*} value
    * @return {string}
    */
   setValue(
@@ -204,7 +204,7 @@ export default class BaseAPI {
    * Returns the errorNumber error description
    *
    * @param {string} callbackName
-   * @param {number} CMIErrorCode
+   * @param {(string|number)} CMIErrorCode
    * @return {string}
    */
   getErrorString(callbackName: String, CMIErrorCode) {
@@ -224,8 +224,8 @@ export default class BaseAPI {
   /**
    * Returns a comprehensive description of the errorNumber error.
    *
-   * @param callbackName
-   * @param CMIErrorCode
+   * @param {string} callbackName
+   * @param {(string|number)} CMIErrorCode
    * @return {string}
    */
   getDiagnostic(callbackName: String, CMIErrorCode) {
@@ -243,10 +243,16 @@ export default class BaseAPI {
   }
 
   /**
-   * Checks the LMS state and ensures it has been initialized
+   * Checks the LMS state and ensures it has been initialized.
+   *
+   * @param {boolean} checkTerminated
+   * @param {number} beforeInitError
+   * @param {number} afterTermError
+   * @return {boolean}
    */
   checkState(
-      checkTerminated: boolean, beforeInitError: number,
+      checkTerminated: boolean,
+      beforeInitError: number,
       afterTermError?: number) {
     if (_self.isNotInitialized()) {
       _self.throwSCORMError(beforeInitError);
@@ -262,13 +268,15 @@ export default class BaseAPI {
   /**
    * Logging for all SCORM actions
    *
-   * @param functionName
-   * @param CMIElement
-   * @param logMessage
-   * @param messageLevel
+   * @param {string} functionName
+   * @param {string} CMIElement
+   * @param {string} logMessage
+   * @param {number}messageLevel
    */
   apiLog(
-      functionName: String, CMIElement: String, logMessage: String,
+      functionName: String,
+      CMIElement: String,
+      logMessage: String,
       messageLevel: number) {
     logMessage = _self.formatMessage(functionName, CMIElement, logMessage);
 
@@ -288,20 +296,11 @@ export default class BaseAPI {
   }
 
   /**
-   * Clears the last SCORM error code on success
-   */
-  clearSCORMError(success: String) {
-    if (success !== api_constants.SCORM_FALSE) {
-      _self.lastErrorCode = 0;
-    }
-  }
-
-  /**
    * Formats the SCORM messages for easy reading
    *
-   * @param functionName
-   * @param CMIElement
-   * @param message
+   * @param {string} functionName
+   * @param {string} CMIElement
+   * @param {string} message
    * @return {string}
    */
   formatMessage(functionName: String, CMIElement: String, message: String) {
@@ -340,8 +339,9 @@ export default class BaseAPI {
   /**
    * Checks to see if {str} contains {tester}
    *
-   * @param str String to check against
-   * @param tester String to check for
+   * @param {string} str String to check against
+   * @param {string} tester String to check for
+   * @return {boolean}
    */
   stringContains(str: String, tester: String) {
     return str.indexOf(tester) > -1;
@@ -350,6 +350,10 @@ export default class BaseAPI {
   /**
    * Returns the message that corresponds to errorNumber
    * APIs that inherit BaseAPI should override this function
+   *
+   * @param {(string|number)} _errorNumber
+   * @param {boolean} _detail
+   * @return {string}
    */
   getLmsErrorMessageDetails(_errorNumber, _detail) {
     return 'No error';
@@ -358,6 +362,9 @@ export default class BaseAPI {
   /**
    * Gets the value for the specific element.
    * APIs that inherit BaseAPI should override this function
+   *
+   * @param {string} _CMIElement
+   * @return {string}
    */
   getCMIValue(_CMIElement) {
     return '';
@@ -366,11 +373,24 @@ export default class BaseAPI {
   /**
    * Sets the value for the specific element.
    * APIs that inherit BaseAPI should override this function
+   *
+   * @param {string} _CMIElement
+   * @param {any} _value
    */
   setCMIValue(_CMIElement, _value) {
-    return '';
+    // just a stub method
   }
 
+  /**
+   * Shared API method to set a valid for a given element.
+   *
+   * @param {string} methodName
+   * @param {boolean} scorm2004
+   * @param {string} CMIElement
+   * @param {*} value
+   * @return {string}
+   * @private
+   */
   _commonSetCMIValue(
       methodName: String, scorm2004: boolean, CMIElement, value) {
     if (!CMIElement || CMIElement === '') {
@@ -393,7 +413,7 @@ export default class BaseAPI {
         if (scorm2004 && (attribute.substr(0, 8) === '{target=') &&
             (typeof refObject._isTargetValid == 'function')) {
           _self.throwSCORMError(_self.#error_codes.READ_ONLY_ELEMENT);
-        } else if (!refObject.hasOwnProperty(attribute)) {
+        } else if (!{}.hasOwnProperty.call(refObject, attribute)) {
           _self.throwSCORMError(invalidErrorCode, invalidErrorMessage);
         } else {
           if (_self.stringContains(CMIElement, '.correct_responses')) {
@@ -412,7 +432,7 @@ export default class BaseAPI {
           break;
         }
 
-        if (refObject.prototype === CMIArray) {
+        if (refObject instanceof CMIArray) {
           const index = parseInt(structure[i + 1], 10);
 
           // SCO is trying to set an item on an array
@@ -448,24 +468,34 @@ export default class BaseAPI {
     return returnValue;
   }
 
+  /**
+   * Abstract method for validating that a response is correct.
+   *
+   * @param {string} _CMIElement
+   * @param {*} _value
+   */
   validateCorrectResponse(_CMIElement, _value) {
-    return false;
+    // just a stub method
   }
 
   /**
    * Gets or builds a new child element to add to the array.
-   * APIs that inherit BaseAPI should override this method
+   * APIs that inherit BaseAPI should override this method.
+   *
+   * @param {string} _CMIElement - unused
+   * @param {*} _value - unused
+   * @return {*}
    */
-  getChildElement(_CMIElement) {
+  getChildElement(_CMIElement, _value) {
     return null;
   }
 
   /**
    * Gets a value from the CMI Object
    *
-   * @param methodName
-   * @param scorm2004
-   * @param CMIElement
+   * @param {string} methodName
+   * @param {boolean} scorm2004
+   * @param {string} CMIElement
    * @return {*}
    */
   _commonGetCMIValue(methodName: String, scorm2004: boolean, CMIElement) {
@@ -482,7 +512,7 @@ export default class BaseAPI {
 
       if (!scorm2004) {
         if (i === structure.length - 1) {
-          if (!refObject.hasOwnProperty(attribute)) {
+          if (!{}.hasOwnProperty.call(refObject, attribute)) {
             _self.throwSCORMError(101,
                 'getCMIValue did not find a value for: ' + CMIElement);
           }
@@ -493,7 +523,7 @@ export default class BaseAPI {
           const target = String(attribute).
               substr(8, String(attribute).length - 9);
           return refObject._isTargetValid(target);
-        } else if (!refObject.hasOwnProperty(attribute)) {
+        } else if (!{}.hasOwnProperty.call(refObject, attribute)) {
           _self.throwSCORMError(401,
               'The data model element passed to GetValue (' + CMIElement +
               ') is not a valid SCORM data model element.');
@@ -520,6 +550,8 @@ export default class BaseAPI {
 
   /**
    * Returns true if the API's current state is STATE_INITIALIZED
+   *
+   * @return {boolean}
    */
   isInitialized() {
     return _self.currentState === api_constants.STATE_INITIALIZED;
@@ -527,6 +559,8 @@ export default class BaseAPI {
 
   /**
    * Returns true if the API's current state is STATE_NOT_INITIALIZED
+   *
+   * @return {boolean}
    */
   isNotInitialized() {
     return _self.currentState === api_constants.STATE_NOT_INITIALIZED;
@@ -534,6 +568,8 @@ export default class BaseAPI {
 
   /**
    * Returns true if the API's current state is STATE_TERMINATED
+   *
+   * @return {boolean}
    */
   isTerminated() {
     return _self.currentState === api_constants.STATE_TERMINATED;
@@ -542,8 +578,8 @@ export default class BaseAPI {
   /**
    * Provides a mechanism for attaching to a specific SCORM event
    *
-   * @param listenerName
-   * @param callback
+   * @param {string} listenerName
+   * @param {function} callback
    */
   on(listenerName: String, callback: function) {
     if (!callback) return;
@@ -571,9 +607,9 @@ export default class BaseAPI {
   /**
    * Processes any 'on' listeners that have been created
    *
-   * @param functionName
-   * @param CMIElement
-   * @param value
+   * @param {string} functionName
+   * @param {string} CMIElement
+   * @param {*} value
    */
   processListeners(functionName: String, CMIElement: String, value: any) {
     for (let i = 0; i < _self.listenerArray.length; i++) {
@@ -591,8 +627,8 @@ export default class BaseAPI {
   /**
    * Throws a SCORM error
    *
-   * @param errorNumber
-   * @param message
+   * @param {number} errorNumber
+   * @param {string} message
    */
   throwSCORMError(errorNumber: number, message: String) {
     if (!message) {
@@ -606,19 +642,33 @@ export default class BaseAPI {
   }
 
   /**
+   * Clears the last SCORM error code on success.
+   *
+   * @param {string} success
+   */
+  clearSCORMError(success: String) {
+    if (success !== api_constants.SCORM_FALSE) {
+      _self.lastErrorCode = 0;
+    }
+  }
+
+  /**
    * Loads CMI data from a JSON object.
+   *
+   * @param {object} json
+   * @param {string} CMIElement
    */
   loadFromJSON(json, CMIElement) {
     if (!_self.isNotInitialized()) {
       console.error(
-          'loadFromJSON can only be called before the call to LMSInitialize.');
+          'loadFromJSON can only be called before the call to lmsInitialize.');
       return;
     }
 
     CMIElement = CMIElement || 'cmi';
 
     for (const key in json) {
-      if (json.hasOwnProperty(key) && json[key]) {
+      if ({}.hasOwnProperty.call(json, key) && json[key]) {
         const currentCMIElement = CMIElement + '.' + key;
         const value = json[key];
 
@@ -636,6 +686,11 @@ export default class BaseAPI {
     }
   }
 
+  /**
+   * Render the CMI object to JSON for sending to an LMS.
+   *
+   * @return {string}
+   */
   renderCMIToJSON() {
     const cmi = _self.cmi;
     // Do we want/need to return fields that have no set value?
@@ -646,8 +701,8 @@ export default class BaseAPI {
   /**
    * Check if the value matches the proper format. If not, throw proper error code.
    *
-   * @param value
-   * @param regexPattern
+   * @param {string} value
+   * @param {string} regexPattern
    * @return {boolean}
    */
   checkValidFormat(value: String, regexPattern: String) {
@@ -662,8 +717,8 @@ export default class BaseAPI {
   /**
    * Check if the value matches the proper range. If not, throw proper error code.
    *
-   * @param value
-   * @param rangePattern
+   * @param {*} value
+   * @param {string} rangePattern
    * @return {boolean}
    */
   checkValidRange(value: any, rangePattern: String) {
@@ -686,7 +741,7 @@ export default class BaseAPI {
   /**
    * Throws a SCORM error
    *
-   * @param when the number of milliseconds to wait before committing
+   * @param {number} when - the number of milliseconds to wait before committing
    */
   scheduleCommit(when: number) {
     _self.#timeout = new ScheduledCommit(this, when);
@@ -703,16 +758,27 @@ export default class BaseAPI {
   }
 }
 
+/**
+ * Private class that wraps a timeout call to the commit() function
+ */
 class ScheduledCommit {
   #API;
   #cancelled: false;
   #timeout;
 
+  /**
+   * Constructor for ScheduledCommit
+   * @param {BaseAPI} API
+   * @param {number} when
+   */
   constructor(API: any, when: number) {
     _self.#API = API;
     _self.#timeout = setTimeout(_self.#wrapper, when);
   }
 
+  /**
+   * Cancel any currently scheduled commit
+   */
   cancel() {
     _self.#cancelled = true;
     if (_self.#timeout) {
@@ -720,6 +786,9 @@ class ScheduledCommit {
     }
   }
 
+  /**
+   * Wrap the API commit call to check if the call has already been cancelled
+   */
   #wrapper = () => {
     if (!_self.#cancelled) {
       _self.#API.commit();
