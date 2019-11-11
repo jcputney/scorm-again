@@ -1,52 +1,49 @@
 // @flow
 import Scorm12API from './Scorm12API';
-import {
-    CMIInteractionsCorrectResponsesObject,
-    CMIInteractionsObject,
-    CMIInteractionsObjectivesObject,
-    CMIObjectivesObject
-} from "./cmi/scorm12_cmi";
-import {CMIEvaluationCommentsObject, CMITriesObject, NAV} from "./cmi/aicc_cmi";
+import {CMIEvaluationCommentsObject, CMITriesObject, NAV} from './cmi/aicc_cmi';
 
+/**
+ * The AICC API class
+ */
 class AICC extends Scorm12API {
-    constructor() {
-        super();
+  /**
+   * Constructor to create AICC API object
+   */
+  constructor() {
+    super();
 
-        this.nav = new NAV(this);
+    this.nav = new NAV(this);
+  }
+
+  /**
+   * Gets or builds a new child element to add to the array.
+   *
+   * @param {string} CMIElement
+   * @param {any} value
+   * @return {object}
+   */
+  getChildElement(CMIElement, value) {
+    let newChild = super.getChildElement(CMIElement);
+
+    if (!newChild) {
+      if (this.stringContains(CMIElement, 'cmi.evaluation.comments')) {
+        newChild = new CMIEvaluationCommentsObject(this);
+      } else if (this.stringContains(CMIElement, 'cmi.student_data.tries')) {
+        newChild = new CMITriesObject(this);
+      }
     }
 
-    /**
-     * Gets or builds a new child element to add to the array.
-     *
-     * @param CMIElement
-     * @param value
-     */
-    getChildElement(CMIElement, value) {
-        let newChild;
+    return newChild;
+  }
 
-        if (this.stringContains(CMIElement, "cmi.objectives")) {
-            newChild = new CMIObjectivesObject(this);
-        } else if (this.stringContains(CMIElement, ".correct_responses")) {
-            newChild = new CMIInteractionsCorrectResponsesObject(this);
-        } else if (this.stringContains(CMIElement, ".objectives")) {
-            newChild = new CMIInteractionsObjectivesObject(this);
-        } else if (this.stringContains(CMIElement, "cmi.interactions")) {
-            newChild = new CMIInteractionsObject(this);
-        } else if (this.stringContains(CMIElement, "cmi.evaluation.comments")) {
-            newChild = new CMIEvaluationCommentsObject(this);
-        } else if (this.stringContains(CMIElement, "cmi.student_data.tries")) {
-            newChild = new CMITriesObject(this);
-        }
-
-        return newChild;
-    }
-
-    /**
-     * Replace the whole API with another
-     */
-    replaceWithAnotherScormAPI(newAPI) {
-        // Data Model
-        this.cmi = newAPI.cmi;
-        this.nav = newAPI.nav;
-    }
+  /**
+   * Replace the whole API with another
+   *
+   * @param {AICC} newAPI
+   */
+  replaceWithAnotherScormAPI(newAPI) {
+    // Data Model
+    this.cmi = newAPI.cmi;
+    this.nav = newAPI.nav;
+  }
 }

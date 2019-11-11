@@ -112,10 +112,11 @@ export default class Scorm12API extends BaseAPI {
   }
 
   /**
-     * Gets or builds a new child element to add to the array.
-     *
-     * @param CMIElement
-     */
+   * Gets or builds a new child element to add to the array.
+   *
+   * @param CMIElement
+   * @param value
+   */
   getChildElement(CMIElement, value) {
     let newChild;
 
