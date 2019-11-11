@@ -15,9 +15,10 @@
     "@babel/preset-env": "^7.7.1",
     "@babel/preset-flow": "^7.0.0",
     "@babel/register": "^7.7.0",
-    "babel-eslint": "^10.0.3",
+    "babel-eslint": "^11.0.0-beta.0",
     "chai": "^4.2.0",
     "eslint": "^6.6.0",
+    "eslint-config-google": "^0.14.0",
     "eslint-plugin-import": "^2.18.2",
     "mocha": "^6.2.2",
     "nyc": "^14.1.1"

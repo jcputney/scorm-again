@@ -4,6 +4,7 @@ module.exports = {
     browser: true,
     es6: true,
   },
+  extends: ['eslint:recommended', 'google'],
   globals: {
     Atomics: 'readonly',
     SharedArrayBuffer: 'readonly',
@@ -11,6 +12,7 @@ module.exports = {
   parserOptions: {
     sourceType: "module",
     allowImportExportEverywhere: false,
+    classPrivateMethods: true,
     ecmaFeatures: {
       globalReturn: false,
     },
@@ -19,5 +21,7 @@ module.exports = {
     },
   },
   rules: {
+    camelcase: 'off',
+    'max-len': 'off',
   },
 };
