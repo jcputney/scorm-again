@@ -11,15 +11,13 @@ import {
   CMIObjectivesObject,
 } from './cmi/scorm2004_cmi';
 import * as Util from './utilities';
-import {
-  correct_responses,
-  scorm2004_constants,
-  scorm2004_error_codes,
-} from './constants';
+import {scorm2004_constants} from './constants/api_constants';
+import {scorm2004_error_codes} from './constants/error_codes';
+import {correct_responses} from './constants/response_constants';
+import {valid_languages} from './constants/language_constants';
 import {scorm2004_regex} from './regex';
 
 const constants = scorm2004_constants;
-const valid_languages = constants.valid_languages;
 let _self;
 
 /**
@@ -105,7 +103,7 @@ class Scorm2004API extends BaseAPI {
    * @return {string}
    */
   LMSGetErrorString(CMIErrorCode) {
-    return _self.APIGetErrorString('GetErrorString', CMIErrorCode);
+    return _self.getErrorString('GetErrorString', CMIErrorCode);
   }
 
   /**
@@ -115,7 +113,7 @@ class Scorm2004API extends BaseAPI {
    * @return {string}
    */
   LMSGetDiagnostic(CMIErrorCode) {
-    return _self.APIGetDiagnostic('GetDiagnostic', CMIErrorCode);
+    return _self.getDiagnostic('GetDiagnostic', CMIErrorCode);
   }
 
   /**

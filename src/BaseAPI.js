@@ -722,7 +722,7 @@ class ScheduledCommit {
 
   #wrapper = () => {
     if (!_self.#cancelled) {
-      _self.#API.LMSCommit();
+      _self.#API.commit();
     }
   };
 }

@@ -1,5 +1,5 @@
 import {BaseCMI, CMIArray, CMIScore} from './common';
-import {learner_responses, scorm2004_constants, scorm2004_error_codes} from "../constants";
+import {learner_responses, scorm2004_constants, scorm2004_error_codes} from "../constants/api_constants";
 import {scorm2004_regex} from "../regex";
 
 const constants = scorm2004_constants;

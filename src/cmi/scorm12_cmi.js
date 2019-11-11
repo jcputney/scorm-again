@@ -1,5 +1,6 @@
 import {BaseCMI, CMIArray, CMIScore} from './common';
-import {scorm12_constants, scorm12_error_codes} from '../constants';
+import {scorm12_constants} from '../constants/api_constants';
+import {scorm12_error_codes} from '../constants/error_codes';
 import {scorm12_regex} from '../regex';
 
 const constants = scorm12_constants;

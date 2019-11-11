@@ -1,6 +1,6 @@
 import * as Scorm12CMI from './scorm12_cmi';
 import {BaseCMI, CMIArray, CMIScore} from './common';
-import {aicc_constants, scorm12_error_codes} from '../constants';
+import {aicc_constants, scorm12_error_codes} from '../constants/api_constants';
 import {aicc_regex} from '../regex';
 
 const constants = aicc_constants;
