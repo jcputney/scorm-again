@@ -25,4 +25,12 @@ module.exports = {
     'max-len': 'off',
     'no-unused-vars': 'off',
   },
+  overrides: [
+    {
+      'files': ['*.spec.js'],
+      'rules': {
+        'no-undef': 0,
+      },
+    },
+  ],
 };

@@ -1,164 +1,93 @@
-import {expect} from 'chai';
-import {describe, it, beforeEach, afterEach} from 'mocha';
+import {describe, beforeEach, afterEach} from 'mocha';
 import {scorm12_constants} from '../../src/constants/api_constants';
 import {scorm12_error_codes} from '../../src/constants/error_codes';
 import {CMI} from '../../src/cmi/scorm12_cmi';
+import * as h from '../helpers';
 
-let cmi;
-
-const checkFieldConstraintSize = ({fieldName, limit, expectedValue = ''}) => {
-  describe(`Field: ${fieldName}`, () => {
-    it(`Should be able to read from ${fieldName}`, () => {
-      expect(eval(`${fieldName}`)).to.equal(expectedValue);
-    });
-
-    it(`Should be able to write upto ${limit} characters to ${fieldName}`,
-        () => {
-          expect(() => eval(`${fieldName} = 'x'.repeat(${limit})`)).
-              to.not.throw();
-        });
-
-    it(`Should fail to write more than ${limit} characters to ${fieldName}`,
-        () => {
-          expect(() => eval(`${fieldName} = 'x'.repeat(${limit + 1})`)).
-              to.throw(scorm12_error_codes.TYPE_MISMATCH + '');
-        });
-  });
-};
-
-const checkInvalidSet = ({fieldName, expectedValue = ''}) => {
-  describe(`Field: ${fieldName}`, () => {
-    it(`Should be able to read from ${fieldName}`, () => {
-      expect(eval(`${fieldName}`)).to.equal(expectedValue);
-    });
-
-    it(`Should fail to write to ${fieldName}`, () => {
-      expect(() => eval(`${fieldName} = 'xxx'`)).
-          to.throw(scorm12_error_codes.INVALID_SET_VALUE + '');
-    });
-  });
-};
-
-const checkReadOnly = ({fieldName, expectedValue = ''}) => {
-  describe(`Field: ${fieldName}`, () => {
-    it(`Should be able to read from ${fieldName}`, () => {
-      expect(eval(`${fieldName}`)).to.equal(expectedValue);
-    });
-
-    it(`Should fail to write to ${fieldName}`, () => {
-      expect(() => eval(`${fieldName} = 'xxx'`)).
-          to.throw(scorm12_error_codes.READ_ONLY_ELEMENT + '');
-    });
-  });
-};
-
-const checkRead = ({fieldName, expectedValue = ''}) => {
-  describe(`Field: ${fieldName}`, () => {
-    it(`Should be able to read from ${fieldName}`, () => {
-      expect(eval(`${fieldName}`)).to.equal(expectedValue);
-    });
-  });
-};
-
-const checkReadAndWrite = ({fieldName, expectedValue = '', valueToTest = 'xxx'}) => {
-  describe(`Field: ${fieldName}`, () => {
-    it(`Should be able to read from ${fieldName}`, () => {
-      expect(eval(`${fieldName}`)).to.equal(expectedValue);
-    });
-
-    it(`Should successfully write to ${fieldName}`, () => {
-      expect(() => eval(`${fieldName} = '${valueToTest}'`)).
-          to.not.throw();
-    });
-  });
-};
-
-const checkWriteOnly = ({fieldName, valueToTest = 'xxx'}) => {
-  describe(`Field: ${fieldName}`, () => {
-    it(`Should fail to read from ${fieldName}`, () => {
-      expect(() => eval(`${fieldName}`)).
-          to.throw(scorm12_error_codes.WRITE_ONLY_ELEMENT + '');
-    });
-
-    it(`Should successfully write to ${fieldName}`, () => {
-      expect(() => eval(`${fieldName} = '${valueToTest}'`)).to.not.throw();
-    });
-  });
-};
-
-const checkWrite = ({fieldName, valueToTest = 'xxx'}) => {
-  describe(`Field: ${fieldName}`, () => {
-    it(`Should successfully write to ${fieldName}`, () => {
-      expect(() => eval(`${fieldName} = '${valueToTest}'`)).to.not.throw();
-    });
-  });
-};
-
-const checkValidValues = ({fieldName, expectedError, validValues, invalidValues}) => {
-  describe(`Field: ${fieldName}`, () => {
-    for (const idx in validValues) {
-      if ({}.hasOwnProperty.call(validValues, idx)) {
-        it(`Should successfully write '${validValues[idx]}' to ${fieldName}`,
-            () => {
-              expect(() => eval(`${fieldName} = '${validValues[idx]}'`)).
-                  to.not.throw();
-            });
-      }
-    }
-
-    for (const idx in invalidValues) {
-      if ({}.hasOwnProperty.call(invalidValues, idx)) {
-        it(`Should fail to write '${invalidValues[idx]}' to ${fieldName}`,
-            () => {
-              expect(() => eval(`${fieldName} = '${invalidValues[idx]}'`)).
-                  to.throw(expectedError + '');
-            });
-      }
-    }
-  });
-};
+const invalid_set = scorm12_error_codes.INVALID_SET_VALUE;
+const type_mismatch = scorm12_error_codes.TYPE_MISMATCH;
+const write_only = scorm12_error_codes.WRITE_ONLY_ELEMENT;
+const read_only = scorm12_error_codes.READ_ONLY_ELEMENT;
+const invalid_range = scorm12_error_codes.VALUE_OUT_OF_RANGE;
 
 describe('SCORM 1.2 CMI Tests', () => {
   describe('CMI Spec Tests', () => {
     describe('Pre-Initialize Tests', () => {
-      beforeEach('Create the API object', () => {
-        cmi = new CMI();
-      });
-      afterEach('Destroy API object', () => {
-        cmi = null;
-      });
+      const cmi = () => {
+        return new CMI();
+      };
 
       /**
        * Base CMI Properties
        */
-      checkInvalidSet({fieldName: 'cmi._version', expectedValue: '3.4'});
-      checkInvalidSet({
+      h.checkInvalidSet({
+        cmi: cmi(),
+        fieldName: 'cmi._version',
+        expectedValue: '3.4',
+        expectedError: invalid_set,
+      });
+      h.checkInvalidSet({
+        cmi: cmi(),
         fieldName: 'cmi._children',
         expectedValue: scorm12_constants.cmi_children,
+        expectedError: invalid_set,
       });
-      checkFieldConstraintSize({fieldName: 'cmi.suspend_data', limit: 4096});
-      checkReadAndWrite({fieldName: 'cmi.launch_data'});
-      checkFieldConstraintSize({fieldName: 'cmi.comments', limit: 4096});
-      checkReadAndWrite({fieldName: 'cmi.comments_from_lms'});
+      h.checkFieldConstraintSize({
+        cmi: cmi(),
+        fieldName: 'cmi.suspend_data',
+        limit: 4096,
+        expectedError: type_mismatch,
+      });
+      h.checkReadAndWrite({
+        cmi: cmi(),
+        fieldName: 'cmi.launch_data',
+      });
+      h.checkFieldConstraintSize({
+        cmi: cmi(),
+        fieldName: 'cmi.comments',
+        limit: 4096,
+        expectedError: type_mismatch,
+      });
+      h.checkReadAndWrite({
+        cmi: cmi(),
+        fieldName: 'cmi.comments_from_lms',
+      });
 
       /**
        * cmi.core Properties
        */
-      checkInvalidSet({
+      h.checkInvalidSet({
+        cmi: cmi(),
         fieldName: 'cmi.core._children',
         expectedValue: scorm12_constants.core_children,
+        expectedError: invalid_set,
       });
-      checkReadAndWrite({fieldName: 'cmi.core.student_id'});
-      checkReadAndWrite({fieldName: 'cmi.core.student_name'});
-      checkFieldConstraintSize({
+      h.checkReadAndWrite({
+        cmi: cmi(),
+        fieldName: 'cmi.core.student_id',
+      });
+      h.checkReadAndWrite({
+        cmi: cmi(),
+        fieldName: 'cmi.core.student_name',
+      });
+      h.checkFieldConstraintSize({
+        cmi: cmi(),
         fieldName: 'cmi.core.lesson_location',
         limit: 255,
+        expectedError: type_mismatch,
       });
-      checkReadAndWrite({fieldName: 'cmi.core.credit'});
-      checkRead({fieldName: 'cmi.core.lesson_status'});
-      checkValidValues({
+      h.checkReadAndWrite({
+        cmi: cmi(),
+        fieldName: 'cmi.core.credit',
+      });
+      h.checkRead({
+        cmi: cmi(),
         fieldName: 'cmi.core.lesson_status',
-        expectedError: scorm12_error_codes.TYPE_MISMATCH,
+      });
+      h.checkValidValues({
+        cmi: cmi(),
+        fieldName: 'cmi.core.lesson_status',
+        expectedError: type_mismatch,
         validValues: [
           'passed',
           'completed',
@@ -176,14 +105,28 @@ describe('SCORM 1.2 CMI Tests', () => {
           'complete',
         ],
       });
-      checkReadAndWrite({fieldName: 'cmi.core.entry'});
-      checkReadAndWrite({fieldName: 'cmi.core.total_time'});
-      checkReadAndWrite(
-          {fieldName: 'cmi.core.lesson_mode', expectedValue: 'normal'});
-      checkWrite({fieldName: 'cmi.core.exit', valueToTest: 'suspend'});
-      checkValidValues({
+      h.checkReadAndWrite({
+        cmi: cmi(),
+        fieldName: 'cmi.core.entry',
+      });
+      h.checkReadAndWrite({
+        cmi: cmi(),
+        fieldName: 'cmi.core.total_time',
+      });
+      h.checkReadAndWrite({
+        cmi: cmi(),
+        fieldName: 'cmi.core.lesson_mode',
+        expectedValue: 'normal',
+      });
+      h.checkWrite({
+        cmi: cmi(),
         fieldName: 'cmi.core.exit',
-        expectedError: scorm12_error_codes.TYPE_MISMATCH,
+        valueToTest: 'suspend',
+      });
+      h.checkValidValues({
+        cmi: cmi(),
+        fieldName: 'cmi.core.exit',
+        expectedError: type_mismatch,
         validValues: [
           'time-out',
           'suspend',
@@ -193,13 +136,16 @@ describe('SCORM 1.2 CMI Tests', () => {
           'exit',
         ],
       });
-      checkWriteOnly({
+      h.checkWriteOnly({
+        cmi: cmi(),
         fieldName: 'cmi.core.session_time',
         valueToTest: '00:00:00',
+        expectedError: write_only,
       });
-      checkValidValues({
+      h.checkValidValues({
+        cmi: cmi(),
         fieldName: 'cmi.core.session_time',
-        expectedError: scorm12_error_codes.TYPE_MISMATCH,
+        expectedError: type_mismatch,
         validValues: [
           '10:06:57',
           '00:00:01.56',
@@ -216,13 +162,16 @@ describe('SCORM 1.2 CMI Tests', () => {
       /**
        * cmi.core.score Properties
        */
-      checkInvalidSet({
+      h.checkInvalidSet({
+        cmi: cmi(),
         fieldName: 'cmi.core.score._children',
         expectedValue: scorm12_constants.score_children,
+        expectedError: invalid_set,
       });
-      checkValidValues({
+      h.checkValidValues({
+        cmi: cmi(),
         fieldName: 'cmi.core.score.raw',
-        expectedError: scorm12_error_codes.VALUE_OUT_OF_RANGE,
+        expectedError: invalid_range,
         validValues: [
           '0',
           '25.1',
@@ -235,9 +184,10 @@ describe('SCORM 1.2 CMI Tests', () => {
           '101',
         ],
       });
-      checkValidValues({
+      h.checkValidValues({
+        cmi: cmi(),
         fieldName: 'cmi.core.score.min',
-        expectedError: scorm12_error_codes.VALUE_OUT_OF_RANGE,
+        expectedError: invalid_range,
         validValues: [
           '0',
           '25.1',
@@ -250,9 +200,10 @@ describe('SCORM 1.2 CMI Tests', () => {
           '101',
         ],
       });
-      checkValidValues({
+      h.checkValidValues({
+        cmi: cmi(),
         fieldName: 'cmi.core.score.max',
-        expectedError: scorm12_error_codes.VALUE_OUT_OF_RANGE,
+        expectedError: invalid_range,
         validValues: [
           '0',
           '25.1',
@@ -269,33 +220,54 @@ describe('SCORM 1.2 CMI Tests', () => {
       /**
        * cmi.objectives Properties
        */
-      checkInvalidSet({
+      h.checkInvalidSet({
+        cmi: cmi(),
         fieldName: 'cmi.objectives._children',
         expectedValue: scorm12_constants.objectives_children,
+        expectedError: invalid_set,
       });
-      checkInvalidSet({fieldName: 'cmi.objectives._count', expectedValue: 0});
+      h.checkInvalidSet({
+        cmi: cmi(),
+        fieldName: 'cmi.objectives._count',
+        expectedValue: 0,
+        expectedError: invalid_set,
+      });
 
       /**
        * cmi.student_data Properties
        */
-      checkInvalidSet({
+      h.checkInvalidSet({
+        cmi: cmi(),
         fieldName: 'cmi.student_data._children',
         expectedValue: scorm12_constants.student_data_children,
+        expectedError: invalid_set,
       });
-      checkReadAndWrite({fieldName: 'cmi.student_data.mastery_score'});
-      checkReadAndWrite({fieldName: 'cmi.student_data.max_time_allowed'});
-      checkReadAndWrite({fieldName: 'cmi.student_data.time_limit_action'});
+      h.checkReadAndWrite({
+        cmi: cmi(),
+        fieldName: 'cmi.student_data.mastery_score',
+      });
+      h.checkReadAndWrite({
+        cmi: cmi(),
+        fieldName: 'cmi.student_data.max_time_allowed',
+      });
+      h.checkReadAndWrite({
+        cmi: cmi(),
+        fieldName: 'cmi.student_data.time_limit_action',
+      });
 
       /**
        * cmi.student_preference Properties
        */
-      checkInvalidSet({
+      h.checkInvalidSet({
+        cmi: cmi(),
         fieldName: 'cmi.student_preference._children',
         expectedValue: scorm12_constants.student_preference_children,
+        expectedError: invalid_set,
       });
-      checkValidValues({
+      h.checkValidValues({
+        cmi: cmi(),
         fieldName: 'cmi.student_preference.audio',
-        expectedError: scorm12_error_codes.TYPE_MISMATCH,
+        expectedError: type_mismatch,
         validValues: [
           '1',
           '-1',
@@ -307,9 +279,10 @@ describe('SCORM 1.2 CMI Tests', () => {
           'a100',
         ],
       });
-      checkValidValues({
+      h.checkValidValues({
+        cmi: cmi(),
         fieldName: 'cmi.student_preference.audio',
-        expectedError: scorm12_error_codes.VALUE_OUT_OF_RANGE,
+        expectedError: invalid_range,
         validValues: [],
         invalidValues: [
           '101',
@@ -317,13 +290,16 @@ describe('SCORM 1.2 CMI Tests', () => {
           '-500',
         ],
       });
-      checkFieldConstraintSize({
+      h.checkFieldConstraintSize({
+        cmi: cmi(),
         fieldName: 'cmi.student_preference.language',
         limit: 255,
+        expectedError: type_mismatch,
       });
-      checkValidValues({
+      h.checkValidValues({
+        cmi: cmi(),
         fieldName: 'cmi.student_preference.speed',
-        expectedError: scorm12_error_codes.TYPE_MISMATCH,
+        expectedError: type_mismatch,
         validValues: [
           '1',
           '-100',
@@ -335,9 +311,10 @@ describe('SCORM 1.2 CMI Tests', () => {
           'a100',
         ],
       });
-      checkValidValues({
+      h.checkValidValues({
+        cmi: cmi(),
         fieldName: 'cmi.student_preference.speed',
-        expectedError: scorm12_error_codes.VALUE_OUT_OF_RANGE,
+        expectedError: invalid_range,
         validValues: [],
         invalidValues: [
           '101',
@@ -346,9 +323,10 @@ describe('SCORM 1.2 CMI Tests', () => {
           '-500',
         ],
       });
-      checkValidValues({
+      h.checkValidValues({
+        cmi: cmi(),
         fieldName: 'cmi.student_preference.text',
-        expectedError: scorm12_error_codes.TYPE_MISMATCH,
+        expectedError: type_mismatch,
         validValues: [
           '1',
           '-1',
@@ -358,9 +336,10 @@ describe('SCORM 1.2 CMI Tests', () => {
           'a100',
         ],
       });
-      checkValidValues({
+      h.checkValidValues({
+        cmi: cmi(),
         fieldName: 'cmi.student_preference.text',
-        expectedError: scorm12_error_codes.VALUE_OUT_OF_RANGE,
+        expectedError: invalid_range,
         validValues: [],
         invalidValues: [
           '2',
@@ -371,53 +350,103 @@ describe('SCORM 1.2 CMI Tests', () => {
       /**
        * cmi.interactions Properties
        */
-      checkInvalidSet({
+      h.checkInvalidSet({
+        cmi: cmi(),
         fieldName: 'cmi.interactions._children',
         expectedValue: scorm12_constants.interactions_children,
+        expectedError: invalid_set,
       });
-      checkInvalidSet({fieldName: 'cmi.interactions._count', expectedValue: 0});
+      h.checkInvalidSet({
+        cmi: cmi(),
+        fieldName: 'cmi.interactions._count',
+        expectedValue: 0,
+        expectedError: invalid_set,
+      });
     });
 
     describe('Post-Initialize Tests', () => {
-      beforeEach('Create the API object', () => {
-        cmi = new CMI();
-        cmi.initialize();
-      });
-      afterEach('Destroy API object', () => {
-        cmi = null;
-      });
+      const cmi = () => {
+        const obj = new CMI();
+        obj.initialize();
+        return obj;
+      };
 
       /**
        * Base CMI Properties
        */
-      checkInvalidSet({fieldName: 'cmi._version', expectedValue: '3.4'});
-      checkInvalidSet({
+      h.checkInvalidSet({
+        cmi: cmi(),
+        fieldName: 'cmi._version',
+        expectedValue: '3.4',
+        expectedError: invalid_set,
+      });
+      h.checkInvalidSet({
+        cmi: cmi(),
         fieldName: 'cmi._children',
         expectedValue: scorm12_constants.cmi_children,
+        expectedError: invalid_set,
       });
-      checkFieldConstraintSize({fieldName: 'cmi.suspend_data', limit: 4096});
-      checkReadOnly({fieldName: 'cmi.launch_data'});
-      checkFieldConstraintSize({fieldName: 'cmi.comments', limit: 4096});
-      checkReadOnly({fieldName: 'cmi.comments_from_lms'});
+      h.checkFieldConstraintSize({
+        cmi: cmi(),
+        fieldName: 'cmi.suspend_data',
+        limit: 4096,
+        expectedError: type_mismatch,
+      });
+      h.checkReadOnly({
+        cmi: cmi(),
+        fieldName: 'cmi.launch_data',
+        expectedError: read_only,
+      });
+      h.checkFieldConstraintSize({
+        cmi: cmi(),
+        fieldName: 'cmi.comments',
+        limit: 4096,
+        expectedError: type_mismatch,
+      });
+      h.checkReadOnly({
+        cmi: cmi(),
+        fieldName: 'cmi.comments_from_lms',
+        expectedError: read_only,
+      });
 
       /**
        * cmi.core Properties
        */
-      checkInvalidSet({
+      h.checkInvalidSet({
+        cmi: cmi(),
         fieldName: 'cmi.core._children',
         expectedValue: scorm12_constants.core_children,
+        expectedError: invalid_set,
       });
-      checkReadOnly({fieldName: 'cmi.core.student_id'});
-      checkReadOnly({fieldName: 'cmi.core.student_name'});
-      checkFieldConstraintSize({
+      h.checkReadOnly({
+        cmi: cmi(),
+        fieldName: 'cmi.core.student_id',
+        expectedError: read_only,
+      });
+      h.checkReadOnly({
+        cmi: cmi(),
+        fieldName: 'cmi.core.student_name',
+        expectedError: read_only,
+      });
+      h.checkFieldConstraintSize({
+        cmi: cmi(),
         fieldName: 'cmi.core.lesson_location',
         limit: 255,
+        expectedError: type_mismatch,
       });
-      checkReadOnly({fieldName: 'cmi.core.credit'});
-      checkRead({fieldName: 'cmi.core.lesson_status'});
-      checkValidValues({
+      h.checkReadOnly({
+        cmi: cmi(),
+        fieldName: 'cmi.core.credit',
+        expectedError: read_only,
+      });
+      h.checkRead({
+        cmi: cmi(),
         fieldName: 'cmi.core.lesson_status',
-        expectedError: scorm12_error_codes.TYPE_MISMATCH,
+      });
+      h.checkValidValues({
+        cmi: cmi(),
+        fieldName: 'cmi.core.lesson_status',
+        expectedError: type_mismatch,
         validValues: [
           'passed',
           'completed',
@@ -435,14 +464,31 @@ describe('SCORM 1.2 CMI Tests', () => {
           'complete',
         ],
       });
-      checkReadOnly({fieldName: 'cmi.core.entry'});
-      checkReadOnly({fieldName: 'cmi.core.total_time'});
-      checkReadOnly(
-          {fieldName: 'cmi.core.lesson_mode', expectedValue: 'normal'});
-      checkWrite({fieldName: 'cmi.core.exit', valueToTest: 'suspend'});
-      checkValidValues({
+      h.checkReadOnly({
+        cmi: cmi(),
+        fieldName: 'cmi.core.entry',
+        expectedError: read_only,
+      });
+      h.checkReadOnly({
+        cmi: cmi(),
+        fieldName: 'cmi.core.total_time',
+        expectedError: read_only,
+      });
+      h.checkReadOnly({
+        cmi: cmi(),
+        fieldName: 'cmi.core.lesson_mode',
+        expectedValue: 'normal',
+        expectedError: read_only,
+      });
+      h.checkWrite({
+        cmi: cmi(),
         fieldName: 'cmi.core.exit',
-        expectedError: scorm12_error_codes.TYPE_MISMATCH,
+        valueToTest: 'suspend',
+      });
+      h.checkValidValues({
+        cmi: cmi(),
+        fieldName: 'cmi.core.exit',
+        expectedError: type_mismatch,
         validValues: [
           'time-out',
           'suspend',
@@ -452,13 +498,16 @@ describe('SCORM 1.2 CMI Tests', () => {
           'exit',
         ],
       });
-      checkWriteOnly({
+      h.checkWriteOnly({
+        cmi: cmi(),
         fieldName: 'cmi.core.session_time',
         valueToTest: '00:00:00',
+        expectedError: write_only,
       });
-      checkValidValues({
+      h.checkValidValues({
+        cmi: cmi(),
         fieldName: 'cmi.core.session_time',
-        expectedError: scorm12_error_codes.TYPE_MISMATCH,
+        expectedError: type_mismatch,
         validValues: [
           '10:06:57',
           '00:00:01.56',
@@ -475,13 +524,16 @@ describe('SCORM 1.2 CMI Tests', () => {
       /**
        * cmi.core.score Properties
        */
-      checkInvalidSet({
+      h.checkInvalidSet({
+        cmi: cmi(),
         fieldName: 'cmi.core.score._children',
         expectedValue: scorm12_constants.score_children,
+        expectedError: invalid_set,
       });
-      checkValidValues({
+      h.checkValidValues({
+        cmi: cmi(),
         fieldName: 'cmi.core.score.raw',
-        expectedError: scorm12_error_codes.VALUE_OUT_OF_RANGE,
+        expectedError: invalid_range,
         validValues: [
           '0',
           '25.1',
@@ -494,9 +546,10 @@ describe('SCORM 1.2 CMI Tests', () => {
           '101',
         ],
       });
-      checkValidValues({
+      h.checkValidValues({
+        cmi: cmi(),
         fieldName: 'cmi.core.score.min',
-        expectedError: scorm12_error_codes.VALUE_OUT_OF_RANGE,
+        expectedError: invalid_range,
         validValues: [
           '0',
           '25.1',
@@ -509,9 +562,10 @@ describe('SCORM 1.2 CMI Tests', () => {
           '101',
         ],
       });
-      checkValidValues({
+      h.checkValidValues({
+        cmi: cmi(),
         fieldName: 'cmi.core.score.max',
-        expectedError: scorm12_error_codes.VALUE_OUT_OF_RANGE,
+        expectedError: invalid_range,
         validValues: [
           '0',
           '25.1',
@@ -528,33 +582,57 @@ describe('SCORM 1.2 CMI Tests', () => {
       /**
        * cmi.objectives Properties
        */
-      checkInvalidSet({
+      h.checkInvalidSet({
+        cmi: cmi(),
         fieldName: 'cmi.objectives._children',
         expectedValue: scorm12_constants.objectives_children,
+        expectedError: invalid_set,
       });
-      checkInvalidSet({fieldName: 'cmi.objectives._count', expectedValue: 0});
+      h.checkInvalidSet({
+        cmi: cmi(),
+        fieldName: 'cmi.objectives._count',
+        expectedValue: 0,
+        expectedError: invalid_set,
+      });
 
       /**
        * cmi.student_data Properties
        */
-      checkInvalidSet({
+      h.checkInvalidSet({
+        cmi: cmi(),
         fieldName: 'cmi.student_data._children',
         expectedValue: scorm12_constants.student_data_children,
+        expectedError: invalid_set,
       });
-      checkReadOnly({fieldName: 'cmi.student_data.mastery_score'});
-      checkReadOnly({fieldName: 'cmi.student_data.max_time_allowed'});
-      checkReadOnly({fieldName: 'cmi.student_data.time_limit_action'});
+      h.checkReadOnly({
+        cmi: cmi(),
+        fieldName: 'cmi.student_data.mastery_score',
+        expectedError: read_only,
+      });
+      h.checkReadOnly({
+        cmi: cmi(),
+        fieldName: 'cmi.student_data.max_time_allowed',
+        expectedError: read_only,
+      });
+      h.checkReadOnly({
+        cmi: cmi(),
+        fieldName: 'cmi.student_data.time_limit_action',
+        expectedError: read_only,
+      });
 
       /**
        * cmi.student_preference Properties
        */
-      checkInvalidSet({
+      h.checkInvalidSet({
+        cmi: cmi(),
         fieldName: 'cmi.student_preference._children',
         expectedValue: scorm12_constants.student_preference_children,
+        expectedError: invalid_set,
       });
-      checkValidValues({
+      h.checkValidValues({
+        cmi: cmi(),
         fieldName: 'cmi.student_preference.audio',
-        expectedError: scorm12_error_codes.TYPE_MISMATCH,
+        expectedError: type_mismatch,
         validValues: [
           '1',
           '-1',
@@ -566,9 +644,10 @@ describe('SCORM 1.2 CMI Tests', () => {
           'a100',
         ],
       });
-      checkValidValues({
+      h.checkValidValues({
+        cmi: cmi(),
         fieldName: 'cmi.student_preference.audio',
-        expectedError: scorm12_error_codes.VALUE_OUT_OF_RANGE,
+        expectedError: invalid_range,
         validValues: [],
         invalidValues: [
           '101',
@@ -576,13 +655,16 @@ describe('SCORM 1.2 CMI Tests', () => {
           '-500',
         ],
       });
-      checkFieldConstraintSize({
+      h.checkFieldConstraintSize({
+        cmi: cmi(),
         fieldName: 'cmi.student_preference.language',
         limit: 255,
+        expectedError: type_mismatch,
       });
-      checkValidValues({
+      h.checkValidValues({
+        cmi: cmi(),
         fieldName: 'cmi.student_preference.speed',
-        expectedError: scorm12_error_codes.TYPE_MISMATCH,
+        expectedError: type_mismatch,
         validValues: [
           '1',
           '-100',
@@ -594,9 +676,10 @@ describe('SCORM 1.2 CMI Tests', () => {
           'a100',
         ],
       });
-      checkValidValues({
+      h.checkValidValues({
+        cmi: cmi(),
         fieldName: 'cmi.student_preference.speed',
-        expectedError: scorm12_error_codes.VALUE_OUT_OF_RANGE,
+        expectedError: invalid_range,
         validValues: [],
         invalidValues: [
           '101',
@@ -605,9 +688,10 @@ describe('SCORM 1.2 CMI Tests', () => {
           '-500',
         ],
       });
-      checkValidValues({
+      h.checkValidValues({
+        cmi: cmi(),
         fieldName: 'cmi.student_preference.text',
-        expectedError: scorm12_error_codes.TYPE_MISMATCH,
+        expectedError: type_mismatch,
         validValues: [
           '1',
           '-1',
@@ -617,9 +701,10 @@ describe('SCORM 1.2 CMI Tests', () => {
           'a100',
         ],
       });
-      checkValidValues({
+      h.checkValidValues({
+        cmi: cmi(),
         fieldName: 'cmi.student_preference.text',
-        expectedError: scorm12_error_codes.VALUE_OUT_OF_RANGE,
+        expectedError: invalid_range,
         validValues: [],
         invalidValues: [
           '2',
@@ -630,11 +715,18 @@ describe('SCORM 1.2 CMI Tests', () => {
       /**
        * cmi.interactions Properties
        */
-      checkInvalidSet({
+      h.checkInvalidSet({
+        cmi: cmi(),
         fieldName: 'cmi.interactions._children',
         expectedValue: scorm12_constants.interactions_children,
+        expectedError: invalid_set,
       });
-      checkInvalidSet({fieldName: 'cmi.interactions._count', expectedValue: 0});
+      h.checkInvalidSet({
+        cmi: cmi(),
+        fieldName: 'cmi.interactions._count',
+        expectedValue: 0,
+        expectedError: invalid_set,
+      });
     });
   });
 });
