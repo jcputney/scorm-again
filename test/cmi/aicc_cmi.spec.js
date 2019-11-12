@@ -1,7 +1,7 @@
 import {expect, assert} from 'chai';
 import {describe, it, beforeEach, afterEach} from 'mocha';
-import Scorm12API from '../../src/Scorm12API';
-import {scorm12_constants} from '../../src/constants/api_constants';
+import AICC from '../../src/AICC';
+import {aicc_constants} from '../../src/constants/api_constants';
 import {scorm12_error_codes} from '../../src/constants/error_codes';
 
 let API;
@@ -128,10 +128,10 @@ const checkValidValues = ({fieldName, expectedError, validValues, invalidValues}
   });
 };
 
-describe('SCORM 1.2 CMI Tests', () => {
+describe('AICC CMI Tests', () => {
   describe('CMI Spec Tests', () => {
     beforeEach('Create the API object', () => {
-      API = new Scorm12API();
+      API = new AICC();
       API.lmsInitialize();
     });
     afterEach('Destroy API object', () => {
@@ -150,7 +150,7 @@ describe('SCORM 1.2 CMI Tests', () => {
 
     describe('Pre-Initialize Tests', () => {
       beforeEach('Create the API object', () => {
-        API = new Scorm12API();
+        API = new AICC();
       });
       afterEach('Destroy API object', () => {
         API = null;
@@ -162,7 +162,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       checkInvalidSet({fieldName: 'cmi._version', expectedValue: '3.4'});
       checkInvalidSet({
         fieldName: 'cmi._children',
-        expectedValue: scorm12_constants.cmi_children,
+        expectedValue: aicc_constants.cmi_children,
       });
       checkFieldConstraintSize({fieldName: 'cmi.suspend_data', limit: 4096});
       checkReadAndWrite({fieldName: 'cmi.launch_data'});
@@ -174,7 +174,7 @@ describe('SCORM 1.2 CMI Tests', () => {
        */
       checkInvalidSet({
         fieldName: 'cmi.core._children',
-        expectedValue: scorm12_constants.core_children,
+        expectedValue: aicc_constants.core_children,
       });
       checkReadAndWrite({fieldName: 'cmi.core.student_id'});
       checkReadAndWrite({fieldName: 'cmi.core.student_name'});
@@ -246,7 +246,7 @@ describe('SCORM 1.2 CMI Tests', () => {
        */
       checkInvalidSet({
         fieldName: 'cmi.core.score._children',
-        expectedValue: scorm12_constants.score_children,
+        expectedValue: aicc_constants.score_children,
       });
       checkValidValues({
         fieldName: 'cmi.core.score.raw',
@@ -299,7 +299,7 @@ describe('SCORM 1.2 CMI Tests', () => {
        */
       checkInvalidSet({
         fieldName: 'cmi.objectives._children',
-        expectedValue: scorm12_constants.objectives_children,
+        expectedValue: aicc_constants.objectives_children,
       });
       checkInvalidSet({fieldName: 'cmi.objectives._count', expectedValue: 0});
 
@@ -308,18 +308,19 @@ describe('SCORM 1.2 CMI Tests', () => {
        */
       checkInvalidSet({
         fieldName: 'cmi.student_data._children',
-        expectedValue: scorm12_constants.student_data_children,
+        expectedValue: aicc_constants.student_data_children,
       });
       checkReadAndWrite({fieldName: 'cmi.student_data.mastery_score'});
       checkReadAndWrite({fieldName: 'cmi.student_data.max_time_allowed'});
       checkReadAndWrite({fieldName: 'cmi.student_data.time_limit_action'});
+      checkReadAndWrite({fieldName: 'cmi.student_data.tries_during_lesson'});
 
       /**
        * cmi.student_preference Properties
        */
       checkInvalidSet({
         fieldName: 'cmi.student_preference._children',
-        expectedValue: scorm12_constants.student_preference_children,
+        expectedValue: aicc_constants.student_preference_children,
       });
       checkValidValues({
         fieldName: 'cmi.student_preference.audio',
@@ -401,14 +402,14 @@ describe('SCORM 1.2 CMI Tests', () => {
        */
       checkInvalidSet({
         fieldName: 'cmi.interactions._children',
-        expectedValue: scorm12_constants.interactions_children,
+        expectedValue: aicc_constants.interactions_children,
       });
       checkInvalidSet({fieldName: 'cmi.interactions._count', expectedValue: 0});
     });
 
     describe('Post-Initialize Tests', () => {
       beforeEach('Create the API object', () => {
-        API = new Scorm12API();
+        API = new AICC();
         API.lmsInitialize();
       });
       afterEach('Destroy API object', () => {
@@ -421,7 +422,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       checkInvalidSet({fieldName: 'cmi._version', expectedValue: '3.4'});
       checkInvalidSet({
         fieldName: 'cmi._children',
-        expectedValue: scorm12_constants.cmi_children,
+        expectedValue: aicc_constants.cmi_children,
       });
       checkFieldConstraintSize({fieldName: 'cmi.suspend_data', limit: 4096});
       checkReadOnly({fieldName: 'cmi.launch_data'});
@@ -433,7 +434,7 @@ describe('SCORM 1.2 CMI Tests', () => {
        */
       checkInvalidSet({
         fieldName: 'cmi.core._children',
-        expectedValue: scorm12_constants.core_children,
+        expectedValue: aicc_constants.core_children,
       });
       checkReadOnly({fieldName: 'cmi.core.student_id'});
       checkReadOnly({fieldName: 'cmi.core.student_name'});
@@ -505,7 +506,7 @@ describe('SCORM 1.2 CMI Tests', () => {
        */
       checkInvalidSet({
         fieldName: 'cmi.core.score._children',
-        expectedValue: scorm12_constants.score_children,
+        expectedValue: aicc_constants.score_children,
       });
       checkValidValues({
         fieldName: 'cmi.core.score.raw',
@@ -558,7 +559,7 @@ describe('SCORM 1.2 CMI Tests', () => {
        */
       checkInvalidSet({
         fieldName: 'cmi.objectives._children',
-        expectedValue: scorm12_constants.objectives_children,
+        expectedValue: aicc_constants.objectives_children,
       });
       checkInvalidSet({fieldName: 'cmi.objectives._count', expectedValue: 0});
 
@@ -567,18 +568,19 @@ describe('SCORM 1.2 CMI Tests', () => {
        */
       checkInvalidSet({
         fieldName: 'cmi.student_data._children',
-        expectedValue: scorm12_constants.student_data_children,
+        expectedValue: aicc_constants.student_data_children,
       });
       checkReadOnly({fieldName: 'cmi.student_data.mastery_score'});
       checkReadOnly({fieldName: 'cmi.student_data.max_time_allowed'});
       checkReadOnly({fieldName: 'cmi.student_data.time_limit_action'});
+      checkReadOnly({fieldName: 'cmi.student_data.tries_during_lesson'});
 
       /**
        * cmi.student_preference Properties
        */
       checkInvalidSet({
         fieldName: 'cmi.student_preference._children',
-        expectedValue: scorm12_constants.student_preference_children,
+        expectedValue: aicc_constants.student_preference_children,
       });
       checkValidValues({
         fieldName: 'cmi.student_preference.audio',
@@ -660,7 +662,7 @@ describe('SCORM 1.2 CMI Tests', () => {
        */
       checkInvalidSet({
         fieldName: 'cmi.interactions._children',
-        expectedValue: scorm12_constants.interactions_children,
+        expectedValue: aicc_constants.interactions_children,
       });
       checkInvalidSet({fieldName: 'cmi.interactions._count', expectedValue: 0});
     });

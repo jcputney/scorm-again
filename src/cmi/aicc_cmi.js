@@ -1,7 +1,8 @@
 import * as Scorm12CMI from './scorm12_cmi';
 import {BaseCMI, CMIArray, CMIScore} from './common';
-import {aicc_constants, scorm12_error_codes} from '../constants/api_constants';
+import {aicc_constants} from '../constants/api_constants';
 import {aicc_regex} from '../regex';
+import {scorm12_error_codes} from '../constants/error_codes';
 
 const constants = aicc_constants;
 const regex = aicc_regex;
@@ -23,8 +24,9 @@ export class CMI extends Scorm12CMI.CMI {
    * @param {AICC} API
    */
   constructor(API) {
-    super(API, constants.cmi_children, new AICCCMIStudentData(API));
+    super(API, constants.cmi_children);
 
+    this.student_data = new AICCCMIStudentData(API);
     this.evaluation = new CMIEvaluation(API);
   }
 }
@@ -40,16 +42,21 @@ class CMIEvaluation extends BaseCMI {
   constructor(API) {
     super(API);
 
-    this.comments = new class extends CMIArray {
-      /**
-       * Constructor for AICC Evaluation Comments object
-       * @param {AICC} API
-       */
-      constructor(API) {
-        super(API, constants.comments_children,
-            scorm12_error_codes.INVALID_SET_VALUE);
-      }
-    }(API);
+    this.comments = new CMIEvaluationComments(API);
+  }
+}
+
+/**
+ * Class representing AICC's cmi.evaluation.comments object
+ */
+class CMIEvaluationComments extends CMIArray {
+  /**
+   * Constructor for AICC Evaluation Comments object
+   * @param {AICC} API
+   */
+  constructor(API) {
+    super(API, constants.comments_children,
+        scorm12_error_codes.INVALID_SET_VALUE);
   }
 }
 
@@ -64,15 +71,7 @@ class AICCCMIStudentData extends Scorm12CMI.CMIStudentData {
   constructor(API) {
     super(API, constants.student_data_children);
 
-    this.tries = new class extends CMIArray {
-      /**
-       * Constructor for inline Tries Array class
-       * @param {AICC} API
-       */
-      constructor(API) {
-        super(API, aicc_constants.tries_children);
-      }
-    }(API);
+    this.tries = new CMITries(API);
   }
 
   #tries_during_lesson = '';
@@ -93,7 +92,20 @@ class AICCCMIStudentData extends Scorm12CMI.CMIStudentData {
   set tries_during_lesson(tries_during_lesson) {
     this.API.isNotInitialized() ?
         this.#tries_during_lesson = tries_during_lesson :
-        throwReadOnlyError();
+        throwReadOnlyError(this.API);
+  }
+}
+
+/**
+ * Class representing the AICC cmi.student_data.tries object
+ */
+export class CMITries extends CMIArray {
+  /**
+   * Constructor for inline Tries Array class
+   * @param {AICC} API
+   */
+  constructor(API) {
+    super(API, aicc_constants.tries_children);
   }
 }
 

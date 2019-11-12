@@ -13,7 +13,6 @@ import {scorm12_error_codes} from './constants/error_codes';
 import {scorm12_regex} from './regex';
 
 const constants = scorm12_constants;
-let _self;
 
 /**
  * API class for SCORM 1.2
@@ -24,18 +23,17 @@ export default class Scorm12API extends BaseAPI {
    */
   constructor() {
     super(scorm12_error_codes);
-    _self = this;
 
-    _self.cmi = new CMI(this);
+    this.cmi = new CMI(this);
     // Rename functions to match 1.2 Spec and expose to modules
-    _self.LMSInitialize = _self.lmsInitialize;
-    _self.LMSFinish = _self.lmsFinish;
-    _self.LMSGetValue = _self.lmsGetValue;
-    _self.LMSSetValue = _self.lmsSetValue;
-    _self.LMSCommit = _self.lmsCommit;
-    _self.LMSGetLastError = _self.lmsGetLastError;
-    _self.LMSGetErrorString = _self.lmsGetErrorString;
-    _self.LMSGetDiagnostic = _self.lmsGetDiagnostic;
+    this.LMSInitialize = this.lmsInitialize;
+    this.LMSFinish = this.lmsFinish;
+    this.LMSGetValue = this.lmsGetValue;
+    this.LMSSetValue = this.lmsSetValue;
+    this.LMSCommit = this.lmsCommit;
+    this.LMSGetLastError = this.lmsGetLastError;
+    this.LMSGetErrorString = this.lmsGetErrorString;
+    this.LMSGetDiagnostic = this.lmsGetDiagnostic;
   }
 
   /**
@@ -44,7 +42,7 @@ export default class Scorm12API extends BaseAPI {
    * @return {string} bool
    */
   lmsInitialize() {
-    return _self.initialize('LMSInitialize', 'LMS was already initialized!',
+    return this.initialize('LMSInitialize', 'LMS was already initialized!',
         'LMS is already finished!');
   }
 
@@ -54,7 +52,7 @@ export default class Scorm12API extends BaseAPI {
    * @return {string} bool
    */
   lmsFinish() {
-    return _self.terminate('LMSFinish', false);
+    return this.terminate('LMSFinish', false);
   }
 
   /**
@@ -64,7 +62,7 @@ export default class Scorm12API extends BaseAPI {
    * @return {string}
    */
   lmsGetValue(CMIElement) {
-    return _self.getValue('LMSGetValue', false, CMIElement);
+    return this.getValue('LMSGetValue', false, CMIElement);
   }
 
   /**
@@ -75,7 +73,7 @@ export default class Scorm12API extends BaseAPI {
    * @return {string}
    */
   lmsSetValue(CMIElement, value) {
-    return _self.setValue('LMSSetValue', false, CMIElement, value);
+    return this.setValue('LMSSetValue', false, CMIElement, value);
   }
 
   /**
@@ -84,7 +82,7 @@ export default class Scorm12API extends BaseAPI {
    * @return {string} bool
    */
   lmsCommit() {
-    return _self.commit('LMSCommit', false);
+    return this.commit('LMSCommit', false);
   }
 
   /**
@@ -93,7 +91,7 @@ export default class Scorm12API extends BaseAPI {
    * @return {string}
    */
   lmsGetLastError() {
-    return _self.getLastError('LMSGetLastError');
+    return this.getLastError('LMSGetLastError');
   }
 
   /**
@@ -103,7 +101,7 @@ export default class Scorm12API extends BaseAPI {
    * @return {string}
    */
   lmsGetErrorString(CMIErrorCode) {
-    return _self.getErrorString('LMSGetErrorString', CMIErrorCode);
+    return this.getErrorString('LMSGetErrorString', CMIErrorCode);
   }
 
   /**
@@ -113,7 +111,7 @@ export default class Scorm12API extends BaseAPI {
    * @return {string}
    */
   lmsGetDiagnostic(CMIErrorCode) {
-    return _self.getDiagnostic('LMSGetDiagnostic', CMIErrorCode);
+    return this.getDiagnostic('LMSGetDiagnostic', CMIErrorCode);
   }
 
   /**
@@ -123,7 +121,7 @@ export default class Scorm12API extends BaseAPI {
    * @param {*} value
    */
   setCMIValue(CMIElement, value) {
-    _self._commonSetCMIValue('LMSSetValue', false, CMIElement, value);
+    this._commonSetCMIValue('LMSSetValue', false, CMIElement, value);
   }
 
   /**
@@ -133,7 +131,7 @@ export default class Scorm12API extends BaseAPI {
    * @return {*}
    */
   getCMIValue(CMIElement) {
-    return _self._commonGetCMIValue('getCMIValue', false, CMIElement);
+    return this._commonGetCMIValue('getCMIValue', false, CMIElement);
   }
 
   /**
@@ -146,13 +144,13 @@ export default class Scorm12API extends BaseAPI {
   getChildElement(CMIElement, value) {
     let newChild;
 
-    if (_self.stringContains(CMIElement, 'cmi.objectives')) {
+    if (this.stringContains(CMIElement, 'cmi.objectives')) {
       newChild = new CMIObjectivesObject(this);
-    } else if (_self.stringContains(CMIElement, '.correct_responses')) {
+    } else if (this.stringContains(CMIElement, '.correct_responses')) {
       newChild = new CMIInteractionsCorrectResponsesObject(this);
-    } else if (_self.stringContains(CMIElement, '.objectives')) {
+    } else if (this.stringContains(CMIElement, '.objectives')) {
       newChild = new CMIInteractionsObjectivesObject(this);
-    } else if (_self.stringContains(CMIElement, 'cmi.interactions')) {
+    } else if (this.stringContains(CMIElement, 'cmi.interactions')) {
       newChild = new CMIInteractionsObject(this);
     }
 
@@ -199,8 +197,8 @@ export default class Scorm12API extends BaseAPI {
   getCurrentTotalTime() {
     const timeRegex = new RegExp(scorm12_regex.CMITime);
 
-    const totalTime = _self.cmi.core.total_time;
-    const sessionTime = _self.cmi.core.session_time;
+    const totalTime = this.cmi.core.total_time;
+    const sessionTime = this.cmi.core.session_time;
 
     return Utilities.addHHMMSSTimeStrings(totalTime, sessionTime, timeRegex);
   }
@@ -212,6 +210,6 @@ export default class Scorm12API extends BaseAPI {
    */
   replaceWithAnotherScormAPI(newAPI) {
     // Data Model
-    _self.cmi = newAPI.cmi;
+    this.cmi = newAPI.cmi;
   }
 }

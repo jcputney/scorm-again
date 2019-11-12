@@ -1,17 +1,23 @@
 // @flow
 import Scorm12API from './Scorm12API';
-import {CMIEvaluationCommentsObject, CMITriesObject, NAV} from './cmi/aicc_cmi';
+import {
+  CMI,
+  CMIEvaluationCommentsObject,
+  CMITriesObject,
+  NAV,
+} from './cmi/aicc_cmi';
 
 /**
  * The AICC API class
  */
-class AICC extends Scorm12API {
+export default class AICC extends Scorm12API {
   /**
    * Constructor to create AICC API object
    */
   constructor() {
     super();
 
+    this.cmi = new CMI(this);
     this.nav = new NAV(this);
   }
 

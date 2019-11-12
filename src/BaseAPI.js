@@ -389,7 +389,6 @@ export default class BaseAPI {
    * @param {string} CMIElement
    * @param {*} value
    * @return {string}
-   * @private
    */
   _commonSetCMIValue(
       methodName: String, scorm2004: boolean, CMIElement, value) {
