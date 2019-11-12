@@ -671,7 +671,7 @@ class CMIInteractions extends CMIArray {
    */
   constructor() {
     super({
-      children: constants.objectives_children,
+      children: constants.interactions_children,
       errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
     });
   }
@@ -1147,6 +1147,7 @@ class Scorm2004CMIScore extends CMIScore {
           invalidErrorCode: scorm2004_error_codes.INVALID_SET_VALUE,
           invalidTypeCode: scorm2004_error_codes.TYPE_MISMATCH,
           invalidRangeCode: scorm2004_error_codes.VALUE_OUT_OF_RANGE,
+          decimalRegex: scorm2004_regex.CMIDecimal,
         });
   }
 

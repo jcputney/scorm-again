@@ -2,6 +2,7 @@
 import {scorm12_constants} from '../constants/api_constants';
 import {scorm12_error_codes} from '../constants/error_codes';
 import {ValidationError} from '../exceptions';
+import {scorm12_regex} from '../regex';
 
 /**
  * Check if the value matches the proper format. If not, throw proper error code.
@@ -78,6 +79,7 @@ export class CMIScore extends BaseCMI {
    * @param {number} invalidErrorCode
    * @param {number} invalidTypeCode
    * @param {number} invalidRangeCode
+   * @param {string} decimalRegex
    */
   constructor(
       {
@@ -87,6 +89,7 @@ export class CMIScore extends BaseCMI {
         invalidErrorCode,
         invalidTypeCode,
         invalidRangeCode,
+        decimalRegex,
       }) {
     super();
 
@@ -104,6 +107,9 @@ export class CMIScore extends BaseCMI {
     this.#_invalid_range_code = invalidRangeCode ?
         invalidRangeCode :
         scorm12_error_codes.VALUE_OUT_OF_RANGE;
+    this.#_decimal_regex = decimalRegex ?
+        decimalRegex :
+        scorm12_regex.CMIDecimal;
   }
 
   #_children;
@@ -111,6 +117,7 @@ export class CMIScore extends BaseCMI {
   #_invalid_error_code;
   #_invalid_type_code;
   #_invalid_range_code;
+  #_decimal_regex;
   #raw = '';
   #min = '';
   #max;
@@ -146,7 +153,7 @@ export class CMIScore extends BaseCMI {
    * @param {string} raw
    */
   set raw(raw) {
-    if (checkValidFormat(raw, scorm12_constants.CMIDecimal,
+    if (checkValidFormat(raw, this.#_decimal_regex,
         this.#_invalid_type_code) &&
         (!this.#_score_range ||
             checkValidRange(raw, this.#_score_range,
@@ -168,7 +175,7 @@ export class CMIScore extends BaseCMI {
    * @param {string} min
    */
   set min(min) {
-    if (checkValidFormat(min, scorm12_constants.CMIDecimal,
+    if (checkValidFormat(min, this.#_decimal_regex,
         this.#_invalid_type_code) &&
         (!this.#_score_range ||
             checkValidRange(min, this.#_score_range,
@@ -190,7 +197,7 @@ export class CMIScore extends BaseCMI {
    * @param {string} max
    */
   set max(max) {
-    if (checkValidFormat(max, scorm12_constants.CMIDecimal,
+    if (checkValidFormat(max, this.#_decimal_regex,
         this.#_invalid_type_code) &&
         (!this.#_score_range ||
             checkValidRange(max, this.#_score_range,

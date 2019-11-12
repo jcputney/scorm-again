@@ -134,7 +134,6 @@ export const checkValidValues = (
     {
       cmi,
       fieldName,
-      expectedError,
       validValues,
       invalidValues,
     }) => {
@@ -154,7 +153,7 @@ export const checkValidValues = (
         it(`Should fail to write '${invalidValues[idx]}' to ${fieldName}`,
             () => {
               expect(() => eval(`${fieldName} = '${invalidValues[idx]}'`)).
-                  to.throw(expectedError + '');
+                  to.throw();
             });
       }
     }

@@ -8,7 +8,6 @@ const invalid_set = scorm12_error_codes.INVALID_SET_VALUE;
 const type_mismatch = scorm12_error_codes.TYPE_MISMATCH;
 const write_only = scorm12_error_codes.WRITE_ONLY_ELEMENT;
 const read_only = scorm12_error_codes.READ_ONLY_ELEMENT;
-const invalid_range = scorm12_error_codes.VALUE_OUT_OF_RANGE;
 
 describe('SCORM 1.2 CMI Tests', () => {
   describe('CMI Spec Tests', () => {
@@ -87,7 +86,6 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.lesson_status',
-        expectedError: type_mismatch,
         validValues: [
           'passed',
           'completed',
@@ -126,7 +124,6 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.exit',
-        expectedError: type_mismatch,
         validValues: [
           'time-out',
           'suspend',
@@ -145,7 +142,6 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.session_time',
-        expectedError: type_mismatch,
         validValues: [
           '10:06:57',
           '00:00:01.56',
@@ -171,7 +167,6 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.score.raw',
-        expectedError: invalid_range,
         validValues: [
           '0',
           '25.1',
@@ -187,7 +182,6 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.score.min',
-        expectedError: invalid_range,
         validValues: [
           '0',
           '25.1',
@@ -203,7 +197,6 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.score.max',
-        expectedError: invalid_range,
         validValues: [
           '0',
           '25.1',
@@ -267,7 +260,6 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.audio',
-        expectedError: type_mismatch,
         validValues: [
           '1',
           '-1',
@@ -282,7 +274,6 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.audio',
-        expectedError: invalid_range,
         validValues: [],
         invalidValues: [
           '101',
@@ -299,7 +290,6 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.speed',
-        expectedError: type_mismatch,
         validValues: [
           '1',
           '-100',
@@ -314,7 +304,6 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.speed',
-        expectedError: invalid_range,
         validValues: [],
         invalidValues: [
           '101',
@@ -326,7 +315,6 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.text',
-        expectedError: type_mismatch,
         validValues: [
           '1',
           '-1',
@@ -339,7 +327,6 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.text',
-        expectedError: invalid_range,
         validValues: [],
         invalidValues: [
           '2',
@@ -446,7 +433,6 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.lesson_status',
-        expectedError: type_mismatch,
         validValues: [
           'passed',
           'completed',
@@ -488,7 +474,6 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.exit',
-        expectedError: type_mismatch,
         validValues: [
           'time-out',
           'suspend',
@@ -507,7 +492,6 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.session_time',
-        expectedError: type_mismatch,
         validValues: [
           '10:06:57',
           '00:00:01.56',
@@ -533,7 +517,6 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.score.raw',
-        expectedError: invalid_range,
         validValues: [
           '0',
           '25.1',
@@ -549,7 +532,6 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.score.min',
-        expectedError: invalid_range,
         validValues: [
           '0',
           '25.1',
@@ -565,7 +547,6 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.score.max',
-        expectedError: invalid_range,
         validValues: [
           '0',
           '25.1',
@@ -632,7 +613,6 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.audio',
-        expectedError: type_mismatch,
         validValues: [
           '1',
           '-1',
@@ -647,7 +627,6 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.audio',
-        expectedError: invalid_range,
         validValues: [],
         invalidValues: [
           '101',
@@ -664,7 +643,6 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.speed',
-        expectedError: type_mismatch,
         validValues: [
           '1',
           '-100',
@@ -679,7 +657,6 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.speed',
-        expectedError: invalid_range,
         validValues: [],
         invalidValues: [
           '101',
@@ -691,7 +668,6 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.text',
-        expectedError: type_mismatch,
         validValues: [
           '1',
           '-1',
@@ -704,7 +680,6 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.text',
-        expectedError: invalid_range,
         validValues: [],
         invalidValues: [
           '2',

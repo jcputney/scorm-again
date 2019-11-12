@@ -86,7 +86,6 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.lesson_status',
-        expectedError: type_mismatch,
         validValues: [
           'passed',
           'completed',
@@ -125,7 +124,6 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.exit',
-        expectedError: type_mismatch,
         validValues: [
           'time-out',
           'suspend',
@@ -145,7 +143,6 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.session_time',
-        expectedError: type_mismatch,
         validValues: [
           '10:06:57',
           '00:00:01.56',
@@ -172,7 +169,6 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.score.raw',
-        expectedError: invalid_range,
         validValues: [
           '0',
           '25.1',
@@ -188,7 +184,6 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.score.min',
-        expectedError: invalid_range,
         validValues: [
           '0',
           '25.1',
@@ -204,7 +199,6 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.score.max',
-        expectedError: invalid_range,
         validValues: [
           '0',
           '25.1',
@@ -271,7 +265,6 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.audio',
-        expectedError: type_mismatch,
         validValues: [
           '1',
           '-1',
@@ -286,7 +279,6 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.audio',
-        expectedError: invalid_range,
         validValues: [],
         invalidValues: [
           '101',
@@ -303,7 +295,6 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.speed',
-        expectedError: type_mismatch,
         validValues: [
           '1',
           '-100',
@@ -318,7 +309,6 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.speed',
-        expectedError: invalid_range,
         validValues: [],
         invalidValues: [
           '101',
@@ -330,7 +320,6 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.text',
-        expectedError: type_mismatch,
         validValues: [
           '1',
           '-1',
@@ -343,7 +332,6 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.text',
-        expectedError: invalid_range,
         validValues: [],
         invalidValues: [
           '2',
@@ -447,7 +435,6 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.lesson_status',
-        expectedError: type_mismatch,
         validValues: [
           'passed',
           'completed',
@@ -489,7 +476,6 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.exit',
-        expectedError: type_mismatch,
         validValues: [
           'time-out',
           'suspend',
@@ -508,7 +494,6 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.session_time',
-        expectedError: type_mismatch,
         validValues: [
           '10:06:57',
           '00:00:01.56',
@@ -534,7 +519,6 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.score.raw',
-        expectedError: invalid_range,
         validValues: [
           '0',
           '25.1',
@@ -550,7 +534,6 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.score.min',
-        expectedError: invalid_range,
         validValues: [
           '0',
           '25.1',
@@ -566,7 +549,6 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.score.max',
-        expectedError: invalid_range,
         validValues: [
           '0',
           '25.1',
@@ -637,7 +619,6 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.audio',
-        expectedError: type_mismatch,
         validValues: [
           '1',
           '-1',
@@ -652,7 +633,6 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.audio',
-        expectedError: invalid_range,
         validValues: [],
         invalidValues: [
           '101',
@@ -669,7 +649,6 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.speed',
-        expectedError: type_mismatch,
         validValues: [
           '1',
           '-100',
@@ -684,7 +663,6 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.speed',
-        expectedError: invalid_range,
         validValues: [],
         invalidValues: [
           '101',
@@ -696,7 +674,6 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.text',
-        expectedError: type_mismatch,
         validValues: [
           '1',
           '-1',
@@ -709,7 +686,6 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.text',
-        expectedError: invalid_range,
         validValues: [],
         invalidValues: [
           '2',
