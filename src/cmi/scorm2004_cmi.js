@@ -1472,9 +1472,19 @@ class ADLNavRequestValid extends BaseCMI {
   #continue = 'unknown';
   #previous = 'unknown';
   choice = class {
+    /**
+     * Check if target is valid
+     * @param {*} _target
+     * @return {string}
+     */
     _isTargetValid = (_target) => 'unknown';
   };
   jump = class {
+    /**
+     * Check if target is valid
+     * @param {*} _target
+     * @return {string}
+     */
     _isTargetValid = (_target) => 'unknown';
   };
 

@@ -729,7 +729,7 @@ class ScheduledCommit {
    */
   constructor(API: any, when: number) {
     this.#API = API;
-    this.#timeout = setTimeout(this.#wrapper, when);
+    this.#timeout = setTimeout(this.wrapper, when);
   }
 
   /**
@@ -745,7 +745,7 @@ class ScheduledCommit {
   /**
    * Wrap the API commit call to check if the call has already been cancelled
    */
-  #wrapper() {
+  wrapper() {
     if (!this.#cancelled) {
       this.#API.commit();
     }

@@ -172,7 +172,7 @@ export default class Scorm2004API extends BaseAPI {
         }
 
         if (nodes.length > 0 && nodes.length <= response_type.max) {
-          this.#checkCorrectResponseValue(interaction_type, nodes, value);
+          this.checkCorrectResponseValue(interaction_type, nodes, value);
         } else if (nodes.length > response_type.max) {
           this.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE,
               'Data Model Element Pattern Too Long');
@@ -227,7 +227,7 @@ export default class Scorm2004API extends BaseAPI {
       }
 
       if (nodes.length > 0 && nodes.length <= response_type.max) {
-        this.#checkCorrectResponseValue(interaction_type, nodes, value);
+        this.checkCorrectResponseValue(interaction_type, nodes, value);
       } else if (nodes.length > response_type.max) {
         this.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE,
             'Data Model Element Pattern Too Long');
@@ -235,7 +235,7 @@ export default class Scorm2004API extends BaseAPI {
 
       if (this.lastErrorCode === 0 &&
           (!response_type.duplicate ||
-              !this.#checkDuplicatedPattern(interaction.correct_responses,
+              !this.checkDuplicatedPattern(interaction.correct_responses,
                   pattern_index, value)) ||
           (this.lastErrorCode === 0 && value === '')) {
         // do nothing, we want the inverse
@@ -289,7 +289,7 @@ export default class Scorm2004API extends BaseAPI {
    * @param {*} value
    * @return {boolean}
    */
-  #checkDuplicatedPattern = (correct_response, current_index, value) => {
+  checkDuplicatedPattern = (correct_response, current_index, value) => {
     let found = false;
     const count = correct_response._count;
     for (let i = 0; i < count && !found; i++) {
@@ -306,13 +306,13 @@ export default class Scorm2004API extends BaseAPI {
    * @param {Array} nodes
    * @param {*} value
    */
-  #checkCorrectResponseValue = (interaction_type, nodes, value) => {
+  checkCorrectResponseValue(interaction_type, nodes, value) {
     const response = correct_responses[interaction_type];
     const formatRegex = new RegExp(response.format);
     for (let i = 0; i < nodes.length && this.lastErrorCode === 0; i++) {
       if (interaction_type.match(
           '^(fill-in|long-fill-in|matching|performance|sequencing)$')) {
-        nodes[i] = this.#removeCorrectResponsePrefixes(nodes[i]);
+        nodes[i] = this.removeCorrectResponsePrefixes(nodes[i]);
       }
 
       if (response.delimiter2 !== undefined) {
@@ -351,14 +351,14 @@ export default class Scorm2004API extends BaseAPI {
         }
       }
     }
-  };
+  }
 
   /**
    * Remove prefixes from correct_response
    * @param {string} node
    * @return {*}
    */
-  #removeCorrectResponsePrefixes = (node) => {
+  removeCorrectResponsePrefixes(node) {
     let seenOrder = false;
     let seenCase = false;
     let seenLang = false;
@@ -407,7 +407,7 @@ export default class Scorm2004API extends BaseAPI {
     }
 
     return node;
-  };
+  }
 
   /**
    * Replace the whole API with another
