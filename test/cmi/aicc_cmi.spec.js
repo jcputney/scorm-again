@@ -1,29 +1,27 @@
-import {expect, assert} from 'chai';
+import {expect} from 'chai';
 import {describe, it, beforeEach, afterEach} from 'mocha';
-import AICC from '../../src/AICC';
 import {aicc_constants} from '../../src/constants/api_constants';
 import {scorm12_error_codes} from '../../src/constants/error_codes';
+import {CMI} from '../../src/cmi/aicc_cmi';
 
-let API;
+let cmi;
 
 const checkFieldConstraintSize = ({fieldName, limit, expectedValue = ''}) => {
   describe(`Field: ${fieldName}`, () => {
     it(`Should be able to read from ${fieldName}`, () => {
-      expect(eval(`API.${fieldName}`)).to.equal(expectedValue);
+      expect(eval(`${fieldName}`)).to.equal(expectedValue);
     });
 
     it(`Should be able to write upto ${limit} characters to ${fieldName}`,
         () => {
-          eval(`API.${fieldName} = 'x'.repeat(${limit})`);
-          expect(0).to.equal(API.lastErrorCode);
+          expect(() => eval(`${fieldName} = 'x'.repeat(${limit})`)).
+              to.not.throw();
         });
 
     it(`Should fail to write more than ${limit} characters to ${fieldName}`,
         () => {
-          eval(`API.${fieldName} = 'x'.repeat(${limit + 1})`);
-          expect(scorm12_error_codes.TYPE_MISMATCH + '').
-              to.
-              equal(API.lastErrorCode);
+          expect(() => eval(`${fieldName} = 'x'.repeat(${limit + 1})`)).
+              to.throw(scorm12_error_codes.TYPE_MISMATCH + '');
         });
   });
 };
@@ -31,14 +29,12 @@ const checkFieldConstraintSize = ({fieldName, limit, expectedValue = ''}) => {
 const checkInvalidSet = ({fieldName, expectedValue = ''}) => {
   describe(`Field: ${fieldName}`, () => {
     it(`Should be able to read from ${fieldName}`, () => {
-      expect(eval(`API.${fieldName}`)).to.equal(expectedValue);
+      expect(eval(`${fieldName}`)).to.equal(expectedValue);
     });
 
     it(`Should fail to write to ${fieldName}`, () => {
-      eval(`API.${fieldName} = 'xxx'`);
-      expect(API.lastErrorCode).
-          to.
-          equal(scorm12_error_codes.INVALID_SET_VALUE + '');
+      expect(() => eval(`${fieldName} = 'xxx'`)).
+          to.throw(scorm12_error_codes.INVALID_SET_VALUE + '');
     });
   });
 };
@@ -46,14 +42,12 @@ const checkInvalidSet = ({fieldName, expectedValue = ''}) => {
 const checkReadOnly = ({fieldName, expectedValue = ''}) => {
   describe(`Field: ${fieldName}`, () => {
     it(`Should be able to read from ${fieldName}`, () => {
-      expect(eval(`API.${fieldName}`)).to.equal(expectedValue);
+      expect(eval(`${fieldName}`)).to.equal(expectedValue);
     });
 
     it(`Should fail to write to ${fieldName}`, () => {
-      eval(`API.${fieldName} = 'xxx'`);
-      expect(API.lastErrorCode).
-          to.
-          equal(scorm12_error_codes.READ_ONLY_ELEMENT + '');
+      expect(() => eval(`${fieldName} = 'xxx'`)).
+          to.throw(scorm12_error_codes.READ_ONLY_ELEMENT + '');
     });
   });
 };
@@ -61,7 +55,7 @@ const checkReadOnly = ({fieldName, expectedValue = ''}) => {
 const checkRead = ({fieldName, expectedValue = ''}) => {
   describe(`Field: ${fieldName}`, () => {
     it(`Should be able to read from ${fieldName}`, () => {
-      expect(eval(`API.${fieldName}`)).to.equal(expectedValue);
+      expect(eval(`${fieldName}`)).to.equal(expectedValue);
     });
   });
 };
@@ -69,12 +63,12 @@ const checkRead = ({fieldName, expectedValue = ''}) => {
 const checkReadAndWrite = ({fieldName, expectedValue = '', valueToTest = 'xxx'}) => {
   describe(`Field: ${fieldName}`, () => {
     it(`Should be able to read from ${fieldName}`, () => {
-      expect(eval(`API.${fieldName}`)).to.equal(expectedValue);
+      expect(eval(`${fieldName}`)).to.equal(expectedValue);
     });
 
     it(`Should successfully write to ${fieldName}`, () => {
-      eval(`API.${fieldName} = '${valueToTest}'`);
-      expect(API.lastErrorCode).to.equal(0);
+      expect(() => eval(`${fieldName} = '${valueToTest}'`)).
+          to.not.throw();
     });
   });
 };
@@ -82,15 +76,12 @@ const checkReadAndWrite = ({fieldName, expectedValue = '', valueToTest = 'xxx'})
 const checkWriteOnly = ({fieldName, valueToTest = 'xxx'}) => {
   describe(`Field: ${fieldName}`, () => {
     it(`Should fail to read from ${fieldName}`, () => {
-      eval(`API.${fieldName}`);
-      expect(API.lastErrorCode).
-          to.
-          equal(scorm12_error_codes.WRITE_ONLY_ELEMENT + '');
+      expect(() => eval(`${fieldName}`)).
+          to.throw(scorm12_error_codes.WRITE_ONLY_ELEMENT + '');
     });
 
     it(`Should successfully write to ${fieldName}`, () => {
-      eval(`API.${fieldName} = '${valueToTest}'`);
-      expect(API.lastErrorCode).to.equal(0);
+      expect(() => eval(`${fieldName} = '${valueToTest}'`)).to.not.throw();
     });
   });
 };
@@ -98,8 +89,7 @@ const checkWriteOnly = ({fieldName, valueToTest = 'xxx'}) => {
 const checkWrite = ({fieldName, valueToTest = 'xxx'}) => {
   describe(`Field: ${fieldName}`, () => {
     it(`Should successfully write to ${fieldName}`, () => {
-      eval(`API.${fieldName} = '${valueToTest}'`);
-      expect(API.lastErrorCode).to.equal(0);
+      expect(() => eval(`${fieldName} = '${valueToTest}'`)).to.not.throw();
     });
   });
 };
@@ -110,8 +100,8 @@ const checkValidValues = ({fieldName, expectedError, validValues, invalidValues}
       if ({}.hasOwnProperty.call(validValues, idx)) {
         it(`Should successfully write '${validValues[idx]}' to ${fieldName}`,
             () => {
-              eval(`API.${fieldName} = '${validValues[idx]}'`);
-              expect(API.lastErrorCode).to.equal(0);
+              expect(() => eval(`${fieldName} = '${validValues[idx]}'`)).
+                  to.not.throw();
             });
       }
     }
@@ -120,8 +110,8 @@ const checkValidValues = ({fieldName, expectedError, validValues, invalidValues}
       if ({}.hasOwnProperty.call(invalidValues, idx)) {
         it(`Should fail to write '${invalidValues[idx]}' to ${fieldName}`,
             () => {
-              eval(`API.${fieldName} = '${invalidValues[idx]}'`);
-              expect(API.lastErrorCode).to.equal(expectedError + '');
+              expect(() => eval(`${fieldName} = '${invalidValues[idx]}'`)).
+                  to.throw(expectedError + '');
             });
       }
     }
@@ -130,30 +120,12 @@ const checkValidValues = ({fieldName, expectedError, validValues, invalidValues}
 
 describe('AICC CMI Tests', () => {
   describe('CMI Spec Tests', () => {
-    beforeEach('Create the API object', () => {
-      API = new AICC();
-      API.lmsInitialize();
-    });
-    afterEach('Destroy API object', () => {
-      API = null;
-    });
-
-    it('lmsInitialize should create CMI object', () => {
-      assert(API.cmi !== undefined, 'CMI object is created');
-    });
-
-    it('Exporting CMI to JSON produces proper Object', () => {
-      expect(
-          JSON.parse(API.renderCMIToJSON()).cmi?.core !== undefined,
-      ).to.be.true;
-    });
-
     describe('Pre-Initialize Tests', () => {
       beforeEach('Create the API object', () => {
-        API = new AICC();
+        cmi = new CMI();
       });
       afterEach('Destroy API object', () => {
-        API = null;
+        cmi = null;
       });
 
       /**
@@ -409,11 +381,11 @@ describe('AICC CMI Tests', () => {
 
     describe('Post-Initialize Tests', () => {
       beforeEach('Create the API object', () => {
-        API = new AICC();
-        API.lmsInitialize();
+        cmi = new CMI();
+        cmi.initialize();
       });
       afterEach('Destroy API object', () => {
-        API = null;
+        cmi = null;
       });
 
       /**

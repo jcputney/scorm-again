@@ -1,56 +1,67 @@
 // @flow
-import {BaseCMI, CMIArray, CMIScore} from './common';
+import {
+  BaseCMI,
+  checkValidFormat,
+  checkValidRange,
+  CMIArray,
+  CMIScore,
+} from './common';
 import {scorm2004_constants} from '../constants/api_constants';
 import {scorm2004_regex} from '../regex';
 import {scorm2004_error_codes} from '../constants/error_codes';
 import {learner_responses} from '../constants/response_constants';
+import {ValidationError} from '../exceptions';
 
 const constants = scorm2004_constants;
 const regex = scorm2004_regex;
 
 /**
  * Helper method for throwing Read Only error
- * @param {Scorm2004API} API
  */
-function throwReadOnlyError(API) {
-  API.throwSCORMError(scorm2004_error_codes.READ_ONLY_ELEMENT);
+function throwReadOnlyError() {
+  throw new ValidationError(scorm2004_error_codes.READ_ONLY_ELEMENT);
 }
 
 /**
  * Helper method for throwing Write Only error
- * @param {Scorm2004API} API
  */
-function throwWriteOnlyError(API) {
-  API.throwSCORMError(scorm2004_error_codes.WRITE_ONLY_ELEMENT);
+function throwWriteOnlyError() {
+  throw new ValidationError(scorm2004_error_codes.WRITE_ONLY_ELEMENT);
 }
 
 /**
  * Helper method for throwing Type Mismatch error
- * @param {Scorm2004API} API
  */
-function throwTypeMismatchError(API) {
-  API.throwSCORMError(scorm2004_error_codes.TYPE_MISMATCH);
+function throwTypeMismatchError() {
+  throw new ValidationError(scorm2004_error_codes.TYPE_MISMATCH);
+}
+
+/**
+ * Helper method, no reason to have to pass the same error codes every time
+ * @param {*} value
+ * @param {string} regexPattern
+ * @return {boolean}
+ */
+function check2004ValidFormat(value: String, regexPattern: String) {
+  return checkValidFormat(value, regexPattern,
+      scorm2004_error_codes.TYPE_MISMATCH);
+}
+
+/**
+ * Helper method, no reason to have to pass the same error codes every time
+ * @param {*} value
+ * @param {string} rangePattern
+ * @return {boolean}
+ */
+function check2004ValidRange(value: any, rangePattern: String) {
+  return checkValidRange(value, rangePattern,
+      scorm2004_error_codes.VALUE_OUT_OF_RANGE);
 }
 
 /**
  * Class representing cmi object for SCORM 2004
  */
 export class CMI extends BaseCMI {
-  /**
-   * Constructor for the SCORM 2004 cmi object
-   * @param {Scorm2004API} API
-   */
-  constructor(API) {
-    super(API);
-
-    this.learner_preference = new CMILearnerPreference(API);
-    this.score = new Scorm2004CMIScore(API);
-    this.comments_from_learner = new CMICommentsFromLearner(API);
-    this.comments_from_lms = new CMICommentsFromLMS(API);
-    this.interactions = new CMIInteractions(API);
-    this.objectives = new CMIObjectives(API);
-  }
-
   #_version = '1.0';
   #_children = constants.cmi_children;
   #completion_status = 'unknown';
@@ -73,6 +84,36 @@ export class CMI extends BaseCMI {
   #total_time = '0';
 
   /**
+   * Constructor for the SCORM 2004 cmi object
+   * @param {boolean} initialized
+   */
+  constructor(initialized: boolean) {
+    super();
+
+    if (initialized) this.initialize();
+
+    this.learner_preference = new CMILearnerPreference();
+    this.score = new Scorm2004CMIScore();
+    this.comments_from_learner = new CMICommentsFromLearner();
+    this.comments_from_lms = new CMICommentsFromLMS();
+    this.interactions = new CMIInteractions();
+    this.objectives = new CMIObjectives();
+  }
+
+  /**
+   * Called when the API has been initialized after the CMI has been created
+   */
+  initialize() {
+    super.initialize();
+    this.learner_preference?.initialize();
+    this.score?.initialize();
+    this.comments_from_learner?.initialize();
+    this.comments_from_lms?.initialize();
+    this.interactions?.initialize();
+    this.objectives?.initialize();
+  }
+
+  /**
    * Getter for #_version
    * @return {string}
    * @private
@@ -87,7 +128,7 @@ export class CMI extends BaseCMI {
    * @private
    */
   set _version(_version) {
-    throwReadOnlyError(this.API);
+    throwReadOnlyError();
   }
 
   /**
@@ -105,7 +146,7 @@ export class CMI extends BaseCMI {
    * @private
    */
   set _children(_children) {
-    throwReadOnlyError(this.API);
+    throwReadOnlyError();
   }
 
   /**
@@ -121,7 +162,7 @@ export class CMI extends BaseCMI {
    * @param {string} completion_status
    */
   set completion_status(completion_status) {
-    if (this.API.checkValidFormat(completion_status, regex.CMICStatus)) {
+    if (check2004ValidFormat(completion_status, regex.CMICStatus)) {
       this.#completion_status = completion_status;
     }
   }
@@ -135,13 +176,13 @@ export class CMI extends BaseCMI {
   }
 
   /**
-   * Setter for #completion_threshold. Can only be called before API initialization.
+   * Setter for #completion_threshold. Can only be called before  initialization.
    * @param {string} completion_threshold
    */
   set completion_threshold(completion_threshold) {
-    this.API.isNotInitialized() ?
+    !this.initialized ?
         this.#completion_threshold = completion_threshold :
-        throwReadOnlyError(this.API);
+        throwReadOnlyError();
   }
 
   /**
@@ -153,13 +194,11 @@ export class CMI extends BaseCMI {
   }
 
   /**
-   * Setter for #credit. Can only be called before API initialization.
+   * Setter for #credit. Can only be called before  initialization.
    * @param {string} credit
    */
   set credit(credit) {
-    this.API.isNotInitialized() ?
-        this.#credit = credit :
-        throwReadOnlyError(this.API);
+    !this.initialized ? this.#credit = credit : throwReadOnlyError();
   }
 
   /**
@@ -171,13 +210,11 @@ export class CMI extends BaseCMI {
   }
 
   /**
-   * Setter for #entry. Can only be called before API initialization.
+   * Setter for #entry. Can only be called before  initialization.
    * @param {string} entry
    */
   set entry(entry) {
-    this.API.isNotInitialized() ?
-        this.#entry = entry :
-        throwReadOnlyError(this.API);
+    !this.initialized ? this.#entry = entry : throwReadOnlyError();
   }
 
   /**
@@ -193,7 +230,7 @@ export class CMI extends BaseCMI {
    * @param {string} exit
    */
   set exit(exit) {
-    if (this.API.checkValidFormat(exit, regex.CMIExit)) {
+    if (check2004ValidFormat(exit, regex.CMIExit)) {
       this.#exit = exit;
     }
   }
@@ -207,13 +244,11 @@ export class CMI extends BaseCMI {
   }
 
   /**
-   * Setter for #launch_data. Can only be called before API initialization.
+   * Setter for #launch_data. Can only be called before  initialization.
    * @param {string} launch_data
    */
   set launch_data(launch_data) {
-    this.API.isNotInitialized() ?
-        this.#launch_data = launch_data :
-        throwReadOnlyError(this.API);
+    !this.initialized ? this.#launch_data = launch_data : throwReadOnlyError();
   }
 
   /**
@@ -225,13 +260,11 @@ export class CMI extends BaseCMI {
   }
 
   /**
-   * Setter for #learner_id. Can only be called before API initialization.
+   * Setter for #learner_id. Can only be called before  initialization.
    * @param {string} learner_id
    */
   set learner_id(learner_id) {
-    this.API.isNotInitialized() ?
-        this.#learner_id = learner_id :
-        throwReadOnlyError(this.API);
+    !this.initialized ? this.#learner_id = learner_id : throwReadOnlyError();
   }
 
   /**
@@ -243,13 +276,13 @@ export class CMI extends BaseCMI {
   }
 
   /**
-   * Setter for #learner_name. Can only be called before API initialization.
+   * Setter for #learner_name. Can only be called before  initialization.
    * @param {string} learner_name
    */
   set learner_name(learner_name) {
-    this.API.isNotInitialized() ?
+    !this.initialized ?
         this.#learner_name = learner_name :
-        throwReadOnlyError(this.API);
+        throwReadOnlyError();
   }
 
   /**
@@ -265,7 +298,7 @@ export class CMI extends BaseCMI {
    * @param {string} location
    */
   set location(location) {
-    if (this.API.checkValidFormat(location, regex.CMIString1000)) {
+    if (check2004ValidFormat(location, regex.CMIString1000)) {
       this.#location = location;
     }
   }
@@ -279,13 +312,13 @@ export class CMI extends BaseCMI {
   }
 
   /**
-   * Setter for #max_time_allowed. Can only be called before API initialization.
+   * Setter for #max_time_allowed. Can only be called before  initialization.
    * @param {string} max_time_allowed
    */
   set max_time_allowed(max_time_allowed) {
-    this.API.isNotInitialized() ?
+    !this.initialized ?
         this.#max_time_allowed = max_time_allowed :
-        throwReadOnlyError(this.API);
+        throwReadOnlyError();
   }
 
   /**
@@ -297,13 +330,11 @@ export class CMI extends BaseCMI {
   }
 
   /**
-   * Setter for #mode. Can only be called before API initialization.
+   * Setter for #mode. Can only be called before  initialization.
    * @param {string} mode
    */
   set mode(mode) {
-    this.API.isNotInitialized() ?
-        this.#mode = mode :
-        throwReadOnlyError(this.API);
+    !this.initialized ? this.#mode = mode : throwReadOnlyError();
   }
 
   /**
@@ -319,8 +350,8 @@ export class CMI extends BaseCMI {
    * @param {string} progress_measure
    */
   set progress_measure(progress_measure) {
-    if (this.API.checkValidFormat(progress_measure, regex.CMIDecimal) &&
-        this.API.checkValidRange(progress_measure, regex.progress_range)) {
+    if (check2004ValidFormat(progress_measure, regex.CMIDecimal) &&
+        check2004ValidRange(progress_measure, regex.progress_range)) {
       this.#progress_measure = progress_measure;
     }
   }
@@ -334,13 +365,13 @@ export class CMI extends BaseCMI {
   }
 
   /**
-   * Setter for #scaled_passing_score. Can only be called before API initialization.
+   * Setter for #scaled_passing_score. Can only be called before  initialization.
    * @param {string} scaled_passing_score
    */
   set scaled_passing_score(scaled_passing_score) {
-    this.API.isNotInitialized() ?
+    !this.initialized ?
         this.#scaled_passing_score = scaled_passing_score :
-        throwReadOnlyError(this.API);
+        throwReadOnlyError();
   }
 
   /**
@@ -348,9 +379,7 @@ export class CMI extends BaseCMI {
    * @return {string}
    */
   get session_time() {
-    return (!this.jsonString) ?
-        this.API.throwSCORMError(405) :
-        this.#session_time;
+    return (!this.jsonString) ? throwWriteOnlyError() : this.#session_time;
   }
 
   /**
@@ -358,7 +387,7 @@ export class CMI extends BaseCMI {
    * @param {string} session_time
    */
   set session_time(session_time) {
-    if (this.API.checkValidFormat(session_time, regex.CMITimespan)) {
+    if (check2004ValidFormat(session_time, regex.CMITimespan)) {
       this.#session_time = session_time;
     }
   }
@@ -376,7 +405,7 @@ export class CMI extends BaseCMI {
    * @param {string} success_status
    */
   set success_status(success_status) {
-    if (this.API.checkValidFormat(success_status, regex.CMISStatus)) {
+    if (check2004ValidFormat(success_status, regex.CMISStatus)) {
       this.#success_status = success_status;
     }
   }
@@ -394,7 +423,7 @@ export class CMI extends BaseCMI {
    * @param {string} suspend_data
    */
   set suspend_data(suspend_data) {
-    if (this.API.checkValidFormat(suspend_data, regex.CMIString64000)) {
+    if (check2004ValidFormat(suspend_data, regex.CMIString64000)) {
       this.#suspend_data = suspend_data;
     }
   }
@@ -408,13 +437,13 @@ export class CMI extends BaseCMI {
   }
 
   /**
-   * Setter for #time_limit_action. Can only be called before API initialization.
+   * Setter for #time_limit_action. Can only be called before  initialization.
    * @param {string} time_limit_action
    */
   set time_limit_action(time_limit_action) {
-    this.API.isNotInitialized() ?
+    !this.initialized ?
         this.#time_limit_action = time_limit_action :
-        throwReadOnlyError(this.API);
+        throwReadOnlyError();
   }
 
   /**
@@ -426,13 +455,11 @@ export class CMI extends BaseCMI {
   }
 
   /**
-   * Setter for #total_time. Can only be called before API initialization.
+   * Setter for #total_time. Can only be called before  initialization.
    * @param {string} total_time
    */
   set total_time(total_time) {
-    this.API.isNotInitialized() ?
-        this.#total_time = total_time :
-        throwReadOnlyError(this.API);
+    !this.initialized ? this.#total_time = total_time : throwReadOnlyError();
   }
 
   /**
@@ -504,19 +531,18 @@ export class CMI extends BaseCMI {
  * Class for SCORM 2004's cmi.learner_preference object
  */
 class CMILearnerPreference extends BaseCMI {
-  /**
-   * Constructor for cmi.learner_preference
-   * @param {Scorm2004API} API
-   */
-  constructor(API) {
-    super(API);
-  }
-
   #_children = constants.student_preference_children;
   #audio_level = '1';
   #language = '';
   #delivery_speed = '1';
   #audio_captioning = '0';
+
+  /**
+   * Constructor for cmi.learner_preference
+   */
+  constructor() {
+    super();
+  }
 
   /**
    * Getter for #_children
@@ -533,7 +559,7 @@ class CMILearnerPreference extends BaseCMI {
    * @private
    */
   set _children(_children) {
-    throwReadOnlyError(this.API);
+    throwReadOnlyError();
   }
 
   /**
@@ -549,8 +575,8 @@ class CMILearnerPreference extends BaseCMI {
    * @param {string} audio_level
    */
   set audio_level(audio_level) {
-    if (this.API.checkValidFormat(audio_level, regex.CMIDecimal) &&
-        this.API.checkValidRange(audio_level, regex.audio_range)) {
+    if (check2004ValidFormat(audio_level, regex.CMIDecimal) &&
+        check2004ValidRange(audio_level, regex.audio_range)) {
       this.#audio_level = audio_level;
     }
   }
@@ -568,7 +594,7 @@ class CMILearnerPreference extends BaseCMI {
    * @param {string} language
    */
   set language(language) {
-    if (this.API.checkValidFormat(language, regex.CMILang)) {
+    if (check2004ValidFormat(language, regex.CMILang)) {
       this.#language = language;
     }
   }
@@ -586,8 +612,8 @@ class CMILearnerPreference extends BaseCMI {
    * @param {string} delivery_speed
    */
   set delivery_speed(delivery_speed) {
-    if (this.API.checkValidFormat(delivery_speed, regex.CMIDecimal) &&
-        this.API.checkValidRange(delivery_speed, regex.speed_range)) {
+    if (check2004ValidFormat(delivery_speed, regex.CMIDecimal) &&
+        check2004ValidRange(delivery_speed, regex.speed_range)) {
       this.#delivery_speed = delivery_speed;
     }
   }
@@ -605,8 +631,8 @@ class CMILearnerPreference extends BaseCMI {
    * @param {string} audio_captioning
    */
   set audio_captioning(audio_captioning) {
-    if (this.API.checkValidFormat(audio_captioning, regex.CMISInteger) &&
-        this.API.checkValidRange(audio_captioning, regex.text_range)) {
+    if (check2004ValidFormat(audio_captioning, regex.CMISInteger) &&
+        check2004ValidRange(audio_captioning, regex.text_range)) {
       this.#audio_captioning = audio_captioning;
     }
   }
@@ -642,11 +668,9 @@ class CMILearnerPreference extends BaseCMI {
 class CMIInteractions extends CMIArray {
   /**
    * Constructor for cmi.objectives Array
-   * @param {Scorm2004API} API
    */
-  constructor(API) {
+  constructor() {
     super({
-      API: API,
       children: constants.objectives_children,
       errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
     });
@@ -659,11 +683,9 @@ class CMIInteractions extends CMIArray {
 class CMIObjectives extends CMIArray {
   /**
    * Constructor for cmi.objectives Array
-   * @param {Scorm2004API} API
    */
-  constructor(API) {
+  constructor() {
     super({
-      API: API,
       children: constants.objectives_children,
       errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
     });
@@ -676,11 +698,9 @@ class CMIObjectives extends CMIArray {
 class CMICommentsFromLMS extends CMIArray {
   /**
    * Constructor for cmi.comments_from_lms Array
-   * @param {Scorm2004API} API
    */
-  constructor(API) {
+  constructor() {
     super({
-      API: API,
       children: constants.comments_children,
       errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
     });
@@ -693,11 +713,9 @@ class CMICommentsFromLMS extends CMIArray {
 class CMICommentsFromLearner extends CMIArray {
   /**
    * Constructor for cmi.comments_from_learner Array
-   * @param {Scorm2004API} API
    */
-  constructor(API) {
+  constructor() {
     super({
-      API: API,
       children: constants.comments_children,
       errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
     });
@@ -708,25 +726,6 @@ class CMICommentsFromLearner extends CMIArray {
  * Class for SCORM 2004's cmi.interaction.n object
  */
 export class CMIInteractionsObject extends BaseCMI {
-  /**
-   * Constructor for cmi.interaction.n
-   * @param {Scorm2004API} API
-   */
-  constructor(API) {
-    super(API);
-
-    this.objectives = new CMIArray({
-      API: API,
-      errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
-      children: constants.objectives_children,
-    });
-    this.correct_responses = new CMIArray({
-      API: API,
-      errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
-      children: constants.correct_responses_children,
-    });
-  }
-
   #id = '';
   #type = '';
   #timestamp = '';
@@ -735,6 +734,31 @@ export class CMIInteractionsObject extends BaseCMI {
   #result = '';
   #latency = '';
   #description = '';
+
+  /**
+   * Constructor for cmi.interaction.n
+   */
+  constructor() {
+    super();
+
+    this.objectives = new CMIArray({
+      errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
+      children: constants.objectives_children,
+    });
+    this.correct_responses = new CMIArray({
+      errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
+      children: constants.correct_responses_children,
+    });
+  }
+
+  /**
+   * Called when the API has been initialized after the CMI has been created
+   */
+  initialize() {
+    super.initialize();
+    this.objectives?.initialize();
+    this.correct_responses?.initialize();
+  }
 
   /**
    * Getter for #id
@@ -749,7 +773,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} id
    */
   set id(id) {
-    if (this.API.checkValidFormat(id, regex.CMILongIdentifier)) {
+    if (check2004ValidFormat(id, regex.CMILongIdentifier)) {
       this.#id = id;
     }
   }
@@ -767,7 +791,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} type
    */
   set type(type) {
-    if (this.API.checkValidFormat(type, regex.CMIType)) {
+    if (check2004ValidFormat(type, regex.CMIType)) {
       this.#type = type;
     }
   }
@@ -785,7 +809,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} timestamp
    */
   set timestamp(timestamp) {
-    if (this.API.checkValidFormat(timestamp, regex.CMITime)) {
+    if (check2004ValidFormat(timestamp, regex.CMITime)) {
       this.#timestamp = timestamp;
     }
   }
@@ -803,7 +827,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} weighting
    */
   set weighting(weighting) {
-    if (this.API.checkValidFormat(weighting, regex.CMIDecimal)) {
+    if (check2004ValidFormat(weighting, regex.CMIDecimal)) {
       this.#weighting = weighting;
     }
   }
@@ -823,7 +847,8 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   set learner_response(learner_response) {
     if (typeof this.type === 'undefined') {
-      this.API.throwSCORMError(this.API.error.DEPENDENCY_NOT_ESTABLISHED);
+      throw new ValidationError(
+          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
     } else {
       let nodes = [];
       const response_type = learner_responses[this.type];
@@ -835,29 +860,28 @@ export class CMIInteractionsObject extends BaseCMI {
 
       if ((nodes.length > 0) && (nodes.length <= response_type.max)) {
         const formatRegex = new RegExp(response_type.format);
-        for (let i = 0; (i < nodes.length) &&
-        (this.API.lastErrorCode === 0); i++) {
+        for (let i = 0; i < nodes.length; i++) {
           if (typeof response_type.delimiter2 !== 'undefined') {
             const values = nodes[i].split(response_type.delimiter2);
             if (values.length === 2) {
               if (!values[0].match(formatRegex)) {
-                throwTypeMismatchError(this.API);
+                throwTypeMismatchError();
               } else {
                 if (!values[1].match(new RegExp(response_type.format2))) {
-                  throwTypeMismatchError(this.API);
+                  throwTypeMismatchError();
                 }
               }
             } else {
-              throwTypeMismatchError(this.API);
+              throwTypeMismatchError();
             }
           } else {
             if (!nodes[i].match(formatRegex)) {
-              throwTypeMismatchError(this.API);
+              throwTypeMismatchError();
             } else {
               if (nodes[i] !== '' && response_type.unique) {
-                for (let j = 0; (j < i) && this.API.lastErrorCode === 0; j++) {
+                for (let j = 0; j < i; j++) {
                   if (nodes[i] === nodes[j]) {
-                    throwTypeMismatchError(this.API);
+                    throwTypeMismatchError();
                   }
                 }
               }
@@ -865,7 +889,7 @@ export class CMIInteractionsObject extends BaseCMI {
           }
         }
       } else {
-        this.API.throwSCORMError(this.API.error.GENERAL_SET_FAILURE);
+        throw new ValidationError(scorm2004_error_codes.GENERAL_SET_FAILURE);
       }
     }
   }
@@ -883,7 +907,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} result
    */
   set result(result) {
-    if (this.API.checkValidFormat(result, regex.CMIResult)) {
+    if (check2004ValidFormat(result, regex.CMIResult)) {
       this.#result = result;
     }
   }
@@ -901,7 +925,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} latency
    */
   set latency(latency) {
-    if (this.API.checkValidFormat(latency, regex.CMITimespan)) {
+    if (check2004ValidFormat(latency, regex.CMITimespan)) {
       this.#latency = latency;
     }
   }
@@ -919,7 +943,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} description
    */
   set description(description) {
-    if (this.API.checkValidFormat(description, regex.CMILangString250)) {
+    if (check2004ValidFormat(description, regex.CMILangString250)) {
       this.#description = description;
     }
   }
@@ -965,21 +989,28 @@ export class CMIInteractionsObject extends BaseCMI {
  * Class for SCORM 2004's cmi.objectives.n object
  */
 export class CMIObjectivesObject extends BaseCMI {
-  /**
-   * Constructor for cmi.objectives.n
-   * @param {Scorm2004API} API
-   */
-  constructor(API) {
-    super(API);
-
-    this.score = new Scorm2004CMIScore(API);
-  }
-
   #id = '';
   #success_status = 'unknown';
   #completion_status = 'unknown';
   #progress_measure = '';
   #description = '';
+
+  /**
+   * Constructor for cmi.objectives.n
+   */
+  constructor() {
+    super();
+
+    this.score = new Scorm2004CMIScore();
+  }
+
+  /**
+   * Called when the API has been initialized after the CMI has been created
+   */
+  initialize() {
+    super.initialize();
+    this.score?.initialize();
+  }
 
   /**
    * Getter for #id
@@ -994,7 +1025,7 @@ export class CMIObjectivesObject extends BaseCMI {
    * @param {string} id
    */
   set id(id) {
-    if (this.API.checkValidFormat(id, regex.CMILongIdentifier)) {
+    if (check2004ValidFormat(id, regex.CMILongIdentifier)) {
       this.#id = id;
     }
   }
@@ -1012,7 +1043,7 @@ export class CMIObjectivesObject extends BaseCMI {
    * @param {string} success_status
    */
   set success_status(success_status) {
-    if (this.API.checkValidFormat(success_status, regex.CMISStatus)) {
+    if (check2004ValidFormat(success_status, regex.CMISStatus)) {
       this.#success_status = success_status;
     }
   }
@@ -1030,7 +1061,7 @@ export class CMIObjectivesObject extends BaseCMI {
    * @param {string} completion_status
    */
   set completion_status(completion_status) {
-    if (this.API.checkValidFormat(completion_status, regex.CMICStatus)) {
+    if (check2004ValidFormat(completion_status, regex.CMICStatus)) {
       this.#completion_status = completion_status;
     }
   }
@@ -1048,8 +1079,8 @@ export class CMIObjectivesObject extends BaseCMI {
    * @param {string} progress_measure
    */
   set progress_measure(progress_measure) {
-    if (this.API.checkValidFormat(progress_measure, regex.CMIDecimal) &&
-        this.API.checkValidRange(progress_measure, regex.progress_range)) {
+    if (check2004ValidFormat(progress_measure, regex.CMIDecimal) &&
+        check2004ValidRange(progress_measure, regex.progress_range)) {
       this.#progress_measure = progress_measure;
     }
   }
@@ -1067,7 +1098,7 @@ export class CMIObjectivesObject extends BaseCMI {
    * @param {string} description
    */
   set description(description) {
-    if (this.API.checkValidFormat(description, regex.CMILangString250)) {
+    if (check2004ValidFormat(description, regex.CMILangString250)) {
       this.#description = description;
     }
   }
@@ -1103,17 +1134,21 @@ export class CMIObjectivesObject extends BaseCMI {
  * Class for SCORM 2004's cmi *.score object
  */
 class Scorm2004CMIScore extends CMIScore {
+  #scaled = '';
+
   /**
    * Constructor for cmi *.score
-   * @param {Scorm2004API} API
    */
-  constructor(API) {
-    super(API, constants.score_children);
-
-    this.max = '';
+  constructor() {
+    super(
+        {
+          score_children: constants.score_children,
+          max: '',
+          invalidErrorCode: scorm2004_error_codes.INVALID_SET_VALUE,
+          invalidTypeCode: scorm2004_error_codes.TYPE_MISMATCH,
+          invalidRangeCode: scorm2004_error_codes.VALUE_OUT_OF_RANGE,
+        });
   }
-
-  #scaled = '';
 
   /**
    * Getter for #scaled
@@ -1128,8 +1163,8 @@ class Scorm2004CMIScore extends CMIScore {
    * @param {string} scaled
    */
   set scaled(scaled) {
-    if (this.API.checkValidFormat(scaled, regex.CMIDecimal) &&
-        this.API.checkValidRange(scaled, regex.scaled_range)) {
+    if (check2004ValidFormat(scaled, regex.CMIDecimal) &&
+        check2004ValidRange(scaled, regex.scaled_range)) {
       this.#scaled = scaled;
     }
   }
@@ -1163,17 +1198,16 @@ class Scorm2004CMIScore extends CMIScore {
  * Class representing SCORM 2004's cmi.comments_from_learner.n object
  */
 export class CMICommentsFromLearnerObject extends BaseCMI {
-  /**
-   * Constructor for cmi.comments_from_learner.n
-   * @param {Scorm2004API} API
-   */
-  constructor(API) {
-    super(API);
-  }
-
   #comment = '';
   #location = '';
   #timestamp = '';
+
+  /**
+   * Constructor for cmi.comments_from_learner.n
+   */
+  constructor() {
+    super();
+  }
 
   /**
    * Getter for #comment
@@ -1188,7 +1222,7 @@ export class CMICommentsFromLearnerObject extends BaseCMI {
    * @param {string} comment
    */
   set comment(comment) {
-    if (this.API.checkValidFormat(comment, regex.CMILangString4000)) {
+    if (check2004ValidFormat(comment, regex.CMILangString4000)) {
       this.#comment = comment;
     }
   }
@@ -1206,7 +1240,7 @@ export class CMICommentsFromLearnerObject extends BaseCMI {
    * @param {string} location
    */
   set location(location) {
-    if (this.API.checkValidFormat(location, regex.CMIString250)) {
+    if (check2004ValidFormat(location, regex.CMIString250)) {
       this.#location = location;
     }
   }
@@ -1224,7 +1258,7 @@ export class CMICommentsFromLearnerObject extends BaseCMI {
    * @param {string} timestamp
    */
   set timestamp(timestamp) {
-    if (this.API.checkValidFormat(timestamp, regex.CMITime)) {
+    if (check2004ValidFormat(timestamp, regex.CMITime)) {
       this.#timestamp = timestamp;
     }
   }
@@ -1236,40 +1270,33 @@ export class CMICommentsFromLearnerObject extends BaseCMI {
 export class CMICommentsFromLMSObject extends CMICommentsFromLearnerObject {
   /**
    * Constructor for cmi.comments_from_lms.n
-   * @param {Scorm2004API} API
    */
-  constructor(API) {
-    super(API);
+  constructor() {
+    super();
   }
 
   /**
-   * Setter for #comment. Can only be called before API initialization.
+   * Setter for #comment. Can only be called before  initialization.
    * @param {string} comment
    */
   set comment(comment) {
-    this.API.isNotInitialized() ?
-        this.comment = comment :
-        throwReadOnlyError(this.API);
+    !this.initialized ? this.comment = comment : throwReadOnlyError();
   }
 
   /**
-   * Setter for #location. Can only be called before API initialization.
+   * Setter for #location. Can only be called before  initialization.
    * @param {string} location
    */
   set location(location) {
-    this.API.isNotInitialized() ?
-        this.location = location :
-        throwReadOnlyError(this.API);
+    !this.initialized ? this.location = location : throwReadOnlyError();
   }
 
   /**
-   * Setter for #timestamp. Can only be called before API initialization.
+   * Setter for #timestamp. Can only be called before  initialization.
    * @param {string} timestamp
    */
   set timestamp(timestamp) {
-    this.API.isNotInitialized() ?
-        this.timestamp = timestamp :
-        throwReadOnlyError(this.API);
+    !this.initialized ? this.timestamp = timestamp : throwReadOnlyError();
   }
 }
 
@@ -1277,15 +1304,14 @@ export class CMICommentsFromLMSObject extends CMICommentsFromLearnerObject {
  * Class representing SCORM 2004's cmi.interactions.n.objectives.n object
  */
 export class CMIInteractionsObjectivesObject extends BaseCMI {
+  #id = '';
+
   /**
    * Constructor for cmi.interactions.n.objectives.n
-   * @param {Scorm2004API} API
    */
-  constructor(API) {
-    super(API);
+  constructor() {
+    super();
   }
-
-  #id = '';
 
   /**
    * Getter for #id
@@ -1300,7 +1326,7 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
    * @param {string} id
    */
   set id(id) {
-    if (this.API.checkValidFormat(id, regex.CMILongIdentifier)) {
+    if (check2004ValidFormat(id, regex.CMILongIdentifier)) {
       this.#id = id;
     }
   }
@@ -1310,15 +1336,14 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
  * Class representing SCORM 2004's cmi.interactions.n.correct_responses.n object
  */
 export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
+  #pattern = '';
+
   /**
    * Constructor for cmi.interactions.n.correct_responses.n
-   * @param {Scorm2004API} API
    */
-  constructor(API) {
-    super(API);
+  constructor() {
+    super();
   }
-
-  #pattern = '';
 
   /**
    * Getter for #pattern
@@ -1333,7 +1358,7 @@ export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
    * @param {string} pattern
    */
   set pattern(pattern) {
-    if (this.API.checkValidFormat(pattern, regex.CMIFeedback)) {
+    if (check2004ValidFormat(pattern, regex.CMIFeedback)) {
       this.#pattern = pattern;
     }
   }
@@ -1345,131 +1370,19 @@ export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
 export class ADL extends BaseCMI {
   /**
    * Constructor for adl
-   * @param {Scorm2004API} API
    */
-  constructor(API) {
-    super(API);
+  constructor() {
+    super();
 
-    this.nav = new class extends BaseCMI {
-      /**
-       * Constructor for adl.nav
-       * @param {Scorm2004API} API
-       */
-      constructor(API) {
-        super(API);
+    this.nav = new ADLNav();
+  }
 
-        this.request_valid = new class extends BaseCMI {
-          /**
-           * Constructor for adl.nav.request_valid
-           * @param {Scorm2004API} API
-           */
-          constructor(API) {
-            super(API);
-          }
-
-          #continue = 'unknown';
-          #previous = 'unknown';
-
-          /**
-           * Getter for #continue
-           * @return {string}
-           */
-          get continue() {
-            return this.#continue;
-          }
-
-          /**
-           * Setter for #continue. Just throws an error.
-           * @param {*} _
-           */
-          set continue(_) {
-            throwReadOnlyError(this.API);
-          }
-
-          /**
-           * Getter for #previous
-           * @return {string}
-           */
-          get previous() {
-            return this.#previous;
-          }
-
-          /**
-           * Setter for #previous. Just throws an error.
-           * @param {*} _
-           */
-          set previous(_) {
-            throwReadOnlyError(this.API);
-          }
-
-          choice = class {
-            _isTargetValid = (_target) => 'unknown';
-          }();
-
-          jump = class {
-            _isTargetValid = (_target) => 'unknown';
-          }();
-
-          /**
-           * toJSON for adl.nav.request_valid
-           *
-           * @return {
-           *    {
-           *      previous: string,
-           *      continue: string
-           *    }
-           *  }
-           */
-          toJSON() {
-            this.jsonString = true;
-            const result = {
-              'previous': this.previous,
-              'continue': this.continue,
-            };
-            delete this.jsonString;
-            return result;
-          }
-        }(API);
-      }
-
-      #request = '_none_';
-
-      /**
-       * Getter for #request
-       * @return {string}
-       */
-      get request() {
-        return this.#request;
-      }
-
-      /**
-       * Setter for #request
-       * @param {string} request
-       */
-      set request(request) {
-        if (this.API.checkValidFormat(request, regex.NAVEvent)) {
-          this.#request = request;
-        }
-      }
-
-      /**
-       * toJSON for adl.nav
-       *
-       * @return {
-       *    {
-       *      request: string
-       *    }
-       *  }
-       */
-      toJSON() {
-        this.jsonString = true;
-        const result = {
-          'request': this.request,
-        };
-        delete this.jsonString;
-        return result;
-      }
-    }(API);
+  /**
+   * Called when the API has been initialized after the CMI has been created
+   */
+  initialize() {
+    super.initialize();
+    this.nav?.initialize();
   }
 
   /**
@@ -1486,6 +1399,139 @@ export class ADL extends BaseCMI {
     this.jsonString = true;
     const result = {
       'nav': this.nav,
+    };
+    delete this.jsonString;
+    return result;
+  }
+}
+
+/**
+ * Class representing SCORM 2004's adl.nav object
+ */
+class ADLNav extends BaseCMI {
+  #request = '_none_';
+
+  /**
+   * Constructor for adl.nav
+   */
+  constructor() {
+    super();
+
+    this.request_valid = new ADLNavRequestValid();
+  }
+
+  /**
+   * Called when the API has been initialized after the CMI has been created
+   */
+  initialize() {
+    super.initialize();
+    this.request_valid?.initialize();
+  }
+
+  /**
+   * Getter for #request
+   * @return {string}
+   */
+  get request() {
+    return this.#request;
+  }
+
+  /**
+   * Setter for #request
+   * @param {string} request
+   */
+  set request(request) {
+    if (check2004ValidFormat(request, regex.NAVEvent)) {
+      this.#request = request;
+    }
+  }
+
+  /**
+   * toJSON for adl.nav
+   *
+   * @return {
+   *    {
+   *      request: string
+   *    }
+   *  }
+   */
+  toJSON() {
+    this.jsonString = true;
+    const result = {
+      'request': this.request,
+    };
+    delete this.jsonString;
+    return result;
+  }
+}
+
+/**
+ * Class representing SCORM 2004's adl.nav.request_valid object
+ */
+class ADLNavRequestValid extends BaseCMI {
+  #continue = 'unknown';
+  #previous = 'unknown';
+  choice = class {
+    _isTargetValid = (_target) => 'unknown';
+  };
+  jump = class {
+    _isTargetValid = (_target) => 'unknown';
+  };
+
+  /**
+   * Constructor for adl.nav.request_valid
+   */
+  constructor() {
+    super();
+  }
+
+  /**
+   * Getter for #continue
+   * @return {string}
+   */
+  get continue() {
+    return this.#continue;
+  }
+
+  /**
+   * Setter for #continue. Just throws an error.
+   * @param {*} _
+   */
+  set continue(_) {
+    throwReadOnlyError();
+  }
+
+  /**
+   * Getter for #previous
+   * @return {string}
+   */
+  get previous() {
+    return this.#previous;
+  }
+
+  /**
+   * Setter for #previous. Just throws an error.
+   * @param {*} _
+   */
+  set previous(_) {
+    throwReadOnlyError();
+  }
+
+  /**
+   * toJSON for adl.nav.request_valid
+   *
+   * @return {
+   *    {
+   *      previous: string,
+   *      continue: string
+   *    }
+   *  }
+   */
+  toJSON() {
+    this.jsonString = true;
+    const result = {
+      'previous': this.previous,
+      'continue': this.continue,
     };
     delete this.jsonString;
     return result;

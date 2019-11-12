@@ -3,17 +3,13 @@ import {BaseCMI, CMIArray, CMIScore} from './common';
 import {aicc_constants} from '../constants/api_constants';
 import {aicc_regex} from '../regex';
 import {scorm12_error_codes} from '../constants/error_codes';
+import {ValidationError} from '../exceptions';
+import {check12ValidFormat} from './scorm12_cmi';
+import {throwReadOnlyError} from './scorm12_cmi';
+import {throwWriteOnlyError} from './scorm12_cmi';
 
 const constants = aicc_constants;
 const regex = aicc_regex;
-
-/**
- * Sets a READ_ONLY error on the API
- * @param {AICC} API
- */
-function throwReadOnlyError(API) {
-  API.throwSCORMError(scorm12_error_codes.READ_ONLY_ELEMENT);
-}
 
 /**
  * CMI Class for AICC
@@ -21,13 +17,24 @@ function throwReadOnlyError(API) {
 export class CMI extends Scorm12CMI.CMI {
   /**
    * Constructor for AICC CMI object
-   * @param {AICC} API
+   * @param {boolean} initialized
    */
-  constructor(API) {
-    super(API, constants.cmi_children);
+  constructor(initialized: boolean) {
+    super(constants.cmi_children);
 
-    this.student_data = new AICCCMIStudentData(API);
-    this.evaluation = new CMIEvaluation(API);
+    if (initialized) this.initialize();
+
+    this.student_data = new AICCCMIStudentData();
+    this.evaluation = new CMIEvaluation();
+  }
+
+  /**
+   * Called when the API has been initialized after the CMI has been created
+   */
+  initialize() {
+    super.initialize();
+    this.student_data?.initialize();
+    this.evaluation?.initialize();
   }
 }
 
@@ -37,12 +44,19 @@ export class CMI extends Scorm12CMI.CMI {
 class CMIEvaluation extends BaseCMI {
   /**
    * Constructor for AICC Evaluation object
-   * @param {AICC} API
    */
-  constructor(API) {
-    super(API);
+  constructor() {
+    super();
 
-    this.comments = new CMIEvaluationComments(API);
+    this.comments = new CMIEvaluationComments();
+  }
+
+  /**
+   * Called when the API has been initialized after the CMI has been created
+   */
+  initialize() {
+    super.initialize();
+    this.comments?.initialize();
   }
 }
 
@@ -52,10 +66,9 @@ class CMIEvaluation extends BaseCMI {
 class CMIEvaluationComments extends CMIArray {
   /**
    * Constructor for AICC Evaluation Comments object
-   * @param {AICC} API
    */
-  constructor(API) {
-    super(API, constants.comments_children,
+  constructor() {
+    super(constants.comments_children,
         scorm12_error_codes.INVALID_SET_VALUE);
   }
 }
@@ -66,12 +79,19 @@ class CMIEvaluationComments extends CMIArray {
 class AICCCMIStudentData extends Scorm12CMI.CMIStudentData {
   /**
    * Constructor for AICC StudentData object
-   * @param {AICC} API
    */
-  constructor(API) {
-    super(API, constants.student_data_children);
+  constructor() {
+    super(constants.student_data_children);
 
-    this.tries = new CMITries(API);
+    this.tries = new CMITries();
+  }
+
+  /**
+   * Called when the API has been initialized after the CMI has been created
+   */
+  initialize() {
+    super.initialize();
+    this.tries?.initialize();
   }
 
   #tries_during_lesson = '';
@@ -86,13 +106,13 @@ class AICCCMIStudentData extends Scorm12CMI.CMIStudentData {
 
   /**
    * Setter for #tries_during_lesson. Sets an error if trying to set after
-   * API initialization.
+   *  initialization.
    * @param {string} tries_during_lesson
    */
   set tries_during_lesson(tries_during_lesson) {
-    this.API.isNotInitialized() ?
+    !this.initialized ?
         this.#tries_during_lesson = tries_during_lesson :
-        throwReadOnlyError(this.API);
+        throwReadOnlyError();
   }
 }
 
@@ -102,10 +122,9 @@ class AICCCMIStudentData extends Scorm12CMI.CMIStudentData {
 export class CMITries extends CMIArray {
   /**
    * Constructor for inline Tries Array class
-   * @param {AICC} API
    */
-  constructor(API) {
-    super(API, aicc_constants.tries_children);
+  constructor() {
+    super(aicc_constants.tries_children);
   }
 }
 
@@ -115,12 +134,19 @@ export class CMITries extends CMIArray {
 export class CMITriesObject extends BaseCMI {
   /**
    * Constructor for AICC Tries object
-   * @param {AICC} API
    */
-  constructor(API) {
-    super(API);
+  constructor() {
+    super();
 
-    this.score = new CMIScore(API);
+    this.score = new CMIScore();
+  }
+
+  /**
+   * Called when the API has been initialized after the CMI has been created
+   */
+  initialize() {
+    super.initialize();
+    this.score?.initialize();
   }
 
   #status = '';
@@ -139,7 +165,7 @@ export class CMITriesObject extends BaseCMI {
    * @param {string} status
    */
   set status(status) {
-    if (this.API.checkValidFormat(status, regex.CMIStatus2)) {
+    if (check12ValidFormat(status, regex.CMIStatus2)) {
       this.#status = status;
     }
   }
@@ -157,7 +183,7 @@ export class CMITriesObject extends BaseCMI {
    * @param {string} time
    */
   set time(time) {
-    if (this.API.checkValidFormat(time, regex.CMITime)) {
+    if (check12ValidFormat(time, regex.CMITime)) {
       this.#time = time;
     }
   }
@@ -169,10 +195,9 @@ export class CMITriesObject extends BaseCMI {
 export class CMIEvaluationCommentsObject extends BaseCMI {
   /**
    * Constructor for Evaluation Comments
-   * @param {AICC} API
    */
-  constructor(API) {
-    super(API);
+  constructor() {
+    super();
   }
 
   #content = '';
@@ -192,7 +217,7 @@ export class CMIEvaluationCommentsObject extends BaseCMI {
    * @param {string} content
    */
   set content(content) {
-    if (this.API.checkValidFormat(content, regex.CMIString256)) {
+    if (check12ValidFormat(content, regex.CMIString256)) {
       this.#content = content;
     }
   }
@@ -210,7 +235,7 @@ export class CMIEvaluationCommentsObject extends BaseCMI {
    * @param {string} location
    */
   set location(location) {
-    if (this.API.checkValidFormat(location, regex.CMIString256)) {
+    if (check12ValidFormat(location, regex.CMIString256)) {
       this.#location = location;
     }
   }
@@ -228,7 +253,7 @@ export class CMIEvaluationCommentsObject extends BaseCMI {
    * @param {string} time
    */
   set time(time) {
-    if (this.API.checkValidFormat(time, regex.CMITime)) {
+    if (check12ValidFormat(time, regex.CMITime)) {
       this.#time = time;
     }
   }
@@ -240,10 +265,9 @@ export class CMIEvaluationCommentsObject extends BaseCMI {
 export class NAV extends BaseCMI {
   /**
    * Constructor for NAV object
-   * @param {AICC} API
    */
-  constructor(API) {
-    super(API);
+  constructor() {
+    super();
   }
 
   #event = '';
@@ -253,9 +277,7 @@ export class NAV extends BaseCMI {
    * @return {string}
    */
   get event() {
-    return (!this.jsonString) ?
-        this.API.throwSCORMError(scorm12_error_codes.WRITE_ONLY_ELEMENT) :
-        this.#event;
+    return (!this.jsonString) ? throwWriteOnlyError() : this.#event;
   }
 
   /**
@@ -263,7 +285,7 @@ export class NAV extends BaseCMI {
    * @param {string} event
    */
   set event(event) {
-    if (this.API.checkValidFormat(event, regex.NAVEvent)) {
+    if (check12ValidFormat(event, regex.NAVEvent)) {
       this.#event = event;
     }
   }

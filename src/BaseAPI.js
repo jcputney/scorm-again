@@ -14,8 +14,6 @@ const api_constants = {
   LOG_LEVEL_NONE: 5,
 };
 
-let _self;
-
 /**
  * Base API class for AICC, SCORM 1.2, and SCORM 2004. Should be considered
  * abstract, and never initialized on it's own.
@@ -31,14 +29,13 @@ export default class BaseAPI {
    * @param {object} error_codes
    */
   constructor(error_codes) {
-    _self = this;
-    _self.currentState = api_constants.STATE_NOT_INITIALIZED;
-    _self.apiLogLevel = api_constants.LOG_LEVEL_ERROR;
-    _self.lastErrorCode = 0;
-    _self.listenerArray = [];
+    this.currentState = api_constants.STATE_NOT_INITIALIZED;
+    this.apiLogLevel = api_constants.LOG_LEVEL_ERROR;
+    this.lastErrorCode = 0;
+    this.listenerArray = [];
 
-    _self.#timeout = null;
-    _self.#error_codes = error_codes;
+    this.#timeout = null;
+    this.#error_codes = error_codes;
   }
 
   /**
@@ -54,20 +51,20 @@ export default class BaseAPI {
       terminationMessage?: String) {
     let returnValue = api_constants.SCORM_FALSE;
 
-    if (_self.isInitialized()) {
-      _self.throwSCORMError(_self.#error_codes.INITIALIZED, initializeMessage);
-    } else if (_self.isTerminated()) {
-      _self.throwSCORMError(_self.#error_codes.TERMINATED, terminationMessage);
+    if (this.isInitialized()) {
+      this.throwSCORMError(this.#error_codes.INITIALIZED, initializeMessage);
+    } else if (this.isTerminated()) {
+      this.throwSCORMError(this.#error_codes.TERMINATED, terminationMessage);
     } else {
-      _self.currentState = api_constants.STATE_INITIALIZED;
-      _self.lastErrorCode = 0;
+      this.currentState = api_constants.STATE_INITIALIZED;
+      this.lastErrorCode = 0;
       returnValue = api_constants.SCORM_TRUE;
-      _self.processListeners(callbackName);
+      this.processListeners(callbackName);
     }
 
-    _self.apiLog(callbackName, null, 'returned: ' + returnValue,
+    this.apiLog(callbackName, null, 'returned: ' + returnValue,
         api_constants.LOG_LEVEL_INFO);
-    _self.clearSCORMError(returnValue);
+    this.clearSCORMError(returnValue);
 
     return returnValue;
   }
@@ -83,18 +80,18 @@ export default class BaseAPI {
       checkTerminated: boolean) {
     let returnValue = api_constants.SCORM_FALSE;
 
-    if (_self.checkState(checkTerminated,
-        _self.#error_codes.TERMINATION_BEFORE_INIT,
-        _self.#error_codes.MULTIPLE_TERMINATION)) {
-      if (checkTerminated) _self.lastErrorCode = 0;
-      _self.currentState = api_constants.STATE_TERMINATED;
+    if (this.checkState(checkTerminated,
+        this.#error_codes.TERMINATION_BEFORE_INIT,
+        this.#error_codes.MULTIPLE_TERMINATION)) {
+      if (checkTerminated) this.lastErrorCode = 0;
+      this.currentState = api_constants.STATE_TERMINATED;
       returnValue = api_constants.SCORM_TRUE;
-      _self.processListeners(callbackName);
+      this.processListeners(callbackName);
     }
 
-    _self.apiLog(callbackName, null, 'returned: ' + returnValue,
+    this.apiLog(callbackName, null, 'returned: ' + returnValue,
         api_constants.LOG_LEVEL_INFO);
-    _self.clearSCORMError(returnValue);
+    this.clearSCORMError(returnValue);
 
     return returnValue;
   }
@@ -113,17 +110,17 @@ export default class BaseAPI {
       CMIElement: String) {
     let returnValue = '';
 
-    if (_self.checkState(checkTerminated,
-        _self.#error_codes.RETRIEVE_BEFORE_INIT,
-        _self.#error_codes.RETRIEVE_AFTER_TERM)) {
-      if (checkTerminated) _self.lastErrorCode = 0;
-      returnValue = _self.getCMIValue(CMIElement);
-      _self.processListeners(callbackName, CMIElement);
+    if (this.checkState(checkTerminated,
+        this.#error_codes.RETRIEVE_BEFORE_INIT,
+        this.#error_codes.RETRIEVE_AFTER_TERM)) {
+      if (checkTerminated) this.lastErrorCode = 0;
+      returnValue = this.getCMIValue(CMIElement);
+      this.processListeners(callbackName, CMIElement);
     }
 
-    _self.apiLog(callbackName, CMIElement, ': returned: ' + returnValue,
+    this.apiLog(callbackName, CMIElement, ': returned: ' + returnValue,
         api_constants.LOG_LEVEL_INFO);
-    _self.clearSCORMError(returnValue);
+    this.clearSCORMError(returnValue);
 
     return returnValue;
   }
@@ -144,17 +141,17 @@ export default class BaseAPI {
       value) {
     let returnValue = '';
 
-    if (_self.checkState(checkTerminated, _self.#error_codes.STORE_BEFORE_INIT,
-        _self.#error_codes.STORE_AFTER_TERM)) {
-      if (checkTerminated) _self.lastErrorCode = 0;
-      returnValue = _self.setCMIValue(CMIElement, value);
-      _self.processListeners(callbackName, CMIElement, value);
+    if (this.checkState(checkTerminated, this.#error_codes.STORE_BEFORE_INIT,
+        this.#error_codes.STORE_AFTER_TERM)) {
+      if (checkTerminated) this.lastErrorCode = 0;
+      returnValue = this.setCMIValue(CMIElement, value);
+      this.processListeners(callbackName, CMIElement, value);
     }
 
-    _self.apiLog(callbackName, CMIElement,
+    this.apiLog(callbackName, CMIElement,
         ': ' + value + ': result: ' + returnValue,
         api_constants.LOG_LEVEL_INFO);
-    _self.clearSCORMError(returnValue);
+    this.clearSCORMError(returnValue);
 
     return returnValue;
   }
@@ -170,16 +167,16 @@ export default class BaseAPI {
       checkTerminated: boolean) {
     let returnValue = api_constants.SCORM_FALSE;
 
-    if (_self.checkState(checkTerminated, _self.#error_codes.COMMIT_BEFORE_INIT,
-        _self.#error_codes.COMMIT_AFTER_TERM)) {
-      if (checkTerminated) _self.lastErrorCode = 0;
+    if (this.checkState(checkTerminated, this.#error_codes.COMMIT_BEFORE_INIT,
+        this.#error_codes.COMMIT_AFTER_TERM)) {
+      if (checkTerminated) this.lastErrorCode = 0;
       returnValue = api_constants.SCORM_TRUE;
-      _self.processListeners(callbackName);
+      this.processListeners(callbackName);
     }
 
-    _self.apiLog(callbackName, null, 'returned: ' + returnValue,
+    this.apiLog(callbackName, null, 'returned: ' + returnValue,
         api_constants.LOG_LEVEL_INFO);
-    _self.clearSCORMError(returnValue);
+    this.clearSCORMError(returnValue);
 
     return returnValue;
   }
@@ -190,11 +187,11 @@ export default class BaseAPI {
    * @return {string}
    */
   getLastError(callbackName: String) {
-    const returnValue = String(_self.lastErrorCode);
+    const returnValue = String(this.lastErrorCode);
 
-    _self.processListeners(callbackName);
+    this.processListeners(callbackName);
 
-    _self.apiLog(callbackName, null, 'returned: ' + returnValue,
+    this.apiLog(callbackName, null, 'returned: ' + returnValue,
         api_constants.LOG_LEVEL_INFO);
 
     return returnValue;
@@ -211,11 +208,11 @@ export default class BaseAPI {
     let returnValue = '';
 
     if (CMIErrorCode !== null && CMIErrorCode !== '') {
-      returnValue = _self.getLmsErrorMessageDetails(CMIErrorCode);
-      _self.processListeners(callbackName);
+      returnValue = this.getLmsErrorMessageDetails(CMIErrorCode);
+      this.processListeners(callbackName);
     }
 
-    _self.apiLog(callbackName, null, 'returned: ' + returnValue,
+    this.apiLog(callbackName, null, 'returned: ' + returnValue,
         api_constants.LOG_LEVEL_INFO);
 
     return returnValue;
@@ -232,11 +229,11 @@ export default class BaseAPI {
     let returnValue = '';
 
     if (CMIErrorCode !== null && CMIErrorCode !== '') {
-      returnValue = _self.getLmsErrorMessageDetails(CMIErrorCode, true);
-      _self.processListeners(callbackName);
+      returnValue = this.getLmsErrorMessageDetails(CMIErrorCode, true);
+      this.processListeners(callbackName);
     }
 
-    _self.apiLog(callbackName, null, 'returned: ' + returnValue,
+    this.apiLog(callbackName, null, 'returned: ' + returnValue,
         api_constants.LOG_LEVEL_INFO);
 
     return returnValue;
@@ -254,11 +251,11 @@ export default class BaseAPI {
       checkTerminated: boolean,
       beforeInitError: number,
       afterTermError?: number) {
-    if (_self.isNotInitialized()) {
-      _self.throwSCORMError(beforeInitError);
+    if (this.isNotInitialized()) {
+      this.throwSCORMError(beforeInitError);
       return false;
-    } else if (checkTerminated && _self.isTerminated()) {
-      _self.throwSCORMError(afterTermError);
+    } else if (checkTerminated && this.isTerminated()) {
+      this.throwSCORMError(afterTermError);
       return false;
     }
 
@@ -278,9 +275,9 @@ export default class BaseAPI {
       CMIElement: String,
       logMessage: String,
       messageLevel: number) {
-    logMessage = _self.formatMessage(functionName, CMIElement, logMessage);
+    logMessage = this.formatMessage(functionName, CMIElement, logMessage);
 
-    if (messageLevel >= _self.apiLogLevel) {
+    if (messageLevel >= this.apiLogLevel) {
       switch (messageLevel) {
         case api_constants.LOG_LEVEL_ERROR:
           console.error(logMessage);
@@ -402,8 +399,8 @@ export default class BaseAPI {
 
     const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
     const invalidErrorCode = scorm2004 ?
-        _self.#error_codes.UNDEFINED_DATA_MODEL :
-        _self.#error_codes.GENERAL;
+        this.#error_codes.UNDEFINED_DATA_MODEL :
+        this.#error_codes.GENERAL;
 
     for (let i = 0; i < structure.length; i++) {
       const attribute = structure[i];
@@ -411,15 +408,15 @@ export default class BaseAPI {
       if (i === structure.length - 1) {
         if (scorm2004 && (attribute.substr(0, 8) === '{target=') &&
             (typeof refObject._isTargetValid == 'function')) {
-          _self.throwSCORMError(_self.#error_codes.READ_ONLY_ELEMENT);
+          this.throwSCORMError(this.#error_codes.READ_ONLY_ELEMENT);
         } else if (!{}.hasOwnProperty.call(refObject, attribute)) {
-          _self.throwSCORMError(invalidErrorCode, invalidErrorMessage);
+          this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
         } else {
-          if (_self.stringContains(CMIElement, '.correct_responses')) {
-            _self.validateCorrectResponse(CMIElement, value);
+          if (this.stringContains(CMIElement, '.correct_responses')) {
+            this.validateCorrectResponse(CMIElement, value);
           }
 
-          if (!scorm2004 || _self.lastErrorCode === 0) {
+          if (!scorm2004 || this.lastErrorCode === 0) {
             refObject[attribute] = value;
             returnValue = api_constants.SCORM_TRUE;
           }
@@ -427,7 +424,7 @@ export default class BaseAPI {
       } else {
         refObject = refObject[attribute];
         if (!refObject) {
-          _self.throwSCORMError(invalidErrorCode, invalidErrorMessage);
+          this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
           break;
         }
 
@@ -441,10 +438,10 @@ export default class BaseAPI {
             if (item) {
               refObject = item;
             } else {
-              const newChild = _self.getChildElement(CMIElement, value);
+              const newChild = this.getChildElement(CMIElement, value);
 
               if (!newChild) {
-                _self.throwSCORMError(invalidErrorCode, invalidErrorMessage);
+                this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
               } else {
                 refObject.childArray.push(newChild);
                 refObject = newChild;
@@ -459,7 +456,7 @@ export default class BaseAPI {
     }
 
     if (returnValue === api_constants.SCORM_FALSE) {
-      _self.apiLog(methodName, null,
+      this.apiLog(methodName, null,
           `There was an error setting the value for: ${CMIElement}, value of: ${value}`,
           api_constants.LOG_LEVEL_WARNING);
     }
@@ -512,7 +509,7 @@ export default class BaseAPI {
       if (!scorm2004) {
         if (i === structure.length - 1) {
           if (!{}.hasOwnProperty.call(refObject, attribute)) {
-            _self.throwSCORMError(101,
+            this.throwSCORMError(101,
                 'getCMIValue did not find a value for: ' + CMIElement);
           }
         }
@@ -523,7 +520,7 @@ export default class BaseAPI {
               substr(8, String(attribute).length - 9);
           return refObject._isTargetValid(target);
         } else if (!{}.hasOwnProperty.call(refObject, attribute)) {
-          _self.throwSCORMError(401,
+          this.throwSCORMError(401,
               'The data model element passed to GetValue (' + CMIElement +
               ') is not a valid SCORM data model element.');
           return '';
@@ -536,9 +533,9 @@ export default class BaseAPI {
     if (refObject === null || refObject === undefined) {
       if (!scorm2004) {
         if (attribute === '_children') {
-          _self.throwSCORMError(202);
+          this.throwSCORMError(202);
         } else if (attribute === '_count') {
-          _self.throwSCORMError(203);
+          this.throwSCORMError(203);
         }
       }
       return '';
@@ -553,7 +550,7 @@ export default class BaseAPI {
    * @return {boolean}
    */
   isInitialized() {
-    return _self.currentState === api_constants.STATE_INITIALIZED;
+    return this.currentState === api_constants.STATE_INITIALIZED;
   }
 
   /**
@@ -562,7 +559,7 @@ export default class BaseAPI {
    * @return {boolean}
    */
   isNotInitialized() {
-    return _self.currentState === api_constants.STATE_NOT_INITIALIZED;
+    return this.currentState === api_constants.STATE_NOT_INITIALIZED;
   }
 
   /**
@@ -571,7 +568,7 @@ export default class BaseAPI {
    * @return {boolean}
    */
   isTerminated() {
-    return _self.currentState === api_constants.STATE_TERMINATED;
+    return this.currentState === api_constants.STATE_TERMINATED;
   }
 
   /**
@@ -595,7 +592,7 @@ export default class BaseAPI {
         CMIElement = listenerName.replace(functionName + '.', '');
       }
 
-      _self.listenerArray.push({
+      this.listenerArray.push({
         functionName: functionName,
         CMIElement: CMIElement,
         callback: callback,
@@ -611,8 +608,8 @@ export default class BaseAPI {
    * @param {*} value
    */
   processListeners(functionName: String, CMIElement: String, value: any) {
-    for (let i = 0; i < _self.listenerArray.length; i++) {
-      const listener = _self.listenerArray[i];
+    for (let i = 0; i < this.listenerArray.length; i++) {
+      const listener = this.listenerArray[i];
       const functionsMatch = listener.functionName === functionName;
       const listenerHasCMIElement = !!listener.CMIElement;
       const CMIElementsMatch = listener.CMIElement === CMIElement;
@@ -631,13 +628,13 @@ export default class BaseAPI {
    */
   throwSCORMError(errorNumber: number, message: String) {
     if (!message) {
-      message = _self.getLmsErrorMessageDetails(errorNumber);
+      message = this.getLmsErrorMessageDetails(errorNumber);
     }
 
-    _self.apiLog('throwSCORMError', null, errorNumber + ': ' + message,
+    this.apiLog('throwSCORMError', null, errorNumber + ': ' + message,
         api_constants.LOG_LEVEL_ERROR);
 
-    _self.lastErrorCode = String(errorNumber);
+    this.lastErrorCode = String(errorNumber);
   }
 
   /**
@@ -647,7 +644,7 @@ export default class BaseAPI {
    */
   clearSCORMError(success: String) {
     if (success !== api_constants.SCORM_FALSE) {
-      _self.lastErrorCode = 0;
+      this.lastErrorCode = 0;
     }
   }
 
@@ -658,7 +655,7 @@ export default class BaseAPI {
    * @param {string} CMIElement
    */
   loadFromJSON(json, CMIElement) {
-    if (!_self.isNotInitialized()) {
+    if (!this.isNotInitialized()) {
       console.error(
           'loadFromJSON can only be called before the call to lmsInitialize.');
       return;
@@ -673,13 +670,13 @@ export default class BaseAPI {
 
         if (value['childArray']) {
           for (let i = 0; i < value['childArray'].length; i++) {
-            _self.loadFromJSON(value['childArray'][i],
+            this.loadFromJSON(value['childArray'][i],
                 currentCMIElement + '.' + i);
           }
         } else if (value.constructor === Object) {
-          _self.loadFromJSON(value, currentCMIElement);
+          this.loadFromJSON(value, currentCMIElement);
         } else {
-          _self.setCMIValue(currentCMIElement, value);
+          this.setCMIValue(currentCMIElement, value);
         }
       }
     }
@@ -691,50 +688,10 @@ export default class BaseAPI {
    * @return {string}
    */
   renderCMIToJSON() {
-    const cmi = _self.cmi;
+    const cmi = this.cmi;
     // Do we want/need to return fields that have no set value?
     // return JSON.stringify({ cmi }, (k, v) => v === undefined ? null : v, 2);
     return JSON.stringify({cmi});
-  }
-
-  /**
-   * Check if the value matches the proper format. If not, throw proper error code.
-   *
-   * @param {string} value
-   * @param {string} regexPattern
-   * @return {boolean}
-   */
-  checkValidFormat(value: String, regexPattern: String) {
-    const formatRegex = new RegExp(regexPattern);
-    if (!value || !value.match(formatRegex)) {
-      _self.throwSCORMError(_self.#error_codes.TYPE_MISMATCH);
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Check if the value matches the proper range. If not, throw proper error code.
-   *
-   * @param {*} value
-   * @param {string} rangePattern
-   * @return {boolean}
-   */
-  checkValidRange(value: any, rangePattern: String) {
-    const ranges = rangePattern.split('#');
-    value = value * 1.0;
-    if (value >= ranges[0]) {
-      if ((ranges[1] === '*') || (value <= ranges[1])) {
-        _self.clearSCORMError(api_constants.SCORM_TRUE);
-        return true;
-      } else {
-        _self.throwSCORMError(_self.#error_codes.VALUE_OUT_OF_RANGE);
-        return false;
-      }
-    } else {
-      _self.throwSCORMError(_self.#error_codes.VALUE_OUT_OF_RANGE);
-      return false;
-    }
   }
 
   /**
@@ -743,16 +700,16 @@ export default class BaseAPI {
    * @param {number} when - the number of milliseconds to wait before committing
    */
   scheduleCommit(when: number) {
-    _self.#timeout = new ScheduledCommit(this, when);
+    this.#timeout = new ScheduledCommit(this, when);
   }
 
   /**
    * Clears and cancels any currently scheduled commits
    */
   clearScheduledCommit() {
-    if (_self.#timeout) {
-      _self.#timeout.cancel();
-      _self.#timeout = null;
+    if (this.#timeout) {
+      this.#timeout.cancel();
+      this.#timeout = null;
     }
   }
 }
@@ -771,26 +728,26 @@ class ScheduledCommit {
    * @param {number} when
    */
   constructor(API: any, when: number) {
-    _self.#API = API;
-    _self.#timeout = setTimeout(_self.#wrapper, when);
+    this.#API = API;
+    this.#timeout = setTimeout(this.#wrapper, when);
   }
 
   /**
    * Cancel any currently scheduled commit
    */
   cancel() {
-    _self.#cancelled = true;
-    if (_self.#timeout) {
-      clearTimeout(_self.#timeout);
+    this.#cancelled = true;
+    if (this.#timeout) {
+      clearTimeout(this.#timeout);
     }
   }
 
   /**
    * Wrap the API commit call to check if the call has already been cancelled
    */
-  #wrapper = () => {
-    if (!_self.#cancelled) {
-      _self.#API.commit();
+  #wrapper() {
+    if (!this.#cancelled) {
+      this.#API.commit();
     }
-  };
+  }
 }

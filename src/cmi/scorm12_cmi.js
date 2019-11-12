@@ -1,34 +1,60 @@
 // @flow
-import {BaseCMI, CMIArray, CMIScore} from './common';
+import {
+  BaseCMI,
+  checkValidFormat,
+  checkValidRange,
+  CMIArray,
+  CMIScore,
+} from './common';
 import {scorm12_constants} from '../constants/api_constants';
 import {scorm12_error_codes} from '../constants/error_codes';
 import {scorm12_regex} from '../regex';
+import {ValidationError} from '../exceptions';
 
 const constants = scorm12_constants;
 const regex = scorm12_regex;
 
 /**
  * Helper method for throwing Read Only error
- * @param {Scorm12API} API
  */
-function throwReadOnlyError(API) {
-  API.throwSCORMError(scorm12_error_codes.READ_ONLY_ELEMENT);
+export function throwReadOnlyError() {
+  throw new ValidationError(scorm12_error_codes.READ_ONLY_ELEMENT);
 }
 
 /**
  * Helper method for throwing Write Only error
- * @param {Scorm12API} API
  */
-function throwWriteOnlyError(API) {
-  API.throwSCORMError(scorm12_error_codes.WRITE_ONLY_ELEMENT);
+export function throwWriteOnlyError() {
+  throw new ValidationError(scorm12_error_codes.WRITE_ONLY_ELEMENT);
 }
 
 /**
  * Helper method for throwing Invalid Set error
- * @param {Scorm12API} API
  */
-function throwInvalidValueError(API) {
-  API.throwSCORMError(scorm12_error_codes.INVALID_SET_VALUE);
+function throwInvalidValueError() {
+  throw new ValidationError(scorm12_error_codes.INVALID_SET_VALUE);
+}
+
+/**
+ * Helper method, no reason to have to pass the same error codes every time
+ * @param {*} value
+ * @param {string} regexPattern
+ * @return {boolean}
+ */
+export function check12ValidFormat(value: String, regexPattern: String) {
+  return checkValidFormat(value, regexPattern,
+      scorm12_error_codes.TYPE_MISMATCH);
+}
+
+/**
+ * Helper method, no reason to have to pass the same error codes every time
+ * @param {*} value
+ * @param {string} rangePattern
+ * @return {boolean}
+ */
+export function check12ValidRange(value: any, rangePattern: String) {
+  return checkValidRange(value, rangePattern,
+      scorm12_error_codes.VALUE_OUT_OF_RANGE);
 }
 
 /**
@@ -46,21 +72,33 @@ export class CMI extends BaseCMI {
 
   /**
    * Constructor for the SCORM 1.2 cmi object
-   * @param {Scorm12API} API
    * @param {string} cmi_children
-   * @param {string} student_data
+   * @param {(CMIStudentData|AICCCMIStudentData)} student_data
+   * @param {boolean} initialized
    */
-  constructor(API, cmi_children, student_data) {
-    super(API);
+  constructor(cmi_children, student_data, initialized: boolean) {
+    super();
+
+    if (initialized) this.initialize();
 
     this.#_children = cmi_children ? cmi_children : constants.cmi_children;
-    this.core = new CMICore(API);
-    this.objectives = new CMIObjectives(API);
-    this.student_data = student_data ?
-        student_data :
-        new CMIStudentData(API);
-    this.student_preference = new CMIStudentPreference(API);
-    this.interactions = new CMIInteractions(API);
+    this.core = new CMICore();
+    this.objectives = new CMIObjectives();
+    this.student_data = student_data ? student_data : new CMIStudentData();
+    this.student_preference = new CMIStudentPreference();
+    this.interactions = new CMIInteractions();
+  }
+
+  /**
+   * Called when the API has been initialized after the CMI has been created
+   */
+  initialize() {
+    super.initialize();
+    this.core?.initialize();
+    this.objectives?.initialize();
+    this.student_data?.initialize();
+    this.student_preference?.initialize();
+    this.interactions?.initialize();
   }
 
   /**
@@ -112,7 +150,7 @@ export class CMI extends BaseCMI {
    * @private
    */
   set _version(_version) {
-    throwInvalidValueError(this.API);
+    throwInvalidValueError();
   }
 
   /**
@@ -130,7 +168,7 @@ export class CMI extends BaseCMI {
    * @private
    */
   set _children(_children) {
-    throwInvalidValueError(this.API);
+    throwInvalidValueError();
   }
 
   /**
@@ -146,7 +184,7 @@ export class CMI extends BaseCMI {
    * @param {string} suspend_data
    */
   set suspend_data(suspend_data) {
-    if (this.API.checkValidFormat(suspend_data, regex.CMIString4096)) {
+    if (check12ValidFormat(suspend_data, regex.CMIString4096)) {
       this.#suspend_data = suspend_data;
     }
   }
@@ -160,13 +198,11 @@ export class CMI extends BaseCMI {
   }
 
   /**
-   * Setter for #launch_data. Can only be called before API initialization.
+   * Setter for #launch_data. Can only be called before  initialization.
    * @param {string} launch_data
    */
   set launch_data(launch_data) {
-    this.API.isNotInitialized() ?
-        this.#launch_data = launch_data :
-        throwReadOnlyError(this.API);
+    !this.initialized ? this.#launch_data = launch_data : throwReadOnlyError();
   }
 
   /**
@@ -182,7 +218,7 @@ export class CMI extends BaseCMI {
    * @param {string} comments
    */
   set comments(comments) {
-    if (this.API.checkValidFormat(comments, regex.CMIString4096)) {
+    if (check12ValidFormat(comments, regex.CMIString4096)) {
       this.#comments = comments;
     }
   }
@@ -196,13 +232,11 @@ export class CMI extends BaseCMI {
   }
 
   /**
-   * Setter for #comments_from_lms. Can only be called before API initialization.
+   * Setter for #comments_from_lms. Can only be called before  initialization.
    * @param {string} comments_from_lms
    */
   set comments_from_lms(comments_from_lms) {
-    this.API.isNotInitialized() ?
-        this.#comments_from_lms = comments_from_lms :
-        throwReadOnlyError(this.API);
+    !this.initialized ? this.#comments_from_lms = comments_from_lms : throwReadOnlyError();
   }
 }
 
@@ -212,13 +246,26 @@ export class CMI extends BaseCMI {
 class CMICore extends BaseCMI {
   /**
    * Constructor for cmi.core
-   * @param {Scorm12API} API
    */
-  constructor(API) {
-    super(API);
+  constructor() {
+    super();
 
-    this.score = new Scorm12CMIScore(API, constants.score_children,
-        regex.score_range);
+    this.score = new Scorm12CMIScore(
+        {
+          score_children: constants.score_children,
+          score_range: regex.score_range,
+          invalidErrorCode: scorm12_error_codes.INVALID_SET_VALUE,
+          invalidTypeCode: scorm12_error_codes.TYPE_MISMATCH,
+          invalidRangeCode: scorm12_error_codes.VALUE_OUT_OF_RANGE,
+        });
+  }
+
+  /**
+   * Called when the API has been initialized after the CMI has been created
+   */
+  initialize() {
+    super.initialize();
+    this.score?.initialize();
   }
 
   #_children = constants.core_children;
@@ -248,7 +295,7 @@ class CMICore extends BaseCMI {
    * @private
    */
   set _children(_children) {
-    throwInvalidValueError(this.API);
+    throwInvalidValueError();
   }
 
   /**
@@ -260,13 +307,11 @@ class CMICore extends BaseCMI {
   }
 
   /**
-   * Setter for #student_id. Can only be called before API initialization.
+   * Setter for #student_id. Can only be called before  initialization.
    * @param {string} student_id
    */
   set student_id(student_id) {
-    this.API.isNotInitialized() ?
-        this.#student_id = student_id :
-        throwReadOnlyError(this.API);
+    !this.initialized ? this.#student_id = student_id : throwReadOnlyError();
   }
 
   /**
@@ -278,13 +323,11 @@ class CMICore extends BaseCMI {
   }
 
   /**
-   * Setter for #student_name. Can only be called before API initialization.
+   * Setter for #student_name. Can only be called before  initialization.
    * @param {string} student_name
    */
   set student_name(student_name) {
-    this.API.isNotInitialized() ?
-        this.#student_name = student_name :
-        throwReadOnlyError(this.API);
+    !this.initialized ? this.#student_name = student_name : throwReadOnlyError();
   }
 
   /**
@@ -300,7 +343,7 @@ class CMICore extends BaseCMI {
    * @param {string} lesson_location
    */
   set lesson_location(lesson_location) {
-    if (this.API.checkValidFormat(lesson_location, regex.CMIString256)) {
+    if (check12ValidFormat(lesson_location, regex.CMIString256)) {
       this.#lesson_location = lesson_location;
     }
   }
@@ -314,13 +357,11 @@ class CMICore extends BaseCMI {
   }
 
   /**
-   * Setter for #credit. Can only be called before API initialization.
+   * Setter for #credit. Can only be called before  initialization.
    * @param {string} credit
    */
   set credit(credit) {
-    this.API.isNotInitialized() ?
-        this.#credit = credit :
-        throwReadOnlyError(this.API);
+    !this.initialized ? this.#credit = credit : throwReadOnlyError();
   }
 
   /**
@@ -336,7 +377,7 @@ class CMICore extends BaseCMI {
    * @param {string} lesson_status
    */
   set lesson_status(lesson_status) {
-    if (this.API.checkValidFormat(lesson_status, regex.CMIStatus)) {
+    if (check12ValidFormat(lesson_status, regex.CMIStatus)) {
       this.#lesson_status = lesson_status;
     }
   }
@@ -350,13 +391,11 @@ class CMICore extends BaseCMI {
   }
 
   /**
-   * Setter for #entry. Can only be called before API initialization.
+   * Setter for #entry. Can only be called before  initialization.
    * @param {string} entry
    */
   set entry(entry) {
-    this.API.isNotInitialized() ?
-        this.#entry = entry :
-        throwReadOnlyError(this.API);
+    !this.initialized ? this.#entry = entry : throwReadOnlyError();
   }
 
   /**
@@ -368,13 +407,11 @@ class CMICore extends BaseCMI {
   }
 
   /**
-   * Setter for #total_time. Can only be called before API initialization.
+   * Setter for #total_time. Can only be called before  initialization.
    * @param {string} total_time
    */
   set total_time(total_time) {
-    this.API.isNotInitialized() ?
-        this.#total_time = total_time :
-        throwReadOnlyError(this.API);
+    !this.initialized ? this.#total_time = total_time : throwReadOnlyError();
   }
 
   /**
@@ -386,13 +423,11 @@ class CMICore extends BaseCMI {
   }
 
   /**
-   * Setter for #lesson_mode. Can only be called before API initialization.
+   * Setter for #lesson_mode. Can only be called before  initialization.
    * @param {string} lesson_mode
    */
   set lesson_mode(lesson_mode) {
-    this.API.isNotInitialized() ?
-        this.#lesson_mode = lesson_mode :
-        throwReadOnlyError(this.API);
+    !this.initialized ? this.#lesson_mode = lesson_mode : throwReadOnlyError();
   }
 
   /**
@@ -400,7 +435,7 @@ class CMICore extends BaseCMI {
    * @return {*}
    */
   get exit() {
-    return (!this.jsonString) ? throwWriteOnlyError(this.API) : this.#exit;
+    return (!this.jsonString) ? throwWriteOnlyError() : this.#exit;
   }
 
   /**
@@ -408,7 +443,7 @@ class CMICore extends BaseCMI {
    * @param {string} exit
    */
   set exit(exit) {
-    if (this.API.checkValidFormat(exit, regex.CMIExit)) {
+    if (check12ValidFormat(exit, regex.CMIExit)) {
       this.#exit = exit;
     }
   }
@@ -418,9 +453,7 @@ class CMICore extends BaseCMI {
    * @return {*}
    */
   get session_time() {
-    return (!this.jsonString) ?
-        throwWriteOnlyError(this.API) :
-        this.#session_time;
+    return (!this.jsonString) ? throwWriteOnlyError() : this.#session_time;
   }
 
   /**
@@ -428,7 +461,7 @@ class CMICore extends BaseCMI {
    * @param {string} session_time
    */
   set session_time(session_time) {
-    if (this.API.checkValidFormat(session_time, regex.CMITimespan)) {
+    if (check12ValidFormat(session_time, regex.CMITimespan)) {
       this.#session_time = session_time;
     }
   }
@@ -478,11 +511,9 @@ class CMICore extends BaseCMI {
 class CMIObjectives extends CMIArray {
   /**
    * Constructor for cmi.objectives
-   * @param {Scorm12API} API
    */
-  constructor(API) {
+  constructor() {
     super({
-      API: API,
       children: constants.objectives_children,
       errorCode: scorm12_error_codes.INVALID_SET_VALUE,
     });
@@ -500,11 +531,10 @@ export class CMIStudentData extends BaseCMI {
 
   /**
    * Constructor for cmi.student_data
-   * @param {Scorm12API} API
    * @param {string} student_data_children
    */
-  constructor(API, student_data_children) {
-    super(API);
+  constructor(student_data_children) {
+    super();
 
     this.#_children = student_data_children ?
         student_data_children :
@@ -526,7 +556,7 @@ export class CMIStudentData extends BaseCMI {
    * @private
    */
   set _children(_children) {
-    throwInvalidValueError(this.API);
+    throwInvalidValueError();
   }
 
   /**
@@ -538,13 +568,11 @@ export class CMIStudentData extends BaseCMI {
   }
 
   /**
-   * Setter for #master_score. Can only be called before API initialization.
+   * Setter for #master_score. Can only be called before  initialization.
    * @param {string} mastery_score
    */
   set mastery_score(mastery_score) {
-    this.API.isNotInitialized() ?
-        this.#mastery_score = mastery_score :
-        throwReadOnlyError(this.API);
+    !this.initialized ? this.#mastery_score = mastery_score : throwReadOnlyError();
   }
 
   /**
@@ -556,13 +584,11 @@ export class CMIStudentData extends BaseCMI {
   }
 
   /**
-   * Setter for #max_time_allowed. Can only be called before API initialization.
+   * Setter for #max_time_allowed. Can only be called before  initialization.
    * @param {string} max_time_allowed
    */
   set max_time_allowed(max_time_allowed) {
-    this.API.isNotInitialized() ?
-        this.#max_time_allowed = max_time_allowed :
-        throwReadOnlyError(this.API);
+    !this.initialized ? this.#max_time_allowed = max_time_allowed : throwReadOnlyError();
   }
 
   /**
@@ -574,13 +600,11 @@ export class CMIStudentData extends BaseCMI {
   }
 
   /**
-   * Setter for #time_limit_action. Can only be called before API initialization.
+   * Setter for #time_limit_action. Can only be called before  initialization.
    * @param {string} time_limit_action
    */
   set time_limit_action(time_limit_action) {
-    this.API.isNotInitialized() ?
-        this.#time_limit_action = time_limit_action :
-        throwReadOnlyError(this.API);
+    !this.initialized ? this.#time_limit_action = time_limit_action : throwReadOnlyError();
   }
 
   /**
@@ -612,10 +636,9 @@ export class CMIStudentData extends BaseCMI {
 class CMIStudentPreference extends BaseCMI {
   /**
    * Constructor for cmi.student_preference
-   * @param {Scorm12API} API
    */
-  constructor(API) {
-    super(API);
+  constructor() {
+    super();
   }
 
   #_children = constants.student_preference_children;
@@ -639,7 +662,7 @@ class CMIStudentPreference extends BaseCMI {
    * @private
    */
   set _children(_children) {
-    throwInvalidValueError(this.API);
+    throwInvalidValueError();
   }
 
   /**
@@ -655,8 +678,8 @@ class CMIStudentPreference extends BaseCMI {
    * @param {string} audio
    */
   set audio(audio) {
-    if (this.API.checkValidFormat(audio, regex.CMISInteger) &&
-        this.API.checkValidRange(audio, regex.audio_range)) {
+    if (check12ValidFormat(audio, regex.CMISInteger) &&
+        check12ValidRange(audio, regex.audio_range)) {
       this.#audio = audio;
     }
   }
@@ -674,7 +697,7 @@ class CMIStudentPreference extends BaseCMI {
    * @param {string} language
    */
   set language(language) {
-    if (this.API.checkValidFormat(language, regex.CMIString256)) {
+    if (check12ValidFormat(language, regex.CMIString256)) {
       this.#language = language;
     }
   }
@@ -692,8 +715,8 @@ class CMIStudentPreference extends BaseCMI {
    * @param {string} speed
    */
   set speed(speed) {
-    if (this.API.checkValidFormat(speed, regex.CMISInteger) &&
-        this.API.checkValidRange(speed, regex.speed_range)) {
+    if (check12ValidFormat(speed, regex.CMISInteger) &&
+        check12ValidRange(speed, regex.speed_range)) {
       this.#speed = speed;
     }
   }
@@ -711,8 +734,8 @@ class CMIStudentPreference extends BaseCMI {
    * @param {string} text
    */
   set text(text) {
-    if (this.API.checkValidFormat(text, regex.CMISInteger) &&
-        this.API.checkValidRange(text, regex.text_range)) {
+    if (check12ValidFormat(text, regex.CMISInteger) &&
+        check12ValidRange(text, regex.text_range)) {
       this.#text = text;
     }
   }
@@ -748,11 +771,9 @@ class CMIStudentPreference extends BaseCMI {
 class CMIInteractions extends CMIArray {
   /**
    * Constructor for cmi.interactions
-   * @param {Scorm12API} API
    */
-  constructor(API) {
+  constructor() {
     super({
-      API: API,
       children: constants.interactions_children,
       errorCode: scorm12_error_codes.INVALID_SET_VALUE,
     });
@@ -765,21 +786,27 @@ class CMIInteractions extends CMIArray {
 export class CMIInteractionsObject extends BaseCMI {
   /**
    * Constructor for cmi.interactions.n object
-   * @param {Scorm12API} API
    */
-  constructor(API) {
-    super(API);
+  constructor() {
+    super();
 
     this.objectives = new CMIArray({
-      API: API,
-      errorCode: 402,
+      errorCode: scorm12_error_codes.INVALID_SET_VALUE,
       children: constants.objectives_children,
     });
     this.correct_responses = new CMIArray({
-      API: API,
-      errorCode: 402,
+      errorCode: scorm12_error_codes.INVALID_SET_VALUE,
       children: constants.correct_responses_children,
     });
+  }
+
+  /**
+   * Called when the API has been initialized after the CMI has been created
+   */
+  initialize() {
+    super.initialize();
+    this.objectives?.initialize();
+    this.correct_responses?.initialize();
   }
 
   #id: '';
@@ -795,7 +822,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @return {*}
    */
   get id() {
-    return (!this.jsonString) ? throwWriteOnlyError(this.API) : this.#id;
+    return (!this.jsonString) ? throwWriteOnlyError() : this.#id;
   }
 
   /**
@@ -803,7 +830,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} id
    */
   set id(id) {
-    if (this.API.checkValidFormat(id, regex.CMIIdentifier)) {
+    if (check12ValidFormat(id, regex.CMIIdentifier)) {
       this.#id = id;
     }
   }
@@ -813,7 +840,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @return {*}
    */
   get time() {
-    return (!this.jsonString) ? throwWriteOnlyError(this.API) : this.#time;
+    return (!this.jsonString) ? throwWriteOnlyError() : this.#time;
   }
 
   /**
@@ -821,7 +848,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} time
    */
   set time(time) {
-    if (this.API.checkValidFormat(time, regex.CMITime)) {
+    if (check12ValidFormat(time, regex.CMITime)) {
       this.#time = time;
     }
   }
@@ -831,7 +858,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @return {*}
    */
   get type() {
-    return (!this.jsonString) ? throwWriteOnlyError(this.API) : this.#type;
+    return (!this.jsonString) ? throwWriteOnlyError() : this.#type;
   }
 
   /**
@@ -839,7 +866,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} type
    */
   set type(type) {
-    if (this.API.checkValidFormat(type, regex.CMIType)) {
+    if (check12ValidFormat(type, regex.CMIType)) {
       this.#type = type;
     }
   }
@@ -850,7 +877,7 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   get weighting() {
     return (!this.jsonString) ?
-        throwWriteOnlyError(this.API) :
+        throwWriteOnlyError() :
         this.#weighting;
   }
 
@@ -859,8 +886,8 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} weighting
    */
   set weighting(weighting) {
-    if (this.API.checkValidFormat(weighting, regex.CMIDecimal) &&
-        this.API.checkValidRange(weighting, regex.weighting_range)) {
+    if (check12ValidFormat(weighting, regex.CMIDecimal) &&
+        check12ValidRange(weighting, regex.weighting_range)) {
       this.#weighting = weighting;
     }
   }
@@ -870,9 +897,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @return {*}
    */
   get student_response() {
-    return (!this.jsonString) ?
-        throwWriteOnlyError(this.API) :
-        this.#student_response;
+    return (!this.jsonString) ? throwWriteOnlyError() : this.#student_response;
   }
 
   /**
@@ -880,7 +905,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} student_response
    */
   set student_response(student_response) {
-    if (this.API.checkValidFormat(student_response, regex.CMIFeedback)) {
+    if (check12ValidFormat(student_response, regex.CMIFeedback)) {
       this.#student_response = student_response;
     }
   }
@@ -890,9 +915,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @return {*}
    */
   get result() {
-    return (!this.jsonString) ?
-        throwWriteOnlyError(this.API) :
-        this.#result;
+    return (!this.jsonString) ? throwWriteOnlyError() : this.#result;
   }
 
   /**
@@ -900,7 +923,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} result
    */
   set result(result) {
-    if (this.API.checkValidFormat(result, regex.CMIResult)) {
+    if (check12ValidFormat(result, regex.CMIResult)) {
       this.#result = result;
     }
   }
@@ -910,9 +933,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @return {*}
    */
   get latency() {
-    return (!this.jsonString) ?
-        throwWriteOnlyError(this.API) :
-        this.#latency;
+    return (!this.jsonString) ? throwWriteOnlyError() : this.#latency;
   }
 
   /**
@@ -920,7 +941,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} latency
    */
   set latency(latency) {
-    if (this.API.checkValidFormat(latency, regex.CMITimespan)) {
+    if (check12ValidFormat(latency, regex.CMITimespan)) {
       this.#latency = latency;
     }
   }
@@ -966,12 +987,11 @@ export class CMIInteractionsObject extends BaseCMI {
 export class CMIObjectivesObject extends BaseCMI {
   /**
    * Constructor for cmi.objectives.n
-   * @param {Scorm12API} API
    */
-  constructor(API) {
-    super(API);
+  constructor() {
+    super();
 
-    this.score = new Scorm12CMIScore(API);
+    this.score = new Scorm12CMIScore();
   }
 
   #id: '';
@@ -990,7 +1010,7 @@ export class CMIObjectivesObject extends BaseCMI {
    * @param {string} id
    */
   set id(id) {
-    if (this.API.checkValidFormat(id, regex.CMIIdentifier)) {
+    if (check12ValidFormat(id, regex.CMIIdentifier)) {
       this.#id = id;
     }
   }
@@ -1008,7 +1028,7 @@ export class CMIObjectivesObject extends BaseCMI {
    * @param {string} status
    */
   set status(status) {
-    if (this.API.checkValidFormat(status, regex.CMIStatus2)) {
+    if (check12ValidFormat(status, regex.CMIStatus2)) {
       this.#status = status;
     }
   }
@@ -1041,10 +1061,9 @@ export class CMIObjectivesObject extends BaseCMI {
 export class CMIInteractionsObjectivesObject extends BaseCMI {
   /**
    * Constructor for cmi.interactions.n.objectives.n
-   * @param {Scorm12API} API
    */
-  constructor(API) {
-    super(API);
+  constructor() {
+    super();
   }
 
   #id: '';
@@ -1062,7 +1081,7 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
    * @param {string} id
    */
   set id(id) {
-    if (this.API.checkValidFormat(id, regex.CMIIdentifier)) {
+    if (check12ValidFormat(id, regex.CMIIdentifier)) {
       this.#id = id;
     }
   }
@@ -1091,10 +1110,9 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
 export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
   /**
    * Constructor for cmi.interactions.correct_responses.n
-   * @param {Scorm12API} API
    */
-  constructor(API) {
-    super(API);
+  constructor() {
+    super();
   }
 
   #pattern: '';
@@ -1112,7 +1130,7 @@ export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
    * @param {string} pattern
    */
   set pattern(pattern) {
-    if (this.API.checkValidFormat(pattern, regex.CMIFeedback)) {
+    if (check12ValidFormat(pattern, regex.CMIFeedback)) {
       this.#pattern = pattern;
     }
   }

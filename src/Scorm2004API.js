@@ -18,12 +18,11 @@ import {valid_languages} from './constants/language_constants';
 import {scorm2004_regex} from './regex';
 
 const constants = scorm2004_constants;
-let _self;
 
 /**
  * API class for SCORM 2004
  */
-class Scorm2004API extends BaseAPI {
+export default class Scorm2004API extends BaseAPI {
   #version: '1.0';
 
   /**
@@ -32,19 +31,18 @@ class Scorm2004API extends BaseAPI {
   constructor() {
     super(scorm2004_error_codes);
 
-    _self = this;
-    _self.cmi = new CMI(_self);
-    _self.adl = new ADL(_self);
+    this.cmi = new CMI(this);
+    this.adl = new ADL(this);
 
     // Rename functions to match 2004 Spec and expose to modules
-    _self.Initialize = _self.lmsInitialize;
-    _self.Terminate = _self.lmsTerminate;
-    _self.GetValue = _self.lmsGetValue;
-    _self.SetValue = _self.lmsSetValue;
-    _self.Commit = _self.lmsCommit;
-    _self.GetLastError = _self.lmsGetLastError;
-    _self.GetErrorString = _self.lmsGetErrorString;
-    _self.GetDiagnostic = _self.lmsGetDiagnostic;
+    this.Initialize = this.lmsInitialize;
+    this.Terminate = this.lmsTerminate;
+    this.GetValue = this.lmsGetValue;
+    this.SetValue = this.lmsSetValue;
+    this.Commit = this.lmsCommit;
+    this.GetLastError = this.lmsGetLastError;
+    this.GetErrorString = this.lmsGetErrorString;
+    this.GetDiagnostic = this.lmsGetDiagnostic;
   }
 
   /**
@@ -59,14 +57,14 @@ class Scorm2004API extends BaseAPI {
    * @return {string} bool
    */
   lmsInitialize() {
-    return _self.initialize('Initialize');
+    return this.initialize('Initialize');
   }
 
   /**
    * @return {string} bool
    */
   lmsTerminate() {
-    return _self.terminate('Terminate', true);
+    return this.terminate('Terminate', true);
   }
 
   /**
@@ -74,7 +72,7 @@ class Scorm2004API extends BaseAPI {
    * @return {string}
    */
   lmsGetValue(CMIElement) {
-    return _self.getValue('GetValue', true, CMIElement);
+    return this.getValue('GetValue', true, CMIElement);
   }
 
   /**
@@ -83,7 +81,7 @@ class Scorm2004API extends BaseAPI {
    * @return {string}
    */
   lmsSetValue(CMIElement, value) {
-    return _self.setValue('SetValue', true, CMIElement, value);
+    return this.setValue('SetValue', true, CMIElement, value);
   }
 
   /**
@@ -92,7 +90,7 @@ class Scorm2004API extends BaseAPI {
    * @return {string} bool
    */
   lmsCommit() {
-    return _self.commit('Commit');
+    return this.commit('Commit');
   }
 
   /**
@@ -101,7 +99,7 @@ class Scorm2004API extends BaseAPI {
    * @return {string}
    */
   lmsGetLastError() {
-    return _self.getLastError('GetLastError');
+    return this.getLastError('GetLastError');
   }
 
   /**
@@ -111,7 +109,7 @@ class Scorm2004API extends BaseAPI {
    * @return {string}
    */
   lmsGetErrorString(CMIErrorCode) {
-    return _self.getErrorString('GetErrorString', CMIErrorCode);
+    return this.getErrorString('GetErrorString', CMIErrorCode);
   }
 
   /**
@@ -121,7 +119,7 @@ class Scorm2004API extends BaseAPI {
    * @return {string}
    */
   lmsGetDiagnostic(CMIErrorCode) {
-    return _self.getDiagnostic('GetDiagnostic', CMIErrorCode);
+    return this.getDiagnostic('GetDiagnostic', CMIErrorCode);
   }
 
   /**
@@ -131,7 +129,7 @@ class Scorm2004API extends BaseAPI {
    * @param {any} value
    */
   setCMIValue(CMIElement, value) {
-    _self._commonSetCMIValue('SetValue', true, CMIElement, value);
+    this._commonSetCMIValue('SetValue', true, CMIElement, value);
   }
 
   /**
@@ -144,23 +142,23 @@ class Scorm2004API extends BaseAPI {
   getChildElement(CMIElement, value) {
     let newChild;
 
-    if (_self.stringContains(CMIElement, 'cmi.objectives')) {
+    if (this.stringContains(CMIElement, 'cmi.objectives')) {
       newChild = new CMIObjectivesObject(this);
-    } else if (_self.stringContains(CMIElement, '.correct_responses')) {
+    } else if (this.stringContains(CMIElement, '.correct_responses')) {
       const parts = CMIElement.split('.');
       const index = Number(parts[2]);
-      const interaction = _self.cmi.interactions.childArray[index];
+      const interaction = this.cmi.interactions.childArray[index];
       if (typeof interaction.type === 'undefined') {
-        _self.throwSCORMError(scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+        this.throwSCORMError(scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
       } else {
         const interaction_type = interaction.type;
         const interaction_count = interaction.correct_responses._count;
         if (interaction_type === 'choice') {
-          for (let i = 0; i < interaction_count && _self.lastErrorCode ===
+          for (let i = 0; i < interaction_count && this.lastErrorCode ===
           0; i++) {
             const response = interaction.correct_responses.childArray[i];
             if (response.pattern === value) {
-              _self.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE);
+              this.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE);
             }
           }
         }
@@ -174,22 +172,22 @@ class Scorm2004API extends BaseAPI {
         }
 
         if (nodes.length > 0 && nodes.length <= response_type.max) {
-          _self.#checkCorrectResponseValue(interaction_type, nodes, value);
+          this.#checkCorrectResponseValue(interaction_type, nodes, value);
         } else if (nodes.length > response_type.max) {
-          _self.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE,
+          this.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE,
               'Data Model Element Pattern Too Long');
         }
       }
-      if (_self.lastErrorCode === 0) {
+      if (this.lastErrorCode === 0) {
         newChild = new CMIInteractionsCorrectResponsesObject(this);
       }
-    } else if (_self.stringContains(CMIElement, '.objectives')) {
+    } else if (this.stringContains(CMIElement, '.objectives')) {
       newChild = new CMIInteractionsObjectivesObject(this);
-    } else if (_self.stringContains(CMIElement, 'cmi.interactions')) {
+    } else if (this.stringContains(CMIElement, 'cmi.interactions')) {
       newChild = new CMIInteractionsObject(this);
-    } else if (_self.stringContains(CMIElement, 'cmi.comments_from_learner')) {
+    } else if (this.stringContains(CMIElement, 'cmi.comments_from_learner')) {
       newChild = new CMICommentsFromLearnerObject(this);
-    } else if (_self.stringContains(CMIElement, 'cmi.comments_from_lms')) {
+    } else if (this.stringContains(CMIElement, 'cmi.comments_from_lms')) {
       newChild = new CMICommentsFromLMSObject(this);
     }
 
@@ -205,15 +203,15 @@ class Scorm2004API extends BaseAPI {
     const parts = CMIElement.split('.');
     const index = Number(parts[2]);
     const pattern_index = Number(parts[4]);
-    const interaction = _self.cmi.interactions.childArray[index];
+    const interaction = this.cmi.interactions.childArray[index];
 
     const interaction_type = interaction.type;
     const interaction_count = interaction.correct_responses._count;
     if (interaction_type === 'choice') {
-      for (let i = 0; i < interaction_count && _self.lastErrorCode === 0; i++) {
+      for (let i = 0; i < interaction_count && this.lastErrorCode === 0; i++) {
         const response = interaction.correct_responses.childArray[i];
         if (response.pattern === value) {
-          _self.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE);
+          this.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE);
         }
       }
     }
@@ -229,26 +227,26 @@ class Scorm2004API extends BaseAPI {
       }
 
       if (nodes.length > 0 && nodes.length <= response_type.max) {
-        _self.#checkCorrectResponseValue(interaction_type, nodes, value);
+        this.#checkCorrectResponseValue(interaction_type, nodes, value);
       } else if (nodes.length > response_type.max) {
-        _self.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE,
+        this.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE,
             'Data Model Element Pattern Too Long');
       }
 
-      if (_self.lastErrorCode === 0 &&
+      if (this.lastErrorCode === 0 &&
           (!response_type.duplicate ||
-              !_self.#checkDuplicatedPattern(interaction.correct_responses,
+              !this.#checkDuplicatedPattern(interaction.correct_responses,
                   pattern_index, value)) ||
-          (_self.lastErrorCode === 0 && value === '')) {
+          (this.lastErrorCode === 0 && value === '')) {
         // do nothing, we want the inverse
       } else {
-        if (_self.lastErrorCode === 0) {
-          _self.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE,
+        if (this.lastErrorCode === 0) {
+          this.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE,
               'Data Model Element Pattern Already Exists');
         }
       }
     } else {
-      _self.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE,
+      this.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE,
           'Data Model Element Collection Limit Reached');
     }
   }
@@ -260,7 +258,7 @@ class Scorm2004API extends BaseAPI {
    * @return {*}
    */
   getCMIValue(CMIElement) {
-    return _self._commonGetCMIValue('GetValue', true, CMIElement);
+    return this._commonGetCMIValue('GetValue', true, CMIElement);
   }
 
   /**
@@ -311,10 +309,10 @@ class Scorm2004API extends BaseAPI {
   #checkCorrectResponseValue = (interaction_type, nodes, value) => {
     const response = correct_responses[interaction_type];
     const formatRegex = new RegExp(response.format);
-    for (let i = 0; i < nodes.length && _self.lastErrorCode === 0; i++) {
+    for (let i = 0; i < nodes.length && this.lastErrorCode === 0; i++) {
       if (interaction_type.match(
           '^(fill-in|long-fill-in|matching|performance|sequencing)$')) {
-        nodes[i] = _self.#removeCorrectResponsePrefixes(nodes[i]);
+        nodes[i] = this.#removeCorrectResponsePrefixes(nodes[i]);
       }
 
       if (response.delimiter2 !== undefined) {
@@ -322,30 +320,30 @@ class Scorm2004API extends BaseAPI {
         if (values.length === 2) {
           const matches = values[0].match(formatRegex);
           if (!matches) {
-            _self.throwSCORMError(scorm2004_error_codes.TYPE_MISMATCH);
+            this.throwSCORMError(scorm2004_error_codes.TYPE_MISMATCH);
           } else {
             if (!values[1].match(new RegExp(response.format2))) {
-              _self.throwSCORMError(scorm2004_error_codes.TYPE_MISMATCH);
+              this.throwSCORMError(scorm2004_error_codes.TYPE_MISMATCH);
             }
           }
         } else {
-          _self.throwSCORMError(scorm2004_error_codes.TYPE_MISMATCH);
+          this.throwSCORMError(scorm2004_error_codes.TYPE_MISMATCH);
         }
       } else {
         const matches = nodes[i].match(formatRegex);
         if ((!matches && value !== '') ||
             (!matches && interaction_type === 'true-false')) {
-          _self.throwSCORMError(scorm2004_error_codes.TYPE_MISMATCH);
+          this.throwSCORMError(scorm2004_error_codes.TYPE_MISMATCH);
         } else {
           if (interaction_type === 'numeric' && nodes.length > 1) {
             if (Number(nodes[0]) > Number(nodes[1])) {
-              _self.throwSCORMError(scorm2004_error_codes.TYPE_MISMATCH);
+              this.throwSCORMError(scorm2004_error_codes.TYPE_MISMATCH);
             }
           } else {
             if (nodes[i] !== '' && response.unique) {
-              for (let j = 0; j < i && _self.lastErrorCode === 0; j++) {
+              for (let j = 0; j < i && this.lastErrorCode === 0; j++) {
                 if (nodes[i] === nodes[j]) {
-                  _self.throwSCORMError(scorm2004_error_codes.TYPE_MISMATCH);
+                  this.throwSCORMError(scorm2004_error_codes.TYPE_MISMATCH);
                 }
               }
             }
@@ -377,7 +375,7 @@ class Scorm2004API extends BaseAPI {
             const lang = langMatches[3];
             if (lang !== undefined && lang.length > 0) {
               if (valid_languages[lang.toLowerCase()] === undefined) {
-                _self.throwSCORMError(scorm2004_error_codes.TYPE_MISMATCH);
+                this.throwSCORMError(scorm2004_error_codes.TYPE_MISMATCH);
               }
             }
           }
@@ -386,7 +384,7 @@ class Scorm2004API extends BaseAPI {
         case 'case_matters':
           if (!seenLang && !seenOrder && !seenCase) {
             if (matches[3] !== 'true' && matches[3] !== 'false') {
-              _self.throwSCORMError(scorm2004_error_codes.TYPE_MISMATCH);
+              this.throwSCORMError(scorm2004_error_codes.TYPE_MISMATCH);
             }
           }
 
@@ -395,7 +393,7 @@ class Scorm2004API extends BaseAPI {
         case 'order_matters':
           if (!seenCase && !seenLang && !seenOrder) {
             if (matches[3] !== 'true' && matches[3] !== 'false') {
-              _self.throwSCORMError(scorm2004_error_codes.TYPE_MISMATCH);
+              this.throwSCORMError(scorm2004_error_codes.TYPE_MISMATCH);
             }
           }
 
@@ -417,8 +415,8 @@ class Scorm2004API extends BaseAPI {
    */
   replaceWithAnotherScormAPI(newAPI) {
     // Data Model
-    _self.cmi = newAPI.cmi;
-    _self.adl = newAPI.adl;
+    this.cmi = newAPI.cmi;
+    this.adl = newAPI.adl;
   }
 
   /**
@@ -427,8 +425,8 @@ class Scorm2004API extends BaseAPI {
    * @return {string} ISO8601 Duration
    */
   getCurrentTotalTime() {
-    const totalTime = _self.cmi.total_time;
-    const sessionTime = _self.cmi.session_time;
+    const totalTime = this.cmi.total_time;
+    const sessionTime = this.cmi.session_time;
 
     return Util.addTwoDurations(totalTime, sessionTime,
         scorm2004_regex.CMITimespan);
