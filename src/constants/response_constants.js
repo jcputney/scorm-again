@@ -1,5 +1,5 @@
 // @flow
-import {scorm2004_regex} from '../regex';
+import {scorm2004_regex} from './regex';
 
 export const learner_responses = {
   'true-false': {

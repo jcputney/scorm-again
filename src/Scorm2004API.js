@@ -15,7 +15,7 @@ import {scorm2004_constants} from './constants/api_constants';
 import {scorm2004_error_codes} from './constants/error_codes';
 import {correct_responses} from './constants/response_constants';
 import {valid_languages} from './constants/language_constants';
-import {scorm2004_regex} from './regex';
+import {scorm2004_regex} from './constants/regex';
 
 const constants = scorm2004_constants;
 

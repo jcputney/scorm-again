@@ -10,6 +10,7 @@ import {
   CMIObjectivesObject,
 } from '../../src/cmi/scorm12_cmi';
 import * as h from '../helpers';
+import {scorm12_values} from '../../src/constants/field_values';
 
 const invalid_set = scorm12_error_codes.INVALID_SET_VALUE;
 const type_mismatch = scorm12_error_codes.TYPE_MISMATCH;
@@ -93,22 +94,8 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.lesson_status',
-        validValues: [
-          'passed',
-          'completed',
-          'failed',
-          'incomplete',
-          'browsed',
-        ],
-        invalidValues: [
-          'Passed',
-          'P',
-          'F',
-          'p',
-          'true',
-          'false',
-          'complete',
-        ],
+        validValues: scorm12_values.validLessonStatus,
+        invalidValues: scorm12_values.invalidLessonStatus,
       });
       h.checkReadAndWrite({
         cmi: cmi(),
@@ -131,14 +118,8 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.exit',
-        validValues: [
-          'time-out',
-          'suspend',
-          'logout',
-        ], invalidValues: [
-          'complete',
-          'exit',
-        ],
+        validValues: scorm12_values.validExit,
+        invalidValues: scorm12_values.invalidExit,
       });
       h.checkWriteOnly({
         cmi: cmi(),
@@ -149,17 +130,8 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.session_time',
-        validValues: [
-          '10:06:57',
-          '00:00:01.56',
-          '23:59:59',
-          '47:59:59',
-        ],
-        invalidValues: [
-          '06:5:13',
-          '23:59:59.123',
-          'P1DT23H59M59S',
-        ],
+        validValues: scorm12_values.validHHMMSS,
+        invalidValues: scorm12_values.invalidHHMMSS,
       });
 
       /**
@@ -178,17 +150,8 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.score.raw',
-        validValues: [
-          '0',
-          '25.1',
-          '50.5',
-          '75',
-          '100',
-        ],
-        invalidValues: [
-          '-1',
-          '101',
-        ],
+        validValues: scorm12_values.validScoreRange,
+        invalidValues: scorm12_values.invalidScoreRange,
       });
       h.checkRead({
         cmi: cmi(),
@@ -197,17 +160,8 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.score.min',
-        validValues: [
-          '0',
-          '25.1',
-          '50.5',
-          '75',
-          '100',
-        ],
-        invalidValues: [
-          '-1',
-          '101',
-        ],
+        validValues: scorm12_values.validScoreRange,
+        invalidValues: scorm12_values.invalidScoreRange,
       });
       h.checkRead({
         cmi: cmi(),
@@ -217,17 +171,8 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.score.max',
-        validValues: [
-          '0',
-          '25.1',
-          '50.5',
-          '75',
-          '100',
-        ],
-        invalidValues: [
-          '-1',
-          '101',
-        ],
+        validValues: scorm12_values.validScoreRange,
+        invalidValues: scorm12_values.invalidScoreRange,
       });
 
       /**
@@ -284,19 +229,10 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.audio',
-        validValues: [
-          '1',
+        validValues: scorm12_values.valid0To100Range.concat([
           '-1',
-          '50',
-          '100',
-        ],
-        invalidValues: [
-          'invalid',
-          'a100',
-          '101',
-          '5000000',
-          '-500',
-        ],
+        ]),
+        invalidValues: scorm12_values.invalid0To100Range,
       });
       h.checkFieldConstraintSize({
         cmi: cmi(),
@@ -311,20 +247,8 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.speed',
-        validValues: [
-          '1',
-          '-100',
-          '50',
-          '100',
-        ],
-        invalidValues: [
-          'invalid',
-          'a100',
-          '101',
-          '-101',
-          '5000000',
-          '-500',
-        ],
+        validValues: scorm12_values.validSpeedRange,
+        invalidValues: scorm12_values.invalidSpeedRange,
       });
       h.checkRead({
         cmi: cmi(),
@@ -333,23 +257,8 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.text',
-        validValues: [
-          '1',
-          '-1',
-        ],
-        invalidValues: [
-          'invalid',
-          'a100',
-        ],
-      });
-      h.checkValidValues({
-        cmi: cmi(),
-        fieldName: 'cmi.student_preference.text',
-        validValues: [],
-        invalidValues: [
-          '2',
-          '-2',
-        ],
+        validValues: scorm12_values.validIntegerScaledRange,
+        invalidValues: scorm12_values.invalidIntegerScaledRange,
       });
 
       /**
@@ -451,22 +360,8 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.lesson_status',
-        validValues: [
-          'passed',
-          'completed',
-          'failed',
-          'incomplete',
-          'browsed',
-        ],
-        invalidValues: [
-          'Passed',
-          'P',
-          'F',
-          'p',
-          'true',
-          'false',
-          'complete',
-        ],
+        validValues: scorm12_values.validLessonStatus,
+        invalidValues: scorm12_values.invalidLessonStatus,
       });
       h.checkReadOnly({
         cmi: cmi(),
@@ -492,14 +387,8 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.exit',
-        validValues: [
-          'time-out',
-          'suspend',
-          'logout',
-        ], invalidValues: [
-          'complete',
-          'exit',
-        ],
+        validValues: scorm12_values.validExit,
+        invalidValues: scorm12_values.invalidExit,
       });
       h.checkWriteOnly({
         cmi: cmi(),
@@ -510,17 +399,8 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.session_time',
-        validValues: [
-          '10:06:57',
-          '00:00:01.56',
-          '23:59:59',
-          '47:59:59',
-        ],
-        invalidValues: [
-          '06:5:13',
-          '23:59:59.123',
-          'P1DT23H59M59S',
-        ],
+        validValues: scorm12_values.validHHMMSS,
+        invalidValues: scorm12_values.invalidHHMMSS,
       });
 
       /**
@@ -535,47 +415,20 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.score.raw',
-        validValues: [
-          '0',
-          '25.1',
-          '50.5',
-          '75',
-          '100',
-        ],
-        invalidValues: [
-          '-1',
-          '101',
-        ],
+        validValues: scorm12_values.validScoreRange,
+        invalidValues: scorm12_values.invalidScoreRange,
       });
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.score.min',
-        validValues: [
-          '0',
-          '25.1',
-          '50.5',
-          '75',
-          '100',
-        ],
-        invalidValues: [
-          '-1',
-          '101',
-        ],
+        validValues: scorm12_values.validScoreRange,
+        invalidValues: scorm12_values.invalidScoreRange,
       });
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.score.max',
-        validValues: [
-          '0',
-          '25.1',
-          '50.5',
-          '75',
-          '100',
-        ],
-        invalidValues: [
-          '-1',
-          '101',
-        ],
+        validValues: scorm12_values.validScoreRange,
+        invalidValues: scorm12_values.invalidScoreRange,
       });
 
       /**
@@ -631,26 +484,8 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.audio',
-        validValues: [
-          '1',
-          '-1',
-          '50',
-          '100',
-        ],
-        invalidValues: [
-          'invalid',
-          'a100',
-        ],
-      });
-      h.checkValidValues({
-        cmi: cmi(),
-        fieldName: 'cmi.student_preference.audio',
-        validValues: [],
-        invalidValues: [
-          '101',
-          '5000000',
-          '-500',
-        ],
+        validValues: scorm12_values.valid0To100Range.concat(['-1']),
+        invalidValues: scorm12_values.invalid0To100Range,
       });
       h.checkFieldConstraintSize({
         cmi: cmi(),
@@ -661,48 +496,14 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.speed',
-        validValues: [
-          '1',
-          '-100',
-          '50',
-          '100',
-        ],
-        invalidValues: [
-          'invalid',
-          'a100',
-        ],
-      });
-      h.checkValidValues({
-        cmi: cmi(),
-        fieldName: 'cmi.student_preference.speed',
-        validValues: [],
-        invalidValues: [
-          '101',
-          '-101',
-          '5000000',
-          '-500',
-        ],
+        validValues: scorm12_values.validSpeedRange,
+        invalidValues: scorm12_values.invalidSpeedRange,
       });
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.student_preference.text',
-        validValues: [
-          '1',
-          '-1',
-        ],
-        invalidValues: [
-          'invalid',
-          'a100',
-        ],
-      });
-      h.checkValidValues({
-        cmi: cmi(),
-        fieldName: 'cmi.student_preference.text',
-        validValues: [],
-        invalidValues: [
-          '2',
-          '-2',
-        ],
+        validValues: scorm12_values.validIntegerScaledRange,
+        invalidValues: scorm12_values.invalidIntegerScaledRange,
       });
 
       /**
@@ -727,7 +528,10 @@ describe('SCORM 1.2 CMI Tests', () => {
         cmiObj.interactions.childArray.push(new CMIInteractionsObject());
         expect(
             JSON.stringify(cmiObj),
-        ).to.equal('{"suspend_data":"","launch_data":"","comments":"","comments_from_lms":"","core":{"student_id":"","student_name":"","lesson_location":"","credit":"","lesson_status":"","entry":"","total_time":"","lesson_mode":"normal","exit":"","session_time":"00:00:00","score":{"raw":"","min":"","max":"100"}},"objectives":{"0":{"id":"","status":"","score":{"raw":"","min":"","max":"100"}}},"student_data":{"mastery_score":"","max_time_allowed":"","time_limit_action":""},"student_preference":{"audio":"","language":"","speed":"","text":""},"interactions":{"0":{"id":"","time":"","type":"","weighting":"","student_response":"","result":"","latency":"","objectives":{},"correct_responses":{}}}}');
+        ).
+            to.
+            equal(
+                '{"suspend_data":"","launch_data":"","comments":"","comments_from_lms":"","core":{"student_id":"","student_name":"","lesson_location":"","credit":"","lesson_status":"","entry":"","total_time":"","lesson_mode":"normal","exit":"","session_time":"00:00:00","score":{"raw":"","min":"","max":"100"}},"objectives":{"0":{"id":"","status":"","score":{"raw":"","min":"","max":"100"}}},"student_data":{"mastery_score":"","max_time_allowed":"","time_limit_action":""},"student_preference":{"audio":"","language":"","speed":"","text":""},"interactions":{"0":{"id":"","time":"","type":"","weighting":"","student_response":"","result":"","latency":"","objectives":{},"correct_responses":{}}}}');
       });
     });
 
@@ -763,16 +567,8 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: interaction(),
         fieldName: 'cmi.time',
-        validValues: [
-          '15:00:30',
-          '00:50:30',
-          '23:00:30',
-        ],
-        invalidValues: [
-          '-00:00:30',
-          '0:50:30',
-          '23:00:30.',
-        ],
+        validValues: scorm12_values.validTime,
+        invalidValues: scorm12_values.invalidTime,
       });
       h.checkWriteOnly({
         cmi: interaction(),
@@ -783,21 +579,8 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: interaction(),
         fieldName: 'cmi.type',
-        validValues: [
-          'true-false',
-          'choice',
-          'fill-in',
-          'matching',
-          'performance',
-          'sequencing',
-          'likert',
-          'numeric',
-        ],
-        invalidValues: [
-          'correct',
-          'wrong',
-          'logout',
-        ],
+        validValues: scorm12_values.validType,
+        invalidValues: scorm12_values.invalidType,
       });
       h.checkReadOnly({
         cmi: interaction(),
@@ -820,17 +603,8 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: interaction(),
         fieldName: 'cmi.weighting',
-        validValues: [
-          '-100',
-          '-1',
-          '1',
-          '100',
-        ],
-        invalidValues: [
-          '-101',
-          '101',
-          'invalid',
-        ],
+        validValues: scorm12_values.validSpeedRange,
+        invalidValues: scorm12_values.invalidSpeedRange,
       });
       h.checkWriteOnly({
         cmi: interaction(),
@@ -846,20 +620,12 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: interaction(),
         fieldName: 'cmi.result',
-        validValues: [
-          'correct',
-          'wrong',
-          'unanticipated',
-          'neutral',
+        validValues: scorm12_values.validResult.concat([
           '1',
           '999',
           '999.99999',
-        ],
-        invalidValues: [
-          '-1',
-          '10000',
-          'invalid',
-        ],
+        ]),
+        invalidValues: scorm12_values.invalidResult,
       });
       h.checkWriteOnly({
         cmi: interaction(),
@@ -870,26 +636,21 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: interaction(),
         fieldName: 'cmi.latency',
-        validValues: [
-          '10:06:57',
-          '00:00:01.56',
-          '23:59:59',
-          '47:59:59',
-        ],
-        invalidValues: [
-          '06:5:13',
-          '23:59:59.123',
-          'P1DT23H59M59S',
-        ],
+        validValues: scorm12_values.validTimestamp,
+        invalidValues: scorm12_values.invalidTimestamp,
       });
 
       it('should export JSON', () => {
         const cmi = interaction();
         cmi.objectives.childArray.push(new CMIInteractionsObjectivesObject());
-        cmi.correct_responses.childArray.push(new CMIInteractionsCorrectResponsesObject());
+        cmi.correct_responses.childArray.push(
+            new CMIInteractionsCorrectResponsesObject());
         expect(
             JSON.stringify(cmi),
-        ).to.equal('{"id":"","time":"","type":"","weighting":"","student_response":"","result":"","latency":"","objectives":{"0":{"id":""}},"correct_responses":{"0":{"pattern":""}}}');
+        ).
+            to.
+            equal(
+                '{"id":"","time":"","type":"","weighting":"","student_response":"","result":"","latency":"","objectives":{"0":{"id":""}},"correct_responses":{"0":{"pattern":""}}}');
       });
     });
 
@@ -955,21 +716,10 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: objective(),
         fieldName: 'cmi.status',
-        validValues: [
-          'passed',
-          'completed',
-          'failed',
-          'incomplete',
-          'browsed',
+        validValues: scorm12_values.validLessonStatus.concat([
           'not attempted',
-        ],
-        invalidValues: [
-          'P',
-          'f',
-          'complete',
-          'started',
-          'in progress',
-        ],
+        ]),
+        invalidValues: scorm12_values.invalidLessonStatus,
       });
 
       /**
@@ -988,17 +738,8 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: objective(),
         fieldName: 'cmi.score.raw',
-        validValues: [
-          '0',
-          '25.1',
-          '50.5',
-          '75',
-          '100',
-        ],
-        invalidValues: [
-          '-1',
-          '101',
-        ],
+        validValues: scorm12_values.validScoreRange,
+        invalidValues: scorm12_values.invalidScoreRange,
       });
       h.checkRead({
         cmi: objective(),
@@ -1007,17 +748,8 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: objective(),
         fieldName: 'cmi.score.min',
-        validValues: [
-          '0',
-          '25.1',
-          '50.5',
-          '75',
-          '100',
-        ],
-        invalidValues: [
-          '-1',
-          '101',
-        ],
+        validValues: scorm12_values.validScoreRange,
+        invalidValues: scorm12_values.invalidScoreRange,
       });
       h.checkRead({
         cmi: objective(),
@@ -1027,24 +759,18 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: objective(),
         fieldName: 'cmi.score.max',
-        validValues: [
-          '0',
-          '25.1',
-          '50.5',
-          '75',
-          '100',
-        ],
-        invalidValues: [
-          '-1',
-          '101',
-        ],
+        validValues: scorm12_values.validScoreRange,
+        invalidValues: scorm12_values.invalidScoreRange,
       });
 
       it('should export JSON', () => {
         const cmi = objective();
         expect(
             JSON.stringify(cmi),
-        ).to.equal('{"id":"","status":"","score":{"raw":"","min":"","max":"100"}}');
+        ).
+            to.
+            equal(
+                '{"id":"","status":"","score":{"raw":"","min":"","max":"100"}}');
       });
     });
   });

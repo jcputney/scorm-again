@@ -2,7 +2,7 @@
 import {scorm12_constants} from '../constants/api_constants';
 import {scorm12_error_codes} from '../constants/error_codes';
 import {ValidationError} from '../exceptions';
-import {scorm12_regex} from '../regex';
+import {scorm12_regex} from '../constants/regex';
 
 /**
  * Check if the value matches the proper format. If not, throw proper error code.
@@ -10,12 +10,20 @@ import {scorm12_regex} from '../regex';
  * @param {string} value
  * @param {string} regexPattern
  * @param {number} errorCode
+ * @param {boolean} allowEmptyString
  * @return {boolean}
  */
 export function checkValidFormat(
-    value: String, regexPattern: String, errorCode: number) {
+    value: String,
+    regexPattern: String,
+    errorCode: number,
+    allowEmptyString?: boolean) {
   const formatRegex = new RegExp(regexPattern);
-  if (!value || !value.match(formatRegex)) {
+  const matches = value.match(formatRegex);
+  if (allowEmptyString && value === '') {
+    return true;
+  }
+  if (value === undefined || !matches || matches[0] === '') {
     throw new ValidationError(errorCode);
   }
   return true;
@@ -97,7 +105,7 @@ export class CMIScore extends BaseCMI {
         score_children :
         scorm12_constants.score_children;
     this.#_score_range = !score_range ? false : scorm12_regex.score_range;
-    this.#max = max ? max : '100';
+    this.#max = (max || max === '') ? max : '100';
     this.#_invalid_error_code = invalidErrorCode ?
         invalidErrorCode :
         scorm12_error_codes.INVALID_SET_VALUE;

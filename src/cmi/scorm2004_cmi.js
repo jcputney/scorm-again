@@ -7,7 +7,7 @@ import {
   CMIScore,
 } from './common';
 import {scorm2004_constants} from '../constants/api_constants';
-import {scorm2004_regex} from '../regex';
+import {scorm2004_regex} from '../constants/regex';
 import {scorm2004_error_codes} from '../constants/error_codes';
 import {learner_responses} from '../constants/response_constants';
 import {ValidationError} from '../exceptions';
@@ -40,11 +40,15 @@ function throwTypeMismatchError() {
  * Helper method, no reason to have to pass the same error codes every time
  * @param {*} value
  * @param {string} regexPattern
+ * @param {boolean} allowEmptyString
  * @return {boolean}
  */
-function check2004ValidFormat(value: String, regexPattern: String) {
+function check2004ValidFormat(
+    value: String,
+    regexPattern: String,
+    allowEmptyString?: boolean) {
   return checkValidFormat(value, regexPattern,
-      scorm2004_error_codes.TYPE_MISMATCH);
+      scorm2004_error_codes.TYPE_MISMATCH, allowEmptyString);
 }
 
 /**
@@ -943,7 +947,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} description
    */
   set description(description) {
-    if (check2004ValidFormat(description, regex.CMILangString250)) {
+    if (check2004ValidFormat(description, regex.CMILangString250, true)) {
       this.#description = description;
     }
   }
@@ -1098,7 +1102,7 @@ export class CMIObjectivesObject extends BaseCMI {
    * @param {string} description
    */
   set description(description) {
-    if (check2004ValidFormat(description, regex.CMILangString250)) {
+    if (check2004ValidFormat(description, regex.CMILangString250, true)) {
       this.#description = description;
     }
   }
@@ -1112,7 +1116,8 @@ export class CMIObjectivesObject extends BaseCMI {
    *      success_status: string,
    *      completion_status: string,
    *      progress_measure: string,
-   *      description: string
+   *      description: string,
+   *      score: Scorm2004CMIScore
    *    }
    *  }
    */
@@ -1124,6 +1129,7 @@ export class CMIObjectivesObject extends BaseCMI {
       'completion_status': this.completion_status,
       'progress_measure': this.progress_measure,
       'description': this.description,
+      'score': this.score,
     };
     delete this.jsonString;
     return result;
@@ -1186,9 +1192,9 @@ class Scorm2004CMIScore extends CMIScore {
     this.jsonString = true;
     const result = {
       'scaled': this.scaled,
-      'raw': this.raw,
-      'min': this.min,
-      'max': this.max,
+      'raw': super.raw,
+      'min': super.min,
+      'max': super.max,
     };
     delete this.jsonString;
     return result;
@@ -1208,6 +1214,9 @@ export class CMICommentsFromLearnerObject extends BaseCMI {
    */
   constructor() {
     super();
+    this.#comment = '';
+    this.#location = '';
+    this.#timestamp = '';
   }
 
   /**
@@ -1223,7 +1232,7 @@ export class CMICommentsFromLearnerObject extends BaseCMI {
    * @param {string} comment
    */
   set comment(comment) {
-    if (check2004ValidFormat(comment, regex.CMILangString4000)) {
+    if (check2004ValidFormat(comment, regex.CMILangString4000, true)) {
       this.#comment = comment;
     }
   }
@@ -1263,6 +1272,27 @@ export class CMICommentsFromLearnerObject extends BaseCMI {
       this.#timestamp = timestamp;
     }
   }
+
+  /**
+   * toJSON for cmi.comments_from_learner.n object
+   * @return {
+   *    {
+   *      comment: string,
+   *      location: string,
+   *      timestamp: string
+   *    }
+   *  }
+   */
+  toJSON() {
+    this.jsonString = true;
+    const result = {
+      'comment': this.comment,
+      'location': this.location,
+      'timestamp': this.timestamp,
+    };
+    delete this.jsonString;
+    return result;
+  }
 }
 
 /**
@@ -1277,11 +1307,27 @@ export class CMICommentsFromLMSObject extends CMICommentsFromLearnerObject {
   }
 
   /**
+   * Getter for #comment
+   * @return {string}
+   */
+  get comment() {
+    return super.comment;
+  }
+
+  /**
    * Setter for #comment. Can only be called before  initialization.
    * @param {string} comment
    */
   set comment(comment) {
-    !this.initialized ? this.comment = comment : throwReadOnlyError();
+    !this.initialized ? super.comment = comment : throwReadOnlyError();
+  }
+
+  /**
+   * Getter for #location
+   * @return {string}
+   */
+  get location() {
+    return super.location;
   }
 
   /**
@@ -1289,7 +1335,15 @@ export class CMICommentsFromLMSObject extends CMICommentsFromLearnerObject {
    * @param {string} location
    */
   set location(location) {
-    !this.initialized ? this.location = location : throwReadOnlyError();
+    !this.initialized ? super.location = location : throwReadOnlyError();
+  }
+
+  /**
+   * Getter for #timestamp
+   * @return {string}
+   */
+  get timestamp() {
+    return super.timestamp;
   }
 
   /**
@@ -1297,7 +1351,21 @@ export class CMICommentsFromLMSObject extends CMICommentsFromLearnerObject {
    * @param {string} timestamp
    */
   set timestamp(timestamp) {
-    !this.initialized ? this.timestamp = timestamp : throwReadOnlyError();
+    !this.initialized ? super.timestamp = timestamp : throwReadOnlyError();
+  }
+
+  /**
+   * toJSON for cmi.comments_from_lms.n
+   * @return {
+   *    {
+   *      comment: string,
+   *      location: string,
+   *      timestamp: string
+   *    }
+   *  }
+   */
+  toJSON() {
+    return super.toJSON();
   }
 }
 
@@ -1331,6 +1399,23 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
       this.#id = id;
     }
   }
+
+  /**
+   * toJSON for cmi.interactions.n.objectives.n
+   * @return {
+   *    {
+   *      id: string
+   *    }
+   *  }
+   */
+  toJSON() {
+    this.jsonString = true;
+    const result = {
+      'id': this.id,
+    };
+    delete this.jsonString;
+    return result;
+  }
 }
 
 /**
@@ -1362,6 +1447,23 @@ export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
     if (check2004ValidFormat(pattern, regex.CMIFeedback)) {
       this.#pattern = pattern;
     }
+  }
+
+  /**
+   * toJSON cmi.interactions.n.correct_responses.n object
+   * @return {
+   *    {
+   *      pattern: string
+   *    }
+   *  }
+   */
+  toJSON() {
+    this.jsonString = true;
+    const result = {
+      'pattern': this.pattern,
+    };
+    delete this.jsonString;
+    return result;
   }
 }
 

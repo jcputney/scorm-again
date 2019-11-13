@@ -8,7 +8,7 @@ import {
 } from './common';
 import {scorm12_constants} from '../constants/api_constants';
 import {scorm12_error_codes} from '../constants/error_codes';
-import {scorm12_regex} from '../regex';
+import {scorm12_regex} from '../constants/regex';
 import {ValidationError} from '../exceptions';
 
 const constants = scorm12_constants;

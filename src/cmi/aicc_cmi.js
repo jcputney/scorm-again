@@ -1,7 +1,7 @@
 import * as Scorm12CMI from './scorm12_cmi';
 import {BaseCMI, CMIArray, CMIScore} from './common';
 import {aicc_constants} from '../constants/api_constants';
-import {aicc_regex} from '../regex';
+import {aicc_regex} from '../constants/regex';
 import {scorm12_error_codes} from '../constants/error_codes';
 import {
   check12ValidFormat,
