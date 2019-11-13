@@ -4,7 +4,7 @@
 #
 version: 2
 jobs:
-  build:
+  test:
     docker:
       # specify the version you desire here
       - image: circleci/node:lts-browsers
@@ -89,3 +89,28 @@ jobs:
       - store_artifacts: # upload test coverage as artifact
           path: ./coverage/lcov.info
           prefix: tests
+  docs:
+    docker:
+      # specify the version you desire here
+        - image: circleci/node:lts-browsers
+
+        # Specify service dependencies here if necessary
+        # CircleCI maintains a library of pre-built images
+        # documented at https://circleci.com/docs/2.0/circleci-images/
+        # - image: circleci/mongo:3.4.4
+
+    working_directory: ~/scorm-again/reports
+
+    steps:
+      - checkout
+
+      - run: npm install jsdoc
+
+      - run: ./node_modules/.bin/jsdoc ../src/**/*.js -d ./
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - test
+      - docs

@@ -8,7 +8,6 @@ import {
 } from '../../src/cmi/aicc_cmi';
 import * as h from '../helpers';
 import {
-  CMIInteractionsCorrectResponsesObject,
   CMIInteractionsObject,
   CMIObjectivesObject,
 } from '../../src/cmi/scorm12_cmi';
@@ -18,7 +17,6 @@ const invalid_set = scorm12_error_codes.INVALID_SET_VALUE;
 const type_mismatch = scorm12_error_codes.TYPE_MISMATCH;
 const write_only = scorm12_error_codes.WRITE_ONLY_ELEMENT;
 const read_only = scorm12_error_codes.READ_ONLY_ELEMENT;
-const invalid_range = scorm12_error_codes.VALUE_OUT_OF_RANGE;
 
 describe('AICC CMI Tests', () => {
   describe('CMI Spec Tests', () => {
