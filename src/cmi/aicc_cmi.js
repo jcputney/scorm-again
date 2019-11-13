@@ -413,7 +413,7 @@ export class NAV extends BaseCMI {
 
   /**
    * toJSON for nav object
-   * @returns {
+   * @return {
    *    {
    *      event: string
    *    }
