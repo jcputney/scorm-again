@@ -3,7 +3,7 @@
 export const scorm12_regex = {
   CMIString256: '^.{0,255}$',
   CMIString4096: '^.{0,4096}$',
-  CMITime: '^([0-2]{1}[0-9]{1}):([0-5]{1}[0-9]{1}):([0-5]{1}[0-9]{1})(\.[0-9]{1,6})?$', // eslint-disable-line
+  CMITime: '^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)$', // eslint-disable-line
   CMITimespan: '^([0-9]{2,}):([0-9]{2}):([0-9]{2})(\.[0-9]{1,2})?$', // eslint-disable-line
   CMIInteger: '^\\d+$',
   CMISInteger: '^-?([0-9]+)$',
@@ -13,12 +13,12 @@ export const scorm12_regex = {
   CMIIndex: '[._](\\d+).',
 
   // Vocabulary Data Type Definition
-  CMIStatus: '^passed$|^completed$|^failed$|^incomplete$|^browsed$',
-  CMIStatus2: '^passed$|^completed$|^failed$|^incomplete$|^browsed$|^not attempted$',
-  CMIExit: '^time-out$|^suspend$|^logout$|^$',
-  CMIType: '^true-false$|^choice$|^fill-in$|^matching$|^performance$|^sequencing$|^likert$|^numeric$',
-  CMIResult: '^correct$|^wrong$|^unanticipated$|^neutral$|^([0-9]{0,3})?(\.[0-9]*)?$', // eslint-disable-line
-  NAVEvent: '^previous$|^continue$',
+  CMIStatus: '^(passed|completed|failed|incomplete|browsed)$',
+  CMIStatus2: '^(passed|completed|failed|incomplete|browsed|not attempted)$',
+  CMIExit: '^(time-out|suspend|logout|)$',
+  CMIType: '^(true-false|choice|fill-in|matching|performance|sequencing|likert|numeric)$',
+  CMIResult: '^(correct|wrong|unanticipated|neutral|([0-9]{0,3})?(\\.[0-9]*)?)$', // eslint-disable-line
+  NAVEvent: '^(previous|continue)$',
 
   // Data ranges
   score_range: '0#100',
@@ -58,14 +58,14 @@ export const scorm2004_regex = {
   CMIIndexStore: '.N(\\d+).',
 
   // Vocabulary Data Type Definition
-  CMICStatus: '^completed$|^incomplete$|^not attempted$|^unknown$',
-  CMISStatus: '^passed$|^failed$|^unknown$',
-  CMIExit: '^time-out$|^suspend$|^logout$|^normal$|^$',
-  CMIType: '^true-false$|^choice$|^(long-)?fill-in$|^matching$|^performance$|^sequencing$|^likert$|^numeric$|^other$',
-  CMIResult: '^correct$|^incorrect$|^unanticipated$|^neutral$|^-?([0-9]{1,4})(\\.[0-9]{1,18})?$',
-  NAVEvent: '^previous$|^continue$|^exit$|^exitAll$|^abandon$|^abandonAll$|^suspendAll$|^\{target=\\S{0,200}[a-zA-Z0-9]\}choice|jump$', // eslint-disable-line
-  NAVBoolean: '^unknown$|^true$|^false$',
-  NAVTarget: '^previous$|^continue$|^choice.{target=\\S{0,200}[a-zA-Z0-9]}$',
+  CMICStatus: '^(completed|incomplete|not attempted|unknown)$',
+  CMISStatus: '^(passed|failed|unknown)$',
+  CMIExit: '^(time-out|suspend|logout|normal|)$',
+  CMIType: '^(true-false|choice|(long-)?fill-in|matching|performance|sequencing|likert|numeric|other)$',
+  CMIResult: '^(correct|incorrect|unanticipated|neutral|-?([0-9]{1,4})(\\.[0-9]{1,18})?)$',
+  NAVEvent: '^(previous|continue|exit|exitAll|abandon|abandonAll|suspendAll|\{target=\\S{0,200}[a-zA-Z0-9]\}choice|jump)$', // eslint-disable-line
+  NAVBoolean: '^(unknown|true|false$)',
+  NAVTarget: '^(previous|continue|choice.{target=\\S{0,200}[a-zA-Z0-9]})$',
 
   // Data ranges
   scaled_range: '-1#1',

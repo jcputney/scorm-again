@@ -236,7 +236,9 @@ export class CMI extends BaseCMI {
    * @param {string} comments_from_lms
    */
   set comments_from_lms(comments_from_lms) {
-    !this.initialized ? this.#comments_from_lms = comments_from_lms : throwReadOnlyError();
+    !this.initialized ?
+        this.#comments_from_lms = comments_from_lms :
+        throwReadOnlyError();
   }
 }
 
@@ -250,7 +252,7 @@ class CMICore extends BaseCMI {
   constructor() {
     super();
 
-    this.score = new Scorm12CMIScore(
+    this.score = new CMIScore(
         {
           score_children: constants.score_children,
           score_range: regex.score_range,
@@ -327,7 +329,9 @@ class CMICore extends BaseCMI {
    * @param {string} student_name
    */
   set student_name(student_name) {
-    !this.initialized ? this.#student_name = student_name : throwReadOnlyError();
+    !this.initialized ?
+        this.#student_name = student_name :
+        throwReadOnlyError();
   }
 
   /**
@@ -474,7 +478,7 @@ class CMICore extends BaseCMI {
    *      student_name: string,
    *      entry: string,
    *      exit: string,
-   *      score: Scorm12CMIScore,
+   *      score: CMIScore,
    *      student_id: string,
    *      lesson_mode: string,
    *      lesson_location: string,
@@ -572,7 +576,9 @@ export class CMIStudentData extends BaseCMI {
    * @param {string} mastery_score
    */
   set mastery_score(mastery_score) {
-    !this.initialized ? this.#mastery_score = mastery_score : throwReadOnlyError();
+    !this.initialized ?
+        this.#mastery_score = mastery_score :
+        throwReadOnlyError();
   }
 
   /**
@@ -588,7 +594,9 @@ export class CMIStudentData extends BaseCMI {
    * @param {string} max_time_allowed
    */
   set max_time_allowed(max_time_allowed) {
-    !this.initialized ? this.#max_time_allowed = max_time_allowed : throwReadOnlyError();
+    !this.initialized ?
+        this.#max_time_allowed = max_time_allowed :
+        throwReadOnlyError();
   }
 
   /**
@@ -604,7 +612,9 @@ export class CMIStudentData extends BaseCMI {
    * @param {string} time_limit_action
    */
   set time_limit_action(time_limit_action) {
-    !this.initialized ? this.#time_limit_action = time_limit_action : throwReadOnlyError();
+    !this.initialized ?
+        this.#time_limit_action = time_limit_action :
+        throwReadOnlyError();
   }
 
   /**
@@ -809,13 +819,13 @@ export class CMIInteractionsObject extends BaseCMI {
     this.correct_responses?.initialize();
   }
 
-  #id: '';
-  #time: '';
-  #type: '';
-  #weighting: '';
-  #student_response: '';
-  #result: '';
-  #latency: '';
+  #id = '';
+  #time = '';
+  #type = '';
+  #weighting = '';
+  #student_response = '';
+  #result = '';
+  #latency = '';
 
   /**
    * Getter for #id. Should only be called during JSON export.
@@ -991,11 +1001,18 @@ export class CMIObjectivesObject extends BaseCMI {
   constructor() {
     super();
 
-    this.score = new Scorm12CMIScore();
+    this.score = new CMIScore(
+        {
+          score_children: constants.score_children,
+          score_range: regex.score_range,
+          invalidErrorCode: scorm12_error_codes.INVALID_SET_VALUE,
+          invalidTypeCode: scorm12_error_codes.TYPE_MISMATCH,
+          invalidRangeCode: scorm12_error_codes.VALUE_OUT_OF_RANGE,
+        });
   }
 
-  #id: '';
-  #status: '';
+  #id = '';
+  #status = '';
 
   /**
    * Getter for #id
@@ -1039,7 +1056,7 @@ export class CMIObjectivesObject extends BaseCMI {
    *    {
    *      id: string,
    *      status: string,
-   *      score: Scorm12CMIScore
+   *      score: CMIScore
    *    }
    *  }
    */
@@ -1066,7 +1083,7 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
     super();
   }
 
-  #id: '';
+  #id = '';
 
   /**
    * Getter for #id
@@ -1115,14 +1132,14 @@ export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
     super();
   }
 
-  #pattern: '';
+  #pattern = '';
 
   /**
    * Getter for #pattern
-   * @return {""}
+   * @return {string}
    */
   get pattern() {
-    return this.#pattern;
+    return (!this.jsonString) ? throwWriteOnlyError() : this.#pattern;
   }
 
   /**
@@ -1151,11 +1168,4 @@ export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
     delete this.jsonString;
     return result;
   }
-}
-
-/**
- * Basic extension of CMIScore
- */
-class Scorm12CMIScore extends CMIScore {
-  toJSON = super.toJSON;
 }

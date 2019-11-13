@@ -96,7 +96,7 @@ export class CMIScore extends BaseCMI {
     this.#_children = score_children ?
         score_children :
         scorm12_constants.score_children;
-    this.#_score_range = score_range ? score_range : false;
+    this.#_score_range = !score_range ? false : scorm12_regex.score_range;
     this.#max = max ? max : '100';
     this.#_invalid_error_code = invalidErrorCode ?
         invalidErrorCode :

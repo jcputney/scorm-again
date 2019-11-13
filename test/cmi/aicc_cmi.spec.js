@@ -1,8 +1,18 @@
-import {describe} from 'mocha';
+import {describe, it} from 'mocha';
 import {aicc_constants} from '../../src/constants/api_constants';
 import {scorm12_error_codes} from '../../src/constants/error_codes';
-import {CMI} from '../../src/cmi/aicc_cmi';
+import {
+  CMI,
+  CMIEvaluationCommentsObject,
+  CMITriesObject, NAV,
+} from '../../src/cmi/aicc_cmi';
 import * as h from '../helpers';
+import {
+  CMIInteractionsCorrectResponsesObject,
+  CMIInteractionsObject,
+  CMIObjectivesObject,
+} from '../../src/cmi/scorm12_cmi';
+import {expect} from 'chai';
 
 const invalid_set = scorm12_error_codes.INVALID_SET_VALUE;
 const type_mismatch = scorm12_error_codes.TYPE_MISMATCH;
@@ -706,6 +716,229 @@ describe('AICC CMI Tests', () => {
         cmi: cmi(),
         fieldName: 'cmi.interactions._count', expectedValue: 0,
         expectedError: invalid_set,
+      });
+
+      it('should export JSON', () => {
+        const cmiObj = cmi();
+        cmiObj.objectives.childArray.push(new CMIObjectivesObject());
+        cmiObj.interactions.childArray.push(new CMIInteractionsObject());
+        cmiObj.evaluation.comments.childArray.push(
+            new CMIEvaluationCommentsObject());
+        cmiObj.student_data.tries.childArray.push(new CMITriesObject());
+        expect(
+            JSON.stringify(cmiObj),
+        ).
+            to.
+            equal(
+                '{"suspend_data":"","launch_data":"","comments":"","comments_from_lms":"","core":{"student_id":"","student_name":"","lesson_location":"","credit":"","lesson_status":"","entry":"","total_time":"","lesson_mode":"normal","exit":"","session_time":"00:00:00","score":{"raw":"","min":"","max":"100"}},"objectives":{"0":{"id":"","status":"","score":{"raw":"","min":"","max":"100"}}},"student_data":{"mastery_score":"","max_time_allowed":"","time_limit_action":"","tries":{"0":{"status":"","time":"","score":{"raw":"","min":"","max":"100"}}}},"student_preference":{"audio":"","language":"","speed":"","text":""},"interactions":{"0":{"id":"","time":"","type":"","weighting":"","student_response":"","result":"","latency":"","objectives":{},"correct_responses":{}}},"evaluation":{"comments":{"0":{"content":"","location":"","time":""}}}}');
+      });
+    });
+
+    describe('CMITriesObject Tests', () => {
+      const triesObject = () => {
+        return new CMITriesObject();
+      };
+      const triesInitialized = () => {
+        const cmi = new CMITriesObject();
+        cmi.initialize();
+        return cmi;
+      };
+
+      /**
+       * cmi.interactions.n.objectives.n object
+       */
+      h.checkRead({
+        cmi: triesObject(),
+        fieldName: 'cmi.status',
+      });
+      h.checkRead({
+        cmi: triesInitialized(),
+        fieldName: 'cmi.status',
+      });
+      h.checkValidValues({
+        cmi: triesObject(),
+        fieldName: 'cmi.status',
+        validValues: [
+          'passed',
+          'completed',
+          'failed',
+          'incomplete',
+          'browsed',
+          'not attempted',
+        ],
+        invalidValues: [
+          'P',
+          'f',
+          'complete',
+          'started',
+          'in progress',
+        ],
+      });
+      h.checkReadAndWrite({
+        cmi: triesObject(),
+        fieldName: 'cmi.time',
+        expectedError: write_only,
+        valueToTest: '23:59:59',
+      });
+      h.checkValidValues({
+        cmi: triesObject(),
+        fieldName: 'cmi.time',
+        validValues: [
+          '15:00:30',
+          '00:50:30',
+          '23:00:30',
+        ],
+        invalidValues: [
+          '-00:00:30',
+          '0:50:30',
+          '23:00:30.',
+        ],
+      });
+
+      /**
+       * cmi.student_data.tries.n.score Properties
+       */
+      h.checkInvalidSet({
+        cmi: triesObject(),
+        fieldName: 'cmi.score._children',
+        expectedValue: aicc_constants.score_children,
+        expectedError: invalid_set,
+      });
+      h.checkValidValues({
+        cmi: triesObject(),
+        fieldName: 'cmi.score.raw',
+        validValues: [
+          '0',
+          '25.1',
+          '50.5',
+          '75',
+          '100',
+        ],
+        invalidValues: [
+          '-1',
+          '101',
+        ],
+      });
+      h.checkValidValues({
+        cmi: triesObject(),
+        fieldName: 'cmi.score.min',
+        validValues: [
+          '0',
+          '25.1',
+          '50.5',
+          '75',
+          '100',
+        ],
+        invalidValues: [
+          '-1',
+          '101',
+        ],
+      });
+      h.checkValidValues({
+        cmi: triesObject(),
+        fieldName: 'cmi.score.max',
+        validValues: [
+          '0',
+          '25.1',
+          '50.5',
+          '75',
+          '100',
+        ],
+        invalidValues: [
+          '-1',
+          '101',
+        ],
+      });
+
+      it('should export JSON', () => {
+        const cmi = triesObject();
+        expect(
+            JSON.stringify(cmi),
+        ).
+            to.
+            equal(
+                '{"status":"","time":"","score":{"raw":"","min":"","max":"100"}}');
+      });
+    });
+
+    describe('CMIEvaluationCommentsObject Tests', () => {
+      const evaluationComment = () => {
+        return new CMIEvaluationCommentsObject();
+      };
+
+      /**
+       * cmi.evaluation.comments.n object
+       */
+      h.checkFieldConstraintSize({
+        cmi: evaluationComment(),
+        fieldName: 'cmi.content',
+        expectedError: type_mismatch,
+        limit: 255,
+      });
+      h.checkFieldConstraintSize({
+        cmi: evaluationComment(),
+        fieldName: 'cmi.location',
+        expectedError: type_mismatch,
+        limit: 255,
+      });
+      h.checkReadAndWrite({
+        cmi: evaluationComment(),
+        fieldName: 'cmi.time',
+        expectedError: write_only,
+        valueToTest: '23:59:59',
+      });
+      h.checkValidValues({
+        cmi: evaluationComment(),
+        fieldName: 'cmi.time',
+        validValues: [
+          '15:00:30',
+          '00:50:30',
+          '23:00:30',
+        ],
+        invalidValues: [
+          '-00:00:30',
+          '0:50:30',
+          '23:00:30.',
+        ],
+      });
+
+      it('should export JSON', () => {
+        const cmi = evaluationComment();
+        expect(
+            JSON.stringify(cmi),
+        ).to.equal('{"content":"","location":"","time":""}');
+      });
+    });
+
+    describe('NAV Tests', () => {
+      const nav = () => {
+        return new NAV();
+      };
+
+      /**
+       * cmi.interactions.n.correct_responses.n object
+       */
+      h.checkValidValues({
+        cmi: nav(),
+        fieldName: 'cmi.event',
+        validValues: [
+          'previous',
+          'continue',
+        ],
+        invalidValues: [
+          'P',
+          'f',
+          'complete',
+          'started',
+          'in progress',
+        ],
+      });
+
+      it('should export JSON', () => {
+        const cmi = nav();
+        expect(
+            JSON.stringify(cmi),
+        ).to.equal('{"event":""}');
       });
     });
   });

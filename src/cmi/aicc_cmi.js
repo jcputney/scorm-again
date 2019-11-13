@@ -3,10 +3,11 @@ import {BaseCMI, CMIArray, CMIScore} from './common';
 import {aicc_constants} from '../constants/api_constants';
 import {aicc_regex} from '../regex';
 import {scorm12_error_codes} from '../constants/error_codes';
-import {ValidationError} from '../exceptions';
-import {check12ValidFormat} from './scorm12_cmi';
-import {throwReadOnlyError} from './scorm12_cmi';
-import {throwWriteOnlyError} from './scorm12_cmi';
+import {
+  check12ValidFormat,
+  throwReadOnlyError,
+  throwWriteOnlyError,
+} from './scorm12_cmi';
 
 const constants = aicc_constants;
 const regex = aicc_regex;
@@ -36,6 +37,41 @@ export class CMI extends Scorm12CMI.CMI {
     this.student_data?.initialize();
     this.evaluation?.initialize();
   }
+
+  /**
+   * toJSON for cmi
+   *
+   * @return {
+   *    {
+   *      suspend_data: string,
+   *      launch_data: string,
+   *      comments: string,
+   *      comments_from_lms: string,
+   *      core: CMICore,
+   *      objectives: CMIObjectives,
+   *      student_data: CMIStudentData,
+   *      student_preference: CMIStudentPreference,
+   *      interactions: CMIInteractions
+   *    }
+   *  }
+   */
+  toJSON() {
+    this.jsonString = true;
+    const result = {
+      'suspend_data': this.suspend_data,
+      'launch_data': this.launch_data,
+      'comments': this.comments,
+      'comments_from_lms': this.comments_from_lms,
+      'core': this.core,
+      'objectives': this.objectives,
+      'student_data': this.student_data,
+      'student_preference': this.student_preference,
+      'interactions': this.interactions,
+      'evaluation': this.evaluation,
+    };
+    delete this.jsonString;
+    return result;
+  }
 }
 
 /**
@@ -57,6 +93,19 @@ class CMIEvaluation extends BaseCMI {
   initialize() {
     super.initialize();
     this.comments?.initialize();
+  }
+
+  /**
+   * toJSON for cmi.evaluation object
+   * @return {{comments: CMIEvaluationComments}}
+   */
+  toJSON() {
+    this.jsonString = true;
+    const result = {
+      'comments': this.comments,
+    };
+    delete this.jsonString;
+    return result;
   }
 }
 
@@ -114,6 +163,29 @@ class AICCCMIStudentData extends Scorm12CMI.CMIStudentData {
         this.#tries_during_lesson = tries_during_lesson :
         throwReadOnlyError();
   }
+
+  /**
+   * toJSON for cmi.student_data object
+   * @return {
+   *    {
+   *      mastery_score: string,
+   *      max_time_allowed: string,
+   *      time_limit_action: string,
+   *      tries: CMITries
+   *    }
+   *  }
+   */
+  toJSON() {
+    this.jsonString = true;
+    const result = {
+      'mastery_score': this.mastery_score,
+      'max_time_allowed': this.max_time_allowed,
+      'time_limit_action': this.time_limit_action,
+      'tries': this.tries,
+    };
+    delete this.jsonString;
+    return result;
+  }
 }
 
 /**
@@ -138,7 +210,14 @@ export class CMITriesObject extends BaseCMI {
   constructor() {
     super();
 
-    this.score = new CMIScore();
+    this.score = new CMIScore(
+        {
+          score_children: constants.score_children,
+          score_range: regex.score_range,
+          invalidErrorCode: scorm12_error_codes.INVALID_SET_VALUE,
+          invalidTypeCode: scorm12_error_codes.TYPE_MISMATCH,
+          invalidRangeCode: scorm12_error_codes.VALUE_OUT_OF_RANGE,
+        });
   }
 
   /**
@@ -186,6 +265,27 @@ export class CMITriesObject extends BaseCMI {
     if (check12ValidFormat(time, regex.CMITime)) {
       this.#time = time;
     }
+  }
+
+  /**
+   * toJSON for cmi.student_data.tries.n object
+   * @return {
+   *    {
+   *      status: string,
+   *      time: string,
+   *      score: CMIScore
+   *    }
+   *  }
+   */
+  toJSON() {
+    this.jsonString = true;
+    const result = {
+      'status': this.status,
+      'time': this.time,
+      'score': this.score,
+    };
+    delete this.jsonString;
+    return result;
   }
 }
 
@@ -257,6 +357,27 @@ export class CMIEvaluationCommentsObject extends BaseCMI {
       this.#time = time;
     }
   }
+
+  /**
+   * toJSON for cmi.evaulation.comments.n object
+   * @return {
+   *    {
+   *      content: string,
+   *      location: string,
+   *      time: string
+   *    }
+   *  }
+   */
+  toJSON() {
+    this.jsonString = true;
+    const result = {
+      'content': this.content,
+      'location': this.location,
+      'time': this.time,
+    };
+    delete this.jsonString;
+    return result;
+  }
 }
 
 /**
@@ -288,5 +409,22 @@ export class NAV extends BaseCMI {
     if (check12ValidFormat(event, regex.NAVEvent)) {
       this.#event = event;
     }
+  }
+
+  /**
+   * toJSON for nav object
+   * @returns {
+   *    {
+   *      event: string
+   *    }
+   *  }
+   */
+  toJSON() {
+    this.jsonString = true;
+    const result = {
+      'event': this.event,
+    };
+    delete this.jsonString;
+    return result;
   }
 }
