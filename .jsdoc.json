@@ -1,0 +1,16 @@
+{
+  "plugins": [
+    "node_modules/jsdoc-babel"
+  ],
+  "babel": {
+    "presets": [
+      "@babel/preset-env",
+      "@babel/preset-flow"
+    ],
+    "plugins": [
+      "@babel/plugin-proposal-class-properties",
+      "@babel/plugin-proposal-private-methods",
+      "@babel/plugin-proposal-optional-chaining"
+    ]
+  }
+}

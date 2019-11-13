@@ -62,3 +62,4 @@ typings/
 
 # JetBrains Project Directory
 .idea/
+/reports/

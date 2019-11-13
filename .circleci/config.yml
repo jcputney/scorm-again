@@ -33,8 +33,6 @@ jobs:
 
       - run: npm install
 
-      - run: npm install mocha-junit-reporter # just for CircleCI
-
       - save_cache:
           paths:
             - node_modules
@@ -104,9 +102,7 @@ jobs:
     steps:
       - checkout
 
-      - run: npm install jsdoc
-
-      - run: ./node_modules/.bin/jsdoc ../src/**/*.js -d ./
+      - run: ./node_modules/.bin/jsdoc -c ../.jsdoc.json -d ./ ../src/
 
 workflows:
   version: 2
