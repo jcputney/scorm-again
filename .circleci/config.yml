@@ -109,4 +109,4 @@ workflows:
   build:
     jobs:
       - test
-      - docs
+      # - docs
