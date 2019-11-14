@@ -119,9 +119,10 @@ export default class Scorm12API extends BaseAPI {
    *
    * @param {string} CMIElement
    * @param {*} value
+   * @return {string}
    */
   setCMIValue(CMIElement, value) {
-    this._commonSetCMIValue('LMSSetValue', false, CMIElement, value);
+    return this._commonSetCMIValue('LMSSetValue', false, CMIElement, value);
   }
 
   /**

@@ -10,10 +10,9 @@ import {
   CMIInteractionsObjectivesObject,
   CMIObjectivesObject,
 } from '../../src/cmi/scorm2004_cmi';
-import * as h from '../helpers';
+import * as h from '../cmi_helpers';
 import {expect} from 'chai';
 import {scorm2004_values} from '../../src/constants/field_values';
-import {valid_languages} from '../../src/constants/language_constants';
 
 const read_only = scorm2004_error_codes.READ_ONLY_ELEMENT;
 const write_only = scorm2004_error_codes.WRITE_ONLY_ELEMENT;
@@ -158,7 +157,7 @@ describe('SCORM 2004 CMI Tests', () => {
       /**
        * cmi.learner_preference Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.learner_preference._children',
         expectedValue: scorm2004_constants.student_preference_children,
@@ -216,7 +215,7 @@ describe('SCORM 2004 CMI Tests', () => {
       /**
        * cmi.score Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.score._children',
         expectedValue: scorm2004_constants.score_children,
@@ -474,7 +473,7 @@ describe('SCORM 2004 CMI Tests', () => {
       /**
        * cmi.learner_preference Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.learner_preference._children',
         expectedValue: scorm2004_constants.student_preference_children,
@@ -532,7 +531,7 @@ describe('SCORM 2004 CMI Tests', () => {
       /**
        * cmi.score Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.score._children',
         expectedValue: scorm2004_constants.score_children,
@@ -912,7 +911,7 @@ describe('SCORM 2004 CMI Tests', () => {
       /**
        * cmi.objectives.n.score Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: objective(),
         fieldName: 'cmi.score._children',
         expectedValue: scorm2004_constants.score_children,

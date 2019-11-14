@@ -9,7 +9,7 @@ import {
   CMIInteractionsObjectivesObject,
   CMIObjectivesObject,
 } from '../../src/cmi/scorm12_cmi';
-import * as h from '../helpers';
+import * as h from '../cmi_helpers';
 import {scorm12_values} from '../../src/constants/field_values';
 
 const invalid_set = scorm12_error_codes.INVALID_SET_VALUE;
@@ -27,13 +27,13 @@ describe('SCORM 1.2 CMI Tests', () => {
       /**
        * Base CMI Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi._version',
         expectedValue: '3.4',
         expectedError: invalid_set,
       });
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi._children',
         expectedValue: scorm12_constants.cmi_children,
@@ -63,7 +63,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       /**
        * cmi.core Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.core._children',
         expectedValue: scorm12_constants.core_children,
@@ -137,7 +137,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       /**
        * cmi.core.score Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.core.score._children',
         expectedValue: scorm12_constants.score_children,
@@ -178,13 +178,13 @@ describe('SCORM 1.2 CMI Tests', () => {
       /**
        * cmi.objectives Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.objectives._children',
         expectedValue: scorm12_constants.objectives_children,
         expectedError: invalid_set,
       });
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.objectives._count',
         expectedValue: 0,
@@ -194,7 +194,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       /**
        * cmi.student_data Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.student_data._children',
         expectedValue: scorm12_constants.student_data_children,
@@ -216,7 +216,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       /**
        * cmi.student_preference Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.student_preference._children',
         expectedValue: scorm12_constants.student_preference_children,
@@ -264,13 +264,13 @@ describe('SCORM 1.2 CMI Tests', () => {
       /**
        * cmi.interactions Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.interactions._children',
         expectedValue: scorm12_constants.interactions_children,
         expectedError: invalid_set,
       });
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.interactions._count',
         expectedValue: 0,
@@ -288,13 +288,13 @@ describe('SCORM 1.2 CMI Tests', () => {
       /**
        * Base CMI Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi._version',
         expectedValue: '3.4',
         expectedError: invalid_set,
       });
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi._children',
         expectedValue: scorm12_constants.cmi_children,
@@ -326,7 +326,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       /**
        * cmi.core Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.core._children',
         expectedValue: scorm12_constants.core_children,
@@ -406,7 +406,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       /**
        * cmi.core.score Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.core.score._children',
         expectedValue: scorm12_constants.score_children,
@@ -434,13 +434,13 @@ describe('SCORM 1.2 CMI Tests', () => {
       /**
        * cmi.objectives Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.objectives._children',
         expectedValue: scorm12_constants.objectives_children,
         expectedError: invalid_set,
       });
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.objectives._count',
         expectedValue: 0,
@@ -450,7 +450,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       /**
        * cmi.student_data Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.student_data._children',
         expectedValue: scorm12_constants.student_data_children,
@@ -475,7 +475,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       /**
        * cmi.student_preference Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.student_preference._children',
         expectedValue: scorm12_constants.student_preference_children,
@@ -509,13 +509,13 @@ describe('SCORM 1.2 CMI Tests', () => {
       /**
        * cmi.interactions Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.interactions._children',
         expectedValue: scorm12_constants.interactions_children,
         expectedError: invalid_set,
       });
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.interactions._count',
         expectedValue: 0,
@@ -725,7 +725,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       /**
        * cmi.objectives.n.score Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: objective(),
         fieldName: 'cmi.score._children',
         expectedValue: scorm12_constants.score_children,

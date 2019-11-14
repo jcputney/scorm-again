@@ -28,25 +28,6 @@ export const checkFieldConstraintSize = (
   });
 };
 
-export const checkInvalidSet = (
-    {
-      cmi,
-      fieldName,
-      expectedValue = '',
-      expectedError,
-    }) => {
-  describe(`Field: ${fieldName}`, () => {
-    it(`Should be able to read from ${fieldName}`, () => {
-      expect(eval(`${fieldName}`)).to.equal(expectedValue);
-    });
-
-    it(`Should fail to write to ${fieldName}`, () => {
-      expect(() => eval(`${fieldName} = 'xxx'`)).
-          to.throw(expectedError + '');
-    });
-  });
-};
-
 export const checkReadOnly = (
     {
       cmi,

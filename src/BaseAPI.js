@@ -1,5 +1,6 @@
 // @flow
 import {CMIArray} from './cmi/common';
+import {ValidationError} from './exceptions';
 
 const api_constants = {
   SCORM_TRUE: 'true',
@@ -139,14 +140,24 @@ export default class BaseAPI {
       checkTerminated: boolean,
       CMIElement,
       value) {
-    let returnValue = '';
+    let returnValue = api_constants.SCORM_FALSE;
 
     if (this.checkState(checkTerminated, this.#error_codes.STORE_BEFORE_INIT,
         this.#error_codes.STORE_AFTER_TERM)) {
       if (checkTerminated) this.lastErrorCode = 0;
-      returnValue = this.setCMIValue(CMIElement, value);
+      try {
+        returnValue = this.setCMIValue(CMIElement, value);
+      } catch (e) {
+        if (e instanceof ValidationError) {
+          returnValue = api_constants.SCORM_FALSE;
+        } else {
+          this.throwSCORMError(this.#error_codes.GENERAL);
+        }
+      }
       this.processListeners(callbackName, CMIElement, value);
     }
+
+    if (returnValue === undefined) returnValue = api_constants.SCORM_FALSE;
 
     this.apiLog(callbackName, CMIElement,
         ': ' + value + ': result: ' + returnValue,
@@ -373,9 +384,10 @@ export default class BaseAPI {
    *
    * @param {string} _CMIElement
    * @param {any} _value
+   * @return {string}
    */
   setCMIValue(_CMIElement, _value) {
-    // just a stub method
+    return api_constants.SCORM_FALSE;
   }
 
   /**
@@ -409,7 +421,9 @@ export default class BaseAPI {
         if (scorm2004 && (attribute.substr(0, 8) === '{target=') &&
             (typeof refObject._isTargetValid == 'function')) {
           this.throwSCORMError(this.#error_codes.READ_ONLY_ELEMENT);
-        } else if (!{}.hasOwnProperty.call(refObject, attribute)) {
+        } else if (!Object.hasOwnProperty.call(refObject, attribute) &&
+            !Object.getOwnPropertyDescriptor(
+                Object.getPrototypeOf(refObject), attribute)) {
           this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
         } else {
           if (this.stringContains(CMIElement, '.correct_responses')) {

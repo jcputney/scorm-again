@@ -6,7 +6,7 @@ import {
   CMIEvaluationCommentsObject,
   CMITriesObject, NAV,
 } from '../../src/cmi/aicc_cmi';
-import * as h from '../helpers';
+import * as h from '../cmi_helpers';
 import {
   CMIInteractionsObject,
   CMIObjectivesObject,
@@ -29,13 +29,13 @@ describe('AICC CMI Tests', () => {
       /**
        * Base CMI Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi._version',
         expectedValue: '3.4',
         expectedError: invalid_set,
       });
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi._children',
         expectedValue: aicc_constants.cmi_children,
@@ -64,7 +64,7 @@ describe('AICC CMI Tests', () => {
       /**
        * cmi.core Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.core._children',
         expectedValue: aicc_constants.core_children,
@@ -139,7 +139,7 @@ describe('AICC CMI Tests', () => {
       /**
        * cmi.core.score Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.core.score._children',
         expectedValue: aicc_constants.score_children,
@@ -168,13 +168,13 @@ describe('AICC CMI Tests', () => {
       /**
        * cmi.objectives Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.objectives._children',
         expectedValue: aicc_constants.objectives_children,
         expectedError: invalid_set,
       });
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.objectives._count', expectedValue: 0,
         expectedError: invalid_set,
@@ -183,7 +183,7 @@ describe('AICC CMI Tests', () => {
       /**
        * cmi.student_data Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.student_data._children',
         expectedValue: aicc_constants.student_data_children,
@@ -209,7 +209,7 @@ describe('AICC CMI Tests', () => {
       /**
        * cmi.student_preference Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.student_preference._children',
         expectedValue: aicc_constants.student_preference_children,
@@ -245,13 +245,13 @@ describe('AICC CMI Tests', () => {
       /**
        * cmi.interactions Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.interactions._children',
         expectedValue: aicc_constants.interactions_children,
         expectedError: invalid_set,
       });
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.interactions._count', expectedValue: 0,
         expectedError: invalid_set,
@@ -268,13 +268,13 @@ describe('AICC CMI Tests', () => {
       /**
        * Base CMI Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi._version',
         expectedValue: '3.4',
         expectedError: invalid_set,
       });
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi._children',
         expectedValue: aicc_constants.cmi_children,
@@ -304,7 +304,7 @@ describe('AICC CMI Tests', () => {
       /**
        * cmi.core Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.core._children',
         expectedValue: aicc_constants.core_children,
@@ -384,7 +384,7 @@ describe('AICC CMI Tests', () => {
       /**
        * cmi.core.score Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.core.score._children',
         expectedValue: aicc_constants.score_children,
@@ -412,13 +412,13 @@ describe('AICC CMI Tests', () => {
       /**
        * cmi.objectives Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.objectives._children',
         expectedValue: aicc_constants.objectives_children,
         expectedError: invalid_set,
       });
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.objectives._count', expectedValue: 0,
         expectedError: invalid_set,
@@ -427,7 +427,7 @@ describe('AICC CMI Tests', () => {
       /**
        * cmi.student_data Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.student_data._children',
         expectedValue: aicc_constants.student_data_children,
@@ -457,7 +457,7 @@ describe('AICC CMI Tests', () => {
       /**
        * cmi.student_preference Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.student_preference._children',
         expectedValue: aicc_constants.student_preference_children,
@@ -493,13 +493,13 @@ describe('AICC CMI Tests', () => {
       /**
        * cmi.interactions Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.interactions._children',
         expectedValue: aicc_constants.interactions_children,
         expectedError: invalid_set,
       });
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.interactions._count', expectedValue: 0,
         expectedError: invalid_set,
@@ -566,7 +566,7 @@ describe('AICC CMI Tests', () => {
       /**
        * cmi.student_data.tries.n.score Properties
        */
-      h.checkInvalidSet({
+      h.checkReadOnly({
         cmi: triesObject(),
         fieldName: 'cmi.score._children',
         expectedValue: aicc_constants.score_children,
