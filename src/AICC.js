@@ -17,8 +17,8 @@ export default class AICC extends Scorm12API {
   constructor() {
     super();
 
-    this.cmi = new CMI(this);
-    this.nav = new NAV(this);
+    this.cmi = new CMI();
+    this.nav = new NAV();
   }
 
   /**

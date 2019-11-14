@@ -11,7 +11,7 @@ const api = () => {
   return API;
 };
 const apiInitialized = () => {
-  const API = api(true);
+  const API = api();
   API.lmsInitialize();
   return API;
 };

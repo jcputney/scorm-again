@@ -11,6 +11,7 @@ import {scorm2004_regex} from '../constants/regex';
 import {scorm2004_error_codes} from '../constants/error_codes';
 import {learner_responses} from '../constants/response_constants';
 import {ValidationError} from '../exceptions';
+import * as Util from '../utilities';
 
 const constants = scorm2004_constants;
 const regex = scorm2004_regex;
@@ -464,6 +465,19 @@ export class CMI extends BaseCMI {
    */
   set total_time(total_time) {
     !this.initialized ? this.#total_time = total_time : throwReadOnlyError();
+  }
+
+  /**
+   * Adds the current session time to the existing total time.
+   *
+   * @return {string} ISO8601 Duration
+   */
+  getCurrentTotalTime() {
+    return Util.addTwoDurations(
+        this.#total_time,
+        this.#session_time,
+        scorm2004_regex.CMITimespan,
+    );
   }
 
   /**

@@ -56,59 +56,59 @@ describe('Utility Tests', () => {
   });
 
   describe('getSecondsAsISODuration()', () => {
-    it('10 returns P10S', () => {
+    it('10 returns PT10S', () => {
       expect(
           Utilities.getSecondsAsISODuration(10),
-      ).to.equal('P10S');
+      ).to.equal('PT10S');
     });
 
-    it('60 returns P1M', () => {
+    it('60 returns PT1M', () => {
       expect(
           Utilities.getSecondsAsISODuration(60),
-      ).to.equal('P1M');
+      ).to.equal('PT1M');
     });
 
-    it('3600 returns P1H', () => {
+    it('3600 returns PT1H', () => {
       expect(
           Utilities.getSecondsAsISODuration(3600),
-      ).to.equal('P1H');
+      ).to.equal('PT1H');
     });
 
-    it('70 returns P1M10S', () => {
+    it('70 returns PT1M10S', () => {
       expect(
           Utilities.getSecondsAsISODuration(70),
-      ).to.equal('P1M10S');
+      ).to.equal('PT1M10S');
     });
 
-    it('3670 returns P1H1M10S', () => {
+    it('3670 returns PT1H1M10S', () => {
       expect(
           Utilities.getSecondsAsISODuration(3670),
-      ).to.equal('P1H1M10S');
+      ).to.equal('PT1H1M10S');
     });
 
-    it('90000 returns P1D1H', () => {
+    it('90000 returns P1DT1H', () => {
       expect(
           Utilities.getSecondsAsISODuration(90000),
-      ).to.equal('P1D1H');
+      ).to.equal('P1DT1H');
     });
 
-    it('90061 returns P1D1H1M1S', () => {
+    it('90061 returns P1DT1H1M1S', () => {
       expect(
           Utilities.getSecondsAsISODuration(90061),
-      ).to.equal('P1D1H1M1S');
+      ).to.equal('P1DT1H1M1S');
     });
 
-    it('-3600 returns P0S, negative time not allowed in SCORM session times',
+    it('-3600 returns PT0S, negative time not allowed in SCORM session times',
         () => {
           expect(
               Utilities.getSecondsAsISODuration(-3600),
-          ).to.equal('P0S');
+          ).to.equal('PT0S');
         });
 
-    it('Empty seconds returns P0S', () => {
+    it('Empty seconds returns PT0S', () => {
       expect(
           Utilities.getSecondsAsISODuration(null),
-      ).to.equal('P0S');
+      ).to.equal('PT0S');
     });
   });
 
@@ -224,27 +224,27 @@ describe('Utility Tests', () => {
   describe('addTwoDurations()', () => {
     it('P1H5M30.5S plus PT15M10S equals P1H20M40.5S', () => {
       expect(
-          Utilities.addTwoDurations('P1H5M30.5S', 'PT15M10S',
+          Utilities.addTwoDurations('PT1H5M30.5S', 'PT15M10S',
               scorm2004_regex.CMITimespan),
-      ).to.equal('P1H20M40.5S');
+      ).to.equal('PT1H20M40.5S');
     });
-    it('P1Y364D plus P2D1H45M52S equals P732D1H45M52S', () => {
+    it('P1Y364D plus P2DT1H45M52S equals P732DT1H45M52S', () => {
       expect(
-          Utilities.addTwoDurations('P1Y364D', 'P2D1H45M52S',
+          Utilities.addTwoDurations('P1Y364D', 'P2DT1H45M52S',
               scorm2004_regex.CMITimespan),
-      ).to.equal('P732D1H45M52S');
+      ).to.equal('P732DT1H45M52S');
     });
     it('Invalid plus valid equals valid', () => {
       expect(
-          Utilities.addTwoDurations('NOT A VALID DURATION', 'P1H30M45S',
+          Utilities.addTwoDurations('NOT A VALID DURATION', 'PT1H30M45S',
               scorm2004_regex.CMITimespan),
-      ).to.equal('P1H30M45S');
+      ).to.equal('PT1H30M45S');
     });
     it('Valid plus invalid equals valid', () => {
       expect(
-          Utilities.addTwoDurations('P1H30M45S', 'NOT A VALID DURATION',
+          Utilities.addTwoDurations('PT1H30M45S', 'NOT A VALID DURATION',
               scorm2004_regex.CMITimespan),
-      ).to.equal('P1H30M45S');
+      ).to.equal('PT1H30M45S');
     });
   });
 

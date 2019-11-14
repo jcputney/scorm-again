@@ -44,7 +44,7 @@ export function getSecondsAsHHMMSS(totalSeconds: Number) {
 export function getSecondsAsISODuration(seconds: Number) {
   // SCORM spec does not deal with negative durations, give zero back
   if (!seconds || seconds <= 0) {
-    return 'P0S';
+    return 'PT0S';
   }
 
   let duration = 'P';
@@ -61,6 +61,11 @@ export function getSecondsAsISODuration(seconds: Number) {
     }
 
     if (value) {
+      if ((duration.indexOf('D') > 0 ||
+          sign === 'H' || sign === 'M' || sign === 'S') &&
+          duration.indexOf('T') === -1) {
+        duration += 'T';
+      }
       duration += `${value}${sign}`;
     }
   });

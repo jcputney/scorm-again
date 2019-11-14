@@ -609,7 +609,6 @@ export default class BaseAPI {
           this.throwSCORMError(203);
         }
       }
-      return;
     } else {
       return refObject;
     }
@@ -774,6 +773,14 @@ export default class BaseAPI {
     // Do we want/need to return fields that have no set value?
     // return JSON.stringify({ cmi }, (k, v) => v === undefined ? null : v, 2);
     return JSON.parse(JSON.stringify(cmi));
+  }
+
+  /**
+   * Gets the current total time as total_time + session_time
+   * APIs that inherit BaseAPI should override this function
+   */
+  getCurrentTotalTime() {
+    this.cmi.getCurrentTotalTime();
   }
 
   /**

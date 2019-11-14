@@ -24,7 +24,7 @@ export default class Scorm12API extends BaseAPI {
   constructor() {
     super(scorm12_error_codes);
 
-    this.cmi = new CMI(this);
+    this.cmi = new CMI();
     // Rename functions to match 1.2 Spec and expose to modules
     this.LMSInitialize = this.lmsInitialize;
     this.LMSFinish = this.lmsFinish;
@@ -190,20 +190,6 @@ export default class Scorm12API extends BaseAPI {
     }
 
     return detail ? detailMessage : basicMessage;
-  }
-
-  /**
-   * Adds the current session time to the existing total time.
-   *
-   * @return {string}
-   */
-  getCurrentTotalTime() {
-    const timeRegex = new RegExp(scorm12_regex.CMITime);
-
-    const totalTime = this.cmi.core.total_time;
-    const sessionTime = this.cmi.core.session_time;
-
-    return Utilities.addHHMMSSTimeStrings(totalTime, sessionTime, timeRegex);
   }
 
   /**

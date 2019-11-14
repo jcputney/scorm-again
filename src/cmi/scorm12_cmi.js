@@ -10,6 +10,7 @@ import {scorm12_constants} from '../constants/api_constants';
 import {scorm12_error_codes} from '../constants/error_codes';
 import {scorm12_regex} from '../constants/regex';
 import {ValidationError} from '../exceptions';
+import * as Utilities from '../utilities';
 
 const constants = scorm12_constants;
 const regex = scorm12_regex;
@@ -244,6 +245,15 @@ export class CMI extends BaseCMI {
         this.#comments_from_lms = comments_from_lms :
         throwReadOnlyError();
   }
+
+  /**
+   * Adds the current session time to the existing total time.
+   *
+   * @return {string}
+   */
+  getCurrentTotalTime() {
+    return this.core.getCurrentTotalTime();
+  }
 }
 
 /**
@@ -473,6 +483,19 @@ class CMICore extends BaseCMI {
     if (check12ValidFormat(session_time, regex.CMITimespan)) {
       this.#session_time = session_time;
     }
+  }
+
+  /**
+   * Adds the current session time to the existing total time.
+   *
+   * @return {string}
+   */
+  getCurrentTotalTime() {
+    return Utilities.addHHMMSSTimeStrings(
+        this.#total_time,
+        this.#session_time,
+        new RegExp(scorm12_regex.CMITimespan)
+    );
   }
 
   /**

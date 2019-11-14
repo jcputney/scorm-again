@@ -30,8 +30,8 @@ export default class Scorm2004API extends BaseAPI {
   constructor() {
     super(scorm2004_error_codes);
 
-    this.cmi = new CMI(this);
-    this.adl = new ADL(this);
+    this.cmi = new CMI();
+    this.adl = new ADL();
 
     // Rename functions to match 2004 Spec and expose to modules
     this.Initialize = this.lmsInitialize;
@@ -419,18 +419,5 @@ export default class Scorm2004API extends BaseAPI {
     // Data Model
     this.cmi = newAPI.cmi;
     this.adl = newAPI.adl;
-  }
-
-  /**
-   * Adds the current session time to the existing total time.
-   *
-   * @return {string} ISO8601 Duration
-   */
-  getCurrentTotalTime() {
-    const totalTime = this.cmi.total_time;
-    const sessionTime = this.cmi.session_time;
-
-    return Util.addTwoDurations(totalTime, sessionTime,
-        scorm2004_regex.CMITimespan);
   }
 }

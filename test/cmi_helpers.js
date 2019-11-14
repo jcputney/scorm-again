@@ -140,3 +140,22 @@ export const checkValidValues = (
     }
   });
 };
+
+export const checkGetCurrentTotalTime = (
+    {
+      cmi: cmi,
+      totalFieldName,
+      sessionFieldName,
+      startingTotal,
+      sessionTime,
+      expectedTotal,
+    }) => {
+  it(`Should return ${expectedTotal} with a starting time of ${startingTotal} and a session time of ${sessionTime}`,
+      () => {
+        eval(`${totalFieldName} = '${startingTotal}'`);
+        eval(`${sessionFieldName} = '${sessionTime}'`);
+        expect(
+            cmi.getCurrentTotalTime(),
+        ).to.equal(expectedTotal);
+      });
+};

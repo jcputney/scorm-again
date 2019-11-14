@@ -17,13 +17,78 @@ const type_mismatch = scorm12_error_codes.TYPE_MISMATCH;
 const write_only = scorm12_error_codes.WRITE_ONLY_ELEMENT;
 const read_only = scorm12_error_codes.READ_ONLY_ELEMENT;
 
+const cmi = () => {
+  return new CMI();
+};
+const cmiInitialized = () => {
+  const obj = new CMI();
+  obj.initialize();
+  return obj;
+};
+const interaction = () => {
+  return new CMIInteractionsObject();
+};
+const interactionInitialized = () => {
+  const cmi = new CMIInteractionsObject();
+  cmi.initialize();
+  return cmi;
+};
+const interactionObjective = () => {
+  return new CMIInteractionsObjectivesObject();
+};
+const correctResponse = () => {
+  return new CMIInteractionsCorrectResponsesObject();
+};
+const objective = () => {
+  return new CMIObjectivesObject();
+};
+
 describe('SCORM 1.2 CMI Tests', () => {
+  describe('getCurrentTotalTime()', () => {
+    h.checkGetCurrentTotalTime({
+      cmi: cmi(),
+      startingTotal: '00:00:00',
+      sessionTime: '00:15:45',
+      expectedTotal: '00:15:45',
+      totalFieldName: 'cmi.core.total_time',
+      sessionFieldName: 'cmi.core.session_time',
+    });
+    h.checkGetCurrentTotalTime({
+      cmi: cmi(),
+      startingTotal: '00:01:00',
+      sessionTime: '00:15:45',
+      expectedTotal: '00:16:45',
+      totalFieldName: 'cmi.core.total_time',
+      sessionFieldName: 'cmi.core.session_time',
+    });
+    h.checkGetCurrentTotalTime({
+      cmi: cmi(),
+      startingTotal: '00:01:00',
+      sessionTime: '00:00:00',
+      expectedTotal: '00:01:00',
+      totalFieldName: 'cmi.core.total_time',
+      sessionFieldName: 'cmi.core.session_time',
+    });
+    h.checkGetCurrentTotalTime({
+      cmi: cmi(),
+      startingTotal: '25:01:00',
+      sessionTime: '13:00:00',
+      expectedTotal: '38:01:00',
+      totalFieldName: 'cmi.core.total_time',
+      sessionFieldName: 'cmi.core.session_time',
+    });
+    h.checkGetCurrentTotalTime({
+      cmi: cmi(),
+      startingTotal: '48:01:45',
+      sessionTime: '13:00:16',
+      expectedTotal: '61:02:01',
+      totalFieldName: 'cmi.core.total_time',
+      sessionFieldName: 'cmi.core.session_time',
+    });
+  });
+
   describe('CMI Spec Tests', () => {
     describe('Pre-Initialize Tests', () => {
-      const cmi = () => {
-        return new CMI();
-      };
-
       /**
        * Base CMI Properties
        */
@@ -279,46 +344,40 @@ describe('SCORM 1.2 CMI Tests', () => {
     });
 
     describe('Post-Initialize Tests', () => {
-      const cmi = () => {
-        const obj = new CMI();
-        obj.initialize();
-        return obj;
-      };
-
       /**
        * Base CMI Properties
        */
       h.checkReadOnly({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi._version',
         expectedValue: '3.4',
         expectedError: invalid_set,
       });
       h.checkReadOnly({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi._children',
         expectedValue: scorm12_constants.cmi_children,
         expectedError: invalid_set,
       });
       h.checkFieldConstraintSize({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.suspend_data',
         limit: 4096,
         expectedError: type_mismatch,
       });
       h.checkReadOnly({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.launch_data',
         expectedError: read_only,
       });
       h.checkFieldConstraintSize({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.comments',
         limit: 4096,
         expectedError: type_mismatch,
       });
       h.checkReadOnly({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.comments_from_lms',
         expectedError: read_only,
       });
@@ -327,77 +386,77 @@ describe('SCORM 1.2 CMI Tests', () => {
        * cmi.core Properties
        */
       h.checkReadOnly({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.core._children',
         expectedValue: scorm12_constants.core_children,
         expectedError: invalid_set,
       });
       h.checkReadOnly({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.core.student_id',
         expectedError: read_only,
       });
       h.checkReadOnly({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.core.student_name',
         expectedError: read_only,
       });
       h.checkFieldConstraintSize({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.core.lesson_location',
         limit: 255,
         expectedError: type_mismatch,
       });
       h.checkReadOnly({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.core.credit',
         expectedError: read_only,
       });
       h.checkRead({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.core.lesson_status',
       });
       h.checkValidValues({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.core.lesson_status',
         validValues: scorm12_values.validLessonStatus,
         invalidValues: scorm12_values.invalidLessonStatus,
       });
       h.checkReadOnly({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.core.entry',
         expectedError: read_only,
       });
       h.checkReadOnly({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.core.total_time',
         expectedError: read_only,
       });
       h.checkReadOnly({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.core.lesson_mode',
         expectedValue: 'normal',
         expectedError: read_only,
       });
       h.checkWrite({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.core.exit',
         valueToTest: 'suspend',
       });
       h.checkValidValues({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.core.exit',
         validValues: scorm12_values.validExit,
         invalidValues: scorm12_values.invalidExit,
       });
       h.checkWriteOnly({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.core.session_time',
         valueToTest: '00:00:00',
         expectedError: write_only,
       });
       h.checkValidValues({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.core.session_time',
         validValues: scorm12_values.validHHMMSS,
         invalidValues: scorm12_values.invalidHHMMSS,
@@ -407,25 +466,25 @@ describe('SCORM 1.2 CMI Tests', () => {
        * cmi.core.score Properties
        */
       h.checkReadOnly({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.core.score._children',
         expectedValue: scorm12_constants.score_children,
         expectedError: invalid_set,
       });
       h.checkValidValues({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.core.score.raw',
         validValues: scorm12_values.validScoreRange,
         invalidValues: scorm12_values.invalidScoreRange,
       });
       h.checkValidValues({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.core.score.min',
         validValues: scorm12_values.validScoreRange,
         invalidValues: scorm12_values.invalidScoreRange,
       });
       h.checkValidValues({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.core.score.max',
         validValues: scorm12_values.validScoreRange,
         invalidValues: scorm12_values.invalidScoreRange,
@@ -435,13 +494,13 @@ describe('SCORM 1.2 CMI Tests', () => {
        * cmi.objectives Properties
        */
       h.checkReadOnly({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.objectives._children',
         expectedValue: scorm12_constants.objectives_children,
         expectedError: invalid_set,
       });
       h.checkReadOnly({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.objectives._count',
         expectedValue: 0,
         expectedError: invalid_set,
@@ -451,23 +510,23 @@ describe('SCORM 1.2 CMI Tests', () => {
        * cmi.student_data Properties
        */
       h.checkReadOnly({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.student_data._children',
         expectedValue: scorm12_constants.student_data_children,
         expectedError: invalid_set,
       });
       h.checkReadOnly({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.student_data.mastery_score',
         expectedError: read_only,
       });
       h.checkReadOnly({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.student_data.max_time_allowed',
         expectedError: read_only,
       });
       h.checkReadOnly({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.student_data.time_limit_action',
         expectedError: read_only,
       });
@@ -476,31 +535,31 @@ describe('SCORM 1.2 CMI Tests', () => {
        * cmi.student_preference Properties
        */
       h.checkReadOnly({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.student_preference._children',
         expectedValue: scorm12_constants.student_preference_children,
         expectedError: invalid_set,
       });
       h.checkValidValues({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.student_preference.audio',
         validValues: scorm12_values.valid0To100Range.concat(['-1']),
         invalidValues: scorm12_values.invalid0To100Range,
       });
       h.checkFieldConstraintSize({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.student_preference.language',
         limit: 255,
         expectedError: type_mismatch,
       });
       h.checkValidValues({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.student_preference.speed',
         validValues: scorm12_values.validSpeedRange,
         invalidValues: scorm12_values.invalidSpeedRange,
       });
       h.checkValidValues({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.student_preference.text',
         validValues: scorm12_values.validIntegerScaledRange,
         invalidValues: scorm12_values.invalidIntegerScaledRange,
@@ -510,20 +569,20 @@ describe('SCORM 1.2 CMI Tests', () => {
        * cmi.interactions Properties
        */
       h.checkReadOnly({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.interactions._children',
         expectedValue: scorm12_constants.interactions_children,
         expectedError: invalid_set,
       });
       h.checkReadOnly({
-        cmi: cmi(),
+        cmi: cmiInitialized(),
         fieldName: 'cmi.interactions._count',
         expectedValue: 0,
         expectedError: invalid_set,
       });
 
       it('should export JSON', () => {
-        const cmiObj = cmi();
+        const cmiObj = cmiInitialized();
         cmiObj.objectives.childArray.push(new CMIObjectivesObject());
         cmiObj.interactions.childArray.push(new CMIInteractionsObject());
         expect(
@@ -536,15 +595,6 @@ describe('SCORM 1.2 CMI Tests', () => {
     });
 
     describe('CMIInteractionsObject Tests', () => {
-      const interaction = () => {
-        return new CMIInteractionsObject();
-      };
-      const interactionInitialized = () => {
-        const cmi = new CMIInteractionsObject();
-        cmi.initialize();
-        return cmi;
-      };
-
       /**
        * cmi.interactions.n object
        */
@@ -655,10 +705,6 @@ describe('SCORM 1.2 CMI Tests', () => {
     });
 
     describe('CMIInteractionsObjectivesObject Tests', () => {
-      const interactionObjective = () => {
-        return new CMIInteractionsObjectivesObject();
-      };
-
       /**
        * cmi.interactions.n.objectives.n object
        */
@@ -676,9 +722,6 @@ describe('SCORM 1.2 CMI Tests', () => {
     });
 
     describe('CMIInteractionsCorrectResponsesObject Tests', () => {
-      const correctResponse = () => {
-        return new CMIInteractionsCorrectResponsesObject();
-      };
 
       /**
        * cmi.interactions.n.correct_responses.n object
@@ -698,10 +741,6 @@ describe('SCORM 1.2 CMI Tests', () => {
     });
 
     describe('CMIObjectivesObject Tests', () => {
-      const objective = () => {
-        return new CMIObjectivesObject();
-      };
-
       /**
        * cmi.objectives.n object
        */
