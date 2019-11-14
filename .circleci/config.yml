@@ -86,7 +86,7 @@ jobs:
       # - run: git add --all docs/
 
       # git commit and push dist and docs
-      - run: git commit -m "[skip ci] - Updating Dist and Docs" && git push origin master
+      - run: git commit -m "[skip ci] - Updating Dist and Docs" && git push origin master || true
 
       # Upload results
 
