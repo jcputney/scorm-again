@@ -3,8 +3,7 @@ import BaseAPI from './BaseAPI';
 import {
   ADL,
   CMI,
-  CMICommentsFromLearnerObject,
-  CMICommentsFromLMSObject,
+  CMICommentsObject,
   CMIInteractionsCorrectResponsesObject,
   CMIInteractionsObject,
   CMIInteractionsObjectivesObject,
@@ -128,9 +127,10 @@ export default class Scorm2004API extends BaseAPI {
    *
    * @param {string} CMIElement
    * @param {any} value
+   * @return {string}
    */
   setCMIValue(CMIElement, value) {
-    this._commonSetCMIValue('SetValue', true, CMIElement, value);
+    return this._commonSetCMIValue('SetValue', true, CMIElement, value);
   }
 
   /**
@@ -145,7 +145,7 @@ export default class Scorm2004API extends BaseAPI {
     let newChild;
 
     if (this.stringMatches(CMIElement, 'cmi\\.objectives\\.\\d')) {
-      newChild = new CMIObjectivesObject(this);
+      newChild = new CMIObjectivesObject();
     } else if (foundFirstIndex && this.stringMatches(CMIElement, 'cmi\\.interactions\\.\\d\\.correct_responses\\.\\d')) {
       const parts = CMIElement.split('.');
       const index = Number(parts[2]);
@@ -181,16 +181,16 @@ export default class Scorm2004API extends BaseAPI {
         }
       }
       if (this.lastErrorCode === 0) {
-        newChild = new CMIInteractionsCorrectResponsesObject(this);
+        newChild = new CMIInteractionsCorrectResponsesObject();
       }
     } else if (foundFirstIndex && this.stringMatches(CMIElement, 'cmi\\.interactions\\.\\d\\.objectives\\.\\d')) {
-      newChild = new CMIInteractionsObjectivesObject(this);
+      newChild = new CMIInteractionsObjectivesObject();
     } else if (this.stringMatches(CMIElement, 'cmi\\.interactions\\.\\d')) {
-      newChild = new CMIInteractionsObject(this);
+      newChild = new CMIInteractionsObject();
     } else if (this.stringMatches(CMIElement, 'cmi\\.comments_from_learner\\.\\d')) {
-      newChild = new CMICommentsFromLearnerObject(this);
+      newChild = new CMICommentsObject();
     } else if (this.stringMatches(CMIElement, 'cmi\\.comments_from_lms\\.\\d')) {
-      newChild = new CMICommentsFromLMSObject(this);
+      newChild = new CMICommentsObject(true);
     }
 
     return newChild;

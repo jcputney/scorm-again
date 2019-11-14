@@ -94,14 +94,14 @@ export class CMI extends BaseCMI {
   constructor(initialized: boolean) {
     super();
 
-    if (initialized) this.initialize();
-
     this.learner_preference = new CMILearnerPreference();
     this.score = new Scorm2004CMIScore();
     this.comments_from_learner = new CMICommentsFromLearner();
     this.comments_from_lms = new CMICommentsFromLMS();
     this.interactions = new CMIInteractions();
     this.objectives = new CMIObjectives();
+
+    if (initialized) this.initialize();
   }
 
   /**
@@ -1150,7 +1150,7 @@ class Scorm2004CMIScore extends CMIScore {
         {
           score_children: constants.score_children,
           max: '',
-          invalidErrorCode: scorm2004_error_codes.INVALID_SET_VALUE,
+          invalidErrorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
           invalidTypeCode: scorm2004_error_codes.TYPE_MISMATCH,
           invalidRangeCode: scorm2004_error_codes.VALUE_OUT_OF_RANGE,
           decimalRegex: scorm2004_regex.CMIDecimal,
@@ -1202,21 +1202,24 @@ class Scorm2004CMIScore extends CMIScore {
 }
 
 /**
- * Class representing SCORM 2004's cmi.comments_from_learner.n object
+ * Class representing SCORM 2004's cmi.comments_from_learner.n and cmi.comments_from_lms.n object
  */
-export class CMICommentsFromLearnerObject extends BaseCMI {
+export class CMICommentsObject extends BaseCMI {
   #comment = '';
   #location = '';
   #timestamp = '';
+  #readOnlyAfterInit;
 
   /**
-   * Constructor for cmi.comments_from_learner.n
+   * Constructor for cmi.comments_from_learner.n and cmi.comments_from_lms.n
+   * @param {boolean} readOnlyAfterInit
    */
-  constructor() {
+  constructor(readOnlyAfterInit = false) {
     super();
     this.#comment = '';
     this.#location = '';
     this.#timestamp = '';
+    this.#readOnlyAfterInit = readOnlyAfterInit;
   }
 
   /**
@@ -1232,8 +1235,12 @@ export class CMICommentsFromLearnerObject extends BaseCMI {
    * @param {string} comment
    */
   set comment(comment) {
-    if (check2004ValidFormat(comment, regex.CMILangString4000, true)) {
-      this.#comment = comment;
+    if (this.initialized && this.#readOnlyAfterInit) {
+      throwReadOnlyError();
+    } else {
+      if (check2004ValidFormat(comment, regex.CMILangString4000, true)) {
+        this.#comment = comment;
+      }
     }
   }
 
@@ -1250,8 +1257,12 @@ export class CMICommentsFromLearnerObject extends BaseCMI {
    * @param {string} location
    */
   set location(location) {
-    if (check2004ValidFormat(location, regex.CMIString250)) {
-      this.#location = location;
+    if (this.initialized && this.#readOnlyAfterInit) {
+      throwReadOnlyError();
+    } else {
+      if (check2004ValidFormat(location, regex.CMIString250)) {
+        this.#location = location;
+      }
     }
   }
 
@@ -1268,8 +1279,12 @@ export class CMICommentsFromLearnerObject extends BaseCMI {
    * @param {string} timestamp
    */
   set timestamp(timestamp) {
-    if (check2004ValidFormat(timestamp, regex.CMITime)) {
-      this.#timestamp = timestamp;
+    if (this.initialized && this.#readOnlyAfterInit) {
+      throwReadOnlyError();
+    } else {
+      if (check2004ValidFormat(timestamp, regex.CMITime)) {
+        this.#timestamp = timestamp;
+      }
     }
   }
 
@@ -1292,80 +1307,6 @@ export class CMICommentsFromLearnerObject extends BaseCMI {
     };
     delete this.jsonString;
     return result;
-  }
-}
-
-/**
- * Class representing SCORM 2004's cmi.comments_from_lms.n object
- */
-export class CMICommentsFromLMSObject extends CMICommentsFromLearnerObject {
-  /**
-   * Constructor for cmi.comments_from_lms.n
-   */
-  constructor() {
-    super();
-  }
-
-  /**
-   * Getter for #comment
-   * @return {string}
-   */
-  get comment() {
-    return super.comment;
-  }
-
-  /**
-   * Setter for #comment. Can only be called before  initialization.
-   * @param {string} comment
-   */
-  set comment(comment) {
-    !this.initialized ? super.comment = comment : throwReadOnlyError();
-  }
-
-  /**
-   * Getter for #location
-   * @return {string}
-   */
-  get location() {
-    return super.location;
-  }
-
-  /**
-   * Setter for #location. Can only be called before  initialization.
-   * @param {string} location
-   */
-  set location(location) {
-    !this.initialized ? super.location = location : throwReadOnlyError();
-  }
-
-  /**
-   * Getter for #timestamp
-   * @return {string}
-   */
-  get timestamp() {
-    return super.timestamp;
-  }
-
-  /**
-   * Setter for #timestamp. Can only be called before  initialization.
-   * @param {string} timestamp
-   */
-  set timestamp(timestamp) {
-    !this.initialized ? super.timestamp = timestamp : throwReadOnlyError();
-  }
-
-  /**
-   * toJSON for cmi.comments_from_lms.n
-   * @return {
-   *    {
-   *      comment: string,
-   *      location: string,
-   *      timestamp: string
-   *    }
-   *  }
-   */
-  toJSON() {
-    return super.toJSON();
   }
 }
 

@@ -34,9 +34,9 @@ export default class AICC extends Scorm12API {
 
     if (!newChild) {
       if (this.stringMatches(CMIElement, 'cmi\\.evaluation\\.comments\\.\\d')) {
-        newChild = new CMIEvaluationCommentsObject(this);
+        newChild = new CMIEvaluationCommentsObject();
       } else if (this.stringMatches(CMIElement, 'cmi\\.student_data\\.tries\\.\\d')) {
-        newChild = new CMITriesObject(this);
+        newChild = new CMITriesObject();
       }
     }
 

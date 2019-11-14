@@ -148,13 +148,13 @@ export default class Scorm12API extends BaseAPI {
     let newChild;
 
     if (this.stringMatches(CMIElement, 'cmi\\.objectives\\.\\d')) {
-      newChild = new CMIObjectivesObject(this);
+      newChild = new CMIObjectivesObject();
     } else if (foundFirstIndex && this.stringMatches(CMIElement, 'cmi\\.interactions\\.\\d\\.correct_responses\\.\\d')) {
-      newChild = new CMIInteractionsCorrectResponsesObject(this);
+      newChild = new CMIInteractionsCorrectResponsesObject();
     } else if (foundFirstIndex && this.stringMatches(CMIElement, 'cmi\\.interactions\\.\\d\\.objectives\\.\\d')) {
-      newChild = new CMIInteractionsObjectivesObject(this);
+      newChild = new CMIInteractionsObjectivesObject();
     } else if (this.stringMatches(CMIElement, 'cmi\\.interactions\\.\\d')) {
-      newChild = new CMIInteractionsObject(this);
+      newChild = new CMIInteractionsObject();
     }
 
     return newChild;

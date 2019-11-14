@@ -4,7 +4,7 @@ import {scorm2004_constants} from '../../src/constants/api_constants';
 import {
   ADL,
   CMI,
-  CMICommentsFromLearnerObject,
+  CMICommentsObject,
   CMICommentsFromLMSObject, CMIInteractionsCorrectResponsesObject,
   CMIInteractionsObject,
   CMIInteractionsObjectivesObject,
@@ -219,7 +219,7 @@ describe('SCORM 2004 CMI Tests', () => {
         cmi: cmi(),
         fieldName: 'cmi.score._children',
         expectedValue: scorm2004_constants.score_children,
-        expectedError: invalid_set,
+        expectedError: read_only,
       });
       h.checkValidValues({
         cmi: cmi(),
@@ -535,7 +535,7 @@ describe('SCORM 2004 CMI Tests', () => {
         cmi: cmi(),
         fieldName: 'cmi.score._children',
         expectedValue: scorm2004_constants.score_children,
-        expectedError: invalid_set,
+        expectedError: read_only,
       });
       h.checkValidValues({
         cmi: cmi(),
@@ -639,9 +639,9 @@ describe('SCORM 2004 CMI Tests', () => {
       });
     });
 
-    describe('CMICommentsFromLearnerObject Tests', () => {
+    describe('CMICommentsObject Tests', () => {
       const comments = () => {
-        return new CMICommentsFromLearnerObject();
+        return new CMICommentsObject();
       };
 
       /**
@@ -683,10 +683,10 @@ describe('SCORM 2004 CMI Tests', () => {
 
     describe('CMICommentsFromLMSObject Tests', () => {
       const comments = () => {
-        return new CMICommentsFromLMSObject();
+        return new CMICommentsObject(true);
       };
       const commentsInitialized = () => {
-        const cmi = new CMICommentsFromLMSObject();
+        const cmi = new CMICommentsObject(true);
         cmi.initialize();
         return cmi;
       };
@@ -915,7 +915,7 @@ describe('SCORM 2004 CMI Tests', () => {
         cmi: objective(),
         fieldName: 'cmi.score._children',
         expectedValue: scorm2004_constants.score_children,
-        expectedError: invalid_set,
+        expectedError: read_only,
       });
       h.checkValidValues({
         cmi: objective(),

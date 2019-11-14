@@ -12,12 +12,22 @@ export const checkLMSSetValue = (
   describe(`Field: ${fieldName}`, () => {
     const status = expectedError > 0 ? 'fail to' : 'successfully';
     it(`Should ${status} set value for ${fieldName}`, () => {
-      if (errorThrown) {
-        expect(() => api.setValue(fieldName, valueToTest)).
-            to.throw(String(expectedError));
+      if (expectedError > 0) {
+        if (errorThrown) {
+          expect(() => api.lmsSetValue(fieldName, valueToTest)).
+              to.throw(String(expectedError));
+        } else {
+          api.lmsSetValue(fieldName, valueToTest);
+          expect(String(api.lmsGetLastError())).to.equal(String(expectedError));
+        }
       } else {
-        api.setValue(fieldName, valueToTest);
-        expect(String(api.lmsGetLastError())).to.equal(String(expectedError));
+        if (errorThrown) {
+          expect(() => api.lmsSetValue(fieldName, valueToTest)).
+              to.not.throw();
+        } else {
+          api.lmsSetValue(fieldName, valueToTest);
+          expect(String(api.lmsGetLastError())).to.equal(String(0));
+        }
       }
     });
   });
@@ -76,7 +86,12 @@ export const checkSetCMIValue = (
           expect(String(api.lmsGetLastError())).to.equal(String(expectedError));
         }
       } else {
-        expect(() => api.setCMIValue(fieldName, valueToTest)).to.not.throw();
+        if (errorThrown) {
+          expect(() => api.setCMIValue(fieldName, valueToTest)).to.not.throw();
+        } else {
+          api.setCMIValue(fieldName, valueToTest);
+          expect(String(api.lmsGetLastError())).to.equal(String(0));
+        }
       }
     });
   });

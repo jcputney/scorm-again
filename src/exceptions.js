@@ -16,6 +16,14 @@ export class ValidationError extends Error {
   #errorCode;
 
   /**
+   * Getter for #errorCode
+   * @return {number}
+   */
+  get errorCode() {
+    return this.#errorCode;
+  }
+
+  /**
    * Trying to override the default Error message
    * @return {string}
    */

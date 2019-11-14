@@ -152,6 +152,7 @@ export default class BaseAPI {
         returnValue = this.setCMIValue(CMIElement, value);
       } catch (e) {
         if (e instanceof ValidationError) {
+          this.lastErrorCode = e.errorCode;
           returnValue = api_constants.SCORM_FALSE;
         } else {
           this.throwSCORMError(this.#error_codes.GENERAL);
@@ -160,7 +161,9 @@ export default class BaseAPI {
       this.processListeners(callbackName, CMIElement, value);
     }
 
-    if (returnValue === undefined) returnValue = api_constants.SCORM_FALSE;
+    if (returnValue === undefined) {
+      returnValue = api_constants.SCORM_FALSE;
+    }
 
     this.apiLog(callbackName, CMIElement,
         ': ' + value + ': result: ' + returnValue,
@@ -382,7 +385,8 @@ export default class BaseAPI {
    * @abstract
    */
   getLmsErrorMessageDetails(_errorNumber, _detail) {
-    throw new Error('The getLmsErrorMessageDetails method has not been implemented');
+    throw new Error(
+        'The getLmsErrorMessageDetails method has not been implemented');
   }
 
   /**
@@ -445,7 +449,7 @@ export default class BaseAPI {
         } else if (!this._checkObjectHasProperty(refObject, attribute)) {
           this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
         } else {
-          if (this.stringMatches(CMIElement, '.correct_responses')) {
+          if (this.stringMatches(CMIElement, '\\.correct_responses\\.\\d')) {
             this.validateCorrectResponse(CMIElement, value);
           }
 
@@ -471,12 +475,15 @@ export default class BaseAPI {
             if (item) {
               refObject = item;
             } else {
-              const newChild = this.getChildElement(CMIElement, value, foundFirstIndex);
+              const newChild = this.getChildElement(CMIElement, value,
+                  foundFirstIndex);
               foundFirstIndex = true;
 
               if (!newChild) {
                 this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
               } else {
+                if (refObject.initialized) newChild.initialize();
+
                 refObject.childArray.push(newChild);
                 refObject = newChild;
               }

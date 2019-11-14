@@ -67,7 +67,6 @@ export function check12ValidRange(
 
 /**
  * Class representing the cmi object for SCORM 1.2
- * @extends BaseCMI
  */
 export class CMI extends BaseCMI {
   #_children = '';
