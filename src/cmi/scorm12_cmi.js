@@ -39,26 +39,35 @@ function throwInvalidValueError() {
  * Helper method, no reason to have to pass the same error codes every time
  * @param {*} value
  * @param {string} regexPattern
+ * @param {boolean} allowEmptyString
  * @return {boolean}
  */
-export function check12ValidFormat(value: String, regexPattern: String) {
+export function check12ValidFormat(
+    value: String,
+    regexPattern: String,
+    allowEmptyString?: boolean) {
   return checkValidFormat(value, regexPattern,
-      scorm12_error_codes.TYPE_MISMATCH);
+      scorm12_error_codes.TYPE_MISMATCH, allowEmptyString);
 }
 
 /**
  * Helper method, no reason to have to pass the same error codes every time
  * @param {*} value
  * @param {string} rangePattern
+ * @param {boolean} allowEmptyString
  * @return {boolean}
  */
-export function check12ValidRange(value: any, rangePattern: String) {
+export function check12ValidRange(
+    value: any,
+    rangePattern: String,
+    allowEmptyString?: boolean) {
   return checkValidRange(value, rangePattern,
-      scorm12_error_codes.VALUE_OUT_OF_RANGE);
+      scorm12_error_codes.VALUE_OUT_OF_RANGE, allowEmptyString);
 }
 
 /**
  * Class representing the cmi object for SCORM 1.2
+ * @extends BaseCMI
  */
 export class CMI extends BaseCMI {
   #_children = '';
@@ -138,7 +147,6 @@ export class CMI extends BaseCMI {
   /**
    * Getter for #_version
    * @return {string}
-   * @private
    */
   get _version() {
     return this.#_version;
@@ -147,7 +155,6 @@ export class CMI extends BaseCMI {
   /**
    * Setter for #_version. Just throws an error.
    * @param {string} _version
-   * @private
    */
   set _version(_version) {
     throwInvalidValueError();
@@ -156,7 +163,6 @@ export class CMI extends BaseCMI {
   /**
    * Getter for #_children
    * @return {string}
-   * @private
    */
   get _children() {
     return this.#_children;
@@ -165,7 +171,6 @@ export class CMI extends BaseCMI {
   /**
    * Setter for #_version. Just throws an error.
    * @param {string} _children
-   * @private
    */
   set _children(_children) {
     throwInvalidValueError();
@@ -244,6 +249,7 @@ export class CMI extends BaseCMI {
 
 /**
  * Class representing the cmi.core object
+ * @extends BaseCMI
  */
 class CMICore extends BaseCMI {
   /**
@@ -511,6 +517,7 @@ class CMICore extends BaseCMI {
 
 /**
  * Class representing SCORM 1.2's cmi.objectives object
+ * @extends CMIArray
  */
 class CMIObjectives extends CMIArray {
   /**
@@ -526,6 +533,7 @@ class CMIObjectives extends CMIArray {
 
 /**
  * Class representing SCORM 1.2's cmi.student_data object
+ * @extends BaseCMI
  */
 export class CMIStudentData extends BaseCMI {
   #_children;
@@ -642,6 +650,7 @@ export class CMIStudentData extends BaseCMI {
 
 /**
  * Class representing SCORM 1.2's cmi.student_preference object
+ * @extends BaseCMI
  */
 class CMIStudentPreference extends BaseCMI {
   /**
@@ -777,6 +786,7 @@ class CMIStudentPreference extends BaseCMI {
 
 /**
  * Class representing SCORM 1.2's cmi.interactions object
+ * @extends BaseCMI
  */
 class CMIInteractions extends CMIArray {
   /**
@@ -792,6 +802,7 @@ class CMIInteractions extends CMIArray {
 
 /**
  * Class representing SCORM 1.2's cmi.interactions.n object
+ * @extends BaseCMI
  */
 export class CMIInteractionsObject extends BaseCMI {
   /**
@@ -915,7 +926,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} student_response
    */
   set student_response(student_response) {
-    if (check12ValidFormat(student_response, regex.CMIFeedback)) {
+    if (check12ValidFormat(student_response, regex.CMIFeedback, true)) {
       this.#student_response = student_response;
     }
   }
@@ -993,6 +1004,7 @@ export class CMIInteractionsObject extends BaseCMI {
 
 /**
  * Class representing SCORM 1.2's cmi.objectives.n object
+ * @extends BaseCMI
  */
 export class CMIObjectivesObject extends BaseCMI {
   /**
@@ -1074,6 +1086,7 @@ export class CMIObjectivesObject extends BaseCMI {
 
 /**
  * Class representing SCORM 1.2's cmi.interactions.n.objectives.n object
+ * @extends BaseCMI
  */
 export class CMIInteractionsObjectivesObject extends BaseCMI {
   /**
@@ -1123,6 +1136,7 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
 
 /**
  * Class representing SCORM 1.2's cmi.interactions.correct_responses.n object
+ * @extends BaseCMI
  */
 export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
   /**
@@ -1147,7 +1161,7 @@ export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
    * @param {string} pattern
    */
   set pattern(pattern) {
-    if (check12ValidFormat(pattern, regex.CMIFeedback)) {
+    if (check12ValidFormat(pattern, regex.CMIFeedback, true)) {
       this.#pattern = pattern;
     }
   }

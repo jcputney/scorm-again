@@ -60,6 +60,15 @@ export class BaseCMI {
   #initialized = false;
 
   /**
+   * Constructor for BaseCMI, just marks the class as abstract
+   */
+  constructor() {
+    if (new.target === BaseCMI) {
+      throw new TypeError('Cannot construct BaseCMI instances directly');
+    }
+  }
+
+  /**
    * Getter for #initialized
    * @return {boolean}
    */
@@ -101,22 +110,17 @@ export class CMIScore extends BaseCMI {
       }) {
     super();
 
-    this.#_children = score_children ?
-        score_children :
+    this.#_children = score_children ||
         scorm12_constants.score_children;
     this.#_score_range = !score_range ? false : scorm12_regex.score_range;
     this.#max = (max || max === '') ? max : '100';
-    this.#_invalid_error_code = invalidErrorCode ?
-        invalidErrorCode :
+    this.#_invalid_error_code = invalidErrorCode ||
         scorm12_error_codes.INVALID_SET_VALUE;
-    this.#_invalid_type_code = invalidTypeCode ?
-        invalidTypeCode :
+    this.#_invalid_type_code = invalidTypeCode ||
         scorm12_error_codes.TYPE_MISMATCH;
-    this.#_invalid_range_code = invalidRangeCode ?
-        invalidRangeCode :
+    this.#_invalid_range_code = invalidRangeCode ||
         scorm12_error_codes.VALUE_OUT_OF_RANGE;
-    this.#_decimal_regex = decimalRegex ?
-        decimalRegex :
+    this.#_decimal_regex = decimalRegex ||
         scorm12_regex.CMIDecimal;
   }
 
@@ -249,7 +253,6 @@ export class CMIArray extends BaseCMI {
   /**
    * Getter for _children
    * @return {*}
-   * @private
    */
   get _children() {
     return this.#_children;
@@ -258,7 +261,6 @@ export class CMIArray extends BaseCMI {
   /**
    * Setter for _children. Just throws an error.
    * @param {string} _children
-   * @private
    */
   set _children(_children) {
     throw new ValidationError(this.#errorCode);
@@ -267,7 +269,6 @@ export class CMIArray extends BaseCMI {
   /**
    * Getter for _count
    * @return {number}
-   * @private
    */
   get _count() {
     return this.childArray.length;
@@ -276,7 +277,6 @@ export class CMIArray extends BaseCMI {
   /**
    * Setter for _count. Just throws an error.
    * @param {number} _count
-   * @private
    */
   set _count(_count) {
     throw new ValidationError(this.#errorCode);

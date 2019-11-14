@@ -1,18 +1,83 @@
 import {describe, it} from 'mocha';
 import {expect} from 'chai';
 
-export const checkWrite = (
+export const checkLMSSetValue = (
     {
       api,
       fieldName,
       valueToTest = 'xxx',
       expectedError = 0,
+      errorThrown = false,
     }) => {
   describe(`Field: ${fieldName}`, () => {
     const status = expectedError > 0 ? 'fail to' : 'successfully';
-    it(`Should ${status} write to ${fieldName}`, () => {
-      eval(`api.lmsSetValue('${fieldName}', '${valueToTest}')`);
-      expect(String(api.lastErrorCode)).to.equal(String(expectedError));
+    it(`Should ${status} set value for ${fieldName}`, () => {
+      if (errorThrown) {
+        expect(() => api.setValue(fieldName, valueToTest)).
+            to.throw(String(expectedError));
+      } else {
+        api.setValue(fieldName, valueToTest);
+        expect(String(api.lmsGetLastError())).to.equal(String(expectedError));
+      }
+    });
+  });
+};
+
+export const checkLMSGetValue = (
+    {
+      api,
+      fieldName,
+      expectedValue = '',
+      initializeFirst = false,
+      initializationValue = '',
+      expectedError = 0,
+      errorThrown = true,
+    }) => {
+  describe(`Field: ${fieldName}`, () => {
+    const status = expectedError > 0 ? 'fail to' : 'successfully';
+
+    if (initializeFirst) {
+      api.setCMIValue(fieldName, initializationValue);
+    }
+
+    it(`Should ${status} get value for ${fieldName}`, () => {
+      if (expectedError > 0) {
+        if (errorThrown) {
+          expect(() => api.lmsGetValue(fieldName)).
+              to.throw(String(expectedError));
+        } else {
+          api.lmsGetValue(fieldName);
+          expect(String(api.lmsGetLastError())).to.equal(String(expectedError));
+        }
+      } else {
+        expect(api.lmsGetValue(fieldName)).to.equal(expectedValue);
+      }
+    });
+  });
+};
+
+export const checkSetCMIValue = (
+    {
+      api,
+      fieldName,
+      valueToTest = 'xxx',
+      expectedError = 0,
+      errorThrown = true,
+    }) => {
+  describe(`Field: ${fieldName}`, () => {
+    const status = expectedError > 0 ? 'fail to' : 'successfully';
+    it(`Should ${status} set CMI value for ${fieldName}`, () => {
+      if (expectedError > 0) {
+        if (errorThrown) {
+          expect(() => api.setCMIValue(fieldName, valueToTest)).
+              to.throw(String(expectedError));
+        } else {
+          api.setCMIValue(fieldName, valueToTest);
+          expect(String(api.lmsGetLastError())).to.equal(String(expectedError));
+        }
+      } else {
+        expect(() => api.setCMIValue(fieldName, valueToTest)).to.not.throw();
+      }
     });
   });
 };

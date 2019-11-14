@@ -42,6 +42,7 @@ export default class Scorm12API extends BaseAPI {
    * @return {string} bool
    */
   lmsInitialize() {
+    this.cmi.initialize();
     return this.initialize('LMSInitialize', 'LMS was already initialized!',
         'LMS is already finished!');
   }
@@ -140,18 +141,19 @@ export default class Scorm12API extends BaseAPI {
    *
    * @param {string} CMIElement
    * @param {*} value
+   * @param {boolean} foundFirstIndex
    * @return {object}
    */
-  getChildElement(CMIElement, value) {
+  getChildElement(CMIElement, value, foundFirstIndex) {
     let newChild;
 
-    if (this.stringContains(CMIElement, 'cmi.objectives')) {
+    if (this.stringMatches(CMIElement, 'cmi\\.objectives\\.\\d')) {
       newChild = new CMIObjectivesObject(this);
-    } else if (this.stringContains(CMIElement, '.correct_responses')) {
+    } else if (foundFirstIndex && this.stringMatches(CMIElement, 'cmi\\.interactions\\.\\d\\.correct_responses\\.\\d')) {
       newChild = new CMIInteractionsCorrectResponsesObject(this);
-    } else if (this.stringContains(CMIElement, '.objectives')) {
+    } else if (foundFirstIndex && this.stringMatches(CMIElement, 'cmi\\.interactions\\.\\d\\.objectives\\.\\d')) {
       newChild = new CMIInteractionsObjectivesObject(this);
-    } else if (this.stringContains(CMIElement, 'cmi.interactions')) {
+    } else if (this.stringMatches(CMIElement, 'cmi\\.interactions\\.\\d')) {
       newChild = new CMIInteractionsObject(this);
     }
 

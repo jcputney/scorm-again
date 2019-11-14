@@ -57,6 +57,7 @@ export default class Scorm2004API extends BaseAPI {
    * @return {string} bool
    */
   lmsInitialize() {
+    this.cmi.initialize();
     return this.initialize('Initialize');
   }
 
@@ -137,14 +138,15 @@ export default class Scorm2004API extends BaseAPI {
    *
    * @param {string} CMIElement
    * @param {any} value
+   * @param {boolean} foundFirstIndex
    * @return {any}
    */
-  getChildElement(CMIElement, value) {
+  getChildElement(CMIElement, value, foundFirstIndex) {
     let newChild;
 
-    if (this.stringContains(CMIElement, 'cmi.objectives')) {
+    if (this.stringMatches(CMIElement, 'cmi\\.objectives\\.\\d')) {
       newChild = new CMIObjectivesObject(this);
-    } else if (this.stringContains(CMIElement, '.correct_responses')) {
+    } else if (foundFirstIndex && this.stringMatches(CMIElement, 'cmi\\.interactions\\.\\d\\.correct_responses\\.\\d')) {
       const parts = CMIElement.split('.');
       const index = Number(parts[2]);
       const interaction = this.cmi.interactions.childArray[index];
@@ -181,13 +183,13 @@ export default class Scorm2004API extends BaseAPI {
       if (this.lastErrorCode === 0) {
         newChild = new CMIInteractionsCorrectResponsesObject(this);
       }
-    } else if (this.stringContains(CMIElement, '.objectives')) {
+    } else if (foundFirstIndex && this.stringMatches(CMIElement, 'cmi\\.interactions\\.\\d\\.objectives\\.\\d')) {
       newChild = new CMIInteractionsObjectivesObject(this);
-    } else if (this.stringContains(CMIElement, 'cmi.interactions')) {
+    } else if (this.stringMatches(CMIElement, 'cmi\\.interactions\\.\\d')) {
       newChild = new CMIInteractionsObject(this);
-    } else if (this.stringContains(CMIElement, 'cmi.comments_from_learner')) {
+    } else if (this.stringMatches(CMIElement, 'cmi\\.comments_from_learner\\.\\d')) {
       newChild = new CMICommentsFromLearnerObject(this);
-    } else if (this.stringContains(CMIElement, 'cmi.comments_from_lms')) {
+    } else if (this.stringMatches(CMIElement, 'cmi\\.comments_from_lms\\.\\d')) {
       newChild = new CMICommentsFromLMSObject(this);
     }
 

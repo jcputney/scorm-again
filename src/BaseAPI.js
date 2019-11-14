@@ -30,6 +30,9 @@ export default class BaseAPI {
    * @param {object} error_codes
    */
   constructor(error_codes) {
+    if (new.target === BaseAPI) {
+      throw new TypeError('Cannot construct BaseAPI instances directly');
+    }
     this.currentState = api_constants.STATE_NOT_INITIALIZED;
     this.apiLogLevel = api_constants.LOG_LEVEL_ERROR;
     this.lastErrorCode = 0;
@@ -109,7 +112,7 @@ export default class BaseAPI {
       callbackName: String,
       checkTerminated: boolean,
       CMIElement: String) {
-    let returnValue = '';
+    let returnValue;
 
     if (this.checkState(checkTerminated,
         this.#error_codes.RETRIEVE_BEFORE_INIT,
@@ -351,8 +354,22 @@ export default class BaseAPI {
    * @param {string} tester String to check for
    * @return {boolean}
    */
-  stringContains(str: String, tester: String) {
-    return str.indexOf(tester) > -1;
+  stringMatches(str: String, tester: String) {
+    return str && tester && str.match(tester);
+  }
+
+  /**
+   * Check to see if the specific object has the given property
+   * @param {*} refObject
+   * @param {string} attribute
+   * @return {boolean}
+   * @private
+   */
+  _checkObjectHasProperty(refObject, attribute: String) {
+    return Object.hasOwnProperty.call(refObject, attribute) ||
+        Object.getOwnPropertyDescriptor(
+            Object.getPrototypeOf(refObject), attribute) ||
+        (attribute in refObject);
   }
 
   /**
@@ -362,9 +379,10 @@ export default class BaseAPI {
    * @param {(string|number)} _errorNumber
    * @param {boolean} _detail
    * @return {string}
+   * @abstract
    */
   getLmsErrorMessageDetails(_errorNumber, _detail) {
-    return 'No error';
+    throw new Error('The getLmsErrorMessageDetails method has not been implemented');
   }
 
   /**
@@ -373,9 +391,10 @@ export default class BaseAPI {
    *
    * @param {string} _CMIElement
    * @return {string}
+   * @abstract
    */
   getCMIValue(_CMIElement) {
-    return '';
+    throw new Error('The getCMIValue method has not been implemented');
   }
 
   /**
@@ -385,9 +404,10 @@ export default class BaseAPI {
    * @param {string} _CMIElement
    * @param {any} _value
    * @return {string}
+   * @abstract
    */
   setCMIValue(_CMIElement, _value) {
-    return api_constants.SCORM_FALSE;
+    throw new Error('The setCMIValue method has not been implemented');
   }
 
   /**
@@ -408,6 +428,7 @@ export default class BaseAPI {
     const structure = CMIElement.split('.');
     let refObject = this;
     let returnValue = api_constants.SCORM_FALSE;
+    let foundFirstIndex = false;
 
     const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
     const invalidErrorCode = scorm2004 ?
@@ -421,12 +442,10 @@ export default class BaseAPI {
         if (scorm2004 && (attribute.substr(0, 8) === '{target=') &&
             (typeof refObject._isTargetValid == 'function')) {
           this.throwSCORMError(this.#error_codes.READ_ONLY_ELEMENT);
-        } else if (!Object.hasOwnProperty.call(refObject, attribute) &&
-            !Object.getOwnPropertyDescriptor(
-                Object.getPrototypeOf(refObject), attribute)) {
+        } else if (!this._checkObjectHasProperty(refObject, attribute)) {
           this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
         } else {
-          if (this.stringContains(CMIElement, '.correct_responses')) {
+          if (this.stringMatches(CMIElement, '.correct_responses')) {
             this.validateCorrectResponse(CMIElement, value);
           }
 
@@ -452,7 +471,8 @@ export default class BaseAPI {
             if (item) {
               refObject = item;
             } else {
-              const newChild = this.getChildElement(CMIElement, value);
+              const newChild = this.getChildElement(CMIElement, value, foundFirstIndex);
+              foundFirstIndex = true;
 
               if (!newChild) {
                 this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
@@ -494,10 +514,12 @@ export default class BaseAPI {
    *
    * @param {string} _CMIElement - unused
    * @param {*} _value - unused
+   * @param {boolean} _foundFirstIndex - unused
    * @return {*}
+   * @abstract
    */
-  getChildElement(_CMIElement, _value) {
-    return null;
+  getChildElement(_CMIElement, _value, _foundFirstIndex) {
+    throw new Error('The getChildElement method has not been implemented');
   }
 
   /**
@@ -517,14 +539,20 @@ export default class BaseAPI {
     let refObject = this;
     let attribute = null;
 
+    const uninitializedErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) has not been initialized.`;
+    const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
+    const invalidErrorCode = scorm2004 ?
+        this.#error_codes.UNDEFINED_DATA_MODEL :
+        this.#error_codes.GENERAL;
+
     for (let i = 0; i < structure.length; i++) {
       attribute = structure[i];
 
       if (!scorm2004) {
         if (i === structure.length - 1) {
-          if (!{}.hasOwnProperty.call(refObject, attribute)) {
-            this.throwSCORMError(101,
-                'getCMIValue did not find a value for: ' + CMIElement);
+          if (!this._checkObjectHasProperty(refObject, attribute)) {
+            this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
+            return;
           }
         }
       } else {
@@ -533,15 +561,37 @@ export default class BaseAPI {
           const target = String(attribute).
               substr(8, String(attribute).length - 9);
           return refObject._isTargetValid(target);
-        } else if (!{}.hasOwnProperty.call(refObject, attribute)) {
-          this.throwSCORMError(401,
-              'The data model element passed to GetValue (' + CMIElement +
-              ') is not a valid SCORM data model element.');
-          return '';
+        } else if (!this._checkObjectHasProperty(refObject, attribute)) {
+          this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
+          return;
         }
       }
 
       refObject = refObject[attribute];
+      if (!refObject) {
+        this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
+        break;
+      }
+
+      if (refObject instanceof CMIArray) {
+        const index = parseInt(structure[i + 1], 10);
+
+        // SCO is trying to set an item on an array
+        if (!isNaN(index)) {
+          const item = refObject.childArray[index];
+
+          if (item) {
+            refObject = item;
+          } else {
+            this.throwSCORMError(this.#error_codes.VALUE_NOT_INITIALIZED,
+                uninitializedErrorMessage);
+            break;
+          }
+
+          // Have to update i value to skip the array position
+          i++;
+        }
+      }
     }
 
     if (refObject === null || refObject === undefined) {
@@ -552,7 +602,7 @@ export default class BaseAPI {
           this.throwSCORMError(203);
         }
       }
-      return '';
+      return;
     } else {
       return refObject;
     }
@@ -657,7 +707,7 @@ export default class BaseAPI {
    * @param {string} success
    */
   clearSCORMError(success: String) {
-    if (success !== api_constants.SCORM_FALSE) {
+    if (success !== undefined && success !== api_constants.SCORM_FALSE) {
       this.lastErrorCode = 0;
     }
   }
@@ -701,11 +751,22 @@ export default class BaseAPI {
    *
    * @return {string}
    */
-  renderCMIToJSON() {
+  renderCMIToJSONString() {
     const cmi = this.cmi;
     // Do we want/need to return fields that have no set value?
     // return JSON.stringify({ cmi }, (k, v) => v === undefined ? null : v, 2);
     return JSON.stringify({cmi});
+  }
+
+  /**
+   * Returns a JS object representing the current cmi
+   * @return {object}
+   */
+  renderCMIToJSONObject() {
+    const cmi = this.cmi;
+    // Do we want/need to return fields that have no set value?
+    // return JSON.stringify({ cmi }, (k, v) => v === undefined ? null : v, 2);
+    return JSON.parse(JSON.stringify(cmi));
   }
 
   /**
