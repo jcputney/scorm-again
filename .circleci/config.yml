@@ -91,7 +91,7 @@ jobs:
       # Upload results
 
       - store_test_results:
-          path: reports
+          path: ./reports/mocha/test-results.xml
 
       - store_artifacts:
           path: ./reports/mocha/test-results.xml
