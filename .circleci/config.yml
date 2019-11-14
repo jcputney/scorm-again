@@ -38,7 +38,7 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
 
-      - run: mkdir reports dist docs
+      - run: mkdir reports dist docs || true
 
       # Run mocha
       - run:
@@ -50,7 +50,7 @@ jobs:
       - run:
           name: eslint
           command: |
-            ./node_modules/.bin/eslint ./ --format junit --output-file ./reports/eslint/eslint.xml
+            ./node_modules/.bin/eslint ./src --format junit --output-file ./reports/eslint/eslint.xml
           when: always
 
       # Run coverage report for Code Climate
