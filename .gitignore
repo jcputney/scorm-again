@@ -63,3 +63,5 @@ typings/
 # JetBrains Project Directory
 .idea/
 /reports/
+
+.DS_Store

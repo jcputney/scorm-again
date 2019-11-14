@@ -4,7 +4,7 @@
 #
 version: 2
 jobs:
-  test:
+  build:
     docker:
       # specify the version you desire here
       - image: circleci/node:lts-browsers
@@ -38,7 +38,7 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
 
-      - run: mkdir reports
+      - run: mkdir reports dist docs
 
       # Run mocha
       - run:
@@ -73,6 +73,21 @@ jobs:
             ./cc-test-reporter after-build -t lcov
           when: always
 
+      # compile documentation
+      - run: ./node_modules/.bin/jsdoc -c .jsdoc.json -d ./docs ./src/
+
+      # run babel compile
+      - run: git config user.email "jputney@noverant.com" && git config user.name "Jonathan Putney"
+      - run: ./node_modules/.bin/grunt
+      - run: git add --all dist/
+
+      # run jsdoc
+      # - run: ./node_modules/.bin/jsdoc -c .jsdoc.json -d ./docs ./src/
+      # - run: git add --all docs/
+
+      # git commit and push dist and docs
+      - run: git commit -m "[skip ci] - Updating Dist and Docs" && git push origin master
+
       # Upload results
 
       - store_test_results:
@@ -87,21 +102,3 @@ jobs:
       - store_artifacts: # upload test coverage as artifact
           path: ./coverage/lcov.info
           prefix: tests
-  docs:
-    docker:
-      # specify the version you desire here
-        - image: circleci/node:lts-browsers
-
-    working_directory: ~/scorm-again
-
-    steps:
-      - checkout
-
-      - run: ./node_modules/.bin/jsdoc -c .jsdoc.json -d ./reports ./src/
-
-workflows:
-  version: 2
-  build:
-    jobs:
-      - test
-      # - docs
