@@ -38,12 +38,12 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
 
-      - run: mkdir reports dist docs || true
+      - run: mkdir reports dist docs test-results || true
 
       # Run mocha
       - run:
           name: npm test
-          command: ./node_modules/.bin/nyc ./node_modules/.bin/mocha --require @babel/register --recursive --timeout=10000 --exit --reporter mocha-junit-reporter --reporter-options mochaFile=reports/mocha/test-results.xml
+          command: ./node_modules/.bin/nyc ./node_modules/.bin/mocha --require @babel/register --recursive --timeout=10000 --exit --reporter mocha-junit-reporter --reporter-options mochaFile=test-results/mocha/results.xml
           when: always
 
       # Run eslint
@@ -91,7 +91,7 @@ jobs:
       # Upload results
 
       - store_test_results:
-          path: ./reports/mocha/test-results.xml
+          path: test-results
 
       - store_artifacts:
           path: ./reports/mocha/test-results.xml
