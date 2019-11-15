@@ -161,13 +161,13 @@ export const scorm12_values = {
       'P1DT23H59M59S',
     ],
 
-    validTimestamp: [
+    validTimespan: [
       '10:06:57',
       '00:00:01.56',
       '23:59:59',
       '47:59:59',
     ],
-    invalidTimestamp: [
+    invalidTimespan: [
       '06:5:13',
       '23:59:59.123',
       'P1DT23H59M59S',

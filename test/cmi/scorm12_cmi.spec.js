@@ -195,8 +195,8 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.session_time',
-        validValues: scorm12_values.validHHMMSS,
-        invalidValues: scorm12_values.invalidHHMMSS,
+        validValues: scorm12_values.validTimespan,
+        invalidValues: scorm12_values.invalidTimespan,
       });
 
       /**
@@ -458,8 +458,8 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: cmiInitialized(),
         fieldName: 'cmi.core.session_time',
-        validValues: scorm12_values.validHHMMSS,
-        invalidValues: scorm12_values.invalidHHMMSS,
+        validValues: scorm12_values.validTimespan,
+        invalidValues: scorm12_values.invalidTimespan,
       });
 
       /**
@@ -686,8 +686,8 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkValidValues({
         cmi: interaction(),
         fieldName: 'cmi.latency',
-        validValues: scorm12_values.validTimestamp,
-        invalidValues: scorm12_values.invalidTimestamp,
+        validValues: scorm12_values.validTimespan,
+        invalidValues: scorm12_values.invalidTimespan,
       });
 
       it('should export JSON', () => {
@@ -722,7 +722,6 @@ describe('SCORM 1.2 CMI Tests', () => {
     });
 
     describe('CMIInteractionsCorrectResponsesObject Tests', () => {
-
       /**
        * cmi.interactions.n.correct_responses.n object
        */

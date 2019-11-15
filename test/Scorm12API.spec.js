@@ -151,6 +151,16 @@ describe('SCORM 1.2 API Tests', () => {
       });
     });
 
+    describe('Read and Write Properties - Should Success', () => {
+      h.checkLMSGetValue({
+        api: apiInitialized(),
+        fieldName: 'cmi.interactions.0.objectives.0.id',
+        initializeFirst: true,
+        initializationValue: 'AAA',
+        expectedValue: 'AAA',
+      });
+    });
+
     describe('Write-Only Properties - Should Always Fail', () => {
       h.checkLMSGetValue({
         api: apiInitialized(),
@@ -214,6 +224,8 @@ describe('SCORM 1.2 API Tests', () => {
         api: apiInitialized(),
         fieldName: 'cmi.interactions.0.correct_responses.0.pattern',
         initializeFirst: true,
+        initializationValue: 'AAA',
+        expectedValue: 'AAA',
         expectedError: scorm12_error_codes.WRITE_ONLY_ELEMENT,
       });
     });
@@ -245,5 +257,18 @@ describe('SCORM 1.2 API Tests', () => {
         valueToTest: 'AAA',
       });
     });
+  });
+
+  describe('replaceWithAnotherScormAPI()', () => {
+    const firstAPI = api();
+    const secondAPI = api();
+
+    firstAPI.cmi.core.student_id = 'student_1';
+    secondAPI.cmi.core.student_id = 'student_2';
+
+    firstAPI.replaceWithAnotherScormAPI(secondAPI);
+    expect(
+        firstAPI.cmi.core.student_id,
+    ).to.equal('student_2');
   });
 });

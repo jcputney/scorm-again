@@ -244,6 +244,29 @@ describe('AICC API Tests', () => {
         fieldName: 'cmi.interactions.0.id',
         valueToTest: 'AAA',
       });
+      h.checkLMSSetValue({
+        api: apiInitialized(),
+        fieldName: 'cmi.evaluation.comments.0.content',
+        valueToTest: 'AAA',
+      });
+      h.checkLMSSetValue({
+        api: apiInitialized(),
+        fieldName: 'cmi.student_data.tries.0.score.max',
+        valueToTest: '100',
+      });
     });
+  });
+
+  describe('replaceWithAnotherScormAPI()', () => {
+    const firstAPI = api();
+    const secondAPI = api();
+
+    firstAPI.cmi.core.student_id = 'student_1';
+    secondAPI.cmi.core.student_id = 'student_2';
+
+    firstAPI.replaceWithAnotherScormAPI(secondAPI);
+    expect(
+        firstAPI.cmi.core.student_id,
+    ).to.equal('student_2');
   });
 });
