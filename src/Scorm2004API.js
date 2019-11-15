@@ -9,8 +9,8 @@ import {
   CMIInteractionsObjectivesObject,
   CMIObjectivesObject,
 } from './cmi/scorm2004_cmi';
-import * as Util from './utilities';
-import {scorm2004_constants} from './constants/api_constants';
+import * as Utilities from './utilities';
+import {global_constants, scorm2004_constants} from './constants/api_constants';
 import {scorm2004_error_codes} from './constants/error_codes';
 import {correct_responses} from './constants/response_constants';
 import {valid_languages} from './constants/language_constants';
@@ -26,9 +26,16 @@ export default class Scorm2004API extends BaseAPI {
 
   /**
    * Constructor for SCORM 2004 API
+   * @param {object} settings
    */
-  constructor() {
-    super(scorm2004_error_codes);
+  constructor(settings: {}) {
+    const finalSettings = {
+      ...{
+        mastery_override: false,
+      }, ...settings,
+    };
+
+    super(scorm2004_error_codes, finalSettings);
 
     this.cmi = new CMI();
     this.adl = new ADL();
@@ -146,7 +153,8 @@ export default class Scorm2004API extends BaseAPI {
 
     if (this.stringMatches(CMIElement, 'cmi\\.objectives\\.\\d')) {
       newChild = new CMIObjectivesObject();
-    } else if (foundFirstIndex && this.stringMatches(CMIElement, 'cmi\\.interactions\\.\\d\\.correct_responses\\.\\d')) {
+    } else if (foundFirstIndex && this.stringMatches(CMIElement,
+        'cmi\\.interactions\\.\\d\\.correct_responses\\.\\d')) {
       const parts = CMIElement.split('.');
       const index = Number(parts[2]);
       const interaction = this.cmi.interactions.childArray[index];
@@ -183,13 +191,16 @@ export default class Scorm2004API extends BaseAPI {
       if (this.lastErrorCode === 0) {
         newChild = new CMIInteractionsCorrectResponsesObject();
       }
-    } else if (foundFirstIndex && this.stringMatches(CMIElement, 'cmi\\.interactions\\.\\d\\.objectives\\.\\d')) {
+    } else if (foundFirstIndex && this.stringMatches(CMIElement,
+        'cmi\\.interactions\\.\\d\\.objectives\\.\\d')) {
       newChild = new CMIInteractionsObjectivesObject();
     } else if (this.stringMatches(CMIElement, 'cmi\\.interactions\\.\\d')) {
       newChild = new CMIInteractionsObject();
-    } else if (this.stringMatches(CMIElement, 'cmi\\.comments_from_learner\\.\\d')) {
+    } else if (this.stringMatches(CMIElement,
+        'cmi\\.comments_from_learner\\.\\d')) {
       newChild = new CMICommentsObject();
-    } else if (this.stringMatches(CMIElement, 'cmi\\.comments_from_lms\\.\\d')) {
+    } else if (this.stringMatches(CMIElement,
+        'cmi\\.comments_from_lms\\.\\d')) {
       newChild = new CMICommentsObject(true);
     }
 
@@ -419,5 +430,95 @@ export default class Scorm2004API extends BaseAPI {
     // Data Model
     this.cmi = newAPI.cmi;
     this.adl = newAPI.adl;
+  }
+
+  /**
+   * Render the cmi object to the proper format for LMS commit
+   *
+   * @param {boolean} terminateCommit
+   * @return {object|Array}
+   */
+  renderCommitCMI(terminateCommit: boolean) {
+    const cmi = this.renderCMIToJSONObject();
+
+    if (terminateCommit) {
+      cmi.total_time = this.getCurrentTotalTime();
+    }
+
+    const result = [];
+    const flattened = Utilities.flatten(cmi);
+    switch (this.settings.dataCommitFormat) {
+      case 'flattened':
+        return Utilities.flatten(cmi);
+      case 'params':
+        for (const item in flattened) {
+          if ({}.hasOwnProperty.call(flattened, item)) {
+            result.push(`${item}=${flattened[item]}`);
+          }
+        }
+        return result;
+      case 'json':
+      default:
+        return cmi;
+    }
+  }
+
+  /**
+   * Attempts to store the data to the LMS
+   *
+   * @param {boolean} terminateCommit
+   * @return {string}
+   */
+  storeData(terminateCommit: boolean) {
+    if (terminateCommit) {
+      if (this.cmi.lesson_mode === 'normal') {
+        if (this.cmi.credit === 'credit') {
+          if (this.cmi.completion_threshold && this.cmi.progress_measure) {
+            if (this.cmi.progress_measure >= this.cmi.completion_threshold) {
+              this.cmi.completion_status = 'completed';
+            } else {
+              this.cmi.completion_status = 'incomplete';
+            }
+          }
+          if (this.cmi.scaled_passing_score !== null &&
+              this.cmi.score.scaled !== '') {
+            if (this.cmi.score.scaled >= this.cmi.scaled_passing_score) {
+              this.cmi.success_status = 'passed';
+            } else {
+              this.cmi.success_status = 'failed';
+            }
+          }
+        }
+      }
+    }
+
+    let navRequest = false;
+    if (this.adl.nav.request !== (this.startingData?.adl?.nav?.request || '')) {
+      this.adl.nav.request = encodeURIComponent(this.adl.nav.request);
+      navRequest = true;
+    }
+
+    const commitObject = this.renderCommitCMI(terminateCommit);
+
+    if (this.settings.lmsCommitUrl) {
+      if (this.apiLogLevel === global_constants.LOG_LEVEL_DEBUG) {
+        console.debug('Commit (terminated: ' +
+            (terminateCommit ? 'yes' : 'no') + '): ');
+        console.debug(commitObject);
+      }
+      const result = this.processHttpRequest(this.settings.lmsCommitUrl,
+          commitObject);
+      // check if this is a sequencing call, and then call the necessary JS
+      if (navRequest && result.navRequest !== undefined &&
+          result.navRequest !== '') {
+        Function(`"use strict";(() => { ${result.navRequest} })()`)();
+      }
+      return result;
+    } else {
+      console.log('Commit (terminated: ' +
+          (terminateCommit ? 'yes' : 'no') + '): ');
+      console.log(commitObject);
+      return global_constants.SCORM_TRUE;
+    }
   }
 }

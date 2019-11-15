@@ -290,7 +290,7 @@ class CMICore extends BaseCMI {
   #student_name = '';
   #lesson_location = '';
   #credit = '';
-  #lesson_status = '';
+  #lesson_status = 'not attempted';
   #entry = '';
   #total_time = '';
   #lesson_mode = 'normal';

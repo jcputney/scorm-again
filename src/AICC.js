@@ -13,9 +13,16 @@ import {
 export default class AICC extends Scorm12API {
   /**
    * Constructor to create AICC API object
+   * @param {object} settings
    */
-  constructor() {
-    super();
+  constructor(settings: {}) {
+    const finalSettings = {
+      ...{
+        mastery_override: false,
+      }, ...settings,
+    };
+
+    super(finalSettings);
 
     this.cmi = new CMI();
     this.nav = new NAV();

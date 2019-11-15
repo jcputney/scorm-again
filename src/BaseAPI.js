@@ -1,19 +1,8 @@
 // @flow
 import {CMIArray} from './cmi/common';
 import {ValidationError} from './exceptions';
-
-const api_constants = {
-  SCORM_TRUE: 'true',
-  SCORM_FALSE: 'false',
-  STATE_NOT_INITIALIZED: 0,
-  STATE_INITIALIZED: 1,
-  STATE_TERMINATED: 2,
-  LOG_LEVEL_DEBUG: 1,
-  LOG_LEVEL_INFO: 2,
-  LOG_LEVEL_WARNING: 3,
-  LOG_LEVEL_ERROR: 4,
-  LOG_LEVEL_NONE: 5,
-};
+import {scorm12_error_codes} from './constants/error_codes';
+import {global_constants} from './constants/api_constants';
 
 /**
  * Base API class for AICC, SCORM 1.2, and SCORM 2004. Should be considered
@@ -22,24 +11,34 @@ const api_constants = {
 export default class BaseAPI {
   #timeout;
   #error_codes;
+  #settings = {
+    autocommit: false,
+    autocommitSeconds: 60,
+    lmsCommitUrl: false,
+    dataCommitFormat: 'json', // valid formats are 'json' or 'flattened', 'params'
+  };
   cmi;
+  startingData: {};
 
   /**
    * Constructor for Base API class. Sets some shared API fields, as well as
    * sets up options for the API.
    * @param {object} error_codes
+   * @param {object} settings
    */
-  constructor(error_codes) {
+  constructor(error_codes, settings) {
     if (new.target === BaseAPI) {
       throw new TypeError('Cannot construct BaseAPI instances directly');
     }
-    this.currentState = api_constants.STATE_NOT_INITIALIZED;
-    this.apiLogLevel = api_constants.LOG_LEVEL_ERROR;
+    this.currentState = global_constants.STATE_NOT_INITIALIZED;
+    this.apiLogLevel = global_constants.LOG_LEVEL_ERROR;
     this.lastErrorCode = 0;
     this.listenerArray = [];
 
     this.#timeout = null;
     this.#error_codes = error_codes;
+
+    this.settings = settings;
   }
 
   /**
@@ -53,24 +52,40 @@ export default class BaseAPI {
       callbackName: String,
       initializeMessage?: String,
       terminationMessage?: String) {
-    let returnValue = api_constants.SCORM_FALSE;
+    let returnValue = global_constants.SCORM_FALSE;
 
     if (this.isInitialized()) {
       this.throwSCORMError(this.#error_codes.INITIALIZED, initializeMessage);
     } else if (this.isTerminated()) {
       this.throwSCORMError(this.#error_codes.TERMINATED, terminationMessage);
     } else {
-      this.currentState = api_constants.STATE_INITIALIZED;
+      this.currentState = global_constants.STATE_INITIALIZED;
       this.lastErrorCode = 0;
-      returnValue = api_constants.SCORM_TRUE;
+      returnValue = global_constants.SCORM_TRUE;
       this.processListeners(callbackName);
     }
 
     this.apiLog(callbackName, null, 'returned: ' + returnValue,
-        api_constants.LOG_LEVEL_INFO);
+        global_constants.LOG_LEVEL_INFO);
     this.clearSCORMError(returnValue);
 
     return returnValue;
+  }
+
+  /**
+   * Getter for #settings
+   * @return {object}
+   */
+  get settings() {
+    return this.#settings;
+  }
+
+  /**
+   * Setter for #settings
+   * @param {object} settings
+   */
+  set settings(settings: Object) {
+    this.#settings = {...this.#settings, ...settings};
   }
 
   /**
@@ -82,19 +97,19 @@ export default class BaseAPI {
   terminate(
       callbackName: String,
       checkTerminated: boolean) {
-    let returnValue = api_constants.SCORM_FALSE;
+    let returnValue = global_constants.SCORM_FALSE;
 
     if (this.checkState(checkTerminated,
         this.#error_codes.TERMINATION_BEFORE_INIT,
         this.#error_codes.MULTIPLE_TERMINATION)) {
       if (checkTerminated) this.lastErrorCode = 0;
-      this.currentState = api_constants.STATE_TERMINATED;
-      returnValue = api_constants.SCORM_TRUE;
+      this.currentState = global_constants.STATE_TERMINATED;
+      returnValue = global_constants.SCORM_TRUE;
       this.processListeners(callbackName);
     }
 
     this.apiLog(callbackName, null, 'returned: ' + returnValue,
-        api_constants.LOG_LEVEL_INFO);
+        global_constants.LOG_LEVEL_INFO);
     this.clearSCORMError(returnValue);
 
     return returnValue;
@@ -123,7 +138,7 @@ export default class BaseAPI {
     }
 
     this.apiLog(callbackName, CMIElement, ': returned: ' + returnValue,
-        api_constants.LOG_LEVEL_INFO);
+        global_constants.LOG_LEVEL_INFO);
     this.clearSCORMError(returnValue);
 
     return returnValue;
@@ -143,7 +158,7 @@ export default class BaseAPI {
       checkTerminated: boolean,
       CMIElement,
       value) {
-    let returnValue = api_constants.SCORM_FALSE;
+    let returnValue = global_constants.SCORM_FALSE;
 
     if (this.checkState(checkTerminated, this.#error_codes.STORE_BEFORE_INIT,
         this.#error_codes.STORE_AFTER_TERM)) {
@@ -153,7 +168,7 @@ export default class BaseAPI {
       } catch (e) {
         if (e instanceof ValidationError) {
           this.lastErrorCode = e.errorCode;
-          returnValue = api_constants.SCORM_FALSE;
+          returnValue = global_constants.SCORM_FALSE;
         } else {
           this.throwSCORMError(this.#error_codes.GENERAL);
         }
@@ -162,12 +177,20 @@ export default class BaseAPI {
     }
 
     if (returnValue === undefined) {
-      returnValue = api_constants.SCORM_FALSE;
+      returnValue = global_constants.SCORM_FALSE;
+    }
+
+    // If we didn't have any errors while setting the data, go ahead and
+    // schedule a commit, if autocommit is turned on
+    if (String(this.lastErrorCode) === '0') {
+      if (this.#settings.autocommit && this.#timeout === undefined) {
+        this.scheduleCommit(this.#settings.autocommitSeconds * 1000);
+      }
     }
 
     this.apiLog(callbackName, CMIElement,
         ': ' + value + ': result: ' + returnValue,
-        api_constants.LOG_LEVEL_INFO);
+        global_constants.LOG_LEVEL_INFO);
     this.clearSCORMError(returnValue);
 
     return returnValue;
@@ -182,17 +205,29 @@ export default class BaseAPI {
   commit(
       callbackName: String,
       checkTerminated: boolean) {
-    let returnValue = api_constants.SCORM_FALSE;
+    this.clearScheduledCommit();
+
+    let returnValue = global_constants.SCORM_FALSE;
 
     if (this.checkState(checkTerminated, this.#error_codes.COMMIT_BEFORE_INIT,
         this.#error_codes.COMMIT_AFTER_TERM)) {
+      const result = this.storeData(false);
+      if (result.errorCode && result.errorCode > 0) {
+        this.throwSCORMError(result.errorCode);
+      }
+      returnValue = result.result ?
+          result.result : global_constants.SCORM_FALSE;
+
+      this.apiLog(callbackName, 'HttpRequest', ' Result: ' + returnValue,
+          global_constants.LOG_LEVEL_DEBUG);
+
       if (checkTerminated) this.lastErrorCode = 0;
-      returnValue = api_constants.SCORM_TRUE;
+
       this.processListeners(callbackName);
     }
 
     this.apiLog(callbackName, null, 'returned: ' + returnValue,
-        api_constants.LOG_LEVEL_INFO);
+        global_constants.LOG_LEVEL_INFO);
     this.clearSCORMError(returnValue);
 
     return returnValue;
@@ -209,7 +244,7 @@ export default class BaseAPI {
     this.processListeners(callbackName);
 
     this.apiLog(callbackName, null, 'returned: ' + returnValue,
-        api_constants.LOG_LEVEL_INFO);
+        global_constants.LOG_LEVEL_INFO);
 
     return returnValue;
   }
@@ -230,7 +265,7 @@ export default class BaseAPI {
     }
 
     this.apiLog(callbackName, null, 'returned: ' + returnValue,
-        api_constants.LOG_LEVEL_INFO);
+        global_constants.LOG_LEVEL_INFO);
 
     return returnValue;
   }
@@ -251,7 +286,7 @@ export default class BaseAPI {
     }
 
     this.apiLog(callbackName, null, 'returned: ' + returnValue,
-        api_constants.LOG_LEVEL_INFO);
+        global_constants.LOG_LEVEL_INFO);
 
     return returnValue;
   }
@@ -296,13 +331,13 @@ export default class BaseAPI {
 
     if (messageLevel >= this.apiLogLevel) {
       switch (messageLevel) {
-        case api_constants.LOG_LEVEL_ERROR:
+        case global_constants.LOG_LEVEL_ERROR:
           console.error(logMessage);
           break;
-        case api_constants.LOG_LEVEL_WARNING:
+        case global_constants.LOG_LEVEL_WARNING:
           console.warn(logMessage);
           break;
-        case api_constants.LOG_LEVEL_INFO:
+        case global_constants.LOG_LEVEL_INFO:
           console.info(logMessage);
           break;
       }
@@ -426,12 +461,12 @@ export default class BaseAPI {
   _commonSetCMIValue(
       methodName: String, scorm2004: boolean, CMIElement, value) {
     if (!CMIElement || CMIElement === '') {
-      return api_constants.SCORM_FALSE;
+      return global_constants.SCORM_FALSE;
     }
 
     const structure = CMIElement.split('.');
     let refObject = this;
-    let returnValue = api_constants.SCORM_FALSE;
+    let returnValue = global_constants.SCORM_FALSE;
     let foundFirstIndex = false;
 
     const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
@@ -455,7 +490,7 @@ export default class BaseAPI {
 
           if (!scorm2004 || this.lastErrorCode === 0) {
             refObject[attribute] = value;
-            returnValue = api_constants.SCORM_TRUE;
+            returnValue = global_constants.SCORM_TRUE;
           }
         }
       } else {
@@ -496,10 +531,10 @@ export default class BaseAPI {
       }
     }
 
-    if (returnValue === api_constants.SCORM_FALSE) {
+    if (returnValue === global_constants.SCORM_FALSE) {
       this.apiLog(methodName, null,
           `There was an error setting the value for: ${CMIElement}, value of: ${value}`,
-          api_constants.LOG_LEVEL_WARNING);
+          global_constants.LOG_LEVEL_WARNING);
     }
 
     return returnValue;
@@ -604,9 +639,9 @@ export default class BaseAPI {
     if (refObject === null || refObject === undefined) {
       if (!scorm2004) {
         if (attribute === '_children') {
-          this.throwSCORMError(202);
+          this.throwSCORMError(scorm12_error_codes.CHILDREN_ERROR);
         } else if (attribute === '_count') {
-          this.throwSCORMError(203);
+          this.throwSCORMError(scorm12_error_codes.COUNT_ERROR);
         }
       }
     } else {
@@ -620,7 +655,7 @@ export default class BaseAPI {
    * @return {boolean}
    */
   isInitialized() {
-    return this.currentState === api_constants.STATE_INITIALIZED;
+    return this.currentState === global_constants.STATE_INITIALIZED;
   }
 
   /**
@@ -629,7 +664,7 @@ export default class BaseAPI {
    * @return {boolean}
    */
   isNotInitialized() {
-    return this.currentState === api_constants.STATE_NOT_INITIALIZED;
+    return this.currentState === global_constants.STATE_NOT_INITIALIZED;
   }
 
   /**
@@ -638,7 +673,7 @@ export default class BaseAPI {
    * @return {boolean}
    */
   isTerminated() {
-    return this.currentState === api_constants.STATE_TERMINATED;
+    return this.currentState === global_constants.STATE_TERMINATED;
   }
 
   /**
@@ -702,7 +737,7 @@ export default class BaseAPI {
     }
 
     this.apiLog('throwSCORMError', null, errorNumber + ': ' + message,
-        api_constants.LOG_LEVEL_ERROR);
+        global_constants.LOG_LEVEL_ERROR);
 
     this.lastErrorCode = String(errorNumber);
   }
@@ -713,9 +748,22 @@ export default class BaseAPI {
    * @param {string} success
    */
   clearSCORMError(success: String) {
-    if (success !== undefined && success !== api_constants.SCORM_FALSE) {
+    if (success !== undefined && success !== global_constants.SCORM_FALSE) {
       this.lastErrorCode = 0;
     }
+  }
+
+  /**
+   * Attempts to store the data to the LMS, logs data if no LMS configured
+   * APIs that inherit BaseAPI should override this function
+   *
+   * @param {boolean} _calculateTotalTime
+   * @return {string}
+   * @abstract
+   */
+  storeData(_calculateTotalTime) {
+    throw new Error(
+        'The storeData method has not been implemented');
   }
 
   /**
@@ -732,6 +780,8 @@ export default class BaseAPI {
     }
 
     CMIElement = CMIElement || 'cmi';
+
+    this.startingData = json;
 
     for (const key in json) {
       if ({}.hasOwnProperty.call(json, key) && json[key]) {
@@ -769,10 +819,22 @@ export default class BaseAPI {
    * @return {object}
    */
   renderCMIToJSONObject() {
-    const cmi = this.cmi;
     // Do we want/need to return fields that have no set value?
     // return JSON.stringify({ cmi }, (k, v) => v === undefined ? null : v, 2);
-    return JSON.parse(JSON.stringify(cmi));
+    return JSON.parse(this.renderCMIToJSONString());
+  }
+
+  /**
+   * Render the cmi object to the proper format for LMS commit
+   * APIs that inherit BaseAPI should override this function
+   *
+   * @param {boolean} _terminateCommit
+   * @return {*}
+   * @abstract
+   */
+  renderCommitCMI(_terminateCommit) {
+    throw new Error(
+        'The storeData method has not been implemented');
   }
 
   /**
@@ -781,6 +843,33 @@ export default class BaseAPI {
    */
   getCurrentTotalTime() {
     this.cmi.getCurrentTotalTime();
+  }
+
+  /**
+   * Send the request to the LMS
+   * @param {string} url
+   * @param {object|Array} params
+   * @return {object}
+   */
+  processHttpRequest(url: String, params) {
+    const httpReq = new XMLHttpRequest();
+    httpReq.open('POST', url, false);
+    httpReq.setRequestHeader('Content-Type',
+        'application/x-www-form-urlencoded');
+    try {
+      if (params instanceof Array) {
+        httpReq.send(params.join('&'));
+      } else {
+        httpReq.send(params);
+      }
+    } catch (e) {
+      return {
+        'result': global_constants.SCORM_FALSE,
+        'errorCode': this.#error_codes.GENERAL,
+      };
+    }
+
+    return JSON.parse(httpReq.responseText);
   }
 
   /**

@@ -274,4 +274,60 @@ describe('Utility Tests', () => {
       ).to.equal('01:05:30.5');
     });
   });
+
+  describe('flatten()', () => {
+    it('Should return flattened object', () => {
+      expect(
+          Utilities.flatten({
+            'cmi': {
+              'core': {
+                'learner_id': 'jputney',
+                'learner_name': 'Jonathan',
+              },
+              'objectives': {
+                '0': {
+                  'id': 'AAA',
+                },
+                '1': {
+                  'id': 'BBB',
+                },
+              },
+            },
+          }),
+      ).to.eql({
+        'cmi.core.learner_id': 'jputney',
+        'cmi.core.learner_name': 'Jonathan',
+        'cmi.objectives.0.id': 'AAA',
+        'cmi.objectives.1.id': 'BBB',
+      });
+    });
+  });
+
+  describe('unflatten()', () => {
+    it('Should return flattened object', () => {
+      expect(
+          Utilities.unflatten({
+            'cmi.core.learner_id': 'jputney',
+            'cmi.core.learner_name': 'Jonathan',
+            'cmi.objectives.0.id': 'AAA',
+            'cmi.objectives.1.id': 'BBB',
+          }),
+      ).to.eql({
+        'cmi': {
+          'core': {
+            'learner_id': 'jputney',
+            'learner_name': 'Jonathan',
+          },
+          'objectives': {
+            '0': {
+              'id': 'AAA',
+            },
+            '1': {
+              'id': 'BBB',
+            },
+          },
+        },
+      });
+    });
+  });
 });
