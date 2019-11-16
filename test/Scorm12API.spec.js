@@ -272,6 +272,19 @@ describe('SCORM 1.2 API Tests', () => {
     ).to.equal('student_2');
   });
 
+  describe('renderCommitCMI()', () => {
+    it('should calculate total time when terminateCommit passed',
+        () => {
+          const scorm12API = api();
+          scorm12API.cmi.core.total_time = '12:34:56';
+          scorm12API.cmi.core.session_time = '23:59:59';
+          const cmiExport = scorm12API.renderCommitCMI(true);
+          expect(
+              cmiExport.cmi.core.total_time
+          ).to.equal('36:34:55');
+        });
+  });
+
   describe('storeData()', () => {
     it('should set cmi.core.lesson_status to "completed"', () => {
       const scorm12API = api();

@@ -67,6 +67,23 @@ function check2004ValidRange(value: any, rangePattern: String) {
  * Class representing cmi object for SCORM 2004
  */
 export class CMI extends BaseCMI {
+  /**
+   * Constructor for the SCORM 2004 cmi object
+   * @param {boolean} initialized
+   */
+  constructor(initialized: boolean) {
+    super();
+
+    this.learner_preference = new CMILearnerPreference();
+    this.score = new Scorm2004CMIScore();
+    this.comments_from_learner = new CMICommentsFromLearner();
+    this.comments_from_lms = new CMICommentsFromLMS();
+    this.interactions = new CMIInteractions();
+    this.objectives = new CMIObjectives();
+
+    if (initialized) this.initialize();
+  }
+
   #_version = '1.0';
   #_children = constants.cmi_children;
   #completion_status = 'unknown';
@@ -87,23 +104,6 @@ export class CMI extends BaseCMI {
   #suspend_data = '';
   #time_limit_action = 'continue,no message';
   #total_time = '0';
-
-  /**
-   * Constructor for the SCORM 2004 cmi object
-   * @param {boolean} initialized
-   */
-  constructor(initialized: boolean) {
-    super();
-
-    this.learner_preference = new CMILearnerPreference();
-    this.score = new Scorm2004CMIScore();
-    this.comments_from_learner = new CMICommentsFromLearner();
-    this.comments_from_lms = new CMICommentsFromLMS();
-    this.interactions = new CMIInteractions();
-    this.objectives = new CMIObjectives();
-
-    if (initialized) this.initialize();
-  }
 
   /**
    * Called when the API has been initialized after the CMI has been created

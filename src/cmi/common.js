@@ -223,11 +223,14 @@ export class CMIScore extends BaseCMI {
    * @return {{min: string, max: string, raw: string}}
    */
   toJSON() {
-    return {
+    this.jsonString = true;
+    const result = {
       'raw': this.raw,
       'min': this.min,
       'max': this.max,
     };
+    delete this.jsonString;
+    return result;
   }
 }
 

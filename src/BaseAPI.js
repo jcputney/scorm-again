@@ -838,14 +838,6 @@ export default class BaseAPI {
   }
 
   /**
-   * Gets the current total time as total_time + session_time
-   * APIs that inherit BaseAPI should override this function
-   */
-  getCurrentTotalTime() {
-    this.cmi.getCurrentTotalTime();
-  }
-
-  /**
    * Send the request to the LMS
    * @param {string} url
    * @param {object|Array} params

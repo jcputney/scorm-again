@@ -439,17 +439,17 @@ export default class Scorm2004API extends BaseAPI {
    * @return {object|Array}
    */
   renderCommitCMI(terminateCommit: boolean) {
-    const cmi = this.renderCMIToJSONObject();
+    const cmiExport = this.renderCMIToJSONObject();
 
     if (terminateCommit) {
-      cmi.total_time = this.getCurrentTotalTime();
+      cmiExport.cmi.total_time = this.cmi.getCurrentTotalTime();
     }
 
     const result = [];
-    const flattened = Utilities.flatten(cmi);
+    const flattened = Utilities.flatten(cmiExport);
     switch (this.settings.dataCommitFormat) {
       case 'flattened':
-        return Utilities.flatten(cmi);
+        return Utilities.flatten(cmiExport);
       case 'params':
         for (const item in flattened) {
           if ({}.hasOwnProperty.call(flattened, item)) {
@@ -459,7 +459,7 @@ export default class Scorm2004API extends BaseAPI {
         return result;
       case 'json':
       default:
-        return cmi;
+        return cmiExport;
     }
   }
 
@@ -471,7 +471,7 @@ export default class Scorm2004API extends BaseAPI {
    */
   storeData(terminateCommit: boolean) {
     if (terminateCommit) {
-      if (this.cmi.lesson_mode === 'normal') {
+      if (this.cmi.mode === 'normal') {
         if (this.cmi.credit === 'credit') {
           if (this.cmi.completion_threshold && this.cmi.progress_measure) {
             if (this.cmi.progress_measure >= this.cmi.completion_threshold) {
@@ -493,7 +493,8 @@ export default class Scorm2004API extends BaseAPI {
     }
 
     let navRequest = false;
-    if (this.adl.nav.request !== (this.startingData?.adl?.nav?.request || '')) {
+    if (this.adl.nav.request !== (this.startingData?.adl?.nav?.request) &&
+        this.adl.nav.request !== '_none_') {
       this.adl.nav.request = encodeURIComponent(this.adl.nav.request);
       navRequest = true;
     }

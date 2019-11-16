@@ -287,4 +287,56 @@ describe('SCORM 2004 API Tests', () => {
       });
     });
   });
+
+  describe('renderCommitCMI()', () => {
+    it('should calculate total time when terminateCommit passed',
+        () => {
+          const scorm2004API = api();
+          scorm2004API.cmi.total_time = 'PT12H34M56S';
+          scorm2004API.cmi.session_time = 'PT23H59M59S';
+          const cmiExport = scorm2004API.renderCommitCMI(true);
+          expect(
+              cmiExport.cmi.total_time
+          ).to.equal('P1DT12H34M55S');
+        });
+  });
+
+  describe('storeData()', () => {
+    it('should set cmi.completion_status to "completed"',
+        () => {
+          const scorm2004API = api();
+          scorm2004API.cmi.credit = 'credit';
+          scorm2004API.cmi.completion_threshold = '0.6';
+          scorm2004API.cmi.progress_measure = '0.75';
+          scorm2004API.storeData(true);
+          expect(scorm2004API.cmi.completion_status).to.equal('completed');
+        });
+    it('should set cmi.completion_status to "incomplete"',
+        () => {
+          const scorm2004API = api();
+          scorm2004API.cmi.credit = 'credit';
+          scorm2004API.cmi.completion_threshold = '0.7';
+          scorm2004API.cmi.progress_measure = '0.6';
+          scorm2004API.storeData(true);
+          expect(scorm2004API.cmi.completion_status).to.equal('incomplete');
+        });
+    it('should set cmi.success_status to "passed"',
+        () => {
+          const scorm2004API = api();
+          scorm2004API.cmi.credit = 'credit';
+          scorm2004API.cmi.score.scaled = '0.7';
+          scorm2004API.cmi.scaled_passing_score = '0.6';
+          scorm2004API.storeData(true);
+          expect(scorm2004API.cmi.success_status).to.equal('passed');
+        });
+    it('should set cmi.success_status to "failed"',
+        () => {
+          const scorm2004API = api();
+          scorm2004API.cmi.credit = 'credit';
+          scorm2004API.cmi.score.scaled = '0.6';
+          scorm2004API.cmi.scaled_passing_score = '0.7';
+          scorm2004API.storeData(true);
+          expect(scorm2004API.cmi.success_status).to.equal('failed');
+        });
+  });
 });

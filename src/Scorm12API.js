@@ -220,7 +220,7 @@ export default class Scorm12API extends BaseAPI {
     const cmiExport = this.renderCMIToJSONObject();
 
     if (terminateCommit) {
-      cmiExport.cmi.core.total_time = this.getCurrentTotalTime();
+      cmiExport.cmi.core.total_time = this.cmi.getCurrentTotalTime();
     }
 
     const result = [];
