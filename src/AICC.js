@@ -61,3 +61,5 @@ export default class AICC extends Scorm12API {
     this.nav = newAPI.nav;
   }
 }
+
+window.AICC = AICC;

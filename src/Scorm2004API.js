@@ -523,3 +523,5 @@ export default class Scorm2004API extends BaseAPI {
     }
   }
 }
+
+window.Scorm2004API = Scorm2004API;
