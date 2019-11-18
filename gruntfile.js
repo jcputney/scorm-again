@@ -7,7 +7,10 @@ module.exports = function(grunt) {
         ],
         dest: './dist/scorm-again.js',
         options: {
-          browserifyOptions: {debug: true},
+          browserifyOptions: {
+            debug: true,
+            standalone: true,
+          },
           transform: [
             [
               'babelify', {
@@ -28,7 +31,10 @@ module.exports = function(grunt) {
         ],
         dest: './dist/scorm-again.min.js',
         options: {
-          browserifyOptions: {debug: true},
+          browserifyOptions: {
+            debug: true,
+            standalone: true,
+          },
           transform: [
             [
               'babelify', {
