@@ -3,6 +3,7 @@ import {CMIArray} from './cmi/common';
 import {ValidationError} from './exceptions';
 import {scorm12_error_codes} from './constants/error_codes';
 import {global_constants} from './constants/api_constants';
+import {unflatten} from './utilities';
 
 /**
  * Base API class for AICC, SCORM 1.2, and SCORM 2004. Should be considered
@@ -764,6 +765,15 @@ export default class BaseAPI {
   storeData(_calculateTotalTime) {
     throw new Error(
         'The storeData method has not been implemented');
+  }
+
+  /**
+   * Load the CMI from a flattened JSON object
+   * @param {object} json
+   * @param {string} CMIElement
+   */
+  loadFromFlattenedJSON(json, CMIElement) {
+    this.loadFromJSON(unflatten(json), CMIElement);
   }
 
   /**
