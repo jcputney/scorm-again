@@ -9,7 +9,7 @@ module.exports = function(grunt) {
         options: {
           browserifyOptions: {
             debug: true,
-            standalone: true,
+            standalone: 'ScormAgain',
           },
           transform: [
             [
@@ -33,7 +33,7 @@ module.exports = function(grunt) {
         options: {
           browserifyOptions: {
             debug: true,
-            standalone: true,
+            standalone: 'ScormAgain',
           },
           transform: [
             [
