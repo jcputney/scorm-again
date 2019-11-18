@@ -292,5 +292,3 @@ export default class Scorm12API extends BaseAPI {
     }
   }
 }
-
-window.Scorm12API = Scorm12API;
