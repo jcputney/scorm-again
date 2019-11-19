@@ -864,10 +864,10 @@ export default class BaseAPI {
   processHttpRequest(url: String, params) {
     const httpReq = new XMLHttpRequest();
     httpReq.open('POST', url, false);
-    httpReq.setRequestHeader('Content-Type',
-        'application/x-www-form-urlencoded');
     try {
       if (params instanceof Array) {
+        httpReq.setRequestHeader('Content-Type',
+            'application/x-www-form-urlencoded');
         httpReq.send(params.join('&'));
       } else {
         httpReq.send(params);
@@ -879,7 +879,11 @@ export default class BaseAPI {
       };
     }
 
-    return JSON.parse(httpReq.responseText);
+    try {
+      return JSON.parse(httpReq.responseText);
+    } catch (e) {
+      return {};
+    }
   }
 
   /**
