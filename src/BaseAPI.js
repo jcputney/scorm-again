@@ -619,7 +619,7 @@ export default class BaseAPI {
       }
 
       refObject = refObject[attribute];
-      if (!refObject) {
+      if (refObject === undefined) {
         this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
         break;
       }
