@@ -4,12 +4,13 @@ import {scorm12_error_codes} from '../../src/constants/error_codes';
 import {
   CMI,
   CMIEvaluationCommentsObject,
-  CMITriesObject, NAV,
+  CMITriesObject,
 } from '../../src/cmi/aicc_cmi';
 import * as h from '../cmi_helpers';
 import {
   CMIInteractionsObject,
   CMIObjectivesObject,
+  NAV,
 } from '../../src/cmi/scorm12_cmi';
 import {expect} from 'chai';
 import {scorm12_values} from '../../src/constants/field_values';

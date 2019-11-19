@@ -17,6 +17,7 @@ export default class BaseAPI {
     autocommitSeconds: 60,
     lmsCommitUrl: false,
     dataCommitFormat: 'json', // valid formats are 'json' or 'flattened', 'params'
+    auto_progress: false,
   };
   cmi;
   startingData: {};
@@ -103,6 +104,13 @@ export default class BaseAPI {
     if (this.checkState(checkTerminated,
         this.#error_codes.TERMINATION_BEFORE_INIT,
         this.#error_codes.MULTIPLE_TERMINATION)) {
+      const result = this.storeData(true);
+      if (result.errorCode && result.errorCode > 0) {
+        this.throwSCORMError(result.errorCode);
+      }
+      returnValue = result.result ?
+          result.result : global_constants.SCORM_FALSE;
+
       if (checkTerminated) this.lastErrorCode = 0;
       this.currentState = global_constants.STATE_TERMINATED;
       returnValue = global_constants.SCORM_TRUE;

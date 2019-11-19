@@ -5,7 +5,7 @@ import {
   CMIInteractionsCorrectResponsesObject,
   CMIInteractionsObject,
   CMIInteractionsObjectivesObject,
-  CMIObjectivesObject,
+  CMIObjectivesObject, NAV,
 } from './cmi/scorm12_cmi';
 import * as Utilities from './utilities';
 import {global_constants, scorm12_constants} from './constants/api_constants';
@@ -31,6 +31,8 @@ export default class Scorm12API extends BaseAPI {
     super(scorm12_error_codes, finalSettings);
 
     this.cmi = new CMI();
+    this.nav = new NAV();
+
     // Rename functions to match 1.2 Spec and expose to modules
     this.LMSInitialize = this.lmsInitialize;
     this.LMSFinish = this.lmsFinish;
@@ -59,7 +61,21 @@ export default class Scorm12API extends BaseAPI {
    * @return {string} bool
    */
   lmsFinish() {
-    return this.terminate('LMSFinish', false);
+    const result = this.terminate('LMSFinish', false);
+
+    if (result === global_constants.SCORM_TRUE) {
+      if (this.nav.event !== '') {
+        if (this.nav.event === 'continue') {
+          this.processListeners('SequenceNext');
+        } else {
+          this.processListeners('SequencePrevious');
+        }
+      } else if (this.settings.auto_progress) {
+        this.processListeners('SequenceNext');
+      }
+    }
+
+    return result;
   }
 
   /**
