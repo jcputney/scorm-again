@@ -351,6 +351,13 @@ export default class BaseAPI {
         case global_constants.LOG_LEVEL_INFO:
           console.info(logMessage);
           break;
+        case global_constants.LOG_LEVEL_DEBUG:
+          if (console.debug) {
+            console.debug(logMessage);
+          } else {
+            console.log(logMessage);
+          }
+          break;
       }
     }
   }
@@ -909,7 +916,8 @@ export default class BaseAPI {
     if (this.#timeout) {
       this.#timeout.cancel();
       this.#timeout = null;
-      this.apiLog('clearScheduledCommit', null, null, global_constants.LOG_LEVEL_DEBUG);
+      this.apiLog('clearScheduledCommit', null, null,
+          global_constants.LOG_LEVEL_DEBUG);
     }
   }
 }
@@ -919,7 +927,7 @@ export default class BaseAPI {
  */
 class ScheduledCommit {
   #API;
-  #cancelled: false;
+  #cancelled = false;
   #timeout;
 
   /**
