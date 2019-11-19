@@ -194,8 +194,8 @@ export default class BaseAPI {
     // If we didn't have any errors while setting the data, go ahead and
     // schedule a commit, if autocommit is turned on
     if (String(this.lastErrorCode) === '0') {
-      if (this.#settings.autocommit && this.#timeout === undefined) {
-        this.scheduleCommit(this.#settings.autocommitSeconds * 1000);
+      if (this.settings.autocommit && !this.#timeout) {
+        this.scheduleCommit(this.settings.autocommitSeconds * 1000);
       }
     }
 
@@ -899,6 +899,7 @@ export default class BaseAPI {
    */
   scheduleCommit(when: number) {
     this.#timeout = new ScheduledCommit(this, when);
+    this.apiLog('scheduleCommit', null, null, global_constants.LOG_LEVEL_DEBUG);
   }
 
   /**
@@ -908,6 +909,7 @@ export default class BaseAPI {
     if (this.#timeout) {
       this.#timeout.cancel();
       this.#timeout = null;
+      this.apiLog('clearScheduledCommit', null, null, global_constants.LOG_LEVEL_DEBUG);
     }
   }
 }

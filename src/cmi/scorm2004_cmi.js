@@ -428,7 +428,7 @@ export class CMI extends BaseCMI {
    * @param {string} suspend_data
    */
   set suspend_data(suspend_data) {
-    if (check2004ValidFormat(suspend_data, regex.CMIString64000)) {
+    if (check2004ValidFormat(suspend_data, regex.CMIString64000, true)) {
       this.#suspend_data = suspend_data;
     }
   }
