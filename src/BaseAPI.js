@@ -907,7 +907,7 @@ export default class BaseAPI {
    */
   scheduleCommit(when: number) {
     this.clearScheduledCommit();
-    this.#timeout = setTimeout(this.scheduledCallback, when);
+    this.#timeout = setTimeout(this.scheduledCallback.bind(this), when);
     this.apiLog('scheduleCommit', '', 'scheduled', global_constants.LOG_LEVEL_DEBUG);
   }
 
