@@ -862,6 +862,11 @@ export default class BaseAPI {
    * @return {object}
    */
   processHttpRequest(url: String, params) {
+    const genericError = {
+      'result': global_constants.SCORM_FALSE,
+      'errorCode': this.#error_codes.GENERAL,
+    };
+
     const httpReq = new XMLHttpRequest();
     httpReq.open('POST', url, false);
     try {
@@ -873,16 +878,13 @@ export default class BaseAPI {
         httpReq.send(params);
       }
     } catch (e) {
-      return {
-        'result': global_constants.SCORM_FALSE,
-        'errorCode': this.#error_codes.GENERAL,
-      };
+      return genericError;
     }
 
     try {
       return JSON.parse(httpReq.responseText);
     } catch (e) {
-      return {};
+      return genericError;
     }
   }
 
