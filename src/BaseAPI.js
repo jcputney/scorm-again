@@ -195,7 +195,7 @@ export default class BaseAPI {
     // If we didn't have any errors while setting the data, go ahead and
     // schedule a commit, if autocommit is turned on
     if (String(this.lastErrorCode) === '0') {
-      if (this.settings.autocommit && !this.#timeout) {
+      if (this.settings.autocommit) {
         this.scheduleCommit(this.settings.autocommitSeconds * 1000);
       }
     }
@@ -906,6 +906,7 @@ export default class BaseAPI {
    * @param {number} when - the number of milliseconds to wait before committing
    */
   scheduleCommit(when: number) {
+    this.clearScheduledCommit();
     this.#timeout = setTimeout(this.scheduledCallback, when);
     this.apiLog('scheduleCommit', '', 'scheduled', global_constants.LOG_LEVEL_DEBUG);
   }
