@@ -17,6 +17,7 @@ export default class BaseAPI {
     autocommitSeconds: 60,
     lmsCommitUrl: false,
     dataCommitFormat: 'json', // valid formats are 'json' or 'flattened', 'params'
+    commitRequestDataType: 'application/json;charset=UTF-8',
     auto_progress: false,
   };
   cmi;
@@ -869,6 +870,8 @@ export default class BaseAPI {
 
     const httpReq = new XMLHttpRequest();
     httpReq.open('POST', url, false);
+    httpReq.setRequestHeader('Content-Type',
+        this.settings.commitRequestDataType);
     try {
       if (params instanceof Array) {
         httpReq.setRequestHeader('Content-Type',
