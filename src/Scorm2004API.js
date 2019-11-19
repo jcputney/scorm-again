@@ -98,7 +98,7 @@ export default class Scorm2004API extends BaseAPI {
             this.processListeners('SequenceAbandonAll');
             break;
         }
-      } else if (this.settings.auto_progress) {
+      } else if (this.settings.autoProgress) {
         this.processListeners('SequenceNext');
       }
     }

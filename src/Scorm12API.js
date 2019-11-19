@@ -70,7 +70,7 @@ export default class Scorm12API extends BaseAPI {
         } else {
           this.processListeners('SequencePrevious');
         }
-      } else if (this.settings.auto_progress) {
+      } else if (this.settings.autoProgress) {
         this.processListeners('SequenceNext');
       }
     }

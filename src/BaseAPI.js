@@ -18,7 +18,8 @@ export default class BaseAPI {
     lmsCommitUrl: false,
     dataCommitFormat: 'json', // valid formats are 'json' or 'flattened', 'params'
     commitRequestDataType: 'application/json;charset=UTF-8',
-    auto_progress: false,
+    autoProgress: false,
+    logLevel: global_constants.LOG_LEVEL_ERROR,
   };
   cmi;
   startingData: {};
@@ -34,7 +35,6 @@ export default class BaseAPI {
       throw new TypeError('Cannot construct BaseAPI instances directly');
     }
     this.currentState = global_constants.STATE_NOT_INITIALIZED;
-    this.apiLogLevel = global_constants.LOG_LEVEL_ERROR;
     this.lastErrorCode = 0;
     this.listenerArray = [];
 
@@ -42,6 +42,7 @@ export default class BaseAPI {
     this.#error_codes = error_codes;
 
     this.settings = settings;
+    this.apiLogLevel = this.settings.logLevel;
   }
 
   /**
