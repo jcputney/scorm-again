@@ -870,15 +870,15 @@ export default class BaseAPI {
 
     const httpReq = new XMLHttpRequest();
     httpReq.open('POST', url, false);
-    httpReq.setRequestHeader('Content-Type',
-        this.settings.commitRequestDataType);
     try {
       if (params instanceof Array) {
         httpReq.setRequestHeader('Content-Type',
             'application/x-www-form-urlencoded');
         httpReq.send(params.join('&'));
       } else {
-        httpReq.send(params);
+        httpReq.setRequestHeader('Content-Type',
+            this.settings.commitRequestDataType);
+        httpReq.send(JSON.stringify(params));
       }
     } catch (e) {
       return genericError;
