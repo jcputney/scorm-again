@@ -11,6 +11,7 @@ import {unflatten} from './utilities';
  */
 export default class BaseAPI {
   #timeout;
+  #scheduleCancelled = false;
   #error_codes;
   #settings = {
     autocommit: false,
@@ -905,8 +906,8 @@ export default class BaseAPI {
    * @param {number} when - the number of milliseconds to wait before committing
    */
   scheduleCommit(when: number) {
-    this.#timeout = new ScheduledCommit(this, when);
-    this.apiLog('scheduleCommit', null, null, global_constants.LOG_LEVEL_DEBUG);
+    this.#timeout = setTimeout(this.scheduledCallback, when);
+    this.apiLog('scheduleCommit', '', 'scheduled', global_constants.LOG_LEVEL_DEBUG);
   }
 
   /**
@@ -914,48 +915,19 @@ export default class BaseAPI {
    */
   clearScheduledCommit() {
     if (this.#timeout) {
-      this.#timeout.cancel();
-      this.#timeout = null;
-      this.apiLog('clearScheduledCommit', null, null,
+      this.#scheduleCancelled = true;
+      clearTimeout(this.#timeout);
+      this.apiLog('clearScheduledCommit', '', 'cleared',
           global_constants.LOG_LEVEL_DEBUG);
     }
   }
-}
-
-/**
- * Private class that wraps a timeout call to the commit() function
- */
-class ScheduledCommit {
-  #API;
-  #cancelled = false;
-  #timeout;
 
   /**
-   * Constructor for ScheduledCommit
-   * @param {BaseAPI} API
-   * @param {number} when
+   * Callback for scheduled commit timeout
    */
-  constructor(API: any, when: number) {
-    this.#API = API;
-    this.#timeout = setTimeout(this.wrapper, when);
-  }
-
-  /**
-   * Cancel any currently scheduled commit
-   */
-  cancel() {
-    this.#cancelled = true;
-    if (this.#timeout) {
-      clearTimeout(this.#timeout);
-    }
-  }
-
-  /**
-   * Wrap the API commit call to check if the call has already been cancelled
-   */
-  wrapper() {
-    if (!this.#cancelled) {
-      this.#API.commit();
+  scheduledCallback() {
+    if (!this.#scheduleCancelled) {
+      this.commit('Commit', false);
     }
   }
 }
