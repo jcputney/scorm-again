@@ -12,7 +12,7 @@
     "@babel/node": "^7.7.0",
     "@babel/plugin-proposal-class-properties": "^7.7.0",
     "@babel/plugin-proposal-optional-chaining": "^7.6.0",
-    "@babel/plugin-proposal-private-methods": "^7.6.0",
+    "@babel/plugin-proposal-private-methods": "^7.7.4",
     "@babel/preset-env": "^7.7.1",
     "@babel/preset-flow": "^7.0.0",
     "@babel/register": "^7.7.0",
