@@ -362,7 +362,7 @@ class CMICore extends BaseCMI {
    * @param {string} lesson_location
    */
   set lesson_location(lesson_location) {
-    if (check12ValidFormat(lesson_location, regex.CMIString256)) {
+    if (check12ValidFormat(lesson_location, regex.CMIString256, true)) {
       this.#lesson_location = lesson_location;
     }
   }
