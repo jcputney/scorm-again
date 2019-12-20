@@ -17,6 +17,9 @@ export default class BaseAPI {
     autocommitSeconds: 60,
     lmsCommitUrl: false,
     dataCommitFormat: 'json', // valid formats are 'json' or 'flattened', 'params'
+    commitRequestDataType: 'application/json;charset=UTF-8',
+    autoProgress: false,
+    logLevel: global_constants.LOG_LEVEL_ERROR,
   };
   cmi;
   startingData: {};
@@ -32,7 +35,6 @@ export default class BaseAPI {
       throw new TypeError('Cannot construct BaseAPI instances directly');
     }
     this.currentState = global_constants.STATE_NOT_INITIALIZED;
-    this.apiLogLevel = global_constants.LOG_LEVEL_ERROR;
     this.lastErrorCode = 0;
     this.listenerArray = [];
 
@@ -40,6 +42,7 @@ export default class BaseAPI {
     this.#error_codes = error_codes;
 
     this.settings = settings;
+    this.apiLogLevel = this.settings.logLevel;
   }
 
   /**
@@ -103,6 +106,13 @@ export default class BaseAPI {
     if (this.checkState(checkTerminated,
         this.#error_codes.TERMINATION_BEFORE_INIT,
         this.#error_codes.MULTIPLE_TERMINATION)) {
+      const result = this.storeData(true);
+      if (result.errorCode && result.errorCode > 0) {
+        this.throwSCORMError(result.errorCode);
+      }
+      returnValue = result.result ?
+          result.result : global_constants.SCORM_FALSE;
+
       if (checkTerminated) this.lastErrorCode = 0;
       this.currentState = global_constants.STATE_TERMINATED;
       returnValue = global_constants.SCORM_TRUE;
@@ -184,8 +194,8 @@ export default class BaseAPI {
     // If we didn't have any errors while setting the data, go ahead and
     // schedule a commit, if autocommit is turned on
     if (String(this.lastErrorCode) === '0') {
-      if (this.#settings.autocommit && this.#timeout === undefined) {
-        this.scheduleCommit(this.#settings.autocommitSeconds * 1000);
+      if (this.settings.autocommit && !this.#timeout) {
+        this.scheduleCommit(this.settings.autocommitSeconds * 1000);
       }
     }
 
@@ -340,6 +350,13 @@ export default class BaseAPI {
           break;
         case global_constants.LOG_LEVEL_INFO:
           console.info(logMessage);
+          break;
+        case global_constants.LOG_LEVEL_DEBUG:
+          if (console.debug) {
+            console.debug(logMessage);
+          } else {
+            console.log(logMessage);
+          }
           break;
       }
     }
@@ -611,7 +628,7 @@ export default class BaseAPI {
       }
 
       refObject = refObject[attribute];
-      if (!refObject) {
+      if (refObject === undefined) {
         this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
         break;
       }
@@ -854,24 +871,32 @@ export default class BaseAPI {
    * @return {object}
    */
   processHttpRequest(url: String, params) {
+    const genericError = {
+      'result': global_constants.SCORM_FALSE,
+      'errorCode': this.#error_codes.GENERAL,
+    };
+
     const httpReq = new XMLHttpRequest();
     httpReq.open('POST', url, false);
-    httpReq.setRequestHeader('Content-Type',
-        'application/x-www-form-urlencoded');
     try {
       if (params instanceof Array) {
+        httpReq.setRequestHeader('Content-Type',
+            'application/x-www-form-urlencoded');
         httpReq.send(params.join('&'));
       } else {
-        httpReq.send(params);
+        httpReq.setRequestHeader('Content-Type',
+            this.settings.commitRequestDataType);
+        httpReq.send(JSON.stringify(params));
       }
     } catch (e) {
-      return {
-        'result': global_constants.SCORM_FALSE,
-        'errorCode': this.#error_codes.GENERAL,
-      };
+      return genericError;
     }
 
-    return JSON.parse(httpReq.responseText);
+    try {
+      return JSON.parse(httpReq.responseText);
+    } catch (e) {
+      return genericError;
+    }
   }
 
   /**
@@ -881,6 +906,7 @@ export default class BaseAPI {
    */
   scheduleCommit(when: number) {
     this.#timeout = new ScheduledCommit(this, when);
+    this.apiLog('scheduleCommit', '', 'scheduled', global_constants.LOG_LEVEL_DEBUG);
   }
 
   /**
@@ -890,6 +916,8 @@ export default class BaseAPI {
     if (this.#timeout) {
       this.#timeout.cancel();
       this.#timeout = null;
+      this.apiLog('clearScheduledCommit', '', 'cleared',
+          global_constants.LOG_LEVEL_DEBUG);
     }
   }
 }
@@ -899,7 +927,7 @@ export default class BaseAPI {
  */
 class ScheduledCommit {
   #API;
-  #cancelled: false;
+  #cancelled = false;
   #timeout;
 
   /**
@@ -909,7 +937,7 @@ class ScheduledCommit {
    */
   constructor(API: any, when: number) {
     this.#API = API;
-    this.#timeout = setTimeout(this.wrapper, when);
+    this.#timeout = setTimeout(this.wrapper.bind(this), when);
   }
 
   /**

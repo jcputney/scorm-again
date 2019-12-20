@@ -71,7 +71,39 @@ export default class Scorm2004API extends BaseAPI {
    * @return {string} bool
    */
   lmsTerminate() {
-    return this.terminate('Terminate', true);
+    const result = this.terminate('Terminate', true);
+
+    if (result === global_constants.SCORM_TRUE) {
+      if (this.adl.nav.request !== '_none_') {
+        switch (this.adl.nav.request) {
+          case 'continue':
+            this.processListeners('SequenceNext');
+            break;
+          case 'previous':
+            this.processListeners('SequencePrevious');
+            break;
+          case 'choice':
+            this.processListeners('SequenceChoice');
+            break;
+          case 'exit':
+            this.processListeners('SequenceExit');
+            break;
+          case 'exitAll':
+            this.processListeners('SequenceExitAll');
+            break;
+          case 'abandon':
+            this.processListeners('SequenceAbandon');
+            break;
+          case 'abandonAll':
+            this.processListeners('SequenceAbandonAll');
+            break;
+        }
+      } else if (this.settings.autoProgress) {
+        this.processListeners('SequenceNext');
+      }
+    }
+
+    return result;
   }
 
   /**

@@ -4,8 +4,8 @@ import {
   CMI,
   CMIEvaluationCommentsObject,
   CMITriesObject,
-  NAV,
 } from './cmi/aicc_cmi';
+import {NAV} from './cmi/scorm12_cmi';
 
 /**
  * The AICC API class
