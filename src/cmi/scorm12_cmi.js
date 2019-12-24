@@ -494,7 +494,7 @@ class CMICore extends BaseCMI {
     return Utilities.addHHMMSSTimeStrings(
         this.#total_time,
         this.#session_time,
-        new RegExp(scorm12_regex.CMITimespan)
+        new RegExp(scorm12_regex.CMITimespan),
     );
   }
 
