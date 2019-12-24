@@ -806,7 +806,7 @@ export default class BaseAPI {
       return;
     }
 
-    CMIElement = CMIElement || 'cmi';
+    CMIElement = CMIElement !== undefined ? CMIElement : 'cmi';
 
     this.startingData = json;
 
@@ -906,7 +906,8 @@ export default class BaseAPI {
    */
   scheduleCommit(when: number) {
     this.#timeout = new ScheduledCommit(this, when);
-    this.apiLog('scheduleCommit', '', 'scheduled', global_constants.LOG_LEVEL_DEBUG);
+    this.apiLog('scheduleCommit', '', 'scheduled',
+        global_constants.LOG_LEVEL_DEBUG);
   }
 
   /**
