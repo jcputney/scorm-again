@@ -28,7 +28,7 @@ export function getSecondsAsHHMMSS(totalSeconds: Number) {
   const dateObj = new Date(totalSeconds * 1000);
   const minutes = dateObj.getUTCMinutes();
   // make sure we add any possible decimal value
-  const seconds = dateObj.getSeconds() + (totalSeconds % 1.0);
+  const seconds = (dateObj.getSeconds() + (totalSeconds % 1.0)).toFixed(2);
 
   return hours.toString().padStart(2, '0') + ':' +
       minutes.toString().padStart(2, '0') + ':' +
@@ -120,7 +120,7 @@ export function getDurationAsSeconds(duration: String, durationRegex: RegExp) {
     anchor.setMilliseconds(anchor.getMilliseconds() + milliseconds);
   }
 
-  return ((anchor * 1.0) - now) / 1000.0;
+  return (((anchor * 1.0) - now) / 1000.0).toFixed(2);
 }
 
 /**
