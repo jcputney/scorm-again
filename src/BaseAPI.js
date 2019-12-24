@@ -810,9 +810,10 @@ export default class BaseAPI {
 
     this.startingData = json;
 
+    // could this be refactored down to flatten(json) then setCMIValue on each?
     for (const key in json) {
       if ({}.hasOwnProperty.call(json, key) && json[key]) {
-        const currentCMIElement = CMIElement + '.' + key;
+        const currentCMIElement = (CMIElement ? CMIElement + '.' : '') + key;
         const value = json[key];
 
         if (value['childArray']) {
