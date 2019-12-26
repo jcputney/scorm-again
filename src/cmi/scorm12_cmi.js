@@ -512,7 +512,6 @@ class CMICore extends BaseCMI {
    *      lesson_location: string,
    *      lesson_status: string,
    *      credit: string,
-   *      total_time: string,
    *      session_time: *
    *    }
    *  }
@@ -526,7 +525,6 @@ class CMICore extends BaseCMI {
       'credit': this.credit,
       'lesson_status': this.lesson_status,
       'entry': this.entry,
-      'total_time': this.total_time,
       'lesson_mode': this.lesson_mode,
       'exit': this.exit,
       'session_time': this.session_time,
