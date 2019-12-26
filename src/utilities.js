@@ -28,7 +28,10 @@ export function getSecondsAsHHMMSS(totalSeconds: Number) {
   const dateObj = new Date(totalSeconds * 1000);
   const minutes = dateObj.getUTCMinutes();
   // make sure we add any possible decimal value
-  const seconds = (dateObj.getSeconds() + (totalSeconds % 1.0)).toFixed(2);
+  let seconds = (dateObj.getSeconds() + (totalSeconds % 1.0));
+  if (countDecimals(seconds) > 2) {
+    seconds = seconds.toFixed(2);
+  }
 
   return hours.toString().padStart(2, '0') + ':' +
       minutes.toString().padStart(2, '0') + ':' +
@@ -119,8 +122,7 @@ export function getDurationAsSeconds(duration: String, durationRegex: RegExp) {
     const milliseconds = Number(Number(seconds) % 1).toFixed(6) * 1000.0;
     anchor.setMilliseconds(anchor.getMilliseconds() + milliseconds);
   }
-
-  return (((anchor * 1.0) - now) / 1000.0).toFixed(2);
+  return ((anchor * 1.0) - now) / 1000.0;
 }
 
 /**
@@ -219,4 +221,14 @@ export function unflatten(data) {
     }
   }
   return result[''] || result;
+}
+
+/**
+ * Counts the number of decimal places
+ * @param {number} num
+ * @return {number}
+ */
+export function countDecimals(num: number) {
+  if (Math.floor(num) === num) return 0;
+  return num.toString().split('.')[1].length || 0;
 }
