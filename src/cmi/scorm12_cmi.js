@@ -462,7 +462,7 @@ class CMICore extends BaseCMI {
    * @param {string} exit
    */
   set exit(exit) {
-    if (check12ValidFormat(exit, regex.CMIExit)) {
+    if (check12ValidFormat(exit, regex.CMIExit, true)) {
       this.#exit = exit;
     }
   }

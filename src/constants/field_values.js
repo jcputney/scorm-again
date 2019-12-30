@@ -89,6 +89,7 @@ export const scorm12_values = {
       'time-out',
       'suspend',
       'logout',
+      '',
     ],
     invalidExit: [
       'close',
@@ -229,6 +230,7 @@ export const scorm2004_values = {
       'suspend',
       'logout',
       'normal',
+      '',
     ],
     invalidExit: [
       'close',

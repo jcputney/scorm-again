@@ -235,7 +235,7 @@ export class CMI extends BaseCMI {
    * @param {string} exit
    */
   set exit(exit) {
-    if (check2004ValidFormat(exit, regex.CMIExit)) {
+    if (check2004ValidFormat(exit, regex.CMIExit, true)) {
       this.#exit = exit;
     }
   }
