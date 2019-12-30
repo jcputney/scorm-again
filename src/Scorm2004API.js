@@ -507,16 +507,19 @@ export default class Scorm2004API extends BaseAPI {
         if (this.cmi.credit === 'credit') {
           if (this.cmi.completion_threshold && this.cmi.progress_measure) {
             if (this.cmi.progress_measure >= this.cmi.completion_threshold) {
+              console.debug('Setting Completion Status: Completed');
               this.cmi.completion_status = 'completed';
             } else {
+              console.debug('Setting Completion Status: Incomplete');
               this.cmi.completion_status = 'incomplete';
             }
           }
-          if (this.cmi.scaled_passing_score !== null &&
-              this.cmi.score.scaled !== '') {
+          if (this.cmi.scaled_passing_score && this.cmi.score.scaled) {
             if (this.cmi.score.scaled >= this.cmi.scaled_passing_score) {
+              console.debug('Setting Success Status: Passed');
               this.cmi.success_status = 'passed';
             } else {
+              console.debug('Setting Success Status: Failed');
               this.cmi.success_status = 'failed';
             }
           }
