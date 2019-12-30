@@ -1,6 +1,36 @@
 import {describe, it} from 'mocha';
 import {expect} from 'chai';
 
+export const checkValidValues = (
+    {
+      api,
+      fieldName,
+      validValues,
+      invalidValues,
+    }) => {
+  describe(`Field: ${fieldName}`, () => {
+    for (const idx in validValues) {
+      if ({}.hasOwnProperty.call(validValues, idx)) {
+        it(`Should successfully write '${validValues[idx]}' to ${fieldName}`,
+            () => {
+              expect(api.lmsSetValue(fieldName, validValues[idx])).
+                  to.equal('true');
+            });
+      }
+    }
+
+    for (const idx in invalidValues) {
+      if ({}.hasOwnProperty.call(invalidValues, idx)) {
+        it(`Should fail to write '${invalidValues[idx]}' to ${fieldName}`,
+            () => {
+              expect(api.lmsSetValue(fieldName, invalidValues[idx])).
+                  to.equal('false');
+            });
+      }
+    }
+  });
+};
+
 export const checkLMSSetValue = (
     {
       api,

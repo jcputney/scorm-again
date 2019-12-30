@@ -3,7 +3,7 @@ import {describe, it} from 'mocha';
 import * as h from './api_helpers';
 import {scorm2004_error_codes} from '../src/constants/error_codes';
 import Scorm2004API from '../src/Scorm2004API';
-import {scorm2004_values} from '../src/constants/field_values';
+import {scorm12_values, scorm2004_values} from '../src/constants/field_values';
 
 const api = () => {
   const API = new Scorm2004API();
@@ -17,6 +17,33 @@ const apiInitialized = () => {
 };
 
 describe('SCORM 2004 API Tests', () => {
+  describe('SetValue()', () => {
+    h.checkValidValues({
+      api: apiInitialized(),
+      fieldName: 'cmi.score.scaled',
+      validValues: scorm2004_values.validScaledRange,
+      invalidValues: scorm2004_values.invalidScaledRange,
+    });
+    h.checkValidValues({
+      api: apiInitialized(),
+      fieldName: 'cmi.score.raw',
+      validValues: scorm2004_values.validScoreRange,
+      invalidValues: scorm2004_values.invalidScoreRange,
+    });
+    h.checkValidValues({
+      api: apiInitialized(),
+      fieldName: 'cmi.score.min',
+      validValues: scorm2004_values.validScoreRange,
+      invalidValues: scorm2004_values.invalidScoreRange,
+    });
+    h.checkValidValues({
+      api: apiInitialized(),
+      fieldName: 'cmi.score.max',
+      validValues: scorm2004_values.validScoreRange,
+      invalidValues: scorm2004_values.invalidScoreRange,
+    });
+  });
+
   describe('setCMIValue()', () => {
     describe('Invalid Sets - Should Always Fail', () => {
       h.checkSetCMIValue({

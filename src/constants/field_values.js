@@ -132,7 +132,12 @@ export const scorm12_values = {
     validScoreRange: [
       '1',
       '50.25',
+      '70',
       '100',
+      1,
+      50.25,
+      70,
+      100,
     ],
     invalidScoreRange: [
       'invalid',

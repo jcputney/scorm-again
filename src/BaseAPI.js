@@ -169,6 +169,9 @@ export default class BaseAPI {
       checkTerminated: boolean,
       CMIElement,
       value) {
+    if (value !== undefined) {
+      value = String(value);
+    }
     let returnValue = global_constants.SCORM_FALSE;
 
     if (this.checkState(checkTerminated, this.#error_codes.STORE_BEFORE_INIT,
@@ -181,6 +184,7 @@ export default class BaseAPI {
           this.lastErrorCode = e.errorCode;
           returnValue = global_constants.SCORM_FALSE;
         } else {
+          console.error(e.getMessage());
           this.throwSCORMError(this.#error_codes.GENERAL);
         }
       }

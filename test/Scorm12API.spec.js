@@ -3,6 +3,7 @@ import {describe, it} from 'mocha';
 import Scorm12API from '../src/Scorm12API';
 import * as h from './api_helpers';
 import {scorm12_error_codes} from '../src/constants/error_codes';
+import {scorm12_values} from '../src/constants/field_values';
 
 const api = (settings = {}) => {
   const API = new Scorm12API(settings);
@@ -16,6 +17,27 @@ const apiInitialized = (settings = {}) => {
 };
 
 describe('SCORM 1.2 API Tests', () => {
+  describe('LMSSetValue()', () => {
+    h.checkValidValues({
+      api: apiInitialized(),
+      fieldName: 'cmi.core.score.raw',
+      validValues: scorm12_values.validScoreRange,
+      invalidValues: scorm12_values.invalidScoreRange,
+    });
+    h.checkValidValues({
+      api: apiInitialized(),
+      fieldName: 'cmi.core.score.min',
+      validValues: scorm12_values.validScoreRange,
+      invalidValues: scorm12_values.invalidScoreRange,
+    });
+    h.checkValidValues({
+      api: apiInitialized(),
+      fieldName: 'cmi.core.score.max',
+      validValues: scorm12_values.validScoreRange,
+      invalidValues: scorm12_values.invalidScoreRange,
+    });
+  });
+
   describe('setCMIValue()', () => {
     describe('Invalid Sets - Should Always Fail', () => {
       h.checkSetCMIValue({
@@ -280,7 +302,7 @@ describe('SCORM 1.2 API Tests', () => {
           scorm12API.cmi.core.session_time = '23:59:59';
           const cmiExport = scorm12API.renderCommitCMI(true);
           expect(
-              cmiExport.cmi.core.total_time
+              cmiExport.cmi.core.total_time,
           ).to.equal('36:34:55');
         });
   });
