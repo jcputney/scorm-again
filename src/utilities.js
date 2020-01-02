@@ -28,14 +28,21 @@ export function getSecondsAsHHMMSS(totalSeconds: Number) {
   const dateObj = new Date(totalSeconds * 1000);
   const minutes = dateObj.getUTCMinutes();
   // make sure we add any possible decimal value
-  let seconds = (dateObj.getSeconds() + (totalSeconds % 1.0));
-  if (countDecimals(seconds) > 2) {
-    seconds = seconds.toFixed(2);
+  const seconds = dateObj.getSeconds();
+  const ms = totalSeconds % 1.0;
+  let msStr = '';
+  if (countDecimals(ms) > 0) {
+    if (countDecimals(ms) > 2) {
+      msStr = ms.toFixed(2);
+    } else {
+      msStr = String(ms);
+    }
+    msStr = '.' + msStr.split('.')[1];
   }
 
   return hours.toString().padStart(2, '0') + ':' +
       minutes.toString().padStart(2, '0') + ':' +
-      seconds.toString().padStart(2, '0');
+      seconds.toString().padStart(2, '0') + msStr;
 }
 
 /**

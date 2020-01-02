@@ -224,9 +224,9 @@ describe('Utility Tests', () => {
   describe('addTwoDurations()', () => {
     it('P1H5M30.5S plus PT15M10S equals P1H20M40.5S', () => {
       expect(
-          Utilities.addTwoDurations('PT1H5M30.5S', 'PT15M10S',
+          Utilities.addTwoDurations('PT1H5M30.5S', 'PT15M30S',
               scorm2004_regex.CMITimespan),
-      ).to.equal('PT1H20M40.5S');
+      ).to.equal('PT1H21M0.5S');
     });
     it('P1Y364D plus P2DT1H45M52S equals P732DT1H45M52S', () => {
       expect(
@@ -251,9 +251,9 @@ describe('Utility Tests', () => {
   describe('addHHMMSSTimeStrings()', () => {
     it('01:05:30.5 plus 00:15:10 equals 01:20:40.5', () => {
       expect(
-          Utilities.addHHMMSSTimeStrings('01:05:30.5', '00:15:10',
+          Utilities.addHHMMSSTimeStrings('01:05:30.5', '00:15:30',
               scorm12_regex.CMITimespan),
-      ).to.equal('01:20:40.5');
+      ).to.equal('01:21:00.5');
     });
     it('17496:00:00 plus 49:35:52 equals 17545:35:52', () => {
       expect(
