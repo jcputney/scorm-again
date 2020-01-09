@@ -3,7 +3,7 @@ import {describe, it} from 'mocha';
 import Scorm12API from '../src/Scorm12API';
 import * as h from './api_helpers';
 import {scorm12_error_codes} from '../src/constants/error_codes';
-import {scorm12_values} from '../src/constants/field_values';
+import {scorm12_values} from './field_values';
 
 const api = (settings = {}) => {
   const API = new Scorm12API(settings);
