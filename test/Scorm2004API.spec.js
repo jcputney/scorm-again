@@ -17,6 +17,33 @@ const apiInitialized = () => {
 };
 
 describe('SCORM 2004 API Tests', () => {
+  describe('SetValue()', () => {
+    h.checkValidValues({
+      api: apiInitialized(),
+      fieldName: 'cmi.score.scaled',
+      validValues: scorm2004_values.validScaledRange,
+      invalidValues: scorm2004_values.invalidScaledRange,
+    });
+    h.checkValidValues({
+      api: apiInitialized(),
+      fieldName: 'cmi.score.raw',
+      validValues: scorm2004_values.validScoreRange,
+      invalidValues: scorm2004_values.invalidScoreRange,
+    });
+    h.checkValidValues({
+      api: apiInitialized(),
+      fieldName: 'cmi.score.min',
+      validValues: scorm2004_values.validScoreRange,
+      invalidValues: scorm2004_values.invalidScoreRange,
+    });
+    h.checkValidValues({
+      api: apiInitialized(),
+      fieldName: 'cmi.score.max',
+      validValues: scorm2004_values.validScoreRange,
+      invalidValues: scorm2004_values.invalidScoreRange,
+    });
+  });
+
   describe('setCMIValue()', () => {
     describe('Invalid Sets - Should Always Fail', () => {
       h.checkSetCMIValue({

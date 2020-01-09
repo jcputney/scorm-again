@@ -362,7 +362,7 @@ class CMICore extends BaseCMI {
    * @param {string} lesson_location
    */
   set lesson_location(lesson_location) {
-    if (check12ValidFormat(lesson_location, regex.CMIString256)) {
+    if (check12ValidFormat(lesson_location, regex.CMIString256, true)) {
       this.#lesson_location = lesson_location;
     }
   }
@@ -462,7 +462,7 @@ class CMICore extends BaseCMI {
    * @param {string} exit
    */
   set exit(exit) {
-    if (check12ValidFormat(exit, regex.CMIExit)) {
+    if (check12ValidFormat(exit, regex.CMIExit, true)) {
       this.#exit = exit;
     }
   }
@@ -494,7 +494,7 @@ class CMICore extends BaseCMI {
     return Utilities.addHHMMSSTimeStrings(
         this.#total_time,
         this.#session_time,
-        new RegExp(scorm12_regex.CMITimespan)
+        new RegExp(scorm12_regex.CMITimespan),
     );
   }
 
@@ -512,7 +512,6 @@ class CMICore extends BaseCMI {
    *      lesson_location: string,
    *      lesson_status: string,
    *      credit: string,
-   *      total_time: string,
    *      session_time: *
    *    }
    *  }
@@ -526,7 +525,6 @@ class CMICore extends BaseCMI {
       'credit': this.credit,
       'lesson_status': this.lesson_status,
       'entry': this.entry,
-      'total_time': this.getCurrentTotalTime(),
       'lesson_mode': this.lesson_mode,
       'exit': this.exit,
       'session_time': this.session_time,

@@ -235,7 +235,7 @@ export class CMI extends BaseCMI {
    * @param {string} exit
    */
   set exit(exit) {
-    if (check2004ValidFormat(exit, regex.CMIExit)) {
+    if (check2004ValidFormat(exit, regex.CMIExit, true)) {
       this.#exit = exit;
     }
   }
@@ -507,8 +507,7 @@ export class CMI extends BaseCMI {
    *      session_time: string,
    *      success_status: string,
    *      suspend_data: string,
-   *      time_limit_action: string,
-   *      total_time: string
+   *      time_limit_action: string
    *    }
    *  }
    */
@@ -538,7 +537,6 @@ export class CMI extends BaseCMI {
       'success_status': this.success_status,
       'suspend_data': this.suspend_data,
       'time_limit_action': this.time_limit_action,
-      'total_time': this.getCurrentTotalTime(),
     };
     delete this.jsonString;
     return result;

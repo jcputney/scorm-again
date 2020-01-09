@@ -116,7 +116,7 @@ export default class BaseAPI {
           result.result : global_constants.SCORM_FALSE;
 
       if (checkTerminated) this.lastErrorCode = 0;
-
+      
       returnValue = global_constants.SCORM_TRUE;
       this.processListeners(callbackName);
     }
@@ -171,6 +171,9 @@ export default class BaseAPI {
       checkTerminated: boolean,
       CMIElement,
       value) {
+    if (value !== undefined) {
+      value = String(value);
+    }
     let returnValue = global_constants.SCORM_FALSE;
 
     if (this.checkState(checkTerminated, this.#error_codes.STORE_BEFORE_INIT,
@@ -183,6 +186,7 @@ export default class BaseAPI {
           this.lastErrorCode = e.errorCode;
           returnValue = global_constants.SCORM_FALSE;
         } else {
+          console.error(e.getMessage());
           this.throwSCORMError(this.#error_codes.GENERAL);
         }
       }
@@ -808,13 +812,14 @@ export default class BaseAPI {
       return;
     }
 
-    CMIElement = CMIElement || 'cmi';
+    CMIElement = CMIElement !== undefined ? CMIElement : 'cmi';
 
     this.startingData = json;
 
+    // could this be refactored down to flatten(json) then setCMIValue on each?
     for (const key in json) {
       if ({}.hasOwnProperty.call(json, key) && json[key]) {
-        const currentCMIElement = CMIElement + '.' + key;
+        const currentCMIElement = (CMIElement ? CMIElement + '.' : '') + key;
         const value = json[key];
 
         if (value['childArray']) {

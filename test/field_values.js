@@ -89,6 +89,7 @@ export const scorm12_values = {
       'time-out',
       'suspend',
       'logout',
+      '',
     ],
     invalidExit: [
       'close',
@@ -132,7 +133,12 @@ export const scorm12_values = {
     validScoreRange: [
       '1',
       '50.25',
+      '70',
       '100',
+      1,
+      50.25,
+      70,
+      100,
     ],
     invalidScoreRange: [
       'invalid',
@@ -224,6 +230,7 @@ export const scorm2004_values = {
       'suspend',
       'logout',
       'normal',
+      '',
     ],
     invalidExit: [
       'close',
