@@ -40,9 +40,8 @@ export function getSecondsAsHHMMSS(totalSeconds: Number) {
     msStr = '.' + msStr.split('.')[1];
   }
 
-  return hours.toString().padStart(2, '0') + ':' +
-      minutes.toString().padStart(2, '0') + ':' +
-      seconds.toString().padStart(2, '0') + msStr;
+  return (hours + ':' + minutes + ':' + seconds).replace(/\b\d\b/g,
+      '0$&') + msStr;
 }
 
 /**
