@@ -116,7 +116,7 @@ export default class BaseAPI {
           result.result : global_constants.SCORM_FALSE;
 
       if (checkTerminated) this.lastErrorCode = 0;
-      
+
       returnValue = global_constants.SCORM_TRUE;
       this.processListeners(callbackName);
     }
