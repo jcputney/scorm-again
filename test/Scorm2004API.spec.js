@@ -3,7 +3,7 @@ import {describe, it} from 'mocha';
 import * as h from './api_helpers';
 import {scorm2004_error_codes} from '../src/constants/error_codes';
 import Scorm2004API from '../src/Scorm2004API';
-import {scorm2004_values} from '../src/constants/field_values';
+import {scorm2004_values} from './field_values';
 
 const api = () => {
   const API = new Scorm2004API();

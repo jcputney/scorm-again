@@ -1,7 +1,5 @@
 // @flow
 
-import {scorm12_values, scorm2004_values} from './field_values';
-
 export const scorm12_regex = {
   CMIString256: '^.{0,255}$',
   CMIString4096: '^.{0,4096}$',
@@ -15,11 +13,11 @@ export const scorm12_regex = {
   CMIIndex: '[._](\\d+).',
 
   // Vocabulary Data Type Definition
-  CMIStatus: '^(' + scorm12_values.validLessonStatus.join('|') + ')$',
-  CMIStatus2: '^(' + scorm12_values.validLessonStatus.join('|') + '|not attempted)$',
-  CMIExit: '^(' + scorm12_values.validExit.join('|') + '|)$',
-  CMIType: '^(' + scorm12_values.validType.join('|') + ')$',
-  CMIResult: '^(' + scorm12_values.validResult.join('|') + '|([0-9]{0,3})?(\\.[0-9]*)?)$', // eslint-disable-line
+  CMIStatus: '^(passed|completed|failed|incomplete|browsed)$',
+  CMIStatus2: '^(passed|completed|failed|incomplete|browsed|not attempted)$',
+  CMIExit: '^(time-out|suspend|logout|)$',
+  CMIType: '^(true-false|choice|fill-in|matching|performance|sequencing|likert|numeric)$',
+  CMIResult: '^(correct|wrong|unanticipated|neutral|([0-9]{0,3})?(\\.[0-9]*)?)$', // eslint-disable-line
   NAVEvent: '^(previous|continue)$',
 
   // Data ranges
@@ -60,12 +58,12 @@ export const scorm2004_regex = {
   CMIIndexStore: '.N(\\d+).',
 
   // Vocabulary Data Type Definition
-  CMICStatus: '^(' + scorm2004_values.validCStatus.join('|') + ')$',
-  CMISStatus: '^(' + scorm2004_values.validSStatus.join('|') + ')$',
-  CMIExit: '^(' + scorm2004_values.validExit.join('|') + ')$',
-  CMIType: '^(' + scorm2004_values.validType.join('|') + ')$',
-  CMIResult: '^(' + scorm2004_values.validResult.join('|') + '|-?([0-9]{1,4})(\\.[0-9]{1,18})?)$',
-  NAVEvent: '^(' + scorm2004_values.validNavRequest.join('|') + '|\{target=\\S{0,200}[a-zA-Z0-9]\}choice|jump)$', // eslint-disable-line
+  CMICStatus: '^(completed|incomplete|not attempted|unknown)$',
+  CMISStatus: '^(passed|failed|unknown)$',
+  CMIExit: '^(time-out|suspend|logout|normal)$',
+  CMIType: '^(true-false|choice|fill-in|long-fill-in|matching|performance|sequencing|likert|numeric|other)$',
+  CMIResult: '^(correct|wrong|unanticipated|neutral|-?([0-9]{1,4})(\\.[0-9]{1,18})?)$',
+  NAVEvent: '^(previous|continue|exit|exitAll|abandon|abandonAll|suspendAll|\{target=\\S{0,200}[a-zA-Z0-9]\}choice|jump)$', // eslint-disable-line
   NAVBoolean: '^(unknown|true|false$)',
   NAVTarget: '^(previous|continue|choice.{target=\\S{0,200}[a-zA-Z0-9]})$',
 

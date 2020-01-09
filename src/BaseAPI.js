@@ -106,6 +106,8 @@ export default class BaseAPI {
     if (this.checkState(checkTerminated,
         this.#error_codes.TERMINATION_BEFORE_INIT,
         this.#error_codes.MULTIPLE_TERMINATION)) {
+      this.currentState = global_constants.STATE_TERMINATED;
+
       const result = this.storeData(true);
       if (result.errorCode && result.errorCode > 0) {
         this.throwSCORMError(result.errorCode);
@@ -114,7 +116,7 @@ export default class BaseAPI {
           result.result : global_constants.SCORM_FALSE;
 
       if (checkTerminated) this.lastErrorCode = 0;
-      this.currentState = global_constants.STATE_TERMINATED;
+
       returnValue = global_constants.SCORM_TRUE;
       this.processListeners(callbackName);
     }
@@ -906,7 +908,8 @@ export default class BaseAPI {
    */
   scheduleCommit(when: number) {
     this.#timeout = new ScheduledCommit(this, when);
-    this.apiLog('scheduleCommit', '', 'scheduled', global_constants.LOG_LEVEL_DEBUG);
+    this.apiLog('scheduleCommit', '', 'scheduled',
+        global_constants.LOG_LEVEL_DEBUG);
   }
 
   /**

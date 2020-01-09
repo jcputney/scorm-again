@@ -103,7 +103,7 @@ export class CMI extends BaseCMI {
   #success_status = 'unknown';
   #suspend_data = '';
   #time_limit_action = 'continue,no message';
-  #total_time = '0';
+  #total_time = '';
 
   /**
    * Called when the API has been initialized after the CMI has been created
@@ -538,7 +538,7 @@ export class CMI extends BaseCMI {
       'success_status': this.success_status,
       'suspend_data': this.suspend_data,
       'time_limit_action': this.time_limit_action,
-      'total_time': this.total_time,
+      'total_time': this.getCurrentTotalTime(),
     };
     delete this.jsonString;
     return result;

@@ -12,7 +12,7 @@ import {
 } from '../../src/cmi/scorm2004_cmi';
 import * as h from '../cmi_helpers';
 import {expect} from 'chai';
-import {scorm2004_values} from '../../src/constants/field_values';
+import {scorm2004_values} from '../field_values';
 
 const read_only = scorm2004_error_codes.READ_ONLY_ELEMENT;
 const write_only = scorm2004_error_codes.WRITE_ONLY_ELEMENT;
@@ -234,7 +234,7 @@ describe('SCORM 2004 CMI Tests', () => {
       h.checkReadAndWrite({
         cmi: cmi(),
         fieldName: 'cmi.total_time',
-        expectedValue: '0',
+        expectedValue: '',
       });
 
       /**
@@ -402,7 +402,7 @@ describe('SCORM 2004 CMI Tests', () => {
         ).
             to.
             equal(
-                '{"comments_from_learner":{},"comments_from_lms":{},"completion_status":"unknown","completion_threshold":"","credit":"credit","entry":"","exit":"","interactions":{"0":{"id":"","type":"","objectives":{},"timestamp":"","weighting":"","learner_response":"","result":"","latency":"","description":"","correct_responses":{}}},"launch_data":"","learner_id":"","learner_name":"","learner_preference":{"audio_level":"1","language":"","delivery_speed":"1","audio_captioning":"0"},"location":"","max_time_allowed":"","mode":"normal","objectives":{"0":{"id":"","success_status":"unknown","completion_status":"unknown","progress_measure":"","description":"","score":{"scaled":"","raw":"","min":"","max":""}}},"progress_measure":"","scaled_passing_score":"","score":{"scaled":"","raw":"","min":"","max":""},"session_time":"PT0H0M0S","success_status":"unknown","suspend_data":"","time_limit_action":"continue,no message","total_time":"0"}');
+                '{"comments_from_learner":{},"comments_from_lms":{},"completion_status":"unknown","completion_threshold":"","credit":"credit","entry":"","exit":"","interactions":{"0":{"id":"","type":"","objectives":{},"timestamp":"","weighting":"","learner_response":"","result":"","latency":"","description":"","correct_responses":{}}},"launch_data":"","learner_id":"","learner_name":"","learner_preference":{"audio_level":"1","language":"","delivery_speed":"1","audio_captioning":"0"},"location":"","max_time_allowed":"","mode":"normal","objectives":{"0":{"id":"","success_status":"unknown","completion_status":"unknown","progress_measure":"","description":"","score":{"scaled":"","raw":"","min":"","max":""}}},"progress_measure":"","scaled_passing_score":"","score":{"scaled":"","raw":"","min":"","max":""},"session_time":"PT0H0M0S","success_status":"unknown","suspend_data":"","time_limit_action":"continue,no message","total_time":"PT0S"}');
       });
     });
 
@@ -543,7 +543,7 @@ describe('SCORM 2004 CMI Tests', () => {
       h.checkReadOnly({
         cmi: cmiInitialized(),
         fieldName: 'cmi.total_time',
-        expectedValue: '0',
+        expectedValue: '',
         expectedError: read_only,
       });
 
@@ -712,7 +712,7 @@ describe('SCORM 2004 CMI Tests', () => {
         ).
             to.
             equal(
-                '{"comments_from_learner":{},"comments_from_lms":{},"completion_status":"unknown","completion_threshold":"","credit":"credit","entry":"","exit":"","interactions":{"0":{"id":"","type":"","objectives":{},"timestamp":"","weighting":"","learner_response":"","result":"","latency":"","description":"","correct_responses":{}}},"launch_data":"","learner_id":"","learner_name":"","learner_preference":{"audio_level":"1","language":"","delivery_speed":"1","audio_captioning":"0"},"location":"","max_time_allowed":"","mode":"normal","objectives":{"0":{"id":"","success_status":"unknown","completion_status":"unknown","progress_measure":"","description":"","score":{"scaled":"","raw":"","min":"","max":""}}},"progress_measure":"","scaled_passing_score":"","score":{"scaled":"","raw":"","min":"","max":""},"session_time":"PT0H0M0S","success_status":"unknown","suspend_data":"","time_limit_action":"continue,no message","total_time":"0"}');
+                '{"comments_from_learner":{},"comments_from_lms":{},"completion_status":"unknown","completion_threshold":"","credit":"credit","entry":"","exit":"","interactions":{"0":{"id":"","type":"","objectives":{},"timestamp":"","weighting":"","learner_response":"","result":"","latency":"","description":"","correct_responses":{}}},"launch_data":"","learner_id":"","learner_name":"","learner_preference":{"audio_level":"1","language":"","delivery_speed":"1","audio_captioning":"0"},"location":"","max_time_allowed":"","mode":"normal","objectives":{"0":{"id":"","success_status":"unknown","completion_status":"unknown","progress_measure":"","description":"","score":{"scaled":"","raw":"","min":"","max":""}}},"progress_measure":"","scaled_passing_score":"","score":{"scaled":"","raw":"","min":"","max":""},"session_time":"PT0H0M0S","success_status":"unknown","suspend_data":"","time_limit_action":"continue,no message","total_time":"PT0S"}');
       });
     });
 

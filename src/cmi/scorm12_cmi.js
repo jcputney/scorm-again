@@ -526,7 +526,7 @@ class CMICore extends BaseCMI {
       'credit': this.credit,
       'lesson_status': this.lesson_status,
       'entry': this.entry,
-      'total_time': this.total_time,
+      'total_time': this.getCurrentTotalTime(),
       'lesson_mode': this.lesson_mode,
       'exit': this.exit,
       'session_time': this.session_time,

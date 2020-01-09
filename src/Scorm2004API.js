@@ -473,10 +473,6 @@ export default class Scorm2004API extends BaseAPI {
   renderCommitCMI(terminateCommit: boolean) {
     const cmiExport = this.renderCMIToJSONObject();
 
-    if (terminateCommit) {
-      cmiExport.cmi.total_time = this.cmi.getCurrentTotalTime();
-    }
-
     const result = [];
     const flattened = Utilities.flatten(cmiExport);
     switch (this.settings.dataCommitFormat) {

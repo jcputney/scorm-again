@@ -10,7 +10,7 @@ import {
   CMIObjectivesObject,
 } from '../../src/cmi/scorm12_cmi';
 import * as h from '../cmi_helpers';
-import {scorm12_values} from '../../src/constants/field_values';
+import {scorm12_values} from '../field_values';
 
 const invalid_set = scorm12_error_codes.INVALID_SET_VALUE;
 const type_mismatch = scorm12_error_codes.TYPE_MISMATCH;
@@ -592,7 +592,7 @@ describe('SCORM 1.2 CMI Tests', () => {
         ).
             to.
             equal(
-                '{"suspend_data":"","launch_data":"","comments":"","comments_from_lms":"","core":{"student_id":"","student_name":"","lesson_location":"","credit":"","lesson_status":"not attempted","entry":"","total_time":"","lesson_mode":"normal","exit":"","session_time":"00:00:00","score":{"raw":"","min":"","max":"100"}},"objectives":{"0":{"id":"","status":"","score":{"raw":"","min":"","max":"100"}}},"student_data":{"mastery_score":"","max_time_allowed":"","time_limit_action":""},"student_preference":{"audio":"","language":"","speed":"","text":""},"interactions":{"0":{"id":"","time":"","type":"","weighting":"","student_response":"","result":"","latency":"","objectives":{},"correct_responses":{}}}}');
+                '{"suspend_data":"","launch_data":"","comments":"","comments_from_lms":"","core":{"student_id":"","student_name":"","lesson_location":"","credit":"","lesson_status":"not attempted","entry":"","total_time":"00:00:00","lesson_mode":"normal","exit":"","session_time":"00:00:00","score":{"raw":"","min":"","max":"100"}},"objectives":{"0":{"id":"","status":"","score":{"raw":"","min":"","max":"100"}}},"student_data":{"mastery_score":"","max_time_allowed":"","time_limit_action":""},"student_preference":{"audio":"","language":"","speed":"","text":""},"interactions":{"0":{"id":"","time":"","type":"","weighting":"","student_response":"","result":"","latency":"","objectives":{},"correct_responses":{}}}}');
       });
     });
 
