@@ -15,7 +15,7 @@
     "@babel/plugin-proposal-private-methods": "^7.7.4",
     "@babel/preset-env": "^7.7.7",
     "@babel/preset-flow": "^7.7.4",
-    "@babel/register": "^7.7.7",
+    "@babel/register": "^7.8.0",
     "@types/chai": "^4.2.7",
     "babel-eslint": "^11.0.0-beta.2",
     "babelify": "^10.0.0",
