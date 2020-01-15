@@ -1,7 +1,7 @@
 import {expect} from 'chai';
 import {describe, it} from 'mocha';
-import {scorm12_constants} from '../../src/constants/api_constants';
-import {scorm12_error_codes} from '../../src/constants/error_codes';
+import APIConstants from '../../src/constants/api_constants';
+import ErrorCodes from '../../src/constants/error_codes';
 import {
   CMI,
   CMIInteractionsCorrectResponsesObject,
@@ -11,6 +11,9 @@ import {
 } from '../../src/cmi/scorm12_cmi';
 import * as h from '../cmi_helpers';
 import {scorm12_values} from '../field_values';
+
+const scorm12 = APIConstants.scorm12;
+const scorm12_error_codes = ErrorCodes.scorm12;
 
 const invalid_set = scorm12_error_codes.INVALID_SET_VALUE;
 const type_mismatch = scorm12_error_codes.TYPE_MISMATCH;
@@ -101,7 +104,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi._children',
-        expectedValue: scorm12_constants.cmi_children,
+        expectedValue: scorm12.cmi_children,
         expectedError: invalid_set,
       });
       h.checkFieldConstraintSize({
@@ -131,7 +134,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.core._children',
-        expectedValue: scorm12_constants.core_children,
+        expectedValue: scorm12.core_children,
         expectedError: invalid_set,
       });
       h.checkReadAndWrite({
@@ -206,7 +209,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.core.score._children',
-        expectedValue: scorm12_constants.score_children,
+        expectedValue: scorm12.score_children,
         expectedError: invalid_set,
       });
       h.checkRead({
@@ -247,7 +250,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.objectives._children',
-        expectedValue: scorm12_constants.objectives_children,
+        expectedValue: scorm12.objectives_children,
         expectedError: invalid_set,
       });
       h.checkReadOnly({
@@ -263,7 +266,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.student_data._children',
-        expectedValue: scorm12_constants.student_data_children,
+        expectedValue: scorm12.student_data_children,
         expectedError: invalid_set,
       });
       h.checkReadAndWrite({
@@ -285,7 +288,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.student_preference._children',
-        expectedValue: scorm12_constants.student_preference_children,
+        expectedValue: scorm12.student_preference_children,
         expectedError: invalid_set,
       });
       h.checkRead({
@@ -333,7 +336,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkReadOnly({
         cmi: cmi(),
         fieldName: 'cmi.interactions._children',
-        expectedValue: scorm12_constants.interactions_children,
+        expectedValue: scorm12.interactions_children,
         expectedError: invalid_set,
       });
       h.checkReadOnly({
@@ -357,7 +360,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkReadOnly({
         cmi: cmiInitialized(),
         fieldName: 'cmi._children',
-        expectedValue: scorm12_constants.cmi_children,
+        expectedValue: scorm12.cmi_children,
         expectedError: invalid_set,
       });
       h.checkFieldConstraintSize({
@@ -365,6 +368,11 @@ describe('SCORM 1.2 CMI Tests', () => {
         fieldName: 'cmi.suspend_data',
         limit: 4096,
         expectedError: type_mismatch,
+      });
+      h.checkWrite({
+        cmi: cmiInitialized(),
+        fieldName: 'cmi.suspend_data',
+        valueToTest: '',
       });
       h.checkReadOnly({
         cmi: cmiInitialized(),
@@ -389,7 +397,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkReadOnly({
         cmi: cmiInitialized(),
         fieldName: 'cmi.core._children',
-        expectedValue: scorm12_constants.core_children,
+        expectedValue: scorm12.core_children,
         expectedError: invalid_set,
       });
       h.checkReadOnly({
@@ -470,7 +478,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkReadOnly({
         cmi: cmiInitialized(),
         fieldName: 'cmi.core.score._children',
-        expectedValue: scorm12_constants.score_children,
+        expectedValue: scorm12.score_children,
         expectedError: invalid_set,
       });
       h.checkValidValues({
@@ -498,7 +506,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkReadOnly({
         cmi: cmiInitialized(),
         fieldName: 'cmi.objectives._children',
-        expectedValue: scorm12_constants.objectives_children,
+        expectedValue: scorm12.objectives_children,
         expectedError: invalid_set,
       });
       h.checkReadOnly({
@@ -514,7 +522,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkReadOnly({
         cmi: cmiInitialized(),
         fieldName: 'cmi.student_data._children',
-        expectedValue: scorm12_constants.student_data_children,
+        expectedValue: scorm12.student_data_children,
         expectedError: invalid_set,
       });
       h.checkReadOnly({
@@ -539,7 +547,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkReadOnly({
         cmi: cmiInitialized(),
         fieldName: 'cmi.student_preference._children',
-        expectedValue: scorm12_constants.student_preference_children,
+        expectedValue: scorm12.student_preference_children,
         expectedError: invalid_set,
       });
       h.checkValidValues({
@@ -573,7 +581,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkReadOnly({
         cmi: cmiInitialized(),
         fieldName: 'cmi.interactions._children',
-        expectedValue: scorm12_constants.interactions_children,
+        expectedValue: scorm12.interactions_children,
         expectedError: invalid_set,
       });
       h.checkReadOnly({
@@ -768,7 +776,7 @@ describe('SCORM 1.2 CMI Tests', () => {
       h.checkReadOnly({
         cmi: objective(),
         fieldName: 'cmi.score._children',
-        expectedValue: scorm12_constants.score_children,
+        expectedValue: scorm12.score_children,
         expectedError: invalid_set,
       });
       h.checkRead({

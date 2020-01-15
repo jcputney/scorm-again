@@ -1,16 +1,17 @@
 import * as Scorm12CMI from './scorm12_cmi';
 import {BaseCMI, CMIArray, CMIScore} from './common';
-import {aicc_constants} from '../constants/api_constants';
-import {aicc_regex} from '../constants/regex';
-import {scorm12_error_codes} from '../constants/error_codes';
+import APIConstants from '../constants/api_constants';
+import Regex from '../constants/regex';
+import ErrorCodes from '../constants/error_codes';
 import {
   check12ValidFormat,
   throwReadOnlyError,
   throwWriteOnlyError,
 } from './scorm12_cmi';
 
-const constants = aicc_constants;
-const regex = aicc_regex;
+const aicc_constants = APIConstants.aicc;
+const aicc_regex = Regex.aicc;
+const scorm12_error_codes = ErrorCodes.scorm12;
 
 /**
  * CMI Class for AICC
@@ -21,7 +22,7 @@ export class CMI extends Scorm12CMI.CMI {
    * @param {boolean} initialized
    */
   constructor(initialized: boolean) {
-    super(constants.cmi_children);
+    super(aicc_constants.cmi_children);
 
     if (initialized) this.initialize();
 
@@ -117,7 +118,7 @@ class CMIEvaluationComments extends CMIArray {
    * Constructor for AICC Evaluation Comments object
    */
   constructor() {
-    super(constants.comments_children,
+    super(aicc_constants.comments_children,
         scorm12_error_codes.INVALID_SET_VALUE);
   }
 }
@@ -130,7 +131,7 @@ class AICCCMIStudentData extends Scorm12CMI.CMIStudentData {
    * Constructor for AICC StudentData object
    */
   constructor() {
-    super(constants.student_data_children);
+    super(aicc_constants.student_data_children);
 
     this.tries = new CMITries();
   }
@@ -212,8 +213,8 @@ export class CMITriesObject extends BaseCMI {
 
     this.score = new CMIScore(
         {
-          score_children: constants.score_children,
-          score_range: regex.score_range,
+          score_children: aicc_constants.score_children,
+          score_range: aicc_regex.score_range,
           invalidErrorCode: scorm12_error_codes.INVALID_SET_VALUE,
           invalidTypeCode: scorm12_error_codes.TYPE_MISMATCH,
           invalidRangeCode: scorm12_error_codes.VALUE_OUT_OF_RANGE,
@@ -244,7 +245,7 @@ export class CMITriesObject extends BaseCMI {
    * @param {string} status
    */
   set status(status) {
-    if (check12ValidFormat(status, regex.CMIStatus2)) {
+    if (check12ValidFormat(status, aicc_regex.CMIStatus2)) {
       this.#status = status;
     }
   }
@@ -262,7 +263,7 @@ export class CMITriesObject extends BaseCMI {
    * @param {string} time
    */
   set time(time) {
-    if (check12ValidFormat(time, regex.CMITime)) {
+    if (check12ValidFormat(time, aicc_regex.CMITime)) {
       this.#time = time;
     }
   }
@@ -317,7 +318,7 @@ export class CMIEvaluationCommentsObject extends BaseCMI {
    * @param {string} content
    */
   set content(content) {
-    if (check12ValidFormat(content, regex.CMIString256)) {
+    if (check12ValidFormat(content, aicc_regex.CMIString256)) {
       this.#content = content;
     }
   }
@@ -335,7 +336,7 @@ export class CMIEvaluationCommentsObject extends BaseCMI {
    * @param {string} location
    */
   set location(location) {
-    if (check12ValidFormat(location, regex.CMIString256)) {
+    if (check12ValidFormat(location, aicc_regex.CMIString256)) {
       this.#location = location;
     }
   }
@@ -353,7 +354,7 @@ export class CMIEvaluationCommentsObject extends BaseCMI {
    * @param {string} time
    */
   set time(time) {
-    if (check12ValidFormat(time, regex.CMITime)) {
+    if (check12ValidFormat(time, aicc_regex.CMITime)) {
       this.#time = time;
     }
   }

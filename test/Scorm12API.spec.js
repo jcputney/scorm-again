@@ -2,8 +2,10 @@ import {expect} from 'chai';
 import {describe, it} from 'mocha';
 import Scorm12API from '../src/Scorm12API';
 import * as h from './api_helpers';
-import {scorm12_error_codes} from '../src/constants/error_codes';
+import ErrorCodes from '../src/constants/error_codes';
 import {scorm12_values} from './field_values';
+
+const scorm12_error_codes = ErrorCodes.scorm12;
 
 const api = (settings = {}) => {
   const API = new Scorm12API(settings);
@@ -278,6 +280,11 @@ describe('SCORM 1.2 API Tests', () => {
         fieldName: 'cmi.interactions.0.id',
         valueToTest: 'AAA',
       });
+      h.checkLMSSetValue({
+        api: apiInitialized(),
+        fieldName: 'cmi.interactions.0.correct_responses.0.pattern',
+        valueToTest: 't',
+      });
     });
   });
 
@@ -304,6 +311,24 @@ describe('SCORM 1.2 API Tests', () => {
           expect(
               cmiExport.cmi.core.total_time,
           ).to.equal('36:34:55');
+        });
+  });
+
+  describe('renderCommitCMI()', () => {
+    it('if the user passes, should calculate total time when terminateCommit passed',
+        () => {
+          const scorm12API = api();
+          scorm12API.cmi.core.score.max = '100';
+          scorm12API.cmi.core.score.min = '0';
+          scorm12API.cmi.core.score.raw = '100';
+          scorm12API.cmi.core.exit = 'suspend';
+          scorm12API.cmi.core.lesson_status = 'completed';
+          scorm12API.cmi.core.total_time = '0000:00:00';
+          scorm12API.cmi.core.session_time = '23:59:59';
+          const cmiExport = scorm12API.renderCommitCMI(true);
+          expect(
+              cmiExport.cmi.core.total_time,
+          ).to.equal('23:59:59');
         });
   });
 

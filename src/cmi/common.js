@@ -1,8 +1,12 @@
 // @flow
-import {scorm12_constants} from '../constants/api_constants';
-import {scorm12_error_codes} from '../constants/error_codes';
+import APIConstants from '../constants/api_constants';
+import ErrorCodes from '../constants/error_codes';
 import {ValidationError} from '../exceptions';
-import {scorm12_regex} from '../constants/regex';
+import Regex from '../constants/regex';
+
+const scorm12_constants = APIConstants.scorm12;
+const scorm12_regex = Regex.scorm12;
+const scorm12_error_codes = ErrorCodes.scorm12;
 
 /**
  * Check if the value matches the proper format. If not, throw proper error code.

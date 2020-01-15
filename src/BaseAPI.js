@@ -1,9 +1,12 @@
 // @flow
 import {CMIArray} from './cmi/common';
 import {ValidationError} from './exceptions';
-import {scorm12_error_codes} from './constants/error_codes';
-import {global_constants} from './constants/api_constants';
+import ErrorCodes from './constants/error_codes';
+import APIConstants from './constants/api_constants';
 import {unflatten} from './utilities';
+
+const global_constants = APIConstants.global;
+const scorm12_error_codes = ErrorCodes.scorm12;
 
 /**
  * Base API class for AICC, SCORM 1.2, and SCORM 2004. Should be considered
@@ -186,7 +189,11 @@ export default class BaseAPI {
           this.lastErrorCode = e.errorCode;
           returnValue = global_constants.SCORM_FALSE;
         } else {
-          console.error(e.getMessage());
+          if (e.message) {
+            console.error(e.message);
+          } else {
+            console.error(e);
+          }
           this.throwSCORMError(this.#error_codes.GENERAL);
         }
       }
@@ -533,6 +540,7 @@ export default class BaseAPI {
 
             if (item) {
               refObject = item;
+              foundFirstIndex = true;
             } else {
               const newChild = this.getChildElement(CMIElement, value,
                   foundFirstIndex);

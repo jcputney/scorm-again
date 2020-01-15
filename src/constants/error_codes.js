@@ -1,5 +1,5 @@
 // @flow
-export const error_codes = {
+const global = {
   GENERAL: 101,
   INITIALIZATION_FAILED: 101,
   INITIALIZED: 101,
@@ -30,8 +30,8 @@ export const error_codes = {
   DEPENDENCY_NOT_ESTABLISHED: 101,
 };
 
-export const scorm12_error_codes = {
-  ...error_codes, ...{
+const scorm12 = {
+  ...global, ...{
     RETRIEVE_BEFORE_INIT: 301,
     STORE_BEFORE_INIT: 301,
     COMMIT_BEFORE_INIT: 301,
@@ -50,8 +50,8 @@ export const scorm12_error_codes = {
   },
 };
 
-export const scorm2004_error_codes = {
-  ...error_codes, ...{
+const scorm2004 = {
+  ...global, ...{
     INITIALIZATION_FAILED: 102,
     INITIALIZED: 103,
     TERMINATED: 104,
@@ -78,3 +78,10 @@ export const scorm2004_error_codes = {
     DEPENDENCY_NOT_ESTABLISHED: 408,
   },
 };
+
+const ErrorCodes = {
+  scorm12: scorm12,
+  scorm2004: scorm2004,
+};
+
+export default ErrorCodes;

@@ -1,7 +1,9 @@
 // @flow
-import {scorm2004_regex} from './regex';
+import Regex from './regex';
 
-export const learner_responses = {
+const scorm2004_regex = Regex.scorm2004;
+
+const learner = {
   'true-false': {
     format: '^true$|^false$',
     max: 1,
@@ -69,7 +71,7 @@ export const learner_responses = {
   },
 };
 
-export const correct_responses = {
+const correct = {
   'true-false': {
     max: 1,
     delimiter: '',
@@ -150,3 +152,10 @@ export const correct_responses = {
     limit: 1,
   },
 };
+
+const Responses = {
+  learner: learner,
+  correct: correct,
+};
+
+export default Responses;

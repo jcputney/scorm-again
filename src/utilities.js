@@ -143,10 +143,10 @@ export function addTwoDurations(
     first: String,
     second: String,
     durationRegex: RegExp) {
-  const firstSeconds = getDurationAsSeconds(first, durationRegex);
-  const secondSeconds = getDurationAsSeconds(second, durationRegex);
-
-  return getSecondsAsISODuration(firstSeconds + secondSeconds);
+  return getSecondsAsISODuration(
+      getDurationAsSeconds(first, durationRegex) +
+      getDurationAsSeconds(second, durationRegex),
+  );
 }
 
 /**
@@ -161,9 +161,11 @@ export function addHHMMSSTimeStrings(
     first: String,
     second: String,
     timeRegex: RegExp) {
-  const firstSeconds = getTimeAsSeconds(first, timeRegex);
-  const secondSeconds = getTimeAsSeconds(second, timeRegex);
-  return getSecondsAsHHMMSS(firstSeconds + secondSeconds);
+  return getSecondsAsHHMMSS(
+      getTimeAsSeconds(first, timeRegex) +
+      getTimeAsSeconds(
+          second, timeRegex),
+  );
 }
 
 /**

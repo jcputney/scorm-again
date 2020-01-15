@@ -1,8 +1,10 @@
 import {expect} from 'chai';
 import {describe, it} from 'mocha';
 import * as h from './api_helpers';
-import {scorm12_error_codes} from '../src/constants/error_codes';
+import ErrorCodes from '../src/constants/error_codes';
 import AICC from '../src/AICC';
+
+const scorm12_error_codes = ErrorCodes.scorm12;
 
 const api = () => {
   const API = new AICC();

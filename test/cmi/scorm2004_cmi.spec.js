@@ -1,6 +1,6 @@
 import {describe, it} from 'mocha';
-import {scorm2004_error_codes} from '../../src/constants/error_codes';
-import {scorm2004_constants} from '../../src/constants/api_constants';
+import ErrorCodes from '../../src/constants/error_codes';
+import APIConstants from '../../src/constants/api_constants';
 import {
   ADL,
   CMI,
@@ -13,6 +13,9 @@ import {
 import * as h from '../cmi_helpers';
 import {expect} from 'chai';
 import {scorm2004_values} from '../field_values';
+
+const scorm2004_constants = APIConstants.scorm2004;
+const scorm2004_error_codes = ErrorCodes.scorm2004;
 
 const read_only = scorm2004_error_codes.READ_ONLY_ELEMENT;
 const write_only = scorm2004_error_codes.WRITE_ONLY_ELEMENT;

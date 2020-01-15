@@ -1,6 +1,6 @@
 // @flow
 
-export const scorm12_regex = {
+const scorm12 = {
   CMIString256: '^.{0,255}$',
   CMIString4096: '^.{0,4096}$',
   CMITime: '^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)$', // eslint-disable-line
@@ -28,13 +28,13 @@ export const scorm12_regex = {
   text_range: '-1#1',
 };
 
-export const aicc_regex = {
-  ...scorm12_regex, ...{
+const aicc = {
+  ...scorm12, ...{
     CMIIdentifier: '^\\w{1,255}$',
   },
 };
 
-export const scorm2004_regex = {
+const scorm2004 = {
   CMIString200: '^[\\u0000-\\uFFFF]{0,200}$',
   CMIString250: '^[\\u0000-\\uFFFF]{0,250}$',
   CMIString1000: '^[\\u0000-\\uFFFF]{0,1000}$',
@@ -74,3 +74,11 @@ export const scorm2004_regex = {
   text_range: '-1#1',
   progress_range: '0#1',
 };
+
+const Regex = {
+  aicc: aicc,
+  scorm12: scorm12,
+  scorm2004: scorm2004,
+};
+
+export default Regex;

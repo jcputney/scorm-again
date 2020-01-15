@@ -1,17 +1,25 @@
 import {expect} from 'chai';
 import {describe, it} from 'mocha';
 import * as h from './api_helpers';
-import {scorm2004_error_codes} from '../src/constants/error_codes';
+import ErrorCodes from '../src/constants/error_codes';
 import Scorm2004API from '../src/Scorm2004API';
 import {scorm2004_values} from './field_values';
 
-const api = () => {
+const scorm2004_error_codes = ErrorCodes.scorm2004;
+
+const api = (startingData) => {
   const API = new Scorm2004API();
   API.apiLogLevel = 1;
+  if (startingData) {
+    API.startingData = startingData;
+  }
   return API;
 };
-const apiInitialized = () => {
+const apiInitialized = (startingData) => {
   const API = api();
+  if (startingData) {
+    API.startingData = startingData;
+  }
   API.lmsInitialize();
   return API;
 };
@@ -288,6 +296,15 @@ describe('SCORM 2004 API Tests', () => {
         valueToTest: scorm2004_values.validTimestamps[0],
         errorThrown: false,
       });
+      it('should allow cmi.interactions.0.correct_responses.0.pattern to be set',
+          () => {
+            const scorm2004API = apiInitialized();
+            scorm2004API.setCMIValue('cmi.interactions.0.type', 'true-false');
+            scorm2004API.setCMIValue('cmi.interactions.0.correct_responses.0.pattern', 'true');
+            expect(
+                String(scorm2004API.lmsGetLastError())
+            ).to.equal(String(0));
+          });
     });
 
     describe('Initialized - Should Fail', () => {
@@ -323,7 +340,7 @@ describe('SCORM 2004 API Tests', () => {
           scorm2004API.cmi.session_time = 'PT23H59M59S';
           const cmiExport = scorm2004API.renderCommitCMI(true);
           expect(
-              cmiExport.cmi.total_time
+              cmiExport.cmi.total_time,
           ).to.equal('P1DT12H34M55S');
         });
   });

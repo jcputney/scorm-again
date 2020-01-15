@@ -1,7 +1,10 @@
 import {expect} from 'chai';
 import {describe, it} from 'mocha';
 import * as Utilities from '../src/utilities';
-import {scorm12_regex, scorm2004_regex} from '../src/constants/regex';
+import Regex from '../src/constants/regex';
+
+const scorm12_regex = Regex.scorm12;
+const scorm2004_regex = Regex.scorm2004;
 
 describe('Utility Tests', () => {
   describe('getSecondsAsHHMMSS()', () => {

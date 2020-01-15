@@ -1,6 +1,6 @@
 // @flow
 
-export const global_constants = {
+const global = {
   SCORM_TRUE: 'true',
   SCORM_FALSE: 'false',
   STATE_NOT_INITIALIZED: 0,
@@ -13,7 +13,7 @@ export const global_constants = {
   LOG_LEVEL_NONE: 5,
 };
 
-export const scorm12_constants = {
+const scorm12 = {
   // Children lists
   cmi_children: 'core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions',
   core_children: 'student_id,student_name,lesson_location,credit,lesson_status,entry,score,total_time,lesson_mode,exit,session_time',
@@ -69,15 +69,15 @@ export const scorm12_constants = {
   },
 };
 
-export const aicc_constants = {
-  ...scorm12_constants, ...{
+const aicc = {
+  ...scorm12, ...{
     cmi_children: 'core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions,evaluation',
     student_data_children: 'attempt_number,tries,mastery_score,max_time_allowed,time_limit_action',
     tries_children: 'time,status,score',
   },
 };
 
-export const scorm2004_constants = {
+const scorm2004 = {
   // Children lists
   cmi_children: '_version,comments_from_learner,comments_from_lms,completion_status,credit,entry,exit,interactions,launch_data,learner_id,learner_name,learner_preference,location,max_time_allowed,mode,objectives,progress_measure,scaled_passing_score,score,session_time,success_status,suspend_data,time_limit_action,total_time',
   comments_children: 'comment,timestamp,location',
@@ -195,3 +195,12 @@ export const scorm2004_constants = {
     },
   },
 };
+
+const APIConstants = {
+  global: global,
+  scorm12: scorm12,
+  aicc: aicc,
+  scorm2004: scorm2004,
+};
+
+export default APIConstants;

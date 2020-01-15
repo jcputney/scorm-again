@@ -1,4 +1,4 @@
-export const valid_languages = {
+const ValidLanguages = {
   'aa': 'aa', 'ab': 'ab', 'ae': 'ae', 'af': 'af', 'ak': 'ak', 'am': 'am',
   'an': 'an', 'ar': 'ar', 'as': 'as', 'av': 'av', 'ay': 'ay', 'az': 'az',
   'ba': 'ba', 'be': 'be', 'bg': 'bg', 'bh': 'bh', 'bi': 'bi', 'bm': 'bm',
@@ -72,3 +72,5 @@ export const valid_languages = {
   'vol': 'vol', 'wln': 'wln', 'wol': 'wol', 'xho': 'xho', 'yid': 'yid',
   'yor': 'yor', 'zha': 'zha', 'chi': 'chi', 'zho': 'zho', 'zul': 'zul',
 };
+
+export default ValidLanguages;

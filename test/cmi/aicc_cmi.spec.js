@@ -1,6 +1,6 @@
 import {describe, it} from 'mocha';
-import {aicc_constants} from '../../src/constants/api_constants';
-import {scorm12_error_codes} from '../../src/constants/error_codes';
+import APIConstants from '../../src/constants/api_constants';
+import ErrorCodes from '../../src/constants/error_codes';
 import {
   CMI,
   CMIEvaluationCommentsObject,
@@ -14,6 +14,9 @@ import {
 } from '../../src/cmi/scorm12_cmi';
 import {expect} from 'chai';
 import {scorm12_values} from '../field_values';
+
+const aicc_constants = APIConstants.aicc;
+const scorm12_error_codes = ErrorCodes.scorm12;
 
 const invalid_set = scorm12_error_codes.INVALID_SET_VALUE;
 const type_mismatch = scorm12_error_codes.TYPE_MISMATCH;

@@ -8,10 +8,12 @@ import {
   CMIObjectivesObject, NAV,
 } from './cmi/scorm12_cmi';
 import * as Utilities from './utilities';
-import {global_constants, scorm12_constants} from './constants/api_constants';
-import {scorm12_error_codes} from './constants/error_codes';
+import APIConstants from './constants/api_constants';
+import ErrorCodes from './constants/error_codes';
 
-const constants = scorm12_constants;
+const scorm12_constants = APIConstants.scorm12;
+const global_constants = APIConstants.global;
+const scorm12_error_codes = ErrorCodes.scorm12;
 
 /**
  * API class for SCORM 1.2
@@ -177,7 +179,8 @@ export default class Scorm12API extends BaseAPI {
     } else if (foundFirstIndex && this.stringMatches(CMIElement,
         'cmi\\.interactions\\.\\d\\.objectives\\.\\d')) {
       newChild = new CMIInteractionsObjectivesObject();
-    } else if (this.stringMatches(CMIElement, 'cmi\\.interactions\\.\\d')) {
+    } else if (!foundFirstIndex &&
+        this.stringMatches(CMIElement, 'cmi\\.interactions\\.\\d')) {
       newChild = new CMIInteractionsObject();
     }
 
@@ -208,9 +211,9 @@ export default class Scorm12API extends BaseAPI {
 
     // Set error number to string since inconsistent from modules if string or number
     errorNumber = String(errorNumber);
-    if (constants.error_descriptions[errorNumber]) {
-      basicMessage = constants.error_descriptions[errorNumber].basicMessage;
-      detailMessage = constants.error_descriptions[errorNumber].detailMessage;
+    if (scorm12_constants.error_descriptions[errorNumber]) {
+      basicMessage = scorm12_constants.error_descriptions[errorNumber].basicMessage;
+      detailMessage = scorm12_constants.error_descriptions[errorNumber].detailMessage;
     }
 
     return detail ? detailMessage : basicMessage;
