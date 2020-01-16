@@ -2,6 +2,7 @@
 import Scorm12API from './Scorm12API';
 import {
   CMI,
+  CMIAttemptRecordsObject,
   CMIEvaluationCommentsObject,
   CMITriesObject,
 } from './cmi/aicc_cmi';
@@ -42,8 +43,12 @@ export default class AICC extends Scorm12API {
     if (!newChild) {
       if (this.stringMatches(CMIElement, 'cmi\\.evaluation\\.comments\\.\\d')) {
         newChild = new CMIEvaluationCommentsObject();
-      } else if (this.stringMatches(CMIElement, 'cmi\\.student_data\\.tries\\.\\d')) {
+      } else if (this.stringMatches(CMIElement,
+          'cmi\\.student_data\\.tries\\.\\d')) {
         newChild = new CMITriesObject();
+      } else if (this.stringMatches(CMIElement,
+          'cmi\\.student_data\\.attempt_records\\.\\d')) {
+        newChild = new CMIAttemptRecordsObject();
       }
     }
 

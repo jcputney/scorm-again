@@ -673,15 +673,21 @@ export class CMIStudentData extends BaseCMI {
  * Class representing SCORM 1.2's cmi.student_preference object
  * @extends BaseCMI
  */
-class CMIStudentPreference extends BaseCMI {
+export class CMIStudentPreference extends BaseCMI {
+  #_children;
+
   /**
    * Constructor for cmi.student_preference
+   * @param {string} student_preference_children
    */
-  constructor() {
+  constructor(student_preference_children) {
     super();
+
+    this.#_children = student_preference_children ?
+        student_preference_children :
+        scorm12_constants.student_preference_children;
   }
 
-  #_children = scorm12_constants.student_preference_children;
   #audio = '';
   #language = '';
   #speed = '';

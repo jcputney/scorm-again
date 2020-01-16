@@ -72,8 +72,12 @@ const scorm12 = {
 const aicc = {
   ...scorm12, ...{
     cmi_children: 'core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions,evaluation',
+    student_preference_children: 'audio,language,lesson_type,speed,text,text_color,text_location,text_size,video,windows',
     student_data_children: 'attempt_number,tries,mastery_score,max_time_allowed,time_limit_action',
+    student_demographics_children: 'city,class,company,country,experience,familiar_name,instructor_name,title,native_language,state,street_address,telephone,years_experience',
     tries_children: 'time,status,score',
+    attempt_records_children: 'score,lesson_status',
+    paths_children: 'location_id,date,time,status,why_left,time_in_element',
   },
 };
 

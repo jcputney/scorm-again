@@ -137,8 +137,8 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.session_time',
-        validValues: scorm12_values.validTimestamp,
-        invalidValues: scorm12_values.invalidTimestamp,
+        validValues: scorm12_values.validTimespan,
+        invalidValues: scorm12_values.invalidTimespan,
       });
 
       /**
@@ -383,8 +383,8 @@ describe('AICC CMI Tests', () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: 'cmi.core.session_time',
-        validValues: scorm12_values.validTimestamp,
-        invalidValues: scorm12_values.invalidTimestamp,
+        validValues: scorm12_values.validTimespan,
+        invalidValues: scorm12_values.invalidTimespan,
       });
 
       /**
@@ -523,7 +523,7 @@ describe('AICC CMI Tests', () => {
         ).
             to.
             equal(
-                '{"suspend_data":"","launch_data":"","comments":"","comments_from_lms":"","core":{"student_id":"","student_name":"","lesson_location":"","credit":"","lesson_status":"not attempted","entry":"","lesson_mode":"normal","exit":"","session_time":"00:00:00","score":{"raw":"","min":"","max":"100"}},"objectives":{"0":{"id":"","status":"","score":{"raw":"","min":"","max":"100"}}},"student_data":{"mastery_score":"","max_time_allowed":"","time_limit_action":"","tries":{"0":{"status":"","time":"","score":{"raw":"","min":"","max":"100"}}}},"student_preference":{"audio":"","language":"","speed":"","text":""},"interactions":{"0":{"id":"","time":"","type":"","weighting":"","student_response":"","result":"","latency":"","objectives":{},"correct_responses":{}}},"evaluation":{"comments":{"0":{"content":"","location":"","time":""}}}}');
+                '{"suspend_data":"","launch_data":"","comments":"","comments_from_lms":"","core":{"student_id":"","student_name":"","lesson_location":"","credit":"","lesson_status":"not attempted","entry":"","lesson_mode":"normal","exit":"","session_time":"00:00:00","score":{"raw":"","min":"","max":"100"}},"objectives":{"0":{"id":"","status":"","score":{"raw":"","min":"","max":"100"}}},"student_data":{"mastery_score":"","max_time_allowed":"","time_limit_action":"","tries":{"0":{"status":"","time":"","score":{"raw":"","min":"","max":"100"}}}},"student_preference":{"audio":"","language":"","lesson_type":"","speed":"","text":"","text_color":"","text_location":"","text_size":"","video":"","windows":{}},"student_demographics":{"city":"","class":"","company":"","country":"","experience":"","familiar_name":"","instructor_name":"","title":"","native_language":"","state":"","street_address":"","telephone":"","years_experience":""},"interactions":{"0":{"id":"","time":"","type":"","weighting":"","student_response":"","result":"","latency":"","objectives":{},"correct_responses":{}}},"evaluation":{"comments":{"0":{"content":"","location":"","time":""}}},"paths":{}}');
       });
     });
 
