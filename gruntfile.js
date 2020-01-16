@@ -1,5 +1,17 @@
 module.exports = function(grunt) {
   grunt.initConfig({
+    mochaTest: {
+      test: {
+        options: {
+          reporter: 'list',
+          require: '@babel/register',
+          noFail: false,
+          recursive: true,
+          captureFile: false,
+        },
+        src: ['test/**/*.spec.js'],
+      },
+    },
     browserify: {
       development: {
         src: [
@@ -42,7 +54,8 @@ module.exports = function(grunt) {
             ],
           ],
           plugin: [
-            ['minifyify',
+            [
+              'minifyify',
               {
                 map: 'scorm-again.js.map',
                 output: './dist/scorm-again.js.map',
@@ -55,6 +68,9 @@ module.exports = function(grunt) {
   });
 
   grunt.loadNpmTasks('grunt-browserify');
+  grunt.loadNpmTasks('grunt-mocha-test');
+
+  grunt.registerTask('test', 'mochaTest');
 
   grunt.registerTask('default',
       ['browserify:development', 'browserify:production']);
