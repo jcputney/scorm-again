@@ -63,6 +63,9 @@ export function getSecondsAsISODuration(seconds: Number) {
     let value = Math.floor(remainder / current_seconds);
 
     remainder = remainder % current_seconds;
+    if (countDecimals(remainder) > 2) {
+      remainder = Number(Number(remainder).toFixed(2));
+    }
     // If we have anything left in the remainder, and we're currently adding
     // seconds to the duration, go ahead and add the decimal to the seconds
     if (sign === 'S' && remainder > 0) {
@@ -124,7 +127,7 @@ export function getDurationAsSeconds(duration: String, durationRegex: RegExp) {
   anchor.setHours(anchor.getHours() + Number(hours || 0));
   anchor.setMinutes(anchor.getMinutes() + Number(minutes || 0));
   anchor.setSeconds(anchor.getSeconds() + Number(seconds || 0));
-  if (seconds && String(seconds).indexOf('.') > 0) {
+  if (seconds && countDecimals(String(seconds)) > 0) {
     const milliseconds = Number(Number(seconds) % 1).toFixed(6) * 1000.0;
     anchor.setMilliseconds(anchor.getMilliseconds() + milliseconds);
   }
@@ -237,6 +240,7 @@ export function unflatten(data) {
  * @return {number}
  */
 export function countDecimals(num: number) {
-  if (Math.floor(num) === num) return 0;
-  return num.toString().split('.')[1].length || 0;
+  if (Math.floor(num) === num || String(num).indexOf('.') < 0) return 0;
+  const parts = num.toString().split('.')[1];
+  return parts.length || 0;
 }

@@ -83,6 +83,12 @@ describe('Utility Tests', () => {
       ).to.equal('PT1M10S');
     });
 
+    it('916.88 returns PT15M16.88S', () => {
+      expect(
+          Utilities.getSecondsAsISODuration(916.88),
+      ).to.equal('PT15M16.88S');
+    });
+
     it('3670 returns PT1H1M10S', () => {
       expect(
           Utilities.getSecondsAsISODuration(3670),
@@ -183,6 +189,13 @@ describe('Utility Tests', () => {
           Utilities.getDurationAsSeconds('PT1M10S',
               scorm2004_regex.CMITimespan),
       ).to.equal(70);
+    });
+
+    it('PT15M16.88S returns 916.88', () => {
+      expect(
+          Utilities.getDurationAsSeconds('PT15M16.88S',
+              scorm2004_regex.CMITimespan),
+      ).to.equal(916.88);
     });
 
     it('P1D returns 86400', () => {
