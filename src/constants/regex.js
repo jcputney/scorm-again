@@ -51,8 +51,8 @@ const scorm2004 = {
   CMISInteger: '^-?([0-9]+)$',
   CMIDecimal: '^-?([0-9]{1,5})(\\.[0-9]{1,18})?$',
   CMIIdentifier: '^\\S{1,250}[a-zA-Z0-9]$',
-  CMIShortIdentifier: '^[\\w\.]{1,250}$', // eslint-disable-line
-  CMILongIdentifier: '^(?:(?!urn:)\\S{1,4000}|urn:[A-Za-z0-9-]{1,31}:\\S{1,4000})$',
+  CMIShortIdentifier: '^[\\w\\.\\-\\_]{1,250}$', // eslint-disable-line
+  CMILongIdentifier: '^(?:(?!urn:)\\S{1,4000}|urn:[A-Za-z0-9-]{1,31}:\\S{1,4000}|.{1,4000})$', // need to re-examine this
   CMIFeedback: '^.*$', // This must be redefined
   CMIIndex: '[._](\\d+).',
   CMIIndexStore: '.N(\\d+).',

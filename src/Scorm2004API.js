@@ -272,7 +272,7 @@ export default class Scorm2004API extends BaseAPI {
     }
 
     const response_type = correct_responses[interaction_type];
-    if (typeof response_type.limit !== 'undefined' || interaction_count <
+    if (typeof response_type.limit === 'undefined' || interaction_count <=
         response_type.limit) {
       let nodes = [];
       if (response_type?.delimiter) {

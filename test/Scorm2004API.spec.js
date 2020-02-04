@@ -296,11 +296,39 @@ describe('SCORM 2004 API Tests', () => {
         valueToTest: scorm2004_values.validTimestamps[0],
         errorThrown: false,
       });
-      it('should allow cmi.interactions.0.correct_responses.0.pattern to be set',
+      it('should allow cmi.interactions.0.correct_responses.0.pattern to be set - T/F',
           () => {
             const scorm2004API = apiInitialized();
             scorm2004API.setCMIValue('cmi.interactions.0.type', 'true-false');
             scorm2004API.setCMIValue('cmi.interactions.0.correct_responses.0.pattern', 'true');
+            expect(
+                String(scorm2004API.lmsGetLastError())
+            ).to.equal(String(0));
+          });
+      it('should allow cmi.interactions.0.correct_responses.0.pattern to be set - choice',
+          () => {
+            const scorm2004API = apiInitialized();
+            scorm2004API.setCMIValue('cmi.interactions.0.id', 'Scene1_Slide3_MultiChoice_0_0');
+            scorm2004API.setCMIValue('cmi.interactions.0.type', 'choice');
+            scorm2004API.setCMIValue('cmi.interactions.0.correct_responses.0.pattern', 'VP_on-call_or_President');
+            expect(
+                String(scorm2004API.lmsGetLastError())
+            ).to.equal(String(0));
+          });
+      it('should allow cmi.interactions.0.objectives.0.id to be set',
+          () => {
+            const scorm2004API = apiInitialized();
+            scorm2004API.setCMIValue('cmi.interactions.0.objectives.0.id', 'ID of the Obj - ID 2');
+            expect(
+                String(scorm2004API.lmsGetLastError())
+            ).to.equal(String(0));
+          });
+      it('should allow cmi.interactions.0.learner_response to be set',
+          () => {
+            const scorm2004API = apiInitialized();
+            scorm2004API.setCMIValue('cmi.interactions.0.id', 'Scene1_Slide3_MultiChoice_0_0');
+            scorm2004API.setCMIValue('cmi.interactions.0.type', 'choice');
+            scorm2004API.setCMIValue('cmi.interactions.0.learner_response', 'VP_on-call_or_President');
             expect(
                 String(scorm2004API.lmsGetLastError())
             ).to.equal(String(0));
