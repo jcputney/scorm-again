@@ -73,7 +73,6 @@ export function check12ValidRange(
 export class CMI extends BaseCMI {
   #_children = '';
   #_version = '3.4';
-  #suspend_data = '';
   #launch_data = '';
   #comments = '';
   #comments_from_lms = '';
@@ -91,7 +90,9 @@ export class CMI extends BaseCMI {
 
     if (initialized) this.initialize();
 
-    this.#_children = cmi_children ? cmi_children : scorm12_constants.cmi_children;
+    this.#_children = cmi_children ?
+        cmi_children :
+        scorm12_constants.cmi_children;
     this.core = new CMICore();
     this.objectives = new CMIObjectives();
     this.student_data = student_data ? student_data : new CMIStudentData();
@@ -182,7 +183,7 @@ export class CMI extends BaseCMI {
    * @return {string}
    */
   get suspend_data() {
-    return this.#suspend_data;
+    return this.core?.suspend_data;
   }
 
   /**
@@ -190,8 +191,8 @@ export class CMI extends BaseCMI {
    * @param {string} suspend_data
    */
   set suspend_data(suspend_data) {
-    if (check12ValidFormat(suspend_data, scorm12_regex.CMIString4096, true)) {
-      this.#suspend_data = suspend_data;
+    if (this.core) {
+      this.core.suspend_data = suspend_data;
     }
   }
 
@@ -297,6 +298,7 @@ class CMICore extends BaseCMI {
   #lesson_mode = 'normal';
   #exit = '';
   #session_time = '00:00:00';
+  #suspend_data = '';
 
   /**
    * Getter for #_children
@@ -483,6 +485,24 @@ class CMICore extends BaseCMI {
   set session_time(session_time) {
     if (check12ValidFormat(session_time, scorm12_regex.CMITimespan)) {
       this.#session_time = session_time;
+    }
+  }
+
+  /**
+   * Getter for #suspend_data
+   * @return {string}
+   */
+  get suspend_data() {
+    return this.#suspend_data;
+  }
+
+  /**
+   * Setter for #suspend_data
+   * @param {string} suspend_data
+   */
+  set suspend_data(suspend_data) {
+    if (check12ValidFormat(suspend_data, scorm12_regex.CMIString4096, true)) {
+      this.#suspend_data = suspend_data;
     }
   }
 

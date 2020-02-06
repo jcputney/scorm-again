@@ -374,6 +374,17 @@ describe('SCORM 1.2 CMI Tests', () => {
         fieldName: 'cmi.suspend_data',
         valueToTest: '',
       });
+      h.checkFieldConstraintSize({
+        cmi: cmiInitialized(),
+        fieldName: 'cmi.core.suspend_data',
+        limit: 4096,
+        expectedError: type_mismatch,
+      });
+      h.checkWrite({
+        cmi: cmiInitialized(),
+        fieldName: 'cmi.core.suspend_data',
+        valueToTest: '',
+      });
       h.checkReadOnly({
         cmi: cmiInitialized(),
         fieldName: 'cmi.launch_data',
