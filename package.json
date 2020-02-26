@@ -33,7 +33,7 @@
     "minifyify": "^7.3.5",
     "mocha": "^7.0.0",
     "mocha-junit-reporter": "^1.23.2",
-    "mochawesome": "^4.1.0",
+    "mochawesome": "^5.0.0",
     "nyc": "^15.0.0"
   },
   "scripts": {
