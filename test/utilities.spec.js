@@ -204,16 +204,6 @@ describe('Utility Tests', () => {
       ).to.equal(86400);
     });
 
-    it('P1M returns number of seconds for one month from now', () => {
-      const now = new Date();
-      const oneMonthFromNow = new Date(now);
-      oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
-
-      expect(
-          Utilities.getDurationAsSeconds('P1M', scorm2004_regex.CMITimespan),
-      ).to.equal((oneMonthFromNow - now) / 1000.0);
-    });
-
     it('P1Y returns number of seconds for one year from now', () => {
       const now = new Date();
       const oneYearFromNow = new Date(now);
@@ -244,11 +234,11 @@ describe('Utility Tests', () => {
               scorm2004_regex.CMITimespan),
       ).to.equal('PT1H21M0.5S');
     });
-    it('P1Y364D plus P2DT1H45M52S equals P732DT1H45M52S', () => {
+    it('P1Y364D plus P2DT1H45M52S equals P731DT1H45M52S', () => {
       expect(
           Utilities.addTwoDurations('P1Y364D', 'P2DT1H45M52S',
               scorm2004_regex.CMITimespan),
-      ).to.equal('P732DT1H45M52S');
+      ).to.equal('P731DT1H45M52S');
     });
     it('Invalid plus valid equals valid', () => {
       expect(

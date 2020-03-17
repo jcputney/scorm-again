@@ -119,19 +119,15 @@ export function getDurationAsSeconds(duration: String, durationRegex: RegExp) {
   const [, years, months, , days, hours, minutes, seconds] = new RegExp(
       durationRegex).exec(duration) || [];
 
-  const now = new Date();
-  const anchor = new Date(now);
-  anchor.setFullYear(anchor.getFullYear() + Number(years || 0));
-  anchor.setMonth(anchor.getMonth() + Number(months || 0));
-  anchor.setDate(anchor.getDate() + Number(days || 0));
-  anchor.setHours(anchor.getHours() + Number(hours || 0));
-  anchor.setMinutes(anchor.getMinutes() + Number(minutes || 0));
-  anchor.setSeconds(anchor.getSeconds() + Number(seconds || 0));
-  if (seconds && countDecimals(String(seconds)) > 0) {
-    const milliseconds = Number(Number(seconds) % 1).toFixed(6) * 1000.0;
-    anchor.setMilliseconds(anchor.getMilliseconds() + milliseconds);
-  }
-  return ((anchor * 1.0) - now) / 1000.0;
+  let result = 0.0;
+
+  result += (Number(seconds) * 1.0 || 0.0);
+  result += (Number(minutes) * 60.0 || 0.0);
+  result += (Number(hours) * 3600.0 || 0.0);
+  result += (Number(days) * (60 * 60 * 24.0) || 0.0);
+  result += (Number(years) * (60 * 60 * 24 * 365.0) || 0.0);
+
+  return result;
 }
 
 /**
