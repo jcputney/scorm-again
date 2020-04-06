@@ -17,6 +17,16 @@ To begin with, you include either the `scorm-again.js` or `scorm-again.min.js` f
 <script type="text/javascript" src="/dist/scorm-again.js"></script>
 ```
 
+Or, if you would like to install the library using your package manager, you can do the following:
+```sh
+npm install scorm-again
+```
+or
+```sh
+yarn add scorm-again
+```
+
+You would then initialize the APIs using the following JS statements:
 ```javascript
 var settings = {}
 # AICC
