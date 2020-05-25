@@ -66,3 +66,4 @@ typings/
 
 .DS_Store
 test-results.xml
+/.vscode/

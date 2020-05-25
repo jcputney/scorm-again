@@ -554,10 +554,13 @@ export default class Scorm2004API extends BaseAPI {
       }
       const result = this.processHttpRequest(this.settings.lmsCommitUrl,
           commitObject);
+
       // check if this is a sequencing call, and then call the necessary JS
-      if (navRequest && result.navRequest !== undefined &&
+      {
+        if (navRequest && result.navRequest !== undefined &&
           result.navRequest !== '') {
-        Function(`"use strict";(() => { ${result.navRequest} })()`)();
+          Function(`"use strict";(() => { ${result.navRequest} })()`)();
+        }
       }
       return result;
     } else {

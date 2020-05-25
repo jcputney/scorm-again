@@ -12,6 +12,15 @@ module.exports = function(grunt) {
         src: ['test/**/*.spec.js'],
       },
     },
+    watch: {
+      scripts: {
+        files: ['src/**/*.js'],
+        tasks: ['browserify:development'],
+        options: {
+          spawn: false,
+        },
+      },
+    },
     browserify: {
       development: {
         src: [
@@ -69,6 +78,7 @@ module.exports = function(grunt) {
 
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-mocha-test');
+  grunt.loadNpmTasks('grunt-contrib-watch');
 
   grunt.registerTask('test', 'mochaTest');
 

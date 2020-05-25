@@ -17,12 +17,28 @@ export default class BaseAPI {
   #error_codes;
   #settings = {
     autocommit: false,
-    autocommitSeconds: 60,
+    autocommitSeconds: 10,
     lmsCommitUrl: false,
     dataCommitFormat: 'json', // valid formats are 'json' or 'flattened', 'params'
     commitRequestDataType: 'application/json;charset=UTF-8',
     autoProgress: false,
     logLevel: global_constants.LOG_LEVEL_ERROR,
+    responseHandler: function(xhr) {
+      let result;
+      if (typeof xhr !== 'undefined') {
+        result = JSON.parse(xhr.responseText);
+        if (result === null || !{}.hasOwnProperty.call(result, 'result')) {
+          result = {};
+          if (xhr.status === 200) {
+            result.result = global_constants.SCORM_TRUE;
+          } else {
+            result.result = global_constants.SCORM_FALSE;
+            result.errorCode = 101;
+          }
+        }
+      }
+      return result;
+    },
   };
   cmi;
   startingData: {};
@@ -112,11 +128,11 @@ export default class BaseAPI {
       this.currentState = global_constants.STATE_TERMINATED;
 
       const result = this.storeData(true);
-      if (result.errorCode && result.errorCode > 0) {
+      if (typeof result.errorCode !== 'undefined' && result.errorCode > 0) {
         this.throwSCORMError(result.errorCode);
       }
       returnValue = result.result ?
-          result.result : global_constants.SCORM_FALSE;
+        result.result : global_constants.SCORM_FALSE;
 
       if (checkTerminated) this.lastErrorCode = 0;
 
@@ -240,7 +256,7 @@ export default class BaseAPI {
         this.throwSCORMError(result.errorCode);
       }
       returnValue = result.result ?
-          result.result : global_constants.SCORM_FALSE;
+        result.result : global_constants.SCORM_FALSE;
 
       this.apiLog(callbackName, 'HttpRequest', ' Result: ' + returnValue,
           global_constants.LOG_LEVEL_DEBUG);
@@ -436,9 +452,9 @@ export default class BaseAPI {
    */
   _checkObjectHasProperty(refObject, attribute: String) {
     return Object.hasOwnProperty.call(refObject, attribute) ||
-        Object.getOwnPropertyDescriptor(
-            Object.getPrototypeOf(refObject), attribute) ||
-        (attribute in refObject);
+      Object.getOwnPropertyDescriptor(
+          Object.getPrototypeOf(refObject), attribute) ||
+      (attribute in refObject);
   }
 
   /**
@@ -502,15 +518,15 @@ export default class BaseAPI {
 
     const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
     const invalidErrorCode = scorm2004 ?
-        this.#error_codes.UNDEFINED_DATA_MODEL :
-        this.#error_codes.GENERAL;
+      this.#error_codes.UNDEFINED_DATA_MODEL :
+      this.#error_codes.GENERAL;
 
     for (let i = 0; i < structure.length; i++) {
       const attribute = structure[i];
 
       if (i === structure.length - 1) {
         if (scorm2004 && (attribute.substr(0, 8) === '{target=') &&
-            (typeof refObject._isTargetValid == 'function')) {
+          (typeof refObject._isTargetValid == 'function')) {
           this.throwSCORMError(this.#error_codes.READ_ONLY_ELEMENT);
         } else if (!this._checkObjectHasProperty(refObject, attribute)) {
           this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
@@ -616,8 +632,8 @@ export default class BaseAPI {
     const uninitializedErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) has not been initialized.`;
     const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
     const invalidErrorCode = scorm2004 ?
-        this.#error_codes.UNDEFINED_DATA_MODEL :
-        this.#error_codes.GENERAL;
+      this.#error_codes.UNDEFINED_DATA_MODEL :
+      this.#error_codes.GENERAL;
 
     for (let i = 0; i < structure.length; i++) {
       attribute = structure[i];
@@ -631,7 +647,7 @@ export default class BaseAPI {
         }
       } else {
         if ((String(attribute).substr(0, 8) === '{target=') &&
-            (typeof refObject._isTargetValid == 'function')) {
+          (typeof refObject._isTargetValid == 'function')) {
           const target = String(attribute).
               substr(8, String(attribute).length - 9);
           return refObject._isTargetValid(target);
@@ -745,11 +761,17 @@ export default class BaseAPI {
    * @param {*} value
    */
   processListeners(functionName: String, CMIElement: String, value: any) {
+    this.apiLog(functionName, CMIElement, value);
     for (let i = 0; i < this.listenerArray.length; i++) {
       const listener = this.listenerArray[i];
       const functionsMatch = listener.functionName === functionName;
       const listenerHasCMIElement = !!listener.CMIElement;
-      const CMIElementsMatch = listener.CMIElement === CMIElement;
+      let CMIElementsMatch = false;
+      if (CMIElement && listener.CMIElement && listener.CMIElement.substring(listener.CMIElement.length - 1) === '*') {
+        CMIElementsMatch = CMIElement.indexOf(listener.CMIElement.substring(0, listener.CMIElement.length - 1)) === 0;
+      } else {
+        CMIElementsMatch = listener.CMIElement === CMIElement;
+      }
 
       if (functionsMatch && (!listenerHasCMIElement || CMIElementsMatch)) {
         listener.callback(CMIElement, value);
@@ -901,17 +923,29 @@ export default class BaseAPI {
       } else {
         httpReq.setRequestHeader('Content-Type',
             this.settings.commitRequestDataType);
+        httpReq.responseType = 'json';
         httpReq.send(JSON.stringify(params));
       }
     } catch (e) {
       return genericError;
     }
 
+    let result;
     try {
-      return JSON.parse(httpReq.responseText);
+      if (typeof this.settings.responseHandler === 'function') {
+        result = this.settings.responseHandler(httpReq);
+      } else {
+        result = JSON.parse(httpReq.responseText);
+      }
     } catch (e) {
       return genericError;
     }
+
+    if (typeof result === 'undefined') {
+      return genericError;
+    }
+
+    return result;
   }
 
   /**
