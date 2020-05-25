@@ -1249,7 +1249,7 @@ export class NAV extends BaseCMI {
    * @return {string}
    */
   get event() {
-    return (!this.jsonString) ? throwWriteOnlyError() : this.#event;
+    return this.#event;
   }
 
   /**
