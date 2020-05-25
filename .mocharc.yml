@@ -1,7 +1,0 @@
-recursive: true
-require: '@babel/register'
-spec: 'test/**/*.spec.js'
-ui: 'bdd'
-watch: true
-watch-files:
-  - 'test/**/*.js'
