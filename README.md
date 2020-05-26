@@ -52,6 +52,7 @@ The APIs include several settings to customize the functionality of each API:
 | `autoProgress` | false | true/false | In case Sequencing is being used, you can tell the API to automatically throw the `SequenceNext` event.|
 | `logLevel` | 4 | int<br><br>1 => DEBUG<br>2 => INFO<br>3 => WARN<br>4 => ERROR<br>5 => NONE | By default, the APIs only log error messages. |
 | `mastery_override` | false | true/false | (SCORM 1.2) Used to override a module's `cmi.core.lesson_status` so that a pass/fail is determined based on a mastery score and the user's raw score, rather than using whatever status is provided by the module. An example of this would be if a module is published using a `Complete/Incomplete` final status, but the LMS always wants to receive a `Passed/Failed` for quizzes, then we can use this setting to override the given final status. |
+| `responseHandler` | function |  | A function to properly tranform the response from the LMS to the correct format. The APIs expect the result from the LMS to be in the following format (errorCode is optional):<br/>{<br/> "result": true,<br/>    "errorCode": 0<br/>} |
 
 ## Initial Values
 
@@ -166,6 +167,14 @@ window.API.on("LMSSetValue.cmi.core.student_id", function(CMIElement, value) {
 });
 ```
 
+Finally, you can listen for events using a wildcard:
+
+```javascript
+window.API.on("LMSSetValue.cmi.*", function(CMIElement, value) {
+  [...]
+});
+```
+
 ### SCORM 2004 Listeners
 
 For convenience, hooks are available for all the SCORM API Signature functions:
@@ -197,6 +206,14 @@ You can also listen for events on specific SCORM CMI elements:
 
 ```javascript
 window.API_1484_11.on("SetValue.cmi.learner_id ", function(CMIElement, value) {
+  [...]
+});
+```
+
+Finally, you can listen for events using a wildcard:
+
+```javascript
+window.API_1484_11.on("SetValue.cmi.* ", function(CMIElement, value) {
   [...]
 });
 ```
