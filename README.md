@@ -46,7 +46,7 @@ The APIs include several settings to customize the functionality of each API:
 | ------------- |:-------------:| :-----:| --- |
 | `autocommit`      | false | true/false | Determines whether the API schedules an autocommit to the LMS after setting a value. |
 | `autocommitSeconds`      | 60      |   int | Number of seconds to wait before autocommiting. Timer is restarted if another value is set. |
-| `lmsCommitUrl` | false      |    url | The URL endpoint of the LMS where data should be sent upon commit. If no value is provided, modules will run as usual, but all method calls with just be logged to the console. |
+| `lmsCommitUrl` | false      |    url | The URL endpoint of the LMS where data should be sent upon commit. If no value is provided, modules will run as usual, but all method calls will be logged to the console. |
 | `dataCommitFormat` | `json` | `json`, `flattened`, `params` | `json` will send a JSON object to the lmsCommitUrl in the format of <br>`{'cmi': {'core': {...}}`<br><br> `flattened` will send the data in the format <br>`{'cmi.core.exit': 'suspend', 'cmi.core.mode': 'normal'...}`<br><br> `params` will send the data as <br>`?cmi.core.exit=suspend&cmi.core.mode=normal...` |
 | `commitRequestDataType` | 'application/json;charset=UTF-8' | string | This setting is provided in case your LMS expects a different content type or character set. |
 | `autoProgress` | false | true/false | In case Sequencing is being used, you can tell the API to automatically throw the `SequenceNext` event.|
