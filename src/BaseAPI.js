@@ -923,10 +923,10 @@ export default class BaseAPI {
       } else {
         httpReq.setRequestHeader('Content-Type',
             this.settings.commitRequestDataType);
-        httpReq.responseType = 'json';
         httpReq.send(JSON.stringify(params));
       }
     } catch (e) {
+      console.error(e);
       return genericError;
     }
 
@@ -938,6 +938,7 @@ export default class BaseAPI {
         result = JSON.parse(httpReq.responseText);
       }
     } catch (e) {
+      console.error(e);
       return genericError;
     }
 
