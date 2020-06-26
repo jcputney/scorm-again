@@ -305,6 +305,15 @@ describe('SCORM 2004 API Tests', () => {
                 String(scorm2004API.lmsGetLastError())
             ).to.equal(String(0));
           });
+      it('should allow cmi.interactions.10.correct_responses.0.pattern to be set - T/F',
+          () => {
+            const scorm2004API = apiInitialized();
+            scorm2004API.setCMIValue('cmi.interactions.0.type', 'true-false');
+            scorm2004API.setCMIValue('cmi.interactions.0.correct_responses.0.pattern', 'true');
+            expect(
+                String(scorm2004API.lmsGetLastError())
+            ).to.equal(String(0));
+          });
       it('should allow cmi.interactions.0.correct_responses.0.pattern to be set - choice',
           () => {
             const scorm2004API = apiInitialized();

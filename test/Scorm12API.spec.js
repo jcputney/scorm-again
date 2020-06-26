@@ -282,7 +282,12 @@ describe('SCORM 1.2 API Tests', () => {
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
-        fieldName: 'cmi.interactions.0.correct_responses.0.pattern',
+        fieldName: 'cmi.interactions.0.objectives.0.id',
+        valueToTest: 'AAA',
+      });
+      h.checkLMSSetValue({
+        api: apiInitialized(),
+        fieldName: 'cmi.interactions.10.correct_responses.0.pattern',
         valueToTest: 't',
       });
     });

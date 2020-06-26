@@ -41,13 +41,13 @@ export default class AICC extends Scorm12API {
     let newChild = super.getChildElement(CMIElement, value, foundFirstIndex);
 
     if (!newChild) {
-      if (this.stringMatches(CMIElement, 'cmi\\.evaluation\\.comments\\.\\d')) {
+      if (this.stringMatches(CMIElement, 'cmi\\.evaluation\\.comments\\.\\d+')) {
         newChild = new CMIEvaluationCommentsObject();
       } else if (this.stringMatches(CMIElement,
-          'cmi\\.student_data\\.tries\\.\\d')) {
+          'cmi\\.student_data\\.tries\\.\\d+')) {
         newChild = new CMITriesObject();
       } else if (this.stringMatches(CMIElement,
-          'cmi\\.student_data\\.attempt_records\\.\\d')) {
+          'cmi\\.student_data\\.attempt_records\\.\\d+')) {
         newChild = new CMIAttemptRecordsObject();
       }
     }

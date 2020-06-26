@@ -187,10 +187,10 @@ export default class Scorm2004API extends BaseAPI {
   getChildElement(CMIElement, value, foundFirstIndex) {
     let newChild;
 
-    if (this.stringMatches(CMIElement, 'cmi\\.objectives\\.\\d')) {
+    if (this.stringMatches(CMIElement, 'cmi\\.objectives\\.\\d+')) {
       newChild = new CMIObjectivesObject();
     } else if (foundFirstIndex && this.stringMatches(CMIElement,
-        'cmi\\.interactions\\.\\d\\.correct_responses\\.\\d')) {
+        'cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+')) {
       const parts = CMIElement.split('.');
       const index = Number(parts[2]);
       const interaction = this.cmi.interactions.childArray[index];
@@ -233,16 +233,16 @@ export default class Scorm2004API extends BaseAPI {
         newChild = new CMIInteractionsCorrectResponsesObject();
       }
     } else if (foundFirstIndex && this.stringMatches(CMIElement,
-        'cmi\\.interactions\\.\\d\\.objectives\\.\\d')) {
+        'cmi\\.interactions\\.\\d+\\.objectives\\.\\d+')) {
       newChild = new CMIInteractionsObjectivesObject();
     } else if (!foundFirstIndex &&
-        this.stringMatches(CMIElement, 'cmi\\.interactions\\.\\d')) {
+        this.stringMatches(CMIElement, 'cmi\\.interactions\\.\\d+')) {
       newChild = new CMIInteractionsObject();
     } else if (this.stringMatches(CMIElement,
-        'cmi\\.comments_from_learner\\.\\d')) {
+        'cmi\\.comments_from_learner\\.\\d+')) {
       newChild = new CMICommentsObject();
     } else if (this.stringMatches(CMIElement,
-        'cmi\\.comments_from_lms\\.\\d')) {
+        'cmi\\.comments_from_lms\\.\\d+')) {
       newChild = new CMICommentsObject(true);
     }
 
