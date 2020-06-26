@@ -431,7 +431,8 @@ export class CMI extends BaseCMI {
    * @param {string} suspend_data
    */
   set suspend_data(suspend_data) {
-    if (check2004ValidFormat(suspend_data, scorm2004_regex.CMIString64000, true)) {
+    if (check2004ValidFormat(suspend_data, scorm2004_regex.CMIString64000,
+        true)) {
       this.#suspend_data = suspend_data;
     }
   }
@@ -476,9 +477,17 @@ export class CMI extends BaseCMI {
    * @return {string} ISO8601 Duration
    */
   getCurrentTotalTime() {
+    let sessionTime = this.#session_time;
+    const startTime = this.start_time;
+
+    if (typeof startTime !== 'undefined' || startTime === null) {
+      const seconds = new Date().getTime() - startTime;
+      sessionTime = Util.getSecondsAsISODuration(seconds / 1000);
+    }
+
     return Util.addTwoDurations(
         this.#total_time,
-        this.#session_time,
+        sessionTime,
         scorm2004_regex.CMITimespan,
     );
   }
@@ -966,7 +975,8 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} description
    */
   set description(description) {
-    if (check2004ValidFormat(description, scorm2004_regex.CMILangString250, true)) {
+    if (check2004ValidFormat(description, scorm2004_regex.CMILangString250,
+        true)) {
       this.#description = description;
     }
   }
@@ -1121,7 +1131,8 @@ export class CMIObjectivesObject extends BaseCMI {
    * @param {string} description
    */
   set description(description) {
-    if (check2004ValidFormat(description, scorm2004_regex.CMILangString250, true)) {
+    if (check2004ValidFormat(description, scorm2004_regex.CMILangString250,
+        true)) {
       this.#description = description;
     }
   }
@@ -1257,7 +1268,8 @@ export class CMICommentsObject extends BaseCMI {
     if (this.initialized && this.#readOnlyAfterInit) {
       throwReadOnlyError();
     } else {
-      if (check2004ValidFormat(comment, scorm2004_regex.CMILangString4000, true)) {
+      if (check2004ValidFormat(comment, scorm2004_regex.CMILangString4000,
+          true)) {
         this.#comment = comment;
       }
     }

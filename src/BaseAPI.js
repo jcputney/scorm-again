@@ -23,6 +23,7 @@ export default class BaseAPI {
     commitRequestDataType: 'application/json;charset=UTF-8',
     autoProgress: false,
     logLevel: global_constants.LOG_LEVEL_ERROR,
+    selfReportSessionTime: false,
     responseHandler: function(xhr) {
       let result;
       if (typeof xhr !== 'undefined') {
@@ -62,6 +63,7 @@ export default class BaseAPI {
 
     this.settings = settings;
     this.apiLogLevel = this.settings.logLevel;
+    this.selfReportSessionTime = this.settings.selfReportSessionTime;
   }
 
   /**
@@ -82,6 +84,10 @@ export default class BaseAPI {
     } else if (this.isTerminated()) {
       this.throwSCORMError(this.#error_codes.TERMINATED, terminationMessage);
     } else {
+      if (this.selfReportSessionTime) {
+        this.cmi.setStartTime();
+      }
+
       this.currentState = global_constants.STATE_INITIALIZED;
       this.lastErrorCode = 0;
       returnValue = global_constants.SCORM_TRUE;
@@ -132,7 +138,7 @@ export default class BaseAPI {
         this.throwSCORMError(result.errorCode);
       }
       returnValue = result.result ?
-        result.result : global_constants.SCORM_FALSE;
+          result.result : global_constants.SCORM_FALSE;
 
       if (checkTerminated) this.lastErrorCode = 0;
 
@@ -256,7 +262,7 @@ export default class BaseAPI {
         this.throwSCORMError(result.errorCode);
       }
       returnValue = result.result ?
-        result.result : global_constants.SCORM_FALSE;
+          result.result : global_constants.SCORM_FALSE;
 
       this.apiLog(callbackName, 'HttpRequest', ' Result: ' + returnValue,
           global_constants.LOG_LEVEL_DEBUG);
@@ -452,9 +458,9 @@ export default class BaseAPI {
    */
   _checkObjectHasProperty(refObject, attribute: String) {
     return Object.hasOwnProperty.call(refObject, attribute) ||
-      Object.getOwnPropertyDescriptor(
-          Object.getPrototypeOf(refObject), attribute) ||
-      (attribute in refObject);
+        Object.getOwnPropertyDescriptor(
+            Object.getPrototypeOf(refObject), attribute) ||
+        (attribute in refObject);
   }
 
   /**
@@ -518,15 +524,15 @@ export default class BaseAPI {
 
     const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
     const invalidErrorCode = scorm2004 ?
-      this.#error_codes.UNDEFINED_DATA_MODEL :
-      this.#error_codes.GENERAL;
+        this.#error_codes.UNDEFINED_DATA_MODEL :
+        this.#error_codes.GENERAL;
 
     for (let i = 0; i < structure.length; i++) {
       const attribute = structure[i];
 
       if (i === structure.length - 1) {
         if (scorm2004 && (attribute.substr(0, 8) === '{target=') &&
-          (typeof refObject._isTargetValid == 'function')) {
+            (typeof refObject._isTargetValid == 'function')) {
           this.throwSCORMError(this.#error_codes.READ_ONLY_ELEMENT);
         } else if (!this._checkObjectHasProperty(refObject, attribute)) {
           this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
@@ -632,8 +638,8 @@ export default class BaseAPI {
     const uninitializedErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) has not been initialized.`;
     const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
     const invalidErrorCode = scorm2004 ?
-      this.#error_codes.UNDEFINED_DATA_MODEL :
-      this.#error_codes.GENERAL;
+        this.#error_codes.UNDEFINED_DATA_MODEL :
+        this.#error_codes.GENERAL;
 
     for (let i = 0; i < structure.length; i++) {
       attribute = structure[i];
@@ -647,7 +653,7 @@ export default class BaseAPI {
         }
       } else {
         if ((String(attribute).substr(0, 8) === '{target=') &&
-          (typeof refObject._isTargetValid == 'function')) {
+            (typeof refObject._isTargetValid == 'function')) {
           const target = String(attribute).
               substr(8, String(attribute).length - 9);
           return refObject._isTargetValid(target);
@@ -767,8 +773,11 @@ export default class BaseAPI {
       const functionsMatch = listener.functionName === functionName;
       const listenerHasCMIElement = !!listener.CMIElement;
       let CMIElementsMatch = false;
-      if (CMIElement && listener.CMIElement && listener.CMIElement.substring(listener.CMIElement.length - 1) === '*') {
-        CMIElementsMatch = CMIElement.indexOf(listener.CMIElement.substring(0, listener.CMIElement.length - 1)) === 0;
+      if (CMIElement && listener.CMIElement &&
+          listener.CMIElement.substring(listener.CMIElement.length - 1) ===
+          '*') {
+        CMIElementsMatch = CMIElement.indexOf(listener.CMIElement.substring(0,
+            listener.CMIElement.length - 1)) === 0;
       } else {
         CMIElementsMatch = listener.CMIElement === CMIElement;
       }

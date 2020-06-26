@@ -11,6 +11,7 @@ import ErrorCodes from '../constants/error_codes';
 import Regex from '../constants/regex';
 import {ValidationError} from '../exceptions';
 import * as Utilities from '../utilities';
+import * as Util from '../utilities';
 
 const scorm12_constants = APIConstants.scorm12;
 const scorm12_regex = Regex.scorm12;
@@ -254,7 +255,7 @@ export class CMI extends BaseCMI {
    * @return {string}
    */
   getCurrentTotalTime() {
-    return this.core.getCurrentTotalTime();
+    return this.core.getCurrentTotalTime(this.start_time);
   }
 }
 
@@ -508,13 +509,21 @@ class CMICore extends BaseCMI {
 
   /**
    * Adds the current session time to the existing total time.
-   *
+   * @param {Number} start_time
    * @return {string}
    */
-  getCurrentTotalTime() {
+  getCurrentTotalTime(start_time: Number) {
+    let sessionTime = this.#session_time;
+    const startTime = start_time;
+
+    if (typeof startTime !== 'undefined' || startTime === null) {
+      const seconds = new Date().getTime() - startTime;
+      sessionTime = Util.getSecondsAsHHMMSS(seconds / 1000);
+    }
+
     return Utilities.addHHMMSSTimeStrings(
         this.#total_time,
-        this.#session_time,
+        sessionTime,
         new RegExp(scorm12_regex.CMITimespan),
     );
   }

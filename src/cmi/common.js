@@ -62,6 +62,7 @@ export function checkValidRange(
 export class BaseCMI {
   jsonString = false;
   #initialized = false;
+  #start_time;
 
   /**
    * Constructor for BaseCMI, just marks the class as abstract
@@ -81,10 +82,26 @@ export class BaseCMI {
   }
 
   /**
+   * Getter for #start_time
+   * @return {Number}
+   */
+  get start_time() {
+    return this.#start_time;
+  }
+
+  /**
    * Called when the API has been initialized after the CMI has been created
    */
   initialize() {
     this.#initialized = true;
+  }
+
+  /**
+   * Called when the player should override the 'session_time' provided by
+   * the module
+   */
+  setStartTime() {
+    this.#start_time = new Date().getTime();
   }
 }
 

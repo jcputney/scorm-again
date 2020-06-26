@@ -317,9 +317,6 @@ describe('SCORM 1.2 API Tests', () => {
               cmiExport.cmi.core.total_time,
           ).to.equal('36:34:55');
         });
-  });
-
-  describe('renderCommitCMI()', () => {
     it('if the user passes, should calculate total time when terminateCommit passed',
         () => {
           const scorm12API = api();

@@ -1,6 +1,6 @@
 {
   "name": "scorm-again",
-  "version": "1.1.4",
+  "version": "1.2.0",
   "description": "A modern SCORM JavaScript run-time library for AICC, SCORM 1.2, and SCORM 2004",
   "main": "dist/scorm-again.min.js",
   "directories": {
@@ -21,7 +21,7 @@
     "babelify": "^10.0.0",
     "browserify": "^16.5.1",
     "chai": "^4.2.0",
-    "eslint": "^6.8.0",
+    "eslint": "^7.3.1",
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-import": "^2.21.2",
     "grunt": "^1.1.0",
@@ -33,7 +33,7 @@
     "jsdoc-babel": "^0.5.0",
     "minifyify": "^7.3.5",
     "minimist": "^1.2.5",
-    "mocha": "^7.1.2",
+    "mocha": "^8.0.1",
     "mocha-junit-reporter": "^2.0.0",
     "mochawesome": "^6.1.1",
     "nyc": "^15.1.0"

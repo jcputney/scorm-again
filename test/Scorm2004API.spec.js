@@ -7,8 +7,8 @@ import {scorm2004_values} from './field_values';
 
 const scorm2004_error_codes = ErrorCodes.scorm2004;
 
-const api = (startingData) => {
-  const API = new Scorm2004API();
+const api = (settings = {}, startingData = {}) => {
+  const API = new Scorm2004API(settings);
   API.apiLogLevel = 1;
   if (startingData) {
     API.startingData = startingData;
