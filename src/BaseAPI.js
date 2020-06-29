@@ -4,6 +4,7 @@ import {ValidationError} from './exceptions';
 import ErrorCodes from './constants/error_codes';
 import APIConstants from './constants/api_constants';
 import {unflatten} from './utilities';
+import debounce from 'lodash.debounce';
 
 const global_constants = APIConstants.global;
 const scorm12_error_codes = ErrorCodes.scorm12;
@@ -921,102 +922,82 @@ export default class BaseAPI {
   }
 
   /**
-   * A debounce function to throttle calls to LMS commit API
-   *
-   * @param {function} func
-   * @param {number} wait
-   * @param {boolean} immediate
-   * @return {function(...[*]=)}
-   * @private
-   */
-  _debounce(func, wait, immediate = false) {
-    let timeout;
-    return function(...args) {
-      const later = () => {
-        timeout = null; // added this to set same behaviour as ES5
-        // eslint-disable-next-line no-invalid-this
-        if (!immediate) func.apply(this, args); // this is called conditionally, just like in the ES5 version
-      };
-      const callNow = immediate && !timeout;
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-      // eslint-disable-next-line no-invalid-this
-      if (callNow) func.apply(this, args);
-    };
-  }
-
-  /**
    * Send the request to the LMS
    * @param {string} url
    * @param {object|Array} params
    * @return {object}
    */
   processHttpRequest(url: String, params) {
-    const debounced = this._debounce(
-        function(url, params, settings, error_codes) {
-          const genericError = {
-            'result': global_constants.SCORM_FALSE,
-            'errorCode': error_codes.GENERAL,
-          };
+    const process = function(url, params, settings, error_codes) {
+      const genericError = {
+        'result': global_constants.SCORM_FALSE,
+        'errorCode': error_codes.GENERAL,
+      };
 
-          let result;
-          if (!settings.sendBeaconCommit) {
-            const httpReq = new XMLHttpRequest();
-            httpReq.open('POST', url, settings.asyncCommit);
-            try {
-              if (params instanceof Array) {
-                httpReq.setRequestHeader('Content-Type',
-                    'application/x-www-form-urlencoded');
-                httpReq.send(params.join('&'));
-              } else {
-                httpReq.setRequestHeader('Content-Type',
-                    settings.commitRequestDataType);
-                httpReq.send(JSON.stringify(params));
-              }
-
-              if (typeof settings.responseHandler === 'function') {
-                result = settings.responseHandler(httpReq);
-              } else {
-                result = JSON.parse(httpReq.responseText);
-              }
-            } catch (e) {
-              console.error(e);
-              return genericError;
-            }
+      let result;
+      if (!settings.sendBeaconCommit) {
+        const httpReq = new XMLHttpRequest();
+        httpReq.open('POST', url, settings.asyncCommit);
+        try {
+          if (params instanceof Array) {
+            httpReq.setRequestHeader('Content-Type',
+                'application/x-www-form-urlencoded');
+            httpReq.send(params.join('&'));
           } else {
-            try {
-              const headers = {
-                type: settings.commitRequestDataType,
-              };
-              let blob;
-              if (params instanceof Array) {
-                blob = new Blob([params.join('&')], headers);
-              } else {
-                blob = new Blob([JSON.stringify(params)], headers);
-              }
-
-              result = {};
-              if (navigator.sendBeacon(url, blob)) {
-                result.result = global_constants.SCORM_TRUE;
-                result.errorCode = 0;
-              } else {
-                result.result = global_constants.SCORM_FALSE;
-                result.errorCode = 101;
-              }
-            } catch (e) {
-              console.error(e);
-              return genericError;
-            }
+            httpReq.setRequestHeader('Content-Type',
+                settings.commitRequestDataType);
+            httpReq.send(JSON.stringify(params));
           }
 
-          if (typeof result === 'undefined') {
-            return genericError;
+          if (typeof settings.responseHandler === 'function') {
+            result = settings.responseHandler(httpReq);
+          } else {
+            result = JSON.parse(httpReq.responseText);
+          }
+        } catch (e) {
+          console.error(e);
+          return genericError;
+        }
+      } else {
+        try {
+          const headers = {
+            type: settings.commitRequestDataType,
+          };
+          let blob;
+          if (params instanceof Array) {
+            blob = new Blob([params.join('&')], headers);
+          } else {
+            blob = new Blob([JSON.stringify(params)], headers);
           }
 
-          return result;
-        }, 5000);
+          result = {};
+          if (navigator.sendBeacon(url, blob)) {
+            result.result = global_constants.SCORM_TRUE;
+            result.errorCode = 0;
+          } else {
+            result.result = global_constants.SCORM_FALSE;
+            result.errorCode = 101;
+          }
+        } catch (e) {
+          console.error(e);
+          return genericError;
+        }
+      }
 
-    return debounced(url, params, this.settings, this.error_codes);
+      if (typeof result === 'undefined') {
+        return genericError;
+      }
+
+      return result;
+    };
+
+    if (typeof debounce !== 'undefined') {
+      const debounced = debounce(process, 5000);
+
+      return debounced(url, params, this.settings, this.error_codes);
+    } else {
+      return process(url, params, this.settings, this.error_codes);
+    }
   }
 
   /**

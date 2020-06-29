@@ -31,6 +31,7 @@
     "grunt-mocha-test": "^0.13.3",
     "jsdoc": "^3.6.4",
     "jsdoc-babel": "^0.5.0",
+    "lodash.debounce": "^4.0.8",
     "minifyify": "^7.3.5",
     "minimist": "^1.2.5",
     "mocha": "^8.0.1",
