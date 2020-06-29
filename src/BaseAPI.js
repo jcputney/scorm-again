@@ -913,71 +913,101 @@ export default class BaseAPI {
   }
 
   /**
+   * A debounce function to throttle calls to LMS commit API
+   *
+   * @param {function} func
+   * @param {number} wait
+   * @param {boolean} immediate
+   * @return {function(...[*]=)}
+   * @private
+   */
+  _debounce(func, wait, immediate = false) {
+    let timeout;
+    return function(...args) {
+      const later = () => {
+        timeout = null; // added this to set same behaviour as ES5
+        // eslint-disable-next-line no-invalid-this
+        if (!immediate) func.apply(this, args); // this is called conditionally, just like in the ES5 version
+      };
+      const callNow = immediate && !timeout;
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+      // eslint-disable-next-line no-invalid-this
+      if (callNow) func.apply(this, args);
+    };
+  }
+
+  /**
    * Send the request to the LMS
    * @param {string} url
    * @param {object|Array} params
    * @return {object}
    */
   processHttpRequest(url: String, params) {
-    const genericError = {
-      'result': global_constants.SCORM_FALSE,
-      'errorCode': this.#error_codes.GENERAL,
-    };
+    const debounced = this._debounce(
+        function(url, params, settings, error_codes) {
+          const genericError = {
+            'result': global_constants.SCORM_FALSE,
+            'errorCode': error_codes.GENERAL,
+          };
 
-    let result;
-    if (!this.#settings.sendBeaconCommit) {
-      const httpReq = new XMLHttpRequest();
-      httpReq.open('POST', url, this.#settings.asyncCommit);
-      try {
-        if (params instanceof Array) {
-          httpReq.setRequestHeader('Content-Type',
-              'application/x-www-form-urlencoded');
-          httpReq.send(params.join('&'));
-        } else {
-          httpReq.setRequestHeader('Content-Type',
-              this.settings.commitRequestDataType);
-          httpReq.send(JSON.stringify(params));
-        }
+          let result;
+          if (!settings.sendBeaconCommit) {
+            const httpReq = new XMLHttpRequest();
+            httpReq.open('POST', url, settings.asyncCommit);
+            try {
+              if (params instanceof Array) {
+                httpReq.setRequestHeader('Content-Type',
+                    'application/x-www-form-urlencoded');
+                httpReq.send(params.join('&'));
+              } else {
+                httpReq.setRequestHeader('Content-Type',
+                    settings.commitRequestDataType);
+                httpReq.send(JSON.stringify(params));
+              }
 
-        if (typeof this.settings.responseHandler === 'function') {
-          result = this.settings.responseHandler(httpReq);
-        } else {
-          result = JSON.parse(httpReq.responseText);
-        }
-      } catch (e) {
-        console.error(e);
-        return genericError;
-      }
-    } else {
-      try {
-        const headers = {
-          type: this.settings.commitRequestDataType,
-        };
-        let blob;
-        if (params instanceof Array) {
-          blob = new Blob([params.join('&')], headers);
-        } else {
-          blob = new Blob([JSON.stringify(params)], headers);
-        }
+              if (typeof settings.responseHandler === 'function') {
+                result = settings.responseHandler(httpReq);
+              } else {
+                result = JSON.parse(httpReq.responseText);
+              }
+            } catch (e) {
+              console.error(e);
+              return genericError;
+            }
+          } else {
+            try {
+              const headers = {
+                type: settings.commitRequestDataType,
+              };
+              let blob;
+              if (params instanceof Array) {
+                blob = new Blob([params.join('&')], headers);
+              } else {
+                blob = new Blob([JSON.stringify(params)], headers);
+              }
 
-        result = {};
-        if (navigator.sendBeacon(url, blob)) {
-          result.result = global_constants.SCORM_TRUE;
-        } else {
-          result.result = global_constants.SCORM_FALSE;
-          result.errorCode = 101;
-        }
-      } catch (e) {
-        console.error(e);
-        return genericError;
-      }
-    }
+              result = {};
+              if (navigator.sendBeacon(url, blob)) {
+                result.result = global_constants.SCORM_TRUE;
+              } else {
+                result.result = global_constants.SCORM_FALSE;
+                result.errorCode = 101;
+              }
+            } catch (e) {
+              console.error(e);
+              return genericError;
+            }
+          }
 
-    if (typeof result === 'undefined') {
-      return genericError;
-    }
+          if (typeof result === 'undefined') {
+            return genericError;
+          }
 
-    return result;
+          return result;
+        }, 5000);
+
+    return debounced(url, params, this.settings);
   }
 
   /**
