@@ -950,15 +950,18 @@ export default class BaseAPI {
       }
     } else {
       try {
-        let beacon;
+        const headers = {
+          type: this.settings.commitRequestDataType,
+        };
+        let blob;
         if (params instanceof Array) {
-          beacon = navigator.sendBeacon(url, params.join('&'));
+          blob = new Blob([params.join('&')], headers);
         } else {
-          beacon = navigator.sendBeacon(url, params);
+          blob = new Blob([JSON.stringify(params)], headers);
         }
 
         result = {};
-        if (beacon) {
+        if (navigator.sendBeacon(url, blob)) {
           result.result = global_constants.SCORM_TRUE;
         } else {
           result.result = global_constants.SCORM_FALSE;
