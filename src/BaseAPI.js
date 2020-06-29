@@ -1007,7 +1007,7 @@ export default class BaseAPI {
           return result;
         }, 5000);
 
-    return debounced(url, params, this.settings);
+    return debounced(url, params, this.settings, this.#error_codes);
   }
 
   /**
