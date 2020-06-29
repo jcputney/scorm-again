@@ -104,6 +104,14 @@ export default class BaseAPI {
   }
 
   /**
+   * Getter for #error_codes
+   * @return {object}
+   */
+  get error_codes() {
+    return this.#error_codes;
+  }
+
+  /**
    * Getter for #settings
    * @return {object}
    */
@@ -1008,7 +1016,7 @@ export default class BaseAPI {
           return result;
         }, 5000);
 
-    return debounced(url, params, this.settings, this.#error_codes);
+    return debounced(url, params, this.settings, this.error_codes);
   }
 
   /**
