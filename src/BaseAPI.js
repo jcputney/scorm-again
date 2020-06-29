@@ -18,6 +18,8 @@ export default class BaseAPI {
   #settings = {
     autocommit: false,
     autocommitSeconds: 10,
+    asyncCommit: false,
+    sendBeaconCommit: false,
     lmsCommitUrl: false,
     dataCommitFormat: 'json', // valid formats are 'json' or 'flattened', 'params'
     commitRequestDataType: 'application/json;charset=UTF-8',
@@ -922,33 +924,50 @@ export default class BaseAPI {
       'errorCode': this.#error_codes.GENERAL,
     };
 
-    const httpReq = new XMLHttpRequest();
-    httpReq.open('POST', url, false);
-    try {
-      if (params instanceof Array) {
-        httpReq.setRequestHeader('Content-Type',
-            'application/x-www-form-urlencoded');
-        httpReq.send(params.join('&'));
-      } else {
-        httpReq.setRequestHeader('Content-Type',
-            this.settings.commitRequestDataType);
-        httpReq.send(JSON.stringify(params));
-      }
-    } catch (e) {
-      console.error(e);
-      return genericError;
-    }
-
     let result;
-    try {
-      if (typeof this.settings.responseHandler === 'function') {
-        result = this.settings.responseHandler(httpReq);
-      } else {
-        result = JSON.parse(httpReq.responseText);
+    if (!this.#settings.sendBeaconCommit) {
+      const httpReq = new XMLHttpRequest();
+      httpReq.open('POST', url, this.#settings.asyncCommit);
+      try {
+        if (params instanceof Array) {
+          httpReq.setRequestHeader('Content-Type',
+              'application/x-www-form-urlencoded');
+          httpReq.send(params.join('&'));
+        } else {
+          httpReq.setRequestHeader('Content-Type',
+              this.settings.commitRequestDataType);
+          httpReq.send(JSON.stringify(params));
+        }
+
+        if (typeof this.settings.responseHandler === 'function') {
+          result = this.settings.responseHandler(httpReq);
+        } else {
+          result = JSON.parse(httpReq.responseText);
+        }
+      } catch (e) {
+        console.error(e);
+        return genericError;
       }
-    } catch (e) {
-      console.error(e);
-      return genericError;
+    } else {
+      try {
+        let beacon;
+        if (params instanceof Array) {
+          beacon = navigator.sendBeacon(url, params.join('&'));
+        } else {
+          beacon = navigator.sendBeacon(url, params);
+        }
+
+        result = {};
+        if (beacon) {
+          result.result = global_constants.SCORM_TRUE;
+        } else {
+          result.result = global_constants.SCORM_FALSE;
+          result.errorCode = 101;
+        }
+      } catch (e) {
+        console.error(e);
+        return genericError;
+      }
     }
 
     if (typeof result === 'undefined') {
