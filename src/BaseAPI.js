@@ -990,6 +990,7 @@ export default class BaseAPI {
               result = {};
               if (navigator.sendBeacon(url, blob)) {
                 result.result = global_constants.SCORM_TRUE;
+                result.errorCode = 0;
               } else {
                 result.result = global_constants.SCORM_FALSE;
                 result.errorCode = 101;
