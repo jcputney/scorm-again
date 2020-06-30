@@ -302,7 +302,7 @@ export default class Scorm12API extends BaseAPI {
             (terminateCommit ? 'yes' : 'no') + '): ');
         console.debug(commitObject);
       }
-      return this.processHttpRequest(this.settings.lmsCommitUrl, commitObject);
+      return this.processHttpRequest(this.settings.lmsCommitUrl, commitObject, terminateCommit);
     } else {
       console.log('Commit (terminated: ' +
           (terminateCommit ? 'yes' : 'no') + '): ');

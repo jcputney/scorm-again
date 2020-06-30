@@ -145,10 +145,11 @@ export default class BaseAPI {
       this.currentState = global_constants.STATE_TERMINATED;
 
       const result = this.storeData(true);
-      if (typeof result.errorCode !== 'undefined' && result.errorCode > 0) {
+      if (!this.settings.sendBeaconCommit && !this.settings.asyncCommit &&
+          typeof result.errorCode !== 'undefined' && result.errorCode > 0) {
         this.throwSCORMError(result.errorCode);
       }
-      returnValue = result.result ?
+      returnValue = (typeof result !== 'undefined' && result.result) ?
           result.result : global_constants.SCORM_FALSE;
 
       if (checkTerminated) this.lastErrorCode = 0;
@@ -269,10 +270,11 @@ export default class BaseAPI {
     if (this.checkState(checkTerminated, this.#error_codes.COMMIT_BEFORE_INIT,
         this.#error_codes.COMMIT_AFTER_TERM)) {
       const result = this.storeData(false);
-      if (result.errorCode && result.errorCode > 0) {
+      if (!this.settings.sendBeaconCommit && !this.settings.asyncCommit &&
+          result.errorCode && result.errorCode > 0) {
         this.throwSCORMError(result.errorCode);
       }
-      returnValue = result.result ?
+      returnValue = (typeof result !== 'undefined' && result.result) ?
           result.result : global_constants.SCORM_FALSE;
 
       this.apiLog(callbackName, 'HttpRequest', ' Result: ' + returnValue,
@@ -925,9 +927,10 @@ export default class BaseAPI {
    * Send the request to the LMS
    * @param {string} url
    * @param {object|Array} params
+   * @param {boolean} immediate
    * @return {object}
    */
-  processHttpRequest(url: String, params) {
+  processHttpRequest(url: String, params, immediate = false) {
     const process = function(url, params, settings, error_codes) {
       const genericError = {
         'result': global_constants.SCORM_FALSE,
@@ -992,9 +995,18 @@ export default class BaseAPI {
     };
 
     if (typeof debounce !== 'undefined') {
-      const debounced = debounce(process, 5000);
+      const debounced = debounce(process, 500);
+      debounced(url, params, this.settings, this.error_codes);
 
-      return debounced(url, params, this.settings, this.error_codes);
+      // if we're terminating, go ahead and commit immediately
+      if (immediate) {
+        debounced.flush();
+      }
+
+      return {
+        result: global_constants.SCORM_TRUE,
+        errorCode: 0,
+      };
     } else {
       return process(url, params, this.settings, this.error_codes);
     }

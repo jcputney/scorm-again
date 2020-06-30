@@ -553,7 +553,7 @@ export default class Scorm2004API extends BaseAPI {
         console.debug(commitObject);
       }
       const result = this.processHttpRequest(this.settings.lmsCommitUrl,
-          commitObject);
+          commitObject, terminateCommit);
 
       // check if this is a sequencing call, and then call the necessary JS
       {
