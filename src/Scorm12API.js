@@ -63,7 +63,7 @@ export default class Scorm12API extends BaseAPI {
    * @return {string} bool
    */
   lmsFinish() {
-    const result = this.terminate('LMSFinish', false);
+    const result = this.terminate('LMSFinish', true);
 
     if (result === global_constants.SCORM_TRUE) {
       if (this.nav.event !== '') {
