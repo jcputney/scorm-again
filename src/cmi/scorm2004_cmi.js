@@ -819,8 +819,13 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} type
    */
   set type(type) {
-    if (check2004ValidFormat(type, scorm2004_regex.CMIType)) {
-      this.#type = type;
+    if (typeof this.id === 'undefined') {
+      throw new ValidationError(
+          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+    } else {
+      if (check2004ValidFormat(type, scorm2004_regex.CMIType)) {
+        this.#type = type;
+      }
     }
   }
 
@@ -874,7 +879,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} learner_response
    */
   set learner_response(learner_response) {
-    if (typeof this.type === 'undefined') {
+    if (typeof this.type === 'undefined' || typeof this.id === 'undefined') {
       throw new ValidationError(
           scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
     } else {

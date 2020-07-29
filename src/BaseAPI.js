@@ -3,7 +3,7 @@ import {CMIArray} from './cmi/common';
 import {ValidationError} from './exceptions';
 import ErrorCodes from './constants/error_codes';
 import APIConstants from './constants/api_constants';
-import {unflatten} from './utilities';
+import {sortFlattenedCMIElements, unflatten} from './utilities';
 import debounce from 'lodash.debounce';
 
 const global_constants = APIConstants.global;
@@ -848,7 +848,55 @@ export default class BaseAPI {
    * @param {string} CMIElement
    */
   loadFromFlattenedJSON(json, CMIElement) {
-    this.loadFromJSON(unflatten(json), CMIElement);
+    if (!this.isNotInitialized()) {
+      console.error(
+          'loadFromFlattenedJSON can only be called before the call to lmsInitialize.');
+      return;
+    }
+
+    console.info(json);
+
+    const result = Object.keys(json).map(function(key) {
+      return [String(key), json[key]];
+    });
+
+    // CMI interactions need to have id and type loaded before any other fields
+    result.sort(function([a, b], [c, d]) {
+      const id_pattern = /^cmi\.interactions\.(\d+)\.id$/;
+      const type_pattern = /^cmi\.interactions\.(\d+)\.type$/;
+      const pattern = /^cmi\.interactions\.(\d+)/;
+
+      if (a.match(id_pattern) && c.match(pattern)) {
+        if (a.match(id_pattern)[1] < c.match(pattern)[1]) return -1;
+        if (a.match(id_pattern)[1] > c.match(pattern)[1]) return 1;
+        return -1;
+      } else if (a.match(pattern) && c.match(id_pattern)) {
+        if (a.match(pattern)[1] < c.match(id_pattern)[1]) return -1;
+        if (a.match(pattern)[1] > c.match(id_pattern)[1]) return 1;
+        return 1;
+      } else if (a.match(type_pattern) && c.match(pattern)) {
+        if (a.match(type_pattern)[1] < c.match(pattern)[1]) return -1;
+        if (a.match(type_pattern)[1] > c.match(pattern)[1]) return 1;
+        return -1;
+      } else if (a.match(pattern) && c.match(type_pattern)) {
+        if (a.match(pattern)[1] < c.match(type_pattern)[1]) return -1;
+        if (a.match(pattern)[1] > c.match(type_pattern)[1]) return 1;
+        return 1;
+      }
+
+      if (a < c) return -1;
+      if (a > c) return 1;
+      return 0;
+    });
+
+    console.info(result);
+
+    let obj;
+    result.forEach((element) => {
+      obj = {};
+      obj[element[0]] = element[1];
+      this.loadFromJSON(unflatten(obj), CMIElement);
+    });
   }
 
   /**
