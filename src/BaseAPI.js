@@ -854,8 +854,6 @@ export default class BaseAPI {
       return;
     }
 
-    console.info(json);
-
     const result = Object.keys(json).map(function(key) {
       return [String(key), json[key]];
     });
@@ -888,8 +886,6 @@ export default class BaseAPI {
       if (a > c) return 1;
       return 0;
     });
-
-    console.info(result);
 
     let obj;
     result.forEach((element) => {
