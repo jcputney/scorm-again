@@ -3,7 +3,7 @@ import {CMIArray} from './cmi/common';
 import {ValidationError} from './exceptions';
 import ErrorCodes from './constants/error_codes';
 import APIConstants from './constants/api_constants';
-import {sortFlattenedCMIElements, unflatten} from './utilities';
+import {unflatten} from './utilities';
 import debounce from 'lodash.debounce';
 
 const global_constants = APIConstants.global;
@@ -848,11 +848,49 @@ export default class BaseAPI {
    * @param {string} CMIElement
    */
   loadFromFlattenedJSON(json, CMIElement) {
+    console.clear();
     if (!this.isNotInitialized()) {
       console.error(
           'loadFromFlattenedJSON can only be called before the call to lmsInitialize.');
       return;
     }
+
+    /**
+     * Test match pattern.
+     *
+     * @param {string} a
+     * @param {string} c
+     * @param {RegExp} a_pattern
+     * @return {number}
+     */
+    function testPattern(a, c, a_pattern) {
+      const a_match = a.match(a_pattern);
+
+      if (a_match !== null) {
+        let c_match = c.match(
+            new RegExp(a_match[1] + Number(a_match[2]) + '.(.*)'));
+        if (c_match !== null) {
+          const a_int = Number(a_match[2]);
+
+          if (a_match[3] === 'id') {
+            return -1;
+          } else if (a_match[3] === 'type' && c_match[1] !== 'id') {
+            return -1;
+          } else {
+            return 1;
+          }
+        } else if ((c_match = c.match(a_pattern)) !== null) {
+          return Number(a_match[2]) - Number(c_match[2]);
+        } else {
+          return testPattern(c, a, a_pattern);
+        }
+      }
+
+      return null;
+    }
+
+    const int_pattern = /^(cmi\.interactions\.)(\d+)\.(.*)$/;
+    const obj_pattern = /^(cmi\.objectives\.)(\d+)\.(.*)$/;
 
     const result = Object.keys(json).map(function(key) {
       return [String(key), json[key]];
@@ -860,54 +898,20 @@ export default class BaseAPI {
 
     // CMI interactions need to have id and type loaded before any other fields
     result.sort(function([a, b], [c, d]) {
-      /**
-       * Test match pattern.
-       *
-       * @param {string} a
-       * @param {string} c
-       * @param {RegExp} a_pattern
-       * @param {RegExp} c_pattern
-       * @return {number}
-       */
-      function testPattern(a, c, a_pattern, c_pattern) {
-        if (a.match(c_pattern) && c.match(a_pattern)) {
-          const a1 = Number(a.match(c_pattern)[1]);
-          const c1 = Number(c.match(a_pattern)[1]);
-          if (a1 === c1) return -1;
-          else return 1;
-        }
-        return 0;
+      let test;
+      if ((test = testPattern(a, c, int_pattern)) !== null) {
+        return test;
+      }
+      if ((test = testPattern(a, c, obj_pattern)) !== null) {
+        return test;
       }
 
-      const int_id_pattern = /^cmi\.interactions\.(\d+)\.id$/;
-      const int_type_pattern = /^cmi\.interactions\.(\d+)\.type$/;
-      const int_pattern = /^cmi\.interactions\.(\d+)/;
-      const obj_id_pattern = /^cmi\.objectives\.(\d+)\.id$/;
-      const obj_pattern = /^cmi\.objectives\.(\d+)/;
-
-      let id_test = testPattern(a, c, int_id_pattern, int_pattern);
-      if (id_test !== 0) {
-        return id_test;
+      if (a < c) {
+        return -1;
       }
-      id_test = testPattern(a, c, int_pattern, int_id_pattern);
-      if (id_test !== 0) {
-        return id_test;
+      if (a > c) {
+        return 1;
       }
-      id_test = testPattern(a, c, int_type_pattern, int_pattern);
-      if (id_test !== 0) {
-        return id_test;
-      }
-      id_test = testPattern(a, c, int_pattern, int_type_pattern);
-      if (id_test !== 0) {
-        return id_test;
-      }
-      id_test = testPattern(a, c, obj_id_pattern, obj_pattern);
-      if (id_test !== 0) {
-        return id_test;
-      }
-
-      if (a < c) return -1;
-      if (a > c) return 1;
       return 0;
     });
 
