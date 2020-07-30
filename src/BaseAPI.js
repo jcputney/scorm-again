@@ -870,18 +870,11 @@ export default class BaseAPI {
        * @return {number}
        */
       function testPattern(a, c, a_pattern, c_pattern) {
-        if (a.match(a_pattern) && c.match(c_pattern)) {
-          if (Number(a.match(a_pattern)[1]) <
-              Number(c.match(c_pattern)[1])) return -1;
-          if (Number(a.match(a_pattern)[1]) >
-              Number(c.match(c_pattern)[1])) return 1;
-          return -1;
-        } else if (a.match(c_pattern) && c.match(a_pattern)) {
-          if (Number(a.match(c_pattern)[1]) <
-              Number(c.match(a_pattern)[1])) return -1;
-          if (Number(a.match(c_pattern)[1]) >
-              Number(c.match(a_pattern)[1])) return 1;
-          return 1;
+        if (a.match(c_pattern) && c.match(a_pattern)) {
+          const a1 = Number(a.match(c_pattern)[1]);
+          const c1 = Number(c.match(a_pattern)[1]);
+          if (a1 === c1) return -1;
+          else return 1;
         }
         return 0;
       }
@@ -896,7 +889,15 @@ export default class BaseAPI {
       if (id_test !== 0) {
         return id_test;
       }
+      id_test = testPattern(a, c, int_pattern, int_id_pattern);
+      if (id_test !== 0) {
+        return id_test;
+      }
       id_test = testPattern(a, c, int_type_pattern, int_pattern);
+      if (id_test !== 0) {
+        return id_test;
+      }
+      id_test = testPattern(a, c, int_pattern, int_type_pattern);
       if (id_test !== 0) {
         return id_test;
       }
