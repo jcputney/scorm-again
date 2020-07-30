@@ -860,26 +860,43 @@ export default class BaseAPI {
 
     // CMI interactions need to have id and type loaded before any other fields
     result.sort(function([a, b], [c, d]) {
+      /**
+       * Test match pattern.
+       *
+       * @param {string} a
+       * @param {string} c
+       * @param {RegExp} a_pattern
+       * @param {RegExp} c_pattern
+       * @return {number}
+       */
+      function testPattern(a, c, a_pattern, c_pattern) {
+        if (a.match(a_pattern) && c.match(c_pattern)) {
+          if (Number(a.match(a_pattern)[1]) <
+              Number(c.match(c_pattern)[1])) return -1;
+          if (Number(a.match(a_pattern)[1]) >
+              Number(c.match(c_pattern)[1])) return 1;
+          return -1;
+        } else if (a.match(c_pattern) && c.match(a_pattern)) {
+          if (Number(a.match(c_pattern)[1]) <
+              Number(c.match(a_pattern)[1])) return -1;
+          if (Number(a.match(c_pattern)[1]) >
+              Number(c.match(a_pattern)[1])) return 1;
+          return 1;
+        }
+        return 0;
+      }
+
       const id_pattern = /^cmi\.interactions\.(\d+)\.id$/;
       const type_pattern = /^cmi\.interactions\.(\d+)\.type$/;
       const pattern = /^cmi\.interactions\.(\d+)/;
 
-      if (a.match(id_pattern) && c.match(pattern)) {
-        if (a.match(id_pattern)[1] < c.match(pattern)[1]) return -1;
-        if (a.match(id_pattern)[1] > c.match(pattern)[1]) return 1;
-        return -1;
-      } else if (a.match(pattern) && c.match(id_pattern)) {
-        if (a.match(pattern)[1] < c.match(id_pattern)[1]) return -1;
-        if (a.match(pattern)[1] > c.match(id_pattern)[1]) return 1;
-        return 1;
-      } else if (a.match(type_pattern) && c.match(pattern)) {
-        if (a.match(type_pattern)[1] < c.match(pattern)[1]) return -1;
-        if (a.match(type_pattern)[1] > c.match(pattern)[1]) return 1;
-        return -1;
-      } else if (a.match(pattern) && c.match(type_pattern)) {
-        if (a.match(pattern)[1] < c.match(type_pattern)[1]) return -1;
-        if (a.match(pattern)[1] > c.match(type_pattern)[1]) return 1;
-        return 1;
+      let id_test = testPattern(a, c, id_pattern, pattern);
+      if (id_test !== 0) {
+        return id_test;
+      }
+      id_test = testPattern(a, c, type_pattern, pattern);
+      if (id_test !== 0) {
+        return id_test;
       }
 
       if (a < c) return -1;
