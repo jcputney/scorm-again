@@ -550,7 +550,8 @@ export default class BaseAPI {
         } else if (!this._checkObjectHasProperty(refObject, attribute)) {
           this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
         } else {
-          if (this.stringMatches(CMIElement, '\\.correct_responses\\.\\d+')) {
+          if (this.isInitialized() &&
+              this.stringMatches(CMIElement, '\\.correct_responses\\.\\d+')) {
             this.validateCorrectResponse(CMIElement, value);
           }
 
