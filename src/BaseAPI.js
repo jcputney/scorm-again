@@ -886,15 +886,21 @@ export default class BaseAPI {
         return 0;
       }
 
-      const id_pattern = /^cmi\.interactions\.(\d+)\.id$/;
-      const type_pattern = /^cmi\.interactions\.(\d+)\.type$/;
-      const pattern = /^cmi\.interactions\.(\d+)/;
+      const int_id_pattern = /^cmi\.interactions\.(\d+)\.id$/;
+      const int_type_pattern = /^cmi\.interactions\.(\d+)\.type$/;
+      const int_pattern = /^cmi\.interactions\.(\d+)/;
+      const obj_id_pattern = /^cmi\.objectives\.(\d+)\.id$/;
+      const obj_pattern = /^cmi\.objectives\.(\d+)/;
 
-      let id_test = testPattern(a, c, id_pattern, pattern);
+      let id_test = testPattern(a, c, int_id_pattern, int_pattern);
       if (id_test !== 0) {
         return id_test;
       }
-      id_test = testPattern(a, c, type_pattern, pattern);
+      id_test = testPattern(a, c, int_type_pattern, int_pattern);
+      if (id_test !== 0) {
+        return id_test;
+      }
+      id_test = testPattern(a, c, obj_id_pattern, obj_pattern);
       if (id_test !== 0) {
         return id_test;
       }
