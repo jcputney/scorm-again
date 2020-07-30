@@ -889,15 +889,16 @@ export default class BaseAPI {
       return null;
     }
 
-    const int_pattern = /^(cmi\.interactions\.)(\d+)\.(.*)$/;
-    const obj_pattern = /^(cmi\.objectives\.)(\d+)\.(.*)$/;
-
-    const result = Object.keys(json).map(function(key) {
-      return [String(key), json[key]];
-    });
-
-    // CMI interactions need to have id and type loaded before any other fields
-    result.sort(function([a, b], [c, d]) {
+    /**
+     * Function to sort the array, which we'll call until we're done.
+     *
+     * @param {string} a
+     * @param {string} b
+     * @param {string} c
+     * @param {string} d
+     * @return {number}
+     */
+    function resultSort([a, b], [c, d]) {
       let test;
       if ((test = testPattern(a, c, int_pattern)) !== null) {
         return test;
@@ -913,10 +914,25 @@ export default class BaseAPI {
         return 1;
       }
       return 0;
+    }
+
+    const int_pattern = /^(cmi\.interactions\.)(\d+)\.(.*)$/;
+    const obj_pattern = /^(cmi\.objectives\.)(\d+)\.(.*)$/;
+
+    const result = Object.keys(json).map(function(key) {
+      return [String(key), json[key]];
     });
 
+    // CMI interactions need to have id and type loaded before any other fields
+    // Call the sort until everything is properly sorted.
+    // I must be missing an edge case in my sort?
+    let sorted_result = [];
+    while (sorted_result !== result.sort(resultSort)) {
+      sorted_result = result;
+    }
+
     let obj;
-    result.forEach((element) => {
+    sorted_result.forEach((element) => {
       obj = {};
       obj[element[0]] = element[1];
       this.loadFromJSON(unflatten(obj), CMIElement);
