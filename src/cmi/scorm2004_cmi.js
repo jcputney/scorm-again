@@ -395,8 +395,7 @@ export class CMI extends BaseCMI {
    * @param {string} session_time
    */
   set session_time(session_time) {
-    if (this.initialized &&
-        check2004ValidFormat(session_time, scorm2004_regex.CMITimespan)) {
+    if (check2004ValidFormat(session_time, scorm2004_regex.CMITimespan)) {
       this.#session_time = session_time;
     }
   }
