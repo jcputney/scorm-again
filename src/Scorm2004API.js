@@ -194,39 +194,42 @@ export default class Scorm2004API extends BaseAPI {
       const parts = CMIElement.split('.');
       const index = Number(parts[2]);
       const interaction = this.cmi.interactions.childArray[index];
-      if (!interaction.type) {
-        this.throwSCORMError(scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
-      } else {
-        const interaction_type = interaction.type;
-        const interaction_count = interaction.correct_responses._count;
-        if (interaction_type === 'choice') {
-          for (let i = 0; i < interaction_count && this.lastErrorCode ===
-          0; i++) {
-            const response = interaction.correct_responses.childArray[i];
-            if (response.pattern === value) {
-              this.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE);
+      if (this.isInitialized()) {
+        if (!interaction.type) {
+          this.throwSCORMError(
+              scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+        } else {
+          const interaction_type = interaction.type;
+          const interaction_count = interaction.correct_responses._count;
+          if (interaction_type === 'choice') {
+            for (let i = 0; i < interaction_count && this.lastErrorCode ===
+            0; i++) {
+              const response = interaction.correct_responses.childArray[i];
+              if (response.pattern === value) {
+                this.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE);
+              }
             }
           }
-        }
 
-        const response_type = correct_responses[interaction_type];
-        if (response_type) {
-          let nodes = [];
-          if (response_type?.delimiter) {
-            nodes = String(value).split(response_type.delimiter);
+          const response_type = correct_responses[interaction_type];
+          if (response_type) {
+            let nodes = [];
+            if (response_type?.delimiter) {
+              nodes = String(value).split(response_type.delimiter);
+            } else {
+              nodes[0] = value;
+            }
+
+            if (nodes.length > 0 && nodes.length <= response_type.max) {
+              this.checkCorrectResponseValue(interaction_type, nodes, value);
+            } else if (nodes.length > response_type.max) {
+              this.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE,
+                  'Data Model Element Pattern Too Long');
+            }
           } else {
-            nodes[0] = value;
-          }
-
-          if (nodes.length > 0 && nodes.length <= response_type.max) {
-            this.checkCorrectResponseValue(interaction_type, nodes, value);
-          } else if (nodes.length > response_type.max) {
             this.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE,
-                'Data Model Element Pattern Too Long');
+                'Incorrect Response Type: ' + interaction_type);
           }
-        } else {
-          this.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE,
-              'Incorrect Response Type: ' + interaction_type);
         }
       }
       if (this.lastErrorCode === 0) {

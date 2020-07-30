@@ -819,7 +819,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} type
    */
   set type(type) {
-    if (typeof this.id === 'undefined') {
+    if (this.initialized && typeof this.id === 'undefined') {
       throw new ValidationError(
           scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
     } else {
@@ -842,8 +842,13 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} timestamp
    */
   set timestamp(timestamp) {
-    if (check2004ValidFormat(timestamp, scorm2004_regex.CMITime)) {
-      this.#timestamp = timestamp;
+    if (this.initialized && typeof this.id === 'undefined') {
+      throw new ValidationError(
+          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+    } else {
+      if (check2004ValidFormat(timestamp, scorm2004_regex.CMITime)) {
+        this.#timestamp = timestamp;
+      }
     }
   }
 
@@ -860,8 +865,13 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} weighting
    */
   set weighting(weighting) {
-    if (check2004ValidFormat(weighting, scorm2004_regex.CMIDecimal)) {
-      this.#weighting = weighting;
+    if (this.initialized && typeof this.id === 'undefined') {
+      throw new ValidationError(
+          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+    } else {
+      if (check2004ValidFormat(weighting, scorm2004_regex.CMIDecimal)) {
+        this.#weighting = weighting;
+      }
     }
   }
 
@@ -879,7 +889,8 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} learner_response
    */
   set learner_response(learner_response) {
-    if (typeof this.type === 'undefined' || typeof this.id === 'undefined') {
+    if (this.initialized && (typeof this.type === 'undefined' ||
+        typeof this.id === 'undefined')) {
       throw new ValidationError(
           scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
     } else {
@@ -962,8 +973,13 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} latency
    */
   set latency(latency) {
-    if (check2004ValidFormat(latency, scorm2004_regex.CMITimespan)) {
-      this.#latency = latency;
+    if (this.initialized && typeof this.id === 'undefined') {
+      throw new ValidationError(
+          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+    } else {
+      if (check2004ValidFormat(latency, scorm2004_regex.CMITimespan)) {
+        this.#latency = latency;
+      }
     }
   }
 
@@ -980,9 +996,14 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} description
    */
   set description(description) {
-    if (check2004ValidFormat(description, scorm2004_regex.CMILangString250,
-        true)) {
-      this.#description = description;
+    if (this.initialized && typeof this.id === 'undefined') {
+      throw new ValidationError(
+          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+    } else {
+      if (check2004ValidFormat(description, scorm2004_regex.CMILangString250,
+          true)) {
+        this.#description = description;
+      }
     }
   }
 
@@ -1081,8 +1102,13 @@ export class CMIObjectivesObject extends BaseCMI {
    * @param {string} success_status
    */
   set success_status(success_status) {
-    if (check2004ValidFormat(success_status, scorm2004_regex.CMISStatus)) {
-      this.#success_status = success_status;
+    if (this.initialized && typeof this.id === 'undefined') {
+      throw new ValidationError(
+          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+    } else {
+      if (check2004ValidFormat(success_status, scorm2004_regex.CMISStatus)) {
+        this.#success_status = success_status;
+      }
     }
   }
 
@@ -1099,8 +1125,13 @@ export class CMIObjectivesObject extends BaseCMI {
    * @param {string} completion_status
    */
   set completion_status(completion_status) {
-    if (check2004ValidFormat(completion_status, scorm2004_regex.CMICStatus)) {
-      this.#completion_status = completion_status;
+    if (this.initialized && typeof this.id === 'undefined') {
+      throw new ValidationError(
+          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+    } else {
+      if (check2004ValidFormat(completion_status, scorm2004_regex.CMICStatus)) {
+        this.#completion_status = completion_status;
+      }
     }
   }
 
@@ -1117,9 +1148,15 @@ export class CMIObjectivesObject extends BaseCMI {
    * @param {string} progress_measure
    */
   set progress_measure(progress_measure) {
-    if (check2004ValidFormat(progress_measure, scorm2004_regex.CMIDecimal) &&
-        check2004ValidRange(progress_measure, scorm2004_regex.progress_range)) {
-      this.#progress_measure = progress_measure;
+    if (this.initialized && typeof this.id === 'undefined') {
+      throw new ValidationError(
+          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+    } else {
+      if (check2004ValidFormat(progress_measure, scorm2004_regex.CMIDecimal) &&
+          check2004ValidRange(progress_measure,
+              scorm2004_regex.progress_range)) {
+        this.#progress_measure = progress_measure;
+      }
     }
   }
 
@@ -1136,9 +1173,14 @@ export class CMIObjectivesObject extends BaseCMI {
    * @param {string} description
    */
   set description(description) {
-    if (check2004ValidFormat(description, scorm2004_regex.CMILangString250,
-        true)) {
-      this.#description = description;
+    if (this.initialized && typeof this.id === 'undefined') {
+      throw new ValidationError(
+          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+    } else {
+      if (check2004ValidFormat(description, scorm2004_regex.CMILangString250,
+          true)) {
+        this.#description = description;
+      }
     }
   }
 
