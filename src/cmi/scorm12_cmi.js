@@ -516,7 +516,7 @@ class CMICore extends BaseCMI {
     let sessionTime = this.#session_time;
     const startTime = start_time;
 
-    if (typeof startTime !== 'undefined' || startTime === null) {
+    if (typeof startTime !== 'undefined' && startTime !== null) {
       const seconds = new Date().getTime() - startTime;
       sessionTime = Util.getSecondsAsHHMMSS(seconds / 1000);
     }
