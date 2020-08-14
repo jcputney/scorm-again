@@ -17,6 +17,7 @@
     "@babel/preset-flow": "^7.10.4",
     "@babel/register": "^7.10.5",
     "@types/chai": "^4.2.12",
+    "@types/mocha": "^8.0.2",
     "babel-eslint": "^11.0.0-beta.2",
     "babelify": "^10.0.0",
     "browserify": "^16.5.2",
@@ -58,8 +59,5 @@
   "bugs": {
     "url": "https://github.com/jcputney/scorm-again/issues"
   },
-  "homepage": "https://github.com/jcputney/scorm-again",
-  "dependencies": {
-    "@types/mocha": "^7.0.2"
-  }
+  "homepage": "https://github.com/jcputney/scorm-again"
 }
