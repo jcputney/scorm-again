@@ -547,7 +547,8 @@ export default class Scorm2004API extends BaseAPI {
       navRequest = true;
     }
 
-    const commitObject = this.renderCommitCMI(terminateCommit);
+    const commitObject = this.renderCommitCMI(terminateCommit ||
+        this.settings.alwaysSendTotalTime);
 
     if (this.settings.lmsCommitUrl) {
       if (this.apiLogLevel === global_constants.LOG_LEVEL_DEBUG) {
@@ -561,7 +562,7 @@ export default class Scorm2004API extends BaseAPI {
       // check if this is a sequencing call, and then call the necessary JS
       {
         if (navRequest && result.navRequest !== undefined &&
-          result.navRequest !== '') {
+            result.navRequest !== '') {
           Function(`"use strict";(() => { ${result.navRequest} })()`)();
         }
       }

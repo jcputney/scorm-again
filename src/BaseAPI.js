@@ -27,6 +27,7 @@ export default class BaseAPI {
     autoProgress: false,
     logLevel: global_constants.LOG_LEVEL_ERROR,
     selfReportSessionTime: false,
+    alwaysSendTotalTime: false,
     responseHandler: function(xhr) {
       let result;
       if (typeof xhr !== 'undefined') {
@@ -1065,7 +1066,13 @@ export default class BaseAPI {
         errorCode: 0,
       };
     } else {
-      return process(url, params, this.settings, this.error_codes);
+      const result = process(url, params, this.settings, this.error_codes);
+      if (result.errorCode === 0) {
+        this.processListeners('CommitSuccess');
+      } else {
+        this.processListeners('CommitError');
+      }
+      return result;
     }
   }
 

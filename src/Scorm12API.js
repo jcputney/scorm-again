@@ -294,7 +294,8 @@ export default class Scorm12API extends BaseAPI {
       }
     }
 
-    const commitObject = this.renderCommitCMI(terminateCommit);
+    const commitObject = this.renderCommitCMI(terminateCommit ||
+        this.settings.alwaysSendTotalTime);
 
     if (this.settings.lmsCommitUrl) {
       if (this.apiLogLevel === global_constants.LOG_LEVEL_DEBUG) {
@@ -302,7 +303,8 @@ export default class Scorm12API extends BaseAPI {
             (terminateCommit ? 'yes' : 'no') + '): ');
         console.debug(commitObject);
       }
-      return this.processHttpRequest(this.settings.lmsCommitUrl, commitObject, terminateCommit);
+      return this.processHttpRequest(this.settings.lmsCommitUrl, commitObject,
+          terminateCommit);
     } else {
       console.log('Commit (terminated: ' +
           (terminateCommit ? 'yes' : 'no') + '): ');
