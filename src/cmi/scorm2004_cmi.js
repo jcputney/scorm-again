@@ -936,6 +936,8 @@ export class CMIInteractionsObject extends BaseCMI {
         } else {
           throw new ValidationError(scorm2004_error_codes.GENERAL_SET_FAILURE);
         }
+
+        this.#learner_response = learner_response;
       } else {
         throw new ValidationError(scorm2004_error_codes.TYPE_MISMATCH);
       }

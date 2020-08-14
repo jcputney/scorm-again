@@ -341,6 +341,15 @@ describe('SCORM 2004 API Tests', () => {
             expect(
                 String(scorm2004API.lmsGetLastError())
             ).to.equal(String(0));
+            expect(
+                scorm2004API.getCMIValue('cmi.interactions.0.id')
+            ).to.equal('Scene1_Slide3_MultiChoice_0_0');
+            expect(
+                scorm2004API.getCMIValue('cmi.interactions.0.type')
+            ).to.equal('choice');
+            expect(
+                scorm2004API.getCMIValue('cmi.interactions.0.learner_response')
+            ).to.equal('VP_on-call_or_President');
           });
     });
 
