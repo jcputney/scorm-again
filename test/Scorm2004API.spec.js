@@ -17,9 +17,7 @@ const api = (settings = {}, startingData = {}) => {
 };
 const apiInitialized = (startingData) => {
   const API = api();
-  if (startingData) {
-    API.startingData = startingData;
-  }
+  API.loadFromJSON(startingData, '');
   API.lmsInitialize();
   return API;
 };
@@ -299,61 +297,151 @@ describe('SCORM 2004 API Tests', () => {
       it('should allow cmi.interactions.0.correct_responses.0.pattern to be set - T/F',
           () => {
             const scorm2004API = apiInitialized();
+            scorm2004API.setCMIValue('cmi.interactions.0.id',
+                'Scene1_Slide3_MultiChoice_0_0');
             scorm2004API.setCMIValue('cmi.interactions.0.type', 'true-false');
-            scorm2004API.setCMIValue('cmi.interactions.0.correct_responses.0.pattern', 'true');
+            scorm2004API.setCMIValue(
+                'cmi.interactions.0.correct_responses.0.pattern', 'true');
             expect(
-                String(scorm2004API.lmsGetLastError())
+                String(scorm2004API.lmsGetLastError()),
             ).to.equal(String(0));
           });
       it('should allow cmi.interactions.10.correct_responses.0.pattern to be set - T/F',
           () => {
             const scorm2004API = apiInitialized();
+            scorm2004API.setCMIValue('cmi.interactions.0.id',
+                'Scene1_Slide3_MultiChoice_0_0');
             scorm2004API.setCMIValue('cmi.interactions.0.type', 'true-false');
-            scorm2004API.setCMIValue('cmi.interactions.0.correct_responses.0.pattern', 'true');
+            scorm2004API.setCMIValue(
+                'cmi.interactions.0.correct_responses.0.pattern', 'true');
             expect(
-                String(scorm2004API.lmsGetLastError())
+                String(scorm2004API.lmsGetLastError()),
             ).to.equal(String(0));
           });
       it('should allow cmi.interactions.0.correct_responses.0.pattern to be set - choice',
           () => {
             const scorm2004API = apiInitialized();
-            scorm2004API.setCMIValue('cmi.interactions.0.id', 'Scene1_Slide3_MultiChoice_0_0');
+            scorm2004API.setCMIValue('cmi.interactions.0.id',
+                'Scene1_Slide3_MultiChoice_0_0');
             scorm2004API.setCMIValue('cmi.interactions.0.type', 'choice');
-            scorm2004API.setCMIValue('cmi.interactions.0.correct_responses.0.pattern', 'VP_on-call_or_President');
+            scorm2004API.setCMIValue(
+                'cmi.interactions.0.correct_responses.0.pattern',
+                'VP_on-call_or_President');
             expect(
-                String(scorm2004API.lmsGetLastError())
+                String(scorm2004API.lmsGetLastError()),
             ).to.equal(String(0));
           });
       it('should allow cmi.interactions.0.objectives.0.id to be set',
           () => {
             const scorm2004API = apiInitialized();
-            scorm2004API.setCMIValue('cmi.interactions.0.objectives.0.id', 'ID of the Obj - ID 2');
+            scorm2004API.setCMIValue('cmi.interactions.0.objectives.0.id',
+                'ID of the Obj - ID 2');
             expect(
-                String(scorm2004API.lmsGetLastError())
+                String(scorm2004API.lmsGetLastError()),
             ).to.equal(String(0));
           });
       it('should allow cmi.interactions.0.learner_response to be set',
           () => {
             const scorm2004API = apiInitialized();
-            scorm2004API.setCMIValue('cmi.interactions.0.id', 'Scene1_Slide3_MultiChoice_0_0');
+            scorm2004API.setCMIValue('cmi.interactions.0.id',
+                'Scene1_Slide3_MultiChoice_0_0');
             scorm2004API.setCMIValue('cmi.interactions.0.type', 'choice');
-            scorm2004API.setCMIValue('cmi.interactions.0.learner_response', 'VP_on-call_or_President');
+            scorm2004API.setCMIValue('cmi.interactions.0.learner_response',
+                'VP_on-call_or_President');
             expect(
-                String(scorm2004API.lmsGetLastError())
+                String(scorm2004API.lmsGetLastError()),
             ).to.equal(String(0));
             expect(
-                scorm2004API.getCMIValue('cmi.interactions.0.id')
+                scorm2004API.getCMIValue('cmi.interactions.0.id'),
             ).to.equal('Scene1_Slide3_MultiChoice_0_0');
             expect(
-                scorm2004API.getCMIValue('cmi.interactions.0.type')
+                scorm2004API.getCMIValue('cmi.interactions.0.type'),
             ).to.equal('choice');
             expect(
-                scorm2004API.getCMIValue('cmi.interactions.0.learner_response')
+                scorm2004API.getCMIValue('cmi.interactions.0.learner_response'),
             ).to.equal('VP_on-call_or_President');
           });
     });
 
     describe('Initialized - Should Fail', () => {
+      h.checkLMSSetValue({
+        api: apiInitialized(
+            {cmi: {interactions: {'0': {id: 'interaction-id-1'}}}}),
+        fieldName: 'cmi.interactions.0.type',
+        valueToTest: 'unknown',
+        errorThrown: false,
+        expectedError: scorm2004_error_codes.TYPE_MISMATCH,
+      });
+      h.checkLMSSetValue({
+        api: apiInitialized(),
+        fieldName: 'cmi.interactions.0.type',
+        valueToTest: 'true-false',
+        errorThrown: false,
+        expectedError: scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED,
+      });
+      h.checkLMSSetValue({
+        api: apiInitialized(),
+        fieldName: 'cmi.interactions.0.description',
+        valueToTest: 'this is an interaction',
+        errorThrown: false,
+        expectedError: scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED,
+      });
+      h.checkLMSSetValue({
+        api: apiInitialized(),
+        fieldName: 'cmi.interactions.0.timestamp',
+        valueToTest: 'PT1S',
+        errorThrown: false,
+        expectedError: scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED,
+      });
+      h.checkLMSSetValue({
+        api: apiInitialized(),
+        fieldName: 'cmi.interactions.0.weighting',
+        valueToTest: 1.0,
+        errorThrown: false,
+        expectedError: scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED,
+      });
+      h.checkLMSSetValue({
+        api: apiInitialized(),
+        fieldName: 'cmi.interactions.0.learner_response',
+        valueToTest: 'true',
+        errorThrown: false,
+        expectedError: scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED,
+      });
+      h.checkLMSSetValue({
+        api: apiInitialized(),
+        fieldName: 'cmi.interactions.0.latency',
+        valueToTest: 'PT1S',
+        errorThrown: false,
+        expectedError: scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED,
+      });
+      h.checkLMSSetValue({
+        api: apiInitialized(),
+        fieldName: 'cmi.objectives.0.success_status',
+        valueToTest: 'passed',
+        errorThrown: false,
+        expectedError: scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED,
+      });
+      h.checkLMSSetValue({
+        api: apiInitialized(),
+        fieldName: 'cmi.objectives.0.completion_status',
+        valueToTest: 'completed',
+        errorThrown: false,
+        expectedError: scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED,
+      });
+      h.checkLMSSetValue({
+        api: apiInitialized(),
+        fieldName: 'cmi.objectives.0.progress_measure',
+        valueToTest: 1.0,
+        errorThrown: false,
+        expectedError: scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED,
+      });
+      h.checkLMSSetValue({
+        api: apiInitialized(),
+        fieldName: 'cmi.objectives.0.description',
+        valueToTest: 'this is an objective',
+        errorThrown: false,
+        expectedError: scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED,
+      });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: 'cmi.comments_from_lms.0.comment',
@@ -374,6 +462,13 @@ describe('SCORM 2004 API Tests', () => {
         valueToTest: scorm2004_values.validTimestamps[0],
         errorThrown: false,
         expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+      });
+      h.checkLMSSetValue({
+        api: apiInitialized(),
+        fieldName: 'cmi.unknown',
+        valueToTest: 'uknown',
+        errorThrown: false,
+        expectedError: scorm2004_error_codes.UNDEFINED_DATA_MODEL,
       });
     });
   });

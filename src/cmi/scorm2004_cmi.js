@@ -819,7 +819,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} type
    */
   set type(type) {
-    if (this.initialized && typeof this.id === 'undefined') {
+    if (this.initialized && this.#id === '') {
       throw new ValidationError(
           scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
     } else {
@@ -842,7 +842,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} timestamp
    */
   set timestamp(timestamp) {
-    if (this.initialized && typeof this.id === 'undefined') {
+    if (this.initialized && this.#id === '') {
       throw new ValidationError(
           scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
     } else {
@@ -865,7 +865,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} weighting
    */
   set weighting(weighting) {
-    if (this.initialized && typeof this.id === 'undefined') {
+    if (this.initialized && this.#id === '') {
       throw new ValidationError(
           scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
     } else {
@@ -889,8 +889,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} learner_response
    */
   set learner_response(learner_response) {
-    if (this.initialized && (typeof this.type === 'undefined' ||
-        typeof this.id === 'undefined')) {
+    if (this.initialized && (this.#type === '' || this.#id === '')) {
       throw new ValidationError(
           scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
     } else {
@@ -975,7 +974,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} latency
    */
   set latency(latency) {
-    if (this.initialized && typeof this.id === 'undefined') {
+    if (this.initialized && this.#id === '') {
       throw new ValidationError(
           scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
     } else {
@@ -998,7 +997,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} description
    */
   set description(description) {
-    if (this.initialized && typeof this.id === 'undefined') {
+    if (this.initialized && this.#id === '') {
       throw new ValidationError(
           scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
     } else {
@@ -1104,7 +1103,7 @@ export class CMIObjectivesObject extends BaseCMI {
    * @param {string} success_status
    */
   set success_status(success_status) {
-    if (this.initialized && typeof this.id === 'undefined') {
+    if (this.initialized && this.#id === '') {
       throw new ValidationError(
           scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
     } else {
@@ -1127,7 +1126,7 @@ export class CMIObjectivesObject extends BaseCMI {
    * @param {string} completion_status
    */
   set completion_status(completion_status) {
-    if (this.initialized && typeof this.id === 'undefined') {
+    if (this.initialized && this.#id === '') {
       throw new ValidationError(
           scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
     } else {
@@ -1150,7 +1149,7 @@ export class CMIObjectivesObject extends BaseCMI {
    * @param {string} progress_measure
    */
   set progress_measure(progress_measure) {
-    if (this.initialized && typeof this.id === 'undefined') {
+    if (this.initialized && this.#id === '') {
       throw new ValidationError(
           scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
     } else {
@@ -1175,7 +1174,7 @@ export class CMIObjectivesObject extends BaseCMI {
    * @param {string} description
    */
   set description(description) {
-    if (this.initialized && typeof this.id === 'undefined') {
+    if (this.initialized && this.#id === '') {
       throw new ValidationError(
           scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
     } else {

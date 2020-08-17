@@ -199,36 +199,14 @@ export default class Scorm2004API extends BaseAPI {
           this.throwSCORMError(
               scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
         } else {
-          const interaction_type = interaction.type;
-          const interaction_count = interaction.correct_responses._count;
-          if (interaction_type === 'choice') {
-            for (let i = 0; i < interaction_count && this.lastErrorCode ===
-            0; i++) {
-              const response = interaction.correct_responses.childArray[i];
-              if (response.pattern === value) {
-                this.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE);
-              }
-            }
-          }
+          this.checkDuplicateChoiceResponse(interaction, value);
 
-          const response_type = correct_responses[interaction_type];
+          const response_type = correct_responses[interaction.type];
           if (response_type) {
-            let nodes = [];
-            if (response_type?.delimiter) {
-              nodes = String(value).split(response_type.delimiter);
-            } else {
-              nodes[0] = value;
-            }
-
-            if (nodes.length > 0 && nodes.length <= response_type.max) {
-              this.checkCorrectResponseValue(interaction_type, nodes, value);
-            } else if (nodes.length > response_type.max) {
-              this.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE,
-                  'Data Model Element Pattern Too Long');
-            }
+            this.checkValidResponseType(response_type, value, interaction.type);
           } else {
             this.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE,
-                'Incorrect Response Type: ' + interaction_type);
+                'Incorrect Response Type: ' + interaction.type);
           }
         }
       }
@@ -253,6 +231,46 @@ export default class Scorm2004API extends BaseAPI {
   }
 
   /**
+   * Checks for valid response types
+   * @param {object} response_type
+   * @param {any} value
+   * @param {string} interaction_type
+   */
+  checkValidResponseType(response_type, value, interaction_type) {
+    let nodes = [];
+    if (response_type?.delimiter) {
+      nodes = String(value).split(response_type.delimiter);
+    } else {
+      nodes[0] = value;
+    }
+
+    if (nodes.length > 0 && nodes.length <= response_type.max) {
+      this.checkCorrectResponseValue(interaction_type, nodes, value);
+    } else if (nodes.length > response_type.max) {
+      this.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE,
+          'Data Model Element Pattern Too Long');
+    }
+  }
+
+  /**
+   * Checks for duplicate 'choice' responses.
+   * @param {CMIInteractionsObject} interaction
+   * @param {any} value
+   */
+  checkDuplicateChoiceResponse(interaction, value) {
+    const interaction_count = interaction.correct_responses._count;
+    if (interaction.type === 'choice') {
+      for (let i = 0; i < interaction_count && this.lastErrorCode ===
+      0; i++) {
+        const response = interaction.correct_responses.childArray[i];
+        if (response.pattern === value) {
+          this.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE);
+        }
+      }
+    }
+  }
+
+  /**
    * Validate correct response.
    * @param {string} CMIElement
    * @param {*} value
@@ -263,33 +281,13 @@ export default class Scorm2004API extends BaseAPI {
     const pattern_index = Number(parts[4]);
     const interaction = this.cmi.interactions.childArray[index];
 
-    const interaction_type = interaction.type;
     const interaction_count = interaction.correct_responses._count;
-    if (interaction_type === 'choice') {
-      for (let i = 0; i < interaction_count && this.lastErrorCode === 0; i++) {
-        const response = interaction.correct_responses.childArray[i];
-        if (response.pattern === value) {
-          this.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE);
-        }
-      }
-    }
+    this.checkDuplicateChoiceResponse(interaction, value);
 
-    const response_type = correct_responses[interaction_type];
+    const response_type = correct_responses[interaction.type];
     if (typeof response_type.limit === 'undefined' || interaction_count <=
         response_type.limit) {
-      let nodes = [];
-      if (response_type?.delimiter) {
-        nodes = String(value).split(response_type.delimiter);
-      } else {
-        nodes[0] = value;
-      }
-
-      if (nodes.length > 0 && nodes.length <= response_type.max) {
-        this.checkCorrectResponseValue(interaction_type, nodes, value);
-      } else if (nodes.length > response_type.max) {
-        this.throwSCORMError(scorm2004_error_codes.GENERAL_SET_FAILURE,
-            'Data Model Element Pattern Too Long');
-      }
+      this.checkValidResponseType(response_type, value, interaction.type);
 
       if (this.lastErrorCode === 0 &&
           (!response_type.duplicate ||
