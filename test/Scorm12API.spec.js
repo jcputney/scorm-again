@@ -1,12 +1,15 @@
 import {expect} from 'chai';
-import {describe, it} from 'mocha';
+import {after, before, describe, it} from 'mocha';
 import Scorm12API from '../src/Scorm12API';
 import * as h from './api_helpers';
 import ErrorCodes from '../src/constants/error_codes';
 import {scorm12_values} from './field_values';
+import * as sinon from 'sinon';
+import Pretender from 'fetch-pretender';
 
 const scorm12_error_codes = ErrorCodes.scorm12;
 
+let clock;
 const api = (settings = {}) => {
   const API = new Scorm12API(settings);
   API.apiLogLevel = 1;
@@ -19,6 +22,24 @@ const apiInitialized = (settings = {}) => {
 };
 
 describe('SCORM 1.2 API Tests', () => {
+  before(() => {
+    clock = sinon.useFakeTimers();
+
+    const server = new Pretender(() => {
+    });
+    server.post('/scorm12', () => {
+      return [200, {'Content-Type': 'application/json'}, '{}'];
+    }, false);
+
+    server.post('/scorm12/error', () => {
+      return [500, {'Content-Type': 'application/json'}, '{}'];
+    }, false);
+  });
+
+  after(() => {
+    clock.restore();
+  });
+
   describe('LMSSetValue()', () => {
     h.checkValidValues({
       api: apiInitialized(),
@@ -391,6 +412,57 @@ describe('SCORM 1.2 API Tests', () => {
           scorm12API.cmi.core.score.raw = '55.0';
           scorm12API.storeData(true);
           expect(scorm12API.cmi.core.lesson_status).to.equal('passed');
+        });
+  });
+
+  describe('Event Handlers', () => {
+    it('Should handle SetValue.cmi.core.student_name event',
+        () => {
+          const scorm12API = apiInitialized();
+          const callback = sinon.spy();
+          scorm12API.on('LMSSetValue.cmi.core.student_name', callback);
+          scorm12API.lmsSetValue('cmi.core.student_name', '@jcputney');
+          expect(callback.called).to.be.true;
+        });
+    it('Should handle SetValue.cmi.* event',
+        () => {
+          const scorm12API = apiInitialized();
+          const callback = sinon.spy();
+          scorm12API.on('LMSSetValue.cmi.*', callback);
+          scorm12API.lmsSetValue('cmi.core.student_name', '@jcputney');
+          expect(callback.called).to.be.true;
+        });
+    it('Should handle CommitSuccess event',
+        () => {
+          const scorm12API = api({
+            lmsCommitUrl: '/scorm12',
+            autocommit: true,
+            autocommitSeconds: 1,
+          });
+          scorm12API.lmsInitialize();
+
+          const callback = sinon.spy();
+          scorm12API.on('CommitSuccess', callback);
+
+          scorm12API.lmsSetValue('cmi.core.session_time', '00:01:00');
+          clock.tick(2000);
+          expect(callback.called).to.be.true;
+        });
+    it('Should handle CommitError event',
+        () => {
+          const scorm12API = api({
+            lmsCommitUrl: '/scorm12/error',
+            autocommit: true,
+            autocommitSeconds: 1,
+          });
+          scorm12API.lmsInitialize();
+
+          const callback = sinon.spy();
+          scorm12API.on('CommitError', callback);
+
+          scorm12API.lmsSetValue('cmi.core.session_time', '00:01:00');
+          clock.tick(2000);
+          expect(callback.called).to.be.true;
         });
   });
 });

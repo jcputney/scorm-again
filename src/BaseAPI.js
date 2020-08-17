@@ -36,6 +36,7 @@ export default class BaseAPI {
           result = {};
           if (xhr.status === 200) {
             result.result = global_constants.SCORM_TRUE;
+            result.errorCode = 0;
           } else {
             result.result = global_constants.SCORM_FALSE;
             result.errorCode = 101;
@@ -869,7 +870,22 @@ export default class BaseAPI {
 
       let c_match;
       if (a_match !== null && (c_match = c.match(a_pattern)) !== null) {
-        return Number(a_match[2]) - Number(c_match[2]);
+        const a_num = Number(a_match[2]);
+        const c_num = Number(c_match[2]);
+        if (a_num === c_num) {
+          if (a_match[3] === 'id') {
+            return -1;
+          } else if (a_match[3] === 'type') {
+            if (c_match[3] === 'id') {
+              return 1;
+            } else {
+              return -1;
+            }
+          } else {
+            return 1;
+          }
+        }
+        return a_num - c_num;
       }
 
       return null;
@@ -989,6 +1005,7 @@ export default class BaseAPI {
    * @return {object}
    */
   processHttpRequest(url: String, params, immediate = false) {
+    const api = this;
     const process = function(url, params, settings, error_codes) {
       const genericError = {
         'result': global_constants.SCORM_FALSE,
@@ -1049,6 +1066,12 @@ export default class BaseAPI {
         return genericError;
       }
 
+      if (result.errorCode === 0) {
+        api.processListeners('CommitSuccess');
+      } else {
+        api.processListeners('CommitError');
+      }
+
       return result;
     };
 
@@ -1066,13 +1089,7 @@ export default class BaseAPI {
         errorCode: 0,
       };
     } else {
-      const result = process(url, params, this.settings, this.error_codes);
-      if (result.errorCode === 0) {
-        this.processListeners('CommitSuccess');
-      } else {
-        this.processListeners('CommitError');
-      }
-      return result;
+      return process(url, params, this.settings, this.error_codes);
     }
   }
 

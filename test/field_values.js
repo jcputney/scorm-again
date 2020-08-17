@@ -1,16 +1,4 @@
 const common_values = {
-  validResult: [
-    'correct',
-    'wrong',
-    'unanticipated',
-    'neutral',
-  ],
-  invalidResult: [
-    '-10000',
-    '10000',
-    'invalid',
-  ],
-
   valid0To1Range: [
     '0.0',
     '0.25',
@@ -68,6 +56,18 @@ const common_values = {
 
 export const scorm12_values = {
   ...common_values, ...{
+    validResult: [
+      'correct',
+      'wrong',
+      'unanticipated',
+      'neutral',
+    ],
+    invalidResult: [
+      '-10000',
+      '10000',
+      'invalid',
+      'incorrect',
+    ],
     validLessonStatus: [
       'passed',
       'completed',
@@ -184,6 +184,18 @@ export const scorm12_values = {
 export const scorm2004_values = {
   ...common_values, ...{
     // valid field values
+    validResult: [
+      'correct',
+      'incorrect',
+      'unanticipated',
+      'neutral',
+    ],
+    invalidResult: [
+      '-10000',
+      '10000',
+      'invalid',
+      'wrong',
+    ],
     validTimestamps: [
       '2019-06-25',
       '2019-06-25T23:59',
