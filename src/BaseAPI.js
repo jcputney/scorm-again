@@ -1066,7 +1066,8 @@ export default class BaseAPI {
         return genericError;
       }
 
-      if (result.errorCode === 0) {
+      if (result.result === true ||
+          result.result === global_constants.SCORM_TRUE) {
         api.processListeners('CommitSuccess');
       } else {
         api.processListeners('CommitError');
