@@ -1016,6 +1016,22 @@ export default class BaseAPI {
       if (!settings.sendBeaconCommit) {
         const httpReq = new XMLHttpRequest();
         httpReq.open('POST', url, settings.asyncCommit);
+        if (settings.asyncCommit) {
+          httpReq.onload = function(e) {
+            if (typeof settings.responseHandler === 'function') {
+              result = settings.responseHandler(httpReq);
+            } else {
+              result = JSON.parse(httpReq.responseText);
+            }
+
+            if (result.result === true ||
+                result.result === global_constants.SCORM_TRUE) {
+              api.processListeners('CommitSuccess');
+            } else {
+              api.processListeners('CommitError');
+            }
+          };
+        }
         try {
           if (params instanceof Array) {
             httpReq.setRequestHeader('Content-Type',
@@ -1027,10 +1043,17 @@ export default class BaseAPI {
             httpReq.send(JSON.stringify(params));
           }
 
-          if (typeof settings.responseHandler === 'function') {
-            result = settings.responseHandler(httpReq);
+          if (!settings.asyncCommit) {
+            if (typeof settings.responseHandler === 'function') {
+              result = settings.responseHandler(httpReq);
+            } else {
+              result = JSON.parse(httpReq.responseText);
+            }
           } else {
-            result = JSON.parse(httpReq.responseText);
+            result = {};
+            result.result = global_constants.SCORM_TRUE;
+            result.errorCode = 0;
+            return result;
           }
         } catch (e) {
           console.error(e);
