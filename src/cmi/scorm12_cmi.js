@@ -226,7 +226,7 @@ export class CMI extends BaseCMI {
    * @param {string} comments
    */
   set comments(comments) {
-    if (check12ValidFormat(comments, scorm12_regex.CMIString4096)) {
+    if (check12ValidFormat(comments, scorm12_regex.CMIString4096, true)) {
       this.#comments = comments;
     }
   }
