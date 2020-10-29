@@ -8,7 +8,7 @@ const scorm12 = {
   CMIInteger: '^\\d+$',
   CMISInteger: '^-?([0-9]+)$',
   CMIDecimal: '^-?([0-9]{0,3})(\.[0-9]*)?$', // eslint-disable-line
-  CMIIdentifier: '^[\\u0021-\\u007E]{0,255}$',
+  CMIIdentifier: '^[\\u0021-\\u007E\\s]{0,255}$',
   CMIFeedback: '^.{0,255}$', // This must be redefined
   CMIIndex: '[._](\\d+).',
 
