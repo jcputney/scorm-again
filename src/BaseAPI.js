@@ -189,9 +189,14 @@ export default class BaseAPI {
       this.processListeners(callbackName, CMIElement);
     }
 
+    this.clearSCORMError(returnValue);
+
+    if (returnValue === undefined) {
+      returnValue = "";
+    }
+
     this.apiLog(callbackName, CMIElement, ': returned: ' + returnValue,
         global_constants.LOG_LEVEL_INFO);
-    this.clearSCORMError(returnValue);
 
     return returnValue;
   }
