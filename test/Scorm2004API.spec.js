@@ -38,6 +38,10 @@ describe('SCORM 2004 API Tests', () => {
     server.post('/scorm2004/error', () => {
       return [500, {'Content-Type': 'application/json'}, '{}'];
     }, false);
+
+    server.unhandledRequest = function(verb, path, request) {
+      // do nothing
+    };
   });
 
   after(() => {
@@ -645,10 +649,82 @@ describe('SCORM 2004 API Tests', () => {
           clock.tick(2000);
           expect(callback.called).to.be.true;
         });
+    it('Should clear all event listeners for CommitSuccess',
+        () => {
+          const scorm2004API = api({
+            lmsCommitUrl: '/scorm2004',
+            autocommit: true,
+            autocommitSeconds: 1,
+          });
+          scorm2004API.lmsInitialize();
+
+          const callback = sinon.spy();
+          const callback2 = sinon.spy();
+          scorm2004API.on('CommitSuccess', callback);
+          scorm2004API.on('CommitSuccess', callback2);
+
+          scorm2004API.lmsSetValue('cmi.session_time', 'PT1M0S');
+          clock.tick(2000);
+          expect(callback.calledOnce).to.be.true;
+          expect(callback2.calledOnce).to.be.true;
+
+          scorm2004API.clear('CommitSuccess');
+
+          scorm2004API.lmsSetValue('cmi.session_time', 'PT1M0S');
+          clock.tick(2000);
+          expect(callback.calledTwice).to.be.false;
+          expect(callback2.calledTwice).to.be.false;
+        });
+    it('Should clear only the specific event listener for CommitSuccess',
+        () => {
+          const scorm2004API = api({
+            lmsCommitUrl: '/scorm2004',
+            autocommit: true,
+            autocommitSeconds: 1,
+          });
+          scorm2004API.lmsInitialize();
+
+          const callback = sinon.spy(() => 1);
+          const callback2 = sinon.spy(() => 2);
+          const callback3 = sinon.spy(() => 3);
+          scorm2004API.on('CommitSuccess', callback);
+          scorm2004API.on('CommitSuccess', callback2);
+          scorm2004API.on('SetValue', callback3);
+
+          scorm2004API.lmsSetValue('cmi.session_time', 'PT1M0S');
+          clock.tick(2000);
+          expect(callback.calledOnce).to.be.true;
+          expect(callback2.calledOnce).to.be.true;
+          expect(callback3.calledOnce).to.be.true;
+
+          scorm2004API.off('CommitSuccess', callback);
+
+          scorm2004API.lmsSetValue('cmi.session_time', 'PT1M0S');
+          clock.tick(2000);
+          expect(callback.calledTwice).to.be.false; // removed callback should not be called a second time
+          expect(callback2.calledTwice).to.be.true;
+          expect(callback3.calledTwice).to.be.true;
+        });
     it('Should handle CommitError event',
         () => {
           const scorm2004API = api({
             lmsCommitUrl: '/scorm2004/error',
+            autocommit: true,
+            autocommitSeconds: 1,
+          });
+          scorm2004API.lmsInitialize();
+
+          const callback = sinon.spy();
+          scorm2004API.on('CommitError', callback);
+
+          scorm2004API.lmsSetValue('cmi.session_time', 'PT1M0S');
+          clock.tick(2000);
+          expect(callback.called).to.be.true;
+        });
+    it('Should handle CommitError event when offline',
+        () => {
+          const scorm2004API = api({
+            lmsCommitUrl: '/scorm2004/does_not_exist',
             autocommit: true,
             autocommitSeconds: 1,
           });

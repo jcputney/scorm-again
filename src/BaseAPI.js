@@ -772,6 +772,66 @@ export default class BaseAPI {
         CMIElement: CMIElement,
         callback: callback,
       });
+
+      this.apiLog('on', functionName, `Added event listener: ${this.listenerArray.length}`, global_constants.LOG_LEVEL_INFO);
+    }
+  }
+
+  /**
+   * Provides a mechanism for detaching a specific SCORM event listener
+   *
+   * @param {string} listenerName
+   * @param {function} callback
+   */
+  off(listenerName: String, callback: function) {
+    if (!callback) return;
+
+    const listenerFunctions = listenerName.split(' ');
+    for (let i = 0; i < listenerFunctions.length; i++) {
+      const listenerSplit = listenerFunctions[i].split('.');
+      if (listenerSplit.length === 0) return;
+
+      const functionName = listenerSplit[0];
+
+      let CMIElement = null;
+      if (listenerSplit.length > 1) {
+        CMIElement = listenerName.replace(functionName + '.', '');
+      }
+
+      const removeIndex = this.listenerArray.findIndex((obj) =>
+        obj.functionName === functionName &&
+        obj.CMIElement === CMIElement &&
+        obj.callback === callback
+      );
+      if (removeIndex !== -1) {
+        this.listenerArray.splice(removeIndex, 1);
+        this.apiLog('off', functionName, `Removed event listener: ${this.listenerArray.length}`, global_constants.LOG_LEVEL_INFO);
+      }
+    }
+  }
+
+  /**
+   * Provides a mechanism for clearing all listeners from a specific SCORM event
+   *
+   * @param {string} listenerName
+   */
+  clear(listenerName: String) {
+    const listenerFunctions = listenerName.split(' ');
+    for (let i = 0; i < listenerFunctions.length; i++) {
+      const listenerSplit = listenerFunctions[i].split('.');
+      if (listenerSplit.length === 0) return;
+
+      const functionName = listenerSplit[0];
+
+      let CMIElement = null;
+      if (listenerSplit.length > 1) {
+        CMIElement = listenerName.replace(functionName + '.', '');
+      }
+
+      this.listenerArray = this.listenerArray.filter((obj) =>
+        obj.functionName !== functionName &&
+        obj.CMIElement !== CMIElement,
+      );
     }
   }
 
@@ -1023,13 +1083,6 @@ export default class BaseAPI {
             } else {
               result = JSON.parse(httpReq.responseText);
             }
-
-            if (result.result === true ||
-                result.result === global_constants.SCORM_TRUE) {
-              api.processListeners('CommitSuccess');
-            } else {
-              api.processListeners('CommitError');
-            }
           };
         }
         try {
@@ -1053,10 +1106,12 @@ export default class BaseAPI {
             result = {};
             result.result = global_constants.SCORM_TRUE;
             result.errorCode = 0;
+            api.processListeners('CommitSuccess');
             return result;
           }
         } catch (e) {
           console.error(e);
+          api.processListeners('CommitError');
           return genericError;
         }
       } else {
@@ -1081,11 +1136,13 @@ export default class BaseAPI {
           }
         } catch (e) {
           console.error(e);
+          api.processListeners('CommitError');
           return genericError;
         }
       }
 
       if (typeof result === 'undefined') {
+        api.processListeners('CommitError');
         return genericError;
       }
 

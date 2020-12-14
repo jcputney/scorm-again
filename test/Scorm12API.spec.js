@@ -448,6 +448,62 @@ describe('SCORM 1.2 API Tests', () => {
           clock.tick(2000);
           expect(callback.called).to.be.true;
         });
+    it('Should clear all event listeners for CommitSuccess',
+        () => {
+          const scorm12API = api({
+            lmsCommitUrl: '/scorm12',
+            autocommit: true,
+            autocommitSeconds: 1,
+          });
+          scorm12API.lmsInitialize();
+
+          const callback = sinon.spy();
+          const callback2 = sinon.spy();
+          scorm12API.on('CommitSuccess', callback);
+          scorm12API.on('CommitSuccess', callback2);
+
+          scorm12API.lmsSetValue('cmi.core.session_time', '00:01:00');
+          clock.tick(2000);
+          expect(callback.calledOnce).to.be.true;
+          expect(callback2.calledOnce).to.be.true;
+
+          scorm12API.clear('CommitSuccess');
+
+          scorm12API.lmsSetValue('cmi.core.session_time', '00:01:00');
+          clock.tick(2000);
+          expect(callback.calledTwice).to.be.false;
+          expect(callback2.calledTwice).to.be.false;
+        });
+    it('Should clear only the specific event listener for CommitSuccess',
+        () => {
+          const scorm12API = api({
+            lmsCommitUrl: '/scorm12',
+            autocommit: true,
+            autocommitSeconds: 1,
+          });
+          scorm12API.lmsInitialize();
+
+          const callback = sinon.spy(() => 1);
+          const callback2 = sinon.spy(() => 2);
+          const callback3 = sinon.spy(() => 3);
+          scorm12API.on('CommitSuccess', callback);
+          scorm12API.on('CommitSuccess', callback2);
+          scorm12API.on('LMSSetValue', callback3);
+
+          scorm12API.lmsSetValue('cmi.core.session_time', '00:01:00');
+          clock.tick(2000);
+          expect(callback.calledOnce).to.be.true;
+          expect(callback2.calledOnce).to.be.true;
+          expect(callback3.calledOnce).to.be.true;
+
+          scorm12API.off('CommitSuccess', callback);
+
+          scorm12API.lmsSetValue('cmi.core.session_time', '00:01:00');
+          clock.tick(2000);
+          expect(callback.calledTwice).to.be.false; // removed callback should not be called a second time
+          expect(callback2.calledTwice).to.be.true;
+          expect(callback3.calledTwice).to.be.true;
+        });
     it('Should handle CommitError event',
         () => {
           const scorm12API = api({

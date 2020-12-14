@@ -177,6 +177,16 @@ window.API.on("LMSSetValue.cmi.*", function(CMIElement, value) {
 });
 ```
 
+You also have to ability to remove specific callback listeners:
+```javascript
+window.API.off("LMSInitialize", callback);
+```
+
+Or, you can clear all callbacks for a particular event:
+```javascript
+window.API.clear("LMSInitialize");
+```
+
 ### SCORM 2004 Listeners
 
 For convenience, hooks are available for all the SCORM API Signature functions:
@@ -218,6 +228,16 @@ Finally, you can listen for events using a wildcard:
 window.API_1484_11.on("SetValue.cmi.* ", function(CMIElement, value) {
   [...]
 });
+```
+
+You also have to ability to remove specific callback listeners:
+```javascript
+window.API_1484_11.off("Initialize", callback);
+```
+
+Or, you can clear all callbacks for a particular event:
+```javascript
+window.API_1484_11.clear("Initialize");
 ```
 
 ### Total Time Calculation
