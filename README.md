@@ -6,7 +6,7 @@ This project was created to modernize the SCORM JavaScript runtime, and to provi
 ### What is this not and what doesn't it do?
 1. This is not an LMS
 1. This does not handle the uploading and verification of SCORM/AICC modules
-1. This project does not **currently** support the TinCan/xAPI runtime, but is it something I am considering in the very near future.
+1. This project does not **currently** support TinCan/xAPI/CMI5, and I'm not sure if I will ever get around to it. However, I would welcome merge requests to add support for any additional specifications.
 1. This library does not setup communication between an external AICC module and an LMS.
 1. This project is not complete! I'm still working on AICC testing, and continuing to write proper test cases for all APIs
 
