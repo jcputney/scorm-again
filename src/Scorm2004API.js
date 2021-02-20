@@ -124,7 +124,7 @@ export default class Scorm2004API extends BaseAPI {
    * @return {string}
    */
   lmsSetValue(CMIElement, value) {
-    return this.setValue('SetValue', true, CMIElement, value);
+    return this.setValue('SetValue', 'Commit', true, CMIElement, value);
   }
 
   /**

@@ -486,15 +486,18 @@ describe('SCORM 1.2 API Tests', () => {
           const callback = sinon.spy(() => 1);
           const callback2 = sinon.spy(() => 2);
           const callback3 = sinon.spy(() => 3);
+          const callback4 = sinon.spy(() => 4);
           scorm12API.on('CommitSuccess', callback);
           scorm12API.on('CommitSuccess', callback2);
-          scorm12API.on('LMSSetValue', callback3);
+          scorm12API.on('LMSCommit', callback3);
+          scorm12API.on('LMSSetValue', callback4);
 
           scorm12API.lmsSetValue('cmi.core.session_time', '00:01:00');
           clock.tick(2000);
           expect(callback.calledOnce).to.be.true;
           expect(callback2.calledOnce).to.be.true;
           expect(callback3.calledOnce).to.be.true;
+          expect(callback4.calledOnce).to.be.true;
 
           scorm12API.off('CommitSuccess', callback);
 
@@ -503,6 +506,7 @@ describe('SCORM 1.2 API Tests', () => {
           expect(callback.calledTwice).to.be.false; // removed callback should not be called a second time
           expect(callback2.calledTwice).to.be.true;
           expect(callback3.calledTwice).to.be.true;
+          expect(callback4.calledTwice).to.be.true;
         });
     it('Should handle CommitError event',
         () => {

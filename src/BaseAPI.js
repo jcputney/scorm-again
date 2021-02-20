@@ -200,6 +200,7 @@ export default class BaseAPI {
    * Sets the value of the CMIElement.
    *
    * @param {string} callbackName
+   * @param {string} commitCallback
    * @param {boolean} checkTerminated
    * @param {string} CMIElement
    * @param {*} value
@@ -207,6 +208,7 @@ export default class BaseAPI {
    */
   setValue(
       callbackName: String,
+      commitCallback: String,
       checkTerminated: boolean,
       CMIElement,
       value) {
@@ -244,7 +246,7 @@ export default class BaseAPI {
     // schedule a commit, if autocommit is turned on
     if (String(this.lastErrorCode) === '0') {
       if (this.settings.autocommit && !this.#timeout) {
-        this.scheduleCommit(this.settings.autocommitSeconds * 1000);
+        this.scheduleCommit(this.settings.autocommitSeconds * 1000, commitCallback);
       }
     }
 
@@ -1178,9 +1180,10 @@ export default class BaseAPI {
    * Throws a SCORM error
    *
    * @param {number} when - the number of milliseconds to wait before committing
+   * @param {string} callback - the name of the commit event callback
    */
-  scheduleCommit(when: number) {
-    this.#timeout = new ScheduledCommit(this, when);
+  scheduleCommit(when: number, callback: string) {
+    this.#timeout = new ScheduledCommit(this, when, callback);
     this.apiLog('scheduleCommit', '', 'scheduled',
         global_constants.LOG_LEVEL_DEBUG);
   }
@@ -1205,15 +1208,18 @@ class ScheduledCommit {
   #API;
   #cancelled = false;
   #timeout;
+  #callback;
 
   /**
    * Constructor for ScheduledCommit
    * @param {BaseAPI} API
    * @param {number} when
+   * @param {string} callback
    */
-  constructor(API: any, when: number) {
+  constructor(API: any, when: number, callback: string) {
     this.#API = API;
     this.#timeout = setTimeout(this.wrapper.bind(this), when);
+    this.#callback = callback;
   }
 
   /**
@@ -1231,7 +1237,7 @@ class ScheduledCommit {
    */
   wrapper() {
     if (!this.#cancelled) {
-      this.#API.commit();
+      this.#API.commit(this.#callback);
     }
   }
 }
