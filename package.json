@@ -40,7 +40,7 @@
     "mocha-junit-reporter": "^2.0.0",
     "mochawesome": "^6.2.1",
     "nyc": "^15.1.0",
-    "sinon": "^9.2.4"
+    "sinon": "^10.0.1"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha --require @babel/register --bdd --recursive --reporter list",
