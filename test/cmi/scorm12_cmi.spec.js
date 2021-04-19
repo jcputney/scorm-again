@@ -437,6 +437,11 @@ describe('SCORM 1.2 CMI Tests', () => {
         fieldName: 'cmi.core.lesson_status',
         expectedValue: 'not attempted',
       });
+      h.checkWrite({
+        cmi: cmiInitialized(),
+        fieldName: 'cmi.core.lesson_status',
+        valueToTest: 'not attempted',
+      });
       h.checkValidValues({
         cmi: cmiInitialized(),
         fieldName: 'cmi.core.lesson_status',
