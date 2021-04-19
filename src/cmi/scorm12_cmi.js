@@ -400,8 +400,14 @@ class CMICore extends BaseCMI {
    * @param {string} lesson_status
    */
   set lesson_status(lesson_status) {
-    if (check12ValidFormat(lesson_status, scorm12_regex.CMIStatus2)) {
-      this.#lesson_status = lesson_status;
+    if (this.initialized) {
+      if (check12ValidFormat(lesson_status, scorm12_regex.CMIStatus)) {
+        this.#lesson_status = lesson_status;
+      }
+    } else {
+      if (check12ValidFormat(lesson_status, scorm12_regex.CMIStatus2)) {
+        this.#lesson_status = lesson_status;
+      }
     }
   }
 

@@ -438,15 +438,25 @@ describe('SCORM 1.2 CMI Tests', () => {
         expectedValue: 'not attempted',
       });
       h.checkWrite({
-        cmi: cmiInitialized(),
+        cmi: cmi(),
         fieldName: 'cmi.core.lesson_status',
         valueToTest: 'not attempted',
+      });
+      h.checkValidValues({
+        cmi: cmi(),
+        fieldName: 'cmi.core.lesson_status',
+        validValues: scorm12_values.validLessonStatus.concat([
+          'not attempted',
+        ]),
+        invalidValues: scorm12_values.invalidLessonStatus,
       });
       h.checkValidValues({
         cmi: cmiInitialized(),
         fieldName: 'cmi.core.lesson_status',
         validValues: scorm12_values.validLessonStatus,
-        invalidValues: scorm12_values.invalidLessonStatus,
+        invalidValues: scorm12_values.invalidLessonStatus.concat([
+          'not attempted',
+        ]),
       });
       h.checkReadOnly({
         cmi: cmiInitialized(),
