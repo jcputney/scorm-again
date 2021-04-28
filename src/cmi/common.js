@@ -14,6 +14,7 @@ const scorm12_error_codes = ErrorCodes.scorm12;
  * @param {string} value
  * @param {string} regexPattern
  * @param {number} errorCode
+ * @param {string} errorMessage
  * @param {boolean} allowEmptyString
  * @return {boolean}
  */
@@ -21,6 +22,7 @@ export function checkValidFormat(
     value: String,
     regexPattern: String,
     errorCode: number,
+    errorMessage: String,
     allowEmptyString?: boolean) {
   const formatRegex = new RegExp(regexPattern);
   const matches = value.match(formatRegex);
@@ -28,7 +30,7 @@ export function checkValidFormat(
     return true;
   }
   if (value === undefined || !matches || matches[0] === '') {
-    throw new ValidationError(errorCode);
+    throw new ValidationError(errorCode, errorMessage);
   }
   return true;
 }
@@ -39,20 +41,21 @@ export function checkValidFormat(
  * @param {*} value
  * @param {string} rangePattern
  * @param {number} errorCode
+ * @param {string} errorMessage
  * @return {boolean}
  */
 export function checkValidRange(
-    value: any, rangePattern: String, errorCode: number) {
+    value: any, rangePattern: String, errorCode: number, errorMessage: String) {
   const ranges = rangePattern.split('#');
   value = value * 1.0;
   if (value >= ranges[0]) {
     if ((ranges[1] === '*') || (value <= ranges[1])) {
       return true;
     } else {
-      throw new ValidationError(errorCode);
+      throw new ValidationError(errorCode, errorMessage);
     }
   } else {
-    throw new ValidationError(errorCode);
+    throw new ValidationError(errorCode, errorMessage);
   }
 }
 
@@ -115,8 +118,11 @@ export class CMIScore extends BaseCMI {
    * @param {string} score_range
    * @param {string} max
    * @param {number} invalidErrorCode
+   * @param {string} invalidErrorMessage
    * @param {number} invalidTypeCode
+   * @param {string} invalidTypeMessage
    * @param {number} invalidRangeCode
+   * @param {string} invalidRangeMessage
    * @param {string} decimalRegex
    */
   constructor(
@@ -125,8 +131,11 @@ export class CMIScore extends BaseCMI {
         score_range,
         max,
         invalidErrorCode,
+        invalidErrorMessage,
         invalidTypeCode,
+        invalidTypeMessage,
         invalidRangeCode,
+        invalidRangeMessage,
         decimalRegex,
       }) {
     super();
@@ -137,10 +146,16 @@ export class CMIScore extends BaseCMI {
     this.#max = (max || max === '') ? max : '100';
     this.#_invalid_error_code = invalidErrorCode ||
         scorm12_error_codes.INVALID_SET_VALUE;
+    this.#_invalid_error_message = invalidErrorMessage ||
+        scorm12_constants.error_descriptions[scorm12_error_codes.INVALID_SET_VALUE].detailMessage;
     this.#_invalid_type_code = invalidTypeCode ||
         scorm12_error_codes.TYPE_MISMATCH;
+    this.#_invalid_type_message = invalidTypeMessage ||
+        scorm12_constants.error_descriptions[scorm12_error_codes.TYPE_MISMATCH].detailMessage;
     this.#_invalid_range_code = invalidRangeCode ||
         scorm12_error_codes.VALUE_OUT_OF_RANGE;
+    this.#_invalid_range_message = invalidRangeMessage ||
+        scorm12_constants.error_descriptions[scorm12_error_codes.VALUE_OUT_OF_RANGE].detailMessage;
     this.#_decimal_regex = decimalRegex ||
         scorm12_regex.CMIDecimal;
   }
@@ -148,8 +163,11 @@ export class CMIScore extends BaseCMI {
   #_children;
   #_score_range;
   #_invalid_error_code;
+  #_invalid_error_message;
   #_invalid_type_code;
+  #_invalid_type_message;
   #_invalid_range_code;
+  #_invalid_range_message;
   #_decimal_regex;
   #raw = '';
   #min = '';
@@ -170,7 +188,7 @@ export class CMIScore extends BaseCMI {
    * @private
    */
   set _children(_children) {
-    throw new ValidationError(this.#_invalid_error_code);
+    throw new ValidationError(this.#_invalid_error_code, this.#_invalid_error_message);
   }
 
   /**
@@ -187,10 +205,10 @@ export class CMIScore extends BaseCMI {
    */
   set raw(raw) {
     if (checkValidFormat(raw, this.#_decimal_regex,
-        this.#_invalid_type_code) &&
+        this.#_invalid_type_code, this.#_invalid_type_message) &&
         (!this.#_score_range ||
             checkValidRange(raw, this.#_score_range,
-                this.#_invalid_range_code))) {
+                this.#_invalid_range_code, this.#_invalid_range_message))) {
       this.#raw = raw;
     }
   }
@@ -209,10 +227,10 @@ export class CMIScore extends BaseCMI {
    */
   set min(min) {
     if (checkValidFormat(min, this.#_decimal_regex,
-        this.#_invalid_type_code) &&
+        this.#_invalid_type_code, this.#_invalid_type_message) &&
         (!this.#_score_range ||
             checkValidRange(min, this.#_score_range,
-                this.#_invalid_range_code))) {
+                this.#_invalid_range_code, this.#_invalid_range_message))) {
       this.#min = min;
     }
   }
@@ -231,10 +249,10 @@ export class CMIScore extends BaseCMI {
    */
   set max(max) {
     if (checkValidFormat(max, this.#_decimal_regex,
-        this.#_invalid_type_code) &&
+        this.#_invalid_type_code, this.#_invalid_type_message) &&
         (!this.#_score_range ||
             checkValidRange(max, this.#_score_range,
-                this.#_invalid_range_code))) {
+                this.#_invalid_range_code, this.#_invalid_range_message))) {
       this.#max = max;
     }
   }
@@ -263,15 +281,18 @@ export class CMIArray extends BaseCMI {
    * Constructor cmi *.n arrays
    * @param {string} children
    * @param {number} errorCode
+   * @param {string} errorMessage
    */
-  constructor({children, errorCode}) {
+  constructor({children, errorCode, errorMessage}) {
     super();
     this.#_children = children;
     this.#errorCode = errorCode;
+    this.#errorMessage = errorMessage;
     this.childArray = [];
   }
 
   #errorCode;
+  #errorMessage;
   #_children;
 
   /**
@@ -287,7 +308,7 @@ export class CMIArray extends BaseCMI {
    * @param {string} _children
    */
   set _children(_children) {
-    throw new ValidationError(this.#errorCode);
+    throw new ValidationError(this.#errorCode, this.#errorMessage);
   }
 
   /**
@@ -303,7 +324,7 @@ export class CMIArray extends BaseCMI {
    * @param {number} _count
    */
   set _count(_count) {
-    throw new ValidationError(this.#errorCode);
+    throw new ValidationError(this.#errorCode, this.#errorMessage);
   }
 
   /**

@@ -45,7 +45,7 @@ export const checkLMSSetValue = (
       if (expectedError > 0) {
         if (errorThrown) {
           expect(() => api.lmsSetValue(fieldName, valueToTest)).
-              to.throw(String(expectedError));
+              to.throw().with.property('errorCode', expectedError);
         } else {
           api.lmsSetValue(fieldName, valueToTest);
           expect(String(api.lmsGetLastError())).to.equal(String(expectedError));
@@ -84,7 +84,7 @@ export const checkLMSGetValue = (
       if (expectedError > 0) {
         if (errorThrown) {
           expect(() => api.lmsGetValue(fieldName)).
-              to.throw(String(expectedError));
+              to.throw().with.property('errorCode', expectedError);
         } else {
           api.lmsGetValue(fieldName);
           expect(String(api.lmsGetLastError())).to.equal(String(expectedError));
@@ -110,7 +110,7 @@ export const checkSetCMIValue = (
       if (expectedError > 0) {
         if (errorThrown) {
           expect(() => api.setCMIValue(fieldName, valueToTest)).
-              to.throw(String(expectedError));
+              to.throw().with.property('errorCode', expectedError);
         } else {
           api.setCMIValue(fieldName, valueToTest);
           expect(String(api.lmsGetLastError())).to.equal(String(expectedError));
