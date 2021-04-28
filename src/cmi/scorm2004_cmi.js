@@ -23,21 +23,50 @@ const scorm2004_regex = Regex.scorm2004;
  * Helper method for throwing Read Only error
  */
 function throwReadOnlyError() {
-  throw new ValidationError(scorm2004_error_codes.READ_ONLY_ELEMENT);
+  throw new ValidationError(
+      scorm2004_error_codes.READ_ONLY_ELEMENT,
+      scorm2004_constants.error_descriptions[scorm2004_error_codes.READ_ONLY_ELEMENT].detailMessage
+  );
 }
 
 /**
  * Helper method for throwing Write Only error
  */
 function throwWriteOnlyError() {
-  throw new ValidationError(scorm2004_error_codes.WRITE_ONLY_ELEMENT);
+  throw new ValidationError(
+      scorm2004_error_codes.WRITE_ONLY_ELEMENT,
+      scorm2004_constants.error_descriptions[scorm2004_error_codes.WRITE_ONLY_ELEMENT].detailMessage
+  );
 }
 
 /**
  * Helper method for throwing Type Mismatch error
  */
 function throwTypeMismatchError() {
-  throw new ValidationError(scorm2004_error_codes.TYPE_MISMATCH);
+  throw new ValidationError(
+      scorm2004_error_codes.TYPE_MISMATCH,
+      scorm2004_constants.error_descriptions[scorm2004_error_codes.TYPE_MISMATCH].detailMessage
+  );
+}
+
+/**
+ * Helper method for throwing Dependency Not Established error
+ */
+function throwDependencyNotEstablishedError() {
+  throw new ValidationError(
+      scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED,
+      scorm2004_constants.error_descriptions[scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED].detailMessage
+  );
+}
+
+/**
+ * Helper method for throwing Dependency Not Established error
+ */
+function throwGeneralSetError() {
+  throw new ValidationError(
+      scorm2004_error_codes.GENERAL_SET_FAILURE,
+      scorm2004_constants.error_descriptions[scorm2004_error_codes.GENERAL_SET_FAILURE].detailMessage
+  );
 }
 
 /**
@@ -52,7 +81,9 @@ function check2004ValidFormat(
     regexPattern: String,
     allowEmptyString?: boolean) {
   return checkValidFormat(value, regexPattern,
-      scorm2004_error_codes.TYPE_MISMATCH, allowEmptyString);
+      scorm2004_error_codes.TYPE_MISMATCH,
+      scorm2004_constants.error_descriptions[scorm2004_error_codes.TYPE_MISMATCH].detailMessage,
+      allowEmptyString);
 }
 
 /**
@@ -63,7 +94,8 @@ function check2004ValidFormat(
  */
 function check2004ValidRange(value: any, rangePattern: String) {
   return checkValidRange(value, rangePattern,
-      scorm2004_error_codes.VALUE_OUT_OF_RANGE);
+      scorm2004_error_codes.VALUE_OUT_OF_RANGE,
+      scorm2004_constants.error_descriptions[scorm2004_error_codes.VALUE_OUT_OF_RANGE].detailMessage);
 }
 
 /**
@@ -701,6 +733,7 @@ class CMIInteractions extends CMIArray {
     super({
       children: scorm2004_constants.interactions_children,
       errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
+      errorMessage: scorm2004_constants.error_descriptions[scorm2004_error_codes.READ_ONLY_ELEMENT].detailMessage,
     });
   }
 }
@@ -716,6 +749,7 @@ class CMIObjectives extends CMIArray {
     super({
       children: scorm2004_constants.objectives_children,
       errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
+      errorMessage: scorm2004_constants.error_descriptions[scorm2004_error_codes.READ_ONLY_ELEMENT].detailMessage,
     });
   }
 }
@@ -731,6 +765,7 @@ class CMICommentsFromLMS extends CMIArray {
     super({
       children: scorm2004_constants.comments_children,
       errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
+      errorMessage: scorm2004_constants.error_descriptions[scorm2004_error_codes.READ_ONLY_ELEMENT].detailMessage,
     });
   }
 }
@@ -746,6 +781,7 @@ class CMICommentsFromLearner extends CMIArray {
     super({
       children: scorm2004_constants.comments_children,
       errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
+      errorMessage: scorm2004_constants.error_descriptions[scorm2004_error_codes.READ_ONLY_ELEMENT].detailMessage,
     });
   }
 }
@@ -771,10 +807,12 @@ export class CMIInteractionsObject extends BaseCMI {
 
     this.objectives = new CMIArray({
       errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
+      errorMessage: scorm2004_constants.error_descriptions[scorm2004_error_codes.INVALID_SET_VALUE].detailMessage,
       children: scorm2004_constants.objectives_children,
     });
     this.correct_responses = new CMIArray({
       errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
+      errorMessage: scorm2004_constants.error_descriptions[scorm2004_error_codes.INVALID_SET_VALUE].detailMessage,
       children: scorm2004_constants.correct_responses_children,
     });
   }
@@ -820,8 +858,7 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   set type(type) {
     if (this.initialized && this.#id === '') {
-      throw new ValidationError(
-          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+      throwDependencyNotEstablishedError();
     } else {
       if (check2004ValidFormat(type, scorm2004_regex.CMIType)) {
         this.#type = type;
@@ -843,8 +880,7 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   set timestamp(timestamp) {
     if (this.initialized && this.#id === '') {
-      throw new ValidationError(
-          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+      throwDependencyNotEstablishedError();
     } else {
       if (check2004ValidFormat(timestamp, scorm2004_regex.CMITime)) {
         this.#timestamp = timestamp;
@@ -866,8 +902,7 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   set weighting(weighting) {
     if (this.initialized && this.#id === '') {
-      throw new ValidationError(
-          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+      throwDependencyNotEstablishedError();
     } else {
       if (check2004ValidFormat(weighting, scorm2004_regex.CMIDecimal)) {
         this.#weighting = weighting;
@@ -890,8 +925,7 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   set learner_response(learner_response) {
     if (this.initialized && (this.#type === '' || this.#id === '')) {
-      throw new ValidationError(
-          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+      throwDependencyNotEstablishedError();
     } else {
       let nodes = [];
       const response_type = learner_responses[this.type];
@@ -933,12 +967,12 @@ export class CMIInteractionsObject extends BaseCMI {
             }
           }
         } else {
-          throw new ValidationError(scorm2004_error_codes.GENERAL_SET_FAILURE);
+          throwGeneralSetError();
         }
 
         this.#learner_response = learner_response;
       } else {
-        throw new ValidationError(scorm2004_error_codes.TYPE_MISMATCH);
+        throwTypeMismatchError();
       }
     }
   }
@@ -975,8 +1009,7 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   set latency(latency) {
     if (this.initialized && this.#id === '') {
-      throw new ValidationError(
-          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+      throwDependencyNotEstablishedError();
     } else {
       if (check2004ValidFormat(latency, scorm2004_regex.CMITimespan)) {
         this.#latency = latency;
@@ -998,8 +1031,7 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   set description(description) {
     if (this.initialized && this.#id === '') {
-      throw new ValidationError(
-          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+      throwDependencyNotEstablishedError();
     } else {
       if (check2004ValidFormat(description, scorm2004_regex.CMILangString250,
           true)) {
@@ -1104,8 +1136,7 @@ export class CMIObjectivesObject extends BaseCMI {
    */
   set success_status(success_status) {
     if (this.initialized && this.#id === '') {
-      throw new ValidationError(
-          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+      throwDependencyNotEstablishedError();
     } else {
       if (check2004ValidFormat(success_status, scorm2004_regex.CMISStatus)) {
         this.#success_status = success_status;
@@ -1127,8 +1158,7 @@ export class CMIObjectivesObject extends BaseCMI {
    */
   set completion_status(completion_status) {
     if (this.initialized && this.#id === '') {
-      throw new ValidationError(
-          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+      throwDependencyNotEstablishedError();
     } else {
       if (check2004ValidFormat(completion_status, scorm2004_regex.CMICStatus)) {
         this.#completion_status = completion_status;
@@ -1150,8 +1180,7 @@ export class CMIObjectivesObject extends BaseCMI {
    */
   set progress_measure(progress_measure) {
     if (this.initialized && this.#id === '') {
-      throw new ValidationError(
-          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+      throwDependencyNotEstablishedError();
     } else {
       if (check2004ValidFormat(progress_measure, scorm2004_regex.CMIDecimal) &&
           check2004ValidRange(progress_measure,
@@ -1175,8 +1204,7 @@ export class CMIObjectivesObject extends BaseCMI {
    */
   set description(description) {
     if (this.initialized && this.#id === '') {
-      throw new ValidationError(
-          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+      throwDependencyNotEstablishedError();
     } else {
       if (check2004ValidFormat(description, scorm2004_regex.CMILangString250,
           true)) {
@@ -1229,8 +1257,11 @@ class Scorm2004CMIScore extends CMIScore {
           score_children: scorm2004_constants.score_children,
           max: '',
           invalidErrorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
+          invalidErrorMessage: scorm2004_constants.error_descriptions[scorm2004_error_codes.READ_ONLY_ELEMENT].detailMessage,
           invalidTypeCode: scorm2004_error_codes.TYPE_MISMATCH,
+          invalidTypeMessage: scorm2004_constants.error_descriptions[scorm2004_error_codes.TYPE_MISMATCH].detailMessage,
           invalidRangeCode: scorm2004_error_codes.VALUE_OUT_OF_RANGE,
+          invalidRangeMessage: scorm2004_constants.error_descriptions[scorm2004_error_codes.VALUE_OUT_OF_RANGE].detailMessage,
           decimalRegex: scorm2004_regex.CMIDecimal,
         });
   }

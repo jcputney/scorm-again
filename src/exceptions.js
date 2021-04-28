@@ -8,8 +8,8 @@ export class ValidationError extends Error {
    * Constructor to take in an error message and code
    * @param {number} errorCode
    */
-  constructor(errorCode: number) {
-    super(errorCode);
+  constructor(errorCode: number, ...rest) {
+    super(...rest);
     this.#errorCode = errorCode;
   }
 
@@ -21,13 +21,5 @@ export class ValidationError extends Error {
    */
   get errorCode() {
     return this.#errorCode;
-  }
-
-  /**
-   * Trying to override the default Error message
-   * @return {string}
-   */
-  get message() {
-    return this.#errorCode + '';
   }
 }

@@ -21,21 +21,30 @@ const scorm12_error_codes = ErrorCodes.scorm12;
  * Helper method for throwing Read Only error
  */
 export function throwReadOnlyError() {
-  throw new ValidationError(scorm12_error_codes.READ_ONLY_ELEMENT);
+  throw new ValidationError(
+      scorm12_error_codes.READ_ONLY_ELEMENT,
+      scorm12_constants.error_descriptions[scorm12_error_codes.READ_ONLY_ELEMENT].detailMessage
+  );
 }
 
 /**
  * Helper method for throwing Write Only error
  */
 export function throwWriteOnlyError() {
-  throw new ValidationError(scorm12_error_codes.WRITE_ONLY_ELEMENT);
+  throw new ValidationError(
+      scorm12_error_codes.WRITE_ONLY_ELEMENT,
+      scorm12_constants.error_descriptions[scorm12_error_codes.WRITE_ONLY_ELEMENT].detailMessage
+  );
 }
 
 /**
  * Helper method for throwing Invalid Set error
  */
 function throwInvalidValueError() {
-  throw new ValidationError(scorm12_error_codes.INVALID_SET_VALUE);
+  throw new ValidationError(
+      scorm12_error_codes.INVALID_SET_VALUE,
+      scorm12_constants.error_descriptions[scorm12_error_codes.INVALID_SET_VALUE].detailMessage
+  );
 }
 
 /**
@@ -50,7 +59,9 @@ export function check12ValidFormat(
     regexPattern: String,
     allowEmptyString?: boolean) {
   return checkValidFormat(value, regexPattern,
-      scorm12_error_codes.TYPE_MISMATCH, allowEmptyString);
+      scorm12_error_codes.TYPE_MISMATCH,
+      scorm12_constants.error_descriptions[scorm12_error_codes.TYPE_MISMATCH].detailMessage,
+      allowEmptyString);
 }
 
 /**
@@ -65,7 +76,9 @@ export function check12ValidRange(
     rangePattern: String,
     allowEmptyString?: boolean) {
   return checkValidRange(value, rangePattern,
-      scorm12_error_codes.VALUE_OUT_OF_RANGE, allowEmptyString);
+      scorm12_error_codes.VALUE_OUT_OF_RANGE,
+      scorm12_constants.error_descriptions[scorm12_error_codes.VALUE_OUT_OF_RANGE].detailMessage,
+      allowEmptyString);
 }
 
 /**
@@ -275,8 +288,11 @@ class CMICore extends BaseCMI {
           score_children: scorm12_constants.score_children,
           score_range: scorm12_regex.score_range,
           invalidErrorCode: scorm12_error_codes.INVALID_SET_VALUE,
+          invalidErrorMessage: scorm12_constants.error_descriptions[scorm12_error_codes.INVALID_SET_VALUE].detailMessage,
           invalidTypeCode: scorm12_error_codes.TYPE_MISMATCH,
+          invalidTypeMessage: scorm12_constants.error_descriptions[scorm12_error_codes.TYPE_MISMATCH].detailMessage,
           invalidRangeCode: scorm12_error_codes.VALUE_OUT_OF_RANGE,
+          invalidRangeMessage: scorm12_constants.error_descriptions[scorm12_error_codes.VALUE_OUT_OF_RANGE].detailMessage,
         });
   }
 
@@ -583,6 +599,7 @@ class CMIObjectives extends CMIArray {
     super({
       children: scorm12_constants.objectives_children,
       errorCode: scorm12_error_codes.INVALID_SET_VALUE,
+      errorMessage: scorm12_constants.error_descriptions[scorm12_error_codes.INVALID_SET_VALUE].detailMessage,
     });
   }
 }
@@ -858,6 +875,7 @@ class CMIInteractions extends CMIArray {
     super({
       children: scorm12_constants.interactions_children,
       errorCode: scorm12_error_codes.INVALID_SET_VALUE,
+      errorMessage: scorm12_constants.error_descriptions[scorm12_error_codes.INVALID_SET_VALUE].detailMessage,
     });
   }
 }
@@ -875,10 +893,12 @@ export class CMIInteractionsObject extends BaseCMI {
 
     this.objectives = new CMIArray({
       errorCode: scorm12_error_codes.INVALID_SET_VALUE,
+      errorMessage: scorm12_constants.error_descriptions[scorm12_error_codes.INVALID_SET_VALUE].detailMessage,
       children: scorm12_constants.objectives_children,
     });
     this.correct_responses = new CMIArray({
       errorCode: scorm12_error_codes.INVALID_SET_VALUE,
+      errorMessage: scorm12_constants.error_descriptions[scorm12_error_codes.INVALID_SET_VALUE].detailMessage,
       children: scorm12_constants.correct_responses_children,
     });
   }
@@ -1080,8 +1100,11 @@ export class CMIObjectivesObject extends BaseCMI {
           score_children: scorm12_constants.score_children,
           score_range: scorm12_regex.score_range,
           invalidErrorCode: scorm12_error_codes.INVALID_SET_VALUE,
+          invalidErrorMessage: scorm12_constants.error_descriptions[scorm12_error_codes.INVALID_SET_VALUE].detailMessage,
           invalidTypeCode: scorm12_error_codes.TYPE_MISMATCH,
+          invalidTypeMessage: scorm12_constants.error_descriptions[scorm12_error_codes.TYPE_MISMATCH].detailMessage,
           invalidRangeCode: scorm12_error_codes.VALUE_OUT_OF_RANGE,
+          invalidRangeMessage: scorm12_constants.error_descriptions[scorm12_error_codes.VALUE_OUT_OF_RANGE].detailMessage,
         });
   }
 

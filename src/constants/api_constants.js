@@ -66,6 +66,14 @@ const scorm12 = {
       basicMessage: 'Incorrect Data Type',
       detailMessage: 'LMSSetValue was called with a value that is not consistent with the data format of the supplied data model element.',
     },
+    '407': {
+      basicMessage: 'Element Value Out Of Range',
+      detailMessage: 'The numeric value supplied to a LMSSetValue call is outside of the numeric range allowed for the supplied data model element.',
+    },
+    '408': {
+      basicMessage: 'Data Model Dependency Not Established',
+      detailMessage: 'Some data model elements cannot be set until another data model element was set. This error condition indicates that the prerequisite element was not set before the dependent element.',
+    },
   },
 };
 

@@ -9,6 +9,7 @@ import {
 } from './scorm12_cmi';
 
 const aicc_constants = APIConstants.aicc;
+const scorm12_constants = APIConstants.scorm12;
 const aicc_regex = Regex.aicc;
 const scorm12_error_codes = ErrorCodes.scorm12;
 
@@ -126,8 +127,11 @@ class CMIEvaluationComments extends CMIArray {
    * Constructor for AICC Evaluation Comments object
    */
   constructor() {
-    super(aicc_constants.comments_children,
-        scorm12_error_codes.INVALID_SET_VALUE);
+    super({
+      children: aicc_constants.comments_children,
+      errorCode: scorm12_error_codes.INVALID_SET_VALUE,
+      errorMessage: scorm12_constants.error_descriptions[scorm12_error_codes.INVALID_SET_VALUE].detailMessage,
+    });
   }
 }
 
@@ -143,6 +147,7 @@ class AICCStudentPreferences extends Scorm12CMI.CMIStudentPreference {
 
     this.windows = new CMIArray({
       errorCode: scorm12_error_codes.INVALID_SET_VALUE,
+      errorMessage: scorm12_constants.error_descriptions[scorm12_error_codes.INVALID_SET_VALUE].detailMessage,
       children: '',
     });
   }
@@ -671,7 +676,7 @@ export class CMIPaths extends CMIArray {
    * Constructor for inline Paths Array class
    */
   constructor() {
-    super(aicc_constants.paths_children);
+    super({children: aicc_constants.paths_children});
   }
 }
 
@@ -837,7 +842,7 @@ export class CMITries extends CMIArray {
    * Constructor for inline Tries Array class
    */
   constructor() {
-    super(aicc_constants.tries_children);
+    super({children: aicc_constants.tries_children});
   }
 }
 
@@ -856,8 +861,11 @@ export class CMITriesObject extends BaseCMI {
           score_children: aicc_constants.score_children,
           score_range: aicc_regex.score_range,
           invalidErrorCode: scorm12_error_codes.INVALID_SET_VALUE,
+          invalidErrorMessage: scorm12_constants.error_descriptions[scorm12_error_codes.INVALID_SET_VALUE].detailMessage,
           invalidTypeCode: scorm12_error_codes.TYPE_MISMATCH,
+          invalidTypeMessage: scorm12_constants.error_descriptions[scorm12_error_codes.TYPE_MISMATCH].detailMessage,
           invalidRangeCode: scorm12_error_codes.VALUE_OUT_OF_RANGE,
+          invalidRangeMessage: scorm12_constants.error_descriptions[scorm12_error_codes.VALUE_OUT_OF_RANGE].detailMessage,
         });
   }
 
@@ -938,7 +946,7 @@ export class CMIAttemptRecords extends CMIArray {
    * Constructor for inline Tries Array class
    */
   constructor() {
-    super(aicc_constants.attempt_records_children);
+    super({children: aicc_constants.attempt_records_children});
   }
 }
 
@@ -957,8 +965,11 @@ export class CMIAttemptRecordsObject extends BaseCMI {
           score_children: aicc_constants.score_children,
           score_range: aicc_regex.score_range,
           invalidErrorCode: scorm12_error_codes.INVALID_SET_VALUE,
+          invalidErrorMessage: scorm12_constants.error_descriptions[scorm12_error_codes.INVALID_SET_VALUE].detailMessage,
           invalidTypeCode: scorm12_error_codes.TYPE_MISMATCH,
+          invalidTypeMessage: scorm12_constants.error_descriptions[scorm12_error_codes.TYPE_MISMATCH].detailMessage,
           invalidRangeCode: scorm12_error_codes.VALUE_OUT_OF_RANGE,
+          invalidRangeMessage: scorm12_constants.error_descriptions[scorm12_error_codes.VALUE_OUT_OF_RANGE].detailMessage,
         });
   }
 
