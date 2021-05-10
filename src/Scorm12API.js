@@ -297,18 +297,15 @@ export default class Scorm12API extends BaseAPI {
     const commitObject = this.renderCommitCMI(terminateCommit ||
         this.settings.alwaysSendTotalTime);
 
-    if (this.settings.lmsCommitUrl) {
-      if (this.apiLogLevel === global_constants.LOG_LEVEL_DEBUG) {
-        console.debug('Commit (terminated: ' +
+    if (this.apiLogLevel === global_constants.LOG_LEVEL_DEBUG) {
+      console.debug('Commit (terminated: ' +
             (terminateCommit ? 'yes' : 'no') + '): ');
-        console.debug(commitObject);
-      }
+      console.debug(commitObject);
+    }
+    if (this.settings.lmsCommitUrl) {
       return this.processHttpRequest(this.settings.lmsCommitUrl, commitObject,
           terminateCommit);
     } else {
-      console.log('Commit (terminated: ' +
-          (terminateCommit ? 'yes' : 'no') + '): ');
-      console.log(commitObject);
       return global_constants.SCORM_TRUE;
     }
   }
