@@ -57,7 +57,7 @@
     "cmi"
   ],
   "author": "Jonathan Putney <jonathan@putney.io>",
-  "license": "GPL-3.0-or-later",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/jcputney/scorm-again/issues"
   },
