@@ -17,6 +17,11 @@ To begin with, you include either the `scorm-again.js` or `scorm-again.min.js` f
 <script type="text/javascript" src="/dist/scorm-again.js"></script>
 ```
 
+Or, if you would like to only pull in one API, you include either the `aicc.js`, `scorm12.js` or `scorm2004.js` files or their minified versions on your launching page:
+```html
+<script type="text/javascript" src="/dist/scorm2004.js"></script>
+```
+
 Or, if you would like to install the library using your package manager, you can do the following:
 ```sh
 npm install scorm-again
