@@ -9,7 +9,7 @@ import {
 import APIConstants from '../constants/api_constants';
 import ErrorCodes from '../constants/error_codes';
 import Regex from '../constants/regex';
-import {ValidationError} from '../exceptions';
+import {Scorm12ValidationError} from '../exceptions';
 import * as Utilities from '../utilities';
 import * as Util from '../utilities';
 
@@ -21,21 +21,21 @@ const scorm12_error_codes = ErrorCodes.scorm12;
  * Helper method for throwing Read Only error
  */
 export function throwReadOnlyError() {
-  throw new ValidationError(scorm12_error_codes.READ_ONLY_ELEMENT);
+  throw new Scorm12ValidationError(scorm12_error_codes.READ_ONLY_ELEMENT);
 }
 
 /**
  * Helper method for throwing Write Only error
  */
 export function throwWriteOnlyError() {
-  throw new ValidationError(scorm12_error_codes.WRITE_ONLY_ELEMENT);
+  throw new Scorm12ValidationError(scorm12_error_codes.WRITE_ONLY_ELEMENT);
 }
 
 /**
  * Helper method for throwing Invalid Set error
  */
 function throwInvalidValueError() {
-  throw new ValidationError(scorm12_error_codes.INVALID_SET_VALUE);
+  throw new Scorm12ValidationError(scorm12_error_codes.INVALID_SET_VALUE);
 }
 
 /**
@@ -49,8 +49,13 @@ export function check12ValidFormat(
     value: String,
     regexPattern: String,
     allowEmptyString?: boolean) {
-  return checkValidFormat(value, regexPattern,
-      scorm12_error_codes.TYPE_MISMATCH, allowEmptyString);
+  return checkValidFormat(
+      value,
+      regexPattern,
+      scorm12_error_codes.TYPE_MISMATCH,
+      Scorm12ValidationError,
+      allowEmptyString
+  );
 }
 
 /**
@@ -64,8 +69,13 @@ export function check12ValidRange(
     value: any,
     rangePattern: String,
     allowEmptyString?: boolean) {
-  return checkValidRange(value, rangePattern,
-      scorm12_error_codes.VALUE_OUT_OF_RANGE, allowEmptyString);
+  return checkValidRange(
+      value,
+      rangePattern,
+      scorm12_error_codes.VALUE_OUT_OF_RANGE,
+      Scorm12ValidationError,
+      allowEmptyString
+  );
 }
 
 /**
@@ -277,6 +287,7 @@ class CMICore extends BaseCMI {
           invalidErrorCode: scorm12_error_codes.INVALID_SET_VALUE,
           invalidTypeCode: scorm12_error_codes.TYPE_MISMATCH,
           invalidRangeCode: scorm12_error_codes.VALUE_OUT_OF_RANGE,
+          errorClass: Scorm12ValidationError,
         });
   }
 
@@ -583,6 +594,7 @@ class CMIObjectives extends CMIArray {
     super({
       children: scorm12_constants.objectives_children,
       errorCode: scorm12_error_codes.INVALID_SET_VALUE,
+      errorClass: Scorm12ValidationError,
     });
   }
 }
@@ -858,6 +870,7 @@ class CMIInteractions extends CMIArray {
     super({
       children: scorm12_constants.interactions_children,
       errorCode: scorm12_error_codes.INVALID_SET_VALUE,
+      errorClass: Scorm12ValidationError,
     });
   }
 }
@@ -875,10 +888,12 @@ export class CMIInteractionsObject extends BaseCMI {
 
     this.objectives = new CMIArray({
       errorCode: scorm12_error_codes.INVALID_SET_VALUE,
+      errorClass: Scorm12ValidationError,
       children: scorm12_constants.objectives_children,
     });
     this.correct_responses = new CMIArray({
       errorCode: scorm12_error_codes.INVALID_SET_VALUE,
+      errorClass: Scorm12ValidationError,
       children: scorm12_constants.correct_responses_children,
     });
   }
@@ -1082,6 +1097,7 @@ export class CMIObjectivesObject extends BaseCMI {
           invalidErrorCode: scorm12_error_codes.INVALID_SET_VALUE,
           invalidTypeCode: scorm12_error_codes.TYPE_MISMATCH,
           invalidRangeCode: scorm12_error_codes.VALUE_OUT_OF_RANGE,
+          errorClass: Scorm12ValidationError,
         });
   }
 

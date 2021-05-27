@@ -23,7 +23,7 @@ export const checkFieldConstraintSize = (
     it(`Should fail to write more than ${limit} characters to ${fieldName}`,
         () => {
           expect(() => eval(`${fieldName} = 'x'.repeat(${limit + 1})`)).
-              to.throw(expectedError + '');
+              to.throw().with.property('errorCode', expectedError);
         });
   });
 };
@@ -42,7 +42,7 @@ export const checkReadOnly = (
 
     it(`Should fail to write to ${fieldName}`, () => {
       expect(() => eval(`${fieldName} = 'xxx'`)).
-          to.throw(expectedError + '');
+          to.throw().with.property('errorCode', expectedError);
     });
   });
 };
@@ -89,7 +89,7 @@ export const checkWriteOnly = (
   describe(`Field: ${fieldName}`, () => {
     it(`Should fail to read from ${fieldName}`, () => {
       expect(() => eval(`${fieldName}`)).
-          to.throw(expectedError + '');
+          to.throw().with.property('errorCode', expectedError);
     });
 
     it(`Should successfully write to ${fieldName}`, () => {

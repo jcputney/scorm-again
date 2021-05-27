@@ -10,7 +10,7 @@ import APIConstants from '../constants/api_constants';
 import Regex from '../constants/regex';
 import ErrorCodes from '../constants/error_codes';
 import Responses from '../constants/response_constants';
-import {ValidationError} from '../exceptions';
+import {Scorm2004ValidationError} from '../exceptions';
 import * as Util from '../utilities';
 
 const scorm2004_constants = APIConstants.scorm2004;
@@ -23,21 +23,35 @@ const scorm2004_regex = Regex.scorm2004;
  * Helper method for throwing Read Only error
  */
 function throwReadOnlyError() {
-  throw new ValidationError(scorm2004_error_codes.READ_ONLY_ELEMENT);
+  throw new Scorm2004ValidationError(scorm2004_error_codes.READ_ONLY_ELEMENT);
 }
 
 /**
  * Helper method for throwing Write Only error
  */
 function throwWriteOnlyError() {
-  throw new ValidationError(scorm2004_error_codes.WRITE_ONLY_ELEMENT);
+  throw new Scorm2004ValidationError(scorm2004_error_codes.WRITE_ONLY_ELEMENT);
 }
 
 /**
  * Helper method for throwing Type Mismatch error
  */
 function throwTypeMismatchError() {
-  throw new ValidationError(scorm2004_error_codes.TYPE_MISMATCH);
+  throw new Scorm2004ValidationError(scorm2004_error_codes.TYPE_MISMATCH);
+}
+
+/**
+ * Helper method for throwing Dependency Not Established error
+ */
+function throwDependencyNotEstablishedError() {
+  throw new Scorm2004ValidationError(scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+}
+
+/**
+ * Helper method for throwing Dependency Not Established error
+ */
+function throwGeneralSetError() {
+  throw new Scorm2004ValidationError(scorm2004_error_codes.GENERAL_SET_FAILURE);
 }
 
 /**
@@ -51,8 +65,13 @@ function check2004ValidFormat(
     value: String,
     regexPattern: String,
     allowEmptyString?: boolean) {
-  return checkValidFormat(value, regexPattern,
-      scorm2004_error_codes.TYPE_MISMATCH, allowEmptyString);
+  return checkValidFormat(
+      value,
+      regexPattern,
+      scorm2004_error_codes.TYPE_MISMATCH,
+      Scorm2004ValidationError,
+      allowEmptyString,
+  );
 }
 
 /**
@@ -62,8 +81,12 @@ function check2004ValidFormat(
  * @return {boolean}
  */
 function check2004ValidRange(value: any, rangePattern: String) {
-  return checkValidRange(value, rangePattern,
-      scorm2004_error_codes.VALUE_OUT_OF_RANGE);
+  return checkValidRange(
+      value,
+      rangePattern,
+      scorm2004_error_codes.VALUE_OUT_OF_RANGE,
+      Scorm2004ValidationError,
+  );
 }
 
 /**
@@ -189,8 +212,8 @@ export class CMI extends BaseCMI {
    */
   set completion_threshold(completion_threshold) {
     !this.initialized ?
-        this.#completion_threshold = completion_threshold :
-        throwReadOnlyError();
+      this.#completion_threshold = completion_threshold :
+      throwReadOnlyError();
   }
 
   /**
@@ -289,8 +312,8 @@ export class CMI extends BaseCMI {
    */
   set learner_name(learner_name) {
     !this.initialized ?
-        this.#learner_name = learner_name :
-        throwReadOnlyError();
+      this.#learner_name = learner_name :
+      throwReadOnlyError();
   }
 
   /**
@@ -325,8 +348,8 @@ export class CMI extends BaseCMI {
    */
   set max_time_allowed(max_time_allowed) {
     !this.initialized ?
-        this.#max_time_allowed = max_time_allowed :
-        throwReadOnlyError();
+      this.#max_time_allowed = max_time_allowed :
+      throwReadOnlyError();
   }
 
   /**
@@ -359,7 +382,7 @@ export class CMI extends BaseCMI {
    */
   set progress_measure(progress_measure) {
     if (check2004ValidFormat(progress_measure, scorm2004_regex.CMIDecimal) &&
-        check2004ValidRange(progress_measure, scorm2004_regex.progress_range)) {
+      check2004ValidRange(progress_measure, scorm2004_regex.progress_range)) {
       this.#progress_measure = progress_measure;
     }
   }
@@ -378,8 +401,8 @@ export class CMI extends BaseCMI {
    */
   set scaled_passing_score(scaled_passing_score) {
     !this.initialized ?
-        this.#scaled_passing_score = scaled_passing_score :
-        throwReadOnlyError();
+      this.#scaled_passing_score = scaled_passing_score :
+      throwReadOnlyError();
   }
 
   /**
@@ -451,8 +474,8 @@ export class CMI extends BaseCMI {
    */
   set time_limit_action(time_limit_action) {
     !this.initialized ?
-        this.#time_limit_action = time_limit_action :
-        throwReadOnlyError();
+      this.#time_limit_action = time_limit_action :
+      throwReadOnlyError();
   }
 
   /**
@@ -604,7 +627,7 @@ class CMILearnerPreference extends BaseCMI {
    */
   set audio_level(audio_level) {
     if (check2004ValidFormat(audio_level, scorm2004_regex.CMIDecimal) &&
-        check2004ValidRange(audio_level, scorm2004_regex.audio_range)) {
+      check2004ValidRange(audio_level, scorm2004_regex.audio_range)) {
       this.#audio_level = audio_level;
     }
   }
@@ -641,7 +664,7 @@ class CMILearnerPreference extends BaseCMI {
    */
   set delivery_speed(delivery_speed) {
     if (check2004ValidFormat(delivery_speed, scorm2004_regex.CMIDecimal) &&
-        check2004ValidRange(delivery_speed, scorm2004_regex.speed_range)) {
+      check2004ValidRange(delivery_speed, scorm2004_regex.speed_range)) {
       this.#delivery_speed = delivery_speed;
     }
   }
@@ -660,7 +683,7 @@ class CMILearnerPreference extends BaseCMI {
    */
   set audio_captioning(audio_captioning) {
     if (check2004ValidFormat(audio_captioning, scorm2004_regex.CMISInteger) &&
-        check2004ValidRange(audio_captioning, scorm2004_regex.text_range)) {
+      check2004ValidRange(audio_captioning, scorm2004_regex.text_range)) {
       this.#audio_captioning = audio_captioning;
     }
   }
@@ -701,6 +724,7 @@ class CMIInteractions extends CMIArray {
     super({
       children: scorm2004_constants.interactions_children,
       errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
+      errorClass: Scorm2004ValidationError,
     });
   }
 }
@@ -716,6 +740,7 @@ class CMIObjectives extends CMIArray {
     super({
       children: scorm2004_constants.objectives_children,
       errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
+      errorClass: Scorm2004ValidationError,
     });
   }
 }
@@ -731,6 +756,7 @@ class CMICommentsFromLMS extends CMIArray {
     super({
       children: scorm2004_constants.comments_children,
       errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
+      errorClass: Scorm2004ValidationError,
     });
   }
 }
@@ -746,6 +772,7 @@ class CMICommentsFromLearner extends CMIArray {
     super({
       children: scorm2004_constants.comments_children,
       errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
+      errorClass: Scorm2004ValidationError,
     });
   }
 }
@@ -771,10 +798,12 @@ export class CMIInteractionsObject extends BaseCMI {
 
     this.objectives = new CMIArray({
       errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
+      errorClass: Scorm2004ValidationError,
       children: scorm2004_constants.objectives_children,
     });
     this.correct_responses = new CMIArray({
       errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
+      errorClass: Scorm2004ValidationError,
       children: scorm2004_constants.correct_responses_children,
     });
   }
@@ -820,8 +849,7 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   set type(type) {
     if (this.initialized && this.#id === '') {
-      throw new ValidationError(
-          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+      throwDependencyNotEstablishedError();
     } else {
       if (check2004ValidFormat(type, scorm2004_regex.CMIType)) {
         this.#type = type;
@@ -843,8 +871,7 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   set timestamp(timestamp) {
     if (this.initialized && this.#id === '') {
-      throw new ValidationError(
-          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+      throwDependencyNotEstablishedError();
     } else {
       if (check2004ValidFormat(timestamp, scorm2004_regex.CMITime)) {
         this.#timestamp = timestamp;
@@ -866,8 +893,7 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   set weighting(weighting) {
     if (this.initialized && this.#id === '') {
-      throw new ValidationError(
-          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+      throwDependencyNotEstablishedError();
     } else {
       if (check2004ValidFormat(weighting, scorm2004_regex.CMIDecimal)) {
         this.#weighting = weighting;
@@ -890,8 +916,7 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   set learner_response(learner_response) {
     if (this.initialized && (this.#type === '' || this.#id === '')) {
-      throw new ValidationError(
-          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+      throwDependencyNotEstablishedError();
     } else {
       let nodes = [];
       const response_type = learner_responses[this.type];
@@ -933,12 +958,12 @@ export class CMIInteractionsObject extends BaseCMI {
             }
           }
         } else {
-          throw new ValidationError(scorm2004_error_codes.GENERAL_SET_FAILURE);
+          throwGeneralSetError();
         }
 
         this.#learner_response = learner_response;
       } else {
-        throw new ValidationError(scorm2004_error_codes.TYPE_MISMATCH);
+        throwTypeMismatchError();
       }
     }
   }
@@ -975,8 +1000,7 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   set latency(latency) {
     if (this.initialized && this.#id === '') {
-      throw new ValidationError(
-          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+      throwDependencyNotEstablishedError();
     } else {
       if (check2004ValidFormat(latency, scorm2004_regex.CMITimespan)) {
         this.#latency = latency;
@@ -998,8 +1022,7 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   set description(description) {
     if (this.initialized && this.#id === '') {
-      throw new ValidationError(
-          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+      throwDependencyNotEstablishedError();
     } else {
       if (check2004ValidFormat(description, scorm2004_regex.CMILangString250,
           true)) {
@@ -1104,8 +1127,7 @@ export class CMIObjectivesObject extends BaseCMI {
    */
   set success_status(success_status) {
     if (this.initialized && this.#id === '') {
-      throw new ValidationError(
-          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+      throwDependencyNotEstablishedError();
     } else {
       if (check2004ValidFormat(success_status, scorm2004_regex.CMISStatus)) {
         this.#success_status = success_status;
@@ -1127,8 +1149,7 @@ export class CMIObjectivesObject extends BaseCMI {
    */
   set completion_status(completion_status) {
     if (this.initialized && this.#id === '') {
-      throw new ValidationError(
-          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+      throwDependencyNotEstablishedError();
     } else {
       if (check2004ValidFormat(completion_status, scorm2004_regex.CMICStatus)) {
         this.#completion_status = completion_status;
@@ -1150,12 +1171,11 @@ export class CMIObjectivesObject extends BaseCMI {
    */
   set progress_measure(progress_measure) {
     if (this.initialized && this.#id === '') {
-      throw new ValidationError(
-          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+      throwDependencyNotEstablishedError();
     } else {
       if (check2004ValidFormat(progress_measure, scorm2004_regex.CMIDecimal) &&
-          check2004ValidRange(progress_measure,
-              scorm2004_regex.progress_range)) {
+        check2004ValidRange(progress_measure,
+            scorm2004_regex.progress_range)) {
         this.#progress_measure = progress_measure;
       }
     }
@@ -1175,8 +1195,7 @@ export class CMIObjectivesObject extends BaseCMI {
    */
   set description(description) {
     if (this.initialized && this.#id === '') {
-      throw new ValidationError(
-          scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED);
+      throwDependencyNotEstablishedError();
     } else {
       if (check2004ValidFormat(description, scorm2004_regex.CMILangString250,
           true)) {
@@ -1232,6 +1251,7 @@ class Scorm2004CMIScore extends CMIScore {
           invalidTypeCode: scorm2004_error_codes.TYPE_MISMATCH,
           invalidRangeCode: scorm2004_error_codes.VALUE_OUT_OF_RANGE,
           decimalRegex: scorm2004_regex.CMIDecimal,
+          errorClass: Scorm2004ValidationError,
         });
   }
 
@@ -1249,7 +1269,7 @@ class Scorm2004CMIScore extends CMIScore {
    */
   set scaled(scaled) {
     if (check2004ValidFormat(scaled, scorm2004_regex.CMIDecimal) &&
-        check2004ValidRange(scaled, scorm2004_regex.scaled_range)) {
+      check2004ValidRange(scaled, scorm2004_regex.scaled_range)) {
       this.#scaled = scaled;
     }
   }

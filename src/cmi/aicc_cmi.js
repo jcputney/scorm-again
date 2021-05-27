@@ -1,16 +1,40 @@
 import * as Scorm12CMI from './scorm12_cmi';
-import {BaseCMI, CMIArray, CMIScore} from './common';
+import {BaseCMI, checkValidFormat, CMIArray, CMIScore} from './common';
 import APIConstants from '../constants/api_constants';
 import Regex from '../constants/regex';
 import ErrorCodes from '../constants/error_codes';
-import {
-  check12ValidFormat,
-  throwReadOnlyError,
-} from './scorm12_cmi';
+import {AICCValidationError} from '../exceptions';
 
 const aicc_constants = APIConstants.aicc;
 const aicc_regex = Regex.aicc;
-const scorm12_error_codes = ErrorCodes.scorm12;
+const aicc_error_codes = ErrorCodes.scorm12;
+
+/**
+ * Helper method for throwing Read Only error
+ */
+function throwReadOnlyError() {
+  throw new AICCValidationError(aicc_error_codes.READ_ONLY_ELEMENT);
+}
+
+/**
+ * Helper method, no reason to have to pass the same error codes every time
+ * @param {*} value
+ * @param {string} regexPattern
+ * @param {boolean} allowEmptyString
+ * @return {boolean}
+ */
+function checkAICCValidFormat(
+    value: String,
+    regexPattern: String,
+    allowEmptyString?: boolean) {
+  return checkValidFormat(
+      value,
+      regexPattern,
+      aicc_error_codes.TYPE_MISMATCH,
+      AICCValidationError,
+      allowEmptyString
+  );
+}
 
 /**
  * CMI Class for AICC
@@ -126,8 +150,11 @@ class CMIEvaluationComments extends CMIArray {
    * Constructor for AICC Evaluation Comments object
    */
   constructor() {
-    super(aicc_constants.comments_children,
-        scorm12_error_codes.INVALID_SET_VALUE);
+    super({
+      children: aicc_constants.comments_children,
+      errorCode: aicc_error_codes.INVALID_SET_VALUE,
+      errorClass: AICCValidationError,
+    });
   }
 }
 
@@ -142,7 +169,8 @@ class AICCStudentPreferences extends Scorm12CMI.CMIStudentPreference {
     super(aicc_constants.student_preference_children);
 
     this.windows = new CMIArray({
-      errorCode: scorm12_error_codes.INVALID_SET_VALUE,
+      errorCode: aicc_error_codes.INVALID_SET_VALUE,
+      errorClass: AICCValidationError,
       children: '',
     });
   }
@@ -174,7 +202,7 @@ class AICCStudentPreferences extends Scorm12CMI.CMIStudentPreference {
    * @param {string} lesson_type
    */
   set lesson_type(lesson_type: string) {
-    if (check12ValidFormat(lesson_type, aicc_regex.CMIString256)) {
+    if (checkAICCValidFormat(lesson_type, aicc_regex.CMIString256)) {
       this.#lesson_type = lesson_type;
     }
   }
@@ -192,7 +220,7 @@ class AICCStudentPreferences extends Scorm12CMI.CMIStudentPreference {
    * @param {string} text_color
    */
   set text_color(text_color: string) {
-    if (check12ValidFormat(text_color, aicc_regex.CMIString256)) {
+    if (checkAICCValidFormat(text_color, aicc_regex.CMIString256)) {
       this.#text_color = text_color;
     }
   }
@@ -210,7 +238,7 @@ class AICCStudentPreferences extends Scorm12CMI.CMIStudentPreference {
    * @param {string} text_location
    */
   set text_location(text_location: string) {
-    if (check12ValidFormat(text_location, aicc_regex.CMIString256)) {
+    if (checkAICCValidFormat(text_location, aicc_regex.CMIString256)) {
       this.#text_location = text_location;
     }
   }
@@ -228,7 +256,7 @@ class AICCStudentPreferences extends Scorm12CMI.CMIStudentPreference {
    * @param {string} text_size
    */
   set text_size(text_size: string) {
-    if (check12ValidFormat(text_size, aicc_regex.CMIString256)) {
+    if (checkAICCValidFormat(text_size, aicc_regex.CMIString256)) {
       this.#text_size = text_size;
     }
   }
@@ -246,7 +274,7 @@ class AICCStudentPreferences extends Scorm12CMI.CMIStudentPreference {
    * @param {string} video
    */
   set video(video: string) {
-    if (check12ValidFormat(video, aicc_regex.CMIString256)) {
+    if (checkAICCValidFormat(video, aicc_regex.CMIString256)) {
       this.#video = video;
     }
   }
@@ -373,6 +401,14 @@ export class CMIStudentDemographics extends BaseCMI {
   #street_address = '';
   #telephone = '';
   #years_experience = '';
+
+  /**
+   * Getter for _children
+   * @return {string}
+   */
+  get _children() {
+    return this.#_children;
+  }
 
   /**
    * Getter for city
@@ -671,7 +707,7 @@ export class CMIPaths extends CMIArray {
    * Constructor for inline Paths Array class
    */
   constructor() {
-    super(aicc_constants.paths_children);
+    super({children: aicc_constants.paths_children});
   }
 }
 
@@ -706,7 +742,7 @@ export class CMIPathsObject extends BaseCMI {
    * @param {string} location_id
    */
   set location_id(location_id) {
-    if (check12ValidFormat(location_id, aicc_regex.CMIString256)) {
+    if (checkAICCValidFormat(location_id, aicc_regex.CMIString256)) {
       this.#location_id = location_id;
     }
   }
@@ -724,7 +760,7 @@ export class CMIPathsObject extends BaseCMI {
    * @param {string} date
    */
   set date(date) {
-    if (check12ValidFormat(date, aicc_regex.CMIString256)) {
+    if (checkAICCValidFormat(date, aicc_regex.CMIString256)) {
       this.#date = date;
     }
   }
@@ -742,7 +778,7 @@ export class CMIPathsObject extends BaseCMI {
    * @param {string} time
    */
   set time(time) {
-    if (check12ValidFormat(time, aicc_regex.CMITime)) {
+    if (checkAICCValidFormat(time, aicc_regex.CMITime)) {
       this.#time = time;
     }
   }
@@ -760,7 +796,7 @@ export class CMIPathsObject extends BaseCMI {
    * @param {string} status
    */
   set status(status) {
-    if (check12ValidFormat(status, aicc_regex.CMIStatus2)) {
+    if (checkAICCValidFormat(status, aicc_regex.CMIStatus2)) {
       this.#status = status;
     }
   }
@@ -778,7 +814,7 @@ export class CMIPathsObject extends BaseCMI {
    * @param {string} why_left
    */
   set why_left(why_left) {
-    if (check12ValidFormat(why_left, aicc_regex.CMIString256)) {
+    if (checkAICCValidFormat(why_left, aicc_regex.CMIString256)) {
       this.#why_left = why_left;
     }
   }
@@ -796,7 +832,7 @@ export class CMIPathsObject extends BaseCMI {
    * @param {string} time_in_element
    */
   set time_in_element(time_in_element) {
-    if (check12ValidFormat(time_in_element, aicc_regex.CMITime)) {
+    if (checkAICCValidFormat(time_in_element, aicc_regex.CMITime)) {
       this.#time_in_element = time_in_element;
     }
   }
@@ -837,7 +873,7 @@ export class CMITries extends CMIArray {
    * Constructor for inline Tries Array class
    */
   constructor() {
-    super(aicc_constants.tries_children);
+    super({children: aicc_constants.tries_children});
   }
 }
 
@@ -855,9 +891,10 @@ export class CMITriesObject extends BaseCMI {
         {
           score_children: aicc_constants.score_children,
           score_range: aicc_regex.score_range,
-          invalidErrorCode: scorm12_error_codes.INVALID_SET_VALUE,
-          invalidTypeCode: scorm12_error_codes.TYPE_MISMATCH,
-          invalidRangeCode: scorm12_error_codes.VALUE_OUT_OF_RANGE,
+          invalidErrorCode: aicc_error_codes.INVALID_SET_VALUE,
+          invalidTypeCode: aicc_error_codes.TYPE_MISMATCH,
+          invalidRangeCode: aicc_error_codes.VALUE_OUT_OF_RANGE,
+          errorClass: AICCValidationError,
         });
   }
 
@@ -885,7 +922,7 @@ export class CMITriesObject extends BaseCMI {
    * @param {string} status
    */
   set status(status) {
-    if (check12ValidFormat(status, aicc_regex.CMIStatus2)) {
+    if (checkAICCValidFormat(status, aicc_regex.CMIStatus2)) {
       this.#status = status;
     }
   }
@@ -903,7 +940,7 @@ export class CMITriesObject extends BaseCMI {
    * @param {string} time
    */
   set time(time) {
-    if (check12ValidFormat(time, aicc_regex.CMITime)) {
+    if (checkAICCValidFormat(time, aicc_regex.CMITime)) {
       this.#time = time;
     }
   }
@@ -938,7 +975,7 @@ export class CMIAttemptRecords extends CMIArray {
    * Constructor for inline Tries Array class
    */
   constructor() {
-    super(aicc_constants.attempt_records_children);
+    super({children: aicc_constants.attempt_records_children});
   }
 }
 
@@ -956,9 +993,10 @@ export class CMIAttemptRecordsObject extends BaseCMI {
         {
           score_children: aicc_constants.score_children,
           score_range: aicc_regex.score_range,
-          invalidErrorCode: scorm12_error_codes.INVALID_SET_VALUE,
-          invalidTypeCode: scorm12_error_codes.TYPE_MISMATCH,
-          invalidRangeCode: scorm12_error_codes.VALUE_OUT_OF_RANGE,
+          invalidErrorCode: aicc_error_codes.INVALID_SET_VALUE,
+          invalidTypeCode: aicc_error_codes.TYPE_MISMATCH,
+          invalidRangeCode: aicc_error_codes.VALUE_OUT_OF_RANGE,
+          errorClass: AICCValidationError,
         });
   }
 
@@ -985,7 +1023,7 @@ export class CMIAttemptRecordsObject extends BaseCMI {
    * @param {string} lesson_status
    */
   set lesson_status(lesson_status) {
-    if (check12ValidFormat(lesson_status, aicc_regex.CMIStatus2)) {
+    if (checkAICCValidFormat(lesson_status, aicc_regex.CMIStatus2)) {
       this.#lesson_status = lesson_status;
     }
   }
@@ -1039,7 +1077,7 @@ export class CMIEvaluationCommentsObject extends BaseCMI {
    * @param {string} content
    */
   set content(content) {
-    if (check12ValidFormat(content, aicc_regex.CMIString256)) {
+    if (checkAICCValidFormat(content, aicc_regex.CMIString256)) {
       this.#content = content;
     }
   }
@@ -1057,7 +1095,7 @@ export class CMIEvaluationCommentsObject extends BaseCMI {
    * @param {string} location
    */
   set location(location) {
-    if (check12ValidFormat(location, aicc_regex.CMIString256)) {
+    if (checkAICCValidFormat(location, aicc_regex.CMIString256)) {
       this.#location = location;
     }
   }
@@ -1075,7 +1113,7 @@ export class CMIEvaluationCommentsObject extends BaseCMI {
    * @param {string} time
    */
   set time(time) {
-    if (check12ValidFormat(time, aicc_regex.CMITime)) {
+    if (checkAICCValidFormat(time, aicc_regex.CMITime)) {
       this.#time = time;
     }
   }
