@@ -28,6 +28,7 @@ export default class BaseAPI {
     logLevel: global_constants.LOG_LEVEL_ERROR,
     selfReportSessionTime: false,
     alwaysSendTotalTime: false,
+    strict_errors: true,
     responseHandler: function(xhr) {
       let result;
       if (typeof xhr !== 'undefined') {
@@ -185,7 +186,21 @@ export default class BaseAPI {
         this.#error_codes.RETRIEVE_BEFORE_INIT,
         this.#error_codes.RETRIEVE_AFTER_TERM)) {
       if (checkTerminated) this.lastErrorCode = 0;
-      returnValue = this.getCMIValue(CMIElement);
+      try {
+        returnValue = this.getCMIValue(CMIElement);
+      } catch (e) {
+        if (e instanceof ValidationError) {
+          this.lastErrorCode = e.errorCode;
+          returnValue = global_constants.SCORM_FALSE;
+        } else {
+          if (e.message) {
+            console.error(e.message);
+          } else {
+            console.error(e);
+          }
+          this.throwSCORMError(this.#error_codes.GENERAL);
+        }
+      }
       this.processListeners(callbackName, CMIElement);
     }
 
