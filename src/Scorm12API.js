@@ -202,7 +202,7 @@ export default class Scorm12API extends BaseAPI {
    * Returns the message that corresponds to errorNumber.
    *
    * @param {*} errorNumber
-   * @param {boolean }detail
+   * @param {boolean} detail
    * @return {string}
    */
   getLmsErrorMessageDetails(errorNumber, detail) {
@@ -278,8 +278,7 @@ export default class Scorm12API extends BaseAPI {
           if (this.settings.mastery_override &&
               this.cmi.student_data.mastery_score !== '' &&
               this.cmi.core.score.raw !== '') {
-            if (parseFloat(this.cmi.core.score.raw) >=
-                parseFloat(this.cmi.student_data.mastery_score)) {
+            if (parseFloat(this.cmi.core.score.raw) >= parseFloat(this.cmi.student_data.mastery_score)) {
               this.cmi.core.lesson_status = 'passed';
             } else {
               this.cmi.core.lesson_status = 'failed';
@@ -287,8 +286,7 @@ export default class Scorm12API extends BaseAPI {
           }
         }
       } else if (this.cmi.core.lesson_mode === 'browse') {
-        if ((this.startingData?.cmi?.core?.lesson_status || '') === '' &&
-            originalStatus === 'not attempted') {
+        if ((this.startingData?.cmi?.core?.lesson_status || '') === '' && originalStatus === 'not attempted') {
           this.cmi.core.lesson_status = 'browsed';
         }
       }
@@ -299,15 +297,13 @@ export default class Scorm12API extends BaseAPI {
 
     if (this.settings.lmsCommitUrl) {
       if (this.apiLogLevel === global_constants.LOG_LEVEL_DEBUG) {
-        console.debug('Commit (terminated: ' +
-            (terminateCommit ? 'yes' : 'no') + '): ');
+        console.debug('Commit (terminated: ' + (terminateCommit ? 'yes' : 'no') + '): ');
         console.debug(commitObject);
       }
       return this.processHttpRequest(this.settings.lmsCommitUrl, commitObject,
           terminateCommit);
     } else {
-      console.log('Commit (terminated: ' +
-          (terminateCommit ? 'yes' : 'no') + '): ');
+      console.log('Commit (terminated: ' + (terminateCommit ? 'yes' : 'no') + '): ');
       console.log(commitObject);
       return global_constants.SCORM_TRUE;
     }
