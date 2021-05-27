@@ -23,10 +23,14 @@ module.exports = function(grunt) {
     },
     browserify: {
       development: {
-        src: [
-          './src/**/*.js',
-        ],
-        dest: './dist/scorm-again.js',
+        files: [{
+          expand: true,
+          cwd: 'src/exports/',
+          src: ['*.js'],
+          dest: 'dist/',
+          ext: '.js',
+          extDot: 'first',
+        }],
         options: {
           browserifyOptions: {debug: true},
           transform: [
@@ -44,12 +48,16 @@ module.exports = function(grunt) {
         },
       },
       production: {
-        src: [
-          './src/**/*.js',
-        ],
-        dest: './dist/scorm-again.min.js',
+        files: [{
+          expand: true,
+          cwd: 'src/exports/',
+          src: ['*.js'],
+          dest: 'dist/',
+          ext: '.min.js',
+          extDot: 'first',
+        }],
         options: {
-          browserifyOptions: {debug: true},
+          browserifyOptions: {debug: false},
           transform: [
             [
               'babelify', {
@@ -60,15 +68,10 @@ module.exports = function(grunt) {
                   '@babel/plugin-proposal-optional-chaining',
                 ],
               },
+              'uglifyify', {
+                sourceMap: true,
+              },
             ],
-          ],
-          plugin: [
-            [
-              'minifyify',
-              {
-                map: 'scorm-again.js.map',
-                output: './dist/scorm-again.js.map',
-              }],
           ],
         },
       },
