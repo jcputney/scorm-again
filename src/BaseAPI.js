@@ -29,6 +29,8 @@ export default class BaseAPI {
     selfReportSessionTime: false,
     alwaysSendTotalTime: false,
     strict_errors: true,
+    xhrHeaders: {},
+    xhrWithCredentials: false,
     responseHandler: function(xhr) {
       let result;
       if (typeof xhr !== 'undefined') {
@@ -1093,6 +1095,15 @@ export default class BaseAPI {
       if (!settings.sendBeaconCommit) {
         const httpReq = new XMLHttpRequest();
         httpReq.open('POST', url, settings.asyncCommit);
+
+        if(Object.keys(settings.xhrHeaders).length) {
+          Object.keys(settings.xhrHeaders).forEach((header) => {
+            httpReq.setRequestHeader(header, settings.xhrHeaders[header])
+          })
+        }
+
+        httpReq.withCredentials = settings.xhrWithCredentials
+
         if (settings.asyncCommit) {
           httpReq.onload = function(e) {
             if (typeof settings.responseHandler === 'function') {

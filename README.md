@@ -59,6 +59,8 @@ The APIs include several settings to customize the functionality of each API:
 | `mastery_override` | false | true/false | (SCORM 1.2) Used to override a module's `cmi.core.lesson_status` so that a pass/fail is determined based on a mastery score and the user's raw score, rather than using whatever status is provided by the module. An example of this would be if a module is published using a `Complete/Incomplete` final status, but the LMS always wants to receive a `Passed/Failed` for quizzes, then we can use this setting to override the given final status. |
 | `selfReportSessionTime` | false | true/false | Should the API override the default `session_time` reported by the module? Useful when modules don't properly report time. |
 | `alwaysSendTotalTime` | false | true/false | Should the API always send `total_time` when committing to the LMS |
+| `xhrWithCredentials` | false | true/false | Sets the withCredentials flag on the request to the LMS |
+| `xhrHeaders` | {} | Object | This allows setting of additional headers on the request to the LMS where the key should be the header name and the value is the value of the header you want to send |
 | `responseHandler` | function |  | A function to properly tranform the response from the LMS to the correct format. The APIs expect the result from the LMS to be in the following format (errorCode is optional): `{ "result": true, "errorCode": 0 }` |
 
 ## Initial Values
