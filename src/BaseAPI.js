@@ -1096,13 +1096,13 @@ export default class BaseAPI {
         const httpReq = new XMLHttpRequest();
         httpReq.open('POST', url, settings.asyncCommit);
 
-        if(Object.keys(settings.xhrHeaders).length) {
+        if (Object.keys(settings.xhrHeaders).length) {
           Object.keys(settings.xhrHeaders).forEach((header) => {
-            httpReq.setRequestHeader(header, settings.xhrHeaders[header])
-          })
+            httpReq.setRequestHeader(header, settings.xhrHeaders[header]);
+          });
         }
 
-        httpReq.withCredentials = settings.xhrWithCredentials
+        httpReq.withCredentials = settings.xhrWithCredentials;
 
         if (settings.asyncCommit) {
           httpReq.onload = function(e) {
