@@ -11,7 +11,7 @@ const learner = {
     unique: false,
   },
   'choice': {
-    format: scorm2004_regex.CMIShortIdentifier,
+    format: scorm2004_regex.CMILongIdentifier,
     max: 36,
     delimiter: '[,]',
     unique: true,
@@ -85,7 +85,7 @@ const correct = {
     delimiter: '[,]',
     unique: true,
     duplicate: false,
-    format: scorm2004_regex.CMIShortIdentifier,
+    format: scorm2004_regex.CMILongIdentifier,
   },
   'fill-in': {
     max: 10,
