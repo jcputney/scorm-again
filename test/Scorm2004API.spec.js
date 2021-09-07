@@ -356,6 +356,19 @@ describe('SCORM 2004 API Tests', () => {
                 String(scorm2004API.lmsGetLastError()),
             ).to.equal(String(0));
           });
+      it('should allow cmi.interactions.0.correct_responses.0.pattern to be set - choice for SCORM 2004 4th Edition',
+          () => {
+            const scorm2004API = apiInitialized();
+            scorm2004API.setCMIValue('cmi.interactions.0.id',
+                'urn:scormdriver:Test_Your_Knowledge.Select_the_ONE_TRUE_answer._0');
+            scorm2004API.setCMIValue('cmi.interactions.0.type', 'choice');
+            scorm2004API.setCMIValue(
+                'cmi.interactions.0.correct_responses.0.pattern',
+                'urn:scormdriver:This%20is%20a%20choice.');
+            expect(
+                String(scorm2004API.lmsGetLastError()),
+            ).to.equal(String(0));
+          });
       it('should allow cmi.interactions.0.objectives.0.id to be set',
           () => {
             const scorm2004API = apiInitialized();
@@ -386,6 +399,27 @@ describe('SCORM 2004 API Tests', () => {
                 scorm2004API.getCMIValue('cmi.interactions.0.learner_response'),
             ).to.equal('VP_on-call_or_President');
           });
+      it('should allow cmi.interactions.0.learner_response to be set for SCORM 2004 4th Edition',
+          () => {
+            const scorm2004API = apiInitialized();
+            scorm2004API.setCMIValue('cmi.interactions.0.id',
+                'urn:scormdriver:Test_Your_Knowledge.Select_the_ONE_TRUE_answer._0');
+            scorm2004API.setCMIValue('cmi.interactions.0.type', 'choice');
+            scorm2004API.setCMIValue('cmi.interactions.0.learner_response',
+                'urn:scormdriver:This%20is%20an%20incorrect%20response.');
+            expect(
+                String(scorm2004API.lmsGetLastError()),
+            ).to.equal(String(0));
+            expect(
+                scorm2004API.getCMIValue('cmi.interactions.0.id'),
+            ).to.equal('urn:scormdriver:Test_Your_Knowledge.Select_the_ONE_TRUE_answer._0');
+            expect(
+                scorm2004API.getCMIValue('cmi.interactions.0.type'),
+            ).to.equal('choice');
+            expect(
+                scorm2004API.getCMIValue('cmi.interactions.0.learner_response'),
+            ).to.equal('urn:scormdriver:This%20is%20an%20incorrect%20response.');
+          });
       it('should allow `long-fill-in` cmi.interactions.0.learner_response to be set to 4000 characters',
           () => {
             const scorm2004API = apiInitialized();
@@ -405,10 +439,8 @@ describe('SCORM 2004 API Tests', () => {
             ).to.equal('long-fill-in');
             expect(
                 scorm2004API.getCMIValue('cmi.interactions.0.learner_response'),
-            ).
-                to.
-                equal(
-                    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer et sodales purus, in aliquam ex. Nunc suscipit interdum tortor ut hendrerit. Donec auctor erat suscipit justo hendrerit, at lacinia ipsum ullamcorper. Cras sollicitudin vestibulum malesuada. Sed non nibh pharetra, suscipit ipsum sed, maximus tortor. Morbi pharetra accumsan turpis id fringilla. In volutpat metus a dui semper, nec tincidunt nibh aliquam. Praesent viverra neque in elementum commodo. Integer hendrerit placerat ante, ac finibus urna tincidunt at. Phasellus consectetur mauris vitae orci viverra luctus. Proin vestibulum blandit mauris quis pellentesque. Proin volutpat hendrerit nisi. Etiam pellentesque urna nec massa congue ultricies. Mauris at eros viverra, posuere tortor id, elementum nisi. In hac habitasse platea dictumst. Pellentesque semper tristique arcu, in tristique metus. Vestibulum ut lacus dui. Aenean mattis malesuada arcu non ullamcorper. Suspendisse tincidunt euismod tincidunt. In tincidunt at nunc rhoncus vehicula. Quisque nulla massa, vestibulum nec laoreet sit amet, posuere eu massa. Donec accumsan efficitur turpis, quis eleifend odio aliquam a. Phasellus placerat ante id dui consectetur dictum. Morbi aliquam, nibh id elementum suscipit, neque ante scelerisque velit, at feugiat turpis odio ac ligula. Phasellus vel urna nulla. Donec vulputate nulla vel purus pellentesque gravida. Vestibulum rutrum, est vel cursus ultrices, orci arcu scelerisque magna, id facilisis mauris arcu ut turpis. Vestibulum consectetur faucibus ante, eu posuere quam ornare et. Aenean vitae dictum neque. Donec nisl justo, porta a sapien quis, luctus congue diam. Integer id metus dolor. Maecenas euismod vulputate leo in lobortis. Vestibulum dignissim finibus est, sed sollicitudin ipsum hendrerit ac. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Pellentesque diam lorem, mattis vel orci interdum, tempor luctus elit. Ut id porta nisi. In dignissim quam urna, et iaculis lectus eleifend ut. Nam vitae felis ac risus tincidunt elementum. Nunc hendrerit augue a nulla hendrerit rutrum. Integer euismod est at orci eleifend, sed laoreet justo auctor. Sed sem orci, imperdiet at erat non, vehicula convallis libero. Aenean hendrerit cursus leo ut malesuada. Donec eu placerat lorem. Sed mattis tristique lorem, eget placerat erat scelerisque faucibus. Vivamus eleifend in augue id mollis. Nulla vehicula, metus eu auctor accumsan, lectus sapien pretium dui, non scelerisque magna augue a sem. Suspendisse sem enim, mattis ac augue non, placerat accumsan sem. Vivamus hendrerit, sapien sit amet consectetur pulvinar, ante nisl pulvinar purus, a ullamcorper dolor leo id arcu. Aliquam sed metus arcu. Quisque erat libero, tincidunt non dictum vel, bibendum ut ante. Nunc vel imperdiet risus. Sed sit amet porta enim. Mauris metus tortor, mattis vitae convallis vitae, dictum nec dui. Aliquam volutpat nisi consequat, gravida tellus eget, cursus purus. Nunc at venenatis enim. Proin dictum, magna ultrices tempor aliquam, metus lacus consectetur odio, quis pharetra massa est at est. Nullam non nibh massa. Duis scelerisque massa a luctus vehicula. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Donec tortor lacus, consequat eget neque sit amet, imperdiet porttitor felis. Duis ante erat, cursus sed venenatis nec, semper sollicitudin felis. Sed tincidunt et tortor quis vehicula. Morbi porta dapibus quam quis iaculis. Nunc mauris dolor, rutrum non pellentesque consectetur, ornare quis lacus. Maecenas eget feugiat odio. Proin vitae magna ut justo bibendum lacinia consequat at orci. Phasellus tincidunt lorem eu justo mollis sagittis. Maecenas fermentum nunc augue, et bibendum augue varius venenatis. Donec eu purus at tellus ullamcorper imperdiet. Duis id orci laoreet, semper eros et, tincidunt nisl. Suspendisse vehicula sed enim ut dignissim. Nam ornare leo eu nibh malesuada, eget ullamcorper sapien egestas. In at commod');
+            ).to.equal(
+                'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer et sodales purus, in aliquam ex. Nunc suscipit interdum tortor ut hendrerit. Donec auctor erat suscipit justo hendrerit, at lacinia ipsum ullamcorper. Cras sollicitudin vestibulum malesuada. Sed non nibh pharetra, suscipit ipsum sed, maximus tortor. Morbi pharetra accumsan turpis id fringilla. In volutpat metus a dui semper, nec tincidunt nibh aliquam. Praesent viverra neque in elementum commodo. Integer hendrerit placerat ante, ac finibus urna tincidunt at. Phasellus consectetur mauris vitae orci viverra luctus. Proin vestibulum blandit mauris quis pellentesque. Proin volutpat hendrerit nisi. Etiam pellentesque urna nec massa congue ultricies. Mauris at eros viverra, posuere tortor id, elementum nisi. In hac habitasse platea dictumst. Pellentesque semper tristique arcu, in tristique metus. Vestibulum ut lacus dui. Aenean mattis malesuada arcu non ullamcorper. Suspendisse tincidunt euismod tincidunt. In tincidunt at nunc rhoncus vehicula. Quisque nulla massa, vestibulum nec laoreet sit amet, posuere eu massa. Donec accumsan efficitur turpis, quis eleifend odio aliquam a. Phasellus placerat ante id dui consectetur dictum. Morbi aliquam, nibh id elementum suscipit, neque ante scelerisque velit, at feugiat turpis odio ac ligula. Phasellus vel urna nulla. Donec vulputate nulla vel purus pellentesque gravida. Vestibulum rutrum, est vel cursus ultrices, orci arcu scelerisque magna, id facilisis mauris arcu ut turpis. Vestibulum consectetur faucibus ante, eu posuere quam ornare et. Aenean vitae dictum neque. Donec nisl justo, porta a sapien quis, luctus congue diam. Integer id metus dolor. Maecenas euismod vulputate leo in lobortis. Vestibulum dignissim finibus est, sed sollicitudin ipsum hendrerit ac. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Pellentesque diam lorem, mattis vel orci interdum, tempor luctus elit. Ut id porta nisi. In dignissim quam urna, et iaculis lectus eleifend ut. Nam vitae felis ac risus tincidunt elementum. Nunc hendrerit augue a nulla hendrerit rutrum. Integer euismod est at orci eleifend, sed laoreet justo auctor. Sed sem orci, imperdiet at erat non, vehicula convallis libero. Aenean hendrerit cursus leo ut malesuada. Donec eu placerat lorem. Sed mattis tristique lorem, eget placerat erat scelerisque faucibus. Vivamus eleifend in augue id mollis. Nulla vehicula, metus eu auctor accumsan, lectus sapien pretium dui, non scelerisque magna augue a sem. Suspendisse sem enim, mattis ac augue non, placerat accumsan sem. Vivamus hendrerit, sapien sit amet consectetur pulvinar, ante nisl pulvinar purus, a ullamcorper dolor leo id arcu. Aliquam sed metus arcu. Quisque erat libero, tincidunt non dictum vel, bibendum ut ante. Nunc vel imperdiet risus. Sed sit amet porta enim. Mauris metus tortor, mattis vitae convallis vitae, dictum nec dui. Aliquam volutpat nisi consequat, gravida tellus eget, cursus purus. Nunc at venenatis enim. Proin dictum, magna ultrices tempor aliquam, metus lacus consectetur odio, quis pharetra massa est at est. Nullam non nibh massa. Duis scelerisque massa a luctus vehicula. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Donec tortor lacus, consequat eget neque sit amet, imperdiet porttitor felis. Duis ante erat, cursus sed venenatis nec, semper sollicitudin felis. Sed tincidunt et tortor quis vehicula. Morbi porta dapibus quam quis iaculis. Nunc mauris dolor, rutrum non pellentesque consectetur, ornare quis lacus. Maecenas eget feugiat odio. Proin vitae magna ut justo bibendum lacinia consequat at orci. Phasellus tincidunt lorem eu justo mollis sagittis. Maecenas fermentum nunc augue, et bibendum augue varius venenatis. Donec eu purus at tellus ullamcorper imperdiet. Duis id orci laoreet, semper eros et, tincidunt nisl. Suspendisse vehicula sed enim ut dignissim. Nam ornare leo eu nibh malesuada, eget ullamcorper sapien egestas. In at commod');
           });
     });
 
@@ -558,9 +590,7 @@ describe('SCORM 2004 API Tests', () => {
             'cmi.interactions.0.objectives.0.correct_responses.0.pattern': 'CPR',
           }, '');
           scorm2004API.lmsInitialize();
-          expect(scorm2004API.lmsGetValue('cmi.interactions.0.id')).
-              to.
-              eq('Question14_1');
+          expect(scorm2004API.lmsGetValue('cmi.interactions.0.id')).to.eq('Question14_1');
         });
   });
 
