@@ -4547,9 +4547,9 @@ mochawesome-report-generator@^5.2.0:
     yargs "^13.2.2"
 
 mochawesome@^6.2.1:
-  version "6.2.2"
-  resolved "https://registry.yarnpkg.com/mochawesome/-/mochawesome-6.2.2.tgz#2847b4cccb254201e8dad89384f760fe9cdbae15"
-  integrity sha512-NuIxYo8zczmL5XWLNFiud21OsAJHXrflt2lcRY2u8a3TilGwglhzTPjUHZCLqJvbqj2CnIHX2ueqOh1ViUNDPw==
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/mochawesome/-/mochawesome-6.3.0.tgz#23e326268cf971f504d74f1afba9253a36c5b2e1"
+  integrity sha512-+ZtlqntK3NOre6MJqe1mtr0EIB0JppHytDC3dKFpFs7JycRxGofk/ATwnScHcrvUWT3633oCzNLlPvzOdwrseg==
   dependencies:
     chalk "^4.1.0"
     diff "^5.0.0"
