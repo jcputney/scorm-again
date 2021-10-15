@@ -2508,9 +2508,9 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.CMIScore = exports.CMIArray = exports.BaseCMI = void 0;
 exports.checkValidFormat = checkValidFormat;
 exports.checkValidRange = checkValidRange;
-exports.CMIArray = exports.CMIScore = exports.BaseCMI = void 0;
 
 var _api_constants = _interopRequireDefault(require("../constants/api_constants"));
 
@@ -3043,7 +3043,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.ADL = exports.CMIInteractionsCorrectResponsesObject = exports.CMIInteractionsObjectivesObject = exports.CMICommentsObject = exports.CMIObjectivesObject = exports.CMIInteractionsObject = exports.CMI = void 0;
+exports.CMIObjectivesObject = exports.CMIInteractionsObjectivesObject = exports.CMIInteractionsObject = exports.CMIInteractionsCorrectResponsesObject = exports.CMICommentsObject = exports.CMI = exports.ADL = void 0;
 
 var _common = require("./common");
 
@@ -6398,7 +6398,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.Scorm2004ValidationError = exports.AICCValidationError = exports.Scorm12ValidationError = exports.ValidationError = void 0;
+exports.ValidationError = exports.Scorm2004ValidationError = exports.Scorm12ValidationError = exports.AICCValidationError = void 0;
 
 var _api_constants = _interopRequireDefault(require("./constants/api_constants"));
 
@@ -6647,16 +6647,16 @@ window.Scorm2004API = _Scorm2004API["default"];
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.SECONDS_PER_SECOND = exports.SECONDS_PER_MINUTE = exports.SECONDS_PER_HOUR = exports.SECONDS_PER_DAY = void 0;
+exports.addHHMMSSTimeStrings = addHHMMSSTimeStrings;
+exports.addTwoDurations = addTwoDurations;
+exports.countDecimals = countDecimals;
+exports.flatten = flatten;
+exports.getDurationAsSeconds = getDurationAsSeconds;
 exports.getSecondsAsHHMMSS = getSecondsAsHHMMSS;
 exports.getSecondsAsISODuration = getSecondsAsISODuration;
 exports.getTimeAsSeconds = getTimeAsSeconds;
-exports.getDurationAsSeconds = getDurationAsSeconds;
-exports.addTwoDurations = addTwoDurations;
-exports.addHHMMSSTimeStrings = addHHMMSSTimeStrings;
-exports.flatten = flatten;
 exports.unflatten = unflatten;
-exports.countDecimals = countDecimals;
-exports.SECONDS_PER_DAY = exports.SECONDS_PER_HOUR = exports.SECONDS_PER_MINUTE = exports.SECONDS_PER_SECOND = void 0;
 
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
 
