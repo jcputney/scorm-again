@@ -37,7 +37,7 @@
     "minimist": "^1.2.5",
     "mocha": "^9.1.3",
     "mocha-junit-reporter": "^2.0.2",
-    "mochawesome": "^6.3.1",
+    "mochawesome": "^7.0.0",
     "nyc": "^15.1.0",
     "sinon": "^11.1.2",
     "uglifyify": "^5.0.2"
