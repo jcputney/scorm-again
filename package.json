@@ -39,7 +39,7 @@
     "mocha-junit-reporter": "^2.0.2",
     "mochawesome": "^6.3.1",
     "nyc": "^15.1.0",
-    "sinon": "^11.1.2",
+    "sinon": "^12.0.1",
     "uglifyify": "^5.0.2"
   },
   "scripts": {
