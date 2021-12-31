@@ -498,13 +498,13 @@
     js-tokens "^4.0.0"
 
 "@babel/node@^7.15.8":
-  version "7.15.8"
-  resolved "https://registry.yarnpkg.com/@babel/node/-/node-7.15.8.tgz#5d6b815d0232ae4893727971f53deabfe06c4ca7"
-  integrity sha512-JbgTCrnx6IUECznEbQ7e2rbVYtrXKixSbEG2bxxbMkV648WdUf3tdc+ZUW2++dvnnAswcpwc76cRwf0xEQqsrw==
+  version "7.16.7"
+  resolved "https://registry.yarnpkg.com/@babel/node/-/node-7.16.7.tgz#da2dd0f4972a6193bf389d0c258cb9dc2f4b0958"
+  integrity sha512-gXg2/lWOdJQeEwxmkS882UdlZNWTF9vdSjefYA2zrV1cudVqLv6qAdbo9GdqhJq9PzAqix5XyTqSfrl7BZC2lA==
   dependencies:
-    "@babel/register" "^7.15.3"
+    "@babel/register" "^7.16.7"
     commander "^4.0.1"
-    core-js "^3.16.0"
+    core-js "^3.19.0"
     node-environment-flags "^1.0.5"
     regenerator-runtime "^0.13.4"
     v8flags "^3.1.1"
@@ -1142,10 +1142,10 @@
     "@babel/types" "^7.4.4"
     esutils "^2.0.2"
 
-"@babel/register@^7.15.3":
-  version "7.15.3"
-  resolved "https://registry.yarnpkg.com/@babel/register/-/register-7.15.3.tgz#6b40a549e06ec06c885b2ec42c3dd711f55fe752"
-  integrity sha512-mj4IY1ZJkorClxKTImccn4T81+UKTo4Ux0+OFSV9hME1ooqS9UV+pJ6BjD0qXPK4T3XW/KNa79XByjeEMZz+fw==
+"@babel/register@^7.15.3", "@babel/register@^7.16.7":
+  version "7.16.7"
+  resolved "https://registry.yarnpkg.com/@babel/register/-/register-7.16.7.tgz#e7b3a6015d1646677538672106bdb3a0b4a07657"
+  integrity sha512-Ft+cuxorVxFj4RrPDs9TbJNE7ZbuJTyazUC6jLWRvBQT/qIDZPMe7MHgjlrA+11+XDLh+I0Pnx7sxPp4LRhzcA==
   dependencies:
     clone-deep "^4.0.1"
     find-cache-dir "^2.0.0"
@@ -2217,10 +2217,10 @@ core-js-compat@^3.16.2:
     browserslist "^4.17.3"
     semver "7.0.0"
 
-core-js@^3.16.0:
-  version "3.17.2"
-  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.17.2.tgz#f960eae710dc62c29cca93d5332e3660e289db10"
-  integrity sha512-XkbXqhcXeMHPRk2ItS+zQYliAMilea2euoMsnpRRdDad6b2VY6CQQcwz1K8AnWesfw4p165RzY0bTnr3UrbYiA==
+core-js@^3.19.0:
+  version "3.20.1"
+  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.20.1.tgz#eb1598047b7813572f1dc24b7c6a95528c99eef3"
+  integrity sha512-btdpStYFQScnNVQ5slVcr858KP0YWYjV16eGJQw8Gg7CWtu/2qNvIM3qVRIR3n1pK2R9NNOrTevbvAYxajwEjg==
 
 core-util-is@~1.0.0:
   version "1.0.2"
