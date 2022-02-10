@@ -48,6 +48,26 @@ export default class BaseAPI {
       }
       return result;
     },
+    onLogMessage: function(messageLevel, logMessage) {
+      switch (messageLevel) {
+        case global_constants.LOG_LEVEL_ERROR:
+          console.error(logMessage);
+          break;
+        case global_constants.LOG_LEVEL_WARNING:
+          console.warn(logMessage);
+          break;
+        case global_constants.LOG_LEVEL_INFO:
+          console.info(logMessage);
+          break;
+        case global_constants.LOG_LEVEL_DEBUG:
+          if (console.debug) {
+            console.debug(logMessage);
+          } else {
+            console.log(logMessage);
+          }
+          break;
+      }
+    },
   };
   cmi;
   startingData: {};
@@ -410,24 +430,7 @@ export default class BaseAPI {
     logMessage = this.formatMessage(functionName, CMIElement, logMessage);
 
     if (messageLevel >= this.apiLogLevel) {
-      switch (messageLevel) {
-        case global_constants.LOG_LEVEL_ERROR:
-          console.error(logMessage);
-          break;
-        case global_constants.LOG_LEVEL_WARNING:
-          console.warn(logMessage);
-          break;
-        case global_constants.LOG_LEVEL_INFO:
-          console.info(logMessage);
-          break;
-        case global_constants.LOG_LEVEL_DEBUG:
-          if (console.debug) {
-            console.debug(logMessage);
-          } else {
-            console.log(logMessage);
-          }
-          break;
-      }
+      this.settings.onLogMessage(messageLevel, logMessage);
     }
   }
 

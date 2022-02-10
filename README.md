@@ -62,6 +62,8 @@ The APIs include several settings to customize the functionality of each API:
 | `xhrWithCredentials` | false | true/false | Sets the withCredentials flag on the request to the LMS |
 | `xhrHeaders` | {} | Object | This allows setting of additional headers on the request to the LMS where the key should be the header name and the value is the value of the header you want to send |
 | `responseHandler` | function |  | A function to properly tranform the response from the LMS to the correct format. The APIs expect the result from the LMS to be in the following format (errorCode is optional): `{ "result": true, "errorCode": 0 }` |
+| `onLogMessage` | function |  | A function to be called whenever a message is logged. Defaults to console.{error,warn,info,debug,log} |
+
 
 ## Initial Values
 
