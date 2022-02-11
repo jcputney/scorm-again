@@ -48,6 +48,9 @@ export default class BaseAPI {
       }
       return result;
     },
+    requestHandler: function(commitObject) {
+      return commitObject;
+    },
     onLogMessage: function(messageLevel, logMessage) {
       switch (messageLevel) {
         case global_constants.LOG_LEVEL_ERROR:
@@ -171,11 +174,11 @@ export default class BaseAPI {
 
       const result = this.storeData(true);
       if (!this.settings.sendBeaconCommit && !this.settings.asyncCommit &&
-          typeof result.errorCode !== 'undefined' && result.errorCode > 0) {
+        typeof result.errorCode !== 'undefined' && result.errorCode > 0) {
         this.throwSCORMError(result.errorCode);
       }
       returnValue = (typeof result !== 'undefined' && result.result) ?
-          result.result : global_constants.SCORM_FALSE;
+        result.result : global_constants.SCORM_FALSE;
 
       if (checkTerminated) this.lastErrorCode = 0;
 
@@ -312,11 +315,11 @@ export default class BaseAPI {
         this.#error_codes.COMMIT_AFTER_TERM)) {
       const result = this.storeData(false);
       if (!this.settings.sendBeaconCommit && !this.settings.asyncCommit &&
-          result.errorCode && result.errorCode > 0) {
+        result.errorCode && result.errorCode > 0) {
         this.throwSCORMError(result.errorCode);
       }
       returnValue = (typeof result !== 'undefined' && result.result) ?
-          result.result : global_constants.SCORM_FALSE;
+        result.result : global_constants.SCORM_FALSE;
 
       this.apiLog(callbackName, 'HttpRequest', ' Result: ' + returnValue,
           global_constants.LOG_LEVEL_DEBUG);
@@ -495,9 +498,9 @@ export default class BaseAPI {
    */
   _checkObjectHasProperty(refObject, attribute: String) {
     return Object.hasOwnProperty.call(refObject, attribute) ||
-        Object.getOwnPropertyDescriptor(
-            Object.getPrototypeOf(refObject), attribute) ||
-        (attribute in refObject);
+      Object.getOwnPropertyDescriptor(
+          Object.getPrototypeOf(refObject), attribute) ||
+      (attribute in refObject);
   }
 
   /**
@@ -561,21 +564,21 @@ export default class BaseAPI {
 
     const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
     const invalidErrorCode = scorm2004 ?
-        this.#error_codes.UNDEFINED_DATA_MODEL :
-        this.#error_codes.GENERAL;
+      this.#error_codes.UNDEFINED_DATA_MODEL :
+      this.#error_codes.GENERAL;
 
     for (let i = 0; i < structure.length; i++) {
       const attribute = structure[i];
 
       if (i === structure.length - 1) {
         if (scorm2004 && (attribute.substr(0, 8) === '{target=') &&
-            (typeof refObject._isTargetValid == 'function')) {
+          (typeof refObject._isTargetValid == 'function')) {
           this.throwSCORMError(this.#error_codes.READ_ONLY_ELEMENT);
         } else if (!this._checkObjectHasProperty(refObject, attribute)) {
           this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
         } else {
           if (this.isInitialized() &&
-              this.stringMatches(CMIElement, '\\.correct_responses\\.\\d+')) {
+            this.stringMatches(CMIElement, '\\.correct_responses\\.\\d+')) {
             this.validateCorrectResponse(CMIElement, value);
           }
 
@@ -676,8 +679,8 @@ export default class BaseAPI {
     const uninitializedErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) has not been initialized.`;
     const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
     const invalidErrorCode = scorm2004 ?
-        this.#error_codes.UNDEFINED_DATA_MODEL :
-        this.#error_codes.GENERAL;
+      this.#error_codes.UNDEFINED_DATA_MODEL :
+      this.#error_codes.GENERAL;
 
     for (let i = 0; i < structure.length; i++) {
       attribute = structure[i];
@@ -691,9 +694,8 @@ export default class BaseAPI {
         }
       } else {
         if ((String(attribute).substr(0, 8) === '{target=') &&
-            (typeof refObject._isTargetValid == 'function')) {
-          const target = String(attribute).
-              substr(8, String(attribute).length - 9);
+          (typeof refObject._isTargetValid == 'function')) {
+          const target = String(attribute).substr(8, String(attribute).length - 9);
           return refObject._isTargetValid(target);
         } else if (!this._checkObjectHasProperty(refObject, attribute)) {
           this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
@@ -823,7 +825,7 @@ export default class BaseAPI {
       const removeIndex = this.listenerArray.findIndex((obj) =>
         obj.functionName === functionName &&
         obj.CMIElement === CMIElement &&
-        obj.callback === callback
+        obj.callback === callback,
       );
       if (removeIndex !== -1) {
         this.listenerArray.splice(removeIndex, 1);
@@ -872,8 +874,8 @@ export default class BaseAPI {
       const listenerHasCMIElement = !!listener.CMIElement;
       let CMIElementsMatch = false;
       if (CMIElement && listener.CMIElement &&
-          listener.CMIElement.substring(listener.CMIElement.length - 1) ===
-          '*') {
+        listener.CMIElement.substring(listener.CMIElement.length - 1) ===
+        '*') {
         CMIElementsMatch = CMIElement.indexOf(listener.CMIElement.substring(0,
             listener.CMIElement.length - 1)) === 0;
       } else {
@@ -1117,6 +1119,7 @@ export default class BaseAPI {
           };
         }
         try {
+          params = settings.requestHandler(params);
           if (params instanceof Array) {
             httpReq.setRequestHeader('Content-Type',
                 'application/x-www-form-urlencoded');
@@ -1178,7 +1181,7 @@ export default class BaseAPI {
       }
 
       if (result.result === true ||
-          result.result === global_constants.SCORM_TRUE) {
+        result.result === global_constants.SCORM_TRUE) {
         api.processListeners('CommitSuccess');
       } else {
         api.processListeners('CommitError');
