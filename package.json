@@ -3,6 +3,15 @@
   "version": "1.6.2",
   "description": "A modern SCORM JavaScript run-time library for AICC, SCORM 1.2, and SCORM 2004",
   "main": "dist/scorm-again.min.js",
+  "browserslist": [
+    "> 1%",
+    "edge >= 16",
+    "safari >= 9",
+    "firefox >= 57",
+    "ie >= 11",
+    "ios >= 9",
+    "chrome >= 49"
+  ],
   "directories": {
     "test": "test"
   },
@@ -19,18 +28,15 @@
     "@types/chai": "^4.3.0",
     "@types/mocha": "^9.1.0",
     "babel-eslint": "^11.0.0-beta.2",
+    "babel-loader": "^8.2.3",
     "babelify": "^10.0.0",
     "browserify": "^17.0.0",
     "chai": "^4.3.6",
     "eslint": "^8.8.0",
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-import": "^2.25.4",
+    "eslint-webpack-plugin": "^3.1.1",
     "fetch-pretender": "^1.5.0",
-    "grunt": "^1.4.1",
-    "grunt-browserify": "^6.0.0",
-    "grunt-cli": "^1.4.3",
-    "grunt-contrib-watch": "^1.1.0",
-    "grunt-mocha-test": "^0.13.3",
     "jsdoc": "^3.6.10",
     "jsdoc-babel": "^0.5.0",
     "lodash.debounce": "^4.0.8",
@@ -40,11 +46,13 @@
     "mochawesome": "^7.0.1",
     "nyc": "^15.1.0",
     "sinon": "^13.0.1",
-    "uglifyify": "^5.0.2"
+    "uglifyjs-webpack-plugin": "^2.2.0",
+    "webpack": "^5.68.0",
+    "webpack-cli": "^4.9.2"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha --require @babel/register --bdd --recursive --reporter list",
-    "compile": "./node_modules/.bin/grunt default",
+    "compile": "./node_modules/.bin/webpack --bail --config webpack.js",
     "fix": "./node_modules/.bin/eslint ./src --fix"
   },
   "repository": {

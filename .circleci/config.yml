@@ -78,7 +78,7 @@ jobs:
 
       # run babel compile
       - run: git config user.email "jputney@noverant.com" && git config user.name "Jonathan Putney"
-      - run: ./node_modules/.bin/grunt
+      - run: ./node_modules/.bin/webpack --bail --config webpack.js
       - run: git add --all dist/
 
       # run jsdoc

@@ -270,8 +270,8 @@ I welcome any and all feedback and contributions to this project! I'm sure it wo
 #### Setup and Development
 You will need `node` installed on your local machine, and you'll have to run `npm install` in the repo directory before starting development. 
 
-To run a build, you need to just run the `grunt` command in the root of the project.
+To run a build, you need to just run the `yarn run compile` command in the root of the project.
 
-Similarly, to run the tests, you just run the `grunt test` or `npm test` command.
+Similarly, to run the tests, you just run the `yarn test` command.
 
 Before submitting pull requests, please also run `eslint ./src --fix` against your code first, otherwise your pull request build could fail.
