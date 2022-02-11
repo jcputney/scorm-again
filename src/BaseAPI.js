@@ -48,6 +48,9 @@ export default class BaseAPI {
       }
       return result;
     },
+    requestHandler: function(commitObject) {
+      return commitObject;
+    },
   };
   cmi;
   startingData: {};
@@ -1114,6 +1117,7 @@ export default class BaseAPI {
           };
         }
         try {
+          params = settings.requestHandler(params);
           if (params instanceof Array) {
             httpReq.setRequestHeader('Content-Type',
                 'application/x-www-form-urlencoded');
