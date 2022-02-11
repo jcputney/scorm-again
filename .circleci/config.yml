@@ -19,11 +19,6 @@ jobs:
     steps:
       - checkout
 
-      # Update npm
-      - run:
-          name: update-yarn
-          command: 'sudo npm install -g yarn@latest'
-
       # Download and cache dependencies
       - restore_cache:
           keys:
