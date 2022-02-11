@@ -21,8 +21,8 @@ jobs:
 
       # Update npm
       - run:
-          name: update-npm
-          command: 'sudo npm install -g npm@latest'
+          name: update-yarn
+          command: 'sudo npm install -g yarn@latest'
 
       # Download and cache dependencies
       - restore_cache:
@@ -31,7 +31,7 @@ jobs:
             # fallback to using the latest cache if no exact match is found
             - v1-dependencies-
 
-      - run: npm install
+      - run: yarn install
 
       - save_cache:
           paths:
@@ -42,7 +42,7 @@ jobs:
 
       # Run mocha
       - run:
-          name: npm test
+          name: yarn test
           command: ./node_modules/.bin/nyc ./node_modules/.bin/mocha --require @babel/register --recursive --timeout=10000 --exit --reporter mocha-junit-reporter --reporter-options mochaFile=test-results/mocha/results.xml
           when: always
 
