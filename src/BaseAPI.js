@@ -1150,24 +1150,20 @@ export default class BaseAPI {
         }
       } else {
         try {
-          const headers = {
-            type: settings.commitRequestDataType,
-          };
-          let blob;
-          if (params instanceof Array) {
-            blob = new Blob([params.join('&')], headers);
-          } else {
-            blob = new Blob([JSON.stringify(params)], headers);
-          }
-
+          params = settings.requestHandler(params);
+          fetch(url, {
+            method: 'POST',
+            body: params instanceof Array ? params.join('&') : JSON.stringify(params),
+            headers: {
+              ...settings.xhrHeaders,
+              'Content-Type': settings.commitRequestDataType,
+            },
+            credentials: settings.xhrWithCredentials ? 'include' : undefined,
+            keepalive: true,
+          });
           result = {};
-          if (navigator.sendBeacon(url, blob)) {
-            result.result = global_constants.SCORM_TRUE;
-            result.errorCode = 0;
-          } else {
-            result.result = global_constants.SCORM_FALSE;
-            result.errorCode = 101;
-          }
+          result.result = global_constants.SCORM_TRUE;
+          result.errorCode = 0;
         } catch (e) {
           console.error(e);
           api.processListeners('CommitError');
