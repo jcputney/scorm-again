@@ -3,6 +3,9 @@
 # SCORM Again
 This project was created to modernize the SCORM JavaScript runtime, and to provide a stable, tested platform for running AICC, SCORM 1.2, and SCORM 2004 modules. This module is designed to be LMS agnostic, and is written to be able to be run without a backing LMS, logging all function calls and data instead of committing, if an LMS endpoint is not configured.
 
+## Potential Breaking Change!
+Version 2.0.0 of scorm-again switches to using `fetch` instead of `sendBeacon` when the `sendBeaconCommit` setting is enabled. Since `fetch` is not supported by IE11, you will need to provide your own polyfill for this functionality if you need to support it. With that said, now that support for IE11 has officially been dropped by Microsoft, I may start moving this library away from supporting it as well, which will probably include leaning into using `fetch` by default, and rewriting the commit code.
+
 ### What is this not and what doesn't it do?
 1. This is not an LMS
 1. This does not handle the uploading and verification of SCORM/AICC modules
