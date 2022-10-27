@@ -28,7 +28,7 @@
     "@types/chai": "^4.3.3",
     "@types/mocha": "^9.1.1",
     "babel-eslint": "^11.0.0-beta.2",
-    "babel-loader": "^8.2.5",
+    "babel-loader": "^9.0.0",
     "babelify": "^10.0.0",
     "browserify": "^17.0.0",
     "chai": "^4.3.6",
