@@ -48,7 +48,7 @@
     "sinon": "^14.0.0",
     "uglifyjs-webpack-plugin": "^2.2.0",
     "webpack": "^5.74.0",
-    "webpack-cli": "^4.10.0"
+    "webpack-cli": "^5.0.1"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha --require @babel/register --bdd --recursive --reporter list",
