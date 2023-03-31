@@ -121,7 +121,7 @@ export function getDurationAsSeconds(duration: String, durationRegex: RegExp) {
 
   let result = 0.0;
 
-  result += (Number(seconds) * 1.0 || 0.0);
+  result += (Number(seconds) || 0.0);
   result += (Number(minutes) * 60.0 || 0.0);
   result += (Number(hours) * 3600.0 || 0.0);
   result += (Number(days) * (60 * 60 * 24.0) || 0.0);

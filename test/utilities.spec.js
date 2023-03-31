@@ -201,17 +201,13 @@ describe('Utility Tests', () => {
     it('P1D returns 86400', () => {
       expect(
           Utilities.getDurationAsSeconds('P1D', scorm2004_regex.CMITimespan),
-      ).to.equal(86400);
+      ).to.equal(24 * 60 * 60);
     });
 
     it('P1Y returns number of seconds for one year from now', () => {
-      const now = new Date();
-      const oneYearFromNow = new Date(now);
-      oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
-
       expect(
           Utilities.getDurationAsSeconds('P1Y', scorm2004_regex.CMITimespan),
-      ).to.equal((oneYearFromNow - now) / 1000.0);
+      ).to.equal(365 * 24 * 60 * 60);
     });
 
     it('Invalid duration returns 0', () => {
