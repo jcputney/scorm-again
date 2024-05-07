@@ -7,7 +7,7 @@
   \***********************************************/
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
-function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 /**
  * lodash (Custom Build) <https://lodash.com/>
  * Build: `lodash modularize exports="npm" -o ./`
@@ -383,24 +383,24 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Scorm12API__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Scorm12API */ "./src/Scorm12API.js");
 /* harmony import */ var _cmi_aicc_cmi__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./cmi/aicc_cmi */ "./src/cmi/aicc_cmi.js");
 /* harmony import */ var _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./cmi/scorm12_cmi */ "./src/cmi/scorm12_cmi.js");
-function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor); } }
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
-function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
-function _get() { if (typeof Reflect !== "undefined" && Reflect.get) { _get = Reflect.get.bind(); } else { _get = function _get(target, property, receiver) { var base = _superPropBase(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(arguments.length < 3 ? target : receiver); } return desc.value; }; } return _get.apply(this, arguments); }
-function _superPropBase(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf(object); if (object === null) break; } return object; }
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function _callSuper(t, o, e) { return o = _getPrototypeOf(o), _possibleConstructorReturn(t, _isNativeReflectConstruct() ? Reflect.construct(o, e || [], _getPrototypeOf(t).constructor) : o.apply(t, e)); }
 function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+function _isNativeReflectConstruct() { try { var t = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); } catch (t) {} return (_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); }
+function _get() { if (typeof Reflect !== "undefined" && Reflect.get) { _get = Reflect.get.bind(); } else { _get = function _get(target, property, receiver) { var base = _superPropBase(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(arguments.length < 3 ? target : receiver); } return desc.value; }; } return _get.apply(this, arguments); }
+function _superPropBase(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf(object); if (object === null) break; } return object; }
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 
 
@@ -409,8 +409,6 @@ function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.g
  * The AICC API class
  */
 var AICC = /*#__PURE__*/function (_Scorm12API) {
-  _inherits(AICC, _Scorm12API);
-  var _super = _createSuper(AICC);
   /**
    * Constructor to create AICC API object
    * @param {object} settings
@@ -421,7 +419,7 @@ var AICC = /*#__PURE__*/function (_Scorm12API) {
     var finalSettings = _objectSpread(_objectSpread({}, {
       mastery_override: false
     }), settings);
-    _this = _super.call(this, finalSettings);
+    _this = _callSuper(this, AICC, [finalSettings]);
     _this.cmi = new _cmi_aicc_cmi__WEBPACK_IMPORTED_MODULE_1__.CMI();
     _this.nav = new _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_2__.NAV();
     return _this;
@@ -435,7 +433,8 @@ var AICC = /*#__PURE__*/function (_Scorm12API) {
    * @param {boolean} foundFirstIndex
    * @return {object}
    */
-  _createClass(AICC, [{
+  _inherits(AICC, _Scorm12API);
+  return _createClass(AICC, [{
     key: "getChildElement",
     value: function getChildElement(CMIElement, value, foundFirstIndex) {
       var newChild = _get(_getPrototypeOf(AICC.prototype), "getChildElement", this).call(this, CMIElement, value, foundFirstIndex);
@@ -464,7 +463,6 @@ var AICC = /*#__PURE__*/function (_Scorm12API) {
       this.nav = newAPI.nav;
     }
   }]);
-  return AICC;
 }(_Scorm12API__WEBPACK_IMPORTED_MODULE_0__["default"]);
 
 
@@ -488,28 +486,26 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./utilities */ "./src/utilities.js");
 /* harmony import */ var lodash_debounce__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! lodash.debounce */ "./node_modules/lodash.debounce/index.js");
 /* harmony import */ var lodash_debounce__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(lodash_debounce__WEBPACK_IMPORTED_MODULE_5__);
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
-function _iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t.return && (u = t.return(), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor); } }
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
-function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
-function _classPrivateFieldGet(receiver, privateMap) { var descriptor = _classExtractFieldDescriptor(receiver, privateMap, "get"); return _classApplyDescriptorGet(receiver, descriptor); }
-function _classApplyDescriptorGet(receiver, descriptor) { if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
-function _classPrivateFieldSet(receiver, privateMap, value) { var descriptor = _classExtractFieldDescriptor(receiver, privateMap, "set"); _classApplyDescriptorSet(receiver, descriptor, value); return value; }
-function _classExtractFieldDescriptor(receiver, privateMap, action) { if (!privateMap.has(receiver)) { throw new TypeError("attempted to " + action + " private field on non-instance"); } return privateMap.get(receiver); }
-function _classApplyDescriptorSet(receiver, descriptor, value) { if (descriptor.set) { descriptor.set.call(receiver, value); } else { if (!descriptor.writable) { throw new TypeError("attempted to set read only private field"); } descriptor.value = value; } }
+function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
+function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
+function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 
 
 
@@ -535,84 +531,73 @@ var BaseAPI = /*#__PURE__*/function () {
    */
   function BaseAPI(error_codes, settings) {
     _classCallCheck(this, BaseAPI);
-    _classPrivateFieldInitSpec(this, _timeout, {
-      writable: true,
-      value: void 0
-    });
-    _classPrivateFieldInitSpec(this, _error_codes, {
-      writable: true,
-      value: void 0
-    });
+    _classPrivateFieldInitSpec(this, _timeout, void 0);
+    _classPrivateFieldInitSpec(this, _error_codes, void 0);
     _classPrivateFieldInitSpec(this, _settings, {
-      writable: true,
-      value: {
-        autocommit: false,
-        autocommitSeconds: 10,
-        asyncCommit: false,
-        sendBeaconCommit: false,
-        lmsCommitUrl: false,
-        dataCommitFormat: 'json',
-        // valid formats are 'json' or 'flattened', 'params'
-        commitRequestDataType: 'application/json;charset=UTF-8',
-        autoProgress: false,
-        logLevel: global_constants.LOG_LEVEL_ERROR,
-        selfReportSessionTime: false,
-        alwaysSendTotalTime: false,
-        strict_errors: true,
-        xhrHeaders: {},
-        xhrWithCredentials: false,
-        responseHandler: function responseHandler(xhr) {
-          var result;
-          if (typeof xhr !== 'undefined') {
-            result = JSON.parse(xhr.responseText);
-            if (result === null || !{}.hasOwnProperty.call(result, 'result')) {
-              result = {};
-              if (xhr.status === 200) {
-                result.result = global_constants.SCORM_TRUE;
-                result.errorCode = 0;
-              } else {
-                result.result = global_constants.SCORM_FALSE;
-                result.errorCode = 101;
-              }
+      autocommit: false,
+      autocommitSeconds: 10,
+      asyncCommit: false,
+      sendBeaconCommit: false,
+      lmsCommitUrl: false,
+      dataCommitFormat: 'json',
+      // valid formats are 'json' or 'flattened', 'params'
+      commitRequestDataType: 'application/json;charset=UTF-8',
+      autoProgress: false,
+      logLevel: global_constants.LOG_LEVEL_ERROR,
+      selfReportSessionTime: false,
+      alwaysSendTotalTime: false,
+      strict_errors: true,
+      xhrHeaders: {},
+      xhrWithCredentials: false,
+      responseHandler: function responseHandler(xhr) {
+        var result;
+        if (typeof xhr !== 'undefined') {
+          result = JSON.parse(xhr.responseText);
+          if (result === null || !{}.hasOwnProperty.call(result, 'result')) {
+            result = {};
+            if (xhr.status === 200) {
+              result.result = global_constants.SCORM_TRUE;
+              result.errorCode = 0;
+            } else {
+              result.result = global_constants.SCORM_FALSE;
+              result.errorCode = 101;
             }
           }
-          return result;
-        },
-        requestHandler: function requestHandler(commitObject) {
-          return commitObject;
-        },
-        onLogMessage: function onLogMessage(messageLevel, logMessage) {
-          switch (messageLevel) {
-            case global_constants.LOG_LEVEL_ERROR:
-              console.error(logMessage);
-              break;
-            case global_constants.LOG_LEVEL_WARNING:
-              console.warn(logMessage);
-              break;
-            case global_constants.LOG_LEVEL_INFO:
-              console.info(logMessage);
-              break;
-            case global_constants.LOG_LEVEL_DEBUG:
-              if (console.debug) {
-                console.debug(logMessage);
-              } else {
-                console.log(logMessage);
-              }
-              break;
-          }
+        }
+        return result;
+      },
+      requestHandler: function requestHandler(commitObject) {
+        return commitObject;
+      },
+      onLogMessage: function onLogMessage(messageLevel, logMessage) {
+        switch (messageLevel) {
+          case global_constants.LOG_LEVEL_ERROR:
+            console.error(logMessage);
+            break;
+          case global_constants.LOG_LEVEL_WARNING:
+            console.warn(logMessage);
+            break;
+          case global_constants.LOG_LEVEL_INFO:
+            console.info(logMessage);
+            break;
+          case global_constants.LOG_LEVEL_DEBUG:
+            if (console.debug) {
+              console.debug(logMessage);
+            } else {
+              console.log(logMessage);
+            }
+            break;
         }
       }
     });
-    _defineProperty(this, "cmi", void 0);
-    _defineProperty(this, "startingData", void 0);
     if ((this instanceof BaseAPI ? this.constructor : void 0) === BaseAPI) {
       throw new TypeError('Cannot construct BaseAPI instances directly');
     }
     this.currentState = global_constants.STATE_NOT_INITIALIZED;
     this.lastErrorCode = 0;
     this.listenerArray = [];
-    _classPrivateFieldSet(this, _timeout, null);
-    _classPrivateFieldSet(this, _error_codes, error_codes);
+    _classPrivateFieldSet(_timeout, this, null);
+    _classPrivateFieldSet(_error_codes, this, error_codes);
     this.settings = settings;
     this.apiLogLevel = this.settings.logLevel;
     this.selfReportSessionTime = this.settings.selfReportSessionTime;
@@ -625,14 +610,14 @@ var BaseAPI = /*#__PURE__*/function () {
    * @param {string} terminationMessage
    * @return {string}
    */
-  _createClass(BaseAPI, [{
+  return _createClass(BaseAPI, [{
     key: "initialize",
     value: function initialize(callbackName, initializeMessage, terminationMessage) {
       var returnValue = global_constants.SCORM_FALSE;
       if (this.isInitialized()) {
-        this.throwSCORMError(_classPrivateFieldGet(this, _error_codes).INITIALIZED, initializeMessage);
+        this.throwSCORMError(_classPrivateFieldGet(_error_codes, this).INITIALIZED, initializeMessage);
       } else if (this.isTerminated()) {
-        this.throwSCORMError(_classPrivateFieldGet(this, _error_codes).TERMINATED, terminationMessage);
+        this.throwSCORMError(_classPrivateFieldGet(_error_codes, this).TERMINATED, terminationMessage);
       } else {
         if (this.selfReportSessionTime) {
           this.cmi.setStartTime();
@@ -654,7 +639,7 @@ var BaseAPI = /*#__PURE__*/function () {
   }, {
     key: "error_codes",
     get: function get() {
-      return _classPrivateFieldGet(this, _error_codes);
+      return _classPrivateFieldGet(_error_codes, this);
     }
 
     /**
@@ -664,7 +649,7 @@ var BaseAPI = /*#__PURE__*/function () {
   }, {
     key: "settings",
     get: function get() {
-      return _classPrivateFieldGet(this, _settings);
+      return _classPrivateFieldGet(_settings, this);
     }
 
     /**
@@ -672,7 +657,7 @@ var BaseAPI = /*#__PURE__*/function () {
      * @param {object} settings
      */,
     set: function set(settings) {
-      _classPrivateFieldSet(this, _settings, _objectSpread(_objectSpread({}, _classPrivateFieldGet(this, _settings)), settings));
+      _classPrivateFieldSet(_settings, this, _objectSpread(_objectSpread({}, _classPrivateFieldGet(_settings, this)), settings));
     }
 
     /**
@@ -685,7 +670,7 @@ var BaseAPI = /*#__PURE__*/function () {
     key: "terminate",
     value: function terminate(callbackName, checkTerminated) {
       var returnValue = global_constants.SCORM_FALSE;
-      if (this.checkState(checkTerminated, _classPrivateFieldGet(this, _error_codes).TERMINATION_BEFORE_INIT, _classPrivateFieldGet(this, _error_codes).MULTIPLE_TERMINATION)) {
+      if (this.checkState(checkTerminated, _classPrivateFieldGet(_error_codes, this).TERMINATION_BEFORE_INIT, _classPrivateFieldGet(_error_codes, this).MULTIPLE_TERMINATION)) {
         this.currentState = global_constants.STATE_TERMINATED;
         var result = this.storeData(true);
         if (!this.settings.sendBeaconCommit && !this.settings.asyncCommit && typeof result.errorCode !== 'undefined' && result.errorCode > 0) {
@@ -713,7 +698,7 @@ var BaseAPI = /*#__PURE__*/function () {
     key: "getValue",
     value: function getValue(callbackName, checkTerminated, CMIElement) {
       var returnValue;
-      if (this.checkState(checkTerminated, _classPrivateFieldGet(this, _error_codes).RETRIEVE_BEFORE_INIT, _classPrivateFieldGet(this, _error_codes).RETRIEVE_AFTER_TERM)) {
+      if (this.checkState(checkTerminated, _classPrivateFieldGet(_error_codes, this).RETRIEVE_BEFORE_INIT, _classPrivateFieldGet(_error_codes, this).RETRIEVE_AFTER_TERM)) {
         if (checkTerminated) this.lastErrorCode = 0;
         try {
           returnValue = this.getCMIValue(CMIElement);
@@ -727,7 +712,7 @@ var BaseAPI = /*#__PURE__*/function () {
             } else {
               console.error(e);
             }
-            this.throwSCORMError(_classPrivateFieldGet(this, _error_codes).GENERAL);
+            this.throwSCORMError(_classPrivateFieldGet(_error_codes, this).GENERAL);
           }
         }
         this.processListeners(callbackName, CMIElement);
@@ -754,7 +739,7 @@ var BaseAPI = /*#__PURE__*/function () {
         value = String(value);
       }
       var returnValue = global_constants.SCORM_FALSE;
-      if (this.checkState(checkTerminated, _classPrivateFieldGet(this, _error_codes).STORE_BEFORE_INIT, _classPrivateFieldGet(this, _error_codes).STORE_AFTER_TERM)) {
+      if (this.checkState(checkTerminated, _classPrivateFieldGet(_error_codes, this).STORE_BEFORE_INIT, _classPrivateFieldGet(_error_codes, this).STORE_AFTER_TERM)) {
         if (checkTerminated) this.lastErrorCode = 0;
         try {
           returnValue = this.setCMIValue(CMIElement, value);
@@ -768,7 +753,7 @@ var BaseAPI = /*#__PURE__*/function () {
             } else {
               console.error(e);
             }
-            this.throwSCORMError(_classPrivateFieldGet(this, _error_codes).GENERAL);
+            this.throwSCORMError(_classPrivateFieldGet(_error_codes, this).GENERAL);
           }
         }
         this.processListeners(callbackName, CMIElement, value);
@@ -780,7 +765,7 @@ var BaseAPI = /*#__PURE__*/function () {
       // If we didn't have any errors while setting the data, go ahead and
       // schedule a commit, if autocommit is turned on
       if (String(this.lastErrorCode) === '0') {
-        if (this.settings.autocommit && !_classPrivateFieldGet(this, _timeout)) {
+        if (this.settings.autocommit && !_classPrivateFieldGet(_timeout, this)) {
           this.scheduleCommit(this.settings.autocommitSeconds * 1000, commitCallback);
         }
       }
@@ -800,7 +785,7 @@ var BaseAPI = /*#__PURE__*/function () {
     value: function commit(callbackName, checkTerminated) {
       this.clearScheduledCommit();
       var returnValue = global_constants.SCORM_FALSE;
-      if (this.checkState(checkTerminated, _classPrivateFieldGet(this, _error_codes).COMMIT_BEFORE_INIT, _classPrivateFieldGet(this, _error_codes).COMMIT_AFTER_TERM)) {
+      if (this.checkState(checkTerminated, _classPrivateFieldGet(_error_codes, this).COMMIT_BEFORE_INIT, _classPrivateFieldGet(_error_codes, this).COMMIT_AFTER_TERM)) {
         var result = this.storeData(false);
         if (!this.settings.sendBeaconCommit && !this.settings.asyncCommit && result.errorCode && result.errorCode > 0) {
           this.throwSCORMError(result.errorCode);
@@ -1028,12 +1013,12 @@ var BaseAPI = /*#__PURE__*/function () {
       var returnValue = global_constants.SCORM_FALSE;
       var foundFirstIndex = false;
       var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
-      var invalidErrorCode = scorm2004 ? _classPrivateFieldGet(this, _error_codes).UNDEFINED_DATA_MODEL : _classPrivateFieldGet(this, _error_codes).GENERAL;
+      var invalidErrorCode = scorm2004 ? _classPrivateFieldGet(_error_codes, this).UNDEFINED_DATA_MODEL : _classPrivateFieldGet(_error_codes, this).GENERAL;
       for (var i = 0; i < structure.length; i++) {
         var attribute = structure[i];
         if (i === structure.length - 1) {
           if (scorm2004 && attribute.substr(0, 8) === '{target=' && typeof refObject._isTargetValid == 'function') {
-            this.throwSCORMError(_classPrivateFieldGet(this, _error_codes).READ_ONLY_ELEMENT);
+            this.throwSCORMError(_classPrivateFieldGet(_error_codes, this).READ_ONLY_ELEMENT);
           } else if (!this._checkObjectHasProperty(refObject, attribute)) {
             this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
           } else {
@@ -1131,7 +1116,7 @@ var BaseAPI = /*#__PURE__*/function () {
       var attribute = null;
       var uninitializedErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") has not been initialized.");
       var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
-      var invalidErrorCode = scorm2004 ? _classPrivateFieldGet(this, _error_codes).UNDEFINED_DATA_MODEL : _classPrivateFieldGet(this, _error_codes).GENERAL;
+      var invalidErrorCode = scorm2004 ? _classPrivateFieldGet(_error_codes, this).UNDEFINED_DATA_MODEL : _classPrivateFieldGet(_error_codes, this).GENERAL;
       for (var i = 0; i < structure.length; i++) {
         attribute = structure[i];
         if (!scorm2004) {
@@ -1164,7 +1149,7 @@ var BaseAPI = /*#__PURE__*/function () {
             if (item) {
               refObject = item;
             } else {
-              this.throwSCORMError(_classPrivateFieldGet(this, _error_codes).VALUE_NOT_INITIALIZED, uninitializedErrorMessage);
+              this.throwSCORMError(_classPrivateFieldGet(_error_codes, this).VALUE_NOT_INITIALIZED, uninitializedErrorMessage);
               break;
             }
 
@@ -1260,26 +1245,27 @@ var BaseAPI = /*#__PURE__*/function () {
       if (!callback) return;
       var listenerFunctions = listenerName.split(' ');
       var _loop = function _loop() {
-        var listenerSplit = listenerFunctions[i].split('.');
-        if (listenerSplit.length === 0) return {
-          v: void 0
-        };
-        var functionName = listenerSplit[0];
-        var CMIElement = null;
-        if (listenerSplit.length > 1) {
-          CMIElement = listenerName.replace(functionName + '.', '');
-        }
-        var removeIndex = _this.listenerArray.findIndex(function (obj) {
-          return obj.functionName === functionName && obj.CMIElement === CMIElement && obj.callback === callback;
-        });
-        if (removeIndex !== -1) {
-          _this.listenerArray.splice(removeIndex, 1);
-          _this.apiLog('off', functionName, "Removed event listener: ".concat(_this.listenerArray.length), global_constants.LOG_LEVEL_INFO);
-        }
-      };
+          var listenerSplit = listenerFunctions[i].split('.');
+          if (listenerSplit.length === 0) return {
+            v: void 0
+          };
+          var functionName = listenerSplit[0];
+          var CMIElement = null;
+          if (listenerSplit.length > 1) {
+            CMIElement = listenerName.replace(functionName + '.', '');
+          }
+          var removeIndex = _this.listenerArray.findIndex(function (obj) {
+            return obj.functionName === functionName && obj.CMIElement === CMIElement && obj.callback === callback;
+          });
+          if (removeIndex !== -1) {
+            _this.listenerArray.splice(removeIndex, 1);
+            _this.apiLog('off', functionName, "Removed event listener: ".concat(_this.listenerArray.length), global_constants.LOG_LEVEL_INFO);
+          }
+        },
+        _ret;
       for (var i = 0; i < listenerFunctions.length; i++) {
-        var _ret = _loop();
-        if (_typeof(_ret) === "object") return _ret.v;
+        _ret = _loop();
+        if (_ret) return _ret.v;
       }
     }
 
@@ -1294,22 +1280,23 @@ var BaseAPI = /*#__PURE__*/function () {
       var _this2 = this;
       var listenerFunctions = listenerName.split(' ');
       var _loop2 = function _loop2() {
-        var listenerSplit = listenerFunctions[i].split('.');
-        if (listenerSplit.length === 0) return {
-          v: void 0
-        };
-        var functionName = listenerSplit[0];
-        var CMIElement = null;
-        if (listenerSplit.length > 1) {
-          CMIElement = listenerName.replace(functionName + '.', '');
-        }
-        _this2.listenerArray = _this2.listenerArray.filter(function (obj) {
-          return obj.functionName !== functionName && obj.CMIElement !== CMIElement;
-        });
-      };
+          var listenerSplit = listenerFunctions[i].split('.');
+          if (listenerSplit.length === 0) return {
+            v: void 0
+          };
+          var functionName = listenerSplit[0];
+          var CMIElement = null;
+          if (listenerSplit.length > 1) {
+            CMIElement = listenerName.replace(functionName + '.', '');
+          }
+          _this2.listenerArray = _this2.listenerArray.filter(function (obj) {
+            return obj.functionName !== functionName && obj.CMIElement !== CMIElement;
+          });
+        },
+        _ret2;
       for (var i = 0; i < listenerFunctions.length; i++) {
-        var _ret2 = _loop2();
-        if (_typeof(_ret2) === "object") return _ret2.v;
+        _ret2 = _loop2();
+        if (_ret2) return _ret2.v;
       }
     }
 
@@ -1662,7 +1649,7 @@ var BaseAPI = /*#__PURE__*/function () {
   }, {
     key: "scheduleCommit",
     value: function scheduleCommit(when, callback) {
-      _classPrivateFieldSet(this, _timeout, new ScheduledCommit(this, when, callback));
+      _classPrivateFieldSet(_timeout, this, new ScheduledCommit(this, when, callback));
       this.apiLog('scheduleCommit', '', 'scheduled', global_constants.LOG_LEVEL_DEBUG);
     }
 
@@ -1672,14 +1659,13 @@ var BaseAPI = /*#__PURE__*/function () {
   }, {
     key: "clearScheduledCommit",
     value: function clearScheduledCommit() {
-      if (_classPrivateFieldGet(this, _timeout)) {
-        _classPrivateFieldGet(this, _timeout).cancel();
-        _classPrivateFieldSet(this, _timeout, null);
+      if (_classPrivateFieldGet(_timeout, this)) {
+        _classPrivateFieldGet(_timeout, this).cancel();
+        _classPrivateFieldSet(_timeout, this, null);
         this.apiLog('clearScheduledCommit', '', 'cleared', global_constants.LOG_LEVEL_DEBUG);
       }
     }
   }]);
-  return BaseAPI;
 }();
 /**
  * Private class that wraps a timeout call to the commit() function
@@ -1698,36 +1684,24 @@ var ScheduledCommit = /*#__PURE__*/function () {
    */
   function ScheduledCommit(API, when, callback) {
     _classCallCheck(this, ScheduledCommit);
-    _classPrivateFieldInitSpec(this, _API, {
-      writable: true,
-      value: void 0
-    });
-    _classPrivateFieldInitSpec(this, _cancelled, {
-      writable: true,
-      value: false
-    });
-    _classPrivateFieldInitSpec(this, _timeout2, {
-      writable: true,
-      value: void 0
-    });
-    _classPrivateFieldInitSpec(this, _callback, {
-      writable: true,
-      value: void 0
-    });
-    _classPrivateFieldSet(this, _API, API);
-    _classPrivateFieldSet(this, _timeout2, setTimeout(this.wrapper.bind(this), when));
-    _classPrivateFieldSet(this, _callback, callback);
+    _classPrivateFieldInitSpec(this, _API, void 0);
+    _classPrivateFieldInitSpec(this, _cancelled, false);
+    _classPrivateFieldInitSpec(this, _timeout2, void 0);
+    _classPrivateFieldInitSpec(this, _callback, void 0);
+    _classPrivateFieldSet(_API, this, API);
+    _classPrivateFieldSet(_timeout2, this, setTimeout(this.wrapper.bind(this), when));
+    _classPrivateFieldSet(_callback, this, callback);
   }
 
   /**
    * Cancel any currently scheduled commit
    */
-  _createClass(ScheduledCommit, [{
+  return _createClass(ScheduledCommit, [{
     key: "cancel",
     value: function cancel() {
-      _classPrivateFieldSet(this, _cancelled, true);
-      if (_classPrivateFieldGet(this, _timeout2)) {
-        clearTimeout(_classPrivateFieldGet(this, _timeout2));
+      _classPrivateFieldSet(_cancelled, this, true);
+      if (_classPrivateFieldGet(_timeout2, this)) {
+        clearTimeout(_classPrivateFieldGet(_timeout2, this));
       }
     }
 
@@ -1737,12 +1711,11 @@ var ScheduledCommit = /*#__PURE__*/function () {
   }, {
     key: "wrapper",
     value: function wrapper() {
-      if (!_classPrivateFieldGet(this, _cancelled)) {
-        _classPrivateFieldGet(this, _API).commit(_classPrivateFieldGet(this, _callback));
+      if (!_classPrivateFieldGet(_cancelled, this)) {
+        _classPrivateFieldGet(_API, this).commit(_classPrivateFieldGet(_callback, this));
       }
     }
   }]);
-  return ScheduledCommit;
 }();
 
 /***/ }),
@@ -1763,22 +1736,22 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utilities */ "./src/utilities.js");
 /* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./constants/api_constants */ "./src/constants/api_constants.js");
 /* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./constants/error_codes */ "./src/constants/error_codes.js");
-function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor); } }
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
-function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function _callSuper(t, o, e) { return o = _getPrototypeOf(o), _possibleConstructorReturn(t, _isNativeReflectConstruct() ? Reflect.construct(o, e || [], _getPrototypeOf(t).constructor) : o.apply(t, e)); }
 function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+function _isNativeReflectConstruct() { try { var t = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); } catch (t) {} return (_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); }
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 
 
@@ -1792,8 +1765,6 @@ var scorm12_error_codes = _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__["d
  * API class for SCORM 1.2
  */
 var Scorm12API = /*#__PURE__*/function (_BaseAPI) {
-  _inherits(Scorm12API, _BaseAPI);
-  var _super = _createSuper(Scorm12API);
   /**
    * Constructor for SCORM 1.2 API
    * @param {object} settings
@@ -1804,7 +1775,7 @@ var Scorm12API = /*#__PURE__*/function (_BaseAPI) {
     var finalSettings = _objectSpread(_objectSpread({}, {
       mastery_override: false
     }), settings);
-    _this = _super.call(this, scorm12_error_codes, finalSettings);
+    _this = _callSuper(this, Scorm12API, [scorm12_error_codes, finalSettings]);
     _this.cmi = new _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_1__.CMI();
     _this.nav = new _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_1__.NAV();
 
@@ -1825,7 +1796,8 @@ var Scorm12API = /*#__PURE__*/function (_BaseAPI) {
    *
    * @return {string} bool
    */
-  _createClass(Scorm12API, [{
+  _inherits(Scorm12API, _BaseAPI);
+  return _createClass(Scorm12API, [{
     key: "lmsInitialize",
     value: function lmsInitialize() {
       this.cmi.initialize();
@@ -2096,7 +2068,6 @@ var Scorm12API = /*#__PURE__*/function (_BaseAPI) {
       }
     }
   }]);
-  return Scorm12API;
 }(_BaseAPI__WEBPACK_IMPORTED_MODULE_0__["default"]);
 
 
@@ -2121,27 +2092,26 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _constants_response_constants__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./constants/response_constants */ "./src/constants/response_constants.js");
 /* harmony import */ var _constants_language_constants__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./constants/language_constants */ "./src/constants/language_constants.js");
 /* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./constants/regex */ "./src/constants/regex.js");
-function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor); } }
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+function _callSuper(t, o, e) { return o = _getPrototypeOf(o), _possibleConstructorReturn(t, _isNativeReflectConstruct() ? Reflect.construct(o, e || [], _getPrototypeOf(t).constructor) : o.apply(t, e)); }
 function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+function _isNativeReflectConstruct() { try { var t = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); } catch (t) {} return (_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); }
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
-function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
-function _classPrivateFieldGet(receiver, privateMap) { var descriptor = _classExtractFieldDescriptor(receiver, privateMap, "get"); return _classApplyDescriptorGet(receiver, descriptor); }
-function _classExtractFieldDescriptor(receiver, privateMap, action) { if (!privateMap.has(receiver)) { throw new TypeError("attempted to " + action + " private field on non-instance"); } return privateMap.get(receiver); }
-function _classApplyDescriptorGet(receiver, descriptor) { if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
+function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
+function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 
 
 
@@ -2161,8 +2131,6 @@ var scorm2004_regex = _constants_regex__WEBPACK_IMPORTED_MODULE_7__["default"].s
  */
 var _version = /*#__PURE__*/new WeakMap();
 var Scorm2004API = /*#__PURE__*/function (_BaseAPI) {
-  _inherits(Scorm2004API, _BaseAPI);
-  var _super = _createSuper(Scorm2004API);
   /**
    * Constructor for SCORM 2004 API
    * @param {object} settings
@@ -2173,12 +2141,16 @@ var Scorm2004API = /*#__PURE__*/function (_BaseAPI) {
     var finalSettings = _objectSpread(_objectSpread({}, {
       mastery_override: false
     }), settings);
-    _this = _super.call(this, scorm2004_error_codes, finalSettings);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _version, {
-      writable: true,
-      value: void 0
-    });
-    _defineProperty(_assertThisInitialized(_this), "checkDuplicatedPattern", function (correct_response, current_index, value) {
+    _this = _callSuper(this, Scorm2004API, [scorm2004_error_codes, finalSettings]);
+    _classPrivateFieldInitSpec(_this, _version, void 0);
+    /**
+     * Check to see if a correct_response value has been duplicated
+     * @param {CMIArray} correct_response
+     * @param {number} current_index
+     * @param {*} value
+     * @return {boolean}
+     */
+    _defineProperty(_this, "checkDuplicatedPattern", function (correct_response, current_index, value) {
       var found = false;
       var count = correct_response._count;
       for (var i = 0; i < count && !found; i++) {
@@ -2207,10 +2179,11 @@ var Scorm2004API = /*#__PURE__*/function (_BaseAPI) {
    * Getter for #version
    * @return {string}
    */
-  _createClass(Scorm2004API, [{
+  _inherits(Scorm2004API, _BaseAPI);
+  return _createClass(Scorm2004API, [{
     key: "version",
     get: function get() {
-      return _classPrivateFieldGet(this, _version);
+      return _classPrivateFieldGet(_version, this);
     }
 
     /**
@@ -2491,14 +2464,6 @@ var Scorm2004API = /*#__PURE__*/function (_BaseAPI) {
       }
       return detail ? detailMessage : basicMessage;
     }
-
-    /**
-     * Check to see if a correct_response value has been duplicated
-     * @param {CMIArray} correct_response
-     * @param {number} current_index
-     * @param {*} value
-     * @return {boolean}
-     */
   }, {
     key: "checkCorrectResponseValue",
     value:
@@ -2707,7 +2672,6 @@ var Scorm2004API = /*#__PURE__*/function (_BaseAPI) {
       }
     }
   }]);
-  return Scorm2004API;
 }(_BaseAPI__WEBPACK_IMPORTED_MODULE_0__["default"]);
 
 
@@ -2722,15 +2686,15 @@ var Scorm2004API = /*#__PURE__*/function (_BaseAPI) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "CMI": function() { return /* binding */ CMI; },
-/* harmony export */   "CMIAttemptRecords": function() { return /* binding */ CMIAttemptRecords; },
-/* harmony export */   "CMIAttemptRecordsObject": function() { return /* binding */ CMIAttemptRecordsObject; },
-/* harmony export */   "CMIEvaluationCommentsObject": function() { return /* binding */ CMIEvaluationCommentsObject; },
-/* harmony export */   "CMIPaths": function() { return /* binding */ CMIPaths; },
-/* harmony export */   "CMIPathsObject": function() { return /* binding */ CMIPathsObject; },
-/* harmony export */   "CMIStudentDemographics": function() { return /* binding */ CMIStudentDemographics; },
-/* harmony export */   "CMITries": function() { return /* binding */ CMITries; },
-/* harmony export */   "CMITriesObject": function() { return /* binding */ CMITriesObject; }
+/* harmony export */   CMI: function() { return /* binding */ CMI; },
+/* harmony export */   CMIAttemptRecords: function() { return /* binding */ CMIAttemptRecords; },
+/* harmony export */   CMIAttemptRecordsObject: function() { return /* binding */ CMIAttemptRecordsObject; },
+/* harmony export */   CMIEvaluationCommentsObject: function() { return /* binding */ CMIEvaluationCommentsObject; },
+/* harmony export */   CMIPaths: function() { return /* binding */ CMIPaths; },
+/* harmony export */   CMIPathsObject: function() { return /* binding */ CMIPathsObject; },
+/* harmony export */   CMIStudentDemographics: function() { return /* binding */ CMIStudentDemographics; },
+/* harmony export */   CMITries: function() { return /* binding */ CMITries; },
+/* harmony export */   CMITriesObject: function() { return /* binding */ CMITriesObject; }
 /* harmony export */ });
 /* harmony import */ var _scorm12_cmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./scorm12_cmi */ "./src/cmi/scorm12_cmi.js");
 /* harmony import */ var _common__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./common */ "./src/cmi/common.js");
@@ -2738,28 +2702,26 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../constants/regex */ "./src/constants/regex.js");
 /* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../constants/error_codes */ "./src/constants/error_codes.js");
 /* harmony import */ var _exceptions__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../exceptions */ "./src/exceptions.js");
-function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
-function _classPrivateFieldSet(receiver, privateMap, value) { var descriptor = _classExtractFieldDescriptor(receiver, privateMap, "set"); _classApplyDescriptorSet(receiver, descriptor, value); return value; }
-function _classApplyDescriptorSet(receiver, descriptor, value) { if (descriptor.set) { descriptor.set.call(receiver, value); } else { if (!descriptor.writable) { throw new TypeError("attempted to set read only private field"); } descriptor.value = value; } }
-function _classPrivateFieldGet(receiver, privateMap) { var descriptor = _classExtractFieldDescriptor(receiver, privateMap, "get"); return _classApplyDescriptorGet(receiver, descriptor); }
-function _classExtractFieldDescriptor(receiver, privateMap, action) { if (!privateMap.has(receiver)) { throw new TypeError("attempted to " + action + " private field on non-instance"); } return privateMap.get(receiver); }
-function _classApplyDescriptorGet(receiver, descriptor) { if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
+function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
+function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
+function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor); } }
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
-function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
-function _get() { if (typeof Reflect !== "undefined" && Reflect.get) { _get = Reflect.get.bind(); } else { _get = function _get(target, property, receiver) { var base = _superPropBase(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(arguments.length < 3 ? target : receiver); } return desc.value; }; } return _get.apply(this, arguments); }
-function _superPropBase(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf(object); if (object === null) break; } return object; }
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function _callSuper(t, o, e) { return o = _getPrototypeOf(o), _possibleConstructorReturn(t, _isNativeReflectConstruct() ? Reflect.construct(o, e || [], _getPrototypeOf(t).constructor) : o.apply(t, e)); }
 function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+function _isNativeReflectConstruct() { try { var t = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); } catch (t) {} return (_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); }
+function _get() { if (typeof Reflect !== "undefined" && Reflect.get) { _get = Reflect.get.bind(); } else { _get = function _get(target, property, receiver) { var base = _superPropBase(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(arguments.length < 3 ? target : receiver); } return desc.value; }; } return _get.apply(this, arguments); }
+function _superPropBase(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf(object); if (object === null) break; } return object; }
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 
 
@@ -2792,8 +2754,6 @@ function checkAICCValidFormat(value, regexPattern, allowEmptyString) {
  * CMI Class for AICC
  */
 var CMI = /*#__PURE__*/function (_Scorm12CMI$CMI) {
-  _inherits(CMI, _Scorm12CMI$CMI);
-  var _super = _createSuper(CMI);
   /**
    * Constructor for AICC CMI object
    * @param {boolean} initialized
@@ -2801,7 +2761,7 @@ var CMI = /*#__PURE__*/function (_Scorm12CMI$CMI) {
   function CMI(initialized) {
     var _this;
     _classCallCheck(this, CMI);
-    _this = _super.call(this, aicc_constants.cmi_children);
+    _this = _callSuper(this, CMI, [aicc_constants.cmi_children]);
     if (initialized) _this.initialize();
     _this.student_preference = new AICCStudentPreferences();
     _this.student_data = new AICCCMIStudentData();
@@ -2814,7 +2774,8 @@ var CMI = /*#__PURE__*/function (_Scorm12CMI$CMI) {
   /**
    * Called when the API has been initialized after the CMI has been created
    */
-  _createClass(CMI, [{
+  _inherits(CMI, _Scorm12CMI$CMI);
+  return _createClass(CMI, [{
     key: "initialize",
     value: function initialize() {
       var _this$student_prefere, _this$student_data, _this$student_demogra, _this$evaluation, _this$paths;
@@ -2866,22 +2827,19 @@ var CMI = /*#__PURE__*/function (_Scorm12CMI$CMI) {
       return result;
     }
   }]);
-  return CMI;
 }(_scorm12_cmi__WEBPACK_IMPORTED_MODULE_0__.CMI);
 
 /**
  * AICC Evaluation object
  */
 var CMIEvaluation = /*#__PURE__*/function (_BaseCMI) {
-  _inherits(CMIEvaluation, _BaseCMI);
-  var _super2 = _createSuper(CMIEvaluation);
   /**
    * Constructor for AICC Evaluation object
    */
   function CMIEvaluation() {
     var _this2;
     _classCallCheck(this, CMIEvaluation);
-    _this2 = _super2.call(this);
+    _this2 = _callSuper(this, CMIEvaluation);
     _this2.comments = new CMIEvaluationComments();
     return _this2;
   }
@@ -2889,7 +2847,8 @@ var CMIEvaluation = /*#__PURE__*/function (_BaseCMI) {
   /**
    * Called when the API has been initialized after the CMI has been created
    */
-  _createClass(CMIEvaluation, [{
+  _inherits(CMIEvaluation, _BaseCMI);
+  return _createClass(CMIEvaluation, [{
     key: "initialize",
     value: function initialize() {
       var _this$comments;
@@ -2912,25 +2871,23 @@ var CMIEvaluation = /*#__PURE__*/function (_BaseCMI) {
       return result;
     }
   }]);
-  return CMIEvaluation;
 }(_common__WEBPACK_IMPORTED_MODULE_1__.BaseCMI);
 /**
  * Class representing AICC's cmi.evaluation.comments object
  */
 var CMIEvaluationComments = /*#__PURE__*/function (_CMIArray) {
-  _inherits(CMIEvaluationComments, _CMIArray);
-  var _super3 = _createSuper(CMIEvaluationComments);
   /**
    * Constructor for AICC Evaluation Comments object
    */
   function CMIEvaluationComments() {
     _classCallCheck(this, CMIEvaluationComments);
-    return _super3.call(this, {
+    return _callSuper(this, CMIEvaluationComments, [{
       children: aicc_constants.comments_children,
       errorCode: aicc_error_codes.INVALID_SET_VALUE,
       errorClass: _exceptions__WEBPACK_IMPORTED_MODULE_5__.AICCValidationError
-    });
+    }]);
   }
+  _inherits(CMIEvaluationComments, _CMIArray);
   return _createClass(CMIEvaluationComments);
 }(_common__WEBPACK_IMPORTED_MODULE_1__.CMIArray);
 /**
@@ -2942,35 +2899,18 @@ var _text_location = /*#__PURE__*/new WeakMap();
 var _text_size = /*#__PURE__*/new WeakMap();
 var _video = /*#__PURE__*/new WeakMap();
 var AICCStudentPreferences = /*#__PURE__*/function (_Scorm12CMI$CMIStuden) {
-  _inherits(AICCStudentPreferences, _Scorm12CMI$CMIStuden);
-  var _super4 = _createSuper(AICCStudentPreferences);
   /**
    * Constructor for AICC Student Preferences object
    */
   function AICCStudentPreferences() {
     var _this3;
     _classCallCheck(this, AICCStudentPreferences);
-    _this3 = _super4.call(this, aicc_constants.student_preference_children);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this3), _lesson_type, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this3), _text_color, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this3), _text_location, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this3), _text_size, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this3), _video, {
-      writable: true,
-      value: ''
-    });
+    _this3 = _callSuper(this, AICCStudentPreferences, [aicc_constants.student_preference_children]);
+    _classPrivateFieldInitSpec(_this3, _lesson_type, '');
+    _classPrivateFieldInitSpec(_this3, _text_color, '');
+    _classPrivateFieldInitSpec(_this3, _text_location, '');
+    _classPrivateFieldInitSpec(_this3, _text_size, '');
+    _classPrivateFieldInitSpec(_this3, _video, '');
     _this3.windows = new _common__WEBPACK_IMPORTED_MODULE_1__.CMIArray({
       errorCode: aicc_error_codes.INVALID_SET_VALUE,
       errorClass: _exceptions__WEBPACK_IMPORTED_MODULE_5__.AICCValidationError,
@@ -2982,7 +2922,8 @@ var AICCStudentPreferences = /*#__PURE__*/function (_Scorm12CMI$CMIStuden) {
   /**
    * Called when the API has been initialized after the CMI has been created
    */
-  _createClass(AICCStudentPreferences, [{
+  _inherits(AICCStudentPreferences, _Scorm12CMI$CMIStuden);
+  return _createClass(AICCStudentPreferences, [{
     key: "initialize",
     value: function initialize() {
       var _this$windows;
@@ -2997,7 +2938,7 @@ var AICCStudentPreferences = /*#__PURE__*/function (_Scorm12CMI$CMIStuden) {
      * @return {string}
      */
     function get() {
-      return _classPrivateFieldGet(this, _lesson_type);
+      return _classPrivateFieldGet(_lesson_type, this);
     }
 
     /**
@@ -3006,7 +2947,7 @@ var AICCStudentPreferences = /*#__PURE__*/function (_Scorm12CMI$CMIStuden) {
      */,
     set: function set(lesson_type) {
       if (checkAICCValidFormat(lesson_type, aicc_regex.CMIString256)) {
-        _classPrivateFieldSet(this, _lesson_type, lesson_type);
+        _classPrivateFieldSet(_lesson_type, this, lesson_type);
       }
     }
 
@@ -3017,7 +2958,7 @@ var AICCStudentPreferences = /*#__PURE__*/function (_Scorm12CMI$CMIStuden) {
   }, {
     key: "text_color",
     get: function get() {
-      return _classPrivateFieldGet(this, _text_color);
+      return _classPrivateFieldGet(_text_color, this);
     }
 
     /**
@@ -3026,7 +2967,7 @@ var AICCStudentPreferences = /*#__PURE__*/function (_Scorm12CMI$CMIStuden) {
      */,
     set: function set(text_color) {
       if (checkAICCValidFormat(text_color, aicc_regex.CMIString256)) {
-        _classPrivateFieldSet(this, _text_color, text_color);
+        _classPrivateFieldSet(_text_color, this, text_color);
       }
     }
 
@@ -3037,7 +2978,7 @@ var AICCStudentPreferences = /*#__PURE__*/function (_Scorm12CMI$CMIStuden) {
   }, {
     key: "text_location",
     get: function get() {
-      return _classPrivateFieldGet(this, _text_location);
+      return _classPrivateFieldGet(_text_location, this);
     }
 
     /**
@@ -3046,7 +2987,7 @@ var AICCStudentPreferences = /*#__PURE__*/function (_Scorm12CMI$CMIStuden) {
      */,
     set: function set(text_location) {
       if (checkAICCValidFormat(text_location, aicc_regex.CMIString256)) {
-        _classPrivateFieldSet(this, _text_location, text_location);
+        _classPrivateFieldSet(_text_location, this, text_location);
       }
     }
 
@@ -3057,7 +2998,7 @@ var AICCStudentPreferences = /*#__PURE__*/function (_Scorm12CMI$CMIStuden) {
   }, {
     key: "text_size",
     get: function get() {
-      return _classPrivateFieldGet(this, _text_size);
+      return _classPrivateFieldGet(_text_size, this);
     }
 
     /**
@@ -3066,7 +3007,7 @@ var AICCStudentPreferences = /*#__PURE__*/function (_Scorm12CMI$CMIStuden) {
      */,
     set: function set(text_size) {
       if (checkAICCValidFormat(text_size, aicc_regex.CMIString256)) {
-        _classPrivateFieldSet(this, _text_size, text_size);
+        _classPrivateFieldSet(_text_size, this, text_size);
       }
     }
 
@@ -3077,7 +3018,7 @@ var AICCStudentPreferences = /*#__PURE__*/function (_Scorm12CMI$CMIStuden) {
   }, {
     key: "video",
     get: function get() {
-      return _classPrivateFieldGet(this, _video);
+      return _classPrivateFieldGet(_video, this);
     }
 
     /**
@@ -3086,7 +3027,7 @@ var AICCStudentPreferences = /*#__PURE__*/function (_Scorm12CMI$CMIStuden) {
      */,
     set: function set(video) {
       if (checkAICCValidFormat(video, aicc_regex.CMIString256)) {
-        _classPrivateFieldSet(this, _video, video);
+        _classPrivateFieldSet(_video, this, video);
       }
     }
 
@@ -3122,26 +3063,20 @@ var AICCStudentPreferences = /*#__PURE__*/function (_Scorm12CMI$CMIStuden) {
       return result;
     }
   }]);
-  return AICCStudentPreferences;
 }(_scorm12_cmi__WEBPACK_IMPORTED_MODULE_0__.CMIStudentPreference);
 /**
  * StudentData class for AICC
  */
 var _tries_during_lesson = /*#__PURE__*/new WeakMap();
 var AICCCMIStudentData = /*#__PURE__*/function (_Scorm12CMI$CMIStuden2) {
-  _inherits(AICCCMIStudentData, _Scorm12CMI$CMIStuden2);
-  var _super5 = _createSuper(AICCCMIStudentData);
   /**
    * Constructor for AICC StudentData object
    */
   function AICCCMIStudentData() {
     var _this4;
     _classCallCheck(this, AICCCMIStudentData);
-    _this4 = _super5.call(this, aicc_constants.student_data_children);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this4), _tries_during_lesson, {
-      writable: true,
-      value: ''
-    });
+    _this4 = _callSuper(this, AICCCMIStudentData, [aicc_constants.student_data_children]);
+    _classPrivateFieldInitSpec(_this4, _tries_during_lesson, '');
     _this4.tries = new CMITries();
     return _this4;
   }
@@ -3149,7 +3084,8 @@ var AICCCMIStudentData = /*#__PURE__*/function (_Scorm12CMI$CMIStuden2) {
   /**
    * Called when the API has been initialized after the CMI has been created
    */
-  _createClass(AICCCMIStudentData, [{
+  _inherits(AICCCMIStudentData, _Scorm12CMI$CMIStuden2);
+  return _createClass(AICCCMIStudentData, [{
     key: "initialize",
     value: function initialize() {
       var _this$tries;
@@ -3164,7 +3100,7 @@ var AICCCMIStudentData = /*#__PURE__*/function (_Scorm12CMI$CMIStuden2) {
      * @return {string}
      */
     function get() {
-      return _classPrivateFieldGet(this, _tries_during_lesson);
+      return _classPrivateFieldGet(_tries_during_lesson, this);
     }
 
     /**
@@ -3173,7 +3109,7 @@ var AICCCMIStudentData = /*#__PURE__*/function (_Scorm12CMI$CMIStuden2) {
      * @param {string} tries_during_lesson
      */,
     set: function set(tries_during_lesson) {
-      !this.initialized ? _classPrivateFieldSet(this, _tries_during_lesson, tries_during_lesson) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_tries_during_lesson, this, tries_during_lesson) : throwReadOnlyError();
     }
 
     /**
@@ -3201,7 +3137,6 @@ var AICCCMIStudentData = /*#__PURE__*/function (_Scorm12CMI$CMIStuden2) {
       return result;
     }
   }]);
-  return AICCCMIStudentData;
 }(_scorm12_cmi__WEBPACK_IMPORTED_MODULE_0__.CMIStudentData);
 /**
  * Class representing the AICC cmi.student_demographics object
@@ -3221,74 +3156,31 @@ var _street_address = /*#__PURE__*/new WeakMap();
 var _telephone = /*#__PURE__*/new WeakMap();
 var _years_experience = /*#__PURE__*/new WeakMap();
 var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
-  _inherits(CMIStudentDemographics, _BaseCMI2);
-  var _super6 = _createSuper(CMIStudentDemographics);
   /**
    * Constructor for AICC StudentDemographics object
    */
   function CMIStudentDemographics() {
     var _this5;
     _classCallCheck(this, CMIStudentDemographics);
-    _this5 = _super6.call(this);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this5), _children, {
-      writable: true,
-      value: aicc_constants.student_demographics_children
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this5), _city, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this5), _class, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this5), _company, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this5), _country, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this5), _experience, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this5), _familiar_name, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this5), _instructor_name, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this5), _title, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this5), _native_language, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this5), _state, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this5), _street_address, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this5), _telephone, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this5), _years_experience, {
-      writable: true,
-      value: ''
-    });
+    _this5 = _callSuper(this, CMIStudentDemographics);
+    _classPrivateFieldInitSpec(_this5, _children, aicc_constants.student_demographics_children);
+    _classPrivateFieldInitSpec(_this5, _city, '');
+    _classPrivateFieldInitSpec(_this5, _class, '');
+    _classPrivateFieldInitSpec(_this5, _company, '');
+    _classPrivateFieldInitSpec(_this5, _country, '');
+    _classPrivateFieldInitSpec(_this5, _experience, '');
+    _classPrivateFieldInitSpec(_this5, _familiar_name, '');
+    _classPrivateFieldInitSpec(_this5, _instructor_name, '');
+    _classPrivateFieldInitSpec(_this5, _title, '');
+    _classPrivateFieldInitSpec(_this5, _native_language, '');
+    _classPrivateFieldInitSpec(_this5, _state, '');
+    _classPrivateFieldInitSpec(_this5, _street_address, '');
+    _classPrivateFieldInitSpec(_this5, _telephone, '');
+    _classPrivateFieldInitSpec(_this5, _years_experience, '');
     return _this5;
   }
-  _createClass(CMIStudentDemographics, [{
+  _inherits(CMIStudentDemographics, _BaseCMI2);
+  return _createClass(CMIStudentDemographics, [{
     key: "_children",
     get:
     /**
@@ -3296,7 +3188,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
      * @return {string}
      */
     function get() {
-      return _classPrivateFieldGet(this, _children);
+      return _classPrivateFieldGet(_children, this);
     }
 
     /**
@@ -3306,7 +3198,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "city",
     get: function get() {
-      return _classPrivateFieldGet(this, _city);
+      return _classPrivateFieldGet(_city, this);
     }
 
     /**
@@ -3315,7 +3207,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
      * @param {string} city
      */,
     set: function set(city) {
-      !this.initialized ? _classPrivateFieldSet(this, _city, city) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_city, this, city) : throwReadOnlyError();
     }
 
     /**
@@ -3325,7 +3217,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "class",
     get: function get() {
-      return _classPrivateFieldGet(this, _class);
+      return _classPrivateFieldGet(_class, this);
     }
 
     /**
@@ -3334,7 +3226,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
      * @param {string} clazz
      */,
     set: function set(clazz) {
-      !this.initialized ? _classPrivateFieldSet(this, _class, clazz) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_class, this, clazz) : throwReadOnlyError();
     }
 
     /**
@@ -3344,7 +3236,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "company",
     get: function get() {
-      return _classPrivateFieldGet(this, _company);
+      return _classPrivateFieldGet(_company, this);
     }
 
     /**
@@ -3353,7 +3245,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
      * @param {string} company
      */,
     set: function set(company) {
-      !this.initialized ? _classPrivateFieldSet(this, _company, company) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_company, this, company) : throwReadOnlyError();
     }
 
     /**
@@ -3363,7 +3255,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "country",
     get: function get() {
-      return _classPrivateFieldGet(this, _country);
+      return _classPrivateFieldGet(_country, this);
     }
 
     /**
@@ -3372,7 +3264,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
      * @param {string} country
      */,
     set: function set(country) {
-      !this.initialized ? _classPrivateFieldSet(this, _country, country) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_country, this, country) : throwReadOnlyError();
     }
 
     /**
@@ -3382,7 +3274,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "experience",
     get: function get() {
-      return _classPrivateFieldGet(this, _experience);
+      return _classPrivateFieldGet(_experience, this);
     }
 
     /**
@@ -3391,7 +3283,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
      * @param {string} experience
      */,
     set: function set(experience) {
-      !this.initialized ? _classPrivateFieldSet(this, _experience, experience) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_experience, this, experience) : throwReadOnlyError();
     }
 
     /**
@@ -3401,7 +3293,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "familiar_name",
     get: function get() {
-      return _classPrivateFieldGet(this, _familiar_name);
+      return _classPrivateFieldGet(_familiar_name, this);
     }
 
     /**
@@ -3410,7 +3302,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
      * @param {string} familiar_name
      */,
     set: function set(familiar_name) {
-      !this.initialized ? _classPrivateFieldSet(this, _familiar_name, familiar_name) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_familiar_name, this, familiar_name) : throwReadOnlyError();
     }
 
     /**
@@ -3420,7 +3312,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "instructor_name",
     get: function get() {
-      return _classPrivateFieldGet(this, _instructor_name);
+      return _classPrivateFieldGet(_instructor_name, this);
     }
 
     /**
@@ -3429,7 +3321,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
      * @param {string} instructor_name
      */,
     set: function set(instructor_name) {
-      !this.initialized ? _classPrivateFieldSet(this, _instructor_name, instructor_name) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_instructor_name, this, instructor_name) : throwReadOnlyError();
     }
 
     /**
@@ -3439,7 +3331,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "title",
     get: function get() {
-      return _classPrivateFieldGet(this, _title);
+      return _classPrivateFieldGet(_title, this);
     }
 
     /**
@@ -3448,7 +3340,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
      * @param {string} title
      */,
     set: function set(title) {
-      !this.initialized ? _classPrivateFieldSet(this, _title, title) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_title, this, title) : throwReadOnlyError();
     }
 
     /**
@@ -3458,7 +3350,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "native_language",
     get: function get() {
-      return _classPrivateFieldGet(this, _native_language);
+      return _classPrivateFieldGet(_native_language, this);
     }
 
     /**
@@ -3467,7 +3359,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
      * @param {string} native_language
      */,
     set: function set(native_language) {
-      !this.initialized ? _classPrivateFieldSet(this, _native_language, native_language) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_native_language, this, native_language) : throwReadOnlyError();
     }
 
     /**
@@ -3477,7 +3369,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "state",
     get: function get() {
-      return _classPrivateFieldGet(this, _state);
+      return _classPrivateFieldGet(_state, this);
     }
 
     /**
@@ -3486,7 +3378,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
      * @param {string} state
      */,
     set: function set(state) {
-      !this.initialized ? _classPrivateFieldSet(this, _state, state) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_state, this, state) : throwReadOnlyError();
     }
 
     /**
@@ -3496,7 +3388,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "street_address",
     get: function get() {
-      return _classPrivateFieldGet(this, _street_address);
+      return _classPrivateFieldGet(_street_address, this);
     }
 
     /**
@@ -3505,7 +3397,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
      * @param {string} street_address
      */,
     set: function set(street_address) {
-      !this.initialized ? _classPrivateFieldSet(this, _street_address, street_address) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_street_address, this, street_address) : throwReadOnlyError();
     }
 
     /**
@@ -3515,7 +3407,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "telephone",
     get: function get() {
-      return _classPrivateFieldGet(this, _telephone);
+      return _classPrivateFieldGet(_telephone, this);
     }
 
     /**
@@ -3524,7 +3416,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
      * @param {string} telephone
      */,
     set: function set(telephone) {
-      !this.initialized ? _classPrivateFieldSet(this, _telephone, telephone) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_telephone, this, telephone) : throwReadOnlyError();
     }
 
     /**
@@ -3534,7 +3426,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "years_experience",
     get: function get() {
-      return _classPrivateFieldGet(this, _years_experience);
+      return _classPrivateFieldGet(_years_experience, this);
     }
 
     /**
@@ -3543,7 +3435,7 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
      * @param {string} years_experience
      */,
     set: function set(years_experience) {
-      !this.initialized ? _classPrivateFieldSet(this, _years_experience, years_experience) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_years_experience, this, years_experience) : throwReadOnlyError();
     }
 
     /**
@@ -3589,24 +3481,22 @@ var CMIStudentDemographics = /*#__PURE__*/function (_BaseCMI2) {
       return result;
     }
   }]);
-  return CMIStudentDemographics;
 }(_common__WEBPACK_IMPORTED_MODULE_1__.BaseCMI);
 
 /**
  * Class representing the AICC cmi.paths object
  */
 var CMIPaths = /*#__PURE__*/function (_CMIArray2) {
-  _inherits(CMIPaths, _CMIArray2);
-  var _super7 = _createSuper(CMIPaths);
   /**
    * Constructor for inline Paths Array class
    */
   function CMIPaths() {
     _classCallCheck(this, CMIPaths);
-    return _super7.call(this, {
+    return _callSuper(this, CMIPaths, [{
       children: aicc_constants.paths_children
-    });
+    }]);
   }
+  _inherits(CMIPaths, _CMIArray2);
   return _createClass(CMIPaths);
 }(_common__WEBPACK_IMPORTED_MODULE_1__.CMIArray);
 
@@ -3620,42 +3510,23 @@ var _status = /*#__PURE__*/new WeakMap();
 var _why_left = /*#__PURE__*/new WeakMap();
 var _time_in_element = /*#__PURE__*/new WeakMap();
 var CMIPathsObject = /*#__PURE__*/function (_BaseCMI3) {
-  _inherits(CMIPathsObject, _BaseCMI3);
-  var _super8 = _createSuper(CMIPathsObject);
   /**
    * Constructor for AICC Paths objects
    */
   function CMIPathsObject() {
     var _this6;
     _classCallCheck(this, CMIPathsObject);
-    _this6 = _super8.call(this);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this6), _location_id, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this6), _date, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this6), _time, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this6), _status, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this6), _why_left, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this6), _time_in_element, {
-      writable: true,
-      value: ''
-    });
+    _this6 = _callSuper(this, CMIPathsObject);
+    _classPrivateFieldInitSpec(_this6, _location_id, '');
+    _classPrivateFieldInitSpec(_this6, _date, '');
+    _classPrivateFieldInitSpec(_this6, _time, '');
+    _classPrivateFieldInitSpec(_this6, _status, '');
+    _classPrivateFieldInitSpec(_this6, _why_left, '');
+    _classPrivateFieldInitSpec(_this6, _time_in_element, '');
     return _this6;
   }
-  _createClass(CMIPathsObject, [{
+  _inherits(CMIPathsObject, _BaseCMI3);
+  return _createClass(CMIPathsObject, [{
     key: "location_id",
     get:
     /**
@@ -3663,7 +3534,7 @@ var CMIPathsObject = /*#__PURE__*/function (_BaseCMI3) {
      * @return {string}
      */
     function get() {
-      return _classPrivateFieldGet(this, _location_id);
+      return _classPrivateFieldGet(_location_id, this);
     }
 
     /**
@@ -3672,7 +3543,7 @@ var CMIPathsObject = /*#__PURE__*/function (_BaseCMI3) {
      */,
     set: function set(location_id) {
       if (checkAICCValidFormat(location_id, aicc_regex.CMIString256)) {
-        _classPrivateFieldSet(this, _location_id, location_id);
+        _classPrivateFieldSet(_location_id, this, location_id);
       }
     }
 
@@ -3683,7 +3554,7 @@ var CMIPathsObject = /*#__PURE__*/function (_BaseCMI3) {
   }, {
     key: "date",
     get: function get() {
-      return _classPrivateFieldGet(this, _date);
+      return _classPrivateFieldGet(_date, this);
     }
 
     /**
@@ -3692,7 +3563,7 @@ var CMIPathsObject = /*#__PURE__*/function (_BaseCMI3) {
      */,
     set: function set(date) {
       if (checkAICCValidFormat(date, aicc_regex.CMIString256)) {
-        _classPrivateFieldSet(this, _date, date);
+        _classPrivateFieldSet(_date, this, date);
       }
     }
 
@@ -3703,7 +3574,7 @@ var CMIPathsObject = /*#__PURE__*/function (_BaseCMI3) {
   }, {
     key: "time",
     get: function get() {
-      return _classPrivateFieldGet(this, _time);
+      return _classPrivateFieldGet(_time, this);
     }
 
     /**
@@ -3712,7 +3583,7 @@ var CMIPathsObject = /*#__PURE__*/function (_BaseCMI3) {
      */,
     set: function set(time) {
       if (checkAICCValidFormat(time, aicc_regex.CMITime)) {
-        _classPrivateFieldSet(this, _time, time);
+        _classPrivateFieldSet(_time, this, time);
       }
     }
 
@@ -3723,7 +3594,7 @@ var CMIPathsObject = /*#__PURE__*/function (_BaseCMI3) {
   }, {
     key: "status",
     get: function get() {
-      return _classPrivateFieldGet(this, _status);
+      return _classPrivateFieldGet(_status, this);
     }
 
     /**
@@ -3732,7 +3603,7 @@ var CMIPathsObject = /*#__PURE__*/function (_BaseCMI3) {
      */,
     set: function set(status) {
       if (checkAICCValidFormat(status, aicc_regex.CMIStatus2)) {
-        _classPrivateFieldSet(this, _status, status);
+        _classPrivateFieldSet(_status, this, status);
       }
     }
 
@@ -3743,7 +3614,7 @@ var CMIPathsObject = /*#__PURE__*/function (_BaseCMI3) {
   }, {
     key: "why_left",
     get: function get() {
-      return _classPrivateFieldGet(this, _why_left);
+      return _classPrivateFieldGet(_why_left, this);
     }
 
     /**
@@ -3752,7 +3623,7 @@ var CMIPathsObject = /*#__PURE__*/function (_BaseCMI3) {
      */,
     set: function set(why_left) {
       if (checkAICCValidFormat(why_left, aicc_regex.CMIString256)) {
-        _classPrivateFieldSet(this, _why_left, why_left);
+        _classPrivateFieldSet(_why_left, this, why_left);
       }
     }
 
@@ -3763,7 +3634,7 @@ var CMIPathsObject = /*#__PURE__*/function (_BaseCMI3) {
   }, {
     key: "time_in_element",
     get: function get() {
-      return _classPrivateFieldGet(this, _time_in_element);
+      return _classPrivateFieldGet(_time_in_element, this);
     }
 
     /**
@@ -3772,7 +3643,7 @@ var CMIPathsObject = /*#__PURE__*/function (_BaseCMI3) {
      */,
     set: function set(time_in_element) {
       if (checkAICCValidFormat(time_in_element, aicc_regex.CMITime)) {
-        _classPrivateFieldSet(this, _time_in_element, time_in_element);
+        _classPrivateFieldSet(_time_in_element, this, time_in_element);
       }
     }
 
@@ -3805,24 +3676,22 @@ var CMIPathsObject = /*#__PURE__*/function (_BaseCMI3) {
       return result;
     }
   }]);
-  return CMIPathsObject;
 }(_common__WEBPACK_IMPORTED_MODULE_1__.BaseCMI);
 
 /**
  * Class representing the AICC cmi.student_data.tries object
  */
 var CMITries = /*#__PURE__*/function (_CMIArray3) {
-  _inherits(CMITries, _CMIArray3);
-  var _super9 = _createSuper(CMITries);
   /**
    * Constructor for inline Tries Array class
    */
   function CMITries() {
     _classCallCheck(this, CMITries);
-    return _super9.call(this, {
+    return _callSuper(this, CMITries, [{
       children: aicc_constants.tries_children
-    });
+    }]);
   }
+  _inherits(CMITries, _CMIArray3);
   return _createClass(CMITries);
 }(_common__WEBPACK_IMPORTED_MODULE_1__.CMIArray);
 
@@ -3832,23 +3701,15 @@ var CMITries = /*#__PURE__*/function (_CMIArray3) {
 var _status2 = /*#__PURE__*/new WeakMap();
 var _time2 = /*#__PURE__*/new WeakMap();
 var CMITriesObject = /*#__PURE__*/function (_BaseCMI4) {
-  _inherits(CMITriesObject, _BaseCMI4);
-  var _super10 = _createSuper(CMITriesObject);
   /**
    * Constructor for AICC Tries object
    */
   function CMITriesObject() {
     var _this7;
     _classCallCheck(this, CMITriesObject);
-    _this7 = _super10.call(this);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this7), _status2, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this7), _time2, {
-      writable: true,
-      value: ''
-    });
+    _this7 = _callSuper(this, CMITriesObject);
+    _classPrivateFieldInitSpec(_this7, _status2, '');
+    _classPrivateFieldInitSpec(_this7, _time2, '');
     _this7.score = new _common__WEBPACK_IMPORTED_MODULE_1__.CMIScore({
       score_children: aicc_constants.score_children,
       score_range: aicc_regex.score_range,
@@ -3863,7 +3724,8 @@ var CMITriesObject = /*#__PURE__*/function (_BaseCMI4) {
   /**
    * Called when the API has been initialized after the CMI has been created
    */
-  _createClass(CMITriesObject, [{
+  _inherits(CMITriesObject, _BaseCMI4);
+  return _createClass(CMITriesObject, [{
     key: "initialize",
     value: function initialize() {
       var _this$score;
@@ -3878,7 +3740,7 @@ var CMITriesObject = /*#__PURE__*/function (_BaseCMI4) {
      * @return {string}
      */
     function get() {
-      return _classPrivateFieldGet(this, _status2);
+      return _classPrivateFieldGet(_status2, this);
     }
 
     /**
@@ -3887,7 +3749,7 @@ var CMITriesObject = /*#__PURE__*/function (_BaseCMI4) {
      */,
     set: function set(status) {
       if (checkAICCValidFormat(status, aicc_regex.CMIStatus2)) {
-        _classPrivateFieldSet(this, _status2, status);
+        _classPrivateFieldSet(_status2, this, status);
       }
     }
 
@@ -3898,7 +3760,7 @@ var CMITriesObject = /*#__PURE__*/function (_BaseCMI4) {
   }, {
     key: "time",
     get: function get() {
-      return _classPrivateFieldGet(this, _time2);
+      return _classPrivateFieldGet(_time2, this);
     }
 
     /**
@@ -3907,7 +3769,7 @@ var CMITriesObject = /*#__PURE__*/function (_BaseCMI4) {
      */,
     set: function set(time) {
       if (checkAICCValidFormat(time, aicc_regex.CMITime)) {
-        _classPrivateFieldSet(this, _time2, time);
+        _classPrivateFieldSet(_time2, this, time);
       }
     }
 
@@ -3934,24 +3796,22 @@ var CMITriesObject = /*#__PURE__*/function (_BaseCMI4) {
       return result;
     }
   }]);
-  return CMITriesObject;
 }(_common__WEBPACK_IMPORTED_MODULE_1__.BaseCMI);
 
 /**
  * Class for cmi.student_data.attempt_records array
  */
 var CMIAttemptRecords = /*#__PURE__*/function (_CMIArray4) {
-  _inherits(CMIAttemptRecords, _CMIArray4);
-  var _super11 = _createSuper(CMIAttemptRecords);
   /**
    * Constructor for inline Tries Array class
    */
   function CMIAttemptRecords() {
     _classCallCheck(this, CMIAttemptRecords);
-    return _super11.call(this, {
+    return _callSuper(this, CMIAttemptRecords, [{
       children: aicc_constants.attempt_records_children
-    });
+    }]);
   }
+  _inherits(CMIAttemptRecords, _CMIArray4);
   return _createClass(CMIAttemptRecords);
 }(_common__WEBPACK_IMPORTED_MODULE_1__.CMIArray);
 
@@ -3960,19 +3820,14 @@ var CMIAttemptRecords = /*#__PURE__*/function (_CMIArray4) {
  */
 var _lesson_status = /*#__PURE__*/new WeakMap();
 var CMIAttemptRecordsObject = /*#__PURE__*/function (_BaseCMI5) {
-  _inherits(CMIAttemptRecordsObject, _BaseCMI5);
-  var _super12 = _createSuper(CMIAttemptRecordsObject);
   /**
    * Constructor for AICC Attempt Records object
    */
   function CMIAttemptRecordsObject() {
     var _this8;
     _classCallCheck(this, CMIAttemptRecordsObject);
-    _this8 = _super12.call(this);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this8), _lesson_status, {
-      writable: true,
-      value: ''
-    });
+    _this8 = _callSuper(this, CMIAttemptRecordsObject);
+    _classPrivateFieldInitSpec(_this8, _lesson_status, '');
     _this8.score = new _common__WEBPACK_IMPORTED_MODULE_1__.CMIScore({
       score_children: aicc_constants.score_children,
       score_range: aicc_regex.score_range,
@@ -3987,7 +3842,8 @@ var CMIAttemptRecordsObject = /*#__PURE__*/function (_BaseCMI5) {
   /**
    * Called when the API has been initialized after the CMI has been created
    */
-  _createClass(CMIAttemptRecordsObject, [{
+  _inherits(CMIAttemptRecordsObject, _BaseCMI5);
+  return _createClass(CMIAttemptRecordsObject, [{
     key: "initialize",
     value: function initialize() {
       var _this$score2;
@@ -4002,7 +3858,7 @@ var CMIAttemptRecordsObject = /*#__PURE__*/function (_BaseCMI5) {
      * @return {string}
      */
     function get() {
-      return _classPrivateFieldGet(this, _lesson_status);
+      return _classPrivateFieldGet(_lesson_status, this);
     }
 
     /**
@@ -4011,7 +3867,7 @@ var CMIAttemptRecordsObject = /*#__PURE__*/function (_BaseCMI5) {
      */,
     set: function set(lesson_status) {
       if (checkAICCValidFormat(lesson_status, aicc_regex.CMIStatus2)) {
-        _classPrivateFieldSet(this, _lesson_status, lesson_status);
+        _classPrivateFieldSet(_lesson_status, this, lesson_status);
       }
     }
 
@@ -4037,7 +3893,6 @@ var CMIAttemptRecordsObject = /*#__PURE__*/function (_BaseCMI5) {
       return result;
     }
   }]);
-  return CMIAttemptRecordsObject;
 }(_common__WEBPACK_IMPORTED_MODULE_1__.BaseCMI);
 
 /**
@@ -4047,30 +3902,20 @@ var _content = /*#__PURE__*/new WeakMap();
 var _location = /*#__PURE__*/new WeakMap();
 var _time3 = /*#__PURE__*/new WeakMap();
 var CMIEvaluationCommentsObject = /*#__PURE__*/function (_BaseCMI6) {
-  _inherits(CMIEvaluationCommentsObject, _BaseCMI6);
-  var _super13 = _createSuper(CMIEvaluationCommentsObject);
   /**
    * Constructor for Evaluation Comments
    */
   function CMIEvaluationCommentsObject() {
     var _this9;
     _classCallCheck(this, CMIEvaluationCommentsObject);
-    _this9 = _super13.call(this);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this9), _content, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this9), _location, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this9), _time3, {
-      writable: true,
-      value: ''
-    });
+    _this9 = _callSuper(this, CMIEvaluationCommentsObject);
+    _classPrivateFieldInitSpec(_this9, _content, '');
+    _classPrivateFieldInitSpec(_this9, _location, '');
+    _classPrivateFieldInitSpec(_this9, _time3, '');
     return _this9;
   }
-  _createClass(CMIEvaluationCommentsObject, [{
+  _inherits(CMIEvaluationCommentsObject, _BaseCMI6);
+  return _createClass(CMIEvaluationCommentsObject, [{
     key: "content",
     get:
     /**
@@ -4078,7 +3923,7 @@ var CMIEvaluationCommentsObject = /*#__PURE__*/function (_BaseCMI6) {
      * @return {string}
      */
     function get() {
-      return _classPrivateFieldGet(this, _content);
+      return _classPrivateFieldGet(_content, this);
     }
 
     /**
@@ -4087,7 +3932,7 @@ var CMIEvaluationCommentsObject = /*#__PURE__*/function (_BaseCMI6) {
      */,
     set: function set(content) {
       if (checkAICCValidFormat(content, aicc_regex.CMIString256)) {
-        _classPrivateFieldSet(this, _content, content);
+        _classPrivateFieldSet(_content, this, content);
       }
     }
 
@@ -4098,7 +3943,7 @@ var CMIEvaluationCommentsObject = /*#__PURE__*/function (_BaseCMI6) {
   }, {
     key: "location",
     get: function get() {
-      return _classPrivateFieldGet(this, _location);
+      return _classPrivateFieldGet(_location, this);
     }
 
     /**
@@ -4107,7 +3952,7 @@ var CMIEvaluationCommentsObject = /*#__PURE__*/function (_BaseCMI6) {
      */,
     set: function set(location) {
       if (checkAICCValidFormat(location, aicc_regex.CMIString256)) {
-        _classPrivateFieldSet(this, _location, location);
+        _classPrivateFieldSet(_location, this, location);
       }
     }
 
@@ -4118,7 +3963,7 @@ var CMIEvaluationCommentsObject = /*#__PURE__*/function (_BaseCMI6) {
   }, {
     key: "time",
     get: function get() {
-      return _classPrivateFieldGet(this, _time3);
+      return _classPrivateFieldGet(_time3, this);
     }
 
     /**
@@ -4127,7 +3972,7 @@ var CMIEvaluationCommentsObject = /*#__PURE__*/function (_BaseCMI6) {
      */,
     set: function set(time) {
       if (checkAICCValidFormat(time, aicc_regex.CMITime)) {
-        _classPrivateFieldSet(this, _time3, time);
+        _classPrivateFieldSet(_time3, this, time);
       }
     }
 
@@ -4154,7 +3999,6 @@ var CMIEvaluationCommentsObject = /*#__PURE__*/function (_BaseCMI6) {
       return result;
     }
   }]);
-  return CMIEvaluationCommentsObject;
 }(_common__WEBPACK_IMPORTED_MODULE_1__.BaseCMI);
 
 /***/ }),
@@ -4168,36 +4012,34 @@ var CMIEvaluationCommentsObject = /*#__PURE__*/function (_BaseCMI6) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "BaseCMI": function() { return /* binding */ BaseCMI; },
-/* harmony export */   "CMIArray": function() { return /* binding */ CMIArray; },
-/* harmony export */   "CMIScore": function() { return /* binding */ CMIScore; },
-/* harmony export */   "checkValidFormat": function() { return /* binding */ checkValidFormat; },
-/* harmony export */   "checkValidRange": function() { return /* binding */ checkValidRange; }
+/* harmony export */   BaseCMI: function() { return /* binding */ BaseCMI; },
+/* harmony export */   CMIArray: function() { return /* binding */ CMIArray; },
+/* harmony export */   CMIScore: function() { return /* binding */ CMIScore; },
+/* harmony export */   checkValidFormat: function() { return /* binding */ checkValidFormat; },
+/* harmony export */   checkValidRange: function() { return /* binding */ checkValidRange; }
 /* harmony export */ });
 /* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../constants/api_constants */ "./src/constants/api_constants.js");
 /* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../constants/error_codes */ "./src/constants/error_codes.js");
 /* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../constants/regex */ "./src/constants/regex.js");
-function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _callSuper(t, o, e) { return o = _getPrototypeOf(o), _possibleConstructorReturn(t, _isNativeReflectConstruct() ? Reflect.construct(o, e || [], _getPrototypeOf(t).constructor) : o.apply(t, e)); }
 function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+function _isNativeReflectConstruct() { try { var t = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); } catch (t) {} return (_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); }
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor); } }
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
 function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
-function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
-function _classPrivateFieldSet(receiver, privateMap, value) { var descriptor = _classExtractFieldDescriptor(receiver, privateMap, "set"); _classApplyDescriptorSet(receiver, descriptor, value); return value; }
-function _classApplyDescriptorSet(receiver, descriptor, value) { if (descriptor.set) { descriptor.set.call(receiver, value); } else { if (!descriptor.writable) { throw new TypeError("attempted to set read only private field"); } descriptor.value = value; } }
-function _classPrivateFieldGet(receiver, privateMap) { var descriptor = _classExtractFieldDescriptor(receiver, privateMap, "get"); return _classApplyDescriptorGet(receiver, descriptor); }
-function _classExtractFieldDescriptor(receiver, privateMap, action) { if (!privateMap.has(receiver)) { throw new TypeError("attempted to " + action + " private field on non-instance"); } return privateMap.get(receiver); }
-function _classApplyDescriptorGet(receiver, descriptor) { if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
+function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
+function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 
 
 
@@ -4262,14 +4104,8 @@ var BaseCMI = /*#__PURE__*/function () {
   function BaseCMI() {
     _classCallCheck(this, BaseCMI);
     _defineProperty(this, "jsonString", false);
-    _classPrivateFieldInitSpec(this, _initialized, {
-      writable: true,
-      value: false
-    });
-    _classPrivateFieldInitSpec(this, _start_time, {
-      writable: true,
-      value: void 0
-    });
+    _classPrivateFieldInitSpec(this, _initialized, false);
+    _classPrivateFieldInitSpec(this, _start_time, void 0);
     if ((this instanceof BaseCMI ? this.constructor : void 0) === BaseCMI) {
       throw new TypeError('Cannot construct BaseCMI instances directly');
     }
@@ -4279,10 +4115,10 @@ var BaseCMI = /*#__PURE__*/function () {
    * Getter for #initialized
    * @return {boolean}
    */
-  _createClass(BaseCMI, [{
+  return _createClass(BaseCMI, [{
     key: "initialized",
     get: function get() {
-      return _classPrivateFieldGet(this, _initialized);
+      return _classPrivateFieldGet(_initialized, this);
     }
 
     /**
@@ -4292,7 +4128,7 @@ var BaseCMI = /*#__PURE__*/function () {
   }, {
     key: "start_time",
     get: function get() {
-      return _classPrivateFieldGet(this, _start_time);
+      return _classPrivateFieldGet(_start_time, this);
     }
 
     /**
@@ -4301,7 +4137,7 @@ var BaseCMI = /*#__PURE__*/function () {
   }, {
     key: "initialize",
     value: function initialize() {
-      _classPrivateFieldSet(this, _initialized, true);
+      _classPrivateFieldSet(_initialized, this, true);
     }
 
     /**
@@ -4311,10 +4147,9 @@ var BaseCMI = /*#__PURE__*/function () {
   }, {
     key: "setStartTime",
     value: function setStartTime() {
-      _classPrivateFieldSet(this, _start_time, new Date().getTime());
+      _classPrivateFieldSet(_start_time, this, new Date().getTime());
     }
   }]);
-  return BaseCMI;
 }();
 
 /**
@@ -4330,9 +4165,7 @@ var _error_class = /*#__PURE__*/new WeakMap();
 var _raw = /*#__PURE__*/new WeakMap();
 var _min = /*#__PURE__*/new WeakMap();
 var _max = /*#__PURE__*/new WeakMap();
-var CMIScore = /*#__PURE__*/function (_BaseCMI) {
-  _inherits(CMIScore, _BaseCMI);
-  var _super = _createSuper(CMIScore);
+var CMIScore = /*#__PURE__*/function (_BaseCMI2) {
   /**
    * Constructor for *.score
    * @param {string} score_children
@@ -4355,58 +4188,29 @@ var CMIScore = /*#__PURE__*/function (_BaseCMI) {
       decimalRegex = _ref.decimalRegex,
       errorClass = _ref.errorClass;
     _classCallCheck(this, CMIScore);
-    _this = _super.call(this);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _children2, {
-      writable: true,
-      value: void 0
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _score_range, {
-      writable: true,
-      value: void 0
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _invalid_error_code, {
-      writable: true,
-      value: void 0
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _invalid_type_code, {
-      writable: true,
-      value: void 0
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _invalid_range_code, {
-      writable: true,
-      value: void 0
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _decimal_regex, {
-      writable: true,
-      value: void 0
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _error_class, {
-      writable: true,
-      value: void 0
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _raw, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _min, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _max, {
-      writable: true,
-      value: void 0
-    });
-    _classPrivateFieldSet(_assertThisInitialized(_this), _children2, score_children || scorm12_constants.score_children);
-    _classPrivateFieldSet(_assertThisInitialized(_this), _score_range, !score_range ? false : scorm12_regex.score_range);
-    _classPrivateFieldSet(_assertThisInitialized(_this), _max, max || max === '' ? max : '100');
-    _classPrivateFieldSet(_assertThisInitialized(_this), _invalid_error_code, invalidErrorCode || scorm12_error_codes.INVALID_SET_VALUE);
-    _classPrivateFieldSet(_assertThisInitialized(_this), _invalid_type_code, invalidTypeCode || scorm12_error_codes.TYPE_MISMATCH);
-    _classPrivateFieldSet(_assertThisInitialized(_this), _invalid_range_code, invalidRangeCode || scorm12_error_codes.VALUE_OUT_OF_RANGE);
-    _classPrivateFieldSet(_assertThisInitialized(_this), _decimal_regex, decimalRegex || scorm12_regex.CMIDecimal);
-    _classPrivateFieldSet(_assertThisInitialized(_this), _error_class, errorClass);
+    _this = _callSuper(this, CMIScore);
+    _classPrivateFieldInitSpec(_this, _children2, void 0);
+    _classPrivateFieldInitSpec(_this, _score_range, void 0);
+    _classPrivateFieldInitSpec(_this, _invalid_error_code, void 0);
+    _classPrivateFieldInitSpec(_this, _invalid_type_code, void 0);
+    _classPrivateFieldInitSpec(_this, _invalid_range_code, void 0);
+    _classPrivateFieldInitSpec(_this, _decimal_regex, void 0);
+    _classPrivateFieldInitSpec(_this, _error_class, void 0);
+    _classPrivateFieldInitSpec(_this, _raw, '');
+    _classPrivateFieldInitSpec(_this, _min, '');
+    _classPrivateFieldInitSpec(_this, _max, void 0);
+    _classPrivateFieldSet(_children2, _this, score_children || scorm12_constants.score_children);
+    _classPrivateFieldSet(_score_range, _this, !score_range ? false : scorm12_regex.score_range);
+    _classPrivateFieldSet(_max, _this, max || max === '' ? max : '100');
+    _classPrivateFieldSet(_invalid_error_code, _this, invalidErrorCode || scorm12_error_codes.INVALID_SET_VALUE);
+    _classPrivateFieldSet(_invalid_type_code, _this, invalidTypeCode || scorm12_error_codes.TYPE_MISMATCH);
+    _classPrivateFieldSet(_invalid_range_code, _this, invalidRangeCode || scorm12_error_codes.VALUE_OUT_OF_RANGE);
+    _classPrivateFieldSet(_decimal_regex, _this, decimalRegex || scorm12_regex.CMIDecimal);
+    _classPrivateFieldSet(_error_class, _this, errorClass);
     return _this;
   }
-  _createClass(CMIScore, [{
+  _inherits(CMIScore, _BaseCMI2);
+  return _createClass(CMIScore, [{
     key: "_children",
     get:
     /**
@@ -4415,7 +4219,7 @@ var CMIScore = /*#__PURE__*/function (_BaseCMI) {
      * @private
      */
     function get() {
-      return _classPrivateFieldGet(this, _children2);
+      return _classPrivateFieldGet(_children2, this);
     }
 
     /**
@@ -4424,7 +4228,7 @@ var CMIScore = /*#__PURE__*/function (_BaseCMI) {
      * @private
      */,
     set: function set(_children) {
-      throw new (_classPrivateFieldGet(this, _error_class).prototype.constructor)(_classPrivateFieldGet(this, _invalid_error_code));
+      throw new (_classPrivateFieldGet(_error_class, this).prototype.constructor)(_classPrivateFieldGet(_invalid_error_code, this));
     }
 
     /**
@@ -4434,7 +4238,7 @@ var CMIScore = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "raw",
     get: function get() {
-      return _classPrivateFieldGet(this, _raw);
+      return _classPrivateFieldGet(_raw, this);
     }
 
     /**
@@ -4442,8 +4246,8 @@ var CMIScore = /*#__PURE__*/function (_BaseCMI) {
      * @param {string} raw
      */,
     set: function set(raw) {
-      if (checkValidFormat(raw, _classPrivateFieldGet(this, _decimal_regex), _classPrivateFieldGet(this, _invalid_type_code), _classPrivateFieldGet(this, _error_class)) && (!_classPrivateFieldGet(this, _score_range) || checkValidRange(raw, _classPrivateFieldGet(this, _score_range), _classPrivateFieldGet(this, _invalid_range_code), _classPrivateFieldGet(this, _error_class)))) {
-        _classPrivateFieldSet(this, _raw, raw);
+      if (checkValidFormat(raw, _classPrivateFieldGet(_decimal_regex, this), _classPrivateFieldGet(_invalid_type_code, this), _classPrivateFieldGet(_error_class, this)) && (!_classPrivateFieldGet(_score_range, this) || checkValidRange(raw, _classPrivateFieldGet(_score_range, this), _classPrivateFieldGet(_invalid_range_code, this), _classPrivateFieldGet(_error_class, this)))) {
+        _classPrivateFieldSet(_raw, this, raw);
       }
     }
 
@@ -4454,7 +4258,7 @@ var CMIScore = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "min",
     get: function get() {
-      return _classPrivateFieldGet(this, _min);
+      return _classPrivateFieldGet(_min, this);
     }
 
     /**
@@ -4462,8 +4266,8 @@ var CMIScore = /*#__PURE__*/function (_BaseCMI) {
      * @param {string} min
      */,
     set: function set(min) {
-      if (checkValidFormat(min, _classPrivateFieldGet(this, _decimal_regex), _classPrivateFieldGet(this, _invalid_type_code), _classPrivateFieldGet(this, _error_class)) && (!_classPrivateFieldGet(this, _score_range) || checkValidRange(min, _classPrivateFieldGet(this, _score_range), _classPrivateFieldGet(this, _invalid_range_code), _classPrivateFieldGet(this, _error_class)))) {
-        _classPrivateFieldSet(this, _min, min);
+      if (checkValidFormat(min, _classPrivateFieldGet(_decimal_regex, this), _classPrivateFieldGet(_invalid_type_code, this), _classPrivateFieldGet(_error_class, this)) && (!_classPrivateFieldGet(_score_range, this) || checkValidRange(min, _classPrivateFieldGet(_score_range, this), _classPrivateFieldGet(_invalid_range_code, this), _classPrivateFieldGet(_error_class, this)))) {
+        _classPrivateFieldSet(_min, this, min);
       }
     }
 
@@ -4474,7 +4278,7 @@ var CMIScore = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "max",
     get: function get() {
-      return _classPrivateFieldGet(this, _max);
+      return _classPrivateFieldGet(_max, this);
     }
 
     /**
@@ -4482,8 +4286,8 @@ var CMIScore = /*#__PURE__*/function (_BaseCMI) {
      * @param {string} max
      */,
     set: function set(max) {
-      if (checkValidFormat(max, _classPrivateFieldGet(this, _decimal_regex), _classPrivateFieldGet(this, _invalid_type_code), _classPrivateFieldGet(this, _error_class)) && (!_classPrivateFieldGet(this, _score_range) || checkValidRange(max, _classPrivateFieldGet(this, _score_range), _classPrivateFieldGet(this, _invalid_range_code), _classPrivateFieldGet(this, _error_class)))) {
-        _classPrivateFieldSet(this, _max, max);
+      if (checkValidFormat(max, _classPrivateFieldGet(_decimal_regex, this), _classPrivateFieldGet(_invalid_type_code, this), _classPrivateFieldGet(_error_class, this)) && (!_classPrivateFieldGet(_score_range, this) || checkValidRange(max, _classPrivateFieldGet(_score_range, this), _classPrivateFieldGet(_invalid_range_code, this), _classPrivateFieldGet(_error_class, this)))) {
+        _classPrivateFieldSet(_max, this, max);
       }
     }
 
@@ -4504,7 +4308,6 @@ var CMIScore = /*#__PURE__*/function (_BaseCMI) {
       return result;
     }
   }]);
-  return CMIScore;
 }(BaseCMI);
 
 /**
@@ -4513,9 +4316,7 @@ var CMIScore = /*#__PURE__*/function (_BaseCMI) {
 var _errorCode = /*#__PURE__*/new WeakMap();
 var _errorClass = /*#__PURE__*/new WeakMap();
 var _children3 = /*#__PURE__*/new WeakMap();
-var CMIArray = /*#__PURE__*/function (_BaseCMI2) {
-  _inherits(CMIArray, _BaseCMI2);
-  var _super2 = _createSuper(CMIArray);
+var CMIArray = /*#__PURE__*/function (_BaseCMI3) {
   /**
    * Constructor cmi *.n arrays
    * @param {string} children
@@ -4528,26 +4329,18 @@ var CMIArray = /*#__PURE__*/function (_BaseCMI2) {
       errorCode = _ref2.errorCode,
       errorClass = _ref2.errorClass;
     _classCallCheck(this, CMIArray);
-    _this2 = _super2.call(this);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this2), _errorCode, {
-      writable: true,
-      value: void 0
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this2), _errorClass, {
-      writable: true,
-      value: void 0
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this2), _children3, {
-      writable: true,
-      value: void 0
-    });
-    _classPrivateFieldSet(_assertThisInitialized(_this2), _children3, children);
-    _classPrivateFieldSet(_assertThisInitialized(_this2), _errorCode, errorCode);
-    _classPrivateFieldSet(_assertThisInitialized(_this2), _errorClass, errorClass);
+    _this2 = _callSuper(this, CMIArray);
+    _classPrivateFieldInitSpec(_this2, _errorCode, void 0);
+    _classPrivateFieldInitSpec(_this2, _errorClass, void 0);
+    _classPrivateFieldInitSpec(_this2, _children3, void 0);
+    _classPrivateFieldSet(_children3, _this2, children);
+    _classPrivateFieldSet(_errorCode, _this2, errorCode);
+    _classPrivateFieldSet(_errorClass, _this2, errorClass);
     _this2.childArray = [];
     return _this2;
   }
-  _createClass(CMIArray, [{
+  _inherits(CMIArray, _BaseCMI3);
+  return _createClass(CMIArray, [{
     key: "_children",
     get:
     /**
@@ -4555,7 +4348,7 @@ var CMIArray = /*#__PURE__*/function (_BaseCMI2) {
      * @return {*}
      */
     function get() {
-      return _classPrivateFieldGet(this, _children3);
+      return _classPrivateFieldGet(_children3, this);
     }
 
     /**
@@ -4563,7 +4356,7 @@ var CMIArray = /*#__PURE__*/function (_BaseCMI2) {
      * @param {string} _children
      */,
     set: function set(_children) {
-      throw new (_classPrivateFieldGet(this, _errorClass).prototype.constructor)(_classPrivateFieldGet(this, _errorCode));
+      throw new (_classPrivateFieldGet(_errorClass, this).prototype.constructor)(_classPrivateFieldGet(_errorCode, this));
     }
 
     /**
@@ -4581,7 +4374,7 @@ var CMIArray = /*#__PURE__*/function (_BaseCMI2) {
      * @param {number} _count
      */,
     set: function set(_count) {
-      throw new (_classPrivateFieldGet(this, _errorClass).prototype.constructor)(_classPrivateFieldGet(this, _errorCode));
+      throw new (_classPrivateFieldGet(_errorClass, this).prototype.constructor)(_classPrivateFieldGet(_errorCode, this));
     }
 
     /**
@@ -4600,7 +4393,6 @@ var CMIArray = /*#__PURE__*/function (_BaseCMI2) {
       return result;
     }
   }]);
-  return CMIArray;
 }(BaseCMI);
 
 /***/ }),
@@ -4614,18 +4406,18 @@ var CMIArray = /*#__PURE__*/function (_BaseCMI2) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "CMI": function() { return /* binding */ CMI; },
-/* harmony export */   "CMIInteractionsCorrectResponsesObject": function() { return /* binding */ CMIInteractionsCorrectResponsesObject; },
-/* harmony export */   "CMIInteractionsObject": function() { return /* binding */ CMIInteractionsObject; },
-/* harmony export */   "CMIInteractionsObjectivesObject": function() { return /* binding */ CMIInteractionsObjectivesObject; },
-/* harmony export */   "CMIObjectivesObject": function() { return /* binding */ CMIObjectivesObject; },
-/* harmony export */   "CMIStudentData": function() { return /* binding */ CMIStudentData; },
-/* harmony export */   "CMIStudentPreference": function() { return /* binding */ CMIStudentPreference; },
-/* harmony export */   "NAV": function() { return /* binding */ NAV; },
-/* harmony export */   "check12ValidFormat": function() { return /* binding */ check12ValidFormat; },
-/* harmony export */   "check12ValidRange": function() { return /* binding */ check12ValidRange; },
-/* harmony export */   "throwReadOnlyError": function() { return /* binding */ throwReadOnlyError; },
-/* harmony export */   "throwWriteOnlyError": function() { return /* binding */ throwWriteOnlyError; }
+/* harmony export */   CMI: function() { return /* binding */ CMI; },
+/* harmony export */   CMIInteractionsCorrectResponsesObject: function() { return /* binding */ CMIInteractionsCorrectResponsesObject; },
+/* harmony export */   CMIInteractionsObject: function() { return /* binding */ CMIInteractionsObject; },
+/* harmony export */   CMIInteractionsObjectivesObject: function() { return /* binding */ CMIInteractionsObjectivesObject; },
+/* harmony export */   CMIObjectivesObject: function() { return /* binding */ CMIObjectivesObject; },
+/* harmony export */   CMIStudentData: function() { return /* binding */ CMIStudentData; },
+/* harmony export */   CMIStudentPreference: function() { return /* binding */ CMIStudentPreference; },
+/* harmony export */   NAV: function() { return /* binding */ NAV; },
+/* harmony export */   check12ValidFormat: function() { return /* binding */ check12ValidFormat; },
+/* harmony export */   check12ValidRange: function() { return /* binding */ check12ValidRange; },
+/* harmony export */   throwReadOnlyError: function() { return /* binding */ throwReadOnlyError; },
+/* harmony export */   throwWriteOnlyError: function() { return /* binding */ throwWriteOnlyError; }
 /* harmony export */ });
 /* harmony import */ var _common__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./common */ "./src/cmi/common.js");
 /* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../constants/api_constants */ "./src/constants/api_constants.js");
@@ -4633,29 +4425,27 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../constants/regex */ "./src/constants/regex.js");
 /* harmony import */ var _exceptions__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../exceptions */ "./src/exceptions.js");
 /* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../utilities */ "./src/utilities.js");
-function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor); } }
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-function _get() { if (typeof Reflect !== "undefined" && Reflect.get) { _get = Reflect.get.bind(); } else { _get = function _get(target, property, receiver) { var base = _superPropBase(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(arguments.length < 3 ? target : receiver); } return desc.value; }; } return _get.apply(this, arguments); }
-function _superPropBase(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf(object); if (object === null) break; } return object; }
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+function _callSuper(t, o, e) { return o = _getPrototypeOf(o), _possibleConstructorReturn(t, _isNativeReflectConstruct() ? Reflect.construct(o, e || [], _getPrototypeOf(t).constructor) : o.apply(t, e)); }
 function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+function _isNativeReflectConstruct() { try { var t = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); } catch (t) {} return (_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); }
+function _get() { if (typeof Reflect !== "undefined" && Reflect.get) { _get = Reflect.get.bind(); } else { _get = function _get(target, property, receiver) { var base = _superPropBase(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(arguments.length < 3 ? target : receiver); } return desc.value; }; } return _get.apply(this, arguments); }
+function _superPropBase(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf(object); if (object === null) break; } return object; }
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
-function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
-function _classPrivateFieldGet(receiver, privateMap) { var descriptor = _classExtractFieldDescriptor(receiver, privateMap, "get"); return _classApplyDescriptorGet(receiver, descriptor); }
-function _classApplyDescriptorGet(receiver, descriptor) { if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
-function _classPrivateFieldSet(receiver, privateMap, value) { var descriptor = _classExtractFieldDescriptor(receiver, privateMap, "set"); _classApplyDescriptorSet(receiver, descriptor, value); return value; }
-function _classExtractFieldDescriptor(receiver, privateMap, action) { if (!privateMap.has(receiver)) { throw new TypeError("attempted to " + action + " private field on non-instance"); } return privateMap.get(receiver); }
-function _classApplyDescriptorSet(receiver, descriptor, value) { if (descriptor.set) { descriptor.set.call(receiver, value); } else { if (!descriptor.writable) { throw new TypeError("attempted to set read only private field"); } descriptor.value = value; } }
+function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
+function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
+function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 
 
 
@@ -4719,8 +4509,6 @@ var _launch_data = /*#__PURE__*/new WeakMap();
 var _comments = /*#__PURE__*/new WeakMap();
 var _comments_from_lms = /*#__PURE__*/new WeakMap();
 var CMI = /*#__PURE__*/function (_BaseCMI) {
-  _inherits(CMI, _BaseCMI);
-  var _super = _createSuper(CMI);
   /**
    * Constructor for the SCORM 1.2 cmi object
    * @param {string} cmi_children
@@ -4730,30 +4518,15 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   function CMI(cmi_children, student_data, initialized) {
     var _this;
     _classCallCheck(this, CMI);
-    _this = _super.call(this);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _children2, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _version2, {
-      writable: true,
-      value: '3.4'
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _launch_data, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _comments, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _comments_from_lms, {
-      writable: true,
-      value: ''
-    });
-    _defineProperty(_assertThisInitialized(_this), "student_data", null);
+    _this = _callSuper(this, CMI);
+    _classPrivateFieldInitSpec(_this, _children2, '');
+    _classPrivateFieldInitSpec(_this, _version2, '3.4');
+    _classPrivateFieldInitSpec(_this, _launch_data, '');
+    _classPrivateFieldInitSpec(_this, _comments, '');
+    _classPrivateFieldInitSpec(_this, _comments_from_lms, '');
+    _defineProperty(_this, "student_data", null);
     if (initialized) _this.initialize();
-    _classPrivateFieldSet(_assertThisInitialized(_this), _children2, cmi_children ? cmi_children : scorm12_constants.cmi_children);
+    _classPrivateFieldSet(_children2, _this, cmi_children ? cmi_children : scorm12_constants.cmi_children);
     _this.core = new CMICore();
     _this.objectives = new CMIObjectives();
     _this.student_data = student_data ? student_data : new CMIStudentData();
@@ -4765,7 +4538,8 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   /**
    * Called when the API has been initialized after the CMI has been created
    */
-  _createClass(CMI, [{
+  _inherits(CMI, _BaseCMI);
+  return _createClass(CMI, [{
     key: "initialize",
     value: function initialize() {
       var _this$core, _this$objectives, _this$student_data, _this$student_prefere, _this$interactions;
@@ -4820,7 +4594,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "_version",
     get: function get() {
-      return _classPrivateFieldGet(this, _version2);
+      return _classPrivateFieldGet(_version2, this);
     }
 
     /**
@@ -4838,7 +4612,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "_children",
     get: function get() {
-      return _classPrivateFieldGet(this, _children2);
+      return _classPrivateFieldGet(_children2, this);
     }
 
     /**
@@ -4877,7 +4651,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "launch_data",
     get: function get() {
-      return _classPrivateFieldGet(this, _launch_data);
+      return _classPrivateFieldGet(_launch_data, this);
     }
 
     /**
@@ -4885,7 +4659,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
      * @param {string} launch_data
      */,
     set: function set(launch_data) {
-      !this.initialized ? _classPrivateFieldSet(this, _launch_data, launch_data) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_launch_data, this, launch_data) : throwReadOnlyError();
     }
 
     /**
@@ -4895,7 +4669,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "comments",
     get: function get() {
-      return _classPrivateFieldGet(this, _comments);
+      return _classPrivateFieldGet(_comments, this);
     }
 
     /**
@@ -4904,7 +4678,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
      */,
     set: function set(comments) {
       if (check12ValidFormat(comments, scorm12_regex.CMIString4096, true)) {
-        _classPrivateFieldSet(this, _comments, comments);
+        _classPrivateFieldSet(_comments, this, comments);
       }
     }
 
@@ -4915,7 +4689,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "comments_from_lms",
     get: function get() {
-      return _classPrivateFieldGet(this, _comments_from_lms);
+      return _classPrivateFieldGet(_comments_from_lms, this);
     }
 
     /**
@@ -4923,7 +4697,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
      * @param {string} comments_from_lms
      */,
     set: function set(comments_from_lms) {
-      !this.initialized ? _classPrivateFieldSet(this, _comments_from_lms, comments_from_lms) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_comments_from_lms, this, comments_from_lms) : throwReadOnlyError();
     }
 
     /**
@@ -4937,7 +4711,6 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
       return this.core.getCurrentTotalTime(this.start_time);
     }
   }]);
-  return CMI;
 }(_common__WEBPACK_IMPORTED_MODULE_0__.BaseCMI);
 
 /**
@@ -4957,63 +4730,25 @@ var _exit = /*#__PURE__*/new WeakMap();
 var _session_time = /*#__PURE__*/new WeakMap();
 var _suspend_data = /*#__PURE__*/new WeakMap();
 var CMICore = /*#__PURE__*/function (_BaseCMI2) {
-  _inherits(CMICore, _BaseCMI2);
-  var _super2 = _createSuper(CMICore);
   /**
    * Constructor for cmi.core
    */
   function CMICore() {
     var _this2;
     _classCallCheck(this, CMICore);
-    _this2 = _super2.call(this);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this2), _children3, {
-      writable: true,
-      value: scorm12_constants.core_children
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this2), _student_id, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this2), _student_name, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this2), _lesson_location, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this2), _credit, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this2), _lesson_status, {
-      writable: true,
-      value: 'not attempted'
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this2), _entry, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this2), _total_time, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this2), _lesson_mode, {
-      writable: true,
-      value: 'normal'
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this2), _exit, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this2), _session_time, {
-      writable: true,
-      value: '00:00:00'
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this2), _suspend_data, {
-      writable: true,
-      value: ''
-    });
+    _this2 = _callSuper(this, CMICore);
+    _classPrivateFieldInitSpec(_this2, _children3, scorm12_constants.core_children);
+    _classPrivateFieldInitSpec(_this2, _student_id, '');
+    _classPrivateFieldInitSpec(_this2, _student_name, '');
+    _classPrivateFieldInitSpec(_this2, _lesson_location, '');
+    _classPrivateFieldInitSpec(_this2, _credit, '');
+    _classPrivateFieldInitSpec(_this2, _lesson_status, 'not attempted');
+    _classPrivateFieldInitSpec(_this2, _entry, '');
+    _classPrivateFieldInitSpec(_this2, _total_time, '');
+    _classPrivateFieldInitSpec(_this2, _lesson_mode, 'normal');
+    _classPrivateFieldInitSpec(_this2, _exit, '');
+    _classPrivateFieldInitSpec(_this2, _session_time, '00:00:00');
+    _classPrivateFieldInitSpec(_this2, _suspend_data, '');
     _this2.score = new _common__WEBPACK_IMPORTED_MODULE_0__.CMIScore({
       score_children: scorm12_constants.score_children,
       score_range: scorm12_regex.score_range,
@@ -5028,7 +4763,8 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
   /**
    * Called when the API has been initialized after the CMI has been created
    */
-  _createClass(CMICore, [{
+  _inherits(CMICore, _BaseCMI2);
+  return _createClass(CMICore, [{
     key: "initialize",
     value: function initialize() {
       var _this$score;
@@ -5044,7 +4780,7 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
      * @private
      */
     function get() {
-      return _classPrivateFieldGet(this, _children3);
+      return _classPrivateFieldGet(_children3, this);
     }
 
     /**
@@ -5063,7 +4799,7 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "student_id",
     get: function get() {
-      return _classPrivateFieldGet(this, _student_id);
+      return _classPrivateFieldGet(_student_id, this);
     }
 
     /**
@@ -5071,7 +4807,7 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
      * @param {string} student_id
      */,
     set: function set(student_id) {
-      !this.initialized ? _classPrivateFieldSet(this, _student_id, student_id) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_student_id, this, student_id) : throwReadOnlyError();
     }
 
     /**
@@ -5081,7 +4817,7 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "student_name",
     get: function get() {
-      return _classPrivateFieldGet(this, _student_name);
+      return _classPrivateFieldGet(_student_name, this);
     }
 
     /**
@@ -5089,7 +4825,7 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
      * @param {string} student_name
      */,
     set: function set(student_name) {
-      !this.initialized ? _classPrivateFieldSet(this, _student_name, student_name) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_student_name, this, student_name) : throwReadOnlyError();
     }
 
     /**
@@ -5099,7 +4835,7 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "lesson_location",
     get: function get() {
-      return _classPrivateFieldGet(this, _lesson_location);
+      return _classPrivateFieldGet(_lesson_location, this);
     }
 
     /**
@@ -5108,7 +4844,7 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
      */,
     set: function set(lesson_location) {
       if (check12ValidFormat(lesson_location, scorm12_regex.CMIString256, true)) {
-        _classPrivateFieldSet(this, _lesson_location, lesson_location);
+        _classPrivateFieldSet(_lesson_location, this, lesson_location);
       }
     }
 
@@ -5119,7 +4855,7 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "credit",
     get: function get() {
-      return _classPrivateFieldGet(this, _credit);
+      return _classPrivateFieldGet(_credit, this);
     }
 
     /**
@@ -5127,7 +4863,7 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
      * @param {string} credit
      */,
     set: function set(credit) {
-      !this.initialized ? _classPrivateFieldSet(this, _credit, credit) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_credit, this, credit) : throwReadOnlyError();
     }
 
     /**
@@ -5137,7 +4873,7 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "lesson_status",
     get: function get() {
-      return _classPrivateFieldGet(this, _lesson_status);
+      return _classPrivateFieldGet(_lesson_status, this);
     }
 
     /**
@@ -5147,11 +4883,11 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
     set: function set(lesson_status) {
       if (this.initialized) {
         if (check12ValidFormat(lesson_status, scorm12_regex.CMIStatus)) {
-          _classPrivateFieldSet(this, _lesson_status, lesson_status);
+          _classPrivateFieldSet(_lesson_status, this, lesson_status);
         }
       } else {
         if (check12ValidFormat(lesson_status, scorm12_regex.CMIStatus2)) {
-          _classPrivateFieldSet(this, _lesson_status, lesson_status);
+          _classPrivateFieldSet(_lesson_status, this, lesson_status);
         }
       }
     }
@@ -5163,7 +4899,7 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "entry",
     get: function get() {
-      return _classPrivateFieldGet(this, _entry);
+      return _classPrivateFieldGet(_entry, this);
     }
 
     /**
@@ -5171,7 +4907,7 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
      * @param {string} entry
      */,
     set: function set(entry) {
-      !this.initialized ? _classPrivateFieldSet(this, _entry, entry) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_entry, this, entry) : throwReadOnlyError();
     }
 
     /**
@@ -5181,7 +4917,7 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "total_time",
     get: function get() {
-      return _classPrivateFieldGet(this, _total_time);
+      return _classPrivateFieldGet(_total_time, this);
     }
 
     /**
@@ -5189,7 +4925,7 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
      * @param {string} total_time
      */,
     set: function set(total_time) {
-      !this.initialized ? _classPrivateFieldSet(this, _total_time, total_time) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_total_time, this, total_time) : throwReadOnlyError();
     }
 
     /**
@@ -5199,7 +4935,7 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "lesson_mode",
     get: function get() {
-      return _classPrivateFieldGet(this, _lesson_mode);
+      return _classPrivateFieldGet(_lesson_mode, this);
     }
 
     /**
@@ -5207,7 +4943,7 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
      * @param {string} lesson_mode
      */,
     set: function set(lesson_mode) {
-      !this.initialized ? _classPrivateFieldSet(this, _lesson_mode, lesson_mode) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_lesson_mode, this, lesson_mode) : throwReadOnlyError();
     }
 
     /**
@@ -5217,7 +4953,7 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "exit",
     get: function get() {
-      return !this.jsonString ? throwWriteOnlyError() : _classPrivateFieldGet(this, _exit);
+      return !this.jsonString ? throwWriteOnlyError() : _classPrivateFieldGet(_exit, this);
     }
 
     /**
@@ -5226,7 +4962,7 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
      */,
     set: function set(exit) {
       if (check12ValidFormat(exit, scorm12_regex.CMIExit, true)) {
-        _classPrivateFieldSet(this, _exit, exit);
+        _classPrivateFieldSet(_exit, this, exit);
       }
     }
 
@@ -5237,7 +4973,7 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "session_time",
     get: function get() {
-      return !this.jsonString ? throwWriteOnlyError() : _classPrivateFieldGet(this, _session_time);
+      return !this.jsonString ? throwWriteOnlyError() : _classPrivateFieldGet(_session_time, this);
     }
 
     /**
@@ -5246,7 +4982,7 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
      */,
     set: function set(session_time) {
       if (check12ValidFormat(session_time, scorm12_regex.CMITimespan)) {
-        _classPrivateFieldSet(this, _session_time, session_time);
+        _classPrivateFieldSet(_session_time, this, session_time);
       }
     }
 
@@ -5257,7 +4993,7 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "suspend_data",
     get: function get() {
-      return _classPrivateFieldGet(this, _suspend_data);
+      return _classPrivateFieldGet(_suspend_data, this);
     }
 
     /**
@@ -5266,7 +5002,7 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
      */,
     set: function set(suspend_data) {
       if (check12ValidFormat(suspend_data, scorm12_regex.CMIString4096, true)) {
-        _classPrivateFieldSet(this, _suspend_data, suspend_data);
+        _classPrivateFieldSet(_suspend_data, this, suspend_data);
       }
     }
 
@@ -5278,13 +5014,13 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "getCurrentTotalTime",
     value: function getCurrentTotalTime(start_time) {
-      var sessionTime = _classPrivateFieldGet(this, _session_time);
+      var sessionTime = _classPrivateFieldGet(_session_time, this);
       var startTime = start_time;
       if (typeof startTime !== 'undefined' && startTime !== null) {
         var seconds = new Date().getTime() - startTime;
         sessionTime = _utilities__WEBPACK_IMPORTED_MODULE_5__.getSecondsAsHHMMSS(seconds / 1000);
       }
-      return _utilities__WEBPACK_IMPORTED_MODULE_5__.addHHMMSSTimeStrings(_classPrivateFieldGet(this, _total_time), sessionTime, new RegExp(scorm12_regex.CMITimespan));
+      return _utilities__WEBPACK_IMPORTED_MODULE_5__.addHHMMSSTimeStrings(_classPrivateFieldGet(_total_time, this), sessionTime, new RegExp(scorm12_regex.CMITimespan));
     }
 
     /**
@@ -5325,26 +5061,24 @@ var CMICore = /*#__PURE__*/function (_BaseCMI2) {
       return result;
     }
   }]);
-  return CMICore;
 }(_common__WEBPACK_IMPORTED_MODULE_0__.BaseCMI);
 /**
  * Class representing SCORM 1.2's cmi.objectives object
  * @extends CMIArray
  */
 var CMIObjectives = /*#__PURE__*/function (_CMIArray) {
-  _inherits(CMIObjectives, _CMIArray);
-  var _super3 = _createSuper(CMIObjectives);
   /**
    * Constructor for cmi.objectives
    */
   function CMIObjectives() {
     _classCallCheck(this, CMIObjectives);
-    return _super3.call(this, {
+    return _callSuper(this, CMIObjectives, [{
       children: scorm12_constants.objectives_children,
       errorCode: scorm12_error_codes.INVALID_SET_VALUE,
       errorClass: _exceptions__WEBPACK_IMPORTED_MODULE_4__.Scorm12ValidationError
-    });
+    }]);
   }
+  _inherits(CMIObjectives, _CMIArray);
   return _createClass(CMIObjectives);
 }(_common__WEBPACK_IMPORTED_MODULE_0__.CMIArray);
 /**
@@ -5356,8 +5090,6 @@ var _mastery_score = /*#__PURE__*/new WeakMap();
 var _max_time_allowed = /*#__PURE__*/new WeakMap();
 var _time_limit_action = /*#__PURE__*/new WeakMap();
 var CMIStudentData = /*#__PURE__*/function (_BaseCMI3) {
-  _inherits(CMIStudentData, _BaseCMI3);
-  var _super4 = _createSuper(CMIStudentData);
   /**
    * Constructor for cmi.student_data
    * @param {string} student_data_children
@@ -5365,24 +5097,12 @@ var CMIStudentData = /*#__PURE__*/function (_BaseCMI3) {
   function CMIStudentData(student_data_children) {
     var _this3;
     _classCallCheck(this, CMIStudentData);
-    _this3 = _super4.call(this);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this3), _children4, {
-      writable: true,
-      value: void 0
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this3), _mastery_score, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this3), _max_time_allowed, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this3), _time_limit_action, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldSet(_assertThisInitialized(_this3), _children4, student_data_children ? student_data_children : scorm12_constants.student_data_children);
+    _this3 = _callSuper(this, CMIStudentData);
+    _classPrivateFieldInitSpec(_this3, _children4, void 0);
+    _classPrivateFieldInitSpec(_this3, _mastery_score, '');
+    _classPrivateFieldInitSpec(_this3, _max_time_allowed, '');
+    _classPrivateFieldInitSpec(_this3, _time_limit_action, '');
+    _classPrivateFieldSet(_children4, _this3, student_data_children ? student_data_children : scorm12_constants.student_data_children);
     return _this3;
   }
 
@@ -5391,10 +5111,11 @@ var CMIStudentData = /*#__PURE__*/function (_BaseCMI3) {
    * @return {*}
    * @private
    */
-  _createClass(CMIStudentData, [{
+  _inherits(CMIStudentData, _BaseCMI3);
+  return _createClass(CMIStudentData, [{
     key: "_children",
     get: function get() {
-      return _classPrivateFieldGet(this, _children4);
+      return _classPrivateFieldGet(_children4, this);
     }
 
     /**
@@ -5413,7 +5134,7 @@ var CMIStudentData = /*#__PURE__*/function (_BaseCMI3) {
   }, {
     key: "mastery_score",
     get: function get() {
-      return _classPrivateFieldGet(this, _mastery_score);
+      return _classPrivateFieldGet(_mastery_score, this);
     }
 
     /**
@@ -5421,7 +5142,7 @@ var CMIStudentData = /*#__PURE__*/function (_BaseCMI3) {
      * @param {string} mastery_score
      */,
     set: function set(mastery_score) {
-      !this.initialized ? _classPrivateFieldSet(this, _mastery_score, mastery_score) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_mastery_score, this, mastery_score) : throwReadOnlyError();
     }
 
     /**
@@ -5431,7 +5152,7 @@ var CMIStudentData = /*#__PURE__*/function (_BaseCMI3) {
   }, {
     key: "max_time_allowed",
     get: function get() {
-      return _classPrivateFieldGet(this, _max_time_allowed);
+      return _classPrivateFieldGet(_max_time_allowed, this);
     }
 
     /**
@@ -5439,7 +5160,7 @@ var CMIStudentData = /*#__PURE__*/function (_BaseCMI3) {
      * @param {string} max_time_allowed
      */,
     set: function set(max_time_allowed) {
-      !this.initialized ? _classPrivateFieldSet(this, _max_time_allowed, max_time_allowed) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_max_time_allowed, this, max_time_allowed) : throwReadOnlyError();
     }
 
     /**
@@ -5449,7 +5170,7 @@ var CMIStudentData = /*#__PURE__*/function (_BaseCMI3) {
   }, {
     key: "time_limit_action",
     get: function get() {
-      return _classPrivateFieldGet(this, _time_limit_action);
+      return _classPrivateFieldGet(_time_limit_action, this);
     }
 
     /**
@@ -5457,7 +5178,7 @@ var CMIStudentData = /*#__PURE__*/function (_BaseCMI3) {
      * @param {string} time_limit_action
      */,
     set: function set(time_limit_action) {
-      !this.initialized ? _classPrivateFieldSet(this, _time_limit_action, time_limit_action) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_time_limit_action, this, time_limit_action) : throwReadOnlyError();
     }
 
     /**
@@ -5484,7 +5205,6 @@ var CMIStudentData = /*#__PURE__*/function (_BaseCMI3) {
       return result;
     }
   }]);
-  return CMIStudentData;
 }(_common__WEBPACK_IMPORTED_MODULE_0__.BaseCMI);
 
 /**
@@ -5497,8 +5217,6 @@ var _language = /*#__PURE__*/new WeakMap();
 var _speed = /*#__PURE__*/new WeakMap();
 var _text = /*#__PURE__*/new WeakMap();
 var CMIStudentPreference = /*#__PURE__*/function (_BaseCMI4) {
-  _inherits(CMIStudentPreference, _BaseCMI4);
-  var _super5 = _createSuper(CMIStudentPreference);
   /**
    * Constructor for cmi.student_preference
    * @param {string} student_preference_children
@@ -5506,31 +5224,17 @@ var CMIStudentPreference = /*#__PURE__*/function (_BaseCMI4) {
   function CMIStudentPreference(student_preference_children) {
     var _this4;
     _classCallCheck(this, CMIStudentPreference);
-    _this4 = _super5.call(this);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this4), _children5, {
-      writable: true,
-      value: void 0
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this4), _audio, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this4), _language, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this4), _speed, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this4), _text, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldSet(_assertThisInitialized(_this4), _children5, student_preference_children ? student_preference_children : scorm12_constants.student_preference_children);
+    _this4 = _callSuper(this, CMIStudentPreference);
+    _classPrivateFieldInitSpec(_this4, _children5, void 0);
+    _classPrivateFieldInitSpec(_this4, _audio, '');
+    _classPrivateFieldInitSpec(_this4, _language, '');
+    _classPrivateFieldInitSpec(_this4, _speed, '');
+    _classPrivateFieldInitSpec(_this4, _text, '');
+    _classPrivateFieldSet(_children5, _this4, student_preference_children ? student_preference_children : scorm12_constants.student_preference_children);
     return _this4;
   }
-  _createClass(CMIStudentPreference, [{
+  _inherits(CMIStudentPreference, _BaseCMI4);
+  return _createClass(CMIStudentPreference, [{
     key: "_children",
     get:
     /**
@@ -5539,7 +5243,7 @@ var CMIStudentPreference = /*#__PURE__*/function (_BaseCMI4) {
      * @private
      */
     function get() {
-      return _classPrivateFieldGet(this, _children5);
+      return _classPrivateFieldGet(_children5, this);
     }
 
     /**
@@ -5558,7 +5262,7 @@ var CMIStudentPreference = /*#__PURE__*/function (_BaseCMI4) {
   }, {
     key: "audio",
     get: function get() {
-      return _classPrivateFieldGet(this, _audio);
+      return _classPrivateFieldGet(_audio, this);
     }
 
     /**
@@ -5567,7 +5271,7 @@ var CMIStudentPreference = /*#__PURE__*/function (_BaseCMI4) {
      */,
     set: function set(audio) {
       if (check12ValidFormat(audio, scorm12_regex.CMISInteger) && check12ValidRange(audio, scorm12_regex.audio_range)) {
-        _classPrivateFieldSet(this, _audio, audio);
+        _classPrivateFieldSet(_audio, this, audio);
       }
     }
 
@@ -5578,7 +5282,7 @@ var CMIStudentPreference = /*#__PURE__*/function (_BaseCMI4) {
   }, {
     key: "language",
     get: function get() {
-      return _classPrivateFieldGet(this, _language);
+      return _classPrivateFieldGet(_language, this);
     }
 
     /**
@@ -5587,7 +5291,7 @@ var CMIStudentPreference = /*#__PURE__*/function (_BaseCMI4) {
      */,
     set: function set(language) {
       if (check12ValidFormat(language, scorm12_regex.CMIString256)) {
-        _classPrivateFieldSet(this, _language, language);
+        _classPrivateFieldSet(_language, this, language);
       }
     }
 
@@ -5598,7 +5302,7 @@ var CMIStudentPreference = /*#__PURE__*/function (_BaseCMI4) {
   }, {
     key: "speed",
     get: function get() {
-      return _classPrivateFieldGet(this, _speed);
+      return _classPrivateFieldGet(_speed, this);
     }
 
     /**
@@ -5607,7 +5311,7 @@ var CMIStudentPreference = /*#__PURE__*/function (_BaseCMI4) {
      */,
     set: function set(speed) {
       if (check12ValidFormat(speed, scorm12_regex.CMISInteger) && check12ValidRange(speed, scorm12_regex.speed_range)) {
-        _classPrivateFieldSet(this, _speed, speed);
+        _classPrivateFieldSet(_speed, this, speed);
       }
     }
 
@@ -5618,7 +5322,7 @@ var CMIStudentPreference = /*#__PURE__*/function (_BaseCMI4) {
   }, {
     key: "text",
     get: function get() {
-      return _classPrivateFieldGet(this, _text);
+      return _classPrivateFieldGet(_text, this);
     }
 
     /**
@@ -5627,7 +5331,7 @@ var CMIStudentPreference = /*#__PURE__*/function (_BaseCMI4) {
      */,
     set: function set(text) {
       if (check12ValidFormat(text, scorm12_regex.CMISInteger) && check12ValidRange(text, scorm12_regex.text_range)) {
-        _classPrivateFieldSet(this, _text, text);
+        _classPrivateFieldSet(_text, this, text);
       }
     }
 
@@ -5657,7 +5361,6 @@ var CMIStudentPreference = /*#__PURE__*/function (_BaseCMI4) {
       return result;
     }
   }]);
-  return CMIStudentPreference;
 }(_common__WEBPACK_IMPORTED_MODULE_0__.BaseCMI);
 
 /**
@@ -5665,19 +5368,18 @@ var CMIStudentPreference = /*#__PURE__*/function (_BaseCMI4) {
  * @extends BaseCMI
  */
 var CMIInteractions = /*#__PURE__*/function (_CMIArray2) {
-  _inherits(CMIInteractions, _CMIArray2);
-  var _super6 = _createSuper(CMIInteractions);
   /**
    * Constructor for cmi.interactions
    */
   function CMIInteractions() {
     _classCallCheck(this, CMIInteractions);
-    return _super6.call(this, {
+    return _callSuper(this, CMIInteractions, [{
       children: scorm12_constants.interactions_children,
       errorCode: scorm12_error_codes.INVALID_SET_VALUE,
       errorClass: _exceptions__WEBPACK_IMPORTED_MODULE_4__.Scorm12ValidationError
-    });
+    }]);
   }
+  _inherits(CMIInteractions, _CMIArray2);
   return _createClass(CMIInteractions);
 }(_common__WEBPACK_IMPORTED_MODULE_0__.CMIArray);
 /**
@@ -5692,43 +5394,20 @@ var _student_response = /*#__PURE__*/new WeakMap();
 var _result = /*#__PURE__*/new WeakMap();
 var _latency = /*#__PURE__*/new WeakMap();
 var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI5) {
-  _inherits(CMIInteractionsObject, _BaseCMI5);
-  var _super7 = _createSuper(CMIInteractionsObject);
   /**
    * Constructor for cmi.interactions.n object
    */
   function CMIInteractionsObject() {
     var _this5;
     _classCallCheck(this, CMIInteractionsObject);
-    _this5 = _super7.call(this);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this5), _id, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this5), _time, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this5), _type, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this5), _weighting, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this5), _student_response, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this5), _result, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this5), _latency, {
-      writable: true,
-      value: ''
-    });
+    _this5 = _callSuper(this, CMIInteractionsObject);
+    _classPrivateFieldInitSpec(_this5, _id, '');
+    _classPrivateFieldInitSpec(_this5, _time, '');
+    _classPrivateFieldInitSpec(_this5, _type, '');
+    _classPrivateFieldInitSpec(_this5, _weighting, '');
+    _classPrivateFieldInitSpec(_this5, _student_response, '');
+    _classPrivateFieldInitSpec(_this5, _result, '');
+    _classPrivateFieldInitSpec(_this5, _latency, '');
     _this5.objectives = new _common__WEBPACK_IMPORTED_MODULE_0__.CMIArray({
       errorCode: scorm12_error_codes.INVALID_SET_VALUE,
       errorClass: _exceptions__WEBPACK_IMPORTED_MODULE_4__.Scorm12ValidationError,
@@ -5745,7 +5424,8 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI5) {
   /**
    * Called when the API has been initialized after the CMI has been created
    */
-  _createClass(CMIInteractionsObject, [{
+  _inherits(CMIInteractionsObject, _BaseCMI5);
+  return _createClass(CMIInteractionsObject, [{
     key: "initialize",
     value: function initialize() {
       var _this$objectives2, _this$correct_respons;
@@ -5761,7 +5441,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI5) {
      * @return {*}
      */
     function get() {
-      return !this.jsonString ? throwWriteOnlyError() : _classPrivateFieldGet(this, _id);
+      return !this.jsonString ? throwWriteOnlyError() : _classPrivateFieldGet(_id, this);
     }
 
     /**
@@ -5770,7 +5450,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI5) {
      */,
     set: function set(id) {
       if (check12ValidFormat(id, scorm12_regex.CMIIdentifier)) {
-        _classPrivateFieldSet(this, _id, id);
+        _classPrivateFieldSet(_id, this, id);
       }
     }
 
@@ -5781,7 +5461,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI5) {
   }, {
     key: "time",
     get: function get() {
-      return !this.jsonString ? throwWriteOnlyError() : _classPrivateFieldGet(this, _time);
+      return !this.jsonString ? throwWriteOnlyError() : _classPrivateFieldGet(_time, this);
     }
 
     /**
@@ -5790,7 +5470,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI5) {
      */,
     set: function set(time) {
       if (check12ValidFormat(time, scorm12_regex.CMITime)) {
-        _classPrivateFieldSet(this, _time, time);
+        _classPrivateFieldSet(_time, this, time);
       }
     }
 
@@ -5801,7 +5481,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI5) {
   }, {
     key: "type",
     get: function get() {
-      return !this.jsonString ? throwWriteOnlyError() : _classPrivateFieldGet(this, _type);
+      return !this.jsonString ? throwWriteOnlyError() : _classPrivateFieldGet(_type, this);
     }
 
     /**
@@ -5810,7 +5490,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI5) {
      */,
     set: function set(type) {
       if (check12ValidFormat(type, scorm12_regex.CMIType)) {
-        _classPrivateFieldSet(this, _type, type);
+        _classPrivateFieldSet(_type, this, type);
       }
     }
 
@@ -5821,7 +5501,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI5) {
   }, {
     key: "weighting",
     get: function get() {
-      return !this.jsonString ? throwWriteOnlyError() : _classPrivateFieldGet(this, _weighting);
+      return !this.jsonString ? throwWriteOnlyError() : _classPrivateFieldGet(_weighting, this);
     }
 
     /**
@@ -5830,7 +5510,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI5) {
      */,
     set: function set(weighting) {
       if (check12ValidFormat(weighting, scorm12_regex.CMIDecimal) && check12ValidRange(weighting, scorm12_regex.weighting_range)) {
-        _classPrivateFieldSet(this, _weighting, weighting);
+        _classPrivateFieldSet(_weighting, this, weighting);
       }
     }
 
@@ -5841,7 +5521,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI5) {
   }, {
     key: "student_response",
     get: function get() {
-      return !this.jsonString ? throwWriteOnlyError() : _classPrivateFieldGet(this, _student_response);
+      return !this.jsonString ? throwWriteOnlyError() : _classPrivateFieldGet(_student_response, this);
     }
 
     /**
@@ -5850,7 +5530,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI5) {
      */,
     set: function set(student_response) {
       if (check12ValidFormat(student_response, scorm12_regex.CMIFeedback, true)) {
-        _classPrivateFieldSet(this, _student_response, student_response);
+        _classPrivateFieldSet(_student_response, this, student_response);
       }
     }
 
@@ -5861,7 +5541,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI5) {
   }, {
     key: "result",
     get: function get() {
-      return !this.jsonString ? throwWriteOnlyError() : _classPrivateFieldGet(this, _result);
+      return !this.jsonString ? throwWriteOnlyError() : _classPrivateFieldGet(_result, this);
     }
 
     /**
@@ -5870,7 +5550,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI5) {
      */,
     set: function set(result) {
       if (check12ValidFormat(result, scorm12_regex.CMIResult)) {
-        _classPrivateFieldSet(this, _result, result);
+        _classPrivateFieldSet(_result, this, result);
       }
     }
 
@@ -5881,7 +5561,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI5) {
   }, {
     key: "latency",
     get: function get() {
-      return !this.jsonString ? throwWriteOnlyError() : _classPrivateFieldGet(this, _latency);
+      return !this.jsonString ? throwWriteOnlyError() : _classPrivateFieldGet(_latency, this);
     }
 
     /**
@@ -5890,7 +5570,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI5) {
      */,
     set: function set(latency) {
       if (check12ValidFormat(latency, scorm12_regex.CMITimespan)) {
-        _classPrivateFieldSet(this, _latency, latency);
+        _classPrivateFieldSet(_latency, this, latency);
       }
     }
 
@@ -5930,7 +5610,6 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI5) {
       return result;
     }
   }]);
-  return CMIInteractionsObject;
 }(_common__WEBPACK_IMPORTED_MODULE_0__.BaseCMI);
 
 /**
@@ -5940,23 +5619,15 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI5) {
 var _id2 = /*#__PURE__*/new WeakMap();
 var _status = /*#__PURE__*/new WeakMap();
 var CMIObjectivesObject = /*#__PURE__*/function (_BaseCMI6) {
-  _inherits(CMIObjectivesObject, _BaseCMI6);
-  var _super8 = _createSuper(CMIObjectivesObject);
   /**
    * Constructor for cmi.objectives.n
    */
   function CMIObjectivesObject() {
     var _this6;
     _classCallCheck(this, CMIObjectivesObject);
-    _this6 = _super8.call(this);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this6), _id2, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this6), _status, {
-      writable: true,
-      value: ''
-    });
+    _this6 = _callSuper(this, CMIObjectivesObject);
+    _classPrivateFieldInitSpec(_this6, _id2, '');
+    _classPrivateFieldInitSpec(_this6, _status, '');
     _this6.score = new _common__WEBPACK_IMPORTED_MODULE_0__.CMIScore({
       score_children: scorm12_constants.score_children,
       score_range: scorm12_regex.score_range,
@@ -5967,7 +5638,8 @@ var CMIObjectivesObject = /*#__PURE__*/function (_BaseCMI6) {
     });
     return _this6;
   }
-  _createClass(CMIObjectivesObject, [{
+  _inherits(CMIObjectivesObject, _BaseCMI6);
+  return _createClass(CMIObjectivesObject, [{
     key: "id",
     get:
     /**
@@ -5975,7 +5647,7 @@ var CMIObjectivesObject = /*#__PURE__*/function (_BaseCMI6) {
      * @return {""}
      */
     function get() {
-      return _classPrivateFieldGet(this, _id2);
+      return _classPrivateFieldGet(_id2, this);
     }
 
     /**
@@ -5984,7 +5656,7 @@ var CMIObjectivesObject = /*#__PURE__*/function (_BaseCMI6) {
      */,
     set: function set(id) {
       if (check12ValidFormat(id, scorm12_regex.CMIIdentifier)) {
-        _classPrivateFieldSet(this, _id2, id);
+        _classPrivateFieldSet(_id2, this, id);
       }
     }
 
@@ -5995,7 +5667,7 @@ var CMIObjectivesObject = /*#__PURE__*/function (_BaseCMI6) {
   }, {
     key: "status",
     get: function get() {
-      return _classPrivateFieldGet(this, _status);
+      return _classPrivateFieldGet(_status, this);
     }
 
     /**
@@ -6004,7 +5676,7 @@ var CMIObjectivesObject = /*#__PURE__*/function (_BaseCMI6) {
      */,
     set: function set(status) {
       if (check12ValidFormat(status, scorm12_regex.CMIStatus2)) {
-        _classPrivateFieldSet(this, _status, status);
+        _classPrivateFieldSet(_status, this, status);
       }
     }
 
@@ -6031,7 +5703,6 @@ var CMIObjectivesObject = /*#__PURE__*/function (_BaseCMI6) {
       return result;
     }
   }]);
-  return CMIObjectivesObject;
 }(_common__WEBPACK_IMPORTED_MODULE_0__.BaseCMI);
 
 /**
@@ -6040,22 +5711,18 @@ var CMIObjectivesObject = /*#__PURE__*/function (_BaseCMI6) {
  */
 var _id3 = /*#__PURE__*/new WeakMap();
 var CMIInteractionsObjectivesObject = /*#__PURE__*/function (_BaseCMI7) {
-  _inherits(CMIInteractionsObjectivesObject, _BaseCMI7);
-  var _super9 = _createSuper(CMIInteractionsObjectivesObject);
   /**
    * Constructor for cmi.interactions.n.objectives.n
    */
   function CMIInteractionsObjectivesObject() {
     var _this7;
     _classCallCheck(this, CMIInteractionsObjectivesObject);
-    _this7 = _super9.call(this);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this7), _id3, {
-      writable: true,
-      value: ''
-    });
+    _this7 = _callSuper(this, CMIInteractionsObjectivesObject);
+    _classPrivateFieldInitSpec(_this7, _id3, '');
     return _this7;
   }
-  _createClass(CMIInteractionsObjectivesObject, [{
+  _inherits(CMIInteractionsObjectivesObject, _BaseCMI7);
+  return _createClass(CMIInteractionsObjectivesObject, [{
     key: "id",
     get:
     /**
@@ -6063,7 +5730,7 @@ var CMIInteractionsObjectivesObject = /*#__PURE__*/function (_BaseCMI7) {
      * @return {""}
      */
     function get() {
-      return _classPrivateFieldGet(this, _id3);
+      return _classPrivateFieldGet(_id3, this);
     }
 
     /**
@@ -6072,7 +5739,7 @@ var CMIInteractionsObjectivesObject = /*#__PURE__*/function (_BaseCMI7) {
      */,
     set: function set(id) {
       if (check12ValidFormat(id, scorm12_regex.CMIIdentifier)) {
-        _classPrivateFieldSet(this, _id3, id);
+        _classPrivateFieldSet(_id3, this, id);
       }
     }
 
@@ -6095,7 +5762,6 @@ var CMIInteractionsObjectivesObject = /*#__PURE__*/function (_BaseCMI7) {
       return result;
     }
   }]);
-  return CMIInteractionsObjectivesObject;
 }(_common__WEBPACK_IMPORTED_MODULE_0__.BaseCMI);
 
 /**
@@ -6104,22 +5770,18 @@ var CMIInteractionsObjectivesObject = /*#__PURE__*/function (_BaseCMI7) {
  */
 var _pattern = /*#__PURE__*/new WeakMap();
 var CMIInteractionsCorrectResponsesObject = /*#__PURE__*/function (_BaseCMI8) {
-  _inherits(CMIInteractionsCorrectResponsesObject, _BaseCMI8);
-  var _super10 = _createSuper(CMIInteractionsCorrectResponsesObject);
   /**
    * Constructor for cmi.interactions.correct_responses.n
    */
   function CMIInteractionsCorrectResponsesObject() {
     var _this8;
     _classCallCheck(this, CMIInteractionsCorrectResponsesObject);
-    _this8 = _super10.call(this);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this8), _pattern, {
-      writable: true,
-      value: ''
-    });
+    _this8 = _callSuper(this, CMIInteractionsCorrectResponsesObject);
+    _classPrivateFieldInitSpec(_this8, _pattern, '');
     return _this8;
   }
-  _createClass(CMIInteractionsCorrectResponsesObject, [{
+  _inherits(CMIInteractionsCorrectResponsesObject, _BaseCMI8);
+  return _createClass(CMIInteractionsCorrectResponsesObject, [{
     key: "pattern",
     get:
     /**
@@ -6127,7 +5789,7 @@ var CMIInteractionsCorrectResponsesObject = /*#__PURE__*/function (_BaseCMI8) {
      * @return {string}
      */
     function get() {
-      return !this.jsonString ? throwWriteOnlyError() : _classPrivateFieldGet(this, _pattern);
+      return !this.jsonString ? throwWriteOnlyError() : _classPrivateFieldGet(_pattern, this);
     }
 
     /**
@@ -6136,7 +5798,7 @@ var CMIInteractionsCorrectResponsesObject = /*#__PURE__*/function (_BaseCMI8) {
      */,
     set: function set(pattern) {
       if (check12ValidFormat(pattern, scorm12_regex.CMIFeedback, true)) {
-        _classPrivateFieldSet(this, _pattern, pattern);
+        _classPrivateFieldSet(_pattern, this, pattern);
       }
     }
 
@@ -6159,7 +5821,6 @@ var CMIInteractionsCorrectResponsesObject = /*#__PURE__*/function (_BaseCMI8) {
       return result;
     }
   }]);
-  return CMIInteractionsCorrectResponsesObject;
 }(_common__WEBPACK_IMPORTED_MODULE_0__.BaseCMI);
 
 /**
@@ -6167,22 +5828,18 @@ var CMIInteractionsCorrectResponsesObject = /*#__PURE__*/function (_BaseCMI8) {
  */
 var _event = /*#__PURE__*/new WeakMap();
 var NAV = /*#__PURE__*/function (_BaseCMI9) {
-  _inherits(NAV, _BaseCMI9);
-  var _super11 = _createSuper(NAV);
   /**
    * Constructor for NAV object
    */
   function NAV() {
     var _this9;
     _classCallCheck(this, NAV);
-    _this9 = _super11.call(this);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this9), _event, {
-      writable: true,
-      value: ''
-    });
+    _this9 = _callSuper(this, NAV);
+    _classPrivateFieldInitSpec(_this9, _event, '');
     return _this9;
   }
-  _createClass(NAV, [{
+  _inherits(NAV, _BaseCMI9);
+  return _createClass(NAV, [{
     key: "event",
     get:
     /**
@@ -6190,7 +5847,7 @@ var NAV = /*#__PURE__*/function (_BaseCMI9) {
      * @return {string}
      */
     function get() {
-      return _classPrivateFieldGet(this, _event);
+      return _classPrivateFieldGet(_event, this);
     }
 
     /**
@@ -6199,7 +5856,7 @@ var NAV = /*#__PURE__*/function (_BaseCMI9) {
      */,
     set: function set(event) {
       if (check12ValidFormat(event, scorm12_regex.NAVEvent)) {
-        _classPrivateFieldSet(this, _event, event);
+        _classPrivateFieldSet(_event, this, event);
       }
     }
 
@@ -6222,7 +5879,6 @@ var NAV = /*#__PURE__*/function (_BaseCMI9) {
       return result;
     }
   }]);
-  return NAV;
 }(_common__WEBPACK_IMPORTED_MODULE_0__.BaseCMI);
 
 /***/ }),
@@ -6236,13 +5892,13 @@ var NAV = /*#__PURE__*/function (_BaseCMI9) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "ADL": function() { return /* binding */ ADL; },
-/* harmony export */   "CMI": function() { return /* binding */ CMI; },
-/* harmony export */   "CMICommentsObject": function() { return /* binding */ CMICommentsObject; },
-/* harmony export */   "CMIInteractionsCorrectResponsesObject": function() { return /* binding */ CMIInteractionsCorrectResponsesObject; },
-/* harmony export */   "CMIInteractionsObject": function() { return /* binding */ CMIInteractionsObject; },
-/* harmony export */   "CMIInteractionsObjectivesObject": function() { return /* binding */ CMIInteractionsObjectivesObject; },
-/* harmony export */   "CMIObjectivesObject": function() { return /* binding */ CMIObjectivesObject; }
+/* harmony export */   ADL: function() { return /* binding */ ADL; },
+/* harmony export */   CMI: function() { return /* binding */ CMI; },
+/* harmony export */   CMICommentsObject: function() { return /* binding */ CMICommentsObject; },
+/* harmony export */   CMIInteractionsCorrectResponsesObject: function() { return /* binding */ CMIInteractionsCorrectResponsesObject; },
+/* harmony export */   CMIInteractionsObject: function() { return /* binding */ CMIInteractionsObject; },
+/* harmony export */   CMIInteractionsObjectivesObject: function() { return /* binding */ CMIInteractionsObjectivesObject; },
+/* harmony export */   CMIObjectivesObject: function() { return /* binding */ CMIObjectivesObject; }
 /* harmony export */ });
 /* harmony import */ var _common__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./common */ "./src/cmi/common.js");
 /* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../constants/api_constants */ "./src/constants/api_constants.js");
@@ -6251,29 +5907,27 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _constants_response_constants__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../constants/response_constants */ "./src/constants/response_constants.js");
 /* harmony import */ var _exceptions__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../exceptions */ "./src/exceptions.js");
 /* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../utilities */ "./src/utilities.js");
-function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor); } }
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
-function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
-function _get() { if (typeof Reflect !== "undefined" && Reflect.get) { _get = Reflect.get.bind(); } else { _get = function _get(target, property, receiver) { var base = _superPropBase(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(arguments.length < 3 ? target : receiver); } return desc.value; }; } return _get.apply(this, arguments); }
-function _superPropBase(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf(object); if (object === null) break; } return object; }
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function _callSuper(t, o, e) { return o = _getPrototypeOf(o), _possibleConstructorReturn(t, _isNativeReflectConstruct() ? Reflect.construct(o, e || [], _getPrototypeOf(t).constructor) : o.apply(t, e)); }
 function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+function _isNativeReflectConstruct() { try { var t = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); } catch (t) {} return (_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); }
+function _get() { if (typeof Reflect !== "undefined" && Reflect.get) { _get = Reflect.get.bind(); } else { _get = function _get(target, property, receiver) { var base = _superPropBase(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(arguments.length < 3 ? target : receiver); } return desc.value; }; } return _get.apply(this, arguments); }
+function _superPropBase(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf(object); if (object === null) break; } return object; }
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
-function _classPrivateFieldSet(receiver, privateMap, value) { var descriptor = _classExtractFieldDescriptor(receiver, privateMap, "set"); _classApplyDescriptorSet(receiver, descriptor, value); return value; }
-function _classApplyDescriptorSet(receiver, descriptor, value) { if (descriptor.set) { descriptor.set.call(receiver, value); } else { if (!descriptor.writable) { throw new TypeError("attempted to set read only private field"); } descriptor.value = value; } }
-function _classPrivateFieldGet(receiver, privateMap) { var descriptor = _classExtractFieldDescriptor(receiver, privateMap, "get"); return _classApplyDescriptorGet(receiver, descriptor); }
-function _classExtractFieldDescriptor(receiver, privateMap, action) { if (!privateMap.has(receiver)) { throw new TypeError("attempted to " + action + " private field on non-instance"); } return privateMap.get(receiver); }
-function _classApplyDescriptorGet(receiver, descriptor) { if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
+function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
+function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
+function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 
 
 
@@ -6366,8 +6020,6 @@ var _suspend_data = /*#__PURE__*/new WeakMap();
 var _time_limit_action = /*#__PURE__*/new WeakMap();
 var _total_time = /*#__PURE__*/new WeakMap();
 var CMI = /*#__PURE__*/function (_BaseCMI) {
-  _inherits(CMI, _BaseCMI);
-  var _super = _createSuper(CMI);
   /**
    * Constructor for the SCORM 2004 cmi object
    * @param {boolean} initialized
@@ -6375,87 +6027,27 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   function CMI(initialized) {
     var _this;
     _classCallCheck(this, CMI);
-    _this = _super.call(this);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _version2, {
-      writable: true,
-      value: '1.0'
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _children2, {
-      writable: true,
-      value: scorm2004_constants.cmi_children
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _completion_status, {
-      writable: true,
-      value: 'unknown'
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _completion_threshold, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _credit, {
-      writable: true,
-      value: 'credit'
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _entry, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _exit, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _launch_data, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _learner_id, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _learner_name, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _location, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _max_time_allowed, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _mode, {
-      writable: true,
-      value: 'normal'
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _progress_measure, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _scaled_passing_score, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _session_time, {
-      writable: true,
-      value: 'PT0H0M0S'
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _success_status, {
-      writable: true,
-      value: 'unknown'
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _suspend_data, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _time_limit_action, {
-      writable: true,
-      value: 'continue,no message'
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _total_time, {
-      writable: true,
-      value: ''
-    });
+    _this = _callSuper(this, CMI);
+    _classPrivateFieldInitSpec(_this, _version2, '1.0');
+    _classPrivateFieldInitSpec(_this, _children2, scorm2004_constants.cmi_children);
+    _classPrivateFieldInitSpec(_this, _completion_status, 'unknown');
+    _classPrivateFieldInitSpec(_this, _completion_threshold, '');
+    _classPrivateFieldInitSpec(_this, _credit, 'credit');
+    _classPrivateFieldInitSpec(_this, _entry, '');
+    _classPrivateFieldInitSpec(_this, _exit, '');
+    _classPrivateFieldInitSpec(_this, _launch_data, '');
+    _classPrivateFieldInitSpec(_this, _learner_id, '');
+    _classPrivateFieldInitSpec(_this, _learner_name, '');
+    _classPrivateFieldInitSpec(_this, _location, '');
+    _classPrivateFieldInitSpec(_this, _max_time_allowed, '');
+    _classPrivateFieldInitSpec(_this, _mode, 'normal');
+    _classPrivateFieldInitSpec(_this, _progress_measure, '');
+    _classPrivateFieldInitSpec(_this, _scaled_passing_score, '');
+    _classPrivateFieldInitSpec(_this, _session_time, 'PT0H0M0S');
+    _classPrivateFieldInitSpec(_this, _success_status, 'unknown');
+    _classPrivateFieldInitSpec(_this, _suspend_data, '');
+    _classPrivateFieldInitSpec(_this, _time_limit_action, 'continue,no message');
+    _classPrivateFieldInitSpec(_this, _total_time, '');
     _this.learner_preference = new CMILearnerPreference();
     _this.score = new Scorm2004CMIScore();
     _this.comments_from_learner = new CMICommentsFromLearner();
@@ -6465,7 +6057,8 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
     if (initialized) _this.initialize();
     return _this;
   }
-  _createClass(CMI, [{
+  _inherits(CMI, _BaseCMI);
+  return _createClass(CMI, [{
     key: "initialize",
     value:
     /**
@@ -6490,7 +6083,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "_version",
     get: function get() {
-      return _classPrivateFieldGet(this, _version2);
+      return _classPrivateFieldGet(_version2, this);
     }
 
     /**
@@ -6510,7 +6103,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "_children",
     get: function get() {
-      return _classPrivateFieldGet(this, _children2);
+      return _classPrivateFieldGet(_children2, this);
     }
 
     /**
@@ -6529,7 +6122,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "completion_status",
     get: function get() {
-      return _classPrivateFieldGet(this, _completion_status);
+      return _classPrivateFieldGet(_completion_status, this);
     }
 
     /**
@@ -6538,7 +6131,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
      */,
     set: function set(completion_status) {
       if (check2004ValidFormat(completion_status, scorm2004_regex.CMICStatus)) {
-        _classPrivateFieldSet(this, _completion_status, completion_status);
+        _classPrivateFieldSet(_completion_status, this, completion_status);
       }
     }
 
@@ -6549,7 +6142,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "completion_threshold",
     get: function get() {
-      return _classPrivateFieldGet(this, _completion_threshold);
+      return _classPrivateFieldGet(_completion_threshold, this);
     }
 
     /**
@@ -6557,7 +6150,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
      * @param {string} completion_threshold
      */,
     set: function set(completion_threshold) {
-      !this.initialized ? _classPrivateFieldSet(this, _completion_threshold, completion_threshold) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_completion_threshold, this, completion_threshold) : throwReadOnlyError();
     }
 
     /**
@@ -6567,7 +6160,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "credit",
     get: function get() {
-      return _classPrivateFieldGet(this, _credit);
+      return _classPrivateFieldGet(_credit, this);
     }
 
     /**
@@ -6575,7 +6168,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
      * @param {string} credit
      */,
     set: function set(credit) {
-      !this.initialized ? _classPrivateFieldSet(this, _credit, credit) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_credit, this, credit) : throwReadOnlyError();
     }
 
     /**
@@ -6585,7 +6178,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "entry",
     get: function get() {
-      return _classPrivateFieldGet(this, _entry);
+      return _classPrivateFieldGet(_entry, this);
     }
 
     /**
@@ -6593,7 +6186,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
      * @param {string} entry
      */,
     set: function set(entry) {
-      !this.initialized ? _classPrivateFieldSet(this, _entry, entry) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_entry, this, entry) : throwReadOnlyError();
     }
 
     /**
@@ -6603,7 +6196,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "exit",
     get: function get() {
-      return !this.jsonString ? throwWriteOnlyError() : _classPrivateFieldGet(this, _exit);
+      return !this.jsonString ? throwWriteOnlyError() : _classPrivateFieldGet(_exit, this);
     }
 
     /**
@@ -6612,7 +6205,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
      */,
     set: function set(exit) {
       if (check2004ValidFormat(exit, scorm2004_regex.CMIExit, true)) {
-        _classPrivateFieldSet(this, _exit, exit);
+        _classPrivateFieldSet(_exit, this, exit);
       }
     }
 
@@ -6623,7 +6216,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "launch_data",
     get: function get() {
-      return _classPrivateFieldGet(this, _launch_data);
+      return _classPrivateFieldGet(_launch_data, this);
     }
 
     /**
@@ -6631,7 +6224,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
      * @param {string} launch_data
      */,
     set: function set(launch_data) {
-      !this.initialized ? _classPrivateFieldSet(this, _launch_data, launch_data) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_launch_data, this, launch_data) : throwReadOnlyError();
     }
 
     /**
@@ -6641,7 +6234,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "learner_id",
     get: function get() {
-      return _classPrivateFieldGet(this, _learner_id);
+      return _classPrivateFieldGet(_learner_id, this);
     }
 
     /**
@@ -6649,7 +6242,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
      * @param {string} learner_id
      */,
     set: function set(learner_id) {
-      !this.initialized ? _classPrivateFieldSet(this, _learner_id, learner_id) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_learner_id, this, learner_id) : throwReadOnlyError();
     }
 
     /**
@@ -6659,7 +6252,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "learner_name",
     get: function get() {
-      return _classPrivateFieldGet(this, _learner_name);
+      return _classPrivateFieldGet(_learner_name, this);
     }
 
     /**
@@ -6667,7 +6260,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
      * @param {string} learner_name
      */,
     set: function set(learner_name) {
-      !this.initialized ? _classPrivateFieldSet(this, _learner_name, learner_name) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_learner_name, this, learner_name) : throwReadOnlyError();
     }
 
     /**
@@ -6677,7 +6270,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "location",
     get: function get() {
-      return _classPrivateFieldGet(this, _location);
+      return _classPrivateFieldGet(_location, this);
     }
 
     /**
@@ -6686,7 +6279,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
      */,
     set: function set(location) {
       if (check2004ValidFormat(location, scorm2004_regex.CMIString1000)) {
-        _classPrivateFieldSet(this, _location, location);
+        _classPrivateFieldSet(_location, this, location);
       }
     }
 
@@ -6697,7 +6290,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "max_time_allowed",
     get: function get() {
-      return _classPrivateFieldGet(this, _max_time_allowed);
+      return _classPrivateFieldGet(_max_time_allowed, this);
     }
 
     /**
@@ -6705,7 +6298,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
      * @param {string} max_time_allowed
      */,
     set: function set(max_time_allowed) {
-      !this.initialized ? _classPrivateFieldSet(this, _max_time_allowed, max_time_allowed) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_max_time_allowed, this, max_time_allowed) : throwReadOnlyError();
     }
 
     /**
@@ -6715,7 +6308,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "mode",
     get: function get() {
-      return _classPrivateFieldGet(this, _mode);
+      return _classPrivateFieldGet(_mode, this);
     }
 
     /**
@@ -6723,7 +6316,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
      * @param {string} mode
      */,
     set: function set(mode) {
-      !this.initialized ? _classPrivateFieldSet(this, _mode, mode) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_mode, this, mode) : throwReadOnlyError();
     }
 
     /**
@@ -6733,7 +6326,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "progress_measure",
     get: function get() {
-      return _classPrivateFieldGet(this, _progress_measure);
+      return _classPrivateFieldGet(_progress_measure, this);
     }
 
     /**
@@ -6742,7 +6335,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
      */,
     set: function set(progress_measure) {
       if (check2004ValidFormat(progress_measure, scorm2004_regex.CMIDecimal) && check2004ValidRange(progress_measure, scorm2004_regex.progress_range)) {
-        _classPrivateFieldSet(this, _progress_measure, progress_measure);
+        _classPrivateFieldSet(_progress_measure, this, progress_measure);
       }
     }
 
@@ -6753,7 +6346,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "scaled_passing_score",
     get: function get() {
-      return _classPrivateFieldGet(this, _scaled_passing_score);
+      return _classPrivateFieldGet(_scaled_passing_score, this);
     }
 
     /**
@@ -6761,7 +6354,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
      * @param {string} scaled_passing_score
      */,
     set: function set(scaled_passing_score) {
-      !this.initialized ? _classPrivateFieldSet(this, _scaled_passing_score, scaled_passing_score) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_scaled_passing_score, this, scaled_passing_score) : throwReadOnlyError();
     }
 
     /**
@@ -6771,7 +6364,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "session_time",
     get: function get() {
-      return !this.jsonString ? throwWriteOnlyError() : _classPrivateFieldGet(this, _session_time);
+      return !this.jsonString ? throwWriteOnlyError() : _classPrivateFieldGet(_session_time, this);
     }
 
     /**
@@ -6780,7 +6373,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
      */,
     set: function set(session_time) {
       if (check2004ValidFormat(session_time, scorm2004_regex.CMITimespan)) {
-        _classPrivateFieldSet(this, _session_time, session_time);
+        _classPrivateFieldSet(_session_time, this, session_time);
       }
     }
 
@@ -6791,7 +6384,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "success_status",
     get: function get() {
-      return _classPrivateFieldGet(this, _success_status);
+      return _classPrivateFieldGet(_success_status, this);
     }
 
     /**
@@ -6800,7 +6393,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
      */,
     set: function set(success_status) {
       if (check2004ValidFormat(success_status, scorm2004_regex.CMISStatus)) {
-        _classPrivateFieldSet(this, _success_status, success_status);
+        _classPrivateFieldSet(_success_status, this, success_status);
       }
     }
 
@@ -6811,7 +6404,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "suspend_data",
     get: function get() {
-      return _classPrivateFieldGet(this, _suspend_data);
+      return _classPrivateFieldGet(_suspend_data, this);
     }
 
     /**
@@ -6820,7 +6413,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
      */,
     set: function set(suspend_data) {
       if (check2004ValidFormat(suspend_data, scorm2004_regex.CMIString64000, true)) {
-        _classPrivateFieldSet(this, _suspend_data, suspend_data);
+        _classPrivateFieldSet(_suspend_data, this, suspend_data);
       }
     }
 
@@ -6831,7 +6424,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "time_limit_action",
     get: function get() {
-      return _classPrivateFieldGet(this, _time_limit_action);
+      return _classPrivateFieldGet(_time_limit_action, this);
     }
 
     /**
@@ -6839,7 +6432,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
      * @param {string} time_limit_action
      */,
     set: function set(time_limit_action) {
-      !this.initialized ? _classPrivateFieldSet(this, _time_limit_action, time_limit_action) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_time_limit_action, this, time_limit_action) : throwReadOnlyError();
     }
 
     /**
@@ -6849,7 +6442,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "total_time",
     get: function get() {
-      return _classPrivateFieldGet(this, _total_time);
+      return _classPrivateFieldGet(_total_time, this);
     }
 
     /**
@@ -6857,7 +6450,7 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
      * @param {string} total_time
      */,
     set: function set(total_time) {
-      !this.initialized ? _classPrivateFieldSet(this, _total_time, total_time) : throwReadOnlyError();
+      !this.initialized ? _classPrivateFieldSet(_total_time, this, total_time) : throwReadOnlyError();
     }
 
     /**
@@ -6868,13 +6461,13 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
   }, {
     key: "getCurrentTotalTime",
     value: function getCurrentTotalTime() {
-      var sessionTime = _classPrivateFieldGet(this, _session_time);
+      var sessionTime = _classPrivateFieldGet(_session_time, this);
       var startTime = this.start_time;
       if (typeof startTime !== 'undefined' && startTime !== null) {
         var seconds = new Date().getTime() - startTime;
         sessionTime = _utilities__WEBPACK_IMPORTED_MODULE_6__.getSecondsAsISODuration(seconds / 1000);
       }
-      return _utilities__WEBPACK_IMPORTED_MODULE_6__.addTwoDurations(_classPrivateFieldGet(this, _total_time), sessionTime, scorm2004_regex.CMITimespan);
+      return _utilities__WEBPACK_IMPORTED_MODULE_6__.addTwoDurations(_classPrivateFieldGet(_total_time, this), sessionTime, scorm2004_regex.CMITimespan);
     }
 
     /**
@@ -6941,7 +6534,6 @@ var CMI = /*#__PURE__*/function (_BaseCMI) {
       return result;
     }
   }]);
-  return CMI;
 }(_common__WEBPACK_IMPORTED_MODULE_0__.BaseCMI);
 
 /**
@@ -6953,35 +6545,18 @@ var _language = /*#__PURE__*/new WeakMap();
 var _delivery_speed = /*#__PURE__*/new WeakMap();
 var _audio_captioning = /*#__PURE__*/new WeakMap();
 var CMILearnerPreference = /*#__PURE__*/function (_BaseCMI2) {
-  _inherits(CMILearnerPreference, _BaseCMI2);
-  var _super2 = _createSuper(CMILearnerPreference);
   /**
    * Constructor for cmi.learner_preference
    */
   function CMILearnerPreference() {
     var _this2;
     _classCallCheck(this, CMILearnerPreference);
-    _this2 = _super2.call(this);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this2), _children3, {
-      writable: true,
-      value: scorm2004_constants.student_preference_children
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this2), _audio_level, {
-      writable: true,
-      value: '1'
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this2), _language, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this2), _delivery_speed, {
-      writable: true,
-      value: '1'
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this2), _audio_captioning, {
-      writable: true,
-      value: '0'
-    });
+    _this2 = _callSuper(this, CMILearnerPreference);
+    _classPrivateFieldInitSpec(_this2, _children3, scorm2004_constants.student_preference_children);
+    _classPrivateFieldInitSpec(_this2, _audio_level, '1');
+    _classPrivateFieldInitSpec(_this2, _language, '');
+    _classPrivateFieldInitSpec(_this2, _delivery_speed, '1');
+    _classPrivateFieldInitSpec(_this2, _audio_captioning, '0');
     return _this2;
   }
 
@@ -6990,10 +6565,11 @@ var CMILearnerPreference = /*#__PURE__*/function (_BaseCMI2) {
    * @return {string}
    * @private
    */
-  _createClass(CMILearnerPreference, [{
+  _inherits(CMILearnerPreference, _BaseCMI2);
+  return _createClass(CMILearnerPreference, [{
     key: "_children",
     get: function get() {
-      return _classPrivateFieldGet(this, _children3);
+      return _classPrivateFieldGet(_children3, this);
     }
 
     /**
@@ -7012,7 +6588,7 @@ var CMILearnerPreference = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "audio_level",
     get: function get() {
-      return _classPrivateFieldGet(this, _audio_level);
+      return _classPrivateFieldGet(_audio_level, this);
     }
 
     /**
@@ -7021,7 +6597,7 @@ var CMILearnerPreference = /*#__PURE__*/function (_BaseCMI2) {
      */,
     set: function set(audio_level) {
       if (check2004ValidFormat(audio_level, scorm2004_regex.CMIDecimal) && check2004ValidRange(audio_level, scorm2004_regex.audio_range)) {
-        _classPrivateFieldSet(this, _audio_level, audio_level);
+        _classPrivateFieldSet(_audio_level, this, audio_level);
       }
     }
 
@@ -7032,7 +6608,7 @@ var CMILearnerPreference = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "language",
     get: function get() {
-      return _classPrivateFieldGet(this, _language);
+      return _classPrivateFieldGet(_language, this);
     }
 
     /**
@@ -7041,7 +6617,7 @@ var CMILearnerPreference = /*#__PURE__*/function (_BaseCMI2) {
      */,
     set: function set(language) {
       if (check2004ValidFormat(language, scorm2004_regex.CMILang)) {
-        _classPrivateFieldSet(this, _language, language);
+        _classPrivateFieldSet(_language, this, language);
       }
     }
 
@@ -7052,7 +6628,7 @@ var CMILearnerPreference = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "delivery_speed",
     get: function get() {
-      return _classPrivateFieldGet(this, _delivery_speed);
+      return _classPrivateFieldGet(_delivery_speed, this);
     }
 
     /**
@@ -7061,7 +6637,7 @@ var CMILearnerPreference = /*#__PURE__*/function (_BaseCMI2) {
      */,
     set: function set(delivery_speed) {
       if (check2004ValidFormat(delivery_speed, scorm2004_regex.CMIDecimal) && check2004ValidRange(delivery_speed, scorm2004_regex.speed_range)) {
-        _classPrivateFieldSet(this, _delivery_speed, delivery_speed);
+        _classPrivateFieldSet(_delivery_speed, this, delivery_speed);
       }
     }
 
@@ -7072,7 +6648,7 @@ var CMILearnerPreference = /*#__PURE__*/function (_BaseCMI2) {
   }, {
     key: "audio_captioning",
     get: function get() {
-      return _classPrivateFieldGet(this, _audio_captioning);
+      return _classPrivateFieldGet(_audio_captioning, this);
     }
 
     /**
@@ -7081,7 +6657,7 @@ var CMILearnerPreference = /*#__PURE__*/function (_BaseCMI2) {
      */,
     set: function set(audio_captioning) {
       if (check2004ValidFormat(audio_captioning, scorm2004_regex.CMISInteger) && check2004ValidRange(audio_captioning, scorm2004_regex.text_range)) {
-        _classPrivateFieldSet(this, _audio_captioning, audio_captioning);
+        _classPrivateFieldSet(_audio_captioning, this, audio_captioning);
       }
     }
 
@@ -7111,82 +6687,77 @@ var CMILearnerPreference = /*#__PURE__*/function (_BaseCMI2) {
       return result;
     }
   }]);
-  return CMILearnerPreference;
 }(_common__WEBPACK_IMPORTED_MODULE_0__.BaseCMI);
 /**
  * Class representing SCORM 2004's cmi.interactions object
  */
 var CMIInteractions = /*#__PURE__*/function (_CMIArray) {
-  _inherits(CMIInteractions, _CMIArray);
-  var _super3 = _createSuper(CMIInteractions);
   /**
    * Constructor for cmi.objectives Array
    */
   function CMIInteractions() {
     _classCallCheck(this, CMIInteractions);
-    return _super3.call(this, {
+    return _callSuper(this, CMIInteractions, [{
       children: scorm2004_constants.interactions_children,
       errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
       errorClass: _exceptions__WEBPACK_IMPORTED_MODULE_5__.Scorm2004ValidationError
-    });
+    }]);
   }
+  _inherits(CMIInteractions, _CMIArray);
   return _createClass(CMIInteractions);
 }(_common__WEBPACK_IMPORTED_MODULE_0__.CMIArray);
 /**
  * Class representing SCORM 2004's cmi.objectives object
  */
 var CMIObjectives = /*#__PURE__*/function (_CMIArray2) {
-  _inherits(CMIObjectives, _CMIArray2);
-  var _super4 = _createSuper(CMIObjectives);
   /**
    * Constructor for cmi.objectives Array
    */
   function CMIObjectives() {
     _classCallCheck(this, CMIObjectives);
-    return _super4.call(this, {
+    return _callSuper(this, CMIObjectives, [{
       children: scorm2004_constants.objectives_children,
       errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
       errorClass: _exceptions__WEBPACK_IMPORTED_MODULE_5__.Scorm2004ValidationError
-    });
+    }]);
   }
+  _inherits(CMIObjectives, _CMIArray2);
   return _createClass(CMIObjectives);
 }(_common__WEBPACK_IMPORTED_MODULE_0__.CMIArray);
 /**
  * Class representing SCORM 2004's cmi.comments_from_lms object
  */
 var CMICommentsFromLMS = /*#__PURE__*/function (_CMIArray3) {
-  _inherits(CMICommentsFromLMS, _CMIArray3);
-  var _super5 = _createSuper(CMICommentsFromLMS);
   /**
    * Constructor for cmi.comments_from_lms Array
    */
   function CMICommentsFromLMS() {
     _classCallCheck(this, CMICommentsFromLMS);
-    return _super5.call(this, {
+    return _callSuper(this, CMICommentsFromLMS, [{
       children: scorm2004_constants.comments_children,
       errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
       errorClass: _exceptions__WEBPACK_IMPORTED_MODULE_5__.Scorm2004ValidationError
-    });
+    }]);
   }
+  _inherits(CMICommentsFromLMS, _CMIArray3);
   return _createClass(CMICommentsFromLMS);
 }(_common__WEBPACK_IMPORTED_MODULE_0__.CMIArray);
 /**
  * Class representing SCORM 2004's cmi.comments_from_learner object
  */
 var CMICommentsFromLearner = /*#__PURE__*/function (_CMIArray4) {
-  _inherits(CMICommentsFromLearner, _CMIArray4);
-  var _super6 = _createSuper(CMICommentsFromLearner);
   /**
    * Constructor for cmi.comments_from_learner Array
    */
   function CMICommentsFromLearner() {
     _classCallCheck(this, CMICommentsFromLearner);
-    return _super6.call(this, {
+    return _callSuper(this, CMICommentsFromLearner, [{
       children: scorm2004_constants.comments_children,
       errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
       errorClass: _exceptions__WEBPACK_IMPORTED_MODULE_5__.Scorm2004ValidationError
-    });
+    }]);
   }
+  _inherits(CMICommentsFromLearner, _CMIArray4);
   return _createClass(CMICommentsFromLearner);
 }(_common__WEBPACK_IMPORTED_MODULE_0__.CMIArray);
 /**
@@ -7201,47 +6772,21 @@ var _result = /*#__PURE__*/new WeakMap();
 var _latency = /*#__PURE__*/new WeakMap();
 var _description = /*#__PURE__*/new WeakMap();
 var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI3) {
-  _inherits(CMIInteractionsObject, _BaseCMI3);
-  var _super7 = _createSuper(CMIInteractionsObject);
   /**
    * Constructor for cmi.interaction.n
    */
   function CMIInteractionsObject() {
     var _this3;
     _classCallCheck(this, CMIInteractionsObject);
-    _this3 = _super7.call(this);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this3), _id, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this3), _type, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this3), _timestamp, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this3), _weighting, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this3), _learner_response, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this3), _result, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this3), _latency, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this3), _description, {
-      writable: true,
-      value: ''
-    });
+    _this3 = _callSuper(this, CMIInteractionsObject);
+    _classPrivateFieldInitSpec(_this3, _id, '');
+    _classPrivateFieldInitSpec(_this3, _type, '');
+    _classPrivateFieldInitSpec(_this3, _timestamp, '');
+    _classPrivateFieldInitSpec(_this3, _weighting, '');
+    _classPrivateFieldInitSpec(_this3, _learner_response, '');
+    _classPrivateFieldInitSpec(_this3, _result, '');
+    _classPrivateFieldInitSpec(_this3, _latency, '');
+    _classPrivateFieldInitSpec(_this3, _description, '');
     _this3.objectives = new _common__WEBPACK_IMPORTED_MODULE_0__.CMIArray({
       errorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
       errorClass: _exceptions__WEBPACK_IMPORTED_MODULE_5__.Scorm2004ValidationError,
@@ -7258,7 +6803,8 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI3) {
   /**
    * Called when the API has been initialized after the CMI has been created
    */
-  _createClass(CMIInteractionsObject, [{
+  _inherits(CMIInteractionsObject, _BaseCMI3);
+  return _createClass(CMIInteractionsObject, [{
     key: "initialize",
     value: function initialize() {
       var _this$objectives2, _this$correct_respons;
@@ -7274,7 +6820,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI3) {
   }, {
     key: "id",
     get: function get() {
-      return _classPrivateFieldGet(this, _id);
+      return _classPrivateFieldGet(_id, this);
     }
 
     /**
@@ -7283,7 +6829,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI3) {
      */,
     set: function set(id) {
       if (check2004ValidFormat(id, scorm2004_regex.CMILongIdentifier)) {
-        _classPrivateFieldSet(this, _id, id);
+        _classPrivateFieldSet(_id, this, id);
       }
     }
 
@@ -7294,7 +6840,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI3) {
   }, {
     key: "type",
     get: function get() {
-      return _classPrivateFieldGet(this, _type);
+      return _classPrivateFieldGet(_type, this);
     }
 
     /**
@@ -7302,11 +6848,11 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI3) {
      * @param {string} type
      */,
     set: function set(type) {
-      if (this.initialized && _classPrivateFieldGet(this, _id) === '') {
+      if (this.initialized && _classPrivateFieldGet(_id, this) === '') {
         throwDependencyNotEstablishedError();
       } else {
         if (check2004ValidFormat(type, scorm2004_regex.CMIType)) {
-          _classPrivateFieldSet(this, _type, type);
+          _classPrivateFieldSet(_type, this, type);
         }
       }
     }
@@ -7318,7 +6864,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI3) {
   }, {
     key: "timestamp",
     get: function get() {
-      return _classPrivateFieldGet(this, _timestamp);
+      return _classPrivateFieldGet(_timestamp, this);
     }
 
     /**
@@ -7326,11 +6872,11 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI3) {
      * @param {string} timestamp
      */,
     set: function set(timestamp) {
-      if (this.initialized && _classPrivateFieldGet(this, _id) === '') {
+      if (this.initialized && _classPrivateFieldGet(_id, this) === '') {
         throwDependencyNotEstablishedError();
       } else {
         if (check2004ValidFormat(timestamp, scorm2004_regex.CMITime)) {
-          _classPrivateFieldSet(this, _timestamp, timestamp);
+          _classPrivateFieldSet(_timestamp, this, timestamp);
         }
       }
     }
@@ -7342,7 +6888,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI3) {
   }, {
     key: "weighting",
     get: function get() {
-      return _classPrivateFieldGet(this, _weighting);
+      return _classPrivateFieldGet(_weighting, this);
     }
 
     /**
@@ -7350,11 +6896,11 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI3) {
      * @param {string} weighting
      */,
     set: function set(weighting) {
-      if (this.initialized && _classPrivateFieldGet(this, _id) === '') {
+      if (this.initialized && _classPrivateFieldGet(_id, this) === '') {
         throwDependencyNotEstablishedError();
       } else {
         if (check2004ValidFormat(weighting, scorm2004_regex.CMIDecimal)) {
-          _classPrivateFieldSet(this, _weighting, weighting);
+          _classPrivateFieldSet(_weighting, this, weighting);
         }
       }
     }
@@ -7366,7 +6912,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI3) {
   }, {
     key: "learner_response",
     get: function get() {
-      return _classPrivateFieldGet(this, _learner_response);
+      return _classPrivateFieldGet(_learner_response, this);
     }
 
     /**
@@ -7375,7 +6921,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI3) {
      * @param {string} learner_response
      */,
     set: function set(learner_response) {
-      if (this.initialized && (_classPrivateFieldGet(this, _type) === '' || _classPrivateFieldGet(this, _id) === '')) {
+      if (this.initialized && (_classPrivateFieldGet(_type, this) === '' || _classPrivateFieldGet(_id, this) === '')) {
         throwDependencyNotEstablishedError();
       } else {
         var nodes = [];
@@ -7419,7 +6965,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI3) {
           } else {
             throwGeneralSetError();
           }
-          _classPrivateFieldSet(this, _learner_response, learner_response);
+          _classPrivateFieldSet(_learner_response, this, learner_response);
         } else {
           throwTypeMismatchError();
         }
@@ -7433,7 +6979,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI3) {
   }, {
     key: "result",
     get: function get() {
-      return _classPrivateFieldGet(this, _result);
+      return _classPrivateFieldGet(_result, this);
     }
 
     /**
@@ -7442,7 +6988,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI3) {
      */,
     set: function set(result) {
       if (check2004ValidFormat(result, scorm2004_regex.CMIResult)) {
-        _classPrivateFieldSet(this, _result, result);
+        _classPrivateFieldSet(_result, this, result);
       }
     }
 
@@ -7453,7 +6999,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI3) {
   }, {
     key: "latency",
     get: function get() {
-      return _classPrivateFieldGet(this, _latency);
+      return _classPrivateFieldGet(_latency, this);
     }
 
     /**
@@ -7461,11 +7007,11 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI3) {
      * @param {string} latency
      */,
     set: function set(latency) {
-      if (this.initialized && _classPrivateFieldGet(this, _id) === '') {
+      if (this.initialized && _classPrivateFieldGet(_id, this) === '') {
         throwDependencyNotEstablishedError();
       } else {
         if (check2004ValidFormat(latency, scorm2004_regex.CMITimespan)) {
-          _classPrivateFieldSet(this, _latency, latency);
+          _classPrivateFieldSet(_latency, this, latency);
         }
       }
     }
@@ -7477,7 +7023,7 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI3) {
   }, {
     key: "description",
     get: function get() {
-      return _classPrivateFieldGet(this, _description);
+      return _classPrivateFieldGet(_description, this);
     }
 
     /**
@@ -7485,11 +7031,11 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI3) {
      * @param {string} description
      */,
     set: function set(description) {
-      if (this.initialized && _classPrivateFieldGet(this, _id) === '') {
+      if (this.initialized && _classPrivateFieldGet(_id, this) === '') {
         throwDependencyNotEstablishedError();
       } else {
         if (check2004ValidFormat(description, scorm2004_regex.CMILangString250, true)) {
-          _classPrivateFieldSet(this, _description, description);
+          _classPrivateFieldSet(_description, this, description);
         }
       }
     }
@@ -7532,7 +7078,6 @@ var CMIInteractionsObject = /*#__PURE__*/function (_BaseCMI3) {
       return result;
     }
   }]);
-  return CMIInteractionsObject;
 }(_common__WEBPACK_IMPORTED_MODULE_0__.BaseCMI);
 
 /**
@@ -7544,35 +7089,18 @@ var _completion_status2 = /*#__PURE__*/new WeakMap();
 var _progress_measure2 = /*#__PURE__*/new WeakMap();
 var _description2 = /*#__PURE__*/new WeakMap();
 var CMIObjectivesObject = /*#__PURE__*/function (_BaseCMI4) {
-  _inherits(CMIObjectivesObject, _BaseCMI4);
-  var _super8 = _createSuper(CMIObjectivesObject);
   /**
    * Constructor for cmi.objectives.n
    */
   function CMIObjectivesObject() {
     var _this4;
     _classCallCheck(this, CMIObjectivesObject);
-    _this4 = _super8.call(this);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this4), _id2, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this4), _success_status2, {
-      writable: true,
-      value: 'unknown'
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this4), _completion_status2, {
-      writable: true,
-      value: 'unknown'
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this4), _progress_measure2, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this4), _description2, {
-      writable: true,
-      value: ''
-    });
+    _this4 = _callSuper(this, CMIObjectivesObject);
+    _classPrivateFieldInitSpec(_this4, _id2, '');
+    _classPrivateFieldInitSpec(_this4, _success_status2, 'unknown');
+    _classPrivateFieldInitSpec(_this4, _completion_status2, 'unknown');
+    _classPrivateFieldInitSpec(_this4, _progress_measure2, '');
+    _classPrivateFieldInitSpec(_this4, _description2, '');
     _this4.score = new Scorm2004CMIScore();
     return _this4;
   }
@@ -7580,7 +7108,8 @@ var CMIObjectivesObject = /*#__PURE__*/function (_BaseCMI4) {
   /**
    * Called when the API has been initialized after the CMI has been created
    */
-  _createClass(CMIObjectivesObject, [{
+  _inherits(CMIObjectivesObject, _BaseCMI4);
+  return _createClass(CMIObjectivesObject, [{
     key: "initialize",
     value: function initialize() {
       var _this$score2;
@@ -7595,7 +7124,7 @@ var CMIObjectivesObject = /*#__PURE__*/function (_BaseCMI4) {
   }, {
     key: "id",
     get: function get() {
-      return _classPrivateFieldGet(this, _id2);
+      return _classPrivateFieldGet(_id2, this);
     }
 
     /**
@@ -7604,7 +7133,7 @@ var CMIObjectivesObject = /*#__PURE__*/function (_BaseCMI4) {
      */,
     set: function set(id) {
       if (check2004ValidFormat(id, scorm2004_regex.CMILongIdentifier)) {
-        _classPrivateFieldSet(this, _id2, id);
+        _classPrivateFieldSet(_id2, this, id);
       }
     }
 
@@ -7615,7 +7144,7 @@ var CMIObjectivesObject = /*#__PURE__*/function (_BaseCMI4) {
   }, {
     key: "success_status",
     get: function get() {
-      return _classPrivateFieldGet(this, _success_status2);
+      return _classPrivateFieldGet(_success_status2, this);
     }
 
     /**
@@ -7623,11 +7152,11 @@ var CMIObjectivesObject = /*#__PURE__*/function (_BaseCMI4) {
      * @param {string} success_status
      */,
     set: function set(success_status) {
-      if (this.initialized && _classPrivateFieldGet(this, _id2) === '') {
+      if (this.initialized && _classPrivateFieldGet(_id2, this) === '') {
         throwDependencyNotEstablishedError();
       } else {
         if (check2004ValidFormat(success_status, scorm2004_regex.CMISStatus)) {
-          _classPrivateFieldSet(this, _success_status2, success_status);
+          _classPrivateFieldSet(_success_status2, this, success_status);
         }
       }
     }
@@ -7639,7 +7168,7 @@ var CMIObjectivesObject = /*#__PURE__*/function (_BaseCMI4) {
   }, {
     key: "completion_status",
     get: function get() {
-      return _classPrivateFieldGet(this, _completion_status2);
+      return _classPrivateFieldGet(_completion_status2, this);
     }
 
     /**
@@ -7647,11 +7176,11 @@ var CMIObjectivesObject = /*#__PURE__*/function (_BaseCMI4) {
      * @param {string} completion_status
      */,
     set: function set(completion_status) {
-      if (this.initialized && _classPrivateFieldGet(this, _id2) === '') {
+      if (this.initialized && _classPrivateFieldGet(_id2, this) === '') {
         throwDependencyNotEstablishedError();
       } else {
         if (check2004ValidFormat(completion_status, scorm2004_regex.CMICStatus)) {
-          _classPrivateFieldSet(this, _completion_status2, completion_status);
+          _classPrivateFieldSet(_completion_status2, this, completion_status);
         }
       }
     }
@@ -7663,7 +7192,7 @@ var CMIObjectivesObject = /*#__PURE__*/function (_BaseCMI4) {
   }, {
     key: "progress_measure",
     get: function get() {
-      return _classPrivateFieldGet(this, _progress_measure2);
+      return _classPrivateFieldGet(_progress_measure2, this);
     }
 
     /**
@@ -7671,11 +7200,11 @@ var CMIObjectivesObject = /*#__PURE__*/function (_BaseCMI4) {
      * @param {string} progress_measure
      */,
     set: function set(progress_measure) {
-      if (this.initialized && _classPrivateFieldGet(this, _id2) === '') {
+      if (this.initialized && _classPrivateFieldGet(_id2, this) === '') {
         throwDependencyNotEstablishedError();
       } else {
         if (check2004ValidFormat(progress_measure, scorm2004_regex.CMIDecimal) && check2004ValidRange(progress_measure, scorm2004_regex.progress_range)) {
-          _classPrivateFieldSet(this, _progress_measure2, progress_measure);
+          _classPrivateFieldSet(_progress_measure2, this, progress_measure);
         }
       }
     }
@@ -7687,7 +7216,7 @@ var CMIObjectivesObject = /*#__PURE__*/function (_BaseCMI4) {
   }, {
     key: "description",
     get: function get() {
-      return _classPrivateFieldGet(this, _description2);
+      return _classPrivateFieldGet(_description2, this);
     }
 
     /**
@@ -7695,11 +7224,11 @@ var CMIObjectivesObject = /*#__PURE__*/function (_BaseCMI4) {
      * @param {string} description
      */,
     set: function set(description) {
-      if (this.initialized && _classPrivateFieldGet(this, _id2) === '') {
+      if (this.initialized && _classPrivateFieldGet(_id2, this) === '') {
         throwDependencyNotEstablishedError();
       } else {
         if (check2004ValidFormat(description, scorm2004_regex.CMILangString250, true)) {
-          _classPrivateFieldSet(this, _description2, description);
+          _classPrivateFieldSet(_description2, this, description);
         }
       }
     }
@@ -7734,7 +7263,6 @@ var CMIObjectivesObject = /*#__PURE__*/function (_BaseCMI4) {
       return result;
     }
   }]);
-  return CMIObjectivesObject;
 }(_common__WEBPACK_IMPORTED_MODULE_0__.BaseCMI);
 
 /**
@@ -7742,15 +7270,13 @@ var CMIObjectivesObject = /*#__PURE__*/function (_BaseCMI4) {
  */
 var _scaled = /*#__PURE__*/new WeakMap();
 var Scorm2004CMIScore = /*#__PURE__*/function (_CMIScore) {
-  _inherits(Scorm2004CMIScore, _CMIScore);
-  var _super9 = _createSuper(Scorm2004CMIScore);
   /**
    * Constructor for cmi *.score
    */
   function Scorm2004CMIScore() {
     var _this5;
     _classCallCheck(this, Scorm2004CMIScore);
-    _this5 = _super9.call(this, {
+    _this5 = _callSuper(this, Scorm2004CMIScore, [{
       score_children: scorm2004_constants.score_children,
       max: '',
       invalidErrorCode: scorm2004_error_codes.READ_ONLY_ELEMENT,
@@ -7758,11 +7284,8 @@ var Scorm2004CMIScore = /*#__PURE__*/function (_CMIScore) {
       invalidRangeCode: scorm2004_error_codes.VALUE_OUT_OF_RANGE,
       decimalRegex: scorm2004_regex.CMIDecimal,
       errorClass: _exceptions__WEBPACK_IMPORTED_MODULE_5__.Scorm2004ValidationError
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this5), _scaled, {
-      writable: true,
-      value: ''
-    });
+    }]);
+    _classPrivateFieldInitSpec(_this5, _scaled, '');
     return _this5;
   }
 
@@ -7770,10 +7293,11 @@ var Scorm2004CMIScore = /*#__PURE__*/function (_CMIScore) {
    * Getter for #scaled
    * @return {string}
    */
-  _createClass(Scorm2004CMIScore, [{
+  _inherits(Scorm2004CMIScore, _CMIScore);
+  return _createClass(Scorm2004CMIScore, [{
     key: "scaled",
     get: function get() {
-      return _classPrivateFieldGet(this, _scaled);
+      return _classPrivateFieldGet(_scaled, this);
     }
 
     /**
@@ -7782,7 +7306,7 @@ var Scorm2004CMIScore = /*#__PURE__*/function (_CMIScore) {
      */,
     set: function set(scaled) {
       if (check2004ValidFormat(scaled, scorm2004_regex.CMIDecimal) && check2004ValidRange(scaled, scorm2004_regex.scaled_range)) {
-        _classPrivateFieldSet(this, _scaled, scaled);
+        _classPrivateFieldSet(_scaled, this, scaled);
       }
     }
 
@@ -7812,7 +7336,6 @@ var Scorm2004CMIScore = /*#__PURE__*/function (_CMIScore) {
       return result;
     }
   }]);
-  return Scorm2004CMIScore;
 }(_common__WEBPACK_IMPORTED_MODULE_0__.CMIScore);
 /**
  * Class representing SCORM 2004's cmi.comments_from_learner.n and cmi.comments_from_lms.n object
@@ -7822,8 +7345,6 @@ var _location2 = /*#__PURE__*/new WeakMap();
 var _timestamp2 = /*#__PURE__*/new WeakMap();
 var _readOnlyAfterInit = /*#__PURE__*/new WeakMap();
 var CMICommentsObject = /*#__PURE__*/function (_BaseCMI5) {
-  _inherits(CMICommentsObject, _BaseCMI5);
-  var _super10 = _createSuper(CMICommentsObject);
   /**
    * Constructor for cmi.comments_from_learner.n and cmi.comments_from_lms.n
    * @param {boolean} readOnlyAfterInit
@@ -7832,27 +7353,15 @@ var CMICommentsObject = /*#__PURE__*/function (_BaseCMI5) {
     var _this6;
     var readOnlyAfterInit = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
     _classCallCheck(this, CMICommentsObject);
-    _this6 = _super10.call(this);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this6), _comment, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this6), _location2, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this6), _timestamp2, {
-      writable: true,
-      value: ''
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this6), _readOnlyAfterInit, {
-      writable: true,
-      value: void 0
-    });
-    _classPrivateFieldSet(_assertThisInitialized(_this6), _comment, '');
-    _classPrivateFieldSet(_assertThisInitialized(_this6), _location2, '');
-    _classPrivateFieldSet(_assertThisInitialized(_this6), _timestamp2, '');
-    _classPrivateFieldSet(_assertThisInitialized(_this6), _readOnlyAfterInit, readOnlyAfterInit);
+    _this6 = _callSuper(this, CMICommentsObject);
+    _classPrivateFieldInitSpec(_this6, _comment, '');
+    _classPrivateFieldInitSpec(_this6, _location2, '');
+    _classPrivateFieldInitSpec(_this6, _timestamp2, '');
+    _classPrivateFieldInitSpec(_this6, _readOnlyAfterInit, void 0);
+    _classPrivateFieldSet(_comment, _this6, '');
+    _classPrivateFieldSet(_location2, _this6, '');
+    _classPrivateFieldSet(_timestamp2, _this6, '');
+    _classPrivateFieldSet(_readOnlyAfterInit, _this6, readOnlyAfterInit);
     return _this6;
   }
 
@@ -7860,10 +7369,11 @@ var CMICommentsObject = /*#__PURE__*/function (_BaseCMI5) {
    * Getter for #comment
    * @return {string}
    */
-  _createClass(CMICommentsObject, [{
+  _inherits(CMICommentsObject, _BaseCMI5);
+  return _createClass(CMICommentsObject, [{
     key: "comment",
     get: function get() {
-      return _classPrivateFieldGet(this, _comment);
+      return _classPrivateFieldGet(_comment, this);
     }
 
     /**
@@ -7871,11 +7381,11 @@ var CMICommentsObject = /*#__PURE__*/function (_BaseCMI5) {
      * @param {string} comment
      */,
     set: function set(comment) {
-      if (this.initialized && _classPrivateFieldGet(this, _readOnlyAfterInit)) {
+      if (this.initialized && _classPrivateFieldGet(_readOnlyAfterInit, this)) {
         throwReadOnlyError();
       } else {
         if (check2004ValidFormat(comment, scorm2004_regex.CMILangString4000, true)) {
-          _classPrivateFieldSet(this, _comment, comment);
+          _classPrivateFieldSet(_comment, this, comment);
         }
       }
     }
@@ -7887,7 +7397,7 @@ var CMICommentsObject = /*#__PURE__*/function (_BaseCMI5) {
   }, {
     key: "location",
     get: function get() {
-      return _classPrivateFieldGet(this, _location2);
+      return _classPrivateFieldGet(_location2, this);
     }
 
     /**
@@ -7895,11 +7405,11 @@ var CMICommentsObject = /*#__PURE__*/function (_BaseCMI5) {
      * @param {string} location
      */,
     set: function set(location) {
-      if (this.initialized && _classPrivateFieldGet(this, _readOnlyAfterInit)) {
+      if (this.initialized && _classPrivateFieldGet(_readOnlyAfterInit, this)) {
         throwReadOnlyError();
       } else {
         if (check2004ValidFormat(location, scorm2004_regex.CMIString250)) {
-          _classPrivateFieldSet(this, _location2, location);
+          _classPrivateFieldSet(_location2, this, location);
         }
       }
     }
@@ -7911,7 +7421,7 @@ var CMICommentsObject = /*#__PURE__*/function (_BaseCMI5) {
   }, {
     key: "timestamp",
     get: function get() {
-      return _classPrivateFieldGet(this, _timestamp2);
+      return _classPrivateFieldGet(_timestamp2, this);
     }
 
     /**
@@ -7919,11 +7429,11 @@ var CMICommentsObject = /*#__PURE__*/function (_BaseCMI5) {
      * @param {string} timestamp
      */,
     set: function set(timestamp) {
-      if (this.initialized && _classPrivateFieldGet(this, _readOnlyAfterInit)) {
+      if (this.initialized && _classPrivateFieldGet(_readOnlyAfterInit, this)) {
         throwReadOnlyError();
       } else {
         if (check2004ValidFormat(timestamp, scorm2004_regex.CMITime)) {
-          _classPrivateFieldSet(this, _timestamp2, timestamp);
+          _classPrivateFieldSet(_timestamp2, this, timestamp);
         }
       }
     }
@@ -7951,7 +7461,6 @@ var CMICommentsObject = /*#__PURE__*/function (_BaseCMI5) {
       return result;
     }
   }]);
-  return CMICommentsObject;
 }(_common__WEBPACK_IMPORTED_MODULE_0__.BaseCMI);
 
 /**
@@ -7959,19 +7468,14 @@ var CMICommentsObject = /*#__PURE__*/function (_BaseCMI5) {
  */
 var _id3 = /*#__PURE__*/new WeakMap();
 var CMIInteractionsObjectivesObject = /*#__PURE__*/function (_BaseCMI6) {
-  _inherits(CMIInteractionsObjectivesObject, _BaseCMI6);
-  var _super11 = _createSuper(CMIInteractionsObjectivesObject);
   /**
    * Constructor for cmi.interactions.n.objectives.n
    */
   function CMIInteractionsObjectivesObject() {
     var _this7;
     _classCallCheck(this, CMIInteractionsObjectivesObject);
-    _this7 = _super11.call(this);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this7), _id3, {
-      writable: true,
-      value: ''
-    });
+    _this7 = _callSuper(this, CMIInteractionsObjectivesObject);
+    _classPrivateFieldInitSpec(_this7, _id3, '');
     return _this7;
   }
 
@@ -7979,10 +7483,11 @@ var CMIInteractionsObjectivesObject = /*#__PURE__*/function (_BaseCMI6) {
    * Getter for #id
    * @return {string}
    */
-  _createClass(CMIInteractionsObjectivesObject, [{
+  _inherits(CMIInteractionsObjectivesObject, _BaseCMI6);
+  return _createClass(CMIInteractionsObjectivesObject, [{
     key: "id",
     get: function get() {
-      return _classPrivateFieldGet(this, _id3);
+      return _classPrivateFieldGet(_id3, this);
     }
 
     /**
@@ -7991,7 +7496,7 @@ var CMIInteractionsObjectivesObject = /*#__PURE__*/function (_BaseCMI6) {
      */,
     set: function set(id) {
       if (check2004ValidFormat(id, scorm2004_regex.CMILongIdentifier)) {
-        _classPrivateFieldSet(this, _id3, id);
+        _classPrivateFieldSet(_id3, this, id);
       }
     }
 
@@ -8014,7 +7519,6 @@ var CMIInteractionsObjectivesObject = /*#__PURE__*/function (_BaseCMI6) {
       return result;
     }
   }]);
-  return CMIInteractionsObjectivesObject;
 }(_common__WEBPACK_IMPORTED_MODULE_0__.BaseCMI);
 
 /**
@@ -8022,19 +7526,14 @@ var CMIInteractionsObjectivesObject = /*#__PURE__*/function (_BaseCMI6) {
  */
 var _pattern = /*#__PURE__*/new WeakMap();
 var CMIInteractionsCorrectResponsesObject = /*#__PURE__*/function (_BaseCMI7) {
-  _inherits(CMIInteractionsCorrectResponsesObject, _BaseCMI7);
-  var _super12 = _createSuper(CMIInteractionsCorrectResponsesObject);
   /**
    * Constructor for cmi.interactions.n.correct_responses.n
    */
   function CMIInteractionsCorrectResponsesObject() {
     var _this8;
     _classCallCheck(this, CMIInteractionsCorrectResponsesObject);
-    _this8 = _super12.call(this);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this8), _pattern, {
-      writable: true,
-      value: ''
-    });
+    _this8 = _callSuper(this, CMIInteractionsCorrectResponsesObject);
+    _classPrivateFieldInitSpec(_this8, _pattern, '');
     return _this8;
   }
 
@@ -8042,10 +7541,11 @@ var CMIInteractionsCorrectResponsesObject = /*#__PURE__*/function (_BaseCMI7) {
    * Getter for #pattern
    * @return {string}
    */
-  _createClass(CMIInteractionsCorrectResponsesObject, [{
+  _inherits(CMIInteractionsCorrectResponsesObject, _BaseCMI7);
+  return _createClass(CMIInteractionsCorrectResponsesObject, [{
     key: "pattern",
     get: function get() {
-      return _classPrivateFieldGet(this, _pattern);
+      return _classPrivateFieldGet(_pattern, this);
     }
 
     /**
@@ -8054,7 +7554,7 @@ var CMIInteractionsCorrectResponsesObject = /*#__PURE__*/function (_BaseCMI7) {
      */,
     set: function set(pattern) {
       if (check2004ValidFormat(pattern, scorm2004_regex.CMIFeedback)) {
-        _classPrivateFieldSet(this, _pattern, pattern);
+        _classPrivateFieldSet(_pattern, this, pattern);
       }
     }
 
@@ -8077,22 +7577,19 @@ var CMIInteractionsCorrectResponsesObject = /*#__PURE__*/function (_BaseCMI7) {
       return result;
     }
   }]);
-  return CMIInteractionsCorrectResponsesObject;
 }(_common__WEBPACK_IMPORTED_MODULE_0__.BaseCMI);
 
 /**
  * Class representing SCORM 2004's adl object
  */
 var ADL = /*#__PURE__*/function (_BaseCMI8) {
-  _inherits(ADL, _BaseCMI8);
-  var _super13 = _createSuper(ADL);
   /**
    * Constructor for adl
    */
   function ADL() {
     var _this9;
     _classCallCheck(this, ADL);
-    _this9 = _super13.call(this);
+    _this9 = _callSuper(this, ADL);
     _this9.nav = new ADLNav();
     return _this9;
   }
@@ -8100,7 +7597,8 @@ var ADL = /*#__PURE__*/function (_BaseCMI8) {
   /**
    * Called when the API has been initialized after the CMI has been created
    */
-  _createClass(ADL, [{
+  _inherits(ADL, _BaseCMI8);
+  return _createClass(ADL, [{
     key: "initialize",
     value: function initialize() {
       var _this$nav;
@@ -8129,7 +7627,6 @@ var ADL = /*#__PURE__*/function (_BaseCMI8) {
       return result;
     }
   }]);
-  return ADL;
 }(_common__WEBPACK_IMPORTED_MODULE_0__.BaseCMI);
 
 /**
@@ -8137,19 +7634,14 @@ var ADL = /*#__PURE__*/function (_BaseCMI8) {
  */
 var _request = /*#__PURE__*/new WeakMap();
 var ADLNav = /*#__PURE__*/function (_BaseCMI9) {
-  _inherits(ADLNav, _BaseCMI9);
-  var _super14 = _createSuper(ADLNav);
   /**
    * Constructor for adl.nav
    */
   function ADLNav() {
     var _this10;
     _classCallCheck(this, ADLNav);
-    _this10 = _super14.call(this);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this10), _request, {
-      writable: true,
-      value: '_none_'
-    });
+    _this10 = _callSuper(this, ADLNav);
+    _classPrivateFieldInitSpec(_this10, _request, '_none_');
     _this10.request_valid = new ADLNavRequestValid();
     return _this10;
   }
@@ -8157,7 +7649,8 @@ var ADLNav = /*#__PURE__*/function (_BaseCMI9) {
   /**
    * Called when the API has been initialized after the CMI has been created
    */
-  _createClass(ADLNav, [{
+  _inherits(ADLNav, _BaseCMI9);
+  return _createClass(ADLNav, [{
     key: "initialize",
     value: function initialize() {
       var _this$request_valid;
@@ -8172,7 +7665,7 @@ var ADLNav = /*#__PURE__*/function (_BaseCMI9) {
   }, {
     key: "request",
     get: function get() {
-      return _classPrivateFieldGet(this, _request);
+      return _classPrivateFieldGet(_request, this);
     }
 
     /**
@@ -8181,7 +7674,7 @@ var ADLNav = /*#__PURE__*/function (_BaseCMI9) {
      */,
     set: function set(request) {
       if (check2004ValidFormat(request, scorm2004_regex.NAVEvent)) {
-        _classPrivateFieldSet(this, _request, request);
+        _classPrivateFieldSet(_request, this, request);
       }
     }
 
@@ -8205,7 +7698,6 @@ var ADLNav = /*#__PURE__*/function (_BaseCMI9) {
       return result;
     }
   }]);
-  return ADLNav;
 }(_common__WEBPACK_IMPORTED_MODULE_0__.BaseCMI);
 /**
  * Class representing SCORM 2004's adl.nav.request_valid object
@@ -8213,50 +7705,42 @@ var ADLNav = /*#__PURE__*/function (_BaseCMI9) {
 var _continue = /*#__PURE__*/new WeakMap();
 var _previous = /*#__PURE__*/new WeakMap();
 var ADLNavRequestValid = /*#__PURE__*/function (_BaseCMI10) {
-  _inherits(ADLNavRequestValid, _BaseCMI10);
-  var _super15 = _createSuper(ADLNavRequestValid);
   /**
    * Constructor for adl.nav.request_valid
    */
   function ADLNavRequestValid() {
     var _this11;
     _classCallCheck(this, ADLNavRequestValid);
-    _this11 = _super15.call(this);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this11), _continue, {
-      writable: true,
-      value: 'unknown'
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this11), _previous, {
-      writable: true,
-      value: 'unknown'
-    });
-    _defineProperty(_assertThisInitialized(_this11), "choice", /*#__PURE__*/function () {
+    _this11 = _callSuper(this, ADLNavRequestValid);
+    _classPrivateFieldInitSpec(_this11, _continue, 'unknown');
+    _classPrivateFieldInitSpec(_this11, _previous, 'unknown');
+    _defineProperty(_this11, "choice", /*#__PURE__*/function () {
+      function _class() {
+        _classCallCheck(this, _class);
+        /**
+         * Check if target is valid
+         * @param {*} _target
+         * @return {string}
+         */
+        _defineProperty(this, "_isTargetValid", function (_target) {
+          return 'unknown';
+        });
+      }
+      return _createClass(_class);
+    }());
+    _defineProperty(_this11, "jump", /*#__PURE__*/function () {
       function _class2() {
         _classCallCheck(this, _class2);
+        /**
+         * Check if target is valid
+         * @param {*} _target
+         * @return {string}
+         */
         _defineProperty(this, "_isTargetValid", function (_target) {
           return 'unknown';
         });
       }
-      /**
-       * Check if target is valid
-       * @param {*} _target
-       * @return {string}
-       */
       return _createClass(_class2);
-    }());
-    _defineProperty(_assertThisInitialized(_this11), "jump", /*#__PURE__*/function () {
-      function _class4() {
-        _classCallCheck(this, _class4);
-        _defineProperty(this, "_isTargetValid", function (_target) {
-          return 'unknown';
-        });
-      }
-      /**
-       * Check if target is valid
-       * @param {*} _target
-       * @return {string}
-       */
-      return _createClass(_class4);
     }());
     return _this11;
   }
@@ -8265,10 +7749,11 @@ var ADLNavRequestValid = /*#__PURE__*/function (_BaseCMI10) {
    * Getter for #continue
    * @return {string}
    */
-  _createClass(ADLNavRequestValid, [{
+  _inherits(ADLNavRequestValid, _BaseCMI10);
+  return _createClass(ADLNavRequestValid, [{
     key: "continue",
     get: function get() {
-      return _classPrivateFieldGet(this, _continue);
+      return _classPrivateFieldGet(_continue, this);
     }
 
     /**
@@ -8286,7 +7771,7 @@ var ADLNavRequestValid = /*#__PURE__*/function (_BaseCMI10) {
   }, {
     key: "previous",
     get: function get() {
-      return _classPrivateFieldGet(this, _previous);
+      return _classPrivateFieldGet(_previous, this);
     }
 
     /**
@@ -8319,7 +7804,6 @@ var ADLNavRequestValid = /*#__PURE__*/function (_BaseCMI10) {
       return result;
     }
   }]);
-  return ADLNavRequestValid;
 }(_common__WEBPACK_IMPORTED_MODULE_0__.BaseCMI);
 
 /***/ }),
@@ -8332,12 +7816,12 @@ var ADLNavRequestValid = /*#__PURE__*/function (_BaseCMI10) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
-function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 var global = {
   SCORM_TRUE: 'true',
   SCORM_FALSE: 'false',
@@ -8556,12 +8040,12 @@ var APIConstants = {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
-function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 var global = {
   GENERAL: 101,
   INITIALIZATION_FAILED: 101,
@@ -9056,12 +8540,12 @@ var ValidLanguages = {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
-function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 var scorm12 = {
   CMIString256: '^.{0,255}$',
   CMIString4096: '^.{0,4096}$',
@@ -9325,35 +8809,33 @@ var Responses = {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "AICCValidationError": function() { return /* binding */ AICCValidationError; },
-/* harmony export */   "Scorm12ValidationError": function() { return /* binding */ Scorm12ValidationError; },
-/* harmony export */   "Scorm2004ValidationError": function() { return /* binding */ Scorm2004ValidationError; },
-/* harmony export */   "ValidationError": function() { return /* binding */ ValidationError; }
+/* harmony export */   AICCValidationError: function() { return /* binding */ AICCValidationError; },
+/* harmony export */   Scorm12ValidationError: function() { return /* binding */ Scorm12ValidationError; },
+/* harmony export */   Scorm2004ValidationError: function() { return /* binding */ Scorm2004ValidationError; },
+/* harmony export */   ValidationError: function() { return /* binding */ ValidationError; }
 /* harmony export */ });
 /* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants/api_constants */ "./src/constants/api_constants.js");
-function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor); } }
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
-function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function _callSuper(t, o, e) { return o = _getPrototypeOf(o), _possibleConstructorReturn(t, _isNativeReflectConstruct() ? Reflect.construct(o, e || [], _getPrototypeOf(t).constructor) : o.apply(t, e)); }
 function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
 function _wrapNativeSuper(Class) { var _cache = typeof Map === "function" ? new Map() : undefined; _wrapNativeSuper = function _wrapNativeSuper(Class) { if (Class === null || !_isNativeFunction(Class)) return Class; if (typeof Class !== "function") { throw new TypeError("Super expression must either be null or a function"); } if (typeof _cache !== "undefined") { if (_cache.has(Class)) return _cache.get(Class); _cache.set(Class, Wrapper); } function Wrapper() { return _construct(Class, arguments, _getPrototypeOf(this).constructor); } Wrapper.prototype = Object.create(Class.prototype, { constructor: { value: Wrapper, enumerable: false, writable: true, configurable: true } }); return _setPrototypeOf(Wrapper, Class); }; return _wrapNativeSuper(Class); }
-function _construct(Parent, args, Class) { if (_isNativeReflectConstruct()) { _construct = Reflect.construct.bind(); } else { _construct = function _construct(Parent, args, Class) { var a = [null]; a.push.apply(a, args); var Constructor = Function.bind.apply(Parent, a); var instance = new Constructor(); if (Class) _setPrototypeOf(instance, Class.prototype); return instance; }; } return _construct.apply(null, arguments); }
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
-function _isNativeFunction(fn) { return Function.toString.call(fn).indexOf("[native code]") !== -1; }
+function _construct(t, e, r) { if (_isNativeReflectConstruct()) return Reflect.construct.apply(null, arguments); var o = [null]; o.push.apply(o, e); var p = new (t.bind.apply(t, o))(); return r && _setPrototypeOf(p, r.prototype), p; }
+function _isNativeReflectConstruct() { try { var t = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); } catch (t) {} return (_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); }
+function _isNativeFunction(fn) { try { return Function.toString.call(fn).indexOf("[native code]") !== -1; } catch (e) { return typeof fn === "function"; } }
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
-function _classPrivateFieldGet(receiver, privateMap) { var descriptor = _classExtractFieldDescriptor(receiver, privateMap, "get"); return _classApplyDescriptorGet(receiver, descriptor); }
-function _classApplyDescriptorGet(receiver, descriptor) { if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
-function _classPrivateFieldSet(receiver, privateMap, value) { var descriptor = _classExtractFieldDescriptor(receiver, privateMap, "set"); _classApplyDescriptorSet(receiver, descriptor, value); return value; }
-function _classExtractFieldDescriptor(receiver, privateMap, action) { if (!privateMap.has(receiver)) { throw new TypeError("attempted to " + action + " private field on non-instance"); } return privateMap.get(receiver); }
-function _classApplyDescriptorSet(receiver, descriptor, value) { if (descriptor.set) { descriptor.set.call(receiver, value); } else { if (!descriptor.writable) { throw new TypeError("attempted to set read only private field"); } descriptor.value = value; } }
+function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
+function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), r), r; }
+function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 
 var scorm12_errors = _constants_api_constants__WEBPACK_IMPORTED_MODULE_0__["default"].scorm12.error_descriptions;
 var aicc_errors = _constants_api_constants__WEBPACK_IMPORTED_MODULE_0__["default"].aicc.error_descriptions;
@@ -9366,8 +8848,6 @@ var _errorCode = /*#__PURE__*/new WeakMap();
 var _errorMessage = /*#__PURE__*/new WeakMap();
 var _detailedMessage = /*#__PURE__*/new WeakMap();
 var ValidationError = /*#__PURE__*/function (_Error) {
-  _inherits(ValidationError, _Error);
-  var _super = _createSuper(ValidationError);
   /**
    * Constructor to take in an error message and code
    * @param {number} errorCode
@@ -9377,25 +8857,17 @@ var ValidationError = /*#__PURE__*/function (_Error) {
   function ValidationError(errorCode, errorMessage, detailedMessage) {
     var _this;
     _classCallCheck(this, ValidationError);
-    _this = _super.call(this, errorMessage);
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _errorCode, {
-      writable: true,
-      value: void 0
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _errorMessage, {
-      writable: true,
-      value: void 0
-    });
-    _classPrivateFieldInitSpec(_assertThisInitialized(_this), _detailedMessage, {
-      writable: true,
-      value: void 0
-    });
-    _classPrivateFieldSet(_assertThisInitialized(_this), _errorCode, errorCode);
-    _classPrivateFieldSet(_assertThisInitialized(_this), _errorMessage, errorMessage);
-    _classPrivateFieldSet(_assertThisInitialized(_this), _detailedMessage, detailedMessage);
+    _this = _callSuper(this, ValidationError, [errorMessage]);
+    _classPrivateFieldInitSpec(_this, _errorCode, void 0);
+    _classPrivateFieldInitSpec(_this, _errorMessage, void 0);
+    _classPrivateFieldInitSpec(_this, _detailedMessage, void 0);
+    _classPrivateFieldSet(_errorCode, _this, errorCode);
+    _classPrivateFieldSet(_errorMessage, _this, errorMessage);
+    _classPrivateFieldSet(_detailedMessage, _this, detailedMessage);
     return _this;
   }
-  _createClass(ValidationError, [{
+  _inherits(ValidationError, _Error);
+  return _createClass(ValidationError, [{
     key: "errorCode",
     get:
     /**
@@ -9403,7 +8875,7 @@ var ValidationError = /*#__PURE__*/function (_Error) {
      * @return {number}
      */
     function get() {
-      return _classPrivateFieldGet(this, _errorCode);
+      return _classPrivateFieldGet(_errorCode, this);
     }
 
     /**
@@ -9413,7 +8885,7 @@ var ValidationError = /*#__PURE__*/function (_Error) {
   }, {
     key: "errorMessage",
     get: function get() {
-      return _classPrivateFieldGet(this, _errorMessage);
+      return _classPrivateFieldGet(_errorMessage, this);
     }
 
     /**
@@ -9423,18 +8895,15 @@ var ValidationError = /*#__PURE__*/function (_Error) {
   }, {
     key: "detailedMessage",
     get: function get() {
-      return _classPrivateFieldGet(this, _detailedMessage);
+      return _classPrivateFieldGet(_detailedMessage, this);
     }
   }]);
-  return ValidationError;
 }( /*#__PURE__*/_wrapNativeSuper(Error));
 
 /**
  * SCORM 1.2 Validation Error
  */
-var Scorm12ValidationError = /*#__PURE__*/function (_ValidationError) {
-  _inherits(Scorm12ValidationError, _ValidationError);
-  var _super2 = _createSuper(Scorm12ValidationError);
+var Scorm12ValidationError = /*#__PURE__*/function (_ValidationError2) {
   /**
    * Constructor to take in an error code
    * @param {number} errorCode
@@ -9443,21 +8912,20 @@ var Scorm12ValidationError = /*#__PURE__*/function (_ValidationError) {
     var _this2;
     _classCallCheck(this, Scorm12ValidationError);
     if ({}.hasOwnProperty.call(scorm12_errors, String(errorCode))) {
-      _this2 = _super2.call(this, errorCode, scorm12_errors[String(errorCode)].basicMessage, scorm12_errors[String(errorCode)].detailMessage);
+      _this2 = _callSuper(this, Scorm12ValidationError, [errorCode, scorm12_errors[String(errorCode)].basicMessage, scorm12_errors[String(errorCode)].detailMessage]);
     } else {
-      _this2 = _super2.call(this, 101, scorm12_errors['101'].basicMessage, scorm12_errors['101'].detailMessage);
+      _this2 = _callSuper(this, Scorm12ValidationError, [101, scorm12_errors['101'].basicMessage, scorm12_errors['101'].detailMessage]);
     }
-    return _possibleConstructorReturn(_this2);
+    return _assertThisInitialized(_this2);
   }
+  _inherits(Scorm12ValidationError, _ValidationError2);
   return _createClass(Scorm12ValidationError);
 }(ValidationError);
 
 /**
  * AICC Validation Error
  */
-var AICCValidationError = /*#__PURE__*/function (_ValidationError2) {
-  _inherits(AICCValidationError, _ValidationError2);
-  var _super3 = _createSuper(AICCValidationError);
+var AICCValidationError = /*#__PURE__*/function (_ValidationError3) {
   /**
    * Constructor to take in an error code
    * @param {number} errorCode
@@ -9466,21 +8934,20 @@ var AICCValidationError = /*#__PURE__*/function (_ValidationError2) {
     var _this3;
     _classCallCheck(this, AICCValidationError);
     if ({}.hasOwnProperty.call(aicc_errors, String(errorCode))) {
-      _this3 = _super3.call(this, errorCode, aicc_errors[String(errorCode)].basicMessage, aicc_errors[String(errorCode)].detailMessage);
+      _this3 = _callSuper(this, AICCValidationError, [errorCode, aicc_errors[String(errorCode)].basicMessage, aicc_errors[String(errorCode)].detailMessage]);
     } else {
-      _this3 = _super3.call(this, 101, aicc_errors['101'].basicMessage, aicc_errors['101'].detailMessage);
+      _this3 = _callSuper(this, AICCValidationError, [101, aicc_errors['101'].basicMessage, aicc_errors['101'].detailMessage]);
     }
-    return _possibleConstructorReturn(_this3);
+    return _assertThisInitialized(_this3);
   }
+  _inherits(AICCValidationError, _ValidationError3);
   return _createClass(AICCValidationError);
 }(ValidationError);
 
 /**
  * SCORM 2004 Validation Error
  */
-var Scorm2004ValidationError = /*#__PURE__*/function (_ValidationError3) {
-  _inherits(Scorm2004ValidationError, _ValidationError3);
-  var _super4 = _createSuper(Scorm2004ValidationError);
+var Scorm2004ValidationError = /*#__PURE__*/function (_ValidationError4) {
   /**
    * Constructor to take in an error code
    * @param {number} errorCode
@@ -9489,12 +8956,13 @@ var Scorm2004ValidationError = /*#__PURE__*/function (_ValidationError3) {
     var _this4;
     _classCallCheck(this, Scorm2004ValidationError);
     if ({}.hasOwnProperty.call(scorm2004_errors, String(errorCode))) {
-      _this4 = _super4.call(this, errorCode, scorm2004_errors[String(errorCode)].basicMessage, scorm2004_errors[String(errorCode)].detailMessage);
+      _this4 = _callSuper(this, Scorm2004ValidationError, [errorCode, scorm2004_errors[String(errorCode)].basicMessage, scorm2004_errors[String(errorCode)].detailMessage]);
     } else {
-      _this4 = _super4.call(this, 101, scorm2004_errors['101'].basicMessage, scorm2004_errors['101'].detailMessage);
+      _this4 = _callSuper(this, Scorm2004ValidationError, [101, scorm2004_errors['101'].basicMessage, scorm2004_errors['101'].detailMessage]);
     }
-    return _possibleConstructorReturn(_this4);
+    return _assertThisInitialized(_this4);
   }
+  _inherits(Scorm2004ValidationError, _ValidationError4);
   return _createClass(Scorm2004ValidationError);
 }(ValidationError);
 
@@ -9509,25 +8977,25 @@ var Scorm2004ValidationError = /*#__PURE__*/function (_ValidationError3) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "SECONDS_PER_DAY": function() { return /* binding */ SECONDS_PER_DAY; },
-/* harmony export */   "SECONDS_PER_HOUR": function() { return /* binding */ SECONDS_PER_HOUR; },
-/* harmony export */   "SECONDS_PER_MINUTE": function() { return /* binding */ SECONDS_PER_MINUTE; },
-/* harmony export */   "SECONDS_PER_SECOND": function() { return /* binding */ SECONDS_PER_SECOND; },
-/* harmony export */   "addHHMMSSTimeStrings": function() { return /* binding */ addHHMMSSTimeStrings; },
-/* harmony export */   "addTwoDurations": function() { return /* binding */ addTwoDurations; },
-/* harmony export */   "countDecimals": function() { return /* binding */ countDecimals; },
-/* harmony export */   "flatten": function() { return /* binding */ flatten; },
-/* harmony export */   "getDurationAsSeconds": function() { return /* binding */ getDurationAsSeconds; },
-/* harmony export */   "getSecondsAsHHMMSS": function() { return /* binding */ getSecondsAsHHMMSS; },
-/* harmony export */   "getSecondsAsISODuration": function() { return /* binding */ getSecondsAsISODuration; },
-/* harmony export */   "getTimeAsSeconds": function() { return /* binding */ getTimeAsSeconds; },
-/* harmony export */   "unflatten": function() { return /* binding */ unflatten; }
+/* harmony export */   SECONDS_PER_DAY: function() { return /* binding */ SECONDS_PER_DAY; },
+/* harmony export */   SECONDS_PER_HOUR: function() { return /* binding */ SECONDS_PER_HOUR; },
+/* harmony export */   SECONDS_PER_MINUTE: function() { return /* binding */ SECONDS_PER_MINUTE; },
+/* harmony export */   SECONDS_PER_SECOND: function() { return /* binding */ SECONDS_PER_SECOND; },
+/* harmony export */   addHHMMSSTimeStrings: function() { return /* binding */ addHHMMSSTimeStrings; },
+/* harmony export */   addTwoDurations: function() { return /* binding */ addTwoDurations; },
+/* harmony export */   countDecimals: function() { return /* binding */ countDecimals; },
+/* harmony export */   flatten: function() { return /* binding */ flatten; },
+/* harmony export */   getDurationAsSeconds: function() { return /* binding */ getDurationAsSeconds; },
+/* harmony export */   getSecondsAsHHMMSS: function() { return /* binding */ getSecondsAsHHMMSS; },
+/* harmony export */   getSecondsAsISODuration: function() { return /* binding */ getSecondsAsISODuration; },
+/* harmony export */   getTimeAsSeconds: function() { return /* binding */ getTimeAsSeconds; },
+/* harmony export */   unflatten: function() { return /* binding */ unflatten; }
 /* harmony export */ });
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
-function _iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t.return && (u = t.return(), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 var SECONDS_PER_SECOND = 1.0;
 var SECONDS_PER_MINUTE = 60;
