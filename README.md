@@ -15,6 +15,8 @@ Version 2.0.0 of scorm-again switches to using `fetch` instead of `sendBeacon` w
 
 
 ### Setup
+
+#### Load
 To begin with, you include either the `scorm-again.js` or `scorm-again.min.js` file on your launching page:
 ```html
 <script type="text/javascript" src="/dist/scorm-again.js"></script>
@@ -33,7 +35,12 @@ or
 ```sh
 yarn add scorm-again
 ```
+after installation, you'll need to import the library:
+```javascript
+import "scorm-again";
+```
 
+#### Initialize
 You would then initialize the APIs using the following JS statements:
 ```javascript
 var settings = {}
