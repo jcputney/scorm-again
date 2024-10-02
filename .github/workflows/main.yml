@@ -1,0 +1,65 @@
+name: Node.js CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 'lts/*'
+
+      # Cache node modules
+      - name: Cache node_modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: v1-dependencies-${{ hashFiles('package.json') }}
+          restore-keys: |
+            v1-dependencies-
+
+      # Install dependencies
+      - name: Install dependencies
+        run: yarn install
+
+      # Create required directories
+      - name: Create directories
+        run: mkdir -p reports dist docs test-results
+
+      # Run Mocha tests
+      - name: Run tests with Mocha
+        run: |
+          ./node_modules/.bin/nyc ./node_modules/.bin/mocha --require @babel/register --recursive --timeout=10000 --exit --reporter mocha-junit-reporter --reporter-options mochaFile=test-results/mocha/results.xml
+
+      # Run ESLint
+      - name: Run ESLint
+        run: |
+          ./node_modules/.bin/eslint ./src --format junit --output-file ./reports/eslint/eslint.xml
+
+      # Set up Code Climate test-reporter
+      - name: Set up Code Climate test-reporter
+        run: |
+          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+          chmod +x ./cc-test-reporter
+          ./cc-test-reporter before-build
+
+      # Generate code coverage report and upload to Code Climate
+      - name: Upload code coverage to Code Climate
+        run: |
+          mkdir coverage
+          ./node_modules/.bin/nyc report --reporter=text-lcov > coverage/lcov.info
+          ./cc-test-reporter 

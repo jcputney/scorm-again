@@ -1,99 +1,99 @@
-# Javascript Node CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-javascript/ for more details
-#
-version: 2
-jobs:
-  build:
-    docker:
-      # specify the version you desire here
-      - image: circleci/node:lts-browsers
+# # Javascript Node CircleCI 2.0 configuration file
+# #
+# # Check https://circleci.com/docs/2.0/language-javascript/ for more details
+# #
+# version: 2
+# jobs:
+#   build:
+#     docker:
+#       # specify the version you desire here
+#       - image: circleci/node:lts-browsers
 
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/mongo:3.4.4
+#       # Specify service dependencies here if necessary
+#       # CircleCI maintains a library of pre-built images
+#       # documented at https://circleci.com/docs/2.0/circleci-images/
+#       # - image: circleci/mongo:3.4.4
 
-    working_directory: ~/scorm-again
+#     working_directory: ~/scorm-again
 
-    steps:
-      - checkout
+#     steps:
+#       - checkout
 
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "package.json" }}
-            # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
+#       # Download and cache dependencies
+#       - restore_cache:
+#           keys:
+#             - v1-dependencies-{{ checksum "package.json" }}
+#             # fallback to using the latest cache if no exact match is found
+#             - v1-dependencies-
 
-      - run: yarn install
+#       - run: yarn install
 
-      - save_cache:
-          paths:
-            - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
+#       - save_cache:
+#           paths:
+#             - node_modules
+#           key: v1-dependencies-{{ checksum "package.json" }}
 
-      - run: mkdir reports dist docs test-results || true
+#       - run: mkdir reports dist docs test-results || true
 
-      # Run mocha
-      - run:
-          name: yarn test
-          command: ./node_modules/.bin/nyc ./node_modules/.bin/mocha --require @babel/register --recursive --timeout=10000 --exit --reporter mocha-junit-reporter --reporter-options mochaFile=test-results/mocha/results.xml
-          when: always
+#       # Run mocha
+#       - run:
+#           name: yarn test
+#           command: ./node_modules/.bin/nyc ./node_modules/.bin/mocha --require @babel/register --recursive --timeout=10000 --exit --reporter mocha-junit-reporter --reporter-options mochaFile=test-results/mocha/results.xml
+#           when: always
 
-      # Run eslint
-      - run:
-          name: eslint
-          command: |
-            ./node_modules/.bin/eslint ./src --format junit --output-file ./reports/eslint/eslint.xml
-          when: always
+#       # Run eslint
+#       - run:
+#           name: eslint
+#           command: |
+#             ./node_modules/.bin/eslint ./src --format junit --output-file ./reports/eslint/eslint.xml
+#           when: always
 
-      # Run coverage report for Code Climate
-      - run:
-          name: Setup Code Climate test-reporter
-          command: |
-            # download test reporter as a static binary
-            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-            chmod +x ./cc-test-reporter
-            ./cc-test-reporter before-build
-          when: always
+#       # Run coverage report for Code Climate
+#       - run:
+#           name: Setup Code Climate test-reporter
+#           command: |
+#             # download test reporter as a static binary
+#             curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+#             chmod +x ./cc-test-reporter
+#             ./cc-test-reporter before-build
+#           when: always
 
-      - run:
-          name: code-coverage
-          command: |
-            mkdir coverage
-            # nyc report requires that nyc has already been run,
-            # which creates the .nyc_output folder containing necessary data
-            ./node_modules/.bin/nyc report --reporter=text-lcov > coverage/lcov.info
-            ./cc-test-reporter after-build -t lcov
-          when: always
+#       - run:
+#           name: code-coverage
+#           command: |
+#             mkdir coverage
+#             # nyc report requires that nyc has already been run,
+#             # which creates the .nyc_output folder containing necessary data
+#             ./node_modules/.bin/nyc report --reporter=text-lcov > coverage/lcov.info
+#             ./cc-test-reporter after-build -t lcov
+#           when: always
 
-      # compile documentation
-      - run: ./node_modules/.bin/jsdoc -c .jsdoc.json -d ./docs ./src/
+#       # compile documentation
+#       - run: ./node_modules/.bin/jsdoc -c .jsdoc.json -d ./docs ./src/
 
-      # run babel compile
-      - run: git config user.email "jputney@noverant.com" && git config user.name "Jonathan Putney"
-      - run: ./node_modules/.bin/webpack --bail --config webpack.js
-      - run: git add --all dist/
+#       # run babel compile
+#       - run: git config user.email "jputney@noverant.com" && git config user.name "Jonathan Putney"
+#       - run: ./node_modules/.bin/webpack --bail --config webpack.js
+#       - run: git add --all dist/
 
-      # run jsdoc
-      # - run: ./node_modules/.bin/jsdoc -c .jsdoc.json -d ./docs ./src/
-      # - run: git add --all docs/
+#       # run jsdoc
+#       # - run: ./node_modules/.bin/jsdoc -c .jsdoc.json -d ./docs ./src/
+#       # - run: git add --all docs/
 
-      # git commit and push dist and docs
-      - run: git commit -m "[skip ci] - Updating Dist and Docs" && git push origin master || true
+#       # git commit and push dist and docs
+#       - run: git commit -m "[skip ci] - Updating Dist and Docs" && git push origin master || true
 
-      # Upload results
+#       # Upload results
 
-      - store_test_results:
-          path: test-results
+#       - store_test_results:
+#           path: test-results
 
-      - store_artifacts:
-          path: ./reports/mocha/test-results.xml
+#       - store_artifacts:
+#           path: ./reports/mocha/test-results.xml
 
-      - store_artifacts:
-          path: ./reports/eslint/eslint.xml
+#       - store_artifacts:
+#           path: ./reports/eslint/eslint.xml
 
-      - store_artifacts: # upload test coverage as artifact
-          path: ./coverage/lcov.info
-          prefix: tests
+#       - store_artifacts: # upload test coverage as artifact
+#           path: ./coverage/lcov.info
+#           prefix: tests
