@@ -70,7 +70,7 @@ module.exports = {
   },
   plugins: [
     new ESLintPlugin({
-      overrideConfigFile: path.resolve(__dirname, '.eslintrc.js'),
+      overrideConfigFile: path.resolve(__dirname, 'eslint.config.mjs'),
       context: path.resolve(__dirname, '../src'),
       files: '**/*.js',
     }),

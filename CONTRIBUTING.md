@@ -6,7 +6,7 @@ I'm really glad you're reading this, because this project could definitely benef
 
 I have written 1700+ test cases for the project, but testing is nowhere near what it should be. I try to add test cases as I have time or as an issue comes up. For pull requests, please create test cases for any new code that gets added.
 
-If you would like to contribute, but don't know where to get started, we could absolute use more test cases. The CMI test cases are pretty well covered, but there are always edge cases to think of, but the API test cases are definitely lacking. They are more difficult to create and setup, but obviously cover the bulk of the functionality as well.
+If you would like to contribute, but don't know where to get started, we could absolutely use more test cases. The CMI test cases are pretty well covered, but there are always edge cases to think of, and the API test cases are definitely lacking. They are more difficult to create and setup, but obviously cover the bulk of the functionality as well.
 
 ## Submitting changes
 
