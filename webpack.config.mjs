@@ -1,43 +1,20 @@
-const path = require('path');
-const webpack = require('webpack');
-const ESLintPlugin = require('eslint-webpack-plugin');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+import path from 'path';
+import { fileURLToPath } from 'url';
+import ESLintPlugin from 'eslint-webpack-plugin';
+import UglifyJsPlugin from 'uglifyjs-webpack-plugin';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const JSLoader = {
-  test: /\.js$/i,
+  test: /\.m?js$/i,
+  exclude: /node_modules/,
   use: {
     loader: 'babel-loader',
-    options: {
-      presets: [
-        [
-          '@babel/preset-env',
-          {
-            'corejs': '3',
-            'useBuiltIns': 'entry',
-            'targets': {
-              'browsers': [
-                'edge >= 16',
-                'safari >= 9',
-                'firefox >= 57',
-                'ie >= 11',
-                'ios >= 9',
-                'chrome >= 49',
-              ],
-            },
-          },
-        ],
-        ['@babel/preset-flow'],
-      ],
-      plugins: [
-        '@babel/plugin-proposal-class-properties',
-        '@babel/plugin-proposal-private-methods',
-        '@babel/plugin-proposal-optional-chaining',
-      ],
-    },
   },
 };
 
-module.exports = {
+export default {
   mode: 'development',
   devtool: 'source-map',
   entry: {
@@ -71,8 +48,9 @@ module.exports = {
   plugins: [
     new ESLintPlugin({
       overrideConfigFile: path.resolve(__dirname, 'eslint.config.mjs'),
+      configType: 'flat',
       context: path.resolve(__dirname, '../src'),
-      files: '**/*.js',
+      files: ['**/*.js', '**/*.mjs'],
     }),
   ],
 };

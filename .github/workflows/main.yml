@@ -18,19 +18,12 @@ jobs:
         uses: actions/checkout@v3
 
       # Set up Node.js
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
-
-      # Cache node modules
-      - name: Cache node_modules
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: v1-dependencies-${{ hashFiles('package.json') }}
-          restore-keys: |
-            v1-dependencies-
+          cache: 'yarn'
+          cache-dependency-path: 'yarn.lock'
 
       # Install dependencies
       - name: Install dependencies
@@ -43,7 +36,7 @@ jobs:
       # Run Mocha tests
       - name: Run tests with Mocha
         run: |
-          ./node_modules/.bin/nyc ./node_modules/.bin/mocha --require @babel/register --recursive --timeout=10000 --exit --reporter mocha-junit-reporter --reporter-options mochaFile=test-results/mocha/results.xml
+          ./node_modules/.bin/c8 ./node_modules/.bin/mocha --require @babel/register --recursive --timeout=10000 --exit --reporter mocha-junit-reporter --reporter-options mochaFile=test-results/mocha/results.xml
 
       # Run ESLint
       - name: Run ESLint
@@ -61,5 +54,5 @@ jobs:
       - name: Upload code coverage to Code Climate
         run: |
           mkdir coverage
-          ./node_modules/.bin/nyc report --reporter=text-lcov > coverage/lcov.info
-          ./cc-test-reporter 
+          ./node_modules/.bin/c8 report --reporter=text-lcov > coverage/lcov.info
+          ./cc-test-reporter

@@ -1,6 +1,5 @@
 // @flow
-
-import APIConstants from './constants/api_constants';
+import APIConstants from './constants/api_constants.mjs';
 
 const scorm12_errors = APIConstants.scorm12.error_descriptions;
 const aicc_errors = APIConstants.aicc.error_descriptions;

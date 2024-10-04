@@ -1,9 +1,8 @@
 // @flow
-
 const scorm12 = {
   CMIString256: '^.{0,255}$',
   CMIString4096: '^.{0,4096}$',
-  CMITime: '^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)$', // eslint-disable-line
+  CMITime: '^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)$',
   CMITimespan: '^([0-9]{2,}):([0-9]{2}):([0-9]{2})(\.[0-9]{1,2})?$', // eslint-disable-line
   CMIInteger: '^\\d+$',
   CMISInteger: '^-?([0-9]+)$',
@@ -17,7 +16,7 @@ const scorm12 = {
   CMIStatus2: '^(passed|completed|failed|incomplete|browsed|not attempted)$',
   CMIExit: '^(time-out|suspend|logout|)$',
   CMIType: '^(true-false|choice|fill-in|matching|performance|sequencing|likert|numeric)$',
-  CMIResult: '^(correct|wrong|unanticipated|neutral|([0-9]{0,3})?(\\.[0-9]*)?)$', // eslint-disable-line
+  CMIResult: '^(correct|wrong|unanticipated|neutral|([0-9]{0,3})?(\\.[0-9]*)?)$',
   NAVEvent: '^(previous|continue)$',
 
   // Data ranges
@@ -51,7 +50,7 @@ const scorm2004 = {
   CMISInteger: '^-?([0-9]+)$',
   CMIDecimal: '^-?([0-9]{1,5})(\\.[0-9]{1,18})?$',
   CMIIdentifier: '^\\S{1,250}[a-zA-Z0-9]$',
-  CMIShortIdentifier: '^[\\w\\.\\-\\_]{1,250}$', // eslint-disable-line
+  CMIShortIdentifier: '^[\\w\\.\\-\\_]{1,250}$',
   CMILongIdentifier: '^(?:(?!urn:)\\S{1,4000}|urn:[A-Za-z0-9-]{1,31}:\\S{1,4000}|.{1,4000})$', // need to re-examine this
   CMIFeedback: '^.*$', // This must be redefined
   CMIIndex: '[._](\\d+).',

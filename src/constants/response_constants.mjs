@@ -1,5 +1,5 @@
 // @flow
-import Regex from './regex';
+import Regex from './regex.mjs';
 
 const scorm2004_regex = Regex.scorm2004;
 

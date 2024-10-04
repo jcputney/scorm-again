@@ -1,11 +1,28 @@
 {
   "presets": [
-    "@babel/preset-env",
+    [
+      "@babel/preset-env",
+      {
+        "corejs": "3",
+        "useBuiltIns": "entry",
+        "targets": {
+          "browsers": [
+            "edge >= 16",
+            "safari >= 9",
+            "firefox >= 57",
+            "ie >= 11",
+            "ios >= 9",
+            "chrome >= 49"
+          ]
+        }
+      }
+    ],
     "@babel/preset-flow"
   ],
   "plugins": [
-    "@babel/plugin-proposal-class-properties",
-    "@babel/plugin-proposal-private-methods",
-    "@babel/plugin-proposal-optional-chaining"
+    "@babel/plugin-transform-class-properties",
+    "@babel/plugin-transform-private-methods",
+    "@babel/plugin-transform-optional-chaining",
+    "babel-plugin-syntax-hermes-parser"
   ]
 }

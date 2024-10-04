@@ -1,15 +1,15 @@
 // @flow
-import BaseAPI from './BaseAPI';
+import BaseAPI from './BaseAPI.mjs';
 import {
   CMI,
   CMIInteractionsCorrectResponsesObject,
   CMIInteractionsObject,
   CMIInteractionsObjectivesObject,
   CMIObjectivesObject, NAV,
-} from './cmi/scorm12_cmi';
-import * as Utilities from './utilities';
-import APIConstants from './constants/api_constants';
-import ErrorCodes from './constants/error_codes';
+} from './cmi/scorm12_cmi.mjs';
+import * as Utilities from './utilities.mjs';
+import APIConstants from './constants/api_constants.mjs';
+import ErrorCodes from './constants/error_codes.mjs';
 
 const scorm12_constants = APIConstants.scorm12;
 const global_constants = APIConstants.global;

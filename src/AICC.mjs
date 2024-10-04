@@ -1,12 +1,12 @@
 // @flow
-import Scorm12API from './Scorm12API';
+import Scorm12API from './Scorm12API.mjs';
 import {
   CMI,
   CMIAttemptRecordsObject,
   CMIEvaluationCommentsObject,
   CMITriesObject,
-} from './cmi/aicc_cmi';
-import {NAV} from './cmi/scorm12_cmi';
+} from './cmi/aicc_cmi.mjs';
+import {NAV} from './cmi/scorm12_cmi.mjs';
 
 /**
  * The AICC API class

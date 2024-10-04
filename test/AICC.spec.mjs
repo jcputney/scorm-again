@@ -1,8 +1,8 @@
 import {expect} from 'chai';
-import {describe, it} from 'mocha';
-import * as h from './api_helpers';
-import ErrorCodes from '../src/constants/error_codes';
-import AICC from '../src/AICC';
+import {describe} from 'mocha';
+import * as h from './api_helpers.mjs';
+import ErrorCodes from '../src/constants/error_codes.mjs';
+import AICC from '../src/AICC.mjs';
 
 const scorm12_error_codes = ErrorCodes.scorm12;
 

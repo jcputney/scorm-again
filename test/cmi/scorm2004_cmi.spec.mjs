@@ -1,6 +1,6 @@
 import {describe, it} from 'mocha';
-import ErrorCodes from '../../src/constants/error_codes';
-import APIConstants from '../../src/constants/api_constants';
+import ErrorCodes from '../../src/constants/error_codes.mjs';
+import APIConstants from '../../src/constants/api_constants.mjs';
 import {
   ADL,
   CMI,
@@ -9,10 +9,10 @@ import {
   CMIInteractionsObject,
   CMIInteractionsObjectivesObject,
   CMIObjectivesObject,
-} from '../../src/cmi/scorm2004_cmi';
-import * as h from '../cmi_helpers';
+} from '../../src/cmi/scorm2004_cmi.mjs';
+import * as h from '../cmi_helpers.mjs';
 import {expect} from 'chai';
-import {scorm2004_values} from '../field_values';
+import {scorm2004_values} from '../field_values.mjs';
 
 const scorm2004_constants = APIConstants.scorm2004;
 const scorm2004_error_codes = ErrorCodes.scorm2004;

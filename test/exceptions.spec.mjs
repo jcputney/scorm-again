@@ -1,7 +1,7 @@
 import {describe, it} from 'mocha';
 import {expect} from 'chai';
-import {ValidationError, AICCValidationError, Scorm12ValidationError, Scorm2004ValidationError} from '../src/exceptions';
-import APIConstants from '../src/constants/api_constants';
+import {ValidationError, AICCValidationError, Scorm12ValidationError, Scorm2004ValidationError} from '../src/exceptions.mjs';
+import APIConstants from '../src/constants/api_constants.mjs';
 
 const scorm12_errors = APIConstants.scorm12.error_descriptions;
 const aicc_errors = APIConstants.aicc.error_descriptions;

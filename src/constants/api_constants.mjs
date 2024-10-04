@@ -1,5 +1,4 @@
 // @flow
-
 const global = {
   SCORM_TRUE: 'true',
   SCORM_FALSE: 'false',

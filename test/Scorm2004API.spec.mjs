@@ -1,11 +1,11 @@
 import {expect} from 'chai';
 import {describe, it, before, after} from 'mocha';
 import * as sinon from 'sinon';
-import * as h from './api_helpers';
+import * as h from './api_helpers.mjs';
 import Pretender from 'fetch-pretender';
-import ErrorCodes from '../src/constants/error_codes';
-import Scorm2004API from '../src/Scorm2004API';
-import {scorm2004_values} from './field_values';
+import ErrorCodes from '../src/constants/error_codes.mjs';
+import Scorm2004API from '../src/Scorm2004API.mjs';
+import {scorm2004_values} from './field_values.mjs';
 
 const scorm2004_error_codes = ErrorCodes.scorm2004;
 

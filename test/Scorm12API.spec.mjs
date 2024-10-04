@@ -1,9 +1,9 @@
 import {expect} from 'chai';
 import {after, before, describe, it} from 'mocha';
-import Scorm12API from '../src/Scorm12API';
-import * as h from './api_helpers';
-import ErrorCodes from '../src/constants/error_codes';
-import {scorm12_values} from './field_values';
+import Scorm12API from '../src/Scorm12API.mjs';
+import * as h from './api_helpers.mjs';
+import ErrorCodes from '../src/constants/error_codes.mjs';
+import {scorm12_values} from './field_values.mjs';
 import * as sinon from 'sinon';
 import Pretender from 'fetch-pretender';
 

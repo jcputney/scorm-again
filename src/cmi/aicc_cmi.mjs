@@ -1,9 +1,10 @@
-import * as Scorm12CMI from './scorm12_cmi';
-import {BaseCMI, checkValidFormat, CMIArray, CMIScore} from './common';
-import APIConstants from '../constants/api_constants';
-import Regex from '../constants/regex';
-import ErrorCodes from '../constants/error_codes';
-import {AICCValidationError} from '../exceptions';
+// @flow
+import * as Scorm12CMI from './scorm12_cmi.mjs';
+import {BaseCMI, checkValidFormat, CMIArray, CMIScore} from './common.mjs';
+import APIConstants from '../constants/api_constants.mjs';
+import Regex from '../constants/regex.mjs';
+import ErrorCodes from '../constants/error_codes.mjs';
+import {AICCValidationError} from '../exceptions.mjs';
 
 const aicc_constants = APIConstants.aicc;
 const aicc_regex = Regex.aicc;

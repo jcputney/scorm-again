@@ -1,7 +1,7 @@
 import {describe, it} from 'mocha';
 import {expect} from 'chai';
-import BaseAPI from '../src/BaseAPI';
-import {BaseCMI} from '../src/cmi/common';
+import BaseAPI from '../src/BaseAPI.mjs';
+import {BaseCMI} from '../src/cmi/common.mjs';
 
 describe('Abstract Class Tests', () => {
   it('BaseAPI should not be instantiated', () => {

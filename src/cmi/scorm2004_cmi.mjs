@@ -5,13 +5,13 @@ import {
   checkValidRange,
   CMIArray,
   CMIScore,
-} from './common';
-import APIConstants from '../constants/api_constants';
-import Regex from '../constants/regex';
-import ErrorCodes from '../constants/error_codes';
-import Responses from '../constants/response_constants';
-import {Scorm2004ValidationError} from '../exceptions';
-import * as Util from '../utilities';
+} from './common.mjs';
+import APIConstants from '../constants/api_constants.mjs';
+import Regex from '../constants/regex.mjs';
+import ErrorCodes from '../constants/error_codes.mjs';
+import Responses from '../constants/response_constants.mjs';
+import {Scorm2004ValidationError} from '../exceptions.mjs';
+import * as Util from '../utilities.mjs';
 
 const scorm2004_constants = APIConstants.scorm2004;
 const scorm2004_error_codes = ErrorCodes.scorm2004;

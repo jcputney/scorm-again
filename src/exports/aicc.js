@@ -1,3 +1,3 @@
-import AICC from '../AICC';
+import AICC from '../AICC.mjs';
 
 window.AICC = AICC;

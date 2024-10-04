@@ -1,7 +1,7 @@
 // @flow
-import APIConstants from '../constants/api_constants';
-import ErrorCodes from '../constants/error_codes';
-import Regex from '../constants/regex';
+import APIConstants from '../constants/api_constants.mjs';
+import ErrorCodes from '../constants/error_codes.mjs';
+import Regex from '../constants/regex.mjs';
 
 const scorm12_constants = APIConstants.scorm12;
 const scorm12_regex = Regex.scorm12;

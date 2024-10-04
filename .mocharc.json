@@ -1,0 +1,7 @@
+{
+  "ui": "bdd",
+  "require": [
+    "core-js",
+    "@babel/register"
+  ]
+}

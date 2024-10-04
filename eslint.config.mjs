@@ -7,6 +7,7 @@ import { FlatCompat } from "@eslint/eslintrc";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
 const compat = new FlatCompat({
     baseDirectory: __dirname,
     recommendedConfig: js.configs.recommended,
@@ -22,7 +23,7 @@ export default [...compat.extends("eslint:recommended"), {
         },
 
         parser: babelParser,
-        ecmaVersion: 5,
+        ecmaVersion: 2020,
         sourceType: "module",
 
         parserOptions: {
@@ -31,6 +32,7 @@ export default [...compat.extends("eslint:recommended"), {
 
             ecmaFeatures: {
                 globalReturn: false,
+                legacyDecorators: true,
             },
 
             babelOptions: {
@@ -45,7 +47,7 @@ export default [...compat.extends("eslint:recommended"), {
         "no-unused-vars": "off",
     },
 }, {
-    files: ["**/*.spec.js"],
+    files: ["**/*.spec.mjs"],
 
     rules: {
         "no-undef": 0,

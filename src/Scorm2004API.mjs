@@ -1,5 +1,5 @@
 // @flow
-import BaseAPI from './BaseAPI';
+import BaseAPI from './BaseAPI.mjs';
 import {
   ADL,
   CMI,
@@ -8,13 +8,13 @@ import {
   CMIInteractionsObject,
   CMIInteractionsObjectivesObject,
   CMIObjectivesObject,
-} from './cmi/scorm2004_cmi';
-import * as Utilities from './utilities';
-import APIConstants from './constants/api_constants';
-import ErrorCodes from './constants/error_codes';
-import Responses from './constants/response_constants';
-import ValidLanguages from './constants/language_constants';
-import Regex from './constants/regex';
+} from './cmi/scorm2004_cmi.mjs';
+import * as Utilities from './utilities.mjs';
+import APIConstants from './constants/api_constants.mjs';
+import ErrorCodes from './constants/error_codes.mjs';
+import Responses from './constants/response_constants.mjs';
+import ValidLanguages from './constants/language_constants.mjs';
+import Regex from './constants/regex.mjs';
 
 const scorm2004_constants = APIConstants.scorm2004;
 const global_constants = APIConstants.global;

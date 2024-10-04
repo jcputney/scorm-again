@@ -1,7 +1,7 @@
 import {expect} from 'chai';
 import {describe, it} from 'mocha';
-import * as Utilities from '../src/utilities';
-import Regex from '../src/constants/regex';
+import * as Utilities from '../src/utilities.mjs';
+import Regex from '../src/constants/regex.mjs';
 
 const scorm12_regex = Regex.scorm12;
 const scorm2004_regex = Regex.scorm2004;

@@ -1,9 +1,9 @@
 // @flow
-import {CMIArray} from './cmi/common';
-import {ValidationError} from './exceptions';
-import ErrorCodes from './constants/error_codes';
-import APIConstants from './constants/api_constants';
-import {unflatten} from './utilities';
+import {CMIArray} from './cmi/common.mjs';
+import {ValidationError} from './exceptions.mjs';
+import ErrorCodes from './constants/error_codes.mjs';
+import APIConstants from './constants/api_constants.mjs';
+import {unflatten} from './utilities.mjs';
 import debounce from 'lodash.debounce';
 
 const global_constants = APIConstants.global;
@@ -11,7 +11,7 @@ const scorm12_error_codes = ErrorCodes.scorm12;
 
 /**
  * Base API class for AICC, SCORM 1.2, and SCORM 2004. Should be considered
- * abstract, and never initialized on it's own.
+ * abstract, and never initialized on its own.
  */
 export default class BaseAPI {
   #timeout;
