@@ -2,6 +2,6 @@ plugins:
   eslint:
     enabled: true
     config:
-      config: eslint.config.mjs
+      config: eslint.config.js
   markdownlint:
     enabled: false
