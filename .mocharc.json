@@ -1,7 +1,8 @@
 {
   "ui": "bdd",
-  "require": [
-    "core-js",
-    "@babel/register"
-  ]
+  "extension": [
+    "ts"
+  ],
+  "spec": "test/**/*.spec.ts",
+  "recursive": true
 }

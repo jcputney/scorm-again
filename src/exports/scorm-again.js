@@ -1,6 +1,6 @@
-import Scorm2004API from '../Scorm2004API.mjs';
-import Scorm12API from '../Scorm12API.mjs';
-import AICC from '../AICC.mjs';
+import Scorm2004API from '../Scorm2004API.ts';
+import Scorm12API from '../Scorm12API.ts';
+import AICC from '../AICC.ts';
 
 window.Scorm12API = Scorm12API;
 window.Scorm2004API = Scorm2004API;

@@ -1,12 +1,13 @@
-// @flow
-import Scorm12API from './Scorm12API.mjs';
+import Scorm12API from "./Scorm12API";
 import {
   CMI,
   CMIAttemptRecordsObject,
   CMIEvaluationCommentsObject,
   CMITriesObject,
-} from './cmi/aicc_cmi.mjs';
-import {NAV} from './cmi/scorm12_cmi.mjs';
+} from "./cmi/aicc_cmi";
+import {NAV} from "./cmi/scorm12_cmi";
+import {Settings} from "./BaseAPI";
+import {BaseCMI} from "./cmi/common";
 
 /**
  * The AICC API class
@@ -14,16 +15,10 @@ import {NAV} from './cmi/scorm12_cmi.mjs';
 export default class AICC extends Scorm12API {
   /**
    * Constructor to create AICC API object
-   * @param {object} settings
+   * @param {Settings} settings
    */
-  constructor(settings: {}) {
-    const finalSettings = {
-      ...{
-        mastery_override: false,
-      }, ...settings,
-    };
-
-    super(finalSettings);
+  constructor(settings?: Settings) {
+    super(settings);
 
     this.cmi = new CMI();
     this.nav = new NAV();
@@ -35,9 +30,9 @@ export default class AICC extends Scorm12API {
    * @param {string} CMIElement
    * @param {any} value
    * @param {boolean} foundFirstIndex
-   * @return {object}
+   * @return {BaseCMI | null}
    */
-  getChildElement(CMIElement, value, foundFirstIndex) {
+  getChildElement(CMIElement: string, value: any, foundFirstIndex: boolean): BaseCMI | null {
     let newChild = super.getChildElement(CMIElement, value, foundFirstIndex);
 
     if (!newChild) {
@@ -60,7 +55,7 @@ export default class AICC extends Scorm12API {
    *
    * @param {AICC} newAPI
    */
-  replaceWithAnotherScormAPI(newAPI) {
+  replaceWithAnotherScormAPI(newAPI: AICC) {
     // Data Model
     this.cmi = newAPI.cmi;
     this.nav = newAPI.nav;
