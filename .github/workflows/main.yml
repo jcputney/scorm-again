@@ -57,4 +57,4 @@ jobs:
         run: |
           mkdir coverage
           ./node_modules/.bin/nyc report --reporter=text-lcov > coverage/lcov.info
-          ./cc-test-reporter
+          ./cc-test-reporter after-build
