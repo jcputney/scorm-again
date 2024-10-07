@@ -13,7 +13,7 @@ const scorm2004_error_codes = ErrorCodes.scorm2004;
 let clock: sinon.SinonFakeTimers;
 const api = (settings?: Settings, startingData: RefObject = {}) => {
     const API = new Scorm2004API(settings);
-    API.apiLogLevel = 1;
+    API.apiLogLevel = 5;
     if (startingData) {
         API.startingData = startingData;
     }

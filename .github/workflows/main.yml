@@ -26,6 +26,13 @@ jobs:
           cache: 'yarn'
           cache-dependency-path: 'yarn.lock'
 
+      # Set up Code Climate test-reporter
+      - name: Set up Code Climate test-reporter
+        run: |
+          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+          chmod +x ./cc-test-reporter
+          ./cc-test-reporter before-build
+
       # Install dependencies
       - name: Install dependencies
         run: yarn install
@@ -38,19 +45,19 @@ jobs:
       - name: Run tests with Mocha
         run: |
           export TS_NODE_COMPILER_OPTIONS="{\"module\":\"commonjs\"}"
-          ./node_modules/.bin/nyc ./node_modules/.bin/mocha --import=tsx --recursive --timeout=10000 --exit --reporter mocha-junit-reporter --reporter-options mochaFile=test-results/mocha/results.xml
+          ./node_modules/.bin/nyc ./node_modules/.bin/mocha --import=tsx --recursive --timeout=10000 --exit --reporter json > results.json
+
+        # Upload test results to Code Climate
+      - uses: dorny/test-reporter@v1
+        with:
+          name: Test Reporter
+          path: ./results.json
+          reporter: mocha-json
 
       # Run ESLint
       - name: Run ESLint
         run: |
           ./node_modules/.bin/eslint ./src --format junit --output-file ./reports/eslint/eslint.xml
-
-      # Set up Code Climate test-reporter
-      - name: Set up Code Climate test-reporter
-        run: |
-          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-          chmod +x ./cc-test-reporter
-          ./cc-test-reporter before-build
 
       # Generate code coverage report and upload to Code Climate
       - name: Upload code coverage to Code Climate

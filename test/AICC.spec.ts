@@ -8,7 +8,7 @@ const scorm12_error_codes = ErrorCodes.scorm12;
 
 const api = () => {
     const API = new AICC();
-    API.apiLogLevel = 1;
+    API.apiLogLevel = 5;
     return API;
 };
 const apiInitialized = () => {

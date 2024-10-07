@@ -1189,7 +1189,7 @@ export default abstract class BaseAPI {
 
                 return result;
             } catch (e) {
-                console.error(e);
+                this.apiLog('processHttpRequest', e, global_constants.LOG_LEVEL_ERROR);
                 api.processListeners('CommitError');
                 return genericError;
             } finally {

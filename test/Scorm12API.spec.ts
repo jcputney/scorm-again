@@ -13,7 +13,7 @@ const scorm12_error_codes = ErrorCodes.scorm12;
 let clock: sinon.SinonFakeTimers;
 const api = (settings?: Settings) => {
     const API = new Scorm12API(settings);
-    API.apiLogLevel = 1;
+    API.apiLogLevel = 5;
     return API;
 };
 const apiInitialized = (settings?: Settings) => {
@@ -544,6 +544,27 @@ describe('SCORM 1.2 API Tests', () => {
                 scorm12API.on('CommitError', callback);
 
                 scorm12API.lmsSetValue('cmi.core.session_time', '00:01:00');
+                clock.tick(2000);
+
+                await clock.runAllAsync();
+
+                expect(callback.called).toBe(true);
+            });
+        it('Should handle CommitError event when offline',
+            async () => {
+                const scorm2004API = api({
+                    ...DefaultSettings, ...{
+                        lmsCommitUrl: '/scorm12/does_not_exist',
+                        autocommit: true,
+                        autocommitSeconds: 1,
+                    }
+                });
+                scorm2004API.lmsInitialize();
+
+                const callback = sinon.spy();
+                scorm2004API.on('CommitError', callback);
+
+                scorm2004API.lmsSetValue('cmi.core.session_time', '00:01:00');
                 clock.tick(2000);
 
                 await clock.runAllAsync();
