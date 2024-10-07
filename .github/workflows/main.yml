@@ -60,7 +60,7 @@ jobs:
         with:
           coverageCommand: yarn run test:coverage
           coverageLocations: |
-            ${{github.workspace}}/coverage/lcov.info
+            ${{github.workspace}}/coverage/lcov.info:lcov
           debug: 'true'
 
       # Build the project
