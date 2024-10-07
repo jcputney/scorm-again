@@ -713,7 +713,7 @@ var BaseScormValidationError = (function (_super) {
     function BaseScormValidationError(errorCode) {
         var _this = _super.call(this, errorCode.toString()) || this;
         _this._errorCode = errorCode;
-        _this.name = 'ScormValidationError';
+        _this.name = "ScormValidationError";
         return _this;
     }
     Object.defineProperty(BaseScormValidationError.prototype, "errorCode", {
@@ -733,7 +733,7 @@ var BaseScorm12ValidationError = (function (_super) {
     __extends(BaseScorm12ValidationError, _super);
     function BaseScorm12ValidationError(errorCode) {
         var _this = _super.call(this, errorCode) || this;
-        _this.name = 'Scorm12ValidationError';
+        _this.name = "Scorm12ValidationError";
         return _this;
     }
     return BaseScorm12ValidationError;
@@ -743,7 +743,7 @@ var BaseScorm2004ValidationError = (function (_super) {
     __extends(BaseScorm2004ValidationError, _super);
     function BaseScorm2004ValidationError(errorCode) {
         var _this = _super.call(this, errorCode) || this;
-        _this.name = 'Scorm2004ValidationError';
+        _this.name = "Scorm2004ValidationError";
         return _this;
     }
     return BaseScorm2004ValidationError;
@@ -752,19 +752,19 @@ var BaseScorm2004ValidationError = (function (_super) {
 function checkValidFormat(value, regexPattern, errorCode, errorClass, allowEmptyString) {
     var formatRegex = new RegExp(regexPattern);
     var matches = value.match(formatRegex);
-    if (allowEmptyString && value === '') {
+    if (allowEmptyString && value === "") {
         return true;
     }
-    if (value === undefined || !matches || matches[0] === '') {
+    if (value === undefined || !matches || matches[0] === "") {
         throw new errorClass(errorCode);
     }
     return true;
 }
 function checkValidRange(value, rangePattern, errorCode, errorClass) {
-    var ranges = rangePattern.split('#');
+    var ranges = rangePattern.split("#");
     value = value * 1.0;
     if (value >= ranges[0]) {
-        if (ranges[1] === '*' || value <= ranges[1]) {
+        if (ranges[1] === "*" || value <= ranges[1]) {
             return true;
         }
         else {
@@ -815,14 +815,19 @@ var CMIScore = (function (_super) {
     __extends(CMIScore, _super);
     function CMIScore(params) {
         var _this = _super.call(this) || this;
-        _this._raw = '';
-        _this._min = '';
+        _this._raw = "";
+        _this._min = "";
         _this.__children = params.score_children || scorm12_constants.score_children;
-        _this.__score_range = !params.score_range ? false : scorm12_regex.score_range;
-        _this._max = (params.max || params.max === '') ? params.max : '100';
-        _this.__invalid_error_code = params.invalidErrorCode || scorm12_error_codes.INVALID_SET_VALUE;
-        _this.__invalid_type_code = params.invalidTypeCode || scorm12_error_codes.TYPE_MISMATCH;
-        _this.__invalid_range_code = params.invalidRangeCode || scorm12_error_codes.VALUE_OUT_OF_RANGE;
+        _this.__score_range = !params.score_range
+            ? false
+            : scorm12_regex.score_range;
+        _this._max = params.max || params.max === "" ? params.max : "100";
+        _this.__invalid_error_code =
+            params.invalidErrorCode || scorm12_error_codes.INVALID_SET_VALUE;
+        _this.__invalid_type_code =
+            params.invalidTypeCode || scorm12_error_codes.TYPE_MISMATCH;
+        _this.__invalid_range_code =
+            params.invalidRangeCode || scorm12_error_codes.VALUE_OUT_OF_RANGE;
         _this.__decimal_regex = params.decimalRegex || scorm12_regex.CMIDecimal;
         _this.__error_class = params.errorClass;
         return _this;
@@ -843,7 +848,8 @@ var CMIScore = (function (_super) {
         },
         set: function (raw) {
             if (checkValidFormat(raw, this.__decimal_regex, this.__invalid_type_code, this.__error_class) &&
-                (!this.__score_range || checkValidRange(raw, this.__score_range, this.__invalid_range_code, this.__error_class))) {
+                (!this.__score_range ||
+                    checkValidRange(raw, this.__score_range, this.__invalid_range_code, this.__error_class))) {
                 this._raw = raw;
             }
         },
@@ -856,7 +862,8 @@ var CMIScore = (function (_super) {
         },
         set: function (min) {
             if (checkValidFormat(min, this.__decimal_regex, this.__invalid_type_code, this.__error_class) &&
-                (!this.__score_range || checkValidRange(min, this.__score_range, this.__invalid_range_code, this.__error_class))) {
+                (!this.__score_range ||
+                    checkValidRange(min, this.__score_range, this.__invalid_range_code, this.__error_class))) {
                 this._min = min;
             }
         },
@@ -869,7 +876,8 @@ var CMIScore = (function (_super) {
         },
         set: function (max) {
             if (checkValidFormat(max, this.__decimal_regex, this.__invalid_type_code, this.__error_class) &&
-                (!this.__score_range || checkValidRange(max, this.__score_range, this.__invalid_range_code, this.__error_class))) {
+                (!this.__score_range ||
+                    checkValidRange(max, this.__score_range, this.__invalid_range_code, this.__error_class))) {
                 this._max = max;
             }
         },
@@ -923,7 +931,7 @@ var CMIArray = (function (_super) {
         this.jsonString = true;
         var result = {};
         for (var i = 0; i < this.childArray.length; i++) {
-            result[i + ''] = this.childArray[i];
+            result[i + ""] = this.childArray[i];
         }
         delete this.jsonString;
         return result;
@@ -1020,10 +1028,10 @@ var SECONDS_PER_MINUTE = 60;
 var SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
 var SECONDS_PER_DAY = 24 * SECONDS_PER_HOUR;
 var designations = {
-    "D": SECONDS_PER_DAY,
-    "H": SECONDS_PER_HOUR,
-    "M": SECONDS_PER_MINUTE,
-    "S": SECONDS_PER_SECOND,
+    D: SECONDS_PER_DAY,
+    H: SECONDS_PER_HOUR,
+    M: SECONDS_PER_MINUTE,
+    S: SECONDS_PER_SECOND,
 };
 function getSecondsAsHHMMSS(totalSeconds) {
     if (!totalSeconds || totalSeconds <= 0) {
@@ -1044,8 +1052,7 @@ function getSecondsAsHHMMSS(totalSeconds) {
         }
         msStr = "." + msStr.split(".")[1];
     }
-    return ((hours + ":" + minutes + ":" + seconds).replace(/\b\d\b/g, "0$&") +
-        msStr);
+    return ((hours + ":" + minutes + ":" + seconds).replace(/\b\d\b/g, "0$&") + msStr);
 }
 function getSecondsAsISODuration(seconds) {
     if (!seconds || seconds <= 0) {
@@ -1083,8 +1090,7 @@ function getTimeAsSeconds(timeString, timeRegex) {
     if (typeof timeRegex === "string") {
         timeRegex = new RegExp(timeRegex);
     }
-    if (!timeString ||
-        !timeString.match(timeRegex)) {
+    if (!timeString || !timeString.match(timeRegex)) {
         return 0;
     }
     var parts = timeString.split(":");
@@ -1110,16 +1116,16 @@ function getDurationAsSeconds(duration, durationRegex) {
     return result;
 }
 function addTwoDurations(first, second, durationRegex) {
-    var regex = typeof durationRegex === "string" ? new RegExp(durationRegex) : durationRegex;
-    return getSecondsAsISODuration(getDurationAsSeconds(first, regex) +
-        getDurationAsSeconds(second, regex));
+    var regex = typeof durationRegex === "string"
+        ? new RegExp(durationRegex)
+        : durationRegex;
+    return getSecondsAsISODuration(getDurationAsSeconds(first, regex) + getDurationAsSeconds(second, regex));
 }
 function addHHMMSSTimeStrings(first, second, timeRegex) {
     if (typeof timeRegex === "string") {
         timeRegex = new RegExp(timeRegex);
     }
-    return getSecondsAsHHMMSS(getTimeAsSeconds(first, timeRegex) +
-        getTimeAsSeconds(second, timeRegex));
+    return getSecondsAsHHMMSS(getTimeAsSeconds(first, timeRegex) + getTimeAsSeconds(second, timeRegex));
 }
 function flatten(data) {
     var result = {};
@@ -1214,8 +1220,8 @@ var DefaultSettings = {
     asyncCommit: false,
     sendBeaconCommit: false,
     lmsCommitUrl: false,
-    dataCommitFormat: 'json',
-    commitRequestDataType: 'application/json;charset=UTF-8',
+    dataCommitFormat: "json",
+    commitRequestDataType: "application/json;charset=UTF-8",
     autoProgress: false,
     logLevel: global_constants.LOG_LEVEL_ERROR,
     selfReportSessionTime: false,
@@ -1229,12 +1235,13 @@ var DefaultSettings = {
             return __generator(this, function (_e) {
                 switch (_e.label) {
                     case 0:
-                        if (!(typeof response !== 'undefined')) return [3, 2];
+                        if (!(typeof response !== "undefined")) return [3, 2];
                         _c = (_a = JSON).parse;
                         return [4, response.text()];
                     case 1:
                         httpResult = _c.apply(_a, [_e.sent()]);
-                        if (httpResult === null || !{}.hasOwnProperty.call(httpResult, 'result')) {
+                        if (httpResult === null ||
+                            !{}.hasOwnProperty.call(httpResult, "result")) {
                             if (response.status === 200) {
                                 return [2, {
                                         result: global_constants.SCORM_TRUE,
@@ -1251,7 +1258,11 @@ var DefaultSettings = {
                         else {
                             return [2, {
                                     result: httpResult.result,
-                                    errorCode: httpResult.errorCode ? httpResult.errorCode : (httpResult.result === global_constants.SCORM_TRUE ? 0 : 101),
+                                    errorCode: httpResult.errorCode
+                                        ? httpResult.errorCode
+                                        : httpResult.result === global_constants.SCORM_TRUE
+                                            ? 0
+                                            : 101,
                                 }];
                         }
                         _e.label = 2;
@@ -1292,12 +1303,11 @@ var BaseAPI = (function () {
     function BaseAPI(error_codes, settings) {
         var _newTarget = this.constructor;
         this._settings = DefaultSettings;
-        this.processingHttpRequest = false;
         if (_newTarget === BaseAPI) {
-            throw new TypeError('Cannot construct BaseAPI instances directly');
+            throw new TypeError("Cannot construct BaseAPI instances directly");
         }
         this.currentState = global_constants.STATE_NOT_INITIALIZED;
-        this.lastErrorCode = '0';
+        this.lastErrorCode = "0";
         this.listenerArray = [];
         this._error_codes = error_codes;
         if (settings) {
@@ -1319,11 +1329,11 @@ var BaseAPI = (function () {
                 this.cmi.setStartTime();
             }
             this.currentState = global_constants.STATE_INITIALIZED;
-            this.lastErrorCode = '0';
+            this.lastErrorCode = "0";
             returnValue = global_constants.SCORM_TRUE;
             this.processListeners(callbackName);
         }
-        this.apiLog(callbackName, 'returned: ' + returnValue, global_constants.LOG_LEVEL_INFO);
+        this.apiLog(callbackName, "returned: " + returnValue, global_constants.LOG_LEVEL_INFO);
         this.clearSCORMError(returnValue);
         return returnValue;
     };
@@ -1349,25 +1359,27 @@ var BaseAPI = (function () {
         if (this.checkState(checkTerminated, this._error_codes.TERMINATION_BEFORE_INIT, this._error_codes.MULTIPLE_TERMINATION)) {
             this.currentState = global_constants.STATE_TERMINATED;
             var result = this.storeData(true);
-            if (typeof result.errorCode !== 'undefined' && result.errorCode > 0) {
+            if (typeof result.errorCode !== "undefined" && result.errorCode > 0) {
                 this.throwSCORMError(result.errorCode);
             }
-            returnValue = (typeof result !== 'undefined' && result.result) ?
-                result.result : global_constants.SCORM_FALSE;
+            returnValue =
+                typeof result !== "undefined" && result.result
+                    ? result.result
+                    : global_constants.SCORM_FALSE;
             if (checkTerminated)
-                this.lastErrorCode = '0';
+                this.lastErrorCode = "0";
             returnValue = global_constants.SCORM_TRUE;
             this.processListeners(callbackName);
         }
-        this.apiLog(callbackName, 'returned: ' + returnValue, global_constants.LOG_LEVEL_INFO);
+        this.apiLog(callbackName, "returned: " + returnValue, global_constants.LOG_LEVEL_INFO);
         this.clearSCORMError(returnValue);
         return returnValue;
     };
     BaseAPI.prototype.getValue = function (callbackName, checkTerminated, CMIElement) {
-        var returnValue = '';
+        var returnValue = "";
         if (this.checkState(checkTerminated, this._error_codes.RETRIEVE_BEFORE_INIT, this._error_codes.RETRIEVE_AFTER_TERM)) {
             if (checkTerminated)
-                this.lastErrorCode = '0';
+                this.lastErrorCode = "0";
             try {
                 returnValue = this.getCMIValue(CMIElement);
             }
@@ -1376,7 +1388,7 @@ var BaseAPI = (function () {
             }
             this.processListeners(callbackName, CMIElement);
         }
-        this.apiLog(callbackName, ': returned: ' + returnValue, global_constants.LOG_LEVEL_INFO, CMIElement);
+        this.apiLog(callbackName, ": returned: " + returnValue, global_constants.LOG_LEVEL_INFO, CMIElement);
         this.clearSCORMError(returnValue);
         return returnValue;
     };
@@ -1387,7 +1399,7 @@ var BaseAPI = (function () {
         var returnValue = global_constants.SCORM_FALSE;
         if (this.checkState(checkTerminated, this._error_codes.STORE_BEFORE_INIT, this._error_codes.STORE_AFTER_TERM)) {
             if (checkTerminated)
-                this.lastErrorCode = '0';
+                this.lastErrorCode = "0";
             try {
                 returnValue = this.setCMIValue(CMIElement, value);
             }
@@ -1399,12 +1411,12 @@ var BaseAPI = (function () {
         if (returnValue === undefined) {
             returnValue = global_constants.SCORM_FALSE;
         }
-        if (String(this.lastErrorCode) === '0') {
+        if (String(this.lastErrorCode) === "0") {
             if (this.settings.autocommit && !this._timeout) {
                 this.scheduleCommit(this.settings.autocommitSeconds * 1000, commitCallback);
             }
         }
-        this.apiLog(callbackName, ': ' + value + ': result: ' + returnValue, global_constants.LOG_LEVEL_INFO, CMIElement);
+        this.apiLog(callbackName, ": " + value + ": result: " + returnValue, global_constants.LOG_LEVEL_INFO, CMIElement);
         this.clearSCORMError(returnValue);
         return returnValue;
     };
@@ -1417,39 +1429,41 @@ var BaseAPI = (function () {
             if (result.errorCode && result.errorCode > 0) {
                 this.throwSCORMError(result.errorCode);
             }
-            returnValue = (typeof result !== 'undefined' && result.result) ?
-                result.result : global_constants.SCORM_FALSE;
-            this.apiLog(callbackName, ' Result: ' + returnValue, global_constants.LOG_LEVEL_DEBUG, 'HttpRequest');
+            returnValue =
+                typeof result !== "undefined" && result.result
+                    ? result.result
+                    : global_constants.SCORM_FALSE;
+            this.apiLog(callbackName, " Result: " + returnValue, global_constants.LOG_LEVEL_DEBUG, "HttpRequest");
             if (checkTerminated)
-                this.lastErrorCode = '0';
+                this.lastErrorCode = "0";
             this.processListeners(callbackName);
         }
-        this.apiLog(callbackName, 'returned: ' + returnValue, global_constants.LOG_LEVEL_INFO);
+        this.apiLog(callbackName, "returned: " + returnValue, global_constants.LOG_LEVEL_INFO);
         this.clearSCORMError(returnValue);
         return returnValue;
     };
     BaseAPI.prototype.getLastError = function (callbackName) {
         var returnValue = String(this.lastErrorCode);
         this.processListeners(callbackName);
-        this.apiLog(callbackName, 'returned: ' + returnValue, global_constants.LOG_LEVEL_INFO);
+        this.apiLog(callbackName, "returned: " + returnValue, global_constants.LOG_LEVEL_INFO);
         return returnValue;
     };
     BaseAPI.prototype.getErrorString = function (callbackName, CMIErrorCode) {
-        var returnValue = '';
-        if (CMIErrorCode !== null && CMIErrorCode !== '') {
+        var returnValue = "";
+        if (CMIErrorCode !== null && CMIErrorCode !== "") {
             returnValue = this.getLmsErrorMessageDetails(CMIErrorCode);
             this.processListeners(callbackName);
         }
-        this.apiLog(callbackName, 'returned: ' + returnValue, global_constants.LOG_LEVEL_INFO);
+        this.apiLog(callbackName, "returned: " + returnValue, global_constants.LOG_LEVEL_INFO);
         return returnValue;
     };
     BaseAPI.prototype.getDiagnostic = function (callbackName, CMIErrorCode) {
-        var returnValue = '';
-        if (CMIErrorCode !== null && CMIErrorCode !== '') {
+        var returnValue = "";
+        if (CMIErrorCode !== null && CMIErrorCode !== "") {
             returnValue = this.getLmsErrorMessageDetails(CMIErrorCode, true);
             this.processListeners(callbackName);
         }
-        this.apiLog(callbackName, 'returned: ' + returnValue, global_constants.LOG_LEVEL_INFO);
+        this.apiLog(callbackName, "returned: " + returnValue, global_constants.LOG_LEVEL_INFO);
         return returnValue;
     };
     BaseAPI.prototype.checkState = function (checkTerminated, beforeInitError, afterTermError) {
@@ -1471,19 +1485,19 @@ var BaseAPI = (function () {
     };
     BaseAPI.prototype.formatMessage = function (functionName, message, CMIElement) {
         var baseLength = 20;
-        var messageString = '';
+        var messageString = "";
         messageString += functionName;
         var fillChars = baseLength - messageString.length;
         for (var i = 0; i < fillChars; i++) {
-            messageString += ' ';
+            messageString += " ";
         }
-        messageString += ': ';
+        messageString += ": ";
         if (CMIElement) {
             var CMIElementBaseLength = 70;
             messageString += CMIElement;
             fillChars = CMIElementBaseLength - messageString.length;
             for (var j = 0; j < fillChars; j++) {
-                messageString += ' ';
+                messageString += " ";
             }
         }
         if (message) {
@@ -1495,37 +1509,38 @@ var BaseAPI = (function () {
         return (str === null || str === void 0 ? void 0 : str.match(tester)) !== null;
     };
     BaseAPI.prototype._checkObjectHasProperty = function (refObject, attribute) {
-        return Object.hasOwnProperty.call(refObject, attribute) ||
+        return (Object.hasOwnProperty.call(refObject, attribute) ||
             Object.getOwnPropertyDescriptor(Object.getPrototypeOf(refObject), attribute) != null ||
-            (attribute in refObject);
+            attribute in refObject);
     };
     BaseAPI.prototype.getLmsErrorMessageDetails = function (_errorNumber, _detail) {
         if (_detail === void 0) { _detail = false; }
-        throw new Error('The getLmsErrorMessageDetails method has not been implemented');
+        throw new Error("The getLmsErrorMessageDetails method has not been implemented");
     };
     BaseAPI.prototype.getCMIValue = function (_CMIElement) {
-        throw new Error('The getCMIValue method has not been implemented');
+        throw new Error("The getCMIValue method has not been implemented");
     };
     BaseAPI.prototype.setCMIValue = function (_CMIElement, _value) {
-        throw new Error('The setCMIValue method has not been implemented');
+        throw new Error("The setCMIValue method has not been implemented");
     };
     BaseAPI.prototype._commonSetCMIValue = function (methodName, scorm2004, CMIElement, value) {
-        if (!CMIElement || CMIElement === '') {
+        if (!CMIElement || CMIElement === "") {
             return global_constants.SCORM_FALSE;
         }
-        var structure = CMIElement.split('.');
+        var structure = CMIElement.split(".");
         var refObject = this;
         var returnValue = global_constants.SCORM_FALSE;
         var foundFirstIndex = false;
         var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
-        var invalidErrorCode = scorm2004 ?
-            this._error_codes.UNDEFINED_DATA_MODEL :
-            this._error_codes.GENERAL;
+        var invalidErrorCode = scorm2004
+            ? this._error_codes.UNDEFINED_DATA_MODEL
+            : this._error_codes.GENERAL;
         for (var idx = 0; idx < structure.length; idx++) {
             var attribute = structure[idx];
             if (idx === structure.length - 1) {
-                if (scorm2004 && (attribute.substring(0, 8) === '{target=') &&
-                    (typeof refObject._isTargetValid == 'function')) {
+                if (scorm2004 &&
+                    attribute.substring(0, 8) === "{target=" &&
+                    typeof refObject._isTargetValid == "function") {
                     this.throwSCORMError(this._error_codes.READ_ONLY_ELEMENT);
                 }
                 else if (!this._checkObjectHasProperty(refObject, attribute)) {
@@ -1533,10 +1548,10 @@ var BaseAPI = (function () {
                 }
                 else {
                     if (this.isInitialized() &&
-                        this.stringMatches(CMIElement, '\\.correct_responses\\.\\d+')) {
+                        this.stringMatches(CMIElement, "\\.correct_responses\\.\\d+")) {
                         this.validateCorrectResponse(CMIElement, value);
                     }
-                    if (!scorm2004 || this.lastErrorCode === '0') {
+                    if (!scorm2004 || this.lastErrorCode === "0") {
                         refObject[attribute] = value;
                         returnValue = global_constants.SCORM_TRUE;
                     }
@@ -1580,17 +1595,17 @@ var BaseAPI = (function () {
         return returnValue;
     };
     BaseAPI.prototype._commonGetCMIValue = function (methodName, scorm2004, CMIElement) {
-        if (!CMIElement || CMIElement === '') {
-            return '';
+        if (!CMIElement || CMIElement === "") {
+            return "";
         }
-        var structure = CMIElement.split('.');
+        var structure = CMIElement.split(".");
         var refObject = this;
         var attribute = null;
         var uninitializedErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") has not been initialized.");
         var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
-        var invalidErrorCode = scorm2004 ?
-            this._error_codes.UNDEFINED_DATA_MODEL :
-            this._error_codes.GENERAL;
+        var invalidErrorCode = scorm2004
+            ? this._error_codes.UNDEFINED_DATA_MODEL
+            : this._error_codes.GENERAL;
         for (var idx = 0; idx < structure.length; idx++) {
             attribute = structure[idx];
             if (!scorm2004) {
@@ -1602,8 +1617,8 @@ var BaseAPI = (function () {
                 }
             }
             else {
-                if ((String(attribute).substring(0, 8) === '{target=') &&
-                    (typeof refObject._isTargetValid == 'function')) {
+                if (String(attribute).substring(0, 8) === "{target=" &&
+                    typeof refObject._isTargetValid == "function") {
                     var target = String(attribute).substring(8, String(attribute).length - 9);
                     return refObject._isTargetValid(target);
                 }
@@ -1634,10 +1649,10 @@ var BaseAPI = (function () {
         }
         if (refObject === null || refObject === undefined) {
             if (!scorm2004) {
-                if (attribute === '_children') {
+                if (attribute === "_children") {
                     this.throwSCORMError(BaseAPI_scorm12_error_codes.CHILDREN_ERROR);
                 }
-                else if (attribute === '_count') {
+                else if (attribute === "_count") {
                     this.throwSCORMError(BaseAPI_scorm12_error_codes.COUNT_ERROR);
                 }
             }
@@ -1658,36 +1673,36 @@ var BaseAPI = (function () {
     BaseAPI.prototype.on = function (listenerName, callback) {
         if (!callback)
             return;
-        var listenerFunctions = listenerName.split(' ');
+        var listenerFunctions = listenerName.split(" ");
         for (var i = 0; i < listenerFunctions.length; i++) {
-            var listenerSplit = listenerFunctions[i].split('.');
+            var listenerSplit = listenerFunctions[i].split(".");
             if (listenerSplit.length === 0)
                 return;
             var functionName = listenerSplit[0];
             var CMIElement = null;
             if (listenerSplit.length > 1) {
-                CMIElement = listenerName.replace(functionName + '.', '');
+                CMIElement = listenerName.replace(functionName + ".", "");
             }
             this.listenerArray.push({
                 functionName: functionName,
                 CMIElement: CMIElement,
                 callback: callback,
             });
-            this.apiLog('on', "Added event listener: ".concat(this.listenerArray.length), global_constants.LOG_LEVEL_INFO, functionName);
+            this.apiLog("on", "Added event listener: ".concat(this.listenerArray.length), global_constants.LOG_LEVEL_INFO, functionName);
         }
     };
     BaseAPI.prototype.off = function (listenerName, callback) {
         if (!callback)
             return;
-        var listenerFunctions = listenerName.split(' ');
+        var listenerFunctions = listenerName.split(" ");
         var _loop_1 = function (i) {
-            var listenerSplit = listenerFunctions[i].split('.');
+            var listenerSplit = listenerFunctions[i].split(".");
             if (listenerSplit.length === 0)
                 return { value: void 0 };
             var functionName = listenerSplit[0];
             var CMIElement = null;
             if (listenerSplit.length > 1) {
-                CMIElement = listenerName.replace(functionName + '.', '');
+                CMIElement = listenerName.replace(functionName + ".", "");
             }
             var removeIndex = this_1.listenerArray.findIndex(function (obj) {
                 return obj.functionName === functionName &&
@@ -1696,7 +1711,7 @@ var BaseAPI = (function () {
             });
             if (removeIndex !== -1) {
                 this_1.listenerArray.splice(removeIndex, 1);
-                this_1.apiLog('off', "Removed event listener: ".concat(this_1.listenerArray.length), global_constants.LOG_LEVEL_INFO, functionName);
+                this_1.apiLog("off", "Removed event listener: ".concat(this_1.listenerArray.length), global_constants.LOG_LEVEL_INFO, functionName);
             }
         };
         var this_1 = this;
@@ -1707,19 +1722,18 @@ var BaseAPI = (function () {
         }
     };
     BaseAPI.prototype.clear = function (listenerName) {
-        var listenerFunctions = listenerName.split(' ');
+        var listenerFunctions = listenerName.split(" ");
         var _loop_2 = function (i) {
-            var listenerSplit = listenerFunctions[i].split('.');
+            var listenerSplit = listenerFunctions[i].split(".");
             if (listenerSplit.length === 0)
                 return { value: void 0 };
             var functionName = listenerSplit[0];
             var CMIElement = null;
             if (listenerSplit.length > 1) {
-                CMIElement = listenerName.replace(functionName + '.', '');
+                CMIElement = listenerName.replace(functionName + ".", "");
             }
             this_2.listenerArray = this_2.listenerArray.filter(function (obj) {
-                return obj.functionName !== functionName &&
-                    obj.CMIElement !== CMIElement;
+                return obj.functionName !== functionName && obj.CMIElement !== CMIElement;
             });
         };
         var this_2 = this;
@@ -1736,16 +1750,17 @@ var BaseAPI = (function () {
             var functionsMatch = listener.functionName === functionName;
             var listenerHasCMIElement = !!listener.CMIElement;
             var CMIElementsMatch = false;
-            if (CMIElement && listener.CMIElement &&
-                listener.CMIElement.substring(listener.CMIElement.length - 1) ===
-                    '*') {
-                CMIElementsMatch = CMIElement.indexOf(listener.CMIElement.substring(0, listener.CMIElement.length - 1)) === 0;
+            if (CMIElement &&
+                listener.CMIElement &&
+                listener.CMIElement.substring(listener.CMIElement.length - 1) === "*") {
+                CMIElementsMatch =
+                    CMIElement.indexOf(listener.CMIElement.substring(0, listener.CMIElement.length - 1)) === 0;
             }
             else {
                 CMIElementsMatch = listener.CMIElement === CMIElement;
             }
             if (functionsMatch && (!listenerHasCMIElement || CMIElementsMatch)) {
-                this.apiLog('processListeners', "Processing listener: ".concat(listener.functionName), global_constants.LOG_LEVEL_INFO, CMIElement);
+                this.apiLog("processListeners", "Processing listener: ".concat(listener.functionName), global_constants.LOG_LEVEL_INFO, CMIElement);
                 listener.callback(CMIElement, value);
             }
         }
@@ -1754,18 +1769,18 @@ var BaseAPI = (function () {
         if (!message) {
             message = this.getLmsErrorMessageDetails(errorNumber);
         }
-        this.apiLog('throwSCORMError', errorNumber + ': ' + message, global_constants.LOG_LEVEL_ERROR);
+        this.apiLog("throwSCORMError", errorNumber + ": " + message, global_constants.LOG_LEVEL_ERROR);
         this.lastErrorCode = String(errorNumber);
     };
     BaseAPI.prototype.clearSCORMError = function (success) {
         if (success !== undefined && success !== global_constants.SCORM_FALSE) {
-            this.lastErrorCode = '0';
+            this.lastErrorCode = "0";
         }
     };
     BaseAPI.prototype.loadFromFlattenedJSON = function (json, CMIElement) {
         var _this = this;
         if (!this.isNotInitialized()) {
-            console.error('loadFromFlattenedJSON can only be called before the call to lmsInitialize.');
+            console.error("loadFromFlattenedJSON can only be called before the call to lmsInitialize.");
             return;
         }
         function testPattern(a, c, a_pattern) {
@@ -1775,11 +1790,11 @@ var BaseAPI = (function () {
                 var a_num = Number(a_match[2]);
                 var c_num = Number(c_match[2]);
                 if (a_num === c_num) {
-                    if (a_match[3] === 'id') {
+                    if (a_match[3] === "id") {
                         return -1;
                     }
-                    else if (a_match[3] === 'type') {
-                        if (c_match[3] === 'id') {
+                    else if (a_match[3] === "type") {
+                        if (c_match[3] === "id") {
                             return 1;
                         }
                         else {
@@ -1826,18 +1841,18 @@ var BaseAPI = (function () {
     };
     BaseAPI.prototype.loadFromJSON = function (json, CMIElement) {
         if (!this.isNotInitialized()) {
-            console.error('loadFromJSON can only be called before the call to lmsInitialize.');
+            console.error("loadFromJSON can only be called before the call to lmsInitialize.");
             return;
         }
-        CMIElement = CMIElement !== undefined ? CMIElement : 'cmi';
+        CMIElement = CMIElement !== undefined ? CMIElement : "cmi";
         this.startingData = json;
         for (var key in json) {
             if ({}.hasOwnProperty.call(json, key) && json[key]) {
-                var currentCMIElement = (CMIElement ? CMIElement + '.' : '') + key;
+                var currentCMIElement = (CMIElement ? CMIElement + "." : "") + key;
                 var value = json[key];
-                if (value['childArray']) {
-                    for (var i = 0; i < value['childArray'].length; i++) {
-                        this.loadFromJSON(value['childArray'][i], currentCMIElement + '.' + i);
+                if (value["childArray"]) {
+                    for (var i = 0; i < value["childArray"].length; i++) {
+                        this.loadFromJSON(value["childArray"][i], currentCMIElement + "." + i);
                     }
                 }
                 else if (value.constructor === Object) {
@@ -1856,21 +1871,6 @@ var BaseAPI = (function () {
     BaseAPI.prototype.renderCMIToJSONObject = function () {
         return JSON.parse(this.renderCMIToJSONString());
     };
-    BaseAPI.prototype.waitForHttpRequestToFinish = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var _this = this;
-            return __generator(this, function (_a) {
-                return [2, new Promise(function (resolve) {
-                        var interval = setInterval(function () {
-                            if (!_this.processingHttpRequest) {
-                                clearInterval(interval);
-                                resolve();
-                            }
-                        }, 100);
-                    })];
-            });
-        });
-    };
     BaseAPI.prototype.processHttpRequest = function (url, params, immediate) {
         var _this = this;
         if (immediate === void 0) { immediate = false; }
@@ -1884,47 +1884,44 @@ var BaseAPI = (function () {
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
-                        this.processingHttpRequest = true;
-                        _c.label = 1;
-                    case 1:
-                        _c.trys.push([1, 7, 8, 9]);
+                        _c.trys.push([0, 6, , 7]);
                         params = settings.requestHandler(params);
                         return [4, fetch(url, {
-                                method: 'POST',
-                                body: params instanceof Array ? params.join('&') : JSON.stringify(params),
-                                headers: __assign(__assign({}, settings.xhrHeaders), { 'Content-Type': settings.commitRequestDataType }),
-                                credentials: settings.xhrWithCredentials ? 'include' : undefined,
+                                method: "POST",
+                                body: params instanceof Array ? params.join("&") : JSON.stringify(params),
+                                headers: __assign(__assign({}, settings.xhrHeaders), { "Content-Type": settings.commitRequestDataType }),
+                                credentials: settings.xhrWithCredentials ? "include" : undefined,
                                 keepalive: true,
                             })];
-                    case 2:
+                    case 1:
                         response = _c.sent();
-                        if (!(typeof settings.responseHandler === 'function')) return [3, 4];
+                        if (!(typeof settings.responseHandler === "function")) return [3, 3];
                         return [4, settings.responseHandler(response)];
-                    case 3:
+                    case 2:
                         _a = _c.sent();
-                        return [3, 6];
-                    case 4: return [4, response.json()];
+                        return [3, 5];
+                    case 3: return [4, response.json()];
+                    case 4:
+                        _a = _c.sent();
+                        _c.label = 5;
                     case 5:
-                        _a = _c.sent();
-                        _c.label = 6;
-                    case 6:
                         result = _a;
-                        if (response.status >= 200 && response.status <= 299 && (result.result === true || result.result === global_constants.SCORM_TRUE)) {
-                            api.processListeners('CommitSuccess');
+                        if (response.status >= 200 &&
+                            response.status <= 299 &&
+                            (result.result === true ||
+                                result.result === global_constants.SCORM_TRUE)) {
+                            api.processListeners("CommitSuccess");
                         }
                         else {
-                            api.processListeners('CommitError');
+                            api.processListeners("CommitError");
                         }
                         return [2, result];
-                    case 7:
+                    case 6:
                         e_1 = _c.sent();
-                        this.apiLog('processHttpRequest', e_1, global_constants.LOG_LEVEL_ERROR);
-                        api.processListeners('CommitError');
+                        this.apiLog("processHttpRequest", e_1, global_constants.LOG_LEVEL_ERROR);
+                        api.processListeners("CommitError");
                         return [2, genericError];
-                    case 8:
-                        this.processingHttpRequest = false;
-                        return [7];
-                    case 9: return [2];
+                    case 7: return [2];
                 }
             });
         }); };
@@ -1937,13 +1934,13 @@ var BaseAPI = (function () {
     };
     BaseAPI.prototype.scheduleCommit = function (when, callback) {
         this._timeout = new ScheduledCommit(this, when, callback);
-        this.apiLog('scheduleCommit', 'scheduled', global_constants.LOG_LEVEL_DEBUG, '');
+        this.apiLog("scheduleCommit", "scheduled", global_constants.LOG_LEVEL_DEBUG, "");
     };
     BaseAPI.prototype.clearScheduledCommit = function () {
         if (this._timeout) {
             this._timeout.cancel();
             this._timeout = undefined;
-            this.apiLog('clearScheduledCommit', 'cleared', global_constants.LOG_LEVEL_DEBUG, '');
+            this.apiLog("clearScheduledCommit", "cleared", global_constants.LOG_LEVEL_DEBUG, "");
         }
     };
     BaseAPI.prototype.handleValueAccessException = function (e, returnValue) {
@@ -1996,7 +1993,7 @@ var LearnerResponses = {
         delimiter: "",
         unique: false,
     },
-    "choice": {
+    choice: {
         format: scorm2004_regex.CMILongIdentifier,
         max: 36,
         delimiter: "[,]",
@@ -2014,7 +2011,7 @@ var LearnerResponses = {
         delimiter: "",
         unique: false,
     },
-    "matching": {
+    matching: {
         format: scorm2004_regex.CMIShortIdentifier,
         format2: scorm2004_regex.CMIShortIdentifier,
         max: 36,
@@ -2022,35 +2019,33 @@ var LearnerResponses = {
         delimiter2: "[.]",
         unique: false,
     },
-    "performance": {
+    performance: {
         format: "^$|" + scorm2004_regex.CMIShortIdentifier,
-        format2: scorm2004_regex.CMIDecimal +
-            "|^$|" +
-            scorm2004_regex.CMIShortIdentifier,
+        format2: scorm2004_regex.CMIDecimal + "|^$|" + scorm2004_regex.CMIShortIdentifier,
         max: 250,
         delimiter: "[,]",
         delimiter2: "[.]",
         unique: false,
     },
-    "sequencing": {
+    sequencing: {
         format: scorm2004_regex.CMIShortIdentifier,
         max: 36,
         delimiter: "[,]",
         unique: false,
     },
-    "likert": {
+    likert: {
         format: scorm2004_regex.CMIShortIdentifier,
         max: 1,
         delimiter: "",
         unique: false,
     },
-    "numeric": {
+    numeric: {
         format: scorm2004_regex.CMIDecimal,
         max: 1,
         delimiter: "",
         unique: false,
     },
-    "other": {
+    other: {
         format: scorm2004_regex.CMIString4000,
         max: 1,
         delimiter: "",
@@ -2066,7 +2061,7 @@ var CorrectResponses = {
         format: "^true$|^false$",
         limit: 1,
     },
-    'choice': {
+    choice: {
         max: 36,
         delimiter: "[,]",
         unique: true,
@@ -2087,7 +2082,7 @@ var CorrectResponses = {
         duplicate: true,
         format: scorm2004_regex.CMILangString4000,
     },
-    'matching': {
+    matching: {
         max: 36,
         delimiter: "[,]",
         delimiter2: "[.]",
@@ -2096,25 +2091,23 @@ var CorrectResponses = {
         format: scorm2004_regex.CMIShortIdentifier,
         format2: scorm2004_regex.CMIShortIdentifier,
     },
-    "performance": {
+    performance: {
         max: 250,
         delimiter: "[,]",
         delimiter2: "[.]",
         unique: false,
         duplicate: false,
         format: "^$|" + scorm2004_regex.CMIShortIdentifier,
-        format2: scorm2004_regex.CMIDecimal +
-            "|^$|" +
-            scorm2004_regex.CMIShortIdentifier,
+        format2: scorm2004_regex.CMIDecimal + "|^$|" + scorm2004_regex.CMIShortIdentifier,
     },
-    "sequencing": {
+    sequencing: {
         max: 36,
         delimiter: "[,]",
         unique: false,
         duplicate: false,
         format: scorm2004_regex.CMIShortIdentifier,
     },
-    "likert": {
+    likert: {
         max: 1,
         delimiter: "",
         unique: false,
@@ -2122,7 +2115,7 @@ var CorrectResponses = {
         format: scorm2004_regex.CMIShortIdentifier,
         limit: 1,
     },
-    "numeric": {
+    numeric: {
         max: 2,
         delimiter: "[:]",
         unique: false,
@@ -2130,7 +2123,7 @@ var CorrectResponses = {
         format: scorm2004_regex.CMIDecimal,
         limit: 1,
     },
-    "other": {
+    other: {
         max: 1,
         delimiter: "",
         unique: false,
@@ -2537,7 +2530,7 @@ var CMILearnerPreference = (function (_super) {
         get: function () {
             return this.__children;
         },
-        set: function (children) {
+        set: function (_children) {
             throw new Scorm2004ValidationError(scorm2004_error_codes.READ_ONLY_ELEMENT);
         },
         enumerable: false,
@@ -3701,7 +3694,7 @@ var Scorm2004API = (function (_super) {
             }
         }
         _this = _super.call(this, Scorm2004API_scorm2004_error_codes, settings) || this;
-        _this._version = '1.0';
+        _this._version = "1.0";
         _this.cmi = new CMI();
         _this.adl = new ADL();
         _this.Initialize = _this.lmsInitialize;
@@ -3723,69 +3716,70 @@ var Scorm2004API = (function (_super) {
     });
     Scorm2004API.prototype.lmsInitialize = function () {
         this.cmi.initialize();
-        return this.initialize('Initialize');
+        return this.initialize("Initialize");
     };
     Scorm2004API.prototype.lmsFinish = function () {
-        var result = this.terminate('Terminate', true);
+        var result = this.terminate("Terminate", true);
         if (result === Scorm2004API_global_constants.SCORM_TRUE) {
-            if (this.adl.nav.request !== '_none_') {
+            if (this.adl.nav.request !== "_none_") {
                 switch (this.adl.nav.request) {
-                    case 'continue':
-                        this.processListeners('SequenceNext');
+                    case "continue":
+                        this.processListeners("SequenceNext");
                         break;
-                    case 'previous':
-                        this.processListeners('SequencePrevious');
+                    case "previous":
+                        this.processListeners("SequencePrevious");
                         break;
-                    case 'choice':
-                        this.processListeners('SequenceChoice');
+                    case "choice":
+                        this.processListeners("SequenceChoice");
                         break;
-                    case 'exit':
-                        this.processListeners('SequenceExit');
+                    case "exit":
+                        this.processListeners("SequenceExit");
                         break;
-                    case 'exitAll':
-                        this.processListeners('SequenceExitAll');
+                    case "exitAll":
+                        this.processListeners("SequenceExitAll");
                         break;
-                    case 'abandon':
-                        this.processListeners('SequenceAbandon');
+                    case "abandon":
+                        this.processListeners("SequenceAbandon");
                         break;
-                    case 'abandonAll':
-                        this.processListeners('SequenceAbandonAll');
+                    case "abandonAll":
+                        this.processListeners("SequenceAbandonAll");
                         break;
                 }
             }
             else if (this.settings.autoProgress) {
-                this.processListeners('SequenceNext');
+                this.processListeners("SequenceNext");
             }
         }
         return result;
     };
     Scorm2004API.prototype.lmsGetValue = function (CMIElement) {
-        return this.getValue('GetValue', true, CMIElement);
+        return this.getValue("GetValue", true, CMIElement);
     };
     Scorm2004API.prototype.lmsSetValue = function (CMIElement, value) {
-        return this.setValue('SetValue', 'Commit', true, CMIElement, value);
+        return this.setValue("SetValue", "Commit", true, CMIElement, value);
     };
     Scorm2004API.prototype.lmsCommit = function () {
-        return this.commit('Commit');
+        return this.commit("Commit");
     };
     Scorm2004API.prototype.lmsGetLastError = function () {
-        return this.getLastError('GetLastError');
+        return this.getLastError("GetLastError");
     };
     Scorm2004API.prototype.lmsGetErrorString = function (CMIErrorCode) {
-        return this.getErrorString('GetErrorString', CMIErrorCode);
+        return this.getErrorString("GetErrorString", CMIErrorCode);
     };
     Scorm2004API.prototype.lmsGetDiagnostic = function (CMIErrorCode) {
-        return this.getDiagnostic('GetDiagnostic', CMIErrorCode);
+        return this.getDiagnostic("GetDiagnostic", CMIErrorCode);
     };
     Scorm2004API.prototype.setCMIValue = function (CMIElement, value) {
-        return this._commonSetCMIValue('SetValue', true, CMIElement, value);
+        return this._commonSetCMIValue("SetValue", true, CMIElement, value);
     };
     Scorm2004API.prototype.getChildElement = function (CMIElement, value, foundFirstIndex) {
-        if (this.stringMatches(CMIElement, 'cmi\\.objectives\\.\\d+')) {
+        if (this.stringMatches(CMIElement, "cmi\\.objectives\\.\\d+")) {
             return new CMIObjectivesObject();
         }
-        else if (foundFirstIndex && this.stringMatches(CMIElement, 'cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+')) {
-            var parts = CMIElement.split('.');
+        else if (foundFirstIndex &&
+            this.stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+")) {
+            var parts = CMIElement.split(".");
             var index = Number(parts[2]);
             var interaction = this.cmi.interactions.childArray[index];
             if (this.isInitialized()) {
@@ -3799,25 +3793,26 @@ var Scorm2004API = (function (_super) {
                         this.checkValidResponseType(response_type, value, interaction.type);
                     }
                     else {
-                        this.throwSCORMError(Scorm2004API_scorm2004_error_codes.GENERAL_SET_FAILURE, 'Incorrect Response Type: ' + interaction.type);
+                        this.throwSCORMError(Scorm2004API_scorm2004_error_codes.GENERAL_SET_FAILURE, "Incorrect Response Type: " + interaction.type);
                     }
                 }
             }
-            if (this.lastErrorCode === '0') {
+            if (this.lastErrorCode === "0") {
                 return new CMIInteractionsCorrectResponsesObject();
             }
         }
-        else if (foundFirstIndex && this.stringMatches(CMIElement, 'cmi\\.interactions\\.\\d+\\.objectives\\.\\d+')) {
+        else if (foundFirstIndex &&
+            this.stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")) {
             return new CMIInteractionsObjectivesObject();
         }
         else if (!foundFirstIndex &&
-            this.stringMatches(CMIElement, 'cmi\\.interactions\\.\\d+')) {
+            this.stringMatches(CMIElement, "cmi\\.interactions\\.\\d+")) {
             return new CMIInteractionsObject();
         }
-        else if (this.stringMatches(CMIElement, 'cmi\\.comments_from_learner\\.\\d+')) {
+        else if (this.stringMatches(CMIElement, "cmi\\.comments_from_learner\\.\\d+")) {
             return new CMICommentsObject();
         }
-        else if (this.stringMatches(CMIElement, 'cmi\\.comments_from_lms\\.\\d+')) {
+        else if (this.stringMatches(CMIElement, "cmi\\.comments_from_lms\\.\\d+")) {
             return new CMICommentsObject(true);
         }
         return null;
@@ -3834,13 +3829,13 @@ var Scorm2004API = (function (_super) {
             this.checkCorrectResponseValue(interaction_type, nodes, value);
         }
         else if (nodes.length > response_type.max) {
-            this.throwSCORMError(Scorm2004API_scorm2004_error_codes.GENERAL_SET_FAILURE, 'Data Model Element Pattern Too Long');
+            this.throwSCORMError(Scorm2004API_scorm2004_error_codes.GENERAL_SET_FAILURE, "Data Model Element Pattern Too Long");
         }
     };
     Scorm2004API.prototype.checkDuplicateChoiceResponse = function (interaction, value) {
         var interaction_count = interaction.correct_responses._count;
-        if (interaction.type === 'choice') {
-            for (var i = 0; i < interaction_count && this.lastErrorCode === '0'; i++) {
+        if (interaction.type === "choice") {
+            for (var i = 0; i < interaction_count && this.lastErrorCode === "0"; i++) {
                 var response = interaction.correct_responses.childArray[i];
                 if (response.pattern === value) {
                     this.throwSCORMError(Scorm2004API_scorm2004_error_codes.GENERAL_SET_FAILURE);
@@ -3849,41 +3844,43 @@ var Scorm2004API = (function (_super) {
         }
     };
     Scorm2004API.prototype.validateCorrectResponse = function (CMIElement, value) {
-        var parts = CMIElement.split('.');
+        var parts = CMIElement.split(".");
         var index = Number(parts[2]);
         var pattern_index = Number(parts[4]);
         var interaction = this.cmi.interactions.childArray[index];
         var interaction_count = interaction.correct_responses._count;
         this.checkDuplicateChoiceResponse(interaction, value);
         var response_type = correct_responses[interaction.type];
-        if (typeof response_type.limit === 'undefined' || interaction_count <=
-            response_type.limit) {
+        if (typeof response_type.limit === "undefined" ||
+            interaction_count <= response_type.limit) {
             this.checkValidResponseType(response_type, value, interaction.type);
-            if (this.lastErrorCode === '0' &&
+            if ((this.lastErrorCode === "0" &&
                 (!response_type.duplicate ||
-                    !this.checkDuplicatedPattern(interaction.correct_responses, pattern_index, value)) ||
-                (this.lastErrorCode === '0' && value === '')) {
+                    !this.checkDuplicatedPattern(interaction.correct_responses, pattern_index, value))) ||
+                (this.lastErrorCode === "0" && value === "")) {
             }
             else {
-                if (this.lastErrorCode === '0') {
-                    this.throwSCORMError(Scorm2004API_scorm2004_error_codes.GENERAL_SET_FAILURE, 'Data Model Element Pattern Already Exists');
+                if (this.lastErrorCode === "0") {
+                    this.throwSCORMError(Scorm2004API_scorm2004_error_codes.GENERAL_SET_FAILURE, "Data Model Element Pattern Already Exists");
                 }
             }
         }
         else {
-            this.throwSCORMError(Scorm2004API_scorm2004_error_codes.GENERAL_SET_FAILURE, 'Data Model Element Collection Limit Reached');
+            this.throwSCORMError(Scorm2004API_scorm2004_error_codes.GENERAL_SET_FAILURE, "Data Model Element Collection Limit Reached");
         }
     };
     Scorm2004API.prototype.getCMIValue = function (CMIElement) {
-        return this._commonGetCMIValue('GetValue', true, CMIElement);
+        return this._commonGetCMIValue("GetValue", true, CMIElement);
     };
     Scorm2004API.prototype.getLmsErrorMessageDetails = function (errorNumber, detail) {
-        var basicMessage = '';
-        var detailMessage = '';
+        var basicMessage = "";
+        var detailMessage = "";
         errorNumber = String(errorNumber);
         if (Scorm2004API_scorm2004_constants.error_descriptions[errorNumber]) {
-            basicMessage = Scorm2004API_scorm2004_constants.error_descriptions[errorNumber].basicMessage;
-            detailMessage = Scorm2004API_scorm2004_constants.error_descriptions[errorNumber].detailMessage;
+            basicMessage =
+                Scorm2004API_scorm2004_constants.error_descriptions[errorNumber].basicMessage;
+            detailMessage =
+                Scorm2004API_scorm2004_constants.error_descriptions[errorNumber].detailMessage;
         }
         return detail ? detailMessage : basicMessage;
     };
@@ -3897,12 +3894,11 @@ var Scorm2004API = (function (_super) {
         }
         return found;
     };
-    ;
     Scorm2004API.prototype.checkCorrectResponseValue = function (interaction_type, nodes, value) {
         var response = correct_responses[interaction_type];
         var formatRegex = new RegExp(response.format);
-        for (var i = 0; i < nodes.length && this.lastErrorCode === '0'; i++) {
-            if (interaction_type.match('^(fill-in|long-fill-in|matching|performance|sequencing)$')) {
+        for (var i = 0; i < nodes.length && this.lastErrorCode === "0"; i++) {
+            if (interaction_type.match("^(fill-in|long-fill-in|matching|performance|sequencing)$")) {
                 nodes[i] = this.removeCorrectResponsePrefixes(nodes[i]);
             }
             if (response === null || response === void 0 ? void 0 : response.delimiter2) {
@@ -3913,7 +3909,8 @@ var Scorm2004API = (function (_super) {
                         this.throwSCORMError(Scorm2004API_scorm2004_error_codes.TYPE_MISMATCH);
                     }
                     else {
-                        if (!response.format2 || !values[1].match(new RegExp(response.format2))) {
+                        if (!response.format2 ||
+                            !values[1].match(new RegExp(response.format2))) {
                             this.throwSCORMError(Scorm2004API_scorm2004_error_codes.TYPE_MISMATCH);
                         }
                     }
@@ -3924,19 +3921,19 @@ var Scorm2004API = (function (_super) {
             }
             else {
                 var matches = nodes[i].match(formatRegex);
-                if ((!matches && value !== '') ||
-                    (!matches && interaction_type === 'true-false')) {
+                if ((!matches && value !== "") ||
+                    (!matches && interaction_type === "true-false")) {
                     this.throwSCORMError(Scorm2004API_scorm2004_error_codes.TYPE_MISMATCH);
                 }
                 else {
-                    if (interaction_type === 'numeric' && nodes.length > 1) {
+                    if (interaction_type === "numeric" && nodes.length > 1) {
                         if (Number(nodes[0]) > Number(nodes[1])) {
                             this.throwSCORMError(Scorm2004API_scorm2004_error_codes.TYPE_MISMATCH);
                         }
                     }
                     else {
-                        if (nodes[i] !== '' && response.unique) {
-                            for (var j = 0; j < i && this.lastErrorCode === '0'; j++) {
+                        if (nodes[i] !== "" && response.unique) {
+                            for (var j = 0; j < i && this.lastErrorCode === "0"; j++) {
                                 if (nodes[i] === nodes[j]) {
                                     this.throwSCORMError(Scorm2004API_scorm2004_error_codes.TYPE_MISMATCH);
                                 }
@@ -3951,12 +3948,12 @@ var Scorm2004API = (function (_super) {
         var seenOrder = false;
         var seenCase = false;
         var seenLang = false;
-        var prefixRegex = new RegExp('^({(lang|case_matters|order_matters)=([^}]+)})');
+        var prefixRegex = new RegExp("^({(lang|case_matters|order_matters)=([^}]+)})");
         var matches = node.match(prefixRegex);
         var langMatches = null;
         while (matches) {
             switch (matches[2]) {
-                case 'lang':
+                case "lang":
                     langMatches = node.match(Scorm2004API_scorm2004_regex.CMILangcr);
                     if (langMatches) {
                         var lang = langMatches[3];
@@ -3968,17 +3965,17 @@ var Scorm2004API = (function (_super) {
                     }
                     seenLang = true;
                     break;
-                case 'case_matters':
+                case "case_matters":
                     if (!seenLang && !seenOrder && !seenCase) {
-                        if (matches[3] !== 'true' && matches[3] !== 'false') {
+                        if (matches[3] !== "true" && matches[3] !== "false") {
                             this.throwSCORMError(Scorm2004API_scorm2004_error_codes.TYPE_MISMATCH);
                         }
                     }
                     seenCase = true;
                     break;
-                case 'order_matters':
+                case "order_matters":
                     if (!seenCase && !seenLang && !seenOrder) {
-                        if (matches[3] !== 'true' && matches[3] !== 'false') {
+                        if (matches[3] !== "true" && matches[3] !== "false") {
                             this.throwSCORMError(Scorm2004API_scorm2004_error_codes.TYPE_MISMATCH);
                         }
                     }
@@ -4004,16 +4001,16 @@ var Scorm2004API = (function (_super) {
         var result = [];
         var flattened = flatten(cmiExport);
         switch (this.settings.dataCommitFormat) {
-            case 'flattened':
+            case "flattened":
                 return flatten(cmiExport);
-            case 'params':
+            case "params":
                 for (var item in flattened) {
                     if ({}.hasOwnProperty.call(flattened, item)) {
                         result.push("".concat(item, "=").concat(flattened[item]));
                     }
                 }
                 return result;
-            case 'json':
+            case "json":
             default:
                 return cmiExport;
         }
@@ -4021,22 +4018,22 @@ var Scorm2004API = (function (_super) {
     Scorm2004API.prototype.storeData = function (terminateCommit) {
         var _a, _b, _c;
         if (terminateCommit) {
-            if (this.cmi.mode === 'normal') {
-                if (this.cmi.credit === 'credit') {
+            if (this.cmi.mode === "normal") {
+                if (this.cmi.credit === "credit") {
                     if (this.cmi.completion_threshold && this.cmi.progress_measure) {
                         if (this.cmi.progress_measure >= this.cmi.completion_threshold) {
-                            this.cmi.completion_status = 'completed';
+                            this.cmi.completion_status = "completed";
                         }
                         else {
-                            this.cmi.completion_status = 'incomplete';
+                            this.cmi.completion_status = "incomplete";
                         }
                     }
                     if (this.cmi.scaled_passing_score && this.cmi.score.scaled) {
                         if (this.cmi.score.scaled >= this.cmi.scaled_passing_score) {
-                            this.cmi.success_status = 'passed';
+                            this.cmi.success_status = "passed";
                         }
                         else {
-                            this.cmi.success_status = 'failed';
+                            this.cmi.success_status = "failed";
                         }
                     }
                 }
@@ -4044,21 +4041,21 @@ var Scorm2004API = (function (_super) {
         }
         var navRequest = false;
         if (this.adl.nav.request !== ((_c = (_b = (_a = this.startingData) === null || _a === void 0 ? void 0 : _a.adl) === null || _b === void 0 ? void 0 : _b.nav) === null || _c === void 0 ? void 0 : _c.request) &&
-            this.adl.nav.request !== '_none_') {
+            this.adl.nav.request !== "_none_") {
             this.adl.nav.request = encodeURIComponent(this.adl.nav.request);
             navRequest = true;
         }
-        var commitObject = this.renderCommitCMI(terminateCommit ||
-            this.settings.alwaysSendTotalTime);
+        var commitObject = this.renderCommitCMI(terminateCommit || this.settings.alwaysSendTotalTime);
         if (this.apiLogLevel === Scorm2004API_global_constants.LOG_LEVEL_DEBUG) {
-            console.debug('Commit (terminated: ' +
-                (terminateCommit ? 'yes' : 'no') + '): ');
+            console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");
             console.debug(commitObject);
         }
-        if (typeof this.settings.lmsCommitUrl === 'string') {
+        if (typeof this.settings.lmsCommitUrl === "string") {
             var result = this.processHttpRequest(this.settings.lmsCommitUrl, commitObject, terminateCommit);
             {
-                if (navRequest && result.navRequest !== undefined && result.navRequest !== '') {
+                if (navRequest &&
+                    result.navRequest !== undefined &&
+                    result.navRequest !== "") {
                     Function("\"use strict\";(() => { ".concat(result.navRequest, " })()"))();
                 }
             }
