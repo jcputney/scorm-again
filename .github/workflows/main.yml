@@ -38,9 +38,9 @@ jobs:
       - name: Run tests with Mocha
         run: |
           export TS_NODE_COMPILER_OPTIONS="{\"module\":\"commonjs\"}"
-          ./node_modules/.bin/nyc ./node_modules/.bin/mocha --import=tsx --recursive --timeout=10000 --exit --reporter json --reporter-option output=test-results.json
+          yarn run test:coverage
 
-        # Upload test results to Code Climate
+        # Upload test results to GitHub
       - uses: dorny/test-reporter@v1
         with:
           name: Test Reporter
@@ -53,17 +53,16 @@ jobs:
           ./node_modules/.bin/eslint ./src --format junit --output-file ./reports/eslint/eslint.xml
 
       # Generate code coverage report and upload to Code Climate
-      - name: Create Code Coverage Report
-        run: |
-          ./node_modules/.bin/nyc report --reporter=text-lcov > lcov.info
-
       - name: Upload Code Coverage Report
         uses: paambaati/codeclimate-action@v9.0.0
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
         with:
-          coverageLocations: '${{github.workspace}}/lcov.info'
+          coverageLocations: '${{github.workspace}}/coverage/lcov.info'
 
+      # Build the project
+      - name: Build project
+        run: yarn run compile
 
       - name: Commit and Push Dist Folder
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
