@@ -5,9 +5,9 @@ import {
   CMIEvaluationCommentsObject,
   CMITriesObject,
 } from "./cmi/aicc_cmi";
-import {NAV} from "./cmi/scorm12_cmi";
-import {Settings} from "./BaseAPI";
-import {BaseCMI} from "./cmi/common";
+import { NAV } from "./cmi/scorm12_cmi";
+import { Settings } from "./BaseAPI";
+import { BaseCMI } from "./cmi/common";
 
 /**
  * The AICC API class
@@ -32,17 +32,28 @@ export default class AICC extends Scorm12API {
    * @param {boolean} foundFirstIndex
    * @return {BaseCMI | null}
    */
-  getChildElement(CMIElement: string, value: any, foundFirstIndex: boolean): BaseCMI | null {
+  getChildElement(
+    CMIElement: string,
+    value: any,
+    foundFirstIndex: boolean,
+  ): BaseCMI | null {
     let newChild = super.getChildElement(CMIElement, value, foundFirstIndex);
 
     if (!newChild) {
-      if (this.stringMatches(CMIElement, 'cmi\\.evaluation\\.comments\\.\\d+')) {
+      if (
+        this.stringMatches(CMIElement, "cmi\\.evaluation\\.comments\\.\\d+")
+      ) {
         newChild = new CMIEvaluationCommentsObject();
-      } else if (this.stringMatches(CMIElement,
-          'cmi\\.student_data\\.tries\\.\\d+')) {
+      } else if (
+        this.stringMatches(CMIElement, "cmi\\.student_data\\.tries\\.\\d+")
+      ) {
         newChild = new CMITriesObject();
-      } else if (this.stringMatches(CMIElement,
-          'cmi\\.student_data\\.attempt_records\\.\\d+')) {
+      } else if (
+        this.stringMatches(
+          CMIElement,
+          "cmi\\.student_data\\.attempt_records\\.\\d+",
+        )
+      ) {
         newChild = new CMIAttemptRecordsObject();
       }
     }

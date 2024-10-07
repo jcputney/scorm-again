@@ -53,6 +53,7 @@
     "mocha": "^10.7.3",
     "mocha-junit-reporter": "^2.2.1",
     "mochawesome": "^7.1.3",
+    "prettier": "^3.3.3",
     "sinon": "^19.0.2",
     "terser-webpack-plugin": "^5.3.10",
     "ts-loader": "^9.5.1",
@@ -66,7 +67,8 @@
     "test": "./node_modules/.bin/mocha --import=tsx --bdd --recursive --reporter list",
     "test:coverage": "./node_modules/.bin/c8 ./node_modules/.bin/mocha --import=tsx --recursive --timeout=10000 --exit --reporter json --reporter-option output=test-results.json",
     "compile": "./node_modules/.bin/webpack --bail --config webpack.config.js",
-    "fix": "./node_modules/.bin/eslint ./src --fix"
+    "fix": "./node_modules/.bin/eslint ./src --fix",
+    "prettier": "./node_modules/.bin/prettier --write src/**/*.ts"
   },
   "repository": {
     "type": "git",

@@ -67,3 +67,10 @@ typings/
 .DS_Store
 test-results.xml
 /.vscode/
+cc-reporter
+cc-reporter.sha256
+cc-reporter.sha256.sig
+codeclimate.0.json
+coverage.total.json
+public-key.asc
+test-results.json
