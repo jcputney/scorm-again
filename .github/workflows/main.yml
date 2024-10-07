@@ -45,13 +45,13 @@ jobs:
       - name: Run tests with Mocha
         run: |
           export TS_NODE_COMPILER_OPTIONS="{\"module\":\"commonjs\"}"
-          ./node_modules/.bin/nyc ./node_modules/.bin/mocha --import=tsx --recursive --timeout=10000 --exit --reporter json > results.json
+          ./node_modules/.bin/nyc ./node_modules/.bin/mocha --import=tsx --recursive --timeout=10000 --exit --reporter json --reporter-option output=test-results.json
 
         # Upload test results to Code Climate
       - uses: dorny/test-reporter@v1
         with:
           name: Test Reporter
-          path: ./results.json
+          path: test-results.json
           reporter: mocha-json
 
       # Run ESLint
@@ -65,3 +65,10 @@ jobs:
           mkdir coverage
           ./node_modules/.bin/nyc report --reporter=text-lcov > coverage/lcov.info
           ./cc-test-reporter after-build -t lcov
+
+      - name: Commit and Push Dist Folder
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions4git/add-commit-push@v1
+        with:
+          commit-message: '[skip ci] Add dist folder'
+          add-pathspec: 'dist/*'

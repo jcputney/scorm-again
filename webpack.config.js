@@ -1,7 +1,6 @@
 import path from 'path';
 import {fileURLToPath} from 'url';
 import ESLintPlugin from 'eslint-webpack-plugin';
-import UglifyJsPlugin from 'uglifyjs-webpack-plugin';
 import TerserPlugin from 'terser-webpack-plugin';
 
 const __filename = fileURLToPath(import.meta.url);
