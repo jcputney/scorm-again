@@ -1,10 +1,20 @@
-[![Github Actions](https://img.shields.io/github/actions/workflow/status/jcputney/scorm-again/main.yml?style=for-the-badge "Build Status")](https://github.com/jcputney/scorm-again/actions) [![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability/jcputney/scorm-again?style=for-the-badge)](https://codeclimate.com/github/jcputney/scorm-again) [![Code Climate coverage](https://img.shields.io/codeclimate/coverage/jcputney/scorm-again?style=for-the-badge)](https://codeclimate.com/github/jcputney/scorm-again/trends/test_coverage_total) [![Code Climate technical debt](https://img.shields.io/codeclimate/tech-debt/jcputney/scorm-again?style=for-the-badge)](https://codeclimate.com/github/jcputney/scorm-again/trends/technical_debt) ![jsDelivr hits (npm)](https://img.shields.io/jsdelivr/npm/hy/scorm-again?style=for-the-badge) ![Libraries.io dependency status for GitHub repo](https://img.shields.io/librariesio/github/jcputney/scorm-again?style=for-the-badge) ![npm bundle size](https://img.shields.io/bundlephobia/min/scorm-again?style=for-the-badge) [![donate](https://img.shields.io/badge/paypal-donate-success?style=for-the-badge)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=NF5MPZJAV26LE) [![npm](https://img.shields.io/npm/v/scorm-again?color=%2344cc11&style=for-the-badge)](https://www.npmjs.com/package/scorm-again)
+[![Github Actions](https://img.shields.io/github/actions/workflow/status/jcputney/scorm-again/main.yml?style=for-the-badge "Build Status")](https://github.com/jcputney/scorm-again/actions)
+[![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability/jcputney/scorm-again?style=for-the-badge)](https://codeclimate.com/github/jcputney/scorm-again)
+[![Code Climate coverage](https://img.shields.io/codeclimate/coverage/jcputney/scorm-again?style=for-the-badge)](https://codeclimate.com/github/jcputney/scorm-again/trends/test_coverage_total)
+[![Code Climate technical debt](https://img.shields.io/codeclimate/tech-debt/jcputney/scorm-again?style=for-the-badge)](https://codeclimate.com/github/jcputney/scorm-again/trends/technical_debt)
+![jsDelivr hits (npm)](https://img.shields.io/jsdelivr/npm/hy/scorm-again?style=for-the-badge&label=jsDeliver%20Downloads)
+![NPM Downloads](https://img.shields.io/npm/dy/scorm-again?style=for-the-badge&label=npm%20Downloads)
+![Libraries.io dependency status for GitHub repo](https://img.shields.io/librariesio/github/jcputney/scorm-again?style=for-the-badge) ![npm bundle size](https://img.shields.io/bundlephobia/min/scorm-again?style=for-the-badge)
+[![npm](https://img.shields.io/npm/v/scorm-again?color=%2344cc11&style=for-the-badge)](https://www.npmjs.com/package/scorm-again)
+![GitHub License](https://img.shields.io/github/license/jcputney/scorm-again?style=for-the-badge)
+[![donate](https://img.shields.io/badge/paypal-donate-success?style=for-the-badge)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=NF5MPZJAV26LE)
+
 
 # SCORM Again
 This project was created to modernize the SCORM JavaScript runtime, and to provide a stable, tested platform for running AICC, SCORM 1.2, and SCORM 2004 modules. This module is designed to be LMS agnostic, and is written to be able to be run without a backing LMS, logging all function calls and data instead of committing, if an LMS endpoint is not configured.
 
 ## Potential Breaking Change!
-Version 2.0.0 of scorm-again switches to using `fetch` instead of `sendBeacon` when the `sendBeaconCommit` setting is enabled. Since `fetch` is not supported by IE11, you will need to provide your own polyfill for this functionality if you need to support it. With that said, now that support for IE11 has officially been dropped by Microsoft, I may start moving this library away from supporting it as well, which will probably include leaning into using `fetch` by default, and rewriting the commit code.
+Version 2.0.0 of scorm-again switches to using `fetch`, as well as async-only for reporting to the LMS. Since `fetch` is not supported by IE11, you will need to provide your own polyfill for this functionality if you need to support it.
 
 ### What is this not and what doesn't it do?
 1. This is not an LMS
