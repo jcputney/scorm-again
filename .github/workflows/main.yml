@@ -13,6 +13,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+
     steps:
       # Checkout repository
       - name: Checkout code
@@ -62,13 +65,18 @@ jobs:
             ${{github.workspace}}/coverage/lcov.info:lcov
           debug: 'true'
 
+      # Format code with Prettier
+      - name: Format code with Prettier
+        run: yarn run prettier
+
       # Build the project
       - name: Build project
         run: yarn run compile
 
       - name: Commit and Push Dist Folder
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-        uses: actions4git/add-commit-push@v1
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit-message: '[skip ci] Add dist folder'
-          add-pathspec: 'dist/*'
+          commit_message: '[skip ci] Add dist folder'
+          file_pattern: 'dist/*.* src/**/*.* test/**/*.*'
+          skip_dirty_check: false
