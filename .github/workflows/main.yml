@@ -53,12 +53,15 @@ jobs:
           ./node_modules/.bin/eslint ./src --format junit --output-file ./reports/eslint/eslint.xml
 
       # Generate code coverage report and upload to Code Climate
+      - name: Create Code Coverage Report
+        run: |
+          ./node_modules/.bin/nyc report --reporter=text-lcov > lcov.info
+
       - name: Upload Code Coverage Report
         uses: paambaati/codeclimate-action@v9.0.0
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
         with:
-          coverageCommand: './node_modules/.bin/nyc report --reporter=text-lcov > ${{github.workspace}}/lcov.info'
           coverageLocations: '${{github.workspace}}/lcov.info'
 
 
