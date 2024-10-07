@@ -68,7 +68,7 @@
     "test:coverage": "./node_modules/.bin/c8 ./node_modules/.bin/mocha --import=tsx --recursive --timeout=10000 --exit --reporter json --reporter-option output=test-results.json",
     "compile": "./node_modules/.bin/webpack --bail --config webpack.config.js",
     "fix": "./node_modules/.bin/eslint ./src --fix",
-    "prettier": "./node_modules/.bin/prettier --write src/**/*.ts test/**/*.ts"
+    "prettier": "./node_modules/.bin/prettier --write src/**/*.ts test/**/*.ts src/*.ts test/*.ts"
   },
   "repository": {
     "type": "git",
