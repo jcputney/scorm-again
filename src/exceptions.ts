@@ -1,7 +1,5 @@
 import APIConstants from "./constants/api_constants";
 
-import { BaseScormValidationError } from "./cmi/common/errors";
-
 const scorm12_errors = APIConstants.scorm12.error_descriptions;
 const aicc_errors = APIConstants.aicc.error_descriptions;
 const scorm2004_errors = APIConstants.scorm2004.error_descriptions;
@@ -11,6 +9,28 @@ type APIError = {
   errorMessage: string;
   detailedMessage: string;
 };
+
+export class BaseScormValidationError extends Error {
+  constructor(errorCode: number) {
+    super(errorCode.toString());
+    this._errorCode = errorCode;
+    this.name = "ScormValidationError";
+  }
+
+  private readonly _errorCode: number;
+
+  /**
+   * Getter for _errorCode
+   * @return {number}
+   */
+  get errorCode(): number {
+    return this._errorCode;
+  }
+
+  setMessage(message: string) {
+    this.message = message;
+  }
+}
 
 /**
  * Base Validation Exception

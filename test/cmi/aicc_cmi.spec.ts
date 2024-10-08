@@ -10,6 +10,8 @@ import { CMIEvaluationCommentsObject } from "../../src/cmi/aicc/evaluation";
 import { CMIObjectivesObject } from "../../src/cmi/scorm12/objectives";
 import { CMIInteractionsObject } from "../../src/cmi/scorm12/interactions";
 import { NAV } from "../../src/cmi/scorm12/nav";
+import { CMIPathsObject } from "../../src/cmi/aicc/paths";
+import { CMIStudentDemographics } from "../../src/cmi/aicc/student_demographics";
 
 const aicc_constants = APIConstants.aicc;
 const scorm12_error_codes = ErrorCodes.scorm12;
@@ -597,6 +599,185 @@ describe("AICC CMI Tests", () => {
         expect(JSON.stringify(cmi)).toEqual(
           '{"status":"","time":"","score":{"raw":"","min":"","max":"100"}}',
         );
+      });
+    });
+
+    describe("CMIPathsObject Tests", () => {
+      const paths = () => {
+        return new CMIPathsObject();
+      };
+
+      h.checkFieldConstraintSize({
+        cmi: paths(),
+        fieldName: "cmi.location_id",
+        expectedError: type_mismatch,
+        limit: 255,
+      });
+      h.checkReadAndWrite({
+        cmi: paths(),
+        fieldName: "cmi.date",
+        valueToTest: "2021-01-01",
+      });
+      h.checkValidValues({
+        cmi: paths(),
+        fieldName: "cmi.time",
+        validValues: scorm12Values.validTime,
+        invalidValues: scorm12Values.invalidTime,
+      });
+      h.checkValidValues({
+        cmi: paths(),
+        fieldName: "cmi.status",
+        validValues: scorm12Values.validLessonStatus,
+        invalidValues: scorm12Values.invalidLessonStatus,
+      });
+      h.checkFieldConstraintSize({
+        cmi: paths(),
+        fieldName: "cmi.why_left",
+        expectedError: type_mismatch,
+        limit: 255,
+      });
+      h.checkValidValues({
+        cmi: paths(),
+        fieldName: "cmi.time_in_element",
+        validValues: scorm12Values.validTime,
+        invalidValues: scorm12Values.invalidTime,
+      });
+
+      it("should export JSON", () => {
+        const cmi = paths();
+        expect(JSON.stringify(cmi)).toEqual(
+          '{"location_id":"","date":"","time":"","status":"","why_left":"","time_in_element":""}',
+        );
+      });
+    });
+
+    describe("CMIStudentDemographicsObject Tests", () => {
+      const cmiInit = () => {
+        const cmiStudentDemographics = new CMIStudentDemographics();
+        cmiStudentDemographics.initialize();
+        return cmiStudentDemographics;
+      };
+      const cmi = () => {
+        return new CMIStudentDemographics();
+      };
+
+      h.checkReadOnly({
+        cmi: cmiInit(),
+        fieldName: "cmi.city",
+        expectedError: read_only,
+      });
+      h.checkReadOnly({
+        cmi: cmiInit(),
+        fieldName: "cmi.class",
+        expectedError: read_only,
+      });
+      h.checkReadOnly({
+        cmi: cmiInit(),
+        fieldName: "cmi.company",
+        expectedError: read_only,
+      });
+      h.checkReadOnly({
+        cmi: cmiInit(),
+        fieldName: "cmi.country",
+        expectedError: read_only,
+      });
+      h.checkReadOnly({
+        cmi: cmiInit(),
+        fieldName: "cmi.experience",
+        expectedError: read_only,
+      });
+      h.checkReadOnly({
+        cmi: cmiInit(),
+        fieldName: "cmi.familiar_name",
+        expectedError: read_only,
+      });
+      h.checkReadOnly({
+        cmi: cmiInit(),
+        fieldName: "cmi.instructor_name",
+        expectedError: read_only,
+      });
+      h.checkReadOnly({
+        cmi: cmiInit(),
+        fieldName: "cmi.title",
+        expectedError: read_only,
+      });
+      h.checkReadOnly({
+        cmi: cmiInit(),
+        fieldName: "cmi.native_language",
+        expectedError: read_only,
+      });
+      h.checkReadOnly({
+        cmi: cmiInit(),
+        fieldName: "cmi.state",
+        expectedError: read_only,
+      });
+      h.checkReadOnly({
+        cmi: cmiInit(),
+        fieldName: "cmi.street_address",
+        expectedError: read_only,
+      });
+      h.checkReadOnly({
+        cmi: cmiInit(),
+        fieldName: "cmi.telephone",
+        expectedError: read_only,
+      });
+      h.checkReadOnly({
+        cmi: cmiInit(),
+        fieldName: "cmi.years_experience",
+        expectedError: read_only,
+      });
+
+      h.checkReadAndWrite({
+        cmi: cmi(),
+        fieldName: "cmi.city",
+      });
+      h.checkReadAndWrite({
+        cmi: cmi(),
+        fieldName: "cmi.class",
+      });
+      h.checkReadAndWrite({
+        cmi: cmi(),
+        fieldName: "cmi.company",
+      });
+      h.checkReadAndWrite({
+        cmi: cmi(),
+        fieldName: "cmi.country",
+      });
+      h.checkReadAndWrite({
+        cmi: cmi(),
+        fieldName: "cmi.experience",
+      });
+      h.checkReadAndWrite({
+        cmi: cmi(),
+        fieldName: "cmi.familiar_name",
+      });
+      h.checkReadAndWrite({
+        cmi: cmi(),
+        fieldName: "cmi.instructor_name",
+      });
+      h.checkReadAndWrite({
+        cmi: cmi(),
+        fieldName: "cmi.title",
+      });
+      h.checkReadAndWrite({
+        cmi: cmi(),
+        fieldName: "cmi.native_language",
+      });
+      h.checkReadAndWrite({
+        cmi: cmi(),
+        fieldName: "cmi.state",
+      });
+      h.checkReadAndWrite({
+        cmi: cmi(),
+        fieldName: "cmi.street_address",
+      });
+      h.checkReadAndWrite({
+        cmi: cmi(),
+        fieldName: "cmi.telephone",
+      });
+      h.checkReadAndWrite({
+        cmi: cmi(),
+        fieldName: "cmi.years_experience",
       });
     });
 

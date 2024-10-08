@@ -1,9 +1,9 @@
 import APIConstants from "../../constants/api_constants";
 import Regex from "../../constants/regex";
 import { BaseCMI } from "./base_cmi";
-import { BaseScormValidationError } from "./errors";
 import { checkValidFormat, checkValidRange } from "./validation";
 import ErrorCodes from "../../constants/error_codes";
+import { BaseScormValidationError } from "../../exceptions";
 
 const scorm12_constants = APIConstants.scorm12;
 const scorm12_regex = Regex.scorm12;

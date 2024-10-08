@@ -78,6 +78,46 @@ The APIs include several settings to customize the functionality of each API:
 | `requestHandler` | function |  | A function to transform the commit object before sending it to `lmsCommitUrl`. By default it's the identity function (no transformation). |
 | `onLogMessage` | function |  | A function to be called whenever a message is logged. Defaults to console.{error,warn,info,debug,log} |
 
+## Settings Function Examples
+
+### responseHandler
+The responseHandler function is used to transform the response from the LMS to the correct format. The APIs expect the result from the LMS to be in the following format (errorCode is optional): `{ "result": true, "errorCode": 0 }`
+
+```javascript
+var settings = {
+  responseHandler: function(response: Response): ResultObject {
+    const responseObj = JSON.parse(response.text());  
+    return {
+      result: responseObj.success,
+      errorCode: responseObj.error
+    };
+  }
+};
+```
+
+### requestHandler
+The requestHandler function is used to transform the commit object before sending it to `lmsCommitUrl`. By default, it's the identity function (no transformation).
+
+```javascript
+var settings = {
+  requestHandler: function(commitObject: CommitObject): CommitObject {
+    commitObject.cmi.core.lesson_status = 'completed';
+    return commitObject;
+  }
+};
+```
+
+### onLogMessage
+The onLogMessage function is used to log messages. By default, it logs messages to the console.
+
+```javascript
+var settings = {
+  onLogMessage: function(level: LogLevel, message: string): void {
+    console.log(`[${level}] ${message}`);
+  }
+};
+```
+
 ## Initial Values
 
 If you want to initially load data from your backend API, you must do it before launching your SCORM/AICC player. After the player has initialized, you will not be able to change any read-only values.

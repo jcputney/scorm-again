@@ -261,6 +261,11 @@ describe("AICC API Tests", () => {
         fieldName: "cmi.student_data.attempt_records.0.score.max",
         valueToTest: "100",
       });
+      h.checkLMSSetValue({
+        api: apiInitialized(),
+        fieldName: "cmi.paths.0.location_id",
+        valueToTest: "xyz",
+      });
     });
   });
 

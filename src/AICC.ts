@@ -7,6 +7,7 @@ import { CMITriesObject } from "./cmi/aicc/tries";
 import { CMIAttemptRecordsObject } from "./cmi/aicc/attempts";
 import { CMIEvaluationCommentsObject } from "./cmi/aicc/evaluation";
 import { NAV } from "./cmi/scorm12/nav";
+import { CMIPathsObject } from "./cmi/aicc/paths";
 
 /**
  * The AICC API class
@@ -54,6 +55,8 @@ export default class AICC extends Scorm12API {
         )
       ) {
         newChild = new CMIAttemptRecordsObject();
+      } else if (this.stringMatches(CMIElement, "cmi\\.paths\\.\\d+")) {
+        newChild = new CMIPathsObject();
       }
     }
 

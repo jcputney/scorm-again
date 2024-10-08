@@ -1,4 +1,4 @@
-import { BaseScormValidationError } from "./errors";
+import { BaseScormValidationError } from "../../exceptions";
 
 /**
  * Check if the value matches the proper format. If not, throw proper error code.
