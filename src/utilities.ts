@@ -282,29 +282,6 @@ export function countDecimals(num: number): number {
 }
 
 /**
- * Logging for all SCORM actions
- *
- * @param {string} functionName
- * @param {string} logMessage
- * @param {number} messageLevel
- * @param {number} apiLogLevel
- * @param {string} CMIElement
- */
-export function apiLogUtil(
-  functionName: string,
-  logMessage: string,
-  messageLevel: number,
-  apiLogLevel: number,
-  CMIElement?: string,
-) {
-  logMessage = this.formatMessage(functionName, logMessage, CMIElement);
-
-  if (messageLevel >= apiLogLevel) {
-    this.settings.onLogMessage(messageLevel, logMessage);
-  }
-}
-
-/**
  * Formats the SCORM messages for easy reading
  *
  * @param {string} functionName

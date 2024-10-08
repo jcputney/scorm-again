@@ -2,7 +2,12 @@ import { CMIArray } from "./cmi/common/array";
 import { ValidationError } from "./exceptions";
 import ErrorCodes, { ErrorCode } from "./constants/error_codes";
 import APIConstants from "./constants/api_constants";
-import { apiLogUtil, stringMatches, unflatten } from "./utilities";
+import {
+  apiLogUtil,
+  formatMessage,
+  stringMatches,
+  unflatten,
+} from "./utilities";
 import { BaseCMI } from "./cmi/common/base_cmi";
 import { debounce } from "./utilities/debounce";
 import { RefObject, ResultObject, Settings } from "./types/api_types";
@@ -164,13 +169,11 @@ export default abstract class BaseAPI implements IBaseAPI {
     messageLevel: number,
     CMIElement?: string,
   ) {
-    apiLogUtil(
-      functionName,
-      logMessage,
-      messageLevel,
-      this.apiLogLevel,
-      CMIElement,
-    );
+    logMessage = formatMessage(functionName, logMessage, CMIElement);
+
+    if (messageLevel >= this.apiLogLevel) {
+      this.settings.onLogMessage(messageLevel, logMessage);
+    }
   }
 
   /**
