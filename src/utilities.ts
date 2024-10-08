@@ -280,3 +280,82 @@ export function countDecimals(num: number): number {
   const parts = num.toString().split(".")[1];
   return parts.length || 0;
 }
+
+/**
+ * Logging for all SCORM actions
+ *
+ * @param {string} functionName
+ * @param {string} logMessage
+ * @param {number} messageLevel
+ * @param {number} apiLogLevel
+ * @param {string} CMIElement
+ */
+export function apiLogUtil(
+  functionName: string,
+  logMessage: string,
+  messageLevel: number,
+  apiLogLevel: number,
+  CMIElement?: string,
+) {
+  logMessage = this.formatMessage(functionName, logMessage, CMIElement);
+
+  if (messageLevel >= apiLogLevel) {
+    this.settings.onLogMessage(messageLevel, logMessage);
+  }
+}
+
+/**
+ * Formats the SCORM messages for easy reading
+ *
+ * @param {string} functionName
+ * @param {string} message
+ * @param {string} CMIElement
+ * @return {string}
+ */
+export function formatMessage(
+  functionName: string,
+  message: string,
+  CMIElement?: string,
+): string {
+  const baseLength = 20;
+  let messageString = "";
+
+  messageString += functionName;
+
+  let fillChars = baseLength - messageString.length;
+
+  for (let i = 0; i < fillChars; i++) {
+    messageString += " ";
+  }
+
+  messageString += ": ";
+
+  if (CMIElement) {
+    const CMIElementBaseLength = 70;
+
+    messageString += CMIElement;
+
+    fillChars = CMIElementBaseLength - messageString.length;
+
+    for (let j = 0; j < fillChars; j++) {
+      messageString += " ";
+    }
+  }
+
+  if (message) {
+    messageString += message;
+  }
+
+  return messageString;
+}
+
+/**
+ * Checks to see if {str} contains {tester}
+ *
+ * @param {string} str String to check against
+ * @param {string} tester String to check for
+ * @return {boolean}
+ */
+export function stringMatches(str: string, tester: string): boolean {
+  return str?.match(tester) !== null;
+}

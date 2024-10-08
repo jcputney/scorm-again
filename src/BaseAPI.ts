@@ -2,154 +2,19 @@ import { CMIArray } from "./cmi/common/array";
 import { ValidationError } from "./exceptions";
 import ErrorCodes, { ErrorCode } from "./constants/error_codes";
 import APIConstants from "./constants/api_constants";
-import { unflatten } from "./utilities";
+import { apiLogUtil, stringMatches, unflatten } from "./utilities";
 import { BaseCMI } from "./cmi/common/base_cmi";
-
-const global_constants = APIConstants.global;
-const scorm12_error_codes = ErrorCodes.scorm12;
-
-/**
- * Debounce function to delay the execution of a given function.
- *
- * @param func - The function to debounce.
- * @param wait - The number of milliseconds to delay.
- * @param immediate - If `true`, the function will be triggered on the leading edge instead of the trailing.
- * @returns A debounced version of the provided function.
- */
-function debounce<T extends (...args: any[]) => void>(
-  func: T,
-  wait: number,
-  immediate = false,
-): (...args: Parameters<T>) => void {
-  let timeout: ReturnType<typeof setTimeout> | null;
-
-  return function (this: any, ...args: Parameters<T>) {
-    const context = this;
-
-    const later = () => {
-      timeout = null;
-      if (!immediate) func.apply(context, args);
-    };
-
-    const callNow = immediate && !timeout;
-
-    if (timeout) clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-
-    if (callNow) func.apply(context, args);
-  };
-}
-
-export type Settings = {
-  autocommit: boolean;
-  autocommitSeconds: number;
-  asyncCommit: boolean;
-  sendBeaconCommit: boolean;
-  lmsCommitUrl: boolean | string;
-  dataCommitFormat: string;
-  commitRequestDataType: string;
-  autoProgress: boolean;
-  logLevel: number;
-  selfReportSessionTime: boolean;
-  alwaysSendTotalTime: boolean;
-  strict_errors: boolean;
-  xhrHeaders: RefObject;
-  xhrWithCredentials: boolean;
-  responseHandler: (response: Response) => Promise<ResultObject>;
-  requestHandler: (commitObject: any) => any;
-  onLogMessage: (messageLevel: number, logMessage: string) => void;
-  mastery_override?: boolean;
-};
-
-export type RefObject = {
-  [key: string]: any;
-};
-
-export type ResultObject = {
-  result: string;
-  errorCode: number;
-  navRequest?: string;
-};
-
-export const DefaultSettings: Settings = {
-  autocommit: false,
-  autocommitSeconds: 10,
-  asyncCommit: false,
-  sendBeaconCommit: false,
-  lmsCommitUrl: false,
-  dataCommitFormat: "json",
-  commitRequestDataType: "application/json;charset=UTF-8",
-  autoProgress: false,
-  logLevel: global_constants.LOG_LEVEL_ERROR,
-  selfReportSessionTime: false,
-  alwaysSendTotalTime: false,
-  strict_errors: true,
-  xhrHeaders: {},
-  xhrWithCredentials: false,
-  responseHandler: async function (response: Response): Promise<ResultObject> {
-    if (typeof response !== "undefined") {
-      const httpResult = JSON.parse(await response.text());
-      if (
-        httpResult === null ||
-        !{}.hasOwnProperty.call(httpResult, "result")
-      ) {
-        if (response.status === 200) {
-          return {
-            result: global_constants.SCORM_TRUE,
-            errorCode: 0,
-          };
-        } else {
-          return {
-            result: global_constants.SCORM_FALSE,
-            errorCode: 101,
-          };
-        }
-      } else {
-        return {
-          result: httpResult.result,
-          errorCode: httpResult.errorCode
-            ? httpResult.errorCode
-            : httpResult.result === global_constants.SCORM_TRUE
-              ? 0
-              : 101,
-        };
-      }
-    }
-    return {
-      result: global_constants.SCORM_FALSE,
-      errorCode: 101,
-    };
-  },
-  requestHandler: function (commitObject) {
-    return commitObject;
-  },
-  onLogMessage: function (messageLevel, logMessage) {
-    switch (messageLevel) {
-      case global_constants.LOG_LEVEL_ERROR:
-        console.error(logMessage);
-        break;
-      case global_constants.LOG_LEVEL_WARNING:
-        console.warn(logMessage);
-        break;
-      case global_constants.LOG_LEVEL_INFO:
-        console.info(logMessage);
-        break;
-      case global_constants.LOG_LEVEL_DEBUG:
-        if (console.debug) {
-          console.debug(logMessage);
-        } else {
-          console.log(logMessage);
-        }
-        break;
-    }
-  },
-};
+import { debounce } from "./utilities/debounce";
+import { RefObject, ResultObject, Settings } from "./types/api_types";
+import { DefaultSettings } from "./constants/default_settings";
+import { IBaseAPI } from "./interfaces/IBaseAPI";
+import { ScheduledCommit } from "./helpers/scheduled_commit";
 
 /**
  * Base API class for AICC, SCORM 1.2, and SCORM 2004. Should be considered
  * abstract, and never initialized on its own.
  */
-export default abstract class BaseAPI {
+export default abstract class BaseAPI implements IBaseAPI {
   private _timeout?: ScheduledCommit;
   private readonly _error_codes: ErrorCode;
   private _settings: Settings = DefaultSettings;
@@ -164,7 +29,7 @@ export default abstract class BaseAPI {
     if (new.target === BaseAPI) {
       throw new TypeError("Cannot construct BaseAPI instances directly");
     }
-    this.currentState = global_constants.STATE_NOT_INITIALIZED;
+    this.currentState = APIConstants.global.STATE_NOT_INITIALIZED;
     this.lastErrorCode = "0";
     this.listenerArray = [];
 
@@ -198,7 +63,7 @@ export default abstract class BaseAPI {
     initializeMessage?: string,
     terminationMessage?: string,
   ): string {
-    let returnValue = global_constants.SCORM_FALSE;
+    let returnValue = APIConstants.global.SCORM_FALSE;
 
     if (this.isInitialized()) {
       this.throwSCORMError(this._error_codes.INITIALIZED, initializeMessage);
@@ -209,16 +74,16 @@ export default abstract class BaseAPI {
         this.cmi.setStartTime();
       }
 
-      this.currentState = global_constants.STATE_INITIALIZED;
+      this.currentState = APIConstants.global.STATE_INITIALIZED;
       this.lastErrorCode = "0";
-      returnValue = global_constants.SCORM_TRUE;
+      returnValue = APIConstants.global.SCORM_TRUE;
       this.processListeners(callbackName);
     }
 
     this.apiLog(
       callbackName,
       "returned: " + returnValue,
-      global_constants.LOG_LEVEL_INFO,
+      APIConstants.global.LOG_LEVEL_INFO,
     );
     this.clearSCORMError(returnValue);
 
@@ -240,6 +105,73 @@ export default abstract class BaseAPI {
   abstract lmsGetErrorString(CMIErrorCode: string | number): string;
 
   abstract lmsGetDiagnostic(CMIErrorCode: string | number): string;
+
+  /**
+   * Abstract method for validating that a response is correct.
+   *
+   * @param {string} _CMIElement
+   * @param {any} _value
+   */
+  abstract validateCorrectResponse(_CMIElement: string, _value: any): void;
+
+  /**
+   * Gets or builds a new child element to add to the array.
+   * APIs that inherit BaseAPI should override this method.
+   *
+   * @param {string} _CMIElement - unused
+   * @param {*} _value - unused
+   * @param {boolean} _foundFirstIndex - unused
+   * @return {BaseCMI|null}
+   * @abstract
+   */
+  abstract getChildElement(
+    _CMIElement: string,
+    _value: any,
+    _foundFirstIndex: boolean,
+  ): BaseCMI | null;
+
+  /**
+   * Attempts to store the data to the LMS, logs data if no LMS configured
+   * APIs that inherit BaseAPI should override this function
+   *
+   * @param {boolean} _calculateTotalTime
+   * @return {ResultObject}
+   * @abstract
+   */
+  abstract storeData(_calculateTotalTime: boolean): Promise<ResultObject>;
+
+  /**
+   * Render the cmi object to the proper format for LMS commit
+   * APIs that inherit BaseAPI should override this function
+   *
+   * @param {boolean} _terminateCommit
+   * @return {RefObject|Array}
+   * @abstract
+   */
+  abstract renderCommitCMI(_terminateCommit: boolean): RefObject | Array<any>;
+
+  /**
+   * Logging for all SCORM actions
+   *
+   * @param {string} functionName
+   * @param {string} logMessage
+   * @param {number} messageLevel
+   * @param {string} CMIElement
+   */
+  apiLog(
+    functionName: string,
+    logMessage: string,
+    messageLevel: number,
+    CMIElement?: string,
+  ) {
+    apiLogUtil(
+      functionName,
+      logMessage,
+      messageLevel,
+      this.apiLogLevel,
+      CMIElement,
+    );
+  }
 
   /**
    * Getter for _error_codes
@@ -275,7 +207,7 @@ export default abstract class BaseAPI {
     callbackName: string,
     checkTerminated: boolean,
   ): Promise<string> {
-    let returnValue = global_constants.SCORM_FALSE;
+    let returnValue = APIConstants.global.SCORM_FALSE;
 
     if (
       this.checkState(
@@ -284,7 +216,7 @@ export default abstract class BaseAPI {
         this._error_codes.MULTIPLE_TERMINATION,
       )
     ) {
-      this.currentState = global_constants.STATE_TERMINATED;
+      this.currentState = APIConstants.global.STATE_TERMINATED;
 
       const result: ResultObject = await this.storeData(true);
       if (typeof result.errorCode !== "undefined" && result.errorCode > 0) {
@@ -293,18 +225,18 @@ export default abstract class BaseAPI {
       returnValue =
         typeof result !== "undefined" && result.result
           ? result.result
-          : global_constants.SCORM_FALSE;
+          : APIConstants.global.SCORM_FALSE;
 
       if (checkTerminated) this.lastErrorCode = "0";
 
-      returnValue = global_constants.SCORM_TRUE;
+      returnValue = APIConstants.global.SCORM_TRUE;
       this.processListeners(callbackName);
     }
 
     this.apiLog(
       callbackName,
       "returned: " + returnValue,
-      global_constants.LOG_LEVEL_INFO,
+      APIConstants.global.LOG_LEVEL_INFO,
     );
     this.clearSCORMError(returnValue);
 
@@ -345,7 +277,7 @@ export default abstract class BaseAPI {
     this.apiLog(
       callbackName,
       ": returned: " + returnValue,
-      global_constants.LOG_LEVEL_INFO,
+      APIConstants.global.LOG_LEVEL_INFO,
       CMIElement,
     );
     this.clearSCORMError(returnValue);
@@ -373,7 +305,7 @@ export default abstract class BaseAPI {
     if (value !== undefined) {
       value = String(value);
     }
-    let returnValue: string = global_constants.SCORM_FALSE;
+    let returnValue: string = APIConstants.global.SCORM_FALSE;
 
     if (
       this.checkState(
@@ -392,7 +324,7 @@ export default abstract class BaseAPI {
     }
 
     if (returnValue === undefined) {
-      returnValue = global_constants.SCORM_FALSE;
+      returnValue = APIConstants.global.SCORM_FALSE;
     }
 
     // If we didn't have any errors while setting the data, go ahead and
@@ -409,7 +341,7 @@ export default abstract class BaseAPI {
     this.apiLog(
       callbackName,
       ": " + value + ": result: " + returnValue,
-      global_constants.LOG_LEVEL_INFO,
+      APIConstants.global.LOG_LEVEL_INFO,
       CMIElement,
     );
     this.clearSCORMError(returnValue);
@@ -429,7 +361,7 @@ export default abstract class BaseAPI {
   ): Promise<string> {
     this.clearScheduledCommit();
 
-    let returnValue = global_constants.SCORM_FALSE;
+    let returnValue = APIConstants.global.SCORM_FALSE;
 
     if (
       this.checkState(
@@ -445,12 +377,12 @@ export default abstract class BaseAPI {
       returnValue =
         typeof result !== "undefined" && result.result
           ? result.result
-          : global_constants.SCORM_FALSE;
+          : APIConstants.global.SCORM_FALSE;
 
       this.apiLog(
         callbackName,
         " Result: " + returnValue,
-        global_constants.LOG_LEVEL_DEBUG,
+        APIConstants.global.LOG_LEVEL_DEBUG,
         "HttpRequest",
       );
 
@@ -462,7 +394,7 @@ export default abstract class BaseAPI {
     this.apiLog(
       callbackName,
       "returned: " + returnValue,
-      global_constants.LOG_LEVEL_INFO,
+      APIConstants.global.LOG_LEVEL_INFO,
     );
     this.clearSCORMError(returnValue);
 
@@ -482,7 +414,7 @@ export default abstract class BaseAPI {
     this.apiLog(
       callbackName,
       "returned: " + returnValue,
-      global_constants.LOG_LEVEL_INFO,
+      APIConstants.global.LOG_LEVEL_INFO,
     );
 
     return returnValue;
@@ -506,7 +438,7 @@ export default abstract class BaseAPI {
     this.apiLog(
       callbackName,
       "returned: " + returnValue,
-      global_constants.LOG_LEVEL_INFO,
+      APIConstants.global.LOG_LEVEL_INFO,
     );
 
     return returnValue;
@@ -530,7 +462,7 @@ export default abstract class BaseAPI {
     this.apiLog(
       callbackName,
       "returned: " + returnValue,
-      global_constants.LOG_LEVEL_INFO,
+      APIConstants.global.LOG_LEVEL_INFO,
     );
 
     return returnValue;
@@ -558,104 +490,6 @@ export default abstract class BaseAPI {
     }
 
     return true;
-  }
-
-  /**
-   * Logging for all SCORM actions
-   *
-   * @param {string} functionName
-   * @param {string} logMessage
-   * @param {number}messageLevel
-   * @param {string} CMIElement
-   */
-  apiLog(
-    functionName: string,
-    logMessage: string,
-    messageLevel: number,
-    CMIElement?: string,
-  ) {
-    logMessage = this.formatMessage(functionName, logMessage, CMIElement);
-
-    if (messageLevel >= this.apiLogLevel) {
-      this.settings.onLogMessage(messageLevel, logMessage);
-    }
-  }
-
-  /**
-   * Formats the SCORM messages for easy reading
-   *
-   * @param {string} functionName
-   * @param {string} message
-   * @param {string} CMIElement
-   * @return {string}
-   */
-  formatMessage(
-    functionName: string,
-    message: string,
-    CMIElement?: string,
-  ): string {
-    const baseLength = 20;
-    let messageString = "";
-
-    messageString += functionName;
-
-    let fillChars = baseLength - messageString.length;
-
-    for (let i = 0; i < fillChars; i++) {
-      messageString += " ";
-    }
-
-    messageString += ": ";
-
-    if (CMIElement) {
-      const CMIElementBaseLength = 70;
-
-      messageString += CMIElement;
-
-      fillChars = CMIElementBaseLength - messageString.length;
-
-      for (let j = 0; j < fillChars; j++) {
-        messageString += " ";
-      }
-    }
-
-    if (message) {
-      messageString += message;
-    }
-
-    return messageString;
-  }
-
-  /**
-   * Checks to see if {str} contains {tester}
-   *
-   * @param {string} str String to check against
-   * @param {string} tester String to check for
-   * @return {boolean}
-   */
-  stringMatches(str: string, tester: string): boolean {
-    return str?.match(tester) !== null;
-  }
-
-  /**
-   * Check to see if the specific object has the given property
-   * @param {RefObject} refObject
-   * @param {string} attribute
-   * @return {boolean}
-   * @private
-   */
-  private _checkObjectHasProperty(
-    refObject: RefObject,
-    attribute: string,
-  ): boolean {
-    return (
-      Object.hasOwnProperty.call(refObject, attribute) ||
-      Object.getOwnPropertyDescriptor(
-        Object.getPrototypeOf(refObject),
-        attribute,
-      ) != null ||
-      attribute in refObject
-    );
   }
 
   /**
@@ -717,12 +551,12 @@ export default abstract class BaseAPI {
     value: any,
   ): string {
     if (!CMIElement || CMIElement === "") {
-      return global_constants.SCORM_FALSE;
+      return APIConstants.global.SCORM_FALSE;
     }
 
     const structure = CMIElement.split(".");
     let refObject: RefObject = this;
-    let returnValue = global_constants.SCORM_FALSE;
+    let returnValue = APIConstants.global.SCORM_FALSE;
     let foundFirstIndex = false;
 
     const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
@@ -745,14 +579,14 @@ export default abstract class BaseAPI {
         } else {
           if (
             this.isInitialized() &&
-            this.stringMatches(CMIElement, "\\.correct_responses\\.\\d+")
+            stringMatches(CMIElement, "\\.correct_responses\\.\\d+")
           ) {
             this.validateCorrectResponse(CMIElement, value);
           }
 
           if (!scorm2004 || this.lastErrorCode === "0") {
             refObject[attribute] = value;
-            returnValue = global_constants.SCORM_TRUE;
+            returnValue = APIConstants.global.SCORM_TRUE;
           }
         }
       } else {
@@ -797,40 +631,16 @@ export default abstract class BaseAPI {
       }
     }
 
-    if (returnValue === global_constants.SCORM_FALSE) {
+    if (returnValue === APIConstants.global.SCORM_FALSE) {
       this.apiLog(
         methodName,
         `There was an error setting the value for: ${CMIElement}, value of: ${value}`,
-        global_constants.LOG_LEVEL_WARNING,
+        APIConstants.global.LOG_LEVEL_WARNING,
       );
     }
 
     return returnValue;
   }
-
-  /**
-   * Abstract method for validating that a response is correct.
-   *
-   * @param {string} _CMIElement
-   * @param {any} _value
-   */
-  abstract validateCorrectResponse(_CMIElement: string, _value: any): void;
-
-  /**
-   * Gets or builds a new child element to add to the array.
-   * APIs that inherit BaseAPI should override this method.
-   *
-   * @param {string} _CMIElement - unused
-   * @param {*} _value - unused
-   * @param {boolean} _foundFirstIndex - unused
-   * @return {BaseCMI|null}
-   * @abstract
-   */
-  abstract getChildElement(
-    _CMIElement: string,
-    _value: any,
-    _foundFirstIndex: boolean,
-  ): BaseCMI | null;
 
   /**
    * Gets a value from the CMI Object
@@ -917,9 +727,9 @@ export default abstract class BaseAPI {
     if (refObject === null || refObject === undefined) {
       if (!scorm2004) {
         if (attribute === "_children") {
-          this.throwSCORMError(scorm12_error_codes.CHILDREN_ERROR);
+          this.throwSCORMError(ErrorCodes.scorm12.CHILDREN_ERROR);
         } else if (attribute === "_count") {
-          this.throwSCORMError(scorm12_error_codes.COUNT_ERROR);
+          this.throwSCORMError(ErrorCodes.scorm12.COUNT_ERROR);
         }
       }
     } else {
@@ -933,7 +743,7 @@ export default abstract class BaseAPI {
    * @return {boolean}
    */
   isInitialized(): boolean {
-    return this.currentState === global_constants.STATE_INITIALIZED;
+    return this.currentState === APIConstants.global.STATE_INITIALIZED;
   }
 
   /**
@@ -942,7 +752,7 @@ export default abstract class BaseAPI {
    * @return {boolean}
    */
   isNotInitialized(): boolean {
-    return this.currentState === global_constants.STATE_NOT_INITIALIZED;
+    return this.currentState === APIConstants.global.STATE_NOT_INITIALIZED;
   }
 
   /**
@@ -951,7 +761,7 @@ export default abstract class BaseAPI {
    * @return {boolean}
    */
   isTerminated(): boolean {
-    return this.currentState === global_constants.STATE_TERMINATED;
+    return this.currentState === APIConstants.global.STATE_TERMINATED;
   }
 
   /**
@@ -984,7 +794,7 @@ export default abstract class BaseAPI {
       this.apiLog(
         "on",
         `Added event listener: ${this.listenerArray.length}`,
-        global_constants.LOG_LEVEL_INFO,
+        APIConstants.global.LOG_LEVEL_INFO,
         functionName,
       );
     }
@@ -1022,7 +832,7 @@ export default abstract class BaseAPI {
         this.apiLog(
           "off",
           `Removed event listener: ${this.listenerArray.length}`,
-          global_constants.LOG_LEVEL_INFO,
+          APIConstants.global.LOG_LEVEL_INFO,
           functionName,
         );
       }
@@ -1065,7 +875,7 @@ export default abstract class BaseAPI {
     this.apiLog(
       functionName,
       value,
-      global_constants.LOG_LEVEL_INFO,
+      APIConstants.global.LOG_LEVEL_INFO,
       CMIElement,
     );
     for (let i = 0; i < this.listenerArray.length; i++) {
@@ -1090,7 +900,7 @@ export default abstract class BaseAPI {
         this.apiLog(
           "processListeners",
           `Processing listener: ${listener.functionName}`,
-          global_constants.LOG_LEVEL_INFO,
+          APIConstants.global.LOG_LEVEL_INFO,
           CMIElement,
         );
         listener.callback(CMIElement, value);
@@ -1112,7 +922,7 @@ export default abstract class BaseAPI {
     this.apiLog(
       "throwSCORMError",
       errorNumber + ": " + message,
-      global_constants.LOG_LEVEL_ERROR,
+      APIConstants.global.LOG_LEVEL_ERROR,
     );
 
     this.lastErrorCode = String(errorNumber);
@@ -1124,20 +934,10 @@ export default abstract class BaseAPI {
    * @param {string} success
    */
   clearSCORMError(success: string) {
-    if (success !== undefined && success !== global_constants.SCORM_FALSE) {
+    if (success !== undefined && success !== APIConstants.global.SCORM_FALSE) {
       this.lastErrorCode = "0";
     }
   }
-
-  /**
-   * Attempts to store the data to the LMS, logs data if no LMS configured
-   * APIs that inherit BaseAPI should override this function
-   *
-   * @param {boolean} _calculateTotalTime
-   * @return {ResultObject}
-   * @abstract
-   */
-  abstract storeData(_calculateTotalTime: boolean): Promise<ResultObject>;
 
   /**
    * Load the CMI from a flattened JSON object
@@ -1287,14 +1087,143 @@ export default abstract class BaseAPI {
   }
 
   /**
-   * Render the cmi object to the proper format for LMS commit
-   * APIs that inherit BaseAPI should override this function
-   *
-   * @param {boolean} _terminateCommit
-   * @return {RefObject|Array}
-   * @abstract
+   * Send the request to the LMS
+   * @param {string} url
+   * @param {RefObject|Array} params
+   * @param {boolean} immediate
+   * @return {ResultObject}
    */
-  abstract renderCommitCMI(_terminateCommit: boolean): RefObject | Array<any>;
+  async processHttpRequest(
+    url: string,
+    params: RefObject | Array<any>,
+    immediate: boolean = false,
+  ): Promise<ResultObject> {
+    const api = this;
+    const genericError: ResultObject = {
+      result: APIConstants.global.SCORM_FALSE,
+      errorCode: this.error_codes.GENERAL,
+    };
+
+    // if we are terminating the module or closing the browser window/tab, we need to make this fetch ASAP.
+    // Some browsers, especially Chrome, do not like synchronous requests to be made when the window is closing.
+    if (immediate) {
+      this.performFetch(url, params).then(async (response) => {
+        await this.transformResponse(response);
+      });
+      return {
+        result: APIConstants.global.SCORM_TRUE,
+        errorCode: 0,
+      };
+    }
+
+    const process = async (
+      url: string,
+      params: RefObject | Array<any>,
+      settings: Settings,
+    ): Promise<ResultObject> => {
+      try {
+        params = settings.requestHandler(params);
+        const response = await this.performFetch(url, params);
+
+        return this.transformResponse(response);
+      } catch (e) {
+        this.apiLog(
+          "processHttpRequest",
+          e,
+          APIConstants.global.LOG_LEVEL_ERROR,
+        );
+        api.processListeners("CommitError");
+        return genericError;
+      }
+    };
+
+    if (this.settings.asyncCommit) {
+      const debouncedProcess = debounce(process, 500, immediate);
+      debouncedProcess(url, params, this.settings);
+
+      return {
+        result: APIConstants.global.SCORM_TRUE,
+        errorCode: 0,
+      };
+    } else {
+      return await process(url, params, this.settings);
+    }
+  }
+
+  /**
+   * Throws a SCORM error
+   *
+   * @param {number} when - the number of milliseconds to wait before committing
+   * @param {string} callback - the name of the commit event callback
+   */
+  scheduleCommit(when: number, callback: string) {
+    this._timeout = new ScheduledCommit(this, when, callback);
+    this.apiLog(
+      "scheduleCommit",
+      "scheduled",
+      APIConstants.global.LOG_LEVEL_DEBUG,
+      "",
+    );
+  }
+
+  /**
+   * Clears and cancels any currently scheduled commits
+   */
+  clearScheduledCommit() {
+    if (this._timeout) {
+      this._timeout.cancel();
+      this._timeout = undefined;
+      this.apiLog(
+        "clearScheduledCommit",
+        "cleared",
+        APIConstants.global.LOG_LEVEL_DEBUG,
+        "",
+      );
+    }
+  }
+
+  /**
+   * Check to see if the specific object has the given property
+   * @param {RefObject} refObject
+   * @param {string} attribute
+   * @return {boolean}
+   * @private
+   */
+  private _checkObjectHasProperty(
+    refObject: RefObject,
+    attribute: string,
+  ): boolean {
+    return (
+      Object.hasOwnProperty.call(refObject, attribute) ||
+      Object.getOwnPropertyDescriptor(
+        Object.getPrototypeOf(refObject),
+        attribute,
+      ) != null ||
+      attribute in refObject
+    );
+  }
+
+  /**
+   * Handles the error that occurs when trying to access a value
+   * @param {any} e
+   * @param {string} returnValue
+   * @return {string}
+   * @private
+   */
+  private handleValueAccessException(e: any, returnValue: string): string {
+    if (e instanceof ValidationError) {
+      this.lastErrorCode = String(e.errorCode);
+      returnValue = APIConstants.global.SCORM_FALSE;
+    } else {
+      if (e instanceof Error && e.message) {
+        console.error(e.message);
+      } else {
+        console.error(e);
+      }
+      this.throwSCORMError(this._error_codes.GENERAL);
+    }
+    return returnValue;
+  }
 
   /**
    * Perform the fetch request to the LMS
@@ -1334,160 +1263,13 @@ export default abstract class BaseAPI {
     if (
       response.status >= 200 &&
       response.status <= 299 &&
-      (result.result === true || result.result === global_constants.SCORM_TRUE)
+      (result.result === true ||
+        result.result === APIConstants.global.SCORM_TRUE)
     ) {
       this.processListeners("CommitSuccess");
     } else {
       this.processListeners("CommitError");
     }
     return result;
-  }
-
-  /**
-   * Send the request to the LMS
-   * @param {string} url
-   * @param {RefObject|Array} params
-   * @param {boolean} immediate
-   * @return {ResultObject}
-   */
-  async processHttpRequest(
-    url: string,
-    params: RefObject | Array<any>,
-    immediate: boolean = false,
-  ): Promise<ResultObject> {
-    const api = this;
-    const genericError: ResultObject = {
-      result: global_constants.SCORM_FALSE,
-      errorCode: this.error_codes.GENERAL,
-    };
-
-    // if we are terminating the module or closing the browser window/tab, we need to make this fetch ASAP.
-    // Some browsers, especially Chrome, do not like synchronous requests to be made when the window is closing.
-    if (immediate) {
-      this.performFetch(url, params).then(async (response) => {
-        await this.transformResponse(response);
-      });
-      return {
-        result: global_constants.SCORM_TRUE,
-        errorCode: 0,
-      };
-    }
-
-    const process = async (
-      url: string,
-      params: RefObject | Array<any>,
-      settings: Settings,
-    ): Promise<ResultObject> => {
-      try {
-        params = settings.requestHandler(params);
-        const response = await this.performFetch(url, params);
-
-        return this.transformResponse(response);
-      } catch (e) {
-        this.apiLog("processHttpRequest", e, global_constants.LOG_LEVEL_ERROR);
-        api.processListeners("CommitError");
-        return genericError;
-      }
-    };
-
-    if (this.settings.asyncCommit) {
-      const debouncedProcess = debounce(process, 500, immediate);
-      debouncedProcess(url, params, this.settings);
-
-      return {
-        result: global_constants.SCORM_TRUE,
-        errorCode: 0,
-      };
-    } else {
-      return await process(url, params, this.settings);
-    }
-  }
-
-  /**
-   * Throws a SCORM error
-   *
-   * @param {number} when - the number of milliseconds to wait before committing
-   * @param {string} callback - the name of the commit event callback
-   */
-  scheduleCommit(when: number, callback: string) {
-    this._timeout = new ScheduledCommit(this, when, callback);
-    this.apiLog(
-      "scheduleCommit",
-      "scheduled",
-      global_constants.LOG_LEVEL_DEBUG,
-      "",
-    );
-  }
-
-  /**
-   * Clears and cancels any currently scheduled commits
-   */
-  clearScheduledCommit() {
-    if (this._timeout) {
-      this._timeout.cancel();
-      this._timeout = undefined;
-      this.apiLog(
-        "clearScheduledCommit",
-        "cleared",
-        global_constants.LOG_LEVEL_DEBUG,
-        "",
-      );
-    }
-  }
-
-  private handleValueAccessException(e: any, returnValue: string) {
-    if (e instanceof ValidationError) {
-      this.lastErrorCode = String(e.errorCode);
-      returnValue = global_constants.SCORM_FALSE;
-    } else {
-      if (e instanceof Error && e.message) {
-        console.error(e.message);
-      } else {
-        console.error(e);
-      }
-      this.throwSCORMError(this._error_codes.GENERAL);
-    }
-    return returnValue;
-  }
-}
-
-/**
- * Private class that wraps a timeout call to the commit() function
- */
-class ScheduledCommit {
-  private _API;
-  private _cancelled = false;
-  private readonly _timeout;
-  private readonly _callback;
-
-  /**
-   * Constructor for ScheduledCommit
-   * @param {BaseAPI} API
-   * @param {number} when
-   * @param {string} callback
-   */
-  constructor(API: any, when: number, callback: string) {
-    this._API = API;
-    this._timeout = setTimeout(this.wrapper.bind(this), when);
-    this._callback = callback;
-  }
-
-  /**
-   * Cancel any currently scheduled commit
-   */
-  cancel() {
-    this._cancelled = true;
-    if (this._timeout) {
-      clearTimeout(this._timeout);
-    }
-  }
-
-  /**
-   * Wrap the API commit call to check if the call has already been cancelled
-   */
-  wrapper() {
-    if (!this._cancelled) {
-      this._API.commit(this._callback);
-    }
   }
 }

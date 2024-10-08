@@ -6,7 +6,8 @@ import ErrorCodes from "../src/constants/error_codes";
 import { scorm12Values } from "./field_values";
 import * as sinon from "sinon";
 import Pretender from "fetch-pretender";
-import { RefObject, Settings, DefaultSettings } from "../src/BaseAPI";
+import { RefObject, Settings } from "../src/types/api_types";
+import { DefaultSettings } from "../src/constants/default_settings";
 
 const scorm12_error_codes = ErrorCodes.scorm12;
 

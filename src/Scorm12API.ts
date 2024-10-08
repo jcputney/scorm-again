@@ -1,4 +1,4 @@
-import BaseAPI, { RefObject, ResultObject, Settings } from "./BaseAPI";
+import BaseAPI from "./BaseAPI";
 import { CMI } from "./cmi/scorm12/cmi";
 import * as Utilities from "./utilities";
 import APIConstants from "./constants/api_constants";
@@ -12,6 +12,7 @@ import {
   CMIInteractionsObjectivesObject,
 } from "./cmi/scorm12/interactions";
 import { NAV } from "./cmi/scorm12/nav";
+import { RefObject, ResultObject, Settings } from "./types/api_types";
 
 /**
  * API class for SCORM 1.2

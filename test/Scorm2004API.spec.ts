@@ -6,8 +6,9 @@ import Pretender from "fetch-pretender";
 import ErrorCodes from "../src/constants/error_codes";
 import Scorm2004API from "../src/Scorm2004API";
 import { scorm2004Values } from "./field_values";
-import { DefaultSettings, RefObject, Settings } from "../src/BaseAPI";
 import APIConstants from "../src/constants/api_constants";
+import { RefObject, Settings } from "../src/types/api_types";
+import { DefaultSettings } from "../src/constants/default_settings";
 
 const scorm2004_error_codes = ErrorCodes.scorm2004;
 

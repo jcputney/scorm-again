@@ -1,4 +1,4 @@
-import BaseAPI, { RefObject, ResultObject, Settings } from "./BaseAPI";
+import BaseAPI from "./BaseAPI";
 import { CMI } from "./cmi/scorm2004/cmi";
 import * as Utilities from "./utilities";
 import APIConstants from "./constants/api_constants";
@@ -16,6 +16,7 @@ import {
 import { CMICommentsObject } from "./cmi/scorm2004/comments";
 import { CMIObjectivesObject } from "./cmi/scorm2004/objectives";
 import { ADL } from "./cmi/scorm2004/adl";
+import { RefObject, ResultObject, Settings } from "./types/api_types";
 
 /**
  * API class for SCORM 2004
