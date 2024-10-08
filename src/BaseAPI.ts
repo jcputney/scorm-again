@@ -2,12 +2,7 @@ import { CMIArray } from "./cmi/common/array";
 import { ValidationError } from "./exceptions";
 import ErrorCodes, { ErrorCode } from "./constants/error_codes";
 import APIConstants from "./constants/api_constants";
-import {
-  apiLogUtil,
-  formatMessage,
-  stringMatches,
-  unflatten,
-} from "./utilities";
+import { formatMessage, stringMatches, unflatten } from "./utilities";
 import { BaseCMI } from "./cmi/common/base_cmi";
 import { debounce } from "./utilities/debounce";
 import { RefObject, ResultObject, Settings } from "./types/api_types";
