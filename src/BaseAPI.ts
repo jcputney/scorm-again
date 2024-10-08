@@ -271,7 +271,10 @@ export default abstract class BaseAPI {
    * @param {boolean} checkTerminated
    * @return {string}
    */
-  terminate(callbackName: string, checkTerminated: boolean): string {
+  async terminate(
+    callbackName: string,
+    checkTerminated: boolean,
+  ): Promise<string> {
     let returnValue = global_constants.SCORM_FALSE;
 
     if (
@@ -283,7 +286,7 @@ export default abstract class BaseAPI {
     ) {
       this.currentState = global_constants.STATE_TERMINATED;
 
-      const result: ResultObject = this.storeData(true);
+      const result: ResultObject = await this.storeData(true);
       if (typeof result.errorCode !== "undefined" && result.errorCode > 0) {
         this.throwSCORMError(result.errorCode);
       }
@@ -420,7 +423,10 @@ export default abstract class BaseAPI {
    * @param {boolean} checkTerminated
    * @return {string}
    */
-  commit(callbackName: string, checkTerminated: boolean = false): string {
+  async commit(
+    callbackName: string,
+    checkTerminated: boolean = false,
+  ): Promise<string> {
     this.clearScheduledCommit();
 
     let returnValue = global_constants.SCORM_FALSE;
@@ -432,7 +438,7 @@ export default abstract class BaseAPI {
         this._error_codes.COMMIT_AFTER_TERM,
       )
     ) {
-      const result = this.storeData(false);
+      const result = await this.storeData(false);
       if (result.errorCode && result.errorCode > 0) {
         this.throwSCORMError(result.errorCode);
       }
@@ -1131,7 +1137,7 @@ export default abstract class BaseAPI {
    * @return {ResultObject}
    * @abstract
    */
-  abstract storeData(_calculateTotalTime: boolean): ResultObject;
+  abstract storeData(_calculateTotalTime: boolean): Promise<ResultObject>;
 
   /**
    * Load the CMI from a flattened JSON object
@@ -1291,22 +1297,81 @@ export default abstract class BaseAPI {
   abstract renderCommitCMI(_terminateCommit: boolean): RefObject | Array<any>;
 
   /**
+   * Perform the fetch request to the LMS
+   * @param {string} url
+   * @param {RefObject|Array} params
+   * @return {Promise<Response>}
+   * @private
+   */
+  private async performFetch(
+    url: string,
+    params: RefObject | Array<any>,
+  ): Promise<Response> {
+    return fetch(url, {
+      method: "POST",
+      body: params instanceof Array ? params.join("&") : JSON.stringify(params),
+      headers: {
+        ...this.settings.xhrHeaders,
+        "Content-Type": this.settings.commitRequestDataType,
+      },
+      credentials: this.settings.xhrWithCredentials ? "include" : undefined,
+      keepalive: true,
+    });
+  }
+
+  /**
+   * Transforms the response from the LMS to a ResultObject
+   * @param {Response} response
+   * @return {Promise<ResultObject>}
+   * @private
+   */
+  private async transformResponse(response: Response): Promise<ResultObject> {
+    const result =
+      typeof this.settings.responseHandler === "function"
+        ? await this.settings.responseHandler(response)
+        : await response.json();
+
+    if (
+      response.status >= 200 &&
+      response.status <= 299 &&
+      (result.result === true || result.result === global_constants.SCORM_TRUE)
+    ) {
+      this.processListeners("CommitSuccess");
+    } else {
+      this.processListeners("CommitError");
+    }
+    return result;
+  }
+
+  /**
    * Send the request to the LMS
    * @param {string} url
    * @param {RefObject|Array} params
    * @param {boolean} immediate
    * @return {ResultObject}
    */
-  processHttpRequest(
+  async processHttpRequest(
     url: string,
     params: RefObject | Array<any>,
     immediate: boolean = false,
-  ): ResultObject {
+  ): Promise<ResultObject> {
     const api = this;
     const genericError: ResultObject = {
       result: global_constants.SCORM_FALSE,
       errorCode: this.error_codes.GENERAL,
     };
+
+    // if we are terminating the module or closing the browser window/tab, we need to make this fetch ASAP.
+    // Some browsers, especially Chrome, do not like synchronous requests to be made when the window is closing.
+    if (immediate) {
+      this.performFetch(url, params).then(async (response) => {
+        await this.transformResponse(response);
+      });
+      return {
+        result: global_constants.SCORM_TRUE,
+        errorCode: 0,
+      };
+    }
 
     const process = async (
       url: string,
@@ -1315,35 +1380,9 @@ export default abstract class BaseAPI {
     ): Promise<ResultObject> => {
       try {
         params = settings.requestHandler(params);
-        const response = await fetch(url, {
-          method: "POST",
-          body:
-            params instanceof Array ? params.join("&") : JSON.stringify(params),
-          headers: {
-            ...settings.xhrHeaders,
-            "Content-Type": settings.commitRequestDataType,
-          },
-          credentials: settings.xhrWithCredentials ? "include" : undefined,
-          keepalive: true,
-        });
+        const response = await this.performFetch(url, params);
 
-        const result =
-          typeof settings.responseHandler === "function"
-            ? await settings.responseHandler(response)
-            : await response.json();
-
-        if (
-          response.status >= 200 &&
-          response.status <= 299 &&
-          (result.result === true ||
-            result.result === global_constants.SCORM_TRUE)
-        ) {
-          api.processListeners("CommitSuccess");
-        } else {
-          api.processListeners("CommitError");
-        }
-
-        return result;
+        return this.transformResponse(response);
       } catch (e) {
         this.apiLog("processHttpRequest", e, global_constants.LOG_LEVEL_ERROR);
         api.processListeners("CommitError");
@@ -1351,13 +1390,17 @@ export default abstract class BaseAPI {
       }
     };
 
-    const debouncedProcess = debounce(process, 500, immediate);
-    debouncedProcess(url, params, this.settings);
+    if (this.settings.asyncCommit) {
+      const debouncedProcess = debounce(process, 500, immediate);
+      debouncedProcess(url, params, this.settings);
 
-    return {
-      result: global_constants.SCORM_TRUE,
-      errorCode: 0,
-    };
+      return {
+        result: global_constants.SCORM_TRUE,
+        errorCode: 0,
+      };
+    } else {
+      return await process(url, params, this.settings);
+    }
   }
 
   /**

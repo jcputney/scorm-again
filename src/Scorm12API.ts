@@ -76,7 +76,14 @@ export default class Scorm12API extends BaseAPI {
    * @return {string} bool
    */
   lmsFinish(): string {
-    const result = this.terminate("LMSFinish", true);
+    (async () => {
+      await this.internalFinish();
+    })();
+    return APIConstants.global.SCORM_TRUE;
+  }
+
+  async internalFinish(): Promise<string> {
+    const result = await this.terminate("LMSFinish", true);
 
     if (result === APIConstants.global.SCORM_TRUE) {
       if (this.nav.event !== "") {
@@ -120,7 +127,10 @@ export default class Scorm12API extends BaseAPI {
    * @return {string} bool
    */
   lmsCommit(): string {
-    return this.commit("LMSCommit", false);
+    (async () => {
+      await this.commit("LMSCommit", false);
+    })();
+    return APIConstants.global.SCORM_TRUE;
   }
 
   /**
@@ -297,7 +307,7 @@ export default class Scorm12API extends BaseAPI {
    * @param {boolean} terminateCommit
    * @return {ResultObject}
    */
-  storeData(terminateCommit: boolean): ResultObject {
+  async storeData(terminateCommit: boolean): Promise<ResultObject> {
     if (terminateCommit) {
       const originalStatus = this.cmi.core.lesson_status;
       if (originalStatus === "not attempted") {
@@ -339,7 +349,7 @@ export default class Scorm12API extends BaseAPI {
       console.debug(commitObject);
     }
     if (typeof this.settings.lmsCommitUrl === "string") {
-      return this.processHttpRequest(
+      return await this.processHttpRequest(
         this.settings.lmsCommitUrl,
         commitObject,
         terminateCommit,

@@ -82,7 +82,14 @@ export default class Scorm2004API extends BaseAPI {
    * @return {string} bool
    */
   lmsFinish(): string {
-    const result = this.terminate("Terminate", true);
+    (async () => {
+      await this.internalFinish();
+    })();
+    return APIConstants.global.SCORM_TRUE;
+  }
+
+  async internalFinish(): Promise<string> {
+    const result = await this.terminate("Terminate", true);
 
     if (result === APIConstants.global.SCORM_TRUE) {
       if (this.adl.nav.request !== "_none_") {
@@ -131,7 +138,10 @@ export default class Scorm2004API extends BaseAPI {
    * @return {string} bool
    */
   lmsCommit(): string {
-    return this.commit("Commit");
+    (async () => {
+      await this.commit("Commit");
+    })();
+    return APIConstants.global.SCORM_TRUE;
   }
 
   /**
@@ -576,7 +586,7 @@ export default class Scorm2004API extends BaseAPI {
    * @param {boolean} terminateCommit
    * @return {ResultObject}
    */
-  storeData(terminateCommit: boolean): ResultObject {
+  async storeData(terminateCommit: boolean): Promise<ResultObject> {
     if (terminateCommit) {
       if (this.cmi.mode === "normal") {
         if (this.cmi.credit === "credit") {
@@ -618,7 +628,7 @@ export default class Scorm2004API extends BaseAPI {
       console.debug(commitObject);
     }
     if (typeof this.settings.lmsCommitUrl === "string") {
-      const result = this.processHttpRequest(
+      const result = await this.processHttpRequest(
         this.settings.lmsCommitUrl,
         commitObject,
         terminateCommit,
