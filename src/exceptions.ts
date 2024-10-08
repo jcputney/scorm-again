@@ -1,5 +1,6 @@
 import APIConstants from "./constants/api_constants";
-import { BaseScormValidationError } from "./cmi/common";
+
+import { BaseScormValidationError } from "./cmi/common/errors";
 
 const scorm12_errors = APIConstants.scorm12.error_descriptions;
 const aicc_errors = APIConstants.aicc.error_descriptions;

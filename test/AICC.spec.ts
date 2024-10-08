@@ -8,7 +8,7 @@ const scorm12_error_codes = ErrorCodes.scorm12;
 
 const api = () => {
   const API = new AICC();
-  API.apiLogLevel = 5;
+  API.apiLogLevel = 1;
   return API;
 };
 const apiInitialized = () => {
@@ -254,6 +254,11 @@ describe("AICC API Tests", () => {
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.student_data.tries.0.score.max",
+        valueToTest: "100",
+      });
+      h.checkLMSSetValue({
+        api: apiInitialized(),
+        fieldName: "cmi.student_data.attempt_records.0.score.max",
         valueToTest: "100",
       });
     });

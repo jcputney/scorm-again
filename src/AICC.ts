@@ -1,13 +1,12 @@
 import Scorm12API from "./Scorm12API";
-import {
-  CMI,
-  CMIAttemptRecordsObject,
-  CMIEvaluationCommentsObject,
-  CMITriesObject,
-} from "./cmi/aicc_cmi";
-import { NAV } from "./cmi/scorm12_cmi";
+import { CMI } from "./cmi/aicc/cmi";
 import { Settings } from "./BaseAPI";
-import { BaseCMI } from "./cmi/common";
+
+import { BaseCMI } from "./cmi/common/base_cmi";
+import { CMITriesObject } from "./cmi/aicc/tries";
+import { CMIAttemptRecordsObject } from "./cmi/aicc/attempts";
+import { CMIEvaluationCommentsObject } from "./cmi/aicc/evaluation";
+import { NAV } from "./cmi/scorm12/nav";
 
 /**
  * The AICC API class

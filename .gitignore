@@ -74,3 +74,4 @@ codeclimate.0.json
 coverage.total.json
 public-key.asc
 test-results.json
+/test-results/

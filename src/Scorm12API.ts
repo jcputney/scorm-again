@@ -1,20 +1,17 @@
 import BaseAPI, { RefObject, ResultObject, Settings } from "./BaseAPI";
+import { CMI } from "./cmi/scorm12/cmi";
+import * as Utilities from "./utilities";
+import APIConstants from "./constants/api_constants";
+import ErrorCodes from "./constants/error_codes";
+
+import { BaseCMI } from "./cmi/common/base_cmi";
+import { CMIObjectivesObject } from "./cmi/scorm12/objectives";
 import {
-  CMI,
   CMIInteractionsCorrectResponsesObject,
   CMIInteractionsObject,
   CMIInteractionsObjectivesObject,
-  CMIObjectivesObject,
-  NAV,
-} from "./cmi/scorm12_cmi";
-import * as Utilities from "./utilities";
-import APIConstants from "./constants/api_constants";
-import ErrorCodes, { ErrorCode } from "./constants/error_codes";
-import { BaseCMI } from "./cmi/common";
-
-const scorm12_constants = APIConstants.scorm12;
-const global_constants = APIConstants.global;
-const scorm12_error_codes: ErrorCode = ErrorCodes.scorm12;
+} from "./cmi/scorm12/interactions";
+import { NAV } from "./cmi/scorm12/nav";
 
 /**
  * API class for SCORM 1.2
@@ -31,7 +28,7 @@ export default class Scorm12API extends BaseAPI {
       }
     }
 
-    super(scorm12_error_codes, settings);
+    super(ErrorCodes.scorm12, settings);
 
     this.cmi = new CMI();
     this.nav = new NAV();
@@ -81,7 +78,7 @@ export default class Scorm12API extends BaseAPI {
   lmsFinish(): string {
     const result = this.terminate("LMSFinish", true);
 
-    if (result === global_constants.SCORM_TRUE) {
+    if (result === APIConstants.global.SCORM_TRUE) {
       if (this.nav.event !== "") {
         if (this.nav.event === "continue") {
           this.processListeners("SequenceNext");
@@ -243,11 +240,11 @@ export default class Scorm12API extends BaseAPI {
 
     // Set error number to string since inconsistent from modules if string or number
     errorNumber = String(errorNumber);
-    if (scorm12_constants.error_descriptions[errorNumber]) {
+    if (APIConstants.scorm12.error_descriptions[errorNumber]) {
       basicMessage =
-        scorm12_constants.error_descriptions[errorNumber].basicMessage;
+        APIConstants.scorm12.error_descriptions[errorNumber].basicMessage;
       detailMessage =
-        scorm12_constants.error_descriptions[errorNumber].detailMessage;
+        APIConstants.scorm12.error_descriptions[errorNumber].detailMessage;
     }
 
     return detail ? detailMessage : basicMessage;
@@ -314,14 +311,11 @@ export default class Scorm12API extends BaseAPI {
             this.cmi.student_data.mastery_score !== "" &&
             this.cmi.core.score.raw !== ""
           ) {
-            if (
+            this.cmi.core.lesson_status =
               parseFloat(this.cmi.core.score.raw) >=
               parseFloat(this.cmi.student_data.mastery_score)
-            ) {
-              this.cmi.core.lesson_status = "passed";
-            } else {
-              this.cmi.core.lesson_status = "failed";
-            }
+                ? "passed"
+                : "failed";
           }
         }
       } else if (this.cmi.core.lesson_mode === "browse") {
@@ -338,7 +332,7 @@ export default class Scorm12API extends BaseAPI {
       terminateCommit || this.settings.alwaysSendTotalTime,
     );
 
-    if (this.apiLogLevel === global_constants.LOG_LEVEL_DEBUG) {
+    if (this.apiLogLevel === APIConstants.global.LOG_LEVEL_DEBUG) {
       console.debug(
         "Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ",
       );
@@ -352,7 +346,7 @@ export default class Scorm12API extends BaseAPI {
       );
     } else {
       return {
-        result: global_constants.SCORM_TRUE,
+        result: APIConstants.global.SCORM_TRUE,
         errorCode: 0,
       };
     }

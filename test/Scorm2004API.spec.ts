@@ -1,5 +1,5 @@
 import { expect } from "expect";
-import { describe, it, before, after } from "mocha";
+import { after, before, describe, it } from "mocha";
 import * as sinon from "sinon";
 import * as h from "./api_helpers";
 import Pretender from "fetch-pretender";
@@ -7,6 +7,7 @@ import ErrorCodes from "../src/constants/error_codes";
 import Scorm2004API from "../src/Scorm2004API";
 import { scorm2004Values } from "./field_values";
 import { DefaultSettings, RefObject, Settings } from "../src/BaseAPI";
+import APIConstants from "../src/constants/api_constants";
 
 const scorm2004_error_codes = ErrorCodes.scorm2004;
 
@@ -616,6 +617,281 @@ describe("SCORM 2004 API Tests", () => {
       scorm2004API.cmi.session_time = "PT23H59M59S";
       const cmiExport: RefObject = scorm2004API.renderCommitCMI(true);
       expect(cmiExport.cmi.total_time).toEqual("P1DT12H34M55S");
+    });
+
+    it("should return flattened format when dataCommitFormat is 'flattened'", function () {
+      const scorm2004API = api({
+        ...DefaultSettings,
+        dataCommitFormat: "flattened",
+      });
+      const result = scorm2004API.renderCommitCMI(false);
+      expect(result).toBeInstanceOf(Object);
+      expect({}.hasOwnProperty.call(result, "cmi.learner_id")).toBe(true);
+    });
+
+    it("should return params format when dataCommitFormat is 'params'", function () {
+      const scorm2004API = api();
+      scorm2004API.settings.dataCommitFormat = "params";
+      const result = scorm2004API.renderCommitCMI(false);
+      expect(result).toBeInstanceOf(Array);
+      expect(result).toContain("cmi.credit=credit");
+      // Add more specific assertions based on expected params output
+    });
+
+    it("should return JSON format when dataCommitFormat is 'json'", function () {
+      const scorm2004API = api();
+      scorm2004API.settings.dataCommitFormat = "json";
+      const result = scorm2004API.renderCommitCMI(false) as any;
+      expect(result).toBeInstanceOf(Object);
+      expect(result).toHaveProperty("cmi");
+      expect(result.cmi).toBeInstanceOf(Object);
+      expect(result.cmi.credit).toEqual("credit");
+      // Add more specific assertions based on expected JSON output
+    });
+
+    it("should include total_time if terminateCommit is true", function () {
+      const scorm2004API = api();
+      const spy = sinon.spy(scorm2004API.cmi, "getCurrentTotalTime");
+      const cmiExport = scorm2004API.renderCommitCMI(true) as any;
+      expect(spy.calledOnce).toBe(true);
+      expect(cmiExport.cmi.total_time).toEqual(spy.returnValues[0]);
+      spy.restore();
+    });
+
+    it("should not include total_time if terminateCommit is false", function () {
+      const scorm2004API = api();
+      const spy = sinon.spy(scorm2004API.cmi, "getCurrentTotalTime");
+      const cmiExport = scorm2004API.renderCommitCMI(false) as any;
+      expect(spy.called).toBe(false);
+      expect(cmiExport.cmi).not.toHaveProperty("total_time");
+      spy.restore();
+    });
+  });
+
+  describe("lmsGetDiagnostic()", () => {
+    it("should return diagnostic information for a given error code", () => {
+      const scorm2004API = api();
+      const errorCode = scorm2004_error_codes.GENERAL;
+      const diagnosticInfo = scorm2004API.lmsGetDiagnostic(errorCode);
+      expect(diagnosticInfo).toEqual(
+        APIConstants.scorm2004.error_descriptions[errorCode].detailMessage,
+      );
+    });
+
+    it("should return an empty string for an unknown error code", () => {
+      const scorm2004API = api();
+      const unknownErrorCode = 9999;
+      const diagnosticInfo = scorm2004API.lmsGetDiagnostic(unknownErrorCode);
+      expect(diagnosticInfo).toEqual("");
+    });
+  });
+
+  describe("lmsGetErrorString()", () => {
+    it("should return the error string for a given error code", () => {
+      const scorm2004API = api();
+      const errorCode = scorm2004_error_codes.GENERAL;
+      const errorString = scorm2004API.lmsGetErrorString(errorCode);
+      expect(errorString).toEqual("General Exception");
+    });
+
+    it("should return an empty string for an unknown error code", () => {
+      const scorm2004API = api();
+      const unknownErrorCode = 9999;
+      const errorString = scorm2004API.lmsGetErrorString(unknownErrorCode);
+      expect(errorString).toEqual("");
+    });
+  });
+
+  describe("replaceWithAnotherScormAPI()", () => {
+    it("should replace the current API with another API", () => {
+      const firstAPI = api();
+      const secondAPI = api();
+
+      firstAPI.cmi.learner_id = "student_1";
+      firstAPI.adl.nav.request = "continue";
+      secondAPI.cmi.learner_id = "student_2";
+      secondAPI.adl.nav.request = "exit";
+
+      firstAPI.replaceWithAnotherScormAPI(secondAPI);
+      expect(firstAPI.cmi.learner_id).toEqual("student_2");
+      expect(firstAPI.adl.nav.request).toEqual("exit");
+    });
+  });
+
+  describe("checkCorrectResponseValue()", () => {
+    it("should properly handle the true-false response type for unknown value", () => {
+      const scorm2004API = new Scorm2004API();
+      scorm2004API.checkCorrectResponseValue("true-false", ["unknown"], "true");
+      expect(scorm2004API.lmsGetLastError()).toEqual(
+        String(scorm2004_error_codes.TYPE_MISMATCH),
+      );
+    });
+
+    it("should properly handle the true-false response type for correct value", () => {
+      const scorm2004API = new Scorm2004API();
+      scorm2004API.checkCorrectResponseValue("true-false", ["true"], "true");
+      expect(scorm2004API.lmsGetLastError()).toEqual(String(0));
+    });
+
+    it("should properly handle the choice response type for value over 4000 characters", () => {
+      const scorm2004API = new Scorm2004API();
+      scorm2004API.checkCorrectResponseValue(
+        "choice",
+        ["x".repeat(4001)],
+        "true",
+      );
+      expect(scorm2004API.lmsGetLastError()).toEqual(
+        String(scorm2004_error_codes.TYPE_MISMATCH),
+      );
+    });
+
+    it("should properly handle the choice response type for correct value", () => {
+      const scorm2004API = new Scorm2004API();
+      scorm2004API.checkCorrectResponseValue("choice", ["true"], "true");
+      expect(scorm2004API.lmsGetLastError()).toEqual(String(0));
+    });
+
+    it("should properly handle the fill-in response type for correct value", () => {
+      const scorm2004API = new Scorm2004API();
+      scorm2004API.checkCorrectResponseValue("fill-in", ["true"], "true");
+      expect(scorm2004API.lmsGetLastError()).toEqual(String(0));
+    });
+
+    it("should properly handle the long-fill-in response type for correct value", () => {
+      const scorm2004API = new Scorm2004API();
+      scorm2004API.checkCorrectResponseValue("long-fill-in", ["true"], "true");
+      expect(scorm2004API.lmsGetLastError()).toEqual(String(0));
+    });
+
+    it("should properly handle the matching response type for correct value", () => {
+      const scorm2004API = new Scorm2004API();
+      scorm2004API.checkCorrectResponseValue(
+        "matching",
+        ["{order_matters=true}0[.]1"],
+        "true",
+      );
+      expect(scorm2004API.lmsGetLastError()).toEqual(String(0));
+    });
+  });
+
+  describe("removeCorrectResponsePrefixes()", () => {
+    it("should remove the prefix from the string", () => {
+      const scorm2004API = new Scorm2004API();
+      const input = "{order_matters=true}correctResponse";
+      const result = scorm2004API.removeCorrectResponsePrefixes(input);
+      expect(result).toBe("correctResponse");
+    });
+
+    it("should return the original string if no prefix is present", () => {
+      const scorm2004API = new Scorm2004API();
+      const input = "correctResponse";
+      const result = scorm2004API.removeCorrectResponsePrefixes(input);
+      expect(result).toBe("correctResponse");
+    });
+
+    it("should handle empty strings correctly", () => {
+      const scorm2004API = new Scorm2004API();
+      const input = "";
+      const result = scorm2004API.removeCorrectResponsePrefixes(input);
+      expect(result).toBe("");
+    });
+
+    it("should handle multiple prefixes correctly", () => {
+      const scorm2004API = new Scorm2004API();
+      const input =
+        "{lang=en}{order_matters=true}{case_matters=false}correctResponse";
+      const result = scorm2004API.removeCorrectResponsePrefixes(input);
+      expect(result).toBe("correctResponse");
+    });
+
+    it("should throw an error for invalid order_matters value", () => {
+      const scorm2004API = new Scorm2004API();
+      const input = "{order_matters=invalid}correctResponse";
+      scorm2004API.removeCorrectResponsePrefixes(input);
+      expect(scorm2004API.lmsGetLastError()).toEqual(
+        String(scorm2004_error_codes.TYPE_MISMATCH),
+      );
+    });
+
+    it("should throw an error for invalid case_matters value", () => {
+      const scorm2004API = new Scorm2004API();
+      const input = "{case_matters=invalid}correctResponse";
+      scorm2004API.removeCorrectResponsePrefixes(input);
+      expect(scorm2004API.lmsGetLastError()).toEqual(
+        String(scorm2004_error_codes.TYPE_MISMATCH),
+      );
+    });
+
+    it("should ignore an unknown prefix", () => {
+      const scorm2004API = new Scorm2004API();
+      const input = "{unknown=true}correctResponse";
+      const result = scorm2004API.removeCorrectResponsePrefixes(input);
+      expect(result).toBe("{unknown=true}correctResponse");
+    });
+
+    it("should throw an error with an invalid language code", () => {
+      const scorm2004API = new Scorm2004API();
+      const input = "{lang=xyz}correctResponse";
+      scorm2004API.removeCorrectResponsePrefixes(input);
+      expect(scorm2004API.lmsGetLastError()).toEqual(
+        String(scorm2004_error_codes.TYPE_MISMATCH),
+      );
+    });
+  });
+
+  describe("getChildElement()", () => {
+    it("should handle missing interaction type", () => {
+      const scorm2004API = apiInitialized({
+        cmi: {
+          interactions: {
+            childArray: [{ id: "interaction-id-1" }],
+          },
+        },
+      });
+      const result = scorm2004API.getChildElement(
+        "cmi.interactions.0.correct_responses.0",
+        "response-value",
+        true,
+      );
+      expect(result).toBeNull();
+      expect(scorm2004API.lmsGetLastError()).toEqual(
+        String(scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED),
+      );
+    });
+
+    it("should call throwSCORMError with the correct arguments in createCorrectResponsesObject", () => {
+      const scorm2004API = new Scorm2004API();
+      const interaction = {
+        id: "interaction-id-1",
+        type: "invalid-type",
+        correct_responses: { _count: 1 },
+      };
+
+      // Initialize the childArray with an empty array
+      scorm2004API.cmi.interactions.childArray = [];
+
+      // Add the interaction object to the childArray
+      scorm2004API.cmi.interactions.childArray[0] = interaction;
+
+      sinon.stub(scorm2004API, "isInitialized").returns(true);
+      const throwSCORMErrorSpy = sinon.spy(scorm2004API, "throwSCORMError");
+
+      try {
+        scorm2004API.getChildElement(
+          "cmi.interactions.0.correct_responses.0",
+          "response-value",
+          true,
+        );
+      } catch (e) {
+        // Expected to throw, so we catch it to prevent the test from failing
+      }
+
+      expect(
+        throwSCORMErrorSpy.calledWith(
+          ErrorCodes.scorm2004.GENERAL_SET_FAILURE,
+          "Incorrect Response Type: " + interaction.type,
+        ),
+      ).toBe(true);
     });
   });
 

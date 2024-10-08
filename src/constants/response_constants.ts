@@ -111,6 +111,7 @@ export const CorrectResponses: Responses = {
     max: 250,
     delimiter: "[,]",
     delimiter2: "[.]",
+    delimiter3: "[:]",
     unique: false,
     duplicate: false,
     format: "^$|" + scorm2004_regex.CMIShortIdentifier,
@@ -159,6 +160,7 @@ export type ResponseType = {
   format2?: string;
   delimiter2?: string;
   limit?: number;
+  delimiter3?: string;
 };
 
 export type Responses = {

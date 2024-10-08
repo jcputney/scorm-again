@@ -2,15 +2,15 @@ import { expect } from "expect";
 import { describe, it } from "mocha";
 import APIConstants from "../../src/constants/api_constants";
 import ErrorCodes from "../../src/constants/error_codes";
+import { CMI } from "../../src/cmi/scorm12/cmi";
+import * as h from "../cmi_helpers";
+import { scorm12Values } from "../field_values";
+import { CMIObjectivesObject } from "../../src/cmi/scorm12/objectives";
 import {
-  CMI,
   CMIInteractionsCorrectResponsesObject,
   CMIInteractionsObject,
   CMIInteractionsObjectivesObject,
-  CMIObjectivesObject,
-} from "../../src/cmi/scorm12_cmi";
-import * as h from "../cmi_helpers";
-import { scorm12Values } from "../field_values";
+} from "../../src/cmi/scorm12/interactions";
 
 const scorm12 = APIConstants.scorm12;
 const scorm12_error_codes = ErrorCodes.scorm12;

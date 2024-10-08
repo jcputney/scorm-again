@@ -1,0 +1,17 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="true" type="mocha-javascript-test-runner">
+    <node-interpreter>project</node-interpreter>
+    <node-options />
+    <working-directory />
+    <pass-parent-env>true</pass-parent-env>
+    <envs>
+      <env name="TS_NODE_COMPILER_OPTIONS" value="&quot;{\&quot;module\&quot;:\&quot;commonjs\&quot;}&quot;" />
+    </envs>
+    <ui />
+    <extra-mocha-options>--import=tsx</extra-mocha-options>
+    <test-kind>DIRECTORY</test-kind>
+    <test-directory />
+    <recursive>false</recursive>
+    <method v="2" />
+  </configuration>
+</component>

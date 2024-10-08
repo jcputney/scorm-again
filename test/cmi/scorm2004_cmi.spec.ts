@@ -1,18 +1,18 @@
 import { describe, it } from "mocha";
 import ErrorCodes from "../../src/constants/error_codes";
 import APIConstants from "../../src/constants/api_constants";
-import {
-  ADL,
-  CMI,
-  CMICommentsObject,
-  CMIInteractionsCorrectResponsesObject,
-  CMIInteractionsObject,
-  CMIInteractionsObjectivesObject,
-  CMIObjectivesObject,
-} from "../../src/cmi/scorm2004_cmi";
+import { CMI } from "../../src/cmi/scorm2004/cmi";
 import * as h from "../cmi_helpers";
 import { expect } from "expect";
 import { scorm2004Values } from "../field_values";
+import {
+  CMIInteractionsCorrectResponsesObject,
+  CMIInteractionsObject,
+  CMIInteractionsObjectivesObject,
+} from "../../src/cmi/scorm2004/interactions";
+import { CMICommentsObject } from "../../src/cmi/scorm2004/comments";
+import { CMIObjectivesObject } from "../../src/cmi/scorm2004/objectives";
+import { ADL } from "../../src/cmi/scorm2004/adl";
 
 const scorm2004_constants = APIConstants.scorm2004;
 const scorm2004_error_codes = ErrorCodes.scorm2004;

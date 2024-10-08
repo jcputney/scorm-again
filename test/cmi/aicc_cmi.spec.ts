@@ -1,19 +1,15 @@
 import { describe, it } from "mocha";
 import APIConstants from "../../src/constants/api_constants";
 import ErrorCodes from "../../src/constants/error_codes";
-import {
-  CMI,
-  CMIEvaluationCommentsObject,
-  CMITriesObject,
-} from "../../src/cmi/aicc_cmi";
+import { CMI } from "../../src/cmi/aicc/cmi";
 import * as h from "../cmi_helpers";
-import {
-  CMIInteractionsObject,
-  CMIObjectivesObject,
-  NAV,
-} from "../../src/cmi/scorm12_cmi";
 import { expect } from "expect";
 import { scorm12Values } from "../field_values";
+import { CMITriesObject } from "../../src/cmi/aicc/tries";
+import { CMIEvaluationCommentsObject } from "../../src/cmi/aicc/evaluation";
+import { CMIObjectivesObject } from "../../src/cmi/scorm12/objectives";
+import { CMIInteractionsObject } from "../../src/cmi/scorm12/interactions";
+import { NAV } from "../../src/cmi/scorm12/nav";
 
 const aicc_constants = APIConstants.aicc;
 const scorm12_error_codes = ErrorCodes.scorm12;
@@ -524,7 +520,7 @@ describe("AICC CMI Tests", () => {
         );
         cmiObj.student_data.tries.childArray.push(new CMITriesObject());
         expect(JSON.stringify(cmiObj)).toEqual(
-          '{"suspend_data":"","launch_data":"","comments":"","comments_from_lms":"","core":{"student_id":"","student_name":"","lesson_location":"","credit":"","lesson_status":"not attempted","entry":"","lesson_mode":"normal","exit":"","session_time":"00:00:00","score":{"raw":"","min":"","max":"100"}},"objectives":{"0":{"id":"","status":"","score":{"raw":"","min":"","max":"100"}}},"student_data":{"mastery_score":"","max_time_allowed":"","time_limit_action":"","tries":{"0":{"status":"","time":"","score":{"raw":"","min":"","max":"100"}}}},"student_preference":{"audio":"","language":"","lesson_type":"","speed":"","text":"","text_color":"","text_location":"","text_size":"","video":"","windows":{}},"student_demographics":{"city":"","class":"","company":"","country":"","experience":"","familiar_name":"","instructor_name":"","title":"","native_language":"","state":"","street_address":"","telephone":"","years_experience":""},"interactions":{"0":{"id":"","time":"","type":"","weighting":"","student_response":"","result":"","latency":"","objectives":{},"correct_responses":{}}},"evaluation":{"comments":{"0":{"content":"","location":"","time":""}}},"paths":{}}',
+          '{"suspend_data":"","launch_data":"","comments":"","comments_from_lms":"","core":{"student_id":"","student_name":"","lesson_location":"","credit":"","lesson_status":"not attempted","entry":"","lesson_mode":"normal","exit":"","session_time":"00:00:00","score":{"raw":"","min":"","max":"100"}},"objectives":{"0":{"id":"","status":"","score":{"raw":"","min":"","max":"100"}}},"student_data":{"mastery_score":"","max_time_allowed":"","time_limit_action":"","tries":{"0":{"status":"","time":"","score":{"raw":"","min":"","max":"100"}}},"attempt_records":{}},"student_preference":{"audio":"","language":"","lesson_type":"","speed":"","text":"","text_color":"","text_location":"","text_size":"","video":"","windows":{}},"student_demographics":{"city":"","class":"","company":"","country":"","experience":"","familiar_name":"","instructor_name":"","title":"","native_language":"","state":"","street_address":"","telephone":"","years_experience":""},"interactions":{"0":{"id":"","time":"","type":"","weighting":"","student_response":"","result":"","latency":"","objectives":{},"correct_responses":{}}},"evaluation":{"comments":{"0":{"content":"","location":"","time":""}}},"paths":{}}',
         );
       });
     });

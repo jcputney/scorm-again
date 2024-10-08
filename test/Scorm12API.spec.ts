@@ -323,14 +323,16 @@ describe("SCORM 1.2 API Tests", () => {
   });
 
   describe("replaceWithAnotherScormAPI()", () => {
-    const firstAPI = api();
-    const secondAPI = api();
+    it("should replace the current API with another API", () => {
+      const firstAPI = api();
+      const secondAPI = api();
 
-    firstAPI.cmi.core.student_id = "student_1";
-    secondAPI.cmi.core.student_id = "student_2";
+      firstAPI.cmi.core.student_id = "student_1";
+      secondAPI.cmi.core.student_id = "student_2";
 
-    firstAPI.replaceWithAnotherScormAPI(secondAPI);
-    expect(firstAPI.cmi.core.student_id).toEqual("student_2");
+      firstAPI.replaceWithAnotherScormAPI(secondAPI);
+      expect(firstAPI.cmi.core.student_id).toEqual("student_2");
+    });
   });
 
   describe("renderCommitCMI()", () => {

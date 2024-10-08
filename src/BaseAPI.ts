@@ -1,8 +1,9 @@
-import { BaseCMI, CMIArray } from "./cmi/common";
+import { CMIArray } from "./cmi/common/array";
 import { ValidationError } from "./exceptions";
 import ErrorCodes, { ErrorCode } from "./constants/error_codes";
 import APIConstants from "./constants/api_constants";
 import { unflatten } from "./utilities";
+import { BaseCMI } from "./cmi/common/base_cmi";
 
 const global_constants = APIConstants.global;
 const scorm12_error_codes = ErrorCodes.scorm12;
