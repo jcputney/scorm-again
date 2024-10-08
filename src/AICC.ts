@@ -8,6 +8,7 @@ import { CMIEvaluationCommentsObject } from "./cmi/aicc/evaluation";
 import { NAV } from "./cmi/scorm12/nav";
 import { CMIPathsObject } from "./cmi/aicc/paths";
 import { Settings } from "./types/api_types";
+import { stringMatches } from "./utilities";
 
 /**
  * The AICC API class
@@ -40,22 +41,17 @@ export default class AICC extends Scorm12API {
     let newChild = super.getChildElement(CMIElement, value, foundFirstIndex);
 
     if (!newChild) {
-      if (
-        this.stringMatches(CMIElement, "cmi\\.evaluation\\.comments\\.\\d+")
-      ) {
+      if (stringMatches(CMIElement, "cmi\\.evaluation\\.comments\\.\\d+")) {
         newChild = new CMIEvaluationCommentsObject();
       } else if (
-        this.stringMatches(CMIElement, "cmi\\.student_data\\.tries\\.\\d+")
+        stringMatches(CMIElement, "cmi\\.student_data\\.tries\\.\\d+")
       ) {
         newChild = new CMITriesObject();
       } else if (
-        this.stringMatches(
-          CMIElement,
-          "cmi\\.student_data\\.attempt_records\\.\\d+",
-        )
+        stringMatches(CMIElement, "cmi\\.student_data\\.attempt_records\\.\\d+")
       ) {
         newChild = new CMIAttemptRecordsObject();
-      } else if (this.stringMatches(CMIElement, "cmi\\.paths\\.\\d+")) {
+      } else if (stringMatches(CMIElement, "cmi\\.paths\\.\\d+")) {
         newChild = new CMIPathsObject();
       }
     }

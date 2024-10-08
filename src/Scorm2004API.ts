@@ -17,6 +17,7 @@ import { CMICommentsObject } from "./cmi/scorm2004/comments";
 import { CMIObjectivesObject } from "./cmi/scorm2004/objectives";
 import { ADL } from "./cmi/scorm2004/adl";
 import { RefObject, ResultObject, Settings } from "./types/api_types";
+import { stringMatches } from "./utilities";
 
 /**
  * API class for SCORM 2004
@@ -198,35 +199,33 @@ export default class Scorm2004API extends BaseAPI {
     value: any,
     foundFirstIndex: boolean,
   ): BaseCMI | null {
-    if (this.stringMatches(CMIElement, "cmi\\.objectives\\.\\d+")) {
+    if (stringMatches(CMIElement, "cmi\\.objectives\\.\\d+")) {
       return new CMIObjectivesObject();
     }
 
     if (foundFirstIndex) {
       if (
-        this.stringMatches(
+        stringMatches(
           CMIElement,
           "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+",
         )
       ) {
         return this.createCorrectResponsesObject(CMIElement, value);
       } else if (
-        this.stringMatches(
+        stringMatches(
           CMIElement,
           "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+",
         )
       ) {
         return new CMIInteractionsObjectivesObject();
       }
-    } else if (this.stringMatches(CMIElement, "cmi\\.interactions\\.\\d+")) {
+    } else if (stringMatches(CMIElement, "cmi\\.interactions\\.\\d+")) {
       return new CMIInteractionsObject();
     }
 
-    if (this.stringMatches(CMIElement, "cmi\\.comments_from_learner\\.\\d+")) {
+    if (stringMatches(CMIElement, "cmi\\.comments_from_learner\\.\\d+")) {
       return new CMICommentsObject();
-    } else if (
-      this.stringMatches(CMIElement, "cmi\\.comments_from_lms\\.\\d+")
-    ) {
+    } else if (stringMatches(CMIElement, "cmi\\.comments_from_lms\\.\\d+")) {
       return new CMICommentsObject(true);
     }
 

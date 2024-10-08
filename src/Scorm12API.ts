@@ -13,6 +13,7 @@ import {
 } from "./cmi/scorm12/interactions";
 import { NAV } from "./cmi/scorm12/nav";
 import { RefObject, ResultObject, Settings } from "./types/api_types";
+import { stringMatches } from "./utilities";
 
 /**
  * API class for SCORM 1.2
@@ -197,11 +198,11 @@ export default class Scorm12API extends BaseAPI {
     _value: any,
     foundFirstIndex: boolean,
   ): BaseCMI | null {
-    if (this.stringMatches(CMIElement, "cmi\\.objectives\\.\\d+")) {
+    if (stringMatches(CMIElement, "cmi\\.objectives\\.\\d+")) {
       return new CMIObjectivesObject();
     } else if (
       foundFirstIndex &&
-      this.stringMatches(
+      stringMatches(
         CMIElement,
         "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+",
       )
@@ -209,15 +210,12 @@ export default class Scorm12API extends BaseAPI {
       return new CMIInteractionsCorrectResponsesObject();
     } else if (
       foundFirstIndex &&
-      this.stringMatches(
-        CMIElement,
-        "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+",
-      )
+      stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")
     ) {
       return new CMIInteractionsObjectivesObject();
     } else if (
       !foundFirstIndex &&
-      this.stringMatches(CMIElement, "cmi\\.interactions\\.\\d+")
+      stringMatches(CMIElement, "cmi\\.interactions\\.\\d+")
     ) {
       return new CMIInteractionsObject();
     }
