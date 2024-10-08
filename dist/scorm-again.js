@@ -381,50 +381,6 @@ function __disposeResources(env) {
   __disposeResources,
 });
 
-;// ./src/cmi/common/errors.ts
-
-var BaseScormValidationError = (function (_super) {
-    __extends(BaseScormValidationError, _super);
-    function BaseScormValidationError(errorCode) {
-        var _this = _super.call(this, errorCode.toString()) || this;
-        _this._errorCode = errorCode;
-        _this.name = "ScormValidationError";
-        return _this;
-    }
-    Object.defineProperty(BaseScormValidationError.prototype, "errorCode", {
-        get: function () {
-            return this._errorCode;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    BaseScormValidationError.prototype.setMessage = function (message) {
-        this.message = message;
-    };
-    return BaseScormValidationError;
-}(Error));
-
-var BaseScorm12ValidationError = (function (_super) {
-    __extends(BaseScorm12ValidationError, _super);
-    function BaseScorm12ValidationError(errorCode) {
-        var _this = _super.call(this, errorCode) || this;
-        _this.name = "Scorm12ValidationError";
-        return _this;
-    }
-    return BaseScorm12ValidationError;
-}(BaseScormValidationError));
-
-var BaseScorm2004ValidationError = (function (_super) {
-    __extends(BaseScorm2004ValidationError, _super);
-    function BaseScorm2004ValidationError(errorCode) {
-        var _this = _super.call(this, errorCode) || this;
-        _this.name = "Scorm2004ValidationError";
-        return _this;
-    }
-    return BaseScorm2004ValidationError;
-}(BaseScormValidationError));
-
-
 ;// ./src/cmi/common/base_cmi.ts
 
 var BaseCMI = (function () {
@@ -503,55 +459,6 @@ var ErrorCodes = {
     scorm2004: scorm2004,
 };
 /* harmony default export */ var error_codes = (ErrorCodes);
-
-;// ./src/cmi/common/array.ts
-
-
-
-
-var scorm12_error_codes = error_codes.scorm12;
-var CMIArray = (function (_super) {
-    __extends(CMIArray, _super);
-    function CMIArray(params) {
-        var _this = _super.call(this) || this;
-        _this.__children = params.children;
-        _this._errorCode = params.errorCode || scorm12_error_codes.GENERAL;
-        _this._errorClass = params.errorClass || BaseScorm12ValidationError;
-        _this.childArray = [];
-        return _this;
-    }
-    Object.defineProperty(CMIArray.prototype, "_children", {
-        get: function () {
-            return this.__children;
-        },
-        set: function (_children) {
-            throw new this._errorClass(this._errorCode);
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIArray.prototype, "_count", {
-        get: function () {
-            return this.childArray.length;
-        },
-        set: function (_count) {
-            throw new this._errorClass(this._errorCode);
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIArray.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {};
-        for (var i = 0; i < this.childArray.length; i++) {
-            result[i + ""] = this.childArray[i];
-        }
-        delete this.jsonString;
-        return result;
-    };
-    return CMIArray;
-}(BaseCMI));
-
 
 ;// ./src/constants/api_constants.ts
 
@@ -764,10 +671,30 @@ var APIConstants = {
 ;// ./src/exceptions.ts
 
 
-
 var scorm12_errors = api_constants.scorm12.error_descriptions;
 var aicc_errors = api_constants.aicc.error_descriptions;
 var scorm2004_errors = api_constants.scorm2004.error_descriptions;
+var BaseScormValidationError = (function (_super) {
+    __extends(BaseScormValidationError, _super);
+    function BaseScormValidationError(errorCode) {
+        var _this = _super.call(this, errorCode.toString()) || this;
+        _this._errorCode = errorCode;
+        _this.name = "ScormValidationError";
+        return _this;
+    }
+    Object.defineProperty(BaseScormValidationError.prototype, "errorCode", {
+        get: function () {
+            return this._errorCode;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    BaseScormValidationError.prototype.setMessage = function (message) {
+        this.message = message;
+    };
+    return BaseScormValidationError;
+}(Error));
+
 var ValidationError = (function (_super) {
     __extends(ValidationError, _super);
     function ValidationError(errorCode, errorMessage, detailedMessage) {
@@ -841,6 +768,55 @@ var Scorm2004ValidationError = (function (_super) {
     }
     return Scorm2004ValidationError;
 }(ValidationError));
+
+
+;// ./src/cmi/common/array.ts
+
+
+
+
+var scorm12_error_codes = error_codes.scorm12;
+var CMIArray = (function (_super) {
+    __extends(CMIArray, _super);
+    function CMIArray(params) {
+        var _this = _super.call(this) || this;
+        _this.__children = params.children;
+        _this._errorCode = params.errorCode || scorm12_error_codes.GENERAL;
+        _this._errorClass = params.errorClass || BaseScormValidationError;
+        _this.childArray = [];
+        return _this;
+    }
+    Object.defineProperty(CMIArray.prototype, "_children", {
+        get: function () {
+            return this.__children;
+        },
+        set: function (_children) {
+            throw new this._errorClass(this._errorCode);
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(CMIArray.prototype, "_count", {
+        get: function () {
+            return this.childArray.length;
+        },
+        set: function (_count) {
+            throw new this._errorClass(this._errorCode);
+        },
+        enumerable: false,
+        configurable: true
+    });
+    CMIArray.prototype.toJSON = function () {
+        this.jsonString = true;
+        var result = {};
+        for (var i = 0; i < this.childArray.length; i++) {
+            result[i + ""] = this.childArray[i];
+        }
+        delete this.jsonString;
+        return result;
+    };
+    return CMIArray;
+}(BaseCMI));
 
 
 ;// ./src/utilities.ts
@@ -1003,16 +979,33 @@ function countDecimals(num) {
     var parts = num.toString().split(".")[1];
     return parts.length || 0;
 }
+function formatMessage(functionName, message, CMIElement) {
+    var baseLength = 20;
+    var messageString = "";
+    messageString += functionName;
+    var fillChars = baseLength - messageString.length;
+    for (var i = 0; i < fillChars; i++) {
+        messageString += " ";
+    }
+    messageString += ": ";
+    if (CMIElement) {
+        var CMIElementBaseLength = 70;
+        messageString += CMIElement;
+        fillChars = CMIElementBaseLength - messageString.length;
+        for (var j = 0; j < fillChars; j++) {
+            messageString += " ";
+        }
+    }
+    if (message) {
+        messageString += message;
+    }
+    return messageString;
+}
+function stringMatches(str, tester) {
+    return (str === null || str === void 0 ? void 0 : str.match(tester)) !== null;
+}
 
-;// ./src/BaseAPI.ts
-
-
-
-
-
-
-var global_constants = api_constants.global;
-var BaseAPI_scorm12_error_codes = error_codes.scorm12;
+;// ./src/utilities/debounce.ts
 function debounce(func, wait, immediate) {
     if (immediate === void 0) { immediate = false; }
     var timeout;
@@ -1035,6 +1028,10 @@ function debounce(func, wait, immediate) {
             func.apply(context, args);
     };
 }
+
+;// ./src/constants/default_settings.ts
+
+
 var DefaultSettings = {
     autocommit: false,
     autocommitSeconds: 10,
@@ -1044,7 +1041,7 @@ var DefaultSettings = {
     dataCommitFormat: "json",
     commitRequestDataType: "application/json;charset=UTF-8",
     autoProgress: false,
-    logLevel: global_constants.LOG_LEVEL_ERROR,
+    logLevel: api_constants.global.LOG_LEVEL_ERROR,
     selfReportSessionTime: false,
     alwaysSendTotalTime: false,
     strict_errors: true,
@@ -1052,26 +1049,26 @@ var DefaultSettings = {
     xhrWithCredentials: false,
     responseHandler: function (response) {
         return __awaiter(this, void 0, void 0, function () {
-            var httpResult, _a, _c;
-            return __generator(this, function (_e) {
-                switch (_e.label) {
+            var httpResult, _a, _b;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         if (!(typeof response !== "undefined")) return [3, 2];
-                        _c = (_a = JSON).parse;
+                        _b = (_a = JSON).parse;
                         return [4, response.text()];
                     case 1:
-                        httpResult = _c.apply(_a, [_e.sent()]);
+                        httpResult = _b.apply(_a, [_c.sent()]);
                         if (httpResult === null ||
                             !{}.hasOwnProperty.call(httpResult, "result")) {
                             if (response.status === 200) {
                                 return [2, {
-                                        result: global_constants.SCORM_TRUE,
+                                        result: api_constants.global.SCORM_TRUE,
                                         errorCode: 0,
                                     }];
                             }
                             else {
                                 return [2, {
-                                        result: global_constants.SCORM_FALSE,
+                                        result: api_constants.global.SCORM_FALSE,
                                         errorCode: 101,
                                     }];
                             }
@@ -1081,14 +1078,14 @@ var DefaultSettings = {
                                     result: httpResult.result,
                                     errorCode: httpResult.errorCode
                                         ? httpResult.errorCode
-                                        : httpResult.result === global_constants.SCORM_TRUE
+                                        : httpResult.result === api_constants.global.SCORM_TRUE
                                             ? 0
                                             : 101,
                                 }];
                         }
-                        _e.label = 2;
+                        _c.label = 2;
                     case 2: return [2, {
-                            result: global_constants.SCORM_FALSE,
+                            result: api_constants.global.SCORM_FALSE,
                             errorCode: 101,
                         }];
                 }
@@ -1100,16 +1097,16 @@ var DefaultSettings = {
     },
     onLogMessage: function (messageLevel, logMessage) {
         switch (messageLevel) {
-            case global_constants.LOG_LEVEL_ERROR:
+            case api_constants.global.LOG_LEVEL_ERROR:
                 console.error(logMessage);
                 break;
-            case global_constants.LOG_LEVEL_WARNING:
+            case api_constants.global.LOG_LEVEL_WARNING:
                 console.warn(logMessage);
                 break;
-            case global_constants.LOG_LEVEL_INFO:
+            case api_constants.global.LOG_LEVEL_INFO:
                 console.info(logMessage);
                 break;
-            case global_constants.LOG_LEVEL_DEBUG:
+            case api_constants.global.LOG_LEVEL_DEBUG:
                 if (console.debug) {
                     console.debug(logMessage);
                 }
@@ -1120,6 +1117,47 @@ var DefaultSettings = {
         }
     },
 };
+
+;// ./src/helpers/scheduled_commit.ts
+
+var ScheduledCommit = (function () {
+    function ScheduledCommit(API, when, callback) {
+        this._cancelled = false;
+        this._API = API;
+        this._timeout = setTimeout(this.wrapper.bind(this), when);
+        this._callback = callback;
+    }
+    ScheduledCommit.prototype.cancel = function () {
+        this._cancelled = true;
+        if (this._timeout) {
+            clearTimeout(this._timeout);
+        }
+    };
+    ScheduledCommit.prototype.wrapper = function () {
+        var _this = this;
+        if (!this._cancelled) {
+            (function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4, this._API.commit(this._callback)];
+                    case 1: return [2, _a.sent()];
+                }
+            }); }); })();
+        }
+    };
+    return ScheduledCommit;
+}());
+
+
+;// ./src/BaseAPI.ts
+
+
+
+
+
+
+
+
+
 var BaseAPI = (function () {
     function BaseAPI(error_codes, settings) {
         var _newTarget = this.constructor;
@@ -1127,7 +1165,7 @@ var BaseAPI = (function () {
         if (_newTarget === BaseAPI) {
             throw new TypeError("Cannot construct BaseAPI instances directly");
         }
-        this.currentState = global_constants.STATE_NOT_INITIALIZED;
+        this.currentState = api_constants.global.STATE_NOT_INITIALIZED;
         this.lastErrorCode = "0";
         this.listenerArray = [];
         this._error_codes = error_codes;
@@ -1138,7 +1176,7 @@ var BaseAPI = (function () {
         this.selfReportSessionTime = this.settings.selfReportSessionTime;
     }
     BaseAPI.prototype.initialize = function (callbackName, initializeMessage, terminationMessage) {
-        var returnValue = global_constants.SCORM_FALSE;
+        var returnValue = api_constants.global.SCORM_FALSE;
         if (this.isInitialized()) {
             this.throwSCORMError(this._error_codes.INITIALIZED, initializeMessage);
         }
@@ -1149,14 +1187,20 @@ var BaseAPI = (function () {
             if (this.selfReportSessionTime) {
                 this.cmi.setStartTime();
             }
-            this.currentState = global_constants.STATE_INITIALIZED;
+            this.currentState = api_constants.global.STATE_INITIALIZED;
             this.lastErrorCode = "0";
-            returnValue = global_constants.SCORM_TRUE;
+            returnValue = api_constants.global.SCORM_TRUE;
             this.processListeners(callbackName);
         }
-        this.apiLog(callbackName, "returned: " + returnValue, global_constants.LOG_LEVEL_INFO);
+        this.apiLog(callbackName, "returned: " + returnValue, api_constants.global.LOG_LEVEL_INFO);
         this.clearSCORMError(returnValue);
         return returnValue;
+    };
+    BaseAPI.prototype.apiLog = function (functionName, logMessage, messageLevel, CMIElement) {
+        logMessage = formatMessage(functionName, logMessage, CMIElement);
+        if (messageLevel >= this.apiLogLevel) {
+            this.settings.onLogMessage(messageLevel, logMessage);
+        }
     };
     Object.defineProperty(BaseAPI.prototype, "error_codes", {
         get: function () {
@@ -1176,25 +1220,36 @@ var BaseAPI = (function () {
         configurable: true
     });
     BaseAPI.prototype.terminate = function (callbackName, checkTerminated) {
-        var returnValue = global_constants.SCORM_FALSE;
-        if (this.checkState(checkTerminated, this._error_codes.TERMINATION_BEFORE_INIT, this._error_codes.MULTIPLE_TERMINATION)) {
-            this.currentState = global_constants.STATE_TERMINATED;
-            var result = this.storeData(true);
-            if (typeof result.errorCode !== "undefined" && result.errorCode > 0) {
-                this.throwSCORMError(result.errorCode);
-            }
-            returnValue =
-                typeof result !== "undefined" && result.result
-                    ? result.result
-                    : global_constants.SCORM_FALSE;
-            if (checkTerminated)
-                this.lastErrorCode = "0";
-            returnValue = global_constants.SCORM_TRUE;
-            this.processListeners(callbackName);
-        }
-        this.apiLog(callbackName, "returned: " + returnValue, global_constants.LOG_LEVEL_INFO);
-        this.clearSCORMError(returnValue);
-        return returnValue;
+        return __awaiter(this, void 0, void 0, function () {
+            var returnValue, result;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        returnValue = api_constants.global.SCORM_FALSE;
+                        if (!this.checkState(checkTerminated, this._error_codes.TERMINATION_BEFORE_INIT, this._error_codes.MULTIPLE_TERMINATION)) return [3, 2];
+                        this.currentState = api_constants.global.STATE_TERMINATED;
+                        return [4, this.storeData(true)];
+                    case 1:
+                        result = _a.sent();
+                        if (typeof result.errorCode !== "undefined" && result.errorCode > 0) {
+                            this.throwSCORMError(result.errorCode);
+                        }
+                        returnValue =
+                            typeof result !== "undefined" && result.result
+                                ? result.result
+                                : api_constants.global.SCORM_FALSE;
+                        if (checkTerminated)
+                            this.lastErrorCode = "0";
+                        returnValue = api_constants.global.SCORM_TRUE;
+                        this.processListeners(callbackName);
+                        _a.label = 2;
+                    case 2:
+                        this.apiLog(callbackName, "returned: " + returnValue, api_constants.global.LOG_LEVEL_INFO);
+                        this.clearSCORMError(returnValue);
+                        return [2, returnValue];
+                }
+            });
+        });
     };
     BaseAPI.prototype.getValue = function (callbackName, checkTerminated, CMIElement) {
         var returnValue = "";
@@ -1209,7 +1264,7 @@ var BaseAPI = (function () {
             }
             this.processListeners(callbackName, CMIElement);
         }
-        this.apiLog(callbackName, ": returned: " + returnValue, global_constants.LOG_LEVEL_INFO, CMIElement);
+        this.apiLog(callbackName, ": returned: " + returnValue, api_constants.global.LOG_LEVEL_INFO, CMIElement);
         this.clearSCORMError(returnValue);
         return returnValue;
     };
@@ -1217,7 +1272,7 @@ var BaseAPI = (function () {
         if (value !== undefined) {
             value = String(value);
         }
-        var returnValue = global_constants.SCORM_FALSE;
+        var returnValue = api_constants.global.SCORM_FALSE;
         if (this.checkState(checkTerminated, this._error_codes.STORE_BEFORE_INIT, this._error_codes.STORE_AFTER_TERM)) {
             if (checkTerminated)
                 this.lastErrorCode = "0";
@@ -1230,43 +1285,54 @@ var BaseAPI = (function () {
             this.processListeners(callbackName, CMIElement, value);
         }
         if (returnValue === undefined) {
-            returnValue = global_constants.SCORM_FALSE;
+            returnValue = api_constants.global.SCORM_FALSE;
         }
         if (String(this.lastErrorCode) === "0") {
             if (this.settings.autocommit && !this._timeout) {
                 this.scheduleCommit(this.settings.autocommitSeconds * 1000, commitCallback);
             }
         }
-        this.apiLog(callbackName, ": " + value + ": result: " + returnValue, global_constants.LOG_LEVEL_INFO, CMIElement);
+        this.apiLog(callbackName, ": " + value + ": result: " + returnValue, api_constants.global.LOG_LEVEL_INFO, CMIElement);
         this.clearSCORMError(returnValue);
         return returnValue;
     };
-    BaseAPI.prototype.commit = function (callbackName, checkTerminated) {
-        if (checkTerminated === void 0) { checkTerminated = false; }
-        this.clearScheduledCommit();
-        var returnValue = global_constants.SCORM_FALSE;
-        if (this.checkState(checkTerminated, this._error_codes.COMMIT_BEFORE_INIT, this._error_codes.COMMIT_AFTER_TERM)) {
-            var result = this.storeData(false);
-            if (result.errorCode && result.errorCode > 0) {
-                this.throwSCORMError(result.errorCode);
-            }
-            returnValue =
-                typeof result !== "undefined" && result.result
-                    ? result.result
-                    : global_constants.SCORM_FALSE;
-            this.apiLog(callbackName, " Result: " + returnValue, global_constants.LOG_LEVEL_DEBUG, "HttpRequest");
-            if (checkTerminated)
-                this.lastErrorCode = "0";
-            this.processListeners(callbackName);
-        }
-        this.apiLog(callbackName, "returned: " + returnValue, global_constants.LOG_LEVEL_INFO);
-        this.clearSCORMError(returnValue);
-        return returnValue;
+    BaseAPI.prototype.commit = function (callbackName_1) {
+        return __awaiter(this, arguments, void 0, function (callbackName, checkTerminated) {
+            var returnValue, result;
+            if (checkTerminated === void 0) { checkTerminated = false; }
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        this.clearScheduledCommit();
+                        returnValue = api_constants.global.SCORM_FALSE;
+                        if (!this.checkState(checkTerminated, this._error_codes.COMMIT_BEFORE_INIT, this._error_codes.COMMIT_AFTER_TERM)) return [3, 2];
+                        return [4, this.storeData(false)];
+                    case 1:
+                        result = _a.sent();
+                        if (result.errorCode && result.errorCode > 0) {
+                            this.throwSCORMError(result.errorCode);
+                        }
+                        returnValue =
+                            typeof result !== "undefined" && result.result
+                                ? result.result
+                                : api_constants.global.SCORM_FALSE;
+                        this.apiLog(callbackName, " Result: " + returnValue, api_constants.global.LOG_LEVEL_DEBUG, "HttpRequest");
+                        if (checkTerminated)
+                            this.lastErrorCode = "0";
+                        this.processListeners(callbackName);
+                        _a.label = 2;
+                    case 2:
+                        this.apiLog(callbackName, "returned: " + returnValue, api_constants.global.LOG_LEVEL_INFO);
+                        this.clearSCORMError(returnValue);
+                        return [2, returnValue];
+                }
+            });
+        });
     };
     BaseAPI.prototype.getLastError = function (callbackName) {
         var returnValue = String(this.lastErrorCode);
         this.processListeners(callbackName);
-        this.apiLog(callbackName, "returned: " + returnValue, global_constants.LOG_LEVEL_INFO);
+        this.apiLog(callbackName, "returned: " + returnValue, api_constants.global.LOG_LEVEL_INFO);
         return returnValue;
     };
     BaseAPI.prototype.getErrorString = function (callbackName, CMIErrorCode) {
@@ -1275,7 +1341,7 @@ var BaseAPI = (function () {
             returnValue = this.getLmsErrorMessageDetails(CMIErrorCode);
             this.processListeners(callbackName);
         }
-        this.apiLog(callbackName, "returned: " + returnValue, global_constants.LOG_LEVEL_INFO);
+        this.apiLog(callbackName, "returned: " + returnValue, api_constants.global.LOG_LEVEL_INFO);
         return returnValue;
     };
     BaseAPI.prototype.getDiagnostic = function (callbackName, CMIErrorCode) {
@@ -1284,7 +1350,7 @@ var BaseAPI = (function () {
             returnValue = this.getLmsErrorMessageDetails(CMIErrorCode, true);
             this.processListeners(callbackName);
         }
-        this.apiLog(callbackName, "returned: " + returnValue, global_constants.LOG_LEVEL_INFO);
+        this.apiLog(callbackName, "returned: " + returnValue, api_constants.global.LOG_LEVEL_INFO);
         return returnValue;
     };
     BaseAPI.prototype.checkState = function (checkTerminated, beforeInitError, afterTermError) {
@@ -1298,42 +1364,6 @@ var BaseAPI = (function () {
         }
         return true;
     };
-    BaseAPI.prototype.apiLog = function (functionName, logMessage, messageLevel, CMIElement) {
-        logMessage = this.formatMessage(functionName, logMessage, CMIElement);
-        if (messageLevel >= this.apiLogLevel) {
-            this.settings.onLogMessage(messageLevel, logMessage);
-        }
-    };
-    BaseAPI.prototype.formatMessage = function (functionName, message, CMIElement) {
-        var baseLength = 20;
-        var messageString = "";
-        messageString += functionName;
-        var fillChars = baseLength - messageString.length;
-        for (var i = 0; i < fillChars; i++) {
-            messageString += " ";
-        }
-        messageString += ": ";
-        if (CMIElement) {
-            var CMIElementBaseLength = 70;
-            messageString += CMIElement;
-            fillChars = CMIElementBaseLength - messageString.length;
-            for (var j = 0; j < fillChars; j++) {
-                messageString += " ";
-            }
-        }
-        if (message) {
-            messageString += message;
-        }
-        return messageString;
-    };
-    BaseAPI.prototype.stringMatches = function (str, tester) {
-        return (str === null || str === void 0 ? void 0 : str.match(tester)) !== null;
-    };
-    BaseAPI.prototype._checkObjectHasProperty = function (refObject, attribute) {
-        return (Object.hasOwnProperty.call(refObject, attribute) ||
-            Object.getOwnPropertyDescriptor(Object.getPrototypeOf(refObject), attribute) != null ||
-            attribute in refObject);
-    };
     BaseAPI.prototype.getLmsErrorMessageDetails = function (_errorNumber, _detail) {
         if (_detail === void 0) { _detail = false; }
         throw new Error("The getLmsErrorMessageDetails method has not been implemented");
@@ -1346,11 +1376,11 @@ var BaseAPI = (function () {
     };
     BaseAPI.prototype._commonSetCMIValue = function (methodName, scorm2004, CMIElement, value) {
         if (!CMIElement || CMIElement === "") {
-            return global_constants.SCORM_FALSE;
+            return api_constants.global.SCORM_FALSE;
         }
         var structure = CMIElement.split(".");
         var refObject = this;
-        var returnValue = global_constants.SCORM_FALSE;
+        var returnValue = api_constants.global.SCORM_FALSE;
         var foundFirstIndex = false;
         var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
         var invalidErrorCode = scorm2004
@@ -1369,12 +1399,12 @@ var BaseAPI = (function () {
                 }
                 else {
                     if (this.isInitialized() &&
-                        this.stringMatches(CMIElement, "\\.correct_responses\\.\\d+")) {
+                        stringMatches(CMIElement, "\\.correct_responses\\.\\d+")) {
                         this.validateCorrectResponse(CMIElement, value);
                     }
                     if (!scorm2004 || this.lastErrorCode === "0") {
                         refObject[attribute] = value;
-                        returnValue = global_constants.SCORM_TRUE;
+                        returnValue = api_constants.global.SCORM_TRUE;
                     }
                 }
             }
@@ -1410,8 +1440,8 @@ var BaseAPI = (function () {
                 }
             }
         }
-        if (returnValue === global_constants.SCORM_FALSE) {
-            this.apiLog(methodName, "There was an error setting the value for: ".concat(CMIElement, ", value of: ").concat(value), global_constants.LOG_LEVEL_WARNING);
+        if (returnValue === api_constants.global.SCORM_FALSE) {
+            this.apiLog(methodName, "There was an error setting the value for: ".concat(CMIElement, ", value of: ").concat(value), api_constants.global.LOG_LEVEL_WARNING);
         }
         return returnValue;
     };
@@ -1471,10 +1501,10 @@ var BaseAPI = (function () {
         if (refObject === null || refObject === undefined) {
             if (!scorm2004) {
                 if (attribute === "_children") {
-                    this.throwSCORMError(BaseAPI_scorm12_error_codes.CHILDREN_ERROR);
+                    this.throwSCORMError(error_codes.scorm12.CHILDREN_ERROR);
                 }
                 else if (attribute === "_count") {
-                    this.throwSCORMError(BaseAPI_scorm12_error_codes.COUNT_ERROR);
+                    this.throwSCORMError(error_codes.scorm12.COUNT_ERROR);
                 }
             }
         }
@@ -1483,13 +1513,13 @@ var BaseAPI = (function () {
         }
     };
     BaseAPI.prototype.isInitialized = function () {
-        return this.currentState === global_constants.STATE_INITIALIZED;
+        return this.currentState === api_constants.global.STATE_INITIALIZED;
     };
     BaseAPI.prototype.isNotInitialized = function () {
-        return this.currentState === global_constants.STATE_NOT_INITIALIZED;
+        return this.currentState === api_constants.global.STATE_NOT_INITIALIZED;
     };
     BaseAPI.prototype.isTerminated = function () {
-        return this.currentState === global_constants.STATE_TERMINATED;
+        return this.currentState === api_constants.global.STATE_TERMINATED;
     };
     BaseAPI.prototype.on = function (listenerName, callback) {
         if (!callback)
@@ -1509,7 +1539,7 @@ var BaseAPI = (function () {
                 CMIElement: CMIElement,
                 callback: callback,
             });
-            this.apiLog("on", "Added event listener: ".concat(this.listenerArray.length), global_constants.LOG_LEVEL_INFO, functionName);
+            this.apiLog("on", "Added event listener: ".concat(this.listenerArray.length), api_constants.global.LOG_LEVEL_INFO, functionName);
         }
     };
     BaseAPI.prototype.off = function (listenerName, callback) {
@@ -1532,7 +1562,7 @@ var BaseAPI = (function () {
             });
             if (removeIndex !== -1) {
                 this_1.listenerArray.splice(removeIndex, 1);
-                this_1.apiLog("off", "Removed event listener: ".concat(this_1.listenerArray.length), global_constants.LOG_LEVEL_INFO, functionName);
+                this_1.apiLog("off", "Removed event listener: ".concat(this_1.listenerArray.length), api_constants.global.LOG_LEVEL_INFO, functionName);
             }
         };
         var this_1 = this;
@@ -1565,7 +1595,7 @@ var BaseAPI = (function () {
         }
     };
     BaseAPI.prototype.processListeners = function (functionName, CMIElement, value) {
-        this.apiLog(functionName, value, global_constants.LOG_LEVEL_INFO, CMIElement);
+        this.apiLog(functionName, value, api_constants.global.LOG_LEVEL_INFO, CMIElement);
         for (var i = 0; i < this.listenerArray.length; i++) {
             var listener = this.listenerArray[i];
             var functionsMatch = listener.functionName === functionName;
@@ -1581,7 +1611,7 @@ var BaseAPI = (function () {
                 CMIElementsMatch = listener.CMIElement === CMIElement;
             }
             if (functionsMatch && (!listenerHasCMIElement || CMIElementsMatch)) {
-                this.apiLog("processListeners", "Processing listener: ".concat(listener.functionName), global_constants.LOG_LEVEL_INFO, CMIElement);
+                this.apiLog("processListeners", "Processing listener: ".concat(listener.functionName), api_constants.global.LOG_LEVEL_INFO, CMIElement);
                 listener.callback(CMIElement, value);
             }
         }
@@ -1590,11 +1620,11 @@ var BaseAPI = (function () {
         if (!message) {
             message = this.getLmsErrorMessageDetails(errorNumber);
         }
-        this.apiLog("throwSCORMError", errorNumber + ": " + message, global_constants.LOG_LEVEL_ERROR);
+        this.apiLog("throwSCORMError", errorNumber + ": " + message, api_constants.global.LOG_LEVEL_ERROR);
         this.lastErrorCode = String(errorNumber);
     };
     BaseAPI.prototype.clearSCORMError = function (success) {
-        if (success !== undefined && success !== global_constants.SCORM_FALSE) {
+        if (success !== undefined && success !== api_constants.global.SCORM_FALSE) {
             this.lastErrorCode = "0";
         }
     };
@@ -1692,82 +1722,88 @@ var BaseAPI = (function () {
     BaseAPI.prototype.renderCMIToJSONObject = function () {
         return JSON.parse(this.renderCMIToJSONString());
     };
-    BaseAPI.prototype.processHttpRequest = function (url, params, immediate) {
-        var _this = this;
-        if (immediate === void 0) { immediate = false; }
-        var api = this;
-        var genericError = {
-            result: global_constants.SCORM_FALSE,
-            errorCode: this.error_codes.GENERAL,
-        };
-        var process = function (url, params, settings) { return __awaiter(_this, void 0, void 0, function () {
-            var response, result, _a, e_1;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
+    BaseAPI.prototype.processHttpRequest = function (url_1, params_1) {
+        return __awaiter(this, arguments, void 0, function (url, params, immediate) {
+            var api, genericError, process, debouncedProcess;
+            var _this = this;
+            if (immediate === void 0) { immediate = false; }
+            return __generator(this, function (_a) {
+                switch (_a.label) {
                     case 0:
-                        _c.trys.push([0, 6, , 7]);
-                        params = settings.requestHandler(params);
-                        return [4, fetch(url, {
-                                method: "POST",
-                                body: params instanceof Array ? params.join("&") : JSON.stringify(params),
-                                headers: __assign(__assign({}, settings.xhrHeaders), { "Content-Type": settings.commitRequestDataType }),
-                                credentials: settings.xhrWithCredentials ? "include" : undefined,
-                                keepalive: true,
-                            })];
-                    case 1:
-                        response = _c.sent();
-                        if (!(typeof settings.responseHandler === "function")) return [3, 3];
-                        return [4, settings.responseHandler(response)];
-                    case 2:
-                        _a = _c.sent();
-                        return [3, 5];
-                    case 3: return [4, response.json()];
-                    case 4:
-                        _a = _c.sent();
-                        _c.label = 5;
-                    case 5:
-                        result = _a;
-                        if (response.status >= 200 &&
-                            response.status <= 299 &&
-                            (result.result === true ||
-                                result.result === global_constants.SCORM_TRUE)) {
-                            api.processListeners("CommitSuccess");
+                        api = this;
+                        genericError = {
+                            result: api_constants.global.SCORM_FALSE,
+                            errorCode: this.error_codes.GENERAL,
+                        };
+                        if (immediate) {
+                            this.performFetch(url, params).then(function (response) { return __awaiter(_this, void 0, void 0, function () {
+                                return __generator(this, function (_a) {
+                                    switch (_a.label) {
+                                        case 0: return [4, this.transformResponse(response)];
+                                        case 1:
+                                            _a.sent();
+                                            return [2];
+                                    }
+                                });
+                            }); });
+                            return [2, {
+                                    result: api_constants.global.SCORM_TRUE,
+                                    errorCode: 0,
+                                }];
                         }
-                        else {
-                            api.processListeners("CommitError");
-                        }
-                        return [2, result];
-                    case 6:
-                        e_1 = _c.sent();
-                        this.apiLog("processHttpRequest", e_1, global_constants.LOG_LEVEL_ERROR);
-                        api.processListeners("CommitError");
-                        return [2, genericError];
-                    case 7: return [2];
+                        process = function (url, params, settings) { return __awaiter(_this, void 0, void 0, function () {
+                            var response, e_1;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        _a.trys.push([0, 2, , 3]);
+                                        params = settings.requestHandler(params);
+                                        return [4, this.performFetch(url, params)];
+                                    case 1:
+                                        response = _a.sent();
+                                        return [2, this.transformResponse(response)];
+                                    case 2:
+                                        e_1 = _a.sent();
+                                        this.apiLog("processHttpRequest", e_1, api_constants.global.LOG_LEVEL_ERROR);
+                                        api.processListeners("CommitError");
+                                        return [2, genericError];
+                                    case 3: return [2];
+                                }
+                            });
+                        }); };
+                        if (!this.settings.asyncCommit) return [3, 1];
+                        debouncedProcess = debounce(process, 500, immediate);
+                        debouncedProcess(url, params, this.settings);
+                        return [2, {
+                                result: api_constants.global.SCORM_TRUE,
+                                errorCode: 0,
+                            }];
+                    case 1: return [4, process(url, params, this.settings)];
+                    case 2: return [2, _a.sent()];
                 }
             });
-        }); };
-        var debouncedProcess = debounce(process, 500, immediate);
-        debouncedProcess(url, params, this.settings);
-        return {
-            result: global_constants.SCORM_TRUE,
-            errorCode: 0,
-        };
+        });
     };
     BaseAPI.prototype.scheduleCommit = function (when, callback) {
         this._timeout = new ScheduledCommit(this, when, callback);
-        this.apiLog("scheduleCommit", "scheduled", global_constants.LOG_LEVEL_DEBUG, "");
+        this.apiLog("scheduleCommit", "scheduled", api_constants.global.LOG_LEVEL_DEBUG, "");
     };
     BaseAPI.prototype.clearScheduledCommit = function () {
         if (this._timeout) {
             this._timeout.cancel();
             this._timeout = undefined;
-            this.apiLog("clearScheduledCommit", "cleared", global_constants.LOG_LEVEL_DEBUG, "");
+            this.apiLog("clearScheduledCommit", "cleared", api_constants.global.LOG_LEVEL_DEBUG, "");
         }
+    };
+    BaseAPI.prototype._checkObjectHasProperty = function (refObject, attribute) {
+        return (Object.hasOwnProperty.call(refObject, attribute) ||
+            Object.getOwnPropertyDescriptor(Object.getPrototypeOf(refObject), attribute) != null ||
+            attribute in refObject);
     };
     BaseAPI.prototype.handleValueAccessException = function (e, returnValue) {
         if (e instanceof ValidationError) {
             this.lastErrorCode = String(e.errorCode);
-            returnValue = global_constants.SCORM_FALSE;
+            returnValue = api_constants.global.SCORM_FALSE;
         }
         else {
             if (e instanceof Error && e.message) {
@@ -1780,29 +1816,53 @@ var BaseAPI = (function () {
         }
         return returnValue;
     };
+    BaseAPI.prototype.performFetch = function (url, params) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2, fetch(url, {
+                        method: "POST",
+                        body: params instanceof Array ? params.join("&") : JSON.stringify(params),
+                        headers: __assign(__assign({}, this.settings.xhrHeaders), { "Content-Type": this.settings.commitRequestDataType }),
+                        credentials: this.settings.xhrWithCredentials ? "include" : undefined,
+                        keepalive: true,
+                    })];
+            });
+        });
+    };
+    BaseAPI.prototype.transformResponse = function (response) {
+        return __awaiter(this, void 0, void 0, function () {
+            var result, _a;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
+                    case 0:
+                        if (!(typeof this.settings.responseHandler === "function")) return [3, 2];
+                        return [4, this.settings.responseHandler(response)];
+                    case 1:
+                        _a = _c.sent();
+                        return [3, 4];
+                    case 2: return [4, response.json()];
+                    case 3:
+                        _a = _c.sent();
+                        _c.label = 4;
+                    case 4:
+                        result = _a;
+                        if (response.status >= 200 &&
+                            response.status <= 299 &&
+                            (result.result === true ||
+                                result.result === api_constants.global.SCORM_TRUE)) {
+                            this.processListeners("CommitSuccess");
+                        }
+                        else {
+                            this.processListeners("CommitError");
+                        }
+                        return [2, result];
+                }
+            });
+        });
+    };
     return BaseAPI;
 }());
 /* harmony default export */ var src_BaseAPI = (BaseAPI);
-var ScheduledCommit = (function () {
-    function ScheduledCommit(API, when, callback) {
-        this._cancelled = false;
-        this._API = API;
-        this._timeout = setTimeout(this.wrapper.bind(this), when);
-        this._callback = callback;
-    }
-    ScheduledCommit.prototype.cancel = function () {
-        this._cancelled = true;
-        if (this._timeout) {
-            clearTimeout(this._timeout);
-        }
-    };
-    ScheduledCommit.prototype.wrapper = function () {
-        if (!this._cancelled) {
-            this._API.commit(this._callback);
-        }
-    };
-    return ScheduledCommit;
-}());
 
 ;// ./src/constants/regex.ts
 
@@ -3774,6 +3834,7 @@ var ADLNavRequestValid = (function (_super) {
 
 
 
+
 var Scorm2004API = (function (_super) {
     __extends(Scorm2004API, _super);
     function Scorm2004API(settings) {
@@ -3809,28 +3870,51 @@ var Scorm2004API = (function (_super) {
         return this.initialize("Initialize");
     };
     Scorm2004API.prototype.lmsFinish = function () {
-        var result = this.terminate("Terminate", true);
-        if (result === api_constants.global.SCORM_TRUE) {
-            if (this.adl.nav.request !== "_none_") {
-                var navActions = {
-                    continue: "SequenceNext",
-                    previous: "SequencePrevious",
-                    choice: "SequenceChoice",
-                    exit: "SequenceExit",
-                    exitAll: "SequenceExitAll",
-                    abandon: "SequenceAbandon",
-                    abandonAll: "SequenceAbandonAll",
-                };
-                var action = navActions[this.adl.nav.request];
-                if (action) {
-                    this.processListeners(action);
+        var _this = this;
+        (function () { return __awaiter(_this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4, this.internalFinish()];
+                    case 1:
+                        _a.sent();
+                        return [2];
                 }
-            }
-            else if (this.settings.autoProgress) {
-                this.processListeners("SequenceNext");
-            }
-        }
-        return result;
+            });
+        }); })();
+        return api_constants.global.SCORM_TRUE;
+    };
+    Scorm2004API.prototype.internalFinish = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var result, navActions, action;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4, this.terminate("Terminate", true)];
+                    case 1:
+                        result = _a.sent();
+                        if (result === api_constants.global.SCORM_TRUE) {
+                            if (this.adl.nav.request !== "_none_") {
+                                navActions = {
+                                    continue: "SequenceNext",
+                                    previous: "SequencePrevious",
+                                    choice: "SequenceChoice",
+                                    exit: "SequenceExit",
+                                    exitAll: "SequenceExitAll",
+                                    abandon: "SequenceAbandon",
+                                    abandonAll: "SequenceAbandonAll",
+                                };
+                                action = navActions[this.adl.nav.request];
+                                if (action) {
+                                    this.processListeners(action);
+                                }
+                            }
+                            else if (this.settings.autoProgress) {
+                                this.processListeners("SequenceNext");
+                            }
+                        }
+                        return [2, result];
+                }
+            });
+        });
     };
     Scorm2004API.prototype.lmsGetValue = function (CMIElement) {
         return this.getValue("GetValue", true, CMIElement);
@@ -3839,7 +3923,18 @@ var Scorm2004API = (function (_super) {
         return this.setValue("SetValue", "Commit", true, CMIElement, value);
     };
     Scorm2004API.prototype.lmsCommit = function () {
-        return this.commit("Commit");
+        var _this = this;
+        (function () { return __awaiter(_this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4, this.commit("Commit")];
+                    case 1:
+                        _a.sent();
+                        return [2];
+                }
+            });
+        }); })();
+        return api_constants.global.SCORM_TRUE;
     };
     Scorm2004API.prototype.lmsGetLastError = function () {
         return this.getLastError("GetLastError");
@@ -3854,24 +3949,24 @@ var Scorm2004API = (function (_super) {
         return this._commonSetCMIValue("SetValue", true, CMIElement, value);
     };
     Scorm2004API.prototype.getChildElement = function (CMIElement, value, foundFirstIndex) {
-        if (this.stringMatches(CMIElement, "cmi\\.objectives\\.\\d+")) {
+        if (stringMatches(CMIElement, "cmi\\.objectives\\.\\d+")) {
             return new CMIObjectivesObject();
         }
         if (foundFirstIndex) {
-            if (this.stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+")) {
+            if (stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+")) {
                 return this.createCorrectResponsesObject(CMIElement, value);
             }
-            else if (this.stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")) {
+            else if (stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")) {
                 return new CMIInteractionsObjectivesObject();
             }
         }
-        else if (this.stringMatches(CMIElement, "cmi\\.interactions\\.\\d+")) {
+        else if (stringMatches(CMIElement, "cmi\\.interactions\\.\\d+")) {
             return new CMIInteractionsObject();
         }
-        if (this.stringMatches(CMIElement, "cmi\\.comments_from_learner\\.\\d+")) {
+        if (stringMatches(CMIElement, "cmi\\.comments_from_learner\\.\\d+")) {
             return new CMICommentsObject();
         }
-        else if (this.stringMatches(CMIElement, "cmi\\.comments_from_lms\\.\\d+")) {
+        else if (stringMatches(CMIElement, "cmi\\.comments_from_lms\\.\\d+")) {
             return new CMICommentsObject(true);
         }
         return null;
@@ -4097,57 +4192,64 @@ var Scorm2004API = (function (_super) {
         }
     };
     Scorm2004API.prototype.storeData = function (terminateCommit) {
-        var _a, _b, _c;
-        if (terminateCommit) {
-            if (this.cmi.mode === "normal") {
-                if (this.cmi.credit === "credit") {
-                    if (this.cmi.completion_threshold && this.cmi.progress_measure) {
-                        if (this.cmi.progress_measure >= this.cmi.completion_threshold) {
-                            this.cmi.completion_status = "completed";
+        return __awaiter(this, void 0, void 0, function () {
+            var navRequest, commitObject, result;
+            var _a, _b, _c;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
+                    case 0:
+                        if (terminateCommit) {
+                            if (this.cmi.mode === "normal") {
+                                if (this.cmi.credit === "credit") {
+                                    if (this.cmi.completion_threshold && this.cmi.progress_measure) {
+                                        if (this.cmi.progress_measure >= this.cmi.completion_threshold) {
+                                            this.cmi.completion_status = "completed";
+                                        }
+                                        else {
+                                            this.cmi.completion_status = "incomplete";
+                                        }
+                                    }
+                                    if (this.cmi.scaled_passing_score && this.cmi.score.scaled) {
+                                        if (this.cmi.score.scaled >= this.cmi.scaled_passing_score) {
+                                            this.cmi.success_status = "passed";
+                                        }
+                                        else {
+                                            this.cmi.success_status = "failed";
+                                        }
+                                    }
+                                }
+                            }
                         }
-                        else {
-                            this.cmi.completion_status = "incomplete";
+                        navRequest = false;
+                        if (this.adl.nav.request !== ((_c = (_b = (_a = this.startingData) === null || _a === void 0 ? void 0 : _a.adl) === null || _b === void 0 ? void 0 : _b.nav) === null || _c === void 0 ? void 0 : _c.request) &&
+                            this.adl.nav.request !== "_none_") {
+                            this.adl.nav.request = encodeURIComponent(this.adl.nav.request);
+                            navRequest = true;
                         }
-                    }
-                    if (this.cmi.scaled_passing_score && this.cmi.score.scaled) {
-                        if (this.cmi.score.scaled >= this.cmi.scaled_passing_score) {
-                            this.cmi.success_status = "passed";
+                        commitObject = this.renderCommitCMI(terminateCommit || this.settings.alwaysSendTotalTime);
+                        if (this.apiLogLevel === api_constants.global.LOG_LEVEL_DEBUG) {
+                            console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");
+                            console.debug(commitObject);
                         }
-                        else {
-                            this.cmi.success_status = "failed";
+                        if (!(typeof this.settings.lmsCommitUrl === "string")) return [3, 2];
+                        return [4, this.processHttpRequest(this.settings.lmsCommitUrl, commitObject, terminateCommit)];
+                    case 1:
+                        result = _d.sent();
+                        {
+                            if (navRequest &&
+                                result.navRequest !== undefined &&
+                                result.navRequest !== "") {
+                                Function("\"use strict\";(() => { ".concat(result.navRequest, " })()"))();
+                            }
                         }
-                    }
+                        return [2, result];
+                    case 2: return [2, {
+                            result: api_constants.global.SCORM_TRUE,
+                            errorCode: 0,
+                        }];
                 }
-            }
-        }
-        var navRequest = false;
-        if (this.adl.nav.request !== ((_c = (_b = (_a = this.startingData) === null || _a === void 0 ? void 0 : _a.adl) === null || _b === void 0 ? void 0 : _b.nav) === null || _c === void 0 ? void 0 : _c.request) &&
-            this.adl.nav.request !== "_none_") {
-            this.adl.nav.request = encodeURIComponent(this.adl.nav.request);
-            navRequest = true;
-        }
-        var commitObject = this.renderCommitCMI(terminateCommit || this.settings.alwaysSendTotalTime);
-        if (this.apiLogLevel === api_constants.global.LOG_LEVEL_DEBUG) {
-            console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");
-            console.debug(commitObject);
-        }
-        if (typeof this.settings.lmsCommitUrl === "string") {
-            var result = this.processHttpRequest(this.settings.lmsCommitUrl, commitObject, terminateCommit);
-            {
-                if (navRequest &&
-                    result.navRequest !== undefined &&
-                    result.navRequest !== "") {
-                    Function("\"use strict\";(() => { ".concat(result.navRequest, " })()"))();
-                }
-            }
-            return result;
-        }
-        else {
-            return {
-                result: api_constants.global.SCORM_TRUE,
-                errorCode: 0,
-            };
-        }
+            });
+        });
     };
     return Scorm2004API;
 }(src_BaseAPI));
@@ -5097,6 +5199,7 @@ var NAV = (function (_super) {
 
 
 
+
 var Scorm12API = (function (_super) {
     __extends(Scorm12API, _super);
     function Scorm12API(settings) {
@@ -5124,21 +5227,44 @@ var Scorm12API = (function (_super) {
         return this.initialize("LMSInitialize", "LMS was already initialized!", "LMS is already finished!");
     };
     Scorm12API.prototype.lmsFinish = function () {
-        var result = this.terminate("LMSFinish", true);
-        if (result === api_constants.global.SCORM_TRUE) {
-            if (this.nav.event !== "") {
-                if (this.nav.event === "continue") {
-                    this.processListeners("SequenceNext");
+        var _this = this;
+        (function () { return __awaiter(_this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4, this.internalFinish()];
+                    case 1:
+                        _a.sent();
+                        return [2];
                 }
-                else {
-                    this.processListeners("SequencePrevious");
+            });
+        }); })();
+        return api_constants.global.SCORM_TRUE;
+    };
+    Scorm12API.prototype.internalFinish = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var result;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4, this.terminate("LMSFinish", true)];
+                    case 1:
+                        result = _a.sent();
+                        if (result === api_constants.global.SCORM_TRUE) {
+                            if (this.nav.event !== "") {
+                                if (this.nav.event === "continue") {
+                                    this.processListeners("SequenceNext");
+                                }
+                                else {
+                                    this.processListeners("SequencePrevious");
+                                }
+                            }
+                            else if (this.settings.autoProgress) {
+                                this.processListeners("SequenceNext");
+                            }
+                        }
+                        return [2, result];
                 }
-            }
-            else if (this.settings.autoProgress) {
-                this.processListeners("SequenceNext");
-            }
-        }
-        return result;
+            });
+        });
     };
     Scorm12API.prototype.lmsGetValue = function (CMIElement) {
         return this.getValue("LMSGetValue", false, CMIElement);
@@ -5147,7 +5273,18 @@ var Scorm12API = (function (_super) {
         return this.setValue("LMSSetValue", "LMSCommit", false, CMIElement, value);
     };
     Scorm12API.prototype.lmsCommit = function () {
-        return this.commit("LMSCommit", false);
+        var _this = this;
+        (function () { return __awaiter(_this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4, this.commit("LMSCommit", false)];
+                    case 1:
+                        _a.sent();
+                        return [2];
+                }
+            });
+        }); })();
+        return api_constants.global.SCORM_TRUE;
     };
     Scorm12API.prototype.lmsGetLastError = function () {
         return this.getLastError("LMSGetLastError");
@@ -5165,19 +5302,19 @@ var Scorm12API = (function (_super) {
         return this._commonGetCMIValue("getCMIValue", false, CMIElement);
     };
     Scorm12API.prototype.getChildElement = function (CMIElement, _value, foundFirstIndex) {
-        if (this.stringMatches(CMIElement, "cmi\\.objectives\\.\\d+")) {
+        if (stringMatches(CMIElement, "cmi\\.objectives\\.\\d+")) {
             return new objectives_CMIObjectivesObject();
         }
         else if (foundFirstIndex &&
-            this.stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+")) {
+            stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+")) {
             return new interactions_CMIInteractionsCorrectResponsesObject();
         }
         else if (foundFirstIndex &&
-            this.stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")) {
+            stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")) {
             return new interactions_CMIInteractionsObjectivesObject();
         }
         else if (!foundFirstIndex &&
-            this.stringMatches(CMIElement, "cmi\\.interactions\\.\\d+")) {
+            stringMatches(CMIElement, "cmi\\.interactions\\.\\d+")) {
             return new interactions_CMIInteractionsObject();
         }
         return null;
@@ -5222,46 +5359,52 @@ var Scorm12API = (function (_super) {
         }
     };
     Scorm12API.prototype.storeData = function (terminateCommit) {
-        var _a, _b, _c;
-        if (terminateCommit) {
-            var originalStatus = this.cmi.core.lesson_status;
-            if (originalStatus === "not attempted") {
-                this.cmi.core.lesson_status = "completed";
-            }
-            if (this.cmi.core.lesson_mode === "normal") {
-                if (this.cmi.core.credit === "credit") {
-                    if (this.settings.mastery_override &&
-                        this.cmi.student_data.mastery_score !== "" &&
-                        this.cmi.core.score.raw !== "") {
-                        this.cmi.core.lesson_status =
-                            parseFloat(this.cmi.core.score.raw) >=
-                                parseFloat(this.cmi.student_data.mastery_score)
-                                ? "passed"
-                                : "failed";
-                    }
+        return __awaiter(this, void 0, void 0, function () {
+            var originalStatus, commitObject;
+            var _a, _b, _c;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
+                    case 0:
+                        if (terminateCommit) {
+                            originalStatus = this.cmi.core.lesson_status;
+                            if (originalStatus === "not attempted") {
+                                this.cmi.core.lesson_status = "completed";
+                            }
+                            if (this.cmi.core.lesson_mode === "normal") {
+                                if (this.cmi.core.credit === "credit") {
+                                    if (this.settings.mastery_override &&
+                                        this.cmi.student_data.mastery_score !== "" &&
+                                        this.cmi.core.score.raw !== "") {
+                                        this.cmi.core.lesson_status =
+                                            parseFloat(this.cmi.core.score.raw) >=
+                                                parseFloat(this.cmi.student_data.mastery_score)
+                                                ? "passed"
+                                                : "failed";
+                                    }
+                                }
+                            }
+                            else if (this.cmi.core.lesson_mode === "browse") {
+                                if ((((_c = (_b = (_a = this.startingData) === null || _a === void 0 ? void 0 : _a.cmi) === null || _b === void 0 ? void 0 : _b.core) === null || _c === void 0 ? void 0 : _c.lesson_status) || "") === "" &&
+                                    originalStatus === "not attempted") {
+                                    this.cmi.core.lesson_status = "browsed";
+                                }
+                            }
+                        }
+                        commitObject = this.renderCommitCMI(terminateCommit || this.settings.alwaysSendTotalTime);
+                        if (this.apiLogLevel === api_constants.global.LOG_LEVEL_DEBUG) {
+                            console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");
+                            console.debug(commitObject);
+                        }
+                        if (!(typeof this.settings.lmsCommitUrl === "string")) return [3, 2];
+                        return [4, this.processHttpRequest(this.settings.lmsCommitUrl, commitObject, terminateCommit)];
+                    case 1: return [2, _d.sent()];
+                    case 2: return [2, {
+                            result: api_constants.global.SCORM_TRUE,
+                            errorCode: 0,
+                        }];
                 }
-            }
-            else if (this.cmi.core.lesson_mode === "browse") {
-                if ((((_c = (_b = (_a = this.startingData) === null || _a === void 0 ? void 0 : _a.cmi) === null || _b === void 0 ? void 0 : _b.core) === null || _c === void 0 ? void 0 : _c.lesson_status) || "") === "" &&
-                    originalStatus === "not attempted") {
-                    this.cmi.core.lesson_status = "browsed";
-                }
-            }
-        }
-        var commitObject = this.renderCommitCMI(terminateCommit || this.settings.alwaysSendTotalTime);
-        if (this.apiLogLevel === api_constants.global.LOG_LEVEL_DEBUG) {
-            console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");
-            console.debug(commitObject);
-        }
-        if (typeof this.settings.lmsCommitUrl === "string") {
-            return this.processHttpRequest(this.settings.lmsCommitUrl, commitObject, terminateCommit);
-        }
-        else {
-            return {
-                result: api_constants.global.SCORM_TRUE,
-                errorCode: 0,
-            };
-        }
+            });
+        });
     };
     return Scorm12API;
 }(src_BaseAPI));
@@ -6120,6 +6263,8 @@ var aicc_cmi_CMI = (function (_super) {
 
 
 
+
+
 var AICC = (function (_super) {
     __extends(AICC, _super);
     function AICC(settings) {
@@ -6131,14 +6276,17 @@ var AICC = (function (_super) {
     AICC.prototype.getChildElement = function (CMIElement, value, foundFirstIndex) {
         var newChild = _super.prototype.getChildElement.call(this, CMIElement, value, foundFirstIndex);
         if (!newChild) {
-            if (this.stringMatches(CMIElement, "cmi\\.evaluation\\.comments\\.\\d+")) {
+            if (stringMatches(CMIElement, "cmi\\.evaluation\\.comments\\.\\d+")) {
                 newChild = new CMIEvaluationCommentsObject();
             }
-            else if (this.stringMatches(CMIElement, "cmi\\.student_data\\.tries\\.\\d+")) {
+            else if (stringMatches(CMIElement, "cmi\\.student_data\\.tries\\.\\d+")) {
                 newChild = new CMITriesObject();
             }
-            else if (this.stringMatches(CMIElement, "cmi\\.student_data\\.attempt_records\\.\\d+")) {
+            else if (stringMatches(CMIElement, "cmi\\.student_data\\.attempt_records\\.\\d+")) {
                 newChild = new CMIAttemptRecordsObject();
+            }
+            else if (stringMatches(CMIElement, "cmi\\.paths\\.\\d+")) {
+                newChild = new CMIPathsObject();
             }
         }
         return newChild;
