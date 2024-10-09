@@ -9,6 +9,7 @@ import { scorm2004Values } from "./field_values";
 import APIConstants from "../src/constants/api_constants";
 import { RefObject, Settings } from "../src/types/api_types";
 import { DefaultSettings } from "../src/constants/default_settings";
+import { CMI } from "../src/cmi/scorm2004/cmi";
 
 const scorm2004_error_codes = ErrorCodes.scorm2004;
 
@@ -29,6 +30,9 @@ const apiInitialized = (startingData?: RefObject) => {
 };
 
 describe("SCORM 2004 API Tests", () => {
+  let terminateStub: sinon.SinonStub;
+  let processListenersSpy: sinon.SinonSpy;
+
   before(() => {
     clock = sinon.useFakeTimers();
 
@@ -583,6 +587,158 @@ describe("SCORM 2004 API Tests", () => {
     });
   });
 
+  describe("reset()", () => {
+    it("should reset all CMI values to their default state", () => {
+      const scorm2004API = api();
+      scorm2004API.cmi.learner_id = "student_1";
+      scorm2004API.cmi.session_time = "PT1H0M0S";
+
+      scorm2004API.reset();
+
+      expect(scorm2004API.cmi).toEqual(new CMI());
+    });
+
+    it("should keep original settings", () => {
+      const scorm2004API = api({
+        dataCommitFormat: "flattened",
+        autocommit: true,
+      });
+
+      scorm2004API.reset();
+
+      expect(scorm2004API.settings.sendFullCommit).toEqual(
+        DefaultSettings.sendFullCommit,
+      );
+      expect(scorm2004API.settings.dataCommitFormat).toEqual("flattened");
+      expect(scorm2004API.settings.autocommit).toEqual(true);
+    });
+
+    it("should be able to override original settings", () => {
+      const scorm2004API = api({
+        ...DefaultSettings,
+        dataCommitFormat: "flattened",
+        autocommit: true,
+      });
+
+      scorm2004API.reset({
+        alwaysSendTotalTime: !DefaultSettings.alwaysSendTotalTime,
+      });
+
+      expect(scorm2004API.settings.sendFullCommit).toEqual(
+        DefaultSettings.sendFullCommit,
+      );
+      expect(scorm2004API.settings.dataCommitFormat).toEqual("flattened");
+      expect(scorm2004API.settings.autocommit).toEqual(true);
+      expect(scorm2004API.settings.alwaysSendTotalTime).toEqual(
+        !DefaultSettings.alwaysSendTotalTime,
+      );
+    });
+
+    it("should call commonReset from the superclass", () => {
+      const scorm2004API = api();
+      const commonResetSpy = sinon.spy(scorm2004API, "commonReset");
+
+      scorm2004API.reset();
+
+      expect(commonResetSpy.calledOnce).toBe(true);
+      commonResetSpy.restore();
+    });
+  });
+
+  describe("Scorm2004API.Finish", () => {
+    let scorm2004API = api();
+
+    beforeEach(() => {
+      scorm2004API = api();
+      terminateStub = sinon.stub(scorm2004API, "terminate");
+      processListenersSpy = sinon.spy(scorm2004API, "processListeners");
+    });
+
+    afterEach(() => {
+      terminateStub.restore();
+      processListenersSpy.restore();
+    });
+
+    describe("lmsFinish()", () => {
+      it("should call internalFinish and return SCORM_TRUE", async () => {
+        const internalFinishStub = sinon
+          .stub(scorm2004API, "internalFinish")
+          .resolves(APIConstants.global.SCORM_TRUE);
+        const result = scorm2004API.lmsFinish();
+        expect(result).toEqual(APIConstants.global.SCORM_TRUE);
+        expect(internalFinishStub.calledOnce).toBe(true);
+        internalFinishStub.restore();
+      });
+    });
+
+    describe("internalFinish()", () => {
+      const navActions: { [key: string]: string } = {
+        previous: "SequencePrevious",
+        continue: "SequenceNext",
+        choice: "SequenceChoice",
+        jump: "SequenceJump",
+        "{target=next-sco}choice": "SequenceChoice",
+        exit: "SequenceExit",
+        exitAll: "SequenceExitAll",
+        abandon: "SequenceAbandon",
+        abandonAll: "SequenceAbandonAll",
+      };
+
+      it("should call terminate with 'Terminate' and true", async () => {
+        terminateStub.resolves(APIConstants.global.SCORM_TRUE);
+        await scorm2004API.internalFinish();
+        expect(terminateStub.calledWith("Terminate", true)).toBe(true);
+      });
+
+      for (const navRequest of Object.keys(navActions)) {
+        it(`should process the correct navigation action based on adl.nav.request = ${navRequest}`, async () => {
+          terminateStub.resolves(APIConstants.global.SCORM_TRUE);
+          scorm2004API.adl.nav.request = navRequest;
+          await scorm2004API.internalFinish();
+          expect(processListenersSpy.calledWith(navActions[navRequest])).toBe(
+            true,
+          );
+        });
+      }
+
+      it("should process 'SequenceNext' if adl.nav.request is '_none_' and autoProgress is true", async () => {
+        terminateStub.resolves(APIConstants.global.SCORM_TRUE);
+        scorm2004API.adl.nav.request = "_none_";
+        scorm2004API.settings.autoProgress = true;
+        await scorm2004API.internalFinish();
+        expect(processListenersSpy.calledWith("SequenceNext")).toBe(true);
+      });
+
+      it("should not process any action if adl.nav.request is '_none_' and autoProgress is false", async () => {
+        terminateStub.resolves(APIConstants.global.SCORM_TRUE);
+        scorm2004API.adl.nav.request = "_none_";
+        scorm2004API.settings.autoProgress = false;
+        await scorm2004API.internalFinish();
+        expect(processListenersSpy.called).toBe(false);
+      });
+
+      it("should return the result of terminate", async () => {
+        terminateStub.resolves(APIConstants.global.SCORM_TRUE);
+        const result = await scorm2004API.internalFinish();
+        expect(result).toEqual(APIConstants.global.SCORM_TRUE);
+      });
+    });
+  });
+
+  describe("lmsCommit()", () => {
+    const scorm2004API = api();
+
+    it("should call commit and return SCORM_TRUE", async () => {
+      const commitStub = sinon
+        .stub(scorm2004API, "commit")
+        .resolves(APIConstants.global.SCORM_TRUE);
+      const result = scorm2004API.lmsCommit();
+      expect(result).toEqual(APIConstants.global.SCORM_TRUE);
+      expect(commitStub.calledOnce).toBe(true);
+      commitStub.restore();
+    });
+  });
+
   describe("loadFromFlattenedJSON()", () => {
     it("should load data, even if out of order", () => {
       const scorm2004API = api();
@@ -601,6 +757,8 @@ describe("SCORM 2004 API Tests", () => {
           "cmi.interactions.0.latency": "PT2M30S",
           "cmi.interactions.0.objectives.0.id": "Question14_1",
           "cmi.interactions.0.objectives.0.correct_responses.0.pattern": "CPR",
+          "adl.nav.request": "continue",
+          "adl.nav.request_valid.choice.{target=sco-id}": "true",
         },
         "",
       );

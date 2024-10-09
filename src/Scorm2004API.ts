@@ -1,11 +1,13 @@
 import BaseAPI from "./BaseAPI";
 import { CMI } from "./cmi/scorm2004/cmi";
 import * as Utilities from "./utilities";
+import { stringMatches } from "./utilities";
 import APIConstants from "./constants/api_constants";
 import ErrorCodes from "./constants/error_codes";
 import { CorrectResponses, ResponseType } from "./constants/response_constants";
 import ValidLanguages from "./constants/language_constants";
 import Regex from "./constants/regex";
+import regex from "./constants/regex";
 import { CMIArray } from "./cmi/common/array";
 import { BaseCMI } from "./cmi/common/base_cmi";
 import {
@@ -17,7 +19,6 @@ import { CMICommentsObject } from "./cmi/scorm2004/comments";
 import { CMIObjectivesObject } from "./cmi/scorm2004/objectives";
 import { ADL } from "./cmi/scorm2004/adl";
 import { RefObject, ResultObject, Settings } from "./types/api_types";
-import { stringMatches } from "./utilities";
 
 /**
  * API class for SCORM 2004
@@ -68,7 +69,7 @@ export default class Scorm2004API extends BaseAPI {
    * Called when the API needs to be reset
    */
   reset(settings?: Settings) {
-    super.commonReset(settings);
+    this.commonReset(settings);
 
     this.cmi = new CMI();
     this.adl = new ADL();
@@ -109,15 +110,24 @@ export default class Scorm2004API extends BaseAPI {
           continue: "SequenceNext",
           previous: "SequencePrevious",
           choice: "SequenceChoice",
+          jump: "SequenceJump",
           exit: "SequenceExit",
           exitAll: "SequenceExitAll",
           abandon: "SequenceAbandon",
           abandonAll: "SequenceAbandonAll",
         };
 
-        const action = navActions[this.adl.nav.request];
+        let request = this.adl.nav.request;
+        const choiceJumpRegex = new RegExp(regex.scorm2004.NAVEvent);
+        const matches = request.match(choiceJumpRegex);
+        let target = "";
+        if (matches && matches.length > 2) {
+          target = matches[2];
+          request = matches[1].replace(target, "");
+        }
+        const action = navActions[request];
         if (action) {
-          this.processListeners(action);
+          this.processListeners(action, "adl.nav.request", target);
         }
       } else if (this.settings.autoProgress) {
         this.processListeners("SequenceNext");
@@ -132,6 +142,19 @@ export default class Scorm2004API extends BaseAPI {
    * @return {string}
    */
   lmsGetValue(CMIElement: string): string {
+    const adlNavRequestRegex =
+      "^adl\\.nav\\.request_valid\\.(choice|jump)\\.{target=\\S{0,}([a-zA-Z0-9-_]+)}$";
+    if (stringMatches(CMIElement, adlNavRequestRegex)) {
+      const matches = CMIElement.match(adlNavRequestRegex);
+      const request = matches[1];
+      const target = matches[2].replace("{target=", "").replace("}", "");
+      if (request === "choice" || request === "jump") {
+        if (this.settings.scoItemIdValidator) {
+          return String(this.settings.scoItemIdValidator(target));
+        }
+        return String(this.settings.scoItemIds.includes(target));
+      }
+    }
     return this.getValue("GetValue", true, CMIElement);
   }
 

@@ -1,8 +1,9 @@
-import {BaseCMI} from "../common/base_cmi";
-import {Scorm2004ValidationError} from "../../exceptions";
+import { BaseCMI } from "../common/base_cmi";
+import { Scorm2004ValidationError } from "../../exceptions";
 import ErrorCodes from "../../constants/error_codes";
-import {check2004ValidFormat} from "./validation";
+import { check2004ValidFormat } from "./validation";
 import Regex from "../../constants/regex";
+import { NAVBoolean } from "../../constants/enums";
 
 /**
  * Class representing SCORM 2004's adl object
@@ -50,7 +51,7 @@ export class ADL extends BaseCMI {
  * Class representing SCORM 2004's `adl.nav` object
  */
 
-class ADLNav extends BaseCMI {
+export class ADLNav extends BaseCMI {
   private _request = "_none_";
 
   /**
@@ -114,25 +115,15 @@ class ADLNav extends BaseCMI {
  * Class representing SCORM 2004's adl.nav.request_valid object
  */
 
-class ADLNavRequestValid extends BaseCMI {
+export class ADLNavRequestValid extends BaseCMI {
   private _continue = "unknown";
   private _previous = "unknown";
-  choice = class {
-    /**
-     * Check if target is valid
-     * @param {string} _target
-     * @return {string}
-     */
-    _isTargetValid = (_target: string): string => "unknown";
-  };
-  jump = class {
-    /**
-     * Check if target is valid
-     * @param {string} _target
-     * @return {string}
-     */
-    _isTargetValid = (_target: string): string => "unknown";
-  };
+  private _choice: {
+    [key: string]: NAVBoolean;
+  } = {};
+  private _jump: {
+    [key: string]: NAVBoolean;
+  } = {};
 
   /**
    * Constructor for adl.nav.request_valid
@@ -154,7 +145,14 @@ class ADLNavRequestValid extends BaseCMI {
    * @param {string} _continue
    */
   set continue(_continue: string) {
-    throw new Scorm2004ValidationError(ErrorCodes.scorm2004.READ_ONLY_ELEMENT);
+    if (this.initialized) {
+      throw new Scorm2004ValidationError(
+        ErrorCodes.scorm2004.READ_ONLY_ELEMENT,
+      );
+    }
+    if (check2004ValidFormat(_continue, Regex.scorm2004.NAVBoolean)) {
+      this._continue = _continue;
+    }
   }
 
   /**
@@ -170,7 +168,81 @@ class ADLNavRequestValid extends BaseCMI {
    * @param {string} _previous
    */
   set previous(_previous: string) {
-    throw new Scorm2004ValidationError(ErrorCodes.scorm2004.READ_ONLY_ELEMENT);
+    if (this.initialized) {
+      throw new Scorm2004ValidationError(
+        ErrorCodes.scorm2004.READ_ONLY_ELEMENT,
+      );
+    }
+    if (check2004ValidFormat(_previous, Regex.scorm2004.NAVBoolean)) {
+      this._previous = _previous;
+    }
+  }
+
+  /**
+   * Getter for _choice
+   * @return {{ [key: string]: NAVBoolean }}
+   */
+  get choice(): { [key: string]: NAVBoolean } {
+    return this._choice;
+  }
+
+  /**
+   * Setter for _choice
+   * @param {{ [key: string]: string }} choice
+   */
+  set choice(choice: { [key: string]: string }) {
+    if (this.initialized) {
+      throw new Scorm2004ValidationError(
+        ErrorCodes.scorm2004.READ_ONLY_ELEMENT,
+      );
+    }
+    if (typeof choice !== "object") {
+      throw new Scorm2004ValidationError(ErrorCodes.scorm2004.TYPE_MISMATCH);
+    }
+    for (const key in choice) {
+      if ({}.hasOwnProperty.call(choice, key)) {
+        if (
+          check2004ValidFormat(choice[key], Regex.scorm2004.NAVBoolean) &&
+          check2004ValidFormat(key, Regex.scorm2004.NAVTarget)
+        ) {
+          this._choice[key] =
+            NAVBoolean[choice[key] as keyof typeof NAVBoolean];
+        }
+      }
+    }
+  }
+
+  /**
+   * Getter for _jump
+   * @return {{ [key: string]: NAVBoolean }}
+   */
+  get jump(): { [key: string]: NAVBoolean } {
+    return this._jump;
+  }
+
+  /**
+   * Setter for _jump
+   * @param {{ [key: string]: string }} jump
+   */
+  set jump(jump: { [key: string]: string }) {
+    if (this.initialized) {
+      throw new Scorm2004ValidationError(
+        ErrorCodes.scorm2004.READ_ONLY_ELEMENT,
+      );
+    }
+    if (typeof jump !== "object") {
+      throw new Scorm2004ValidationError(ErrorCodes.scorm2004.TYPE_MISMATCH);
+    }
+    for (const key in jump) {
+      if ({}.hasOwnProperty.call(jump, key)) {
+        if (
+          check2004ValidFormat(jump[key], Regex.scorm2004.NAVBoolean) &&
+          check2004ValidFormat(key, Regex.scorm2004.NAVTarget)
+        ) {
+          this._jump[key] = NAVBoolean[jump[key] as keyof typeof NAVBoolean];
+        }
+      }
+    }
   }
 
   /**
@@ -190,7 +262,9 @@ class ADLNavRequestValid extends BaseCMI {
     this.jsonString = true;
     const result = {
       previous: this._previous,
-      continue: this.continue,
+      continue: this._continue,
+      choice: this._choice,
+      jump: this._jump,
     };
     delete this.jsonString;
     return result;

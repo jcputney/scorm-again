@@ -76,4 +76,6 @@ export const DefaultSettings: Settings = {
         break;
     }
   },
+  scoItemIds: [],
+  scoItemIdValidator: false,
 };

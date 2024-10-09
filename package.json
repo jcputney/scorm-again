@@ -1,6 +1,6 @@
 {
   "name": "scorm-again",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "A modern SCORM JavaScript run-time library for AICC, SCORM 1.2, and SCORM 2004",
   "main": "dist/scorm-again.min.js",
   "type": "module",
@@ -46,7 +46,7 @@
     "eslint-webpack-plugin": "^4.2.0",
     "expect": "^29.7.0",
     "fetch-pretender": "https://github.com/jcputney/fetch-pretender#master",
-    "globals": "^15.10.0",
+    "globals": "^15.11.0",
     "jsdoc": "^4.0.3",
     "jsdoc-babel": "^0.5.0",
     "minimist": "^1.2.8",
@@ -59,7 +59,7 @@
     "terser-webpack-plugin": "^5.3.10",
     "ts-loader": "^9.5.1",
     "tsx": "^4.19.1",
-    "typescript": "^5.6.2",
+    "typescript": "^5.6.3",
     "typescript-eslint": "^8.8.1",
     "webpack": "^5.91.0",
     "webpack-cli": "^5.1.4"
@@ -95,7 +95,10 @@
       "src/**/*.ts"
     ],
     "exclude": [
-      "test/**/*.*"
+      "test/**/*.*",
+      "src/exports/*.*",
+      "src/interfaces/*.*",
+      "src/types/*.*"
     ],
     "extension": [
       ".ts"

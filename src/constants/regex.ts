@@ -78,10 +78,10 @@ const scorm2004 = {
   CMIResult:
     "^(correct|incorrect|unanticipated|neutral|-?([0-9]{1,4})(\\.[0-9]{1,18})?)$",
   NAVEvent:
-    "^(previous|continue|exit|exitAll|abandon|abandonAll|suspendAll|{target=\\S{0,200}[a-zA-Z0-9]}choice|jump)$",
+    "^(previous|continue|exit|exitAll|abandon|abandonAll|suspendAll|_none_|(\\{target=\\S{0,}[a-zA-Z0-9-_]+})?choice|(\\{target=\\S{0,}[a-zA-Z0-9-_]+})?jump)$",
 
   NAVBoolean: "^(unknown|true|false$)",
-  NAVTarget: "^(previous|continue|choice.{target=\\S{0,200}[a-zA-Z0-9]})$",
+  NAVTarget: "^{target=\\S{0,}[a-zA-Z0-9-_]+}$",
   // Data ranges
   scaled_range: "-1#1",
   audio_range: "0#*",

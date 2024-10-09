@@ -64,7 +64,7 @@ export default class Scorm12API extends BaseAPI {
    * Called when the API needs to be reset
    */
   reset(settings?: Settings) {
-    super.commonReset(settings);
+    this.commonReset(settings);
 
     this.cmi = new CMI();
     this.nav = new NAV();

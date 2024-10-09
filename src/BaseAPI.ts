@@ -58,7 +58,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {Settings} settings
    * @protected
    */
-  protected commonReset(settings?: Settings): void {
+  commonReset(settings?: Settings): void {
     this.settings = { ...this.settings, ...settings };
 
     this.currentState = APIConstants.global.STATE_NOT_INITIALIZED;
@@ -581,18 +581,21 @@ export default abstract class BaseAPI implements IBaseAPI {
       const attribute = structure[idx];
 
       if (idx === structure.length - 1) {
-        if (
-          scorm2004 &&
-          attribute.substring(0, 8) === "{target=" &&
-          typeof refObject._isTargetValid == "function"
-        ) {
-          this.throwSCORMError(this._error_codes.READ_ONLY_ELEMENT);
+        if (scorm2004 && attribute.substring(0, 8) === "{target=") {
+          if (this.isInitialized()) {
+            this.throwSCORMError(this._error_codes.READ_ONLY_ELEMENT);
+          } else {
+            refObject = {
+              ...refObject,
+              attribute: value,
+            };
+          }
         } else if (!this._checkObjectHasProperty(refObject, attribute)) {
           this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
         } else {
           if (
-            this.isInitialized() &&
-            stringMatches(CMIElement, "\\.correct_responses\\.\\d+")
+            stringMatches(CMIElement, "\\.correct_responses\\.\\d+") &&
+            this.isInitialized()
           ) {
             this.validateCorrectResponse(CMIElement, value);
           }
