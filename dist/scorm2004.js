@@ -1036,7 +1036,7 @@ var DefaultSettings = {
     autocommit: false,
     autocommitSeconds: 10,
     asyncCommit: false,
-    sendBeaconCommit: false,
+    sendFullCommit: true,
     lmsCommitUrl: false,
     dataCommitFormat: "json",
     commitRequestDataType: "application/json;charset=UTF-8",
@@ -1175,6 +1175,12 @@ var BaseAPI = (function () {
         this.apiLogLevel = this.settings.logLevel;
         this.selfReportSessionTime = this.settings.selfReportSessionTime;
     }
+    BaseAPI.prototype.commonReset = function (settings) {
+        this.settings = __assign(__assign({}, this.settings), settings);
+        this.currentState = api_constants.global.STATE_NOT_INITIALIZED;
+        this.lastErrorCode = "0";
+        this.listenerArray = [];
+    };
     BaseAPI.prototype.initialize = function (callbackName, initializeMessage, terminationMessage) {
         var returnValue = api_constants.global.SCORM_FALSE;
         if (this.isInitialized()) {
@@ -1717,7 +1723,10 @@ var BaseAPI = (function () {
     };
     BaseAPI.prototype.renderCMIToJSONString = function () {
         var cmi = this.cmi;
-        return JSON.stringify({ cmi: cmi });
+        if (this.settings.sendFullCommit) {
+            return JSON.stringify({ cmi: cmi });
+        }
+        return JSON.stringify({ cmi: cmi }, function (k, v) { return (v === undefined ? null : v); }, 2);
     };
     BaseAPI.prototype.renderCMIToJSONObject = function () {
         return JSON.parse(this.renderCMIToJSONString());
@@ -3858,6 +3867,11 @@ var Scorm2004API = (function (_super) {
         _this.GetDiagnostic = _this.lmsGetDiagnostic;
         return _this;
     }
+    Scorm2004API.prototype.reset = function (settings) {
+        _super.prototype.commonReset.call(this, settings);
+        this.cmi = new CMI();
+        this.adl = new ADL();
+    };
     Object.defineProperty(Scorm2004API.prototype, "version", {
         get: function () {
             return this._version;
