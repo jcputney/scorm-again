@@ -51,6 +51,21 @@ export default abstract class BaseAPI implements IBaseAPI {
   public apiLogLevel: number;
   public selfReportSessionTime: boolean;
 
+  abstract reset(settings?: Settings): void;
+
+  /**
+   * Common reset method for all APIs. New settings are merged with the existing settings.
+   * @param {Settings} settings
+   * @protected
+   */
+  protected commonReset(settings?: Settings): void {
+    this.settings = { ...this.settings, ...settings };
+
+    this.currentState = APIConstants.global.STATE_NOT_INITIALIZED;
+    this.lastErrorCode = "0";
+    this.listenerArray = [];
+  }
+
   /**
    * Initialize the API
    * @param {string} callbackName
@@ -1070,8 +1085,10 @@ export default abstract class BaseAPI implements IBaseAPI {
   renderCMIToJSONString(): string {
     const cmi = this.cmi;
     // Do we want/need to return fields that have no set value?
-    // return JSON.stringify({ cmi }, (k, v) => v === undefined ? null : v, 2);
-    return JSON.stringify({ cmi });
+    if (this.settings.sendFullCommit) {
+      return JSON.stringify({ cmi });
+    }
+    return JSON.stringify({ cmi }, (k, v) => (v === undefined ? null : v), 2);
   }
 
   /**
@@ -1079,8 +1096,6 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @return {object}
    */
   renderCMIToJSONObject(): object {
-    // Do we want/need to return fields that have no set value?
-    // return JSON.stringify({ cmi }, (k, v) => v === undefined ? null : v, 2);
     return JSON.parse(this.renderCMIToJSONString());
   }
 

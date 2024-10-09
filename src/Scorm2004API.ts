@@ -65,6 +65,16 @@ export default class Scorm2004API extends BaseAPI {
   public GetDiagnostic: (CMIErrorCode: string | number) => string;
 
   /**
+   * Called when the API needs to be reset
+   */
+  reset(settings?: Settings) {
+    super.commonReset(settings);
+
+    this.cmi = new CMI();
+    this.adl = new ADL();
+  }
+
+  /**
    * Getter for _version
    * @return {string}
    */

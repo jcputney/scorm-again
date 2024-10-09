@@ -1086,4 +1086,55 @@ describe("SCORM 2004 API Tests", () => {
       expect(callback.called).toBe(true);
     });
   });
+
+  describe("Test issues from users", () => {
+    it("Should be able to load the JSON data from issue #678", () => {
+      const scorm20004api = api(
+        {
+          ...DefaultSettings,
+          autocommit: false,
+          lmsCommitUrl: "/scorm2004",
+          logLevel: 1,
+        },
+        {
+          comments_from_learner: {},
+          comments_from_lms: {},
+          completion_status: "incomplete",
+          completion_threshold: "",
+          credit: "credit",
+          entry: "resume",
+          exit: "suspend",
+          interactions: {},
+          launch_data: "",
+          learner_id: "Test",
+          learner_name: "User,Sample",
+          learner_preference: {
+            audio_level: "1",
+            language: "",
+            delivery_speed: "1",
+            audio_captioning: "0",
+          },
+          location: "1",
+          max_time_allowed: "",
+          mode: "normal",
+          objectives: {},
+          progress_measure: "",
+          scaled_passing_score: "",
+          score: {
+            scaled: "",
+            raw: "",
+            min: "",
+            max: "",
+          },
+          session_time: "PT19.57S",
+          success_status: "unknown",
+          suspend_data: "",
+          time_limit_action: "continue,no message",
+          total_time: "PT19.57S",
+        },
+      );
+
+      expect(scorm20004api.cmi.learner_preference).not.toBeNull();
+    });
+  });
 });

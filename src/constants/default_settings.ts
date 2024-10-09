@@ -8,7 +8,7 @@ export const DefaultSettings: Settings = {
   autocommit: false,
   autocommitSeconds: 10,
   asyncCommit: false,
-  sendBeaconCommit: false,
+  sendFullCommit: true,
   lmsCommitUrl: false,
   dataCommitFormat: "json",
   commitRequestDataType: "application/json;charset=UTF-8",

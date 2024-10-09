@@ -46,6 +46,8 @@ export default class Scorm12API extends BaseAPI {
     this.LMSGetDiagnostic = this.lmsGetDiagnostic;
   }
 
+  public statusSetByModule = false;
+
   public cmi: CMI;
   public nav: NAV;
 
@@ -59,12 +61,27 @@ export default class Scorm12API extends BaseAPI {
   public LMSGetDiagnostic: (CMIErrorCode: string) => string;
 
   /**
+   * Called when the API needs to be reset
+   */
+  reset(settings?: Settings) {
+    super.commonReset(settings);
+
+    this.cmi = new CMI();
+    this.nav = new NAV();
+  }
+
+  /**
    * lmsInitialize function from SCORM 1.2 Spec
    *
    * @return {string} bool
    */
   lmsInitialize(): string {
     this.cmi.initialize();
+    if (this.cmi.core.lesson_status) {
+      this.statusSetByModule = true;
+    } else {
+      this.cmi.core.lesson_status = "not attempted";
+    }
     return this.initialize(
       "LMSInitialize",
       "LMS was already initialized!",
@@ -120,6 +137,9 @@ export default class Scorm12API extends BaseAPI {
    * @return {string}
    */
   lmsSetValue(CMIElement: string, value: any): string {
+    if (CMIElement === "cmi.core.lesson_status") {
+      this.statusSetByModule = true;
+    }
     return this.setValue("LMSSetValue", "LMSCommit", false, CMIElement, value);
   }
 
@@ -309,7 +329,11 @@ export default class Scorm12API extends BaseAPI {
   async storeData(terminateCommit: boolean): Promise<ResultObject> {
     if (terminateCommit) {
       const originalStatus = this.cmi.core.lesson_status;
-      if (originalStatus === "not attempted") {
+      if (
+        !this.cmi.core.lesson_status ||
+        (!this.statusSetByModule &&
+          this.cmi.core.lesson_status === "not attempted")
+      ) {
         this.cmi.core.lesson_status = "completed";
       }
 

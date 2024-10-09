@@ -2,7 +2,7 @@ export type Settings = {
   autocommit: boolean;
   autocommitSeconds: number;
   asyncCommit: boolean;
-  sendBeaconCommit: boolean;
+  sendFullCommit: boolean;
   lmsCommitUrl: boolean | string;
   dataCommitFormat: string;
   commitRequestDataType: string;
