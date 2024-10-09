@@ -1036,7 +1036,7 @@ var DefaultSettings = {
     autocommit: false,
     autocommitSeconds: 10,
     asyncCommit: false,
-    sendBeaconCommit: false,
+    sendFullCommit: true,
     lmsCommitUrl: false,
     dataCommitFormat: "json",
     commitRequestDataType: "application/json;charset=UTF-8",
@@ -1175,6 +1175,12 @@ var BaseAPI = (function () {
         this.apiLogLevel = this.settings.logLevel;
         this.selfReportSessionTime = this.settings.selfReportSessionTime;
     }
+    BaseAPI.prototype.commonReset = function (settings) {
+        this.settings = __assign(__assign({}, this.settings), settings);
+        this.currentState = api_constants.global.STATE_NOT_INITIALIZED;
+        this.lastErrorCode = "0";
+        this.listenerArray = [];
+    };
     BaseAPI.prototype.initialize = function (callbackName, initializeMessage, terminationMessage) {
         var returnValue = api_constants.global.SCORM_FALSE;
         if (this.isInitialized()) {
@@ -1717,7 +1723,10 @@ var BaseAPI = (function () {
     };
     BaseAPI.prototype.renderCMIToJSONString = function () {
         var cmi = this.cmi;
-        return JSON.stringify({ cmi: cmi });
+        if (this.settings.sendFullCommit) {
+            return JSON.stringify({ cmi: cmi });
+        }
+        return JSON.stringify({ cmi: cmi }, function (k, v) { return (v === undefined ? null : v); }, 2);
     };
     BaseAPI.prototype.renderCMIToJSONObject = function () {
         return JSON.parse(this.renderCMIToJSONString());
@@ -3018,6 +3027,7 @@ var Scorm12API = (function (_super) {
             }
         }
         _this = _super.call(this, error_codes.scorm12, settings) || this;
+        _this.statusSetByModule = false;
         _this.cmi = new CMI();
         _this.nav = new NAV();
         _this.LMSInitialize = _this.lmsInitialize;
@@ -3030,8 +3040,19 @@ var Scorm12API = (function (_super) {
         _this.LMSGetDiagnostic = _this.lmsGetDiagnostic;
         return _this;
     }
+    Scorm12API.prototype.reset = function (settings) {
+        _super.prototype.commonReset.call(this, settings);
+        this.cmi = new CMI();
+        this.nav = new NAV();
+    };
     Scorm12API.prototype.lmsInitialize = function () {
         this.cmi.initialize();
+        if (this.cmi.core.lesson_status) {
+            this.statusSetByModule = true;
+        }
+        else {
+            this.cmi.core.lesson_status = "not attempted";
+        }
         return this.initialize("LMSInitialize", "LMS was already initialized!", "LMS is already finished!");
     };
     Scorm12API.prototype.lmsFinish = function () {
@@ -3078,6 +3099,9 @@ var Scorm12API = (function (_super) {
         return this.getValue("LMSGetValue", false, CMIElement);
     };
     Scorm12API.prototype.lmsSetValue = function (CMIElement, value) {
+        if (CMIElement === "cmi.core.lesson_status") {
+            this.statusSetByModule = true;
+        }
         return this.setValue("LMSSetValue", "LMSCommit", false, CMIElement, value);
     };
     Scorm12API.prototype.lmsCommit = function () {
@@ -3175,7 +3199,9 @@ var Scorm12API = (function (_super) {
                     case 0:
                         if (terminateCommit) {
                             originalStatus = this.cmi.core.lesson_status;
-                            if (originalStatus === "not attempted") {
+                            if (!this.cmi.core.lesson_status ||
+                                (!this.statusSetByModule &&
+                                    this.cmi.core.lesson_status === "not attempted")) {
                                 this.cmi.core.lesson_status = "completed";
                             }
                             if (this.cmi.core.lesson_mode === "normal") {
