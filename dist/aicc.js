@@ -1641,6 +1641,9 @@ var BaseAPI = (function () {
     };
     BaseAPI.prototype.loadFromFlattenedJSON = function (json, CMIElement) {
         var _this = this;
+        if (!CMIElement) {
+            CMIElement = "";
+        }
         if (!this.isNotInitialized()) {
             console.error("loadFromFlattenedJSON can only be called before the call to lmsInitialize.");
             return;
