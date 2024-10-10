@@ -293,6 +293,11 @@ export default abstract class BaseAPI implements IBaseAPI {
       APIConstants.global.LOG_LEVEL_INFO,
       CMIElement,
     );
+
+    if (returnValue === undefined) {
+      return "";
+    }
+
     this.clearSCORMError(returnValue);
 
     return returnValue;
