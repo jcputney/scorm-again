@@ -1273,6 +1273,9 @@ var BaseAPI = (function () {
             this.processListeners(callbackName, CMIElement);
         }
         this.apiLog(callbackName, ": returned: " + returnValue, api_constants.global.LOG_LEVEL_INFO, CMIElement);
+        if (returnValue === undefined) {
+            return "";
+        }
         this.clearSCORMError(returnValue);
         return returnValue;
     };
