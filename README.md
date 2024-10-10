@@ -60,6 +60,8 @@ yarn add scorm-again
 You would then initialize the APIs using the following JS statements:
 
 ```javascript
+import { AICC, Scorm12API, Scorm2004API } from 'scorm-again'; // you only do this if you're using the package manager
+
 var settings = {};
 
 // AICC
