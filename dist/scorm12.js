@@ -1116,6 +1116,8 @@ var DefaultSettings = {
                 break;
         }
     },
+    scoItemIds: [],
+    scoItemIdValidator: false,
 };
 
 ;// ./src/helpers/scheduled_commit.ts
@@ -1395,17 +1397,20 @@ var BaseAPI = (function () {
         for (var idx = 0; idx < structure.length; idx++) {
             var attribute = structure[idx];
             if (idx === structure.length - 1) {
-                if (scorm2004 &&
-                    attribute.substring(0, 8) === "{target=" &&
-                    typeof refObject._isTargetValid == "function") {
-                    this.throwSCORMError(this._error_codes.READ_ONLY_ELEMENT);
+                if (scorm2004 && attribute.substring(0, 8) === "{target=") {
+                    if (this.isInitialized()) {
+                        this.throwSCORMError(this._error_codes.READ_ONLY_ELEMENT);
+                    }
+                    else {
+                        refObject = __assign(__assign({}, refObject), { attribute: value });
+                    }
                 }
                 else if (!this._checkObjectHasProperty(refObject, attribute)) {
                     this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
                 }
                 else {
-                    if (this.isInitialized() &&
-                        stringMatches(CMIElement, "\\.correct_responses\\.\\d+")) {
+                    if (stringMatches(CMIElement, "\\.correct_responses\\.\\d+") &&
+                        this.isInitialized()) {
                         this.validateCorrectResponse(CMIElement, value);
                     }
                     if (!scorm2004 || this.lastErrorCode === "0") {
@@ -1928,9 +1933,9 @@ var regex_scorm2004 = {
     CMIExit: "^(time-out|suspend|logout|normal)$",
     CMIType: "^(true-false|choice|fill-in|long-fill-in|matching|performance|sequencing|likert|numeric|other)$",
     CMIResult: "^(correct|incorrect|unanticipated|neutral|-?([0-9]{1,4})(\\.[0-9]{1,18})?)$",
-    NAVEvent: "^(previous|continue|exit|exitAll|abandon|abandonAll|suspendAll|{target=\\S{0,200}[a-zA-Z0-9]}choice|jump)$",
+    NAVEvent: "^(previous|continue|exit|exitAll|abandon|abandonAll|suspendAll|_none_|(\\{target=\\S{0,}[a-zA-Z0-9-_]+})?choice|(\\{target=\\S{0,}[a-zA-Z0-9-_]+})?jump)$",
     NAVBoolean: "^(unknown|true|false$)",
-    NAVTarget: "^(previous|continue|choice.{target=\\S{0,200}[a-zA-Z0-9]})$",
+    NAVTarget: "^{target=\\S{0,}[a-zA-Z0-9-_]+}$",
     scaled_range: "-1#1",
     audio_range: "0#*",
     speed_range: "0#*",
@@ -3041,7 +3046,7 @@ var Scorm12API = (function (_super) {
         return _this;
     }
     Scorm12API.prototype.reset = function (settings) {
-        _super.prototype.commonReset.call(this, settings);
+        this.commonReset(settings);
         this.cmi = new CMI();
         this.nav = new NAV();
     };

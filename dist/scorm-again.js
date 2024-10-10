@@ -1116,6 +1116,8 @@ var DefaultSettings = {
                 break;
         }
     },
+    scoItemIds: [],
+    scoItemIdValidator: false,
 };
 
 ;// ./src/helpers/scheduled_commit.ts
@@ -1395,17 +1397,20 @@ var BaseAPI = (function () {
         for (var idx = 0; idx < structure.length; idx++) {
             var attribute = structure[idx];
             if (idx === structure.length - 1) {
-                if (scorm2004 &&
-                    attribute.substring(0, 8) === "{target=" &&
-                    typeof refObject._isTargetValid == "function") {
-                    this.throwSCORMError(this._error_codes.READ_ONLY_ELEMENT);
+                if (scorm2004 && attribute.substring(0, 8) === "{target=") {
+                    if (this.isInitialized()) {
+                        this.throwSCORMError(this._error_codes.READ_ONLY_ELEMENT);
+                    }
+                    else {
+                        refObject = __assign(__assign({}, refObject), { attribute: value });
+                    }
                 }
                 else if (!this._checkObjectHasProperty(refObject, attribute)) {
                     this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
                 }
                 else {
-                    if (this.isInitialized() &&
-                        stringMatches(CMIElement, "\\.correct_responses\\.\\d+")) {
+                    if (stringMatches(CMIElement, "\\.correct_responses\\.\\d+") &&
+                        this.isInitialized()) {
                         this.validateCorrectResponse(CMIElement, value);
                     }
                     if (!scorm2004 || this.lastErrorCode === "0") {
@@ -1928,9 +1933,9 @@ var regex_scorm2004 = {
     CMIExit: "^(time-out|suspend|logout|normal)$",
     CMIType: "^(true-false|choice|fill-in|long-fill-in|matching|performance|sequencing|likert|numeric|other)$",
     CMIResult: "^(correct|incorrect|unanticipated|neutral|-?([0-9]{1,4})(\\.[0-9]{1,18})?)$",
-    NAVEvent: "^(previous|continue|exit|exitAll|abandon|abandonAll|suspendAll|{target=\\S{0,200}[a-zA-Z0-9]}choice|jump)$",
+    NAVEvent: "^(previous|continue|exit|exitAll|abandon|abandonAll|suspendAll|_none_|(\\{target=\\S{0,}[a-zA-Z0-9-_]+})?choice|(\\{target=\\S{0,}[a-zA-Z0-9-_]+})?jump)$",
     NAVBoolean: "^(unknown|true|false$)",
-    NAVTarget: "^(previous|continue|choice.{target=\\S{0,200}[a-zA-Z0-9]})$",
+    NAVTarget: "^{target=\\S{0,}[a-zA-Z0-9-_]+}$",
     scaled_range: "-1#1",
     audio_range: "0#*",
     speed_range: "0#*",
@@ -3712,7 +3717,16 @@ var ValidLanguages = [
 ];
 /* harmony default export */ var language_constants = (ValidLanguages);
 
+;// ./src/constants/enums.ts
+var NAVBoolean;
+(function (NAVBoolean) {
+    NAVBoolean["unknown"] = "unknown";
+    NAVBoolean["true"] = "true";
+    NAVBoolean["false"] = "false";
+})(NAVBoolean || (NAVBoolean = {}));
+
 ;// ./src/cmi/scorm2004/adl.ts
+
 
 
 
@@ -3777,24 +3791,15 @@ var ADLNav = (function (_super) {
     };
     return ADLNav;
 }(BaseCMI));
+
 var ADLNavRequestValid = (function (_super) {
     __extends(ADLNavRequestValid, _super);
     function ADLNavRequestValid() {
         var _this = _super.call(this) || this;
         _this._continue = "unknown";
         _this._previous = "unknown";
-        _this.choice = (function () {
-            function class_1() {
-                this._isTargetValid = function (_target) { return "unknown"; };
-            }
-            return class_1;
-        }());
-        _this.jump = (function () {
-            function class_2() {
-                this._isTargetValid = function (_target) { return "unknown"; };
-            }
-            return class_2;
-        }());
+        _this._choice = {};
+        _this._jump = {};
         return _this;
     }
     Object.defineProperty(ADLNavRequestValid.prototype, "continue", {
@@ -3802,7 +3807,12 @@ var ADLNavRequestValid = (function (_super) {
             return this._continue;
         },
         set: function (_continue) {
-            throw new Scorm2004ValidationError(error_codes.scorm2004.READ_ONLY_ELEMENT);
+            if (this.initialized) {
+                throw new Scorm2004ValidationError(error_codes.scorm2004.READ_ONLY_ELEMENT);
+            }
+            if (check2004ValidFormat(_continue, regex.scorm2004.NAVBoolean)) {
+                this._continue = _continue;
+            }
         },
         enumerable: false,
         configurable: true
@@ -3812,7 +3822,59 @@ var ADLNavRequestValid = (function (_super) {
             return this._previous;
         },
         set: function (_previous) {
-            throw new Scorm2004ValidationError(error_codes.scorm2004.READ_ONLY_ELEMENT);
+            if (this.initialized) {
+                throw new Scorm2004ValidationError(error_codes.scorm2004.READ_ONLY_ELEMENT);
+            }
+            if (check2004ValidFormat(_previous, regex.scorm2004.NAVBoolean)) {
+                this._previous = _previous;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(ADLNavRequestValid.prototype, "choice", {
+        get: function () {
+            return this._choice;
+        },
+        set: function (choice) {
+            if (this.initialized) {
+                throw new Scorm2004ValidationError(error_codes.scorm2004.READ_ONLY_ELEMENT);
+            }
+            if (typeof choice !== "object") {
+                throw new Scorm2004ValidationError(error_codes.scorm2004.TYPE_MISMATCH);
+            }
+            for (var key in choice) {
+                if ({}.hasOwnProperty.call(choice, key)) {
+                    if (check2004ValidFormat(choice[key], regex.scorm2004.NAVBoolean) &&
+                        check2004ValidFormat(key, regex.scorm2004.NAVTarget)) {
+                        this._choice[key] =
+                            NAVBoolean[choice[key]];
+                    }
+                }
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(ADLNavRequestValid.prototype, "jump", {
+        get: function () {
+            return this._jump;
+        },
+        set: function (jump) {
+            if (this.initialized) {
+                throw new Scorm2004ValidationError(error_codes.scorm2004.READ_ONLY_ELEMENT);
+            }
+            if (typeof jump !== "object") {
+                throw new Scorm2004ValidationError(error_codes.scorm2004.TYPE_MISMATCH);
+            }
+            for (var key in jump) {
+                if ({}.hasOwnProperty.call(jump, key)) {
+                    if (check2004ValidFormat(jump[key], regex.scorm2004.NAVBoolean) &&
+                        check2004ValidFormat(key, regex.scorm2004.NAVTarget)) {
+                        this._jump[key] = NAVBoolean[jump[key]];
+                    }
+                }
+            }
         },
         enumerable: false,
         configurable: true
@@ -3821,7 +3883,9 @@ var ADLNavRequestValid = (function (_super) {
         this.jsonString = true;
         var result = {
             previous: this._previous,
-            continue: this.continue,
+            continue: this._continue,
+            choice: this._choice,
+            jump: this._jump,
         };
         delete this.jsonString;
         return result;
@@ -3829,7 +3893,9 @@ var ADLNavRequestValid = (function (_super) {
     return ADLNavRequestValid;
 }(BaseCMI));
 
+
 ;// ./src/Scorm2004API.ts
+
 
 
 
@@ -3868,7 +3934,7 @@ var Scorm2004API = (function (_super) {
         return _this;
     }
     Scorm2004API.prototype.reset = function (settings) {
-        _super.prototype.commonReset.call(this, settings);
+        this.commonReset(settings);
         this.cmi = new CMI();
         this.adl = new ADL();
     };
@@ -3899,7 +3965,7 @@ var Scorm2004API = (function (_super) {
     };
     Scorm2004API.prototype.internalFinish = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var result, navActions, action;
+            var result, navActions, request, choiceJumpRegex, matches, target, action;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4, this.terminate("Terminate", true)];
@@ -3911,14 +3977,23 @@ var Scorm2004API = (function (_super) {
                                     continue: "SequenceNext",
                                     previous: "SequencePrevious",
                                     choice: "SequenceChoice",
+                                    jump: "SequenceJump",
                                     exit: "SequenceExit",
                                     exitAll: "SequenceExitAll",
                                     abandon: "SequenceAbandon",
                                     abandonAll: "SequenceAbandonAll",
                                 };
-                                action = navActions[this.adl.nav.request];
+                                request = this.adl.nav.request;
+                                choiceJumpRegex = new RegExp(regex.scorm2004.NAVEvent);
+                                matches = request.match(choiceJumpRegex);
+                                target = "";
+                                if (matches && matches.length > 2) {
+                                    target = matches[2];
+                                    request = matches[1].replace(target, "");
+                                }
+                                action = navActions[request];
                                 if (action) {
-                                    this.processListeners(action);
+                                    this.processListeners(action, "adl.nav.request", target);
                                 }
                             }
                             else if (this.settings.autoProgress) {
@@ -3931,6 +4006,18 @@ var Scorm2004API = (function (_super) {
         });
     };
     Scorm2004API.prototype.lmsGetValue = function (CMIElement) {
+        var adlNavRequestRegex = "^adl\\.nav\\.request_valid\\.(choice|jump)\\.{target=\\S{0,}([a-zA-Z0-9-_]+)}$";
+        if (stringMatches(CMIElement, adlNavRequestRegex)) {
+            var matches = CMIElement.match(adlNavRequestRegex);
+            var request = matches[1];
+            var target = matches[2].replace("{target=", "").replace("}", "");
+            if (request === "choice" || request === "jump") {
+                if (this.settings.scoItemIdValidator) {
+                    return String(this.settings.scoItemIdValidator(target));
+                }
+                return String(this.settings.scoItemIds.includes(target));
+            }
+        }
         return this.getValue("GetValue", true, CMIElement);
     };
     Scorm2004API.prototype.lmsSetValue = function (CMIElement, value) {
@@ -5238,7 +5325,7 @@ var Scorm12API = (function (_super) {
         return _this;
     }
     Scorm12API.prototype.reset = function (settings) {
-        _super.prototype.commonReset.call(this, settings);
+        this.commonReset(settings);
         this.cmi = new cmi_CMI();
         this.nav = new NAV();
     };
