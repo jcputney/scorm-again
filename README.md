@@ -77,6 +77,8 @@ SCORM
 2004
 window.API_1484_11 = new Scorm2004API(settings);
 ```
+### Not About API Discovery
+Before creating a ticket about your module not being able to communicate with the LMS, please make sure you've looked over my examples in the `gh-pages` branch, as well as reading the [SCORM API Discovery Algorithms](https://scorm.com/scorm-explained/technical-scorm/run-time/api-discovery-algorithms/) page. I get that some of this stuff can be hard to implement at first, but I can't give an example for every possible way this library can be loaded into your application. The main thing to remember is that it should always be attached to the `window` object, because that's where modules are supposed to look.
 
 ### Available Settings
 
