@@ -960,7 +960,11 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {RefObject} json
    * @param {string} CMIElement
    */
-  loadFromFlattenedJSON(json: RefObject, CMIElement: string) {
+  loadFromFlattenedJSON(json: RefObject, CMIElement?: string) {
+    if (!CMIElement) {
+      // by default, we start from a blank string because we're expecting each element to start with `cmi`
+      CMIElement = "";
+    }
     if (!this.isNotInitialized()) {
       console.error(
         "loadFromFlattenedJSON can only be called before the call to lmsInitialize.",
@@ -969,12 +973,12 @@ export default abstract class BaseAPI implements IBaseAPI {
     }
 
     /**
-     * Test match pattern.
+     * Tests two strings against a given regular expression pattern and determines a numeric or null result based on the matching criterion.
      *
-     * @param {string} a
-     * @param {string} c
-     * @param {RegExp} a_pattern
-     * @return {number}
+     * @param {string} a - The first string to be tested against the pattern.
+     * @param {string} c - The second string to be tested against the pattern.
+     * @param {RegExp} a_pattern - The regular expression pattern to test the strings against.
+     * @return {number | null} A numeric result based on the matching criterion, or null if the strings do not match the pattern.
      */
     function testPattern(
       a: string,
