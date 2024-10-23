@@ -22,10 +22,12 @@ export default {
     scorm12: "./src/exports/scorm12.js",
     scorm2004: "./src/exports/scorm2004.js",
     "scorm-again": "./src/exports/scorm-again.js",
+    index: "./src/exports/index.js",
     "aicc.min": "./src/exports/aicc.js",
     "scorm12.min": "./src/exports/scorm12.js",
     "scorm2004.min": "./src/exports/scorm2004.js",
     "scorm-again.min": "./src/exports/scorm-again.js",
+    "index.min": "./src/exports/index.js",
   },
   target: ["web", "es5"],
   module: {
