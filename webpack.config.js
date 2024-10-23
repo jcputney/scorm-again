@@ -35,6 +35,9 @@ export default {
   },
   output: {
     path: path.resolve(__dirname, "dist"),
+    filename: "[name].js",
+    library: "scorm-again",
+    libraryTarget: "umd",
     environment: {
       arrowFunction: false,
     },
