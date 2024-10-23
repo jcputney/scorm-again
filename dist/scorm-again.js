@@ -1,5 +1,16 @@
-/******/ (function() { // webpackBootstrap
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory();
+	else if(typeof define === 'function' && define.amd)
+		define([], factory);
+	else if(typeof exports === 'object')
+		exports["scorm-again"] = factory();
+	else
+		root["scorm-again"] = factory();
+})(self, function() {
+return /******/ (function() { // webpackBootstrap
 /******/ 	"use strict";
+var __webpack_exports__ = {};
 
 ;// ./node_modules/tslib/tslib.es6.mjs
 /******************************************************************************
@@ -6548,6 +6559,8 @@ window.Scorm12API = src_Scorm12API;
 window.Scorm2004API = src_Scorm2004API;
 window.AICC = src_AICC;
 
+/******/ 	return __webpack_exports__;
 /******/ })()
 ;
+});
 //# sourceMappingURL=scorm-again.js.map
