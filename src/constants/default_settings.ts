@@ -16,6 +16,7 @@ export const DefaultSettings: Settings = {
   logLevel: APIConstants.global.LOG_LEVEL_ERROR,
   selfReportSessionTime: false,
   alwaysSendTotalTime: false,
+  renderCommonCommitFields: false,
   strict_errors: true,
   xhrHeaders: {},
   xhrWithCredentials: false,

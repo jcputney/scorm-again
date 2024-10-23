@@ -358,6 +358,116 @@ describe("SCORM 1.2 API Tests", () => {
       const cmiExport: RefObject = scorm12API.renderCommitCMI(true);
       expect(cmiExport.cmi.core.total_time).toEqual("23:59:59");
     });
+    it("should return flattened format when dataCommitFormat is 'flattened'", function () {
+      const scorm12API = api({
+        ...DefaultSettings,
+        ...{ dataCommitFormat: "flattened" },
+      });
+      scorm12API.cmi.core.student_id = "student_1";
+      scorm12API.cmi.core.student_name = "Student 1";
+      scorm12API.cmi.core.lesson_status = "completed";
+      scorm12API.cmi.core.score.raw = "100";
+      scorm12API.cmi.core.score.max = "100";
+      scorm12API.cmi.core.score.min = "0";
+      scorm12API.cmi.core.session_time = "23:59:59";
+      const cmiExport: RefObject = scorm12API.renderCommitCMI(true);
+      expect(cmiExport["cmi.core.student_id"]).toEqual("student_1");
+      expect(cmiExport["cmi.core.student_name"]).toEqual("Student 1");
+      expect(cmiExport["cmi.core.lesson_status"]).toEqual("completed");
+      expect(cmiExport["cmi.core.score.raw"]).toEqual("100");
+      expect(cmiExport["cmi.core.score.max"]).toEqual("100");
+      expect(cmiExport["cmi.core.score.min"]).toEqual("0");
+      expect(cmiExport["cmi.core.session_time"]).toEqual("23:59:59");
+    });
+    it("should return params format when dataCommitFormat is 'params'", function () {
+      const scorm12API = api({
+        ...DefaultSettings,
+        ...{ dataCommitFormat: "params" },
+      });
+      scorm12API.cmi.core.student_id = "student_1";
+      scorm12API.cmi.core.student_name = "Student 1";
+      scorm12API.cmi.core.lesson_status = "completed";
+      scorm12API.cmi.core.score.raw = "100";
+      scorm12API.cmi.core.score.max = "100";
+      scorm12API.cmi.core.score.min = "0";
+      scorm12API.cmi.core.session_time = "23:59:59";
+      const result = scorm12API.renderCommitCMI(true);
+      expect(result).toBeInstanceOf(Array);
+      expect(result).toContain("cmi.core.lesson_status=completed");
+      expect(result).toContain("cmi.core.score.max=100");
+      expect(result).toContain("cmi.core.score.min=0");
+      expect(result).toContain("cmi.core.score.raw=100");
+      expect(result).toContain("cmi.core.session_time=23:59:59");
+      expect(result).toContain("cmi.core.student_id=student_1");
+    });
+  });
+
+  describe("renderCommitObject()", () => {
+    it("should render commit object with default settings and no score", () => {
+      const scorm12API = api();
+      scorm12API.cmi.core.lesson_status = "incomplete";
+      scorm12API.cmi.core.total_time = "12:34:56";
+      scorm12API.cmi.core.session_time = "23:59:59";
+      const commitObject = scorm12API.renderCommitObject(true);
+      expect(commitObject.successStatus).toEqual("unknown");
+      expect(commitObject.completionStatus).toEqual("incomplete");
+      expect(commitObject.runtimeData.cmi.core.lesson_status).toEqual(
+        "incomplete",
+      );
+      expect(commitObject.totalTimeSeconds).toEqual(
+        12 * 3600 + 34 * 60 + 56 + (23 * 3600 + 59 * 60 + 59),
+      );
+      expect(commitObject.score.max).toEqual(100);
+    });
+
+    it("should render commit object with score data", () => {
+      const scorm12API = api();
+      scorm12API.cmi.core.lesson_status = "completed";
+      scorm12API.cmi.core.score.raw = "85";
+      scorm12API.cmi.core.score.min = "0";
+      scorm12API.cmi.core.score.max = "100";
+      const commitObject = scorm12API.renderCommitObject(true);
+      expect(commitObject.successStatus).toEqual("unknown");
+      expect(commitObject.completionStatus).toEqual("completed");
+      expect(commitObject.runtimeData.cmi.core.lesson_status).toEqual(
+        "completed",
+      );
+      expect(commitObject.runtimeData.cmi.core.score.raw).toEqual("85");
+      expect(commitObject.runtimeData.cmi.core.score.min).toEqual("0");
+      expect(commitObject.runtimeData.cmi.core.score.max).toEqual("100");
+      expect(commitObject.totalTimeSeconds).toEqual(0);
+      expect(commitObject.score).toEqual({
+        raw: 85,
+        min: 0,
+        max: 100,
+      });
+    });
+
+    it("should render commit object with completion and success status", () => {
+      const scorm12API = api();
+      scorm12API.cmi.core.lesson_status = "passed";
+      const commitObject = scorm12API.renderCommitObject(true);
+      expect(commitObject.successStatus).toEqual("passed");
+      expect(commitObject.completionStatus).toEqual("completed");
+      expect(commitObject.runtimeData.cmi.core.lesson_status).toEqual("passed");
+    });
+
+    it("should render commit object with failed success status", () => {
+      const scorm12API = api();
+      scorm12API.cmi.core.lesson_status = "failed";
+      const commitObject = scorm12API.renderCommitObject(true);
+      expect(commitObject.successStatus).toEqual("failed");
+      expect(commitObject.completionStatus).toEqual("incomplete");
+      expect(commitObject.runtimeData.cmi.core.lesson_status).toEqual("failed");
+    });
+
+    it("should calculate total time when terminateCommit is true", () => {
+      const scorm12API = api();
+      scorm12API.cmi.core.total_time = "12:34:56";
+      scorm12API.cmi.core.session_time = "23:59:59";
+      const commitObject = scorm12API.renderCommitObject(true);
+      expect(commitObject.runtimeData.cmi.core.total_time).toEqual("36:34:55");
+    });
   });
 
   describe("storeData()", () => {

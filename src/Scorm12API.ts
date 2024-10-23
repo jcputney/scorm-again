@@ -1,6 +1,7 @@
 import BaseAPI from "./BaseAPI";
 import { CMI } from "./cmi/scorm12/cmi";
 import * as Utilities from "./utilities";
+import { stringMatches } from "./utilities";
 import APIConstants from "./constants/api_constants";
 import ErrorCodes from "./constants/error_codes";
 
@@ -12,8 +13,16 @@ import {
   CMIInteractionsObjectivesObject,
 } from "./cmi/scorm12/interactions";
 import { NAV } from "./cmi/scorm12/nav";
-import { RefObject, ResultObject, Settings } from "./types/api_types";
-import { stringMatches } from "./utilities";
+import {
+  CommitObject,
+  RefObject,
+  ResultObject,
+  ScoreObject,
+  Settings,
+} from "./types/api_types";
+import * as console from "node:console";
+import Regex from "./constants/regex";
+import { CompletionStatus, SuccessStatus } from "./constants/enums";
 
 /**
  * API class for SCORM 1.2
@@ -321,6 +330,61 @@ export default class Scorm12API extends BaseAPI {
   }
 
   /**
+   * Render the cmi object to the proper format for LMS commit
+   * @param {boolean} terminateCommit
+   * @return {CommitObject}
+   */
+  renderCommitObject(terminateCommit: boolean): CommitObject {
+    const cmiExport = this.renderCommitCMI(terminateCommit);
+    const totalTimeHHMMSS = this.cmi.getCurrentTotalTime();
+    const totalTimeSeconds = Utilities.getTimeAsSeconds(
+      totalTimeHHMMSS,
+      Regex.scorm12.CMITimespan,
+    );
+    const lessonStatus = this.cmi.core.lesson_status;
+    let completionStatus = CompletionStatus.unknown;
+    let successStatus = SuccessStatus.unknown;
+    if (lessonStatus) {
+      completionStatus =
+        lessonStatus === "completed" || lessonStatus === "passed"
+          ? CompletionStatus.completed
+          : CompletionStatus.incomplete;
+      if (lessonStatus === "passed") {
+        successStatus = SuccessStatus.passed;
+      } else if (lessonStatus === "failed") {
+        successStatus = SuccessStatus.failed;
+      }
+    }
+
+    const score = this.cmi.core.score;
+    let scoreObject: ScoreObject = null;
+    if (score) {
+      scoreObject = {};
+
+      if (!Number.isNaN(Number.parseFloat(score.raw))) {
+        scoreObject.raw = Number.parseFloat(score.raw);
+      }
+      if (!Number.isNaN(Number.parseFloat(score.min))) {
+        scoreObject.min = Number.parseFloat(score.min);
+      }
+      if (!Number.isNaN(Number.parseFloat(score.max))) {
+        scoreObject.max = Number.parseFloat(score.max);
+      }
+    }
+
+    const commitObject: CommitObject = {
+      successStatus: successStatus,
+      completionStatus: completionStatus,
+      runtimeData: cmiExport,
+      totalTimeSeconds: totalTimeSeconds,
+    };
+    if (scoreObject) {
+      commitObject.score = scoreObject;
+    }
+    return commitObject;
+  }
+
+  /**
    * Attempts to store the data to the LMS
    *
    * @param {boolean} terminateCommit
@@ -361,9 +425,11 @@ export default class Scorm12API extends BaseAPI {
       }
     }
 
-    const commitObject = this.renderCommitCMI(
-      terminateCommit || this.settings.alwaysSendTotalTime,
-    );
+    const shouldTerminateCommit =
+      terminateCommit || this.settings.alwaysSendTotalTime;
+    const commitObject = this.settings.renderCommonCommitFields
+      ? this.renderCommitObject(shouldTerminateCommit)
+      : this.renderCommitCMI(shouldTerminateCommit);
 
     if (this.apiLogLevel === APIConstants.global.LOG_LEVEL_DEBUG) {
       console.debug(

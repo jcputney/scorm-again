@@ -827,6 +827,76 @@ describe("SCORM 2004 API Tests", () => {
     });
   });
 
+  describe("renderCommitObject()", () => {
+    it("should render commit object with default settings and no score", () => {
+      const scorm2004API = api();
+      scorm2004API.cmi.completion_status = "incomplete";
+      scorm2004API.cmi.total_time = "P12H34M56S";
+      scorm2004API.cmi.session_time = "P23H59M59S";
+      const commitObject = scorm2004API.renderCommitObject(true);
+      expect(commitObject.successStatus).toEqual("unknown");
+      expect(commitObject.completionStatus).toEqual("incomplete");
+      expect(commitObject.runtimeData.cmi.completion_status).toEqual(
+        "incomplete",
+      );
+      expect(commitObject.totalTimeSeconds).toEqual(
+        12 * 3600 + 34 * 60 + 56 + (23 * 3600 + 59 * 60 + 59),
+      );
+    });
+
+    it("should render commit object with score data", () => {
+      const scorm2004API = api();
+      scorm2004API.cmi.completion_status = "completed";
+      scorm2004API.cmi.score.raw = "85";
+      scorm2004API.cmi.score.min = "0";
+      scorm2004API.cmi.score.max = "100";
+      scorm2004API.cmi.score.scaled = "0.85";
+      const commitObject = scorm2004API.renderCommitObject(true);
+      expect(commitObject.successStatus).toEqual("unknown");
+      expect(commitObject.completionStatus).toEqual("completed");
+      expect(commitObject.runtimeData.cmi.completion_status).toEqual(
+        "completed",
+      );
+      expect(commitObject.runtimeData.cmi.score.raw).toEqual("85");
+      expect(commitObject.runtimeData.cmi.score.min).toEqual("0");
+      expect(commitObject.runtimeData.cmi.score.max).toEqual("100");
+      expect(commitObject.runtimeData.cmi.score.scaled).toEqual("0.85");
+      expect(commitObject.totalTimeSeconds).toEqual(0);
+      expect(commitObject.score).toEqual({
+        raw: 85,
+        min: 0,
+        max: 100,
+        scaled: 0.85,
+      });
+    });
+
+    it("should render commit object with completion and success status", () => {
+      const scorm2004API = api();
+      scorm2004API.cmi.success_status = "passed";
+      const commitObject = scorm2004API.renderCommitObject(true);
+      expect(commitObject.successStatus).toEqual("passed");
+      expect(commitObject.completionStatus).toEqual("unknown");
+      expect(commitObject.runtimeData.cmi.success_status).toEqual("passed");
+    });
+
+    it("should render commit object with failed success status", () => {
+      const scorm2004API = api();
+      scorm2004API.cmi.success_status = "failed";
+      const commitObject = scorm2004API.renderCommitObject(true);
+      expect(commitObject.successStatus).toEqual("failed");
+      expect(commitObject.completionStatus).toEqual("unknown");
+      expect(commitObject.runtimeData.cmi.success_status).toEqual("failed");
+    });
+
+    it("should calculate total time when terminateCommit is true", () => {
+      const scorm2004API = api();
+      scorm2004API.cmi.total_time = "P12H34M56S";
+      scorm2004API.cmi.session_time = "P23H59M59S";
+      const commitObject = scorm2004API.renderCommitObject(true);
+      expect(commitObject.runtimeData.cmi.total_time).toEqual("P1DT12H34M55S");
+    });
+  });
+
   describe("lmsGetDiagnostic()", () => {
     it("should return diagnostic information for a given error code", () => {
       const scorm2004API = api();

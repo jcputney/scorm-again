@@ -5,7 +5,12 @@ import APIConstants from "./constants/api_constants";
 import { formatMessage, stringMatches, unflatten } from "./utilities";
 import { BaseCMI } from "./cmi/common/base_cmi";
 import { debounce } from "./utilities/debounce";
-import { RefObject, ResultObject, Settings } from "./types/api_types";
+import {
+  RefObject,
+  CommitObject,
+  ResultObject,
+  Settings,
+} from "./types/api_types";
 import { DefaultSettings } from "./constants/default_settings";
 import { IBaseAPI } from "./interfaces/IBaseAPI";
 import { ScheduledCommit } from "./helpers/scheduled_commit";
@@ -164,6 +169,13 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @abstract
    */
   abstract renderCommitCMI(_terminateCommit: boolean): RefObject | Array<any>;
+
+  /**
+   * Render the commit object to the shortened format for LMS commit
+   * @param {boolean} _terminateCommit
+   * @return {CommitObject}
+   */
+  abstract renderCommitObject(_terminateCommit: boolean): CommitObject;
 
   /**
    * Logging for all SCORM actions
@@ -1114,13 +1126,13 @@ export default abstract class BaseAPI implements IBaseAPI {
   /**
    * Send the request to the LMS
    * @param {string} url
-   * @param {RefObject|Array} params
+   * @param {CommitObject|RefObject|Array} params
    * @param {boolean} immediate
    * @return {ResultObject}
    */
   async processHttpRequest(
     url: string,
-    params: RefObject | Array<any>,
+    params: CommitObject | RefObject | Array<any>,
     immediate: boolean = false,
   ): Promise<ResultObject> {
     const api = this;
@@ -1143,7 +1155,7 @@ export default abstract class BaseAPI implements IBaseAPI {
 
     const process = async (
       url: string,
-      params: RefObject | Array<any>,
+      params: CommitObject | RefObject | Array<any>,
       settings: Settings,
     ): Promise<ResultObject> => {
       try {
