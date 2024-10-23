@@ -1,7 +1,58 @@
-/******/ (function() { // webpackBootstrap
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory();
+	else if(typeof define === 'function' && define.amd)
+		define([], factory);
+	else if(typeof exports === 'object')
+		exports["scorm-again"] = factory();
+	else
+		root["scorm-again"] = factory();
+})(self, function() {
+return /******/ (function() { // webpackBootstrap
 /******/ 	"use strict";
+/******/ 	// The require scope
+/******/ 	var __webpack_require__ = {};
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	!function() {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = function(exports, definition) {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	}();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	!function() {
+/******/ 		__webpack_require__.o = function(obj, prop) { return Object.prototype.hasOwnProperty.call(obj, prop); }
+/******/ 	}();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	!function() {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = function(exports) {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	}();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// ESM COMPAT FLAG
+__webpack_require__.r(__webpack_exports__);
 
-// UNUSED EXPORTS: AICC, Scorm12API, Scorm2004API
+// EXPORTS
+__webpack_require__.d(__webpack_exports__, {
+  AICC: function() { return /* reexport */ src_AICC; },
+  Scorm12API: function() { return /* reexport */ src_Scorm12API; },
+  Scorm2004API: function() { return /* reexport */ src_Scorm2004API; }
+});
 
 ;// ./node_modules/tslib/tslib.es6.mjs
 /******************************************************************************
@@ -4429,7 +4480,7 @@ var Scorm2004API = (function (_super) {
     };
     return Scorm2004API;
 }(src_BaseAPI));
-/* harmony default export */ var src_Scorm2004API = ((/* unused pure expression or super */ null && (Scorm2004API)));
+/* harmony default export */ var src_Scorm2004API = (Scorm2004API);
 
 ;// ./src/cmi/scorm12/validation.ts
 
@@ -6539,7 +6590,7 @@ var AICC = (function (_super) {
     };
     return AICC;
 }(src_Scorm12API));
-/* harmony default export */ var src_AICC = ((/* unused pure expression or super */ null && (AICC)));
+/* harmony default export */ var src_AICC = (AICC);
 
 ;// ./src/exports/index.js
 
@@ -6548,6 +6599,8 @@ var AICC = (function (_super) {
 
 
 
+/******/ 	return __webpack_exports__;
 /******/ })()
 ;
+});
 //# sourceMappingURL=index.js.map
