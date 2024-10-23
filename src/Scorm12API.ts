@@ -20,7 +20,6 @@ import {
   ScoreObject,
   Settings,
 } from "./types/api_types";
-import * as console from "node:console";
 import Regex from "./constants/regex";
 import { CompletionStatus, SuccessStatus } from "./constants/enums";
 
