@@ -5,3 +5,5 @@ import AICC from "../AICC.ts";
 window.Scorm12API = Scorm12API;
 window.Scorm2004API = Scorm2004API;
 window.AICC = AICC;
+
+export { Scorm12API, Scorm2004API, AICC };
