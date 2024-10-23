@@ -1044,6 +1044,7 @@ var DefaultSettings = {
     logLevel: api_constants.global.LOG_LEVEL_ERROR,
     selfReportSessionTime: false,
     alwaysSendTotalTime: false,
+    renderCommonCommitFields: false,
     strict_errors: true,
     xhrHeaders: {},
     xhrWithCredentials: false,
@@ -3730,6 +3731,18 @@ var NAVBoolean;
     NAVBoolean["true"] = "true";
     NAVBoolean["false"] = "false";
 })(NAVBoolean || (NAVBoolean = {}));
+var SuccessStatus;
+(function (SuccessStatus) {
+    SuccessStatus["passed"] = "passed";
+    SuccessStatus["failed"] = "failed";
+    SuccessStatus["unknown"] = "unknown";
+})(SuccessStatus || (SuccessStatus = {}));
+var CompletionStatus;
+(function (CompletionStatus) {
+    CompletionStatus["completed"] = "completed";
+    CompletionStatus["incomplete"] = "incomplete";
+    CompletionStatus["unknown"] = "unknown";
+})(CompletionStatus || (CompletionStatus = {}));
 
 ;// ./src/cmi/scorm2004/adl.ts
 
@@ -3901,6 +3914,7 @@ var ADLNavRequestValid = (function (_super) {
 
 
 ;// ./src/Scorm2004API.ts
+
 
 
 
@@ -4298,9 +4312,59 @@ var Scorm2004API = (function (_super) {
                 return cmiExport;
         }
     };
+    Scorm2004API.prototype.renderCommitObject = function (terminateCommit) {
+        var cmiExport = this.renderCommitCMI(terminateCommit);
+        var totalTimeDuration = this.cmi.getCurrentTotalTime();
+        var totalTimeSeconds = getDurationAsSeconds(totalTimeDuration, regex.scorm2004.CMITimespan);
+        var completionStatus = CompletionStatus.unknown;
+        var successStatus = SuccessStatus.unknown;
+        if (this.cmi.completion_status) {
+            if (this.cmi.completion_status === "completed") {
+                completionStatus = CompletionStatus.completed;
+            }
+            else if (this.cmi.completion_status === "incomplete") {
+                completionStatus = CompletionStatus.incomplete;
+            }
+        }
+        if (this.cmi.success_status) {
+            if (this.cmi.success_status === "passed") {
+                successStatus = SuccessStatus.passed;
+            }
+            else if (this.cmi.success_status === "failed") {
+                successStatus = SuccessStatus.failed;
+            }
+        }
+        var score = this.cmi.score;
+        var scoreObject = null;
+        if (score) {
+            scoreObject = {};
+            if (!Number.isNaN(Number.parseFloat(score.raw))) {
+                scoreObject.raw = Number.parseFloat(score.raw);
+            }
+            if (!Number.isNaN(Number.parseFloat(score.min))) {
+                scoreObject.min = Number.parseFloat(score.min);
+            }
+            if (!Number.isNaN(Number.parseFloat(score.max))) {
+                scoreObject.max = Number.parseFloat(score.max);
+            }
+            if (!Number.isNaN(Number.parseFloat(score.scaled))) {
+                scoreObject.scaled = Number.parseFloat(score.scaled);
+            }
+        }
+        var commitObject = {
+            completionStatus: completionStatus,
+            successStatus: successStatus,
+            totalTimeSeconds: totalTimeSeconds,
+            runtimeData: cmiExport,
+        };
+        if (scoreObject) {
+            commitObject.score = scoreObject;
+        }
+        return commitObject;
+    };
     Scorm2004API.prototype.storeData = function (terminateCommit) {
         return __awaiter(this, void 0, void 0, function () {
-            var navRequest, commitObject, result;
+            var navRequest, shouldTerminateCommit, commitObject, result;
             var _a, _b, _c;
             return __generator(this, function (_d) {
                 switch (_d.label) {
@@ -4333,7 +4397,10 @@ var Scorm2004API = (function (_super) {
                             this.adl.nav.request = encodeURIComponent(this.adl.nav.request);
                             navRequest = true;
                         }
-                        commitObject = this.renderCommitCMI(terminateCommit || this.settings.alwaysSendTotalTime);
+                        shouldTerminateCommit = terminateCommit || this.settings.alwaysSendTotalTime;
+                        commitObject = this.settings.renderCommonCommitFields
+                            ? this.renderCommitObject(shouldTerminateCommit)
+                            : this.renderCommitCMI(shouldTerminateCommit);
                         if (this.apiLogLevel === api_constants.global.LOG_LEVEL_DEBUG) {
                             console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");
                             console.debug(commitObject);
