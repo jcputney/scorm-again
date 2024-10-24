@@ -1,6 +1,4 @@
-/******/ (function() { // webpackBootstrap
-/******/ 	"use strict";
-/******/ 	var __webpack_modules__ = ({
+/******/ var __webpack_modules__ = ({
 
 /***/ 531:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
@@ -8,7 +6,7 @@
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
-  AICCImpl: function() { return /* binding */ AICCImpl; }
+  X: function() { return /* binding */ AICCImpl; }
 });
 
 // EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
@@ -927,7 +925,7 @@ var AICCImpl = (function (_super) {
         this.nav = newAPI.nav;
     };
     return AICCImpl;
-}(Scorm12API.Scorm12Impl));
+}(Scorm12API/* Scorm12Impl */.C));
 
 
 
@@ -1841,7 +1839,7 @@ var BaseAPI = (function () {
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Scorm12Impl: function() { return /* binding */ Scorm12Impl; }
+/* harmony export */   C: function() { return /* binding */ Scorm12Impl; }
 /* harmony export */ });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(635);
 /* harmony import */ var _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(989);
@@ -2149,7 +2147,7 @@ var Scorm12Impl = (function (_super) {
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
-  Scorm2004Impl: function() { return /* binding */ Scorm2004Impl; }
+  Z: function() { return /* binding */ Scorm2004Impl; }
 });
 
 // EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
@@ -6907,68 +6905,56 @@ function __disposeResources(env) {
 
 /***/ })
 
-/******/ 	});
+/******/ });
 /************************************************************************/
-/******/ 	// The module cache
-/******/ 	var __webpack_module_cache__ = {};
-/******/ 	
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-/******/ 		// Check if module is in cache
-/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
-/******/ 		if (cachedModule !== undefined) {
-/******/ 			return cachedModule.exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			// no module.id needed
-/******/ 			// no module.loaded needed
-/******/ 			exports: {}
-/******/ 		};
-/******/ 	
-/******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
-/******/ 	
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
+/******/ // The module cache
+/******/ var __webpack_module_cache__ = {};
+/******/ 
+/******/ // The require function
+/******/ function __webpack_require__(moduleId) {
+/******/ 	// Check if module is in cache
+/******/ 	var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 	if (cachedModule !== undefined) {
+/******/ 		return cachedModule.exports;
 /******/ 	}
-/******/ 	
+/******/ 	// Create a new module (and put it into the cache)
+/******/ 	var module = __webpack_module_cache__[moduleId] = {
+/******/ 		// no module.id needed
+/******/ 		// no module.loaded needed
+/******/ 		exports: {}
+/******/ 	};
+/******/ 
+/******/ 	// Execute the module function
+/******/ 	__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 
+/******/ 	// Return the exports of the module
+/******/ 	return module.exports;
+/******/ }
+/******/ 
 /************************************************************************/
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	!function() {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__webpack_require__.d = function(exports, definition) {
-/******/ 			for(var key in definition) {
-/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
+/******/ /* webpack/runtime/define property getters */
+/******/ !function() {
+/******/ 	// define getter functions for harmony exports
+/******/ 	__webpack_require__.d = function(exports, definition) {
+/******/ 		for(var key in definition) {
+/******/ 			if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 				Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
 /******/ 			}
-/******/ 		};
-/******/ 	}();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	!function() {
-/******/ 		__webpack_require__.o = function(obj, prop) { return Object.prototype.hasOwnProperty.call(obj, prop); }
-/******/ 	}();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	!function() {
-/******/ 		// define __esModule on exports
-/******/ 		__webpack_require__.r = function(exports) {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	}();
-/******/ 	
+/******/ 		}
+/******/ 	};
+/******/ }();
+/******/ 
+/******/ /* webpack/runtime/hasOwnProperty shorthand */
+/******/ !function() {
+/******/ 	__webpack_require__.o = function(obj, prop) { return Object.prototype.hasOwnProperty.call(obj, prop); }
+/******/ }();
+/******/ 
 /************************************************************************/
 var __webpack_exports__ = {};
-__webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   AICC: function() { return /* binding */ AICC; },
-/* harmony export */   Scorm12API: function() { return /* binding */ Scorm12API; },
-/* harmony export */   Scorm2004API: function() { return /* binding */ Scorm2004API; }
+/* harmony export */   VE: function() { return /* binding */ Scorm2004API; },
+/* harmony export */   Yq: function() { return /* binding */ Scorm12API; },
+/* harmony export */   jr: function() { return /* binding */ AICC; }
 /* harmony export */ });
 /* harmony import */ var _AICC__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(531);
 /* harmony import */ var _Scorm12API__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(941);
@@ -6976,14 +6962,14 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-var Scorm12API = _Scorm12API__WEBPACK_IMPORTED_MODULE_1__.Scorm12Impl;
-var Scorm2004API = _Scorm2004API__WEBPACK_IMPORTED_MODULE_2__.Scorm2004Impl;
-var AICC = _AICC__WEBPACK_IMPORTED_MODULE_0__.AICCImpl;
+var Scorm12API = _Scorm12API__WEBPACK_IMPORTED_MODULE_1__/* .Scorm12Impl */ .C;
+var Scorm2004API = _Scorm2004API__WEBPACK_IMPORTED_MODULE_2__/* .Scorm2004Impl */ .Z;
+var AICC = _AICC__WEBPACK_IMPORTED_MODULE_0__/* .AICCImpl */ .X;
 
 
-var __webpack_export_target__ = this;
-for(var i in __webpack_exports__) __webpack_export_target__[i] = __webpack_exports__[i];
-if(__webpack_exports__.__esModule) Object.defineProperty(__webpack_export_target__, "__esModule", { value: true });
-/******/ })()
-;
+var __webpack_exports__AICC = __webpack_exports__.jr;
+var __webpack_exports__Scorm12API = __webpack_exports__.Yq;
+var __webpack_exports__Scorm2004API = __webpack_exports__.VE;
+export { __webpack_exports__AICC as AICC, __webpack_exports__Scorm12API as Scorm12API, __webpack_exports__Scorm2004API as Scorm2004API };
+
 //# sourceMappingURL=scorm-again.js.map
