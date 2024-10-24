@@ -1,5 +1,5 @@
-import AICC from "./AICC";
-import Scorm12API from "./Scorm12API";
-import Scorm2004API from "./Scorm2004API";
+import AICCImpl from "./AICC";
+import Scorm12Impl from "./Scorm12API";
+import Scorm2004Impl from "./Scorm2004API";
 
-export { AICC, Scorm12API, Scorm2004API };
+export { AICCImpl, Scorm12Impl, Scorm2004Impl };

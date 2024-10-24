@@ -1,4 +1,3 @@
-import BaseAPI from "./BaseAPI";
 import { CMI } from "./cmi/scorm12/cmi";
 import * as Utilities from "./utilities";
 import { stringMatches } from "./utilities";
@@ -22,11 +21,12 @@ import {
 } from "./types/api_types";
 import Regex from "./constants/regex";
 import { CompletionStatus, SuccessStatus } from "./constants/enums";
+import BaseAPI from "./BaseAPI";
 
 /**
  * API class for SCORM 1.2
  */
-export default class Scorm12API extends BaseAPI {
+export default class Scorm12Impl extends BaseAPI {
   /**
    * Constructor for SCORM 1.2 API
    * @param {object} settings
@@ -56,17 +56,17 @@ export default class Scorm12API extends BaseAPI {
 
   public statusSetByModule = false;
 
-  public cmi: CMI;
-  public nav: NAV;
+  cmi: CMI;
+  nav: NAV;
 
-  public LMSInitialize: () => string;
-  public LMSFinish: () => string;
-  public LMSGetValue: (CMIElement: string) => string;
-  public LMSSetValue: (CMIElement: string, value: any) => string;
-  public LMSCommit: () => string;
-  public LMSGetLastError: () => string;
-  public LMSGetErrorString: (CMIErrorCode: string) => string;
-  public LMSGetDiagnostic: (CMIErrorCode: string) => string;
+  LMSInitialize: () => string;
+  LMSFinish: () => string;
+  LMSGetValue: (CMIElement: string) => string;
+  LMSSetValue: (CMIElement: string, value: any) => string;
+  LMSCommit: () => string;
+  LMSGetLastError: () => string;
+  LMSGetErrorString: (CMIErrorCode: string) => string;
+  LMSGetDiagnostic: (CMIErrorCode: string) => string;
 
   /**
    * Called when the API needs to be reset
@@ -290,9 +290,9 @@ export default class Scorm12API extends BaseAPI {
   /**
    * Replace the whole API with another
    *
-   * @param {Scorm12API} newAPI
+   * @param {Scorm12Impl} newAPI
    */
-  replaceWithAnotherScormAPI(newAPI: Scorm12API) {
+  replaceWithAnotherScormAPI(newAPI: Scorm12Impl) {
     // Data Model
     this.cmi = newAPI.cmi;
   }

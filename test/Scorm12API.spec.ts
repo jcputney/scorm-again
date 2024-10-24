@@ -1,6 +1,6 @@
 import { expect } from "expect";
 import { after, before, describe, it } from "mocha";
-import Scorm12API from "../src/Scorm12API";
+import Scorm12Impl from "../src/Scorm12API";
 import * as h from "./api_helpers";
 import ErrorCodes from "../src/constants/error_codes";
 import { scorm12Values } from "./field_values";
@@ -13,7 +13,7 @@ const scorm12_error_codes = ErrorCodes.scorm12;
 
 let clock: sinon.SinonFakeTimers;
 const api = (settings?: Settings, startingData: RefObject = {}) => {
-  const API = new Scorm12API(settings);
+  const API = new Scorm12Impl(settings);
   API.apiLogLevel = 5;
   API.startingData = startingData;
   return API;

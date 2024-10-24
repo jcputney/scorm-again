@@ -1,4 +1,4 @@
-import Scorm12API from "./Scorm12API";
+import Scorm12Impl from "./Scorm12API";
 import { CMI } from "./cmi/aicc/cmi";
 
 import { BaseCMI } from "./cmi/common/base_cmi";
@@ -13,7 +13,7 @@ import { stringMatches } from "./utilities";
 /**
  * The AICC API class
  */
-export default class AICC extends Scorm12API {
+export default class AICCImpl extends Scorm12Impl {
   /**
    * Constructor to create AICC API object
    * @param {Settings} settings
@@ -62,9 +62,9 @@ export default class AICC extends Scorm12API {
   /**
    * Replace the whole API with another
    *
-   * @param {AICC} newAPI
+   * @param {AICCImpl} newAPI
    */
-  replaceWithAnotherScormAPI(newAPI: AICC) {
+  replaceWithAnotherScormAPI(newAPI: AICCImpl) {
     // Data Model
     this.cmi = newAPI.cmi;
     this.nav = newAPI.nav;

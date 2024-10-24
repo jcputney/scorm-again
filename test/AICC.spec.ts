@@ -2,12 +2,12 @@ import { expect } from "expect";
 import { describe } from "mocha";
 import * as h from "./api_helpers";
 import ErrorCodes from "../src/constants/error_codes";
-import AICC from "../src/AICC";
+import AICCImpl from "../src/AICC";
 
 const scorm12_error_codes = ErrorCodes.scorm12;
 
 const api = () => {
-  const API = new AICC();
+  const API = new AICCImpl();
   API.apiLogLevel = 1;
   return API;
 };
