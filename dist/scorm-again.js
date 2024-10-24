@@ -6963,9 +6963,9 @@ function __disposeResources(env) {
 var __webpack_exports__ = {};
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   AICCImpl: function() { return /* reexport safe */ _AICC__WEBPACK_IMPORTED_MODULE_0__["default"]; },
-/* harmony export */   Scorm12Impl: function() { return /* reexport safe */ _Scorm12API__WEBPACK_IMPORTED_MODULE_1__["default"]; },
-/* harmony export */   Scorm2004Impl: function() { return /* reexport safe */ _Scorm2004API__WEBPACK_IMPORTED_MODULE_2__["default"]; }
+/* harmony export */   AICC: function() { return /* binding */ AICC; },
+/* harmony export */   Scorm12API: function() { return /* binding */ Scorm12API; },
+/* harmony export */   Scorm2004API: function() { return /* binding */ Scorm2004API; }
 /* harmony export */ });
 /* harmony import */ var _AICC__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(531);
 /* harmony import */ var _Scorm12API__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(941);
@@ -6973,6 +6973,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+var Scorm12API = _Scorm12API__WEBPACK_IMPORTED_MODULE_1__["default"];
+var Scorm2004API = _Scorm2004API__WEBPACK_IMPORTED_MODULE_2__["default"];
+var AICC = _AICC__WEBPACK_IMPORTED_MODULE_0__["default"];
 
 
 module.exports = __webpack_exports__;
