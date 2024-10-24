@@ -3349,6 +3349,9 @@ function __disposeResources(env) {
 /******/ 
 /************************************************************************/
 var __webpack_exports__ = {};
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   C: function() { return /* binding */ Scorm12Impl; }
+/* harmony export */ });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(635);
 /* harmony import */ var _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(989);
 /* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(864);
@@ -3644,9 +3647,9 @@ var Scorm12Impl = (function (_super) {
     };
     return Scorm12Impl;
 }(_BaseAPI__WEBPACK_IMPORTED_MODULE_9__/* ["default"] */ .A));
-/* harmony default export */ __webpack_exports__.A = (Scorm12Impl);
 
-var __webpack_exports__default = __webpack_exports__.A;
-export { __webpack_exports__default as default };
+
+var __webpack_exports__Scorm12Impl = __webpack_exports__.C;
+export { __webpack_exports__Scorm12Impl as Scorm12Impl };
 
 //# sourceMappingURL=scorm12.js.map

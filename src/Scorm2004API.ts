@@ -30,7 +30,7 @@ import { CompletionStatus, SuccessStatus } from "./constants/enums";
 /**
  * API class for SCORM 2004
  */
-export default class Scorm2004Impl extends BaseAPI {
+class Scorm2004Impl extends BaseAPI {
   private _version: string = "1.0";
 
   /**
@@ -756,3 +756,5 @@ export default class Scorm2004Impl extends BaseAPI {
     }
   }
 }
+
+export { Scorm2004Impl };

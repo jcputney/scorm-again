@@ -2306,7 +2306,7 @@ __webpack_require__.r(__webpack_exports__);
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
-  "default": function() { return /* binding */ Scorm2004API; }
+  Scorm2004Impl: function() { return /* binding */ Scorm2004Impl; }
 });
 
 // EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
@@ -4656,7 +4656,7 @@ var Scorm2004Impl = (function (_super) {
     };
     return Scorm2004Impl;
 }(BaseAPI/* default */.A));
-/* harmony default export */ var Scorm2004API = (Scorm2004Impl);
+
 
 module.exports = __webpack_exports__;
 /******/ })()

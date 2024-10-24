@@ -26,7 +26,7 @@ import BaseAPI from "./BaseAPI";
 /**
  * API class for SCORM 1.2
  */
-export default class Scorm12Impl extends BaseAPI {
+class Scorm12Impl extends BaseAPI {
   /**
    * Constructor for SCORM 1.2 API
    * @param {object} settings
@@ -450,3 +450,5 @@ export default class Scorm12Impl extends BaseAPI {
     }
   }
 }
+
+export { Scorm12Impl };

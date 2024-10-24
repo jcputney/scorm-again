@@ -6,7 +6,7 @@
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
-  A: function() { return /* binding */ AICC; }
+  X: function() { return /* binding */ AICCImpl; }
 });
 
 // EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
@@ -925,8 +925,8 @@ var AICCImpl = (function (_super) {
         this.nav = newAPI.nav;
     };
     return AICCImpl;
-}(Scorm12API/* default */.A));
-/* harmony default export */ var AICC = (AICCImpl);
+}(Scorm12API/* Scorm12Impl */.C));
+
 
 
 /***/ }),
@@ -1838,6 +1838,9 @@ var BaseAPI = (function () {
 /***/ 941:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   C: function() { return /* binding */ Scorm12Impl; }
+/* harmony export */ });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(635);
 /* harmony import */ var _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(989);
 /* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(864);
@@ -2133,7 +2136,7 @@ var Scorm12Impl = (function (_super) {
     };
     return Scorm12Impl;
 }(_BaseAPI__WEBPACK_IMPORTED_MODULE_9__/* ["default"] */ .A));
-/* harmony default export */ __webpack_exports__.A = (Scorm12Impl);
+
 
 
 /***/ }),
@@ -2144,7 +2147,7 @@ var Scorm12Impl = (function (_super) {
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
-  A: function() { return /* binding */ Scorm2004API; }
+  Z: function() { return /* binding */ Scorm2004Impl; }
 });
 
 // EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
@@ -4494,7 +4497,7 @@ var Scorm2004Impl = (function (_super) {
     };
     return Scorm2004Impl;
 }(BaseAPI/* default */.A));
-/* harmony default export */ var Scorm2004API = (Scorm2004Impl);
+
 
 
 /***/ }),
@@ -6959,9 +6962,9 @@ var __webpack_exports__ = {};
 
 
 
-var Scorm12API = _Scorm12API__WEBPACK_IMPORTED_MODULE_1__/* ["default"] */ .A;
-var Scorm2004API = _Scorm2004API__WEBPACK_IMPORTED_MODULE_2__/* ["default"] */ .A;
-var AICC = _AICC__WEBPACK_IMPORTED_MODULE_0__/* ["default"] */ .A;
+var Scorm12API = _Scorm12API__WEBPACK_IMPORTED_MODULE_1__/* .Scorm12Impl */ .C;
+var Scorm2004API = _Scorm2004API__WEBPACK_IMPORTED_MODULE_2__/* .Scorm2004Impl */ .Z;
+var AICC = _AICC__WEBPACK_IMPORTED_MODULE_0__/* .AICCImpl */ .X;
 
 
 var __webpack_exports__AICC = __webpack_exports__.jr;

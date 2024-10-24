@@ -2291,7 +2291,7 @@ var __webpack_exports__ = {};
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
-  A: function() { return /* binding */ Scorm2004API; }
+  Z: function() { return /* binding */ Scorm2004Impl; }
 });
 
 // EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
@@ -4641,9 +4641,9 @@ var Scorm2004Impl = (function (_super) {
     };
     return Scorm2004Impl;
 }(BaseAPI/* default */.A));
-/* harmony default export */ var Scorm2004API = (Scorm2004Impl);
 
-var __webpack_exports__default = __webpack_exports__.A;
-export { __webpack_exports__default as default };
+
+var __webpack_exports__Scorm2004Impl = __webpack_exports__.Z;
+export { __webpack_exports__Scorm2004Impl as Scorm2004Impl };
 
 //# sourceMappingURL=scorm2004.js.map

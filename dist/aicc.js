@@ -909,6 +909,9 @@ var BaseAPI = (function () {
 /***/ 941:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   Scorm12Impl: function() { return /* binding */ Scorm12Impl; }
+/* harmony export */ });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(635);
 /* harmony import */ var _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(989);
 /* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(864);
@@ -1204,7 +1207,7 @@ var Scorm12Impl = (function (_super) {
     };
     return Scorm12Impl;
 }(_BaseAPI__WEBPACK_IMPORTED_MODULE_9__/* ["default"] */ .A));
-/* harmony default export */ __webpack_exports__["default"] = (Scorm12Impl);
+
 
 
 /***/ }),
@@ -3671,7 +3674,7 @@ __webpack_require__.r(__webpack_exports__);
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
-  "default": function() { return /* binding */ AICC; }
+  AICCImpl: function() { return /* binding */ AICCImpl; }
 });
 
 // EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
@@ -4590,8 +4593,8 @@ var AICCImpl = (function (_super) {
         this.nav = newAPI.nav;
     };
     return AICCImpl;
-}(Scorm12API["default"]));
-/* harmony default export */ var AICC = (AICCImpl);
+}(Scorm12API.Scorm12Impl));
+
 
 module.exports = __webpack_exports__;
 /******/ })()
