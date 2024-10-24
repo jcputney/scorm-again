@@ -70,19 +70,19 @@ const cjsConfig = {
   },
 };
 
-const esmConfig = {
-  ...commonConfig,
-  experiments: {
-    outputModule: true,
-  },
-  output: {
-    path: path.resolve(__dirname, "dist/esm"),
-    filename: "[name].js",
-    libraryTarget: "module",
-    environment: {
-      arrowFunction: false,
-    },
-  },
-};
+// const esmConfig = {
+//   ...commonConfig,
+//   experiments: {
+//     outputModule: true,
+//   },
+//   output: {
+//     path: path.resolve(__dirname, "dist/esm"),
+//     filename: "[name].js",
+//     libraryTarget: "module",
+//     environment: {
+//       arrowFunction: false,
+//     },
+//   },
+// };
 
-export default [cjsConfig, esmConfig];
+export default [cjsConfig];
