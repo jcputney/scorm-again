@@ -3374,16 +3374,16 @@ function __disposeResources(env) {
 var __webpack_exports__ = {};
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(635);
-/* harmony import */ var _BaseAPI__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(900);
-/* harmony import */ var _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(989);
-/* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(864);
-/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(340);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(797);
-/* harmony import */ var _cmi_scorm12_objectives__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(176);
-/* harmony import */ var _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(833);
-/* harmony import */ var _cmi_scorm12_nav__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(331);
-/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(417);
-/* harmony import */ var _constants_enums__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(56);
+/* harmony import */ var _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(989);
+/* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(864);
+/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(340);
+/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(797);
+/* harmony import */ var _cmi_scorm12_objectives__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(176);
+/* harmony import */ var _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(833);
+/* harmony import */ var _cmi_scorm12_nav__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(331);
+/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(417);
+/* harmony import */ var _constants_enums__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(56);
+/* harmony import */ var _BaseAPI__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(900);
 
 
 
@@ -3396,19 +3396,19 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-var Scorm12API = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_10__/* .__extends */ .C6)(Scorm12API, _super);
-    function Scorm12API(settings) {
+var Scorm12Impl = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_10__/* .__extends */ .C6)(Scorm12Impl, _super);
+    function Scorm12Impl(settings) {
         var _this = this;
         if (settings) {
             if (settings.mastery_override === undefined) {
                 settings.mastery_override = false;
             }
         }
-        _this = _super.call(this, _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__/* ["default"] */ .A.scorm12, settings) || this;
+        _this = _super.call(this, _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* ["default"] */ .A.scorm12, settings) || this;
         _this.statusSetByModule = false;
-        _this.cmi = new _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_1__/* .CMI */ .Y();
-        _this.nav = new _cmi_scorm12_nav__WEBPACK_IMPORTED_MODULE_7__/* .NAV */ .A();
+        _this.cmi = new _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_0__/* .CMI */ .Y();
+        _this.nav = new _cmi_scorm12_nav__WEBPACK_IMPORTED_MODULE_6__/* .NAV */ .A();
         _this.LMSInitialize = _this.lmsInitialize;
         _this.LMSFinish = _this.lmsFinish;
         _this.LMSGetValue = _this.lmsGetValue;
@@ -3419,12 +3419,12 @@ var Scorm12API = (function (_super) {
         _this.LMSGetDiagnostic = _this.lmsGetDiagnostic;
         return _this;
     }
-    Scorm12API.prototype.reset = function (settings) {
+    Scorm12Impl.prototype.reset = function (settings) {
         this.commonReset(settings);
-        this.cmi = new _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_1__/* .CMI */ .Y();
-        this.nav = new _cmi_scorm12_nav__WEBPACK_IMPORTED_MODULE_7__/* .NAV */ .A();
+        this.cmi = new _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_0__/* .CMI */ .Y();
+        this.nav = new _cmi_scorm12_nav__WEBPACK_IMPORTED_MODULE_6__/* .NAV */ .A();
     };
-    Scorm12API.prototype.lmsInitialize = function () {
+    Scorm12Impl.prototype.lmsInitialize = function () {
         this.cmi.initialize();
         if (this.cmi.core.lesson_status) {
             this.statusSetByModule = true;
@@ -3434,7 +3434,7 @@ var Scorm12API = (function (_super) {
         }
         return this.initialize("LMSInitialize", "LMS was already initialized!", "LMS is already finished!");
     };
-    Scorm12API.prototype.lmsFinish = function () {
+    Scorm12Impl.prototype.lmsFinish = function () {
         var _this = this;
         (function () { return (0,tslib__WEBPACK_IMPORTED_MODULE_10__/* .__awaiter */ .sH)(_this, void 0, void 0, function () {
             return (0,tslib__WEBPACK_IMPORTED_MODULE_10__/* .__generator */ .YH)(this, function (_a) {
@@ -3446,9 +3446,9 @@ var Scorm12API = (function (_super) {
                 }
             });
         }); })();
-        return _constants_api_constants__WEBPACK_IMPORTED_MODULE_3__/* ["default"] */ .A.global.SCORM_TRUE;
+        return _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* ["default"] */ .A.global.SCORM_TRUE;
     };
-    Scorm12API.prototype.internalFinish = function () {
+    Scorm12Impl.prototype.internalFinish = function () {
         return (0,tslib__WEBPACK_IMPORTED_MODULE_10__/* .__awaiter */ .sH)(this, void 0, void 0, function () {
             var result;
             return (0,tslib__WEBPACK_IMPORTED_MODULE_10__/* .__generator */ .YH)(this, function (_a) {
@@ -3456,7 +3456,7 @@ var Scorm12API = (function (_super) {
                     case 0: return [4, this.terminate("LMSFinish", true)];
                     case 1:
                         result = _a.sent();
-                        if (result === _constants_api_constants__WEBPACK_IMPORTED_MODULE_3__/* ["default"] */ .A.global.SCORM_TRUE) {
+                        if (result === _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* ["default"] */ .A.global.SCORM_TRUE) {
                             if (this.nav.event !== "") {
                                 if (this.nav.event === "continue") {
                                     this.processListeners("SequenceNext");
@@ -3474,16 +3474,16 @@ var Scorm12API = (function (_super) {
             });
         });
     };
-    Scorm12API.prototype.lmsGetValue = function (CMIElement) {
+    Scorm12Impl.prototype.lmsGetValue = function (CMIElement) {
         return this.getValue("LMSGetValue", false, CMIElement);
     };
-    Scorm12API.prototype.lmsSetValue = function (CMIElement, value) {
+    Scorm12Impl.prototype.lmsSetValue = function (CMIElement, value) {
         if (CMIElement === "cmi.core.lesson_status") {
             this.statusSetByModule = true;
         }
         return this.setValue("LMSSetValue", "LMSCommit", false, CMIElement, value);
     };
-    Scorm12API.prototype.lmsCommit = function () {
+    Scorm12Impl.prototype.lmsCommit = function () {
         var _this = this;
         (function () { return (0,tslib__WEBPACK_IMPORTED_MODULE_10__/* .__awaiter */ .sH)(_this, void 0, void 0, function () {
             return (0,tslib__WEBPACK_IMPORTED_MODULE_10__/* .__generator */ .YH)(this, function (_a) {
@@ -3495,68 +3495,68 @@ var Scorm12API = (function (_super) {
                 }
             });
         }); })();
-        return _constants_api_constants__WEBPACK_IMPORTED_MODULE_3__/* ["default"] */ .A.global.SCORM_TRUE;
+        return _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* ["default"] */ .A.global.SCORM_TRUE;
     };
-    Scorm12API.prototype.lmsGetLastError = function () {
+    Scorm12Impl.prototype.lmsGetLastError = function () {
         return this.getLastError("LMSGetLastError");
     };
-    Scorm12API.prototype.lmsGetErrorString = function (CMIErrorCode) {
+    Scorm12Impl.prototype.lmsGetErrorString = function (CMIErrorCode) {
         return this.getErrorString("LMSGetErrorString", CMIErrorCode);
     };
-    Scorm12API.prototype.lmsGetDiagnostic = function (CMIErrorCode) {
+    Scorm12Impl.prototype.lmsGetDiagnostic = function (CMIErrorCode) {
         return this.getDiagnostic("LMSGetDiagnostic", CMIErrorCode);
     };
-    Scorm12API.prototype.setCMIValue = function (CMIElement, value) {
+    Scorm12Impl.prototype.setCMIValue = function (CMIElement, value) {
         return this._commonSetCMIValue("LMSSetValue", false, CMIElement, value);
     };
-    Scorm12API.prototype.getCMIValue = function (CMIElement) {
+    Scorm12Impl.prototype.getCMIValue = function (CMIElement) {
         return this._commonGetCMIValue("getCMIValue", false, CMIElement);
     };
-    Scorm12API.prototype.getChildElement = function (CMIElement, _value, foundFirstIndex) {
-        if ((0,_utilities__WEBPACK_IMPORTED_MODULE_2__/* .stringMatches */ .J6)(CMIElement, "cmi\\.objectives\\.\\d+")) {
-            return new _cmi_scorm12_objectives__WEBPACK_IMPORTED_MODULE_5__/* .CMIObjectivesObject */ .N();
+    Scorm12Impl.prototype.getChildElement = function (CMIElement, _value, foundFirstIndex) {
+        if ((0,_utilities__WEBPACK_IMPORTED_MODULE_1__/* .stringMatches */ .J6)(CMIElement, "cmi\\.objectives\\.\\d+")) {
+            return new _cmi_scorm12_objectives__WEBPACK_IMPORTED_MODULE_4__/* .CMIObjectivesObject */ .N();
         }
         else if (foundFirstIndex &&
-            (0,_utilities__WEBPACK_IMPORTED_MODULE_2__/* .stringMatches */ .J6)(CMIElement, "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+")) {
-            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_6__/* .CMIInteractionsCorrectResponsesObject */ .cb();
+            (0,_utilities__WEBPACK_IMPORTED_MODULE_1__/* .stringMatches */ .J6)(CMIElement, "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+")) {
+            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_5__/* .CMIInteractionsCorrectResponsesObject */ .cb();
         }
         else if (foundFirstIndex &&
-            (0,_utilities__WEBPACK_IMPORTED_MODULE_2__/* .stringMatches */ .J6)(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")) {
-            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_6__/* .CMIInteractionsObjectivesObject */ .Oh();
+            (0,_utilities__WEBPACK_IMPORTED_MODULE_1__/* .stringMatches */ .J6)(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")) {
+            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_5__/* .CMIInteractionsObjectivesObject */ .Oh();
         }
         else if (!foundFirstIndex &&
-            (0,_utilities__WEBPACK_IMPORTED_MODULE_2__/* .stringMatches */ .J6)(CMIElement, "cmi\\.interactions\\.\\d+")) {
-            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_6__/* .CMIInteractionsObject */ .WP();
+            (0,_utilities__WEBPACK_IMPORTED_MODULE_1__/* .stringMatches */ .J6)(CMIElement, "cmi\\.interactions\\.\\d+")) {
+            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_5__/* .CMIInteractionsObject */ .WP();
         }
         return null;
     };
-    Scorm12API.prototype.validateCorrectResponse = function (_CMIElement, _value) {
+    Scorm12Impl.prototype.validateCorrectResponse = function (_CMIElement, _value) {
     };
-    Scorm12API.prototype.getLmsErrorMessageDetails = function (errorNumber, detail) {
+    Scorm12Impl.prototype.getLmsErrorMessageDetails = function (errorNumber, detail) {
         var basicMessage = "No Error";
         var detailMessage = "No Error";
         errorNumber = String(errorNumber);
-        if (_constants_api_constants__WEBPACK_IMPORTED_MODULE_3__/* ["default"] */ .A.scorm12.error_descriptions[errorNumber]) {
+        if (_constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* ["default"] */ .A.scorm12.error_descriptions[errorNumber]) {
             basicMessage =
-                _constants_api_constants__WEBPACK_IMPORTED_MODULE_3__/* ["default"] */ .A.scorm12.error_descriptions[errorNumber].basicMessage;
+                _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* ["default"] */ .A.scorm12.error_descriptions[errorNumber].basicMessage;
             detailMessage =
-                _constants_api_constants__WEBPACK_IMPORTED_MODULE_3__/* ["default"] */ .A.scorm12.error_descriptions[errorNumber].detailMessage;
+                _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* ["default"] */ .A.scorm12.error_descriptions[errorNumber].detailMessage;
         }
         return detail ? detailMessage : basicMessage;
     };
-    Scorm12API.prototype.replaceWithAnotherScormAPI = function (newAPI) {
+    Scorm12Impl.prototype.replaceWithAnotherScormAPI = function (newAPI) {
         this.cmi = newAPI.cmi;
     };
-    Scorm12API.prototype.renderCommitCMI = function (terminateCommit) {
+    Scorm12Impl.prototype.renderCommitCMI = function (terminateCommit) {
         var cmiExport = this.renderCMIToJSONObject();
         if (terminateCommit) {
             cmiExport.cmi.core.total_time = this.cmi.getCurrentTotalTime();
         }
         var result = [];
-        var flattened = _utilities__WEBPACK_IMPORTED_MODULE_2__/* .flatten */ .Bq(cmiExport);
+        var flattened = _utilities__WEBPACK_IMPORTED_MODULE_1__/* .flatten */ .Bq(cmiExport);
         switch (this.settings.dataCommitFormat) {
             case "flattened":
-                return _utilities__WEBPACK_IMPORTED_MODULE_2__/* .flatten */ .Bq(cmiExport);
+                return _utilities__WEBPACK_IMPORTED_MODULE_1__/* .flatten */ .Bq(cmiExport);
             case "params":
                 for (var item in flattened) {
                     if ({}.hasOwnProperty.call(flattened, item)) {
@@ -3569,23 +3569,23 @@ var Scorm12API = (function (_super) {
                 return cmiExport;
         }
     };
-    Scorm12API.prototype.renderCommitObject = function (terminateCommit) {
+    Scorm12Impl.prototype.renderCommitObject = function (terminateCommit) {
         var cmiExport = this.renderCommitCMI(terminateCommit);
         var totalTimeHHMMSS = this.cmi.getCurrentTotalTime();
-        var totalTimeSeconds = _utilities__WEBPACK_IMPORTED_MODULE_2__/* .getTimeAsSeconds */ .f4(totalTimeHHMMSS, _constants_regex__WEBPACK_IMPORTED_MODULE_8__/* ["default"] */ .A.scorm12.CMITimespan);
+        var totalTimeSeconds = _utilities__WEBPACK_IMPORTED_MODULE_1__/* .getTimeAsSeconds */ .f4(totalTimeHHMMSS, _constants_regex__WEBPACK_IMPORTED_MODULE_7__/* ["default"] */ .A.scorm12.CMITimespan);
         var lessonStatus = this.cmi.core.lesson_status;
-        var completionStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_9__/* .CompletionStatus */ .lC.unknown;
-        var successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_9__/* .SuccessStatus */ .YE.unknown;
+        var completionStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_8__/* .CompletionStatus */ .lC.unknown;
+        var successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_8__/* .SuccessStatus */ .YE.unknown;
         if (lessonStatus) {
             completionStatus =
                 lessonStatus === "completed" || lessonStatus === "passed"
-                    ? _constants_enums__WEBPACK_IMPORTED_MODULE_9__/* .CompletionStatus */ .lC.completed
-                    : _constants_enums__WEBPACK_IMPORTED_MODULE_9__/* .CompletionStatus */ .lC.incomplete;
+                    ? _constants_enums__WEBPACK_IMPORTED_MODULE_8__/* .CompletionStatus */ .lC.completed
+                    : _constants_enums__WEBPACK_IMPORTED_MODULE_8__/* .CompletionStatus */ .lC.incomplete;
             if (lessonStatus === "passed") {
-                successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_9__/* .SuccessStatus */ .YE.passed;
+                successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_8__/* .SuccessStatus */ .YE.passed;
             }
             else if (lessonStatus === "failed") {
-                successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_9__/* .SuccessStatus */ .YE.failed;
+                successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_8__/* .SuccessStatus */ .YE.failed;
             }
         }
         var score = this.cmi.core.score;
@@ -3613,7 +3613,7 @@ var Scorm12API = (function (_super) {
         }
         return commitObject;
     };
-    Scorm12API.prototype.storeData = function (terminateCommit) {
+    Scorm12Impl.prototype.storeData = function (terminateCommit) {
         return (0,tslib__WEBPACK_IMPORTED_MODULE_10__/* .__awaiter */ .sH)(this, void 0, void 0, function () {
             var originalStatus, shouldTerminateCommit, commitObject;
             var _a, _b, _c;
@@ -3651,7 +3651,7 @@ var Scorm12API = (function (_super) {
                         commitObject = this.settings.renderCommonCommitFields
                             ? this.renderCommitObject(shouldTerminateCommit)
                             : this.renderCommitCMI(shouldTerminateCommit);
-                        if (this.apiLogLevel === _constants_api_constants__WEBPACK_IMPORTED_MODULE_3__/* ["default"] */ .A.global.LOG_LEVEL_DEBUG) {
+                        if (this.apiLogLevel === _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* ["default"] */ .A.global.LOG_LEVEL_DEBUG) {
                             console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");
                             console.debug(commitObject);
                         }
@@ -3659,16 +3659,16 @@ var Scorm12API = (function (_super) {
                         return [4, this.processHttpRequest(this.settings.lmsCommitUrl, commitObject, terminateCommit)];
                     case 1: return [2, _d.sent()];
                     case 2: return [2, {
-                            result: _constants_api_constants__WEBPACK_IMPORTED_MODULE_3__/* ["default"] */ .A.global.SCORM_TRUE,
+                            result: _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* ["default"] */ .A.global.SCORM_TRUE,
                             errorCode: 0,
                         }];
                 }
             });
         });
     };
-    return Scorm12API;
-}(_BaseAPI__WEBPACK_IMPORTED_MODULE_0__/* ["default"] */ .A));
-/* harmony default export */ __webpack_exports__["default"] = (Scorm12API);
+    return Scorm12Impl;
+}(_BaseAPI__WEBPACK_IMPORTED_MODULE_9__/* ["default"] */ .A));
+/* harmony default export */ __webpack_exports__["default"] = (Scorm12Impl);
 
 /******/ 	return __webpack_exports__;
 /******/ })()

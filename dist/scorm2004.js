@@ -2316,7 +2316,7 @@ __webpack_require__.r(__webpack_exports__);
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
-  "default": function() { return /* binding */ src_Scorm2004API; }
+  "default": function() { return /* binding */ Scorm2004API; }
 });
 
 // EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
@@ -4169,9 +4169,9 @@ var ADLNavRequestValid = (function (_super) {
 
 
 
-var Scorm2004API = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(Scorm2004API, _super);
-    function Scorm2004API(settings) {
+var Scorm2004Impl = (function (_super) {
+    (0,tslib_es6/* __extends */.C6)(Scorm2004Impl, _super);
+    function Scorm2004Impl(settings) {
         var _this = this;
         if (settings) {
             if (settings.mastery_override === undefined) {
@@ -4192,23 +4192,23 @@ var Scorm2004API = (function (_super) {
         _this.GetDiagnostic = _this.lmsGetDiagnostic;
         return _this;
     }
-    Scorm2004API.prototype.reset = function (settings) {
+    Scorm2004Impl.prototype.reset = function (settings) {
         this.commonReset(settings);
         this.cmi = new CMI();
         this.adl = new ADL();
     };
-    Object.defineProperty(Scorm2004API.prototype, "version", {
+    Object.defineProperty(Scorm2004Impl.prototype, "version", {
         get: function () {
             return this._version;
         },
         enumerable: false,
         configurable: true
     });
-    Scorm2004API.prototype.lmsInitialize = function () {
+    Scorm2004Impl.prototype.lmsInitialize = function () {
         this.cmi.initialize();
         return this.initialize("Initialize");
     };
-    Scorm2004API.prototype.lmsFinish = function () {
+    Scorm2004Impl.prototype.lmsFinish = function () {
         var _this = this;
         (function () { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () {
             return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
@@ -4222,7 +4222,7 @@ var Scorm2004API = (function (_super) {
         }); })();
         return api_constants/* default */.A.global.SCORM_TRUE;
     };
-    Scorm2004API.prototype.internalFinish = function () {
+    Scorm2004Impl.prototype.internalFinish = function () {
         return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
             var result, navActions, request, choiceJumpRegex, matches, target, action;
             return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
@@ -4264,7 +4264,7 @@ var Scorm2004API = (function (_super) {
             });
         });
     };
-    Scorm2004API.prototype.lmsGetValue = function (CMIElement) {
+    Scorm2004Impl.prototype.lmsGetValue = function (CMIElement) {
         var adlNavRequestRegex = "^adl\\.nav\\.request_valid\\.(choice|jump)\\.{target=\\S{0,}([a-zA-Z0-9-_]+)}$";
         if ((0,utilities/* stringMatches */.J6)(CMIElement, adlNavRequestRegex)) {
             var matches = CMIElement.match(adlNavRequestRegex);
@@ -4279,10 +4279,10 @@ var Scorm2004API = (function (_super) {
         }
         return this.getValue("GetValue", true, CMIElement);
     };
-    Scorm2004API.prototype.lmsSetValue = function (CMIElement, value) {
+    Scorm2004Impl.prototype.lmsSetValue = function (CMIElement, value) {
         return this.setValue("SetValue", "Commit", true, CMIElement, value);
     };
-    Scorm2004API.prototype.lmsCommit = function () {
+    Scorm2004Impl.prototype.lmsCommit = function () {
         var _this = this;
         (function () { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () {
             return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
@@ -4296,19 +4296,19 @@ var Scorm2004API = (function (_super) {
         }); })();
         return api_constants/* default */.A.global.SCORM_TRUE;
     };
-    Scorm2004API.prototype.lmsGetLastError = function () {
+    Scorm2004Impl.prototype.lmsGetLastError = function () {
         return this.getLastError("GetLastError");
     };
-    Scorm2004API.prototype.lmsGetErrorString = function (CMIErrorCode) {
+    Scorm2004Impl.prototype.lmsGetErrorString = function (CMIErrorCode) {
         return this.getErrorString("GetErrorString", CMIErrorCode);
     };
-    Scorm2004API.prototype.lmsGetDiagnostic = function (CMIErrorCode) {
+    Scorm2004Impl.prototype.lmsGetDiagnostic = function (CMIErrorCode) {
         return this.getDiagnostic("GetDiagnostic", CMIErrorCode);
     };
-    Scorm2004API.prototype.setCMIValue = function (CMIElement, value) {
+    Scorm2004Impl.prototype.setCMIValue = function (CMIElement, value) {
         return this._commonSetCMIValue("SetValue", true, CMIElement, value);
     };
-    Scorm2004API.prototype.getChildElement = function (CMIElement, value, foundFirstIndex) {
+    Scorm2004Impl.prototype.getChildElement = function (CMIElement, value, foundFirstIndex) {
         if ((0,utilities/* stringMatches */.J6)(CMIElement, "cmi\\.objectives\\.\\d+")) {
             return new CMIObjectivesObject();
         }
@@ -4331,7 +4331,7 @@ var Scorm2004API = (function (_super) {
         }
         return null;
     };
-    Scorm2004API.prototype.createCorrectResponsesObject = function (CMIElement, value) {
+    Scorm2004Impl.prototype.createCorrectResponsesObject = function (CMIElement, value) {
         var parts = CMIElement.split(".");
         var index = Number(parts[2]);
         var interaction = this.cmi.interactions.childArray[index];
@@ -4355,7 +4355,7 @@ var Scorm2004API = (function (_super) {
         }
         return null;
     };
-    Scorm2004API.prototype.checkValidResponseType = function (response_type, value, interaction_type) {
+    Scorm2004Impl.prototype.checkValidResponseType = function (response_type, value, interaction_type) {
         var nodes = [];
         if (response_type === null || response_type === void 0 ? void 0 : response_type.delimiter) {
             nodes = String(value).split(response_type.delimiter);
@@ -4370,7 +4370,7 @@ var Scorm2004API = (function (_super) {
             this.throwSCORMError(error_codes/* default */.A.scorm2004.GENERAL_SET_FAILURE, "Data Model Element Pattern Too Long");
         }
     };
-    Scorm2004API.prototype.checkDuplicateChoiceResponse = function (interaction, value) {
+    Scorm2004Impl.prototype.checkDuplicateChoiceResponse = function (interaction, value) {
         var interaction_count = interaction.correct_responses._count;
         if (interaction.type === "choice") {
             for (var i = 0; i < interaction_count && this.lastErrorCode === "0"; i++) {
@@ -4381,7 +4381,7 @@ var Scorm2004API = (function (_super) {
             }
         }
     };
-    Scorm2004API.prototype.validateCorrectResponse = function (CMIElement, value) {
+    Scorm2004Impl.prototype.validateCorrectResponse = function (CMIElement, value) {
         var parts = CMIElement.split(".");
         var index = Number(parts[2]);
         var pattern_index = Number(parts[4]);
@@ -4407,10 +4407,10 @@ var Scorm2004API = (function (_super) {
             this.throwSCORMError(error_codes/* default */.A.scorm2004.GENERAL_SET_FAILURE, "Data Model Element Collection Limit Reached");
         }
     };
-    Scorm2004API.prototype.getCMIValue = function (CMIElement) {
+    Scorm2004Impl.prototype.getCMIValue = function (CMIElement) {
         return this._commonGetCMIValue("GetValue", true, CMIElement);
     };
-    Scorm2004API.prototype.getLmsErrorMessageDetails = function (errorNumber, detail) {
+    Scorm2004Impl.prototype.getLmsErrorMessageDetails = function (errorNumber, detail) {
         var basicMessage = "";
         var detailMessage = "";
         errorNumber = String(errorNumber);
@@ -4422,7 +4422,7 @@ var Scorm2004API = (function (_super) {
         }
         return detail ? detailMessage : basicMessage;
     };
-    Scorm2004API.prototype.checkDuplicatedPattern = function (correct_response, current_index, value) {
+    Scorm2004Impl.prototype.checkDuplicatedPattern = function (correct_response, current_index, value) {
         var found = false;
         var count = correct_response._count;
         for (var i = 0; i < count && !found; i++) {
@@ -4432,7 +4432,7 @@ var Scorm2004API = (function (_super) {
         }
         return found;
     };
-    Scorm2004API.prototype.checkCorrectResponseValue = function (interaction_type, nodes, value) {
+    Scorm2004Impl.prototype.checkCorrectResponseValue = function (interaction_type, nodes, value) {
         var response = CorrectResponses[interaction_type];
         var formatRegex = new RegExp(response.format);
         for (var i = 0; i < nodes.length && this.lastErrorCode === "0"; i++) {
@@ -4482,7 +4482,7 @@ var Scorm2004API = (function (_super) {
             }
         }
     };
-    Scorm2004API.prototype.removeCorrectResponsePrefixes = function (node) {
+    Scorm2004Impl.prototype.removeCorrectResponsePrefixes = function (node) {
         var seenOrder = false;
         var seenCase = false;
         var seenLang = false;
@@ -4525,11 +4525,11 @@ var Scorm2004API = (function (_super) {
         }
         return node;
     };
-    Scorm2004API.prototype.replaceWithAnotherScormAPI = function (newAPI) {
+    Scorm2004Impl.prototype.replaceWithAnotherScormAPI = function (newAPI) {
         this.cmi = newAPI.cmi;
         this.adl = newAPI.adl;
     };
-    Scorm2004API.prototype.renderCommitCMI = function (terminateCommit) {
+    Scorm2004Impl.prototype.renderCommitCMI = function (terminateCommit) {
         var cmiExport = this.renderCMIToJSONObject();
         if (terminateCommit) {
             cmiExport.cmi.total_time = this.cmi.getCurrentTotalTime();
@@ -4551,7 +4551,7 @@ var Scorm2004API = (function (_super) {
                 return cmiExport;
         }
     };
-    Scorm2004API.prototype.renderCommitObject = function (terminateCommit) {
+    Scorm2004Impl.prototype.renderCommitObject = function (terminateCommit) {
         var cmiExport = this.renderCommitCMI(terminateCommit);
         var totalTimeDuration = this.cmi.getCurrentTotalTime();
         var totalTimeSeconds = utilities/* getDurationAsSeconds */.OI(totalTimeDuration, regex/* default */.A.scorm2004.CMITimespan);
@@ -4601,7 +4601,7 @@ var Scorm2004API = (function (_super) {
         }
         return commitObject;
     };
-    Scorm2004API.prototype.storeData = function (terminateCommit) {
+    Scorm2004Impl.prototype.storeData = function (terminateCommit) {
         return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
             var navRequest, shouldTerminateCommit, commitObject, result;
             var _a, _b, _c;
@@ -4664,9 +4664,9 @@ var Scorm2004API = (function (_super) {
             });
         });
     };
-    return Scorm2004API;
+    return Scorm2004Impl;
 }(BaseAPI/* default */.A));
-/* harmony default export */ var src_Scorm2004API = (Scorm2004API);
+/* harmony default export */ var Scorm2004API = (Scorm2004Impl);
 
 /******/ 	return __webpack_exports__;
 /******/ })()
