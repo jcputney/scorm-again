@@ -1,14 +1,4 @@
-(function webpackUniversalModuleDefinition(root, factory) {
-	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory();
-	else if(typeof define === 'function' && define.amd)
-		define([], factory);
-	else if(typeof exports === 'object')
-		exports["scorm-again"] = factory();
-	else
-		root["scorm-again"] = factory();
-})(self, function() {
-return /******/ (function() { // webpackBootstrap
+/******/ (function() { // webpackBootstrap
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
@@ -3670,8 +3660,7 @@ var Scorm12Impl = (function (_super) {
 }(_BaseAPI__WEBPACK_IMPORTED_MODULE_9__/* ["default"] */ .A));
 /* harmony default export */ __webpack_exports__["default"] = (Scorm12Impl);
 
-/******/ 	return __webpack_exports__;
+module.exports = __webpack_exports__;
 /******/ })()
 ;
-});
 //# sourceMappingURL=scorm12.js.map

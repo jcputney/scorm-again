@@ -14,7 +14,7 @@ const TSLoader = {
   },
 };
 
-export default {
+const commonConfig = {
   mode: "production",
   devtool: "source-map",
   entry: {
@@ -30,15 +30,6 @@ export default {
   target: ["web", "es5"],
   module: {
     rules: [TSLoader],
-  },
-  output: {
-    path: path.resolve(__dirname, "dist"),
-    filename: "[name].js",
-    library: "scorm-again",
-    libraryTarget: "umd",
-    environment: {
-      arrowFunction: false,
-    },
   },
   optimization: {
     minimize: true,
@@ -66,3 +57,32 @@ export default {
     }),
   ],
 };
+
+const cjsConfig = {
+  ...commonConfig,
+  output: {
+    path: path.resolve(__dirname, "dist"),
+    filename: "[name].js",
+    libraryTarget: "commonjs2",
+    environment: {
+      arrowFunction: false,
+    },
+  },
+};
+
+const esmConfig = {
+  ...commonConfig,
+  experiments: {
+    outputModule: true,
+  },
+  output: {
+    path: path.resolve(__dirname, "dist/esm"),
+    filename: "[name].js",
+    libraryTarget: "module",
+    environment: {
+      arrowFunction: false,
+    },
+  },
+};
+
+export default [cjsConfig, esmConfig];
