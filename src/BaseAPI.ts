@@ -401,7 +401,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       )
     ) {
       if (this.settings.asyncCommit) {
-        debounce(this.storeData, 500, false)(false);
+        debounce(this.storeData.bind(this), 500, false)(false);
 
         returnValue = APIConstants.global.SCORM_TRUE;
       } else {

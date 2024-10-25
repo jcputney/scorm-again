@@ -1269,7 +1269,7 @@ var BaseAPI = (function () {
                         returnValue = api_constants/* default */.A.global.SCORM_FALSE;
                         if (!this.checkState(checkTerminated, this._error_codes.COMMIT_BEFORE_INIT, this._error_codes.COMMIT_AFTER_TERM)) return [3, 4];
                         if (!this.settings.asyncCommit) return [3, 1];
-                        debounce(this.storeData, 500, false)(false);
+                        debounce(this.storeData.bind(this), 500, false)(false);
                         returnValue = api_constants/* default */.A.global.SCORM_TRUE;
                         return [3, 3];
                     case 1: return [4, this.storeData(false)];
