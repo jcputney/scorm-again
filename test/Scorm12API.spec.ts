@@ -1,6 +1,6 @@
 import { expect } from "expect";
 import { after, before, describe, it } from "mocha";
-import Scorm12Impl from "../src/Scorm12API";
+import { Scorm12Impl } from "../src/Scorm12API";
 import * as h from "./api_helpers";
 import ErrorCodes from "../src/constants/error_codes";
 import { scorm12Values } from "./field_values";

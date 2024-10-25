@@ -855,6 +855,17 @@ var BaseAPI = (function () {
         }
         return returnValue;
     };
+    BaseAPI.prototype.getCommitObject = function (terminateCommit) {
+        var shouldTerminateCommit = terminateCommit || this.settings.alwaysSendTotalTime;
+        var commitObject = this.settings.renderCommonCommitFields
+            ? this.renderCommitObject(shouldTerminateCommit)
+            : this.renderCommitCMI(shouldTerminateCommit);
+        if (this.apiLogLevel === api_constants/* default */.A.global.LOG_LEVEL_DEBUG) {
+            console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");
+            console.debug(commitObject);
+        }
+        return commitObject;
+    };
     BaseAPI.prototype.performFetch = function (url, params) {
         return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
             return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
@@ -4593,7 +4604,7 @@ var Scorm2004Impl = (function (_super) {
     };
     Scorm2004Impl.prototype.storeData = function (terminateCommit) {
         return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
-            var navRequest, shouldTerminateCommit, commitObject, result;
+            var navRequest, commitObject, result;
             var _a, _b, _c;
             return (0,tslib_es6/* __generator */.YH)(this, function (_d) {
                 switch (_d.label) {
@@ -4626,14 +4637,7 @@ var Scorm2004Impl = (function (_super) {
                             this.adl.nav.request = encodeURIComponent(this.adl.nav.request);
                             navRequest = true;
                         }
-                        shouldTerminateCommit = terminateCommit || this.settings.alwaysSendTotalTime;
-                        commitObject = this.settings.renderCommonCommitFields
-                            ? this.renderCommitObject(shouldTerminateCommit)
-                            : this.renderCommitCMI(shouldTerminateCommit);
-                        if (this.apiLogLevel === api_constants/* default */.A.global.LOG_LEVEL_DEBUG) {
-                            console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");
-                            console.debug(commitObject);
-                        }
+                        commitObject = this.getCommitObject(terminateCommit);
                         if (!(typeof this.settings.lmsCommitUrl === "string")) return [3, 2];
                         return [4, this.processHttpRequest(this.settings.lmsCommitUrl, commitObject, terminateCommit)];
                     case 1:

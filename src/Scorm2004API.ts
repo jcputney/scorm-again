@@ -718,18 +718,7 @@ class Scorm2004Impl extends BaseAPI {
       navRequest = true;
     }
 
-    const shouldTerminateCommit =
-      terminateCommit || this.settings.alwaysSendTotalTime;
-    const commitObject = this.settings.renderCommonCommitFields
-      ? this.renderCommitObject(shouldTerminateCommit)
-      : this.renderCommitCMI(shouldTerminateCommit);
-
-    if (this.apiLogLevel === APIConstants.global.LOG_LEVEL_DEBUG) {
-      console.debug(
-        "Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ",
-      );
-      console.debug(commitObject);
-    }
+    const commitObject = this.getCommitObject(terminateCommit);
     if (typeof this.settings.lmsCommitUrl === "string") {
       const result = await this.processHttpRequest(
         this.settings.lmsCommitUrl,

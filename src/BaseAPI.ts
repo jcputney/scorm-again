@@ -1263,6 +1263,30 @@ export default abstract class BaseAPI implements IBaseAPI {
   }
 
   /**
+   * Builds the commit object to be sent to the LMS
+   * @param {boolean} terminateCommit
+   * @return {CommitObject|RefObject|Array}
+   * @private
+   */
+  protected getCommitObject(
+    terminateCommit: boolean,
+  ): CommitObject | RefObject | Array<any> {
+    const shouldTerminateCommit =
+      terminateCommit || this.settings.alwaysSendTotalTime;
+    const commitObject = this.settings.renderCommonCommitFields
+      ? this.renderCommitObject(shouldTerminateCommit)
+      : this.renderCommitCMI(shouldTerminateCommit);
+
+    if (this.apiLogLevel === APIConstants.global.LOG_LEVEL_DEBUG) {
+      console.debug(
+        "Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ",
+      );
+      console.debug(commitObject);
+    }
+    return commitObject;
+  }
+
+  /**
    * Perform the fetch request to the LMS
    * @param {string} url
    * @param {RefObject|Array} params

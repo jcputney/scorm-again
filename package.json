@@ -99,7 +99,8 @@
       "test/**/*.*",
       "src/exports/*.*",
       "src/interfaces/*.*",
-      "src/types/*.*"
+      "src/types/*.*",
+      "src/ScormAgain.ts"
     ],
     "extension": [
       ".ts"

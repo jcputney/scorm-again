@@ -2,7 +2,7 @@ import { expect } from "expect";
 import { describe } from "mocha";
 import * as h from "./api_helpers";
 import ErrorCodes from "../src/constants/error_codes";
-import AICCImpl from "../src/AICC";
+import { AICCImpl } from "../src/AICC";
 
 const scorm12_error_codes = ErrorCodes.scorm12;
 

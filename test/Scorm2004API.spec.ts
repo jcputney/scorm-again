@@ -4,7 +4,7 @@ import * as sinon from "sinon";
 import * as h from "./api_helpers";
 import Pretender from "fetch-pretender";
 import ErrorCodes from "../src/constants/error_codes";
-import Scorm2004Impl from "../src/Scorm2004API";
+import { Scorm2004Impl } from "../src/Scorm2004API";
 import { scorm2004Values } from "./field_values";
 import APIConstants from "../src/constants/api_constants";
 import { RefObject, Settings } from "../src/types/api_types";

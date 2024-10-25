@@ -855,6 +855,17 @@ var BaseAPI = (function () {
         }
         return returnValue;
     };
+    BaseAPI.prototype.getCommitObject = function (terminateCommit) {
+        var shouldTerminateCommit = terminateCommit || this.settings.alwaysSendTotalTime;
+        var commitObject = this.settings.renderCommonCommitFields
+            ? this.renderCommitObject(shouldTerminateCommit)
+            : this.renderCommitCMI(shouldTerminateCommit);
+        if (this.apiLogLevel === api_constants/* default */.A.global.LOG_LEVEL_DEBUG) {
+            console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");
+            console.debug(commitObject);
+        }
+        return commitObject;
+    };
     BaseAPI.prototype.performFetch = function (url, params) {
         return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
             return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
@@ -3608,7 +3619,7 @@ var Scorm12Impl = (function (_super) {
     };
     Scorm12Impl.prototype.storeData = function (terminateCommit) {
         return (0,tslib__WEBPACK_IMPORTED_MODULE_10__/* .__awaiter */ .sH)(this, void 0, void 0, function () {
-            var originalStatus, shouldTerminateCommit, commitObject;
+            var originalStatus, commitObject;
             var _a, _b, _c;
             return (0,tslib__WEBPACK_IMPORTED_MODULE_10__/* .__generator */ .YH)(this, function (_d) {
                 switch (_d.label) {
@@ -3640,14 +3651,7 @@ var Scorm12Impl = (function (_super) {
                                 }
                             }
                         }
-                        shouldTerminateCommit = terminateCommit || this.settings.alwaysSendTotalTime;
-                        commitObject = this.settings.renderCommonCommitFields
-                            ? this.renderCommitObject(shouldTerminateCommit)
-                            : this.renderCommitCMI(shouldTerminateCommit);
-                        if (this.apiLogLevel === _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* ["default"] */ .A.global.LOG_LEVEL_DEBUG) {
-                            console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");
-                            console.debug(commitObject);
-                        }
+                        commitObject = this.getCommitObject(terminateCommit);
                         if (!(typeof this.settings.lmsCommitUrl === "string")) return [3, 2];
                         return [4, this.processHttpRequest(this.settings.lmsCommitUrl, commitObject, terminateCommit)];
                     case 1: return [2, _d.sent()];
