@@ -997,6 +997,7 @@ var DefaultSettings = {
     strict_errors: true,
     xhrHeaders: {},
     xhrWithCredentials: false,
+    fetchMode: "cors",
     responseHandler: function (response) {
         return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
             var httpResult, _a, _b;
@@ -1802,6 +1803,7 @@ var BaseAPI = (function () {
             return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
                 return [2, fetch(url, {
                         method: "POST",
+                        mode: this.settings.fetchMode,
                         body: params instanceof Array ? params.join("&") : JSON.stringify(params),
                         headers: (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, this.settings.xhrHeaders), { "Content-Type": this.settings.commitRequestDataType }),
                         credentials: this.settings.xhrWithCredentials ? "include" : undefined,
