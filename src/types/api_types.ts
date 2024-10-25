@@ -15,6 +15,7 @@ export type Settings = {
   strict_errors?: boolean;
   xhrHeaders?: RefObject;
   xhrWithCredentials?: boolean;
+  fetchMode?: "cors" | "no-cors" | "same-origin" | "navigate";
   responseHandler?: (response: Response) => Promise<ResultObject>;
   requestHandler?: (commitObject: any) => any;
   onLogMessage?: (messageLevel: number, logMessage: string) => void;

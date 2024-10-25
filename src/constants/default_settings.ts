@@ -20,6 +20,7 @@ export const DefaultSettings: Settings = {
   strict_errors: true,
   xhrHeaders: {},
   xhrWithCredentials: false,
+  fetchMode: "cors",
   responseHandler: async function (response: Response): Promise<ResultObject> {
     if (typeof response !== "undefined") {
       const httpResult = JSON.parse(await response.text());

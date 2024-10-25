@@ -1299,6 +1299,7 @@ export default abstract class BaseAPI implements IBaseAPI {
   ): Promise<Response> {
     return fetch(url, {
       method: "POST",
+      mode: this.settings.fetchMode,
       body: params instanceof Array ? params.join("&") : JSON.stringify(params),
       headers: {
         ...this.settings.xhrHeaders,
