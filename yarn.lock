@@ -347,9 +347,9 @@
     picocolors "^1.0.0"
 
 "@babel/node@^7.25.9":
-  version "7.25.9"
-  resolved "https://registry.yarnpkg.com/@babel/node/-/node-7.25.9.tgz#309d407175003aee2c2f751700c53ee9002c6809"
-  integrity sha512-EvwozHOSnCWZYb96f5i4eRF0Lbsyh/YbOUx8fbpiOXTALDexM3SMQ1KTAbWdtKNsIybG9cAJKMcML+YfT30w5A==
+  version "7.26.0"
+  resolved "https://registry.yarnpkg.com/@babel/node/-/node-7.26.0.tgz#4b126f4eb56a05a97990a650fae0a24ad9b0c583"
+  integrity sha512-5ASMjh42hbnqyCOK68Q5chh1jKAqn91IswFTN+niwt4FLABhEWCT1tEuuo6mlNQ4WG/oFQLvJ71PaHAKtWtJyA==
   dependencies:
     "@babel/register" "^7.25.9"
     commander "^6.2.0"
