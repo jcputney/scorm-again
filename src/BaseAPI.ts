@@ -400,14 +400,20 @@ export default abstract class BaseAPI implements IBaseAPI {
         this._error_codes.COMMIT_AFTER_TERM,
       )
     ) {
-      const result = await this.storeData(false);
-      if (result.errorCode && result.errorCode > 0) {
-        this.throwSCORMError(result.errorCode);
+      if (this.settings.asyncCommit) {
+        debounce(this.storeData, 500, false)(false);
+
+        returnValue = APIConstants.global.SCORM_TRUE;
+      } else {
+        const result = await this.storeData(false);
+        if (result.errorCode && result.errorCode > 0) {
+          this.throwSCORMError(result.errorCode);
+        }
+        returnValue =
+          typeof result !== "undefined" && result.result
+            ? result.result
+            : APIConstants.global.SCORM_FALSE;
       }
-      returnValue =
-        typeof result !== "undefined" && result.result
-          ? result.result
-          : APIConstants.global.SCORM_FALSE;
 
       this.apiLog(
         callbackName,
@@ -1174,17 +1180,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       }
     };
 
-    if (this.settings.asyncCommit) {
-      const debouncedProcess = debounce(process, 500, immediate);
-      debouncedProcess(url, params, this.settings);
-
-      return {
-        result: APIConstants.global.SCORM_TRUE,
-        errorCode: 0,
-      };
-    } else {
-      return await process(url, params, this.settings);
-    }
+    return await process(url, params, this.settings);
   }
 
   /**
