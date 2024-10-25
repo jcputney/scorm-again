@@ -336,9 +336,13 @@ var BaseAPI = (function () {
                     case 0:
                         this.clearScheduledCommit();
                         returnValue = api_constants/* default */.A.global.SCORM_FALSE;
-                        if (!this.checkState(checkTerminated, this._error_codes.COMMIT_BEFORE_INIT, this._error_codes.COMMIT_AFTER_TERM)) return [3, 2];
-                        return [4, this.storeData(false)];
-                    case 1:
+                        if (!this.checkState(checkTerminated, this._error_codes.COMMIT_BEFORE_INIT, this._error_codes.COMMIT_AFTER_TERM)) return [3, 4];
+                        if (!this.settings.asyncCommit) return [3, 1];
+                        debounce(this.storeData, 500, false)(false);
+                        returnValue = api_constants/* default */.A.global.SCORM_TRUE;
+                        return [3, 3];
+                    case 1: return [4, this.storeData(false)];
+                    case 2:
                         result = _a.sent();
                         if (result.errorCode && result.errorCode > 0) {
                             this.throwSCORMError(result.errorCode);
@@ -347,12 +351,14 @@ var BaseAPI = (function () {
                             typeof result !== "undefined" && result.result
                                 ? result.result
                                 : api_constants/* default */.A.global.SCORM_FALSE;
+                        _a.label = 3;
+                    case 3:
                         this.apiLog(callbackName, " Result: " + returnValue, api_constants/* default */.A.global.LOG_LEVEL_DEBUG, "HttpRequest");
                         if (checkTerminated)
                             this.lastErrorCode = "0";
                         this.processListeners(callbackName);
-                        _a.label = 2;
-                    case 2:
+                        _a.label = 4;
+                    case 4:
                         this.apiLog(callbackName, "returned: " + returnValue, api_constants/* default */.A.global.LOG_LEVEL_INFO);
                         this.clearSCORMError(returnValue);
                         return [2, returnValue];
@@ -764,7 +770,7 @@ var BaseAPI = (function () {
     };
     BaseAPI.prototype.processHttpRequest = function (url_1, params_1) {
         return (0,tslib_es6/* __awaiter */.sH)(this, arguments, void 0, function (url, params, immediate) {
-            var api, genericError, process, debouncedProcess;
+            var api, genericError, process;
             var _this = this;
             if (immediate === void 0) { immediate = false; }
             return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
@@ -811,15 +817,8 @@ var BaseAPI = (function () {
                                 }
                             });
                         }); };
-                        if (!this.settings.asyncCommit) return [3, 1];
-                        debouncedProcess = debounce(process, 500, immediate);
-                        debouncedProcess(url, params, this.settings);
-                        return [2, {
-                                result: api_constants/* default */.A.global.SCORM_TRUE,
-                                errorCode: 0,
-                            }];
-                    case 1: return [4, process(url, params, this.settings)];
-                    case 2: return [2, _a.sent()];
+                        return [4, process(url, params, this.settings)];
+                    case 1: return [2, _a.sent()];
                 }
             });
         });
