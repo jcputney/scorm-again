@@ -4,10 +4,9 @@ import ErrorCodes, { ErrorCode } from "./constants/error_codes";
 import APIConstants from "./constants/api_constants";
 import { formatMessage, stringMatches, unflatten } from "./utilities";
 import { BaseCMI } from "./cmi/common/base_cmi";
-import { debounce } from "./utilities/debounce";
 import {
-  RefObject,
   CommitObject,
+  RefObject,
   ResultObject,
   Settings,
 } from "./types/api_types";
@@ -360,7 +359,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     // If we didn't have any errors while setting the data, go ahead and
     // schedule a commit, if autocommit is turned on
     if (String(this.lastErrorCode) === "0") {
-      if (this.settings.autocommit && !this._timeout) {
+      if (this.settings.autocommit) {
         this.scheduleCommit(
           this.settings.autocommitSeconds * 1000,
           commitCallback,
@@ -389,6 +388,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     callbackName: string,
     checkTerminated: boolean = false,
   ): Promise<string> {
+    console.log("commit");
     this.clearScheduledCommit();
 
     let returnValue = APIConstants.global.SCORM_FALSE;
@@ -400,20 +400,14 @@ export default abstract class BaseAPI implements IBaseAPI {
         this._error_codes.COMMIT_AFTER_TERM,
       )
     ) {
-      if (this.settings.asyncCommit) {
-        debounce(this.storeData.bind(this), 500, false)(false);
-
-        returnValue = APIConstants.global.SCORM_TRUE;
-      } else {
-        const result = await this.storeData(false);
-        if (result.errorCode && result.errorCode > 0) {
-          this.throwSCORMError(result.errorCode);
-        }
-        returnValue =
-          typeof result !== "undefined" && result.result
-            ? result.result
-            : APIConstants.global.SCORM_FALSE;
+      const result = await this.storeData(false);
+      if (result.errorCode && result.errorCode > 0) {
+        this.throwSCORMError(result.errorCode);
       }
+      returnValue =
+        typeof result !== "undefined" && result.result
+          ? result.result
+          : APIConstants.global.SCORM_FALSE;
 
       this.apiLog(
         callbackName,
@@ -1190,13 +1184,15 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {string} callback - the name of the commit event callback
    */
   scheduleCommit(when: number, callback: string) {
-    this._timeout = new ScheduledCommit(this, when, callback);
-    this.apiLog(
-      "scheduleCommit",
-      "scheduled",
-      APIConstants.global.LOG_LEVEL_DEBUG,
-      "",
-    );
+    if (!this._timeout) {
+      this._timeout = new ScheduledCommit(this, when, callback);
+      this.apiLog(
+        "scheduleCommit",
+        "scheduled",
+        APIConstants.global.LOG_LEVEL_DEBUG,
+        "",
+      );
+    }
   }
 
   /**

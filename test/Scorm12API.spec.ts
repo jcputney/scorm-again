@@ -537,6 +537,77 @@ describe("SCORM 1.2 API Tests", () => {
     });
   });
 
+  describe("LMSCommit Debounce Tests", () => {
+    it("should debounce LMSCommit calls when autocommit is true", async () => {
+      const scorm12API = api({
+        ...DefaultSettings,
+        autocommit: true,
+        autocommitSeconds: 1,
+      });
+      scorm12API.lmsInitialize();
+
+      const commitSpy = sinon.spy(scorm12API, "commit");
+
+      scorm12API.lmsSetValue("cmi.core.session_time", "00:01:00");
+      scorm12API.lmsSetValue("cmi.core.session_time", "00:02:00");
+      scorm12API.lmsSetValue("cmi.core.session_time", "00:03:00");
+
+      clock.tick(2000);
+      await clock.runAllAsync();
+
+      expect(commitSpy.calledOnce).toBe(true);
+    });
+
+    it("should call LMSCommit only once within the debounce period ", async () => {
+      const scorm12API = api({
+        ...DefaultSettings,
+        asyncCommit: true,
+        autocommit: true,
+      });
+      scorm12API.lmsInitialize();
+
+      const commitSpy = sinon.spy(scorm12API, "commit");
+
+      scorm12API.lmsSetValue("cmi.core.session_time", "00:01:00");
+
+      scorm12API.lmsCommit();
+      clock.tick(100);
+
+      scorm12API.lmsCommit();
+      clock.tick(100);
+
+      scorm12API.lmsCommit();
+      clock.tick(100);
+
+      clock.tick(1000);
+      await clock.runAllAsync();
+
+      expect(commitSpy.calledOnce).toBe(true);
+    });
+
+    it("should call LMSCommit multiple times if debounce period is exceeded", async () => {
+      const scorm12API = api({
+        ...DefaultSettings,
+        autocommit: true,
+        autocommitSeconds: 1,
+      });
+      scorm12API.lmsInitialize();
+
+      const commitSpy = sinon.spy(scorm12API, "commit");
+
+      scorm12API.lmsSetValue("cmi.core.session_time", "00:01:00");
+      clock.tick(2000);
+      scorm12API.lmsSetValue("cmi.core.session_time", "00:02:00");
+      clock.tick(2000);
+      scorm12API.lmsSetValue("cmi.core.session_time", "00:03:00");
+
+      clock.tick(2000);
+      await clock.runAllAsync();
+
+      expect(commitSpy.calledThrice).toBe(true);
+    });
+  });
+
   describe("Event Handlers", () => {
     it("Should handle SetValue.cmi.core.student_name event", () => {
       const scorm12API = apiInitialized();

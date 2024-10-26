@@ -931,7 +931,7 @@ var AICCImpl = (function (_super) {
 
 /***/ }),
 
-/***/ 900:
+/***/ 429:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 
@@ -952,30 +952,6 @@ var error_codes = __webpack_require__(797);
 var api_constants = __webpack_require__(340);
 // EXTERNAL MODULE: ./src/utilities.ts
 var utilities = __webpack_require__(864);
-;// ./src/utilities/debounce.ts
-function debounce(func, wait, immediate) {
-    if (immediate === void 0) { immediate = false; }
-    var timeout;
-    return function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        var context = this;
-        var later = function () {
-            timeout = null;
-            if (!immediate)
-                func.apply(context, args);
-        };
-        var callNow = immediate && !timeout;
-        if (timeout)
-            clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-        if (callNow)
-            func.apply(context, args);
-    };
-}
-
 ;// ./src/constants/default_settings.ts
 
 
@@ -1100,7 +1076,6 @@ var ScheduledCommit = (function () {
 
 
 ;// ./src/BaseAPI.ts
-
 
 
 
@@ -1248,7 +1223,7 @@ var BaseAPI = (function () {
             returnValue = api_constants/* default */.A.global.SCORM_FALSE;
         }
         if (String(this.lastErrorCode) === "0") {
-            if (this.settings.autocommit && !this._timeout) {
+            if (this.settings.autocommit) {
                 this.scheduleCommit(this.settings.autocommitSeconds * 1000, commitCallback);
             }
         }
@@ -1263,15 +1238,12 @@ var BaseAPI = (function () {
             return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        console.log("commit");
                         this.clearScheduledCommit();
                         returnValue = api_constants/* default */.A.global.SCORM_FALSE;
-                        if (!this.checkState(checkTerminated, this._error_codes.COMMIT_BEFORE_INIT, this._error_codes.COMMIT_AFTER_TERM)) return [3, 4];
-                        if (!this.settings.asyncCommit) return [3, 1];
-                        debounce(this.storeData.bind(this), 500, false)(false);
-                        returnValue = api_constants/* default */.A.global.SCORM_TRUE;
-                        return [3, 3];
-                    case 1: return [4, this.storeData(false)];
-                    case 2:
+                        if (!this.checkState(checkTerminated, this._error_codes.COMMIT_BEFORE_INIT, this._error_codes.COMMIT_AFTER_TERM)) return [3, 2];
+                        return [4, this.storeData(false)];
+                    case 1:
                         result = _a.sent();
                         if (result.errorCode && result.errorCode > 0) {
                             this.throwSCORMError(result.errorCode);
@@ -1280,14 +1252,12 @@ var BaseAPI = (function () {
                             typeof result !== "undefined" && result.result
                                 ? result.result
                                 : api_constants/* default */.A.global.SCORM_FALSE;
-                        _a.label = 3;
-                    case 3:
                         this.apiLog(callbackName, " Result: " + returnValue, api_constants/* default */.A.global.LOG_LEVEL_DEBUG, "HttpRequest");
                         if (checkTerminated)
                             this.lastErrorCode = "0";
                         this.processListeners(callbackName);
-                        _a.label = 4;
-                    case 4:
+                        _a.label = 2;
+                    case 2:
                         this.apiLog(callbackName, "returned: " + returnValue, api_constants/* default */.A.global.LOG_LEVEL_INFO);
                         this.clearSCORMError(returnValue);
                         return [2, returnValue];
@@ -1753,8 +1723,10 @@ var BaseAPI = (function () {
         });
     };
     BaseAPI.prototype.scheduleCommit = function (when, callback) {
-        this._timeout = new ScheduledCommit(this, when, callback);
-        this.apiLog("scheduleCommit", "scheduled", api_constants/* default */.A.global.LOG_LEVEL_DEBUG, "");
+        if (!this._timeout) {
+            this._timeout = new ScheduledCommit(this, when, callback);
+            this.apiLog("scheduleCommit", "scheduled", api_constants/* default */.A.global.LOG_LEVEL_DEBUG, "");
+        }
     };
     BaseAPI.prototype.clearScheduledCommit = function () {
         if (this._timeout) {
@@ -1863,7 +1835,7 @@ var BaseAPI = (function () {
 /* harmony import */ var _cmi_scorm12_nav__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(331);
 /* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(417);
 /* harmony import */ var _constants_enums__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(56);
-/* harmony import */ var _BaseAPI__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(900);
+/* harmony import */ var _BaseAPI__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(429);
 
 
 
@@ -1965,16 +1937,21 @@ var Scorm12Impl = (function (_super) {
     };
     Scorm12Impl.prototype.lmsCommit = function () {
         var _this = this;
-        (function () { return (0,tslib__WEBPACK_IMPORTED_MODULE_10__/* .__awaiter */ .sH)(_this, void 0, void 0, function () {
-            return (0,tslib__WEBPACK_IMPORTED_MODULE_10__/* .__generator */ .YH)(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4, this.commit("LMSCommit", false)];
-                    case 1:
-                        _a.sent();
-                        return [2];
-                }
-            });
-        }); })();
+        if (this.settings.asyncCommit) {
+            this.scheduleCommit(500, "LMSCommit");
+        }
+        else {
+            (function () { return (0,tslib__WEBPACK_IMPORTED_MODULE_10__/* .__awaiter */ .sH)(_this, void 0, void 0, function () {
+                return (0,tslib__WEBPACK_IMPORTED_MODULE_10__/* .__generator */ .YH)(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4, this.commit("LMSCommit", false)];
+                        case 1:
+                            _a.sent();
+                            return [2];
+                    }
+                });
+            }); })();
+        }
         return _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* ["default"] */ .A.global.SCORM_TRUE;
     };
     Scorm12Impl.prototype.lmsGetLastError = function () {
@@ -2157,8 +2134,8 @@ __webpack_require__.d(__webpack_exports__, {
 
 // EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
 var tslib_es6 = __webpack_require__(635);
-// EXTERNAL MODULE: ./src/BaseAPI.ts + 3 modules
-var BaseAPI = __webpack_require__(900);
+// EXTERNAL MODULE: ./src/BaseAPI.ts + 2 modules
+var BaseAPI = __webpack_require__(429);
 // EXTERNAL MODULE: ./src/constants/api_constants.ts
 var api_constants = __webpack_require__(340);
 // EXTERNAL MODULE: ./src/constants/regex.ts
@@ -4120,16 +4097,21 @@ var Scorm2004Impl = (function (_super) {
     };
     Scorm2004Impl.prototype.lmsCommit = function () {
         var _this = this;
-        (function () { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () {
-            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4, this.commit("Commit")];
-                    case 1:
-                        _a.sent();
-                        return [2];
-                }
-            });
-        }); })();
+        if (this.settings.asyncCommit) {
+            this.scheduleCommit(500, "LMSCommit");
+        }
+        else {
+            (function () { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () {
+                return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4, this.commit("LMSCommit", false)];
+                        case 1:
+                            _a.sent();
+                            return [2];
+                    }
+                });
+            }); })();
+        }
         return api_constants/* default */.A.global.SCORM_TRUE;
     };
     Scorm2004Impl.prototype.lmsGetLastError = function () {

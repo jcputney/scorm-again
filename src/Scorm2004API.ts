@@ -180,9 +180,13 @@ class Scorm2004Impl extends BaseAPI {
    * @return {string} bool
    */
   lmsCommit(): string {
-    (async () => {
-      await this.commit("Commit");
-    })();
+    if (this.settings.asyncCommit) {
+      this.scheduleCommit(500, "LMSCommit");
+    } else {
+      (async () => {
+        await this.commit("LMSCommit", false);
+      })();
+    }
     return APIConstants.global.SCORM_TRUE;
   }
 
