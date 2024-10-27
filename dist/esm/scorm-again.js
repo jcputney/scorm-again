@@ -974,15 +974,18 @@ var DefaultSettings = {
     fetchMode: "cors",
     responseHandler: function (response) {
         return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
-            var httpResult, _a, _b;
-            return (0,tslib_es6/* __generator */.YH)(this, function (_c) {
-                switch (_c.label) {
+            var responseText, httpResult;
+            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
+                switch (_a.label) {
                     case 0:
                         if (!(typeof response !== "undefined")) return [3, 2];
-                        _b = (_a = JSON).parse;
                         return [4, response.text()];
                     case 1:
-                        httpResult = _b.apply(_a, [_c.sent()]);
+                        responseText = _a.sent();
+                        httpResult = null;
+                        if (responseText) {
+                            httpResult = JSON.parse(responseText);
+                        }
                         if (httpResult === null ||
                             !{}.hasOwnProperty.call(httpResult, "result")) {
                             if (response.status === 200) {
@@ -1008,7 +1011,7 @@ var DefaultSettings = {
                                             : 101,
                                 }];
                         }
-                        _c.label = 2;
+                        _a.label = 2;
                     case 2: return [2, {
                             result: api_constants/* default */.A.global.SCORM_FALSE,
                             errorCode: 101,
