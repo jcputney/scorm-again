@@ -23,7 +23,11 @@ export const DefaultSettings: Settings = {
   fetchMode: "cors",
   responseHandler: async function (response: Response): Promise<ResultObject> {
     if (typeof response !== "undefined") {
-      const httpResult = JSON.parse(await response.text());
+      const responseText = await response.text();
+      let httpResult = null;
+      if (responseText) {
+        httpResult = JSON.parse(responseText);
+      }
       if (
         httpResult === null ||
         !{}.hasOwnProperty.call(httpResult, "result")
