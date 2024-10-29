@@ -46,6 +46,10 @@ export default abstract class BaseAPI implements IBaseAPI {
     }
     this.apiLogLevel = this.settings.logLevel;
     this.selfReportSessionTime = this.settings.selfReportSessionTime;
+
+    if (this.apiLogLevel === undefined) {
+      this.apiLogLevel = LogLevelEnum.NONE;
+    }
   }
 
   public abstract cmi: BaseCMI;
