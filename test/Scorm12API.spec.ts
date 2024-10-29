@@ -20,7 +20,7 @@ const api = (settings?: Settings, startingData: RefObject = {}) => {
 };
 const apiInitialized = (settings?: Settings, startingData: RefObject = {}) => {
   const API = api(settings);
-  API.loadFromJSON(startingData ? startingData : {}, "");
+  API.loadFromJSON(startingData ? startingData : {});
   API.lmsInitialize();
   return API;
 };
@@ -49,6 +49,106 @@ describe("SCORM 1.2 API Tests", () => {
 
   after(() => {
     clock.restore();
+  });
+
+  describe("loadFromJSON()", () => {
+    it("should load JSON data into the CMI object", () => {
+      const scorm12API = api();
+      const jsonData = {
+        cmi: {
+          core: {
+            student_id: "student_1",
+            student_name: "John Doe",
+            lesson_status: "incomplete",
+          },
+        },
+      };
+
+      scorm12API.loadFromJSON(jsonData);
+      scorm12API.lmsInitialize();
+
+      expect(scorm12API.cmi.core.student_id).toEqual("student_1");
+      expect(scorm12API.cmi.core.student_name).toEqual("John Doe");
+      expect(scorm12API.cmi.core.lesson_status).toEqual("incomplete");
+    });
+
+    it("should load nested JSON data into the CMI object", () => {
+      const scorm12API = api();
+      const jsonData = {
+        cmi: {
+          objectives: {
+            "0": {
+              id: "obj_1",
+              score: {
+                raw: "85",
+                min: "0",
+                max: "100",
+              },
+            },
+          },
+        },
+      };
+
+      scorm12API.loadFromJSON(jsonData);
+
+      expect(scorm12API.cmi.objectives.childArray[0].id).toEqual("obj_1");
+      expect(scorm12API.cmi.objectives.childArray[0].score.raw).toEqual("85");
+      expect(scorm12API.cmi.objectives.childArray[0].score.min).toEqual("0");
+      expect(scorm12API.cmi.objectives.childArray[0].score.max).toEqual("100");
+    });
+
+    it("should load nested cmi JSON data into the CMI object", () => {
+      const scorm12API = api();
+      const jsonData = {
+        objectives: {
+          "0": {
+            id: "obj_1",
+            score: {
+              raw: "85",
+              min: "0",
+              max: "100",
+            },
+          },
+        },
+      };
+
+      scorm12API.loadFromJSON(jsonData, "cmi");
+
+      expect(scorm12API.cmi.objectives.childArray[0].id).toEqual("obj_1");
+      expect(scorm12API.cmi.objectives.childArray[0].score.raw).toEqual("85");
+      expect(scorm12API.cmi.objectives.childArray[0].score.min).toEqual("0");
+      expect(scorm12API.cmi.objectives.childArray[0].score.max).toEqual("100");
+    });
+
+    it("should handle empty JSON data", () => {
+      const scorm12API = api();
+      const jsonData = {};
+
+      scorm12API.loadFromJSON(jsonData);
+
+      expect(scorm12API.cmi.core.student_id).toBeFalsy();
+      expect(scorm12API.cmi.core.student_name).toBeFalsy();
+      expect(scorm12API.cmi.core.lesson_status).toBe("not attempted");
+    });
+
+    it("should not load data if API is initialized", () => {
+      const scorm12API = apiInitialized();
+      const jsonData = {
+        cmi: {
+          core: {
+            student_id: "student_1",
+            student_name: "John Doe",
+            lesson_status: "incomplete",
+          },
+        },
+      };
+
+      scorm12API.loadFromJSON(jsonData);
+
+      expect(scorm12API.cmi.core.student_id).toBeFalsy();
+      expect(scorm12API.cmi.core.student_name).toBeFalsy();
+      expect(scorm12API.cmi.core.lesson_status).toBe("not attempted");
+    });
   });
 
   describe("LMSSetValue()", () => {

@@ -1638,6 +1638,7 @@ var BaseAPI = (function () {
         });
     };
     BaseAPI.prototype.loadFromJSON = function (json, CMIElement) {
+        if (CMIElement === void 0) { CMIElement = ""; }
         if (!this.isNotInitialized()) {
             console.error("loadFromJSON can only be called before the call to lmsInitialize.");
             return;

@@ -1067,7 +1067,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {RefObject} json
    * @param {string} CMIElement
    */
-  loadFromJSON(json: RefObject, CMIElement: string) {
+  loadFromJSON(json: RefObject, CMIElement: string = "") {
     if (!this.isNotInitialized()) {
       console.error(
         "loadFromJSON can only be called before the call to lmsInitialize.",
