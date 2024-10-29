@@ -59,7 +59,7 @@ export class Scorm2004CMIScore extends CMIScore {
    *    }
    *  }
    */
-  toJSON(): {
+  override toJSON(): {
     scaled: string;
     raw: string;
     min: string;

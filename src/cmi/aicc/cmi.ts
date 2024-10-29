@@ -29,8 +29,8 @@ export class CMI extends Scorm12CMI.CMI {
     this.paths = new CMIPaths();
   }
 
-  public student_data: AICCCMIStudentData;
-  public student_preference: AICCStudentPreferences;
+  public override student_data: AICCCMIStudentData;
+  public override student_preference: AICCStudentPreferences;
   public student_demographics: CMIStudentDemographics;
   public evaluation: CMIEvaluation;
   public paths: CMIPaths;
@@ -38,7 +38,7 @@ export class CMI extends Scorm12CMI.CMI {
   /**
    * Called when the API has been initialized after the CMI has been created
    */
-  initialize() {
+  override initialize() {
     super.initialize();
     this.student_preference?.initialize();
     this.student_data?.initialize();
@@ -65,7 +65,7 @@ export class CMI extends Scorm12CMI.CMI {
    *    }
    *  }
    */
-  toJSON(): {
+  override toJSON(): {
     suspend_data: string;
     launch_data: string;
     comments: string;

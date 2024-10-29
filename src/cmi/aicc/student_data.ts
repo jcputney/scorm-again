@@ -24,7 +24,7 @@ export class AICCCMIStudentData extends CMIStudentData {
   /**
    * Called when the API has been initialized after the CMI has been created
    */
-  initialize() {
+  override initialize() {
     super.initialize();
     this.tries?.initialize();
     this.attempt_records?.initialize();
@@ -65,7 +65,7 @@ export class AICCCMIStudentData extends CMIStudentData {
    *    }
    *  }
    */
-  toJSON(): {
+  override toJSON(): {
     mastery_score: string;
     max_time_allowed: string;
     time_limit_action: string;

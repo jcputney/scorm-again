@@ -1,11 +1,11 @@
-import {BaseCMI} from "../common/base_cmi";
-import {CMIScore} from "../common/score";
+import { BaseCMI } from "../common/base_cmi";
+import { CMIScore } from "../common/score";
 import APIConstants from "../../constants/api_constants";
 import Regex from "../../constants/regex";
 import ErrorCodes from "../../constants/error_codes";
-import {AICCValidationError} from "../../exceptions";
-import {checkAICCValidFormat} from "./validation";
-import {CMIArray} from "../common/array";
+import { AICCValidationError } from "../../exceptions";
+import { checkAICCValidFormat } from "./validation";
+import { CMIArray } from "../common/array";
 
 /**
  * Class for cmi.student_data.attempt_records array
@@ -45,7 +45,7 @@ export class CMIAttemptRecordsObject extends BaseCMI {
   /**
    * Called when the API has been initialized after the CMI has been created
    */
-  initialize() {
+  override initialize() {
     super.initialize();
     this.score?.initialize();
   }

@@ -32,7 +32,7 @@ export class CMICore extends BaseCMI {
   /**
    * Called when the API has been initialized after the CMI has been created
    */
-  initialize() {
+  override initialize() {
     super.initialize();
     this.score?.initialize();
   }

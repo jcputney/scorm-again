@@ -2,6 +2,7 @@
   "compilerOptions": {
     "sourceMap": true,
     "noImplicitAny": true,
+    "noImplicitOverride": true,
     "declaration": false,
     "module": "es2015",
     "moduleResolution": "Node",

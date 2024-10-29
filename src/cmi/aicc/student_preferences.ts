@@ -27,7 +27,7 @@ export class AICCStudentPreferences extends CMIStudentPreference {
   /**
    * Called when the API has been initialized after the CMI has been created
    */
-  initialize() {
+  override initialize() {
     super.initialize();
     this.windows?.initialize();
   }
@@ -145,7 +145,7 @@ export class AICCStudentPreferences extends CMIStudentPreference {
    *    }
    *  }
    */
-  toJSON(): {
+  override toJSON(): {
     audio: string;
     language: string;
     lesson_type: string;

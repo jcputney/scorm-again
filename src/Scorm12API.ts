@@ -203,7 +203,7 @@ class Scorm12Impl extends BaseAPI {
    * @param {*} value
    * @return {string}
    */
-  setCMIValue(CMIElement: string, value: any): string {
+  override setCMIValue(CMIElement: string, value: any): string {
     return this._commonSetCMIValue("LMSSetValue", false, CMIElement, value);
   }
 
@@ -213,7 +213,7 @@ class Scorm12Impl extends BaseAPI {
    * @param {string} CMIElement
    * @return {*}
    */
-  getCMIValue(CMIElement: string): any {
+  override getCMIValue(CMIElement: string): any {
     return this._commonGetCMIValue("getCMIValue", false, CMIElement);
   }
 
@@ -272,7 +272,7 @@ class Scorm12Impl extends BaseAPI {
    * @param {boolean} detail
    * @return {string}
    */
-  getLmsErrorMessageDetails(
+  override getLmsErrorMessageDetails(
     errorNumber: number | string,
     detail: boolean,
   ): string {

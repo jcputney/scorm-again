@@ -33,7 +33,7 @@ class AICCImpl extends Scorm12Impl {
    * @param {boolean} foundFirstIndex
    * @return {BaseCMI | null}
    */
-  getChildElement(
+  override getChildElement(
     CMIElement: string,
     value: any,
     foundFirstIndex: boolean,
@@ -64,7 +64,7 @@ class AICCImpl extends Scorm12Impl {
    *
    * @param {AICCImpl} newAPI
    */
-  replaceWithAnotherScormAPI(newAPI: AICCImpl) {
+  override replaceWithAnotherScormAPI(newAPI: AICCImpl) {
     // Data Model
     this.cmi = newAPI.cmi;
     this.nav = newAPI.nav;

@@ -22,7 +22,7 @@ export class ADL extends BaseCMI {
   /**
    * Called when the API has been initialized after the CMI has been created
    */
-  initialize() {
+  override initialize() {
     super.initialize();
     this.nav?.initialize();
   }
@@ -67,7 +67,7 @@ export class ADLNav extends BaseCMI {
   /**
    * Called when the API has been initialized after the CMI has been created
    */
-  initialize() {
+  override initialize() {
     super.initialize();
     this.request_valid?.initialize();
   }

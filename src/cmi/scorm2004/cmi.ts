@@ -61,7 +61,7 @@ export class CMI extends BaseRootCMI {
   /**
    * Called when the API has been initialized after the CMI has been created
    */
-  initialize() {
+  override initialize() {
     super.initialize();
     this.learner_preference?.initialize();
     this.score?.initialize();
