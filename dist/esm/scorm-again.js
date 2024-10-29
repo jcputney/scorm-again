@@ -952,7 +952,10 @@ var error_codes = __webpack_require__(797);
 var api_constants = __webpack_require__(340);
 // EXTERNAL MODULE: ./src/utilities.ts
 var utilities = __webpack_require__(864);
+// EXTERNAL MODULE: ./src/constants/enums.ts
+var enums = __webpack_require__(56);
 ;// ./src/constants/default_settings.ts
+
 
 
 var DefaultSettings = {
@@ -964,7 +967,7 @@ var DefaultSettings = {
     dataCommitFormat: "json",
     commitRequestDataType: "application/json;charset=UTF-8",
     autoProgress: false,
-    logLevel: api_constants/* default */.A.global.LOG_LEVEL_ERROR,
+    logLevel: enums/* LogLevelEnum */.Mb.ERROR,
     selfReportSessionTime: false,
     alwaysSendTotalTime: false,
     renderCommonCommitFields: false,
@@ -1025,16 +1028,28 @@ var DefaultSettings = {
     },
     onLogMessage: function (messageLevel, logMessage) {
         switch (messageLevel) {
-            case api_constants/* default */.A.global.LOG_LEVEL_ERROR:
+            case "4":
+            case 4:
+            case "ERROR":
+            case enums/* LogLevelEnum */.Mb.ERROR:
                 console.error(logMessage);
                 break;
-            case api_constants/* default */.A.global.LOG_LEVEL_WARNING:
+            case "3":
+            case 3:
+            case "WARN":
+            case enums/* LogLevelEnum */.Mb.WARN:
                 console.warn(logMessage);
                 break;
-            case api_constants/* default */.A.global.LOG_LEVEL_INFO:
+            case "2":
+            case 2:
+            case "INFO":
+            case enums/* LogLevelEnum */.Mb.INFO:
                 console.info(logMessage);
                 break;
-            case api_constants/* default */.A.global.LOG_LEVEL_DEBUG:
+            case "1":
+            case 1:
+            case "DEBUG":
+            case enums/* LogLevelEnum */.Mb.DEBUG:
                 if (console.debug) {
                     console.debug(logMessage);
                 }
@@ -1087,6 +1102,7 @@ var ScheduledCommit = (function () {
 
 
 
+
 var BaseAPI = (function () {
     function BaseAPI(error_codes, settings) {
         var _newTarget = this.constructor;
@@ -1127,7 +1143,7 @@ var BaseAPI = (function () {
             returnValue = api_constants/* default */.A.global.SCORM_TRUE;
             this.processListeners(callbackName);
         }
-        this.apiLog(callbackName, "returned: " + returnValue, api_constants/* default */.A.global.LOG_LEVEL_INFO);
+        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
         this.clearSCORMError(returnValue);
         return returnValue;
     };
@@ -1179,7 +1195,7 @@ var BaseAPI = (function () {
                         this.processListeners(callbackName);
                         _a.label = 2;
                     case 2:
-                        this.apiLog(callbackName, "returned: " + returnValue, api_constants/* default */.A.global.LOG_LEVEL_INFO);
+                        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
                         this.clearSCORMError(returnValue);
                         return [2, returnValue];
                 }
@@ -1199,7 +1215,7 @@ var BaseAPI = (function () {
             }
             this.processListeners(callbackName, CMIElement);
         }
-        this.apiLog(callbackName, ": returned: " + returnValue, api_constants/* default */.A.global.LOG_LEVEL_INFO, CMIElement);
+        this.apiLog(callbackName, ": returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO, CMIElement);
         if (returnValue === undefined) {
             return "";
         }
@@ -1230,7 +1246,7 @@ var BaseAPI = (function () {
                 this.scheduleCommit(this.settings.autocommitSeconds * 1000, commitCallback);
             }
         }
-        this.apiLog(callbackName, ": " + value + ": result: " + returnValue, api_constants/* default */.A.global.LOG_LEVEL_INFO, CMIElement);
+        this.apiLog(callbackName, ": " + value + ": result: " + returnValue, enums/* LogLevelEnum */.Mb.INFO, CMIElement);
         this.clearSCORMError(returnValue);
         return returnValue;
     };
@@ -1255,13 +1271,13 @@ var BaseAPI = (function () {
                             typeof result !== "undefined" && result.result
                                 ? result.result
                                 : api_constants/* default */.A.global.SCORM_FALSE;
-                        this.apiLog(callbackName, " Result: " + returnValue, api_constants/* default */.A.global.LOG_LEVEL_DEBUG, "HttpRequest");
+                        this.apiLog(callbackName, " Result: " + returnValue, enums/* LogLevelEnum */.Mb.DEBUG, "HttpRequest");
                         if (checkTerminated)
                             this.lastErrorCode = "0";
                         this.processListeners(callbackName);
                         _a.label = 2;
                     case 2:
-                        this.apiLog(callbackName, "returned: " + returnValue, api_constants/* default */.A.global.LOG_LEVEL_INFO);
+                        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
                         this.clearSCORMError(returnValue);
                         return [2, returnValue];
                 }
@@ -1271,7 +1287,7 @@ var BaseAPI = (function () {
     BaseAPI.prototype.getLastError = function (callbackName) {
         var returnValue = String(this.lastErrorCode);
         this.processListeners(callbackName);
-        this.apiLog(callbackName, "returned: " + returnValue, api_constants/* default */.A.global.LOG_LEVEL_INFO);
+        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
         return returnValue;
     };
     BaseAPI.prototype.getErrorString = function (callbackName, CMIErrorCode) {
@@ -1280,7 +1296,7 @@ var BaseAPI = (function () {
             returnValue = this.getLmsErrorMessageDetails(CMIErrorCode);
             this.processListeners(callbackName);
         }
-        this.apiLog(callbackName, "returned: " + returnValue, api_constants/* default */.A.global.LOG_LEVEL_INFO);
+        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
         return returnValue;
     };
     BaseAPI.prototype.getDiagnostic = function (callbackName, CMIErrorCode) {
@@ -1289,7 +1305,7 @@ var BaseAPI = (function () {
             returnValue = this.getLmsErrorMessageDetails(CMIErrorCode, true);
             this.processListeners(callbackName);
         }
-        this.apiLog(callbackName, "returned: " + returnValue, api_constants/* default */.A.global.LOG_LEVEL_INFO);
+        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
         return returnValue;
     };
     BaseAPI.prototype.checkState = function (checkTerminated, beforeInitError, afterTermError) {
@@ -1383,7 +1399,7 @@ var BaseAPI = (function () {
             }
         }
         if (returnValue === api_constants/* default */.A.global.SCORM_FALSE) {
-            this.apiLog(methodName, "There was an error setting the value for: ".concat(CMIElement, ", value of: ").concat(value), api_constants/* default */.A.global.LOG_LEVEL_WARNING);
+            this.apiLog(methodName, "There was an error setting the value for: ".concat(CMIElement, ", value of: ").concat(value), enums/* LogLevelEnum */.Mb.WARN);
         }
         return returnValue;
     };
@@ -1481,7 +1497,7 @@ var BaseAPI = (function () {
                 CMIElement: CMIElement,
                 callback: callback,
             });
-            this.apiLog("on", "Added event listener: ".concat(this.listenerArray.length), api_constants/* default */.A.global.LOG_LEVEL_INFO, functionName);
+            this.apiLog("on", "Added event listener: ".concat(this.listenerArray.length), enums/* LogLevelEnum */.Mb.INFO, functionName);
         }
     };
     BaseAPI.prototype.off = function (listenerName, callback) {
@@ -1504,7 +1520,7 @@ var BaseAPI = (function () {
             });
             if (removeIndex !== -1) {
                 this_1.listenerArray.splice(removeIndex, 1);
-                this_1.apiLog("off", "Removed event listener: ".concat(this_1.listenerArray.length), api_constants/* default */.A.global.LOG_LEVEL_INFO, functionName);
+                this_1.apiLog("off", "Removed event listener: ".concat(this_1.listenerArray.length), enums/* LogLevelEnum */.Mb.INFO, functionName);
             }
         };
         var this_1 = this;
@@ -1537,7 +1553,7 @@ var BaseAPI = (function () {
         }
     };
     BaseAPI.prototype.processListeners = function (functionName, CMIElement, value) {
-        this.apiLog(functionName, value, api_constants/* default */.A.global.LOG_LEVEL_INFO, CMIElement);
+        this.apiLog(functionName, value, enums/* LogLevelEnum */.Mb.INFO, CMIElement);
         for (var i = 0; i < this.listenerArray.length; i++) {
             var listener = this.listenerArray[i];
             var functionsMatch = listener.functionName === functionName;
@@ -1553,7 +1569,7 @@ var BaseAPI = (function () {
                 CMIElementsMatch = listener.CMIElement === CMIElement;
             }
             if (functionsMatch && (!listenerHasCMIElement || CMIElementsMatch)) {
-                this.apiLog("processListeners", "Processing listener: ".concat(listener.functionName), api_constants/* default */.A.global.LOG_LEVEL_INFO, CMIElement);
+                this.apiLog("processListeners", "Processing listener: ".concat(listener.functionName), enums/* LogLevelEnum */.Mb.INFO, CMIElement);
                 listener.callback(CMIElement, value);
             }
         }
@@ -1562,7 +1578,7 @@ var BaseAPI = (function () {
         if (!message) {
             message = this.getLmsErrorMessageDetails(errorNumber);
         }
-        this.apiLog("throwSCORMError", errorNumber + ": " + message, api_constants/* default */.A.global.LOG_LEVEL_ERROR);
+        this.apiLog("throwSCORMError", errorNumber + ": " + message, enums/* LogLevelEnum */.Mb.ERROR);
         this.lastErrorCode = String(errorNumber);
     };
     BaseAPI.prototype.clearSCORMError = function (success) {
@@ -1713,7 +1729,7 @@ var BaseAPI = (function () {
                                         return [2, this.transformResponse(response)];
                                     case 2:
                                         e_1 = _a.sent();
-                                        this.apiLog("processHttpRequest", e_1, api_constants/* default */.A.global.LOG_LEVEL_ERROR);
+                                        this.apiLog("processHttpRequest", e_1, enums/* LogLevelEnum */.Mb.ERROR);
                                         api.processListeners("CommitError");
                                         return [2, genericError];
                                     case 3: return [2];
@@ -1729,14 +1745,14 @@ var BaseAPI = (function () {
     BaseAPI.prototype.scheduleCommit = function (when, callback) {
         if (!this._timeout) {
             this._timeout = new ScheduledCommit(this, when, callback);
-            this.apiLog("scheduleCommit", "scheduled", api_constants/* default */.A.global.LOG_LEVEL_DEBUG, "");
+            this.apiLog("scheduleCommit", "scheduled", enums/* LogLevelEnum */.Mb.DEBUG, "");
         }
     };
     BaseAPI.prototype.clearScheduledCommit = function () {
         if (this._timeout) {
             this._timeout.cancel();
             this._timeout = undefined;
-            this.apiLog("clearScheduledCommit", "cleared", api_constants/* default */.A.global.LOG_LEVEL_DEBUG, "");
+            this.apiLog("clearScheduledCommit", "cleared", enums/* LogLevelEnum */.Mb.DEBUG, "");
         }
     };
     BaseAPI.prototype._checkObjectHasProperty = function (refObject, attribute) {
@@ -1765,7 +1781,7 @@ var BaseAPI = (function () {
         var commitObject = this.settings.renderCommonCommitFields
             ? this.renderCommitObject(shouldTerminateCommit)
             : this.renderCommitCMI(shouldTerminateCommit);
-        if (this.apiLogLevel === api_constants/* default */.A.global.LOG_LEVEL_DEBUG) {
+        if ([enums/* LogLevelEnum */.Mb.DEBUG, "1", 1, "DEBUG"].includes(this.apiLogLevel)) {
             console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");
             console.debug(commitObject);
         }
@@ -5821,11 +5837,6 @@ var global = {
     STATE_NOT_INITIALIZED: 0,
     STATE_INITIALIZED: 1,
     STATE_TERMINATED: 2,
-    LOG_LEVEL_DEBUG: 1,
-    LOG_LEVEL_INFO: 2,
-    LOG_LEVEL_WARNING: 3,
-    LOG_LEVEL_ERROR: 4,
-    LOG_LEVEL_NONE: 5,
 };
 var scorm12 = {
     cmi_children: "core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions",
@@ -6029,6 +6040,7 @@ var APIConstants = {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   K$: function() { return /* binding */ NAVBoolean; },
+/* harmony export */   Mb: function() { return /* binding */ LogLevelEnum; },
 /* harmony export */   YE: function() { return /* binding */ SuccessStatus; },
 /* harmony export */   lC: function() { return /* binding */ CompletionStatus; }
 /* harmony export */ });
@@ -6050,6 +6062,15 @@ var CompletionStatus;
     CompletionStatus["incomplete"] = "incomplete";
     CompletionStatus["unknown"] = "unknown";
 })(CompletionStatus || (CompletionStatus = {}));
+var LogLevelEnum;
+(function (LogLevelEnum) {
+    LogLevelEnum[LogLevelEnum["_"] = 0] = "_";
+    LogLevelEnum[LogLevelEnum["DEBUG"] = 1] = "DEBUG";
+    LogLevelEnum[LogLevelEnum["INFO"] = 2] = "INFO";
+    LogLevelEnum[LogLevelEnum["WARN"] = 3] = "WARN";
+    LogLevelEnum[LogLevelEnum["ERROR"] = 4] = "ERROR";
+    LogLevelEnum[LogLevelEnum["NONE"] = 5] = "NONE";
+})(LogLevelEnum || (LogLevelEnum = {}));
 
 
 /***/ }),

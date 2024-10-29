@@ -15,3 +15,12 @@ export enum CompletionStatus {
   incomplete = "incomplete",
   unknown = "unknown",
 }
+
+export enum LogLevelEnum {
+  _,
+  DEBUG,
+  INFO,
+  WARN,
+  ERROR,
+  NONE,
+}

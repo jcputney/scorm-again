@@ -1,7 +1,10 @@
 import { expect } from "expect";
 import * as sinon from "sinon";
-import { ResultObject, Settings } from "../../src/types/api_types";
+import { LogLevel, ResultObject, Settings } from "../../src/types/api_types";
 import APIConstants from "../../src/constants/api_constants";
+import { LogLevelEnum } from "../../src/constants/enums";
+import { DefaultSettings } from "../../src/constants/default_settings";
+import { SinonStub } from "sinon";
 
 describe("Settings Type", () => {
   const defaultSettings: Settings = {
@@ -13,7 +16,7 @@ describe("Settings Type", () => {
     dataCommitFormat: "json",
     commitRequestDataType: "application/json;charset=UTF-8",
     autoProgress: false,
-    logLevel: APIConstants.global.LOG_LEVEL_ERROR,
+    logLevel: LogLevelEnum.ERROR,
     selfReportSessionTime: false,
     alwaysSendTotalTime: false,
     strict_errors: true,
@@ -28,26 +31,7 @@ describe("Settings Type", () => {
       };
     },
     requestHandler: (commitObject: any) => commitObject,
-    onLogMessage: (messageLevel: number, logMessage: string) => {
-      switch (messageLevel) {
-        case APIConstants.global.LOG_LEVEL_ERROR:
-          console.error(logMessage);
-          break;
-        case APIConstants.global.LOG_LEVEL_WARNING:
-          console.warn(logMessage);
-          break;
-        case APIConstants.global.LOG_LEVEL_INFO:
-          console.info(logMessage);
-          break;
-        case APIConstants.global.LOG_LEVEL_DEBUG:
-          if (console.debug) {
-            console.debug(logMessage);
-          } else {
-            console.log(logMessage);
-          }
-          break;
-      }
-    },
+    onLogMessage: DefaultSettings.onLogMessage,
   };
 
   it("should have correct default values", () => {
@@ -61,9 +45,7 @@ describe("Settings Type", () => {
       "application/json;charset=UTF-8",
     );
     expect(defaultSettings.autoProgress).toBe(false);
-    expect(defaultSettings.logLevel).toEqual(
-      APIConstants.global.LOG_LEVEL_ERROR,
-    );
+    expect(defaultSettings.logLevel).toEqual(LogLevelEnum.ERROR);
     expect(defaultSettings.selfReportSessionTime).toBe(false);
     expect(defaultSettings.alwaysSendTotalTime).toBe(false);
     expect(defaultSettings.strict_errors).toBe(true);
@@ -93,29 +75,40 @@ describe("Settings Type", () => {
     const consoleDebugStub = sinon.stub(console, "debug");
     const consoleLogStub = sinon.stub(console, "log");
 
-    defaultSettings.onLogMessage(
-      APIConstants.global.LOG_LEVEL_ERROR,
-      "Error message",
-    );
-    expect(consoleErrorStub.calledWith("Error message")).toBe(true);
+    const testLog = function (
+      stub: SinonStub,
+      level: LogLevel,
+      shouldBeLogged = true,
+    ) {
+      const message = `${level} message - ${typeof level}`;
+      defaultSettings.onLogMessage(level, message);
+      expect(stub.calledWith(message)).toBe(shouldBeLogged);
+    };
 
-    defaultSettings.onLogMessage(
-      APIConstants.global.LOG_LEVEL_WARNING,
-      "Warning message",
-    );
-    expect(consoleWarnStub.calledWith("Warning message")).toBe(true);
+    testLog(consoleErrorStub, LogLevelEnum.ERROR);
+    testLog(consoleErrorStub, 4);
+    testLog(consoleErrorStub, "4");
+    testLog(consoleErrorStub, "ERROR");
 
-    defaultSettings.onLogMessage(
-      APIConstants.global.LOG_LEVEL_INFO,
-      "Info message",
-    );
-    expect(consoleInfoStub.calledWith("Info message")).toBe(true);
+    testLog(consoleWarnStub, LogLevelEnum.WARN);
+    testLog(consoleWarnStub, 3);
+    testLog(consoleWarnStub, "3");
+    testLog(consoleWarnStub, "WARN");
 
-    defaultSettings.onLogMessage(
-      APIConstants.global.LOG_LEVEL_DEBUG,
-      "Debug message",
-    );
-    expect(consoleDebugStub.calledWith("Debug message")).toBe(true);
+    testLog(consoleInfoStub, LogLevelEnum.INFO);
+    testLog(consoleInfoStub, 2);
+    testLog(consoleInfoStub, "2");
+    testLog(consoleInfoStub, "INFO");
+
+    testLog(consoleDebugStub, LogLevelEnum.DEBUG);
+    testLog(consoleDebugStub, 1);
+    testLog(consoleDebugStub, "1");
+    testLog(consoleDebugStub, "DEBUG");
+
+    testLog(consoleLogStub, LogLevelEnum.NONE, false);
+    testLog(consoleLogStub, 5, false);
+    testLog(consoleLogStub, "5", false);
+    testLog(consoleLogStub, "NONE", false);
 
     consoleErrorStub.restore();
     consoleWarnStub.restore();

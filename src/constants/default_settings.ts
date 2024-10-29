@@ -1,5 +1,6 @@
-import { ResultObject, Settings } from "../types/api_types";
+import { LogLevel, ResultObject, Settings } from "../types/api_types";
 import APIConstants from "./api_constants";
+import { LogLevelEnum } from "./enums";
 
 /**
  * Default settings for the SCORM API
@@ -13,7 +14,7 @@ export const DefaultSettings: Settings = {
   dataCommitFormat: "json",
   commitRequestDataType: "application/json;charset=UTF-8",
   autoProgress: false,
-  logLevel: APIConstants.global.LOG_LEVEL_ERROR,
+  logLevel: LogLevelEnum.ERROR,
   selfReportSessionTime: false,
   alwaysSendTotalTime: false,
   renderCommonCommitFields: false,
@@ -62,18 +63,30 @@ export const DefaultSettings: Settings = {
   requestHandler: function (commitObject) {
     return commitObject;
   },
-  onLogMessage: function (messageLevel, logMessage) {
+  onLogMessage: function (messageLevel: LogLevel, logMessage) {
     switch (messageLevel) {
-      case APIConstants.global.LOG_LEVEL_ERROR:
+      case "4":
+      case 4:
+      case "ERROR":
+      case LogLevelEnum.ERROR:
         console.error(logMessage);
         break;
-      case APIConstants.global.LOG_LEVEL_WARNING:
+      case "3":
+      case 3:
+      case "WARN":
+      case LogLevelEnum.WARN:
         console.warn(logMessage);
         break;
-      case APIConstants.global.LOG_LEVEL_INFO:
+      case "2":
+      case 2:
+      case "INFO":
+      case LogLevelEnum.INFO:
         console.info(logMessage);
         break;
-      case APIConstants.global.LOG_LEVEL_DEBUG:
+      case "1":
+      case 1:
+      case "DEBUG":
+      case LogLevelEnum.DEBUG:
         if (console.debug) {
           console.debug(logMessage);
         } else {

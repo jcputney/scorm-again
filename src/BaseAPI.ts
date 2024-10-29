@@ -6,6 +6,7 @@ import { formatMessage, stringMatches, unflatten } from "./utilities";
 import { BaseCMI } from "./cmi/common/base_cmi";
 import {
   CommitObject,
+  LogLevel,
   RefObject,
   ResultObject,
   Settings,
@@ -13,6 +14,7 @@ import {
 import { DefaultSettings } from "./constants/default_settings";
 import { IBaseAPI } from "./interfaces/IBaseAPI";
 import { ScheduledCommit } from "./helpers/scheduled_commit";
+import { LogLevelEnum } from "./constants/enums";
 
 /**
  * Base API class for AICC, SCORM 1.2, and SCORM 2004. Should be considered
@@ -52,7 +54,7 @@ export default abstract class BaseAPI implements IBaseAPI {
   public currentState: number;
   public lastErrorCode: string;
   public listenerArray: any[];
-  public apiLogLevel: number;
+  public apiLogLevel: LogLevel;
   public selfReportSessionTime: boolean;
 
   abstract reset(settings?: Settings): void;
@@ -99,11 +101,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       this.processListeners(callbackName);
     }
 
-    this.apiLog(
-      callbackName,
-      "returned: " + returnValue,
-      APIConstants.global.LOG_LEVEL_INFO,
-    );
+    this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
     this.clearSCORMError(returnValue);
 
     return returnValue;
@@ -187,7 +185,7 @@ export default abstract class BaseAPI implements IBaseAPI {
   apiLog(
     functionName: string,
     logMessage: string,
-    messageLevel: number,
+    messageLevel: LogLevel,
     CMIElement?: string,
   ) {
     logMessage = formatMessage(functionName, logMessage, CMIElement);
@@ -257,11 +255,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       this.processListeners(callbackName);
     }
 
-    this.apiLog(
-      callbackName,
-      "returned: " + returnValue,
-      APIConstants.global.LOG_LEVEL_INFO,
-    );
+    this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
     this.clearSCORMError(returnValue);
 
     return returnValue;
@@ -301,7 +295,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     this.apiLog(
       callbackName,
       ": returned: " + returnValue,
-      APIConstants.global.LOG_LEVEL_INFO,
+      LogLevelEnum.INFO,
       CMIElement,
     );
 
@@ -370,7 +364,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     this.apiLog(
       callbackName,
       ": " + value + ": result: " + returnValue,
-      APIConstants.global.LOG_LEVEL_INFO,
+      LogLevelEnum.INFO,
       CMIElement,
     );
     this.clearSCORMError(returnValue);
@@ -412,7 +406,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       this.apiLog(
         callbackName,
         " Result: " + returnValue,
-        APIConstants.global.LOG_LEVEL_DEBUG,
+        LogLevelEnum.DEBUG,
         "HttpRequest",
       );
 
@@ -421,11 +415,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       this.processListeners(callbackName);
     }
 
-    this.apiLog(
-      callbackName,
-      "returned: " + returnValue,
-      APIConstants.global.LOG_LEVEL_INFO,
-    );
+    this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
     this.clearSCORMError(returnValue);
 
     return returnValue;
@@ -441,11 +431,7 @@ export default abstract class BaseAPI implements IBaseAPI {
 
     this.processListeners(callbackName);
 
-    this.apiLog(
-      callbackName,
-      "returned: " + returnValue,
-      APIConstants.global.LOG_LEVEL_INFO,
-    );
+    this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
 
     return returnValue;
   }
@@ -465,11 +451,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       this.processListeners(callbackName);
     }
 
-    this.apiLog(
-      callbackName,
-      "returned: " + returnValue,
-      APIConstants.global.LOG_LEVEL_INFO,
-    );
+    this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
 
     return returnValue;
   }
@@ -489,11 +471,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       this.processListeners(callbackName);
     }
 
-    this.apiLog(
-      callbackName,
-      "returned: " + returnValue,
-      APIConstants.global.LOG_LEVEL_INFO,
-    );
+    this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
 
     return returnValue;
   }
@@ -668,7 +646,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       this.apiLog(
         methodName,
         `There was an error setting the value for: ${CMIElement}, value of: ${value}`,
-        APIConstants.global.LOG_LEVEL_WARNING,
+        LogLevelEnum.WARN,
       );
     }
 
@@ -827,7 +805,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       this.apiLog(
         "on",
         `Added event listener: ${this.listenerArray.length}`,
-        APIConstants.global.LOG_LEVEL_INFO,
+        LogLevelEnum.INFO,
         functionName,
       );
     }
@@ -865,7 +843,7 @@ export default abstract class BaseAPI implements IBaseAPI {
         this.apiLog(
           "off",
           `Removed event listener: ${this.listenerArray.length}`,
-          APIConstants.global.LOG_LEVEL_INFO,
+          LogLevelEnum.INFO,
           functionName,
         );
       }
@@ -905,12 +883,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {any} value
    */
   processListeners(functionName: string, CMIElement?: string, value?: any) {
-    this.apiLog(
-      functionName,
-      value,
-      APIConstants.global.LOG_LEVEL_INFO,
-      CMIElement,
-    );
+    this.apiLog(functionName, value, LogLevelEnum.INFO, CMIElement);
     for (let i = 0; i < this.listenerArray.length; i++) {
       const listener = this.listenerArray[i];
       const functionsMatch = listener.functionName === functionName;
@@ -933,7 +906,7 @@ export default abstract class BaseAPI implements IBaseAPI {
         this.apiLog(
           "processListeners",
           `Processing listener: ${listener.functionName}`,
-          APIConstants.global.LOG_LEVEL_INFO,
+          LogLevelEnum.INFO,
           CMIElement,
         );
         listener.callback(CMIElement, value);
@@ -955,7 +928,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     this.apiLog(
       "throwSCORMError",
       errorNumber + ": " + message,
-      APIConstants.global.LOG_LEVEL_ERROR,
+      LogLevelEnum.ERROR,
     );
 
     this.lastErrorCode = String(errorNumber);
@@ -1164,11 +1137,7 @@ export default abstract class BaseAPI implements IBaseAPI {
 
         return this.transformResponse(response);
       } catch (e) {
-        this.apiLog(
-          "processHttpRequest",
-          e,
-          APIConstants.global.LOG_LEVEL_ERROR,
-        );
+        this.apiLog("processHttpRequest", e, LogLevelEnum.ERROR);
         api.processListeners("CommitError");
         return genericError;
       }
@@ -1186,12 +1155,7 @@ export default abstract class BaseAPI implements IBaseAPI {
   scheduleCommit(when: number, callback: string) {
     if (!this._timeout) {
       this._timeout = new ScheduledCommit(this, when, callback);
-      this.apiLog(
-        "scheduleCommit",
-        "scheduled",
-        APIConstants.global.LOG_LEVEL_DEBUG,
-        "",
-      );
+      this.apiLog("scheduleCommit", "scheduled", LogLevelEnum.DEBUG, "");
     }
   }
 
@@ -1202,12 +1166,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     if (this._timeout) {
       this._timeout.cancel();
       this._timeout = undefined;
-      this.apiLog(
-        "clearScheduledCommit",
-        "cleared",
-        APIConstants.global.LOG_LEVEL_DEBUG,
-        "",
-      );
+      this.apiLog("clearScheduledCommit", "cleared", LogLevelEnum.DEBUG, "");
     }
   }
 
@@ -1269,7 +1228,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       ? this.renderCommitObject(shouldTerminateCommit)
       : this.renderCommitCMI(shouldTerminateCommit);
 
-    if (this.apiLogLevel === APIConstants.global.LOG_LEVEL_DEBUG) {
+    if ([LogLevelEnum.DEBUG, "1", 1, "DEBUG"].includes(this.apiLogLevel)) {
       console.debug(
         "Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ",
       );

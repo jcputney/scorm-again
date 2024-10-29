@@ -45,11 +45,6 @@ interface GlobalConstants {
   STATE_NOT_INITIALIZED: number;
   STATE_INITIALIZED: number;
   STATE_TERMINATED: number;
-  LOG_LEVEL_DEBUG: number;
-  LOG_LEVEL_INFO: number;
-  LOG_LEVEL_WARNING: number;
-  LOG_LEVEL_ERROR: number;
-  LOG_LEVEL_NONE: number;
 }
 
 interface APIConstants {
@@ -65,11 +60,6 @@ const global: GlobalConstants = {
   STATE_NOT_INITIALIZED: 0,
   STATE_INITIALIZED: 1,
   STATE_TERMINATED: 2,
-  LOG_LEVEL_DEBUG: 1,
-  LOG_LEVEL_INFO: 2,
-  LOG_LEVEL_WARNING: 3,
-  LOG_LEVEL_ERROR: 4,
-  LOG_LEVEL_NONE: 5,
 };
 
 const scorm12: ScormConstants = {

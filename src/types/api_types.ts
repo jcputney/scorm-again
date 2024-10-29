@@ -1,4 +1,8 @@
-import { CompletionStatus, SuccessStatus } from "../constants/enums";
+import {
+  CompletionStatus,
+  LogLevelEnum,
+  SuccessStatus,
+} from "../constants/enums";
 
 export type Settings = {
   autocommit?: boolean;
@@ -9,7 +13,7 @@ export type Settings = {
   dataCommitFormat?: string;
   commitRequestDataType?: string;
   autoProgress?: boolean;
-  logLevel?: number;
+  logLevel?: LogLevel;
   selfReportSessionTime?: boolean;
   alwaysSendTotalTime?: boolean;
   strict_errors?: boolean;
@@ -18,7 +22,7 @@ export type Settings = {
   fetchMode?: "cors" | "no-cors" | "same-origin" | "navigate";
   responseHandler?: (response: Response) => Promise<ResultObject>;
   requestHandler?: (commitObject: any) => any;
-  onLogMessage?: (messageLevel: number, logMessage: string) => void;
+  onLogMessage?: (messageLevel: LogLevel, logMessage: string) => void;
   scoItemIds?: string[];
   scoItemIdValidator?: false | ((scoItemId: string) => boolean);
   mastery_override?: boolean;
@@ -49,3 +53,21 @@ export type CommitObject = {
   runtimeData: RefObject;
   score?: ScoreObject;
 };
+
+export type LogLevel =
+  | 1
+  | 2
+  | 3
+  | 4
+  | 5
+  | "1"
+  | "2"
+  | "3"
+  | "4"
+  | "5"
+  | "DEBUG"
+  | "INFO"
+  | "WARN"
+  | "ERROR"
+  | "NONE"
+  | LogLevelEnum;
