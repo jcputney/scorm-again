@@ -70,4 +70,5 @@ export type LogLevel =
   | "WARN"
   | "ERROR"
   | "NONE"
-  | LogLevelEnum;
+  | LogLevelEnum
+  | undefined;
