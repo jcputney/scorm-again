@@ -190,6 +190,9 @@ var BaseAPI = (function () {
         }
         this.apiLogLevel = this.settings.logLevel;
         this.selfReportSessionTime = this.settings.selfReportSessionTime;
+        if (this.apiLogLevel === undefined) {
+            this.apiLogLevel = enums/* LogLevelEnum */.Mb.NONE;
+        }
     }
     BaseAPI.prototype.commonReset = function (settings) {
         this.settings = (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, this.settings), settings);
