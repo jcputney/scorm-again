@@ -3868,7 +3868,8 @@ var ADLNav = (function (_super) {
             return this._request;
         },
         set: function (request) {
-            if (check2004ValidFormat(request, regex/* default */.A.scorm2004.NAVEvent)) {
+            var tempRequest = decodeURIComponent(request);
+            if (check2004ValidFormat(tempRequest, regex/* default */.A.scorm2004.NAVEvent)) {
                 this._request = request;
             }
         },
