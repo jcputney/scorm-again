@@ -2590,7 +2590,7 @@ var scorm2004 = {
     CMIExit: "^(time-out|suspend|logout|normal)$",
     CMIType: "^(true-false|choice|fill-in|long-fill-in|matching|performance|sequencing|likert|numeric|other)$",
     CMIResult: "^(correct|incorrect|unanticipated|neutral|-?([0-9]{1,4})(\\.[0-9]{1,18})?)$",
-    NAVEvent: "^(previous|continue|exit|exitAll|abandon|abandonAll|suspendAll|_none_|(\\{target=\\S{0,}[a-zA-Z0-9-_]+})?choice|(\\{target=\\S{0,}[a-zA-Z0-9-_]+})?jump)$",
+    NAVEvent: "^(previous|continue|exit|exitAll|abandon|abandonAll|suspendAll|_none_|(\\{target=(?<choice_target>\\S{0,}[a-zA-Z0-9-_]+)})?choice|(\\{target=(?<jump_target>\\S{0,}[a-zA-Z0-9-_]+)})?jump)$",
     NAVBoolean: "^(unknown|true|false$)",
     NAVTarget: "^{target=\\S{0,}[a-zA-Z0-9-_]+}$",
     scaled_range: "-1#1",
@@ -2640,9 +2640,6 @@ var BaseScormValidationError = (function (_super) {
         enumerable: false,
         configurable: true
     });
-    BaseScormValidationError.prototype.setMessage = function (message) {
-        this.message = message;
-    };
     return BaseScormValidationError;
 }(Error));
 
@@ -2651,7 +2648,7 @@ var ValidationError = (function (_super) {
     function ValidationError(errorCode, errorMessage, detailedMessage) {
         var _this = _super.call(this, errorCode) || this;
         _this._detailedMessage = "";
-        _this.setMessage(errorMessage);
+        _this.message = errorMessage;
         _this._errorMessage = errorMessage;
         if (detailedMessage) {
             _this._detailedMessage = detailedMessage;

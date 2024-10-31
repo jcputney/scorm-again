@@ -1527,7 +1527,7 @@ var scorm2004 = {
     CMIExit: "^(time-out|suspend|logout|normal)$",
     CMIType: "^(true-false|choice|fill-in|long-fill-in|matching|performance|sequencing|likert|numeric|other)$",
     CMIResult: "^(correct|incorrect|unanticipated|neutral|-?([0-9]{1,4})(\\.[0-9]{1,18})?)$",
-    NAVEvent: "^(previous|continue|exit|exitAll|abandon|abandonAll|suspendAll|_none_|(\\{target=\\S{0,}[a-zA-Z0-9-_]+})?choice|(\\{target=\\S{0,}[a-zA-Z0-9-_]+})?jump)$",
+    NAVEvent: "^(previous|continue|exit|exitAll|abandon|abandonAll|suspendAll|_none_|(\\{target=(?<choice_target>\\S{0,}[a-zA-Z0-9-_]+)})?choice|(\\{target=(?<jump_target>\\S{0,}[a-zA-Z0-9-_]+)})?jump)$",
     NAVBoolean: "^(unknown|true|false$)",
     NAVTarget: "^{target=\\S{0,}[a-zA-Z0-9-_]+}$",
     scaled_range: "-1#1",
@@ -1577,9 +1577,6 @@ var BaseScormValidationError = (function (_super) {
         enumerable: false,
         configurable: true
     });
-    BaseScormValidationError.prototype.setMessage = function (message) {
-        this.message = message;
-    };
     return BaseScormValidationError;
 }(Error));
 
@@ -1588,7 +1585,7 @@ var ValidationError = (function (_super) {
     function ValidationError(errorCode, errorMessage, detailedMessage) {
         var _this = _super.call(this, errorCode) || this;
         _this._detailedMessage = "";
-        _this.setMessage(errorMessage);
+        _this.message = errorMessage;
         _this._errorMessage = errorMessage;
         if (detailedMessage) {
             _this._detailedMessage = detailedMessage;
@@ -4019,8 +4016,7 @@ var ADLNav = (function (_super) {
             return this._request;
         },
         set: function (request) {
-            var tempRequest = decodeURIComponent(request);
-            if (check2004ValidFormat(tempRequest, regex/* default */.A.scorm2004.NAVEvent)) {
+            if (check2004ValidFormat(request, regex/* default */.A.scorm2004.NAVEvent)) {
                 this._request = request;
             }
         },
@@ -4213,11 +4209,12 @@ var Scorm2004Impl = (function (_super) {
     Scorm2004Impl.prototype.internalFinish = function () {
         return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
             var result, navActions, request, choiceJumpRegex, matches, target, action;
-            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                switch (_a.label) {
+            var _a, _b, _c, _d;
+            return (0,tslib_es6/* __generator */.YH)(this, function (_e) {
+                switch (_e.label) {
                     case 0: return [4, this.terminate("Terminate", true)];
                     case 1:
-                        result = _a.sent();
+                        result = _e.sent();
                         if (result === api_constants/* default */.A.global.SCORM_TRUE) {
                             if (this.adl.nav.request !== "_none_") {
                                 navActions = {
@@ -4234,9 +4231,15 @@ var Scorm2004Impl = (function (_super) {
                                 choiceJumpRegex = new RegExp(regex/* default */.A.scorm2004.NAVEvent);
                                 matches = request.match(choiceJumpRegex);
                                 target = "";
-                                if (matches && matches.length > 2) {
-                                    target = matches[2];
-                                    request = matches[1].replace(target, "");
+                                if (matches) {
+                                    if ((_a = matches.groups) === null || _a === void 0 ? void 0 : _a.choice_target) {
+                                        target = (_b = matches.groups) === null || _b === void 0 ? void 0 : _b.choice_target;
+                                        request = "choice";
+                                    }
+                                    else if ((_c = matches.groups) === null || _c === void 0 ? void 0 : _c.jump_target) {
+                                        target = (_d = matches.groups) === null || _d === void 0 ? void 0 : _d.jump_target;
+                                        request = "jump";
+                                    }
                                 }
                                 action = navActions[request];
                                 if (action) {
@@ -4626,7 +4629,6 @@ var Scorm2004Impl = (function (_super) {
                         navRequest = false;
                         if (this.adl.nav.request !== ((_c = (_b = (_a = this.startingData) === null || _a === void 0 ? void 0 : _a.adl) === null || _b === void 0 ? void 0 : _b.nav) === null || _c === void 0 ? void 0 : _c.request) &&
                             this.adl.nav.request !== "_none_") {
-                            this.adl.nav.request = encodeURIComponent(this.adl.nav.request);
                             navRequest = true;
                         }
                         commitObject = this.getCommitObject(terminateCommit);

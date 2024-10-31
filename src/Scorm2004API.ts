@@ -128,9 +128,14 @@ class Scorm2004Impl extends BaseAPI {
         const choiceJumpRegex = new RegExp(regex.scorm2004.NAVEvent);
         const matches = request.match(choiceJumpRegex);
         let target = "";
-        if (matches && matches.length > 2) {
-          target = matches[2];
-          request = matches[1].replace(target, "");
+        if (matches) {
+          if (matches.groups?.choice_target) {
+            target = matches.groups?.choice_target;
+            request = "choice";
+          } else if (matches.groups?.jump_target) {
+            target = matches.groups?.jump_target;
+            request = "jump";
+          }
         }
         const action = navActions[request];
         if (action) {
@@ -718,7 +723,6 @@ class Scorm2004Impl extends BaseAPI {
       this.adl.nav.request !== this.startingData?.adl?.nav?.request &&
       this.adl.nav.request !== "_none_"
     ) {
-      this.adl.nav.request = encodeURIComponent(this.adl.nav.request);
       navRequest = true;
     }
 

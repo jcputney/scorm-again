@@ -85,8 +85,7 @@ export class ADLNav extends BaseCMI {
    * @param {string} request
    */
   set request(request: string) {
-    const tempRequest = decodeURIComponent(request);
-    if (check2004ValidFormat(tempRequest, Regex.scorm2004.NAVEvent)) {
+    if (check2004ValidFormat(request, Regex.scorm2004.NAVEvent)) {
       this._request = request;
     }
   }

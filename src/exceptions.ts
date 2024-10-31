@@ -26,10 +26,6 @@ export class BaseScormValidationError extends Error {
   get errorCode(): number {
     return this._errorCode;
   }
-
-  setMessage(message: string) {
-    this.message = message;
-  }
 }
 
 /**
@@ -51,7 +47,7 @@ export class ValidationError
     detailedMessage?: string,
   ) {
     super(errorCode);
-    this.setMessage(errorMessage);
+    this.message = errorMessage;
     this._errorMessage = errorMessage;
     if (detailedMessage) {
       this._detailedMessage = detailedMessage;
