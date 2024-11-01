@@ -386,7 +386,6 @@ export default abstract class BaseAPI implements IBaseAPI {
     callbackName: string,
     checkTerminated: boolean = false,
   ): Promise<string> {
-    console.log("commit");
     this.clearScheduledCommit();
 
     let returnValue = APIConstants.global.SCORM_FALSE;
