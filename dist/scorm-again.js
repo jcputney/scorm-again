@@ -1262,7 +1262,6 @@ var BaseAPI = (function () {
             return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        console.log("commit");
                         this.clearScheduledCommit();
                         returnValue = api_constants/* default */.A.global.SCORM_FALSE;
                         if (!this.checkState(checkTerminated, this._error_codes.COMMIT_BEFORE_INIT, this._error_codes.COMMIT_AFTER_TERM)) return [3, 2];
