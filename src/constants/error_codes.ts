@@ -2,7 +2,7 @@ export type ErrorCode = {
   [key: string]: number;
 };
 
-const global: ErrorCode = {
+export const global_errors: ErrorCode = {
   GENERAL: 101,
   INITIALIZATION_FAILED: 101,
   INITIALIZED: 101,
@@ -33,8 +33,8 @@ const global: ErrorCode = {
   DEPENDENCY_NOT_ESTABLISHED: 101,
 };
 
-const scorm12: ErrorCode = {
-  ...global,
+export const scorm12_errors: ErrorCode = {
+  ...global_errors,
   RETRIEVE_BEFORE_INIT: 301,
   STORE_BEFORE_INIT: 301,
   COMMIT_BEFORE_INIT: 301,
@@ -52,8 +52,8 @@ const scorm12: ErrorCode = {
   DEPENDENCY_NOT_ESTABLISHED: 408,
 };
 
-const scorm2004: ErrorCode = {
-  ...global,
+export const scorm2004_errors: ErrorCode = {
+  ...global_errors,
   INITIALIZATION_FAILED: 102,
   INITIALIZED: 103,
   TERMINATED: 104,
@@ -79,10 +79,3 @@ const scorm2004: ErrorCode = {
   VALUE_OUT_OF_RANGE: 407,
   DEPENDENCY_NOT_ESTABLISHED: 408,
 };
-
-const ErrorCodes = {
-  scorm12,
-  scorm2004,
-};
-
-export default ErrorCodes;

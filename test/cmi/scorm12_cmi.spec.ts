@@ -1,7 +1,7 @@
 import { expect } from "expect";
 import { describe, it } from "mocha";
-import APIConstants from "../../src/constants/api_constants";
-import ErrorCodes from "../../src/constants/error_codes";
+import { scorm12_constants } from "../../src/constants/api_constants";
+import { scorm12_errors } from "../../src/constants/error_codes";
 import { CMI } from "../../src/cmi/scorm12/cmi";
 import * as h from "../cmi_helpers";
 import { scorm12Values } from "../field_values";
@@ -12,13 +12,13 @@ import {
   CMIInteractionsObjectivesObject,
 } from "../../src/cmi/scorm12/interactions";
 
-const scorm12 = APIConstants.scorm12;
-const scorm12_error_codes = ErrorCodes.scorm12;
+const scorm12 = scorm12_constants;
+const scorm12_error_codes = scorm12;
 
-const invalid_set = scorm12_error_codes.INVALID_SET_VALUE;
-const type_mismatch = scorm12_error_codes.TYPE_MISMATCH;
-const write_only = scorm12_error_codes.WRITE_ONLY_ELEMENT;
-const read_only = scorm12_error_codes.READ_ONLY_ELEMENT;
+const invalid_set = scorm12_errors.INVALID_SET_VALUE;
+const type_mismatch = scorm12_errors.TYPE_MISMATCH;
+const write_only = scorm12_errors.WRITE_ONLY_ELEMENT;
+const read_only = scorm12_errors.READ_ONLY_ELEMENT;
 
 const cmi = () => {
   return new CMI();

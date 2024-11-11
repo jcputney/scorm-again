@@ -1,6 +1,6 @@
 import { checkValidFormat, checkValidRange } from "../common/validation";
-import ErrorCodes from "../../constants/error_codes";
-import { Scorm2004ValidationError } from "../../exceptions";
+import { scorm2004_errors } from "../../constants/error_codes";
+import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
 
 /**
  * Helper method, no reason to have to pass the same error codes every time
@@ -17,7 +17,7 @@ export function check2004ValidFormat(
   return checkValidFormat(
     value,
     regexPattern,
-    ErrorCodes.scorm2004.TYPE_MISMATCH,
+    scorm2004_errors.TYPE_MISMATCH,
     Scorm2004ValidationError,
     allowEmptyString,
   );
@@ -36,7 +36,7 @@ export function check2004ValidRange(
   return checkValidRange(
     value,
     rangePattern,
-    ErrorCodes.scorm2004.VALUE_OUT_OF_RANGE,
+    scorm2004_errors.VALUE_OUT_OF_RANGE,
     Scorm2004ValidationError,
   );
 }

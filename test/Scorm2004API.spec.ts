@@ -3,15 +3,17 @@ import { after, before, describe, it } from "mocha";
 import * as sinon from "sinon";
 import * as h from "./api_helpers";
 import Pretender from "fetch-pretender";
-import ErrorCodes from "../src/constants/error_codes";
+import { scorm2004_errors } from "../src/constants/error_codes";
 import { Scorm2004Impl } from "../src/Scorm2004API";
 import { scorm2004Values } from "./field_values";
-import APIConstants from "../src/constants/api_constants";
+import {
+  global_constants,
+  scorm2004_constants,
+} from "../src/constants/api_constants";
 import { RefObject, Settings } from "../src/types/api_types";
 import { DefaultSettings } from "../src/constants/default_settings";
-import { CMI } from "../src/cmi/scorm2004/cmi";
-
-const scorm2004_error_codes = ErrorCodes.scorm2004;
+import { CMIInteractions } from "../src/cmi/scorm2004/interactions";
+import { ADLNav } from "../src/cmi/scorm2004/adl";
 
 let clock: sinon.SinonFakeTimers;
 const api = (settings?: Settings, startingData: RefObject = {}) => {
@@ -90,77 +92,77 @@ describe("SCORM 2004 API Tests", () => {
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi._version",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi._children",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.comments_from_learner._children",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.comments_from_learner._count",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.comments_from_lms._children",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.comments_from_lms._count",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.interactions._children",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.interactions._count",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.interactions.0.objectives._count",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.interactions.0.correct_responses._count",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.learner_preference._children",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.objectives._children",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.objectives._count",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.objectives.0.score._children",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.score._children",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
     });
 
@@ -168,72 +170,72 @@ describe("SCORM 2004 API Tests", () => {
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.completion_threshold",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.credit",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.entry",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.launch_data",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.learner_id",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.learner_name",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.max_time_allowed",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.mode",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.scaled_passing_score",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.time_limit_action",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.total_time",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.comments_from_lms.0.comment",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.comments_from_lms.0.location",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.comments_from_lms.0.timestamp",
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
     });
   });
@@ -243,19 +245,19 @@ describe("SCORM 2004 API Tests", () => {
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.core.close",
-        expectedError: scorm2004_error_codes.UNDEFINED_DATA_MODEL,
+        expectedError: scorm2004_errors.UNDEFINED_DATA_MODEL,
         errorThrown: false,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.core.exit",
-        expectedError: scorm2004_error_codes.UNDEFINED_DATA_MODEL,
+        expectedError: scorm2004_errors.UNDEFINED_DATA_MODEL,
         errorThrown: false,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.core.entry",
-        expectedError: scorm2004_error_codes.UNDEFINED_DATA_MODEL,
+        expectedError: scorm2004_errors.UNDEFINED_DATA_MODEL,
         errorThrown: false,
       });
     });
@@ -264,12 +266,12 @@ describe("SCORM 2004 API Tests", () => {
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.exit",
-        expectedError: scorm2004_error_codes.WRITE_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.WRITE_ONLY_ELEMENT,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.session_time",
-        expectedError: scorm2004_error_codes.WRITE_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.WRITE_ONLY_ELEMENT,
       });
     });
   });
@@ -279,22 +281,22 @@ describe("SCORM 2004 API Tests", () => {
       h.checkLMSSetValue({
         api: api(),
         fieldName: "cmi.objectives.0.id",
-        expectedError: scorm2004_error_codes.STORE_BEFORE_INIT,
+        expectedError: scorm2004_errors.STORE_BEFORE_INIT,
       });
       h.checkLMSSetValue({
         api: api(),
         fieldName: "cmi.interactions.0.id",
-        expectedError: scorm2004_error_codes.STORE_BEFORE_INIT,
+        expectedError: scorm2004_errors.STORE_BEFORE_INIT,
       });
       h.checkLMSSetValue({
         api: api(),
         fieldName: "cmi.comments_from_learner.0.comment",
-        expectedError: scorm2004_error_codes.STORE_BEFORE_INIT,
+        expectedError: scorm2004_errors.STORE_BEFORE_INIT,
       });
       h.checkLMSSetValue({
         api: api(),
         fieldName: "cmi.comments_from_lms.0.comment",
-        expectedError: scorm2004_error_codes.STORE_BEFORE_INIT,
+        expectedError: scorm2004_errors.STORE_BEFORE_INIT,
       });
     });
 
@@ -468,7 +470,7 @@ describe("SCORM 2004 API Tests", () => {
         valueToTest:
           "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer et sodales purus, in aliquam ex. Nunc suscipit interdum tortor ut hendrerit. Donec auctor erat suscipit justo hendrerit, at lacinia ipsum ullamcorper. Cras sollicitudin vestibulum malesuada. Sed non nibh pharetra, suscipit ipsum sed, maximus tortor. Morbi pharetra accumsan turpis id fringilla. In volutpat metus a dui semper, nec tincidunt nibh aliquam. Praesent viverra neque in elementum commodo. Integer hendrerit placerat ante, ac finibus urna tincidunt at. Phasellus consectetur mauris vitae orci viverra luctus. Proin vestibulum blandit mauris quis pellentesque. Proin volutpat hendrerit nisi. Etiam pellentesque urna nec massa congue ultricies. Mauris at eros viverra, posuere tortor id, elementum nisi. In hac habitasse platea dictumst. Pellentesque semper tristique arcu, in tristique metus. Vestibulum ut lacus dui. Aenean mattis malesuada arcu non ullamcorper. Suspendisse tincidunt euismod tincidunt. In tincidunt at nunc rhoncus vehicula. Quisque nulla massa, vestibulum nec laoreet sit amet, posuere eu massa. Donec accumsan efficitur turpis, quis eleifend odio aliquam a. Phasellus placerat ante id dui consectetur dictum. Morbi aliquam, nibh id elementum suscipit, neque ante scelerisque velit, at feugiat turpis odio ac ligula. Phasellus vel urna nulla. Donec vulputate nulla vel purus pellentesque gravida. Vestibulum rutrum, est vel cursus ultrices, orci arcu scelerisque magna, id facilisis mauris arcu ut turpis. Vestibulum consectetur faucibus ante, eu posuere quam ornare et. Aenean vitae dictum neque. Donec nisl justo, porta a sapien quis, luctus congue diam. Integer id metus dolor. Maecenas euismod vulputate leo in lobortis. Vestibulum dignissim finibus est, sed sollicitudin ipsum hendrerit ac. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Pellentesque diam lorem, mattis vel orci interdum, tempor luctus elit. Ut id porta nisi. In dignissim quam urna, et iaculis lectus eleifend ut. Nam vitae felis ac risus tincidunt elementum. Nunc hendrerit augue a nulla hendrerit rutrum. Integer euismod est at orci eleifend, sed laoreet justo auctor. Sed sem orci, imperdiet at erat non, vehicula convallis libero. Aenean hendrerit cursus leo ut malesuada. Donec eu placerat lorem. Sed mattis tristique lorem, eget placerat erat scelerisque faucibus. Vivamus eleifend in augue id mollis. Nulla vehicula, metus eu auctor accumsan, lectus sapien pretium dui, non scelerisque magna augue a sem. Suspendisse sem enim, mattis ac augue non, placerat accumsan sem. Vivamus hendrerit, sapien sit amet consectetur pulvinar, ante nisl pulvinar purus, a ullamcorper dolor leo id arcu. Aliquam sed metus arcu. Quisque erat libero, tincidunt non dictum vel, bibendum ut ante. Nunc vel imperdiet risus. Sed sit amet porta enim. Mauris metus tortor, mattis vitae convallis vitae, dictum nec dui. Aliquam volutpat nisi consequat, gravida tellus eget, cursus purus. Nunc at venenatis enim. Proin dictum, magna ultrices tempor aliquam, metus lacus consectetur odio, quis pharetra massa est at est. Nullam non nibh massa. Duis scelerisque massa a luctus vehicula. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Donec tortor lacus, consequat eget neque sit amet, imperdiet porttitor felis. Duis ante erat, cursus sed venenatis nec, semper sollicitudin felis. Sed tincidunt et tortor quis vehicula. Morbi porta dapibus quam quis iaculis. Nunc mauris dolor, rutrum non pellentesque consectetur, ornare quis lacus. Maecenas eget feugiat odio. Proin vitae magna ut justo bibendum lacinia consequat at orci. Phasellus tincidunt lorem eu justo mollis sagittis. Maecenas fermentum nunc augue, et bibendum augue varius venenatis. Donec eu purus at tellus ullamcorper imperdiet. Duis id orci laoreet, semper eros et, tincidunt nisl. Suspendisse vehicula sed enim ut dignissim. Nam ornare leo eu nibh malesuada, eget ullamcorper sapien egestas. In at commod1",
         errorThrown: false,
-        expectedError: scorm2004_error_codes.TYPE_MISMATCH,
+        expectedError: scorm2004_errors.TYPE_MISMATCH,
       });
       h.checkLMSSetValue({
         api: apiInitialized({
@@ -484,105 +486,105 @@ describe("SCORM 2004 API Tests", () => {
         fieldName: "cmi.interactions.0.type",
         valueToTest: "unknown",
         errorThrown: false,
-        expectedError: scorm2004_error_codes.TYPE_MISMATCH,
+        expectedError: scorm2004_errors.TYPE_MISMATCH,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.type",
         valueToTest: "true-false",
         errorThrown: false,
-        expectedError: scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED,
+        expectedError: scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.description",
         valueToTest: "this is an interaction",
         errorThrown: false,
-        expectedError: scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED,
+        expectedError: scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.timestamp",
         valueToTest: "PT1S",
         errorThrown: false,
-        expectedError: scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED,
+        expectedError: scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.weighting",
         valueToTest: 1.0,
         errorThrown: false,
-        expectedError: scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED,
+        expectedError: scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.learner_response",
         valueToTest: "true",
         errorThrown: false,
-        expectedError: scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED,
+        expectedError: scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.latency",
         valueToTest: "PT1S",
         errorThrown: false,
-        expectedError: scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED,
+        expectedError: scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.objectives.0.success_status",
         valueToTest: "passed",
         errorThrown: false,
-        expectedError: scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED,
+        expectedError: scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.objectives.0.completion_status",
         valueToTest: "completed",
         errorThrown: false,
-        expectedError: scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED,
+        expectedError: scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.objectives.0.progress_measure",
         valueToTest: 1.0,
         errorThrown: false,
-        expectedError: scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED,
+        expectedError: scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.objectives.0.description",
         valueToTest: "this is an objective",
         errorThrown: false,
-        expectedError: scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED,
+        expectedError: scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.comments_from_lms.0.comment",
         valueToTest: "comment",
         errorThrown: false,
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.comments_from_lms.0.location",
         valueToTest: "location",
         errorThrown: false,
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.comments_from_lms.0.timestamp",
         valueToTest: scorm2004Values.validTimestamps[0],
         errorThrown: false,
-        expectedError: scorm2004_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.unknown",
         valueToTest: "uknown",
         errorThrown: false,
-        expectedError: scorm2004_error_codes.UNDEFINED_DATA_MODEL,
+        expectedError: scorm2004_errors.UNDEFINED_DATA_MODEL,
       });
     });
   });
@@ -592,10 +594,13 @@ describe("SCORM 2004 API Tests", () => {
       const scorm2004API = api();
       scorm2004API.cmi.learner_id = "student_1";
       scorm2004API.cmi.session_time = "PT1H0M0S";
+      scorm2004API.adl.nav.request = "continue";
 
       scorm2004API.reset();
 
-      expect(scorm2004API.cmi).toEqual(new CMI());
+      expect(scorm2004API.cmi.interactions).toEqual(new CMIInteractions());
+      expect(scorm2004API.cmi.learner_id).toEqual("student_1");
+      expect(scorm2004API.adl.nav).toEqual(new ADLNav());
     });
 
     it("should keep original settings", () => {
@@ -663,9 +668,9 @@ describe("SCORM 2004 API Tests", () => {
       it("should call internalFinish and return SCORM_TRUE", async () => {
         const internalFinishStub = sinon
           .stub(scorm2004API, "internalFinish")
-          .resolves(APIConstants.global.SCORM_TRUE);
+          .resolves(global_constants.SCORM_TRUE);
         const result = scorm2004API.lmsFinish();
-        expect(result).toEqual(APIConstants.global.SCORM_TRUE);
+        expect(result).toEqual(global_constants.SCORM_TRUE);
         expect(internalFinishStub.calledOnce).toBe(true);
         internalFinishStub.restore();
       });
@@ -685,14 +690,14 @@ describe("SCORM 2004 API Tests", () => {
       };
 
       it("should call terminate with 'Terminate' and true", async () => {
-        terminateStub.resolves(APIConstants.global.SCORM_TRUE);
+        terminateStub.resolves(global_constants.SCORM_TRUE);
         await scorm2004API.internalFinish();
         expect(terminateStub.calledWith("Terminate", true)).toBe(true);
       });
 
       for (const navRequest of Object.keys(navActions)) {
         it(`should process the correct navigation action based on adl.nav.request = ${navRequest}`, async () => {
-          terminateStub.resolves(APIConstants.global.SCORM_TRUE);
+          terminateStub.resolves(global_constants.SCORM_TRUE);
           scorm2004API.adl.nav.request = navRequest;
           await scorm2004API.internalFinish();
           expect(processListenersSpy.calledWith(navActions[navRequest])).toBe(
@@ -702,7 +707,7 @@ describe("SCORM 2004 API Tests", () => {
       }
 
       it("should process 'SequenceNext' if adl.nav.request is '_none_' and autoProgress is true", async () => {
-        terminateStub.resolves(APIConstants.global.SCORM_TRUE);
+        terminateStub.resolves(global_constants.SCORM_TRUE);
         scorm2004API.adl.nav.request = "_none_";
         scorm2004API.settings.autoProgress = true;
         await scorm2004API.internalFinish();
@@ -710,7 +715,7 @@ describe("SCORM 2004 API Tests", () => {
       });
 
       it("should not process any action if adl.nav.request is '_none_' and autoProgress is false", async () => {
-        terminateStub.resolves(APIConstants.global.SCORM_TRUE);
+        terminateStub.resolves(global_constants.SCORM_TRUE);
         scorm2004API.adl.nav.request = "_none_";
         scorm2004API.settings.autoProgress = false;
         await scorm2004API.internalFinish();
@@ -718,9 +723,9 @@ describe("SCORM 2004 API Tests", () => {
       });
 
       it("should return the result of terminate", async () => {
-        terminateStub.resolves(APIConstants.global.SCORM_TRUE);
+        terminateStub.resolves(global_constants.SCORM_TRUE);
         const result = await scorm2004API.internalFinish();
-        expect(result).toEqual(APIConstants.global.SCORM_TRUE);
+        expect(result).toEqual(global_constants.SCORM_TRUE);
       });
     });
   });
@@ -731,9 +736,9 @@ describe("SCORM 2004 API Tests", () => {
     it("should call commit and return SCORM_TRUE", async () => {
       const commitStub = sinon
         .stub(scorm2004API, "commit")
-        .resolves(APIConstants.global.SCORM_TRUE);
+        .resolves(global_constants.SCORM_TRUE);
       const result = scorm2004API.lmsCommit();
-      expect(result).toEqual(APIConstants.global.SCORM_TRUE);
+      expect(result).toEqual(global_constants.SCORM_TRUE);
       expect(commitStub.calledOnce).toBe(true);
       commitStub.restore();
     });
@@ -900,10 +905,10 @@ describe("SCORM 2004 API Tests", () => {
   describe("lmsGetDiagnostic()", () => {
     it("should return diagnostic information for a given error code", () => {
       const scorm2004API = api();
-      const errorCode = scorm2004_error_codes.GENERAL;
+      const errorCode = scorm2004_errors.GENERAL;
       const diagnosticInfo = scorm2004API.lmsGetDiagnostic(errorCode);
       expect(diagnosticInfo).toEqual(
-        APIConstants.scorm2004.error_descriptions[errorCode].detailMessage,
+        scorm2004_constants.error_descriptions[errorCode].detailMessage,
       );
     });
 
@@ -918,7 +923,7 @@ describe("SCORM 2004 API Tests", () => {
   describe("lmsGetErrorString()", () => {
     it("should return the error string for a given error code", () => {
       const scorm2004API = api();
-      const errorCode = scorm2004_error_codes.GENERAL;
+      const errorCode = scorm2004_errors.GENERAL;
       const errorString = scorm2004API.lmsGetErrorString(errorCode);
       expect(errorString).toEqual("General Exception");
     });
@@ -952,7 +957,7 @@ describe("SCORM 2004 API Tests", () => {
       const scorm2004API = new Scorm2004Impl();
       scorm2004API.checkCorrectResponseValue("true-false", ["unknown"], "true");
       expect(scorm2004API.lmsGetLastError()).toEqual(
-        String(scorm2004_error_codes.TYPE_MISMATCH),
+        String(scorm2004_errors.TYPE_MISMATCH),
       );
     });
 
@@ -970,7 +975,7 @@ describe("SCORM 2004 API Tests", () => {
         "true",
       );
       expect(scorm2004API.lmsGetLastError()).toEqual(
-        String(scorm2004_error_codes.TYPE_MISMATCH),
+        String(scorm2004_errors.TYPE_MISMATCH),
       );
     });
 
@@ -1038,7 +1043,7 @@ describe("SCORM 2004 API Tests", () => {
       const input = "{order_matters=invalid}correctResponse";
       scorm2004API.removeCorrectResponsePrefixes(input);
       expect(scorm2004API.lmsGetLastError()).toEqual(
-        String(scorm2004_error_codes.TYPE_MISMATCH),
+        String(scorm2004_errors.TYPE_MISMATCH),
       );
     });
 
@@ -1047,7 +1052,7 @@ describe("SCORM 2004 API Tests", () => {
       const input = "{case_matters=invalid}correctResponse";
       scorm2004API.removeCorrectResponsePrefixes(input);
       expect(scorm2004API.lmsGetLastError()).toEqual(
-        String(scorm2004_error_codes.TYPE_MISMATCH),
+        String(scorm2004_errors.TYPE_MISMATCH),
       );
     });
 
@@ -1063,7 +1068,7 @@ describe("SCORM 2004 API Tests", () => {
       const input = "{lang=xyz}correctResponse";
       scorm2004API.removeCorrectResponsePrefixes(input);
       expect(scorm2004API.lmsGetLastError()).toEqual(
-        String(scorm2004_error_codes.TYPE_MISMATCH),
+        String(scorm2004_errors.TYPE_MISMATCH),
       );
     });
   });
@@ -1084,7 +1089,7 @@ describe("SCORM 2004 API Tests", () => {
       );
       expect(result).toBeNull();
       expect(scorm2004API.lmsGetLastError()).toEqual(
-        String(scorm2004_error_codes.DEPENDENCY_NOT_ESTABLISHED),
+        String(scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED),
       );
     });
 
@@ -1117,7 +1122,7 @@ describe("SCORM 2004 API Tests", () => {
 
       expect(
         throwSCORMErrorSpy.calledWith(
-          ErrorCodes.scorm2004.GENERAL_SET_FAILURE,
+          scorm2004_errors.GENERAL_SET_FAILURE,
           "Incorrect Response Type: " + interaction.type,
         ),
       ).toBe(true);

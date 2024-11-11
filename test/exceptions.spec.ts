@@ -1,16 +1,18 @@
 import { describe, it } from "mocha";
 import { expect } from "expect";
+import { ValidationError } from "../src/exceptions";
 import {
-  ValidationError,
-  AICCValidationError,
-  Scorm12ValidationError,
-  Scorm2004ValidationError,
-} from "../src/exceptions";
-import APIConstants from "../src/constants/api_constants";
+  aicc_constants,
+  scorm12_constants,
+  scorm2004_constants,
+} from "../src/constants/api_constants";
+import { AICCValidationError } from "../src/exceptions/aicc_exceptions";
+import { Scorm12ValidationError } from "../src/exceptions/scorm12_exceptions";
+import { Scorm2004ValidationError } from "../src/exceptions/scorm2004_exceptions";
 
-const scorm12_errors = APIConstants.scorm12.error_descriptions;
-const aicc_errors = APIConstants.aicc.error_descriptions;
-const scorm2004_errors = APIConstants.scorm2004.error_descriptions;
+const scorm12_errors = scorm12_constants.error_descriptions;
+const aicc_errors = aicc_constants.error_descriptions;
+const scorm2004_errors = scorm2004_constants.error_descriptions;
 
 type CheckValidationMessage = {
   errorClass: any;

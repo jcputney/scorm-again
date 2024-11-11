@@ -1,9 +1,9 @@
 import { CMIArray } from "../common/array";
-import { AICCValidationError } from "../../exceptions";
+import { AICCValidationError } from "../../exceptions/aicc_exceptions";
 import { checkAICCValidFormat } from "./validation";
-import ErrorCodes from "../../constants/error_codes";
-import Regex from "../../constants/regex";
-import APIConstants from "../../constants/api_constants";
+import { scorm12_errors } from "../../constants/error_codes";
+import { aicc_regex } from "../../constants/regex";
+import { aicc_constants } from "../../constants/api_constants";
 import { CMIStudentPreference } from "../scorm12/student_preference";
 
 /**
@@ -14,9 +14,9 @@ export class AICCStudentPreferences extends CMIStudentPreference {
    * Constructor for AICC Student Preferences object
    */
   constructor() {
-    super(APIConstants.aicc.student_preference_children);
+    super(aicc_constants.student_preference_children);
     this.windows = new CMIArray({
-      errorCode: ErrorCodes.scorm12.INVALID_SET_VALUE,
+      errorCode: scorm12_errors.INVALID_SET_VALUE,
       errorClass: AICCValidationError,
       children: "",
     });
@@ -51,7 +51,7 @@ export class AICCStudentPreferences extends CMIStudentPreference {
    * @param {string} lesson_type
    */
   set lesson_type(lesson_type: string) {
-    if (checkAICCValidFormat(lesson_type, Regex.aicc.CMIString256)) {
+    if (checkAICCValidFormat(lesson_type, aicc_regex.CMIString256)) {
       this._lesson_type = lesson_type;
     }
   }
@@ -69,7 +69,7 @@ export class AICCStudentPreferences extends CMIStudentPreference {
    * @param {string} text_color
    */
   set text_color(text_color: string) {
-    if (checkAICCValidFormat(text_color, Regex.aicc.CMIString256)) {
+    if (checkAICCValidFormat(text_color, aicc_regex.CMIString256)) {
       this._text_color = text_color;
     }
   }
@@ -87,7 +87,7 @@ export class AICCStudentPreferences extends CMIStudentPreference {
    * @param {string} text_location
    */
   set text_location(text_location: string) {
-    if (checkAICCValidFormat(text_location, Regex.aicc.CMIString256)) {
+    if (checkAICCValidFormat(text_location, aicc_regex.CMIString256)) {
       this._text_location = text_location;
     }
   }
@@ -105,7 +105,7 @@ export class AICCStudentPreferences extends CMIStudentPreference {
    * @param {string} text_size
    */
   set text_size(text_size: string) {
-    if (checkAICCValidFormat(text_size, Regex.aicc.CMIString256)) {
+    if (checkAICCValidFormat(text_size, aicc_regex.CMIString256)) {
       this._text_size = text_size;
     }
   }
@@ -123,7 +123,7 @@ export class AICCStudentPreferences extends CMIStudentPreference {
    * @param {string} video
    */
   set video(video: string) {
-    if (checkAICCValidFormat(video, Regex.aicc.CMIString256)) {
+    if (checkAICCValidFormat(video, aicc_regex.CMIString256)) {
       this._video = video;
     }
   }

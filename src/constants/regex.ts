@@ -1,4 +1,4 @@
-const scorm12 = {
+export const scorm12_regex = {
   CMIString256: "^.{0,255}$",
   CMIString4096: "^.{0,4096}$",
   CMITime: "^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)$",
@@ -28,13 +28,13 @@ const scorm12 = {
   weighting_range: "-100#100",
   text_range: "-1#1",
 };
-const aicc = {
-  ...scorm12,
+export const aicc_regex = {
+  ...scorm12_regex,
   ...{
     CMIIdentifier: "^\\w{1,255}$",
   },
 };
-const scorm2004 = {
+export const scorm2004_regex = {
   CMIString200: "^[\\u0000-\\uFFFF]{0,200}$",
   CMIString250: "^[\\u0000-\\uFFFF]{0,250}$",
   CMIString1000: "^[\\u0000-\\uFFFF]{0,1000}$",
@@ -89,9 +89,3 @@ const scorm2004 = {
   text_range: "-1#1",
   progress_range: "0#1",
 };
-const Regex = {
-  aicc: aicc,
-  scorm12: scorm12,
-  scorm2004: scorm2004,
-};
-export default Regex;

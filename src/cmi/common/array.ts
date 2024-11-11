@@ -1,8 +1,6 @@
 import { BaseCMI } from "./base_cmi";
-import ErrorCodes from "../../constants/error_codes";
 import { BaseScormValidationError } from "../../exceptions";
-
-export const scorm12_error_codes = ErrorCodes.scorm12;
+import { scorm12_errors } from "../../constants/error_codes";
 
 /**
  * Base class for cmi *.n objects
@@ -24,7 +22,7 @@ export class CMIArray extends BaseCMI {
   }) {
     super();
     this.__children = params.children;
-    this._errorCode = params.errorCode || scorm12_error_codes.GENERAL;
+    this._errorCode = params.errorCode || scorm12_errors.GENERAL;
     this._errorClass = params.errorClass || BaseScormValidationError;
     this.childArray = [];
   }

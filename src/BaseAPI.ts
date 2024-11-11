@@ -1,7 +1,7 @@
 import { CMIArray } from "./cmi/common/array";
 import { ValidationError } from "./exceptions";
-import ErrorCodes, { ErrorCode } from "./constants/error_codes";
-import APIConstants from "./constants/api_constants";
+import { ErrorCode } from "./constants/error_codes";
+import { global_constants } from "./constants/api_constants";
 import { formatMessage, stringMatches, unflatten } from "./utilities";
 import { BaseCMI } from "./cmi/common/base_cmi";
 import {
@@ -35,7 +35,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     if (new.target === BaseAPI) {
       throw new TypeError("Cannot construct BaseAPI instances directly");
     }
-    this.currentState = APIConstants.global.STATE_NOT_INITIALIZED;
+    this.currentState = global_constants.STATE_NOT_INITIALIZED;
     this.lastErrorCode = "0";
     this.listenerArray = [];
 
@@ -71,7 +71,7 @@ export default abstract class BaseAPI implements IBaseAPI {
   commonReset(settings?: Settings): void {
     this.settings = { ...this.settings, ...settings };
 
-    this.currentState = APIConstants.global.STATE_NOT_INITIALIZED;
+    this.currentState = global_constants.STATE_NOT_INITIALIZED;
     this.lastErrorCode = "0";
     this.listenerArray = [];
   }
@@ -88,7 +88,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     initializeMessage?: string,
     terminationMessage?: string,
   ): string {
-    let returnValue = APIConstants.global.SCORM_FALSE;
+    let returnValue = global_constants.SCORM_FALSE;
 
     if (this.isInitialized()) {
       this.throwSCORMError(this._error_codes.INITIALIZED, initializeMessage);
@@ -99,9 +99,9 @@ export default abstract class BaseAPI implements IBaseAPI {
         this.cmi.setStartTime();
       }
 
-      this.currentState = APIConstants.global.STATE_INITIALIZED;
+      this.currentState = global_constants.STATE_INITIALIZED;
       this.lastErrorCode = "0";
-      returnValue = APIConstants.global.SCORM_TRUE;
+      returnValue = global_constants.SCORM_TRUE;
       this.processListeners(callbackName);
     }
 
@@ -233,7 +233,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     callbackName: string,
     checkTerminated: boolean,
   ): Promise<string> {
-    let returnValue = APIConstants.global.SCORM_FALSE;
+    let returnValue = global_constants.SCORM_FALSE;
 
     if (
       this.checkState(
@@ -242,7 +242,7 @@ export default abstract class BaseAPI implements IBaseAPI {
         this._error_codes.MULTIPLE_TERMINATION,
       )
     ) {
-      this.currentState = APIConstants.global.STATE_TERMINATED;
+      this.currentState = global_constants.STATE_TERMINATED;
 
       const result: ResultObject = await this.storeData(true);
       if (typeof result.errorCode !== "undefined" && result.errorCode > 0) {
@@ -251,11 +251,11 @@ export default abstract class BaseAPI implements IBaseAPI {
       returnValue =
         typeof result !== "undefined" && result.result
           ? result.result
-          : APIConstants.global.SCORM_FALSE;
+          : global_constants.SCORM_FALSE;
 
       if (checkTerminated) this.lastErrorCode = "0";
 
-      returnValue = APIConstants.global.SCORM_TRUE;
+      returnValue = global_constants.SCORM_TRUE;
       this.processListeners(callbackName);
     }
 
@@ -332,7 +332,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     if (value !== undefined) {
       value = String(value);
     }
-    let returnValue: string = APIConstants.global.SCORM_FALSE;
+    let returnValue: string = global_constants.SCORM_FALSE;
 
     if (
       this.checkState(
@@ -351,7 +351,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     }
 
     if (returnValue === undefined) {
-      returnValue = APIConstants.global.SCORM_FALSE;
+      returnValue = global_constants.SCORM_FALSE;
     }
 
     // If we didn't have any errors while setting the data, go ahead and
@@ -388,7 +388,7 @@ export default abstract class BaseAPI implements IBaseAPI {
   ): Promise<string> {
     this.clearScheduledCommit();
 
-    let returnValue = APIConstants.global.SCORM_FALSE;
+    let returnValue = global_constants.SCORM_FALSE;
 
     if (
       this.checkState(
@@ -404,7 +404,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       returnValue =
         typeof result !== "undefined" && result.result
           ? result.result
-          : APIConstants.global.SCORM_FALSE;
+          : global_constants.SCORM_FALSE;
 
       this.apiLog(
         callbackName,
@@ -562,12 +562,12 @@ export default abstract class BaseAPI implements IBaseAPI {
     value: any,
   ): string {
     if (!CMIElement || CMIElement === "") {
-      return APIConstants.global.SCORM_FALSE;
+      return global_constants.SCORM_FALSE;
     }
 
     const structure = CMIElement.split(".");
     let refObject: RefObject = this;
-    let returnValue = APIConstants.global.SCORM_FALSE;
+    let returnValue = global_constants.SCORM_FALSE;
     let foundFirstIndex = false;
 
     const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
@@ -600,7 +600,7 @@ export default abstract class BaseAPI implements IBaseAPI {
 
           if (!scorm2004 || this.lastErrorCode === "0") {
             refObject[attribute] = value;
-            returnValue = APIConstants.global.SCORM_TRUE;
+            returnValue = global_constants.SCORM_TRUE;
           }
         }
       } else {
@@ -645,7 +645,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       }
     }
 
-    if (returnValue === APIConstants.global.SCORM_FALSE) {
+    if (returnValue === global_constants.SCORM_FALSE) {
       this.apiLog(
         methodName,
         `There was an error setting the value for: ${CMIElement}, value of: ${value}`,
@@ -741,9 +741,9 @@ export default abstract class BaseAPI implements IBaseAPI {
     if (refObject === null || refObject === undefined) {
       if (!scorm2004) {
         if (attribute === "_children") {
-          this.throwSCORMError(ErrorCodes.scorm12.CHILDREN_ERROR);
+          this.throwSCORMError(this._error_codes.CHILDREN_ERROR);
         } else if (attribute === "_count") {
-          this.throwSCORMError(ErrorCodes.scorm12.COUNT_ERROR);
+          this.throwSCORMError(this._error_codes.COUNT_ERROR);
         }
       }
     } else {
@@ -757,7 +757,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @return {boolean}
    */
   isInitialized(): boolean {
-    return this.currentState === APIConstants.global.STATE_INITIALIZED;
+    return this.currentState === global_constants.STATE_INITIALIZED;
   }
 
   /**
@@ -766,7 +766,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @return {boolean}
    */
   isNotInitialized(): boolean {
-    return this.currentState === APIConstants.global.STATE_NOT_INITIALIZED;
+    return this.currentState === global_constants.STATE_NOT_INITIALIZED;
   }
 
   /**
@@ -775,7 +775,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @return {boolean}
    */
   isTerminated(): boolean {
-    return this.currentState === APIConstants.global.STATE_TERMINATED;
+    return this.currentState === global_constants.STATE_TERMINATED;
   }
 
   /**
@@ -943,7 +943,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {string} success
    */
   clearSCORMError(success: string) {
-    if (success !== undefined && success !== APIConstants.global.SCORM_FALSE) {
+    if (success !== undefined && success !== global_constants.SCORM_FALSE) {
       this.lastErrorCode = "0";
     }
   }
@@ -1113,7 +1113,7 @@ export default abstract class BaseAPI implements IBaseAPI {
   ): Promise<ResultObject> {
     const api = this;
     const genericError: ResultObject = {
-      result: APIConstants.global.SCORM_FALSE,
+      result: global_constants.SCORM_FALSE,
       errorCode: this.error_codes.GENERAL,
     };
 
@@ -1124,7 +1124,7 @@ export default abstract class BaseAPI implements IBaseAPI {
         await this.transformResponse(response);
       });
       return {
-        result: APIConstants.global.SCORM_TRUE,
+        result: global_constants.SCORM_TRUE,
         errorCode: 0,
       };
     }
@@ -1204,7 +1204,7 @@ export default abstract class BaseAPI implements IBaseAPI {
   private handleValueAccessException(e: any, returnValue: string): string {
     if (e instanceof ValidationError) {
       this.lastErrorCode = String(e.errorCode);
-      returnValue = APIConstants.global.SCORM_FALSE;
+      returnValue = global_constants.SCORM_FALSE;
     } else {
       if (e instanceof Error && e.message) {
         console.error(e.message);
@@ -1279,8 +1279,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     if (
       response.status >= 200 &&
       response.status <= 299 &&
-      (result.result === true ||
-        result.result === APIConstants.global.SCORM_TRUE)
+      (result.result === true || result.result === global_constants.SCORM_TRUE)
     ) {
       this.processListeners("CommitSuccess");
     } else {

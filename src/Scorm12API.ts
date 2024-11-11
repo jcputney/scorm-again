@@ -1,8 +1,8 @@
 import { CMI } from "./cmi/scorm12/cmi";
 import * as Utilities from "./utilities";
 import { stringMatches } from "./utilities";
-import APIConstants from "./constants/api_constants";
-import ErrorCodes from "./constants/error_codes";
+import { global_constants, scorm12_constants } from "./constants/api_constants";
+import { scorm12_errors } from "./constants/error_codes";
 
 import { BaseCMI } from "./cmi/common/base_cmi";
 import { CMIObjectivesObject } from "./cmi/scorm12/objectives";
@@ -19,9 +19,9 @@ import {
   ScoreObject,
   Settings,
 } from "./types/api_types";
-import Regex from "./constants/regex";
 import { CompletionStatus, SuccessStatus } from "./constants/enums";
 import BaseAPI from "./BaseAPI";
+import { scorm12_regex } from "./constants/regex";
 
 /**
  * API class for SCORM 1.2
@@ -38,7 +38,7 @@ class Scorm12Impl extends BaseAPI {
       }
     }
 
-    super(ErrorCodes.scorm12, settings);
+    super(scorm12_errors, settings);
 
     this.cmi = new CMI();
     this.nav = new NAV();
@@ -106,13 +106,13 @@ class Scorm12Impl extends BaseAPI {
     (async () => {
       await this.internalFinish();
     })();
-    return APIConstants.global.SCORM_TRUE;
+    return global_constants.SCORM_TRUE;
   }
 
   async internalFinish(): Promise<string> {
     const result = await this.terminate("LMSFinish", true);
 
-    if (result === APIConstants.global.SCORM_TRUE) {
+    if (result === global_constants.SCORM_TRUE) {
       if (this.nav.event !== "") {
         if (this.nav.event === "continue") {
           this.processListeners("SequenceNext");
@@ -164,7 +164,7 @@ class Scorm12Impl extends BaseAPI {
         await this.commit("LMSCommit", false);
       })();
     }
-    return APIConstants.global.SCORM_TRUE;
+    return global_constants.SCORM_TRUE;
   }
 
   /**
@@ -281,11 +281,11 @@ class Scorm12Impl extends BaseAPI {
 
     // Set error number to string since inconsistent from modules if string or number
     errorNumber = String(errorNumber);
-    if (APIConstants.scorm12.error_descriptions[errorNumber]) {
+    if (scorm12_constants.error_descriptions[errorNumber]) {
       basicMessage =
-        APIConstants.scorm12.error_descriptions[errorNumber].basicMessage;
+        scorm12_constants.error_descriptions[errorNumber].basicMessage;
       detailMessage =
-        APIConstants.scorm12.error_descriptions[errorNumber].detailMessage;
+        scorm12_constants.error_descriptions[errorNumber].detailMessage;
     }
 
     return detail ? detailMessage : basicMessage;
@@ -342,7 +342,7 @@ class Scorm12Impl extends BaseAPI {
     const totalTimeHHMMSS = this.cmi.getCurrentTotalTime();
     const totalTimeSeconds = Utilities.getTimeAsSeconds(
       totalTimeHHMMSS,
-      Regex.scorm12.CMITimespan,
+      scorm12_regex.CMITimespan,
     );
     const lessonStatus = this.cmi.core.lesson_status;
     let completionStatus = CompletionStatus.unknown;
@@ -437,7 +437,7 @@ class Scorm12Impl extends BaseAPI {
       );
     } else {
       return {
-        result: APIConstants.global.SCORM_TRUE,
+        result: global_constants.SCORM_TRUE,
         errorCode: 0,
       };
     }

@@ -1,6 +1,6 @@
-import {BaseCMI} from "../common/base_cmi";
-import {check12ValidFormat} from "./validation";
-import Regex from "../../constants/regex";
+import { BaseCMI } from "../common/base_cmi";
+import { check12ValidFormat } from "./validation";
+import { scorm12_regex } from "../../constants/regex";
 
 /**
  * Class for AICC Navigation object
@@ -28,7 +28,7 @@ export class NAV extends BaseCMI {
    * @param {string} event
    */
   set event(event: string) {
-    if (check12ValidFormat(event, Regex.scorm12.NAVEvent)) {
+    if (check12ValidFormat(event, scorm12_regex.NAVEvent)) {
       this._event = event;
     }
   }

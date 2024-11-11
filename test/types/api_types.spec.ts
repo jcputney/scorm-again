@@ -1,10 +1,10 @@
 import { expect } from "expect";
 import * as sinon from "sinon";
+import { SinonStub } from "sinon";
 import { LogLevel, ResultObject, Settings } from "../../src/types/api_types";
-import APIConstants from "../../src/constants/api_constants";
+import { global_constants } from "../../src/constants/api_constants";
 import { LogLevelEnum } from "../../src/constants/enums";
 import { DefaultSettings } from "../../src/constants/default_settings";
-import { SinonStub } from "sinon";
 
 describe("Settings Type", () => {
   const defaultSettings: Settings = {
@@ -25,7 +25,7 @@ describe("Settings Type", () => {
     responseHandler: async (response: Response): Promise<ResultObject> => {
       const httpResult = JSON.parse(await response.text());
       return {
-        result: httpResult.result || APIConstants.global.SCORM_FALSE,
+        result: httpResult.result || global_constants.SCORM_FALSE,
         errorCode:
           httpResult.errorCode !== undefined ? httpResult.errorCode : 101,
       };

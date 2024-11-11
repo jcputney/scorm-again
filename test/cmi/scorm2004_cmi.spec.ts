@@ -1,6 +1,6 @@
 import { describe, it } from "mocha";
-import ErrorCodes from "../../src/constants/error_codes";
-import APIConstants from "../../src/constants/api_constants";
+import { scorm2004_errors } from "../../src/constants/error_codes";
+import { scorm2004_constants } from "../../src/constants/api_constants";
 import { CMI } from "../../src/cmi/scorm2004/cmi";
 import * as h from "../cmi_helpers";
 import { expect } from "expect";
@@ -14,12 +14,9 @@ import { CMICommentsObject } from "../../src/cmi/scorm2004/comments";
 import { CMIObjectivesObject } from "../../src/cmi/scorm2004/objectives";
 import { ADL } from "../../src/cmi/scorm2004/adl";
 
-const scorm2004_constants = APIConstants.scorm2004;
-const scorm2004_error_codes = ErrorCodes.scorm2004;
-
-const read_only = scorm2004_error_codes.READ_ONLY_ELEMENT;
-const write_only = scorm2004_error_codes.WRITE_ONLY_ELEMENT;
-const type_mismatch = scorm2004_error_codes.TYPE_MISMATCH;
+const read_only = scorm2004_errors.READ_ONLY_ELEMENT;
+const write_only = scorm2004_errors.WRITE_ONLY_ELEMENT;
+const type_mismatch = scorm2004_errors.TYPE_MISMATCH;
 
 const cmi = () => {
   return new CMI();
@@ -1023,7 +1020,9 @@ describe("SCORM 2004 CMI Tests", () => {
 
         it("should export JSON", () => {
           const cmi = adl();
-          expect(JSON.stringify(cmi)).toEqual('{"nav":{"request":"_none_"}}');
+          expect(JSON.stringify(cmi)).toEqual(
+            '{"nav":{"request":"_none_"},"data":{}}',
+          );
         });
       });
     });

@@ -1,7 +1,6 @@
 import { checkValidFormat } from "../common/validation";
-import { AICCValidationError } from "../../exceptions";
-import ErrorCodes from "../../constants/error_codes";
-const aicc_error_codes = ErrorCodes.scorm12;
+import { AICCValidationError } from "../../exceptions/aicc_exceptions";
+import { scorm12_errors } from "../../constants/error_codes";
 
 /**
  * Helper method, no reason to have to pass the same error codes every time
@@ -18,7 +17,7 @@ export function checkAICCValidFormat(
   return checkValidFormat(
     value,
     regexPattern,
-    aicc_error_codes.TYPE_MISMATCH,
+    scorm12_errors.TYPE_MISMATCH,
     AICCValidationError,
     allowEmptyString,
   );

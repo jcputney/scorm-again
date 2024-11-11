@@ -1,5 +1,5 @@
 import * as Scorm12CMI from "../scorm12/cmi";
-import APIConstants from "../../constants/api_constants";
+import { aicc_constants } from "../../constants/api_constants";
 import { CMIEvaluation } from "./evaluation";
 import { AICCStudentPreferences } from "./student_preferences";
 import { CMIStudentDemographics } from "./student_demographics";
@@ -20,7 +20,7 @@ export class CMI extends Scorm12CMI.CMI {
    * @param {boolean} initialized
    */
   constructor(initialized: boolean = false) {
-    super(APIConstants.aicc.cmi_children);
+    super(aicc_constants.cmi_children);
     if (initialized) this.initialize();
     this.student_preference = new AICCStudentPreferences();
     this.student_data = new AICCCMIStudentData();

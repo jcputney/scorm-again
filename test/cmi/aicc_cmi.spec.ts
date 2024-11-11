@@ -1,6 +1,6 @@
 import { describe, it } from "mocha";
-import APIConstants from "../../src/constants/api_constants";
-import ErrorCodes from "../../src/constants/error_codes";
+import { aicc_constants } from "../../src/constants/api_constants";
+import { scorm12_errors } from "../../src/constants/error_codes";
 import { CMI } from "../../src/cmi/aicc/cmi";
 import * as h from "../cmi_helpers";
 import { expect } from "expect";
@@ -13,13 +13,10 @@ import { NAV } from "../../src/cmi/scorm12/nav";
 import { CMIPathsObject } from "../../src/cmi/aicc/paths";
 import { CMIStudentDemographics } from "../../src/cmi/aicc/student_demographics";
 
-const aicc_constants = APIConstants.aicc;
-const scorm12_error_codes = ErrorCodes.scorm12;
-
-const invalid_set = scorm12_error_codes.INVALID_SET_VALUE;
-const type_mismatch = scorm12_error_codes.TYPE_MISMATCH;
-const write_only = scorm12_error_codes.WRITE_ONLY_ELEMENT;
-const read_only = scorm12_error_codes.READ_ONLY_ELEMENT;
+const invalid_set = scorm12_errors.INVALID_SET_VALUE;
+const type_mismatch = scorm12_errors.TYPE_MISMATCH;
+const write_only = scorm12_errors.WRITE_ONLY_ELEMENT;
+const read_only = scorm12_errors.READ_ONLY_ELEMENT;
 
 describe("AICC CMI Tests", () => {
   describe("CMI Spec Tests", () => {

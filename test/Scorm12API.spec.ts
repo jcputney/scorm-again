@@ -2,14 +2,12 @@ import { expect } from "expect";
 import { after, before, describe, it } from "mocha";
 import { Scorm12Impl } from "../src/Scorm12API";
 import * as h from "./api_helpers";
-import ErrorCodes from "../src/constants/error_codes";
+import { scorm12_errors } from "../src/constants/error_codes";
 import { scorm12Values } from "./field_values";
 import * as sinon from "sinon";
 import Pretender from "fetch-pretender";
 import { RefObject, Settings } from "../src/types/api_types";
 import { DefaultSettings } from "../src/constants/default_settings";
-
-const scorm12_error_codes = ErrorCodes.scorm12;
 
 let clock: sinon.SinonFakeTimers;
 const api = (settings?: Settings, startingData: RefObject = {}) => {
@@ -177,52 +175,52 @@ describe("SCORM 1.2 API Tests", () => {
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi._version",
-        expectedError: scorm12_error_codes.INVALID_SET_VALUE,
+        expectedError: scorm12_errors.INVALID_SET_VALUE,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi._children",
-        expectedError: scorm12_error_codes.INVALID_SET_VALUE,
+        expectedError: scorm12_errors.INVALID_SET_VALUE,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.core._children",
-        expectedError: scorm12_error_codes.INVALID_SET_VALUE,
+        expectedError: scorm12_errors.INVALID_SET_VALUE,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.core.score._children",
-        expectedError: scorm12_error_codes.INVALID_SET_VALUE,
+        expectedError: scorm12_errors.INVALID_SET_VALUE,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.objectives._children",
-        expectedError: scorm12_error_codes.INVALID_SET_VALUE,
+        expectedError: scorm12_errors.INVALID_SET_VALUE,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.objectives._count",
-        expectedError: scorm12_error_codes.INVALID_SET_VALUE,
+        expectedError: scorm12_errors.INVALID_SET_VALUE,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.interactions._children",
-        expectedError: scorm12_error_codes.INVALID_SET_VALUE,
+        expectedError: scorm12_errors.INVALID_SET_VALUE,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.interactions._count",
-        expectedError: scorm12_error_codes.INVALID_SET_VALUE,
+        expectedError: scorm12_errors.INVALID_SET_VALUE,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.interactions.0.objectives._count",
-        expectedError: scorm12_error_codes.INVALID_SET_VALUE,
+        expectedError: scorm12_errors.INVALID_SET_VALUE,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.interactions.0.correct_responses._count",
-        expectedError: scorm12_error_codes.INVALID_SET_VALUE,
+        expectedError: scorm12_errors.INVALID_SET_VALUE,
       });
     });
 
@@ -230,57 +228,57 @@ describe("SCORM 1.2 API Tests", () => {
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.launch_data",
-        expectedError: scorm12_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm12_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.comments_from_lms",
-        expectedError: scorm12_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm12_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.core.student_id",
-        expectedError: scorm12_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm12_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.core.student_name",
-        expectedError: scorm12_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm12_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.core.credit",
-        expectedError: scorm12_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm12_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.core.entry",
-        expectedError: scorm12_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm12_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.core.total_time",
-        expectedError: scorm12_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm12_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.core.lesson_mode",
-        expectedError: scorm12_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm12_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.student_data.mastery_score",
-        expectedError: scorm12_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm12_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.student_data.max_time_allowed",
-        expectedError: scorm12_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm12_errors.READ_ONLY_ELEMENT,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.student_data.time_limit_action",
-        expectedError: scorm12_error_codes.READ_ONLY_ELEMENT,
+        expectedError: scorm12_errors.READ_ONLY_ELEMENT,
       });
     });
   });
@@ -290,19 +288,19 @@ describe("SCORM 1.2 API Tests", () => {
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.core.close",
-        expectedError: scorm12_error_codes.GENERAL,
+        expectedError: scorm12_errors.GENERAL,
         errorThrown: false,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.exit",
-        expectedError: scorm12_error_codes.GENERAL,
+        expectedError: scorm12_errors.GENERAL,
         errorThrown: false,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.entry",
-        expectedError: scorm12_error_codes.GENERAL,
+        expectedError: scorm12_errors.GENERAL,
         errorThrown: false,
       });
     });
@@ -321,60 +319,60 @@ describe("SCORM 1.2 API Tests", () => {
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.core.exit",
-        expectedError: scorm12_error_codes.WRITE_ONLY_ELEMENT,
+        expectedError: scorm12_errors.WRITE_ONLY_ELEMENT,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.core.session_time",
-        expectedError: scorm12_error_codes.WRITE_ONLY_ELEMENT,
+        expectedError: scorm12_errors.WRITE_ONLY_ELEMENT,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.id",
         initializeFirst: true,
         initializationValue: "AAA",
-        expectedError: scorm12_error_codes.WRITE_ONLY_ELEMENT,
+        expectedError: scorm12_errors.WRITE_ONLY_ELEMENT,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.time",
         initializeFirst: true,
         initializationValue: "12:59:59",
-        expectedError: scorm12_error_codes.WRITE_ONLY_ELEMENT,
+        expectedError: scorm12_errors.WRITE_ONLY_ELEMENT,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.type",
         initializeFirst: true,
         initializationValue: "true-false",
-        expectedError: scorm12_error_codes.WRITE_ONLY_ELEMENT,
+        expectedError: scorm12_errors.WRITE_ONLY_ELEMENT,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.weighting",
         initializeFirst: true,
         initializationValue: "0",
-        expectedError: scorm12_error_codes.WRITE_ONLY_ELEMENT,
+        expectedError: scorm12_errors.WRITE_ONLY_ELEMENT,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.student_response",
         initializeFirst: true,
-        expectedError: scorm12_error_codes.WRITE_ONLY_ELEMENT,
+        expectedError: scorm12_errors.WRITE_ONLY_ELEMENT,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.result",
         initializeFirst: true,
         initializationValue: "correct",
-        expectedError: scorm12_error_codes.WRITE_ONLY_ELEMENT,
+        expectedError: scorm12_errors.WRITE_ONLY_ELEMENT,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.latency",
         initializeFirst: true,
         initializationValue: "01:59:59.99",
-        expectedError: scorm12_error_codes.WRITE_ONLY_ELEMENT,
+        expectedError: scorm12_errors.WRITE_ONLY_ELEMENT,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
@@ -382,7 +380,7 @@ describe("SCORM 1.2 API Tests", () => {
         initializeFirst: true,
         initializationValue: "AAA",
         expectedValue: "AAA",
-        expectedError: scorm12_error_codes.WRITE_ONLY_ELEMENT,
+        expectedError: scorm12_errors.WRITE_ONLY_ELEMENT,
       });
     });
   });
@@ -392,12 +390,12 @@ describe("SCORM 1.2 API Tests", () => {
       h.checkLMSSetValue({
         api: api(),
         fieldName: "cmi.objectives.0.id",
-        expectedError: scorm12_error_codes.STORE_BEFORE_INIT,
+        expectedError: scorm12_errors.STORE_BEFORE_INIT,
       });
       h.checkLMSSetValue({
         api: api(),
         fieldName: "cmi.interactions.0.id",
-        expectedError: scorm12_error_codes.STORE_BEFORE_INIT,
+        expectedError: scorm12_errors.STORE_BEFORE_INIT,
       });
     });
 

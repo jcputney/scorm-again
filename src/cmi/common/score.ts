@@ -1,13 +1,9 @@
-import APIConstants from "../../constants/api_constants";
-import Regex from "../../constants/regex";
+import { scorm12_constants } from "../../constants/api_constants";
+import { scorm12_regex } from "../../constants/regex";
 import { BaseCMI } from "./base_cmi";
 import { checkValidFormat, checkValidRange } from "./validation";
-import ErrorCodes from "../../constants/error_codes";
+import { scorm12_errors } from "../../constants/error_codes";
 import { BaseScormValidationError } from "../../exceptions";
-
-const scorm12_constants = APIConstants.scorm12;
-const scorm12_regex = Regex.scorm12;
-export const scorm12_error_codes = ErrorCodes.scorm12;
 
 /**
  * Base class for cmi *.score objects
@@ -55,11 +51,11 @@ export class CMIScore extends BaseCMI {
       : scorm12_regex.score_range;
     this._max = params.max || params.max === "" ? params.max : "100";
     this.__invalid_error_code =
-      params.invalidErrorCode || scorm12_error_codes.INVALID_SET_VALUE;
+      params.invalidErrorCode || scorm12_errors.INVALID_SET_VALUE;
     this.__invalid_type_code =
-      params.invalidTypeCode || scorm12_error_codes.TYPE_MISMATCH;
+      params.invalidTypeCode || scorm12_errors.TYPE_MISMATCH;
     this.__invalid_range_code =
-      params.invalidRangeCode || scorm12_error_codes.VALUE_OUT_OF_RANGE;
+      params.invalidRangeCode || scorm12_errors.VALUE_OUT_OF_RANGE;
     this.__decimal_regex = params.decimalRegex || scorm12_regex.CMIDecimal;
     this.__error_class = params.errorClass;
   }

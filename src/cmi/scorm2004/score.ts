@@ -2,10 +2,10 @@
  * Class for SCORM 2004's cmi *.score object
  */
 import { CMIScore } from "../common/score";
-import APIConstants from "../../constants/api_constants";
-import ErrorCodes from "../../constants/error_codes";
-import Regex from "../../constants/regex";
-import { Scorm2004ValidationError } from "../../exceptions";
+import { scorm2004_constants } from "../../constants/api_constants";
+import { scorm2004_errors } from "../../constants/error_codes";
+import { scorm2004_regex } from "../../constants/regex";
+import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
 import { check2004ValidFormat, check2004ValidRange } from "./validation";
 
 export class Scorm2004CMIScore extends CMIScore {
@@ -16,12 +16,12 @@ export class Scorm2004CMIScore extends CMIScore {
    */
   constructor() {
     super({
-      score_children: APIConstants.scorm2004.score_children,
+      score_children: scorm2004_constants.score_children,
       max: "",
-      invalidErrorCode: ErrorCodes.scorm2004.READ_ONLY_ELEMENT,
-      invalidTypeCode: ErrorCodes.scorm2004.TYPE_MISMATCH,
-      invalidRangeCode: ErrorCodes.scorm2004.VALUE_OUT_OF_RANGE,
-      decimalRegex: Regex.scorm2004.CMIDecimal,
+      invalidErrorCode: scorm2004_errors.READ_ONLY_ELEMENT,
+      invalidTypeCode: scorm2004_errors.TYPE_MISMATCH,
+      invalidRangeCode: scorm2004_errors.VALUE_OUT_OF_RANGE,
+      decimalRegex: scorm2004_regex.CMIDecimal,
       errorClass: Scorm2004ValidationError,
     });
   }
@@ -40,8 +40,8 @@ export class Scorm2004CMIScore extends CMIScore {
    */
   set scaled(scaled: string) {
     if (
-      check2004ValidFormat(scaled, Regex.scorm2004.CMIDecimal) &&
-      check2004ValidRange(scaled, Regex.scorm2004.scaled_range)
+      check2004ValidFormat(scaled, scorm2004_regex.CMIDecimal) &&
+      check2004ValidRange(scaled, scorm2004_regex.scaled_range)
     ) {
       this._scaled = scaled;
     }

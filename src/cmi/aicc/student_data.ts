@@ -1,6 +1,6 @@
-import { AICCValidationError } from "../../exceptions";
-import ErrorCodes from "../../constants/error_codes";
-import APIConstants from "../../constants/api_constants";
+import { AICCValidationError } from "../../exceptions/aicc_exceptions";
+import { scorm12_errors } from "../../constants/error_codes";
+import { aicc_constants } from "../../constants/api_constants";
 import { CMITries } from "./tries";
 import { CMIStudentData } from "../scorm12/student_data";
 import { CMIAttemptRecords } from "./attempts";
@@ -13,7 +13,7 @@ export class AICCCMIStudentData extends CMIStudentData {
    * Constructor for AICC StudentData object
    */
   constructor() {
-    super(APIConstants.aicc.student_data_children);
+    super(aicc_constants.student_data_children);
     this.tries = new CMITries();
     this.attempt_records = new CMIAttemptRecords();
   }
@@ -47,7 +47,7 @@ export class AICCCMIStudentData extends CMIStudentData {
    */
   set tries_during_lesson(tries_during_lesson: string) {
     if (this.initialized) {
-      throw new AICCValidationError(ErrorCodes.scorm12.READ_ONLY_ELEMENT);
+      throw new AICCValidationError(scorm12_errors.READ_ONLY_ELEMENT);
     } else {
       this._tries_during_lesson = tries_during_lesson;
     }

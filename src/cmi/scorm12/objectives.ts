@@ -1,11 +1,11 @@
-import {BaseCMI} from "../common/base_cmi";
-import {CMIScore} from "../common/score";
-import APIConstants from "../../constants/api_constants";
-import Regex from "../../constants/regex";
-import ErrorCodes from "../../constants/error_codes";
-import {Scorm12ValidationError} from "../../exceptions";
-import {check12ValidFormat} from "./validation";
-import {CMIArray} from "../common/array";
+import { BaseCMI } from "../common/base_cmi";
+import { CMIScore } from "../common/score";
+import { scorm12_constants } from "../../constants/api_constants";
+import { scorm12_regex } from "../../constants/regex";
+import { scorm12_errors } from "../../constants/error_codes";
+import { Scorm12ValidationError } from "../../exceptions/scorm12_exceptions";
+import { check12ValidFormat } from "./validation";
+import { CMIArray } from "../common/array";
 
 /**
  * Class representing SCORM 1.2's `cmi.objectives` object
@@ -17,8 +17,8 @@ export class CMIObjectives extends CMIArray {
    */
   constructor() {
     super({
-      children: APIConstants.scorm12.objectives_children,
-      errorCode: ErrorCodes.scorm12.INVALID_SET_VALUE,
+      children: scorm12_constants.objectives_children,
+      errorCode: scorm12_errors.INVALID_SET_VALUE,
       errorClass: Scorm12ValidationError,
     });
   }
@@ -35,11 +35,11 @@ export class CMIObjectivesObject extends BaseCMI {
   constructor() {
     super();
     this.score = new CMIScore({
-      score_children: APIConstants.scorm12.score_children,
-      score_range: Regex.scorm12.score_range,
-      invalidErrorCode: ErrorCodes.scorm12.INVALID_SET_VALUE,
-      invalidTypeCode: ErrorCodes.scorm12.TYPE_MISMATCH,
-      invalidRangeCode: ErrorCodes.scorm12.VALUE_OUT_OF_RANGE,
+      score_children: scorm12_constants.score_children,
+      score_range: scorm12_regex.score_range,
+      invalidErrorCode: scorm12_errors.INVALID_SET_VALUE,
+      invalidTypeCode: scorm12_errors.TYPE_MISMATCH,
+      invalidRangeCode: scorm12_errors.VALUE_OUT_OF_RANGE,
       errorClass: Scorm12ValidationError,
     });
   }
@@ -62,7 +62,7 @@ export class CMIObjectivesObject extends BaseCMI {
    * @param {string} id
    */
   set id(id: string) {
-    if (check12ValidFormat(id, Regex.scorm12.CMIIdentifier)) {
+    if (check12ValidFormat(id, scorm12_regex.CMIIdentifier)) {
       this._id = id;
     }
   }
@@ -80,7 +80,7 @@ export class CMIObjectivesObject extends BaseCMI {
    * @param {string} status
    */
   set status(status: string) {
-    if (check12ValidFormat(status, Regex.scorm12.CMIStatus2)) {
+    if (check12ValidFormat(status, scorm12_regex.CMIStatus2)) {
       this._status = status;
     }
   }

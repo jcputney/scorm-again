@@ -1,7 +1,7 @@
-import APIConstants from "../../constants/api_constants";
-import ErrorCodes from "../../constants/error_codes";
-import Regex from "../../constants/regex";
-import { Scorm12ValidationError } from "../../exceptions";
+import { scorm12_constants } from "../../constants/api_constants";
+import { scorm12_errors } from "../../constants/error_codes";
+import { scorm12_regex } from "../../constants/regex";
+import { Scorm12ValidationError } from "../../exceptions/scorm12_exceptions";
 import { BaseRootCMI } from "../common/base_cmi";
 import { check12ValidFormat } from "./validation";
 import { CMICore } from "../aicc/core";
@@ -35,7 +35,7 @@ export class CMI extends BaseRootCMI {
     if (initialized) this.initialize();
     this.__children = cmi_children
       ? cmi_children
-      : APIConstants.scorm12.cmi_children;
+      : scorm12_constants.cmi_children;
     this.core = new CMICore();
     this.objectives = new CMIObjectives();
     this.student_data = student_data ? student_data : new CMIStudentData();
@@ -118,7 +118,7 @@ export class CMI extends BaseRootCMI {
    * @param {string} _version
    */
   set _version(_version: string) {
-    throw new Scorm12ValidationError(ErrorCodes.scorm12.INVALID_SET_VALUE);
+    throw new Scorm12ValidationError(scorm12_errors.INVALID_SET_VALUE);
   }
 
   /**
@@ -134,7 +134,7 @@ export class CMI extends BaseRootCMI {
    * @param {string} _children
    */
   set _children(_children: string) {
-    throw new Scorm12ValidationError(ErrorCodes.scorm12.INVALID_SET_VALUE);
+    throw new Scorm12ValidationError(scorm12_errors.INVALID_SET_VALUE);
   }
 
   /**
@@ -169,7 +169,7 @@ export class CMI extends BaseRootCMI {
    */
   set launch_data(launch_data: string) {
     if (this.initialized) {
-      throw new Scorm12ValidationError(ErrorCodes.scorm12.READ_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(scorm12_errors.READ_ONLY_ELEMENT);
     } else {
       this._launch_data = launch_data;
     }
@@ -188,7 +188,7 @@ export class CMI extends BaseRootCMI {
    * @param {string} comments
    */
   set comments(comments: string) {
-    if (check12ValidFormat(comments, Regex.scorm12.CMIString4096, true)) {
+    if (check12ValidFormat(comments, scorm12_regex.CMIString4096, true)) {
       this._comments = comments;
     }
   }
@@ -207,7 +207,7 @@ export class CMI extends BaseRootCMI {
    */
   set comments_from_lms(comments_from_lms: string) {
     if (this.initialized) {
-      throw new Scorm12ValidationError(ErrorCodes.scorm12.READ_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(scorm12_errors.READ_ONLY_ELEMENT);
     } else {
       this._comments_from_lms = comments_from_lms;
     }

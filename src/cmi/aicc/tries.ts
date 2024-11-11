@@ -1,10 +1,10 @@
 import { CMIArray } from "../common/array";
-import APIConstants from "../../constants/api_constants";
+import { aicc_constants } from "../../constants/api_constants";
 import { BaseCMI } from "../common/base_cmi";
 import { CMIScore } from "../common/score";
-import Regex from "../../constants/regex";
-import ErrorCodes from "../../constants/error_codes";
-import { AICCValidationError } from "../../exceptions";
+import { aicc_regex } from "../../constants/regex";
+import { scorm12_errors } from "../../constants/error_codes";
+import { AICCValidationError } from "../../exceptions/aicc_exceptions";
 import { checkAICCValidFormat } from "./validation";
 
 /**
@@ -16,7 +16,7 @@ export class CMITries extends CMIArray {
    */
   constructor() {
     super({
-      children: APIConstants.aicc.tries_children,
+      children: aicc_constants.tries_children,
     });
   }
 }
@@ -31,11 +31,11 @@ export class CMITriesObject extends BaseCMI {
   constructor() {
     super();
     this.score = new CMIScore({
-      score_children: APIConstants.aicc.score_children,
-      score_range: Regex.aicc.score_range,
-      invalidErrorCode: ErrorCodes.scorm12.INVALID_SET_VALUE,
-      invalidTypeCode: ErrorCodes.scorm12.TYPE_MISMATCH,
-      invalidRangeCode: ErrorCodes.scorm12.VALUE_OUT_OF_RANGE,
+      score_children: aicc_constants.score_children,
+      score_range: aicc_regex.score_range,
+      invalidErrorCode: scorm12_errors.INVALID_SET_VALUE,
+      invalidTypeCode: scorm12_errors.TYPE_MISMATCH,
+      invalidRangeCode: scorm12_errors.VALUE_OUT_OF_RANGE,
       errorClass: AICCValidationError,
     });
   }
@@ -66,7 +66,7 @@ export class CMITriesObject extends BaseCMI {
    * @param {string} status
    */
   set status(status: string) {
-    if (checkAICCValidFormat(status, Regex.aicc.CMIStatus2)) {
+    if (checkAICCValidFormat(status, aicc_regex.CMIStatus2)) {
       this._status = status;
     }
   }
@@ -84,7 +84,7 @@ export class CMITriesObject extends BaseCMI {
    * @param {string} time
    */
   set time(time: string) {
-    if (checkAICCValidFormat(time, Regex.aicc.CMITime)) {
+    if (checkAICCValidFormat(time, aicc_regex.CMITime)) {
       this._time = time;
     }
   }

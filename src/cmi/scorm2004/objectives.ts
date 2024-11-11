@@ -1,11 +1,11 @@
 import { CMIArray } from "../common/array";
-import APIConstants from "../../constants/api_constants";
-import ErrorCodes from "../../constants/error_codes";
-import { Scorm2004ValidationError } from "../../exceptions";
+import { scorm2004_errors } from "../../constants/error_codes";
+import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
 import { BaseCMI } from "../common/base_cmi";
 import { Scorm2004CMIScore } from "./score";
 import { check2004ValidFormat, check2004ValidRange } from "./validation";
-import Regex from "../../constants/regex";
+import { scorm2004_regex } from "../../constants/regex";
+import { scorm2004_constants } from "../../constants/api_constants";
 
 /**
  * Class representing SCORM 2004's `cmi.objectives` object
@@ -17,8 +17,8 @@ export class CMIObjectives extends CMIArray {
    */
   constructor() {
     super({
-      children: APIConstants.scorm2004.objectives_children,
-      errorCode: ErrorCodes.scorm2004.READ_ONLY_ELEMENT,
+      children: scorm2004_constants.objectives_children,
+      errorCode: scorm2004_errors.READ_ONLY_ELEMENT,
       errorClass: Scorm2004ValidationError,
     });
   }
@@ -65,7 +65,7 @@ export class CMIObjectivesObject extends BaseCMI {
    * @param {string} id
    */
   set id(id: string) {
-    if (check2004ValidFormat(id, Regex.scorm2004.CMILongIdentifier)) {
+    if (check2004ValidFormat(id, scorm2004_regex.CMILongIdentifier)) {
       this._id = id;
     }
   }
@@ -85,10 +85,10 @@ export class CMIObjectivesObject extends BaseCMI {
   set success_status(success_status: string) {
     if (this.initialized && this._id === "") {
       throw new Scorm2004ValidationError(
-        ErrorCodes.scorm2004.DEPENDENCY_NOT_ESTABLISHED,
+        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
       );
     } else {
-      if (check2004ValidFormat(success_status, Regex.scorm2004.CMISStatus)) {
+      if (check2004ValidFormat(success_status, scorm2004_regex.CMISStatus)) {
         this._success_status = success_status;
       }
     }
@@ -109,10 +109,10 @@ export class CMIObjectivesObject extends BaseCMI {
   set completion_status(completion_status: string) {
     if (this.initialized && this._id === "") {
       throw new Scorm2004ValidationError(
-        ErrorCodes.scorm2004.DEPENDENCY_NOT_ESTABLISHED,
+        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
       );
     } else {
-      if (check2004ValidFormat(completion_status, Regex.scorm2004.CMICStatus)) {
+      if (check2004ValidFormat(completion_status, scorm2004_regex.CMICStatus)) {
         this._completion_status = completion_status;
       }
     }
@@ -133,12 +133,12 @@ export class CMIObjectivesObject extends BaseCMI {
   set progress_measure(progress_measure: string) {
     if (this.initialized && this._id === "") {
       throw new Scorm2004ValidationError(
-        ErrorCodes.scorm2004.DEPENDENCY_NOT_ESTABLISHED,
+        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
       );
     } else {
       if (
-        check2004ValidFormat(progress_measure, Regex.scorm2004.CMIDecimal) &&
-        check2004ValidRange(progress_measure, Regex.scorm2004.progress_range)
+        check2004ValidFormat(progress_measure, scorm2004_regex.CMIDecimal) &&
+        check2004ValidRange(progress_measure, scorm2004_regex.progress_range)
       ) {
         this._progress_measure = progress_measure;
       }
@@ -160,13 +160,13 @@ export class CMIObjectivesObject extends BaseCMI {
   set description(description: string) {
     if (this.initialized && this._id === "") {
       throw new Scorm2004ValidationError(
-        ErrorCodes.scorm2004.DEPENDENCY_NOT_ESTABLISHED,
+        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
       );
     } else {
       if (
         check2004ValidFormat(
           description,
-          Regex.scorm2004.CMILangString250,
+          scorm2004_regex.CMILangString250,
           true,
         )
       ) {

@@ -2,12 +2,13 @@ import BaseAPI from "./BaseAPI";
 import { CMI } from "./cmi/scorm2004/cmi";
 import * as Utilities from "./utilities";
 import { stringMatches } from "./utilities";
-import APIConstants from "./constants/api_constants";
-import ErrorCodes from "./constants/error_codes";
+import {
+  global_constants,
+  scorm2004_constants,
+} from "./constants/api_constants";
+import { scorm2004_errors } from "./constants/error_codes";
 import { CorrectResponses, ResponseType } from "./constants/response_constants";
 import ValidLanguages from "./constants/language_constants";
-import Regex from "./constants/regex";
-import regex from "./constants/regex";
 import { CMIArray } from "./cmi/common/array";
 import { BaseCMI } from "./cmi/common/base_cmi";
 import {
@@ -26,6 +27,7 @@ import {
   Settings,
 } from "./types/api_types";
 import { CompletionStatus, SuccessStatus } from "./constants/enums";
+import { scorm2004_regex } from "./constants/regex";
 
 /**
  * API class for SCORM 2004
@@ -44,7 +46,7 @@ class Scorm2004Impl extends BaseAPI {
       }
     }
 
-    super(ErrorCodes.scorm2004, settings);
+    super(scorm2004_errors, settings);
 
     this.cmi = new CMI();
     this.adl = new ADL();
@@ -78,8 +80,8 @@ class Scorm2004Impl extends BaseAPI {
   reset(settings?: Settings) {
     this.commonReset(settings);
 
-    this.cmi = new CMI();
-    this.adl = new ADL();
+    this.cmi?.reset();
+    this.adl?.reset();
   }
 
   /**
@@ -105,13 +107,13 @@ class Scorm2004Impl extends BaseAPI {
     (async () => {
       await this.internalFinish();
     })();
-    return APIConstants.global.SCORM_TRUE;
+    return global_constants.SCORM_TRUE;
   }
 
   async internalFinish(): Promise<string> {
     const result = await this.terminate("Terminate", true);
 
-    if (result === APIConstants.global.SCORM_TRUE) {
+    if (result === global_constants.SCORM_TRUE) {
       if (this.adl.nav.request !== "_none_") {
         const navActions: { [key: string]: string } = {
           continue: "SequenceNext",
@@ -125,7 +127,7 @@ class Scorm2004Impl extends BaseAPI {
         };
 
         let request = this.adl.nav.request;
-        const choiceJumpRegex = new RegExp(regex.scorm2004.NAVEvent);
+        const choiceJumpRegex = new RegExp(scorm2004_regex.NAVEvent);
         const matches = request.match(choiceJumpRegex);
         let target = "";
         if (matches) {
@@ -192,7 +194,7 @@ class Scorm2004Impl extends BaseAPI {
         await this.commit("LMSCommit", false);
       })();
     }
-    return APIConstants.global.SCORM_TRUE;
+    return global_constants.SCORM_TRUE;
   }
 
   /**
@@ -291,7 +293,7 @@ class Scorm2004Impl extends BaseAPI {
 
     if (this.isInitialized()) {
       if (!interaction.type) {
-        this.throwSCORMError(ErrorCodes.scorm2004.DEPENDENCY_NOT_ESTABLISHED);
+        this.throwSCORMError(scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED);
       } else {
         this.checkDuplicateChoiceResponse(interaction, value);
         const response_type = CorrectResponses[interaction.type];
@@ -299,7 +301,7 @@ class Scorm2004Impl extends BaseAPI {
           this.checkValidResponseType(response_type, value, interaction.type);
         } else {
           this.throwSCORMError(
-            ErrorCodes.scorm2004.GENERAL_SET_FAILURE,
+            scorm2004_errors.GENERAL_SET_FAILURE,
             "Incorrect Response Type: " + interaction.type,
           );
         }
@@ -335,7 +337,7 @@ class Scorm2004Impl extends BaseAPI {
       this.checkCorrectResponseValue(interaction_type, nodes, value);
     } else if (nodes.length > response_type.max) {
       this.throwSCORMError(
-        ErrorCodes.scorm2004.GENERAL_SET_FAILURE,
+        scorm2004_errors.GENERAL_SET_FAILURE,
         "Data Model Element Pattern Too Long",
       );
     }
@@ -356,7 +358,7 @@ class Scorm2004Impl extends BaseAPI {
       ) {
         const response = interaction.correct_responses.childArray[i];
         if (response.pattern === value) {
-          this.throwSCORMError(ErrorCodes.scorm2004.GENERAL_SET_FAILURE);
+          this.throwSCORMError(scorm2004_errors.GENERAL_SET_FAILURE);
         }
       }
     }
@@ -397,14 +399,14 @@ class Scorm2004Impl extends BaseAPI {
       } else {
         if (this.lastErrorCode === "0") {
           this.throwSCORMError(
-            ErrorCodes.scorm2004.GENERAL_SET_FAILURE,
+            scorm2004_errors.GENERAL_SET_FAILURE,
             "Data Model Element Pattern Already Exists",
           );
         }
       }
     } else {
       this.throwSCORMError(
-        ErrorCodes.scorm2004.GENERAL_SET_FAILURE,
+        scorm2004_errors.GENERAL_SET_FAILURE,
         "Data Model Element Collection Limit Reached",
       );
     }
@@ -436,11 +438,11 @@ class Scorm2004Impl extends BaseAPI {
 
     // Set error number to string since inconsistent from modules if string or number
     errorNumber = String(errorNumber);
-    if (APIConstants.scorm2004.error_descriptions[errorNumber]) {
+    if (scorm2004_constants.error_descriptions[errorNumber]) {
       basicMessage =
-        APIConstants.scorm2004.error_descriptions[errorNumber].basicMessage;
+        scorm2004_constants.error_descriptions[errorNumber].basicMessage;
       detailMessage =
-        APIConstants.scorm2004.error_descriptions[errorNumber].detailMessage;
+        scorm2004_constants.error_descriptions[errorNumber].detailMessage;
     }
 
     return detail ? detailMessage : basicMessage;
@@ -495,17 +497,17 @@ class Scorm2004Impl extends BaseAPI {
         if (values.length === 2) {
           const matches = values[0].match(formatRegex);
           if (!matches) {
-            this.throwSCORMError(ErrorCodes.scorm2004.TYPE_MISMATCH);
+            this.throwSCORMError(scorm2004_errors.TYPE_MISMATCH);
           } else {
             if (
               !response.format2 ||
               !values[1].match(new RegExp(response.format2))
             ) {
-              this.throwSCORMError(ErrorCodes.scorm2004.TYPE_MISMATCH);
+              this.throwSCORMError(scorm2004_errors.TYPE_MISMATCH);
             }
           }
         } else {
-          this.throwSCORMError(ErrorCodes.scorm2004.TYPE_MISMATCH);
+          this.throwSCORMError(scorm2004_errors.TYPE_MISMATCH);
         }
       } else {
         const matches = nodes[i].match(formatRegex);
@@ -513,17 +515,17 @@ class Scorm2004Impl extends BaseAPI {
           (!matches && value !== "") ||
           (!matches && interaction_type === "true-false")
         ) {
-          this.throwSCORMError(ErrorCodes.scorm2004.TYPE_MISMATCH);
+          this.throwSCORMError(scorm2004_errors.TYPE_MISMATCH);
         } else {
           if (interaction_type === "numeric" && nodes.length > 1) {
             if (Number(nodes[0]) > Number(nodes[1])) {
-              this.throwSCORMError(ErrorCodes.scorm2004.TYPE_MISMATCH);
+              this.throwSCORMError(scorm2004_errors.TYPE_MISMATCH);
             }
           } else {
             if (nodes[i] !== "" && response.unique) {
               for (let j = 0; j < i && this.lastErrorCode === "0"; j++) {
                 if (nodes[i] === nodes[j]) {
-                  this.throwSCORMError(ErrorCodes.scorm2004.TYPE_MISMATCH);
+                  this.throwSCORMError(scorm2004_errors.TYPE_MISMATCH);
                 }
               }
             }
@@ -551,12 +553,12 @@ class Scorm2004Impl extends BaseAPI {
     while (matches) {
       switch (matches[2]) {
         case "lang":
-          langMatches = node.match(Regex.scorm2004.CMILangcr);
+          langMatches = node.match(scorm2004_regex.CMILangcr);
           if (langMatches) {
             const lang = langMatches[3];
             if (lang !== undefined && lang.length > 0) {
               if (!ValidLanguages.includes(lang.toLowerCase())) {
-                this.throwSCORMError(ErrorCodes.scorm2004.TYPE_MISMATCH);
+                this.throwSCORMError(scorm2004_errors.TYPE_MISMATCH);
               }
             }
           }
@@ -565,7 +567,7 @@ class Scorm2004Impl extends BaseAPI {
         case "case_matters":
           if (!seenLang && !seenOrder && !seenCase) {
             if (matches[3] !== "true" && matches[3] !== "false") {
-              this.throwSCORMError(ErrorCodes.scorm2004.TYPE_MISMATCH);
+              this.throwSCORMError(scorm2004_errors.TYPE_MISMATCH);
             }
           }
 
@@ -574,7 +576,7 @@ class Scorm2004Impl extends BaseAPI {
         case "order_matters":
           if (!seenCase && !seenLang && !seenOrder) {
             if (matches[3] !== "true" && matches[3] !== "false") {
-              this.throwSCORMError(ErrorCodes.scorm2004.TYPE_MISMATCH);
+              this.throwSCORMError(scorm2004_errors.TYPE_MISMATCH);
             }
           }
 
@@ -639,7 +641,7 @@ class Scorm2004Impl extends BaseAPI {
     const totalTimeDuration = this.cmi.getCurrentTotalTime();
     const totalTimeSeconds = Utilities.getDurationAsSeconds(
       totalTimeDuration,
-      Regex.scorm2004.CMITimespan,
+      scorm2004_regex.CMITimespan,
     );
 
     let completionStatus = CompletionStatus.unknown;
@@ -747,7 +749,7 @@ class Scorm2004Impl extends BaseAPI {
       return result;
     } else {
       return {
-        result: APIConstants.global.SCORM_TRUE,
+        result: global_constants.SCORM_TRUE,
         errorCode: 0,
       };
     }

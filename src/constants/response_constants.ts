@@ -1,6 +1,5 @@
-import Regex from "./regex";
+import { scorm2004_regex } from "./regex";
 
-const scorm2004_regex = Regex.scorm2004;
 export const LearnerResponses: Responses = {
   "true-false": {
     format: "^true$|^false$",

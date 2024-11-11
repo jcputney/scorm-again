@@ -1,7 +1,7 @@
 import { BaseCMI } from "../common/base_cmi";
-import APIConstants from "../../constants/api_constants";
-import { Scorm12ValidationError } from "../../exceptions";
-import ErrorCodes from "../../constants/error_codes";
+import { scorm12_constants } from "../../constants/api_constants";
+import { Scorm12ValidationError } from "../../exceptions/scorm12_exceptions";
+import { scorm12_errors } from "../../constants/error_codes";
 
 /**
  * Class representing the SCORM 1.2 cmi.student_data object
@@ -21,7 +21,7 @@ export class CMIStudentData extends BaseCMI {
     super();
     this.__children = student_data_children
       ? student_data_children
-      : APIConstants.scorm12.student_data_children;
+      : scorm12_constants.student_data_children;
   }
 
   /**
@@ -39,7 +39,7 @@ export class CMIStudentData extends BaseCMI {
    * @private
    */
   set _children(_children: string) {
-    throw new Scorm12ValidationError(ErrorCodes.scorm12.INVALID_SET_VALUE);
+    throw new Scorm12ValidationError(scorm12_errors.INVALID_SET_VALUE);
   }
 
   /**
@@ -56,7 +56,7 @@ export class CMIStudentData extends BaseCMI {
    */
   set mastery_score(mastery_score: string) {
     if (this.initialized) {
-      throw new Scorm12ValidationError(ErrorCodes.scorm12.READ_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(scorm12_errors.READ_ONLY_ELEMENT);
     } else {
       this._mastery_score = mastery_score;
     }
@@ -76,7 +76,7 @@ export class CMIStudentData extends BaseCMI {
    */
   set max_time_allowed(max_time_allowed: string) {
     if (this.initialized) {
-      throw new Scorm12ValidationError(ErrorCodes.scorm12.READ_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(scorm12_errors.READ_ONLY_ELEMENT);
     } else {
       this._max_time_allowed = max_time_allowed;
     }
@@ -96,7 +96,7 @@ export class CMIStudentData extends BaseCMI {
    */
   set time_limit_action(time_limit_action: string) {
     if (this.initialized) {
-      throw new Scorm12ValidationError(ErrorCodes.scorm12.READ_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(scorm12_errors.READ_ONLY_ELEMENT);
     } else {
       this._time_limit_action = time_limit_action;
     }

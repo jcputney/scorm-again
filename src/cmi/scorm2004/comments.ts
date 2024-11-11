@@ -1,10 +1,10 @@
 import { CMIArray } from "../common/array";
-import APIConstants from "../../constants/api_constants";
-import ErrorCodes from "../../constants/error_codes";
-import { Scorm2004ValidationError } from "../../exceptions";
+import { scorm2004_constants } from "../../constants/api_constants";
+import { scorm2004_errors } from "../../constants/error_codes";
+import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
 import { BaseCMI } from "../common/base_cmi";
 import { check2004ValidFormat } from "./validation";
-import Regex from "../../constants/regex";
+import { scorm2004_regex } from "../../constants/regex";
 
 /**
  * Class representing SCORM 2004's cmi.comments_from_lms object
@@ -16,8 +16,8 @@ export class CMICommentsFromLMS extends CMIArray {
    */
   constructor() {
     super({
-      children: APIConstants.scorm2004.comments_children,
-      errorCode: ErrorCodes.scorm2004.READ_ONLY_ELEMENT,
+      children: scorm2004_constants.comments_children,
+      errorCode: scorm2004_errors.READ_ONLY_ELEMENT,
       errorClass: Scorm2004ValidationError,
     });
   }
@@ -33,8 +33,8 @@ export class CMICommentsFromLearner extends CMIArray {
    */
   constructor() {
     super({
-      children: APIConstants.scorm2004.comments_children,
-      errorCode: ErrorCodes.scorm2004.READ_ONLY_ELEMENT,
+      children: scorm2004_constants.comments_children,
+      errorCode: scorm2004_errors.READ_ONLY_ELEMENT,
       errorClass: Scorm2004ValidationError,
     });
   }
@@ -76,12 +76,10 @@ export class CMICommentsObject extends BaseCMI {
    */
   set comment(comment: string) {
     if (this.initialized && this._readOnlyAfterInit) {
-      throw new Scorm2004ValidationError(
-        ErrorCodes.scorm2004.READ_ONLY_ELEMENT,
-      );
+      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
     } else {
       if (
-        check2004ValidFormat(comment, Regex.scorm2004.CMILangString4000, true)
+        check2004ValidFormat(comment, scorm2004_regex.CMILangString4000, true)
       ) {
         this._comment = comment;
       }
@@ -102,11 +100,9 @@ export class CMICommentsObject extends BaseCMI {
    */
   set location(location: string) {
     if (this.initialized && this._readOnlyAfterInit) {
-      throw new Scorm2004ValidationError(
-        ErrorCodes.scorm2004.READ_ONLY_ELEMENT,
-      );
+      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
     } else {
-      if (check2004ValidFormat(location, Regex.scorm2004.CMIString250)) {
+      if (check2004ValidFormat(location, scorm2004_regex.CMIString250)) {
         this._location = location;
       }
     }
@@ -126,11 +122,9 @@ export class CMICommentsObject extends BaseCMI {
    */
   set timestamp(timestamp: string) {
     if (this.initialized && this._readOnlyAfterInit) {
-      throw new Scorm2004ValidationError(
-        ErrorCodes.scorm2004.READ_ONLY_ELEMENT,
-      );
+      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
     } else {
-      if (check2004ValidFormat(timestamp, Regex.scorm2004.CMITime)) {
+      if (check2004ValidFormat(timestamp, scorm2004_regex.CMITime)) {
         this._timestamp = timestamp;
       }
     }

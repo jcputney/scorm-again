@@ -1,9 +1,9 @@
 import { BaseCMI } from "../common/base_cmi";
 import { CMIScore } from "../common/score";
-import APIConstants from "../../constants/api_constants";
-import Regex from "../../constants/regex";
-import ErrorCodes from "../../constants/error_codes";
-import { AICCValidationError } from "../../exceptions";
+import { aicc_constants } from "../../constants/api_constants";
+import { aicc_regex } from "../../constants/regex";
+import { scorm12_errors } from "../../constants/error_codes";
+import { AICCValidationError } from "../../exceptions/aicc_exceptions";
 import { checkAICCValidFormat } from "./validation";
 import { CMIArray } from "../common/array";
 
@@ -16,7 +16,7 @@ export class CMIAttemptRecords extends CMIArray {
    */
   constructor() {
     super({
-      children: APIConstants.aicc.attempt_records_children,
+      children: aicc_constants.attempt_records_children,
     });
   }
 }
@@ -31,11 +31,11 @@ export class CMIAttemptRecordsObject extends BaseCMI {
   constructor() {
     super();
     this.score = new CMIScore({
-      score_children: APIConstants.aicc.score_children,
-      score_range: Regex.aicc.score_range,
-      invalidErrorCode: ErrorCodes.scorm12.INVALID_SET_VALUE,
-      invalidTypeCode: ErrorCodes.scorm12.TYPE_MISMATCH,
-      invalidRangeCode: ErrorCodes.scorm12.VALUE_OUT_OF_RANGE,
+      score_children: aicc_constants.score_children,
+      score_range: aicc_regex.score_range,
+      invalidErrorCode: scorm12_errors.INVALID_SET_VALUE,
+      invalidTypeCode: scorm12_errors.TYPE_MISMATCH,
+      invalidRangeCode: scorm12_errors.VALUE_OUT_OF_RANGE,
       errorClass: AICCValidationError,
     });
   }
@@ -65,7 +65,7 @@ export class CMIAttemptRecordsObject extends BaseCMI {
    * @param {string} lesson_status
    */
   set lesson_status(lesson_status: string) {
-    if (checkAICCValidFormat(lesson_status, Regex.aicc.CMIStatus2)) {
+    if (checkAICCValidFormat(lesson_status, aicc_regex.CMIStatus2)) {
       this._lesson_status = lesson_status;
     }
   }

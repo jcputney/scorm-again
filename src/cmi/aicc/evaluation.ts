@@ -1,10 +1,10 @@
 import { CMIArray } from "../common/array";
-import { AICCValidationError } from "../../exceptions";
+import { AICCValidationError } from "../../exceptions/aicc_exceptions";
 import { BaseCMI } from "../common/base_cmi";
-import APIConstants from "../../constants/api_constants";
-import ErrorCodes from "../../constants/error_codes";
+import { aicc_constants } from "../../constants/api_constants";
+import { scorm12_errors } from "../../constants/error_codes";
 import { checkAICCValidFormat } from "./validation";
-import Regex from "../../constants/regex";
+import { aicc_regex } from "../../constants/regex";
 
 /**
  * AICC Evaluation object
@@ -54,8 +54,8 @@ class CMIEvaluationComments extends CMIArray {
    */
   constructor() {
     super({
-      children: APIConstants.aicc.comments_children,
-      errorCode: ErrorCodes.scorm12.INVALID_SET_VALUE,
+      children: aicc_constants.comments_children,
+      errorCode: scorm12_errors.INVALID_SET_VALUE,
       errorClass: AICCValidationError,
     });
   }
@@ -89,7 +89,7 @@ export class CMIEvaluationCommentsObject extends BaseCMI {
    * @param {string} content
    */
   set content(content: string) {
-    if (checkAICCValidFormat(content, Regex.aicc.CMIString256)) {
+    if (checkAICCValidFormat(content, aicc_regex.CMIString256)) {
       this._content = content;
     }
   }
@@ -107,7 +107,7 @@ export class CMIEvaluationCommentsObject extends BaseCMI {
    * @param {string} location
    */
   set location(location: string) {
-    if (checkAICCValidFormat(location, Regex.aicc.CMIString256)) {
+    if (checkAICCValidFormat(location, aicc_regex.CMIString256)) {
       this._location = location;
     }
   }
@@ -125,7 +125,7 @@ export class CMIEvaluationCommentsObject extends BaseCMI {
    * @param {string} time
    */
   set time(time: string) {
-    if (checkAICCValidFormat(time, Regex.aicc.CMITime)) {
+    if (checkAICCValidFormat(time, aicc_regex.CMITime)) {
       this._time = time;
     }
   }

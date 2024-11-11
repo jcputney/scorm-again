@@ -32,6 +32,7 @@ const commonConfig = {
     rules: [TSLoader],
   },
   optimization: {
+    usedExports: false,
     minimize: true,
     minimizer: [
       new TerserPlugin({
@@ -40,6 +41,9 @@ const commonConfig = {
         terserOptions: {
           output: {
             comments: false,
+          },
+          compress: {
+            passes: 3,
           },
         },
       }),

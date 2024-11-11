@@ -2,14 +2,14 @@
  * Class for SCORM 2004's cmi.learner_preference object
  */
 import { BaseCMI } from "../common/base_cmi";
-import APIConstants from "../../constants/api_constants";
-import { Scorm2004ValidationError } from "../../exceptions";
-import ErrorCodes from "../../constants/error_codes";
+import { scorm2004_constants } from "../../constants/api_constants";
+import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
+import { scorm2004_errors } from "../../constants/error_codes";
 import { check2004ValidFormat, check2004ValidRange } from "./validation";
-import Regex from "../../constants/regex";
+import { scorm2004_regex } from "../../constants/regex";
 
 export class CMILearnerPreference extends BaseCMI {
-  private __children = APIConstants.scorm2004.student_preference_children;
+  private __children = scorm2004_constants.student_preference_children;
   private _audio_level = "1";
   private _language = "";
   private _delivery_speed = "1";
@@ -37,7 +37,7 @@ export class CMILearnerPreference extends BaseCMI {
    * @private
    */
   set _children(_children: string) {
-    throw new Scorm2004ValidationError(ErrorCodes.scorm2004.READ_ONLY_ELEMENT);
+    throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
   }
 
   /**
@@ -54,8 +54,8 @@ export class CMILearnerPreference extends BaseCMI {
    */
   set audio_level(audio_level: string) {
     if (
-      check2004ValidFormat(audio_level, Regex.scorm2004.CMIDecimal) &&
-      check2004ValidRange(audio_level, Regex.scorm2004.audio_range)
+      check2004ValidFormat(audio_level, scorm2004_regex.CMIDecimal) &&
+      check2004ValidRange(audio_level, scorm2004_regex.audio_range)
     ) {
       this._audio_level = audio_level;
     }
@@ -74,7 +74,7 @@ export class CMILearnerPreference extends BaseCMI {
    * @param {string} language
    */
   set language(language: string) {
-    if (check2004ValidFormat(language, Regex.scorm2004.CMILang)) {
+    if (check2004ValidFormat(language, scorm2004_regex.CMILang)) {
       this._language = language;
     }
   }
@@ -93,8 +93,8 @@ export class CMILearnerPreference extends BaseCMI {
    */
   set delivery_speed(delivery_speed: string) {
     if (
-      check2004ValidFormat(delivery_speed, Regex.scorm2004.CMIDecimal) &&
-      check2004ValidRange(delivery_speed, Regex.scorm2004.speed_range)
+      check2004ValidFormat(delivery_speed, scorm2004_regex.CMIDecimal) &&
+      check2004ValidRange(delivery_speed, scorm2004_regex.speed_range)
     ) {
       this._delivery_speed = delivery_speed;
     }
@@ -114,8 +114,8 @@ export class CMILearnerPreference extends BaseCMI {
    */
   set audio_captioning(audio_captioning: string) {
     if (
-      check2004ValidFormat(audio_captioning, Regex.scorm2004.CMISInteger) &&
-      check2004ValidRange(audio_captioning, Regex.scorm2004.text_range)
+      check2004ValidFormat(audio_captioning, scorm2004_regex.CMISInteger) &&
+      check2004ValidRange(audio_captioning, scorm2004_regex.text_range)
     ) {
       this._audio_captioning = audio_captioning;
     }

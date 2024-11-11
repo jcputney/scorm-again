@@ -1,5 +1,5 @@
 import { LogLevel, ResultObject, Settings } from "../types/api_types";
-import APIConstants from "./api_constants";
+import { global_constants } from "./api_constants";
 import { LogLevelEnum } from "./enums";
 
 /**
@@ -35,12 +35,12 @@ export const DefaultSettings: Settings = {
       ) {
         if (response.status === 200) {
           return {
-            result: APIConstants.global.SCORM_TRUE,
+            result: global_constants.SCORM_TRUE,
             errorCode: 0,
           };
         } else {
           return {
-            result: APIConstants.global.SCORM_FALSE,
+            result: global_constants.SCORM_FALSE,
             errorCode: 101,
           };
         }
@@ -49,14 +49,14 @@ export const DefaultSettings: Settings = {
           result: httpResult.result,
           errorCode: httpResult.errorCode
             ? httpResult.errorCode
-            : httpResult.result === APIConstants.global.SCORM_TRUE
+            : httpResult.result === global_constants.SCORM_TRUE
               ? 0
               : 101,
         };
       }
     }
     return {
-      result: APIConstants.global.SCORM_FALSE,
+      result: global_constants.SCORM_FALSE,
       errorCode: 101,
     };
   },

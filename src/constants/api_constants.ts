@@ -36,6 +36,7 @@ interface Scorm2004Constants {
   student_data_children: string;
   student_preference_children: string;
   interactions_children: string;
+  adl_data_children: string;
   error_descriptions: ErrorDescriptions;
 }
 
@@ -47,14 +48,7 @@ interface GlobalConstants {
   STATE_TERMINATED: number;
 }
 
-interface APIConstants {
-  global: GlobalConstants;
-  scorm12: ScormConstants;
-  aicc: AiccConstants;
-  scorm2004: Scorm2004Constants;
-}
-
-const global: GlobalConstants = {
+export const global_constants: GlobalConstants = {
   SCORM_TRUE: "true",
   SCORM_FALSE: "false",
   STATE_NOT_INITIALIZED: 0,
@@ -62,7 +56,7 @@ const global: GlobalConstants = {
   STATE_TERMINATED: 2,
 };
 
-const scorm12: ScormConstants = {
+export const scorm12_constants: ScormConstants = {
   // Children lists
   cmi_children:
     "core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions",
@@ -139,8 +133,8 @@ const scorm12: ScormConstants = {
     },
   },
 };
-const aicc: AiccConstants = {
-  ...scorm12,
+export const aicc_constants: AiccConstants = {
+  ...scorm12_constants,
   ...{
     cmi_children:
       "core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions,evaluation",
@@ -155,7 +149,8 @@ const aicc: AiccConstants = {
     paths_children: "location_id,date,time,status,why_left,time_in_element",
   },
 };
-const scorm2004: Scorm2004Constants = {
+
+export const scorm2004_constants: Scorm2004Constants = {
   // Children lists
   cmi_children:
     "_version,comments_from_learner,comments_from_lms,completion_status,credit,entry,exit,interactions,launch_data,learner_id,learner_name,learner_preference,location,max_time_allowed,mode,objectives,progress_measure,scaled_passing_score,score,session_time,success_status,suspend_data,time_limit_action,total_time",
@@ -169,6 +164,7 @@ const scorm2004: Scorm2004Constants = {
     "audio_level,audio_captioning,delivery_speed,language",
   interactions_children:
     "id,type,objectives,timestamp,correct_responses,weighting,learner_response,result,latency,description",
+  adl_data_children: "id,store",
   error_descriptions: {
     "0": {
       basicMessage: "No Error",
@@ -299,10 +295,3 @@ const scorm2004: Scorm2004Constants = {
     },
   },
 };
-const APIConstants: APIConstants = {
-  global: global,
-  scorm12: scorm12,
-  aicc: aicc,
-  scorm2004: scorm2004,
-};
-export default APIConstants;
