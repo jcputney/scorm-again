@@ -97,4 +97,5 @@ export const DefaultSettings: Settings = {
   },
   scoItemIds: [],
   scoItemIdValidator: false,
+  globalObjectiveIds: [],
 };

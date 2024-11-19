@@ -35,7 +35,8 @@ export class ADL extends BaseCMI {
    * Called when the API needs to be reset
    */
   reset() {
-    this.nav = new ADLNav();
+    this._initialized = false;
+    this.nav?.reset();
   }
 
   /**
@@ -84,6 +85,15 @@ export class ADLNav extends BaseCMI {
   override initialize() {
     super.initialize();
     this.request_valid?.initialize();
+  }
+
+  /**
+   * Called when the API needs to be reset
+   */
+  reset() {
+    this._initialized = false;
+    this._request = "_none_";
+    this.request_valid?.reset();
   }
 
   /**
@@ -147,6 +157,13 @@ export class ADLDataObject extends BaseCMI {
 
   constructor() {
     super();
+  }
+
+  /**
+   * Called when the API has been reset
+   */
+  reset() {
+    this._initialized = false;
   }
 
   /**
@@ -228,6 +245,15 @@ export class ADLNavRequestValid extends BaseCMI {
    */
   constructor() {
     super();
+  }
+
+  /**
+   * Called when the API has been reset
+   */
+  override reset() {
+    this._initialized = false;
+    this._continue = "unknown";
+    this._previous = "unknown";
   }
 
   /**

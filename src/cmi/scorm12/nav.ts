@@ -13,6 +13,14 @@ export class NAV extends BaseCMI {
     super();
   }
 
+  /**
+   * Called when the API has been reset
+   */
+  reset(): void {
+    this._event = "";
+    this._initialized = false;
+  }
+
   private _event = "";
 
   /**

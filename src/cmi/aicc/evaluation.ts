@@ -29,6 +29,14 @@ export class CMIEvaluation extends BaseCMI {
   }
 
   /**
+   * Called when the API has been reset
+   */
+  reset(): void {
+    this._initialized = false;
+    this.comments?.reset();
+  }
+
+  /**
    * toJSON for cmi.evaluation object
    * @return {{comments: CMIEvaluationComments}}
    */
@@ -65,6 +73,10 @@ class CMIEvaluationComments extends CMIArray {
  * Class for AICC Evaluation Comments
  */
 export class CMIEvaluationCommentsObject extends BaseCMI {
+  private _content = "";
+  private _location = "";
+  private _time = "";
+
   /**
    * Constructor for Evaluation Comments
    */
@@ -72,9 +84,16 @@ export class CMIEvaluationCommentsObject extends BaseCMI {
     super();
   }
 
-  private _content = "";
-  private _location = "";
-  private _time = "";
+  /**
+   * Called when the API has been reset
+   */
+  reset(): void {
+    this._initialized = false;
+
+    this._content = "";
+    this._location = "";
+    this._time = "";
+  }
 
   /**
    * Getter for _content

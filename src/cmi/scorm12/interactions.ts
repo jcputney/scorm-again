@@ -66,6 +66,24 @@ export class CMIInteractionsObject extends BaseCMI {
   private _latency = "";
 
   /**
+   * Called when the API has been reset
+   */
+  override reset(): void {
+    this._initialized = false;
+
+    this._id = "";
+    this._time = "";
+    this._type = "";
+    this._weighting = "";
+    this._student_response = "";
+    this._result = "";
+    this._latency = "";
+
+    this.objectives?.reset();
+    this.correct_responses?.reset();
+  }
+
+  /**
    * Getter for _id. Should only be called during JSON export.
    * @return {string}
    */
@@ -275,6 +293,14 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
   private _id = "";
 
   /**
+   * Called when the API has been reset
+   */
+  reset(): void {
+    this._initialized = false;
+    this._id = "";
+  }
+
+  /**
    * Getter for _id
    * @return {string}
    */
@@ -325,6 +351,14 @@ export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
   }
 
   private _pattern = "";
+
+  /**
+   * Called when the API has been reset
+   */
+  reset(): void {
+    this._initialized = false;
+    this._pattern = "";
+  }
 
   /**
    * Getter for _pattern

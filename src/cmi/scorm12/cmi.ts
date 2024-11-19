@@ -50,6 +50,21 @@ export class CMI extends BaseRootCMI {
   public interactions: CMIInteractions;
 
   /**
+   * Called when the API has been reset
+   */
+  reset(): void {
+    this._initialized = false;
+
+    this._launch_data = "";
+    this._comments = "";
+    this.core?.reset();
+    this.objectives = new CMIObjectives();
+    this.interactions = new CMIInteractions();
+    this.student_data?.reset();
+    this.student_preference?.reset();
+  }
+
+  /**
    * Called when the API has been initialized after the CMI has been created
    */
   override initialize() {

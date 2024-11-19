@@ -63,6 +63,13 @@ export class CMICommentsObject extends BaseCMI {
   }
 
   /**
+   * Called when the API has been reset
+   */
+  reset(): void {
+    this._initialized = false;
+  }
+
+  /**
    * Getter for _comment
    * @return {string}
    */

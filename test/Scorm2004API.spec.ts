@@ -166,6 +166,75 @@ describe("SCORM 2004 API Tests", () => {
       });
     });
 
+    describe("Setting cmi.objectives.n.* should update globalObjectives if it exists", () => {
+      it("should update globalObjectives if it exists", () => {
+        const scorm2004API = api({
+          globalObjectiveIds: ["Objective 1"],
+        });
+
+        scorm2004API.setCMIValue("cmi.objectives.0.id", "Objective 1");
+        scorm2004API.setCMIValue("cmi.objectives.0.score.raw", "100");
+        scorm2004API.setCMIValue("cmi.objectives.0.score.min", "0");
+        scorm2004API.setCMIValue("cmi.objectives.0.score.max", "100");
+        scorm2004API.setCMIValue("cmi.objectives.0.success_status", "passed");
+        scorm2004API.setCMIValue(
+          "cmi.objectives.0.completion_status",
+          "completed",
+        );
+        scorm2004API.setCMIValue("cmi.objectives.0.progress_measure", "1");
+
+        scorm2004API.setCMIValue("cmi.objectives.1.id", "Objective 2");
+        scorm2004API.setCMIValue("cmi.objectives.1.score.raw", "100");
+        scorm2004API.setCMIValue("cmi.objectives.1.score.min", "0");
+        scorm2004API.setCMIValue("cmi.objectives.1.score.max", "100");
+        scorm2004API.setCMIValue("cmi.objectives.1.success_status", "failed");
+        scorm2004API.setCMIValue(
+          "cmi.objectives.1.completion_status",
+          "incomplete",
+        );
+        scorm2004API.setCMIValue("cmi.objectives.1.progress_measure", "0.5");
+
+        const globalObjective = scorm2004API.globalObjectives.find(
+          (objective) => objective.id === "Objective 1",
+        );
+
+        expect(scorm2004API.getCMIValue("cmi.objectives.0.id")).toEqual(
+          "Objective 1",
+        );
+        expect(scorm2004API.getCMIValue("cmi.objectives.0.score.raw")).toEqual(
+          "100",
+        );
+        expect(scorm2004API.getCMIValue("cmi.objectives.0.score.min")).toEqual(
+          "0",
+        );
+        expect(scorm2004API.getCMIValue("cmi.objectives.0.score.max")).toEqual(
+          "100",
+        );
+        expect(
+          scorm2004API.getCMIValue("cmi.objectives.0.success_status"),
+        ).toEqual("passed");
+        expect(
+          scorm2004API.getCMIValue("cmi.objectives.0.completion_status"),
+        ).toEqual("completed");
+        expect(
+          scorm2004API.getCMIValue("cmi.objectives.0.progress_measure"),
+        ).toEqual("1");
+
+        expect(globalObjective?.id).toEqual("Objective 1");
+        expect(globalObjective?.score.raw).toEqual("100");
+        expect(globalObjective?.score.min).toEqual("0");
+        expect(globalObjective?.score.max).toEqual("100");
+        expect(globalObjective?.success_status).toEqual("passed");
+        expect(globalObjective?.completion_status).toEqual("completed");
+        expect(globalObjective?.progress_measure).toEqual("1");
+
+        const globalObjective2 = scorm2004API.globalObjectives.find(
+          (objective) => objective.id === "Objective 2",
+        );
+        expect(globalObjective2).toBe(undefined);
+      });
+    });
+
     describe("Invalid Sets - Should Fail After Initialization", () => {
       h.checkSetCMIValue({
         api: apiInitialized(),
@@ -298,9 +367,20 @@ describe("SCORM 2004 API Tests", () => {
         fieldName: "cmi.comments_from_lms.0.comment",
         expectedError: scorm2004_errors.STORE_BEFORE_INIT,
       });
+      h.checkLMSSetValue({
+        api: api(),
+        fieldName: "adl.data.0.store",
+        expectedError: scorm2004_errors.STORE_BEFORE_INIT,
+      });
     });
 
     describe("Initialized - Should Succeed", () => {
+      h.checkLMSSetValue({
+        api: apiInitialized(),
+        fieldName: "adl.data.0.store",
+        valueToTest: "comment",
+        errorThrown: false,
+      });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.objectives.0.id",

@@ -7,13 +7,6 @@ import { scorm12_errors } from "../../constants/error_codes";
  * Class representing the AICC cmi.student_demographics object
  */
 export class CMIStudentDemographics extends BaseCMI {
-  /**
-   * Constructor for AICC StudentDemographics object
-   */
-  constructor() {
-    super();
-  }
-
   private __children = aicc_constants.student_demographics_children;
   private _city = "";
   private _class = "";
@@ -28,6 +21,20 @@ export class CMIStudentDemographics extends BaseCMI {
   private _street_address = "";
   private _telephone = "";
   private _years_experience = "";
+
+  /**
+   * Constructor for AICC StudentDemographics object
+   */
+  constructor() {
+    super();
+  }
+
+  /**
+   * Called when the API has been reset
+   */
+  reset(): void {
+    this._initialized = false;
+  }
 
   /**
    * Getter for _children

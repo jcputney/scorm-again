@@ -30,6 +30,15 @@ export class AICCCMIStudentData extends CMIStudentData {
     this.attempt_records?.initialize();
   }
 
+  /**
+   * Called when the API has been reset
+   */
+  override reset(): void {
+    this._initialized = false;
+    this.tries?.reset(true);
+    this.attempt_records?.reset(true);
+  }
+
   private _tries_during_lesson = "";
 
   /**

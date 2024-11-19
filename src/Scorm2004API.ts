@@ -18,7 +18,7 @@ import {
 } from "./cmi/scorm2004/interactions";
 import { CMICommentsObject } from "./cmi/scorm2004/comments";
 import { CMIObjectivesObject } from "./cmi/scorm2004/objectives";
-import { ADL } from "./cmi/scorm2004/adl";
+import { ADL, ADLDataObject } from "./cmi/scorm2004/adl";
 import {
   CommitObject,
   RefObject,
@@ -34,6 +34,7 @@ import { scorm2004_regex } from "./constants/regex";
  */
 class Scorm2004Impl extends BaseAPI {
   private _version: string = "1.0";
+  private _globalObjectives: CMIObjectivesObject[] = [];
 
   /**
    * Constructor for SCORM 2004 API
@@ -90,6 +91,13 @@ class Scorm2004Impl extends BaseAPI {
    */
   get version(): string {
     return this._version;
+  }
+
+  /**
+   * Getter for _globalObjectives
+   */
+  get globalObjectives(): CMIObjectivesObject[] {
+    return this._globalObjectives;
   }
 
   /**
@@ -178,6 +186,7 @@ class Scorm2004Impl extends BaseAPI {
    * @return {string}
    */
   lmsSetValue(CMIElement: string, value: any): string {
+    // Proceed with regular setting for non-objective elements or fallback behavior
     return this.setValue("SetValue", "Commit", true, CMIElement, value);
   }
 
@@ -234,6 +243,57 @@ class Scorm2004Impl extends BaseAPI {
    * @return {string}
    */
   override setCMIValue(CMIElement: string, value: any): string {
+    // Check if we're updating a global or local objective
+    if (stringMatches(CMIElement, "cmi\\.objectives\\.\\d+")) {
+      const parts = CMIElement.split(".");
+      const index = Number(parts[2]);
+      const element_base = `cmi.objectives.${index}`;
+
+      let objective_id;
+      const setting_id = stringMatches(
+        CMIElement,
+        "cmi\\.objectives\\.\\d+\\.id",
+      );
+
+      if (setting_id) {
+        // If we're setting the objective ID, capture it directly
+        objective_id = value;
+      } else {
+        // Find existing objective ID if available
+        const objective = this.cmi.objectives.findObjectiveByIndex(index);
+        objective_id = objective ? objective.id : undefined;
+      }
+
+      // Check if the objective ID matches a global objective
+      const is_global =
+        objective_id && this.settings.globalObjectiveIds.includes(objective_id);
+
+      if (is_global) {
+        // Locate or create an entry in _globalObjectives for the global objective
+        let global_index = this._globalObjectives.findIndex(
+          (obj) => obj.id === objective_id,
+        );
+
+        if (global_index === -1) {
+          global_index = this._globalObjectives.length;
+          const newGlobalObjective = new CMIObjectivesObject();
+          newGlobalObjective.id = objective_id;
+          this._globalObjectives.push(newGlobalObjective);
+        }
+
+        // Update the global objective
+        const global_element = CMIElement.replace(
+          element_base,
+          `_globalObjectives.${global_index}`,
+        );
+        this._commonSetCMIValue(
+          "SetGlobalObjectiveValue",
+          true,
+          global_element,
+          value,
+        );
+      }
+    }
     return this._commonSetCMIValue("SetValue", true, CMIElement, value);
   }
 
@@ -278,6 +338,10 @@ class Scorm2004Impl extends BaseAPI {
       return new CMICommentsObject();
     } else if (stringMatches(CMIElement, "cmi\\.comments_from_lms\\.\\d+")) {
       return new CMICommentsObject(true);
+    }
+
+    if (stringMatches(CMIElement, "adl\\.data\\.\\d+")) {
+      return new ADLDataObject();
     }
 
     return null;

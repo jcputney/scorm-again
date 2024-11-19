@@ -25,6 +25,8 @@ export class CMIAttemptRecords extends CMIArray {
  * Class for AICC Attempt Records
  */
 export class CMIAttemptRecordsObject extends BaseCMI {
+  private _lesson_status = "";
+
   /**
    * Constructor for AICC Attempt Records object
    */
@@ -47,10 +49,18 @@ export class CMIAttemptRecordsObject extends BaseCMI {
    */
   override initialize() {
     super.initialize();
+
+    this._lesson_status = "";
     this.score?.initialize();
   }
 
-  private _lesson_status = "";
+  /**
+   * Called when the API has been reset
+   */
+  reset(): void {
+    this._initialized = false;
+    this.score?.reset();
+  }
 
   /**
    * Getter for _lesson_status

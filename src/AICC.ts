@@ -25,6 +25,9 @@ class AICCImpl extends Scorm12Impl {
     this.nav = new NAV();
   }
 
+  override cmi: CMI;
+  override nav: NAV;
+
   /**
    * Gets or builds a new child element to add to the array.
    *

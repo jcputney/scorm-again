@@ -25,6 +25,13 @@ export class CMIStudentData extends BaseCMI {
   }
 
   /**
+   * Called when the API has been reset
+   */
+  reset(): void {
+    this._initialized = false;
+  }
+
+  /**
    * Getter for __children
    * @return {string}
    * @private

@@ -16,9 +16,9 @@ export class CMIScore extends BaseCMI {
   private readonly __invalid_range_code: number;
   private readonly __decimal_regex: string;
   private readonly __error_class: typeof BaseScormValidationError;
-  private _raw = "";
-  private _min = "";
-  private _max: string;
+  protected _raw = "";
+  protected _min = "";
+  protected _max: string;
 
   /**
    * Constructor for *.score
@@ -58,6 +58,13 @@ export class CMIScore extends BaseCMI {
       params.invalidRangeCode || scorm12_errors.VALUE_OUT_OF_RANGE;
     this.__decimal_regex = params.decimalRegex || scorm12_regex.CMIDecimal;
     this.__error_class = params.errorClass;
+  }
+
+  /**
+   * Called when the API has been reset
+   */
+  reset(): void {
+    this._initialized = false;
   }
 
   /**

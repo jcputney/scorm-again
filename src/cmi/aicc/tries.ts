@@ -25,6 +25,9 @@ export class CMITries extends CMIArray {
  * Class for AICC Tries
  */
 export class CMITriesObject extends BaseCMI {
+  private _status = "";
+  private _time = "";
+
   /**
    * Constructor for AICC Tries object
    */
@@ -50,8 +53,15 @@ export class CMITriesObject extends BaseCMI {
     this.score?.initialize();
   }
 
-  private _status = "";
-  private _time = "";
+  /**
+   * Called when the API has been reset
+   */
+  reset(): void {
+    this._initialized = false;
+    this._status = "";
+    this._time = "";
+    this.score?.reset();
+  }
 
   /**
    * Getter for _status

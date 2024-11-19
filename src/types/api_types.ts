@@ -23,10 +23,11 @@ export type Settings = {
   responseHandler?: (response: Response) => Promise<ResultObject>;
   requestHandler?: (commitObject: any) => any;
   onLogMessage?: (messageLevel: LogLevel, logMessage: string) => void;
-  scoItemIds?: string[];
-  scoItemIdValidator?: false | ((scoItemId: string) => boolean);
   mastery_override?: boolean;
   renderCommonCommitFields?: boolean;
+  scoItemIds?: string[];
+  scoItemIdValidator?: false | ((scoItemId: string) => boolean);
+  globalObjectiveIds?: string[];
 };
 
 export type RefObject = {

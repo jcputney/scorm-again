@@ -3,7 +3,7 @@
  */
 export abstract class BaseCMI {
   jsonString? = false;
-  private _initialized = false;
+  protected _initialized = false;
   private _start_time: number | undefined;
 
   /**
@@ -36,6 +36,8 @@ export abstract class BaseCMI {
   setStartTime(): void {
     this._start_time = new Date().getTime();
   }
+
+  abstract reset(): void;
 }
 
 /**

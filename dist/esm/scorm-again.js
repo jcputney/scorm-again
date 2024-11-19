@@ -81,6 +81,11 @@ var CMIEvaluation = (function (_super) {
         _super.prototype.initialize.call(this);
         (_a = this.comments) === null || _a === void 0 ? void 0 : _a.initialize();
     };
+    CMIEvaluation.prototype.reset = function () {
+        var _a;
+        this._initialized = false;
+        (_a = this.comments) === null || _a === void 0 ? void 0 : _a.reset();
+    };
     CMIEvaluation.prototype.toJSON = function () {
         this.jsonString = true;
         var result = {
@@ -112,6 +117,12 @@ var CMIEvaluationCommentsObject = (function (_super) {
         _this._time = "";
         return _this;
     }
+    CMIEvaluationCommentsObject.prototype.reset = function () {
+        this._initialized = false;
+        this._content = "";
+        this._location = "";
+        this._time = "";
+    };
     Object.defineProperty(CMIEvaluationCommentsObject.prototype, "content", {
         get: function () {
             return this._content;
@@ -301,6 +312,9 @@ var CMIStudentDemographics = (function (_super) {
         _this._years_experience = "";
         return _this;
     }
+    CMIStudentDemographics.prototype.reset = function () {
+        this._initialized = false;
+    };
     Object.defineProperty(CMIStudentDemographics.prototype, "_children", {
         get: function () {
             return this.__children;
@@ -570,6 +584,13 @@ var CMITriesObject = (function (_super) {
         _super.prototype.initialize.call(this);
         (_a = this.score) === null || _a === void 0 ? void 0 : _a.initialize();
     };
+    CMITriesObject.prototype.reset = function () {
+        var _a;
+        this._initialized = false;
+        this._status = "";
+        this._time = "";
+        (_a = this.score) === null || _a === void 0 ? void 0 : _a.reset();
+    };
     Object.defineProperty(CMITriesObject.prototype, "status", {
         get: function () {
             return this._status;
@@ -648,7 +669,13 @@ var CMIAttemptRecordsObject = (function (_super) {
     CMIAttemptRecordsObject.prototype.initialize = function () {
         var _a;
         _super.prototype.initialize.call(this);
+        this._lesson_status = "";
         (_a = this.score) === null || _a === void 0 ? void 0 : _a.initialize();
+    };
+    CMIAttemptRecordsObject.prototype.reset = function () {
+        var _a;
+        this._initialized = false;
+        (_a = this.score) === null || _a === void 0 ? void 0 : _a.reset();
     };
     Object.defineProperty(CMIAttemptRecordsObject.prototype, "lesson_status", {
         get: function () {
@@ -697,6 +724,12 @@ var AICCCMIStudentData = (function (_super) {
         _super.prototype.initialize.call(this);
         (_a = this.tries) === null || _a === void 0 ? void 0 : _a.initialize();
         (_b = this.attempt_records) === null || _b === void 0 ? void 0 : _b.initialize();
+    };
+    AICCCMIStudentData.prototype.reset = function () {
+        var _a, _b;
+        this._initialized = false;
+        (_a = this.tries) === null || _a === void 0 ? void 0 : _a.reset(true);
+        (_b = this.attempt_records) === null || _b === void 0 ? void 0 : _b.reset(true);
     };
     Object.defineProperty(AICCCMIStudentData.prototype, "tries_during_lesson", {
         get: function () {
@@ -758,6 +791,15 @@ var CMIPathsObject = (function (_super) {
         _this._time_in_element = "";
         return _this;
     }
+    CMIPathsObject.prototype.reset = function () {
+        this._initialized = false;
+        this._location_id = "";
+        this._date = "";
+        this._time = "";
+        this._status = "";
+        this._why_left = "";
+        this._time_in_element = "";
+    };
     Object.defineProperty(CMIPathsObject.prototype, "location_id", {
         get: function () {
             return this._location_id;
@@ -1083,6 +1125,7 @@ var DefaultSettings = {
     },
     scoItemIds: [],
     scoItemIdValidator: false,
+    globalObjectiveIds: [],
 };
 
 ;// ./src/helpers/scheduled_commit.ts
@@ -1145,10 +1188,13 @@ var BaseAPI = (function () {
         }
     }
     BaseAPI.prototype.commonReset = function (settings) {
+        this.apiLog("reset", "Called", enums.LogLevelEnum.INFO);
         this.settings = (0,tslib_es6.__assign)((0,tslib_es6.__assign)({}, this.settings), settings);
+        this.clearScheduledCommit();
         this.currentState = api_constants.global_constants.STATE_NOT_INITIALIZED;
         this.lastErrorCode = "0";
         this.listenerArray = [];
+        this.startingData = undefined;
     };
     BaseAPI.prototype.initialize = function (callbackName, initializeMessage, terminationMessage) {
         var returnValue = api_constants.global_constants.SCORM_FALSE;
@@ -1915,9 +1961,10 @@ var Scorm12Impl = (function (_super) {
         return _this;
     }
     Scorm12Impl.prototype.reset = function (settings) {
+        var _a, _b;
         this.commonReset(settings);
-        this.cmi = new _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_0__.CMI();
-        this.nav = new _cmi_scorm12_nav__WEBPACK_IMPORTED_MODULE_6__.NAV();
+        (_a = this.cmi) === null || _a === void 0 ? void 0 : _a.reset();
+        (_b = this.nav) === null || _b === void 0 ? void 0 : _b.reset();
     };
     Scorm12Impl.prototype.lmsInitialize = function () {
         this.cmi.initialize();
@@ -2246,6 +2293,9 @@ var CMILearnerPreference = (function (_super) {
         _this._audio_captioning = "0";
         return _this;
     }
+    CMILearnerPreference.prototype.reset = function () {
+        this._initialized = false;
+    };
     Object.defineProperty(CMILearnerPreference.prototype, "_children", {
         get: function () {
             return this.__children;
@@ -2526,6 +2576,27 @@ var CMIInteractionsObject = (function (_super) {
         (_a = this.objectives) === null || _a === void 0 ? void 0 : _a.initialize();
         (_b = this.correct_responses) === null || _b === void 0 ? void 0 : _b.initialize();
     };
+    CMIInteractionsObject.prototype.reset = function () {
+        this._initialized = false;
+        this._id = "";
+        this._type = "";
+        this._timestamp = "";
+        this._weighting = "";
+        this._learner_response = "";
+        this._result = "";
+        this._latency = "";
+        this._description = "";
+        this.objectives = new array.CMIArray({
+            errorCode: error_codes.scorm2004_errors.READ_ONLY_ELEMENT,
+            errorClass: Scorm2004ValidationError,
+            children: api_constants.scorm2004_constants.objectives_children,
+        });
+        this.correct_responses = new array.CMIArray({
+            errorCode: error_codes.scorm2004_errors.READ_ONLY_ELEMENT,
+            errorClass: Scorm2004ValidationError,
+            children: api_constants.scorm2004_constants.correct_responses_children,
+        });
+    };
     Object.defineProperty(CMIInteractionsObject.prototype, "id", {
         get: function () {
             return this._id;
@@ -2729,6 +2800,10 @@ var CMIInteractionsObjectivesObject = (function (_super) {
         _this._id = "";
         return _this;
     }
+    CMIInteractionsObjectivesObject.prototype.reset = function () {
+        this._initialized = false;
+        this._id = "";
+    };
     Object.defineProperty(CMIInteractionsObjectivesObject.prototype, "id", {
         get: function () {
             return this._id;
@@ -2759,6 +2834,10 @@ var CMIInteractionsCorrectResponsesObject = (function (_super) {
         _this._pattern = "";
         return _this;
     }
+    CMIInteractionsCorrectResponsesObject.prototype.reset = function () {
+        this._initialized = false;
+        this._pattern = "";
+    };
     Object.defineProperty(CMIInteractionsCorrectResponsesObject.prototype, "pattern", {
         get: function () {
             return this._pattern;
@@ -2808,6 +2887,13 @@ var Scorm2004CMIScore = (function (_super) {
         _this._scaled = "";
         return _this;
     }
+    Scorm2004CMIScore.prototype.reset = function () {
+        this._initialized = false;
+        this._scaled = "";
+        this._raw = "";
+        this._min = "";
+        this._max = "";
+    };
     Object.defineProperty(Scorm2004CMIScore.prototype, "scaled", {
         get: function () {
             return this._scaled;
@@ -2883,6 +2969,9 @@ var CMICommentsObject = (function (_super) {
         _this._readOnlyAfterInit = readOnlyAfterInit;
         return _this;
     }
+    CMICommentsObject.prototype.reset = function () {
+        this._initialized = false;
+    };
     Object.defineProperty(CMICommentsObject.prototype, "comment", {
         get: function () {
             return this._comment;
@@ -2967,6 +3056,15 @@ var CMIObjectives = (function (_super) {
             errorClass: Scorm2004ValidationError,
         }) || this;
     }
+    CMIObjectives.prototype.findObjectiveById = function (id) {
+        return this.childArray.find(function (objective) { return objective.id === id; });
+    };
+    CMIObjectives.prototype.findObjectiveByIndex = function (index) {
+        return this.childArray[index];
+    };
+    CMIObjectives.prototype.setObjectiveByIndex = function (index, objective) {
+        this.childArray[index] = objective;
+    };
     return CMIObjectives;
 }(array.CMIArray));
 
@@ -2982,6 +3080,9 @@ var CMIObjectivesObject = (function (_super) {
         _this.score = new Scorm2004CMIScore();
         return _this;
     }
+    CMIObjectivesObject.prototype.reset = function () {
+        this._initialized = false;
+    };
     CMIObjectivesObject.prototype.initialize = function () {
         var _a;
         _super.prototype.initialize.call(this);
@@ -3145,13 +3246,19 @@ var CMI = (function (_super) {
         (_f = this.objectives) === null || _f === void 0 ? void 0 : _f.initialize();
     };
     CMI.prototype.reset = function () {
-        this._completion_status = "unknown";
+        var _a, _b, _c, _d, _e, _f;
+        this._initialized = false;
+        this._completion_status = "incomplete";
         this._exit = "";
         this._session_time = "PT0H0M0S";
         this._progress_measure = "";
         this._location = "";
-        this.interactions = new CMIInteractions();
-        this.score = new Scorm2004CMIScore();
+        (_a = this.objectives) === null || _a === void 0 ? void 0 : _a.reset(false);
+        (_b = this.interactions) === null || _b === void 0 ? void 0 : _b.reset(true);
+        (_c = this.score) === null || _c === void 0 ? void 0 : _c.reset();
+        (_d = this.comments_from_learner) === null || _d === void 0 ? void 0 : _d.reset();
+        (_e = this.comments_from_lms) === null || _e === void 0 ? void 0 : _e.reset();
+        (_f = this.learner_preference) === null || _f === void 0 ? void 0 : _f.reset();
     };
     Object.defineProperty(CMI.prototype, "_version", {
         get: function () {
@@ -3895,7 +4002,9 @@ var ADL = (function (_super) {
         (_a = this.nav) === null || _a === void 0 ? void 0 : _a.initialize();
     };
     ADL.prototype.reset = function () {
-        this.nav = new ADLNav();
+        var _a;
+        this._initialized = false;
+        (_a = this.nav) === null || _a === void 0 ? void 0 : _a.reset();
     };
     ADL.prototype.toJSON = function () {
         this.jsonString = true;
@@ -3921,6 +4030,12 @@ var ADLNav = (function (_super) {
         var _a;
         _super.prototype.initialize.call(this);
         (_a = this.request_valid) === null || _a === void 0 ? void 0 : _a.initialize();
+    };
+    ADLNav.prototype.reset = function () {
+        var _a;
+        this._initialized = false;
+        this._request = "_none_";
+        (_a = this.request_valid) === null || _a === void 0 ? void 0 : _a.reset();
     };
     Object.defineProperty(ADLNav.prototype, "request", {
         get: function () {
@@ -3965,6 +4080,9 @@ var ADLDataObject = (function (_super) {
         _this._store = "";
         return _this;
     }
+    ADLDataObject.prototype.reset = function () {
+        this._initialized = false;
+    };
     Object.defineProperty(ADLDataObject.prototype, "id", {
         get: function () {
             return this._id;
@@ -4011,6 +4129,11 @@ var ADLNavRequestValid = (function (_super) {
         _this._jump = {};
         return _this;
     }
+    ADLNavRequestValid.prototype.reset = function () {
+        this._initialized = false;
+        this._continue = "unknown";
+        this._previous = "unknown";
+    };
     Object.defineProperty(ADLNavRequestValid.prototype, "continue", {
         get: function () {
             return this._continue;
@@ -4130,6 +4253,7 @@ var Scorm2004Impl = (function (_super) {
         }
         _this = _super.call(this, error_codes.scorm2004_errors, settings) || this;
         _this._version = "1.0";
+        _this._globalObjectives = [];
         _this.cmi = new CMI();
         _this.adl = new ADL();
         _this.Initialize = _this.lmsInitialize;
@@ -4151,6 +4275,13 @@ var Scorm2004Impl = (function (_super) {
     Object.defineProperty(Scorm2004Impl.prototype, "version", {
         get: function () {
             return this._version;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Scorm2004Impl.prototype, "globalObjectives", {
+        get: function () {
+            return this._globalObjectives;
         },
         enumerable: false,
         configurable: true
@@ -4269,6 +4400,32 @@ var Scorm2004Impl = (function (_super) {
         return this.getDiagnostic("GetDiagnostic", CMIErrorCode);
     };
     Scorm2004Impl.prototype.setCMIValue = function (CMIElement, value) {
+        if ((0,utilities.stringMatches)(CMIElement, "cmi\\.objectives\\.\\d+")) {
+            var parts = CMIElement.split(".");
+            var index = Number(parts[2]);
+            var element_base = "cmi.objectives.".concat(index);
+            var objective_id_1;
+            var setting_id = (0,utilities.stringMatches)(CMIElement, "cmi\\.objectives\\.\\d+\\.id");
+            if (setting_id) {
+                objective_id_1 = value;
+            }
+            else {
+                var objective = this.cmi.objectives.findObjectiveByIndex(index);
+                objective_id_1 = objective ? objective.id : undefined;
+            }
+            var is_global = objective_id_1 && this.settings.globalObjectiveIds.includes(objective_id_1);
+            if (is_global) {
+                var global_index = this._globalObjectives.findIndex(function (obj) { return obj.id === objective_id_1; });
+                if (global_index === -1) {
+                    global_index = this._globalObjectives.length;
+                    var newGlobalObjective = new CMIObjectivesObject();
+                    newGlobalObjective.id = objective_id_1;
+                    this._globalObjectives.push(newGlobalObjective);
+                }
+                var global_element = CMIElement.replace(element_base, "_globalObjectives.".concat(global_index));
+                this._commonSetCMIValue("SetGlobalObjectiveValue", true, global_element, value);
+            }
+        }
         return this._commonSetCMIValue("SetValue", true, CMIElement, value);
     };
     Scorm2004Impl.prototype.getChildElement = function (CMIElement, value, foundFirstIndex) {
@@ -4291,6 +4448,9 @@ var Scorm2004Impl = (function (_super) {
         }
         else if ((0,utilities.stringMatches)(CMIElement, "cmi\\.comments_from_lms\\.\\d+")) {
             return new CMICommentsObject(true);
+        }
+        if ((0,utilities.stringMatches)(CMIElement, "adl\\.data\\.\\d+")) {
+            return new ADLDataObject();
         }
         return null;
     };
@@ -4651,6 +4811,18 @@ var CMIArray = (function (_super) {
         _this.childArray = [];
         return _this;
     }
+    CMIArray.prototype.reset = function (wipe) {
+        if (wipe === void 0) { wipe = false; }
+        this._initialized = false;
+        if (wipe) {
+            this.childArray = [];
+        }
+        else {
+            for (var i = 0; i < this.childArray.length; i++) {
+                this.childArray[i].reset();
+            }
+        }
+    };
     Object.defineProperty(CMIArray.prototype, "_children", {
         get: function () {
             return this.__children;
@@ -4777,6 +4949,9 @@ var CMIScore = (function (_super) {
         _this.__error_class = params.errorClass;
         return _this;
     }
+    CMIScore.prototype.reset = function () {
+        this._initialized = false;
+    };
     Object.defineProperty(CMIScore.prototype, "_children", {
         get: function () {
             return this.__children;
@@ -4956,6 +5131,14 @@ var CMICore = (function (_super) {
         var _a;
         _super.prototype.initialize.call(this);
         (_a = this.score) === null || _a === void 0 ? void 0 : _a.initialize();
+    };
+    CMICore.prototype.reset = function () {
+        var _a;
+        this._initialized = false;
+        this._exit = "";
+        this._entry = "";
+        this._session_time = "00:00:00";
+        (_a = this.score) === null || _a === void 0 ? void 0 : _a.reset();
     };
     Object.defineProperty(CMICore.prototype, "_children", {
         get: function () {
@@ -5202,6 +5385,17 @@ var CMI = (function (_super) {
         _this.interactions = new interactions.CMIInteractions();
         return _this;
     }
+    CMI.prototype.reset = function () {
+        var _a, _b, _c;
+        this._initialized = false;
+        this._launch_data = "";
+        this._comments = "";
+        (_a = this.core) === null || _a === void 0 ? void 0 : _a.reset();
+        this.objectives = new objectives.CMIObjectives();
+        this.interactions = new interactions.CMIInteractions();
+        (_b = this.student_data) === null || _b === void 0 ? void 0 : _b.reset();
+        (_c = this.student_preference) === null || _c === void 0 ? void 0 : _c.reset();
+    };
     CMI.prototype.initialize = function () {
         var _a, _b, _c, _d, _e;
         _super.prototype.initialize.call(this);
@@ -5379,6 +5573,19 @@ var CMIInteractionsObject = (function (_super) {
         (_a = this.objectives) === null || _a === void 0 ? void 0 : _a.initialize();
         (_b = this.correct_responses) === null || _b === void 0 ? void 0 : _b.initialize();
     };
+    CMIInteractionsObject.prototype.reset = function () {
+        var _a, _b;
+        this._initialized = false;
+        this._id = "";
+        this._time = "";
+        this._type = "";
+        this._weighting = "";
+        this._student_response = "";
+        this._result = "";
+        this._latency = "";
+        (_a = this.objectives) === null || _a === void 0 ? void 0 : _a.reset();
+        (_b = this.correct_responses) === null || _b === void 0 ? void 0 : _b.reset();
+    };
     Object.defineProperty(CMIInteractionsObject.prototype, "id", {
         get: function () {
             if (!this.jsonString) {
@@ -5511,6 +5718,10 @@ var CMIInteractionsObjectivesObject = (function (_super) {
         _this._id = "";
         return _this;
     }
+    CMIInteractionsObjectivesObject.prototype.reset = function () {
+        this._initialized = false;
+        this._id = "";
+    };
     Object.defineProperty(CMIInteractionsObjectivesObject.prototype, "id", {
         get: function () {
             return this._id;
@@ -5541,6 +5752,10 @@ var CMIInteractionsCorrectResponsesObject = (function (_super) {
         _this._pattern = "";
         return _this;
     }
+    CMIInteractionsCorrectResponsesObject.prototype.reset = function () {
+        this._initialized = false;
+        this._pattern = "";
+    };
     Object.defineProperty(CMIInteractionsCorrectResponsesObject.prototype, "pattern", {
         get: function () {
             if (!this.jsonString) {
@@ -5593,6 +5808,10 @@ var NAV = (function (_super) {
         _this._event = "";
         return _this;
     }
+    NAV.prototype.reset = function () {
+        this._event = "";
+        this._initialized = false;
+    };
     Object.defineProperty(NAV.prototype, "event", {
         get: function () {
             return this._event;
@@ -5674,6 +5893,13 @@ var CMIObjectivesObject = (function (_super) {
         });
         return _this;
     }
+    CMIObjectivesObject.prototype.reset = function () {
+        var _a;
+        this._initialized = false;
+        this._id = "";
+        this._status = "";
+        (_a = this.score) === null || _a === void 0 ? void 0 : _a.reset();
+    };
     Object.defineProperty(CMIObjectivesObject.prototype, "id", {
         get: function () {
             return this._id;
@@ -5744,6 +5970,9 @@ var CMIStudentData = (function (_super) {
             : _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__.scorm12_constants.student_data_children;
         return _this;
     }
+    CMIStudentData.prototype.reset = function () {
+        this._initialized = false;
+    };
     Object.defineProperty(CMIStudentData.prototype, "_children", {
         get: function () {
             return this.__children;
@@ -5850,6 +6079,9 @@ var CMIStudentPreference = (function (_super) {
             : _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__.scorm12_constants.student_preference_children;
         return _this;
     }
+    CMIStudentPreference.prototype.reset = function () {
+        this._initialized = false;
+    };
     Object.defineProperty(CMIStudentPreference.prototype, "_children", {
         get: function () {
             return this.__children;

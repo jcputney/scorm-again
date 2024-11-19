@@ -75,13 +75,21 @@ export class CMI extends BaseRootCMI {
    * Called when API is moving to another SCO
    */
   reset() {
-    this._completion_status = "unknown";
+    this._initialized = false;
+
+    this._completion_status = "incomplete";
     this._exit = "";
     this._session_time = "PT0H0M0S";
     this._progress_measure = "";
     this._location = "";
-    this.interactions = new CMIInteractions();
-    this.score = new Scorm2004CMIScore();
+
+    this.objectives?.reset(false);
+    this.interactions?.reset(true);
+
+    this.score?.reset();
+    this.comments_from_learner?.reset();
+    this.comments_from_lms?.reset();
+    this.learner_preference?.reset();
   }
 
   /**

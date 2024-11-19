@@ -1,16 +1,25 @@
 import { expect } from "expect";
-import { describe } from "mocha";
+import { describe, it } from "mocha";
 import * as h from "./api_helpers";
 import { scorm12_errors } from "../src/constants/error_codes";
 import { AICCImpl } from "../src/AICC";
+import { DefaultSettings } from "../src/constants/default_settings";
+import * as sinon from "sinon";
+import { CMITries } from "../src/cmi/aicc/tries";
+import { CMIInteractions } from "../src/cmi/scorm12/interactions";
+import { RefObject, Settings } from "../src/types/api_types";
 
-const api = () => {
-  const API = new AICCImpl();
+const api = (settings?: Settings, startingData: RefObject = {}) => {
+  const API = new AICCImpl(settings);
   API.apiLogLevel = 1;
+  if (startingData) {
+    API.startingData = startingData;
+  }
   return API;
 };
-const apiInitialized = () => {
+const apiInitialized = (startingData?: RefObject) => {
   const API = api();
+  API.loadFromJSON(startingData ? startingData : {}, "");
   API.lmsInitialize();
   return API;
 };
@@ -264,6 +273,70 @@ describe("AICC API Tests", () => {
         fieldName: "cmi.paths.0.location_id",
         valueToTest: "xyz",
       });
+    });
+  });
+
+  describe("reset()", () => {
+    it("should reset all CMI values to their default state", () => {
+      const aiccAPI = api();
+      aiccAPI.cmi.core.student_id = "student_1";
+      aiccAPI.lmsInitialize();
+
+      aiccAPI.cmi.core.session_time = "01:00:00";
+      aiccAPI.setCMIValue("cmi.student_data.tries.0.score.max", "99");
+
+      aiccAPI.reset();
+      expect(aiccAPI.cmi.interactions).toEqual(new CMIInteractions());
+      expect(aiccAPI.cmi.core.student_id).toEqual("student_1");
+      expect(aiccAPI.getCMIValue("cmi.student_data.tries")).toEqual(
+        new CMITries(),
+      );
+    });
+
+    it("should keep original settings", () => {
+      const aiccAPI = api({
+        dataCommitFormat: "flattened",
+        autocommit: true,
+      });
+
+      aiccAPI.reset();
+
+      expect(aiccAPI.settings.sendFullCommit).toEqual(
+        DefaultSettings.sendFullCommit,
+      );
+      expect(aiccAPI.settings.dataCommitFormat).toEqual("flattened");
+      expect(aiccAPI.settings.autocommit).toEqual(true);
+    });
+
+    it("should be able to override original settings", () => {
+      const aiccAPI = api({
+        ...DefaultSettings,
+        dataCommitFormat: "flattened",
+        autocommit: true,
+      });
+
+      aiccAPI.reset({
+        alwaysSendTotalTime: !DefaultSettings.alwaysSendTotalTime,
+      });
+
+      expect(aiccAPI.settings.sendFullCommit).toEqual(
+        DefaultSettings.sendFullCommit,
+      );
+      expect(aiccAPI.settings.dataCommitFormat).toEqual("flattened");
+      expect(aiccAPI.settings.autocommit).toEqual(true);
+      expect(aiccAPI.settings.alwaysSendTotalTime).toEqual(
+        !DefaultSettings.alwaysSendTotalTime,
+      );
+    });
+
+    it("should call commonReset from the superclass", () => {
+      const aiccAPI = api();
+      const commonResetSpy = sinon.spy(aiccAPI, "commonReset");
+
+      aiccAPI.reset();
+
+      expect(commonResetSpy.calledOnce).toBe(true);
+      commonResetSpy.restore();
     });
   });
 

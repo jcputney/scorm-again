@@ -9,7 +9,7 @@ export class CMIArray extends BaseCMI {
   private readonly _errorCode: number;
   private readonly _errorClass: typeof BaseScormValidationError;
   private readonly __children: string;
-  childArray: any[];
+  public childArray: any[];
 
   /**
    * Constructor cmi *.n arrays
@@ -27,6 +27,20 @@ export class CMIArray extends BaseCMI {
     this.childArray = [];
   }
 
+  /**
+   * Called when the API has been reset
+   */
+  reset(wipe: boolean = false): void {
+    this._initialized = false;
+    if (wipe) {
+      this.childArray = [];
+    } else {
+      // Reset all children
+      for (let i = 0; i < this.childArray.length; i++) {
+        this.childArray[i].reset();
+      }
+    }
+  }
   /**
    * Getter for _children
    * @return {string}

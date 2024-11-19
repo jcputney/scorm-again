@@ -22,6 +22,13 @@ export class CMIPaths extends CMIArray {
  * Class for AICC Paths
  */
 export class CMIPathsObject extends BaseCMI {
+  private _location_id = "";
+  private _date = "";
+  private _time = "";
+  private _status = "";
+  private _why_left = "";
+  private _time_in_element = "";
+
   /**
    * Constructor for AICC Paths objects
    */
@@ -29,12 +36,19 @@ export class CMIPathsObject extends BaseCMI {
     super();
   }
 
-  private _location_id = "";
-  private _date = "";
-  private _time = "";
-  private _status = "";
-  private _why_left = "";
-  private _time_in_element = "";
+  /**
+   * Called when the API has been reset
+   */
+  reset(): void {
+    this._initialized = false;
+
+    this._location_id = "";
+    this._date = "";
+    this._time = "";
+    this._status = "";
+    this._why_left = "";
+    this._time_in_element = "";
+  }
 
   /**
    * Getter for _location_id

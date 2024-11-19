@@ -74,8 +74,8 @@ class Scorm12Impl extends BaseAPI {
   reset(settings?: Settings) {
     this.commonReset(settings);
 
-    this.cmi = new CMI();
-    this.nav = new NAV();
+    this.cmi?.reset();
+    this.nav?.reset();
   }
 
   /**

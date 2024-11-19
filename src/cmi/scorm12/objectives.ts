@@ -50,6 +50,16 @@ export class CMIObjectivesObject extends BaseCMI {
   private _status = "";
 
   /**
+   * Called when the API has been reset
+   */
+  reset(): void {
+    this._initialized = false;
+    this._id = "";
+    this._status = "";
+    this.score?.reset();
+  }
+
+  /**
    * Getter for _id
    * @return {string}
    */

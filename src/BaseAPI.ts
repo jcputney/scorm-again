@@ -69,11 +69,15 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @protected
    */
   commonReset(settings?: Settings): void {
+    this.apiLog("reset", "Called", LogLevelEnum.INFO);
+
     this.settings = { ...this.settings, ...settings };
 
+    this.clearScheduledCommit();
     this.currentState = global_constants.STATE_NOT_INITIALIZED;
     this.lastErrorCode = "0";
     this.listenerArray = [];
+    this.startingData = undefined;
   }
 
   /**

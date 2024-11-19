@@ -23,6 +23,13 @@ export class CMILearnerPreference extends BaseCMI {
   }
 
   /**
+   * Called when the API has been reset
+   */
+  override reset() {
+    this._initialized = false;
+  }
+
+  /**
    * Getter for __children
    * @return {string}
    * @private

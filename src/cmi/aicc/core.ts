@@ -51,6 +51,24 @@ export class CMICore extends BaseCMI {
   private _suspend_data = "";
 
   /**
+   * Called when the API has been reset
+   */
+  reset(): void {
+    this._initialized = false;
+
+    this._exit = "";
+    this._entry = "";
+
+    /**
+     * Resetting ensures we accurately track the time spent on each individual SCO session independently. Each new
+     * session should start from zero, so we can reset cmi.core.session_time at the beginning of each session.
+     */
+    this._session_time = "00:00:00";
+
+    this.score?.reset();
+  }
+
+  /**
    * Getter for __children
    * @return {string}
    * @private

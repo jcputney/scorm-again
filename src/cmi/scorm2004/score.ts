@@ -27,6 +27,17 @@ export class Scorm2004CMIScore extends CMIScore {
   }
 
   /**
+   * Called when the API has been reset
+   */
+  override reset(): void {
+    this._initialized = false;
+    this._scaled = "";
+    this._raw = "";
+    this._min = "";
+    this._max = "";
+  }
+
+  /**
    * Getter for _scaled
    * @return {string}
    */

@@ -67,6 +67,31 @@ export class CMIInteractionsObject extends BaseCMI {
   }
 
   /**
+   * Called when the API has been reset
+   */
+  override reset() {
+    this._initialized = false;
+    this._id = "";
+    this._type = "";
+    this._timestamp = "";
+    this._weighting = "";
+    this._learner_response = "";
+    this._result = "";
+    this._latency = "";
+    this._description = "";
+    this.objectives = new CMIArray({
+      errorCode: scorm2004_errors.READ_ONLY_ELEMENT,
+      errorClass: Scorm2004ValidationError,
+      children: scorm2004_constants.objectives_children,
+    });
+    this.correct_responses = new CMIArray({
+      errorCode: scorm2004_errors.READ_ONLY_ELEMENT,
+      errorClass: Scorm2004ValidationError,
+      children: scorm2004_constants.correct_responses_children,
+    });
+  }
+
+  /**
    * Getter for _id
    * @return {string}
    */
@@ -377,6 +402,14 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
   }
 
   /**
+   * Called when the API has been reset
+   */
+  override reset() {
+    this._initialized = false;
+    this._id = "";
+  }
+
+  /**
    * Getter for _id
    * @return {string}
    */
@@ -425,6 +458,14 @@ export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
    */
   constructor() {
     super();
+  }
+
+  /**
+   * Called when the API has been reset
+   */
+  override reset() {
+    this._initialized = false;
+    this._pattern = "";
   }
 
   /**

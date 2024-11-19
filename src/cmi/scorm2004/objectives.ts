@@ -22,6 +22,27 @@ export class CMIObjectives extends CMIArray {
       errorClass: Scorm2004ValidationError,
     });
   }
+
+  /**
+   * Find an objective by its ID
+   */
+  public findObjectiveById(id: string): CMIObjectivesObject | undefined {
+    return this.childArray.find((objective) => objective.id === id);
+  }
+
+  /**
+   * Find objective by its index
+   */
+  public findObjectiveByIndex(index: number): CMIObjectivesObject {
+    return this.childArray[index];
+  }
+
+  /**
+   * Set an objective at the given index
+   */
+  public setObjectiveByIndex(index: number, objective: CMIObjectivesObject) {
+    this.childArray[index] = objective;
+  }
 }
 
 /**
@@ -40,6 +61,10 @@ export class CMIObjectivesObject extends BaseCMI {
   constructor() {
     super();
     this.score = new Scorm2004CMIScore();
+  }
+
+  override reset() {
+    this._initialized = false;
   }
 
   public score: Scorm2004CMIScore;

@@ -130,6 +130,7 @@ var DefaultSettings = {
     },
     scoItemIds: [],
     scoItemIdValidator: false,
+    globalObjectiveIds: [],
 };
 
 ;// ./src/helpers/scheduled_commit.ts
@@ -192,10 +193,13 @@ var BaseAPI = (function () {
         }
     }
     BaseAPI.prototype.commonReset = function (settings) {
+        this.apiLog("reset", "Called", enums.LogLevelEnum.INFO);
         this.settings = (0,tslib_es6.__assign)((0,tslib_es6.__assign)({}, this.settings), settings);
+        this.clearScheduledCommit();
         this.currentState = api_constants.global_constants.STATE_NOT_INITIALIZED;
         this.lastErrorCode = "0";
         this.listenerArray = [];
+        this.startingData = undefined;
     };
     BaseAPI.prototype.initialize = function (callbackName, initializeMessage, terminationMessage) {
         var returnValue = api_constants.global_constants.SCORM_FALSE;
@@ -962,9 +966,10 @@ var Scorm12Impl = (function (_super) {
         return _this;
     }
     Scorm12Impl.prototype.reset = function (settings) {
+        var _a, _b;
         this.commonReset(settings);
-        this.cmi = new _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_0__.CMI();
-        this.nav = new _cmi_scorm12_nav__WEBPACK_IMPORTED_MODULE_6__.NAV();
+        (_a = this.cmi) === null || _a === void 0 ? void 0 : _a.reset();
+        (_b = this.nav) === null || _b === void 0 ? void 0 : _b.reset();
     };
     Scorm12Impl.prototype.lmsInitialize = function () {
         this.cmi.initialize();
@@ -1238,6 +1243,18 @@ var CMIArray = (function (_super) {
         _this.childArray = [];
         return _this;
     }
+    CMIArray.prototype.reset = function (wipe) {
+        if (wipe === void 0) { wipe = false; }
+        this._initialized = false;
+        if (wipe) {
+            this.childArray = [];
+        }
+        else {
+            for (var i = 0; i < this.childArray.length; i++) {
+                this.childArray[i].reset();
+            }
+        }
+    };
     Object.defineProperty(CMIArray.prototype, "_children", {
         get: function () {
             return this.__children;
@@ -1364,6 +1381,9 @@ var CMIScore = (function (_super) {
         _this.__error_class = params.errorClass;
         return _this;
     }
+    CMIScore.prototype.reset = function () {
+        this._initialized = false;
+    };
     Object.defineProperty(CMIScore.prototype, "_children", {
         get: function () {
             return this.__children;
@@ -1543,6 +1563,14 @@ var CMICore = (function (_super) {
         var _a;
         _super.prototype.initialize.call(this);
         (_a = this.score) === null || _a === void 0 ? void 0 : _a.initialize();
+    };
+    CMICore.prototype.reset = function () {
+        var _a;
+        this._initialized = false;
+        this._exit = "";
+        this._entry = "";
+        this._session_time = "00:00:00";
+        (_a = this.score) === null || _a === void 0 ? void 0 : _a.reset();
     };
     Object.defineProperty(CMICore.prototype, "_children", {
         get: function () {
@@ -1789,6 +1817,17 @@ var CMI = (function (_super) {
         _this.interactions = new interactions.CMIInteractions();
         return _this;
     }
+    CMI.prototype.reset = function () {
+        var _a, _b, _c;
+        this._initialized = false;
+        this._launch_data = "";
+        this._comments = "";
+        (_a = this.core) === null || _a === void 0 ? void 0 : _a.reset();
+        this.objectives = new objectives.CMIObjectives();
+        this.interactions = new interactions.CMIInteractions();
+        (_b = this.student_data) === null || _b === void 0 ? void 0 : _b.reset();
+        (_c = this.student_preference) === null || _c === void 0 ? void 0 : _c.reset();
+    };
     CMI.prototype.initialize = function () {
         var _a, _b, _c, _d, _e;
         _super.prototype.initialize.call(this);
@@ -1966,6 +2005,19 @@ var CMIInteractionsObject = (function (_super) {
         (_a = this.objectives) === null || _a === void 0 ? void 0 : _a.initialize();
         (_b = this.correct_responses) === null || _b === void 0 ? void 0 : _b.initialize();
     };
+    CMIInteractionsObject.prototype.reset = function () {
+        var _a, _b;
+        this._initialized = false;
+        this._id = "";
+        this._time = "";
+        this._type = "";
+        this._weighting = "";
+        this._student_response = "";
+        this._result = "";
+        this._latency = "";
+        (_a = this.objectives) === null || _a === void 0 ? void 0 : _a.reset();
+        (_b = this.correct_responses) === null || _b === void 0 ? void 0 : _b.reset();
+    };
     Object.defineProperty(CMIInteractionsObject.prototype, "id", {
         get: function () {
             if (!this.jsonString) {
@@ -2098,6 +2150,10 @@ var CMIInteractionsObjectivesObject = (function (_super) {
         _this._id = "";
         return _this;
     }
+    CMIInteractionsObjectivesObject.prototype.reset = function () {
+        this._initialized = false;
+        this._id = "";
+    };
     Object.defineProperty(CMIInteractionsObjectivesObject.prototype, "id", {
         get: function () {
             return this._id;
@@ -2128,6 +2184,10 @@ var CMIInteractionsCorrectResponsesObject = (function (_super) {
         _this._pattern = "";
         return _this;
     }
+    CMIInteractionsCorrectResponsesObject.prototype.reset = function () {
+        this._initialized = false;
+        this._pattern = "";
+    };
     Object.defineProperty(CMIInteractionsCorrectResponsesObject.prototype, "pattern", {
         get: function () {
             if (!this.jsonString) {
@@ -2180,6 +2240,10 @@ var NAV = (function (_super) {
         _this._event = "";
         return _this;
     }
+    NAV.prototype.reset = function () {
+        this._event = "";
+        this._initialized = false;
+    };
     Object.defineProperty(NAV.prototype, "event", {
         get: function () {
             return this._event;
@@ -2261,6 +2325,13 @@ var CMIObjectivesObject = (function (_super) {
         });
         return _this;
     }
+    CMIObjectivesObject.prototype.reset = function () {
+        var _a;
+        this._initialized = false;
+        this._id = "";
+        this._status = "";
+        (_a = this.score) === null || _a === void 0 ? void 0 : _a.reset();
+    };
     Object.defineProperty(CMIObjectivesObject.prototype, "id", {
         get: function () {
             return this._id;
@@ -2331,6 +2402,9 @@ var CMIStudentData = (function (_super) {
             : _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__.scorm12_constants.student_data_children;
         return _this;
     }
+    CMIStudentData.prototype.reset = function () {
+        this._initialized = false;
+    };
     Object.defineProperty(CMIStudentData.prototype, "_children", {
         get: function () {
             return this.__children;
@@ -2437,6 +2511,9 @@ var CMIStudentPreference = (function (_super) {
             : _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__.scorm12_constants.student_preference_children;
         return _this;
     }
+    CMIStudentPreference.prototype.reset = function () {
+        this._initialized = false;
+    };
     Object.defineProperty(CMIStudentPreference.prototype, "_children", {
         get: function () {
             return this.__children;
@@ -3775,6 +3852,11 @@ var CMIEvaluation = (function (_super) {
         _super.prototype.initialize.call(this);
         (_a = this.comments) === null || _a === void 0 ? void 0 : _a.initialize();
     };
+    CMIEvaluation.prototype.reset = function () {
+        var _a;
+        this._initialized = false;
+        (_a = this.comments) === null || _a === void 0 ? void 0 : _a.reset();
+    };
     CMIEvaluation.prototype.toJSON = function () {
         this.jsonString = true;
         var result = {
@@ -3806,6 +3888,12 @@ var CMIEvaluationCommentsObject = (function (_super) {
         _this._time = "";
         return _this;
     }
+    CMIEvaluationCommentsObject.prototype.reset = function () {
+        this._initialized = false;
+        this._content = "";
+        this._location = "";
+        this._time = "";
+    };
     Object.defineProperty(CMIEvaluationCommentsObject.prototype, "content", {
         get: function () {
             return this._content;
@@ -3995,6 +4083,9 @@ var CMIStudentDemographics = (function (_super) {
         _this._years_experience = "";
         return _this;
     }
+    CMIStudentDemographics.prototype.reset = function () {
+        this._initialized = false;
+    };
     Object.defineProperty(CMIStudentDemographics.prototype, "_children", {
         get: function () {
             return this.__children;
@@ -4264,6 +4355,13 @@ var CMITriesObject = (function (_super) {
         _super.prototype.initialize.call(this);
         (_a = this.score) === null || _a === void 0 ? void 0 : _a.initialize();
     };
+    CMITriesObject.prototype.reset = function () {
+        var _a;
+        this._initialized = false;
+        this._status = "";
+        this._time = "";
+        (_a = this.score) === null || _a === void 0 ? void 0 : _a.reset();
+    };
     Object.defineProperty(CMITriesObject.prototype, "status", {
         get: function () {
             return this._status;
@@ -4342,7 +4440,13 @@ var CMIAttemptRecordsObject = (function (_super) {
     CMIAttemptRecordsObject.prototype.initialize = function () {
         var _a;
         _super.prototype.initialize.call(this);
+        this._lesson_status = "";
         (_a = this.score) === null || _a === void 0 ? void 0 : _a.initialize();
+    };
+    CMIAttemptRecordsObject.prototype.reset = function () {
+        var _a;
+        this._initialized = false;
+        (_a = this.score) === null || _a === void 0 ? void 0 : _a.reset();
     };
     Object.defineProperty(CMIAttemptRecordsObject.prototype, "lesson_status", {
         get: function () {
@@ -4391,6 +4495,12 @@ var AICCCMIStudentData = (function (_super) {
         _super.prototype.initialize.call(this);
         (_a = this.tries) === null || _a === void 0 ? void 0 : _a.initialize();
         (_b = this.attempt_records) === null || _b === void 0 ? void 0 : _b.initialize();
+    };
+    AICCCMIStudentData.prototype.reset = function () {
+        var _a, _b;
+        this._initialized = false;
+        (_a = this.tries) === null || _a === void 0 ? void 0 : _a.reset(true);
+        (_b = this.attempt_records) === null || _b === void 0 ? void 0 : _b.reset(true);
     };
     Object.defineProperty(AICCCMIStudentData.prototype, "tries_during_lesson", {
         get: function () {
@@ -4452,6 +4562,15 @@ var CMIPathsObject = (function (_super) {
         _this._time_in_element = "";
         return _this;
     }
+    CMIPathsObject.prototype.reset = function () {
+        this._initialized = false;
+        this._location_id = "";
+        this._date = "";
+        this._time = "";
+        this._status = "";
+        this._why_left = "";
+        this._time_in_element = "";
+    };
     Object.defineProperty(CMIPathsObject.prototype, "location_id", {
         get: function () {
             return this._location_id;
