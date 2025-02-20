@@ -47,7 +47,7 @@
     "eslint-webpack-plugin": "^4.2.0",
     "expect": "^29.7.0",
     "fetch-pretender": "https://github.com/jcputney/fetch-pretender#master",
-    "globals": "^15.13.0",
+    "globals": "^16.0.0",
     "jsdoc": "^4.0.4",
     "jsdoc-babel": "^0.5.0",
     "minimist": "^1.2.8",
