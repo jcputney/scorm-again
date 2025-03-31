@@ -67,6 +67,7 @@
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha --import=tsx --bdd --recursive --reporter list",
+    "test:min": "./node_modules/.bin/mocha --import=tsx --bdd --recursive --reporter min --timeout 10000",
     "test:coverage": "./node_modules/.bin/c8 ./node_modules/.bin/mocha --import=tsx --recursive --timeout=10000 --exit --reporter json --reporter-option output=test-results.json",
     "compile": "./node_modules/.bin/webpack --bail --config webpack.config.js --mode production",
     "fix": "./node_modules/.bin/eslint ./src --fix",

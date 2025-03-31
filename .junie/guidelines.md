@@ -190,6 +190,7 @@ function processHttpRequest(url: string, params: any, immediate: boolean): Promi
 - Test edge cases and error conditions.
 - Keep tests independent of each other.
 - Use test coverage tools to identify untested code.
+- All codes changes should be verified by running `yarn run test:min`
 
 ```typescript
 describe('BaseAPI', () => {

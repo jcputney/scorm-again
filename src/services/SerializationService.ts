@@ -1,4 +1,4 @@
-import { RefObject, CommitObject } from "../types/api_types";
+import { RefObject, CommitObject, LogLevel } from "../types/api_types";
 import { unflatten } from "../utilities";
 import { global_constants } from "../constants/api_constants";
 import { LogLevelEnum } from "../constants/enums";
@@ -20,11 +20,11 @@ export class SerializationService {
     CMIElement: string = "",
     loadFromJSON: (json: RefObject, CMIElement: string) => void,
     setCMIValue: (CMIElement: string, value: any) => void,
-    isNotInitialized: () => boolean
+    isNotInitialized: () => boolean,
   ): void {
     if (!isNotInitialized()) {
       console.error(
-        "loadFromFlattenedJSON can only be called before the call to lmsInitialize."
+        "loadFromFlattenedJSON can only be called before the call to lmsInitialize.",
       );
       return;
     }
@@ -40,7 +40,7 @@ export class SerializationService {
     function testPattern(
       a: string,
       c: string,
-      a_pattern: RegExp
+      a_pattern: RegExp,
     ): number | null {
       const a_match = a.match(a_pattern);
 
@@ -115,11 +115,11 @@ export class SerializationService {
     CMIElement: string = "",
     setCMIValue: (CMIElement: string, value: any) => void,
     isNotInitialized: () => boolean,
-    setStartingData: (data: RefObject) => void
+    setStartingData: (data: RefObject) => void,
   ): void {
     if (!isNotInitialized()) {
       console.error(
-        "loadFromJSON can only be called before the call to lmsInitialize."
+        "loadFromJSON can only be called before the call to lmsInitialize.",
       );
       return;
     }
@@ -146,7 +146,7 @@ export class SerializationService {
                   tempCMIElement,
                   setCMIValue,
                   isNotInitialized,
-                  setStartingData
+                  setStartingData,
                 );
               } else {
                 setCMIValue(tempCMIElement, item);
@@ -159,7 +159,7 @@ export class SerializationService {
             currentCMIElement,
             setCMIValue,
             isNotInitialized,
-            setStartingData
+            setStartingData,
           );
         } else {
           setCMIValue(currentCMIElement, value);
@@ -209,7 +209,7 @@ export class SerializationService {
     renderCommonCommitFields: boolean,
     renderCommitObject: (terminateCommit: boolean) => CommitObject,
     renderCommitCMI: (terminateCommit: boolean) => RefObject | Array<any>,
-    apiLogLevel: number
+    apiLogLevel: LogLevel,
   ): CommitObject | RefObject | Array<any> {
     const shouldTerminateCommit = terminateCommit || alwaysSendTotalTime;
     const commitObject = renderCommonCommitFields
@@ -218,7 +218,7 @@ export class SerializationService {
 
     if ([LogLevelEnum.DEBUG, "1", 1, "DEBUG"].includes(apiLogLevel)) {
       console.debug(
-        "Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): "
+        "Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ",
       );
       console.debug(commitObject);
     }

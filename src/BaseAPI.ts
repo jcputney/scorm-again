@@ -18,6 +18,7 @@ import { LogLevelEnum } from "./constants/enums";
 import { HttpService } from "./services/HttpService";
 import { EventService } from "./services/EventService";
 import { SerializationService } from "./services/SerializationService";
+import { CMIDataService } from "./services/CMIDataService";
 
 /**
  * Base API class for AICC, SCORM 1.2, and SCORM 2004. Should be considered
@@ -30,6 +31,7 @@ export default abstract class BaseAPI implements IBaseAPI {
   private readonly _httpService: HttpService;
   private _eventService: EventService;
   private _serializationService: SerializationService;
+  private _cmiDataService: CMIDataService;
 
   /**
    * Constructor for Base API class. Sets some shared API fields, as well as
@@ -68,6 +70,17 @@ export default abstract class BaseAPI implements IBaseAPI {
 
     // Initialize Serialization service
     this._serializationService = new SerializationService();
+
+    // Initialize CMI Data service
+    this._cmiDataService = new CMIDataService(
+      this._error_codes,
+      this.apiLog.bind(this),
+      this.throwSCORMError.bind(this),
+      this.validateCorrectResponse.bind(this),
+      this.getChildElement.bind(this),
+      this._checkObjectHasProperty.bind(this),
+      this.lastErrorCode,
+    );
   }
 
   public abstract cmi: BaseCMI;
@@ -587,99 +600,14 @@ export default abstract class BaseAPI implements IBaseAPI {
     CMIElement: string,
     value: any,
   ): string {
-    if (!CMIElement || CMIElement === "") {
-      return global_constants.SCORM_FALSE;
-    }
-
-    const structure = CMIElement.split(".");
-    let refObject: RefObject = this;
-    let returnValue = global_constants.SCORM_FALSE;
-    let foundFirstIndex = false;
-
-    const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
-    const invalidErrorCode = scorm2004
-      ? this._error_codes.UNDEFINED_DATA_MODEL
-      : this._error_codes.GENERAL;
-
-    for (let idx = 0; idx < structure.length; idx++) {
-      const attribute = structure[idx];
-
-      if (idx === structure.length - 1) {
-        if (scorm2004 && attribute.substring(0, 8) === "{target=") {
-          if (this.isInitialized()) {
-            this.throwSCORMError(this._error_codes.READ_ONLY_ELEMENT);
-          } else {
-            refObject = {
-              ...refObject,
-              attribute: value,
-            };
-          }
-        } else if (!this._checkObjectHasProperty(refObject, attribute)) {
-          this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
-        } else {
-          if (
-            stringMatches(CMIElement, "\\.correct_responses\\.\\d+") &&
-            this.isInitialized()
-          ) {
-            this.validateCorrectResponse(CMIElement, value);
-          }
-
-          if (!scorm2004 || this.lastErrorCode === "0") {
-            refObject[attribute] = value;
-            returnValue = global_constants.SCORM_TRUE;
-          }
-        }
-      } else {
-        refObject = refObject[attribute];
-        if (!refObject) {
-          this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
-          break;
-        }
-
-        if (refObject instanceof CMIArray) {
-          const index = parseInt(structure[idx + 1], 10);
-
-          // SCO is trying to set an item on an array
-          if (!isNaN(index)) {
-            const item = refObject.childArray[index];
-
-            if (item) {
-              refObject = item;
-              foundFirstIndex = true;
-            } else {
-              const newChild = this.getChildElement(
-                CMIElement,
-                value,
-                foundFirstIndex,
-              );
-              foundFirstIndex = true;
-
-              if (!newChild) {
-                this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
-              } else {
-                if (refObject.initialized) newChild.initialize();
-
-                refObject.childArray.push(newChild);
-                refObject = newChild;
-              }
-            }
-
-            // Have to update idx value to skip the array position
-            idx++;
-          }
-        }
-      }
-    }
-
-    if (returnValue === global_constants.SCORM_FALSE) {
-      this.apiLog(
-        methodName,
-        `There was an error setting the value for: ${CMIElement}, value of: ${value}`,
-        LogLevelEnum.WARN,
-      );
-    }
-
-    return returnValue;
+    return this._cmiDataService.setCMIValue(
+      this,
+      methodName,
+      scorm2004,
+      CMIElement,
+      value,
+      this.isInitialized(),
+    );
   }
 
   /**
@@ -695,86 +623,12 @@ export default abstract class BaseAPI implements IBaseAPI {
     scorm2004: boolean,
     CMIElement: string,
   ): any {
-    if (!CMIElement || CMIElement === "") {
-      return "";
-    }
-
-    const structure = CMIElement.split(".");
-    let refObject: RefObject = this;
-    let attribute = null;
-
-    const uninitializedErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) has not been initialized.`;
-    const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
-    const invalidErrorCode = scorm2004
-      ? this._error_codes.UNDEFINED_DATA_MODEL
-      : this._error_codes.GENERAL;
-
-    for (let idx = 0; idx < structure.length; idx++) {
-      attribute = structure[idx];
-
-      if (!scorm2004) {
-        if (idx === structure.length - 1) {
-          if (!this._checkObjectHasProperty(refObject, attribute)) {
-            this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
-            return;
-          }
-        }
-      } else {
-        if (
-          String(attribute).substring(0, 8) === "{target=" &&
-          typeof refObject._isTargetValid == "function"
-        ) {
-          const target = String(attribute).substring(
-            8,
-            String(attribute).length - 9,
-          );
-          return refObject._isTargetValid(target);
-        } else if (!this._checkObjectHasProperty(refObject, attribute)) {
-          this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
-          return;
-        }
-      }
-
-      refObject = refObject[attribute];
-      if (refObject === undefined) {
-        this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
-        break;
-      }
-
-      if (refObject instanceof CMIArray) {
-        const index = parseInt(structure[idx + 1], 10);
-
-        // SCO is trying to set an item on an array
-        if (!isNaN(index)) {
-          const item = refObject.childArray[index];
-
-          if (item) {
-            refObject = item;
-          } else {
-            this.throwSCORMError(
-              this._error_codes.VALUE_NOT_INITIALIZED,
-              uninitializedErrorMessage,
-            );
-            break;
-          }
-
-          // Have to update idx value to skip the array position
-          idx++;
-        }
-      }
-    }
-
-    if (refObject === null || refObject === undefined) {
-      if (!scorm2004) {
-        if (attribute === "_children") {
-          this.throwSCORMError(this._error_codes.CHILDREN_ERROR);
-        } else if (attribute === "_count") {
-          this.throwSCORMError(this._error_codes.COUNT_ERROR);
-        }
-      }
-    } else {
-      return refObject;
-    }
+    return this._cmiDataService.getCMIValue(
+      this,
+      methodName,
+      scorm2004,
+      CMIElement,
+    );
   }
 
   /**
@@ -891,7 +745,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       CMIElement,
       this.loadFromJSON.bind(this),
       this.setCMIValue.bind(this),
-      this.isNotInitialized.bind(this)
+      this.isNotInitialized.bind(this),
     );
   }
 
@@ -907,7 +761,9 @@ export default abstract class BaseAPI implements IBaseAPI {
       CMIElement,
       this.setCMIValue.bind(this),
       this.isNotInitialized.bind(this),
-      (data: RefObject) => { this.startingData = data; }
+      (data: RefObject) => {
+        this.startingData = data;
+      },
     );
   }
 
@@ -919,7 +775,7 @@ export default abstract class BaseAPI implements IBaseAPI {
   renderCMIToJSONString(): string {
     return this._serializationService.renderCMIToJSONString(
       this.cmi,
-      this.settings.sendFullCommit
+      this.settings.sendFullCommit,
     );
   }
 
@@ -930,7 +786,7 @@ export default abstract class BaseAPI implements IBaseAPI {
   renderCMIToJSONObject(): object {
     return this._serializationService.renderCMIToJSONObject(
       this.cmi,
-      this.settings.sendFullCommit
+      this.settings.sendFullCommit,
     );
   }
 
@@ -1037,7 +893,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       this.settings.renderCommonCommitFields,
       this.renderCommitObject.bind(this),
       this.renderCommitCMI.bind(this),
-      this.apiLogLevel
+      this.apiLogLevel,
     );
   }
 }
