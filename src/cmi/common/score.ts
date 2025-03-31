@@ -1,9 +1,9 @@
 import { scorm12_constants } from "../../constants/api_constants";
 import { scorm12_regex } from "../../constants/regex";
 import { BaseCMI } from "./base_cmi";
-import { checkValidFormat, checkValidRange } from "./validation";
 import { scorm12_errors } from "../../constants/error_codes";
 import { BaseScormValidationError } from "../../exceptions";
+import { validationService } from "../../services/ValidationService";
 
 /**
  * Base class for cmi *.score objects
@@ -97,19 +97,14 @@ export class CMIScore extends BaseCMI {
    */
   set raw(raw: string) {
     if (
-      checkValidFormat(
+      validationService.validateScore(
         raw,
         this.__decimal_regex,
+        this.__score_range,
         this.__invalid_type_code,
+        this.__invalid_range_code,
         this.__error_class,
-      ) &&
-      (!this.__score_range ||
-        checkValidRange(
-          raw,
-          this.__score_range,
-          this.__invalid_range_code,
-          this.__error_class,
-        ))
+      )
     ) {
       this._raw = raw;
     }
@@ -129,19 +124,14 @@ export class CMIScore extends BaseCMI {
    */
   set min(min: string) {
     if (
-      checkValidFormat(
+      validationService.validateScore(
         min,
         this.__decimal_regex,
+        this.__score_range,
         this.__invalid_type_code,
+        this.__invalid_range_code,
         this.__error_class,
-      ) &&
-      (!this.__score_range ||
-        checkValidRange(
-          min,
-          this.__score_range,
-          this.__invalid_range_code,
-          this.__error_class,
-        ))
+      )
     ) {
       this._min = min;
     }
@@ -161,19 +151,14 @@ export class CMIScore extends BaseCMI {
    */
   set max(max: string) {
     if (
-      checkValidFormat(
+      validationService.validateScore(
         max,
         this.__decimal_regex,
+        this.__score_range,
         this.__invalid_type_code,
+        this.__invalid_range_code,
         this.__error_class,
-      ) &&
-      (!this.__score_range ||
-        checkValidRange(
-          max,
-          this.__score_range,
-          this.__invalid_range_code,
-          this.__error_class,
-        ))
+      )
     ) {
       this._max = max;
     }

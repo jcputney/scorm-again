@@ -1,9 +1,9 @@
 import { BaseCMI } from "../common/base_cmi";
 import { scorm12_constants } from "../../constants/api_constants";
 import { Scorm12ValidationError } from "../../exceptions/scorm12_exceptions";
-import { check12ValidFormat, check12ValidRange } from "./validation";
 import { scorm12_regex } from "../../constants/regex";
 import { scorm12_errors } from "../../constants/error_codes";
+import { validationService } from "../../services/ValidationService";
 
 /**
  * Class representing the SCORM 1.2 cmi.student_preference object
@@ -66,10 +66,7 @@ export class CMIStudentPreference extends BaseCMI {
    * @param {string} audio
    */
   set audio(audio: string) {
-    if (
-      check12ValidFormat(audio, scorm12_regex.CMISInteger) &&
-      check12ValidRange(audio, scorm12_regex.audio_range)
-    ) {
+    if (validationService.validateScorm12Audio(audio)) {
       this._audio = audio;
     }
   }
@@ -87,7 +84,7 @@ export class CMIStudentPreference extends BaseCMI {
    * @param {string} language
    */
   set language(language: string) {
-    if (check12ValidFormat(language, scorm12_regex.CMIString256)) {
+    if (validationService.validateScorm12Language(language)) {
       this._language = language;
     }
   }
@@ -105,10 +102,7 @@ export class CMIStudentPreference extends BaseCMI {
    * @param {string} speed
    */
   set speed(speed: string) {
-    if (
-      check12ValidFormat(speed, scorm12_regex.CMISInteger) &&
-      check12ValidRange(speed, scorm12_regex.speed_range)
-    ) {
+    if (validationService.validateScorm12Speed(speed)) {
       this._speed = speed;
     }
   }
@@ -126,10 +120,7 @@ export class CMIStudentPreference extends BaseCMI {
    * @param {string} text
    */
   set text(text: string) {
-    if (
-      check12ValidFormat(text, scorm12_regex.CMISInteger) &&
-      check12ValidRange(text, scorm12_regex.text_range)
-    ) {
+    if (validationService.validateScorm12Text(text)) {
       this._text = text;
     }
   }

@@ -9,14 +9,14 @@ This document contains a detailed list of actionable improvement tasks for the S
    - [x] Extract event handling logic into a separate service
    - [x] Extract data serialization logic into utility classes
 
-- [ ] Improve separation of concerns
+- [x] Improve separation of concerns
   - [x] Create a dedicated CMI data access layer
-  - [ ] Separate validation logic from data model classes
-  - [ ] Create a dedicated error handling service
+  - [x] Separate validation logic from data model classes
+  - [x] Create a dedicated error handling service
 
 - [ ] Enhance API design
-   - [ ] Create a more consistent interface across all API implementations
-   - [ ] Implement a facade pattern for simpler API usage
+   - [x] Create a more consistent interface across all API implementations
+   - [x] Implement a facade pattern for simpler API usage
    - [ ] Consider implementing the Command pattern for API operations
 
 - [ ] Modernize architecture

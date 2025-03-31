@@ -19,6 +19,10 @@ import { HttpService } from "./services/HttpService";
 import { EventService } from "./services/EventService";
 import { SerializationService } from "./services/SerializationService";
 import { CMIDataService } from "./services/CMIDataService";
+import {
+  ErrorHandlingService,
+  createErrorHandlingService,
+} from "./services/ErrorHandlingService";
 
 /**
  * Base API class for AICC, SCORM 1.2, and SCORM 2004. Should be considered
@@ -32,6 +36,7 @@ export default abstract class BaseAPI implements IBaseAPI {
   private _eventService: EventService;
   private _serializationService: SerializationService;
   private _cmiDataService: CMIDataService;
+  private _errorHandlingService: ErrorHandlingService;
 
   /**
    * Constructor for Base API class. Sets some shared API fields, as well as
@@ -44,7 +49,6 @@ export default abstract class BaseAPI implements IBaseAPI {
       throw new TypeError("Cannot construct BaseAPI instances directly");
     }
     this.currentState = global_constants.STATE_NOT_INITIALIZED;
-    this.lastErrorCode = "0";
 
     this._error_codes = error_codes;
 
@@ -81,15 +85,39 @@ export default abstract class BaseAPI implements IBaseAPI {
       this._checkObjectHasProperty.bind(this),
       this.lastErrorCode,
     );
+
+    // Initialize Error Handling service
+    this._errorHandlingService = createErrorHandlingService(
+      this._error_codes,
+      this.apiLog.bind(this),
+      this.getLmsErrorMessageDetails.bind(this),
+    );
   }
 
   public abstract cmi: BaseCMI;
   public startingData?: RefObject;
 
   public currentState: number;
-  public lastErrorCode: string;
   public apiLogLevel: LogLevel;
   public selfReportSessionTime: boolean;
+
+  /**
+   * Get the last error code
+   * @return {string}
+   */
+  get lastErrorCode(): string {
+    return this._errorHandlingService ? this._errorHandlingService.lastErrorCode : "0";
+  }
+
+  /**
+   * Set the last error code
+   * @param {string} errorCode
+   */
+  set lastErrorCode(errorCode: string) {
+    if (this._errorHandlingService) {
+      this._errorHandlingService.lastErrorCode = errorCode;
+    }
+  }
 
   abstract reset(settings?: Settings): void;
 
@@ -705,17 +733,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {string} message
    */
   throwSCORMError(errorNumber: number, message?: string) {
-    if (!message) {
-      message = this.getLmsErrorMessageDetails(errorNumber);
-    }
-
-    this.apiLog(
-      "throwSCORMError",
-      errorNumber + ": " + message,
-      LogLevelEnum.ERROR,
-    );
-
-    this.lastErrorCode = String(errorNumber);
+    this._errorHandlingService.throwSCORMError(errorNumber, message);
   }
 
   /**
@@ -724,9 +742,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {string} success
    */
   clearSCORMError(success: string) {
-    if (success !== undefined && success !== global_constants.SCORM_FALSE) {
-      this.lastErrorCode = "0";
-    }
+    this._errorHandlingService.clearSCORMError(success);
   }
 
   /**
@@ -864,18 +880,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @private
    */
   private handleValueAccessException(e: any, returnValue: string): string {
-    if (e instanceof ValidationError) {
-      this.lastErrorCode = String(e.errorCode);
-      returnValue = global_constants.SCORM_FALSE;
-    } else {
-      if (e instanceof Error && e.message) {
-        console.error(e.message);
-      } else {
-        console.error(e);
-      }
-      this.throwSCORMError(this._error_codes.GENERAL);
-    }
-    return returnValue;
+    return this._errorHandlingService.handleValueAccessException(e, returnValue);
   }
 
   /**

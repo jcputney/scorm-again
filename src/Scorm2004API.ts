@@ -101,14 +101,22 @@ class Scorm2004Impl extends BaseAPI {
   }
 
   /**
+   * Initialize function from SCORM 2004 Spec
+   *
    * @return {string} bool
    */
   lmsInitialize(): string {
     this.cmi.initialize();
-    return this.initialize("Initialize");
+    return this.initialize(
+      "Initialize",
+      "LMS was already initialized!",
+      "LMS is already finished!"
+    );
   }
 
   /**
+   * Terminate function from SCORM 2004 Spec
+   *
    * @return {string} bool
    */
   lmsFinish(): string {
@@ -160,6 +168,8 @@ class Scorm2004Impl extends BaseAPI {
   }
 
   /**
+   * GetValue function from SCORM 2004 Spec
+   *
    * @param {string} CMIElement
    * @return {string}
    */
@@ -181,6 +191,8 @@ class Scorm2004Impl extends BaseAPI {
   }
 
   /**
+   * SetValue function from SCORM 2004 Spec
+   *
    * @param {string} CMIElement
    * @param {any} value
    * @return {string}
@@ -191,23 +203,23 @@ class Scorm2004Impl extends BaseAPI {
   }
 
   /**
-   * Orders LMS to store all content parameters
+   * Commit function from SCORM 2004 Spec
    *
    * @return {string} bool
    */
   lmsCommit(): string {
     if (this.settings.asyncCommit) {
-      this.scheduleCommit(500, "LMSCommit");
+      this.scheduleCommit(500, "Commit");
     } else {
       (async () => {
-        await this.commit("LMSCommit", false);
+        await this.commit("Commit", false);
       })();
     }
     return global_constants.SCORM_TRUE;
   }
 
   /**
-   * Returns last error code
+   * GetLastError function from SCORM 2004 Spec
    *
    * @return {string}
    */
@@ -216,7 +228,7 @@ class Scorm2004Impl extends BaseAPI {
   }
 
   /**
-   * Returns the errorNumber error description
+   * GetErrorString function from SCORM 2004 Spec
    *
    * @param {(string|number)} CMIErrorCode
    * @return {string}
@@ -226,7 +238,7 @@ class Scorm2004Impl extends BaseAPI {
   }
 
   /**
-   * Returns a comprehensive description of the errorNumber error.
+   * GetDiagnostic function from SCORM 2004 Spec
    *
    * @param {(string|number)} CMIErrorCode
    * @return {string}
@@ -358,6 +370,7 @@ class Scorm2004Impl extends BaseAPI {
     if (this.isInitialized()) {
       if (typeof interaction === "undefined" || !interaction.type) {
         this.throwSCORMError(scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED);
+        return null;
       } else {
         this.checkDuplicateChoiceResponse(interaction, value);
         const response_type = CorrectResponses[interaction.type];
@@ -368,6 +381,7 @@ class Scorm2004Impl extends BaseAPI {
             scorm2004_errors.GENERAL_SET_FAILURE,
             "Incorrect Response Type: " + interaction.type,
           );
+          return null;
         }
       }
     }

@@ -2,6 +2,7 @@ import { BaseCMI } from "../common/base_cmi";
 import { scorm12_constants } from "../../constants/api_constants";
 import { Scorm12ValidationError } from "../../exceptions/scorm12_exceptions";
 import { scorm12_errors } from "../../constants/error_codes";
+import { validationService } from "../../services/ValidationService";
 
 /**
  * Class representing the SCORM 1.2 cmi.student_data object
@@ -62,11 +63,8 @@ export class CMIStudentData extends BaseCMI {
    * @param {string} mastery_score
    */
   set mastery_score(mastery_score: string) {
-    if (this.initialized) {
-      throw new Scorm12ValidationError(scorm12_errors.READ_ONLY_ELEMENT);
-    } else {
-      this._mastery_score = mastery_score;
-    }
+    validationService.validateReadOnly(this.initialized);
+    this._mastery_score = mastery_score;
   }
 
   /**
@@ -82,11 +80,8 @@ export class CMIStudentData extends BaseCMI {
    * @param {string} max_time_allowed
    */
   set max_time_allowed(max_time_allowed: string) {
-    if (this.initialized) {
-      throw new Scorm12ValidationError(scorm12_errors.READ_ONLY_ELEMENT);
-    } else {
-      this._max_time_allowed = max_time_allowed;
-    }
+    validationService.validateReadOnly(this.initialized);
+    this._max_time_allowed = max_time_allowed;
   }
 
   /**
@@ -102,11 +97,8 @@ export class CMIStudentData extends BaseCMI {
    * @param {string} time_limit_action
    */
   set time_limit_action(time_limit_action: string) {
-    if (this.initialized) {
-      throw new Scorm12ValidationError(scorm12_errors.READ_ONLY_ELEMENT);
-    } else {
-      this._time_limit_action = time_limit_action;
-    }
+    validationService.validateReadOnly(this.initialized);
+    this._time_limit_action = time_limit_action;
   }
 
   /**
