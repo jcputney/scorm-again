@@ -15,6 +15,9 @@ import { DefaultSettings } from "./constants/default_settings";
 import { IBaseAPI } from "./interfaces/IBaseAPI";
 import { ScheduledCommit } from "./helpers/scheduled_commit";
 import { LogLevelEnum } from "./constants/enums";
+import { HttpService } from "./services/HttpService";
+import { EventService } from "./services/EventService";
+import { SerializationService } from "./services/SerializationService";
 
 /**
  * Base API class for AICC, SCORM 1.2, and SCORM 2004. Should be considered
@@ -24,6 +27,9 @@ export default abstract class BaseAPI implements IBaseAPI {
   private _timeout?: ScheduledCommit;
   private readonly _error_codes: ErrorCode;
   private _settings: Settings = DefaultSettings;
+  private readonly _httpService: HttpService;
+  private _eventService: EventService;
+  private _serializationService: SerializationService;
 
   /**
    * Constructor for Base API class. Sets some shared API fields, as well as
@@ -37,7 +43,6 @@ export default abstract class BaseAPI implements IBaseAPI {
     }
     this.currentState = global_constants.STATE_NOT_INITIALIZED;
     this.lastErrorCode = "0";
-    this.listenerArray = [];
 
     this._error_codes = error_codes;
 
@@ -50,6 +55,19 @@ export default abstract class BaseAPI implements IBaseAPI {
     if (this.apiLogLevel === undefined) {
       this.apiLogLevel = LogLevelEnum.NONE;
     }
+
+    // Initialize HTTP service
+    this._httpService = new HttpService(
+      this.settings,
+      this.apiLogLevel,
+      this._error_codes,
+    );
+
+    // Initialize Event service
+    this._eventService = new EventService(this.apiLog.bind(this));
+
+    // Initialize Serialization service
+    this._serializationService = new SerializationService();
   }
 
   public abstract cmi: BaseCMI;
@@ -57,7 +75,6 @@ export default abstract class BaseAPI implements IBaseAPI {
 
   public currentState: number;
   public lastErrorCode: string;
-  public listenerArray: any[];
   public apiLogLevel: LogLevel;
   public selfReportSessionTime: boolean;
 
@@ -76,7 +93,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     this.clearScheduledCommit();
     this.currentState = global_constants.STATE_NOT_INITIALIZED;
     this.lastErrorCode = "0";
-    this.listenerArray = [];
+    this._eventService.reset();
     this.startingData = undefined;
   }
 
@@ -225,6 +242,11 @@ export default abstract class BaseAPI implements IBaseAPI {
    */
   set settings(settings: Settings) {
     this._settings = { ...this._settings, ...settings };
+
+    // Update HTTP service settings
+    if (this._httpService) {
+      this._httpService.updateSettings(this._settings);
+    }
   }
 
   /**
@@ -789,33 +811,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {function} callback
    */
   on(listenerName: string, callback: Function) {
-    if (!callback) return;
-
-    const listenerFunctions = listenerName.split(" ");
-    for (let i = 0; i < listenerFunctions.length; i++) {
-      const listenerSplit = listenerFunctions[i].split(".");
-      if (listenerSplit.length === 0) return;
-
-      const functionName = listenerSplit[0];
-
-      let CMIElement = null;
-      if (listenerSplit.length > 1) {
-        CMIElement = listenerName.replace(functionName + ".", "");
-      }
-
-      this.listenerArray.push({
-        functionName: functionName,
-        CMIElement: CMIElement,
-        callback: callback,
-      });
-
-      this.apiLog(
-        "on",
-        `Added event listener: ${this.listenerArray.length}`,
-        LogLevelEnum.INFO,
-        functionName,
-      );
-    }
+    this._eventService.on(listenerName, callback);
   }
 
   /**
@@ -825,36 +821,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {function} callback
    */
   off(listenerName: string, callback: Function) {
-    if (!callback) return;
-
-    const listenerFunctions = listenerName.split(" ");
-    for (let i = 0; i < listenerFunctions.length; i++) {
-      const listenerSplit = listenerFunctions[i].split(".");
-      if (listenerSplit.length === 0) return;
-
-      const functionName = listenerSplit[0];
-
-      let CMIElement = null;
-      if (listenerSplit.length > 1) {
-        CMIElement = listenerName.replace(functionName + ".", "");
-      }
-
-      const removeIndex = this.listenerArray.findIndex(
-        (obj) =>
-          obj.functionName === functionName &&
-          obj.CMIElement === CMIElement &&
-          obj.callback === callback,
-      );
-      if (removeIndex !== -1) {
-        this.listenerArray.splice(removeIndex, 1);
-        this.apiLog(
-          "off",
-          `Removed event listener: ${this.listenerArray.length}`,
-          LogLevelEnum.INFO,
-          functionName,
-        );
-      }
-    }
+    this._eventService.off(listenerName, callback);
   }
 
   /**
@@ -863,23 +830,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {string} listenerName
    */
   clear(listenerName: string) {
-    const listenerFunctions = listenerName.split(" ");
-    for (let i = 0; i < listenerFunctions.length; i++) {
-      const listenerSplit = listenerFunctions[i].split(".");
-      if (listenerSplit.length === 0) return;
-
-      const functionName = listenerSplit[0];
-
-      let CMIElement = null;
-      if (listenerSplit.length > 1) {
-        CMIElement = listenerName.replace(functionName + ".", "");
-      }
-
-      this.listenerArray = this.listenerArray.filter(
-        (obj) =>
-          obj.functionName !== functionName && obj.CMIElement !== CMIElement,
-      );
-    }
+    this._eventService.clear(listenerName);
   }
 
   /**
@@ -890,35 +841,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {any} value
    */
   processListeners(functionName: string, CMIElement?: string, value?: any) {
-    this.apiLog(functionName, value, LogLevelEnum.INFO, CMIElement);
-    for (let i = 0; i < this.listenerArray.length; i++) {
-      const listener = this.listenerArray[i];
-      const functionsMatch = listener.functionName === functionName;
-      const listenerHasCMIElement = !!listener.CMIElement;
-      let CMIElementsMatch = false;
-      if (
-        CMIElement &&
-        listener.CMIElement &&
-        listener.CMIElement.substring(listener.CMIElement.length - 1) === "*"
-      ) {
-        CMIElementsMatch =
-          CMIElement.indexOf(
-            listener.CMIElement.substring(0, listener.CMIElement.length - 1),
-          ) === 0;
-      } else {
-        CMIElementsMatch = listener.CMIElement === CMIElement;
-      }
-
-      if (functionsMatch && (!listenerHasCMIElement || CMIElementsMatch)) {
-        this.apiLog(
-          "processListeners",
-          `Processing listener: ${listener.functionName}`,
-          LogLevelEnum.INFO,
-          CMIElement,
-        );
-        listener.callback(CMIElement, value);
-      }
-    }
+    this._eventService.processListeners(functionName, CMIElement, value);
   }
 
   /**
@@ -962,83 +885,14 @@ export default abstract class BaseAPI implements IBaseAPI {
       // by default, we start from a blank string because we're expecting each element to start with `cmi`
       CMIElement = "";
     }
-    if (!this.isNotInitialized()) {
-      console.error(
-        "loadFromFlattenedJSON can only be called before the call to lmsInitialize.",
-      );
-      return;
-    }
 
-    /**
-     * Tests two strings against a given regular expression pattern and determines a numeric or null result based on the matching criterion.
-     *
-     * @param {string} a - The first string to be tested against the pattern.
-     * @param {string} c - The second string to be tested against the pattern.
-     * @param {RegExp} a_pattern - The regular expression pattern to test the strings against.
-     * @return {number | null} A numeric result based on the matching criterion, or null if the strings do not match the pattern.
-     */
-    function testPattern(
-      a: string,
-      c: string,
-      a_pattern: RegExp,
-    ): number | null {
-      const a_match = a.match(a_pattern);
-
-      let c_match;
-      if (a_match !== null && (c_match = c.match(a_pattern)) !== null) {
-        const a_num = Number(a_match[2]);
-        const c_num = Number(c_match[2]);
-        if (a_num === c_num) {
-          if (a_match[3] === "id") {
-            return -1;
-          } else if (a_match[3] === "type") {
-            if (c_match[3] === "id") {
-              return 1;
-            } else {
-              return -1;
-            }
-          } else {
-            return 1;
-          }
-        }
-        return a_num - c_num;
-      }
-
-      return null;
-    }
-
-    const int_pattern = /^(cmi\.interactions\.)(\d+)\.(.*)$/;
-    const obj_pattern = /^(cmi\.objectives\.)(\d+)\.(.*)$/;
-
-    const result = Object.keys(json).map(function (key) {
-      return [String(key), json[key]];
-    });
-
-    // CMI interactions need to have id and type loaded before any other fields
-    result.sort(function ([a, _b], [c, _d]) {
-      let test;
-      if ((test = testPattern(a, c, int_pattern)) !== null) {
-        return test;
-      }
-      if ((test = testPattern(a, c, obj_pattern)) !== null) {
-        return test;
-      }
-
-      if (a < c) {
-        return -1;
-      }
-      if (a > c) {
-        return 1;
-      }
-      return 0;
-    });
-
-    let obj: RefObject;
-    result.forEach((element) => {
-      obj = {};
-      obj[element[0]] = element[1];
-      this.loadFromJSON(unflatten(obj), CMIElement);
-    });
+    this._serializationService.loadFromFlattenedJSON(
+      json,
+      CMIElement,
+      this.loadFromJSON.bind(this),
+      this.setCMIValue.bind(this),
+      this.isNotInitialized.bind(this)
+    );
   }
 
   /**
@@ -1048,37 +902,13 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {string} CMIElement
    */
   loadFromJSON(json: RefObject, CMIElement: string = "") {
-    if (!this.isNotInitialized()) {
-      console.error(
-        "loadFromJSON can only be called before the call to lmsInitialize.",
-      );
-      return;
-    }
-
-    CMIElement = CMIElement !== undefined ? CMIElement : "cmi";
-
-    this.startingData = json;
-
-    // could this be refactored down to flatten(json) then setCMIValue on each?
-    for (const key in json) {
-      if ({}.hasOwnProperty.call(json, key) && json[key]) {
-        const currentCMIElement = (CMIElement ? CMIElement + "." : "") + key;
-        const value = json[key];
-
-        if (value["childArray"]) {
-          for (let i = 0; i < value["childArray"].length; i++) {
-            this.loadFromJSON(
-              value["childArray"][i],
-              currentCMIElement + "." + i,
-            );
-          }
-        } else if (value.constructor === Object) {
-          this.loadFromJSON(value, currentCMIElement);
-        } else {
-          this.setCMIValue(currentCMIElement, value);
-        }
-      }
-    }
+    this._serializationService.loadFromJSON(
+      json,
+      CMIElement,
+      this.setCMIValue.bind(this),
+      this.isNotInitialized.bind(this),
+      (data: RefObject) => { this.startingData = data; }
+    );
   }
 
   /**
@@ -1087,12 +917,10 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @return {string}
    */
   renderCMIToJSONString(): string {
-    const cmi = this.cmi;
-    // Do we want/need to return fields that have no set value?
-    if (this.settings.sendFullCommit) {
-      return JSON.stringify({ cmi });
-    }
-    return JSON.stringify({ cmi }, (k, v) => (v === undefined ? null : v), 2);
+    return this._serializationService.renderCMIToJSONString(
+      this.cmi,
+      this.settings.sendFullCommit
+    );
   }
 
   /**
@@ -1100,7 +928,10 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @return {object}
    */
   renderCMIToJSONObject(): object {
-    return JSON.parse(this.renderCMIToJSONString());
+    return this._serializationService.renderCMIToJSONObject(
+      this.cmi,
+      this.settings.sendFullCommit
+    );
   }
 
   /**
@@ -1115,42 +946,13 @@ export default abstract class BaseAPI implements IBaseAPI {
     params: CommitObject | RefObject | Array<any>,
     immediate: boolean = false,
   ): Promise<ResultObject> {
-    const api = this;
-    const genericError: ResultObject = {
-      result: global_constants.SCORM_FALSE,
-      errorCode: this.error_codes.GENERAL,
-    };
-
-    // if we are terminating the module or closing the browser window/tab, we need to make this fetch ASAP.
-    // Some browsers, especially Chrome, do not like synchronous requests to be made when the window is closing.
-    if (immediate) {
-      this.performFetch(url, params).then(async (response) => {
-        await this.transformResponse(response);
-      });
-      return {
-        result: global_constants.SCORM_TRUE,
-        errorCode: 0,
-      };
-    }
-
-    const process = async (
-      url: string,
-      params: CommitObject | RefObject | Array<any>,
-      settings: Settings,
-    ): Promise<ResultObject> => {
-      try {
-        params = settings.requestHandler(params);
-        const response = await this.performFetch(url, params);
-
-        return this.transformResponse(response);
-      } catch (e) {
-        this.apiLog("processHttpRequest", e, LogLevelEnum.ERROR);
-        api.processListeners("CommitError");
-        return genericError;
-      }
-    };
-
-    return await process(url, params, this.settings);
+    return this._httpService.processHttpRequest(
+      url,
+      params,
+      immediate,
+      this.apiLog.bind(this),
+      this.processListeners.bind(this),
+    );
   }
 
   /**
@@ -1229,66 +1031,13 @@ export default abstract class BaseAPI implements IBaseAPI {
   protected getCommitObject(
     terminateCommit: boolean,
   ): CommitObject | RefObject | Array<any> {
-    const shouldTerminateCommit =
-      terminateCommit || this.settings.alwaysSendTotalTime;
-    const commitObject = this.settings.renderCommonCommitFields
-      ? this.renderCommitObject(shouldTerminateCommit)
-      : this.renderCommitCMI(shouldTerminateCommit);
-
-    if ([LogLevelEnum.DEBUG, "1", 1, "DEBUG"].includes(this.apiLogLevel)) {
-      console.debug(
-        "Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ",
-      );
-      console.debug(commitObject);
-    }
-    return commitObject;
-  }
-
-  /**
-   * Perform the fetch request to the LMS
-   * @param {string} url
-   * @param {RefObject|Array} params
-   * @return {Promise<Response>}
-   * @private
-   */
-  private async performFetch(
-    url: string,
-    params: RefObject | Array<any>,
-  ): Promise<Response> {
-    return fetch(url, {
-      method: "POST",
-      mode: this.settings.fetchMode,
-      body: params instanceof Array ? params.join("&") : JSON.stringify(params),
-      headers: {
-        ...this.settings.xhrHeaders,
-        "Content-Type": this.settings.commitRequestDataType,
-      },
-      credentials: this.settings.xhrWithCredentials ? "include" : undefined,
-      keepalive: true,
-    });
-  }
-
-  /**
-   * Transforms the response from the LMS to a ResultObject
-   * @param {Response} response
-   * @return {Promise<ResultObject>}
-   * @private
-   */
-  private async transformResponse(response: Response): Promise<ResultObject> {
-    const result =
-      typeof this.settings.responseHandler === "function"
-        ? await this.settings.responseHandler(response)
-        : await response.json();
-
-    if (
-      response.status >= 200 &&
-      response.status <= 299 &&
-      (result.result === true || result.result === global_constants.SCORM_TRUE)
-    ) {
-      this.processListeners("CommitSuccess");
-    } else {
-      this.processListeners("CommitError");
-    }
-    return result;
+    return this._serializationService.getCommitObject(
+      terminateCommit,
+      this.settings.alwaysSendTotalTime,
+      this.settings.renderCommonCommitFields,
+      this.renderCommitObject.bind(this),
+      this.renderCommitCMI.bind(this),
+      this.apiLogLevel
+    );
   }
 }

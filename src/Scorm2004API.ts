@@ -356,7 +356,7 @@ class Scorm2004Impl extends BaseAPI {
     const interaction = this.cmi.interactions.childArray[index];
 
     if (this.isInitialized()) {
-      if (!interaction.type) {
+      if (typeof interaction === "undefined" || !interaction.type) {
         this.throwSCORMError(scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED);
       } else {
         this.checkDuplicateChoiceResponse(interaction, value);
