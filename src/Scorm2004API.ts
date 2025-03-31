@@ -722,20 +722,20 @@ class Scorm2004Impl extends BaseAPI {
       scorm2004_regex.CMITimespan,
     );
 
-    let completionStatus = CompletionStatus.unknown;
-    let successStatus = SuccessStatus.unknown;
+    let completionStatus = CompletionStatus.UNKNOWN;
+    let successStatus = SuccessStatus.UNKNOWN;
     if (this.cmi.completion_status) {
       if (this.cmi.completion_status === "completed") {
-        completionStatus = CompletionStatus.completed;
+        completionStatus = CompletionStatus.COMPLETED;
       } else if (this.cmi.completion_status === "incomplete") {
-        completionStatus = CompletionStatus.incomplete;
+        completionStatus = CompletionStatus.INCOMPLETE;
       }
     }
     if (this.cmi.success_status) {
       if (this.cmi.success_status === "passed") {
-        successStatus = SuccessStatus.passed;
+        successStatus = SuccessStatus.PASSED;
       } else if (this.cmi.success_status === "failed") {
-        successStatus = SuccessStatus.failed;
+        successStatus = SuccessStatus.FAILED;
       }
     }
 

@@ -14,6 +14,7 @@ import { RefObject, Settings } from "../src/types/api_types";
 import { DefaultSettings } from "../src/constants/default_settings";
 import { CMIInteractions } from "../src/cmi/scorm2004/interactions";
 import { ADLNav } from "../src/cmi/scorm2004/adl";
+import { SuccessStatus, CompletionStatus } from "../src/constants/enums";
 
 let clock: sinon.SinonFakeTimers;
 const api = (settings?: Settings, startingData: RefObject = {}) => {
@@ -957,20 +958,20 @@ describe("SCORM 2004 API Tests", () => {
 
     it("should render commit object with completion and success status", () => {
       const scorm2004API = api();
-      scorm2004API.cmi.success_status = "passed";
+      scorm2004API.cmi.success_status = SuccessStatus.PASSED;
       const commitObject = scorm2004API.renderCommitObject(true);
-      expect(commitObject.successStatus).toEqual("passed");
-      expect(commitObject.completionStatus).toEqual("unknown");
-      expect(commitObject.runtimeData.cmi.success_status).toEqual("passed");
+      expect(commitObject.successStatus).toEqual(SuccessStatus.PASSED);
+      expect(commitObject.completionStatus).toEqual(CompletionStatus.UNKNOWN);
+      expect(commitObject.runtimeData.cmi.success_status).toEqual(SuccessStatus.PASSED);
     });
 
     it("should render commit object with failed success status", () => {
       const scorm2004API = api();
-      scorm2004API.cmi.success_status = "failed";
+      scorm2004API.cmi.success_status = SuccessStatus.FAILED;
       const commitObject = scorm2004API.renderCommitObject(true);
-      expect(commitObject.successStatus).toEqual("failed");
-      expect(commitObject.completionStatus).toEqual("unknown");
-      expect(commitObject.runtimeData.cmi.success_status).toEqual("failed");
+      expect(commitObject.successStatus).toEqual(SuccessStatus.FAILED);
+      expect(commitObject.completionStatus).toEqual(CompletionStatus.UNKNOWN);
+      expect(commitObject.runtimeData.cmi.success_status).toEqual(SuccessStatus.FAILED);
     });
 
     it("should calculate total time when terminateCommit is true", () => {

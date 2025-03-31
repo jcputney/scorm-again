@@ -49,12 +49,12 @@ describe("ScormFacade", () => {
       facade.initialize();
 
       // Set a value
-      const setResult = facade.setValue("cmi.completion_status", CompletionStatus.completed);
+      const setResult = facade.setValue("cmi.completion_status", CompletionStatus.COMPLETED);
       expect(setResult).toBe(true);
 
       // Get the value back
       const value = facade.getValue("cmi.completion_status");
-      expect(value).toBe(CompletionStatus.completed);
+      expect(value).toBe(CompletionStatus.COMPLETED);
     });
 
     it("should commit changes", () => {
@@ -91,18 +91,18 @@ describe("ScormFacade", () => {
     it("should set completion status", () => {
       const spy = sinon.spy(facade, "setValue");
 
-      facade.setStatus(CompletionStatus.completed);
+      facade.setStatus(CompletionStatus.COMPLETED);
 
-      expect(spy.calledWith("cmi.completion_status", CompletionStatus.completed)).toBe(true);
+      expect(spy.calledWith("cmi.completion_status", CompletionStatus.COMPLETED)).toBe(true);
       spy.restore();
     });
 
     it("should set success status", () => {
       const spy = sinon.spy(facade, "setValue");
 
-      facade.setSuccessStatus(SuccessStatus.passed);
+      facade.setSuccessStatus(SuccessStatus.PASSED);
 
-      expect(spy.calledWith("cmi.success_status", SuccessStatus.passed)).toBe(true);
+      expect(spy.calledWith("cmi.success_status", SuccessStatus.PASSED)).toBe(true);
       spy.restore();
     });
 

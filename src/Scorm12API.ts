@@ -345,17 +345,17 @@ class Scorm12Impl extends BaseAPI {
       scorm12_regex.CMITimespan,
     );
     const lessonStatus = this.cmi.core.lesson_status;
-    let completionStatus = CompletionStatus.unknown;
-    let successStatus = SuccessStatus.unknown;
+    let completionStatus = CompletionStatus.UNKNOWN;
+    let successStatus = SuccessStatus.UNKNOWN;
     if (lessonStatus) {
       completionStatus =
         lessonStatus === "completed" || lessonStatus === "passed"
-          ? CompletionStatus.completed
-          : CompletionStatus.incomplete;
+          ? CompletionStatus.COMPLETED
+          : CompletionStatus.INCOMPLETE;
       if (lessonStatus === "passed") {
-        successStatus = SuccessStatus.passed;
+        successStatus = SuccessStatus.PASSED;
       } else if (lessonStatus === "failed") {
-        successStatus = SuccessStatus.failed;
+        successStatus = SuccessStatus.FAILED;
       }
     }
 

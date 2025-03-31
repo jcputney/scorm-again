@@ -1,19 +1,19 @@
 export enum NAVBoolean {
-  unknown = "unknown",
-  true = "true",
-  false = "false",
+  UNKNOWN = "unknown",
+  TRUE = "true",
+  FALSE = "false",
 }
 
 export enum SuccessStatus {
-  passed = "passed",
-  failed = "failed",
-  unknown = "unknown",
+  PASSED = "passed",
+  FAILED = "failed",
+  UNKNOWN = "unknown",
 }
 
 export enum CompletionStatus {
-  completed = "completed",
-  incomplete = "incomplete",
-  unknown = "unknown",
+  COMPLETED = "completed",
+  INCOMPLETE = "incomplete",
+  UNKNOWN = "unknown",
 }
 
 export enum LogLevelEnum {

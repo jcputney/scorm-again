@@ -8,6 +8,7 @@ import * as sinon from "sinon";
 import Pretender from "fetch-pretender";
 import { RefObject, Settings } from "../src/types/api_types";
 import { DefaultSettings } from "../src/constants/default_settings";
+import { SuccessStatus, CompletionStatus } from "../src/constants/enums";
 
 let clock: sinon.SinonFakeTimers;
 const api = (settings?: Settings, startingData: RefObject = {}) => {
@@ -545,8 +546,8 @@ describe("SCORM 1.2 API Tests", () => {
       const scorm12API = api();
       scorm12API.cmi.core.lesson_status = "passed";
       const commitObject = scorm12API.renderCommitObject(true);
-      expect(commitObject.successStatus).toEqual("passed");
-      expect(commitObject.completionStatus).toEqual("completed");
+      expect(commitObject.successStatus).toEqual(SuccessStatus.PASSED);
+      expect(commitObject.completionStatus).toEqual(CompletionStatus.COMPLETED);
       expect(commitObject.runtimeData.cmi.core.lesson_status).toEqual("passed");
     });
 
@@ -554,8 +555,8 @@ describe("SCORM 1.2 API Tests", () => {
       const scorm12API = api();
       scorm12API.cmi.core.lesson_status = "failed";
       const commitObject = scorm12API.renderCommitObject(true);
-      expect(commitObject.successStatus).toEqual("failed");
-      expect(commitObject.completionStatus).toEqual("incomplete");
+      expect(commitObject.successStatus).toEqual(SuccessStatus.FAILED);
+      expect(commitObject.completionStatus).toEqual(CompletionStatus.INCOMPLETE);
       expect(commitObject.runtimeData.cmi.core.lesson_status).toEqual("failed");
     });
 
