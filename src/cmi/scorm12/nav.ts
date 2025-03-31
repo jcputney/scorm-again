@@ -36,7 +36,7 @@ export class NAV extends BaseCMI {
    * @param {string} event
    */
   set event(event: string) {
-    if (check12ValidFormat(event, scorm12_regex.NAVEvent)) {
+    if (event === "" || check12ValidFormat(event, scorm12_regex.NAVEvent)) {
       this._event = event;
     }
   }

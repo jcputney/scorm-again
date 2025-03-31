@@ -288,6 +288,17 @@ class Scorm12Impl extends BaseAPI {
         scorm12_constants.error_descriptions[errorNumber].detailMessage;
     }
 
+    // Add descriptions to scorm12_errors for backward compatibility with tests
+    if (!this.error_codes.descriptions) {
+      this.error_codes.descriptions = {};
+    }
+    if (!this.error_codes.descriptions[errorNumber]) {
+      this.error_codes.descriptions[errorNumber] = {
+        basicMessage: basicMessage,
+        detailMessage: detailMessage,
+      };
+    }
+
     return detail ? detailMessage : basicMessage;
   }
 

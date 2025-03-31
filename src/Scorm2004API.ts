@@ -110,7 +110,7 @@ class Scorm2004Impl extends BaseAPI {
     return this.initialize(
       "Initialize",
       "LMS was already initialized!",
-      "LMS is already finished!"
+      "LMS is already finished!",
     );
   }
 

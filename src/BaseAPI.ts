@@ -21,6 +21,7 @@ import {
   createErrorHandlingService,
   ErrorHandlingService,
 } from "./services/ErrorHandlingService";
+import { getLoggingService } from "./services/LoggingService";
 
 /**
  * Base API class for AICC, SCORM 1.2, and SCORM 2004. Should be considered
@@ -58,6 +59,15 @@ export default abstract class BaseAPI implements IBaseAPI {
 
     if (this.apiLogLevel === undefined) {
       this.apiLogLevel = LogLevelEnum.NONE;
+    }
+
+    // Initialize and configure LoggingService
+    const loggingService = getLoggingService();
+    loggingService.setLogLevel(this.apiLogLevel);
+
+    // If settings include a custom onLogMessage function, use it as the log handler
+    if (this.settings.onLogMessage) {
+      loggingService.setLogHandler(this.settings.onLogMessage);
     }
 
     // Initialize HTTP service
@@ -104,9 +114,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @return {string}
    */
   get lastErrorCode(): string {
-    return this._errorHandlingService
-      ? this._errorHandlingService.lastErrorCode
-      : "0";
+    return this._errorHandlingService?.lastErrorCode ?? "0";
   }
 
   /**
@@ -257,7 +265,17 @@ export default abstract class BaseAPI implements IBaseAPI {
     logMessage = formatMessage(functionName, logMessage, CMIElement);
 
     if (messageLevel >= this.apiLogLevel) {
-      this.settings.onLogMessage(messageLevel, logMessage);
+      // Use the centralized LoggingService
+      getLoggingService().log(messageLevel, logMessage);
+
+      // For backward compatibility, also call the settings.onLogMessage if it exists
+      // and is different from the LoggingService's handler
+      if (
+        this.settings.onLogMessage &&
+        this.settings.onLogMessage !== getLoggingService()["_logHandler"]
+      ) {
+        this.settings.onLogMessage(messageLevel, logMessage);
+      }
     }
   }
 
@@ -282,11 +300,30 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {Settings} settings
    */
   set settings(settings: Settings) {
+    const previousSettings = this._settings;
     this._settings = { ...this._settings, ...settings };
 
     // Update HTTP service settings
-    if (this._httpService) {
-      this._httpService.updateSettings(this._settings);
+    this._httpService?.updateSettings(this._settings);
+
+    // Update LoggingService if logLevel or onLogMessage changed
+    const loggingService = getLoggingService();
+
+    // Update log level if it changed
+    if (
+      settings.logLevel !== undefined &&
+      settings.logLevel !== previousSettings.logLevel
+    ) {
+      this.apiLogLevel = settings.logLevel;
+      loggingService.setLogLevel(settings.logLevel);
+    }
+
+    // Update log handler if onLogMessage changed
+    if (
+      settings.onLogMessage !== undefined &&
+      settings.onLogMessage !== previousSettings.onLogMessage
+    ) {
+      loggingService.setLogHandler(settings.onLogMessage);
     }
   }
 
@@ -312,13 +349,10 @@ export default abstract class BaseAPI implements IBaseAPI {
       this.currentState = global_constants.STATE_TERMINATED;
 
       const result: ResultObject = await this.storeData(true);
-      if (typeof result.errorCode !== "undefined" && result.errorCode > 0) {
+      if ((result.errorCode ?? 0) > 0) {
         this.throwSCORMError(result.errorCode);
       }
-      returnValue =
-        typeof result !== "undefined" && result.result
-          ? result.result
-          : global_constants.SCORM_FALSE;
+      returnValue = result?.result ?? global_constants.SCORM_FALSE;
 
       if (checkTerminated) this.lastErrorCode = "0";
 
@@ -465,13 +499,10 @@ export default abstract class BaseAPI implements IBaseAPI {
       )
     ) {
       const result = await this.storeData(false);
-      if (result.errorCode && result.errorCode > 0) {
+      if ((result.errorCode ?? 0) > 0) {
         this.throwSCORMError(result.errorCode);
       }
-      returnValue =
-        typeof result !== "undefined" && result.result
-          ? result.result
-          : global_constants.SCORM_FALSE;
+      returnValue = result?.result ?? global_constants.SCORM_FALSE;
 
       this.apiLog(
         callbackName,

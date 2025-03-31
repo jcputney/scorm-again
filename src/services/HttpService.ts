@@ -1,4 +1,9 @@
-import { CommitObject, RefObject, ResultObject, Settings } from "../types/api_types";
+import {
+  CommitObject,
+  RefObject,
+  ResultObject,
+  Settings,
+} from "../types/api_types";
 import { global_constants } from "../constants/api_constants";
 import { LogLevelEnum } from "../constants/enums";
 
@@ -16,7 +21,11 @@ export class HttpService {
    * @param {string|number} apiLogLevel - The log level
    * @param {any} error_codes - The error codes object
    */
-  constructor(settings: Settings, apiLogLevel: string | number, error_codes: any) {
+  constructor(
+    settings: Settings,
+    apiLogLevel: string | number,
+    error_codes: any,
+  ) {
     this.settings = settings;
     this.apiLogLevel = apiLogLevel;
     this.error_codes = error_codes;
@@ -35,8 +44,17 @@ export class HttpService {
     url: string,
     params: CommitObject | RefObject | Array<any>,
     immediate: boolean = false,
-    apiLog: (functionName: string, message: any, messageLevel: LogLevelEnum, CMIElement?: string) => void,
-    processListeners: (functionName: string, CMIElement?: string, value?: any) => void
+    apiLog: (
+      functionName: string,
+      message: any,
+      messageLevel: LogLevelEnum,
+      CMIElement?: string,
+    ) => void,
+    processListeners: (
+      functionName: string,
+      CMIElement?: string,
+      value?: any,
+    ) => void,
   ): Promise<ResultObject> {
     const genericError: ResultObject = {
       result: global_constants.SCORM_FALSE,
@@ -107,8 +125,12 @@ export class HttpService {
    * @private
    */
   private async transformResponse(
-    response: Response, 
-    processListeners: (functionName: string, CMIElement?: string, value?: any) => void
+    response: Response,
+    processListeners: (
+      functionName: string,
+      CMIElement?: string,
+      value?: any,
+    ) => void,
   ): Promise<ResultObject> {
     const result =
       typeof this.settings.responseHandler === "function"

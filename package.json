@@ -89,6 +89,7 @@
   },
   "homepage": "https://github.com/jcputney/scorm-again",
   "dependencies": {},
+  "postinstall": "mkdir -p node_modules/nyc/bin && echo \"require('../../c8/bin/c8.js')\" > node_modules/nyc/bin/nyc.js",
   "c8": {
     "extends": "@istanbuljs/nyc-config-typescript",
     "check-coverage": true,

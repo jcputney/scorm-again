@@ -1,9 +1,8 @@
 import { CMIArray } from "../cmi/common/array";
-import { ValidationError } from "../exceptions";
 import { ErrorCode } from "../constants/error_codes";
 import { global_constants } from "../constants/api_constants";
 import { stringMatches } from "../utilities";
-import { RefObject, LogLevel } from "../types/api_types";
+import { LogLevel, RefObject } from "../types/api_types";
 import { LogLevelEnum } from "../constants/enums";
 
 /**
@@ -11,11 +10,23 @@ import { LogLevelEnum } from "../constants/enums";
  */
 export class CMIDataService {
   private _error_codes: ErrorCode;
-  private _apiLog: (functionName: string, message: string, logLevel?: LogLevel, CMIElement?: string) => void;
+  private _apiLog: (
+    functionName: string,
+    message: string,
+    logLevel?: LogLevel,
+    CMIElement?: string,
+  ) => void;
   private _throwSCORMError: (errorNumber: number, message?: string) => void;
   private _validateCorrectResponse: (CMIElement: string, value: any) => void;
-  private _getChildElement: (CMIElement: string, value: any, foundFirstIndex: boolean) => any;
-  private _checkObjectHasProperty: (refObject: RefObject, attribute: string) => boolean;
+  private _getChildElement: (
+    CMIElement: string,
+    value: any,
+    foundFirstIndex: boolean,
+  ) => any;
+  private _checkObjectHasProperty: (
+    refObject: RefObject,
+    attribute: string,
+  ) => boolean;
   private _lastErrorCode: string;
 
   /**
@@ -31,11 +42,23 @@ export class CMIDataService {
    */
   constructor(
     error_codes: ErrorCode,
-    apiLog: (functionName: string, message: string, logLevel?: LogLevel, CMIElement?: string) => void,
+    apiLog: (
+      functionName: string,
+      message: string,
+      logLevel?: LogLevel,
+      CMIElement?: string,
+    ) => void,
     throwSCORMError: (errorNumber: number, message?: string) => void,
     validateCorrectResponse: (CMIElement: string, value: any) => void,
-    getChildElement: (CMIElement: string, value: any, foundFirstIndex: boolean) => any,
-    checkObjectHasProperty: (refObject: RefObject, attribute: string) => boolean,
+    getChildElement: (
+      CMIElement: string,
+      value: any,
+      foundFirstIndex: boolean,
+    ) => any,
+    checkObjectHasProperty: (
+      refObject: RefObject,
+      attribute: string,
+    ) => boolean,
     lastErrorCode: string = "0",
   ) {
     this._error_codes = error_codes;

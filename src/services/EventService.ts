@@ -22,7 +22,12 @@ export class EventService {
    * @param {Function} apiLog - Function to log API messages
    */
   constructor(
-    private apiLog: (functionName: string, message: string, messageLevel: LogLevel, CMIElement?: string) => void
+    private apiLog: (
+      functionName: string,
+      message: string,
+      messageLevel: LogLevel,
+      CMIElement?: string,
+    ) => void,
   ) {}
 
   /**
@@ -171,4 +176,3 @@ export class EventService {
     this.listenerArray = [];
   }
 }
-

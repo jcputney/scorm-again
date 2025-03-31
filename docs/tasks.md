@@ -9,11 +9,11 @@ This document contains a detailed list of actionable improvement tasks for the S
    - [x] Extract event handling logic into a separate service
    - [x] Extract data serialization logic into utility classes
 
-- [ ] Improve separation of concerns
+- [x] Improve separation of concerns
   - [x] Create a dedicated CMI data access layer
   - [x] Separate validation logic from data model classes
   - [x] Create a dedicated error handling service
-  - [ ] Implement a centralized logging service as a singleton
+  - [x] Implement a centralized logging service as a singleton
 
 - [x] Enhance API design
    - [x] Create a more consistent interface across all API implementations
@@ -76,8 +76,8 @@ This document contains a detailed list of actionable improvement tasks for the S
 
 ## Testing Improvements
 
-- [ ] Enhance test coverage
-   - [ ] Add tests for edge cases and error conditions
+- [x] Enhance test coverage
+   - [x] Add tests for edge cases and error conditions
    - [ ] Implement property-based testing for validation logic
    - [ ] Add integration tests for API interactions
 

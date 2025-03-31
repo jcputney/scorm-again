@@ -77,3 +77,4 @@ test-results.json
 /test-results/
 scorm-again.zip
 .output.txt
+coverage-*
