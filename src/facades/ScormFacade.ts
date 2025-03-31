@@ -8,7 +8,7 @@
 import { Scorm2004Impl } from "../Scorm2004API";
 import { Scorm12Impl } from "../Scorm12API";
 import { AICCImpl } from "../AICC";
-import { Settings, RefObject, ResultObject } from "../types/api_types";
+import { RefObject, Settings } from "../types/api_types";
 import { CompletionStatus, SuccessStatus } from "../constants/enums";
 import BaseAPI from "../BaseAPI";
 
@@ -92,12 +92,6 @@ export interface IScormFacade {
   setScore(score: number): boolean;
 
   /**
-   * Get the current API version
-   * @returns The API version
-   */
-  getVersion(): string;
-
-  /**
    * Check if the API is currently initialized
    * @returns True if the API is initialized
    */
@@ -128,7 +122,7 @@ export interface IScormFacade {
 export function createScormFacade(
   apiType: "2004" | "1.2" | "AICC" = "2004",
   settings?: Settings,
-  startingData?: RefObject
+  startingData?: RefObject,
 ): IScormFacade {
   return new ScormFacade(apiType, settings, startingData);
 }
@@ -149,7 +143,7 @@ class ScormFacade implements IScormFacade {
   constructor(
     apiType: "2004" | "1.2" | "AICC" = "2004",
     settings?: Settings,
-    startingData?: RefObject
+    startingData?: RefObject,
   ) {
     // Create the appropriate API instance based on the apiType
     switch (apiType) {
@@ -273,14 +267,6 @@ class ScormFacade implements IScormFacade {
     const scaledResult = this.setValue("cmi.score.scaled", normalizedScore);
 
     return rawResult && scaledResult;
-  }
-
-  /**
-   * Get the current API version
-   * @returns The API version
-   */
-  getVersion(): string {
-    return this._api.version ? this._api.version() : "";
   }
 
   /**

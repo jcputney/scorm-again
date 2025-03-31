@@ -1,6 +1,5 @@
-import { RefObject, CommitObject, LogLevel } from "../types/api_types";
+import { CommitObject, LogLevel, RefObject } from "../types/api_types";
 import { unflatten } from "../utilities";
-import { global_constants } from "../constants/api_constants";
 import { LogLevelEnum } from "../constants/enums";
 
 /**

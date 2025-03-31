@@ -1,8 +1,6 @@
-import { CMIArray } from "./cmi/common/array";
-import { ValidationError } from "./exceptions";
 import { ErrorCode } from "./constants/error_codes";
 import { global_constants } from "./constants/api_constants";
-import { formatMessage, stringMatches, unflatten } from "./utilities";
+import { formatMessage } from "./utilities";
 import { BaseCMI } from "./cmi/common/base_cmi";
 import {
   CommitObject,
@@ -20,8 +18,8 @@ import { EventService } from "./services/EventService";
 import { SerializationService } from "./services/SerializationService";
 import { CMIDataService } from "./services/CMIDataService";
 import {
-  ErrorHandlingService,
   createErrorHandlingService,
+  ErrorHandlingService,
 } from "./services/ErrorHandlingService";
 
 /**
@@ -36,7 +34,7 @@ export default abstract class BaseAPI implements IBaseAPI {
   private _eventService: EventService;
   private _serializationService: SerializationService;
   private _cmiDataService: CMIDataService;
-  private _errorHandlingService: ErrorHandlingService;
+  private readonly _errorHandlingService: ErrorHandlingService;
 
   /**
    * Constructor for Base API class. Sets some shared API fields, as well as
@@ -106,7 +104,9 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @return {string}
    */
   get lastErrorCode(): string {
-    return this._errorHandlingService ? this._errorHandlingService.lastErrorCode : "0";
+    return this._errorHandlingService
+      ? this._errorHandlingService.lastErrorCode
+      : "0";
   }
 
   /**
@@ -880,7 +880,10 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @private
    */
   private handleValueAccessException(e: any, returnValue: string): string {
-    return this._errorHandlingService.handleValueAccessException(e, returnValue);
+    return this._errorHandlingService.handleValueAccessException(
+      e,
+      returnValue,
+    );
   }
 
   /**

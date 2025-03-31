@@ -8,9 +8,13 @@ import { ValidationError } from "../exceptions";
  */
 export class ErrorHandlingService {
   private _lastErrorCode: string = "0";
-  private _errorCodes: ErrorCode;
-  private _apiLog: (functionName: string, message: string, logLevel?: LogLevelEnum) => void;
-  private _getLmsErrorMessageDetails: (errorCode: number) => string;
+  private readonly _errorCodes: ErrorCode;
+  private readonly _apiLog: (
+    functionName: string,
+    message: string,
+    logLevel?: LogLevelEnum,
+  ) => void;
+  private readonly _getLmsErrorMessageDetails: (errorCode: number) => string;
 
   /**
    * Constructor for ErrorHandlingService
@@ -21,7 +25,11 @@ export class ErrorHandlingService {
    */
   constructor(
     errorCodes: ErrorCode,
-    apiLog: (functionName: string, message: string, logLevel?: LogLevelEnum) => void,
+    apiLog: (
+      functionName: string,
+      message: string,
+      logLevel?: LogLevelEnum,
+    ) => void,
     getLmsErrorMessageDetails: (errorCode: number) => string,
   ) {
     this._errorCodes = errorCodes;
@@ -113,8 +121,16 @@ export class ErrorHandlingService {
 // Export a factory function to create the service
 export function createErrorHandlingService(
   errorCodes: ErrorCode,
-  apiLog: (functionName: string, message: string, logLevel?: LogLevelEnum) => void,
+  apiLog: (
+    functionName: string,
+    message: string,
+    logLevel?: LogLevelEnum,
+  ) => void,
   getLmsErrorMessageDetails: (errorCode: number) => string,
 ): ErrorHandlingService {
-  return new ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails);
+  return new ErrorHandlingService(
+    errorCodes,
+    apiLog,
+    getLmsErrorMessageDetails,
+  );
 }

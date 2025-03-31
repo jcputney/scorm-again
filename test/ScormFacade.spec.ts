@@ -8,18 +8,22 @@ import { expect } from "expect";
 import { describe, it } from "mocha";
 import * as sinon from "sinon";
 import { createScormFacade, IScormFacade } from "../src/facades/ScormFacade";
-import { CompletionStatus, SuccessStatus } from "../src/constants/enums";
+import {
+  CompletionStatus,
+  LogLevelEnum,
+  SuccessStatus,
+} from "../src/constants/enums";
 
 describe("ScormFacade", () => {
   describe("Factory function", () => {
     it("should create a ScormFacade instance with default settings", () => {
-      const facade = createScormFacade();
+      const facade = createScormFacade("2004", { logLevel: LogLevelEnum.NONE });
       expect(facade).toBeDefined();
       expect(facade.isInitialized()).toBe(false);
     });
 
     it("should create a ScormFacade instance with specified API type", () => {
-      const facade = createScormFacade("1.2");
+      const facade = createScormFacade("1.2", { logLevel: LogLevelEnum.NONE });
       expect(facade).toBeDefined();
       expect(facade.isInitialized()).toBe(false);
     });
@@ -29,7 +33,7 @@ describe("ScormFacade", () => {
     let facade: IScormFacade;
 
     beforeEach(() => {
-      facade = createScormFacade();
+      facade = createScormFacade("2004", { logLevel: LogLevelEnum.NONE });
     });
 
     it("should initialize the API", () => {
@@ -49,7 +53,10 @@ describe("ScormFacade", () => {
       facade.initialize();
 
       // Set a value
-      const setResult = facade.setValue("cmi.completion_status", CompletionStatus.COMPLETED);
+      const setResult = facade.setValue(
+        "cmi.completion_status",
+        CompletionStatus.COMPLETED,
+      );
       expect(setResult).toBe(true);
 
       // Get the value back
@@ -93,7 +100,9 @@ describe("ScormFacade", () => {
 
       facade.setStatus(CompletionStatus.COMPLETED);
 
-      expect(spy.calledWith("cmi.completion_status", CompletionStatus.COMPLETED)).toBe(true);
+      expect(
+        spy.calledWith("cmi.completion_status", CompletionStatus.COMPLETED),
+      ).toBe(true);
       spy.restore();
     });
 
@@ -102,7 +111,9 @@ describe("ScormFacade", () => {
 
       facade.setSuccessStatus(SuccessStatus.PASSED);
 
-      expect(spy.calledWith("cmi.success_status", SuccessStatus.PASSED)).toBe(true);
+      expect(spy.calledWith("cmi.success_status", SuccessStatus.PASSED)).toBe(
+        true,
+      );
       spy.restore();
     });
 

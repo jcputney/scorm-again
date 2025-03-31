@@ -8,10 +8,10 @@ import * as sinon from "sinon";
 import { CMITries } from "../src/cmi/aicc/tries";
 import { CMIInteractions } from "../src/cmi/scorm12/interactions";
 import { RefObject, Settings } from "../src/types/api_types";
+import { LogLevelEnum } from "../src/constants/enums";
 
 const api = (settings?: Settings, startingData: RefObject = {}) => {
-  const API = new AICCImpl(settings);
-  API.apiLogLevel = 1;
+  const API = new AICCImpl({ ...settings, logLevel: LogLevelEnum.NONE });
   if (startingData) {
     API.startingData = startingData;
   }

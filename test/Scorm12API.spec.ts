@@ -8,12 +8,15 @@ import * as sinon from "sinon";
 import Pretender from "fetch-pretender";
 import { RefObject, Settings } from "../src/types/api_types";
 import { DefaultSettings } from "../src/constants/default_settings";
-import { SuccessStatus, CompletionStatus } from "../src/constants/enums";
+import {
+  CompletionStatus,
+  LogLevelEnum,
+  SuccessStatus,
+} from "../src/constants/enums";
 
 let clock: sinon.SinonFakeTimers;
 const api = (settings?: Settings, startingData: RefObject = {}) => {
-  const API = new Scorm12Impl(settings);
-  API.apiLogLevel = 5;
+  const API = new Scorm12Impl({ ...settings, logLevel: LogLevelEnum.NONE });
   API.startingData = startingData;
   return API;
 };
@@ -556,7 +559,9 @@ describe("SCORM 1.2 API Tests", () => {
       scorm12API.cmi.core.lesson_status = "failed";
       const commitObject = scorm12API.renderCommitObject(true);
       expect(commitObject.successStatus).toEqual(SuccessStatus.FAILED);
-      expect(commitObject.completionStatus).toEqual(CompletionStatus.INCOMPLETE);
+      expect(commitObject.completionStatus).toEqual(
+        CompletionStatus.INCOMPLETE,
+      );
       expect(commitObject.runtimeData.cmi.core.lesson_status).toEqual("failed");
     });
 

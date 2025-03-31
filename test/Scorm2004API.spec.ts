@@ -14,12 +14,15 @@ import { RefObject, Settings } from "../src/types/api_types";
 import { DefaultSettings } from "../src/constants/default_settings";
 import { CMIInteractions } from "../src/cmi/scorm2004/interactions";
 import { ADLNav } from "../src/cmi/scorm2004/adl";
-import { SuccessStatus, CompletionStatus } from "../src/constants/enums";
+import {
+  CompletionStatus,
+  LogLevelEnum,
+  SuccessStatus,
+} from "../src/constants/enums";
 
 let clock: sinon.SinonFakeTimers;
 const api = (settings?: Settings, startingData: RefObject = {}) => {
-  const API = new Scorm2004Impl(settings);
-  API.apiLogLevel = 5;
+  const API = new Scorm2004Impl({ ...settings, logLevel: LogLevelEnum.NONE });
   if (startingData) {
     API.startingData = startingData;
   }
@@ -30,6 +33,12 @@ const apiInitialized = (startingData?: RefObject) => {
   API.loadFromJSON(startingData ? startingData : {}, "");
   API.lmsInitialize();
   return API;
+};
+const basicApi = (settings?: Settings) => {
+  return new Scorm2004Impl({
+    ...settings,
+    logLevel: LogLevelEnum.NONE,
+  });
 };
 
 describe("SCORM 2004 API Tests", () => {
@@ -704,6 +713,7 @@ describe("SCORM 2004 API Tests", () => {
         ...DefaultSettings,
         dataCommitFormat: "flattened",
         autocommit: true,
+        logLevel: LogLevelEnum.NONE,
       });
 
       scorm2004API.reset({
@@ -962,7 +972,9 @@ describe("SCORM 2004 API Tests", () => {
       const commitObject = scorm2004API.renderCommitObject(true);
       expect(commitObject.successStatus).toEqual(SuccessStatus.PASSED);
       expect(commitObject.completionStatus).toEqual(CompletionStatus.UNKNOWN);
-      expect(commitObject.runtimeData.cmi.success_status).toEqual(SuccessStatus.PASSED);
+      expect(commitObject.runtimeData.cmi.success_status).toEqual(
+        SuccessStatus.PASSED,
+      );
     });
 
     it("should render commit object with failed success status", () => {
@@ -971,7 +983,9 @@ describe("SCORM 2004 API Tests", () => {
       const commitObject = scorm2004API.renderCommitObject(true);
       expect(commitObject.successStatus).toEqual(SuccessStatus.FAILED);
       expect(commitObject.completionStatus).toEqual(CompletionStatus.UNKNOWN);
-      expect(commitObject.runtimeData.cmi.success_status).toEqual(SuccessStatus.FAILED);
+      expect(commitObject.runtimeData.cmi.success_status).toEqual(
+        SuccessStatus.FAILED,
+      );
     });
 
     it("should calculate total time when terminateCommit is true", () => {
@@ -1035,7 +1049,7 @@ describe("SCORM 2004 API Tests", () => {
 
   describe("checkCorrectResponseValue()", () => {
     it("should properly handle the true-false response type for unknown value", () => {
-      const scorm2004API = new Scorm2004Impl();
+      const scorm2004API = basicApi();
       scorm2004API.checkCorrectResponseValue("true-false", ["unknown"], "true");
       expect(scorm2004API.lmsGetLastError()).toEqual(
         String(scorm2004_errors.TYPE_MISMATCH),
@@ -1043,13 +1057,13 @@ describe("SCORM 2004 API Tests", () => {
     });
 
     it("should properly handle the true-false response type for correct value", () => {
-      const scorm2004API = new Scorm2004Impl();
+      const scorm2004API = basicApi();
       scorm2004API.checkCorrectResponseValue("true-false", ["true"], "true");
       expect(scorm2004API.lmsGetLastError()).toEqual(String(0));
     });
 
     it("should properly handle the choice response type for value over 4000 characters", () => {
-      const scorm2004API = new Scorm2004Impl();
+      const scorm2004API = basicApi();
       scorm2004API.checkCorrectResponseValue(
         "choice",
         ["x".repeat(4001)],
@@ -1061,25 +1075,25 @@ describe("SCORM 2004 API Tests", () => {
     });
 
     it("should properly handle the choice response type for correct value", () => {
-      const scorm2004API = new Scorm2004Impl();
+      const scorm2004API = basicApi();
       scorm2004API.checkCorrectResponseValue("choice", ["true"], "true");
       expect(scorm2004API.lmsGetLastError()).toEqual(String(0));
     });
 
     it("should properly handle the fill-in response type for correct value", () => {
-      const scorm2004API = new Scorm2004Impl();
+      const scorm2004API = basicApi();
       scorm2004API.checkCorrectResponseValue("fill-in", ["true"], "true");
       expect(scorm2004API.lmsGetLastError()).toEqual(String(0));
     });
 
     it("should properly handle the long-fill-in response type for correct value", () => {
-      const scorm2004API = new Scorm2004Impl();
+      const scorm2004API = basicApi();
       scorm2004API.checkCorrectResponseValue("long-fill-in", ["true"], "true");
       expect(scorm2004API.lmsGetLastError()).toEqual(String(0));
     });
 
     it("should properly handle the matching response type for correct value", () => {
-      const scorm2004API = new Scorm2004Impl();
+      const scorm2004API = basicApi();
       scorm2004API.checkCorrectResponseValue(
         "matching",
         ["{order_matters=true}0[.]1"],
@@ -1091,28 +1105,28 @@ describe("SCORM 2004 API Tests", () => {
 
   describe("removeCorrectResponsePrefixes()", () => {
     it("should remove the prefix from the string", () => {
-      const scorm2004API = new Scorm2004Impl();
+      const scorm2004API = basicApi();
       const input = "{order_matters=true}correctResponse";
       const result = scorm2004API.removeCorrectResponsePrefixes(input);
       expect(result).toBe("correctResponse");
     });
 
     it("should return the original string if no prefix is present", () => {
-      const scorm2004API = new Scorm2004Impl();
+      const scorm2004API = basicApi();
       const input = "correctResponse";
       const result = scorm2004API.removeCorrectResponsePrefixes(input);
       expect(result).toBe("correctResponse");
     });
 
     it("should handle empty strings correctly", () => {
-      const scorm2004API = new Scorm2004Impl();
+      const scorm2004API = basicApi();
       const input = "";
       const result = scorm2004API.removeCorrectResponsePrefixes(input);
       expect(result).toBe("");
     });
 
     it("should handle multiple prefixes correctly", () => {
-      const scorm2004API = new Scorm2004Impl();
+      const scorm2004API = basicApi();
       const input =
         "{lang=en}{order_matters=true}{case_matters=false}correctResponse";
       const result = scorm2004API.removeCorrectResponsePrefixes(input);
@@ -1120,7 +1134,7 @@ describe("SCORM 2004 API Tests", () => {
     });
 
     it("should throw an error for invalid order_matters value", () => {
-      const scorm2004API = new Scorm2004Impl();
+      const scorm2004API = basicApi();
       const input = "{order_matters=invalid}correctResponse";
       scorm2004API.removeCorrectResponsePrefixes(input);
       expect(scorm2004API.lmsGetLastError()).toEqual(
@@ -1129,7 +1143,7 @@ describe("SCORM 2004 API Tests", () => {
     });
 
     it("should throw an error for invalid case_matters value", () => {
-      const scorm2004API = new Scorm2004Impl();
+      const scorm2004API = basicApi();
       const input = "{case_matters=invalid}correctResponse";
       scorm2004API.removeCorrectResponsePrefixes(input);
       expect(scorm2004API.lmsGetLastError()).toEqual(
@@ -1138,14 +1152,14 @@ describe("SCORM 2004 API Tests", () => {
     });
 
     it("should ignore an unknown prefix", () => {
-      const scorm2004API = new Scorm2004Impl();
+      const scorm2004API = basicApi();
       const input = "{unknown=true}correctResponse";
       const result = scorm2004API.removeCorrectResponsePrefixes(input);
       expect(result).toBe("{unknown=true}correctResponse");
     });
 
     it("should throw an error with an invalid language code", () => {
-      const scorm2004API = new Scorm2004Impl();
+      const scorm2004API = basicApi();
       const input = "{lang=xyz}correctResponse";
       scorm2004API.removeCorrectResponsePrefixes(input);
       expect(scorm2004API.lmsGetLastError()).toEqual(
@@ -1175,7 +1189,7 @@ describe("SCORM 2004 API Tests", () => {
     });
 
     it("should call throwSCORMError with the correct arguments in createCorrectResponsesObject", () => {
-      const scorm2004API = new Scorm2004Impl();
+      const scorm2004API = basicApi();
       const interaction = {
         id: "interaction-id-1",
         type: "invalid-type",
