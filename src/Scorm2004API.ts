@@ -469,7 +469,7 @@ class Scorm2004Impl extends BaseAPI {
   renderCommitCMI(terminateCommit: boolean): StringKeyMap | Array<any> {
     return DataSerializationModule.renderCommitCMI(
       terminateCommit,
-      this.cmi,
+      this.cmi as unknown as StringKeyMap,
       this.settings,
       this.renderCMIToJSONObject.bind(this),
     );
@@ -508,4 +508,4 @@ class Scorm2004Impl extends BaseAPI {
   }
 }
 
-export { Scorm2004Impl };
+export { Scorm2004Impl as Scorm2004API };

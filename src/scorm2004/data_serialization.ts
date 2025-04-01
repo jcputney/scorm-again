@@ -30,7 +30,7 @@ export function renderCommitCMI(
   const cmiExport: StringKeyMap = renderCMIToJSONObject();
 
   if (terminateCommit) {
-    cmiExport.cmi.total_time = cmi.getCurrentTotalTime();
+    (cmiExport.cmi as any).total_time = (cmi as any).getCurrentTotalTime();
   }
 
   const result = [];
@@ -110,7 +110,7 @@ export function renderCommitObject(
     completionStatus: completionStatus,
     successStatus: successStatus,
     totalTimeSeconds: totalTimeSeconds,
-    runtimeData: cmiExport,
+    runtimeData: cmiExport as StringKeyMap,
   };
   if (scoreObject) {
     commitObject.score = scoreObject;

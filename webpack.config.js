@@ -67,7 +67,9 @@ const cjsConfig = {
   output: {
     path: path.resolve(__dirname, "dist"),
     filename: "[name].js",
-    libraryTarget: "this",
+    library: {
+      type: "window",
+    },
     environment: {
       arrowFunction: false,
     },
@@ -76,16 +78,18 @@ const cjsConfig = {
 
 const esmConfig = {
   ...commonConfig,
-  experiments: {
-    outputModule: true,
-  },
   output: {
     path: path.resolve(__dirname, "dist/esm"),
     filename: "[name].js",
-    libraryTarget: "module",
+    library: {
+      type: "module",
+    },
     environment: {
       arrowFunction: false,
     },
+  },
+  experiments: {
+    outputModule: true,
   },
 };
 

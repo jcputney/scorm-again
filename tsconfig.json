@@ -9,7 +9,7 @@
     "target": "es5",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "typeRoots": ["node_modules/@types"],
+    "typeRoots": ["node_modules/@types", "src/types"],
     "removeComments": true,
     "importHelpers": true,
     "forceConsistentCasingInFileNames": true

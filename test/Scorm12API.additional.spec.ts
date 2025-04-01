@@ -1,7 +1,7 @@
 import { expect } from "expect";
 import { describe, it } from "mocha";
 import * as sinon from "sinon";
-import { Scorm12Impl } from "../src/Scorm12API";
+import { Scorm12API } from "../src/Scorm12API";
 import {
   global_constants,
   scorm12_constants,
@@ -11,7 +11,7 @@ import { LogLevelEnum } from "../src/constants/enums";
 
 // Helper functions to create API instances
 const api = (settings?: Settings) => {
-  return new Scorm12Impl({ ...settings, logLevel: LogLevelEnum.NONE });
+  return new Scorm12API({ ...settings, logLevel: LogLevelEnum.NONE });
 };
 
 describe("SCORM 1.2 API Additional Tests", () => {

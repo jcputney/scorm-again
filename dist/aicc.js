@@ -2,7 +2,7 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 429:
+/***/ 273:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 // ESM COMPAT FLAG
@@ -15,10 +15,6 @@ __webpack_require__.d(__webpack_exports__, {
 
 // EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
 var tslib_es6 = __webpack_require__(635);
-// EXTERNAL MODULE: ./src/cmi/common/array.ts
-var array = __webpack_require__(589);
-// EXTERNAL MODULE: ./src/exceptions.ts
-var exceptions = __webpack_require__(784);
 // EXTERNAL MODULE: ./src/constants/api_constants.ts
 var api_constants = __webpack_require__(340);
 // EXTERNAL MODULE: ./src/utilities.ts
@@ -97,43 +93,44 @@ var DefaultSettings = {
     requestHandler: function (commitObject) {
         return commitObject;
     },
-    onLogMessage: function (messageLevel, logMessage) {
-        switch (messageLevel) {
-            case "4":
-            case 4:
-            case "ERROR":
-            case enums.LogLevelEnum.ERROR:
-                console.error(logMessage);
-                break;
-            case "3":
-            case 3:
-            case "WARN":
-            case enums.LogLevelEnum.WARN:
-                console.warn(logMessage);
-                break;
-            case "2":
-            case 2:
-            case "INFO":
-            case enums.LogLevelEnum.INFO:
-                console.info(logMessage);
-                break;
-            case "1":
-            case 1:
-            case "DEBUG":
-            case enums.LogLevelEnum.DEBUG:
-                if (console.debug) {
-                    console.debug(logMessage);
-                }
-                else {
-                    console.log(logMessage);
-                }
-                break;
-        }
-    },
+    onLogMessage: defaultLogHandler,
     scoItemIds: [],
     scoItemIdValidator: false,
     globalObjectiveIds: [],
 };
+function defaultLogHandler(messageLevel, logMessage) {
+    switch (messageLevel) {
+        case "4":
+        case 4:
+        case "ERROR":
+        case enums.LogLevelEnum.ERROR:
+            console.error(logMessage);
+            break;
+        case "3":
+        case 3:
+        case "WARN":
+        case enums.LogLevelEnum.WARN:
+            console.warn(logMessage);
+            break;
+        case "2":
+        case 2:
+        case "INFO":
+        case enums.LogLevelEnum.INFO:
+            console.info(logMessage);
+            break;
+        case "1":
+        case 1:
+        case "DEBUG":
+        case enums.LogLevelEnum.DEBUG:
+            if (console.debug) {
+                console.debug(logMessage);
+            }
+            else {
+                console.log(logMessage);
+            }
+            break;
+    }
+}
 
 ;// ./src/helpers/scheduled_commit.ts
 
@@ -165,6 +162,720 @@ var ScheduledCommit = (function () {
 }());
 
 
+;// ./src/services/HttpService.ts
+
+
+
+var HttpService = (function () {
+    function HttpService(settings, error_codes) {
+        this.settings = settings;
+        this.error_codes = error_codes;
+    }
+    HttpService.prototype.processHttpRequest = function (url_1, params_1) {
+        return (0,tslib_es6.__awaiter)(this, arguments, void 0, function (url, params, immediate, apiLog, processListeners) {
+            var genericError, process;
+            var _this = this;
+            if (immediate === void 0) { immediate = false; }
+            return (0,tslib_es6.__generator)(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        genericError = {
+                            result: api_constants.global_constants.SCORM_FALSE,
+                            errorCode: this.error_codes.GENERAL,
+                        };
+                        if (immediate) {
+                            this.performFetch(url, params).then(function (response) { return (0,tslib_es6.__awaiter)(_this, void 0, void 0, function () {
+                                return (0,tslib_es6.__generator)(this, function (_a) {
+                                    switch (_a.label) {
+                                        case 0: return [4, this.transformResponse(response, processListeners)];
+                                        case 1:
+                                            _a.sent();
+                                            return [2];
+                                    }
+                                });
+                            }); });
+                            return [2, {
+                                    result: api_constants.global_constants.SCORM_TRUE,
+                                    errorCode: 0,
+                                }];
+                        }
+                        process = function (url, params, settings) { return (0,tslib_es6.__awaiter)(_this, void 0, void 0, function () {
+                            var response, e_1;
+                            return (0,tslib_es6.__generator)(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        _a.trys.push([0, 2, , 3]);
+                                        params = settings.requestHandler(params);
+                                        return [4, this.performFetch(url, params)];
+                                    case 1:
+                                        response = _a.sent();
+                                        return [2, this.transformResponse(response, processListeners)];
+                                    case 2:
+                                        e_1 = _a.sent();
+                                        apiLog("processHttpRequest", e_1, enums.LogLevelEnum.ERROR);
+                                        processListeners("CommitError");
+                                        return [2, genericError];
+                                    case 3: return [2];
+                                }
+                            });
+                        }); };
+                        return [4, process(url, params, this.settings)];
+                    case 1: return [2, _a.sent()];
+                }
+            });
+        });
+    };
+    HttpService.prototype.performFetch = function (url, params) {
+        return (0,tslib_es6.__awaiter)(this, void 0, void 0, function () {
+            return (0,tslib_es6.__generator)(this, function (_a) {
+                return [2, fetch(url, {
+                        method: "POST",
+                        mode: this.settings.fetchMode,
+                        body: params instanceof Array ? params.join("&") : JSON.stringify(params),
+                        headers: (0,tslib_es6.__assign)((0,tslib_es6.__assign)({}, this.settings.xhrHeaders), { "Content-Type": this.settings.commitRequestDataType }),
+                        credentials: this.settings.xhrWithCredentials ? "include" : undefined,
+                        keepalive: true,
+                    })];
+            });
+        });
+    };
+    HttpService.prototype.transformResponse = function (response, processListeners) {
+        return (0,tslib_es6.__awaiter)(this, void 0, void 0, function () {
+            var result, _a;
+            return (0,tslib_es6.__generator)(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        if (!(typeof this.settings.responseHandler === "function")) return [3, 2];
+                        return [4, this.settings.responseHandler(response)];
+                    case 1:
+                        _a = _b.sent();
+                        return [3, 4];
+                    case 2: return [4, response.json()];
+                    case 3:
+                        _a = _b.sent();
+                        _b.label = 4;
+                    case 4:
+                        result = _a;
+                        if (response.status >= 200 &&
+                            response.status <= 299 &&
+                            (result.result === true || result.result === api_constants.global_constants.SCORM_TRUE)) {
+                            processListeners("CommitSuccess");
+                            if (!Object.hasOwnProperty.call(result, "errorCode")) {
+                                result.errorCode = 0;
+                            }
+                        }
+                        else {
+                            processListeners("CommitError");
+                            if (!Object.hasOwnProperty.call(result, "errorCode")) {
+                                result.errorCode = this.error_codes.GENERAL;
+                            }
+                        }
+                        return [2, result];
+                }
+            });
+        });
+    };
+    HttpService.prototype.updateSettings = function (settings) {
+        this.settings = settings;
+    };
+    return HttpService;
+}());
+
+
+;// ./src/services/EventService.ts
+
+
+var EventService = (function () {
+    function EventService(apiLog) {
+        this.apiLog = apiLog;
+        this.listenerMap = new Map();
+        this.listenerCount = 0;
+    }
+    EventService.prototype.parseListenerName = function (listenerName) {
+        var listenerSplit = listenerName.split(".");
+        if (listenerSplit.length === 0)
+            return null;
+        var functionName = listenerSplit[0];
+        var CMIElement = null;
+        if (listenerSplit.length > 1) {
+            CMIElement = listenerName.replace("".concat(functionName, "."), "");
+        }
+        return { functionName: functionName, CMIElement: CMIElement };
+    };
+    EventService.prototype.on = function (listenerName, callback) {
+        var _a;
+        if (!callback)
+            return;
+        var listenerFunctions = listenerName.split(" ");
+        for (var _i = 0, listenerFunctions_1 = listenerFunctions; _i < listenerFunctions_1.length; _i++) {
+            var listenerFunction = listenerFunctions_1[_i];
+            var parsedListener = this.parseListenerName(listenerFunction);
+            if (!parsedListener)
+                continue;
+            var functionName = parsedListener.functionName, CMIElement = parsedListener.CMIElement;
+            var listeners = (_a = this.listenerMap.get(functionName)) !== null && _a !== void 0 ? _a : [];
+            listeners.push({
+                functionName: functionName,
+                CMIElement: CMIElement,
+                callback: callback,
+            });
+            this.listenerMap.set(functionName, listeners);
+            this.listenerCount++;
+            this.apiLog("on", "Added event listener: ".concat(this.listenerCount), enums.LogLevelEnum.INFO, functionName);
+        }
+    };
+    EventService.prototype.off = function (listenerName, callback) {
+        if (!callback)
+            return;
+        var listenerFunctions = listenerName.split(" ");
+        var _loop_1 = function (listenerFunction) {
+            var parsedListener = this_1.parseListenerName(listenerFunction);
+            if (!parsedListener)
+                return "continue";
+            var functionName = parsedListener.functionName, CMIElement = parsedListener.CMIElement;
+            var listeners = this_1.listenerMap.get(functionName);
+            if (!listeners)
+                return "continue";
+            var removeIndex = listeners.findIndex(function (obj) {
+                return obj.CMIElement === CMIElement &&
+                    obj.callback === callback;
+            });
+            if (removeIndex !== -1) {
+                listeners.splice(removeIndex, 1);
+                this_1.listenerCount--;
+                if (listeners.length === 0) {
+                    this_1.listenerMap.delete(functionName);
+                }
+                else {
+                    this_1.listenerMap.set(functionName, listeners);
+                }
+                this_1.apiLog("off", "Removed event listener: ".concat(this_1.listenerCount), enums.LogLevelEnum.INFO, functionName);
+            }
+        };
+        var this_1 = this;
+        for (var _i = 0, listenerFunctions_2 = listenerFunctions; _i < listenerFunctions_2.length; _i++) {
+            var listenerFunction = listenerFunctions_2[_i];
+            _loop_1(listenerFunction);
+        }
+    };
+    EventService.prototype.clear = function (listenerName) {
+        var listenerFunctions = listenerName.split(" ");
+        var _loop_2 = function (listenerFunction) {
+            var parsedListener = this_2.parseListenerName(listenerFunction);
+            if (!parsedListener)
+                return "continue";
+            var functionName = parsedListener.functionName, CMIElement = parsedListener.CMIElement;
+            if (this_2.listenerMap.has(functionName)) {
+                var listeners = this_2.listenerMap.get(functionName);
+                var newListeners = listeners.filter(function (obj) { return obj.CMIElement !== CMIElement; });
+                this_2.listenerCount -= (listeners.length - newListeners.length);
+                if (newListeners.length === 0) {
+                    this_2.listenerMap.delete(functionName);
+                }
+                else {
+                    this_2.listenerMap.set(functionName, newListeners);
+                }
+            }
+        };
+        var this_2 = this;
+        for (var _i = 0, listenerFunctions_3 = listenerFunctions; _i < listenerFunctions_3.length; _i++) {
+            var listenerFunction = listenerFunctions_3[_i];
+            _loop_2(listenerFunction);
+        }
+    };
+    EventService.prototype.processListeners = function (functionName, CMIElement, value) {
+        this.apiLog(functionName, value, enums.LogLevelEnum.INFO, CMIElement);
+        var listeners = this.listenerMap.get(functionName);
+        if (!listeners)
+            return;
+        for (var _i = 0, listeners_1 = listeners; _i < listeners_1.length; _i++) {
+            var listener = listeners_1[_i];
+            var listenerHasCMIElement = !!listener.CMIElement;
+            var CMIElementsMatch = false;
+            if (CMIElement &&
+                listener.CMIElement &&
+                listener.CMIElement.endsWith("*")) {
+                var prefix = listener.CMIElement.slice(0, -1);
+                CMIElementsMatch = (0,utilities.stringMatches)(CMIElement, prefix);
+            }
+            else {
+                CMIElementsMatch = listener.CMIElement === CMIElement;
+            }
+            if (!listenerHasCMIElement || CMIElementsMatch) {
+                this.apiLog("processListeners", "Processing listener: ".concat(listener.functionName), enums.LogLevelEnum.DEBUG, CMIElement);
+                listener.callback(CMIElement, value);
+            }
+        }
+    };
+    EventService.prototype.reset = function () {
+        this.listenerMap.clear();
+        this.listenerCount = 0;
+    };
+    return EventService;
+}());
+
+
+;// ./src/services/SerializationService.ts
+
+
+var SerializationService = (function () {
+    function SerializationService() {
+    }
+    SerializationService.prototype.loadFromFlattenedJSON = function (json, CMIElement, loadFromJSON, setCMIValue, isNotInitialized) {
+        if (CMIElement === void 0) { CMIElement = ""; }
+        if (!isNotInitialized()) {
+            console.error("loadFromFlattenedJSON can only be called before the call to lmsInitialize.");
+            return;
+        }
+        var int_pattern = /^(cmi\.interactions\.)(\d+)\.(.*)$/;
+        var obj_pattern = /^(cmi\.objectives\.)(\d+)\.(.*)$/;
+        var interactions = [];
+        var objectives = [];
+        var others = [];
+        for (var key in json) {
+            if (Object.prototype.hasOwnProperty.call(json, key)) {
+                var intMatch = key.match(int_pattern);
+                if (intMatch) {
+                    interactions.push({
+                        key: key,
+                        value: json[key],
+                        index: Number(intMatch[2]),
+                        field: intMatch[3]
+                    });
+                    continue;
+                }
+                var objMatch = key.match(obj_pattern);
+                if (objMatch) {
+                    objectives.push({
+                        key: key,
+                        value: json[key],
+                        index: Number(objMatch[2]),
+                        field: objMatch[3]
+                    });
+                    continue;
+                }
+                others.push({ key: key, value: json[key] });
+            }
+        }
+        interactions.sort(function (a, b) {
+            if (a.index !== b.index) {
+                return a.index - b.index;
+            }
+            if (a.field === 'id')
+                return -1;
+            if (b.field === 'id')
+                return 1;
+            if (a.field === 'type')
+                return -1;
+            if (b.field === 'type')
+                return 1;
+            return a.field.localeCompare(b.field);
+        });
+        objectives.sort(function (a, b) {
+            if (a.index !== b.index) {
+                return a.index - b.index;
+            }
+            if (a.field === 'id')
+                return -1;
+            if (b.field === 'id')
+                return 1;
+            return a.field.localeCompare(b.field);
+        });
+        others.sort(function (a, b) { return a.key.localeCompare(b.key); });
+        var processItems = function (items) {
+            items.forEach(function (item) {
+                var obj = {};
+                obj[item.key] = item.value;
+                loadFromJSON((0,utilities.unflatten)(obj), CMIElement);
+            });
+        };
+        processItems(interactions);
+        processItems(objectives);
+        processItems(others);
+    };
+    SerializationService.prototype.loadFromJSON = function (json, CMIElement, setCMIValue, isNotInitialized, setStartingData) {
+        if (CMIElement === void 0) { CMIElement = ""; }
+        if (!isNotInitialized()) {
+            console.error("loadFromJSON can only be called before the call to lmsInitialize.");
+            return;
+        }
+        CMIElement = CMIElement !== undefined ? CMIElement : "cmi";
+        setStartingData(json);
+        for (var key in json) {
+            if (Object.prototype.hasOwnProperty.call(json, key) && json[key]) {
+                var currentCMIElement = (CMIElement ? CMIElement + "." : "") + key;
+                var value = json[key];
+                if (value.constructor === Array) {
+                    for (var i = 0; i < value.length; i++) {
+                        if (value[i]) {
+                            var item = value[i];
+                            var tempCMIElement = "".concat(currentCMIElement, ".").concat(i);
+                            if (item.constructor === Object) {
+                                this.loadFromJSON(item, tempCMIElement, setCMIValue, isNotInitialized, setStartingData);
+                            }
+                            else {
+                                setCMIValue(tempCMIElement, item);
+                            }
+                        }
+                    }
+                }
+                else if (value.constructor === Object) {
+                    this.loadFromJSON(value, currentCMIElement, setCMIValue, isNotInitialized, setStartingData);
+                }
+                else {
+                    setCMIValue(currentCMIElement, value);
+                }
+            }
+        }
+    };
+    SerializationService.prototype.renderCMIToJSONString = function (cmi, sendFullCommit) {
+        if (sendFullCommit) {
+            return JSON.stringify({ cmi: cmi });
+        }
+        return JSON.stringify({ cmi: cmi }, function (k, v) { return (v === undefined ? null : v); }, 2);
+    };
+    SerializationService.prototype.renderCMIToJSONObject = function (cmi, sendFullCommit) {
+        return JSON.parse(this.renderCMIToJSONString(cmi, sendFullCommit));
+    };
+    SerializationService.prototype.getCommitObject = function (terminateCommit, alwaysSendTotalTime, renderCommonCommitFields, renderCommitObject, renderCommitCMI, apiLogLevel) {
+        var shouldTerminateCommit = terminateCommit || alwaysSendTotalTime;
+        var commitObject = renderCommonCommitFields
+            ? renderCommitObject(shouldTerminateCommit)
+            : renderCommitCMI(shouldTerminateCommit);
+        if ([enums.LogLevelEnum.DEBUG, "1", 1, "DEBUG"].includes(apiLogLevel)) {
+            console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");
+            console.debug(commitObject);
+        }
+        return commitObject;
+    };
+    return SerializationService;
+}());
+
+
+// EXTERNAL MODULE: ./src/exceptions.ts
+var exceptions = __webpack_require__(784);
+// EXTERNAL MODULE: ./src/cmi/common/array.ts
+var array = __webpack_require__(589);
+;// ./src/utils/type_guards.ts
+
+
+function isValidationError(value) {
+    return value instanceof exceptions.ValidationError;
+}
+function isError(value) {
+    return value instanceof Error;
+}
+function isCMIArray(value) {
+    return value instanceof array.CMIArray;
+}
+
+;// ./src/services/CMIDataService.ts
+
+
+
+
+
+var CMIDataService = (function () {
+    function CMIDataService(error_codes, apiLog, throwSCORMError, validateCorrectResponse, getChildElement, checkObjectHasProperty, errorHandlingService) {
+        this._error_codes = error_codes;
+        this._apiLog = apiLog;
+        this._throwSCORMError = throwSCORMError;
+        this._validateCorrectResponse = validateCorrectResponse;
+        this._getChildElement = getChildElement;
+        this._checkObjectHasProperty = checkObjectHasProperty;
+        this._errorHandlingService = errorHandlingService;
+    }
+    CMIDataService.prototype.updateLastErrorCode = function (errorCode) {
+        this._errorHandlingService.lastErrorCode = errorCode;
+    };
+    CMIDataService.prototype.throwSCORMError = function (errorNumber, message) {
+        this._throwSCORMError(errorNumber, message);
+    };
+    CMIDataService.prototype.setCMIValue = function (cmi, methodName, scorm2004, CMIElement, value, isInitialized) {
+        if (!CMIElement || CMIElement === "") {
+            return api_constants.global_constants.SCORM_FALSE;
+        }
+        var structure = CMIElement.split(".");
+        var refObject = cmi;
+        var returnValue = api_constants.global_constants.SCORM_FALSE;
+        var foundFirstIndex = false;
+        var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
+        var invalidErrorCode = scorm2004
+            ? this._error_codes.UNDEFINED_DATA_MODEL
+            : this._error_codes.GENERAL;
+        for (var idx = 0; idx < structure.length; idx++) {
+            var attribute = structure[idx];
+            if (idx === structure.length - 1) {
+                if (scorm2004 && attribute.substring(0, 8) === "{target=") {
+                    if (isInitialized) {
+                        this.throwSCORMError(this._error_codes.READ_ONLY_ELEMENT);
+                    }
+                    else {
+                        refObject = (0,tslib_es6.__assign)((0,tslib_es6.__assign)({}, refObject), { attribute: value });
+                    }
+                }
+                else if (!this._checkObjectHasProperty(refObject, attribute)) {
+                    this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
+                }
+                else {
+                    if ((0,utilities.stringMatches)(CMIElement, "\\.correct_responses\\.\\d+") &&
+                        isInitialized) {
+                        this._validateCorrectResponse(CMIElement, value);
+                    }
+                    if (!scorm2004 || this._errorHandlingService.lastErrorCode === "0") {
+                        refObject[attribute] = value;
+                        returnValue = api_constants.global_constants.SCORM_TRUE;
+                    }
+                }
+            }
+            else {
+                refObject = refObject[attribute];
+                if (!refObject) {
+                    this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
+                    break;
+                }
+                if (isCMIArray(refObject)) {
+                    var index = parseInt(structure[idx + 1], 10);
+                    if (!isNaN(index)) {
+                        var item = refObject.childArray[index];
+                        if (item) {
+                            refObject = item;
+                            foundFirstIndex = true;
+                        }
+                        else {
+                            var newChild = this._getChildElement(CMIElement, value, foundFirstIndex);
+                            foundFirstIndex = true;
+                            if (!newChild) {
+                                this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
+                            }
+                            else {
+                                if (refObject.initialized)
+                                    newChild.initialize();
+                                refObject.childArray.push(newChild);
+                                refObject = newChild;
+                            }
+                        }
+                        idx++;
+                    }
+                }
+            }
+        }
+        if (returnValue === api_constants.global_constants.SCORM_FALSE) {
+            this._apiLog(methodName, "There was an error setting the value for: ".concat(CMIElement, ", value of: ").concat(value), enums.LogLevelEnum.WARN);
+        }
+        return returnValue;
+    };
+    CMIDataService.prototype.getCMIValue = function (cmi, methodName, scorm2004, CMIElement) {
+        if (!CMIElement || CMIElement === "") {
+            return "";
+        }
+        var structure = CMIElement.split(".");
+        var refObject = cmi;
+        var attribute = null;
+        var uninitializedErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") has not been initialized.");
+        var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
+        var invalidErrorCode = scorm2004
+            ? this._error_codes.UNDEFINED_DATA_MODEL
+            : this._error_codes.GENERAL;
+        for (var idx = 0; idx < structure.length; idx++) {
+            attribute = structure[idx];
+            if (!scorm2004) {
+                if (idx === structure.length - 1) {
+                    if (!this._checkObjectHasProperty(refObject, attribute)) {
+                        this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
+                        return;
+                    }
+                }
+            }
+            else {
+                if (String(attribute).substring(0, 8) === "{target=" &&
+                    typeof refObject._isTargetValid == "function") {
+                    var target = String(attribute).substring(8, String(attribute).length - 9);
+                    return refObject._isTargetValid(target);
+                }
+                else if (!this._checkObjectHasProperty(refObject, attribute)) {
+                    this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
+                    return;
+                }
+            }
+            refObject = refObject[attribute];
+            if (refObject === undefined) {
+                this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
+                break;
+            }
+            if (isCMIArray(refObject)) {
+                var index = parseInt(structure[idx + 1], 10);
+                if (!isNaN(index)) {
+                    var item = refObject.childArray[index];
+                    if (item) {
+                        refObject = item;
+                    }
+                    else {
+                        this.throwSCORMError(this._error_codes.VALUE_NOT_INITIALIZED, uninitializedErrorMessage);
+                        break;
+                    }
+                    idx++;
+                }
+            }
+        }
+        if (refObject === null || refObject === undefined) {
+            if (!scorm2004) {
+                if (attribute === "_children") {
+                    this.throwSCORMError(this._error_codes.CHILDREN_ERROR);
+                }
+                else if (attribute === "_count") {
+                    this.throwSCORMError(this._error_codes.COUNT_ERROR);
+                }
+            }
+        }
+        else {
+            return refObject;
+        }
+    };
+    return CMIDataService;
+}());
+
+
+;// ./src/services/ErrorHandlingService.ts
+
+
+
+var ErrorHandlingService = (function () {
+    function ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails) {
+        this._lastErrorCode = "0";
+        this._errorCodes = errorCodes;
+        this._apiLog = apiLog;
+        this._getLmsErrorMessageDetails = getLmsErrorMessageDetails;
+    }
+    Object.defineProperty(ErrorHandlingService.prototype, "lastErrorCode", {
+        get: function () {
+            return this._lastErrorCode;
+        },
+        set: function (errorCode) {
+            this._lastErrorCode = errorCode;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    ErrorHandlingService.prototype.throwSCORMError = function (errorNumber, message) {
+        if (!message) {
+            message = this._getLmsErrorMessageDetails(errorNumber);
+        }
+        this._apiLog("throwSCORMError", errorNumber + ": " + message, enums.LogLevelEnum.ERROR);
+        this._lastErrorCode = String(errorNumber);
+    };
+    ErrorHandlingService.prototype.clearSCORMError = function (success) {
+        if (success !== undefined && success !== api_constants.global_constants.SCORM_FALSE) {
+            this._lastErrorCode = "0";
+        }
+    };
+    ErrorHandlingService.prototype.handleValueAccessException = function (e, returnValue) {
+        if (isValidationError(e)) {
+            this._lastErrorCode = String(e.errorCode);
+            returnValue = api_constants.global_constants.SCORM_FALSE;
+        }
+        else {
+            if (isError(e) && e.message) {
+                console.error(e.message);
+            }
+            else {
+                console.error(e);
+            }
+            this.throwSCORMError(this._errorCodes.GENERAL);
+        }
+        return returnValue;
+    };
+    Object.defineProperty(ErrorHandlingService.prototype, "errorCodes", {
+        get: function () {
+            return this._errorCodes;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    return ErrorHandlingService;
+}());
+
+function createErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails) {
+    return new ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails);
+}
+
+;// ./src/services/LoggingService.ts
+
+
+var LoggingService = (function () {
+    function LoggingService() {
+        this._logLevel = enums.LogLevelEnum.ERROR;
+        this._logHandler = defaultLogHandler;
+    }
+    LoggingService.getInstance = function () {
+        if (!LoggingService._instance) {
+            LoggingService._instance = new LoggingService();
+        }
+        return LoggingService._instance;
+    };
+    LoggingService.prototype.setLogLevel = function (level) {
+        this._logLevel = level;
+    };
+    LoggingService.prototype.getLogLevel = function () {
+        return this._logLevel;
+    };
+    LoggingService.prototype.setLogHandler = function (handler) {
+        this._logHandler = handler;
+    };
+    LoggingService.prototype.log = function (messageLevel, logMessage) {
+        if (this.shouldLog(messageLevel)) {
+            this._logHandler(messageLevel, logMessage);
+        }
+    };
+    LoggingService.prototype.error = function (logMessage) {
+        this.log(enums.LogLevelEnum.ERROR, logMessage);
+    };
+    LoggingService.prototype.warn = function (logMessage) {
+        this.log(enums.LogLevelEnum.WARN, logMessage);
+    };
+    LoggingService.prototype.info = function (logMessage) {
+        this.log(enums.LogLevelEnum.INFO, logMessage);
+    };
+    LoggingService.prototype.debug = function (logMessage) {
+        this.log(enums.LogLevelEnum.DEBUG, logMessage);
+    };
+    LoggingService.prototype.shouldLog = function (messageLevel) {
+        var numericMessageLevel = this.getNumericLevel(messageLevel);
+        var numericLogLevel = this.getNumericLevel(this._logLevel);
+        return numericMessageLevel >= numericLogLevel;
+    };
+    LoggingService.prototype.getNumericLevel = function (level) {
+        if (level === undefined)
+            return enums.LogLevelEnum.NONE;
+        if (typeof level === "number")
+            return level;
+        switch (level) {
+            case "1":
+            case "DEBUG":
+                return enums.LogLevelEnum.DEBUG;
+            case "2":
+            case "INFO":
+                return enums.LogLevelEnum.INFO;
+            case "3":
+            case "WARN":
+                return enums.LogLevelEnum.WARN;
+            case "4":
+            case "ERROR":
+                return enums.LogLevelEnum.ERROR;
+            case "5":
+            case "NONE":
+                return enums.LogLevelEnum.NONE;
+            default:
+                return enums.LogLevelEnum.ERROR;
+        }
+    };
+    return LoggingService;
+}());
+
+function getLoggingService() {
+    return LoggingService.getInstance();
+}
+
 ;// ./src/BaseAPI.ts
 
 
@@ -174,16 +885,18 @@ var ScheduledCommit = (function () {
 
 
 
+
+
+
+
 var BaseAPI = (function () {
-    function BaseAPI(error_codes, settings) {
+    function BaseAPI(error_codes, settings, httpService, eventService, serializationService, cmiDataService, errorHandlingService, loggingService) {
         var _newTarget = this.constructor;
         this._settings = DefaultSettings;
         if (_newTarget === BaseAPI) {
             throw new TypeError("Cannot construct BaseAPI instances directly");
         }
         this.currentState = api_constants.global_constants.STATE_NOT_INITIALIZED;
-        this.lastErrorCode = "0";
-        this.listenerArray = [];
         this._error_codes = error_codes;
         if (settings) {
             this.settings = settings;
@@ -193,14 +906,44 @@ var BaseAPI = (function () {
         if (this.apiLogLevel === undefined) {
             this.apiLogLevel = enums.LogLevelEnum.NONE;
         }
+        this._loggingService = loggingService || getLoggingService();
+        this._loggingService.setLogLevel(this.apiLogLevel);
+        if (this.settings.onLogMessage) {
+            this._loggingService.setLogHandler(this.settings.onLogMessage);
+        }
+        this._httpService =
+            httpService || new HttpService(this.settings, this._error_codes);
+        this._eventService =
+            eventService || new EventService(this.apiLog.bind(this));
+        this._serializationService =
+            serializationService || new SerializationService();
+        this._errorHandlingService =
+            errorHandlingService ||
+                createErrorHandlingService(this._error_codes, this.apiLog.bind(this), this.getLmsErrorMessageDetails.bind(this));
+        this._cmiDataService =
+            cmiDataService ||
+                new CMIDataService(this._error_codes, this.apiLog.bind(this), this.throwSCORMError.bind(this), this.validateCorrectResponse.bind(this), this.getChildElement.bind(this), this._checkObjectHasProperty.bind(this), this._errorHandlingService);
     }
+    Object.defineProperty(BaseAPI.prototype, "lastErrorCode", {
+        get: function () {
+            var _a, _b;
+            return (_b = (_a = this._errorHandlingService) === null || _a === void 0 ? void 0 : _a.lastErrorCode) !== null && _b !== void 0 ? _b : "0";
+        },
+        set: function (errorCode) {
+            if (this._errorHandlingService) {
+                this._errorHandlingService.lastErrorCode = errorCode;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
     BaseAPI.prototype.commonReset = function (settings) {
         this.apiLog("reset", "Called", enums.LogLevelEnum.INFO);
         this.settings = (0,tslib_es6.__assign)((0,tslib_es6.__assign)({}, this.settings), settings);
         this.clearScheduledCommit();
         this.currentState = api_constants.global_constants.STATE_NOT_INITIALIZED;
         this.lastErrorCode = "0";
-        this.listenerArray = [];
+        this._eventService.reset();
         this.startingData = undefined;
     };
     BaseAPI.prototype.initialize = function (callbackName, initializeMessage, terminationMessage) {
@@ -227,7 +970,12 @@ var BaseAPI = (function () {
     BaseAPI.prototype.apiLog = function (functionName, logMessage, messageLevel, CMIElement) {
         logMessage = (0,utilities.formatMessage)(functionName, logMessage, CMIElement);
         if (messageLevel >= this.apiLogLevel) {
-            this.settings.onLogMessage(messageLevel, logMessage);
+            this._loggingService.log(messageLevel, logMessage);
+            if (this.settings.onLogMessage &&
+                this.settings.onLogMessage !==
+                    this._loggingService["_logHandler"]) {
+                this.settings.onLogMessage(messageLevel, logMessage);
+            }
         }
     };
     Object.defineProperty(BaseAPI.prototype, "error_codes", {
@@ -242,7 +990,19 @@ var BaseAPI = (function () {
             return this._settings;
         },
         set: function (settings) {
+            var _a, _b, _c;
+            var previousSettings = this._settings;
             this._settings = (0,tslib_es6.__assign)((0,tslib_es6.__assign)({}, this._settings), settings);
+            (_a = this._httpService) === null || _a === void 0 ? void 0 : _a.updateSettings(this._settings);
+            if (settings.logLevel !== undefined &&
+                settings.logLevel !== previousSettings.logLevel) {
+                this.apiLogLevel = settings.logLevel;
+                (_b = this._loggingService) === null || _b === void 0 ? void 0 : _b.setLogLevel(settings.logLevel);
+            }
+            if (settings.onLogMessage !== undefined &&
+                settings.onLogMessage !== previousSettings.onLogMessage) {
+                (_c = this._loggingService) === null || _c === void 0 ? void 0 : _c.setLogHandler(settings.onLogMessage);
+            }
         },
         enumerable: false,
         configurable: true
@@ -250,27 +1010,25 @@ var BaseAPI = (function () {
     BaseAPI.prototype.terminate = function (callbackName, checkTerminated) {
         return (0,tslib_es6.__awaiter)(this, void 0, void 0, function () {
             var returnValue, result;
-            return (0,tslib_es6.__generator)(this, function (_a) {
-                switch (_a.label) {
+            var _a, _b;
+            return (0,tslib_es6.__generator)(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         returnValue = api_constants.global_constants.SCORM_FALSE;
                         if (!this.checkState(checkTerminated, this._error_codes.TERMINATION_BEFORE_INIT, this._error_codes.MULTIPLE_TERMINATION)) return [3, 2];
                         this.currentState = api_constants.global_constants.STATE_TERMINATED;
                         return [4, this.storeData(true)];
                     case 1:
-                        result = _a.sent();
-                        if (typeof result.errorCode !== "undefined" && result.errorCode > 0) {
+                        result = _c.sent();
+                        if (((_a = result.errorCode) !== null && _a !== void 0 ? _a : 0) > 0) {
                             this.throwSCORMError(result.errorCode);
                         }
-                        returnValue =
-                            typeof result !== "undefined" && result.result
-                                ? result.result
-                                : api_constants.global_constants.SCORM_FALSE;
+                        returnValue = (_b = result === null || result === void 0 ? void 0 : result.result) !== null && _b !== void 0 ? _b : api_constants.global_constants.SCORM_FALSE;
                         if (checkTerminated)
                             this.lastErrorCode = "0";
                         returnValue = api_constants.global_constants.SCORM_TRUE;
                         this.processListeners(callbackName);
-                        _a.label = 2;
+                        _c.label = 2;
                     case 2:
                         this.apiLog(callbackName, "returned: " + returnValue, enums.LogLevelEnum.INFO);
                         this.clearSCORMError(returnValue);
@@ -311,7 +1069,7 @@ var BaseAPI = (function () {
                 returnValue = this.setCMIValue(CMIElement, value);
             }
             catch (e) {
-                this.handleValueAccessException(e, returnValue);
+                returnValue = this.handleValueAccessException(e, returnValue);
             }
             this.processListeners(callbackName, CMIElement, value);
         }
@@ -330,28 +1088,26 @@ var BaseAPI = (function () {
     BaseAPI.prototype.commit = function (callbackName_1) {
         return (0,tslib_es6.__awaiter)(this, arguments, void 0, function (callbackName, checkTerminated) {
             var returnValue, result;
+            var _a, _b;
             if (checkTerminated === void 0) { checkTerminated = false; }
-            return (0,tslib_es6.__generator)(this, function (_a) {
-                switch (_a.label) {
+            return (0,tslib_es6.__generator)(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         this.clearScheduledCommit();
                         returnValue = api_constants.global_constants.SCORM_FALSE;
                         if (!this.checkState(checkTerminated, this._error_codes.COMMIT_BEFORE_INIT, this._error_codes.COMMIT_AFTER_TERM)) return [3, 2];
                         return [4, this.storeData(false)];
                     case 1:
-                        result = _a.sent();
-                        if (result.errorCode && result.errorCode > 0) {
+                        result = _c.sent();
+                        if (((_a = result.errorCode) !== null && _a !== void 0 ? _a : 0) > 0) {
                             this.throwSCORMError(result.errorCode);
                         }
-                        returnValue =
-                            typeof result !== "undefined" && result.result
-                                ? result.result
-                                : api_constants.global_constants.SCORM_FALSE;
+                        returnValue = (_b = result === null || result === void 0 ? void 0 : result.result) !== null && _b !== void 0 ? _b : api_constants.global_constants.SCORM_FALSE;
                         this.apiLog(callbackName, " Result: " + returnValue, enums.LogLevelEnum.DEBUG, "HttpRequest");
                         if (checkTerminated)
                             this.lastErrorCode = "0";
                         this.processListeners(callbackName);
-                        _a.label = 2;
+                        _c.label = 2;
                     case 2:
                         this.apiLog(callbackName, "returned: " + returnValue, enums.LogLevelEnum.INFO);
                         this.clearSCORMError(returnValue);
@@ -406,145 +1162,10 @@ var BaseAPI = (function () {
         throw new Error("The setCMIValue method has not been implemented");
     };
     BaseAPI.prototype._commonSetCMIValue = function (methodName, scorm2004, CMIElement, value) {
-        if (!CMIElement || CMIElement === "") {
-            return api_constants.global_constants.SCORM_FALSE;
-        }
-        var structure = CMIElement.split(".");
-        var refObject = this;
-        var returnValue = api_constants.global_constants.SCORM_FALSE;
-        var foundFirstIndex = false;
-        var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
-        var invalidErrorCode = scorm2004
-            ? this._error_codes.UNDEFINED_DATA_MODEL
-            : this._error_codes.GENERAL;
-        for (var idx = 0; idx < structure.length; idx++) {
-            var attribute = structure[idx];
-            if (idx === structure.length - 1) {
-                if (scorm2004 && attribute.substring(0, 8) === "{target=") {
-                    if (this.isInitialized()) {
-                        this.throwSCORMError(this._error_codes.READ_ONLY_ELEMENT);
-                    }
-                    else {
-                        refObject = (0,tslib_es6.__assign)((0,tslib_es6.__assign)({}, refObject), { attribute: value });
-                    }
-                }
-                else if (!this._checkObjectHasProperty(refObject, attribute)) {
-                    this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
-                }
-                else {
-                    if ((0,utilities.stringMatches)(CMIElement, "\\.correct_responses\\.\\d+") &&
-                        this.isInitialized()) {
-                        this.validateCorrectResponse(CMIElement, value);
-                    }
-                    if (!scorm2004 || this.lastErrorCode === "0") {
-                        refObject[attribute] = value;
-                        returnValue = api_constants.global_constants.SCORM_TRUE;
-                    }
-                }
-            }
-            else {
-                refObject = refObject[attribute];
-                if (!refObject) {
-                    this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
-                    break;
-                }
-                if (refObject instanceof array.CMIArray) {
-                    var index = parseInt(structure[idx + 1], 10);
-                    if (!isNaN(index)) {
-                        var item = refObject.childArray[index];
-                        if (item) {
-                            refObject = item;
-                            foundFirstIndex = true;
-                        }
-                        else {
-                            var newChild = this.getChildElement(CMIElement, value, foundFirstIndex);
-                            foundFirstIndex = true;
-                            if (!newChild) {
-                                this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
-                            }
-                            else {
-                                if (refObject.initialized)
-                                    newChild.initialize();
-                                refObject.childArray.push(newChild);
-                                refObject = newChild;
-                            }
-                        }
-                        idx++;
-                    }
-                }
-            }
-        }
-        if (returnValue === api_constants.global_constants.SCORM_FALSE) {
-            this.apiLog(methodName, "There was an error setting the value for: ".concat(CMIElement, ", value of: ").concat(value), enums.LogLevelEnum.WARN);
-        }
-        return returnValue;
+        return this._cmiDataService.setCMIValue(this, methodName, scorm2004, CMIElement, value, this.isInitialized());
     };
     BaseAPI.prototype._commonGetCMIValue = function (methodName, scorm2004, CMIElement) {
-        if (!CMIElement || CMIElement === "") {
-            return "";
-        }
-        var structure = CMIElement.split(".");
-        var refObject = this;
-        var attribute = null;
-        var uninitializedErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") has not been initialized.");
-        var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
-        var invalidErrorCode = scorm2004
-            ? this._error_codes.UNDEFINED_DATA_MODEL
-            : this._error_codes.GENERAL;
-        for (var idx = 0; idx < structure.length; idx++) {
-            attribute = structure[idx];
-            if (!scorm2004) {
-                if (idx === structure.length - 1) {
-                    if (!this._checkObjectHasProperty(refObject, attribute)) {
-                        this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
-                        return;
-                    }
-                }
-            }
-            else {
-                if (String(attribute).substring(0, 8) === "{target=" &&
-                    typeof refObject._isTargetValid == "function") {
-                    var target = String(attribute).substring(8, String(attribute).length - 9);
-                    return refObject._isTargetValid(target);
-                }
-                else if (!this._checkObjectHasProperty(refObject, attribute)) {
-                    this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
-                    return;
-                }
-            }
-            refObject = refObject[attribute];
-            if (refObject === undefined) {
-                this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
-                break;
-            }
-            if (refObject instanceof array.CMIArray) {
-                var index = parseInt(structure[idx + 1], 10);
-                if (!isNaN(index)) {
-                    var item = refObject.childArray[index];
-                    if (item) {
-                        refObject = item;
-                    }
-                    else {
-                        this.throwSCORMError(this._error_codes.VALUE_NOT_INITIALIZED, uninitializedErrorMessage);
-                        break;
-                    }
-                    idx++;
-                }
-            }
-        }
-        if (refObject === null || refObject === undefined) {
-            if (!scorm2004) {
-                if (attribute === "_children") {
-                    this.throwSCORMError(this._error_codes.CHILDREN_ERROR);
-                }
-                else if (attribute === "_count") {
-                    this.throwSCORMError(this._error_codes.COUNT_ERROR);
-                }
-            }
-        }
-        else {
-            return refObject;
-        }
+        return this._cmiDataService.getCMIValue(this, methodName, scorm2004, CMIElement);
     };
     BaseAPI.prototype.isInitialized = function () {
         return this.currentState === api_constants.global_constants.STATE_INITIALIZED;
@@ -556,265 +1177,47 @@ var BaseAPI = (function () {
         return this.currentState === api_constants.global_constants.STATE_TERMINATED;
     };
     BaseAPI.prototype.on = function (listenerName, callback) {
-        if (!callback)
-            return;
-        var listenerFunctions = listenerName.split(" ");
-        for (var i = 0; i < listenerFunctions.length; i++) {
-            var listenerSplit = listenerFunctions[i].split(".");
-            if (listenerSplit.length === 0)
-                return;
-            var functionName = listenerSplit[0];
-            var CMIElement = null;
-            if (listenerSplit.length > 1) {
-                CMIElement = listenerName.replace(functionName + ".", "");
-            }
-            this.listenerArray.push({
-                functionName: functionName,
-                CMIElement: CMIElement,
-                callback: callback,
-            });
-            this.apiLog("on", "Added event listener: ".concat(this.listenerArray.length), enums.LogLevelEnum.INFO, functionName);
-        }
+        this._eventService.on(listenerName, callback);
     };
     BaseAPI.prototype.off = function (listenerName, callback) {
-        if (!callback)
-            return;
-        var listenerFunctions = listenerName.split(" ");
-        var _loop_1 = function (i) {
-            var listenerSplit = listenerFunctions[i].split(".");
-            if (listenerSplit.length === 0)
-                return { value: void 0 };
-            var functionName = listenerSplit[0];
-            var CMIElement = null;
-            if (listenerSplit.length > 1) {
-                CMIElement = listenerName.replace(functionName + ".", "");
-            }
-            var removeIndex = this_1.listenerArray.findIndex(function (obj) {
-                return obj.functionName === functionName &&
-                    obj.CMIElement === CMIElement &&
-                    obj.callback === callback;
-            });
-            if (removeIndex !== -1) {
-                this_1.listenerArray.splice(removeIndex, 1);
-                this_1.apiLog("off", "Removed event listener: ".concat(this_1.listenerArray.length), enums.LogLevelEnum.INFO, functionName);
-            }
-        };
-        var this_1 = this;
-        for (var i = 0; i < listenerFunctions.length; i++) {
-            var state_1 = _loop_1(i);
-            if (typeof state_1 === "object")
-                return state_1.value;
-        }
+        this._eventService.off(listenerName, callback);
     };
     BaseAPI.prototype.clear = function (listenerName) {
-        var listenerFunctions = listenerName.split(" ");
-        var _loop_2 = function (i) {
-            var listenerSplit = listenerFunctions[i].split(".");
-            if (listenerSplit.length === 0)
-                return { value: void 0 };
-            var functionName = listenerSplit[0];
-            var CMIElement = null;
-            if (listenerSplit.length > 1) {
-                CMIElement = listenerName.replace(functionName + ".", "");
-            }
-            this_2.listenerArray = this_2.listenerArray.filter(function (obj) {
-                return obj.functionName !== functionName && obj.CMIElement !== CMIElement;
-            });
-        };
-        var this_2 = this;
-        for (var i = 0; i < listenerFunctions.length; i++) {
-            var state_2 = _loop_2(i);
-            if (typeof state_2 === "object")
-                return state_2.value;
-        }
+        this._eventService.clear(listenerName);
     };
     BaseAPI.prototype.processListeners = function (functionName, CMIElement, value) {
-        this.apiLog(functionName, value, enums.LogLevelEnum.INFO, CMIElement);
-        for (var i = 0; i < this.listenerArray.length; i++) {
-            var listener = this.listenerArray[i];
-            var functionsMatch = listener.functionName === functionName;
-            var listenerHasCMIElement = !!listener.CMIElement;
-            var CMIElementsMatch = false;
-            if (CMIElement &&
-                listener.CMIElement &&
-                listener.CMIElement.substring(listener.CMIElement.length - 1) === "*") {
-                CMIElementsMatch =
-                    CMIElement.indexOf(listener.CMIElement.substring(0, listener.CMIElement.length - 1)) === 0;
-            }
-            else {
-                CMIElementsMatch = listener.CMIElement === CMIElement;
-            }
-            if (functionsMatch && (!listenerHasCMIElement || CMIElementsMatch)) {
-                this.apiLog("processListeners", "Processing listener: ".concat(listener.functionName), enums.LogLevelEnum.INFO, CMIElement);
-                listener.callback(CMIElement, value);
-            }
-        }
+        this._eventService.processListeners(functionName, CMIElement, value);
     };
     BaseAPI.prototype.throwSCORMError = function (errorNumber, message) {
-        if (!message) {
-            message = this.getLmsErrorMessageDetails(errorNumber);
-        }
-        this.apiLog("throwSCORMError", errorNumber + ": " + message, enums.LogLevelEnum.ERROR);
-        this.lastErrorCode = String(errorNumber);
+        this._errorHandlingService.throwSCORMError(errorNumber, message);
     };
     BaseAPI.prototype.clearSCORMError = function (success) {
-        if (success !== undefined && success !== api_constants.global_constants.SCORM_FALSE) {
-            this.lastErrorCode = "0";
-        }
+        this._errorHandlingService.clearSCORMError(success);
     };
     BaseAPI.prototype.loadFromFlattenedJSON = function (json, CMIElement) {
-        var _this = this;
         if (!CMIElement) {
             CMIElement = "";
         }
-        if (!this.isNotInitialized()) {
-            console.error("loadFromFlattenedJSON can only be called before the call to lmsInitialize.");
-            return;
-        }
-        function testPattern(a, c, a_pattern) {
-            var a_match = a.match(a_pattern);
-            var c_match;
-            if (a_match !== null && (c_match = c.match(a_pattern)) !== null) {
-                var a_num = Number(a_match[2]);
-                var c_num = Number(c_match[2]);
-                if (a_num === c_num) {
-                    if (a_match[3] === "id") {
-                        return -1;
-                    }
-                    else if (a_match[3] === "type") {
-                        if (c_match[3] === "id") {
-                            return 1;
-                        }
-                        else {
-                            return -1;
-                        }
-                    }
-                    else {
-                        return 1;
-                    }
-                }
-                return a_num - c_num;
-            }
-            return null;
-        }
-        var int_pattern = /^(cmi\.interactions\.)(\d+)\.(.*)$/;
-        var obj_pattern = /^(cmi\.objectives\.)(\d+)\.(.*)$/;
-        var result = Object.keys(json).map(function (key) {
-            return [String(key), json[key]];
-        });
-        result.sort(function (_a, _c) {
-            var a = _a[0], _b = _a[1];
-            var c = _c[0], _d = _c[1];
-            var test;
-            if ((test = testPattern(a, c, int_pattern)) !== null) {
-                return test;
-            }
-            if ((test = testPattern(a, c, obj_pattern)) !== null) {
-                return test;
-            }
-            if (a < c) {
-                return -1;
-            }
-            if (a > c) {
-                return 1;
-            }
-            return 0;
-        });
-        var obj;
-        result.forEach(function (element) {
-            obj = {};
-            obj[element[0]] = element[1];
-            _this.loadFromJSON((0,utilities.unflatten)(obj), CMIElement);
-        });
+        this._serializationService.loadFromFlattenedJSON(json, CMIElement, this.loadFromJSON.bind(this), this.setCMIValue.bind(this), this.isNotInitialized.bind(this));
     };
     BaseAPI.prototype.loadFromJSON = function (json, CMIElement) {
+        var _this = this;
         if (CMIElement === void 0) { CMIElement = ""; }
-        if (!this.isNotInitialized()) {
-            console.error("loadFromJSON can only be called before the call to lmsInitialize.");
-            return;
-        }
-        CMIElement = CMIElement !== undefined ? CMIElement : "cmi";
-        this.startingData = json;
-        for (var key in json) {
-            if ({}.hasOwnProperty.call(json, key) && json[key]) {
-                var currentCMIElement = (CMIElement ? CMIElement + "." : "") + key;
-                var value = json[key];
-                if (value["childArray"]) {
-                    for (var i = 0; i < value["childArray"].length; i++) {
-                        this.loadFromJSON(value["childArray"][i], currentCMIElement + "." + i);
-                    }
-                }
-                else if (value.constructor === Object) {
-                    this.loadFromJSON(value, currentCMIElement);
-                }
-                else {
-                    this.setCMIValue(currentCMIElement, value);
-                }
-            }
-        }
+        this._serializationService.loadFromJSON(json, CMIElement, this.setCMIValue.bind(this), this.isNotInitialized.bind(this), function (data) {
+            _this.startingData = data;
+        });
     };
     BaseAPI.prototype.renderCMIToJSONString = function () {
-        var cmi = this.cmi;
-        if (this.settings.sendFullCommit) {
-            return JSON.stringify({ cmi: cmi });
-        }
-        return JSON.stringify({ cmi: cmi }, function (k, v) { return (v === undefined ? null : v); }, 2);
+        return this._serializationService.renderCMIToJSONString(this.cmi, this.settings.sendFullCommit);
     };
     BaseAPI.prototype.renderCMIToJSONObject = function () {
-        return JSON.parse(this.renderCMIToJSONString());
+        return this._serializationService.renderCMIToJSONObject(this.cmi, this.settings.sendFullCommit);
     };
     BaseAPI.prototype.processHttpRequest = function (url_1, params_1) {
         return (0,tslib_es6.__awaiter)(this, arguments, void 0, function (url, params, immediate) {
-            var api, genericError, process;
-            var _this = this;
             if (immediate === void 0) { immediate = false; }
             return (0,tslib_es6.__generator)(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        api = this;
-                        genericError = {
-                            result: api_constants.global_constants.SCORM_FALSE,
-                            errorCode: this.error_codes.GENERAL,
-                        };
-                        if (immediate) {
-                            this.performFetch(url, params).then(function (response) { return (0,tslib_es6.__awaiter)(_this, void 0, void 0, function () {
-                                return (0,tslib_es6.__generator)(this, function (_a) {
-                                    switch (_a.label) {
-                                        case 0: return [4, this.transformResponse(response)];
-                                        case 1:
-                                            _a.sent();
-                                            return [2];
-                                    }
-                                });
-                            }); });
-                            return [2, {
-                                    result: api_constants.global_constants.SCORM_TRUE,
-                                    errorCode: 0,
-                                }];
-                        }
-                        process = function (url, params, settings) { return (0,tslib_es6.__awaiter)(_this, void 0, void 0, function () {
-                            var response, e_1;
-                            return (0,tslib_es6.__generator)(this, function (_a) {
-                                switch (_a.label) {
-                                    case 0:
-                                        _a.trys.push([0, 2, , 3]);
-                                        params = settings.requestHandler(params);
-                                        return [4, this.performFetch(url, params)];
-                                    case 1:
-                                        response = _a.sent();
-                                        return [2, this.transformResponse(response)];
-                                    case 2:
-                                        e_1 = _a.sent();
-                                        this.apiLog("processHttpRequest", e_1, enums.LogLevelEnum.ERROR);
-                                        api.processListeners("CommitError");
-                                        return [2, genericError];
-                                    case 3: return [2];
-                                }
-                            });
-                        }); };
-                        return [4, process(url, params, this.settings)];
-                    case 1: return [2, _a.sent()];
-                }
+                return [2, this._httpService.processHttpRequest(url, params, immediate, this.apiLog.bind(this), this.processListeners.bind(this))];
             });
         });
     };
@@ -831,81 +1234,16 @@ var BaseAPI = (function () {
             this.apiLog("clearScheduledCommit", "cleared", enums.LogLevelEnum.DEBUG, "");
         }
     };
-    BaseAPI.prototype._checkObjectHasProperty = function (refObject, attribute) {
-        return (Object.hasOwnProperty.call(refObject, attribute) ||
-            Object.getOwnPropertyDescriptor(Object.getPrototypeOf(refObject), attribute) != null ||
-            attribute in refObject);
+    BaseAPI.prototype._checkObjectHasProperty = function (StringKeyMap, attribute) {
+        return (Object.hasOwnProperty.call(StringKeyMap, attribute) ||
+            Object.getOwnPropertyDescriptor(Object.getPrototypeOf(StringKeyMap), attribute) != null ||
+            attribute in StringKeyMap);
     };
     BaseAPI.prototype.handleValueAccessException = function (e, returnValue) {
-        if (e instanceof exceptions.ValidationError) {
-            this.lastErrorCode = String(e.errorCode);
-            returnValue = api_constants.global_constants.SCORM_FALSE;
-        }
-        else {
-            if (e instanceof Error && e.message) {
-                console.error(e.message);
-            }
-            else {
-                console.error(e);
-            }
-            this.throwSCORMError(this._error_codes.GENERAL);
-        }
-        return returnValue;
+        return this._errorHandlingService.handleValueAccessException(e, returnValue);
     };
     BaseAPI.prototype.getCommitObject = function (terminateCommit) {
-        var shouldTerminateCommit = terminateCommit || this.settings.alwaysSendTotalTime;
-        var commitObject = this.settings.renderCommonCommitFields
-            ? this.renderCommitObject(shouldTerminateCommit)
-            : this.renderCommitCMI(shouldTerminateCommit);
-        if ([enums.LogLevelEnum.DEBUG, "1", 1, "DEBUG"].includes(this.apiLogLevel)) {
-            console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");
-            console.debug(commitObject);
-        }
-        return commitObject;
-    };
-    BaseAPI.prototype.performFetch = function (url, params) {
-        return (0,tslib_es6.__awaiter)(this, void 0, void 0, function () {
-            return (0,tslib_es6.__generator)(this, function (_a) {
-                return [2, fetch(url, {
-                        method: "POST",
-                        mode: this.settings.fetchMode,
-                        body: params instanceof Array ? params.join("&") : JSON.stringify(params),
-                        headers: (0,tslib_es6.__assign)((0,tslib_es6.__assign)({}, this.settings.xhrHeaders), { "Content-Type": this.settings.commitRequestDataType }),
-                        credentials: this.settings.xhrWithCredentials ? "include" : undefined,
-                        keepalive: true,
-                    })];
-            });
-        });
-    };
-    BaseAPI.prototype.transformResponse = function (response) {
-        return (0,tslib_es6.__awaiter)(this, void 0, void 0, function () {
-            var result, _a;
-            return (0,tslib_es6.__generator)(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        if (!(typeof this.settings.responseHandler === "function")) return [3, 2];
-                        return [4, this.settings.responseHandler(response)];
-                    case 1:
-                        _a = _c.sent();
-                        return [3, 4];
-                    case 2: return [4, response.json()];
-                    case 3:
-                        _a = _c.sent();
-                        _c.label = 4;
-                    case 4:
-                        result = _a;
-                        if (response.status >= 200 &&
-                            response.status <= 299 &&
-                            (result.result === true || result.result === api_constants.global_constants.SCORM_TRUE)) {
-                            this.processListeners("CommitSuccess");
-                        }
-                        else {
-                            this.processListeners("CommitError");
-                        }
-                        return [2, result];
-                }
-            });
-        });
+        return this._serializationService.getCommitObject(terminateCommit, this.settings.alwaysSendTotalTime, this.settings.renderCommonCommitFields, this.renderCommitObject.bind(this), this.renderCommitCMI.bind(this), this.apiLogLevel);
     };
     return BaseAPI;
 }());
@@ -919,7 +1257,7 @@ var BaseAPI = (function () {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Scorm12Impl: function() { return /* binding */ Scorm12Impl; }
+/* harmony export */   Scorm12API: function() { return /* binding */ Scorm12Impl; }
 /* harmony export */ });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(635);
 /* harmony import */ var _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(989);
@@ -930,7 +1268,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(833);
 /* harmony import */ var _cmi_scorm12_nav__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(331);
 /* harmony import */ var _constants_enums__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(56);
-/* harmony import */ var _BaseAPI__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(429);
+/* harmony import */ var _BaseAPI__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(273);
 /* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(417);
 
 
@@ -1128,18 +1466,18 @@ var Scorm12Impl = (function (_super) {
         var totalTimeHHMMSS = this.cmi.getCurrentTotalTime();
         var totalTimeSeconds = _utilities__WEBPACK_IMPORTED_MODULE_1__.getTimeAsSeconds(totalTimeHHMMSS, _constants_regex__WEBPACK_IMPORTED_MODULE_9__.scorm12_regex.CMITimespan);
         var lessonStatus = this.cmi.core.lesson_status;
-        var completionStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_7__.CompletionStatus.unknown;
-        var successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_7__.SuccessStatus.unknown;
+        var completionStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_7__.CompletionStatus.UNKNOWN;
+        var successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_7__.SuccessStatus.UNKNOWN;
         if (lessonStatus) {
             completionStatus =
                 lessonStatus === "completed" || lessonStatus === "passed"
-                    ? _constants_enums__WEBPACK_IMPORTED_MODULE_7__.CompletionStatus.completed
-                    : _constants_enums__WEBPACK_IMPORTED_MODULE_7__.CompletionStatus.incomplete;
+                    ? _constants_enums__WEBPACK_IMPORTED_MODULE_7__.CompletionStatus.COMPLETED
+                    : _constants_enums__WEBPACK_IMPORTED_MODULE_7__.CompletionStatus.INCOMPLETE;
             if (lessonStatus === "passed") {
-                successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_7__.SuccessStatus.passed;
+                successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_7__.SuccessStatus.PASSED;
             }
             else if (lessonStatus === "failed") {
-                successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_7__.SuccessStatus.failed;
+                successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_7__.SuccessStatus.FAILED;
             }
         }
         var score = this.cmi.core.score;
@@ -1350,12 +1688,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   CMIScore: function() { return /* binding */ CMIScore; }
 /* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(635);
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(635);
 /* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(340);
 /* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(417);
 /* harmony import */ var _base_cmi__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(319);
-/* harmony import */ var _validation__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(449);
 /* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(797);
+/* harmony import */ var _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(819);
 
 
 
@@ -1363,7 +1701,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 var CMIScore = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_4__.__extends)(CMIScore, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_5__.__extends)(CMIScore, _super);
     function CMIScore(params) {
         var _this = _super.call(this) || this;
         _this._raw = "";
@@ -1401,9 +1739,7 @@ var CMIScore = (function (_super) {
             return this._raw;
         },
         set: function (raw) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__.checkValidFormat)(raw, this.__decimal_regex, this.__invalid_type_code, this.__error_class) &&
-                (!this.__score_range ||
-                    (0,_validation__WEBPACK_IMPORTED_MODULE_5__.checkValidRange)(raw, this.__score_range, this.__invalid_range_code, this.__error_class))) {
+            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__.validationService.validateScore(raw, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
                 this._raw = raw;
             }
         },
@@ -1415,9 +1751,7 @@ var CMIScore = (function (_super) {
             return this._min;
         },
         set: function (min) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__.checkValidFormat)(min, this.__decimal_regex, this.__invalid_type_code, this.__error_class) &&
-                (!this.__score_range ||
-                    (0,_validation__WEBPACK_IMPORTED_MODULE_5__.checkValidRange)(min, this.__score_range, this.__invalid_range_code, this.__error_class))) {
+            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__.validationService.validateScore(min, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
                 this._min = min;
             }
         },
@@ -1429,9 +1763,7 @@ var CMIScore = (function (_super) {
             return this._max;
         },
         set: function (max) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__.checkValidFormat)(max, this.__decimal_regex, this.__invalid_type_code, this.__error_class) &&
-                (!this.__score_range ||
-                    (0,_validation__WEBPACK_IMPORTED_MODULE_5__.checkValidRange)(max, this.__score_range, this.__invalid_range_code, this.__error_class))) {
+            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__.validationService.validateScore(max, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
                 this._max = max;
             }
         },
@@ -1463,7 +1795,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   checkValidFormat: function() { return /* binding */ checkValidFormat; },
 /* harmony export */   checkValidRange: function() { return /* binding */ checkValidRange; }
 /* harmony export */ });
-function checkValidFormat(value, regexPattern, errorCode, errorClass, allowEmptyString) {
+/* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(864);
+
+var checkValidFormat = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__.memoize)(function (value, regexPattern, errorCode, errorClass, allowEmptyString) {
     if (typeof value !== "string") {
         return false;
     }
@@ -1476,8 +1810,10 @@ function checkValidFormat(value, regexPattern, errorCode, errorClass, allowEmpty
         throw new errorClass(errorCode);
     }
     return true;
-}
-function checkValidRange(value, rangePattern, errorCode, errorClass) {
+}, function (value, regexPattern, errorCode, _errorClass, allowEmptyString) {
+    return "".concat(value, ":").concat(regexPattern, ":").concat(errorCode, ":").concat(allowEmptyString || false);
+});
+var checkValidRange = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__.memoize)(function (value, rangePattern, errorCode, errorClass) {
     var ranges = rangePattern.split("#");
     value = value * 1.0;
     if (value >= ranges[0]) {
@@ -1491,7 +1827,9 @@ function checkValidRange(value, rangePattern, errorCode, errorClass) {
     else {
         throw new errorClass(errorCode);
     }
-}
+}, function (value, rangePattern, errorCode, _errorClass) {
+    return "".concat(value, ":").concat(rangePattern, ":").concat(errorCode);
+});
 
 
 /***/ }),
@@ -2251,7 +2589,7 @@ var NAV = (function (_super) {
             return this._event;
         },
         set: function (event) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_1__.check12ValidFormat)(event, _constants_regex__WEBPACK_IMPORTED_MODULE_2__.scorm12_regex.NAVEvent)) {
+            if (event === "" || (0,_validation__WEBPACK_IMPORTED_MODULE_1__.check12ValidFormat)(event, _constants_regex__WEBPACK_IMPORTED_MODULE_2__.scorm12_regex.NAVEvent)) {
                 this._event = event;
             }
         },
@@ -2382,18 +2720,20 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   CMIStudentData: function() { return /* binding */ CMIStudentData; }
 /* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(635);
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(635);
 /* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(319);
 /* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(340);
 /* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(179);
 /* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(797);
+/* harmony import */ var _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(819);
+
 
 
 
 
 
 var CMIStudentData = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_4__.__extends)(CMIStudentData, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_5__.__extends)(CMIStudentData, _super);
     function CMIStudentData(student_data_children) {
         var _this = _super.call(this) || this;
         _this._mastery_score = "";
@@ -2422,12 +2762,8 @@ var CMIStudentData = (function (_super) {
             return this._mastery_score;
         },
         set: function (mastery_score) {
-            if (this.initialized) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._mastery_score = mastery_score;
-            }
+            _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__.validationService.validateReadOnly(this.initialized);
+            this._mastery_score = mastery_score;
         },
         enumerable: false,
         configurable: true
@@ -2437,12 +2773,8 @@ var CMIStudentData = (function (_super) {
             return this._max_time_allowed;
         },
         set: function (max_time_allowed) {
-            if (this.initialized) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._max_time_allowed = max_time_allowed;
-            }
+            _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__.validationService.validateReadOnly(this.initialized);
+            this._max_time_allowed = max_time_allowed;
         },
         enumerable: false,
         configurable: true
@@ -2452,12 +2784,8 @@ var CMIStudentData = (function (_super) {
             return this._time_limit_action;
         },
         set: function (time_limit_action) {
-            if (this.initialized) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._time_limit_action = time_limit_action;
-            }
+            _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__.validationService.validateReadOnly(this.initialized);
+            this._time_limit_action = time_limit_action;
         },
         enumerable: false,
         configurable: true
@@ -2486,14 +2814,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   CMIStudentPreference: function() { return /* binding */ CMIStudentPreference; }
 /* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(635);
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(635);
 /* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(319);
 /* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(340);
 /* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(179);
-/* harmony import */ var _validation__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(915);
-/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(417);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(797);
-
+/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(797);
+/* harmony import */ var _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(819);
 
 
 
@@ -2501,7 +2827,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 var CMIStudentPreference = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_6__.__extends)(CMIStudentPreference, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_5__.__extends)(CMIStudentPreference, _super);
     function CMIStudentPreference(student_preference_children) {
         var _this = _super.call(this) || this;
         _this._audio = "";
@@ -2521,7 +2847,7 @@ var CMIStudentPreference = (function (_super) {
             return this.__children;
         },
         set: function (_children) {
-            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_5__.scorm12_errors.INVALID_SET_VALUE);
+            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.INVALID_SET_VALUE);
         },
         enumerable: false,
         configurable: true
@@ -2531,8 +2857,7 @@ var CMIStudentPreference = (function (_super) {
             return this._audio;
         },
         set: function (audio) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_3__.check12ValidFormat)(audio, _constants_regex__WEBPACK_IMPORTED_MODULE_4__.scorm12_regex.CMISInteger) &&
-                (0,_validation__WEBPACK_IMPORTED_MODULE_3__.check12ValidRange)(audio, _constants_regex__WEBPACK_IMPORTED_MODULE_4__.scorm12_regex.audio_range)) {
+            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__.validationService.validateScorm12Audio(audio)) {
                 this._audio = audio;
             }
         },
@@ -2544,7 +2869,7 @@ var CMIStudentPreference = (function (_super) {
             return this._language;
         },
         set: function (language) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_3__.check12ValidFormat)(language, _constants_regex__WEBPACK_IMPORTED_MODULE_4__.scorm12_regex.CMIString256)) {
+            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__.validationService.validateScorm12Language(language)) {
                 this._language = language;
             }
         },
@@ -2556,8 +2881,7 @@ var CMIStudentPreference = (function (_super) {
             return this._speed;
         },
         set: function (speed) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_3__.check12ValidFormat)(speed, _constants_regex__WEBPACK_IMPORTED_MODULE_4__.scorm12_regex.CMISInteger) &&
-                (0,_validation__WEBPACK_IMPORTED_MODULE_3__.check12ValidRange)(speed, _constants_regex__WEBPACK_IMPORTED_MODULE_4__.scorm12_regex.speed_range)) {
+            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__.validationService.validateScorm12Speed(speed)) {
                 this._speed = speed;
             }
         },
@@ -2569,8 +2893,7 @@ var CMIStudentPreference = (function (_super) {
             return this._text;
         },
         set: function (text) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_3__.check12ValidFormat)(text, _constants_regex__WEBPACK_IMPORTED_MODULE_4__.scorm12_regex.CMISInteger) &&
-                (0,_validation__WEBPACK_IMPORTED_MODULE_3__.check12ValidRange)(text, _constants_regex__WEBPACK_IMPORTED_MODULE_4__.scorm12_regex.text_range)) {
+            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__.validationService.validateScorm12Text(text)) {
                 this._text = text;
             }
         },
@@ -2603,20 +2926,20 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   check12ValidFormat: function() { return /* binding */ check12ValidFormat; },
 /* harmony export */   check12ValidRange: function() { return /* binding */ check12ValidRange; }
 /* harmony export */ });
-/* harmony import */ var _common_validation__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(449);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(797);
-/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(179);
+/* harmony import */ var _common_validation__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(449);
+/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(797);
+/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(179);
 
 
 
 function check12ValidFormat(value, regexPattern, allowEmptyString) {
-    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_2__.checkValidFormat)(value, regexPattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_0__.scorm12_errors.TYPE_MISMATCH, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_1__.Scorm12ValidationError, allowEmptyString);
+    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_0__.checkValidFormat)(value, regexPattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__.scorm12_errors.TYPE_MISMATCH, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError, allowEmptyString);
 }
 function check12ValidRange(value, rangePattern, allowEmptyString) {
     if (!allowEmptyString && value === "") {
-        throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_1__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_0__.scorm12_errors.VALUE_OUT_OF_RANGE);
+        throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_1__.scorm12_errors.VALUE_OUT_OF_RANGE);
     }
-    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_2__.checkValidRange)(value, rangePattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_0__.scorm12_errors.VALUE_OUT_OF_RANGE, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_1__.Scorm12ValidationError);
+    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_0__.checkValidRange)(value, rangePattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__.scorm12_errors.VALUE_OUT_OF_RANGE, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError);
 }
 
 
@@ -2844,21 +3167,21 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 var NAVBoolean;
 (function (NAVBoolean) {
-    NAVBoolean["unknown"] = "unknown";
-    NAVBoolean["true"] = "true";
-    NAVBoolean["false"] = "false";
+    NAVBoolean["UNKNOWN"] = "unknown";
+    NAVBoolean["TRUE"] = "true";
+    NAVBoolean["FALSE"] = "false";
 })(NAVBoolean || (NAVBoolean = {}));
 var SuccessStatus;
 (function (SuccessStatus) {
-    SuccessStatus["passed"] = "passed";
-    SuccessStatus["failed"] = "failed";
-    SuccessStatus["unknown"] = "unknown";
+    SuccessStatus["PASSED"] = "passed";
+    SuccessStatus["FAILED"] = "failed";
+    SuccessStatus["UNKNOWN"] = "unknown";
 })(SuccessStatus || (SuccessStatus = {}));
 var CompletionStatus;
 (function (CompletionStatus) {
-    CompletionStatus["completed"] = "completed";
-    CompletionStatus["incomplete"] = "incomplete";
-    CompletionStatus["unknown"] = "unknown";
+    CompletionStatus["COMPLETED"] = "completed";
+    CompletionStatus["INCOMPLETE"] = "incomplete";
+    CompletionStatus["UNKNOWN"] = "unknown";
 })(CompletionStatus || (CompletionStatus = {}));
 var LogLevelEnum;
 (function (LogLevelEnum) {
@@ -3091,6 +3414,60 @@ var Scorm12ValidationError = (function (_super) {
 
 /***/ }),
 
+/***/ 819:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   ValidationService: function() { return /* binding */ ValidationService; },
+/* harmony export */   validationService: function() { return /* binding */ validationService; }
+/* harmony export */ });
+/* harmony import */ var _cmi_common_validation__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(449);
+/* harmony import */ var _cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(915);
+/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(417);
+/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(797);
+/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(179);
+
+
+
+
+
+var ValidationService = (function () {
+    function ValidationService() {
+    }
+    ValidationService.prototype.validateScore = function (value, decimalRegex, scoreRange, invalidTypeCode, invalidRangeCode, errorClass) {
+        return ((0,_cmi_common_validation__WEBPACK_IMPORTED_MODULE_0__.checkValidFormat)(value, decimalRegex, invalidTypeCode, errorClass) &&
+            (!scoreRange ||
+                (0,_cmi_common_validation__WEBPACK_IMPORTED_MODULE_0__.checkValidRange)(value, scoreRange, invalidRangeCode, errorClass)));
+    };
+    ValidationService.prototype.validateScorm12Audio = function (value) {
+        return ((0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__.check12ValidFormat)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__.scorm12_regex.CMISInteger) &&
+            (0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__.check12ValidRange)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__.scorm12_regex.audio_range));
+    };
+    ValidationService.prototype.validateScorm12Language = function (value) {
+        return (0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__.check12ValidFormat)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__.scorm12_regex.CMIString256);
+    };
+    ValidationService.prototype.validateScorm12Speed = function (value) {
+        return ((0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__.check12ValidFormat)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__.scorm12_regex.CMISInteger) &&
+            (0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__.check12ValidRange)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__.scorm12_regex.speed_range));
+    };
+    ValidationService.prototype.validateScorm12Text = function (value) {
+        return ((0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__.check12ValidFormat)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__.scorm12_regex.CMISInteger) &&
+            (0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__.check12ValidRange)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__.scorm12_regex.text_range));
+    };
+    ValidationService.prototype.validateReadOnly = function (initialized) {
+        if (initialized) {
+            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_4__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.READ_ONLY_ELEMENT);
+        }
+    };
+    return ValidationService;
+}());
+
+var validationService = new ValidationService();
+
+
+/***/ }),
+
 /***/ 864:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
@@ -3109,6 +3486,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   getSecondsAsHHMMSS: function() { return /* binding */ getSecondsAsHHMMSS; },
 /* harmony export */   getSecondsAsISODuration: function() { return /* binding */ getSecondsAsISODuration; },
 /* harmony export */   getTimeAsSeconds: function() { return /* binding */ getTimeAsSeconds; },
+/* harmony export */   memoize: function() { return /* binding */ memoize; },
 /* harmony export */   stringMatches: function() { return /* binding */ stringMatches; },
 /* harmony export */   unflatten: function() { return /* binding */ unflatten; }
 /* harmony export */ });
@@ -3122,7 +3500,7 @@ var designations = {
     M: SECONDS_PER_MINUTE,
     S: SECONDS_PER_SECOND,
 };
-function getSecondsAsHHMMSS(totalSeconds) {
+var getSecondsAsHHMMSS = memoize(function (totalSeconds) {
     if (!totalSeconds || totalSeconds <= 0) {
         return "00:00:00";
     }
@@ -3142,15 +3520,16 @@ function getSecondsAsHHMMSS(totalSeconds) {
         msStr = "." + msStr.split(".")[1];
     }
     return ((hours + ":" + minutes + ":" + seconds).replace(/\b\d\b/g, "0$&") + msStr);
-}
-function getSecondsAsISODuration(seconds) {
+});
+var getSecondsAsISODuration = memoize(function (seconds) {
     if (!seconds || seconds <= 0) {
         return "PT0S";
     }
     var duration = "P";
     var remainder = seconds;
-    for (var designationsKey in designations) {
-        var current_seconds = designations[designationsKey];
+    var designationEntries = Object.entries(designations);
+    designationEntries.forEach(function (_a) {
+        var designationsKey = _a[0], current_seconds = _a[1];
         var value = Math.floor(remainder / current_seconds);
         remainder = remainder % current_seconds;
         if (countDecimals(remainder) > 2) {
@@ -3160,26 +3539,26 @@ function getSecondsAsISODuration(seconds) {
             value += remainder;
         }
         if (value) {
-            if ((duration.indexOf("D") > 0 ||
-                designationsKey === "H" ||
-                designationsKey === "M" ||
-                designationsKey === "S") &&
-                duration.indexOf("T") === -1) {
+            var needsTimeSeparator = (duration.indexOf("D") > 0 ||
+                ["H", "M", "S"].includes(designationsKey)) &&
+                duration.indexOf("T") === -1;
+            if (needsTimeSeparator) {
                 duration += "T";
             }
             duration += "".concat(value).concat(designationsKey);
         }
-    }
+    });
     return duration;
-}
-function getTimeAsSeconds(timeString, timeRegex) {
+});
+var getTimeAsSeconds = memoize(function (timeString, timeRegex) {
+    var _a;
     if (typeof timeString === "number" || typeof timeString === "boolean") {
         timeString = String(timeString);
     }
     if (typeof timeRegex === "string") {
         timeRegex = new RegExp(timeRegex);
     }
-    if (!timeString || !timeString.match(timeRegex)) {
+    if (!timeString || !((_a = timeString === null || timeString === void 0 ? void 0 : timeString.match) === null || _a === void 0 ? void 0 : _a.call(timeString, timeRegex))) {
         return 0;
     }
     var parts = timeString.split(":");
@@ -3187,15 +3566,21 @@ function getTimeAsSeconds(timeString, timeRegex) {
     var minutes = Number(parts[1]);
     var seconds = Number(parts[2]);
     return hours * 3600 + minutes * 60 + seconds;
-}
-function getDurationAsSeconds(duration, durationRegex) {
+}, function (timeString, timeRegex) {
+    var _a;
+    var timeStr = typeof timeString === "string" ? timeString : String(timeString !== null && timeString !== void 0 ? timeString : "");
+    var regexStr = typeof timeRegex === "string" ? timeRegex : ((_a = timeRegex === null || timeRegex === void 0 ? void 0 : timeRegex.toString()) !== null && _a !== void 0 ? _a : "");
+    return "".concat(timeStr, ":").concat(regexStr);
+});
+var getDurationAsSeconds = memoize(function (duration, durationRegex) {
+    var _a, _b, _c, _d;
     if (typeof durationRegex === "string") {
         durationRegex = new RegExp(durationRegex);
     }
-    if (!duration || !duration.match(durationRegex)) {
+    if (!duration || !((_a = duration === null || duration === void 0 ? void 0 : duration.match) === null || _a === void 0 ? void 0 : _a.call(duration, durationRegex))) {
         return 0;
     }
-    var _a = new RegExp(durationRegex).exec(duration) || [], years = _a[1], _ = _a[2], days = _a[4], hours = _a[5], minutes = _a[6], seconds = _a[7];
+    var _e = (_d = (_c = (_b = new RegExp(durationRegex)).exec) === null || _c === void 0 ? void 0 : _c.call(_b, duration)) !== null && _d !== void 0 ? _d : [], years = _e[1], _ = _e[2], days = _e[4], hours = _e[5], minutes = _e[6], seconds = _e[7];
     var result = 0.0;
     result += Number(seconds) || 0.0;
     result += Number(minutes) * 60.0 || 0.0;
@@ -3203,7 +3588,14 @@ function getDurationAsSeconds(duration, durationRegex) {
     result += Number(days) * (60 * 60 * 24.0) || 0.0;
     result += Number(years) * (60 * 60 * 24 * 365.0) || 0.0;
     return result;
-}
+}, function (duration, durationRegex) {
+    var _a;
+    var durationStr = duration !== null && duration !== void 0 ? duration : "";
+    var regexStr = typeof durationRegex === "string"
+        ? durationRegex
+        : ((_a = durationRegex === null || durationRegex === void 0 ? void 0 : durationRegex.toString()) !== null && _a !== void 0 ? _a : "");
+    return "".concat(durationStr, ":").concat(regexStr);
+});
 function addTwoDurations(first, second, durationRegex) {
     var regex = typeof durationRegex === "string"
         ? new RegExp(durationRegex)
@@ -3223,20 +3615,20 @@ function flatten(data) {
             result[prop] = cur;
         }
         else if (Array.isArray(cur)) {
-            for (var i = 0, l = cur.length; i < l; i++) {
-                recurse(cur[i], prop + "[" + i + "]");
-                if (l === 0)
-                    result[prop] = [];
-            }
+            cur.forEach(function (item, i) {
+                recurse(item, "".concat(prop, "[").concat(i, "]"));
+            });
+            if (cur.length === 0)
+                result[prop] = [];
         }
         else {
-            var isEmpty = true;
-            for (var p in cur) {
-                if ({}.hasOwnProperty.call(cur, p)) {
-                    isEmpty = false;
-                    recurse(cur[p], prop ? prop + "." + p : p);
-                }
-            }
+            var keys = Object.keys(cur).filter(function (p) {
+                return Object.prototype.hasOwnProperty.call(cur, p);
+            });
+            var isEmpty = keys.length === 0;
+            keys.forEach(function (p) {
+                recurse(cur[p], prop ? "".concat(prop, ".").concat(p) : p);
+            });
             if (isEmpty && prop)
                 result[prop] = {};
         }
@@ -3246,55 +3638,67 @@ function flatten(data) {
 }
 function unflatten(data) {
     "use strict";
+    var _a;
     if (Object(data) !== data || Array.isArray(data))
         return data;
-    var regex = /\.?([^.[\]]+)|\[(\d+)]/g;
     var result = {};
-    for (var p in data) {
-        if ({}.hasOwnProperty.call(data, p)) {
-            var cur = result;
-            var prop = "";
-            var m = regex.exec(p);
-            while (m) {
-                cur = cur[prop] || (cur[prop] = m[2] ? [] : {});
+    var pattern = /\.?([^.[\]]+)|\[(\d+)]/g;
+    Object.keys(data)
+        .filter(function (p) { return Object.prototype.hasOwnProperty.call(data, p); })
+        .forEach(function (p) {
+        var _a, _b;
+        var cur = result;
+        var prop = "";
+        var regex = new RegExp(pattern);
+        Array.from({ length: (_b = (_a = p.match(new RegExp(pattern, "g"))) === null || _a === void 0 ? void 0 : _a.length) !== null && _b !== void 0 ? _b : 0 }, function () { return regex.exec(p); }).forEach(function (m) {
+            var _a;
+            if (m) {
+                cur = ((_a = cur[prop]) !== null && _a !== void 0 ? _a : (cur[prop] = m[2] ? [] : {}));
                 prop = m[2] || m[1];
-                m = regex.exec(p);
             }
-            cur[prop] = data[p];
-        }
-    }
-    return result[""] || result;
+        });
+        cur[prop] = data[p];
+    });
+    return ((_a = result[""]) !== null && _a !== void 0 ? _a : result);
 }
 function countDecimals(num) {
-    if (Math.floor(num) === num || String(num).indexOf(".") < 0)
+    var _a, _b, _c, _d;
+    if (Math.floor(num) === num || ((_b = (_a = String(num)) === null || _a === void 0 ? void 0 : _a.indexOf) === null || _b === void 0 ? void 0 : _b.call(_a, ".")) < 0)
         return 0;
-    var parts = num.toString().split(".")[1];
-    return parts.length || 0;
+    var parts = (_c = num.toString().split(".")) === null || _c === void 0 ? void 0 : _c[1];
+    return (_d = parts === null || parts === void 0 ? void 0 : parts.length) !== null && _d !== void 0 ? _d : 0;
 }
 function formatMessage(functionName, message, CMIElement) {
     var baseLength = 20;
-    var messageString = "";
-    messageString += functionName;
-    var fillChars = baseLength - messageString.length;
-    for (var i = 0; i < fillChars; i++) {
-        messageString += " ";
-    }
-    messageString += ": ";
+    var paddedFunction = functionName.padEnd(baseLength);
+    var messageString = "".concat(paddedFunction, ": ");
     if (CMIElement) {
         var CMIElementBaseLength = 70;
         messageString += CMIElement;
-        fillChars = CMIElementBaseLength - messageString.length;
-        for (var j = 0; j < fillChars; j++) {
-            messageString += " ";
-        }
+        messageString = messageString.padEnd(CMIElementBaseLength);
     }
-    if (message) {
-        messageString += message;
-    }
+    messageString += message !== null && message !== void 0 ? message : "";
     return messageString;
 }
 function stringMatches(str, tester) {
     return (str === null || str === void 0 ? void 0 : str.match(tester)) !== null;
+}
+function memoize(fn, keyFn) {
+    var cache = new Map();
+    return (function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        var key = keyFn ? keyFn.apply(void 0, args) : JSON.stringify(args);
+        return cache.has(key)
+            ? cache.get(key)
+            : (function () {
+                var result = fn.apply(void 0, args);
+                cache.set(key, result);
+                return result;
+            })();
+    });
 }
 
 
@@ -3781,7 +4185,7 @@ __webpack_require__.r(__webpack_exports__);
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
-  AICCImpl: function() { return /* binding */ AICCImpl; }
+  AICC: function() { return /* binding */ AICCImpl; }
 });
 
 // EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
@@ -4762,10 +5166,10 @@ var AICCImpl = (function (_super) {
         this.nav = newAPI.nav;
     };
     return AICCImpl;
-}(Scorm12API.Scorm12Impl));
+}(Scorm12API.Scorm12API));
 
 
-var __webpack_export_target__ = this;
+var __webpack_export_target__ = window;
 for(var __webpack_i__ in __webpack_exports__) __webpack_export_target__[__webpack_i__] = __webpack_exports__[__webpack_i__];
 if(__webpack_exports__.__esModule) Object.defineProperty(__webpack_export_target__, "__esModule", { value: true });
 /******/ })()

@@ -4,7 +4,7 @@ import * as sinon from "sinon";
 import * as h from "./api_helpers";
 import Pretender from "fetch-pretender";
 import { scorm2004_errors } from "../src/constants/error_codes";
-import { Scorm2004Impl } from "../src/Scorm2004API";
+import { Scorm2004API } from "../src/Scorm2004API";
 import { scorm2004Values } from "./field_values";
 import {
   global_constants,
@@ -23,7 +23,7 @@ import { StringKeyMap } from "../src/utilities";
 
 let clock: sinon.SinonFakeTimers;
 const api = (settings?: Settings, startingData: StringKeyMap = {}) => {
-  const API = new Scorm2004Impl({ ...settings, logLevel: LogLevelEnum.NONE });
+  const API = new Scorm2004API({ ...settings, logLevel: LogLevelEnum.NONE });
   if (startingData) {
     API.startingData = startingData;
   }
@@ -36,7 +36,7 @@ const apiInitialized = (startingData?: StringKeyMap) => {
   return API;
 };
 const basicApi = (settings?: Settings) => {
-  return new Scorm2004Impl({
+  return new Scorm2004API({
     ...settings,
     logLevel: LogLevelEnum.NONE,
   });

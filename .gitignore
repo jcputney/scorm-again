@@ -78,3 +78,8 @@ test-results.json
 scorm-again.zip
 .output.txt
 coverage-*
+
+# Integration test modules
+/test/integration/modules/
+/playwright-report/
+/playwright/.cache/

@@ -5,9 +5,9 @@
  * It provides a simplified interface to the complex subsystem of SCORM APIs.
  */
 
-import { Scorm2004Impl } from "../Scorm2004API";
-import { Scorm12Impl } from "../Scorm12API";
-import { AICCImpl } from "../AICC";
+import { Scorm2004API } from "../Scorm2004API";
+import { Scorm12API } from "../Scorm12API";
+import { AICC } from "../AICC";
 import { Settings } from "../types/api_types";
 import { CompletionStatus, SuccessStatus } from "../constants/enums";
 import BaseAPI from "../BaseAPI";
@@ -149,16 +149,16 @@ class ScormFacade implements IScormFacade {
     // Create the appropriate API instance based on the apiType
     switch (apiType) {
       case "2004":
-        this._api = new Scorm2004Impl(settings);
+        this._api = new Scorm2004API(settings);
         break;
       case "1.2":
-        this._api = new Scorm12Impl(settings);
+        this._api = new Scorm12API(settings);
         break;
       case "AICC":
-        this._api = new AICCImpl(settings);
+        this._api = new AICC(settings);
         break;
       default:
-        this._api = new Scorm2004Impl(settings);
+        this._api = new Scorm2004API(settings);
     }
 
     // Load starting data if provided

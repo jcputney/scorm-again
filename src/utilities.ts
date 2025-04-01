@@ -71,7 +71,7 @@ export const getSecondsAsHHMMSS = memoize(
     return (
       (hours + ":" + minutes + ":" + seconds).replace(/\b\d\b/g, "0$&") + msStr
     );
-  }
+  },
 );
 
 /**
@@ -131,7 +131,7 @@ export const getSecondsAsISODuration = memoize(
         // Add the 'T' separator for time components if needed
         const needsTimeSeparator =
           (duration.indexOf("D") > 0 ||
-           ["H", "M", "S"].includes(designationsKey)) &&
+            ["H", "M", "S"].includes(designationsKey)) &&
           duration.indexOf("T") === -1;
 
         if (needsTimeSeparator) {
@@ -143,7 +143,7 @@ export const getSecondsAsISODuration = memoize(
     });
 
     return duration;
-  }
+  },
 );
 
 /**
@@ -192,14 +192,12 @@ export const getTimeAsSeconds = memoize(
   },
   // Custom key function to handle RegExp objects which can't be stringified
   (timeString, timeRegex) => {
-    const timeStr = typeof timeString === "string"
-      ? timeString
-      : String(timeString ?? "");
-    const regexStr = typeof timeRegex === "string"
-      ? timeRegex
-      : timeRegex?.toString() ?? "";
+    const timeStr =
+      typeof timeString === "string" ? timeString : String(timeString ?? "");
+    const regexStr =
+      typeof timeRegex === "string" ? timeRegex : (timeRegex?.toString() ?? "");
     return `${timeStr}:${regexStr}`;
-  }
+  },
 );
 
 /**
@@ -227,10 +225,7 @@ export const getTimeAsSeconds = memoize(
  * getDurationAsSeconds("invalid", /^P(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?$/);
  */
 export const getDurationAsSeconds = memoize(
-  (
-    duration: string | null,
-    durationRegex: RegExp | string,
-  ): number => {
+  (duration: string | null, durationRegex: RegExp | string): number => {
     if (typeof durationRegex === "string") {
       durationRegex = new RegExp(durationRegex);
     }
@@ -252,11 +247,12 @@ export const getDurationAsSeconds = memoize(
   // Custom key function to handle RegExp objects which can't be stringified
   (duration, durationRegex) => {
     const durationStr = duration ?? "";
-    const regexStr = typeof durationRegex === "string"
-      ? durationRegex
-      : durationRegex?.toString() ?? "";
+    const regexStr =
+      typeof durationRegex === "string"
+        ? durationRegex
+        : (durationRegex?.toString() ?? "");
     return `${durationStr}:${regexStr}`;
-  }
+  },
 );
 
 /**
@@ -375,14 +371,14 @@ export function flatten(data: StringKeyMap): StringKeyMap {
 
       if (cur.length === 0) result[prop] = [];
     } else {
-      const keys = Object.keys(cur).filter(p =>
-        Object.prototype.hasOwnProperty.call(cur, p)
+      const keys = Object.keys(cur).filter((p) =>
+        Object.prototype.hasOwnProperty.call(cur, p),
       );
 
       const isEmpty = keys.length === 0;
 
       // Use forEach instead of for...in loop
-      keys.forEach(p => {
+      keys.forEach((p) => {
         recurse(cur[p], prop ? `${prop}.${p}` : p);
       });
 
@@ -439,8 +435,8 @@ export function unflatten(data: StringKeyMap): object {
 
   // Get all own properties and process them
   Object.keys(data)
-    .filter(p => Object.prototype.hasOwnProperty.call(data, p))
-    .forEach(p => {
+    .filter((p) => Object.prototype.hasOwnProperty.call(data, p))
+    .forEach((p) => {
       let cur = result;
       let prop = "";
 
@@ -449,12 +445,13 @@ export function unflatten(data: StringKeyMap): object {
 
       // Process all matches in the property path
       Array.from(
-        { length: p.match(new RegExp(pattern, 'g'))?.length ?? 0 },
-        () => regex.exec(p)
-      ).forEach(m => {
+        { length: p.match(new RegExp(pattern, "g"))?.length ?? 0 },
+        () => regex.exec(p),
+      ).forEach((m) => {
         if (m) {
           // Create array or object as needed
-          cur = cur[prop] ?? (cur[prop] = m[2] ? [] : {});
+          cur = (cur[prop] ??
+            (cur[prop] = m[2] ? [] : ({} as StringKeyMap))) as StringKeyMap;
           prop = m[2] || m[1];
         }
       });
@@ -462,7 +459,7 @@ export function unflatten(data: StringKeyMap): object {
       cur[prop] = data[p];
     });
 
-  return result[""] ?? result;
+  return (result[""] ?? result) as object;
 }
 
 /**
@@ -601,7 +598,7 @@ export function stringMatches(str: string, tester: string): boolean {
  */
 export function memoize<T extends (...args: any[]) => any>(
   fn: T,
-  keyFn?: (...args: Parameters<T>) => string
+  keyFn?: (...args: Parameters<T>) => string,
 ): T {
   const cache = new Map<string, ReturnType<T>>();
 
@@ -609,7 +606,7 @@ export function memoize<T extends (...args: any[]) => any>(
     const key = keyFn ? keyFn(...args) : JSON.stringify(args);
 
     return cache.has(key)
-      ? cache.get(key) as ReturnType<T>
+      ? (cache.get(key) as ReturnType<T>)
       : (() => {
           const result = fn(...args);
           cache.set(key, result);

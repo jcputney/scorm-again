@@ -132,7 +132,7 @@ export class SerializationService implements ISerializationService {
       items.forEach(item => {
         const obj: StringKeyMap = {};
         obj[item.key] = item.value;
-        loadFromJSON(unflatten(obj), CMIElement);
+        loadFromJSON(unflatten(obj) as StringKeyMap, CMIElement);
       });
     };
 

@@ -32,6 +32,7 @@ import {
  * abstract, and never initialized on its own.
  */
 export default abstract class BaseAPI implements IBaseAPI {
+  [key: string]: unknown;
   private _timeout?: ScheduledCommit;
   private readonly _error_codes: ErrorCode;
   private _settings: Settings = DefaultSettings;
@@ -311,7 +312,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    */
   abstract renderCommitCMI(
     _terminateCommit: boolean,
-  ): StringKeyMap | Array<any>;
+  ): StringKeyMap | Array<string>;
 
   /**
    * Render the commit object to the shortened format for LMS commit.

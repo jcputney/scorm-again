@@ -66,10 +66,10 @@ describe('BaseAPI', () => {
       // Arrange
       const api = new BaseAPI();
       api.cmi.core.student_name = 'Test Student';
-      
+
       // Act
       const result = api.getValue('cmi.core.student_name');
-      
+
       // Assert
       expect(result).toBe('Test Student');
     });
@@ -81,18 +81,90 @@ describe('BaseAPI', () => {
 
 Integration tests verify that multiple components work together correctly:
 
+#### Programmatic Integration Tests
+
+These tests verify that different components of the API work together correctly in a programmatic context:
+
 ```typescript
 describe('SCORM 1.2 API Integration', () => {
   it('should initialize, set values, and terminate correctly', () => {
     // Arrange
     const api = new Scorm12API();
-    
+
     // Act & Assert
     expect(api.LMSInitialize('')).toBe('true');
     expect(api.LMSSetValue('cmi.core.lesson_status', 'completed')).toBe('true');
     expect(api.LMSCommit('')).toBe('true');
     expect(api.LMSFinish('')).toBe('true');
   });
+});
+```
+
+#### Browser-Based Integration Tests
+
+Browser-based integration tests verify that the library works correctly in an actual browser environment with real SCORM modules. These tests use Playwright to automate browser interactions and test against real SCORM content.
+
+##### Setup
+
+The integration test setup:
+1. Checks for locally cached test modules
+2. Downloads test modules if they don't exist
+3. Extracts the modules
+4. Starts a lightweight web server for Playwright tests to run against
+
+##### Running Integration Tests
+
+To run the browser-based integration tests:
+
+1. Ensure you have the necessary dependencies installed:
+   ```
+   yarn install
+   ```
+
+2. Run the integration tests:
+   ```
+   yarn test:integration
+   ```
+
+This will:
+- Download the test modules if they don't exist locally
+- Start a local web server
+- Run the Playwright tests against the modules
+- Generate a report of the test results
+
+##### Test Modules
+
+The test modules are downloaded from [SCORM.com's Golf Examples](https://scorm.com/wp-content/assets/golf_examples/PIFS/AllGolfExamples.zip). These modules provide various SCORM content for testing different scenarios.
+
+The modules are stored in the `test/integration/modules` directory, which is ignored by git to avoid committing large binary files to the repository.
+
+##### Writing Browser-Based Integration Tests
+
+Browser-based integration tests are written using Playwright and are located in the `test/integration` directory. These tests:
+
+1. Navigate to a SCORM module
+2. Interact with the module
+3. Verify that the SCORM API functions correctly
+4. Check for proper data storage and retrieval
+
+Example:
+
+```typescript
+test('should load a SCORM module and initialize correctly', async ({ page }) => {
+  // Navigate to the module
+  await page.goto('/GolfExample_SCORM12/shared/launchpage.html');
+
+  // Verify the API is available
+  const apiExists = await page.evaluate(() => {
+    return typeof window.API !== 'undefined';
+  });
+  expect(apiExists).toBeTruthy();
+
+  // Test API functionality
+  const result = await page.evaluate(() => {
+    return window.API.LMSInitialize('');
+  });
+  expect(result).toBe('true');
 });
 ```
 
@@ -106,21 +178,21 @@ describe('SCORM 1.2 Functional Tests', () => {
     // Arrange
     const api = new Scorm12API();
     api.LMSInitialize('');
-    
+
     // Act
     api.LMSSetValue('cmi.core.lesson_status', 'incomplete');
     api.LMSSetValue('cmi.core.score.raw', '80');
     api.LMSSetValue('cmi.core.score.min', '0');
     api.LMSSetValue('cmi.core.score.max', '100');
     api.LMSCommit('');
-    
+
     // Assert
     expect(api.LMSGetValue('cmi.core.lesson_status')).toBe('incomplete');
-    
+
     // Act again
     api.LMSSetValue('cmi.core.lesson_status', 'completed');
     api.LMSCommit('');
-    
+
     // Assert again
     expect(api.LMSGetValue('cmi.core.lesson_status')).toBe('completed');
   });
@@ -137,17 +209,17 @@ describe('Edge Cases', () => {
     // Arrange
     const api = new Scorm12API();
     api.LMSInitialize('');
-    
+
     // Act & Assert
     expect(api.LMSSetValue('cmi.core.student_name', '')).toBe('true');
     expect(api.LMSGetValue('cmi.core.student_name')).toBe('');
   });
-  
+
   it('should handle invalid CMI elements', () => {
     // Arrange
     const api = new Scorm12API();
     api.LMSInitialize('');
-    
+
     // Act & Assert
     expect(api.LMSSetValue('cmi.invalid.element', 'value')).toBe('false');
     expect(api.LMSGetLastError()).not.toBe('0');
@@ -168,10 +240,10 @@ it('should do something specific', () => {
   // Arrange - set up the test
   const api = new Scorm12API();
   api.LMSInitialize('');
-  
+
   // Act - perform the action being tested
   const result = api.LMSSetValue('cmi.core.lesson_status', 'completed');
-  
+
   // Assert - verify the expected outcome
   expect(result).toBe('true');
   expect(api.LMSGetValue('cmi.core.lesson_status')).toBe('completed');
@@ -231,28 +303,52 @@ httpServiceStub.restore();
 
 SCORM Again provides several scripts for running tests:
 
+### Running Unit Tests Only
+
+To run only unit tests (excluding integration tests):
+
+```bash
+# Run unit tests with list reporter
+yarn test
+
+# Run unit tests with minimal reporter
+yarn test:min
+
+# Run unit tests with coverage reporting
+yarn test:coverage
+```
+
+### Running Integration Tests Only
+
+To run only integration tests:
+
+```bash
+# Run integration tests using Playwright
+yarn test:integration
+```
+
 ### Running All Tests
 
-```bash
-yarn test
-```
-
-### Running Tests with Minimal Output
+To run both unit and integration tests together:
 
 ```bash
-yarn test:min
-```
+# Run all tests with list reporter
+yarn test:all
 
-### Running Tests with Coverage
-
-```bash
-yarn test:coverage
+# Run all tests with coverage reporting
+yarn test:coverage:all
 ```
 
 ### Running Specific Tests
 
+You can run specific test files by providing the file path:
+
 ```bash
+# Run a specific unit test file
 yarn test test/Scorm12API.spec.ts
+
+# Run a specific integration test file
+npx playwright test test/integration/RuntimeBasicCalls_SCORM12.spec.ts
 ```
 
 ## Test Coverage

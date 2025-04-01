@@ -2,7 +2,7 @@ import { expect } from "expect";
 import { describe, it } from "mocha";
 import * as h from "./api_helpers";
 import { scorm12_errors } from "../src/constants/error_codes";
-import { AICCImpl } from "../src/AICC";
+import { AICC } from "../src/AICC";
 import { DefaultSettings } from "../src/constants/default_settings";
 import * as sinon from "sinon";
 import { CMITries } from "../src/cmi/aicc/tries";
@@ -12,7 +12,7 @@ import { LogLevelEnum } from "../src/constants/enums";
 import { StringKeyMap } from "../src/utilities";
 
 const api = (settings?: Settings, startingData: StringKeyMap = {}) => {
-  const API = new AICCImpl({ ...settings, logLevel: LogLevelEnum.NONE });
+  const API = new AICC({ ...settings, logLevel: LogLevelEnum.NONE });
   if (startingData) {
     API.startingData = startingData;
   }

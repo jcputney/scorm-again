@@ -1,6 +1,6 @@
 import { expect } from "expect";
 import { after, before, describe, it } from "mocha";
-import { Scorm12Impl } from "../src/Scorm12API";
+import { Scorm12API } from "../src/Scorm12API";
 import * as h from "./api_helpers";
 import { scorm12_errors } from "../src/constants/error_codes";
 import { scorm12Values } from "./field_values";
@@ -17,7 +17,7 @@ import { StringKeyMap } from "../src/utilities";
 
 let clock: sinon.SinonFakeTimers;
 const api = (settings?: Settings, startingData: StringKeyMap = {}) => {
-  const API = new Scorm12Impl({ ...settings, logLevel: LogLevelEnum.NONE });
+  const API = new Scorm12API({ ...settings, logLevel: LogLevelEnum.NONE });
   API.startingData = startingData;
   return API;
 };

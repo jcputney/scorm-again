@@ -306,11 +306,11 @@ class Scorm12Impl extends BaseAPI {
    * @param {boolean} terminateCommit
    * @return {object|Array}
    */
-  renderCommitCMI(terminateCommit: boolean): StringKeyMap | Array<any> {
+  renderCommitCMI(terminateCommit: boolean): StringKeyMap | Array<string> {
     const cmiExport: StringKeyMap = this.renderCMIToJSONObject();
 
     if (terminateCommit) {
-      cmiExport.cmi.core.total_time = this.cmi.getCurrentTotalTime();
+      (cmiExport.cmi as any).core.total_time = this.cmi.getCurrentTotalTime();
     }
 
     const result = [];
@@ -377,7 +377,7 @@ class Scorm12Impl extends BaseAPI {
     const commitObject: CommitObject = {
       successStatus: successStatus,
       completionStatus: completionStatus,
-      runtimeData: cmiExport,
+      runtimeData: cmiExport as StringKeyMap,
       totalTimeSeconds: totalTimeSeconds,
     };
     if (scoreObject) {
@@ -419,7 +419,7 @@ class Scorm12Impl extends BaseAPI {
         }
       } else if (this.cmi.core.lesson_mode === "browse") {
         if (
-          (this.startingData?.cmi?.core?.lesson_status || "") === "" &&
+          ((this.startingData?.cmi as any)?.core?.lesson_status || "") === "" &&
           originalStatus === "not attempted"
         ) {
           this.cmi.core.lesson_status = "browsed";
@@ -443,4 +443,4 @@ class Scorm12Impl extends BaseAPI {
   }
 }
 
-export { Scorm12Impl };
+export { Scorm12Impl as Scorm12API };

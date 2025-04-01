@@ -2,7 +2,7 @@ import { ResultObject } from "../types/api_types";
 import { BaseCMI } from "../cmi/common/base_cmi";
 import { StringKeyMap } from "../utilities";
 
-export interface IBaseAPI {
+export interface IBaseAPI extends StringKeyMap {
   cmi: BaseCMI;
   startingData?: StringKeyMap;
 

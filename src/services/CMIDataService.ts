@@ -176,7 +176,7 @@ export class CMIDataService implements ICMIDataService {
           }
         }
       } else {
-        refObject = refObject[attribute];
+        refObject = refObject[attribute] as StringKeyMap;
         if (!refObject) {
           this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
           break;
@@ -304,7 +304,7 @@ export class CMIDataService implements ICMIDataService {
         }
       }
 
-      refObject = refObject[attribute];
+      refObject = refObject[attribute] as StringKeyMap;
       if (refObject === undefined) {
         this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
         break;

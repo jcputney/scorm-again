@@ -3,7 +3,7 @@
 import { expect } from "expect";
 import { describe, it } from "mocha";
 import * as sinon from "sinon";
-import { Scorm2004Impl } from "../src/Scorm2004API";
+import { Scorm2004API } from "../src/Scorm2004API";
 import { scorm2004_errors } from "../src/constants/error_codes";
 import { global_constants } from "../src/constants/api_constants";
 import { Settings } from "../src/types/api_types";
@@ -13,7 +13,7 @@ import { CMIInteractionsObject } from "../src/cmi/scorm2004/interactions";
 
 // Helper functions to create API instances
 const api = (settings?: Settings) => {
-  return new Scorm2004Impl({ ...settings, logLevel: LogLevelEnum.NONE });
+  return new Scorm2004API({ ...settings, logLevel: LogLevelEnum.NONE });
 };
 
 const apiInitialized = (settings?: Settings) => {

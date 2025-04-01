@@ -34,17 +34,34 @@ jobs:
         run: mkdir -p reports dist docs test-results
 
       # Run Mocha tests
-      - name: Run tests with Mocha
+      - name: Run unit tests with Mocha
         run: |
           export TS_NODE_COMPILER_OPTIONS="{\"module\":\"commonjs\"}"
           yarn run test:coverage
 
-        # Upload test results to GitHub
+      # Upload unit test results to GitHub
       - uses: dorny/test-reporter@v1
         with:
-          name: Test Reporter
+          name: Unit Test Reporter
           path: test-results.json
           reporter: mocha-json
+
+      # Install Playwright browsers
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      # Run integration tests
+      - name: Run integration tests
+        run: yarn test:integration
+
+      # Upload Playwright report
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
 
       # Run ESLint
       - name: Run ESLint
@@ -57,7 +74,7 @@ jobs:
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
         with:
-          coverageCommand: yarn run test:coverage
+          coverageCommand: yarn run test:coverage:all
           coverageLocations: |
             ${{github.workspace}}/coverage/lcov.info:lcov
           debug: 'true'
