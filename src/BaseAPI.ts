@@ -150,6 +150,13 @@ export default abstract class BaseAPI implements IBaseAPI {
     }
   }
 
+  /**
+   * Reset the API to its initial state.
+   * This method clears all current data and resets the API to an uninitialized state.
+   * It can optionally accept new settings to configure the API after reset.
+   *
+   * @param {Settings} settings - Optional new settings to apply after reset
+   */
   abstract reset(settings?: Settings): void;
 
   /**
@@ -204,27 +211,67 @@ export default abstract class BaseAPI implements IBaseAPI {
     return returnValue;
   }
 
+  /**
+   * Initialize the LMS API
+   * @return {string} "true" if successful, "false" otherwise
+   */
   abstract lmsInitialize(): string;
 
+  /**
+   * Finish the current LMS API session
+   * @return {string} "true" if successful, "false" otherwise
+   */
   abstract lmsFinish(): string;
 
+  /**
+   * Get the value of a CMI element from the LMS
+   * @param {string} CMIElement - The CMI element to get the value of
+   * @return {string} The value of the CMI element
+   */
   abstract lmsGetValue(CMIElement: string): string;
 
+  /**
+   * Set the value of a CMI element in the LMS
+   * @param {string} CMIElement - The CMI element to set the value of
+   * @param {any} value - The value to set
+   * @return {string} "true" if successful, "false" otherwise
+   */
   abstract lmsSetValue(CMIElement: string, value: any): string;
 
+  /**
+   * Commit the current data to the LMS
+   * @return {string} "true" if successful, "false" otherwise
+   */
   abstract lmsCommit(): string;
 
+  /**
+   * Get the last error code from the LMS
+   * @return {string} The last error code
+   */
   abstract lmsGetLastError(): string;
 
+  /**
+   * Get the error string for a specific error code
+   * @param {string|number} CMIErrorCode - The error code to get the string for
+   * @return {string} The error string
+   */
   abstract lmsGetErrorString(CMIErrorCode: string | number): string;
 
+  /**
+   * Get diagnostic information for a specific error code
+   * @param {string|number} CMIErrorCode - The error code to get diagnostic information for
+   * @return {string} The diagnostic information
+   */
   abstract lmsGetDiagnostic(CMIErrorCode: string | number): string;
 
   /**
    * Abstract method for validating that a response is correct.
+   * This method is used to validate the format and content of a response
+   * before it is set in the CMI data model.
    *
-   * @param {string} _CMIElement
-   * @param {any} _value
+   * @param {string} _CMIElement - The CMI element path to validate
+   * @param {any} _value - The value to validate
+   * @throws {Error} If the response format is invalid
    */
   abstract validateCorrectResponse(_CMIElement: string, _value: any): void;
 
@@ -267,9 +314,21 @@ export default abstract class BaseAPI implements IBaseAPI {
   ): StringKeyMap | Array<any>;
 
   /**
-   * Render the commit object to the shortened format for LMS commit
-   * @param {boolean} _terminateCommit
-   * @return {CommitObject}
+   * Render the commit object to the shortened format for LMS commit.
+   * This method transforms the CMI data into a format suitable for sending to the LMS.
+   * It is called during the commit process to prepare the data for transmission.
+   *
+   * @param {boolean} _terminateCommit - Whether this commit is part of the termination process
+   * @return {CommitObject} A formatted object containing the data to be sent to the LMS
+   * @example
+   * // Example of a commit object structure
+   * {
+   *   method: "POST",
+   *   params: {
+   *     cmi: { ... },
+   *     finishState: "COMPLETED"
+   *   }
+   * }
    */
   abstract renderCommitObject(_terminateCommit: boolean): CommitObject;
 
@@ -741,68 +800,114 @@ export default abstract class BaseAPI implements IBaseAPI {
   }
 
   /**
-   * Provides a mechanism for attaching to a specific SCORM event
+   * Provides a mechanism for attaching to a specific SCORM event.
+   * This method allows you to register a callback function that will be executed
+   * when the specified event occurs.
    *
-   * @param {string} listenerName
-   * @param {function} callback
+   * @param {string} listenerName - The name of the event to listen for (e.g., "Initialize", "Terminate", "GetValue", "SetValue", "Commit")
+   * @param {function} callback - The function to execute when the event occurs. The callback will receive relevant event data.
+   * @example
+   * // Listen for Initialize events
+   * api.on("Initialize", function() {
+   *   console.log("API has been initialized");
+   * });
+   *
+   * // Listen for SetValue events
+   * api.on("SetValue", function(element, value) {
+   *   console.log("Setting " + element + " to " + value);
+   * });
    */
   on(listenerName: string, callback: Function) {
     this._eventService.on(listenerName, callback);
   }
 
   /**
-   * Provides a mechanism for detaching a specific SCORM event listener
+   * Provides a mechanism for detaching a specific SCORM event listener.
+   * This method removes a previously registered callback for an event.
+   * Both the event name and the callback reference must match what was used in the 'on' method.
    *
-   * @param {string} listenerName
-   * @param {function} callback
+   * @param {string} listenerName - The name of the event to stop listening for
+   * @param {function} callback - The callback function to remove
+   * @example
+   * // Remove a specific listener
+   * const myCallback = function() { console.log("API initialized"); };
+   * api.on("Initialize", myCallback);
+   * // Later, when you want to remove it:
+   * api.off("Initialize", myCallback);
    */
   off(listenerName: string, callback: Function) {
     this._eventService.off(listenerName, callback);
   }
 
   /**
-   * Provides a mechanism for clearing all listeners from a specific SCORM event
+   * Provides a mechanism for clearing all listeners from a specific SCORM event.
+   * This method removes all callbacks registered for the specified event.
    *
-   * @param {string} listenerName
+   * @param {string} listenerName - The name of the event to clear all listeners for
+   * @example
+   * // Remove all listeners for the Initialize event
+   * api.clear("Initialize");
    */
   clear(listenerName: string) {
     this._eventService.clear(listenerName);
   }
 
   /**
-   * Processes any 'on' listeners that have been created
+   * Processes any 'on' listeners that have been created for a specific event.
+   * This method is called internally when SCORM events occur to notify all registered listeners.
+   * It triggers all callback functions registered for the specified event.
    *
-   * @param {string} functionName
-   * @param {string} CMIElement
-   * @param {any} value
+   * @param {string} functionName - The name of the function/event that occurred
+   * @param {string} CMIElement - Optional CMI element involved in the event
+   * @param {any} value - Optional value associated with the event
    */
   processListeners(functionName: string, CMIElement?: string, value?: any) {
     this._eventService.processListeners(functionName, CMIElement, value);
   }
 
   /**
-   * Throws a SCORM error
+   * Throws a SCORM error with the specified error number and optional message.
+   * This method sets the last error code and can be used to indicate that an operation failed.
+   * The error number should correspond to one of the standard SCORM error codes.
    *
-   * @param {number} errorNumber
-   * @param {string} message
+   * @param {number} errorNumber - The SCORM error code to set
+   * @param {string} message - Optional custom error message to provide additional context
+   * @example
+   * // Throw a "not initialized" error
+   * this.throwSCORMError(301, "The API must be initialized before calling GetValue");
    */
   throwSCORMError(errorNumber: number, message?: string) {
     this._errorHandlingService.throwSCORMError(errorNumber, message);
   }
 
   /**
-   * Clears the last SCORM error code on success.
+   * Clears the last SCORM error code when an operation succeeds.
+   * This method is typically called after successful API operations to reset the error state.
+   * It only clears the error if the success parameter is "true".
    *
-   * @param {string} success
+   * @param {string} success - A string indicating whether the operation succeeded ("true" or "false")
+   * @example
+   * // Clear error after successful operation
+   * this.clearSCORMError("true");
    */
   clearSCORMError(success: string) {
     this._errorHandlingService.clearSCORMError(success);
   }
 
   /**
-   * Load the CMI from a flattened JSON object
-   * @param {StringKeyMap} json
-   * @param {string} CMIElement
+   * Load the CMI from a flattened JSON object.
+   * This method populates the CMI data model from a flattened JSON structure
+   * where keys represent CMI element paths (e.g., "cmi.core.student_id").
+   *
+   * @param {StringKeyMap} json - The flattened JSON object containing CMI data
+   * @param {string} CMIElement - Optional base CMI element path to prepend to all keys
+   * @example
+   * // Load data from a flattened JSON structure
+   * api.loadFromFlattenedJSON({
+   *   "cmi.core.student_id": "12345",
+   *   "cmi.core.student_name": "John Doe",
+   *   "cmi.core.lesson_status": "incomplete"
+   * });
    */
   loadFromFlattenedJSON(json: StringKeyMap, CMIElement?: string) {
     if (!CMIElement) {
@@ -820,10 +925,24 @@ export default abstract class BaseAPI implements IBaseAPI {
   }
 
   /**
-   * Loads CMI data from a JSON object.
+   * Loads CMI data from a hierarchical JSON object.
+   * This method populates the CMI data model from a nested JSON structure
+   * that mirrors the CMI object hierarchy.
    *
-   * @param {StringKeyMap} json
-   * @param {string} CMIElement
+   * @param {StringKeyMap} json - The hierarchical JSON object containing CMI data
+   * @param {string} CMIElement - Optional base CMI element path to prepend to all keys
+   * @example
+   * // Load data from a hierarchical JSON structure
+   * api.loadFromJSON({
+   *   core: {
+   *     student_id: "12345",
+   *     student_name: "John Doe",
+   *     lesson_status: "incomplete"
+   *   },
+   *   objectives: [
+   *     { id: "obj1", score: { raw: 85 } }
+   *   ]
+   * });
    */
   loadFromJSON(json: StringKeyMap, CMIElement: string = "") {
     this._serializationService.loadFromJSON(
@@ -838,9 +957,15 @@ export default abstract class BaseAPI implements IBaseAPI {
   }
 
   /**
-   * Render the CMI object to JSON for sending to an LMS.
+   * Render the CMI object to a JSON string for sending to an LMS.
+   * This method serializes the current CMI data model to a JSON string.
+   * The output format is controlled by the sendFullCommit setting.
    *
-   * @return {string}
+   * @return {string} A JSON string representation of the CMI data
+   * @example
+   * // Get the current CMI data as a JSON string
+   * const jsonString = api.renderCMIToJSONString();
+   * console.log(jsonString); // '{"core":{"student_id":"12345",...}}'
    */
   renderCMIToJSONString(): string {
     return this._serializationService.renderCMIToJSONString(
@@ -850,8 +975,15 @@ export default abstract class BaseAPI implements IBaseAPI {
   }
 
   /**
-   * Returns a JS object representing the current cmi
-   * @return {object}
+   * Returns a JavaScript object representing the current CMI data.
+   * This method creates a plain JavaScript object that mirrors the
+   * structure of the CMI data model, suitable for further processing.
+   *
+   * @return {StringKeyMap} A JavaScript object representing the CMI data
+   * @example
+   * // Get the current CMI data as a JavaScript object
+   * const cmiObject = api.renderCMIToJSONObject();
+   * console.log(cmiObject.core.student_id); // "12345"
    */
   renderCMIToJSONObject(): StringKeyMap {
     return this._serializationService.renderCMIToJSONObject(
@@ -861,11 +993,22 @@ export default abstract class BaseAPI implements IBaseAPI {
   }
 
   /**
-   * Send the request to the LMS
-   * @param {string} url
-   * @param {CommitObject|StringKeyMap|Array} params
-   * @param {boolean} immediate
-   * @return {ResultObject}
+   * Sends a request to the LMS with the specified parameters.
+   * This method handles communication with the LMS server, including
+   * formatting the request, handling the response, and triggering appropriate events.
+   *
+   * @param {string} url - The URL endpoint to send the request to
+   * @param {CommitObject|StringKeyMap|Array} params - The data to send to the LMS
+   * @param {boolean} immediate - Whether to send the request immediately (true) or queue it (false)
+   * @return {Promise<ResultObject>} A promise that resolves with the result of the request
+   * @example
+   * // Send data to the LMS immediately
+   * const result = await api.processHttpRequest(
+   *   "https://lms.example.com/scorm/commit",
+   *   { method: "POST", params: { cmi: { core: { lesson_status: "completed" } } } },
+   *   true
+   * );
+   * console.log(result.errorCode === 0 ? "Success" : "Failed");
    */
   async processHttpRequest(
     url: string,
@@ -882,10 +1025,15 @@ export default abstract class BaseAPI implements IBaseAPI {
   }
 
   /**
-   * Throws a SCORM error
+   * Schedules a commit operation to occur after a specified delay.
+   * This method is used to implement auto-commit functionality, where data
+   * is periodically sent to the LMS without requiring explicit commit calls.
    *
-   * @param {number} when - the number of milliseconds to wait before committing
-   * @param {string} callback - the name of the commit event callback
+   * @param {number} when - The number of milliseconds to wait before committing
+   * @param {string} callback - The name of the commit event callback
+   * @example
+   * // Schedule a commit to happen in 60 seconds
+   * api.scheduleCommit(60000, "commit");
    */
   scheduleCommit(when: number, callback: string) {
     if (!this._timeout) {
@@ -895,7 +1043,13 @@ export default abstract class BaseAPI implements IBaseAPI {
   }
 
   /**
-   * Clears and cancels any currently scheduled commits
+   * Clears and cancels any currently scheduled commits.
+   * This method is typically called when an explicit commit is performed
+   * or when the API is terminated, to prevent redundant commits.
+   *
+   * @example
+   * // Cancel any pending scheduled commits
+   * api.clearScheduledCommit();
    */
   clearScheduledCommit() {
     if (this._timeout) {

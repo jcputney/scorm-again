@@ -97,15 +97,33 @@ export class CMIDataService implements ICMIDataService {
   }
 
   /**
-   * Shared API method to set a valid for a given element.
+   * Shared API method to set a value for a given CMI element.
    *
-   * @param {StringKeyMap} cmi - The CMI object
-   * @param {string} methodName - The method name
-   * @param {boolean} scorm2004 - Whether this is SCORM 2004
-   * @param {string} CMIElement - The CMI element
-   * @param {any} value - The value to set
-   * @param {boolean} isInitialized - Whether the API is initialized
-   * @return {string}
+   * This method implements the core algorithm for navigating the CMI data model
+   * and setting values at the specified path. It handles complex scenarios including:
+   *
+   * 1. Dot notation traversal: Parses the CMIElement string (e.g., "cmi.core.student_id")
+   *    and traverses the nested CMI object structure accordingly.
+   *
+   * 2. Array handling: Detects array elements (e.g., "cmi.objectives.0.id") and
+   *    either accesses existing array items or creates new ones as needed.
+   *
+   * 3. SCORM 2004 specific features: Handles special syntax like {target=} for
+   *    interaction targets.
+   *
+   * 4. Validation: Performs validation for specific elements like correct_responses
+   *    to ensure data integrity.
+   *
+   * 5. Error handling: Validates that the CMI path exists and is writable,
+   *    throwing appropriate SCORM errors when issues are encountered.
+   *
+   * @param {StringKeyMap} cmi - The CMI object to modify
+   * @param {string} methodName - The method name (for error reporting)
+   * @param {boolean} scorm2004 - Whether this is SCORM 2004 (affects error codes and behavior)
+   * @param {string} CMIElement - The dot-notation path to the CMI element to set
+   * @param {any} value - The value to set at the specified path
+   * @param {boolean} isInitialized - Whether the API is initialized (affects write permissions)
+   * @return {string} "true" if successful, "false" if an error occurred
    */
   setCMIValue(
     cmi: StringKeyMap,
@@ -211,13 +229,34 @@ export class CMIDataService implements ICMIDataService {
   }
 
   /**
-   * Gets a value from the CMI Object
+   * Gets a value from the CMI Object at the specified path.
    *
-   * @param {StringKeyMap} cmi - The CMI object
-   * @param {string} methodName - The method name
-   * @param {boolean} scorm2004 - Whether this is SCORM 2004
-   * @param {string} CMIElement - The CMI element
-   * @return {any}
+   * This method implements the core algorithm for navigating the CMI data model
+   * and retrieving values from the specified path. It handles complex scenarios including:
+   *
+   * 1. Dot notation traversal: Parses the CMIElement string (e.g., "cmi.core.student_id")
+   *    and traverses the nested CMI object structure accordingly.
+   *
+   * 2. Array handling: Detects array elements (e.g., "cmi.objectives.0.id") and
+   *    accesses the appropriate array item, throwing errors if the index doesn't exist.
+   *
+   * 3. SCORM version differences: Implements different error handling and validation
+   *    logic for SCORM 1.2 vs SCORM 2004.
+   *
+   * 4. Special attributes: Handles special cases like _children and _count attributes
+   *    in SCORM 1.2, which provide metadata about the CMI structure.
+   *
+   * 5. SCORM 2004 target validation: Processes special {target=} syntax for
+   *    interaction targets and validates them using the _isTargetValid method.
+   *
+   * 6. Error handling: Validates that the CMI path exists and is readable,
+   *    throwing appropriate SCORM errors when issues are encountered.
+   *
+   * @param {StringKeyMap} cmi - The CMI object to read from
+   * @param {string} methodName - The method name (for error reporting)
+   * @param {boolean} scorm2004 - Whether this is SCORM 2004 (affects error codes and behavior)
+   * @param {string} CMIElement - The dot-notation path to the CMI element to retrieve
+   * @return {any} The value at the specified path, or undefined if an error occurred
    */
   getCMIValue(
     cmi: StringKeyMap,
