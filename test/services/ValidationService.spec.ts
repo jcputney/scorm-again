@@ -1,6 +1,9 @@
 import { describe, it } from "mocha";
 import { expect } from "expect";
-import { ValidationService, validationService } from "../../src/services/ValidationService";
+import {
+  ValidationService,
+  validationService,
+} from "../../src/services/ValidationService";
 import { BaseScormValidationError } from "../../src/exceptions";
 import { scorm12_errors } from "../../src/constants/error_codes";
 import { Scorm12ValidationError } from "../../src/exceptions/scorm12_exceptions";
@@ -25,7 +28,7 @@ describe("ValidationService", () => {
         false,
         101,
         102,
-        TestValidationError
+        TestValidationError,
       );
       expect(result).toBe(true);
     });
@@ -38,7 +41,7 @@ describe("ValidationService", () => {
           false,
           101,
           102,
-          TestValidationError
+          TestValidationError,
         );
       }).toThrow();
     });

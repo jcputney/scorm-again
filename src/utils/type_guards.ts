@@ -3,7 +3,7 @@ import { CMIArray } from "../cmi/common/array";
 
 /**
  * Type guard for ValidationError
- * 
+ *
  * @param {unknown} value - The value to check
  * @return {boolean} - Whether the value is a ValidationError
  */
@@ -13,7 +13,7 @@ export function isValidationError(value: unknown): value is ValidationError {
 
 /**
  * Type guard for Error
- * 
+ *
  * @param {unknown} value - The value to check
  * @return {boolean} - Whether the value is an Error
  */
@@ -23,7 +23,7 @@ export function isError(value: unknown): value is Error {
 
 /**
  * Type guard for CMIArray
- * 
+ *
  * @param {unknown} value - The value to check
  * @return {boolean} - Whether the value is a CMIArray
  */

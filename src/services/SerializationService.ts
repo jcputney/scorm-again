@@ -63,8 +63,18 @@ export class SerializationService implements ISerializationService {
     const obj_pattern = /^(cmi\.objectives\.)(\d+)\.(.*)$/;
 
     // Extract and categorize keys for better sorting
-    const interactions: { key: string; value: any; index: number; field: string }[] = [];
-    const objectives: { key: string; value: any; index: number; field: string }[] = [];
+    const interactions: {
+      key: string;
+      value: any;
+      index: number;
+      field: string;
+    }[] = [];
+    const objectives: {
+      key: string;
+      value: any;
+      index: number;
+      field: string;
+    }[] = [];
     const others: { key: string; value: any }[] = [];
 
     // Categorize keys
@@ -76,7 +86,7 @@ export class SerializationService implements ISerializationService {
             key,
             value: json[key],
             index: Number(intMatch[2]),
-            field: intMatch[3]
+            field: intMatch[3],
           });
           continue;
         }
@@ -87,7 +97,7 @@ export class SerializationService implements ISerializationService {
             key,
             value: json[key],
             index: Number(objMatch[2]),
-            field: objMatch[3]
+            field: objMatch[3],
           });
           continue;
         }
@@ -103,10 +113,10 @@ export class SerializationService implements ISerializationService {
       }
 
       // Same index, prioritize id and type
-      if (a.field === 'id') return -1;
-      if (b.field === 'id') return 1;
-      if (a.field === 'type') return -1;
-      if (b.field === 'type') return 1;
+      if (a.field === "id") return -1;
+      if (b.field === "id") return 1;
+      if (a.field === "type") return -1;
+      if (b.field === "type") return 1;
 
       return a.field.localeCompare(b.field);
     });
@@ -118,8 +128,8 @@ export class SerializationService implements ISerializationService {
       }
 
       // Same index, prioritize id
-      if (a.field === 'id') return -1;
-      if (b.field === 'id') return 1;
+      if (a.field === "id") return -1;
+      if (b.field === "id") return 1;
 
       return a.field.localeCompare(b.field);
     });
@@ -129,7 +139,7 @@ export class SerializationService implements ISerializationService {
 
     // Process all items in the correct order
     const processItems = (items: { key: string; value: any }[]) => {
-      items.forEach(item => {
+      items.forEach((item) => {
         const obj: StringKeyMap = {};
         obj[item.key] = item.value;
         loadFromJSON(unflatten(obj) as StringKeyMap, CMIElement);

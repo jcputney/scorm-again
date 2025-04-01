@@ -36,9 +36,9 @@ describe("DefaultSettings", () => {
       const mockResponse = new Response(
         JSON.stringify({
           result: global_constants.SCORM_TRUE,
-          errorCode: 42
+          errorCode: 42,
         }),
-        { status: 200 }
+        { status: 200 },
       );
 
       // Call the responseHandler
@@ -53,9 +53,9 @@ describe("DefaultSettings", () => {
       // Create a mock response with only a result
       const mockResponse = new Response(
         JSON.stringify({
-          result: global_constants.SCORM_TRUE
+          result: global_constants.SCORM_TRUE,
         }),
-        { status: 200 }
+        { status: 200 },
       );
 
       // Call the responseHandler
@@ -70,9 +70,9 @@ describe("DefaultSettings", () => {
       // Create a mock response with only a result set to SCORM_FALSE
       const mockResponse = new Response(
         JSON.stringify({
-          result: global_constants.SCORM_FALSE
+          result: global_constants.SCORM_FALSE,
         }),
-        { status: 200 }
+        { status: 200 },
       );
 
       // Call the responseHandler

@@ -1,4 +1,4 @@
-declare module 'extract-zip' {
+declare module "extract-zip" {
   interface ExtractOptions {
     dir: string;
     defaultDirMode?: number;

@@ -1,7 +1,10 @@
 import { afterEach, beforeEach, describe, it } from "mocha";
 import { expect } from "expect";
 import * as sinon from "sinon";
-import { getLoggingService, LoggingService } from "../../src/services/LoggingService";
+import {
+  getLoggingService,
+  LoggingService,
+} from "../../src/services/LoggingService";
 import { LogLevelEnum } from "../../src/constants/enums";
 import { LogLevel } from "../../src/types/api_types";
 
@@ -196,7 +199,7 @@ describe("LoggingService", () => {
           case LogLevelEnum.DEBUG:
             // Access console.debug directly to ensure we check at runtime
             const debug = console.debug;
-            if (typeof debug === 'function') {
+            if (typeof debug === "function") {
               debug.call(console, logMessage);
             } else {
               console.log(logMessage);
@@ -367,7 +370,9 @@ describe("LoggingService", () => {
     });
 
     it("should default to ERROR for unknown levels", () => {
-      expect(loggingService.getNumericLevel("UNKNOWN")).toBe(LogLevelEnum.ERROR);
+      expect(loggingService.getNumericLevel("UNKNOWN")).toBe(
+        LogLevelEnum.ERROR,
+      );
       expect(loggingService.getNumericLevel("6")).toBe(LogLevelEnum.ERROR);
       expect(loggingService.getNumericLevel({})).toBe(LogLevelEnum.ERROR);
     });

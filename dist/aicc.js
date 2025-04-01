@@ -623,10 +623,7 @@ var EventService = (function () {
             var listeners = this_1.listenerMap.get(functionName);
             if (!listeners)
                 return "continue";
-            var removeIndex = listeners.findIndex(function (obj) {
-                return obj.CMIElement === CMIElement &&
-                    obj.callback === callback;
-            });
+            var removeIndex = listeners.findIndex(function (obj) { return obj.CMIElement === CMIElement && obj.callback === callback; });
             if (removeIndex !== -1) {
                 listeners.splice(removeIndex, 1);
                 this_1.listenerCount--;
@@ -655,7 +652,7 @@ var EventService = (function () {
             if (this_2.listenerMap.has(functionName)) {
                 var listeners = this_2.listenerMap.get(functionName);
                 var newListeners = listeners.filter(function (obj) { return obj.CMIElement !== CMIElement; });
-                this_2.listenerCount -= (listeners.length - newListeners.length);
+                this_2.listenerCount -= listeners.length - newListeners.length;
                 if (newListeners.length === 0) {
                     this_2.listenerMap.delete(functionName);
                 }
@@ -727,7 +724,7 @@ var SerializationService = (function () {
                         key: key,
                         value: json[key],
                         index: Number(intMatch[2]),
-                        field: intMatch[3]
+                        field: intMatch[3],
                     });
                     continue;
                 }
@@ -737,7 +734,7 @@ var SerializationService = (function () {
                         key: key,
                         value: json[key],
                         index: Number(objMatch[2]),
-                        field: objMatch[3]
+                        field: objMatch[3],
                     });
                     continue;
                 }
@@ -748,13 +745,13 @@ var SerializationService = (function () {
             if (a.index !== b.index) {
                 return a.index - b.index;
             }
-            if (a.field === 'id')
+            if (a.field === "id")
                 return -1;
-            if (b.field === 'id')
+            if (b.field === "id")
                 return 1;
-            if (a.field === 'type')
+            if (a.field === "type")
                 return -1;
-            if (b.field === 'type')
+            if (b.field === "type")
                 return 1;
             return a.field.localeCompare(b.field);
         });
@@ -762,9 +759,9 @@ var SerializationService = (function () {
             if (a.index !== b.index) {
                 return a.index - b.index;
             }
-            if (a.field === 'id')
+            if (a.field === "id")
                 return -1;
-            if (b.field === 'id')
+            if (b.field === "id")
                 return 1;
             return a.field.localeCompare(b.field);
         });

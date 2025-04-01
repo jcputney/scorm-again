@@ -116,7 +116,10 @@ export class HttpService implements IHttpService {
       settings: Settings,
     ): Promise<ResultObject> => {
       try {
-        params = settings.requestHandler(params) as CommitObject | StringKeyMap | Array<any>;
+        params = settings.requestHandler(params) as
+          | CommitObject
+          | StringKeyMap
+          | Array<any>;
         const response = await this.performFetch(url, params);
 
         return this.transformResponse(response, processListeners);

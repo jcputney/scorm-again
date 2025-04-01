@@ -128,7 +128,10 @@ export class ErrorHandlingService implements IErrorHandlingService {
    *   return handleValueAccessException(e, "");
    * }
    */
-  handleValueAccessException(e: ValidationError | Error | unknown, returnValue: string): string {
+  handleValueAccessException(
+    e: ValidationError | Error | unknown,
+    returnValue: string,
+  ): string {
     if (isValidationError(e)) {
       this._lastErrorCode = String(e.errorCode);
       returnValue = global_constants.SCORM_FALSE;

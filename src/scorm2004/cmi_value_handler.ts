@@ -18,10 +18,15 @@ import { CMIObjectivesObject } from "../cmi/scorm2004/objectives";
 export function setCMIValue(
   CMIElement: string,
   value: any,
-  commonSetCMIValue: (method: string, scorm: boolean, CMIElement: string, value: any) => string,
+  commonSetCMIValue: (
+    method: string,
+    scorm: boolean,
+    CMIElement: string,
+    value: any,
+  ) => string,
   globalObjectives: CMIObjectivesObject[],
   globalObjectiveIds: string[],
-  cmiObjectives: any
+  cmiObjectives: any,
 ): string {
   // Check if we're updating a global or local objective
   if (stringMatches(CMIElement, "cmi\\.objectives\\.\\d+")) {
@@ -45,8 +50,7 @@ export function setCMIValue(
     }
 
     // Check if the objective ID matches a global objective
-    const is_global =
-      objective_id && globalObjectiveIds.includes(objective_id);
+    const is_global = objective_id && globalObjectiveIds.includes(objective_id);
 
     if (is_global) {
       // Locate or create an entry in _globalObjectives for the global objective
@@ -66,12 +70,7 @@ export function setCMIValue(
         element_base,
         `_globalObjectives.${global_index}`,
       );
-      commonSetCMIValue(
-        "SetGlobalObjectiveValue",
-        true,
-        global_element,
-        value,
-      );
+      commonSetCMIValue("SetGlobalObjectiveValue", true, global_element, value);
     }
   }
   return commonSetCMIValue("SetValue", true, CMIElement, value);
@@ -86,7 +85,11 @@ export function setCMIValue(
  */
 export function getCMIValue(
   CMIElement: string,
-  commonGetCMIValue: (method: string, scorm: boolean, CMIElement: string) => any
+  commonGetCMIValue: (
+    method: string,
+    scorm: boolean,
+    CMIElement: string,
+  ) => any,
 ): any {
   return commonGetCMIValue("GetValue", true, CMIElement);
 }

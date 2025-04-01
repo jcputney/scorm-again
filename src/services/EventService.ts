@@ -123,9 +123,7 @@ export class EventService implements IEventService {
 
       // Find the index of the listener to remove
       const removeIndex = listeners.findIndex(
-        (obj) =>
-          obj.CMIElement === CMIElement &&
-          obj.callback === callback,
+        (obj) => obj.CMIElement === CMIElement && obj.callback === callback,
       );
 
       if (removeIndex !== -1) {
@@ -169,11 +167,11 @@ export class EventService implements IEventService {
 
         // Filter out listeners that match the criteria
         const newListeners = listeners.filter(
-          (obj) => obj.CMIElement !== CMIElement
+          (obj) => obj.CMIElement !== CMIElement,
         );
 
         // Update the count and map
-        this.listenerCount -= (listeners.length - newListeners.length);
+        this.listenerCount -= listeners.length - newListeners.length;
 
         if (newListeners.length === 0) {
           this.listenerMap.delete(functionName);

@@ -40,7 +40,7 @@ describe("CMIDataService", () => {
       throwSCORMError: throwSCORMErrorStub,
       clearSCORMError: sinon.stub(),
       handleValueAccessException: sinon.stub(),
-      errorCodes: errorCodes
+      errorCodes: errorCodes,
     };
 
     // Create a new instance for each test
