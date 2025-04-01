@@ -30,6 +30,25 @@ not supported by IE11, you will need to provide your own polyfill for this funct
 1. This project is not complete! I'm still working on AICC testing, and continuing to write proper test cases for all
    APIs
 
+## Documentation
+
+### API Usage Documentation
+- **API Examples**
+  - [AICC API Examples](docs/api_usage/examples/aicc_examples.md)
+  - [SCORM 1.2 API Examples](docs/api_usage/examples/scorm12_examples.md)
+  - [SCORM 2004 API Examples](docs/api_usage/examples/scorm2004_examples.md)
+- [Common Use Cases](docs/api_usage/use_cases/common_use_cases.md)
+- [Troubleshooting Guide](docs/api_usage/troubleshooting/troubleshooting_guide.md)
+
+### Developer Documentation
+- [Development Workflow](docs/developer/development_workflow.md)
+- [Contribution Guidelines](docs/developer/contribution_guidelines.md)
+- [Testing Strategy](docs/developer/testing_strategy.md)
+- [Method Standards](src/docs/method_standards.md)
+
+### Style Guide
+- [TypeScript Style Guide](.junie/guidelines.md)
+
 ### Setup
 
 To begin with, you include either the `scorm-again.js` or `scorm-again.min.js` file on your launching page:
@@ -372,7 +391,64 @@ The APIs provide some hooks for the sequencing of modules, but this is primarily
 beyond event listeners is provided. More work can be done in this area, but I'm primarily focused on the stability of
 the rest of the APIs at this point.
 
-### Credits and Thanks!
+## Project Architecture
+
+SCORM Again is designed with a modular architecture that separates concerns and promotes maintainability:
+
+- **Core APIs**: Separate implementations for AICC, SCORM 1.2, and SCORM 2004
+- **Service Layer**: Modular services for HTTP communication, validation, logging, and data serialization
+- **CMI Data Models**: Structured data models for each SCORM/AICC version
+- **Event System**: Comprehensive event listeners for tracking API interactions
+
+The project follows object-oriented principles with TypeScript, emphasizing type safety and clear interfaces between components.
+
+## Compatibility
+
+SCORM Again is compatible with:
+
+- **Browsers**: All modern browsers (Chrome, Firefox, Safari, Edge)
+- **IE11**: Requires a fetch polyfill
+- **Node.js**: For server-side processing or testing
+- **LMS Systems**: Compatible with any LMS that supports AICC, SCORM 1.2, or SCORM 2004
+
+## Security Considerations
+
+When implementing SCORM Again, consider these security best practices:
+
+- Always validate data coming from external sources before passing it to the API
+- Be cautious with the content of `suspend_data` as it may contain sensitive information
+- Use HTTPS for all LMS communications to prevent data interception
+- Review the `xhrHeaders` and `responseHandler` settings for potential security implications
+
+## Performance Considerations
+
+For optimal performance:
+
+- Use the specific API version you need (aicc.js, scorm12.js, or scorm2004.js) instead of the full library
+- Consider setting `autocommit` to `true` with a reasonable `autocommitSeconds` value to balance network traffic
+- Large datasets should be compressed before storing in `suspend_data`
+- For mobile devices, optimize network usage by carefully managing commit frequency
+
+## Community and Support
+
+- **GitHub Issues**: For bug reports and feature requests
+- **Pull Requests**: Contributions are welcome following the [contribution guidelines](docs/developer/contribution_guidelines.md)
+- **Discussions**: Use GitHub Discussions for questions and community support
+
+## Version History
+
+For a complete list of changes, see the [releases page](https://github.com/jcputney/scorm-again/releases) on GitHub.
+
+## Roadmap
+
+Future plans for SCORM Again include:
+
+- Improved test coverage
+- Potential support for TinCan/xAPI/CMI5
+- Performance optimizations
+- Enhanced documentation and examples
+
+## Credits and Thanks!
 
 This project was heavily influenced by the [simplify-scorm](https://github.com/gabrieldoty/simplify-scorm) project by
 @gabrieldoty, but ended up being pretty much a ground-up rewrite. The big influence from this project was the inclusion
@@ -381,12 +457,16 @@ of event listeners.
 I also drew from the [Moodle SCORM module](https://github.com/moodle/moodle/tree/master/mod/scorm), but avoided directly
 copying their code because it is...not very clean.
 
-### Contributing
+## Contributing
 
-I welcome any and all feedback and contributions to this project! I'm sure it would do with some cleanup and
-refactoring, and could definitely use some more test cases.
+I welcome any and all feedback and contributions to this project! The project has comprehensive documentation for contributors:
 
-#### Setup and Development
+- [Development Workflow](docs/developer/development_workflow.md): Setting up your environment and development process
+- [Contribution Guidelines](docs/developer/contribution_guidelines.md): Standards and expectations for contributions
+- [Testing Strategy](docs/developer/testing_strategy.md): How to write and run tests
+- [CONTRIBUTING.md](CONTRIBUTING.md): Quick start guide for contributors
+
+### Setup and Development
 
 You will need `node` installed on your local machine, and you'll have to run `npm install` in the repo directory before
 starting development.
@@ -397,3 +477,7 @@ Similarly, to run the tests, you just run the `yarn test` command.
 
 Before submitting pull requests, please also run `eslint ./src --fix` against your code first, otherwise your pull
 request build could fail.
+
+## License
+
+SCORM Again is released under the MIT License. See the [LICENSE](LICENSE) file for details.
