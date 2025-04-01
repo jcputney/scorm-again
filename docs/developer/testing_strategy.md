@@ -134,7 +134,7 @@ This will:
 
 ##### Test Modules
 
-The test modules are downloaded from [SCORM.com's Golf Examples](https://scorm.com/wp-content/assets/golf_examples/PIFS/AllGolfExamples.zip). These modules provide various SCORM content for testing different scenarios.
+The test modules are downloaded from [SCORM.com's Golf Examples](https://cdn.noverant.com/AllGolfExamples.zip). These modules provide various SCORM content for testing different scenarios.
 
 The modules are stored in the `test/integration/modules` directory, which is ignored by git to avoid committing large binary files to the repository.
 

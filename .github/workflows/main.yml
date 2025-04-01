@@ -40,7 +40,7 @@ jobs:
           yarn run test:coverage
 
       # Upload unit test results to GitHub
-      - uses: dorny/test-reporter@v1
+      - uses: dorny/test-reporter@v2
         with:
           name: Unit Test Reporter
           path: test-results.json

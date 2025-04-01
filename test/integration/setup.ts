@@ -10,8 +10,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const MODULES_DIR = path.join(__dirname, "modules");
-const MODULES_URL =
-  "https://scorm.com/wp-content/assets/golf_examples/PIFS/AllGolfExamples.zip";
+const MODULES_URL = "https://cdn.noverant.com/AllGolfExamples.zip";
 const MODULES_ZIP = path.join(MODULES_DIR, "AllGolfExamples.zip");
 const SERVER_PORT = 3000;
 
