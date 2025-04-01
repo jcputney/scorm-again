@@ -89,11 +89,44 @@ export class ErrorHandlingService implements IErrorHandlingService {
   }
 
   /**
-   * Handles the error that occurs when trying to access a value
+   * Handles exceptions that occur when accessing or setting CMI values.
+   *
+   * This method provides centralized error handling for exceptions that occur during
+   * CMI data operations. It differentiates between different types of errors and
+   * handles them appropriately:
+   *
+   * 1. ValidationError: These are expected errors from the validation system that
+   *    indicate a specific SCORM error condition (like invalid data format or range).
+   *    For these errors, the method:
+   *    - Sets the lastErrorCode to the error code from the ValidationError
+   *    - Returns SCORM_FALSE to indicate failure to the caller
+   *
+   * 2. Standard JavaScript Error: For general JavaScript errors (like TypeError,
+   *    ReferenceError, etc.), the method:
+   *    - Logs the error message to the console
+   *    - Sets a general SCORM error
+   *    - Returns SCORM_FALSE to indicate failure
+   *
+   * 3. Unknown exceptions: For any other type of exception that doesn't match the
+   *    above categories, the method:
+   *    - Logs the entire exception object to the console
+   *    - Sets a general SCORM error
+   *    - Returns SCORM_FALSE to indicate failure
+   *
+   * This method is critical for maintaining SCORM compliance by ensuring that
+   * all errors are properly translated into the appropriate SCORM error codes.
    *
    * @param {ValidationError|Error|unknown} e - The exception that was thrown
-   * @param {string} returnValue - The default return value
-   * @return {string} - The return value after handling the exception
+   * @param {string} returnValue - The default return value (typically an empty string)
+   * @return {string} - Either the original returnValue or SCORM_FALSE if an error occurred
+   *
+   * @example
+   * try {
+   *   const value = getCMIValue("cmi.core.score.raw");
+   *   return value;
+   * } catch (e) {
+   *   return handleValueAccessException(e, "");
+   * }
    */
   handleValueAccessException(e: ValidationError | Error | unknown, returnValue: string): string {
     if (isValidationError(e)) {

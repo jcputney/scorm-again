@@ -23,13 +23,59 @@ export class HttpService implements IHttpService {
   }
 
   /**
-   * Send the request to the LMS
-   * @param {string} url - The URL to send the request to
-   * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
-   * @param {boolean} immediate - Whether to send the request immediately
-   * @param {Function} apiLog - Function to log API messages
-   * @param {Function} processListeners - Function to process event listeners
-   * @return {ResultObject} - The result of the request
+   * Sends HTTP requests to the LMS with special handling for immediate and standard requests.
+   *
+   * This method handles communication with the LMS server, implementing two distinct
+   * request handling strategies based on the context:
+   *
+   * 1. Immediate Mode (used during termination):
+   *    When immediate=true, the method:
+   *    - Initiates the fetch request but doesn't wait for it to complete
+   *    - Returns a success result immediately
+   *    - Processes the response asynchronously when it arrives
+   *
+   *    This is critical for browser compatibility during page unload/termination,
+   *    as some browsers (especially Chrome) may cancel synchronous or awaited
+   *    requests when a page is closing.
+   *
+   * 2. Standard Mode (normal operation):
+   *    When immediate=false, the method:
+   *    - Processes the request parameters through the configured requestHandler
+   *    - Awaits the fetch response completely
+   *    - Transforms the response using the configured responseHandler
+   *    - Triggers appropriate event listeners based on success/failure
+   *    - Returns the complete result with appropriate error codes
+   *
+   * The method also includes error handling to catch network failures or other
+   * exceptions that might occur during the request process.
+   *
+   * @param {string} url - The URL endpoint to send the request to
+   * @param {CommitObject|StringKeyMap|Array} params - The data to send to the LMS
+   * @param {boolean} immediate - Whether to send the request immediately without waiting (true) or process normally (false)
+   * @param {Function} apiLog - Function to log API messages with appropriate levels
+   * @param {Function} processListeners - Function to trigger event listeners for commit events
+   * @return {Promise<ResultObject>} - A promise that resolves with the result of the request
+   *
+   * @example
+   * // Standard request (waits for response)
+   * const result = await httpService.processHttpRequest(
+   *   "https://lms.example.com/commit",
+   *   { cmi: { core: { lesson_status: "completed" } } },
+   *   false,
+   *   console.log,
+   *   (event) => dispatchEvent(new CustomEvent(event))
+   * );
+   *
+   * @example
+   * // Immediate request (for termination)
+   * const result = await httpService.processHttpRequest(
+   *   "https://lms.example.com/commit",
+   *   { cmi: { core: { lesson_status: "completed" } } },
+   *   true,
+   *   console.log,
+   *   (event) => dispatchEvent(new CustomEvent(event))
+   * );
+   * // result will be success immediately, regardless of actual HTTP result
    */
   async processHttpRequest(
     url: string,

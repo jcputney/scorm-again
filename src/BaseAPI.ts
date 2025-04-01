@@ -1060,11 +1060,32 @@ export default abstract class BaseAPI implements IBaseAPI {
   }
 
   /**
-   * Check to see if the specific object has the given property
-   * @param {StringKeyMap} StringKeyMap
-   * @param {string} attribute
-   * @return {boolean}
+   * Checks if an object has a specific property, using multiple detection methods.
+   * This method performs a thorough check for property existence by:
+   * 1. Checking if it's an own property using Object.hasOwnProperty
+   * 2. Checking if it's defined in the prototype with a property descriptor
+   * 3. Checking if it's accessible via the 'in' operator (includes inherited properties)
+   *
+   * @param {StringKeyMap} StringKeyMap - The object to check for the property
+   * @param {string} attribute - The property name to look for
+   * @return {boolean} True if the property exists on the object or its prototype chain
    * @private
+   *
+   * @example
+   * // Check for an own property
+   * const obj = { name: "John" };
+   * this._checkObjectHasProperty(obj, "name"); // Returns true
+   *
+   * @example
+   * // Check for an inherited property
+   * class Parent { get type() { return "parent"; } }
+   * const child = Object.create(new Parent());
+   * this._checkObjectHasProperty(child, "type"); // Returns true
+   *
+   * @example
+   * // Check for a non-existent property
+   * const obj = { name: "John" };
+   * this._checkObjectHasProperty(obj, "age"); // Returns false
    */
   private _checkObjectHasProperty(
     StringKeyMap: StringKeyMap,
@@ -1081,11 +1102,32 @@ export default abstract class BaseAPI implements IBaseAPI {
   }
 
   /**
-   * Handles the error that occurs when trying to access a value
-   * @param {any} e
-   * @param {string} returnValue
-   * @return {string}
+   * Handles exceptions that occur when accessing CMI values.
+   * This method delegates to the ErrorHandlingService to process exceptions
+   * that occur during CMI data operations, ensuring consistent error handling
+   * throughout the API.
+   *
+   * @param {any} e - The exception that was thrown
+   * @param {string} returnValue - The default return value to use if an error occurs
+   * @return {string} Either the original returnValue or SCORM_FALSE if an error occurred
    * @private
+   *
+   * @example
+   * // Handle a validation error when getting a CMI value
+   * try {
+   *   return this.getCMIValue("cmi.core.score.raw");
+   * } catch (e) {
+   *   return this.handleValueAccessException(e, "");
+   * }
+   *
+   * @example
+   * // Handle a general error when setting a CMI value
+   * try {
+   *   this.setCMIValue("cmi.core.lesson_status", "completed");
+   *   return "true";
+   * } catch (e) {
+   *   return this.handleValueAccessException(e, "false");
+   * }
    */
   private handleValueAccessException(e: any, returnValue: string): string {
     return this._errorHandlingService.handleValueAccessException(
@@ -1095,10 +1137,25 @@ export default abstract class BaseAPI implements IBaseAPI {
   }
 
   /**
-   * Builds the commit object to be sent to the LMS
-   * @param {boolean} terminateCommit
-   * @return {CommitObject|StringKeyMap|Array}
-   * @private
+   * Builds the commit object to be sent to the LMS.
+   * This method delegates to the SerializationService to create a properly
+   * formatted object containing the CMI data that needs to be sent to the LMS.
+   * The format and content of the commit object depend on whether this is a
+   * regular commit or a termination commit.
+   *
+   * @param {boolean} terminateCommit - Whether this is a termination commit
+   * @return {CommitObject|StringKeyMap|Array} The formatted commit object
+   * @protected
+   *
+   * @example
+   * // Create a regular commit object
+   * const regularCommit = this.getCommitObject(false);
+   * // Result might be: { cmi: { core: { lesson_status: "incomplete" } } }
+   *
+   * @example
+   * // Create a termination commit object (includes total_time)
+   * const terminationCommit = this.getCommitObject(true);
+   * // Result might be: { cmi: { core: { lesson_status: "completed", total_time: "PT1H30M" } } }
    */
   protected getCommitObject(
     terminateCommit: boolean,

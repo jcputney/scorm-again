@@ -9,12 +9,41 @@ import { ISerializationService } from "../interfaces/services";
  */
 export class SerializationService implements ISerializationService {
   /**
-   * Load the CMI from a flattened JSON object
-   * @param {StringKeyMap} json - The flattened JSON object
-   * @param {string} CMIElement - The CMI element to start from
+   * Loads CMI data from a flattened JSON object with special handling for arrays and ordering.
+   *
+   * This method implements a complex algorithm for loading flattened JSON data into the CMI
+   * object structure. It handles several key challenges:
+   *
+   * 1. Ordering dependencies: Some CMI elements (like interactions and objectives) must be
+   *    loaded in a specific order to ensure proper initialization.
+   *
+   * 2. Array handling: Interactions and objectives are stored as arrays, and their properties
+   *    must be loaded in the correct order (e.g., 'id' and 'type' must be set before other properties).
+   *
+   * 3. Unflattening: The method converts flattened dot notation (e.g., "cmi.objectives.0.id")
+   *    back into nested objects before loading.
+   *
+   * The algorithm works by:
+   * - Categorizing keys into interactions, objectives, and other properties
+   * - Sorting interactions to prioritize 'id' and 'type' fields within each index
+   * - Sorting objectives to prioritize 'id' fields within each index
+   * - Processing each category in order: interactions, objectives, then other properties
+   *
+   * @param {StringKeyMap} json - The flattened JSON object with dot notation keys
+   * @param {string} CMIElement - The CMI element to start from (usually empty or "cmi")
    * @param {Function} loadFromJSON - Function to load from JSON
    * @param {Function} setCMIValue - Function to set CMI value
-   * @param {Function} isNotInitialized - Function to check if not initialized
+   * @param {Function} isNotInitialized - Function to check if API is not initialized
+   *
+   * @example
+   * // Example of flattened JSON input:
+   * // {
+   * //   "cmi.objectives.0.id": "obj1",
+   * //   "cmi.objectives.0.score.raw": "80",
+   * //   "cmi.interactions.0.id": "int1",
+   * //   "cmi.interactions.0.type": "choice",
+   * //   "cmi.interactions.0.result": "correct"
+   * // }
    */
   loadFromFlattenedJSON(
     json: StringKeyMap,
@@ -114,13 +143,48 @@ export class SerializationService implements ISerializationService {
   }
 
   /**
-   * Loads CMI data from a JSON object.
+   * Loads CMI data from a nested JSON object with recursive traversal.
    *
-   * @param {{[key: string]: any}} json - The JSON object
-   * @param {string} CMIElement - The CMI element to start from
-   * @param {Function} setCMIValue - Function to set CMI value
-   * @param {Function} isNotInitialized - Function to check if not initialized
-   * @param {Function} setStartingData - Function to set starting data
+   * This method implements a recursive algorithm for loading nested JSON data into the CMI
+   * object structure. It handles several key aspects:
+   *
+   * 1. Recursive traversal: The method recursively traverses the nested JSON structure,
+   *    building CMI element paths as it goes (e.g., "cmi.core.student_id").
+   *
+   * 2. Type-specific handling: Different data types are handled differently:
+   *    - Arrays: Each array element is processed individually with its index in the path
+   *    - Objects: Recursively processed with updated path
+   *    - Primitives: Set directly using setCMIValue
+   *
+   * 3. Initialization check: Ensures the method is only called before API initialization
+   *
+   * 4. Starting data storage: Stores the original JSON data for potential future use
+   *
+   * The algorithm works by:
+   * - First storing the complete JSON object via setStartingData
+   * - Iterating through each property in the JSON object
+   * - For each property, determining its type and handling it accordingly
+   * - Building the CMI element path as it traverses the structure
+   * - Setting values at the appropriate paths using setCMIValue
+   *
+   * @param {{[key: string]: any}} json - The nested JSON object to load
+   * @param {string} CMIElement - The CMI element to start from (usually empty or "cmi")
+   * @param {Function} setCMIValue - Function to set CMI value at a specific path
+   * @param {Function} isNotInitialized - Function to check if API is not initialized
+   * @param {Function} setStartingData - Function to store the original JSON data
+   *
+   * @example
+   * // Example of nested JSON input:
+   * // {
+   * //   "core": {
+   * //     "student_id": "12345",
+   * //     "student_name": "John Doe"
+   * //   },
+   * //   "objectives": [
+   * //     { "id": "obj1", "score": { "raw": 80 } },
+   * //     { "id": "obj2", "score": { "raw": 90 } }
+   * //   ]
+   * // }
    */
   loadFromJSON(
     json: { [key: string]: any },
