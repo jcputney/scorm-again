@@ -5,6 +5,9 @@ import {
 } from "../constants/enums";
 import { StringKeyMap } from "../utilities";
 
+/**
+ * Base settings type with all properties optional
+ */
 export type Settings = {
   autocommit?: boolean;
   autocommitSeconds?: number;
@@ -22,7 +25,7 @@ export type Settings = {
   xhrWithCredentials?: boolean;
   fetchMode?: "cors" | "no-cors" | "same-origin" | "navigate";
   responseHandler?: (response: Response) => Promise<ResultObject>;
-  requestHandler?: (commitObject: any) => any;
+  requestHandler?: (commitObject: unknown) => unknown;
   onLogMessage?: (messageLevel: LogLevel, logMessage: string) => void;
   mastery_override?: boolean;
   renderCommonCommitFields?: boolean;
@@ -31,16 +34,51 @@ export type Settings = {
   globalObjectiveIds?: string[];
 };
 
+/**
+ * Settings type with all properties required
+ */
+export type RequiredSettings = Required<Settings>;
+
+/**
+ * Settings type with specific properties required
+ */
+export type CoreSettings = Pick<
+  Settings,
+  'autocommit' |
+  'asyncCommit' |
+  'logLevel' |
+  'strict_errors'
+>;
+
+/**
+ * Represents a value that can be stored in a reference.
+ * This is a recursive type that can contain primitive values or arrays of RefValues.
+ */
 export type RefValue = string | number | boolean | null | undefined | RefArray;
 
-export type RefArray = Array<RefValue>;
+/**
+ * An array of RefValue objects.
+ * Using ReadonlyArray for better immutability support.
+ */
+export type RefArray = ReadonlyArray<RefValue>;
 
+/**
+ * Represents the result of an API operation.
+ */
 export type ResultObject = {
   result: string;
   errorCode: number;
   navRequest?: string;
 };
 
+/**
+ * Represents a read-only result object.
+ */
+export type ReadonlyResultObject = Readonly<ResultObject>;
+
+/**
+ * Represents a score with optional components.
+ */
 export type ScoreObject = {
   raw?: number;
   min?: number;
@@ -48,6 +86,14 @@ export type ScoreObject = {
   scaled?: number;
 };
 
+/**
+ * Represents a score with all components required.
+ */
+export type CompleteScoreObject = Required<ScoreObject>;
+
+/**
+ * Represents a commit object sent to the LMS.
+ */
 export type CommitObject = {
   successStatus: SuccessStatus;
   completionStatus: CompletionStatus;
@@ -56,21 +102,32 @@ export type CommitObject = {
   score?: ScoreObject;
 };
 
+/**
+ * Represents a commit object with a required score.
+ */
+export type CommitObjectWithScore = CommitObject & { score: ScoreObject };
+
+/**
+ * Numeric log levels
+ */
+export type NumericLogLevel = 1 | 2 | 3 | 4 | 5;
+
+/**
+ * String representations of numeric log levels
+ */
+export type StringNumericLogLevel = '1' | '2' | '3' | '4' | '5';
+
+/**
+ * Named log levels
+ */
+export type NamedLogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'NONE';
+
+/**
+ * All possible log level values
+ */
 export type LogLevel =
-  | 1
-  | 2
-  | 3
-  | 4
-  | 5
-  | "1"
-  | "2"
-  | "3"
-  | "4"
-  | "5"
-  | "DEBUG"
-  | "INFO"
-  | "WARN"
-  | "ERROR"
-  | "NONE"
+  | NumericLogLevel
+  | StringNumericLogLevel
+  | NamedLogLevel
   | LogLevelEnum
   | undefined;

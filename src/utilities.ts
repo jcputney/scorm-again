@@ -1,3 +1,7 @@
+/**
+ * Constants for time conversion calculations.
+ * These are used throughout the codebase for converting between different time formats.
+ */
 export const SECONDS_PER_SECOND = 1.0;
 export const SECONDS_PER_MINUTE = 60;
 export const SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
@@ -7,9 +11,11 @@ type Designation = {
   [key: string]: number;
 };
 
-export type StringKeyMap = {
-  [key: string]: any;
-};
+/**
+ * A record with string keys and unknown values.
+ * This is a more type-safe alternative to using `any`.
+ */
+export type StringKeyMap = Record<string, unknown>;
 
 const designations: Designation = {
   D: SECONDS_PER_DAY,
@@ -19,10 +25,23 @@ const designations: Designation = {
 };
 
 /**
- * Converts a Number to a String of HH:MM:SS
+ * Converts a number of seconds to a formatted time string in HH:MM:SS format.
+ * This function handles decimal seconds and ensures proper formatting with leading zeros.
  *
- * @param {number} totalSeconds
- * @return {string}
+ * @param {number|null} totalSeconds - The total number of seconds to convert. If null or negative, returns "00:00:00".
+ * @return {string} A formatted time string in HH:MM:SS format, with up to 2 decimal places for seconds if applicable.
+ *
+ * @example
+ * // Returns "01:30:45"
+ * getSecondsAsHHMMSS(5445);
+ *
+ * @example
+ * // Returns "00:00:30.5"
+ * getSecondsAsHHMMSS(30.5);
+ *
+ * @example
+ * // Returns "00:00:00"
+ * getSecondsAsHHMMSS(null);
  */
 export const getSecondsAsHHMMSS = memoize(
   (totalSeconds: number | null): string => {
@@ -56,10 +75,28 @@ export const getSecondsAsHHMMSS = memoize(
 );
 
 /**
- * Calculate the number of seconds from ISO 8601 Duration
+ * Converts a number of seconds to an ISO 8601 duration string (e.g., "PT1H30M45S").
+ * This function handles the complexity of formatting according to the ISO 8601 standard,
+ * including the proper placement of the "T" separator for time components.
  *
- * @param {number} seconds
- * @return {string}
+ * @param {number|null} seconds - The number of seconds to convert. If null or negative, returns "PT0S".
+ * @return {string} An ISO 8601 formatted duration string.
+ *
+ * @example
+ * // Returns "PT1H30M45S" (1 hour, 30 minutes, 45 seconds)
+ * getSecondsAsISODuration(5445);
+ *
+ * @example
+ * // Returns "PT30.5S" (30.5 seconds)
+ * getSecondsAsISODuration(30.5);
+ *
+ * @example
+ * // Returns "P1DT1H" (1 day, 1 hour)
+ * getSecondsAsISODuration(90000);
+ *
+ * @example
+ * // Returns "PT0S" (0 seconds)
+ * getSecondsAsISODuration(null);
  */
 export const getSecondsAsISODuration = memoize(
   (seconds: number | null): string => {
@@ -110,11 +147,27 @@ export const getSecondsAsISODuration = memoize(
 );
 
 /**
- * Calculate the number of seconds from HH:MM:SS.DDDDDD
+ * Converts a time string in HH:MM:SS format to the equivalent number of seconds.
+ * This function is flexible and can handle various input types, converting them to strings as needed.
  *
- * @param {string} timeString
- * @param {RegExp} timeRegex
- * @return {number}
+ * @param {string|number|boolean|null} timeString - The time string to convert, typically in HH:MM:SS format.
+ *                                                 If not a string, it will be converted to one.
+ *                                                 If null, invalid, or doesn't match the regex, returns 0.
+ * @param {RegExp|string} timeRegex - The regular expression used to validate the time string format.
+ *                                    If a string is provided, it will be converted to a RegExp.
+ * @return {number} The total number of seconds represented by the time string.
+ *
+ * @example
+ * // Returns 5445 (1 hour, 30 minutes, 45 seconds)
+ * getTimeAsSeconds("01:30:45", /^(\d+):(\d+):(\d+)$/);
+ *
+ * @example
+ * // Returns 0 (invalid format)
+ * getTimeAsSeconds("invalid", /^(\d+):(\d+):(\d+)$/);
+ *
+ * @example
+ * // Returns 30 (converts number to string "30" then parses as 0:0:30)
+ * getTimeAsSeconds(30, /^(\d+):(\d+):(\d+)$/);
  */
 export const getTimeAsSeconds = memoize(
   (
@@ -150,11 +203,28 @@ export const getTimeAsSeconds = memoize(
 );
 
 /**
- * Calculate the number of seconds from ISO 8601 Duration
+ * Converts an ISO 8601 duration string (e.g., "PT1H30M45S") to the equivalent number of seconds.
+ * This function parses the duration string using a regular expression to extract years, days,
+ * hours, minutes, and seconds components.
  *
- * @param {string} duration
- * @param {RegExp} durationRegex
- * @return {number}
+ * @param {string|null} duration - The ISO 8601 duration string to convert.
+ *                                If null, invalid, or doesn't match the regex, returns 0.
+ * @param {RegExp|string} durationRegex - The regular expression used to parse the duration components.
+ *                                       If a string is provided, it will be converted to a RegExp.
+ *                                       The regex should have capture groups for years, days, hours, minutes, and seconds.
+ * @return {number} The total number of seconds represented by the duration string.
+ *
+ * @example
+ * // Returns 5445 (1 hour, 30 minutes, 45 seconds)
+ * getDurationAsSeconds("PT1H30M45S", /^P(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?$/);
+ *
+ * @example
+ * // Returns 90000 (1 day, 1 hour)
+ * getDurationAsSeconds("P1DT1H", /^P(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?$/);
+ *
+ * @example
+ * // Returns 0 (invalid format)
+ * getDurationAsSeconds("invalid", /^P(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?$/);
  */
 export const getDurationAsSeconds = memoize(
   (
@@ -190,12 +260,27 @@ export const getDurationAsSeconds = memoize(
 );
 
 /**
- * Adds together two ISO8601 Duration strings
+ * Adds together two ISO 8601 duration strings and returns the result as a new ISO 8601 duration string.
+ * This function works by converting both durations to seconds, adding them together, and then
+ * converting the result back to an ISO 8601 duration string.
  *
- * @param {string} first
- * @param {string} second
- * @param {RegExp|string} durationRegex
- * @return {string}
+ * @param {string} first - The first ISO 8601 duration string.
+ * @param {string} second - The second ISO 8601 duration string.
+ * @param {RegExp|string} durationRegex - The regular expression used to parse the duration components.
+ *                                       If a string is provided, it will be converted to a RegExp.
+ * @return {string} A new ISO 8601 duration string representing the sum of the two input durations.
+ *
+ * @example
+ * // Returns "PT2H" (1 hour + 1 hour = 2 hours)
+ * addTwoDurations("PT1H", "PT1H", /^P(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?$/);
+ *
+ * @example
+ * // Returns "PT1H30M" (1 hour + 30 minutes = 1 hour and 30 minutes)
+ * addTwoDurations("PT1H", "PT30M", /^P(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?$/);
+ *
+ * @example
+ * // Returns "P1DT1H30M" (1 day + 1 hour and 30 minutes = 1 day, 1 hour, and 30 minutes)
+ * addTwoDurations("P1D", "PT1H30M", /^P(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?$/);
  */
 export function addTwoDurations(
   first: string,
@@ -212,12 +297,27 @@ export function addTwoDurations(
 }
 
 /**
- * Add together two HH:MM:SS.DD strings
+ * Adds together two time strings in HH:MM:SS format and returns the result as a new time string.
+ * This function works by converting both time strings to seconds, adding them together, and then
+ * converting the result back to an HH:MM:SS format.
  *
- * @param {string} first
- * @param {string} second
- * @param {RegExp} timeRegex
- * @return {string}
+ * @param {string} first - The first time string in HH:MM:SS format.
+ * @param {string} second - The second time string in HH:MM:SS format.
+ * @param {RegExp|string} timeRegex - The regular expression used to validate and parse the time strings.
+ *                                   If a string is provided, it will be converted to a RegExp.
+ * @return {string} A new time string in HH:MM:SS format representing the sum of the two input times.
+ *
+ * @example
+ * // Returns "02:00:00" (1 hour + 1 hour = 2 hours)
+ * addHHMMSSTimeStrings("01:00:00", "01:00:00", /^(\d+):(\d+):(\d+)$/);
+ *
+ * @example
+ * // Returns "01:30:00" (1 hour + 30 minutes = 1 hour and 30 minutes)
+ * addHHMMSSTimeStrings("01:00:00", "00:30:00", /^(\d+):(\d+):(\d+)$/);
+ *
+ * @example
+ * // Returns "01:30:45" (1 hour + 30 minutes and 45 seconds = 1 hour, 30 minutes, and 45 seconds)
+ * addHHMMSSTimeStrings("01:00:00", "00:30:45", /^(\d+):(\d+):(\d+)$/);
  */
 export function addHHMMSSTimeStrings(
   first: string,
@@ -233,9 +333,28 @@ export function addHHMMSSTimeStrings(
 }
 
 /**
- * Flatten a JSON object down to string paths for each values
- * @param {object} data
- * @return {object}
+ * Flattens a nested JSON object into a flat object with dot notation for nested properties.
+ * This function recursively traverses the object and creates new keys using dot notation
+ * for nested objects and bracket notation for arrays.
+ *
+ * @param {StringKeyMap} data - The nested object to flatten.
+ * @return {StringKeyMap} A flattened object where nested properties are represented with dot notation.
+ *
+ * @example
+ * // Returns { "a": 1, "b.c": 2, "b.d": 3, "e[0]": 4, "e[1]": 5 }
+ * flatten({
+ *   a: 1,
+ *   b: { c: 2, d: 3 },
+ *   e: [4, 5]
+ * });
+ *
+ * @example
+ * // Returns { "": [] } for an empty array
+ * flatten([]);
+ *
+ * @example
+ * // Returns { "": {} } for an empty object
+ * flatten({});
  */
 export function flatten(data: StringKeyMap): StringKeyMap {
   const result: StringKeyMap = {};
@@ -276,9 +395,38 @@ export function flatten(data: StringKeyMap): StringKeyMap {
 }
 
 /**
- * Un-flatten a flat JSON object
- * @param {StringKeyMap} data
- * @return {object}
+ * Converts a flattened object back into a nested object structure.
+ * This function is the inverse of `flatten()`. It parses dot notation and bracket notation
+ * in property names to recreate the original nested structure.
+ *
+ * @param {StringKeyMap} data - The flattened object to unflatten.
+ * @return {object} A nested object recreated from the flattened structure.
+ *
+ * @example
+ * // Returns { a: 1, b: { c: 2, d: 3 }, e: [4, 5] }
+ * unflatten({
+ *   "a": 1,
+ *   "b.c": 2,
+ *   "b.d": 3,
+ *   "e[0]": 4,
+ *   "e[1]": 5
+ * });
+ *
+ * @example
+ * // Handles array indices correctly
+ * unflatten({
+ *   "users[0].name": "John",
+ *   "users[0].email": "john@example.com",
+ *   "users[1].name": "Jane",
+ *   "users[1].email": "jane@example.com"
+ * });
+ * // Returns:
+ * // {
+ * //   users: [
+ * //     { name: "John", email: "john@example.com" },
+ * //     { name: "Jane", email: "jane@example.com" }
+ * //   ]
+ * // }
  */
 export function unflatten(data: StringKeyMap): object {
   "use strict";
@@ -318,9 +466,23 @@ export function unflatten(data: StringKeyMap): object {
 }
 
 /**
- * Counts the number of decimal places
- * @param {number} num
- * @return {number}
+ * Counts the number of decimal places in a number.
+ * This function handles both integer and floating-point numbers.
+ *
+ * @param {number} num - The number to analyze.
+ * @return {number} The number of decimal places. Returns 0 for integers or if the number doesn't have a decimal point.
+ *
+ * @example
+ * // Returns 0
+ * countDecimals(42);
+ *
+ * @example
+ * // Returns 2
+ * countDecimals(3.14);
+ *
+ * @example
+ * // Returns 5
+ * countDecimals(1.23456);
  */
 export function countDecimals(num: number): number {
   if (Math.floor(num) === num || String(num)?.indexOf?.(".") < 0) return 0;
@@ -329,12 +491,26 @@ export function countDecimals(num: number): number {
 }
 
 /**
- * Formats the SCORM messages for easy reading
+ * Formats SCORM messages for consistent and readable logging.
+ * This function pads the function name and CMI element to create aligned log messages
+ * that are easier to read in log files or console output.
  *
- * @param {string} functionName
- * @param {string} message
- * @param {string} CMIElement
- * @return {string}
+ * @param {string} functionName - The name of the function that generated the message.
+ * @param {string} message - The message content to be logged.
+ * @param {string} [CMIElement] - Optional. The CMI element related to the message.
+ * @return {string} A formatted message string with consistent padding.
+ *
+ * @example
+ * // Returns "initialize          : Successfully initialized"
+ * formatMessage("initialize", "Successfully initialized");
+ *
+ * @example
+ * // Returns "getValue            : cmi.core.student_id                                             : 12345"
+ * formatMessage("getValue", "12345", "cmi.core.student_id");
+ *
+ * @example
+ * // Returns "setValue            : cmi.core.lesson_status                                          : completed"
+ * formatMessage("setValue", "completed", "cmi.core.lesson_status");
  */
 export function formatMessage(
   functionName: string,
@@ -361,21 +537,67 @@ export function formatMessage(
 }
 
 /**
- * Checks to see if {str} contains {tester}
+ * Checks if a string contains a specific pattern using regular expression matching.
+ * This function is a wrapper around JavaScript's String.match() method that handles
+ * null/undefined values gracefully.
  *
- * @param {string} str String to check against
- * @param {string} tester String to check for
- * @return {boolean}
+ * @param {string} str - The string to search within. If null or undefined, returns false.
+ * @param {string} tester - The pattern to search for. Can be a regular expression pattern.
+ * @return {boolean} True if the pattern is found in the string, false otherwise.
+ *
+ * @example
+ * // Returns true
+ * stringMatches("Hello, world!", "world");
+ *
+ * @example
+ * // Returns true
+ * stringMatches("The quick brown fox", "\\w+\\s+\\w+");
+ *
+ * @example
+ * // Returns false
+ * stringMatches("Hello, world!", "universe");
+ *
+ * @example
+ * // Returns false (handles null gracefully)
+ * stringMatches(null, "test");
  */
 export function stringMatches(str: string, tester: string): boolean {
   return str?.match(tester) !== null;
 }
 
 /**
- * Creates a memoized version of a function
- * @param {Function} fn - The function to memoize
- * @param {Function} [keyFn] - Optional function to generate a custom cache key
- * @return {Function} - The memoized function
+ * Creates a memoized (cached) version of a function for performance optimization.
+ * This function caches the results of previous calls with the same arguments,
+ * avoiding redundant calculations for repeated calls with the same input.
+ *
+ * @template T - The type of the function to memoize
+ * @param {T} fn - The function to memoize
+ * @param {Function} [keyFn] - Optional function to generate a custom cache key.
+ *                           Useful for functions with complex arguments that can't be serialized.
+ * @return {T} A memoized version of the input function with the same signature
+ *
+ * @example
+ * // Basic usage with a simple function
+ * const memoizedAdd = memoize((a, b) => {
+ *   console.log('Calculating...');
+ *   return a + b;
+ * });
+ *
+ * memoizedAdd(1, 2); // Logs "Calculating..." and returns 3
+ * memoizedAdd(1, 2); // Returns 3 without logging (uses cached result)
+ *
+ * @example
+ * // Using a custom key function for objects that can't be serialized
+ * const memoizedProcessUser = memoize(
+ *   (user) => {
+ *     console.log('Processing user...');
+ *     return { ...user, processed: true };
+ *   },
+ *   (user) => user.id // Use user.id as the cache key
+ * );
+ *
+ * memoizedProcessUser({ id: 123, name: 'John' }); // Logs and processes
+ * memoizedProcessUser({ id: 123, name: 'John' }); // Uses cached result
  */
 export function memoize<T extends (...args: any[]) => any>(
   fn: T,
