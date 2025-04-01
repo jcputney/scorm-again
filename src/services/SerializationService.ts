@@ -1,5 +1,5 @@
 import { CommitObject, LogLevel } from "../types/api_types";
-import { StringKeyMap, unflatten } from "../utilities";
+import { StringKeyMap, unflatten, flatten } from "../utilities";
 import { LogLevelEnum } from "../constants/enums";
 import { BaseCMI } from "../cmi/common/base_cmi";
 import { ISerializationService } from "../interfaces/services";
@@ -30,76 +30,87 @@ export class SerializationService implements ISerializationService {
       return;
     }
 
-    /**
-     * Tests two strings against a given regular expression pattern and determines a numeric or null result based on the matching criterion.
-     *
-     * @param {string} a - The first string to be tested against the pattern.
-     * @param {string} c - The second string to be tested against the pattern.
-     * @param {RegExp} a_pattern - The regular expression pattern to test the strings against.
-     * @return {number | null} A numeric result based on the matching criterion, or null if the strings do not match the pattern.
-     */
-    function testPattern(
-      a: string,
-      c: string,
-      a_pattern: RegExp,
-    ): number | null {
-      const a_match = a.match(a_pattern);
-
-      let c_match;
-      if (a_match !== null && (c_match = c.match(a_pattern)) !== null) {
-        const a_num = Number(a_match[2]);
-        const c_num = Number(c_match[2]);
-        if (a_num === c_num) {
-          if (a_match[3] === "id") {
-            return -1;
-          } else if (a_match[3] === "type") {
-            if (c_match[3] === "id") {
-              return 1;
-            } else {
-              return -1;
-            }
-          } else {
-            return 1;
-          }
-        }
-        return a_num - c_num;
-      }
-
-      return null;
-    }
-
     const int_pattern = /^(cmi\.interactions\.)(\d+)\.(.*)$/;
     const obj_pattern = /^(cmi\.objectives\.)(\d+)\.(.*)$/;
 
-    const result = Object.keys(json).map(function (key) {
-      return [String(key), json[key]];
+    // Extract and categorize keys for better sorting
+    const interactions: { key: string; value: any; index: number; field: string }[] = [];
+    const objectives: { key: string; value: any; index: number; field: string }[] = [];
+    const others: { key: string; value: any }[] = [];
+
+    // Categorize keys
+    for (const key in json) {
+      if (Object.prototype.hasOwnProperty.call(json, key)) {
+        const intMatch = key.match(int_pattern);
+        if (intMatch) {
+          interactions.push({
+            key,
+            value: json[key],
+            index: Number(intMatch[2]),
+            field: intMatch[3]
+          });
+          continue;
+        }
+
+        const objMatch = key.match(obj_pattern);
+        if (objMatch) {
+          objectives.push({
+            key,
+            value: json[key],
+            index: Number(objMatch[2]),
+            field: objMatch[3]
+          });
+          continue;
+        }
+
+        others.push({ key, value: json[key] });
+      }
+    }
+
+    // Sort interactions: first by index, then prioritize 'id' and 'type' fields
+    interactions.sort((a, b) => {
+      if (a.index !== b.index) {
+        return a.index - b.index;
+      }
+
+      // Same index, prioritize id and type
+      if (a.field === 'id') return -1;
+      if (b.field === 'id') return 1;
+      if (a.field === 'type') return -1;
+      if (b.field === 'type') return 1;
+
+      return a.field.localeCompare(b.field);
     });
 
-    // CMI interactions need to have id and type loaded before any other fields
-    result.sort(function ([a, _b], [c, _d]) {
-      let test;
-      if ((test = testPattern(a, c, int_pattern)) !== null) {
-        return test;
-      }
-      if ((test = testPattern(a, c, obj_pattern)) !== null) {
-        return test;
+    // Sort objectives: first by index, then prioritize 'id' field
+    objectives.sort((a, b) => {
+      if (a.index !== b.index) {
+        return a.index - b.index;
       }
 
-      if (a < c) {
-        return -1;
-      }
-      if (a > c) {
-        return 1;
-      }
-      return 0;
+      // Same index, prioritize id
+      if (a.field === 'id') return -1;
+      if (b.field === 'id') return 1;
+
+      return a.field.localeCompare(b.field);
     });
 
-    let obj: StringKeyMap = {};
-    result.forEach((element) => {
-      obj = {};
-      obj[element[0]] = element[1];
-      loadFromJSON(unflatten(obj), CMIElement);
-    });
+    // Sort other keys alphabetically
+    others.sort((a, b) => a.key.localeCompare(b.key));
+
+    // Process all items in the correct order
+    const processItems = (items: { key: string; value: any }[]) => {
+      items.forEach(item => {
+        const obj: StringKeyMap = {};
+        obj[item.key] = item.value;
+        loadFromJSON(unflatten(obj), CMIElement);
+      });
+    };
+
+    // Process in order: interactions, objectives, others
+    processItems(interactions);
+    processItems(objectives);
+    processItems(others);
   }
 
   /**
@@ -197,6 +208,7 @@ export class SerializationService implements ISerializationService {
     cmi: BaseCMI | StringKeyMap,
     sendFullCommit: boolean,
   ): StringKeyMap {
+    // Revert to the original implementation to maintain compatibility with tests
     return JSON.parse(this.renderCMIToJSONString(cmi, sendFullCommit));
   }
 

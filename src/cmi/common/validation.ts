@@ -1,4 +1,5 @@
 import { BaseScormValidationError } from "../../exceptions";
+import { memoize } from "../../utilities";
 
 /**
  * Check if the value matches the proper format. If not, throw proper error code.
@@ -10,26 +11,32 @@ import { BaseScormValidationError } from "../../exceptions";
  * @param {boolean} [allowEmptyString]
  * @return {boolean}
  */
-export function checkValidFormat(
-  value: string,
-  regexPattern: string,
-  errorCode: number,
-  errorClass: typeof BaseScormValidationError,
-  allowEmptyString?: boolean,
-): boolean {
-  if (typeof value !== "string") {
-    return false;
-  }
-  const formatRegex = new RegExp(regexPattern);
-  const matches = value.match(formatRegex);
-  if (allowEmptyString && value === "") {
+export const checkValidFormat = memoize(
+  (
+    value: string,
+    regexPattern: string,
+    errorCode: number,
+    errorClass: typeof BaseScormValidationError,
+    allowEmptyString?: boolean,
+  ): boolean => {
+    if (typeof value !== "string") {
+      return false;
+    }
+    const formatRegex = new RegExp(regexPattern);
+    const matches = value.match(formatRegex);
+    if (allowEmptyString && value === "") {
+      return true;
+    }
+    if (value === undefined || !matches || matches[0] === "") {
+      throw new errorClass(errorCode);
+    }
     return true;
-  }
-  if (value === undefined || !matches || matches[0] === "") {
-    throw new errorClass(errorCode);
-  }
-  return true;
-}
+  },
+  // Custom key function that excludes the error class from the cache key
+  // since it can't be stringified and doesn't affect the validation result
+  (value, regexPattern, errorCode, _errorClass, allowEmptyString) =>
+    `${value}:${regexPattern}:${errorCode}:${allowEmptyString || false}`
+);
 
 /**
  * Check if the value matches the proper range. If not, throw proper error code.
@@ -40,21 +47,27 @@ export function checkValidFormat(
  * @param {typeof BaseScormValidationError} errorClass
  * @return {boolean}
  */
-export function checkValidRange(
-  value: any,
-  rangePattern: string,
-  errorCode: number,
-  errorClass: typeof BaseScormValidationError,
-): boolean {
-  const ranges = rangePattern.split("#");
-  value = value * 1.0;
-  if (value >= ranges[0]) {
-    if (ranges[1] === "*" || value <= ranges[1]) {
-      return true;
+export const checkValidRange = memoize(
+  (
+    value: any,
+    rangePattern: string,
+    errorCode: number,
+    errorClass: typeof BaseScormValidationError,
+  ): boolean => {
+    const ranges = rangePattern.split("#");
+    value = value * 1.0;
+    if (value >= ranges[0]) {
+      if (ranges[1] === "*" || value <= ranges[1]) {
+        return true;
+      } else {
+        throw new errorClass(errorCode);
+      }
     } else {
       throw new errorClass(errorCode);
     }
-  } else {
-    throw new errorClass(errorCode);
-  }
-}
+  },
+  // Custom key function that excludes the error class from the cache key
+  // since it can't be stringified and doesn't affect the validation result
+  (value, rangePattern, errorCode, _errorClass) =>
+    `${value}:${rangePattern}:${errorCode}`
+);

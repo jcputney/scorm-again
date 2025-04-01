@@ -24,34 +24,36 @@ const designations: Designation = {
  * @param {number} totalSeconds
  * @return {string}
  */
-export function getSecondsAsHHMMSS(totalSeconds: number | null): string {
-  // SCORM spec does not deal with negative durations, give zero back
-  if (!totalSeconds || totalSeconds <= 0) {
-    return "00:00:00";
-  }
-
-  const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
-  const dateObj = new Date(totalSeconds * 1000);
-  const minutes = dateObj.getUTCMinutes();
-  // make sure we add any possible decimal value
-  const seconds = dateObj.getSeconds();
-  const ms = totalSeconds % 1.0;
-  let msStr = "";
-
-  if (countDecimals(ms) > 0) {
-    if (countDecimals(ms) > 2) {
-      msStr = ms.toFixed(2);
-    } else {
-      msStr = String(ms);
+export const getSecondsAsHHMMSS = memoize(
+  (totalSeconds: number | null): string => {
+    // SCORM spec does not deal with negative durations, give zero back
+    if (!totalSeconds || totalSeconds <= 0) {
+      return "00:00:00";
     }
 
-    msStr = "." + msStr.split(".")[1];
-  }
+    const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
+    const dateObj = new Date(totalSeconds * 1000);
+    const minutes = dateObj.getUTCMinutes();
+    // make sure we add any possible decimal value
+    const seconds = dateObj.getSeconds();
+    const ms = totalSeconds % 1.0;
+    let msStr = "";
 
-  return (
-    (hours + ":" + minutes + ":" + seconds).replace(/\b\d\b/g, "0$&") + msStr
-  );
-}
+    if (countDecimals(ms) > 0) {
+      if (countDecimals(ms) > 2) {
+        msStr = ms.toFixed(2);
+      } else {
+        msStr = String(ms);
+      }
+
+      msStr = "." + msStr.split(".")[1];
+    }
+
+    return (
+      (hours + ":" + minutes + ":" + seconds).replace(/\b\d\b/g, "0$&") + msStr
+    );
+  }
+);
 
 /**
  * Calculate the number of seconds from ISO 8601 Duration
@@ -59,45 +61,47 @@ export function getSecondsAsHHMMSS(totalSeconds: number | null): string {
  * @param {number} seconds
  * @return {string}
  */
-export function getSecondsAsISODuration(seconds: number | null): string {
-  // SCORM spec does not deal with negative durations, give zero back
-  if (!seconds || seconds <= 0) {
-    return "PT0S";
-  }
-
-  let duration = "P";
-  let remainder = seconds;
-  for (const designationsKey in designations) {
-    const current_seconds = designations[designationsKey];
-    let value = Math.floor(remainder / current_seconds);
-    remainder = remainder % current_seconds;
-
-    if (countDecimals(remainder) > 2) {
-      remainder = Number(Number(remainder).toFixed(2));
+export const getSecondsAsISODuration = memoize(
+  (seconds: number | null): string => {
+    // SCORM spec does not deal with negative durations, give zero back
+    if (!seconds || seconds <= 0) {
+      return "PT0S";
     }
 
-    // If we have anything left in the remainder, and we're currently adding
-    // seconds to the duration, go ahead and add the decimal to the seconds
-    if (designationsKey === "S" && remainder > 0) {
-      value += remainder;
-    }
+    let duration = "P";
+    let remainder = seconds;
+    for (const designationsKey in designations) {
+      const current_seconds = designations[designationsKey];
+      let value = Math.floor(remainder / current_seconds);
+      remainder = remainder % current_seconds;
 
-    if (value) {
-      if (
-        (duration.indexOf("D") > 0 ||
-          designationsKey === "H" ||
-          designationsKey === "M" ||
-          designationsKey === "S") &&
-        duration.indexOf("T") === -1
-      ) {
-        duration += "T";
+      if (countDecimals(remainder) > 2) {
+        remainder = Number(Number(remainder).toFixed(2));
       }
 
-      duration += `${value}${designationsKey}`;
+      // If we have anything left in the remainder, and we're currently adding
+      // seconds to the duration, go ahead and add the decimal to the seconds
+      if (designationsKey === "S" && remainder > 0) {
+        value += remainder;
+      }
+
+      if (value) {
+        if (
+          (duration.indexOf("D") > 0 ||
+            designationsKey === "H" ||
+            designationsKey === "M" ||
+            designationsKey === "S") &&
+          duration.indexOf("T") === -1
+        ) {
+          duration += "T";
+        }
+
+        duration += `${value}${designationsKey}`;
+      }
     }
+    return duration;
   }
-  return duration;
-}
+);
 
 /**
  * Calculate the number of seconds from HH:MM:SS.DDDDDD
@@ -106,26 +110,38 @@ export function getSecondsAsISODuration(seconds: number | null): string {
  * @param {RegExp} timeRegex
  * @return {number}
  */
-export function getTimeAsSeconds(
-  timeString: string | number | boolean | null,
-  timeRegex: RegExp | string,
-): number {
-  if (typeof timeString === "number" || typeof timeString === "boolean") {
-    timeString = String(timeString);
-  }
-  if (typeof timeRegex === "string") {
-    timeRegex = new RegExp(timeRegex);
-  }
-  if (!timeString || !timeString.match(timeRegex)) {
-    return 0;
-  }
+export const getTimeAsSeconds = memoize(
+  (
+    timeString: string | number | boolean | null,
+    timeRegex: RegExp | string,
+  ): number => {
+    if (typeof timeString === "number" || typeof timeString === "boolean") {
+      timeString = String(timeString);
+    }
+    if (typeof timeRegex === "string") {
+      timeRegex = new RegExp(timeRegex);
+    }
+    if (!timeString || !timeString.match(timeRegex)) {
+      return 0;
+    }
 
-  const parts = timeString.split(":");
-  const hours = Number(parts[0]);
-  const minutes = Number(parts[1]);
-  const seconds = Number(parts[2]);
-  return hours * 3600 + minutes * 60 + seconds;
-}
+    const parts = timeString.split(":");
+    const hours = Number(parts[0]);
+    const minutes = Number(parts[1]);
+    const seconds = Number(parts[2]);
+    return hours * 3600 + minutes * 60 + seconds;
+  },
+  // Custom key function to handle RegExp objects which can't be stringified
+  (timeString, timeRegex) => {
+    const timeStr = typeof timeString === "string"
+      ? timeString
+      : String(timeString);
+    const regexStr = typeof timeRegex === "string"
+      ? timeRegex
+      : timeRegex?.toString() || "";
+    return `${timeStr}:${regexStr}`;
+  }
+);
 
 /**
  * Calculate the number of seconds from ISO 8601 Duration
@@ -134,28 +150,38 @@ export function getTimeAsSeconds(
  * @param {RegExp} durationRegex
  * @return {number}
  */
-export function getDurationAsSeconds(
-  duration: string | null,
-  durationRegex: RegExp | string,
-): number {
-  if (typeof durationRegex === "string") {
-    durationRegex = new RegExp(durationRegex);
-  }
+export const getDurationAsSeconds = memoize(
+  (
+    duration: string | null,
+    durationRegex: RegExp | string,
+  ): number => {
+    if (typeof durationRegex === "string") {
+      durationRegex = new RegExp(durationRegex);
+    }
 
-  if (!duration || !duration.match(durationRegex)) {
-    return 0;
-  }
+    if (!duration || !duration.match(durationRegex)) {
+      return 0;
+    }
 
-  const [, years, _, , days, hours, minutes, seconds] =
-    new RegExp(durationRegex).exec(duration) || [];
-  let result = 0.0;
-  result += Number(seconds) || 0.0;
-  result += Number(minutes) * 60.0 || 0.0;
-  result += Number(hours) * 3600.0 || 0.0;
-  result += Number(days) * (60 * 60 * 24.0) || 0.0;
-  result += Number(years) * (60 * 60 * 24 * 365.0) || 0.0;
-  return result;
-}
+    const [, years, _, , days, hours, minutes, seconds] =
+      new RegExp(durationRegex).exec(duration) || [];
+    let result = 0.0;
+    result += Number(seconds) || 0.0;
+    result += Number(minutes) * 60.0 || 0.0;
+    result += Number(hours) * 3600.0 || 0.0;
+    result += Number(days) * (60 * 60 * 24.0) || 0.0;
+    result += Number(years) * (60 * 60 * 24 * 365.0) || 0.0;
+    return result;
+  },
+  // Custom key function to handle RegExp objects which can't be stringified
+  (duration, durationRegex) => {
+    const durationStr = duration || "";
+    const regexStr = typeof durationRegex === "string"
+      ? durationRegex
+      : durationRegex?.toString() || "";
+    return `${durationStr}:${regexStr}`;
+  }
+);
 
 /**
  * Adds together two ISO8601 Duration strings
@@ -248,16 +274,22 @@ export function unflatten(data: StringKeyMap): object {
   "use strict";
 
   if (Object(data) !== data || Array.isArray(data)) return data;
-  const regex = /\.?([^.[\]]+)|\[(\d+)]/g;
   const result: StringKeyMap = {};
+
+  // Regex pattern for parsing property paths
+  const pattern = /\.?([^.[\]]+)|\[(\d+)]/g;
 
   for (const p in data) {
     if ({}.hasOwnProperty.call(data, p)) {
       let cur = result;
       let prop = "";
+
+      // Create a new regex instance for each property to reset lastIndex
+      const regex = new RegExp(pattern);
       let m = regex.exec(p);
 
       while (m) {
+        // Create array or object as needed
         cur = cur[prop] || (cur[prop] = m[2] ? [] : {});
         prop = m[2] || m[1];
         m = regex.exec(p);
@@ -335,4 +367,29 @@ export function formatMessage(
  */
 export function stringMatches(str: string, tester: string): boolean {
   return str?.match(tester) !== null;
+}
+
+/**
+ * Creates a memoized version of a function
+ * @param {Function} fn - The function to memoize
+ * @param {Function} [keyFn] - Optional function to generate a custom cache key
+ * @return {Function} - The memoized function
+ */
+export function memoize<T extends (...args: any[]) => any>(
+  fn: T,
+  keyFn?: (...args: Parameters<T>) => string
+): T {
+  const cache = new Map<string, ReturnType<T>>();
+
+  return ((...args: Parameters<T>): ReturnType<T> => {
+    const key = keyFn ? keyFn(...args) : JSON.stringify(args);
+
+    if (cache.has(key)) {
+      return cache.get(key) as ReturnType<T>;
+    }
+
+    const result = fn(...args);
+    cache.set(key, result);
+    return result;
+  }) as T;
 }
