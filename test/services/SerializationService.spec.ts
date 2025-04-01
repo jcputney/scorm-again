@@ -3,7 +3,8 @@ import { expect } from "expect";
 import * as sinon from "sinon";
 import { SerializationService } from "../../src/services/SerializationService";
 import { LogLevelEnum } from "../../src/constants/enums";
-import { CommitObject, RefObject } from "../../src/types/api_types";
+import { CommitObject } from "../../src/types/api_types";
+import { StringKeyMap } from "../../src/utilities";
 
 describe("SerializationService", () => {
   let serializationService: SerializationService;
@@ -28,7 +29,7 @@ describe("SerializationService", () => {
   describe("loadFromFlattenedJSON", () => {
     it("should call loadFromJSON with unflatten for each key-value pair", () => {
       // Arrange
-      const json: RefObject = {
+      const json: StringKeyMap = {
         "cmi.core.student_id": "123",
         "cmi.core.student_name": "John Doe",
       };
@@ -53,7 +54,7 @@ describe("SerializationService", () => {
 
     it("should not proceed if not initialized", () => {
       // Arrange
-      const json: RefObject = {
+      const json: StringKeyMap = {
         "cmi.core.student_id": "123",
       };
       const loadFromJSONSpy = sinon.spy();
@@ -81,7 +82,7 @@ describe("SerializationService", () => {
 
     it("should sort interactions to load id and type before other fields", () => {
       // Arrange
-      const json: RefObject = {
+      const json: StringKeyMap = {
         "cmi.interactions.0.result": "correct",
         "cmi.interactions.0.id": "question1",
         "cmi.interactions.0.type": "choice",
@@ -111,7 +112,7 @@ describe("SerializationService", () => {
   describe("loadFromJSON", () => {
     it("should process JSON object", () => {
       // Arrange
-      const json: RefObject = {
+      const json: StringKeyMap = {
         core: {
           student_id: "123",
           student_name: "John Doe",
@@ -139,7 +140,7 @@ describe("SerializationService", () => {
 
     it("should not proceed if not initialized", () => {
       // Arrange
-      const json: RefObject = {
+      const json: StringKeyMap = {
         core: {
           student_id: "123",
         },
@@ -170,7 +171,7 @@ describe("SerializationService", () => {
 
     it("should handle array values in JSON", () => {
       // Arrange
-      const json: RefObject = {
+      const json: StringKeyMap = {
         objectives: [
           { id: "obj1", score: { raw: 80 } },
           { id: "obj2", score: { raw: 90 } },

@@ -1,40 +1,31 @@
-import {
-  CommitObject,
-  RefObject,
-  ResultObject,
-  Settings,
-} from "../types/api_types";
+import { CommitObject, ResultObject, Settings } from "../types/api_types";
 import { global_constants } from "../constants/api_constants";
 import { LogLevelEnum } from "../constants/enums";
+import { IHttpService } from "../interfaces/services";
+import { ErrorCode } from "../constants/error_codes";
+import { StringKeyMap } from "../utilities";
 
 /**
  * Service for handling HTTP communication with the LMS
  */
-export class HttpService {
+export class HttpService implements IHttpService {
   private settings: Settings;
-  private apiLogLevel: string | number;
-  private error_codes: any;
+  private error_codes: ErrorCode;
 
   /**
    * Constructor for HttpService
    * @param {Settings} settings - The settings object
-   * @param {string|number} apiLogLevel - The log level
-   * @param {any} error_codes - The error codes object
+   * @param {ErrorCode} error_codes - The error codes object
    */
-  constructor(
-    settings: Settings,
-    apiLogLevel: string | number,
-    error_codes: any,
-  ) {
+  constructor(settings: Settings, error_codes: ErrorCode) {
     this.settings = settings;
-    this.apiLogLevel = apiLogLevel;
     this.error_codes = error_codes;
   }
 
   /**
    * Send the request to the LMS
    * @param {string} url - The URL to send the request to
-   * @param {CommitObject|RefObject|Array} params - The parameters to include in the request
+   * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
    * @param {boolean} immediate - Whether to send the request immediately
    * @param {Function} apiLog - Function to log API messages
    * @param {Function} processListeners - Function to process event listeners
@@ -42,7 +33,7 @@ export class HttpService {
    */
   async processHttpRequest(
     url: string,
-    params: CommitObject | RefObject | Array<any>,
+    params: CommitObject | StringKeyMap | Array<any>,
     immediate: boolean = false,
     apiLog: (
       functionName: string,
@@ -75,7 +66,7 @@ export class HttpService {
 
     const process = async (
       url: string,
-      params: CommitObject | RefObject | Array<any>,
+      params: CommitObject | StringKeyMap | Array<any>,
       settings: Settings,
     ): Promise<ResultObject> => {
       try {
@@ -96,13 +87,13 @@ export class HttpService {
   /**
    * Perform the fetch request to the LMS
    * @param {string} url - The URL to send the request to
-   * @param {RefObject|Array} params - The parameters to include in the request
+   * @param {StringKeyMap|Array} params - The parameters to include in the request
    * @return {Promise<Response>} - The response from the LMS
    * @private
    */
   private async performFetch(
     url: string,
-    params: RefObject | Array<any>,
+    params: StringKeyMap | Array<any>,
   ): Promise<Response> {
     return fetch(url, {
       method: "POST",
@@ -143,8 +134,14 @@ export class HttpService {
       (result.result === true || result.result === global_constants.SCORM_TRUE)
     ) {
       processListeners("CommitSuccess");
+      if (!Object.hasOwnProperty.call(result, "errorCode")) {
+        result.errorCode = 0;
+      }
     } else {
       processListeners("CommitError");
+      if (!Object.hasOwnProperty.call(result, "errorCode")) {
+        result.errorCode = this.error_codes.GENERAL;
+      }
     }
     return result;
   }

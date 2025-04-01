@@ -7,17 +7,18 @@ import { DefaultSettings } from "../src/constants/default_settings";
 import * as sinon from "sinon";
 import { CMITries } from "../src/cmi/aicc/tries";
 import { CMIInteractions } from "../src/cmi/scorm12/interactions";
-import { RefObject, Settings } from "../src/types/api_types";
+import { Settings } from "../src/types/api_types";
 import { LogLevelEnum } from "../src/constants/enums";
+import { StringKeyMap } from "../src/utilities";
 
-const api = (settings?: Settings, startingData: RefObject = {}) => {
+const api = (settings?: Settings, startingData: StringKeyMap = {}) => {
   const API = new AICCImpl({ ...settings, logLevel: LogLevelEnum.NONE });
   if (startingData) {
     API.startingData = startingData;
   }
   return API;
 };
-const apiInitialized = (startingData?: RefObject) => {
+const apiInitialized = (startingData?: StringKeyMap) => {
   const API = api();
   API.loadFromJSON(startingData ? startingData : {}, "");
   API.lmsInitialize();

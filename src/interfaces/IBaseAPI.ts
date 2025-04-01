@@ -1,9 +1,10 @@
-import { RefObject, ResultObject } from "../types/api_types";
+import { ResultObject } from "../types/api_types";
 import { BaseCMI } from "../cmi/common/base_cmi";
+import { StringKeyMap } from "../utilities";
 
 export interface IBaseAPI {
   cmi: BaseCMI;
-  startingData?: RefObject;
+  startingData?: StringKeyMap;
 
   initialize(
     callbackName: string,
@@ -19,7 +20,7 @@ export interface IBaseAPI {
   lmsGetErrorString(CMIErrorCode: string | number): string;
   lmsGetDiagnostic(CMIErrorCode: string | number): string;
   storeData(_calculateTotalTime: boolean): Promise<ResultObject>;
-  renderCommitCMI(_terminateCommit: boolean): RefObject | Array<any>;
+  renderCommitCMI(_terminateCommit: boolean): StringKeyMap | Array<any>;
   getLmsErrorMessageDetails(
     _errorNumber: string | number,
     _detail?: boolean,

@@ -25,7 +25,7 @@ This style guide outlines the conventions and best practices for TypeScript deve
 ### File Structure
 - Organize code by feature or domain rather than by type.
 - Keep files focused on a single responsibility.
-- Aim to keep files under 300 lines; consider refactoring larger files into smaller, more focused modules.
+- Aim to keep files under 500 lines; consider refactoring larger files into smaller, more focused modules.
 - Use barrel files (index.ts) to simplify imports from directories with multiple exports.
 
 ### Imports

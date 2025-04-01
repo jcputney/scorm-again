@@ -31,14 +31,12 @@ export class ValidationService {
     invalidRangeCode: number,
     errorClass: typeof BaseScormValidationError,
   ): boolean {
-    if (
+    return (
       checkValidFormat(value, decimalRegex, invalidTypeCode, errorClass) &&
       (!scoreRange ||
         checkValidRange(value, scoreRange, invalidRangeCode, errorClass))
-    ) {
-      return true;
-    }
-    return false; // This line should never be reached due to exceptions being thrown
+    );
+    // This line should never be reached due to exceptions being thrown
   }
 
   /**

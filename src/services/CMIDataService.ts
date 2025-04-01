@@ -1,33 +1,40 @@
-import { CMIArray } from "../cmi/common/array";
 import { ErrorCode } from "../constants/error_codes";
 import { global_constants } from "../constants/api_constants";
-import { stringMatches } from "../utilities";
-import { LogLevel, RefObject } from "../types/api_types";
+import { StringKeyMap, stringMatches } from "../utilities";
+import { LogLevel } from "../types/api_types";
 import { LogLevelEnum } from "../constants/enums";
+import { ICMIDataService, IErrorHandlingService } from "../interfaces/services";
+import { isCMIArray } from "../utils/type_guards";
 
 /**
  * Service for accessing and manipulating CMI data
  */
-export class CMIDataService {
+export class CMIDataService implements ICMIDataService {
   private _error_codes: ErrorCode;
-  private _apiLog: (
+  private readonly _apiLog: (
     functionName: string,
     message: string,
     logLevel?: LogLevel,
     CMIElement?: string,
   ) => void;
-  private _throwSCORMError: (errorNumber: number, message?: string) => void;
-  private _validateCorrectResponse: (CMIElement: string, value: any) => void;
-  private _getChildElement: (
+  private readonly _throwSCORMError: (
+    errorNumber: number,
+    message?: string,
+  ) => void;
+  private readonly _validateCorrectResponse: (
+    CMIElement: string,
+    value: any,
+  ) => void;
+  private readonly _getChildElement: (
     CMIElement: string,
     value: any,
     foundFirstIndex: boolean,
   ) => any;
-  private _checkObjectHasProperty: (
-    refObject: RefObject,
+  private readonly _checkObjectHasProperty: (
+    refObject: StringKeyMap,
     attribute: string,
   ) => boolean;
-  private _lastErrorCode: string;
+  private readonly _errorHandlingService: IErrorHandlingService;
 
   /**
    * Constructor for CMIDataService
@@ -38,7 +45,7 @@ export class CMIDataService {
    * @param {Function} validateCorrectResponse - Function for validating correct responses
    * @param {Function} getChildElement - Function for getting child elements
    * @param {Function} checkObjectHasProperty - Function for checking if an object has a property
-   * @param {string} lastErrorCode - The last error code
+   * @param {IErrorHandlingService} errorHandlingService - The error handling service
    */
   constructor(
     error_codes: ErrorCode,
@@ -56,10 +63,10 @@ export class CMIDataService {
       foundFirstIndex: boolean,
     ) => any,
     checkObjectHasProperty: (
-      refObject: RefObject,
+      refObject: StringKeyMap,
       attribute: string,
     ) => boolean,
-    lastErrorCode: string = "0",
+    errorHandlingService: IErrorHandlingService,
   ) {
     this._error_codes = error_codes;
     this._apiLog = apiLog;
@@ -67,7 +74,7 @@ export class CMIDataService {
     this._validateCorrectResponse = validateCorrectResponse;
     this._getChildElement = getChildElement;
     this._checkObjectHasProperty = checkObjectHasProperty;
-    this._lastErrorCode = lastErrorCode;
+    this._errorHandlingService = errorHandlingService;
   }
 
   /**
@@ -76,7 +83,7 @@ export class CMIDataService {
    * @param {string} errorCode - The error code
    */
   updateLastErrorCode(errorCode: string): void {
-    this._lastErrorCode = errorCode;
+    this._errorHandlingService.lastErrorCode = errorCode;
   }
 
   /**
@@ -86,14 +93,13 @@ export class CMIDataService {
    * @param {string} message - The error message
    */
   throwSCORMError(errorNumber: number, message?: string): void {
-    this.updateLastErrorCode(String(errorNumber));
     this._throwSCORMError(errorNumber, message);
   }
 
   /**
    * Shared API method to set a valid for a given element.
    *
-   * @param {RefObject} cmi - The CMI object
+   * @param {StringKeyMap} cmi - The CMI object
    * @param {string} methodName - The method name
    * @param {boolean} scorm2004 - Whether this is SCORM 2004
    * @param {string} CMIElement - The CMI element
@@ -102,7 +108,7 @@ export class CMIDataService {
    * @return {string}
    */
   setCMIValue(
-    cmi: RefObject,
+    cmi: StringKeyMap,
     methodName: string,
     scorm2004: boolean,
     CMIElement: string,
@@ -114,7 +120,7 @@ export class CMIDataService {
     }
 
     const structure = CMIElement.split(".");
-    let refObject: RefObject = cmi;
+    let refObject: StringKeyMap = cmi;
     let returnValue = global_constants.SCORM_FALSE;
     let foundFirstIndex = false;
 
@@ -146,7 +152,7 @@ export class CMIDataService {
             this._validateCorrectResponse(CMIElement, value);
           }
 
-          if (!scorm2004 || this._lastErrorCode === "0") {
+          if (!scorm2004 || this._errorHandlingService.lastErrorCode === "0") {
             refObject[attribute] = value;
             returnValue = global_constants.SCORM_TRUE;
           }
@@ -158,7 +164,7 @@ export class CMIDataService {
           break;
         }
 
-        if (refObject instanceof CMIArray) {
+        if (isCMIArray(refObject)) {
           const index = parseInt(structure[idx + 1], 10);
 
           // SCO is trying to set an item on an array
@@ -207,14 +213,14 @@ export class CMIDataService {
   /**
    * Gets a value from the CMI Object
    *
-   * @param {RefObject} cmi - The CMI object
+   * @param {StringKeyMap} cmi - The CMI object
    * @param {string} methodName - The method name
    * @param {boolean} scorm2004 - Whether this is SCORM 2004
    * @param {string} CMIElement - The CMI element
    * @return {any}
    */
   getCMIValue(
-    cmi: RefObject,
+    cmi: StringKeyMap,
     methodName: string,
     scorm2004: boolean,
     CMIElement: string,
@@ -224,7 +230,7 @@ export class CMIDataService {
     }
 
     const structure = CMIElement.split(".");
-    let refObject: RefObject = cmi;
+    let refObject: StringKeyMap = cmi;
     let attribute = null;
 
     const uninitializedErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) has not been initialized.`;
@@ -265,7 +271,7 @@ export class CMIDataService {
         break;
       }
 
-      if (refObject instanceof CMIArray) {
+      if (isCMIArray(refObject)) {
         const index = parseInt(structure[idx + 1], 10);
 
         // SCO is trying to set an item on an array

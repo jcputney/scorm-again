@@ -1,6 +1,7 @@
 import { LogLevel } from "../types/api_types";
 import { LogLevelEnum } from "../constants/enums";
 import { stringMatches } from "../utilities";
+import { IEventService } from "../interfaces/services";
 
 /**
  * Interface for a listener object
@@ -14,7 +15,7 @@ interface Listener {
 /**
  * Service for handling event listeners and event processing
  */
-export class EventService {
+export class EventService implements IEventService {
   private listenerArray: Listener[] = [];
 
   /**

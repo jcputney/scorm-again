@@ -1,15 +1,16 @@
-import { scorm2004_constants } from "../../constants/api_constants";
-import { scorm2004_regex } from "../../constants/regex";
-import { scorm2004_errors } from "../../constants/error_codes";
-import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
-import * as Util from "../../utilities";
 import { BaseRootCMI } from "../common/base_cmi";
-import { check2004ValidFormat, check2004ValidRange } from "./validation";
 import { CMILearnerPreference } from "./learner_preference";
 import { CMIInteractions } from "./interactions";
 import { Scorm2004CMIScore } from "./score";
 import { CMICommentsFromLearner, CMICommentsFromLMS } from "./comments";
 import { CMIObjectives } from "./objectives";
+import { CMIMetadata } from "./metadata";
+import { CMILearner } from "./learner";
+import { CMIStatus } from "./status";
+import { CMISession } from "./session";
+import { CMIContent } from "./content";
+import { CMISettings } from "./settings";
+import { CMIThresholds } from "./thresholds";
 
 /**
  * Class representing cmi object for SCORM 2004
@@ -21,6 +22,13 @@ export class CMI extends BaseRootCMI {
    */
   constructor(initialized: boolean = false) {
     super();
+    this.metadata = new CMIMetadata();
+    this.learner = new CMILearner();
+    this.status = new CMIStatus();
+    this.session = new CMISession();
+    this.content = new CMIContent();
+    this.settings = new CMISettings();
+    this.thresholds = new CMIThresholds();
     this.learner_preference = new CMILearnerPreference();
     this.score = new Scorm2004CMIScore();
     this.comments_from_learner = new CMICommentsFromLearner();
@@ -30,6 +38,16 @@ export class CMI extends BaseRootCMI {
     if (initialized) this.initialize();
   }
 
+  // New component classes
+  private metadata: CMIMetadata;
+  private learner: CMILearner;
+  private status: CMIStatus;
+  private session: CMISession;
+  private content: CMIContent;
+  private settings: CMISettings;
+  private thresholds: CMIThresholds;
+
+  // Original complex objects
   public learner_preference: CMILearnerPreference;
   public score: Scorm2004CMIScore;
   public comments_from_learner: CMICommentsFromLearner;
@@ -37,32 +55,21 @@ export class CMI extends BaseRootCMI {
   public interactions: CMIInteractions;
   public objectives: CMIObjectives;
 
-  private __version = "1.0";
-  private __children = scorm2004_constants.cmi_children;
-  private _completion_status = "unknown";
-  private _completion_threshold = "";
-  private _credit = "credit";
-  private _entry = "";
-  private _exit = "";
-  private _launch_data = "";
-  private _learner_id = "";
-  private _learner_name = "";
-  private _location = "";
-  private _max_time_allowed = "";
-  private _mode = "normal";
-  private _progress_measure = "";
-  private _scaled_passing_score = "";
-  private _session_time = "PT0H0M0S";
-  private _success_status = "unknown";
-  private _suspend_data = "";
-  private _time_limit_action = "continue,no message";
-  private _total_time = "";
-
   /**
    * Called when the API has been initialized after the CMI has been created
    */
   override initialize() {
     super.initialize();
+    // Initialize new component classes
+    this.metadata?.initialize();
+    this.learner?.initialize();
+    this.status?.initialize();
+    this.session?.initialize();
+    this.content?.initialize();
+    this.settings?.initialize();
+    this.thresholds?.initialize();
+
+    // Initialize original complex objects
     this.learner_preference?.initialize();
     this.score?.initialize();
     this.comments_from_learner?.initialize();
@@ -77,15 +84,18 @@ export class CMI extends BaseRootCMI {
   reset() {
     this._initialized = false;
 
-    this._completion_status = "incomplete";
-    this._exit = "";
-    this._session_time = "PT0H0M0S";
-    this._progress_measure = "";
-    this._location = "";
+    // Reset new component classes
+    this.metadata?.reset();
+    this.learner?.reset();
+    this.status?.reset();
+    this.session?.reset();
+    this.content?.reset();
+    this.settings?.reset();
+    this.thresholds?.reset();
 
+    // Reset original complex objects
     this.objectives?.reset(false);
     this.interactions?.reset(true);
-
     this.score?.reset();
     this.comments_from_learner?.reset();
     this.comments_from_lms?.reset();
@@ -98,7 +108,7 @@ export class CMI extends BaseRootCMI {
    * @private
    */
   get _version(): string {
-    return this.__version;
+    return this.metadata._version;
   }
 
   /**
@@ -107,7 +117,7 @@ export class CMI extends BaseRootCMI {
    * @private
    */
   set _version(_version: string) {
-    throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+    this.metadata._version = _version;
   }
 
   /**
@@ -116,7 +126,7 @@ export class CMI extends BaseRootCMI {
    * @private
    */
   get _children(): string {
-    return this.__children;
+    return this.metadata._children;
   }
 
   /**
@@ -125,7 +135,7 @@ export class CMI extends BaseRootCMI {
    * @private
    */
   set _children(_children: number) {
-    throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+    this.metadata._children = _children;
   }
 
   /**
@@ -133,7 +143,7 @@ export class CMI extends BaseRootCMI {
    * @return {string}
    */
   get completion_status(): string {
-    return this._completion_status;
+    return this.status.completion_status;
   }
 
   /**
@@ -141,9 +151,7 @@ export class CMI extends BaseRootCMI {
    * @param {string} completion_status
    */
   set completion_status(completion_status: string) {
-    if (check2004ValidFormat(completion_status, scorm2004_regex.CMICStatus)) {
-      this._completion_status = completion_status;
-    }
+    this.status.completion_status = completion_status;
   }
 
   /**
@@ -151,39 +159,31 @@ export class CMI extends BaseRootCMI {
    * @return {string}
    */
   get completion_threshold(): string {
-    return this._completion_threshold;
+    return this.thresholds.completion_threshold;
   }
 
   /**
-   * Setter for _completion_threshold. Can only be called before  initialization.
+   * Setter for _completion_threshold. Can only be called before initialization.
    * @param {string} completion_threshold
    */
   set completion_threshold(completion_threshold: string) {
-    if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
-    } else {
-      this._completion_threshold = completion_threshold;
-    }
+    this.thresholds.completion_threshold = completion_threshold;
   }
 
   /**
-   * Setter for _credit
+   * Getter for _credit
    * @return {string}
    */
   get credit(): string {
-    return this._credit;
+    return this.settings.credit;
   }
 
   /**
-   * Setter for _credit. Can only be called before  initialization.
+   * Setter for _credit. Can only be called before initialization.
    * @param {string} credit
    */
   set credit(credit: string) {
-    if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
-    } else {
-      this._credit = credit;
-    }
+    this.settings.credit = credit;
   }
 
   /**
@@ -191,19 +191,15 @@ export class CMI extends BaseRootCMI {
    * @return {string}
    */
   get entry(): string {
-    return this._entry;
+    return this.session.entry;
   }
 
   /**
-   * Setter for _entry. Can only be called before  initialization.
+   * Setter for _entry. Can only be called before initialization.
    * @param {string} entry
    */
   set entry(entry: string) {
-    if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
-    } else {
-      this._entry = entry;
-    }
+    this.session.entry = entry;
   }
 
   /**
@@ -211,20 +207,16 @@ export class CMI extends BaseRootCMI {
    * @return {string}
    */
   get exit(): string {
-    if (!this.jsonString) {
-      throw new Scorm2004ValidationError(scorm2004_errors.WRITE_ONLY_ELEMENT);
-    }
-    return this._exit;
+    this.session.jsonString = this.jsonString;
+    return this.session.exit;
   }
 
   /**
-   * Getter for _exit
+   * Setter for _exit
    * @param {string} exit
    */
   set exit(exit: string) {
-    if (check2004ValidFormat(exit, scorm2004_regex.CMIExit, true)) {
-      this._exit = exit;
-    }
+    this.session.exit = exit;
   }
 
   /**
@@ -232,19 +224,15 @@ export class CMI extends BaseRootCMI {
    * @return {string}
    */
   get launch_data(): string {
-    return this._launch_data;
+    return this.content.launch_data;
   }
 
   /**
-   * Setter for _launch_data. Can only be called before  initialization.
+   * Setter for _launch_data. Can only be called before initialization.
    * @param {string} launch_data
    */
   set launch_data(launch_data: string) {
-    if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
-    } else {
-      this._launch_data = launch_data;
-    }
+    this.content.launch_data = launch_data;
   }
 
   /**
@@ -252,19 +240,15 @@ export class CMI extends BaseRootCMI {
    * @return {string}
    */
   get learner_id(): string {
-    return this._learner_id;
+    return this.learner.learner_id;
   }
 
   /**
-   * Setter for _learner_id. Can only be called before  initialization.
+   * Setter for _learner_id. Can only be called before initialization.
    * @param {string} learner_id
    */
   set learner_id(learner_id: string) {
-    if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
-    } else {
-      this._learner_id = learner_id;
-    }
+    this.learner.learner_id = learner_id;
   }
 
   /**
@@ -272,19 +256,15 @@ export class CMI extends BaseRootCMI {
    * @return {string}
    */
   get learner_name(): string {
-    return this._learner_name;
+    return this.learner.learner_name;
   }
 
   /**
-   * Setter for _learner_name. Can only be called before  initialization.
+   * Setter for _learner_name. Can only be called before initialization.
    * @param {string} learner_name
    */
   set learner_name(learner_name: string) {
-    if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
-    } else {
-      this._learner_name = learner_name;
-    }
+    this.learner.learner_name = learner_name;
   }
 
   /**
@@ -292,7 +272,7 @@ export class CMI extends BaseRootCMI {
    * @return {string}
    */
   get location(): string {
-    return this._location;
+    return this.content.location;
   }
 
   /**
@@ -300,9 +280,7 @@ export class CMI extends BaseRootCMI {
    * @param {string} location
    */
   set location(location: string) {
-    if (check2004ValidFormat(location, scorm2004_regex.CMIString1000)) {
-      this._location = location;
-    }
+    this.content.location = location;
   }
 
   /**
@@ -310,19 +288,15 @@ export class CMI extends BaseRootCMI {
    * @return {string}
    */
   get max_time_allowed(): string {
-    return this._max_time_allowed;
+    return this.settings.max_time_allowed;
   }
 
   /**
-   * Setter for _max_time_allowed. Can only be called before  initialization.
+   * Setter for _max_time_allowed. Can only be called before initialization.
    * @param {string} max_time_allowed
    */
   set max_time_allowed(max_time_allowed: string) {
-    if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
-    } else {
-      this._max_time_allowed = max_time_allowed;
-    }
+    this.settings.max_time_allowed = max_time_allowed;
   }
 
   /**
@@ -330,19 +304,15 @@ export class CMI extends BaseRootCMI {
    * @return {string}
    */
   get mode(): string {
-    return this._mode;
+    return this.settings.mode;
   }
 
   /**
-   * Setter for _mode. Can only be called before  initialization.
+   * Setter for _mode. Can only be called before initialization.
    * @param {string} mode
    */
   set mode(mode: string) {
-    if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
-    } else {
-      this._mode = mode;
-    }
+    this.settings.mode = mode;
   }
 
   /**
@@ -350,7 +320,7 @@ export class CMI extends BaseRootCMI {
    * @return {string}
    */
   get progress_measure(): string {
-    return this._progress_measure;
+    return this.status.progress_measure;
   }
 
   /**
@@ -358,12 +328,7 @@ export class CMI extends BaseRootCMI {
    * @param {string} progress_measure
    */
   set progress_measure(progress_measure: string) {
-    if (
-      check2004ValidFormat(progress_measure, scorm2004_regex.CMIDecimal) &&
-      check2004ValidRange(progress_measure, scorm2004_regex.progress_range)
-    ) {
-      this._progress_measure = progress_measure;
-    }
+    this.status.progress_measure = progress_measure;
   }
 
   /**
@@ -371,19 +336,15 @@ export class CMI extends BaseRootCMI {
    * @return {string}
    */
   get scaled_passing_score(): string {
-    return this._scaled_passing_score;
+    return this.thresholds.scaled_passing_score;
   }
 
   /**
-   * Setter for _scaled_passing_score. Can only be called before  initialization.
+   * Setter for _scaled_passing_score. Can only be called before initialization.
    * @param {string} scaled_passing_score
    */
   set scaled_passing_score(scaled_passing_score: string) {
-    if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
-    } else {
-      this._scaled_passing_score = scaled_passing_score;
-    }
+    this.thresholds.scaled_passing_score = scaled_passing_score;
   }
 
   /**
@@ -391,10 +352,8 @@ export class CMI extends BaseRootCMI {
    * @return {string}
    */
   get session_time(): string {
-    if (!this.jsonString) {
-      throw new Scorm2004ValidationError(scorm2004_errors.WRITE_ONLY_ELEMENT);
-    }
-    return this._session_time;
+    this.session.jsonString = this.jsonString;
+    return this.session.session_time;
   }
 
   /**
@@ -402,9 +361,7 @@ export class CMI extends BaseRootCMI {
    * @param {string} session_time
    */
   set session_time(session_time: string) {
-    if (check2004ValidFormat(session_time, scorm2004_regex.CMITimespan)) {
-      this._session_time = session_time;
-    }
+    this.session.session_time = session_time;
   }
 
   /**
@@ -412,7 +369,7 @@ export class CMI extends BaseRootCMI {
    * @return {string}
    */
   get success_status(): string {
-    return this._success_status;
+    return this.status.success_status;
   }
 
   /**
@@ -420,9 +377,7 @@ export class CMI extends BaseRootCMI {
    * @param {string} success_status
    */
   set success_status(success_status: string) {
-    if (check2004ValidFormat(success_status, scorm2004_regex.CMISStatus)) {
-      this._success_status = success_status;
-    }
+    this.status.success_status = success_status;
   }
 
   /**
@@ -430,7 +385,7 @@ export class CMI extends BaseRootCMI {
    * @return {string}
    */
   get suspend_data(): string {
-    return this._suspend_data;
+    return this.content.suspend_data;
   }
 
   /**
@@ -438,11 +393,7 @@ export class CMI extends BaseRootCMI {
    * @param {string} suspend_data
    */
   set suspend_data(suspend_data: string) {
-    if (
-      check2004ValidFormat(suspend_data, scorm2004_regex.CMIString64000, true)
-    ) {
-      this._suspend_data = suspend_data;
-    }
+    this.content.suspend_data = suspend_data;
   }
 
   /**
@@ -450,19 +401,15 @@ export class CMI extends BaseRootCMI {
    * @return {string}
    */
   get time_limit_action(): string {
-    return this._time_limit_action;
+    return this.settings.time_limit_action;
   }
 
   /**
-   * Setter for _time_limit_action. Can only be called before  initialization.
+   * Setter for _time_limit_action. Can only be called before initialization.
    * @param {string} time_limit_action
    */
   set time_limit_action(time_limit_action: string) {
-    if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
-    } else {
-      this._time_limit_action = time_limit_action;
-    }
+    this.settings.time_limit_action = time_limit_action;
   }
 
   /**
@@ -470,19 +417,15 @@ export class CMI extends BaseRootCMI {
    * @return {string}
    */
   get total_time(): string {
-    return this._total_time;
+    return this.session.total_time;
   }
 
   /**
-   * Setter for _total_time. Can only be called before  initialization.
+   * Setter for _total_time. Can only be called before initialization.
    * @param {string} total_time
    */
   set total_time(total_time: string) {
-    if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
-    } else {
-      this._total_time = total_time;
-    }
+    this.session.total_time = total_time;
   }
 
   /**
@@ -491,19 +434,7 @@ export class CMI extends BaseRootCMI {
    * @return {string} ISO8601 Duration
    */
   getCurrentTotalTime(): string {
-    let sessionTime = this._session_time;
-    const startTime = this.start_time;
-
-    if (typeof startTime !== "undefined" && startTime !== null) {
-      const seconds = new Date().getTime() - startTime;
-      sessionTime = Util.getSecondsAsISODuration(seconds / 1000);
-    }
-
-    return Util.addTwoDurations(
-      this._total_time,
-      sessionTime,
-      scorm2004_regex.CMITimespan,
-    );
+    return this.session.getCurrentTotalTime();
   }
 
   /**
@@ -563,6 +494,10 @@ export class CMI extends BaseRootCMI {
     time_limit_action: string;
   } {
     this.jsonString = true;
+
+    // Set jsonString flag on component classes that need it
+    this.session.jsonString = true;
+
     const result = {
       comments_from_learner: this.comments_from_learner,
       comments_from_lms: this.comments_from_lms,
@@ -588,7 +523,11 @@ export class CMI extends BaseRootCMI {
       suspend_data: this.suspend_data,
       time_limit_action: this.time_limit_action,
     };
+
+    // Clean up jsonString flags
     delete this.jsonString;
+    delete this.session.jsonString;
+
     return result;
   }
 }

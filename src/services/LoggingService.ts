@@ -1,11 +1,13 @@
 import { LogLevel } from "../types/api_types";
 import { LogLevelEnum } from "../constants/enums";
+import { ILoggingService } from "../interfaces/services";
+import { defaultLogHandler } from "../constants/default_settings";
 
 /**
  * Centralized logging service implemented as a singleton
  * Provides methods for logging at different levels and configuring the log level
  */
-export class LoggingService {
+export class LoggingService implements ILoggingService {
   private static _instance: LoggingService;
   private _logLevel: LogLevel = LogLevelEnum.ERROR;
   private _logHandler: (messageLevel: LogLevel, logMessage: string) => void;
@@ -15,38 +17,7 @@ export class LoggingService {
    */
   private constructor() {
     // Default log handler uses console methods based on log level
-    this._logHandler = (messageLevel: LogLevel, logMessage: string) => {
-      switch (messageLevel) {
-        case "4":
-        case 4:
-        case "ERROR":
-        case LogLevelEnum.ERROR:
-          console.error(logMessage);
-          break;
-        case "3":
-        case 3:
-        case "WARN":
-        case LogLevelEnum.WARN:
-          console.warn(logMessage);
-          break;
-        case "2":
-        case 2:
-        case "INFO":
-        case LogLevelEnum.INFO:
-          console.info(logMessage);
-          break;
-        case "1":
-        case 1:
-        case "DEBUG":
-        case LogLevelEnum.DEBUG:
-          if (console.debug) {
-            console.debug(logMessage);
-          } else {
-            console.log(logMessage);
-          }
-          break;
-      }
-    };
+    this._logHandler = defaultLogHandler;
   }
 
   /**

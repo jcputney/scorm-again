@@ -3,6 +3,7 @@ import {
   LogLevelEnum,
   SuccessStatus,
 } from "../constants/enums";
+import { StringKeyMap } from "../utilities";
 
 export type Settings = {
   autocommit?: boolean;
@@ -17,7 +18,7 @@ export type Settings = {
   selfReportSessionTime?: boolean;
   alwaysSendTotalTime?: boolean;
   strict_errors?: boolean;
-  xhrHeaders?: RefObject;
+  xhrHeaders?: StringKeyMap;
   xhrWithCredentials?: boolean;
   fetchMode?: "cors" | "no-cors" | "same-origin" | "navigate";
   responseHandler?: (response: Response) => Promise<ResultObject>;
@@ -30,9 +31,9 @@ export type Settings = {
   globalObjectiveIds?: string[];
 };
 
-export type RefObject = {
-  [key: string]: any;
-};
+export type RefValue = string | number | boolean | null | undefined | RefArray;
+
+export type RefArray = Array<RefValue>;
 
 export type ResultObject = {
   result: string;
@@ -51,7 +52,7 @@ export type CommitObject = {
   successStatus: SuccessStatus;
   completionStatus: CompletionStatus;
   totalTimeSeconds: number;
-  runtimeData: RefObject;
+  runtimeData: StringKeyMap;
   score?: ScoreObject;
 };
 

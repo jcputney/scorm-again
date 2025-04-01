@@ -10,7 +10,7 @@ import {
   global_constants,
   scorm2004_constants,
 } from "../src/constants/api_constants";
-import { RefObject, Settings } from "../src/types/api_types";
+import { Settings } from "../src/types/api_types";
 import { DefaultSettings } from "../src/constants/default_settings";
 import { CMIInteractions } from "../src/cmi/scorm2004/interactions";
 import { ADLNav } from "../src/cmi/scorm2004/adl";
@@ -19,16 +19,17 @@ import {
   LogLevelEnum,
   SuccessStatus,
 } from "../src/constants/enums";
+import { StringKeyMap } from "../src/utilities";
 
 let clock: sinon.SinonFakeTimers;
-const api = (settings?: Settings, startingData: RefObject = {}) => {
+const api = (settings?: Settings, startingData: StringKeyMap = {}) => {
   const API = new Scorm2004Impl({ ...settings, logLevel: LogLevelEnum.NONE });
   if (startingData) {
     API.startingData = startingData;
   }
   return API;
 };
-const apiInitialized = (startingData?: RefObject) => {
+const apiInitialized = (startingData?: StringKeyMap) => {
   const API = api();
   API.loadFromJSON(startingData ? startingData : {}, "");
   API.lmsInitialize();
@@ -870,7 +871,7 @@ describe("SCORM 2004 API Tests", () => {
       const scorm2004API = api();
       scorm2004API.cmi.total_time = "PT12H34M56S";
       scorm2004API.cmi.session_time = "PT23H59M59S";
-      const cmiExport: RefObject = scorm2004API.renderCommitCMI(true);
+      const cmiExport: StringKeyMap = scorm2004API.renderCommitCMI(true);
       expect(cmiExport.cmi.total_time).toEqual("P1DT12H34M55S");
     });
 

@@ -2,21 +2,16 @@ import { expect } from "expect";
 import { describe, it } from "mocha";
 import * as sinon from "sinon";
 import { Scorm12Impl } from "../src/Scorm12API";
-import { scorm12_errors } from "../src/constants/error_codes";
-import { global_constants, scorm12_constants } from "../src/constants/api_constants";
+import {
+  global_constants,
+  scorm12_constants,
+} from "../src/constants/api_constants";
 import { Settings } from "../src/types/api_types";
 import { LogLevelEnum } from "../src/constants/enums";
 
 // Helper functions to create API instances
 const api = (settings?: Settings) => {
-  const API = new Scorm12Impl({ ...settings, logLevel: LogLevelEnum.NONE });
-  return API;
-};
-
-const apiInitialized = (settings?: Settings) => {
-  const API = api(settings);
-  API.lmsInitialize();
-  return API;
+  return new Scorm12Impl({ ...settings, logLevel: LogLevelEnum.NONE });
 };
 
 describe("SCORM 1.2 API Additional Tests", () => {
@@ -29,7 +24,13 @@ describe("SCORM 1.2 API Additional Tests", () => {
 
       expect(result).toBe(global_constants.SCORM_TRUE);
       expect(initializeSpy.calledOnce).toBe(true);
-      expect(initializeSpy.calledWith("LMSInitialize", "LMS was already initialized!", "LMS is already finished!")).toBe(true);
+      expect(
+        initializeSpy.calledWith(
+          "LMSInitialize",
+          "LMS was already initialized!",
+          "LMS is already finished!",
+        ),
+      ).toBe(true);
       expect(scorm12API.cmi.core.lesson_status).toBe("not attempted");
     });
 
@@ -46,7 +47,9 @@ describe("SCORM 1.2 API Additional Tests", () => {
   describe("internalFinish()", () => {
     it("should call terminate with 'LMSFinish' and true", async () => {
       const scorm12API = api();
-      const terminateStub = sinon.stub(scorm12API, "terminate").resolves(global_constants.SCORM_TRUE);
+      const terminateStub = sinon
+        .stub(scorm12API, "terminate")
+        .resolves(global_constants.SCORM_TRUE);
 
       await scorm12API.internalFinish();
 
@@ -56,7 +59,7 @@ describe("SCORM 1.2 API Additional Tests", () => {
 
     it("should process 'SequenceNext' listener when nav.event is 'continue'", async () => {
       const scorm12API = api();
-      const terminateStub = sinon.stub(scorm12API, "terminate").resolves(global_constants.SCORM_TRUE);
+      sinon.stub(scorm12API, "terminate").resolves(global_constants.SCORM_TRUE);
       const processListenersSpy = sinon.spy(scorm12API, "processListeners");
       scorm12API.nav.event = "continue";
 
@@ -67,7 +70,7 @@ describe("SCORM 1.2 API Additional Tests", () => {
 
     it("should process 'SequencePrevious' listener when nav.event is not 'continue'", async () => {
       const scorm12API = api();
-      const terminateStub = sinon.stub(scorm12API, "terminate").resolves(global_constants.SCORM_TRUE);
+      sinon.stub(scorm12API, "terminate").resolves(global_constants.SCORM_TRUE);
       const processListenersSpy = sinon.spy(scorm12API, "processListeners");
       scorm12API.nav.event = "previous";
 
@@ -78,7 +81,7 @@ describe("SCORM 1.2 API Additional Tests", () => {
 
     it("should process 'SequenceNext' listener when autoProgress is true and nav.event is empty", async () => {
       const scorm12API = api({ autoProgress: true });
-      const terminateStub = sinon.stub(scorm12API, "terminate").resolves(global_constants.SCORM_TRUE);
+      sinon.stub(scorm12API, "terminate").resolves(global_constants.SCORM_TRUE);
       const processListenersSpy = sinon.spy(scorm12API, "processListeners");
       scorm12API.nav.event = "";
 
@@ -89,7 +92,7 @@ describe("SCORM 1.2 API Additional Tests", () => {
 
     it("should not process any listeners when autoProgress is false and nav.event is empty", async () => {
       const scorm12API = api({ autoProgress: false });
-      const terminateStub = sinon.stub(scorm12API, "terminate").resolves(global_constants.SCORM_TRUE);
+      sinon.stub(scorm12API, "terminate").resolves(global_constants.SCORM_TRUE);
       const processListenersSpy = sinon.spy(scorm12API, "processListeners");
       scorm12API.nav.event = "";
 
@@ -119,7 +122,9 @@ describe("SCORM 1.2 API Additional Tests", () => {
       scorm12API.lmsGetErrorString("101");
 
       expect(getErrorStringSpy.calledOnce).toBe(true);
-      expect(getErrorStringSpy.calledWith("LMSGetErrorString", "101")).toBe(true);
+      expect(getErrorStringSpy.calledWith("LMSGetErrorString", "101")).toBe(
+        true,
+      );
     });
   });
 
@@ -140,7 +145,10 @@ describe("SCORM 1.2 API Additional Tests", () => {
       const scorm12API = api();
 
       expect(() => {
-        scorm12API.validateCorrectResponse("cmi.interactions.0.correct_responses.0.pattern", "true");
+        scorm12API.validateCorrectResponse(
+          "cmi.interactions.0.correct_responses.0.pattern",
+          "true",
+        );
       }).not.toThrow();
     });
   });
@@ -151,7 +159,9 @@ describe("SCORM 1.2 API Additional Tests", () => {
 
       const result = scorm12API.getLmsErrorMessageDetails(101, false);
 
-      expect(result).toBe(scorm12_errors.descriptions["101"].basicMessage);
+      expect(result).toBe(
+        scorm12_constants.error_descriptions["101"].basicMessage,
+      );
     });
 
     it("should return detail message when detail is true", () => {
@@ -159,7 +169,9 @@ describe("SCORM 1.2 API Additional Tests", () => {
 
       const result = scorm12API.getLmsErrorMessageDetails(101, true);
 
-      expect(result).toBe(scorm12_errors.descriptions["101"].detailMessage);
+      expect(result).toBe(
+        scorm12_constants.error_descriptions["101"].detailMessage,
+      );
     });
 
     it("should handle string error codes", () => {
@@ -167,7 +179,9 @@ describe("SCORM 1.2 API Additional Tests", () => {
 
       const result = scorm12API.getLmsErrorMessageDetails("101", false);
 
-      expect(result).toBe(scorm12_errors.descriptions["101"].basicMessage);
+      expect(result).toBe(
+        scorm12_constants.error_descriptions["101"].basicMessage,
+      );
     });
 
     it("should return 'No Error' for unknown error codes", () => {
@@ -193,7 +207,7 @@ describe("SCORM 1.2 API Additional Tests", () => {
 
     it("should call commit directly when asyncCommit is false", () => {
       const scorm12API = api({ asyncCommit: false });
-      const commitSpy = sinon.spy(scorm12API, "commit");
+      sinon.spy(scorm12API, "commit");
 
       const result = scorm12API.lmsCommit();
 
@@ -205,7 +219,7 @@ describe("SCORM 1.2 API Additional Tests", () => {
   describe("lmsFinish()", () => {
     it("should call internalFinish and return SCORM_TRUE", () => {
       const scorm12API = api();
-      const internalFinishSpy = sinon.spy(scorm12API, "internalFinish");
+      sinon.spy(scorm12API, "internalFinish");
 
       const result = scorm12API.lmsFinish();
 

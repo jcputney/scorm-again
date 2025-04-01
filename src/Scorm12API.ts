@@ -1,6 +1,6 @@
 import { CMI } from "./cmi/scorm12/cmi";
 import * as Utilities from "./utilities";
-import { stringMatches } from "./utilities";
+import { StringKeyMap, stringMatches } from "./utilities";
 import { global_constants, scorm12_constants } from "./constants/api_constants";
 import { scorm12_errors } from "./constants/error_codes";
 
@@ -14,7 +14,6 @@ import {
 import { NAV } from "./cmi/scorm12/nav";
 import {
   CommitObject,
-  RefObject,
   ResultObject,
   ScoreObject,
   Settings,
@@ -288,17 +287,6 @@ class Scorm12Impl extends BaseAPI {
         scorm12_constants.error_descriptions[errorNumber].detailMessage;
     }
 
-    // Add descriptions to scorm12_errors for backward compatibility with tests
-    if (!this.error_codes.descriptions) {
-      this.error_codes.descriptions = {};
-    }
-    if (!this.error_codes.descriptions[errorNumber]) {
-      this.error_codes.descriptions[errorNumber] = {
-        basicMessage: basicMessage,
-        detailMessage: detailMessage,
-      };
-    }
-
     return detail ? detailMessage : basicMessage;
   }
 
@@ -318,15 +306,15 @@ class Scorm12Impl extends BaseAPI {
    * @param {boolean} terminateCommit
    * @return {object|Array}
    */
-  renderCommitCMI(terminateCommit: boolean): object | Array<any> {
-    const cmiExport: RefObject = this.renderCMIToJSONObject();
+  renderCommitCMI(terminateCommit: boolean): StringKeyMap | Array<any> {
+    const cmiExport: StringKeyMap = this.renderCMIToJSONObject();
 
     if (terminateCommit) {
       cmiExport.cmi.core.total_time = this.cmi.getCurrentTotalTime();
     }
 
     const result = [];
-    const flattened: RefObject = Utilities.flatten(cmiExport);
+    const flattened: StringKeyMap = Utilities.flatten(cmiExport);
     switch (this.settings.dataCommitFormat) {
       case "flattened":
         return Utilities.flatten(cmiExport);

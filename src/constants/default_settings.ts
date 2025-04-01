@@ -63,39 +63,44 @@ export const DefaultSettings: Settings = {
   requestHandler: function (commitObject) {
     return commitObject;
   },
-  onLogMessage: function (messageLevel: LogLevel, logMessage) {
-    switch (messageLevel) {
-      case "4":
-      case 4:
-      case "ERROR":
-      case LogLevelEnum.ERROR:
-        console.error(logMessage);
-        break;
-      case "3":
-      case 3:
-      case "WARN":
-      case LogLevelEnum.WARN:
-        console.warn(logMessage);
-        break;
-      case "2":
-      case 2:
-      case "INFO":
-      case LogLevelEnum.INFO:
-        console.info(logMessage);
-        break;
-      case "1":
-      case 1:
-      case "DEBUG":
-      case LogLevelEnum.DEBUG:
-        if (console.debug) {
-          console.debug(logMessage);
-        } else {
-          console.log(logMessage);
-        }
-        break;
-    }
-  },
+  onLogMessage: defaultLogHandler,
   scoItemIds: [],
   scoItemIdValidator: false,
   globalObjectiveIds: [],
 };
+
+export function defaultLogHandler(
+  messageLevel: LogLevel,
+  logMessage: string,
+): void {
+  switch (messageLevel) {
+    case "4":
+    case 4:
+    case "ERROR":
+    case LogLevelEnum.ERROR:
+      console.error(logMessage);
+      break;
+    case "3":
+    case 3:
+    case "WARN":
+    case LogLevelEnum.WARN:
+      console.warn(logMessage);
+      break;
+    case "2":
+    case 2:
+    case "INFO":
+    case LogLevelEnum.INFO:
+      console.info(logMessage);
+      break;
+    case "1":
+    case 1:
+    case "DEBUG":
+    case LogLevelEnum.DEBUG:
+      if (console.debug) {
+        console.debug(logMessage);
+      } else {
+        console.log(logMessage);
+      }
+      break;
+  }
+}

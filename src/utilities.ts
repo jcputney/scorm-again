@@ -7,7 +7,7 @@ type Designation = {
   [key: string]: number;
 };
 
-type StringKeyMap = {
+export type StringKeyMap = {
   [key: string]: any;
 };
 
@@ -205,7 +205,7 @@ export function addHHMMSSTimeStrings(
  * @param {object} data
  * @return {object}
  */
-export function flatten(data: StringKeyMap): object {
+export function flatten(data: StringKeyMap): StringKeyMap {
   const result: StringKeyMap = {};
 
   /**
@@ -241,7 +241,7 @@ export function flatten(data: StringKeyMap): object {
 
 /**
  * Un-flatten a flat JSON object
- * @param {object} data
+ * @param {StringKeyMap} data
  * @return {object}
  */
 export function unflatten(data: StringKeyMap): object {

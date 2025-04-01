@@ -4,6 +4,7 @@ import * as sinon from "sinon";
 import { CMIDataService } from "../../src/services/CMIDataService";
 import { global_constants } from "../../src/constants/api_constants";
 import { CMIArray } from "../../src/cmi/common/array";
+import { IErrorHandlingService } from "../../src/interfaces/services";
 
 describe("CMIDataService", () => {
   let cmiDataService: CMIDataService;
@@ -13,6 +14,7 @@ describe("CMIDataService", () => {
   let validateCorrectResponseStub: sinon.SinonStub;
   let getChildElementStub: sinon.SinonStub;
   let checkObjectHasPropertyStub: sinon.SinonStub;
+  let mockErrorHandlingService: IErrorHandlingService;
 
   beforeEach(() => {
     // Create mock error codes
@@ -32,6 +34,15 @@ describe("CMIDataService", () => {
     getChildElementStub = sinon.stub();
     checkObjectHasPropertyStub = sinon.stub();
 
+    // Create mock error handling service
+    mockErrorHandlingService = {
+      lastErrorCode: "0",
+      throwSCORMError: throwSCORMErrorStub,
+      clearSCORMError: sinon.stub(),
+      handleValueAccessException: sinon.stub(),
+      errorCodes: errorCodes
+    };
+
     // Create a new instance for each test
     cmiDataService = new CMIDataService(
       errorCodes,
@@ -40,6 +51,7 @@ describe("CMIDataService", () => {
       validateCorrectResponseStub,
       getChildElementStub,
       checkObjectHasPropertyStub,
+      mockErrorHandlingService,
     );
   });
 

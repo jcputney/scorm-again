@@ -1,11 +1,10 @@
 import { ErrorCode } from "./constants/error_codes";
 import { global_constants } from "./constants/api_constants";
-import { formatMessage } from "./utilities";
+import { formatMessage, StringKeyMap } from "./utilities";
 import { BaseCMI } from "./cmi/common/base_cmi";
 import {
   CommitObject,
   LogLevel,
-  RefObject,
   ResultObject,
   Settings,
 } from "./types/api_types";
@@ -17,11 +16,16 @@ import { HttpService } from "./services/HttpService";
 import { EventService } from "./services/EventService";
 import { SerializationService } from "./services/SerializationService";
 import { CMIDataService } from "./services/CMIDataService";
-import {
-  createErrorHandlingService,
-  ErrorHandlingService,
-} from "./services/ErrorHandlingService";
+import { createErrorHandlingService } from "./services/ErrorHandlingService";
 import { getLoggingService } from "./services/LoggingService";
+import {
+  ICMIDataService,
+  IErrorHandlingService,
+  IEventService,
+  IHttpService,
+  ILoggingService,
+  ISerializationService,
+} from "./interfaces/services";
 
 /**
  * Base API class for AICC, SCORM 1.2, and SCORM 2004. Should be considered
@@ -31,19 +35,35 @@ export default abstract class BaseAPI implements IBaseAPI {
   private _timeout?: ScheduledCommit;
   private readonly _error_codes: ErrorCode;
   private _settings: Settings = DefaultSettings;
-  private readonly _httpService: HttpService;
-  private _eventService: EventService;
-  private _serializationService: SerializationService;
-  private _cmiDataService: CMIDataService;
-  private readonly _errorHandlingService: ErrorHandlingService;
+  private readonly _httpService: IHttpService;
+  private _eventService: IEventService;
+  private _serializationService: ISerializationService;
+  private _cmiDataService: ICMIDataService;
+  private readonly _errorHandlingService: IErrorHandlingService;
+  private readonly _loggingService: ILoggingService;
 
   /**
    * Constructor for Base API class. Sets some shared API fields, as well as
    * sets up options for the API.
-   * @param {ErrorCode} error_codes
-   * @param {Settings} settings
+   * @param {ErrorCode} error_codes - The error codes object
+   * @param {Settings} settings - Optional settings for the API
+   * @param {IHttpService} httpService - Optional HTTP service instance
+   * @param {IEventService} eventService - Optional Event service instance
+   * @param {ISerializationService} serializationService - Optional Serialization service instance
+   * @param {ICMIDataService} cmiDataService - Optional CMI Data service instance
+   * @param {IErrorHandlingService} errorHandlingService - Optional Error Handling service instance
+   * @param {ILoggingService} loggingService - Optional Logging service instance
    */
-  protected constructor(error_codes: ErrorCode, settings?: Settings) {
+  protected constructor(
+    error_codes: ErrorCode,
+    settings?: Settings,
+    httpService?: IHttpService,
+    eventService?: IEventService,
+    serializationService?: ISerializationService,
+    cmiDataService?: ICMIDataService,
+    errorHandlingService?: IErrorHandlingService,
+    loggingService?: ILoggingService,
+  ) {
     if (new.target === BaseAPI) {
       throw new TypeError("Cannot construct BaseAPI instances directly");
     }
@@ -62,48 +82,51 @@ export default abstract class BaseAPI implements IBaseAPI {
     }
 
     // Initialize and configure LoggingService
-    const loggingService = getLoggingService();
-    loggingService.setLogLevel(this.apiLogLevel);
+    this._loggingService = loggingService || getLoggingService();
+    this._loggingService.setLogLevel(this.apiLogLevel);
 
     // If settings include a custom onLogMessage function, use it as the log handler
     if (this.settings.onLogMessage) {
-      loggingService.setLogHandler(this.settings.onLogMessage);
+      this._loggingService.setLogHandler(this.settings.onLogMessage);
     }
 
     // Initialize HTTP service
-    this._httpService = new HttpService(
-      this.settings,
-      this.apiLogLevel,
-      this._error_codes,
-    );
+    this._httpService =
+      httpService || new HttpService(this.settings, this._error_codes);
 
     // Initialize Event service
-    this._eventService = new EventService(this.apiLog.bind(this));
+    this._eventService =
+      eventService || new EventService(this.apiLog.bind(this));
 
     // Initialize Serialization service
-    this._serializationService = new SerializationService();
-
-    // Initialize CMI Data service
-    this._cmiDataService = new CMIDataService(
-      this._error_codes,
-      this.apiLog.bind(this),
-      this.throwSCORMError.bind(this),
-      this.validateCorrectResponse.bind(this),
-      this.getChildElement.bind(this),
-      this._checkObjectHasProperty.bind(this),
-      this.lastErrorCode,
-    );
+    this._serializationService =
+      serializationService || new SerializationService();
 
     // Initialize Error Handling service
-    this._errorHandlingService = createErrorHandlingService(
-      this._error_codes,
-      this.apiLog.bind(this),
-      this.getLmsErrorMessageDetails.bind(this),
-    );
+    this._errorHandlingService =
+      errorHandlingService ||
+      createErrorHandlingService(
+        this._error_codes,
+        this.apiLog.bind(this),
+        this.getLmsErrorMessageDetails.bind(this),
+      );
+
+    // Initialize CMI Data service
+    this._cmiDataService =
+      cmiDataService ||
+      new CMIDataService(
+        this._error_codes,
+        this.apiLog.bind(this),
+        this.throwSCORMError.bind(this),
+        this.validateCorrectResponse.bind(this),
+        this.getChildElement.bind(this),
+        this._checkObjectHasProperty.bind(this),
+        this._errorHandlingService,
+      );
   }
 
   public abstract cmi: BaseCMI;
-  public startingData?: RefObject;
+  public startingData?: StringKeyMap;
 
   public currentState: number;
   public apiLogLevel: LogLevel;
@@ -236,10 +259,12 @@ export default abstract class BaseAPI implements IBaseAPI {
    * APIs that inherit BaseAPI should override this function
    *
    * @param {boolean} _terminateCommit
-   * @return {RefObject|Array}
+   * @return {StringKeyMap|Array}
    * @abstract
    */
-  abstract renderCommitCMI(_terminateCommit: boolean): RefObject | Array<any>;
+  abstract renderCommitCMI(
+    _terminateCommit: boolean,
+  ): StringKeyMap | Array<any>;
 
   /**
    * Render the commit object to the shortened format for LMS commit
@@ -265,14 +290,15 @@ export default abstract class BaseAPI implements IBaseAPI {
     logMessage = formatMessage(functionName, logMessage, CMIElement);
 
     if (messageLevel >= this.apiLogLevel) {
-      // Use the centralized LoggingService
-      getLoggingService().log(messageLevel, logMessage);
+      // Use the injected LoggingService
+      this._loggingService.log(messageLevel, logMessage);
 
       // For backward compatibility, also call the settings.onLogMessage if it exists
       // and is different from the LoggingService's handler
       if (
         this.settings.onLogMessage &&
-        this.settings.onLogMessage !== getLoggingService()["_logHandler"]
+        this.settings.onLogMessage !==
+          (this._loggingService as any)["_logHandler"]
       ) {
         this.settings.onLogMessage(messageLevel, logMessage);
       }
@@ -306,16 +332,13 @@ export default abstract class BaseAPI implements IBaseAPI {
     // Update HTTP service settings
     this._httpService?.updateSettings(this._settings);
 
-    // Update LoggingService if logLevel or onLogMessage changed
-    const loggingService = getLoggingService();
-
     // Update log level if it changed
     if (
       settings.logLevel !== undefined &&
       settings.logLevel !== previousSettings.logLevel
     ) {
       this.apiLogLevel = settings.logLevel;
-      loggingService.setLogLevel(settings.logLevel);
+      this._loggingService?.setLogLevel(settings.logLevel);
     }
 
     // Update log handler if onLogMessage changed
@@ -323,7 +346,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       settings.onLogMessage !== undefined &&
       settings.onLogMessage !== previousSettings.onLogMessage
     ) {
-      loggingService.setLogHandler(settings.onLogMessage);
+      this._loggingService?.setLogHandler(settings.onLogMessage);
     }
   }
 
@@ -446,7 +469,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       try {
         returnValue = this.setCMIValue(CMIElement, value);
       } catch (e) {
-        this.handleValueAccessException(e, returnValue);
+        returnValue = this.handleValueAccessException(e, returnValue);
       }
       this.processListeners(callbackName, CMIElement, value);
     }
@@ -778,10 +801,10 @@ export default abstract class BaseAPI implements IBaseAPI {
 
   /**
    * Load the CMI from a flattened JSON object
-   * @param {RefObject} json
+   * @param {StringKeyMap} json
    * @param {string} CMIElement
    */
-  loadFromFlattenedJSON(json: RefObject, CMIElement?: string) {
+  loadFromFlattenedJSON(json: StringKeyMap, CMIElement?: string) {
     if (!CMIElement) {
       // by default, we start from a blank string because we're expecting each element to start with `cmi`
       CMIElement = "";
@@ -799,16 +822,16 @@ export default abstract class BaseAPI implements IBaseAPI {
   /**
    * Loads CMI data from a JSON object.
    *
-   * @param {RefObject} json
+   * @param {StringKeyMap} json
    * @param {string} CMIElement
    */
-  loadFromJSON(json: RefObject, CMIElement: string = "") {
+  loadFromJSON(json: StringKeyMap, CMIElement: string = "") {
     this._serializationService.loadFromJSON(
       json,
       CMIElement,
       this.setCMIValue.bind(this),
       this.isNotInitialized.bind(this),
-      (data: RefObject) => {
+      (data: StringKeyMap) => {
         this.startingData = data;
       },
     );
@@ -830,7 +853,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * Returns a JS object representing the current cmi
    * @return {object}
    */
-  renderCMIToJSONObject(): object {
+  renderCMIToJSONObject(): StringKeyMap {
     return this._serializationService.renderCMIToJSONObject(
       this.cmi,
       this.settings.sendFullCommit,
@@ -840,13 +863,13 @@ export default abstract class BaseAPI implements IBaseAPI {
   /**
    * Send the request to the LMS
    * @param {string} url
-   * @param {CommitObject|RefObject|Array} params
+   * @param {CommitObject|StringKeyMap|Array} params
    * @param {boolean} immediate
    * @return {ResultObject}
    */
   async processHttpRequest(
     url: string,
-    params: CommitObject | RefObject | Array<any>,
+    params: CommitObject | StringKeyMap | Array<any>,
     immediate: boolean = false,
   ): Promise<ResultObject> {
     return this._httpService.processHttpRequest(
@@ -884,22 +907,22 @@ export default abstract class BaseAPI implements IBaseAPI {
 
   /**
    * Check to see if the specific object has the given property
-   * @param {RefObject} refObject
+   * @param {StringKeyMap} StringKeyMap
    * @param {string} attribute
    * @return {boolean}
    * @private
    */
   private _checkObjectHasProperty(
-    refObject: RefObject,
+    StringKeyMap: StringKeyMap,
     attribute: string,
   ): boolean {
     return (
-      Object.hasOwnProperty.call(refObject, attribute) ||
+      Object.hasOwnProperty.call(StringKeyMap, attribute) ||
       Object.getOwnPropertyDescriptor(
-        Object.getPrototypeOf(refObject),
+        Object.getPrototypeOf(StringKeyMap),
         attribute,
       ) != null ||
-      attribute in refObject
+      attribute in StringKeyMap
     );
   }
 
@@ -920,12 +943,12 @@ export default abstract class BaseAPI implements IBaseAPI {
   /**
    * Builds the commit object to be sent to the LMS
    * @param {boolean} terminateCommit
-   * @return {CommitObject|RefObject|Array}
+   * @return {CommitObject|StringKeyMap|Array}
    * @private
    */
   protected getCommitObject(
     terminateCommit: boolean,
-  ): CommitObject | RefObject | Array<any> {
+  ): CommitObject | StringKeyMap | Array<any> {
     return this._serializationService.getCommitObject(
       terminateCommit,
       this.settings.alwaysSendTotalTime,

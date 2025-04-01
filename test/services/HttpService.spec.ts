@@ -43,7 +43,7 @@ describe("HttpService", () => {
     fetchStub = sinon.stub(global, "fetch");
 
     // Create a new instance for each test
-    httpService = new HttpService(settings, LogLevelEnum.ERROR, errorCodes);
+    httpService = new HttpService(settings, errorCodes);
   });
 
   afterEach(() => {

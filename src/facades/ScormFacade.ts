@@ -8,9 +8,10 @@
 import { Scorm2004Impl } from "../Scorm2004API";
 import { Scorm12Impl } from "../Scorm12API";
 import { AICCImpl } from "../AICC";
-import { RefObject, Settings } from "../types/api_types";
+import { Settings } from "../types/api_types";
 import { CompletionStatus, SuccessStatus } from "../constants/enums";
 import BaseAPI from "../BaseAPI";
+import { StringKeyMap } from "../utilities";
 
 /**
  * Interface for the ScormFacade
@@ -52,23 +53,23 @@ export interface IScormFacade {
 
   /**
    * Get the last error code
-   * @returns The last error code
+   * @returns The last error code as a string
    */
-  getLastError(): number;
+  getLastError(): string;
 
   /**
    * Get the error string for an error code
    * @param errorCode The error code
    * @returns The error string
    */
-  getErrorString(errorCode: number): string;
+  getErrorString(errorCode: string | number): string;
 
   /**
    * Get diagnostic information for an error code
    * @param errorCode The error code
    * @returns The diagnostic information
    */
-  getDiagnostic(errorCode: number): string;
+  getDiagnostic(errorCode: string | number): string;
 
   /**
    * Set the lesson status
@@ -122,7 +123,7 @@ export interface IScormFacade {
 export function createScormFacade(
   apiType: "2004" | "1.2" | "AICC" = "2004",
   settings?: Settings,
-  startingData?: RefObject,
+  startingData?: StringKeyMap,
 ): IScormFacade {
   return new ScormFacade(apiType, settings, startingData);
 }
@@ -143,7 +144,7 @@ class ScormFacade implements IScormFacade {
   constructor(
     apiType: "2004" | "1.2" | "AICC" = "2004",
     settings?: Settings,
-    startingData?: RefObject,
+    startingData?: StringKeyMap,
   ) {
     // Create the appropriate API instance based on the apiType
     switch (apiType) {
@@ -211,10 +212,10 @@ class ScormFacade implements IScormFacade {
 
   /**
    * Get the last error code
-   * @returns The last error code
+   * @returns The last error code as a string
    */
-  getLastError(): number {
-    return parseInt(this._api.lmsGetLastError(), 10);
+  getLastError(): string {
+    return this._api.lmsGetLastError();
   }
 
   /**
@@ -222,7 +223,7 @@ class ScormFacade implements IScormFacade {
    * @param errorCode The error code
    * @returns The error string
    */
-  getErrorString(errorCode: number): string {
+  getErrorString(errorCode: string | number): string {
     return this._api.lmsGetErrorString(errorCode);
   }
 
@@ -231,7 +232,7 @@ class ScormFacade implements IScormFacade {
    * @param errorCode The error code
    * @returns The diagnostic information
    */
-  getDiagnostic(errorCode: number): string {
+  getDiagnostic(errorCode: string | number): string {
     return this._api.lmsGetDiagnostic(errorCode);
   }
 

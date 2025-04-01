@@ -1,23 +1,25 @@
-import { CommitObject, LogLevel, RefObject } from "../types/api_types";
-import { unflatten } from "../utilities";
+import { CommitObject, LogLevel } from "../types/api_types";
+import { StringKeyMap, unflatten } from "../utilities";
 import { LogLevelEnum } from "../constants/enums";
+import { BaseCMI } from "../cmi/common/base_cmi";
+import { ISerializationService } from "../interfaces/services";
 
 /**
  * Service for handling data serialization and deserialization in SCORM Again
  */
-export class SerializationService {
+export class SerializationService implements ISerializationService {
   /**
    * Load the CMI from a flattened JSON object
-   * @param {RefObject} json - The flattened JSON object
+   * @param {StringKeyMap} json - The flattened JSON object
    * @param {string} CMIElement - The CMI element to start from
    * @param {Function} loadFromJSON - Function to load from JSON
    * @param {Function} setCMIValue - Function to set CMI value
    * @param {Function} isNotInitialized - Function to check if not initialized
    */
   loadFromFlattenedJSON(
-    json: RefObject,
+    json: StringKeyMap,
     CMIElement: string = "",
-    loadFromJSON: (json: RefObject, CMIElement: string) => void,
+    loadFromJSON: (json: StringKeyMap, CMIElement: string) => void,
     setCMIValue: (CMIElement: string, value: any) => void,
     isNotInitialized: () => boolean,
   ): void {
@@ -92,7 +94,7 @@ export class SerializationService {
       return 0;
     });
 
-    let obj: RefObject;
+    let obj: StringKeyMap = {};
     result.forEach((element) => {
       obj = {};
       obj[element[0]] = element[1];
@@ -103,18 +105,18 @@ export class SerializationService {
   /**
    * Loads CMI data from a JSON object.
    *
-   * @param {RefObject} json - The JSON object
+   * @param {{[key: string]: any}} json - The JSON object
    * @param {string} CMIElement - The CMI element to start from
    * @param {Function} setCMIValue - Function to set CMI value
    * @param {Function} isNotInitialized - Function to check if not initialized
    * @param {Function} setStartingData - Function to set starting data
    */
   loadFromJSON(
-    json: RefObject,
+    json: { [key: string]: any },
     CMIElement: string = "",
     setCMIValue: (CMIElement: string, value: any) => void,
     isNotInitialized: () => boolean,
-    setStartingData: (data: RefObject) => void,
+    setStartingData: (data: StringKeyMap) => void,
   ): void {
     if (!isNotInitialized()) {
       console.error(
@@ -129,7 +131,7 @@ export class SerializationService {
 
     // could this be refactored down to flatten(json) then setCMIValue on each?
     for (const key in json) {
-      if ({}.hasOwnProperty.call(json, key) && json[key]) {
+      if (Object.prototype.hasOwnProperty.call(json, key) && json[key]) {
         const currentCMIElement = (CMIElement ? CMIElement + "." : "") + key;
         const value = json[key];
 
@@ -170,11 +172,14 @@ export class SerializationService {
   /**
    * Render the CMI object to JSON for sending to an LMS.
    *
-   * @param {any} cmi - The CMI object
+   * @param {BaseCMI|StringKeyMap} cmi - The CMI object
    * @param {boolean} sendFullCommit - Whether to send the full commit
    * @return {string}
    */
-  renderCMIToJSONString(cmi: any, sendFullCommit: boolean): string {
+  renderCMIToJSONString(
+    cmi: BaseCMI | StringKeyMap,
+    sendFullCommit: boolean,
+  ): string {
     // Do we want/need to return fields that have no set value?
     if (sendFullCommit) {
       return JSON.stringify({ cmi });
@@ -184,11 +189,14 @@ export class SerializationService {
 
   /**
    * Returns a JS object representing the current cmi
-   * @param {any} cmi - The CMI object
+   * @param {BaseCMI|StringKeyMap} cmi - The CMI object
    * @param {boolean} sendFullCommit - Whether to send the full commit
    * @return {object}
    */
-  renderCMIToJSONObject(cmi: any, sendFullCommit: boolean): object {
+  renderCMIToJSONObject(
+    cmi: BaseCMI | StringKeyMap,
+    sendFullCommit: boolean,
+  ): StringKeyMap {
     return JSON.parse(this.renderCMIToJSONString(cmi, sendFullCommit));
   }
 
@@ -196,20 +204,22 @@ export class SerializationService {
    * Builds the commit object to be sent to the LMS
    * @param {boolean} terminateCommit - Whether this is a termination commit
    * @param {boolean} alwaysSendTotalTime - Whether to always send total time
-   * @param {boolean} renderCommonCommitFields - Whether to render common commit fields
+   * @param {boolean|Function} renderCommonCommitFields - Whether to render common commit fields
    * @param {Function} renderCommitObject - Function to render commit object
    * @param {Function} renderCommitCMI - Function to render commit CMI
    * @param {LogLevel} apiLogLevel - The API log level
-   * @return {CommitObject|RefObject|Array}
+   * @return {CommitObject|StringKeyMap|Array<any>}
    */
   getCommitObject(
     terminateCommit: boolean,
     alwaysSendTotalTime: boolean,
-    renderCommonCommitFields: boolean,
+    renderCommonCommitFields:
+      | boolean
+      | ((commitObject: CommitObject) => boolean),
     renderCommitObject: (terminateCommit: boolean) => CommitObject,
-    renderCommitCMI: (terminateCommit: boolean) => RefObject | Array<any>,
+    renderCommitCMI: (terminateCommit: boolean) => StringKeyMap | Array<any>,
     apiLogLevel: LogLevel,
-  ): CommitObject | RefObject | Array<any> {
+  ): CommitObject | StringKeyMap | Array<any> {
     const shouldTerminateCommit = terminateCommit || alwaysSendTotalTime;
     const commitObject = renderCommonCommitFields
       ? renderCommitObject(shouldTerminateCommit)

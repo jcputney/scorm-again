@@ -2,11 +2,13 @@ import { LogLevelEnum } from "../constants/enums";
 import { global_constants } from "../constants/api_constants";
 import { ErrorCode } from "../constants/error_codes";
 import { ValidationError } from "../exceptions";
+import { IErrorHandlingService } from "../interfaces/services";
+import { isValidationError, isError } from "../utils/type_guards";
 
 /**
  * Service for handling SCORM errors
  */
-export class ErrorHandlingService {
+export class ErrorHandlingService implements IErrorHandlingService {
   private _lastErrorCode: string = "0";
   private readonly _errorCodes: ErrorCode;
   private readonly _apiLog: (
@@ -89,16 +91,16 @@ export class ErrorHandlingService {
   /**
    * Handles the error that occurs when trying to access a value
    *
-   * @param {any} e - The exception that was thrown
+   * @param {ValidationError|Error|unknown} e - The exception that was thrown
    * @param {string} returnValue - The default return value
    * @return {string} - The return value after handling the exception
    */
-  handleValueAccessException(e: any, returnValue: string): string {
-    if (e instanceof ValidationError) {
+  handleValueAccessException(e: ValidationError | Error | unknown, returnValue: string): string {
+    if (isValidationError(e)) {
       this._lastErrorCode = String(e.errorCode);
       returnValue = global_constants.SCORM_FALSE;
     } else {
-      if (e instanceof Error && e.message) {
+      if (isError(e) && e.message) {
         console.error(e.message);
       } else {
         console.error(e);
