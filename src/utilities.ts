@@ -70,11 +70,16 @@ export const getSecondsAsISODuration = memoize(
 
     let duration = "P";
     let remainder = seconds;
-    for (const designationsKey in designations) {
-      const current_seconds = designations[designationsKey];
+
+    // Convert to array of entries and use functional methods
+    const designationEntries = Object.entries(designations);
+
+    // Process each time designation
+    designationEntries.forEach(([designationsKey, current_seconds]) => {
       let value = Math.floor(remainder / current_seconds);
       remainder = remainder % current_seconds;
 
+      // Limit decimal places
       if (countDecimals(remainder) > 2) {
         remainder = Number(Number(remainder).toFixed(2));
       }
@@ -86,19 +91,20 @@ export const getSecondsAsISODuration = memoize(
       }
 
       if (value) {
-        if (
+        // Add the 'T' separator for time components if needed
+        const needsTimeSeparator =
           (duration.indexOf("D") > 0 ||
-            designationsKey === "H" ||
-            designationsKey === "M" ||
-            designationsKey === "S") &&
-          duration.indexOf("T") === -1
-        ) {
+           ["H", "M", "S"].includes(designationsKey)) &&
+          duration.indexOf("T") === -1;
+
+        if (needsTimeSeparator) {
           duration += "T";
         }
 
         duration += `${value}${designationsKey}`;
       }
-    }
+    });
+
     return duration;
   }
 );
@@ -121,7 +127,7 @@ export const getTimeAsSeconds = memoize(
     if (typeof timeRegex === "string") {
       timeRegex = new RegExp(timeRegex);
     }
-    if (!timeString || !timeString.match(timeRegex)) {
+    if (!timeString || !timeString?.match?.(timeRegex)) {
       return 0;
     }
 
@@ -135,10 +141,10 @@ export const getTimeAsSeconds = memoize(
   (timeString, timeRegex) => {
     const timeStr = typeof timeString === "string"
       ? timeString
-      : String(timeString);
+      : String(timeString ?? "");
     const regexStr = typeof timeRegex === "string"
       ? timeRegex
-      : timeRegex?.toString() || "";
+      : timeRegex?.toString() ?? "";
     return `${timeStr}:${regexStr}`;
   }
 );
@@ -159,12 +165,12 @@ export const getDurationAsSeconds = memoize(
       durationRegex = new RegExp(durationRegex);
     }
 
-    if (!duration || !duration.match(durationRegex)) {
+    if (!duration || !duration?.match?.(durationRegex)) {
       return 0;
     }
 
     const [, years, _, , days, hours, minutes, seconds] =
-      new RegExp(durationRegex).exec(duration) || [];
+      new RegExp(durationRegex).exec?.(duration) ?? [];
     let result = 0.0;
     result += Number(seconds) || 0.0;
     result += Number(minutes) * 60.0 || 0.0;
@@ -175,10 +181,10 @@ export const getDurationAsSeconds = memoize(
   },
   // Custom key function to handle RegExp objects which can't be stringified
   (duration, durationRegex) => {
-    const durationStr = duration || "";
+    const durationStr = duration ?? "";
     const regexStr = typeof durationRegex === "string"
       ? durationRegex
-      : durationRegex?.toString() || "";
+      : durationRegex?.toString() ?? "";
     return `${durationStr}:${regexStr}`;
   }
 );
@@ -243,19 +249,23 @@ export function flatten(data: StringKeyMap): StringKeyMap {
     if (Object(cur) !== cur) {
       result[prop] = cur;
     } else if (Array.isArray(cur)) {
-      for (let i = 0, l = cur.length; i < l; i++) {
-        recurse(cur[i], prop + "[" + i + "]");
-        if (l === 0) result[prop] = [];
-      }
-    } else {
-      let isEmpty = true;
+      // Use forEach instead of for loop
+      cur.forEach((item, i) => {
+        recurse(item, `${prop}[${i}]`);
+      });
 
-      for (const p in cur) {
-        if ({}.hasOwnProperty.call(cur, p)) {
-          isEmpty = false;
-          recurse(cur[p], prop ? prop + "." + p : p);
-        }
-      }
+      if (cur.length === 0) result[prop] = [];
+    } else {
+      const keys = Object.keys(cur).filter(p =>
+        Object.prototype.hasOwnProperty.call(cur, p)
+      );
+
+      const isEmpty = keys.length === 0;
+
+      // Use forEach instead of for...in loop
+      keys.forEach(p => {
+        recurse(cur[p], prop ? `${prop}.${p}` : p);
+      });
 
       if (isEmpty && prop) result[prop] = {};
     }
@@ -279,27 +289,32 @@ export function unflatten(data: StringKeyMap): object {
   // Regex pattern for parsing property paths
   const pattern = /\.?([^.[\]]+)|\[(\d+)]/g;
 
-  for (const p in data) {
-    if ({}.hasOwnProperty.call(data, p)) {
+  // Get all own properties and process them
+  Object.keys(data)
+    .filter(p => Object.prototype.hasOwnProperty.call(data, p))
+    .forEach(p => {
       let cur = result;
       let prop = "";
 
       // Create a new regex instance for each property to reset lastIndex
       const regex = new RegExp(pattern);
-      let m = regex.exec(p);
 
-      while (m) {
-        // Create array or object as needed
-        cur = cur[prop] || (cur[prop] = m[2] ? [] : {});
-        prop = m[2] || m[1];
-        m = regex.exec(p);
-      }
+      // Process all matches in the property path
+      Array.from(
+        { length: p.match(new RegExp(pattern, 'g'))?.length ?? 0 },
+        () => regex.exec(p)
+      ).forEach(m => {
+        if (m) {
+          // Create array or object as needed
+          cur = cur[prop] ?? (cur[prop] = m[2] ? [] : {});
+          prop = m[2] || m[1];
+        }
+      });
 
       cur[prop] = data[p];
-    }
-  }
+    });
 
-  return result[""] || result;
+  return result[""] ?? result;
 }
 
 /**
@@ -308,9 +323,9 @@ export function unflatten(data: StringKeyMap): object {
  * @return {number}
  */
 export function countDecimals(num: number): number {
-  if (Math.floor(num) === num || String(num).indexOf(".") < 0) return 0;
-  const parts = num.toString().split(".")[1];
-  return parts.length || 0;
+  if (Math.floor(num) === num || String(num)?.indexOf?.(".") < 0) return 0;
+  const parts = num.toString().split(".")?.[1];
+  return parts?.length ?? 0;
 }
 
 /**
@@ -327,33 +342,20 @@ export function formatMessage(
   CMIElement?: string,
 ): string {
   const baseLength = 20;
-  let messageString = "";
 
-  messageString += functionName;
-
-  let fillChars = baseLength - messageString.length;
-
-  for (let i = 0; i < fillChars; i++) {
-    messageString += " ";
-  }
-
-  messageString += ": ";
+  // Use string padding instead of loops
+  const paddedFunction = functionName.padEnd(baseLength);
+  let messageString = `${paddedFunction}: `;
 
   if (CMIElement) {
     const CMIElementBaseLength = 70;
-
+    // Add CMIElement and pad to the required length
     messageString += CMIElement;
-
-    fillChars = CMIElementBaseLength - messageString.length;
-
-    for (let j = 0; j < fillChars; j++) {
-      messageString += " ";
-    }
+    messageString = messageString.padEnd(CMIElementBaseLength);
   }
 
-  if (message) {
-    messageString += message;
-  }
+  // Add the message (or empty string if null/undefined)
+  messageString += message ?? "";
 
   return messageString;
 }
@@ -384,12 +386,12 @@ export function memoize<T extends (...args: any[]) => any>(
   return ((...args: Parameters<T>): ReturnType<T> => {
     const key = keyFn ? keyFn(...args) : JSON.stringify(args);
 
-    if (cache.has(key)) {
-      return cache.get(key) as ReturnType<T>;
-    }
-
-    const result = fn(...args);
-    cache.set(key, result);
-    return result;
+    return cache.has(key)
+      ? cache.get(key) as ReturnType<T>
+      : (() => {
+          const result = fn(...args);
+          cache.set(key, result);
+          return result;
+        })();
   }) as T;
 }

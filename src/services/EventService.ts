@@ -13,10 +13,21 @@ interface Listener {
 }
 
 /**
+ * Type for parsed listener information
+ */
+interface ParsedListener {
+  functionName: string;
+  CMIElement: string | null;
+}
+
+/**
  * Service for handling event listeners and event processing
  */
 export class EventService implements IEventService {
-  private listenerArray: Listener[] = [];
+  // Map of function names to listeners for faster lookups
+  private listenerMap: Map<string, Listener[]> = new Map();
+  // Total count of listeners for logging
+  private listenerCount = 0;
 
   /**
    * Constructor for EventService
@@ -32,6 +43,26 @@ export class EventService implements IEventService {
   ) {}
 
   /**
+   * Parses a listener name into its components
+   *
+   * @param {string} listenerName - The name of the listener
+   * @returns {ParsedListener|null} - The parsed listener information or null if invalid
+   */
+  private parseListenerName(listenerName: string): ParsedListener | null {
+    const listenerSplit = listenerName.split(".");
+    if (listenerSplit.length === 0) return null;
+
+    const functionName = listenerSplit[0];
+    let CMIElement = null;
+
+    if (listenerSplit.length > 1) {
+      CMIElement = listenerName.replace(`${functionName}.`, "");
+    }
+
+    return { functionName, CMIElement };
+  }
+
+  /**
    * Provides a mechanism for attaching to a specific SCORM event
    *
    * @param {string} listenerName - The name of the listener
@@ -41,26 +72,29 @@ export class EventService implements IEventService {
     if (!callback) return;
 
     const listenerFunctions = listenerName.split(" ");
-    for (let i = 0; i < listenerFunctions.length; i++) {
-      const listenerSplit = listenerFunctions[i].split(".");
-      if (listenerSplit.length === 0) return;
+    for (const listenerFunction of listenerFunctions) {
+      const parsedListener = this.parseListenerName(listenerFunction);
+      if (!parsedListener) continue;
 
-      const functionName = listenerSplit[0];
+      const { functionName, CMIElement } = parsedListener;
 
-      let CMIElement = null;
-      if (listenerSplit.length > 1) {
-        CMIElement = listenerName.replace(functionName + ".", "");
-      }
+      // Get or create the array for this function name
+      const listeners = this.listenerMap.get(functionName) ?? [];
 
-      this.listenerArray.push({
-        functionName: functionName,
-        CMIElement: CMIElement,
-        callback: callback,
+      // Add the new listener
+      listeners.push({
+        functionName,
+        CMIElement,
+        callback,
       });
+
+      // Update the map and count
+      this.listenerMap.set(functionName, listeners);
+      this.listenerCount++;
 
       this.apiLog(
         "on",
-        `Added event listener: ${this.listenerArray.length}`,
+        `Added event listener: ${this.listenerCount}`,
         LogLevelEnum.INFO,
         functionName,
       );
@@ -77,28 +111,38 @@ export class EventService implements IEventService {
     if (!callback) return;
 
     const listenerFunctions = listenerName.split(" ");
-    for (let i = 0; i < listenerFunctions.length; i++) {
-      const listenerSplit = listenerFunctions[i].split(".");
-      if (listenerSplit.length === 0) return;
+    for (const listenerFunction of listenerFunctions) {
+      const parsedListener = this.parseListenerName(listenerFunction);
+      if (!parsedListener) continue;
 
-      const functionName = listenerSplit[0];
+      const { functionName, CMIElement } = parsedListener;
 
-      let CMIElement = null;
-      if (listenerSplit.length > 1) {
-        CMIElement = listenerName.replace(functionName + ".", "");
-      }
+      // Get the listeners for this function name
+      const listeners = this.listenerMap.get(functionName);
+      if (!listeners) continue;
 
-      const removeIndex = this.listenerArray.findIndex(
+      // Find the index of the listener to remove
+      const removeIndex = listeners.findIndex(
         (obj) =>
-          obj.functionName === functionName &&
           obj.CMIElement === CMIElement &&
           obj.callback === callback,
       );
+
       if (removeIndex !== -1) {
-        this.listenerArray.splice(removeIndex, 1);
+        // Remove the listener
+        listeners.splice(removeIndex, 1);
+        this.listenerCount--;
+
+        // Update the map or remove the entry if empty
+        if (listeners.length === 0) {
+          this.listenerMap.delete(functionName);
+        } else {
+          this.listenerMap.set(functionName, listeners);
+        }
+
         this.apiLog(
           "off",
-          `Removed event listener: ${this.listenerArray.length}`,
+          `Removed event listener: ${this.listenerCount}`,
           LogLevelEnum.INFO,
           functionName,
         );
@@ -113,21 +157,30 @@ export class EventService implements IEventService {
    */
   clear(listenerName: string) {
     const listenerFunctions = listenerName.split(" ");
-    for (let i = 0; i < listenerFunctions.length; i++) {
-      const listenerSplit = listenerFunctions[i].split(".");
-      if (listenerSplit.length === 0) return;
+    for (const listenerFunction of listenerFunctions) {
+      const parsedListener = this.parseListenerName(listenerFunction);
+      if (!parsedListener) continue;
 
-      const functionName = listenerSplit[0];
+      const { functionName, CMIElement } = parsedListener;
 
-      let CMIElement = null;
-      if (listenerSplit.length > 1) {
-        CMIElement = listenerName.replace(functionName + ".", "");
+      // If we have listeners for this function name
+      if (this.listenerMap.has(functionName)) {
+        const listeners = this.listenerMap.get(functionName)!;
+
+        // Filter out listeners that match the criteria
+        const newListeners = listeners.filter(
+          (obj) => obj.CMIElement !== CMIElement
+        );
+
+        // Update the count and map
+        this.listenerCount -= (listeners.length - newListeners.length);
+
+        if (newListeners.length === 0) {
+          this.listenerMap.delete(functionName);
+        } else {
+          this.listenerMap.set(functionName, newListeners);
+        }
       }
-
-      this.listenerArray = this.listenerArray.filter(
-        (obj) =>
-          obj.functionName !== functionName && obj.CMIElement !== CMIElement,
-      );
     }
   }
 
@@ -140,25 +193,29 @@ export class EventService implements IEventService {
    */
   processListeners(functionName: string, CMIElement?: string, value?: any) {
     this.apiLog(functionName, value, LogLevelEnum.INFO, CMIElement);
-    for (let i = 0; i < this.listenerArray.length; i++) {
-      const listener = this.listenerArray[i];
-      const functionsMatch = listener.functionName === functionName;
+
+    // Get listeners for this function name
+    const listeners = this.listenerMap.get(functionName);
+    if (!listeners) return;
+
+    for (const listener of listeners) {
       const listenerHasCMIElement = !!listener.CMIElement;
       let CMIElementsMatch = false;
+
+      // Check if CMI elements match
       if (
         CMIElement &&
         listener.CMIElement &&
-        listener.CMIElement.substring(listener.CMIElement.length - 1) === "*"
+        listener.CMIElement.endsWith("*")
       ) {
-        CMIElementsMatch = stringMatches(
-          CMIElement,
-          listener.CMIElement.substring(0, listener.CMIElement.length - 1),
-        );
+        const prefix = listener.CMIElement.slice(0, -1);
+        CMIElementsMatch = stringMatches(CMIElement, prefix);
       } else {
         CMIElementsMatch = listener.CMIElement === CMIElement;
       }
 
-      if (functionsMatch && (!listenerHasCMIElement || CMIElementsMatch)) {
+      // If the listener matches, call the callback
+      if (!listenerHasCMIElement || CMIElementsMatch) {
         this.apiLog(
           "processListeners",
           `Processing listener: ${listener.functionName}`,
@@ -174,6 +231,7 @@ export class EventService implements IEventService {
    * Resets the event service by clearing all listeners
    */
   reset() {
-    this.listenerArray = [];
+    this.listenerMap.clear();
+    this.listenerCount = 0;
   }
 }
