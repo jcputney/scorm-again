@@ -4,7 +4,7 @@
     "noImplicitAny": true,
     "noImplicitOverride": true,
     "declaration": false,
-    "module": "es2015",
+    "module": "es2020",
     "moduleResolution": "Node",
     "target": "es5",
     "emitDecoratorMetadata": true,

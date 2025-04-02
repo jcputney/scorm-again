@@ -5,40 +5,35 @@
 /***/ 56:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-__webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CompletionStatus: function() { return /* binding */ CompletionStatus; },
-/* harmony export */   LogLevelEnum: function() { return /* binding */ LogLevelEnum; },
-/* harmony export */   NAVBoolean: function() { return /* binding */ NAVBoolean; },
-/* harmony export */   SuccessStatus: function() { return /* binding */ SuccessStatus; }
+/* harmony export */   K$: function() { return /* binding */ NAVBoolean; },
+/* harmony export */   Mb: function() { return /* binding */ LogLevelEnum; },
+/* harmony export */   YE: function() { return /* binding */ SuccessStatus; },
+/* harmony export */   lC: function() { return /* binding */ CompletionStatus; }
 /* harmony export */ });
-var NAVBoolean;
-(function (NAVBoolean) {
-    NAVBoolean["UNKNOWN"] = "unknown";
-    NAVBoolean["TRUE"] = "true";
-    NAVBoolean["FALSE"] = "false";
-})(NAVBoolean || (NAVBoolean = {}));
-var SuccessStatus;
-(function (SuccessStatus) {
-    SuccessStatus["PASSED"] = "passed";
-    SuccessStatus["FAILED"] = "failed";
-    SuccessStatus["UNKNOWN"] = "unknown";
-})(SuccessStatus || (SuccessStatus = {}));
-var CompletionStatus;
-(function (CompletionStatus) {
-    CompletionStatus["COMPLETED"] = "completed";
-    CompletionStatus["INCOMPLETE"] = "incomplete";
-    CompletionStatus["UNKNOWN"] = "unknown";
-})(CompletionStatus || (CompletionStatus = {}));
-var LogLevelEnum;
-(function (LogLevelEnum) {
-    LogLevelEnum[LogLevelEnum["_"] = 0] = "_";
-    LogLevelEnum[LogLevelEnum["DEBUG"] = 1] = "DEBUG";
-    LogLevelEnum[LogLevelEnum["INFO"] = 2] = "INFO";
-    LogLevelEnum[LogLevelEnum["WARN"] = 3] = "WARN";
-    LogLevelEnum[LogLevelEnum["ERROR"] = 4] = "ERROR";
-    LogLevelEnum[LogLevelEnum["NONE"] = 5] = "NONE";
-})(LogLevelEnum || (LogLevelEnum = {}));
+var NAVBoolean = {
+    UNKNOWN: "unknown",
+    TRUE: "true",
+    FALSE: "false",
+};
+var SuccessStatus = {
+    PASSED: "passed",
+    FAILED: "failed",
+    UNKNOWN: "unknown",
+};
+var CompletionStatus = {
+    COMPLETED: "completed",
+    INCOMPLETE: "incomplete",
+    UNKNOWN: "unknown",
+};
+var LogLevelEnum = {
+    _: 0,
+    DEBUG: 1,
+    INFO: 2,
+    WARN: 3,
+    ERROR: 4,
+    NONE: 5,
+};
 
 
 /***/ }),
@@ -46,10 +41,9 @@ var LogLevelEnum;
 /***/ 176:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-__webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CMIObjectives: function() { return /* binding */ CMIObjectives; },
-/* harmony export */   CMIObjectivesObject: function() { return /* binding */ CMIObjectivesObject; }
+/* harmony export */   C: function() { return /* binding */ CMIObjectives; },
+/* harmony export */   N: function() { return /* binding */ CMIObjectivesObject; }
 /* harmony export */ });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(635);
 /* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(319);
@@ -70,30 +64,30 @@ __webpack_require__.r(__webpack_exports__);
 
 
 var CMIObjectives = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_8__.__extends)(CMIObjectives, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_8__/* .__extends */ .C6)(CMIObjectives, _super);
     function CMIObjectives() {
         return _super.call(this, {
-            children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__.scorm12_constants.objectives_children,
-            errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__.scorm12_errors.INVALID_SET_VALUE,
-            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_5__.Scorm12ValidationError,
+            children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_constants */ .QP.objectives_children,
+            errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__/* .scorm12_errors */ .Se.INVALID_SET_VALUE,
+            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_5__/* .Scorm12ValidationError */ .t,
         }) || this;
     }
     return CMIObjectives;
-}(_common_array__WEBPACK_IMPORTED_MODULE_7__.CMIArray));
+}(_common_array__WEBPACK_IMPORTED_MODULE_7__/* .CMIArray */ .B));
 
 var CMIObjectivesObject = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_8__.__extends)(CMIObjectivesObject, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_8__/* .__extends */ .C6)(CMIObjectivesObject, _super);
     function CMIObjectivesObject() {
         var _this = _super.call(this) || this;
         _this._id = "";
         _this._status = "";
-        _this.score = new _common_score__WEBPACK_IMPORTED_MODULE_1__.CMIScore({
-            score_children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__.scorm12_constants.score_children,
-            score_range: _constants_regex__WEBPACK_IMPORTED_MODULE_3__.scorm12_regex.score_range,
-            invalidErrorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__.scorm12_errors.INVALID_SET_VALUE,
-            invalidTypeCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__.scorm12_errors.TYPE_MISMATCH,
-            invalidRangeCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__.scorm12_errors.VALUE_OUT_OF_RANGE,
-            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_5__.Scorm12ValidationError,
+        _this.score = new _common_score__WEBPACK_IMPORTED_MODULE_1__/* .CMIScore */ ._({
+            score_children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_constants */ .QP.score_children,
+            score_range: _constants_regex__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_regex */ .kS.score_range,
+            invalidErrorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__/* .scorm12_errors */ .Se.INVALID_SET_VALUE,
+            invalidTypeCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__/* .scorm12_errors */ .Se.TYPE_MISMATCH,
+            invalidRangeCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__/* .scorm12_errors */ .Se.VALUE_OUT_OF_RANGE,
+            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_5__/* .Scorm12ValidationError */ .t,
         });
         return _this;
     }
@@ -109,7 +103,7 @@ var CMIObjectivesObject = (function (_super) {
             return this._id;
         },
         set: function (id) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_6__.check12ValidFormat)(id, _constants_regex__WEBPACK_IMPORTED_MODULE_3__.scorm12_regex.CMIIdentifier)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_6__/* .check12ValidFormat */ .p)(id, _constants_regex__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_regex */ .kS.CMIIdentifier)) {
                 this._id = id;
             }
         },
@@ -121,7 +115,7 @@ var CMIObjectivesObject = (function (_super) {
             return this._status;
         },
         set: function (status) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_6__.check12ValidFormat)(status, _constants_regex__WEBPACK_IMPORTED_MODULE_3__.scorm12_regex.CMIStatus2)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_6__/* .check12ValidFormat */ .p)(status, _constants_regex__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_regex */ .kS.CMIStatus2)) {
                 this._status = status;
             }
         },
@@ -139,7 +133,7 @@ var CMIObjectivesObject = (function (_super) {
         return result;
     };
     return CMIObjectivesObject;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_0__.BaseCMI));
+}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_0__/* .BaseCMI */ .J));
 
 
 
@@ -148,9 +142,8 @@ var CMIObjectivesObject = (function (_super) {
 /***/ 179:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-__webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Scorm12ValidationError: function() { return /* binding */ Scorm12ValidationError; }
+/* harmony export */   t: function() { return /* binding */ Scorm12ValidationError; }
 /* harmony export */ });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(635);
 /* harmony import */ var _exceptions__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(784);
@@ -158,9 +151,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-var scorm12_errors = _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__.scorm12_constants.error_descriptions;
+var scorm12_errors = _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_constants */ .QP.error_descriptions;
 var Scorm12ValidationError = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_2__.__extends)(Scorm12ValidationError, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_2__/* .__extends */ .C6)(Scorm12ValidationError, _super);
     function Scorm12ValidationError(errorCode) {
         var _this = this;
         if ({}.hasOwnProperty.call(scorm12_errors, String(errorCode))) {
@@ -172,7 +165,7 @@ var Scorm12ValidationError = (function (_super) {
         return _this;
     }
     return Scorm12ValidationError;
-}(_exceptions__WEBPACK_IMPORTED_MODULE_0__.ValidationError));
+}(_exceptions__WEBPACK_IMPORTED_MODULE_0__/* .ValidationError */ .y));
 
 
 
@@ -181,9 +174,8 @@ var Scorm12ValidationError = (function (_super) {
 /***/ 181:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-__webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CMIStudentPreference: function() { return /* binding */ CMIStudentPreference; }
+/* harmony export */   G: function() { return /* binding */ CMIStudentPreference; }
 /* harmony export */ });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(635);
 /* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(319);
@@ -198,7 +190,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 var CMIStudentPreference = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_5__.__extends)(CMIStudentPreference, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_5__/* .__extends */ .C6)(CMIStudentPreference, _super);
     function CMIStudentPreference(student_preference_children) {
         var _this = _super.call(this) || this;
         _this._audio = "";
@@ -207,7 +199,7 @@ var CMIStudentPreference = (function (_super) {
         _this._text = "";
         _this.__children = student_preference_children
             ? student_preference_children
-            : _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__.scorm12_constants.student_preference_children;
+            : _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_constants */ .QP.student_preference_children;
         return _this;
     }
     CMIStudentPreference.prototype.reset = function () {
@@ -218,7 +210,7 @@ var CMIStudentPreference = (function (_super) {
             return this.__children;
         },
         set: function (_children) {
-            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.INVALID_SET_VALUE);
+            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.INVALID_SET_VALUE);
         },
         enumerable: false,
         configurable: true
@@ -228,7 +220,7 @@ var CMIStudentPreference = (function (_super) {
             return this._audio;
         },
         set: function (audio) {
-            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__.validationService.validateScorm12Audio(audio)) {
+            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScorm12Audio(audio)) {
                 this._audio = audio;
             }
         },
@@ -240,7 +232,7 @@ var CMIStudentPreference = (function (_super) {
             return this._language;
         },
         set: function (language) {
-            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__.validationService.validateScorm12Language(language)) {
+            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScorm12Language(language)) {
                 this._language = language;
             }
         },
@@ -252,7 +244,7 @@ var CMIStudentPreference = (function (_super) {
             return this._speed;
         },
         set: function (speed) {
-            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__.validationService.validateScorm12Speed(speed)) {
+            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScorm12Speed(speed)) {
                 this._speed = speed;
             }
         },
@@ -264,7 +256,7 @@ var CMIStudentPreference = (function (_super) {
             return this._text;
         },
         set: function (text) {
-            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__.validationService.validateScorm12Text(text)) {
+            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScorm12Text(text)) {
                 this._text = text;
             }
         },
@@ -283,7 +275,7 @@ var CMIStudentPreference = (function (_super) {
         return result;
     };
     return CMIStudentPreference;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_0__.BaseCMI));
+}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_0__/* .BaseCMI */ .J));
 
 
 
@@ -292,12 +284,10 @@ var CMIStudentPreference = (function (_super) {
 /***/ 273:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-// ESM COMPAT FLAG
-__webpack_require__.r(__webpack_exports__);
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
-  "default": function() { return /* binding */ src_BaseAPI; }
+  A: function() { return /* binding */ src_BaseAPI; }
 });
 
 // EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
@@ -321,7 +311,7 @@ var DefaultSettings = {
     dataCommitFormat: "json",
     commitRequestDataType: "application/json;charset=UTF-8",
     autoProgress: false,
-    logLevel: enums.LogLevelEnum.ERROR,
+    logLevel: enums/* LogLevelEnum */.Mb.ERROR,
     selfReportSessionTime: false,
     alwaysSendTotalTime: false,
     renderCommonCommitFields: false,
@@ -330,9 +320,9 @@ var DefaultSettings = {
     xhrWithCredentials: false,
     fetchMode: "cors",
     responseHandler: function (response) {
-        return (0,tslib_es6.__awaiter)(this, void 0, void 0, function () {
+        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
             var responseText, httpResult;
-            return (0,tslib_es6.__generator)(this, function (_a) {
+            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         if (!(typeof response !== "undefined")) return [3, 2];
@@ -347,13 +337,13 @@ var DefaultSettings = {
                             !{}.hasOwnProperty.call(httpResult, "result")) {
                             if (response.status === 200) {
                                 return [2, {
-                                        result: api_constants.global_constants.SCORM_TRUE,
+                                        result: api_constants/* global_constants */._y.SCORM_TRUE,
                                         errorCode: 0,
                                     }];
                             }
                             else {
                                 return [2, {
-                                        result: api_constants.global_constants.SCORM_FALSE,
+                                        result: api_constants/* global_constants */._y.SCORM_FALSE,
                                         errorCode: 101,
                                     }];
                             }
@@ -363,14 +353,14 @@ var DefaultSettings = {
                                     result: httpResult.result,
                                     errorCode: httpResult.errorCode
                                         ? httpResult.errorCode
-                                        : httpResult.result === api_constants.global_constants.SCORM_TRUE
+                                        : httpResult.result === api_constants/* global_constants */._y.SCORM_TRUE
                                             ? 0
                                             : 101,
                                 }];
                         }
                         _a.label = 2;
                     case 2: return [2, {
-                            result: api_constants.global_constants.SCORM_FALSE,
+                            result: api_constants/* global_constants */._y.SCORM_FALSE,
                             errorCode: 101,
                         }];
                 }
@@ -390,25 +380,25 @@ function defaultLogHandler(messageLevel, logMessage) {
         case "4":
         case 4:
         case "ERROR":
-        case enums.LogLevelEnum.ERROR:
+        case enums/* LogLevelEnum */.Mb.ERROR:
             console.error(logMessage);
             break;
         case "3":
         case 3:
         case "WARN":
-        case enums.LogLevelEnum.WARN:
+        case enums/* LogLevelEnum */.Mb.WARN:
             console.warn(logMessage);
             break;
         case "2":
         case 2:
         case "INFO":
-        case enums.LogLevelEnum.INFO:
+        case enums/* LogLevelEnum */.Mb.INFO:
             console.info(logMessage);
             break;
         case "1":
         case 1:
         case "DEBUG":
-        case enums.LogLevelEnum.DEBUG:
+        case enums/* LogLevelEnum */.Mb.DEBUG:
             if (console.debug) {
                 console.debug(logMessage);
             }
@@ -437,7 +427,7 @@ var ScheduledCommit = (function () {
     ScheduledCommit.prototype.wrapper = function () {
         var _this = this;
         if (!this._cancelled) {
-            (function () { return (0,tslib_es6.__awaiter)(_this, void 0, void 0, function () { return (0,tslib_es6.__generator)(this, function (_a) {
+            (function () { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () { return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4, this._API.commit(this._callback)];
                     case 1: return [2, _a.sent()];
@@ -459,20 +449,20 @@ var HttpService = (function () {
         this.error_codes = error_codes;
     }
     HttpService.prototype.processHttpRequest = function (url_1, params_1) {
-        return (0,tslib_es6.__awaiter)(this, arguments, void 0, function (url, params, immediate, apiLog, processListeners) {
+        return (0,tslib_es6/* __awaiter */.sH)(this, arguments, void 0, function (url, params, immediate, apiLog, processListeners) {
             var genericError, process;
             var _this = this;
             if (immediate === void 0) { immediate = false; }
-            return (0,tslib_es6.__generator)(this, function (_a) {
+            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         genericError = {
-                            result: api_constants.global_constants.SCORM_FALSE,
+                            result: api_constants/* global_constants */._y.SCORM_FALSE,
                             errorCode: this.error_codes.GENERAL,
                         };
                         if (immediate) {
-                            this.performFetch(url, params).then(function (response) { return (0,tslib_es6.__awaiter)(_this, void 0, void 0, function () {
-                                return (0,tslib_es6.__generator)(this, function (_a) {
+                            this.performFetch(url, params).then(function (response) { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () {
+                                return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
                                     switch (_a.label) {
                                         case 0: return [4, this.transformResponse(response, processListeners)];
                                         case 1:
@@ -482,13 +472,13 @@ var HttpService = (function () {
                                 });
                             }); });
                             return [2, {
-                                    result: api_constants.global_constants.SCORM_TRUE,
+                                    result: api_constants/* global_constants */._y.SCORM_TRUE,
                                     errorCode: 0,
                                 }];
                         }
-                        process = function (url, params, settings) { return (0,tslib_es6.__awaiter)(_this, void 0, void 0, function () {
+                        process = function (url, params, settings) { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () {
                             var response, e_1;
-                            return (0,tslib_es6.__generator)(this, function (_a) {
+                            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
                                 switch (_a.label) {
                                     case 0:
                                         _a.trys.push([0, 2, , 3]);
@@ -499,7 +489,7 @@ var HttpService = (function () {
                                         return [2, this.transformResponse(response, processListeners)];
                                     case 2:
                                         e_1 = _a.sent();
-                                        apiLog("processHttpRequest", e_1, enums.LogLevelEnum.ERROR);
+                                        apiLog("processHttpRequest", e_1, enums/* LogLevelEnum */.Mb.ERROR);
                                         processListeners("CommitError");
                                         return [2, genericError];
                                     case 3: return [2];
@@ -513,13 +503,13 @@ var HttpService = (function () {
         });
     };
     HttpService.prototype.performFetch = function (url, params) {
-        return (0,tslib_es6.__awaiter)(this, void 0, void 0, function () {
-            return (0,tslib_es6.__generator)(this, function (_a) {
+        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
+            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
                 return [2, fetch(url, {
                         method: "POST",
                         mode: this.settings.fetchMode,
                         body: params instanceof Array ? params.join("&") : JSON.stringify(params),
-                        headers: (0,tslib_es6.__assign)((0,tslib_es6.__assign)({}, this.settings.xhrHeaders), { "Content-Type": this.settings.commitRequestDataType }),
+                        headers: (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, this.settings.xhrHeaders), { "Content-Type": this.settings.commitRequestDataType }),
                         credentials: this.settings.xhrWithCredentials ? "include" : undefined,
                         keepalive: true,
                     })];
@@ -527,9 +517,9 @@ var HttpService = (function () {
         });
     };
     HttpService.prototype.transformResponse = function (response, processListeners) {
-        return (0,tslib_es6.__awaiter)(this, void 0, void 0, function () {
+        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
             var result, _a;
-            return (0,tslib_es6.__generator)(this, function (_b) {
+            return (0,tslib_es6/* __generator */.YH)(this, function (_b) {
                 switch (_b.label) {
                     case 0:
                         if (!(typeof this.settings.responseHandler === "function")) return [3, 2];
@@ -545,7 +535,7 @@ var HttpService = (function () {
                         result = _a;
                         if (response.status >= 200 &&
                             response.status <= 299 &&
-                            (result.result === true || result.result === api_constants.global_constants.SCORM_TRUE)) {
+                            (result.result === true || result.result === api_constants/* global_constants */._y.SCORM_TRUE)) {
                             processListeners("CommitSuccess");
                             if (!Object.hasOwnProperty.call(result, "errorCode")) {
                                 result.errorCode = 0;
@@ -608,7 +598,7 @@ var EventService = (function () {
             });
             this.listenerMap.set(functionName, listeners);
             this.listenerCount++;
-            this.apiLog("on", "Added event listener: ".concat(this.listenerCount), enums.LogLevelEnum.INFO, functionName);
+            this.apiLog("on", "Added event listener: ".concat(this.listenerCount), enums/* LogLevelEnum */.Mb.INFO, functionName);
         }
     };
     EventService.prototype.off = function (listenerName, callback) {
@@ -633,7 +623,7 @@ var EventService = (function () {
                 else {
                     this_1.listenerMap.set(functionName, listeners);
                 }
-                this_1.apiLog("off", "Removed event listener: ".concat(this_1.listenerCount), enums.LogLevelEnum.INFO, functionName);
+                this_1.apiLog("off", "Removed event listener: ".concat(this_1.listenerCount), enums/* LogLevelEnum */.Mb.INFO, functionName);
             }
         };
         var this_1 = this;
@@ -668,7 +658,7 @@ var EventService = (function () {
         }
     };
     EventService.prototype.processListeners = function (functionName, CMIElement, value) {
-        this.apiLog(functionName, value, enums.LogLevelEnum.INFO, CMIElement);
+        this.apiLog(functionName, value, enums/* LogLevelEnum */.Mb.INFO, CMIElement);
         var listeners = this.listenerMap.get(functionName);
         if (!listeners)
             return;
@@ -680,13 +670,13 @@ var EventService = (function () {
                 listener.CMIElement &&
                 listener.CMIElement.endsWith("*")) {
                 var prefix = listener.CMIElement.slice(0, -1);
-                CMIElementsMatch = (0,utilities.stringMatches)(CMIElement, prefix);
+                CMIElementsMatch = (0,utilities/* stringMatches */.J6)(CMIElement, prefix);
             }
             else {
                 CMIElementsMatch = listener.CMIElement === CMIElement;
             }
             if (!listenerHasCMIElement || CMIElementsMatch) {
-                this.apiLog("processListeners", "Processing listener: ".concat(listener.functionName), enums.LogLevelEnum.DEBUG, CMIElement);
+                this.apiLog("processListeners", "Processing listener: ".concat(listener.functionName), enums/* LogLevelEnum */.Mb.DEBUG, CMIElement);
                 listener.callback(CMIElement, value);
             }
         }
@@ -770,7 +760,7 @@ var SerializationService = (function () {
             items.forEach(function (item) {
                 var obj = {};
                 obj[item.key] = item.value;
-                loadFromJSON((0,utilities.unflatten)(obj), CMIElement);
+                loadFromJSON((0,utilities/* unflatten */.sB)(obj), CMIElement);
             });
         };
         processItems(interactions);
@@ -826,7 +816,7 @@ var SerializationService = (function () {
         var commitObject = renderCommonCommitFields
             ? renderCommitObject(shouldTerminateCommit)
             : renderCommitCMI(shouldTerminateCommit);
-        if ([enums.LogLevelEnum.DEBUG, "1", 1, "DEBUG"].includes(apiLogLevel)) {
+        if ([enums/* LogLevelEnum */.Mb.DEBUG, "1", 1, "DEBUG"].includes(apiLogLevel)) {
             console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");
             console.debug(commitObject);
         }
@@ -844,13 +834,13 @@ var array = __webpack_require__(589);
 
 
 function isValidationError(value) {
-    return value instanceof exceptions.ValidationError;
+    return value instanceof exceptions/* ValidationError */.y;
 }
 function isError(value) {
     return value instanceof Error;
 }
 function isCMIArray(value) {
-    return value instanceof array.CMIArray;
+    return value instanceof array/* CMIArray */.B;
 }
 
 ;// ./src/services/CMIDataService.ts
@@ -877,11 +867,11 @@ var CMIDataService = (function () {
     };
     CMIDataService.prototype.setCMIValue = function (cmi, methodName, scorm2004, CMIElement, value, isInitialized) {
         if (!CMIElement || CMIElement === "") {
-            return api_constants.global_constants.SCORM_FALSE;
+            return api_constants/* global_constants */._y.SCORM_FALSE;
         }
         var structure = CMIElement.split(".");
         var refObject = cmi;
-        var returnValue = api_constants.global_constants.SCORM_FALSE;
+        var returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
         var foundFirstIndex = false;
         var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
         var invalidErrorCode = scorm2004
@@ -895,20 +885,20 @@ var CMIDataService = (function () {
                         this.throwSCORMError(this._error_codes.READ_ONLY_ELEMENT);
                     }
                     else {
-                        refObject = (0,tslib_es6.__assign)((0,tslib_es6.__assign)({}, refObject), { attribute: value });
+                        refObject = (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, refObject), { attribute: value });
                     }
                 }
                 else if (!this._checkObjectHasProperty(refObject, attribute)) {
                     this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
                 }
                 else {
-                    if ((0,utilities.stringMatches)(CMIElement, "\\.correct_responses\\.\\d+") &&
+                    if ((0,utilities/* stringMatches */.J6)(CMIElement, "\\.correct_responses\\.\\d+") &&
                         isInitialized) {
                         this._validateCorrectResponse(CMIElement, value);
                     }
                     if (!scorm2004 || this._errorHandlingService.lastErrorCode === "0") {
                         refObject[attribute] = value;
-                        returnValue = api_constants.global_constants.SCORM_TRUE;
+                        returnValue = api_constants/* global_constants */._y.SCORM_TRUE;
                     }
                 }
             }
@@ -944,8 +934,8 @@ var CMIDataService = (function () {
                 }
             }
         }
-        if (returnValue === api_constants.global_constants.SCORM_FALSE) {
-            this._apiLog(methodName, "There was an error setting the value for: ".concat(CMIElement, ", value of: ").concat(value), enums.LogLevelEnum.WARN);
+        if (returnValue === api_constants/* global_constants */._y.SCORM_FALSE) {
+            this._apiLog(methodName, "There was an error setting the value for: ".concat(CMIElement, ", value of: ").concat(value), enums/* LogLevelEnum */.Mb.WARN);
         }
         return returnValue;
     };
@@ -1045,18 +1035,18 @@ var ErrorHandlingService = (function () {
         if (!message) {
             message = this._getLmsErrorMessageDetails(errorNumber);
         }
-        this._apiLog("throwSCORMError", errorNumber + ": " + message, enums.LogLevelEnum.ERROR);
+        this._apiLog("throwSCORMError", errorNumber + ": " + message, enums/* LogLevelEnum */.Mb.ERROR);
         this._lastErrorCode = String(errorNumber);
     };
     ErrorHandlingService.prototype.clearSCORMError = function (success) {
-        if (success !== undefined && success !== api_constants.global_constants.SCORM_FALSE) {
+        if (success !== undefined && success !== api_constants/* global_constants */._y.SCORM_FALSE) {
             this._lastErrorCode = "0";
         }
     };
     ErrorHandlingService.prototype.handleValueAccessException = function (e, returnValue) {
         if (isValidationError(e)) {
             this._lastErrorCode = String(e.errorCode);
-            returnValue = api_constants.global_constants.SCORM_FALSE;
+            returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
         }
         else {
             if (isError(e) && e.message) {
@@ -1088,7 +1078,7 @@ function createErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetail
 
 var LoggingService = (function () {
     function LoggingService() {
-        this._logLevel = enums.LogLevelEnum.ERROR;
+        this._logLevel = enums/* LogLevelEnum */.Mb.ERROR;
         this._logHandler = defaultLogHandler;
     }
     LoggingService.getInstance = function () {
@@ -1112,16 +1102,16 @@ var LoggingService = (function () {
         }
     };
     LoggingService.prototype.error = function (logMessage) {
-        this.log(enums.LogLevelEnum.ERROR, logMessage);
+        this.log(enums/* LogLevelEnum */.Mb.ERROR, logMessage);
     };
     LoggingService.prototype.warn = function (logMessage) {
-        this.log(enums.LogLevelEnum.WARN, logMessage);
+        this.log(enums/* LogLevelEnum */.Mb.WARN, logMessage);
     };
     LoggingService.prototype.info = function (logMessage) {
-        this.log(enums.LogLevelEnum.INFO, logMessage);
+        this.log(enums/* LogLevelEnum */.Mb.INFO, logMessage);
     };
     LoggingService.prototype.debug = function (logMessage) {
-        this.log(enums.LogLevelEnum.DEBUG, logMessage);
+        this.log(enums/* LogLevelEnum */.Mb.DEBUG, logMessage);
     };
     LoggingService.prototype.shouldLog = function (messageLevel) {
         var numericMessageLevel = this.getNumericLevel(messageLevel);
@@ -1130,27 +1120,27 @@ var LoggingService = (function () {
     };
     LoggingService.prototype.getNumericLevel = function (level) {
         if (level === undefined)
-            return enums.LogLevelEnum.NONE;
+            return enums/* LogLevelEnum */.Mb.NONE;
         if (typeof level === "number")
             return level;
         switch (level) {
             case "1":
             case "DEBUG":
-                return enums.LogLevelEnum.DEBUG;
+                return enums/* LogLevelEnum */.Mb.DEBUG;
             case "2":
             case "INFO":
-                return enums.LogLevelEnum.INFO;
+                return enums/* LogLevelEnum */.Mb.INFO;
             case "3":
             case "WARN":
-                return enums.LogLevelEnum.WARN;
+                return enums/* LogLevelEnum */.Mb.WARN;
             case "4":
             case "ERROR":
-                return enums.LogLevelEnum.ERROR;
+                return enums/* LogLevelEnum */.Mb.ERROR;
             case "5":
             case "NONE":
-                return enums.LogLevelEnum.NONE;
+                return enums/* LogLevelEnum */.Mb.NONE;
             default:
-                return enums.LogLevelEnum.ERROR;
+                return enums/* LogLevelEnum */.Mb.ERROR;
         }
     };
     return LoggingService;
@@ -1180,7 +1170,7 @@ var BaseAPI = (function () {
         if (_newTarget === BaseAPI) {
             throw new TypeError("Cannot construct BaseAPI instances directly");
         }
-        this.currentState = api_constants.global_constants.STATE_NOT_INITIALIZED;
+        this.currentState = api_constants/* global_constants */._y.STATE_NOT_INITIALIZED;
         this._error_codes = error_codes;
         if (settings) {
             this.settings = settings;
@@ -1188,7 +1178,7 @@ var BaseAPI = (function () {
         this.apiLogLevel = this.settings.logLevel;
         this.selfReportSessionTime = this.settings.selfReportSessionTime;
         if (this.apiLogLevel === undefined) {
-            this.apiLogLevel = enums.LogLevelEnum.NONE;
+            this.apiLogLevel = enums/* LogLevelEnum */.Mb.NONE;
         }
         this._loggingService = loggingService || getLoggingService();
         this._loggingService.setLogLevel(this.apiLogLevel);
@@ -1222,16 +1212,16 @@ var BaseAPI = (function () {
         configurable: true
     });
     BaseAPI.prototype.commonReset = function (settings) {
-        this.apiLog("reset", "Called", enums.LogLevelEnum.INFO);
-        this.settings = (0,tslib_es6.__assign)((0,tslib_es6.__assign)({}, this.settings), settings);
+        this.apiLog("reset", "Called", enums/* LogLevelEnum */.Mb.INFO);
+        this.settings = (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, this.settings), settings);
         this.clearScheduledCommit();
-        this.currentState = api_constants.global_constants.STATE_NOT_INITIALIZED;
+        this.currentState = api_constants/* global_constants */._y.STATE_NOT_INITIALIZED;
         this.lastErrorCode = "0";
         this._eventService.reset();
         this.startingData = undefined;
     };
     BaseAPI.prototype.initialize = function (callbackName, initializeMessage, terminationMessage) {
-        var returnValue = api_constants.global_constants.SCORM_FALSE;
+        var returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
         if (this.isInitialized()) {
             this.throwSCORMError(this._error_codes.INITIALIZED, initializeMessage);
         }
@@ -1242,17 +1232,17 @@ var BaseAPI = (function () {
             if (this.selfReportSessionTime) {
                 this.cmi.setStartTime();
             }
-            this.currentState = api_constants.global_constants.STATE_INITIALIZED;
+            this.currentState = api_constants/* global_constants */._y.STATE_INITIALIZED;
             this.lastErrorCode = "0";
-            returnValue = api_constants.global_constants.SCORM_TRUE;
+            returnValue = api_constants/* global_constants */._y.SCORM_TRUE;
             this.processListeners(callbackName);
         }
-        this.apiLog(callbackName, "returned: " + returnValue, enums.LogLevelEnum.INFO);
+        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
         this.clearSCORMError(returnValue);
         return returnValue;
     };
     BaseAPI.prototype.apiLog = function (functionName, logMessage, messageLevel, CMIElement) {
-        logMessage = (0,utilities.formatMessage)(functionName, logMessage, CMIElement);
+        logMessage = (0,utilities/* formatMessage */.hw)(functionName, logMessage, CMIElement);
         if (messageLevel >= this.apiLogLevel) {
             this._loggingService.log(messageLevel, logMessage);
             if (this.settings.onLogMessage &&
@@ -1276,7 +1266,7 @@ var BaseAPI = (function () {
         set: function (settings) {
             var _a, _b, _c;
             var previousSettings = this._settings;
-            this._settings = (0,tslib_es6.__assign)((0,tslib_es6.__assign)({}, this._settings), settings);
+            this._settings = (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, this._settings), settings);
             (_a = this._httpService) === null || _a === void 0 ? void 0 : _a.updateSettings(this._settings);
             if (settings.logLevel !== undefined &&
                 settings.logLevel !== previousSettings.logLevel) {
@@ -1292,29 +1282,29 @@ var BaseAPI = (function () {
         configurable: true
     });
     BaseAPI.prototype.terminate = function (callbackName, checkTerminated) {
-        return (0,tslib_es6.__awaiter)(this, void 0, void 0, function () {
+        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
             var returnValue, result;
             var _a, _b;
-            return (0,tslib_es6.__generator)(this, function (_c) {
+            return (0,tslib_es6/* __generator */.YH)(this, function (_c) {
                 switch (_c.label) {
                     case 0:
-                        returnValue = api_constants.global_constants.SCORM_FALSE;
+                        returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
                         if (!this.checkState(checkTerminated, this._error_codes.TERMINATION_BEFORE_INIT, this._error_codes.MULTIPLE_TERMINATION)) return [3, 2];
-                        this.currentState = api_constants.global_constants.STATE_TERMINATED;
+                        this.currentState = api_constants/* global_constants */._y.STATE_TERMINATED;
                         return [4, this.storeData(true)];
                     case 1:
                         result = _c.sent();
                         if (((_a = result.errorCode) !== null && _a !== void 0 ? _a : 0) > 0) {
                             this.throwSCORMError(result.errorCode);
                         }
-                        returnValue = (_b = result === null || result === void 0 ? void 0 : result.result) !== null && _b !== void 0 ? _b : api_constants.global_constants.SCORM_FALSE;
+                        returnValue = (_b = result === null || result === void 0 ? void 0 : result.result) !== null && _b !== void 0 ? _b : api_constants/* global_constants */._y.SCORM_FALSE;
                         if (checkTerminated)
                             this.lastErrorCode = "0";
-                        returnValue = api_constants.global_constants.SCORM_TRUE;
+                        returnValue = api_constants/* global_constants */._y.SCORM_TRUE;
                         this.processListeners(callbackName);
                         _c.label = 2;
                     case 2:
-                        this.apiLog(callbackName, "returned: " + returnValue, enums.LogLevelEnum.INFO);
+                        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
                         this.clearSCORMError(returnValue);
                         return [2, returnValue];
                 }
@@ -1334,7 +1324,7 @@ var BaseAPI = (function () {
             }
             this.processListeners(callbackName, CMIElement);
         }
-        this.apiLog(callbackName, ": returned: " + returnValue, enums.LogLevelEnum.INFO, CMIElement);
+        this.apiLog(callbackName, ": returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO, CMIElement);
         if (returnValue === undefined) {
             return "";
         }
@@ -1345,7 +1335,7 @@ var BaseAPI = (function () {
         if (value !== undefined) {
             value = String(value);
         }
-        var returnValue = api_constants.global_constants.SCORM_FALSE;
+        var returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
         if (this.checkState(checkTerminated, this._error_codes.STORE_BEFORE_INIT, this._error_codes.STORE_AFTER_TERM)) {
             if (checkTerminated)
                 this.lastErrorCode = "0";
@@ -1358,27 +1348,27 @@ var BaseAPI = (function () {
             this.processListeners(callbackName, CMIElement, value);
         }
         if (returnValue === undefined) {
-            returnValue = api_constants.global_constants.SCORM_FALSE;
+            returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
         }
         if (String(this.lastErrorCode) === "0") {
             if (this.settings.autocommit) {
                 this.scheduleCommit(this.settings.autocommitSeconds * 1000, commitCallback);
             }
         }
-        this.apiLog(callbackName, ": " + value + ": result: " + returnValue, enums.LogLevelEnum.INFO, CMIElement);
+        this.apiLog(callbackName, ": " + value + ": result: " + returnValue, enums/* LogLevelEnum */.Mb.INFO, CMIElement);
         this.clearSCORMError(returnValue);
         return returnValue;
     };
     BaseAPI.prototype.commit = function (callbackName_1) {
-        return (0,tslib_es6.__awaiter)(this, arguments, void 0, function (callbackName, checkTerminated) {
+        return (0,tslib_es6/* __awaiter */.sH)(this, arguments, void 0, function (callbackName, checkTerminated) {
             var returnValue, result;
             var _a, _b;
             if (checkTerminated === void 0) { checkTerminated = false; }
-            return (0,tslib_es6.__generator)(this, function (_c) {
+            return (0,tslib_es6/* __generator */.YH)(this, function (_c) {
                 switch (_c.label) {
                     case 0:
                         this.clearScheduledCommit();
-                        returnValue = api_constants.global_constants.SCORM_FALSE;
+                        returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
                         if (!this.checkState(checkTerminated, this._error_codes.COMMIT_BEFORE_INIT, this._error_codes.COMMIT_AFTER_TERM)) return [3, 2];
                         return [4, this.storeData(false)];
                     case 1:
@@ -1386,14 +1376,14 @@ var BaseAPI = (function () {
                         if (((_a = result.errorCode) !== null && _a !== void 0 ? _a : 0) > 0) {
                             this.throwSCORMError(result.errorCode);
                         }
-                        returnValue = (_b = result === null || result === void 0 ? void 0 : result.result) !== null && _b !== void 0 ? _b : api_constants.global_constants.SCORM_FALSE;
-                        this.apiLog(callbackName, " Result: " + returnValue, enums.LogLevelEnum.DEBUG, "HttpRequest");
+                        returnValue = (_b = result === null || result === void 0 ? void 0 : result.result) !== null && _b !== void 0 ? _b : api_constants/* global_constants */._y.SCORM_FALSE;
+                        this.apiLog(callbackName, " Result: " + returnValue, enums/* LogLevelEnum */.Mb.DEBUG, "HttpRequest");
                         if (checkTerminated)
                             this.lastErrorCode = "0";
                         this.processListeners(callbackName);
                         _c.label = 2;
                     case 2:
-                        this.apiLog(callbackName, "returned: " + returnValue, enums.LogLevelEnum.INFO);
+                        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
                         this.clearSCORMError(returnValue);
                         return [2, returnValue];
                 }
@@ -1403,7 +1393,7 @@ var BaseAPI = (function () {
     BaseAPI.prototype.getLastError = function (callbackName) {
         var returnValue = String(this.lastErrorCode);
         this.processListeners(callbackName);
-        this.apiLog(callbackName, "returned: " + returnValue, enums.LogLevelEnum.INFO);
+        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
         return returnValue;
     };
     BaseAPI.prototype.getErrorString = function (callbackName, CMIErrorCode) {
@@ -1412,7 +1402,7 @@ var BaseAPI = (function () {
             returnValue = this.getLmsErrorMessageDetails(CMIErrorCode);
             this.processListeners(callbackName);
         }
-        this.apiLog(callbackName, "returned: " + returnValue, enums.LogLevelEnum.INFO);
+        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
         return returnValue;
     };
     BaseAPI.prototype.getDiagnostic = function (callbackName, CMIErrorCode) {
@@ -1421,7 +1411,7 @@ var BaseAPI = (function () {
             returnValue = this.getLmsErrorMessageDetails(CMIErrorCode, true);
             this.processListeners(callbackName);
         }
-        this.apiLog(callbackName, "returned: " + returnValue, enums.LogLevelEnum.INFO);
+        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
         return returnValue;
     };
     BaseAPI.prototype.checkState = function (checkTerminated, beforeInitError, afterTermError) {
@@ -1452,13 +1442,13 @@ var BaseAPI = (function () {
         return this._cmiDataService.getCMIValue(this, methodName, scorm2004, CMIElement);
     };
     BaseAPI.prototype.isInitialized = function () {
-        return this.currentState === api_constants.global_constants.STATE_INITIALIZED;
+        return this.currentState === api_constants/* global_constants */._y.STATE_INITIALIZED;
     };
     BaseAPI.prototype.isNotInitialized = function () {
-        return this.currentState === api_constants.global_constants.STATE_NOT_INITIALIZED;
+        return this.currentState === api_constants/* global_constants */._y.STATE_NOT_INITIALIZED;
     };
     BaseAPI.prototype.isTerminated = function () {
-        return this.currentState === api_constants.global_constants.STATE_TERMINATED;
+        return this.currentState === api_constants/* global_constants */._y.STATE_TERMINATED;
     };
     BaseAPI.prototype.on = function (listenerName, callback) {
         this._eventService.on(listenerName, callback);
@@ -1498,9 +1488,9 @@ var BaseAPI = (function () {
         return this._serializationService.renderCMIToJSONObject(this.cmi, this.settings.sendFullCommit);
     };
     BaseAPI.prototype.processHttpRequest = function (url_1, params_1) {
-        return (0,tslib_es6.__awaiter)(this, arguments, void 0, function (url, params, immediate) {
+        return (0,tslib_es6/* __awaiter */.sH)(this, arguments, void 0, function (url, params, immediate) {
             if (immediate === void 0) { immediate = false; }
-            return (0,tslib_es6.__generator)(this, function (_a) {
+            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
                 return [2, this._httpService.processHttpRequest(url, params, immediate, this.apiLog.bind(this), this.processListeners.bind(this))];
             });
         });
@@ -1508,14 +1498,14 @@ var BaseAPI = (function () {
     BaseAPI.prototype.scheduleCommit = function (when, callback) {
         if (!this._timeout) {
             this._timeout = new ScheduledCommit(this, when, callback);
-            this.apiLog("scheduleCommit", "scheduled", enums.LogLevelEnum.DEBUG, "");
+            this.apiLog("scheduleCommit", "scheduled", enums/* LogLevelEnum */.Mb.DEBUG, "");
         }
     };
     BaseAPI.prototype.clearScheduledCommit = function () {
         if (this._timeout) {
             this._timeout.cancel();
             this._timeout = undefined;
-            this.apiLog("clearScheduledCommit", "cleared", enums.LogLevelEnum.DEBUG, "");
+            this.apiLog("clearScheduledCommit", "cleared", enums/* LogLevelEnum */.Mb.DEBUG, "");
         }
     };
     BaseAPI.prototype._checkObjectHasProperty = function (StringKeyMap, attribute) {
@@ -1539,10 +1529,9 @@ var BaseAPI = (function () {
 /***/ 319:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-__webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   BaseCMI: function() { return /* binding */ BaseCMI; },
-/* harmony export */   BaseRootCMI: function() { return /* binding */ BaseRootCMI; }
+/* harmony export */   J: function() { return /* binding */ BaseCMI; },
+/* harmony export */   r: function() { return /* binding */ BaseRootCMI; }
 /* harmony export */ });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
 
@@ -1575,7 +1564,7 @@ var BaseCMI = (function () {
 }());
 
 var BaseRootCMI = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(BaseRootCMI, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(BaseRootCMI, _super);
     function BaseRootCMI() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
@@ -1589,9 +1578,8 @@ var BaseRootCMI = (function (_super) {
 /***/ 331:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-__webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   NAV: function() { return /* binding */ NAV; }
+/* harmony export */   A: function() { return /* binding */ NAV; }
 /* harmony export */ });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(635);
 /* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(319);
@@ -1602,7 +1590,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 var NAV = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_3__.__extends)(NAV, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_3__/* .__extends */ .C6)(NAV, _super);
     function NAV() {
         var _this = _super.call(this) || this;
         _this._event = "";
@@ -1617,7 +1605,7 @@ var NAV = (function (_super) {
             return this._event;
         },
         set: function (event) {
-            if (event === "" || (0,_validation__WEBPACK_IMPORTED_MODULE_1__.check12ValidFormat)(event, _constants_regex__WEBPACK_IMPORTED_MODULE_2__.scorm12_regex.NAVEvent)) {
+            if (event === "" || (0,_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidFormat */ .p)(event, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.NAVEvent)) {
                 this._event = event;
             }
         },
@@ -1633,7 +1621,7 @@ var NAV = (function (_super) {
         return result;
     };
     return NAV;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_0__.BaseCMI));
+}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_0__/* .BaseCMI */ .J));
 
 
 
@@ -1642,12 +1630,11 @@ var NAV = (function (_super) {
 /***/ 340:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-__webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   aicc_constants: function() { return /* binding */ aicc_constants; },
-/* harmony export */   global_constants: function() { return /* binding */ global_constants; },
-/* harmony export */   scorm12_constants: function() { return /* binding */ scorm12_constants; },
-/* harmony export */   scorm2004_constants: function() { return /* binding */ scorm2004_constants; }
+/* harmony export */   BR: function() { return /* binding */ aicc_constants; },
+/* harmony export */   QP: function() { return /* binding */ scorm12_constants; },
+/* harmony export */   _y: function() { return /* binding */ global_constants; },
+/* harmony export */   zR: function() { return /* binding */ scorm2004_constants; }
 /* harmony export */ });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
 
@@ -1719,7 +1706,7 @@ var scorm12_constants = {
         },
     },
 };
-var aicc_constants = (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)((0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)({}, scorm12_constants), {
+var aicc_constants = (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)((0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)({}, scorm12_constants), {
     cmi_children: "core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions,evaluation",
     student_preference_children: "audio,language,lesson_type,speed,text,text_color,text_location,text_size,video,windows",
     student_data_children: "attempt_number,tries,mastery_score,max_time_allowed,time_limit_action",
@@ -1852,11 +1839,10 @@ var scorm2004_constants = {
 /***/ 417:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-__webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   aicc_regex: function() { return /* binding */ aicc_regex; },
-/* harmony export */   scorm12_regex: function() { return /* binding */ scorm12_regex; },
-/* harmony export */   scorm2004_regex: function() { return /* binding */ scorm2004_regex; }
+/* harmony export */   kS: function() { return /* binding */ scorm12_regex; },
+/* harmony export */   rN: function() { return /* binding */ aicc_regex; },
+/* harmony export */   xt: function() { return /* binding */ scorm2004_regex; }
 /* harmony export */ });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
 
@@ -1883,7 +1869,7 @@ var scorm12_regex = {
     weighting_range: "-100#100",
     text_range: "-1#1",
 };
-var aicc_regex = (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)((0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)({}, scorm12_regex), {
+var aicc_regex = (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)((0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)({}, scorm12_regex), {
     CMIIdentifier: "^\\w{1,255}$",
 });
 var scorm2004_regex = {
@@ -1929,9 +1915,8 @@ var scorm2004_regex = {
 /***/ 434:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-__webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CMIScore: function() { return /* binding */ CMIScore; }
+/* harmony export */   _: function() { return /* binding */ CMIScore; }
 /* harmony export */ });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(635);
 /* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(340);
@@ -1946,23 +1931,23 @@ __webpack_require__.r(__webpack_exports__);
 
 
 var CMIScore = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_5__.__extends)(CMIScore, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_5__/* .__extends */ .C6)(CMIScore, _super);
     function CMIScore(params) {
         var _this = _super.call(this) || this;
         _this._raw = "";
         _this._min = "";
-        _this.__children = params.score_children || _constants_api_constants__WEBPACK_IMPORTED_MODULE_0__.scorm12_constants.score_children;
+        _this.__children = params.score_children || _constants_api_constants__WEBPACK_IMPORTED_MODULE_0__/* .scorm12_constants */ .QP.score_children;
         _this.__score_range = !params.score_range
             ? false
-            : _constants_regex__WEBPACK_IMPORTED_MODULE_1__.scorm12_regex.score_range;
+            : _constants_regex__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_regex */ .kS.score_range;
         _this._max = params.max || params.max === "" ? params.max : "100";
         _this.__invalid_error_code =
-            params.invalidErrorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.INVALID_SET_VALUE;
+            params.invalidErrorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.INVALID_SET_VALUE;
         _this.__invalid_type_code =
-            params.invalidTypeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.TYPE_MISMATCH;
+            params.invalidTypeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.TYPE_MISMATCH;
         _this.__invalid_range_code =
-            params.invalidRangeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.VALUE_OUT_OF_RANGE;
-        _this.__decimal_regex = params.decimalRegex || _constants_regex__WEBPACK_IMPORTED_MODULE_1__.scorm12_regex.CMIDecimal;
+            params.invalidRangeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.VALUE_OUT_OF_RANGE;
+        _this.__decimal_regex = params.decimalRegex || _constants_regex__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_regex */ .kS.CMIDecimal;
         _this.__error_class = params.errorClass;
         return _this;
     }
@@ -1984,7 +1969,7 @@ var CMIScore = (function (_super) {
             return this._raw;
         },
         set: function (raw) {
-            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__.validationService.validateScore(raw, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
+            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScore(raw, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
                 this._raw = raw;
             }
         },
@@ -1996,7 +1981,7 @@ var CMIScore = (function (_super) {
             return this._min;
         },
         set: function (min) {
-            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__.validationService.validateScore(min, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
+            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScore(min, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
                 this._min = min;
             }
         },
@@ -2008,7 +1993,7 @@ var CMIScore = (function (_super) {
             return this._max;
         },
         set: function (max) {
-            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__.validationService.validateScore(max, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
+            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScore(max, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
                 this._max = max;
             }
         },
@@ -2026,7 +2011,7 @@ var CMIScore = (function (_super) {
         return result;
     };
     return CMIScore;
-}(_base_cmi__WEBPACK_IMPORTED_MODULE_2__.BaseCMI));
+}(_base_cmi__WEBPACK_IMPORTED_MODULE_2__/* .BaseCMI */ .J));
 
 
 
@@ -2035,14 +2020,13 @@ var CMIScore = (function (_super) {
 /***/ 449:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-__webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   checkValidFormat: function() { return /* binding */ checkValidFormat; },
-/* harmony export */   checkValidRange: function() { return /* binding */ checkValidRange; }
+/* harmony export */   W: function() { return /* binding */ checkValidRange; },
+/* harmony export */   q: function() { return /* binding */ checkValidFormat; }
 /* harmony export */ });
 /* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(864);
 
-var checkValidFormat = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__.memoize)(function (value, regexPattern, errorCode, errorClass, allowEmptyString) {
+var checkValidFormat = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__/* .memoize */ .Bj)(function (value, regexPattern, errorCode, errorClass, allowEmptyString) {
     if (typeof value !== "string") {
         return false;
     }
@@ -2058,7 +2042,7 @@ var checkValidFormat = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__.memoize)(funct
 }, function (value, regexPattern, errorCode, _errorClass, allowEmptyString) {
     return "".concat(value, ":").concat(regexPattern, ":").concat(errorCode, ":").concat(allowEmptyString || false);
 });
-var checkValidRange = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__.memoize)(function (value, rangePattern, errorCode, errorClass) {
+var checkValidRange = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__/* .memoize */ .Bj)(function (value, rangePattern, errorCode, errorClass) {
     var ranges = rangePattern.split("#");
     value = value * 1.0;
     if (value >= ranges[0]) {
@@ -2082,9 +2066,8 @@ var checkValidRange = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__.memoize)(functi
 /***/ 532:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-__webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CMIStudentData: function() { return /* binding */ CMIStudentData; }
+/* harmony export */   X: function() { return /* binding */ CMIStudentData; }
 /* harmony export */ });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(635);
 /* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(319);
@@ -2099,7 +2082,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 var CMIStudentData = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_5__.__extends)(CMIStudentData, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_5__/* .__extends */ .C6)(CMIStudentData, _super);
     function CMIStudentData(student_data_children) {
         var _this = _super.call(this) || this;
         _this._mastery_score = "";
@@ -2107,7 +2090,7 @@ var CMIStudentData = (function (_super) {
         _this._time_limit_action = "";
         _this.__children = student_data_children
             ? student_data_children
-            : _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__.scorm12_constants.student_data_children;
+            : _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_constants */ .QP.student_data_children;
         return _this;
     }
     CMIStudentData.prototype.reset = function () {
@@ -2118,7 +2101,7 @@ var CMIStudentData = (function (_super) {
             return this.__children;
         },
         set: function (_children) {
-            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.INVALID_SET_VALUE);
+            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.INVALID_SET_VALUE);
         },
         enumerable: false,
         configurable: true
@@ -2128,7 +2111,7 @@ var CMIStudentData = (function (_super) {
             return this._mastery_score;
         },
         set: function (mastery_score) {
-            _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__.validationService.validateReadOnly(this.initialized);
+            _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateReadOnly(this.initialized);
             this._mastery_score = mastery_score;
         },
         enumerable: false,
@@ -2139,7 +2122,7 @@ var CMIStudentData = (function (_super) {
             return this._max_time_allowed;
         },
         set: function (max_time_allowed) {
-            _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__.validationService.validateReadOnly(this.initialized);
+            _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateReadOnly(this.initialized);
             this._max_time_allowed = max_time_allowed;
         },
         enumerable: false,
@@ -2150,7 +2133,7 @@ var CMIStudentData = (function (_super) {
             return this._time_limit_action;
         },
         set: function (time_limit_action) {
-            _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__.validationService.validateReadOnly(this.initialized);
+            _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateReadOnly(this.initialized);
             this._time_limit_action = time_limit_action;
         },
         enumerable: false,
@@ -2167,7 +2150,7 @@ var CMIStudentData = (function (_super) {
         return result;
     };
     return CMIStudentData;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_0__.BaseCMI));
+}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_0__/* .BaseCMI */ .J));
 
 
 
@@ -2176,9 +2159,8 @@ var CMIStudentData = (function (_super) {
 /***/ 589:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-__webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CMIArray: function() { return /* binding */ CMIArray; }
+/* harmony export */   B: function() { return /* binding */ CMIArray; }
 /* harmony export */ });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(635);
 /* harmony import */ var _base_cmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(319);
@@ -2189,12 +2171,12 @@ __webpack_require__.r(__webpack_exports__);
 
 
 var CMIArray = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_3__.__extends)(CMIArray, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_3__/* .__extends */ .C6)(CMIArray, _super);
     function CMIArray(params) {
         var _this = _super.call(this) || this;
         _this.__children = params.children;
-        _this._errorCode = params.errorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.GENERAL;
-        _this._errorClass = params.errorClass || _exceptions__WEBPACK_IMPORTED_MODULE_1__.BaseScormValidationError;
+        _this._errorCode = params.errorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.GENERAL;
+        _this._errorClass = params.errorClass || _exceptions__WEBPACK_IMPORTED_MODULE_1__/* .BaseScormValidationError */ .$;
         _this.childArray = [];
         return _this;
     }
@@ -2240,7 +2222,7 @@ var CMIArray = (function (_super) {
         return result;
     };
     return CMIArray;
-}(_base_cmi__WEBPACK_IMPORTED_MODULE_0__.BaseCMI));
+}(_base_cmi__WEBPACK_IMPORTED_MODULE_0__/* .BaseCMI */ .J));
 
 
 
@@ -2249,40 +2231,13 @@ var CMIArray = (function (_super) {
 /***/ 635:
 /***/ (function(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
 
-__webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   __addDisposableResource: function() { return /* binding */ __addDisposableResource; },
-/* harmony export */   __assign: function() { return /* binding */ __assign; },
-/* harmony export */   __asyncDelegator: function() { return /* binding */ __asyncDelegator; },
-/* harmony export */   __asyncGenerator: function() { return /* binding */ __asyncGenerator; },
-/* harmony export */   __asyncValues: function() { return /* binding */ __asyncValues; },
-/* harmony export */   __await: function() { return /* binding */ __await; },
-/* harmony export */   __awaiter: function() { return /* binding */ __awaiter; },
-/* harmony export */   __classPrivateFieldGet: function() { return /* binding */ __classPrivateFieldGet; },
-/* harmony export */   __classPrivateFieldIn: function() { return /* binding */ __classPrivateFieldIn; },
-/* harmony export */   __classPrivateFieldSet: function() { return /* binding */ __classPrivateFieldSet; },
-/* harmony export */   __createBinding: function() { return /* binding */ __createBinding; },
-/* harmony export */   __decorate: function() { return /* binding */ __decorate; },
-/* harmony export */   __disposeResources: function() { return /* binding */ __disposeResources; },
-/* harmony export */   __esDecorate: function() { return /* binding */ __esDecorate; },
-/* harmony export */   __exportStar: function() { return /* binding */ __exportStar; },
-/* harmony export */   __extends: function() { return /* binding */ __extends; },
-/* harmony export */   __generator: function() { return /* binding */ __generator; },
-/* harmony export */   __importDefault: function() { return /* binding */ __importDefault; },
-/* harmony export */   __importStar: function() { return /* binding */ __importStar; },
-/* harmony export */   __makeTemplateObject: function() { return /* binding */ __makeTemplateObject; },
-/* harmony export */   __metadata: function() { return /* binding */ __metadata; },
-/* harmony export */   __param: function() { return /* binding */ __param; },
-/* harmony export */   __propKey: function() { return /* binding */ __propKey; },
-/* harmony export */   __read: function() { return /* binding */ __read; },
-/* harmony export */   __rest: function() { return /* binding */ __rest; },
-/* harmony export */   __runInitializers: function() { return /* binding */ __runInitializers; },
-/* harmony export */   __setFunctionName: function() { return /* binding */ __setFunctionName; },
-/* harmony export */   __spread: function() { return /* binding */ __spread; },
-/* harmony export */   __spreadArray: function() { return /* binding */ __spreadArray; },
-/* harmony export */   __spreadArrays: function() { return /* binding */ __spreadArrays; },
-/* harmony export */   __values: function() { return /* binding */ __values; }
+/* harmony export */   C6: function() { return /* binding */ __extends; },
+/* harmony export */   Cl: function() { return /* binding */ __assign; },
+/* harmony export */   YH: function() { return /* binding */ __generator; },
+/* harmony export */   sH: function() { return /* binding */ __awaiter; }
 /* harmony export */ });
+/* unused harmony exports __rest, __decorate, __param, __esDecorate, __runInitializers, __propKey, __setFunctionName, __metadata, __createBinding, __exportStar, __values, __read, __spread, __spreadArrays, __spreadArray, __await, __asyncGenerator, __asyncDelegator, __asyncValues, __makeTemplateObject, __importStar, __importDefault, __classPrivateFieldGet, __classPrivateFieldSet, __classPrivateFieldIn, __addDisposableResource, __disposeResources */
 /******************************************************************************
 Copyright (c) Microsoft Corporation.
 
@@ -2632,7 +2587,7 @@ function __disposeResources(env) {
   return next();
 }
 
-/* harmony default export */ __webpack_exports__["default"] = ({
+/* unused harmony default export */ var __WEBPACK_DEFAULT_EXPORT__ = ({
   __extends,
   __assign,
   __rest,
@@ -2668,15 +2623,14 @@ function __disposeResources(env) {
 /***/ 784:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-__webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   BaseScormValidationError: function() { return /* binding */ BaseScormValidationError; },
-/* harmony export */   ValidationError: function() { return /* binding */ ValidationError; }
+/* harmony export */   $: function() { return /* binding */ BaseScormValidationError; },
+/* harmony export */   y: function() { return /* binding */ ValidationError; }
 /* harmony export */ });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
 
 var BaseScormValidationError = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(BaseScormValidationError, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(BaseScormValidationError, _super);
     function BaseScormValidationError(errorCode) {
         var _this = _super.call(this, errorCode.toString()) || this;
         _this._errorCode = errorCode;
@@ -2694,7 +2648,7 @@ var BaseScormValidationError = (function (_super) {
 }(Error));
 
 var ValidationError = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(ValidationError, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(ValidationError, _super);
     function ValidationError(errorCode, errorMessage, detailedMessage) {
         var _this = _super.call(this, errorCode) || this;
         _this._detailedMessage = "";
@@ -2729,12 +2683,11 @@ var ValidationError = (function (_super) {
 /***/ 797:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-__webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   global_errors: function() { return /* binding */ global_errors; },
-/* harmony export */   scorm12_errors: function() { return /* binding */ scorm12_errors; },
-/* harmony export */   scorm2004_errors: function() { return /* binding */ scorm2004_errors; }
+/* harmony export */   Rf: function() { return /* binding */ scorm2004_errors; },
+/* harmony export */   Se: function() { return /* binding */ scorm12_errors; }
 /* harmony export */ });
+/* unused harmony export global_errors */
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
 
 var global_errors = {
@@ -2767,8 +2720,8 @@ var global_errors = {
     VALUE_OUT_OF_RANGE: 101,
     DEPENDENCY_NOT_ESTABLISHED: 101,
 };
-var scorm12_errors = (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)((0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)({}, global_errors), { RETRIEVE_BEFORE_INIT: 301, STORE_BEFORE_INIT: 301, COMMIT_BEFORE_INIT: 301, ARGUMENT_ERROR: 201, CHILDREN_ERROR: 202, COUNT_ERROR: 203, UNDEFINED_DATA_MODEL: 401, UNIMPLEMENTED_ELEMENT: 401, VALUE_NOT_INITIALIZED: 301, INVALID_SET_VALUE: 402, READ_ONLY_ELEMENT: 403, WRITE_ONLY_ELEMENT: 404, TYPE_MISMATCH: 405, VALUE_OUT_OF_RANGE: 407, DEPENDENCY_NOT_ESTABLISHED: 408 });
-var scorm2004_errors = (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)((0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)({}, global_errors), { INITIALIZATION_FAILED: 102, INITIALIZED: 103, TERMINATED: 104, TERMINATION_FAILURE: 111, TERMINATION_BEFORE_INIT: 112, MULTIPLE_TERMINATIONS: 113, RETRIEVE_BEFORE_INIT: 122, RETRIEVE_AFTER_TERM: 123, STORE_BEFORE_INIT: 132, STORE_AFTER_TERM: 133, COMMIT_BEFORE_INIT: 142, COMMIT_AFTER_TERM: 143, ARGUMENT_ERROR: 201, GENERAL_GET_FAILURE: 301, GENERAL_SET_FAILURE: 351, GENERAL_COMMIT_FAILURE: 391, UNDEFINED_DATA_MODEL: 401, UNIMPLEMENTED_ELEMENT: 402, VALUE_NOT_INITIALIZED: 403, READ_ONLY_ELEMENT: 404, WRITE_ONLY_ELEMENT: 405, TYPE_MISMATCH: 406, VALUE_OUT_OF_RANGE: 407, DEPENDENCY_NOT_ESTABLISHED: 408 });
+var scorm12_errors = (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)((0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)({}, global_errors), { RETRIEVE_BEFORE_INIT: 301, STORE_BEFORE_INIT: 301, COMMIT_BEFORE_INIT: 301, ARGUMENT_ERROR: 201, CHILDREN_ERROR: 202, COUNT_ERROR: 203, UNDEFINED_DATA_MODEL: 401, UNIMPLEMENTED_ELEMENT: 401, VALUE_NOT_INITIALIZED: 301, INVALID_SET_VALUE: 402, READ_ONLY_ELEMENT: 403, WRITE_ONLY_ELEMENT: 404, TYPE_MISMATCH: 405, VALUE_OUT_OF_RANGE: 407, DEPENDENCY_NOT_ESTABLISHED: 408 });
+var scorm2004_errors = (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)((0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)({}, global_errors), { INITIALIZATION_FAILED: 102, INITIALIZED: 103, TERMINATED: 104, TERMINATION_FAILURE: 111, TERMINATION_BEFORE_INIT: 112, MULTIPLE_TERMINATIONS: 113, RETRIEVE_BEFORE_INIT: 122, RETRIEVE_AFTER_TERM: 123, STORE_BEFORE_INIT: 132, STORE_AFTER_TERM: 133, COMMIT_BEFORE_INIT: 142, COMMIT_AFTER_TERM: 143, ARGUMENT_ERROR: 201, GENERAL_GET_FAILURE: 301, GENERAL_SET_FAILURE: 351, GENERAL_COMMIT_FAILURE: 391, UNDEFINED_DATA_MODEL: 401, UNIMPLEMENTED_ELEMENT: 402, VALUE_NOT_INITIALIZED: 403, READ_ONLY_ELEMENT: 404, WRITE_ONLY_ELEMENT: 405, TYPE_MISMATCH: 406, VALUE_OUT_OF_RANGE: 407, DEPENDENCY_NOT_ESTABLISHED: 408 });
 
 
 /***/ }),
@@ -2776,11 +2729,10 @@ var scorm2004_errors = (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)((0,tslib_
 /***/ 819:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-__webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   ValidationService: function() { return /* binding */ ValidationService; },
-/* harmony export */   validationService: function() { return /* binding */ validationService; }
+/* harmony export */   v: function() { return /* binding */ validationService; }
 /* harmony export */ });
+/* unused harmony export ValidationService */
 /* harmony import */ var _cmi_common_validation__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(449);
 /* harmony import */ var _cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(915);
 /* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(417);
@@ -2795,28 +2747,28 @@ var ValidationService = (function () {
     function ValidationService() {
     }
     ValidationService.prototype.validateScore = function (value, decimalRegex, scoreRange, invalidTypeCode, invalidRangeCode, errorClass) {
-        return ((0,_cmi_common_validation__WEBPACK_IMPORTED_MODULE_0__.checkValidFormat)(value, decimalRegex, invalidTypeCode, errorClass) &&
+        return ((0,_cmi_common_validation__WEBPACK_IMPORTED_MODULE_0__/* .checkValidFormat */ .q)(value, decimalRegex, invalidTypeCode, errorClass) &&
             (!scoreRange ||
-                (0,_cmi_common_validation__WEBPACK_IMPORTED_MODULE_0__.checkValidRange)(value, scoreRange, invalidRangeCode, errorClass)));
+                (0,_cmi_common_validation__WEBPACK_IMPORTED_MODULE_0__/* .checkValidRange */ .W)(value, scoreRange, invalidRangeCode, errorClass)));
     };
     ValidationService.prototype.validateScorm12Audio = function (value) {
-        return ((0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__.check12ValidFormat)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__.scorm12_regex.CMISInteger) &&
-            (0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__.check12ValidRange)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__.scorm12_regex.audio_range));
+        return ((0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidFormat */ .p)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.CMISInteger) &&
+            (0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidRange */ .h)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.audio_range));
     };
     ValidationService.prototype.validateScorm12Language = function (value) {
-        return (0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__.check12ValidFormat)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__.scorm12_regex.CMIString256);
+        return (0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidFormat */ .p)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.CMIString256);
     };
     ValidationService.prototype.validateScorm12Speed = function (value) {
-        return ((0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__.check12ValidFormat)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__.scorm12_regex.CMISInteger) &&
-            (0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__.check12ValidRange)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__.scorm12_regex.speed_range));
+        return ((0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidFormat */ .p)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.CMISInteger) &&
+            (0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidRange */ .h)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.speed_range));
     };
     ValidationService.prototype.validateScorm12Text = function (value) {
-        return ((0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__.check12ValidFormat)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__.scorm12_regex.CMISInteger) &&
-            (0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__.check12ValidRange)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__.scorm12_regex.text_range));
+        return ((0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidFormat */ .p)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.CMISInteger) &&
+            (0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidRange */ .h)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.text_range));
     };
     ValidationService.prototype.validateReadOnly = function (initialized) {
         if (initialized) {
-            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_4__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.READ_ONLY_ELEMENT);
+            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_4__/* .Scorm12ValidationError */ .t(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.READ_ONLY_ELEMENT);
         }
     };
     return ValidationService;
@@ -2830,12 +2782,11 @@ var validationService = new ValidationService();
 /***/ 833:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-__webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CMIInteractions: function() { return /* binding */ CMIInteractions; },
-/* harmony export */   CMIInteractionsCorrectResponsesObject: function() { return /* binding */ CMIInteractionsCorrectResponsesObject; },
-/* harmony export */   CMIInteractionsObject: function() { return /* binding */ CMIInteractionsObject; },
-/* harmony export */   CMIInteractionsObjectivesObject: function() { return /* binding */ CMIInteractionsObjectivesObject; }
+/* harmony export */   Oh: function() { return /* binding */ CMIInteractionsObjectivesObject; },
+/* harmony export */   WP: function() { return /* binding */ CMIInteractionsObject; },
+/* harmony export */   Xb: function() { return /* binding */ CMIInteractions; },
+/* harmony export */   cb: function() { return /* binding */ CMIInteractionsCorrectResponsesObject; }
 /* harmony export */ });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(635);
 /* harmony import */ var _common_array__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(589);
@@ -2854,19 +2805,19 @@ __webpack_require__.r(__webpack_exports__);
 
 
 var CMIInteractions = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_7__.__extends)(CMIInteractions, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_7__/* .__extends */ .C6)(CMIInteractions, _super);
     function CMIInteractions() {
         return _super.call(this, {
-            children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__.scorm12_constants.interactions_children,
-            errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.INVALID_SET_VALUE,
-            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError,
+            children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_constants */ .QP.interactions_children,
+            errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.INVALID_SET_VALUE,
+            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t,
         }) || this;
     }
     return CMIInteractions;
-}(_common_array__WEBPACK_IMPORTED_MODULE_0__.CMIArray));
+}(_common_array__WEBPACK_IMPORTED_MODULE_0__/* .CMIArray */ .B));
 
 var CMIInteractionsObject = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_7__.__extends)(CMIInteractionsObject, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_7__/* .__extends */ .C6)(CMIInteractionsObject, _super);
     function CMIInteractionsObject() {
         var _this = _super.call(this) || this;
         _this._id = "";
@@ -2876,15 +2827,15 @@ var CMIInteractionsObject = (function (_super) {
         _this._student_response = "";
         _this._result = "";
         _this._latency = "";
-        _this.objectives = new _common_array__WEBPACK_IMPORTED_MODULE_0__.CMIArray({
-            errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.INVALID_SET_VALUE,
-            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError,
-            children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__.scorm12_constants.objectives_children,
+        _this.objectives = new _common_array__WEBPACK_IMPORTED_MODULE_0__/* .CMIArray */ .B({
+            errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.INVALID_SET_VALUE,
+            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t,
+            children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_constants */ .QP.objectives_children,
         });
-        _this.correct_responses = new _common_array__WEBPACK_IMPORTED_MODULE_0__.CMIArray({
-            errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.INVALID_SET_VALUE,
-            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError,
-            children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__.scorm12_constants.correct_responses_children,
+        _this.correct_responses = new _common_array__WEBPACK_IMPORTED_MODULE_0__/* .CMIArray */ .B({
+            errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.INVALID_SET_VALUE,
+            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t,
+            children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_constants */ .QP.correct_responses_children,
         });
         return _this;
     }
@@ -2910,12 +2861,12 @@ var CMIInteractionsObject = (function (_super) {
     Object.defineProperty(CMIInteractionsObject.prototype, "id", {
         get: function () {
             if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.WRITE_ONLY_ELEMENT);
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
             }
             return this._id;
         },
         set: function (id) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__.check12ValidFormat)(id, _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.CMIIdentifier)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(id, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIIdentifier)) {
                 this._id = id;
             }
         },
@@ -2925,12 +2876,12 @@ var CMIInteractionsObject = (function (_super) {
     Object.defineProperty(CMIInteractionsObject.prototype, "time", {
         get: function () {
             if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.WRITE_ONLY_ELEMENT);
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
             }
             return this._time;
         },
         set: function (time) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__.check12ValidFormat)(time, _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.CMITime)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(time, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMITime)) {
                 this._time = time;
             }
         },
@@ -2940,12 +2891,12 @@ var CMIInteractionsObject = (function (_super) {
     Object.defineProperty(CMIInteractionsObject.prototype, "type", {
         get: function () {
             if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.WRITE_ONLY_ELEMENT);
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
             }
             return this._type;
         },
         set: function (type) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__.check12ValidFormat)(type, _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.CMIType)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(type, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIType)) {
                 this._type = type;
             }
         },
@@ -2955,13 +2906,13 @@ var CMIInteractionsObject = (function (_super) {
     Object.defineProperty(CMIInteractionsObject.prototype, "weighting", {
         get: function () {
             if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.WRITE_ONLY_ELEMENT);
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
             }
             return this._weighting;
         },
         set: function (weighting) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__.check12ValidFormat)(weighting, _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.CMIDecimal) &&
-                (0,_validation__WEBPACK_IMPORTED_MODULE_5__.check12ValidRange)(weighting, _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.weighting_range)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(weighting, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIDecimal) &&
+                (0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidRange */ .h)(weighting, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.weighting_range)) {
                 this._weighting = weighting;
             }
         },
@@ -2971,12 +2922,12 @@ var CMIInteractionsObject = (function (_super) {
     Object.defineProperty(CMIInteractionsObject.prototype, "student_response", {
         get: function () {
             if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.WRITE_ONLY_ELEMENT);
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
             }
             return this._student_response;
         },
         set: function (student_response) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__.check12ValidFormat)(student_response, _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.CMIFeedback, true)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(student_response, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIFeedback, true)) {
                 this._student_response = student_response;
             }
         },
@@ -2986,12 +2937,12 @@ var CMIInteractionsObject = (function (_super) {
     Object.defineProperty(CMIInteractionsObject.prototype, "result", {
         get: function () {
             if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.WRITE_ONLY_ELEMENT);
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
             }
             return this._result;
         },
         set: function (result) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__.check12ValidFormat)(result, _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.CMIResult)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(result, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIResult)) {
                 this._result = result;
             }
         },
@@ -3001,12 +2952,12 @@ var CMIInteractionsObject = (function (_super) {
     Object.defineProperty(CMIInteractionsObject.prototype, "latency", {
         get: function () {
             if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.WRITE_ONLY_ELEMENT);
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
             }
             return this._latency;
         },
         set: function (latency) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__.check12ValidFormat)(latency, _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.CMITimespan)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(latency, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMITimespan)) {
                 this._latency = latency;
             }
         },
@@ -3030,10 +2981,10 @@ var CMIInteractionsObject = (function (_super) {
         return result;
     };
     return CMIInteractionsObject;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_4__.BaseCMI));
+}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_4__/* .BaseCMI */ .J));
 
 var CMIInteractionsObjectivesObject = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_7__.__extends)(CMIInteractionsObjectivesObject, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_7__/* .__extends */ .C6)(CMIInteractionsObjectivesObject, _super);
     function CMIInteractionsObjectivesObject() {
         var _this = _super.call(this) || this;
         _this._id = "";
@@ -3048,7 +2999,7 @@ var CMIInteractionsObjectivesObject = (function (_super) {
             return this._id;
         },
         set: function (id) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__.check12ValidFormat)(id, _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.CMIIdentifier)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(id, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIIdentifier)) {
                 this._id = id;
             }
         },
@@ -3064,10 +3015,10 @@ var CMIInteractionsObjectivesObject = (function (_super) {
         return result;
     };
     return CMIInteractionsObjectivesObject;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_4__.BaseCMI));
+}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_4__/* .BaseCMI */ .J));
 
 var CMIInteractionsCorrectResponsesObject = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_7__.__extends)(CMIInteractionsCorrectResponsesObject, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_7__/* .__extends */ .C6)(CMIInteractionsCorrectResponsesObject, _super);
     function CMIInteractionsCorrectResponsesObject() {
         var _this = _super.call(this) || this;
         _this._pattern = "";
@@ -3080,12 +3031,12 @@ var CMIInteractionsCorrectResponsesObject = (function (_super) {
     Object.defineProperty(CMIInteractionsCorrectResponsesObject.prototype, "pattern", {
         get: function () {
             if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.WRITE_ONLY_ELEMENT);
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
             }
             return this._pattern;
         },
         set: function (pattern) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__.check12ValidFormat)(pattern, _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.CMIFeedback, true)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(pattern, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIFeedback, true)) {
                 this._pattern = pattern;
             }
         },
@@ -3101,7 +3052,7 @@ var CMIInteractionsCorrectResponsesObject = (function (_super) {
         return result;
     };
     return CMIInteractionsCorrectResponsesObject;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_4__.BaseCMI));
+}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_4__/* .BaseCMI */ .J));
 
 
 
@@ -3110,25 +3061,20 @@ var CMIInteractionsCorrectResponsesObject = (function (_super) {
 /***/ 864:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-__webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   SECONDS_PER_DAY: function() { return /* binding */ SECONDS_PER_DAY; },
-/* harmony export */   SECONDS_PER_HOUR: function() { return /* binding */ SECONDS_PER_HOUR; },
-/* harmony export */   SECONDS_PER_MINUTE: function() { return /* binding */ SECONDS_PER_MINUTE; },
-/* harmony export */   SECONDS_PER_SECOND: function() { return /* binding */ SECONDS_PER_SECOND; },
-/* harmony export */   addHHMMSSTimeStrings: function() { return /* binding */ addHHMMSSTimeStrings; },
-/* harmony export */   addTwoDurations: function() { return /* binding */ addTwoDurations; },
-/* harmony export */   countDecimals: function() { return /* binding */ countDecimals; },
-/* harmony export */   flatten: function() { return /* binding */ flatten; },
-/* harmony export */   formatMessage: function() { return /* binding */ formatMessage; },
-/* harmony export */   getDurationAsSeconds: function() { return /* binding */ getDurationAsSeconds; },
-/* harmony export */   getSecondsAsHHMMSS: function() { return /* binding */ getSecondsAsHHMMSS; },
-/* harmony export */   getSecondsAsISODuration: function() { return /* binding */ getSecondsAsISODuration; },
-/* harmony export */   getTimeAsSeconds: function() { return /* binding */ getTimeAsSeconds; },
-/* harmony export */   memoize: function() { return /* binding */ memoize; },
-/* harmony export */   stringMatches: function() { return /* binding */ stringMatches; },
-/* harmony export */   unflatten: function() { return /* binding */ unflatten; }
+/* harmony export */   $o: function() { return /* binding */ addTwoDurations; },
+/* harmony export */   Bj: function() { return /* binding */ memoize; },
+/* harmony export */   Bq: function() { return /* binding */ flatten; },
+/* harmony export */   HT: function() { return /* binding */ addHHMMSSTimeStrings; },
+/* harmony export */   J6: function() { return /* binding */ stringMatches; },
+/* harmony export */   OI: function() { return /* binding */ getDurationAsSeconds; },
+/* harmony export */   UZ: function() { return /* binding */ getSecondsAsHHMMSS; },
+/* harmony export */   f4: function() { return /* binding */ getTimeAsSeconds; },
+/* harmony export */   hw: function() { return /* binding */ formatMessage; },
+/* harmony export */   sB: function() { return /* binding */ unflatten; },
+/* harmony export */   xE: function() { return /* binding */ getSecondsAsISODuration; }
 /* harmony export */ });
+/* unused harmony exports SECONDS_PER_SECOND, SECONDS_PER_MINUTE, SECONDS_PER_HOUR, SECONDS_PER_DAY, countDecimals */
 var SECONDS_PER_SECOND = 1.0;
 var SECONDS_PER_MINUTE = 60;
 var SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
@@ -3346,10 +3292,9 @@ function memoize(fn, keyFn) {
 /***/ 915:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-__webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   check12ValidFormat: function() { return /* binding */ check12ValidFormat; },
-/* harmony export */   check12ValidRange: function() { return /* binding */ check12ValidRange; }
+/* harmony export */   h: function() { return /* binding */ check12ValidRange; },
+/* harmony export */   p: function() { return /* binding */ check12ValidFormat; }
 /* harmony export */ });
 /* harmony import */ var _common_validation__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(449);
 /* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(797);
@@ -3358,13 +3303,13 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function check12ValidFormat(value, regexPattern, allowEmptyString) {
-    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_0__.checkValidFormat)(value, regexPattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__.scorm12_errors.TYPE_MISMATCH, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError, allowEmptyString);
+    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_0__/* .checkValidFormat */ .q)(value, regexPattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_errors */ .Se.TYPE_MISMATCH, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t, allowEmptyString);
 }
 function check12ValidRange(value, rangePattern, allowEmptyString) {
     if (!allowEmptyString && value === "") {
-        throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_1__.scorm12_errors.VALUE_OUT_OF_RANGE);
+        throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t(_constants_error_codes__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_errors */ .Se.VALUE_OUT_OF_RANGE);
     }
-    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_0__.checkValidRange)(value, rangePattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__.scorm12_errors.VALUE_OUT_OF_RANGE, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError);
+    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_0__/* .checkValidRange */ .W)(value, rangePattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_errors */ .Se.VALUE_OUT_OF_RANGE, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t);
 }
 
 
@@ -3373,8 +3318,6 @@ function check12ValidRange(value, rangePattern, allowEmptyString) {
 /***/ 916:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-// ESM COMPAT FLAG
-__webpack_require__.r(__webpack_exports__);
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
@@ -3397,9 +3340,9 @@ var exceptions = __webpack_require__(784);
 
 
 
-var aicc_errors = api_constants.aicc_constants.error_descriptions;
+var aicc_errors = api_constants/* aicc_constants */.BR.error_descriptions;
 var AICCValidationError = (function (_super) {
-    (0,tslib_es6.__extends)(AICCValidationError, _super);
+    (0,tslib_es6/* __extends */.C6)(AICCValidationError, _super);
     function AICCValidationError(errorCode) {
         var _this = this;
         if ({}.hasOwnProperty.call(aicc_errors, String(errorCode))) {
@@ -3411,7 +3354,7 @@ var AICCValidationError = (function (_super) {
         return _this;
     }
     return AICCValidationError;
-}(exceptions.ValidationError));
+}(exceptions/* ValidationError */.y));
 
 
 // EXTERNAL MODULE: ./src/cmi/common/base_cmi.ts
@@ -3425,7 +3368,7 @@ var validation = __webpack_require__(449);
 
 
 function checkAICCValidFormat(value, regexPattern, allowEmptyString) {
-    return (0,validation.checkValidFormat)(value, regexPattern, error_codes.scorm12_errors.TYPE_MISMATCH, AICCValidationError, allowEmptyString);
+    return (0,validation/* checkValidFormat */.q)(value, regexPattern, error_codes/* scorm12_errors */.Se.TYPE_MISMATCH, AICCValidationError, allowEmptyString);
 }
 
 // EXTERNAL MODULE: ./src/constants/regex.ts
@@ -3440,7 +3383,7 @@ var regex = __webpack_require__(417);
 
 
 var CMIEvaluation = (function (_super) {
-    (0,tslib_es6.__extends)(CMIEvaluation, _super);
+    (0,tslib_es6/* __extends */.C6)(CMIEvaluation, _super);
     function CMIEvaluation() {
         var _this = _super.call(this) || this;
         _this.comments = new CMIEvaluationComments();
@@ -3465,21 +3408,21 @@ var CMIEvaluation = (function (_super) {
         return result;
     };
     return CMIEvaluation;
-}(base_cmi.BaseCMI));
+}(base_cmi/* BaseCMI */.J));
 
 var CMIEvaluationComments = (function (_super) {
-    (0,tslib_es6.__extends)(CMIEvaluationComments, _super);
+    (0,tslib_es6/* __extends */.C6)(CMIEvaluationComments, _super);
     function CMIEvaluationComments() {
         return _super.call(this, {
-            children: api_constants.aicc_constants.comments_children,
-            errorCode: error_codes.scorm12_errors.INVALID_SET_VALUE,
+            children: api_constants/* aicc_constants */.BR.comments_children,
+            errorCode: error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE,
             errorClass: AICCValidationError,
         }) || this;
     }
     return CMIEvaluationComments;
-}(array.CMIArray));
+}(array/* CMIArray */.B));
 var CMIEvaluationCommentsObject = (function (_super) {
-    (0,tslib_es6.__extends)(CMIEvaluationCommentsObject, _super);
+    (0,tslib_es6/* __extends */.C6)(CMIEvaluationCommentsObject, _super);
     function CMIEvaluationCommentsObject() {
         var _this = _super.call(this) || this;
         _this._content = "";
@@ -3498,7 +3441,7 @@ var CMIEvaluationCommentsObject = (function (_super) {
             return this._content;
         },
         set: function (content) {
-            if (checkAICCValidFormat(content, regex.aicc_regex.CMIString256)) {
+            if (checkAICCValidFormat(content, regex/* aicc_regex */.rN.CMIString256)) {
                 this._content = content;
             }
         },
@@ -3510,7 +3453,7 @@ var CMIEvaluationCommentsObject = (function (_super) {
             return this._location;
         },
         set: function (location) {
-            if (checkAICCValidFormat(location, regex.aicc_regex.CMIString256)) {
+            if (checkAICCValidFormat(location, regex/* aicc_regex */.rN.CMIString256)) {
                 this._location = location;
             }
         },
@@ -3522,7 +3465,7 @@ var CMIEvaluationCommentsObject = (function (_super) {
             return this._time;
         },
         set: function (time) {
-            if (checkAICCValidFormat(time, regex.aicc_regex.CMITime)) {
+            if (checkAICCValidFormat(time, regex/* aicc_regex */.rN.CMITime)) {
                 this._time = time;
             }
         },
@@ -3540,7 +3483,7 @@ var CMIEvaluationCommentsObject = (function (_super) {
         return result;
     };
     return CMIEvaluationCommentsObject;
-}(base_cmi.BaseCMI));
+}(base_cmi/* BaseCMI */.J));
 
 
 // EXTERNAL MODULE: ./src/cmi/scorm12/student_preference.ts
@@ -3555,16 +3498,16 @@ var student_preference = __webpack_require__(181);
 
 
 var AICCStudentPreferences = (function (_super) {
-    (0,tslib_es6.__extends)(AICCStudentPreferences, _super);
+    (0,tslib_es6/* __extends */.C6)(AICCStudentPreferences, _super);
     function AICCStudentPreferences() {
-        var _this = _super.call(this, api_constants.aicc_constants.student_preference_children) || this;
+        var _this = _super.call(this, api_constants/* aicc_constants */.BR.student_preference_children) || this;
         _this._lesson_type = "";
         _this._text_color = "";
         _this._text_location = "";
         _this._text_size = "";
         _this._video = "";
-        _this.windows = new array.CMIArray({
-            errorCode: error_codes.scorm12_errors.INVALID_SET_VALUE,
+        _this.windows = new array/* CMIArray */.B({
+            errorCode: error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE,
             errorClass: AICCValidationError,
             children: "",
         });
@@ -3580,7 +3523,7 @@ var AICCStudentPreferences = (function (_super) {
             return this._lesson_type;
         },
         set: function (lesson_type) {
-            if (checkAICCValidFormat(lesson_type, regex.aicc_regex.CMIString256)) {
+            if (checkAICCValidFormat(lesson_type, regex/* aicc_regex */.rN.CMIString256)) {
                 this._lesson_type = lesson_type;
             }
         },
@@ -3592,7 +3535,7 @@ var AICCStudentPreferences = (function (_super) {
             return this._text_color;
         },
         set: function (text_color) {
-            if (checkAICCValidFormat(text_color, regex.aicc_regex.CMIString256)) {
+            if (checkAICCValidFormat(text_color, regex/* aicc_regex */.rN.CMIString256)) {
                 this._text_color = text_color;
             }
         },
@@ -3604,7 +3547,7 @@ var AICCStudentPreferences = (function (_super) {
             return this._text_location;
         },
         set: function (text_location) {
-            if (checkAICCValidFormat(text_location, regex.aicc_regex.CMIString256)) {
+            if (checkAICCValidFormat(text_location, regex/* aicc_regex */.rN.CMIString256)) {
                 this._text_location = text_location;
             }
         },
@@ -3616,7 +3559,7 @@ var AICCStudentPreferences = (function (_super) {
             return this._text_size;
         },
         set: function (text_size) {
-            if (checkAICCValidFormat(text_size, regex.aicc_regex.CMIString256)) {
+            if (checkAICCValidFormat(text_size, regex/* aicc_regex */.rN.CMIString256)) {
                 this._text_size = text_size;
             }
         },
@@ -3628,7 +3571,7 @@ var AICCStudentPreferences = (function (_super) {
             return this._video;
         },
         set: function (video) {
-            if (checkAICCValidFormat(video, regex.aicc_regex.CMIString256)) {
+            if (checkAICCValidFormat(video, regex/* aicc_regex */.rN.CMIString256)) {
                 this._video = video;
             }
         },
@@ -3653,7 +3596,7 @@ var AICCStudentPreferences = (function (_super) {
         return result;
     };
     return AICCStudentPreferences;
-}(student_preference.CMIStudentPreference));
+}(student_preference/* CMIStudentPreference */.G));
 
 
 ;// ./src/cmi/aicc/student_demographics.ts
@@ -3663,10 +3606,10 @@ var AICCStudentPreferences = (function (_super) {
 
 
 var CMIStudentDemographics = (function (_super) {
-    (0,tslib_es6.__extends)(CMIStudentDemographics, _super);
+    (0,tslib_es6/* __extends */.C6)(CMIStudentDemographics, _super);
     function CMIStudentDemographics() {
         var _this = _super.call(this) || this;
-        _this.__children = api_constants.aicc_constants.student_demographics_children;
+        _this.__children = api_constants/* aicc_constants */.BR.student_demographics_children;
         _this._city = "";
         _this._class = "";
         _this._company = "";
@@ -3698,7 +3641,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (city) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes.scorm12_errors.READ_ONLY_ELEMENT);
+                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._city = city;
@@ -3713,7 +3656,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (clazz) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes.scorm12_errors.READ_ONLY_ELEMENT);
+                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._class = clazz;
@@ -3728,7 +3671,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (company) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes.scorm12_errors.READ_ONLY_ELEMENT);
+                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._company = company;
@@ -3743,7 +3686,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (country) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes.scorm12_errors.READ_ONLY_ELEMENT);
+                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._country = country;
@@ -3758,7 +3701,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (experience) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes.scorm12_errors.READ_ONLY_ELEMENT);
+                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._experience = experience;
@@ -3773,7 +3716,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (familiar_name) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes.scorm12_errors.READ_ONLY_ELEMENT);
+                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._familiar_name = familiar_name;
@@ -3788,7 +3731,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (instructor_name) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes.scorm12_errors.READ_ONLY_ELEMENT);
+                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._instructor_name = instructor_name;
@@ -3803,7 +3746,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (title) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes.scorm12_errors.READ_ONLY_ELEMENT);
+                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._title = title;
@@ -3818,7 +3761,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (native_language) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes.scorm12_errors.READ_ONLY_ELEMENT);
+                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._native_language = native_language;
@@ -3833,7 +3776,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (state) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes.scorm12_errors.READ_ONLY_ELEMENT);
+                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._state = state;
@@ -3848,7 +3791,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (street_address) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes.scorm12_errors.READ_ONLY_ELEMENT);
+                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._street_address = street_address;
@@ -3863,7 +3806,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (telephone) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes.scorm12_errors.READ_ONLY_ELEMENT);
+                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._telephone = telephone;
@@ -3878,7 +3821,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (years_experience) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes.scorm12_errors.READ_ONLY_ELEMENT);
+                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._years_experience = years_experience;
@@ -3908,7 +3851,7 @@ var CMIStudentDemographics = (function (_super) {
         return result;
     };
     return CMIStudentDemographics;
-}(base_cmi.BaseCMI));
+}(base_cmi/* BaseCMI */.J));
 
 
 // EXTERNAL MODULE: ./src/cmi/common/score.ts
@@ -3924,27 +3867,27 @@ var score = __webpack_require__(434);
 
 
 var CMITries = (function (_super) {
-    (0,tslib_es6.__extends)(CMITries, _super);
+    (0,tslib_es6/* __extends */.C6)(CMITries, _super);
     function CMITries() {
         return _super.call(this, {
-            children: api_constants.aicc_constants.tries_children,
+            children: api_constants/* aicc_constants */.BR.tries_children,
         }) || this;
     }
     return CMITries;
-}(array.CMIArray));
+}(array/* CMIArray */.B));
 
 var CMITriesObject = (function (_super) {
-    (0,tslib_es6.__extends)(CMITriesObject, _super);
+    (0,tslib_es6/* __extends */.C6)(CMITriesObject, _super);
     function CMITriesObject() {
         var _this = _super.call(this) || this;
         _this._status = "";
         _this._time = "";
-        _this.score = new score.CMIScore({
-            score_children: api_constants.aicc_constants.score_children,
-            score_range: regex.aicc_regex.score_range,
-            invalidErrorCode: error_codes.scorm12_errors.INVALID_SET_VALUE,
-            invalidTypeCode: error_codes.scorm12_errors.TYPE_MISMATCH,
-            invalidRangeCode: error_codes.scorm12_errors.VALUE_OUT_OF_RANGE,
+        _this.score = new score/* CMIScore */._({
+            score_children: api_constants/* aicc_constants */.BR.score_children,
+            score_range: regex/* aicc_regex */.rN.score_range,
+            invalidErrorCode: error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE,
+            invalidTypeCode: error_codes/* scorm12_errors */.Se.TYPE_MISMATCH,
+            invalidRangeCode: error_codes/* scorm12_errors */.Se.VALUE_OUT_OF_RANGE,
             errorClass: AICCValidationError,
         });
         return _this;
@@ -3966,7 +3909,7 @@ var CMITriesObject = (function (_super) {
             return this._status;
         },
         set: function (status) {
-            if (checkAICCValidFormat(status, regex.aicc_regex.CMIStatus2)) {
+            if (checkAICCValidFormat(status, regex/* aicc_regex */.rN.CMIStatus2)) {
                 this._status = status;
             }
         },
@@ -3978,7 +3921,7 @@ var CMITriesObject = (function (_super) {
             return this._time;
         },
         set: function (time) {
-            if (checkAICCValidFormat(time, regex.aicc_regex.CMITime)) {
+            if (checkAICCValidFormat(time, regex/* aicc_regex */.rN.CMITime)) {
                 this._time = time;
             }
         },
@@ -3996,7 +3939,7 @@ var CMITriesObject = (function (_super) {
         return result;
     };
     return CMITriesObject;
-}(base_cmi.BaseCMI));
+}(base_cmi/* BaseCMI */.J));
 
 
 // EXTERNAL MODULE: ./src/cmi/scorm12/student_data.ts
@@ -4012,26 +3955,26 @@ var student_data = __webpack_require__(532);
 
 
 var CMIAttemptRecords = (function (_super) {
-    (0,tslib_es6.__extends)(CMIAttemptRecords, _super);
+    (0,tslib_es6/* __extends */.C6)(CMIAttemptRecords, _super);
     function CMIAttemptRecords() {
         return _super.call(this, {
-            children: api_constants.aicc_constants.attempt_records_children,
+            children: api_constants/* aicc_constants */.BR.attempt_records_children,
         }) || this;
     }
     return CMIAttemptRecords;
-}(array.CMIArray));
+}(array/* CMIArray */.B));
 
 var CMIAttemptRecordsObject = (function (_super) {
-    (0,tslib_es6.__extends)(CMIAttemptRecordsObject, _super);
+    (0,tslib_es6/* __extends */.C6)(CMIAttemptRecordsObject, _super);
     function CMIAttemptRecordsObject() {
         var _this = _super.call(this) || this;
         _this._lesson_status = "";
-        _this.score = new score.CMIScore({
-            score_children: api_constants.aicc_constants.score_children,
-            score_range: regex.aicc_regex.score_range,
-            invalidErrorCode: error_codes.scorm12_errors.INVALID_SET_VALUE,
-            invalidTypeCode: error_codes.scorm12_errors.TYPE_MISMATCH,
-            invalidRangeCode: error_codes.scorm12_errors.VALUE_OUT_OF_RANGE,
+        _this.score = new score/* CMIScore */._({
+            score_children: api_constants/* aicc_constants */.BR.score_children,
+            score_range: regex/* aicc_regex */.rN.score_range,
+            invalidErrorCode: error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE,
+            invalidTypeCode: error_codes/* scorm12_errors */.Se.TYPE_MISMATCH,
+            invalidRangeCode: error_codes/* scorm12_errors */.Se.VALUE_OUT_OF_RANGE,
             errorClass: AICCValidationError,
         });
         return _this;
@@ -4052,7 +3995,7 @@ var CMIAttemptRecordsObject = (function (_super) {
             return this._lesson_status;
         },
         set: function (lesson_status) {
-            if (checkAICCValidFormat(lesson_status, regex.aicc_regex.CMIStatus2)) {
+            if (checkAICCValidFormat(lesson_status, regex/* aicc_regex */.rN.CMIStatus2)) {
                 this._lesson_status = lesson_status;
             }
         },
@@ -4069,7 +4012,7 @@ var CMIAttemptRecordsObject = (function (_super) {
         return result;
     };
     return CMIAttemptRecordsObject;
-}(base_cmi.BaseCMI));
+}(base_cmi/* BaseCMI */.J));
 
 
 ;// ./src/cmi/aicc/student_data.ts
@@ -4081,9 +4024,9 @@ var CMIAttemptRecordsObject = (function (_super) {
 
 
 var AICCCMIStudentData = (function (_super) {
-    (0,tslib_es6.__extends)(AICCCMIStudentData, _super);
+    (0,tslib_es6/* __extends */.C6)(AICCCMIStudentData, _super);
     function AICCCMIStudentData() {
-        var _this = _super.call(this, api_constants.aicc_constants.student_data_children) || this;
+        var _this = _super.call(this, api_constants/* aicc_constants */.BR.student_data_children) || this;
         _this._tries_during_lesson = "";
         _this.tries = new CMITries();
         _this.attempt_records = new CMIAttemptRecords();
@@ -4107,7 +4050,7 @@ var AICCCMIStudentData = (function (_super) {
         },
         set: function (tries_during_lesson) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes.scorm12_errors.READ_ONLY_ELEMENT);
+                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._tries_during_lesson = tries_during_lesson;
@@ -4129,7 +4072,7 @@ var AICCCMIStudentData = (function (_super) {
         return result;
     };
     return AICCCMIStudentData;
-}(student_data.CMIStudentData));
+}(student_data/* CMIStudentData */.X));
 
 
 ;// ./src/cmi/aicc/paths.ts
@@ -4140,17 +4083,17 @@ var AICCCMIStudentData = (function (_super) {
 
 
 var CMIPaths = (function (_super) {
-    (0,tslib_es6.__extends)(CMIPaths, _super);
+    (0,tslib_es6/* __extends */.C6)(CMIPaths, _super);
     function CMIPaths() {
         return _super.call(this, {
-            children: api_constants.aicc_constants.paths_children,
+            children: api_constants/* aicc_constants */.BR.paths_children,
         }) || this;
     }
     return CMIPaths;
-}(array.CMIArray));
+}(array/* CMIArray */.B));
 
 var CMIPathsObject = (function (_super) {
-    (0,tslib_es6.__extends)(CMIPathsObject, _super);
+    (0,tslib_es6/* __extends */.C6)(CMIPathsObject, _super);
     function CMIPathsObject() {
         var _this = _super.call(this) || this;
         _this._location_id = "";
@@ -4175,7 +4118,7 @@ var CMIPathsObject = (function (_super) {
             return this._location_id;
         },
         set: function (location_id) {
-            if (checkAICCValidFormat(location_id, regex.aicc_regex.CMIString256)) {
+            if (checkAICCValidFormat(location_id, regex/* aicc_regex */.rN.CMIString256)) {
                 this._location_id = location_id;
             }
         },
@@ -4187,7 +4130,7 @@ var CMIPathsObject = (function (_super) {
             return this._date;
         },
         set: function (date) {
-            if (checkAICCValidFormat(date, regex.aicc_regex.CMIString256)) {
+            if (checkAICCValidFormat(date, regex/* aicc_regex */.rN.CMIString256)) {
                 this._date = date;
             }
         },
@@ -4199,7 +4142,7 @@ var CMIPathsObject = (function (_super) {
             return this._time;
         },
         set: function (time) {
-            if (checkAICCValidFormat(time, regex.aicc_regex.CMITime)) {
+            if (checkAICCValidFormat(time, regex/* aicc_regex */.rN.CMITime)) {
                 this._time = time;
             }
         },
@@ -4211,7 +4154,7 @@ var CMIPathsObject = (function (_super) {
             return this._status;
         },
         set: function (status) {
-            if (checkAICCValidFormat(status, regex.aicc_regex.CMIStatus2)) {
+            if (checkAICCValidFormat(status, regex/* aicc_regex */.rN.CMIStatus2)) {
                 this._status = status;
             }
         },
@@ -4223,7 +4166,7 @@ var CMIPathsObject = (function (_super) {
             return this._why_left;
         },
         set: function (why_left) {
-            if (checkAICCValidFormat(why_left, regex.aicc_regex.CMIString256)) {
+            if (checkAICCValidFormat(why_left, regex/* aicc_regex */.rN.CMIString256)) {
                 this._why_left = why_left;
             }
         },
@@ -4235,7 +4178,7 @@ var CMIPathsObject = (function (_super) {
             return this._time_in_element;
         },
         set: function (time_in_element) {
-            if (checkAICCValidFormat(time_in_element, regex.aicc_regex.CMITime)) {
+            if (checkAICCValidFormat(time_in_element, regex/* aicc_regex */.rN.CMITime)) {
                 this._time_in_element = time_in_element;
             }
         },
@@ -4256,7 +4199,7 @@ var CMIPathsObject = (function (_super) {
         return result;
     };
     return CMIPathsObject;
-}(base_cmi.BaseCMI));
+}(base_cmi/* BaseCMI */.J));
 
 
 ;// ./src/cmi/aicc/cmi.ts
@@ -4269,10 +4212,10 @@ var CMIPathsObject = (function (_super) {
 
 
 var CMI = (function (_super) {
-    (0,tslib_es6.__extends)(CMI, _super);
+    (0,tslib_es6/* __extends */.C6)(CMI, _super);
     function CMI(initialized) {
         if (initialized === void 0) { initialized = false; }
-        var _this = _super.call(this, api_constants.aicc_constants.cmi_children) || this;
+        var _this = _super.call(this, api_constants/* aicc_constants */.BR.cmi_children) || this;
         if (initialized)
             _this.initialize();
         _this.student_preference = new AICCStudentPreferences();
@@ -4311,7 +4254,7 @@ var CMI = (function (_super) {
         return result;
     };
     return CMI;
-}(cmi.CMI));
+}(cmi/* CMI */.Y));
 
 
 // EXTERNAL MODULE: ./src/cmi/scorm12/nav.ts
@@ -4329,26 +4272,26 @@ var utilities = __webpack_require__(864);
 
 
 var AICCImpl = (function (_super) {
-    (0,tslib_es6.__extends)(AICCImpl, _super);
+    (0,tslib_es6/* __extends */.C6)(AICCImpl, _super);
     function AICCImpl(settings) {
         var _this = _super.call(this, settings) || this;
         _this.cmi = new CMI();
-        _this.nav = new nav.NAV();
+        _this.nav = new nav/* NAV */.A();
         return _this;
     }
     AICCImpl.prototype.getChildElement = function (CMIElement, value, foundFirstIndex) {
         var newChild = _super.prototype.getChildElement.call(this, CMIElement, value, foundFirstIndex);
         if (!newChild) {
-            if ((0,utilities.stringMatches)(CMIElement, "cmi\\.evaluation\\.comments\\.\\d+")) {
+            if ((0,utilities/* stringMatches */.J6)(CMIElement, "cmi\\.evaluation\\.comments\\.\\d+")) {
                 newChild = new CMIEvaluationCommentsObject();
             }
-            else if ((0,utilities.stringMatches)(CMIElement, "cmi\\.student_data\\.tries\\.\\d+")) {
+            else if ((0,utilities/* stringMatches */.J6)(CMIElement, "cmi\\.student_data\\.tries\\.\\d+")) {
                 newChild = new CMITriesObject();
             }
-            else if ((0,utilities.stringMatches)(CMIElement, "cmi\\.student_data\\.attempt_records\\.\\d+")) {
+            else if ((0,utilities/* stringMatches */.J6)(CMIElement, "cmi\\.student_data\\.attempt_records\\.\\d+")) {
                 newChild = new CMIAttemptRecordsObject();
             }
-            else if ((0,utilities.stringMatches)(CMIElement, "cmi\\.paths\\.\\d+")) {
+            else if ((0,utilities/* stringMatches */.J6)(CMIElement, "cmi\\.paths\\.\\d+")) {
                 newChild = new CMIPathsObject();
             }
         }
@@ -4368,8 +4311,6 @@ var AICCImpl = (function (_super) {
 /***/ 918:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-// ESM COMPAT FLAG
-__webpack_require__.r(__webpack_exports__);
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
@@ -4390,9 +4331,9 @@ var exceptions = __webpack_require__(784);
 
 
 
-var scorm2004_errors = api_constants.scorm2004_constants.error_descriptions;
+var scorm2004_errors = api_constants/* scorm2004_constants */.zR.error_descriptions;
 var Scorm2004ValidationError = (function (_super) {
-    (0,tslib_es6.__extends)(Scorm2004ValidationError, _super);
+    (0,tslib_es6/* __extends */.C6)(Scorm2004ValidationError, _super);
     function Scorm2004ValidationError(errorCode) {
         var _this = this;
         if ({}.hasOwnProperty.call(scorm2004_errors, String(errorCode))) {
@@ -4404,7 +4345,7 @@ var Scorm2004ValidationError = (function (_super) {
         return _this;
     }
     return Scorm2004ValidationError;
-}(exceptions.ValidationError));
+}(exceptions/* ValidationError */.y));
 
 
 // EXTERNAL MODULE: ./src/constants/error_codes.ts
@@ -4416,10 +4357,10 @@ var validation = __webpack_require__(449);
 
 
 function check2004ValidFormat(value, regexPattern, allowEmptyString) {
-    return (0,validation.checkValidFormat)(value, regexPattern, error_codes.scorm2004_errors.TYPE_MISMATCH, Scorm2004ValidationError, allowEmptyString);
+    return (0,validation/* checkValidFormat */.q)(value, regexPattern, error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH, Scorm2004ValidationError, allowEmptyString);
 }
 function check2004ValidRange(value, rangePattern) {
-    return (0,validation.checkValidRange)(value, rangePattern, error_codes.scorm2004_errors.VALUE_OUT_OF_RANGE, Scorm2004ValidationError);
+    return (0,validation/* checkValidRange */.W)(value, rangePattern, error_codes/* scorm2004_errors */.Rf.VALUE_OUT_OF_RANGE, Scorm2004ValidationError);
 }
 
 // EXTERNAL MODULE: ./src/constants/regex.ts
@@ -4433,10 +4374,10 @@ var regex = __webpack_require__(417);
 
 
 var CMILearnerPreference = (function (_super) {
-    (0,tslib_es6.__extends)(CMILearnerPreference, _super);
+    (0,tslib_es6/* __extends */.C6)(CMILearnerPreference, _super);
     function CMILearnerPreference() {
         var _this = _super.call(this) || this;
-        _this.__children = api_constants.scorm2004_constants.student_preference_children;
+        _this.__children = api_constants/* scorm2004_constants */.zR.student_preference_children;
         _this._audio_level = "1";
         _this._language = "";
         _this._delivery_speed = "1";
@@ -4451,7 +4392,7 @@ var CMILearnerPreference = (function (_super) {
             return this.__children;
         },
         set: function (_children) {
-            throw new Scorm2004ValidationError(error_codes.scorm2004_errors.READ_ONLY_ELEMENT);
+            throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
         },
         enumerable: false,
         configurable: true
@@ -4461,8 +4402,8 @@ var CMILearnerPreference = (function (_super) {
             return this._audio_level;
         },
         set: function (audio_level) {
-            if (check2004ValidFormat(audio_level, regex.scorm2004_regex.CMIDecimal) &&
-                check2004ValidRange(audio_level, regex.scorm2004_regex.audio_range)) {
+            if (check2004ValidFormat(audio_level, regex/* scorm2004_regex */.xt.CMIDecimal) &&
+                check2004ValidRange(audio_level, regex/* scorm2004_regex */.xt.audio_range)) {
                 this._audio_level = audio_level;
             }
         },
@@ -4474,7 +4415,7 @@ var CMILearnerPreference = (function (_super) {
             return this._language;
         },
         set: function (language) {
-            if (check2004ValidFormat(language, regex.scorm2004_regex.CMILang)) {
+            if (check2004ValidFormat(language, regex/* scorm2004_regex */.xt.CMILang)) {
                 this._language = language;
             }
         },
@@ -4486,8 +4427,8 @@ var CMILearnerPreference = (function (_super) {
             return this._delivery_speed;
         },
         set: function (delivery_speed) {
-            if (check2004ValidFormat(delivery_speed, regex.scorm2004_regex.CMIDecimal) &&
-                check2004ValidRange(delivery_speed, regex.scorm2004_regex.speed_range)) {
+            if (check2004ValidFormat(delivery_speed, regex/* scorm2004_regex */.xt.CMIDecimal) &&
+                check2004ValidRange(delivery_speed, regex/* scorm2004_regex */.xt.speed_range)) {
                 this._delivery_speed = delivery_speed;
             }
         },
@@ -4499,8 +4440,8 @@ var CMILearnerPreference = (function (_super) {
             return this._audio_captioning;
         },
         set: function (audio_captioning) {
-            if (check2004ValidFormat(audio_captioning, regex.scorm2004_regex.CMISInteger) &&
-                check2004ValidRange(audio_captioning, regex.scorm2004_regex.text_range)) {
+            if (check2004ValidFormat(audio_captioning, regex/* scorm2004_regex */.xt.CMISInteger) &&
+                check2004ValidRange(audio_captioning, regex/* scorm2004_regex */.xt.text_range)) {
                 this._audio_captioning = audio_captioning;
             }
         },
@@ -4519,7 +4460,7 @@ var CMILearnerPreference = (function (_super) {
         return result;
     };
     return CMILearnerPreference;
-}(base_cmi.BaseCMI));
+}(base_cmi/* BaseCMI */.J));
 
 
 // EXTERNAL MODULE: ./src/cmi/common/array.ts
@@ -4534,59 +4475,59 @@ var LearnerResponses = {
         unique: false,
     },
     choice: {
-        format: regex.scorm2004_regex.CMILongIdentifier,
+        format: regex/* scorm2004_regex */.xt.CMILongIdentifier,
         max: 36,
         delimiter: "[,]",
         unique: true,
     },
     "fill-in": {
-        format: regex.scorm2004_regex.CMILangString250,
+        format: regex/* scorm2004_regex */.xt.CMILangString250,
         max: 10,
         delimiter: "[,]",
         unique: false,
     },
     "long-fill-in": {
-        format: regex.scorm2004_regex.CMILangString4000,
+        format: regex/* scorm2004_regex */.xt.CMILangString4000,
         max: 1,
         delimiter: "",
         unique: false,
     },
     matching: {
-        format: regex.scorm2004_regex.CMIShortIdentifier,
-        format2: regex.scorm2004_regex.CMIShortIdentifier,
+        format: regex/* scorm2004_regex */.xt.CMIShortIdentifier,
+        format2: regex/* scorm2004_regex */.xt.CMIShortIdentifier,
         max: 36,
         delimiter: "[,]",
         delimiter2: "[.]",
         unique: false,
     },
     performance: {
-        format: "^$|" + regex.scorm2004_regex.CMIShortIdentifier,
-        format2: regex.scorm2004_regex.CMIDecimal + "|^$|" + regex.scorm2004_regex.CMIShortIdentifier,
+        format: "^$|" + regex/* scorm2004_regex */.xt.CMIShortIdentifier,
+        format2: regex/* scorm2004_regex */.xt.CMIDecimal + "|^$|" + regex/* scorm2004_regex */.xt.CMIShortIdentifier,
         max: 250,
         delimiter: "[,]",
         delimiter2: "[.]",
         unique: false,
     },
     sequencing: {
-        format: regex.scorm2004_regex.CMIShortIdentifier,
+        format: regex/* scorm2004_regex */.xt.CMIShortIdentifier,
         max: 36,
         delimiter: "[,]",
         unique: false,
     },
     likert: {
-        format: regex.scorm2004_regex.CMIShortIdentifier,
+        format: regex/* scorm2004_regex */.xt.CMIShortIdentifier,
         max: 1,
         delimiter: "",
         unique: false,
     },
     numeric: {
-        format: regex.scorm2004_regex.CMIDecimal,
+        format: regex/* scorm2004_regex */.xt.CMIDecimal,
         max: 1,
         delimiter: "",
         unique: false,
     },
     other: {
-        format: regex.scorm2004_regex.CMIString4000,
+        format: regex/* scorm2004_regex */.xt.CMIString4000,
         max: 1,
         delimiter: "",
         unique: false,
@@ -4606,21 +4547,21 @@ var CorrectResponses = {
         delimiter: "[,]",
         unique: true,
         duplicate: false,
-        format: regex.scorm2004_regex.CMILongIdentifier,
+        format: regex/* scorm2004_regex */.xt.CMILongIdentifier,
     },
     "fill-in": {
         max: 10,
         delimiter: "[,]",
         unique: false,
         duplicate: false,
-        format: regex.scorm2004_regex.CMILangString250cr,
+        format: regex/* scorm2004_regex */.xt.CMILangString250cr,
     },
     "long-fill-in": {
         max: 1,
         delimiter: "",
         unique: false,
         duplicate: true,
-        format: regex.scorm2004_regex.CMILangString4000,
+        format: regex/* scorm2004_regex */.xt.CMILangString4000,
     },
     matching: {
         max: 36,
@@ -4628,8 +4569,8 @@ var CorrectResponses = {
         delimiter2: "[.]",
         unique: false,
         duplicate: false,
-        format: regex.scorm2004_regex.CMIShortIdentifier,
-        format2: regex.scorm2004_regex.CMIShortIdentifier,
+        format: regex/* scorm2004_regex */.xt.CMIShortIdentifier,
+        format2: regex/* scorm2004_regex */.xt.CMIShortIdentifier,
     },
     performance: {
         max: 250,
@@ -4638,22 +4579,22 @@ var CorrectResponses = {
         delimiter3: "[:]",
         unique: false,
         duplicate: false,
-        format: "^$|" + regex.scorm2004_regex.CMIShortIdentifier,
-        format2: regex.scorm2004_regex.CMIDecimal + "|^$|" + regex.scorm2004_regex.CMIShortIdentifier,
+        format: "^$|" + regex/* scorm2004_regex */.xt.CMIShortIdentifier,
+        format2: regex/* scorm2004_regex */.xt.CMIDecimal + "|^$|" + regex/* scorm2004_regex */.xt.CMIShortIdentifier,
     },
     sequencing: {
         max: 36,
         delimiter: "[,]",
         unique: false,
         duplicate: false,
-        format: regex.scorm2004_regex.CMIShortIdentifier,
+        format: regex/* scorm2004_regex */.xt.CMIShortIdentifier,
     },
     likert: {
         max: 1,
         delimiter: "",
         unique: false,
         duplicate: false,
-        format: regex.scorm2004_regex.CMIShortIdentifier,
+        format: regex/* scorm2004_regex */.xt.CMIShortIdentifier,
         limit: 1,
     },
     numeric: {
@@ -4661,7 +4602,7 @@ var CorrectResponses = {
         delimiter: "[:]",
         unique: false,
         duplicate: false,
-        format: regex.scorm2004_regex.CMIDecimal,
+        format: regex/* scorm2004_regex */.xt.CMIDecimal,
         limit: 1,
     },
     other: {
@@ -4669,7 +4610,7 @@ var CorrectResponses = {
         delimiter: "",
         unique: false,
         duplicate: false,
-        format: regex.scorm2004_regex.CMIString4000,
+        format: regex/* scorm2004_regex */.xt.CMIString4000,
         limit: 1,
     },
 };
@@ -4685,19 +4626,19 @@ var CorrectResponses = {
 
 
 var CMIInteractions = (function (_super) {
-    (0,tslib_es6.__extends)(CMIInteractions, _super);
+    (0,tslib_es6/* __extends */.C6)(CMIInteractions, _super);
     function CMIInteractions() {
         return _super.call(this, {
-            children: api_constants.scorm2004_constants.interactions_children,
-            errorCode: error_codes.scorm2004_errors.READ_ONLY_ELEMENT,
+            children: api_constants/* scorm2004_constants */.zR.interactions_children,
+            errorCode: error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT,
             errorClass: Scorm2004ValidationError,
         }) || this;
     }
     return CMIInteractions;
-}(array.CMIArray));
+}(array/* CMIArray */.B));
 
 var CMIInteractionsObject = (function (_super) {
-    (0,tslib_es6.__extends)(CMIInteractionsObject, _super);
+    (0,tslib_es6/* __extends */.C6)(CMIInteractionsObject, _super);
     function CMIInteractionsObject() {
         var _this = _super.call(this) || this;
         _this._id = "";
@@ -4708,15 +4649,15 @@ var CMIInteractionsObject = (function (_super) {
         _this._result = "";
         _this._latency = "";
         _this._description = "";
-        _this.objectives = new array.CMIArray({
-            errorCode: error_codes.scorm2004_errors.READ_ONLY_ELEMENT,
+        _this.objectives = new array/* CMIArray */.B({
+            errorCode: error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT,
             errorClass: Scorm2004ValidationError,
-            children: api_constants.scorm2004_constants.objectives_children,
+            children: api_constants/* scorm2004_constants */.zR.objectives_children,
         });
-        _this.correct_responses = new array.CMIArray({
-            errorCode: error_codes.scorm2004_errors.READ_ONLY_ELEMENT,
+        _this.correct_responses = new array/* CMIArray */.B({
+            errorCode: error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT,
             errorClass: Scorm2004ValidationError,
-            children: api_constants.scorm2004_constants.correct_responses_children,
+            children: api_constants/* scorm2004_constants */.zR.correct_responses_children,
         });
         return _this;
     }
@@ -4736,15 +4677,15 @@ var CMIInteractionsObject = (function (_super) {
         this._result = "";
         this._latency = "";
         this._description = "";
-        this.objectives = new array.CMIArray({
-            errorCode: error_codes.scorm2004_errors.READ_ONLY_ELEMENT,
+        this.objectives = new array/* CMIArray */.B({
+            errorCode: error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT,
             errorClass: Scorm2004ValidationError,
-            children: api_constants.scorm2004_constants.objectives_children,
+            children: api_constants/* scorm2004_constants */.zR.objectives_children,
         });
-        this.correct_responses = new array.CMIArray({
-            errorCode: error_codes.scorm2004_errors.READ_ONLY_ELEMENT,
+        this.correct_responses = new array/* CMIArray */.B({
+            errorCode: error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT,
             errorClass: Scorm2004ValidationError,
-            children: api_constants.scorm2004_constants.correct_responses_children,
+            children: api_constants/* scorm2004_constants */.zR.correct_responses_children,
         });
     };
     Object.defineProperty(CMIInteractionsObject.prototype, "id", {
@@ -4752,7 +4693,7 @@ var CMIInteractionsObject = (function (_super) {
             return this._id;
         },
         set: function (id) {
-            if (check2004ValidFormat(id, regex.scorm2004_regex.CMILongIdentifier)) {
+            if (check2004ValidFormat(id, regex/* scorm2004_regex */.xt.CMILongIdentifier)) {
                 this._id = id;
             }
         },
@@ -4765,10 +4706,10 @@ var CMIInteractionsObject = (function (_super) {
         },
         set: function (type) {
             if (this.initialized && this._id === "") {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.DEPENDENCY_NOT_ESTABLISHED);
             }
             else {
-                if (check2004ValidFormat(type, regex.scorm2004_regex.CMIType)) {
+                if (check2004ValidFormat(type, regex/* scorm2004_regex */.xt.CMIType)) {
                     this._type = type;
                 }
             }
@@ -4782,10 +4723,10 @@ var CMIInteractionsObject = (function (_super) {
         },
         set: function (timestamp) {
             if (this.initialized && this._id === "") {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.DEPENDENCY_NOT_ESTABLISHED);
             }
             else {
-                if (check2004ValidFormat(timestamp, regex.scorm2004_regex.CMITime)) {
+                if (check2004ValidFormat(timestamp, regex/* scorm2004_regex */.xt.CMITime)) {
                     this._timestamp = timestamp;
                 }
             }
@@ -4799,10 +4740,10 @@ var CMIInteractionsObject = (function (_super) {
         },
         set: function (weighting) {
             if (this.initialized && this._id === "") {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.DEPENDENCY_NOT_ESTABLISHED);
             }
             else {
-                if (check2004ValidFormat(weighting, regex.scorm2004_regex.CMIDecimal)) {
+                if (check2004ValidFormat(weighting, regex/* scorm2004_regex */.xt.CMIDecimal)) {
                     this._weighting = weighting;
                 }
             }
@@ -4816,7 +4757,7 @@ var CMIInteractionsObject = (function (_super) {
         },
         set: function (learner_response) {
             if (this.initialized && (this._type === "" || this._id === "")) {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.DEPENDENCY_NOT_ESTABLISHED);
             }
             else {
                 var nodes = [];
@@ -4835,28 +4776,28 @@ var CMIInteractionsObject = (function (_super) {
                                 var values = nodes[i].split(response_type.delimiter2);
                                 if (values.length === 2) {
                                     if (!values[0].match(formatRegex)) {
-                                        throw new Scorm2004ValidationError(error_codes.scorm2004_errors.TYPE_MISMATCH);
+                                        throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
                                     }
                                     else {
                                         if (!response_type.format2 ||
                                             !values[1].match(new RegExp(response_type.format2))) {
-                                            throw new Scorm2004ValidationError(error_codes.scorm2004_errors.TYPE_MISMATCH);
+                                            throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
                                         }
                                     }
                                 }
                                 else {
-                                    throw new Scorm2004ValidationError(error_codes.scorm2004_errors.TYPE_MISMATCH);
+                                    throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
                                 }
                             }
                             else {
                                 if (!nodes[i].match(formatRegex)) {
-                                    throw new Scorm2004ValidationError(error_codes.scorm2004_errors.TYPE_MISMATCH);
+                                    throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
                                 }
                                 else {
                                     if (nodes[i] !== "" && response_type.unique) {
                                         for (var j = 0; j < i; j++) {
                                             if (nodes[i] === nodes[j]) {
-                                                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.TYPE_MISMATCH);
+                                                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
                                             }
                                         }
                                     }
@@ -4865,12 +4806,12 @@ var CMIInteractionsObject = (function (_super) {
                         }
                     }
                     else {
-                        throw new Scorm2004ValidationError(error_codes.scorm2004_errors.GENERAL_SET_FAILURE);
+                        throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.GENERAL_SET_FAILURE);
                     }
                     this._learner_response = learner_response;
                 }
                 else {
-                    throw new Scorm2004ValidationError(error_codes.scorm2004_errors.TYPE_MISMATCH);
+                    throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
                 }
             }
         },
@@ -4882,7 +4823,7 @@ var CMIInteractionsObject = (function (_super) {
             return this._result;
         },
         set: function (result) {
-            if (check2004ValidFormat(result, regex.scorm2004_regex.CMIResult)) {
+            if (check2004ValidFormat(result, regex/* scorm2004_regex */.xt.CMIResult)) {
                 this._result = result;
             }
         },
@@ -4895,10 +4836,10 @@ var CMIInteractionsObject = (function (_super) {
         },
         set: function (latency) {
             if (this.initialized && this._id === "") {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.DEPENDENCY_NOT_ESTABLISHED);
             }
             else {
-                if (check2004ValidFormat(latency, regex.scorm2004_regex.CMITimespan)) {
+                if (check2004ValidFormat(latency, regex/* scorm2004_regex */.xt.CMITimespan)) {
                     this._latency = latency;
                 }
             }
@@ -4912,10 +4853,10 @@ var CMIInteractionsObject = (function (_super) {
         },
         set: function (description) {
             if (this.initialized && this._id === "") {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.DEPENDENCY_NOT_ESTABLISHED);
             }
             else {
-                if (check2004ValidFormat(description, regex.scorm2004_regex.CMILangString250, true)) {
+                if (check2004ValidFormat(description, regex/* scorm2004_regex */.xt.CMILangString250, true)) {
                     this._description = description;
                 }
             }
@@ -4941,10 +4882,10 @@ var CMIInteractionsObject = (function (_super) {
         return result;
     };
     return CMIInteractionsObject;
-}(base_cmi.BaseCMI));
+}(base_cmi/* BaseCMI */.J));
 
 var CMIInteractionsObjectivesObject = (function (_super) {
-    (0,tslib_es6.__extends)(CMIInteractionsObjectivesObject, _super);
+    (0,tslib_es6/* __extends */.C6)(CMIInteractionsObjectivesObject, _super);
     function CMIInteractionsObjectivesObject() {
         var _this = _super.call(this) || this;
         _this._id = "";
@@ -4959,7 +4900,7 @@ var CMIInteractionsObjectivesObject = (function (_super) {
             return this._id;
         },
         set: function (id) {
-            if (check2004ValidFormat(id, regex.scorm2004_regex.CMILongIdentifier)) {
+            if (check2004ValidFormat(id, regex/* scorm2004_regex */.xt.CMILongIdentifier)) {
                 this._id = id;
             }
         },
@@ -4975,10 +4916,10 @@ var CMIInteractionsObjectivesObject = (function (_super) {
         return result;
     };
     return CMIInteractionsObjectivesObject;
-}(base_cmi.BaseCMI));
+}(base_cmi/* BaseCMI */.J));
 
 var CMIInteractionsCorrectResponsesObject = (function (_super) {
-    (0,tslib_es6.__extends)(CMIInteractionsCorrectResponsesObject, _super);
+    (0,tslib_es6/* __extends */.C6)(CMIInteractionsCorrectResponsesObject, _super);
     function CMIInteractionsCorrectResponsesObject() {
         var _this = _super.call(this) || this;
         _this._pattern = "";
@@ -4993,7 +4934,7 @@ var CMIInteractionsCorrectResponsesObject = (function (_super) {
             return this._pattern;
         },
         set: function (pattern) {
-            if (check2004ValidFormat(pattern, regex.scorm2004_regex.CMIFeedback)) {
+            if (check2004ValidFormat(pattern, regex/* scorm2004_regex */.xt.CMIFeedback)) {
                 this._pattern = pattern;
             }
         },
@@ -5009,7 +4950,7 @@ var CMIInteractionsCorrectResponsesObject = (function (_super) {
         return result;
     };
     return CMIInteractionsCorrectResponsesObject;
-}(base_cmi.BaseCMI));
+}(base_cmi/* BaseCMI */.J));
 
 
 // EXTERNAL MODULE: ./src/cmi/common/score.ts
@@ -5023,15 +4964,15 @@ var score = __webpack_require__(434);
 
 
 var Scorm2004CMIScore = (function (_super) {
-    (0,tslib_es6.__extends)(Scorm2004CMIScore, _super);
+    (0,tslib_es6/* __extends */.C6)(Scorm2004CMIScore, _super);
     function Scorm2004CMIScore() {
         var _this = _super.call(this, {
-            score_children: api_constants.scorm2004_constants.score_children,
+            score_children: api_constants/* scorm2004_constants */.zR.score_children,
             max: "",
-            invalidErrorCode: error_codes.scorm2004_errors.READ_ONLY_ELEMENT,
-            invalidTypeCode: error_codes.scorm2004_errors.TYPE_MISMATCH,
-            invalidRangeCode: error_codes.scorm2004_errors.VALUE_OUT_OF_RANGE,
-            decimalRegex: regex.scorm2004_regex.CMIDecimal,
+            invalidErrorCode: error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT,
+            invalidTypeCode: error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH,
+            invalidRangeCode: error_codes/* scorm2004_errors */.Rf.VALUE_OUT_OF_RANGE,
+            decimalRegex: regex/* scorm2004_regex */.xt.CMIDecimal,
             errorClass: Scorm2004ValidationError,
         }) || this;
         _this._scaled = "";
@@ -5049,8 +4990,8 @@ var Scorm2004CMIScore = (function (_super) {
             return this._scaled;
         },
         set: function (scaled) {
-            if (check2004ValidFormat(scaled, regex.scorm2004_regex.CMIDecimal) &&
-                check2004ValidRange(scaled, regex.scorm2004_regex.scaled_range)) {
+            if (check2004ValidFormat(scaled, regex/* scorm2004_regex */.xt.CMIDecimal) &&
+                check2004ValidRange(scaled, regex/* scorm2004_regex */.xt.scaled_range)) {
                 this._scaled = scaled;
             }
         },
@@ -5069,7 +5010,7 @@ var Scorm2004CMIScore = (function (_super) {
         return result;
     };
     return Scorm2004CMIScore;
-}(score.CMIScore));
+}(score/* CMIScore */._));
 
 
 ;// ./src/cmi/scorm2004/comments.ts
@@ -5082,31 +5023,31 @@ var Scorm2004CMIScore = (function (_super) {
 
 
 var CMICommentsFromLMS = (function (_super) {
-    (0,tslib_es6.__extends)(CMICommentsFromLMS, _super);
+    (0,tslib_es6/* __extends */.C6)(CMICommentsFromLMS, _super);
     function CMICommentsFromLMS() {
         return _super.call(this, {
-            children: api_constants.scorm2004_constants.comments_children,
-            errorCode: error_codes.scorm2004_errors.READ_ONLY_ELEMENT,
+            children: api_constants/* scorm2004_constants */.zR.comments_children,
+            errorCode: error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT,
             errorClass: Scorm2004ValidationError,
         }) || this;
     }
     return CMICommentsFromLMS;
-}(array.CMIArray));
+}(array/* CMIArray */.B));
 
 var CMICommentsFromLearner = (function (_super) {
-    (0,tslib_es6.__extends)(CMICommentsFromLearner, _super);
+    (0,tslib_es6/* __extends */.C6)(CMICommentsFromLearner, _super);
     function CMICommentsFromLearner() {
         return _super.call(this, {
-            children: api_constants.scorm2004_constants.comments_children,
-            errorCode: error_codes.scorm2004_errors.READ_ONLY_ELEMENT,
+            children: api_constants/* scorm2004_constants */.zR.comments_children,
+            errorCode: error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT,
             errorClass: Scorm2004ValidationError,
         }) || this;
     }
     return CMICommentsFromLearner;
-}(array.CMIArray));
+}(array/* CMIArray */.B));
 
 var CMICommentsObject = (function (_super) {
-    (0,tslib_es6.__extends)(CMICommentsObject, _super);
+    (0,tslib_es6/* __extends */.C6)(CMICommentsObject, _super);
     function CMICommentsObject(readOnlyAfterInit) {
         if (readOnlyAfterInit === void 0) { readOnlyAfterInit = false; }
         var _this = _super.call(this) || this;
@@ -5128,10 +5069,10 @@ var CMICommentsObject = (function (_super) {
         },
         set: function (comment) {
             if (this.initialized && this._readOnlyAfterInit) {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.READ_ONLY_ELEMENT);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
             }
             else {
-                if (check2004ValidFormat(comment, regex.scorm2004_regex.CMILangString4000, true)) {
+                if (check2004ValidFormat(comment, regex/* scorm2004_regex */.xt.CMILangString4000, true)) {
                     this._comment = comment;
                 }
             }
@@ -5145,10 +5086,10 @@ var CMICommentsObject = (function (_super) {
         },
         set: function (location) {
             if (this.initialized && this._readOnlyAfterInit) {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.READ_ONLY_ELEMENT);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
             }
             else {
-                if (check2004ValidFormat(location, regex.scorm2004_regex.CMIString250)) {
+                if (check2004ValidFormat(location, regex/* scorm2004_regex */.xt.CMIString250)) {
                     this._location = location;
                 }
             }
@@ -5162,10 +5103,10 @@ var CMICommentsObject = (function (_super) {
         },
         set: function (timestamp) {
             if (this.initialized && this._readOnlyAfterInit) {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.READ_ONLY_ELEMENT);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
             }
             else {
-                if (check2004ValidFormat(timestamp, regex.scorm2004_regex.CMITime)) {
+                if (check2004ValidFormat(timestamp, regex/* scorm2004_regex */.xt.CMITime)) {
                     this._timestamp = timestamp;
                 }
             }
@@ -5184,7 +5125,7 @@ var CMICommentsObject = (function (_super) {
         return result;
     };
     return CMICommentsObject;
-}(base_cmi.BaseCMI));
+}(base_cmi/* BaseCMI */.J));
 
 
 ;// ./src/cmi/scorm2004/objectives.ts
@@ -5198,11 +5139,11 @@ var CMICommentsObject = (function (_super) {
 
 
 var CMIObjectives = (function (_super) {
-    (0,tslib_es6.__extends)(CMIObjectives, _super);
+    (0,tslib_es6/* __extends */.C6)(CMIObjectives, _super);
     function CMIObjectives() {
         return _super.call(this, {
-            children: api_constants.scorm2004_constants.objectives_children,
-            errorCode: error_codes.scorm2004_errors.READ_ONLY_ELEMENT,
+            children: api_constants/* scorm2004_constants */.zR.objectives_children,
+            errorCode: error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT,
             errorClass: Scorm2004ValidationError,
         }) || this;
     }
@@ -5216,10 +5157,10 @@ var CMIObjectives = (function (_super) {
         this.childArray[index] = objective;
     };
     return CMIObjectives;
-}(array.CMIArray));
+}(array/* CMIArray */.B));
 
 var CMIObjectivesObject = (function (_super) {
-    (0,tslib_es6.__extends)(CMIObjectivesObject, _super);
+    (0,tslib_es6/* __extends */.C6)(CMIObjectivesObject, _super);
     function CMIObjectivesObject() {
         var _this = _super.call(this) || this;
         _this._id = "";
@@ -5243,7 +5184,7 @@ var CMIObjectivesObject = (function (_super) {
             return this._id;
         },
         set: function (id) {
-            if (check2004ValidFormat(id, regex.scorm2004_regex.CMILongIdentifier)) {
+            if (check2004ValidFormat(id, regex/* scorm2004_regex */.xt.CMILongIdentifier)) {
                 this._id = id;
             }
         },
@@ -5256,10 +5197,10 @@ var CMIObjectivesObject = (function (_super) {
         },
         set: function (success_status) {
             if (this.initialized && this._id === "") {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.DEPENDENCY_NOT_ESTABLISHED);
             }
             else {
-                if (check2004ValidFormat(success_status, regex.scorm2004_regex.CMISStatus)) {
+                if (check2004ValidFormat(success_status, regex/* scorm2004_regex */.xt.CMISStatus)) {
                     this._success_status = success_status;
                 }
             }
@@ -5273,10 +5214,10 @@ var CMIObjectivesObject = (function (_super) {
         },
         set: function (completion_status) {
             if (this.initialized && this._id === "") {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.DEPENDENCY_NOT_ESTABLISHED);
             }
             else {
-                if (check2004ValidFormat(completion_status, regex.scorm2004_regex.CMICStatus)) {
+                if (check2004ValidFormat(completion_status, regex/* scorm2004_regex */.xt.CMICStatus)) {
                     this._completion_status = completion_status;
                 }
             }
@@ -5290,11 +5231,11 @@ var CMIObjectivesObject = (function (_super) {
         },
         set: function (progress_measure) {
             if (this.initialized && this._id === "") {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.DEPENDENCY_NOT_ESTABLISHED);
             }
             else {
-                if (check2004ValidFormat(progress_measure, regex.scorm2004_regex.CMIDecimal) &&
-                    check2004ValidRange(progress_measure, regex.scorm2004_regex.progress_range)) {
+                if (check2004ValidFormat(progress_measure, regex/* scorm2004_regex */.xt.CMIDecimal) &&
+                    check2004ValidRange(progress_measure, regex/* scorm2004_regex */.xt.progress_range)) {
                     this._progress_measure = progress_measure;
                 }
             }
@@ -5308,10 +5249,10 @@ var CMIObjectivesObject = (function (_super) {
         },
         set: function (description) {
             if (this.initialized && this._id === "") {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.DEPENDENCY_NOT_ESTABLISHED);
             }
             else {
-                if (check2004ValidFormat(description, regex.scorm2004_regex.CMILangString250, true)) {
+                if (check2004ValidFormat(description, regex/* scorm2004_regex */.xt.CMILangString250, true)) {
                     this._description = description;
                 }
             }
@@ -5333,7 +5274,7 @@ var CMIObjectivesObject = (function (_super) {
         return result;
     };
     return CMIObjectivesObject;
-}(base_cmi.BaseCMI));
+}(base_cmi/* BaseCMI */.J));
 
 
 ;// ./src/cmi/scorm2004/metadata.ts
@@ -5343,11 +5284,11 @@ var CMIObjectivesObject = (function (_super) {
 
 
 var CMIMetadata = (function (_super) {
-    (0,tslib_es6.__extends)(CMIMetadata, _super);
+    (0,tslib_es6/* __extends */.C6)(CMIMetadata, _super);
     function CMIMetadata() {
         var _this = _super.call(this) || this;
         _this.__version = "1.0";
-        _this.__children = api_constants.scorm2004_constants.cmi_children;
+        _this.__children = api_constants/* scorm2004_constants */.zR.cmi_children;
         return _this;
     }
     Object.defineProperty(CMIMetadata.prototype, "_version", {
@@ -5355,7 +5296,7 @@ var CMIMetadata = (function (_super) {
             return this.__version;
         },
         set: function (_version) {
-            throw new Scorm2004ValidationError(error_codes.scorm2004_errors.READ_ONLY_ELEMENT);
+            throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
         },
         enumerable: false,
         configurable: true
@@ -5365,7 +5306,7 @@ var CMIMetadata = (function (_super) {
             return this.__children;
         },
         set: function (_children) {
-            throw new Scorm2004ValidationError(error_codes.scorm2004_errors.READ_ONLY_ELEMENT);
+            throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
         },
         enumerable: false,
         configurable: true
@@ -5374,7 +5315,7 @@ var CMIMetadata = (function (_super) {
         this._initialized = false;
     };
     return CMIMetadata;
-}(base_cmi.BaseCMI));
+}(base_cmi/* BaseCMI */.J));
 
 
 ;// ./src/cmi/scorm2004/learner.ts
@@ -5383,7 +5324,7 @@ var CMIMetadata = (function (_super) {
 
 
 var CMILearner = (function (_super) {
-    (0,tslib_es6.__extends)(CMILearner, _super);
+    (0,tslib_es6/* __extends */.C6)(CMILearner, _super);
     function CMILearner() {
         var _this = _super.call(this) || this;
         _this._learner_id = "";
@@ -5396,7 +5337,7 @@ var CMILearner = (function (_super) {
         },
         set: function (learner_id) {
             if (this.initialized) {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.READ_ONLY_ELEMENT);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
             }
             else {
                 this._learner_id = learner_id;
@@ -5411,7 +5352,7 @@ var CMILearner = (function (_super) {
         },
         set: function (learner_name) {
             if (this.initialized) {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.READ_ONLY_ELEMENT);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
             }
             else {
                 this._learner_name = learner_name;
@@ -5424,7 +5365,7 @@ var CMILearner = (function (_super) {
         this._initialized = false;
     };
     return CMILearner;
-}(base_cmi.BaseCMI));
+}(base_cmi/* BaseCMI */.J));
 
 
 ;// ./src/cmi/scorm2004/status.ts
@@ -5433,7 +5374,7 @@ var CMILearner = (function (_super) {
 
 
 var CMIStatus = (function (_super) {
-    (0,tslib_es6.__extends)(CMIStatus, _super);
+    (0,tslib_es6/* __extends */.C6)(CMIStatus, _super);
     function CMIStatus() {
         var _this = _super.call(this) || this;
         _this._completion_status = "unknown";
@@ -5446,7 +5387,7 @@ var CMIStatus = (function (_super) {
             return this._completion_status;
         },
         set: function (completion_status) {
-            if (check2004ValidFormat(completion_status, regex.scorm2004_regex.CMICStatus)) {
+            if (check2004ValidFormat(completion_status, regex/* scorm2004_regex */.xt.CMICStatus)) {
                 this._completion_status = completion_status;
             }
         },
@@ -5458,7 +5399,7 @@ var CMIStatus = (function (_super) {
             return this._success_status;
         },
         set: function (success_status) {
-            if (check2004ValidFormat(success_status, regex.scorm2004_regex.CMISStatus)) {
+            if (check2004ValidFormat(success_status, regex/* scorm2004_regex */.xt.CMISStatus)) {
                 this._success_status = success_status;
             }
         },
@@ -5470,8 +5411,8 @@ var CMIStatus = (function (_super) {
             return this._progress_measure;
         },
         set: function (progress_measure) {
-            if (check2004ValidFormat(progress_measure, regex.scorm2004_regex.CMIDecimal) &&
-                check2004ValidRange(progress_measure, regex.scorm2004_regex.progress_range)) {
+            if (check2004ValidFormat(progress_measure, regex/* scorm2004_regex */.xt.CMIDecimal) &&
+                check2004ValidRange(progress_measure, regex/* scorm2004_regex */.xt.progress_range)) {
                 this._progress_measure = progress_measure;
             }
         },
@@ -5485,7 +5426,7 @@ var CMIStatus = (function (_super) {
         this._progress_measure = "";
     };
     return CMIStatus;
-}(base_cmi.BaseCMI));
+}(base_cmi/* BaseCMI */.J));
 
 
 // EXTERNAL MODULE: ./src/utilities.ts
@@ -5499,7 +5440,7 @@ var utilities = __webpack_require__(864);
 
 
 var CMISession = (function (_super) {
-    (0,tslib_es6.__extends)(CMISession, _super);
+    (0,tslib_es6/* __extends */.C6)(CMISession, _super);
     function CMISession() {
         var _this = _super.call(this) || this;
         _this._entry = "";
@@ -5514,7 +5455,7 @@ var CMISession = (function (_super) {
         },
         set: function (entry) {
             if (this.initialized) {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.READ_ONLY_ELEMENT);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
             }
             else {
                 this._entry = entry;
@@ -5526,12 +5467,12 @@ var CMISession = (function (_super) {
     Object.defineProperty(CMISession.prototype, "exit", {
         get: function () {
             if (!this.jsonString) {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.WRITE_ONLY_ELEMENT);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.WRITE_ONLY_ELEMENT);
             }
             return this._exit;
         },
         set: function (exit) {
-            if (check2004ValidFormat(exit, regex.scorm2004_regex.CMIExit, true)) {
+            if (check2004ValidFormat(exit, regex/* scorm2004_regex */.xt.CMIExit, true)) {
                 this._exit = exit;
             }
         },
@@ -5541,12 +5482,12 @@ var CMISession = (function (_super) {
     Object.defineProperty(CMISession.prototype, "session_time", {
         get: function () {
             if (!this.jsonString) {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.WRITE_ONLY_ELEMENT);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.WRITE_ONLY_ELEMENT);
             }
             return this._session_time;
         },
         set: function (session_time) {
-            if (check2004ValidFormat(session_time, regex.scorm2004_regex.CMITimespan)) {
+            if (check2004ValidFormat(session_time, regex/* scorm2004_regex */.xt.CMITimespan)) {
                 this._session_time = session_time;
             }
         },
@@ -5559,7 +5500,7 @@ var CMISession = (function (_super) {
         },
         set: function (total_time) {
             if (this.initialized) {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.READ_ONLY_ELEMENT);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
             }
             else {
                 this._total_time = total_time;
@@ -5573,9 +5514,9 @@ var CMISession = (function (_super) {
         var startTime = this.start_time;
         if (typeof startTime !== "undefined" && startTime !== null) {
             var seconds = new Date().getTime() - startTime;
-            sessionTime = utilities.getSecondsAsISODuration(seconds / 1000);
+            sessionTime = utilities/* getSecondsAsISODuration */.xE(seconds / 1000);
         }
-        return utilities.addTwoDurations(this._total_time, sessionTime, regex.scorm2004_regex.CMITimespan);
+        return utilities/* addTwoDurations */.$o(this._total_time, sessionTime, regex/* scorm2004_regex */.xt.CMITimespan);
     };
     CMISession.prototype.reset = function () {
         this._initialized = false;
@@ -5584,7 +5525,7 @@ var CMISession = (function (_super) {
         this._session_time = "PT0H0M0S";
     };
     return CMISession;
-}(base_cmi.BaseCMI));
+}(base_cmi/* BaseCMI */.J));
 
 
 ;// ./src/cmi/scorm2004/content.ts
@@ -5595,7 +5536,7 @@ var CMISession = (function (_super) {
 
 
 var CMIContent = (function (_super) {
-    (0,tslib_es6.__extends)(CMIContent, _super);
+    (0,tslib_es6/* __extends */.C6)(CMIContent, _super);
     function CMIContent() {
         var _this = _super.call(this) || this;
         _this._location = "";
@@ -5608,7 +5549,7 @@ var CMIContent = (function (_super) {
             return this._location;
         },
         set: function (location) {
-            if (check2004ValidFormat(location, regex.scorm2004_regex.CMIString1000)) {
+            if (check2004ValidFormat(location, regex/* scorm2004_regex */.xt.CMIString1000)) {
                 this._location = location;
             }
         },
@@ -5621,7 +5562,7 @@ var CMIContent = (function (_super) {
         },
         set: function (launch_data) {
             if (this.initialized) {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.READ_ONLY_ELEMENT);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
             }
             else {
                 this._launch_data = launch_data;
@@ -5635,7 +5576,7 @@ var CMIContent = (function (_super) {
             return this._suspend_data;
         },
         set: function (suspend_data) {
-            if (check2004ValidFormat(suspend_data, regex.scorm2004_regex.CMIString64000, true)) {
+            if (check2004ValidFormat(suspend_data, regex/* scorm2004_regex */.xt.CMIString64000, true)) {
                 this._suspend_data = suspend_data;
             }
         },
@@ -5648,7 +5589,7 @@ var CMIContent = (function (_super) {
         this._suspend_data = "";
     };
     return CMIContent;
-}(base_cmi.BaseCMI));
+}(base_cmi/* BaseCMI */.J));
 
 
 ;// ./src/cmi/scorm2004/settings.ts
@@ -5657,7 +5598,7 @@ var CMIContent = (function (_super) {
 
 
 var CMISettings = (function (_super) {
-    (0,tslib_es6.__extends)(CMISettings, _super);
+    (0,tslib_es6/* __extends */.C6)(CMISettings, _super);
     function CMISettings() {
         var _this = _super.call(this) || this;
         _this._credit = "credit";
@@ -5672,7 +5613,7 @@ var CMISettings = (function (_super) {
         },
         set: function (credit) {
             if (this.initialized) {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.READ_ONLY_ELEMENT);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
             }
             else {
                 this._credit = credit;
@@ -5687,7 +5628,7 @@ var CMISettings = (function (_super) {
         },
         set: function (mode) {
             if (this.initialized) {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.READ_ONLY_ELEMENT);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
             }
             else {
                 this._mode = mode;
@@ -5702,7 +5643,7 @@ var CMISettings = (function (_super) {
         },
         set: function (time_limit_action) {
             if (this.initialized) {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.READ_ONLY_ELEMENT);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
             }
             else {
                 this._time_limit_action = time_limit_action;
@@ -5717,7 +5658,7 @@ var CMISettings = (function (_super) {
         },
         set: function (max_time_allowed) {
             if (this.initialized) {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.READ_ONLY_ELEMENT);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
             }
             else {
                 this._max_time_allowed = max_time_allowed;
@@ -5730,7 +5671,7 @@ var CMISettings = (function (_super) {
         this._initialized = false;
     };
     return CMISettings;
-}(base_cmi.BaseCMI));
+}(base_cmi/* BaseCMI */.J));
 
 
 ;// ./src/cmi/scorm2004/thresholds.ts
@@ -5739,7 +5680,7 @@ var CMISettings = (function (_super) {
 
 
 var CMIThresholds = (function (_super) {
-    (0,tslib_es6.__extends)(CMIThresholds, _super);
+    (0,tslib_es6/* __extends */.C6)(CMIThresholds, _super);
     function CMIThresholds() {
         var _this = _super.call(this) || this;
         _this._scaled_passing_score = "";
@@ -5752,7 +5693,7 @@ var CMIThresholds = (function (_super) {
         },
         set: function (scaled_passing_score) {
             if (this.initialized) {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.READ_ONLY_ELEMENT);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
             }
             else {
                 this._scaled_passing_score = scaled_passing_score;
@@ -5767,7 +5708,7 @@ var CMIThresholds = (function (_super) {
         },
         set: function (completion_threshold) {
             if (this.initialized) {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.READ_ONLY_ELEMENT);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
             }
             else {
                 this._completion_threshold = completion_threshold;
@@ -5780,7 +5721,7 @@ var CMIThresholds = (function (_super) {
         this._initialized = false;
     };
     return CMIThresholds;
-}(base_cmi.BaseCMI));
+}(base_cmi/* BaseCMI */.J));
 
 
 ;// ./src/cmi/scorm2004/cmi.ts
@@ -5799,7 +5740,7 @@ var CMIThresholds = (function (_super) {
 
 
 var CMI = (function (_super) {
-    (0,tslib_es6.__extends)(CMI, _super);
+    (0,tslib_es6/* __extends */.C6)(CMI, _super);
     function CMI(initialized) {
         if (initialized === void 0) { initialized = false; }
         var _this = _super.call(this) || this;
@@ -6092,7 +6033,7 @@ var CMI = (function (_super) {
         return result;
     };
     return CMI;
-}(base_cmi.BaseRootCMI));
+}(base_cmi/* BaseRootCMI */.r));
 
 
 // EXTERNAL MODULE: ./src/constants/enums.ts
@@ -6108,7 +6049,7 @@ var enums = __webpack_require__(56);
 
 
 var ADL = (function (_super) {
-    (0,tslib_es6.__extends)(ADL, _super);
+    (0,tslib_es6/* __extends */.C6)(ADL, _super);
     function ADL() {
         var _this = _super.call(this) || this;
         _this.data = new ADLData();
@@ -6136,10 +6077,10 @@ var ADL = (function (_super) {
         return result;
     };
     return ADL;
-}(base_cmi.BaseCMI));
+}(base_cmi/* BaseCMI */.J));
 
 var ADLNav = (function (_super) {
-    (0,tslib_es6.__extends)(ADLNav, _super);
+    (0,tslib_es6/* __extends */.C6)(ADLNav, _super);
     function ADLNav() {
         var _this = _super.call(this) || this;
         _this._request = "_none_";
@@ -6162,7 +6103,7 @@ var ADLNav = (function (_super) {
             return this._request;
         },
         set: function (request) {
-            if (check2004ValidFormat(request, regex.scorm2004_regex.NAVEvent)) {
+            if (check2004ValidFormat(request, regex/* scorm2004_regex */.xt.NAVEvent)) {
                 this._request = request;
             }
         },
@@ -6178,22 +6119,22 @@ var ADLNav = (function (_super) {
         return result;
     };
     return ADLNav;
-}(base_cmi.BaseCMI));
+}(base_cmi/* BaseCMI */.J));
 
 var ADLData = (function (_super) {
-    (0,tslib_es6.__extends)(ADLData, _super);
+    (0,tslib_es6/* __extends */.C6)(ADLData, _super);
     function ADLData() {
         return _super.call(this, {
-            children: api_constants.scorm2004_constants.adl_data_children,
-            errorCode: error_codes.scorm2004_errors.READ_ONLY_ELEMENT,
+            children: api_constants/* scorm2004_constants */.zR.adl_data_children,
+            errorCode: error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT,
             errorClass: Scorm2004ValidationError,
         }) || this;
     }
     return ADLData;
-}(array.CMIArray));
+}(array/* CMIArray */.B));
 
 var ADLDataObject = (function (_super) {
-    (0,tslib_es6.__extends)(ADLDataObject, _super);
+    (0,tslib_es6/* __extends */.C6)(ADLDataObject, _super);
     function ADLDataObject() {
         var _this = _super.call(this) || this;
         _this._id = "";
@@ -6208,7 +6149,7 @@ var ADLDataObject = (function (_super) {
             return this._id;
         },
         set: function (id) {
-            if (check2004ValidFormat(id, regex.scorm2004_regex.CMILongIdentifier)) {
+            if (check2004ValidFormat(id, regex/* scorm2004_regex */.xt.CMILongIdentifier)) {
                 this._id = id;
             }
         },
@@ -6220,7 +6161,7 @@ var ADLDataObject = (function (_super) {
             return this._store;
         },
         set: function (store) {
-            if (check2004ValidFormat(store, regex.scorm2004_regex.CMILangString4000)) {
+            if (check2004ValidFormat(store, regex/* scorm2004_regex */.xt.CMILangString4000)) {
                 this._store = store;
             }
         },
@@ -6237,10 +6178,10 @@ var ADLDataObject = (function (_super) {
         return result;
     };
     return ADLDataObject;
-}(base_cmi.BaseCMI));
+}(base_cmi/* BaseCMI */.J));
 
 var ADLNavRequestValid = (function (_super) {
-    (0,tslib_es6.__extends)(ADLNavRequestValid, _super);
+    (0,tslib_es6/* __extends */.C6)(ADLNavRequestValid, _super);
     function ADLNavRequestValid() {
         var _this = _super.call(this) || this;
         _this._continue = "unknown";
@@ -6260,9 +6201,9 @@ var ADLNavRequestValid = (function (_super) {
         },
         set: function (_continue) {
             if (this.initialized) {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.READ_ONLY_ELEMENT);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
             }
-            if (check2004ValidFormat(_continue, regex.scorm2004_regex.NAVBoolean)) {
+            if (check2004ValidFormat(_continue, regex/* scorm2004_regex */.xt.NAVBoolean)) {
                 this._continue = _continue;
             }
         },
@@ -6275,9 +6216,9 @@ var ADLNavRequestValid = (function (_super) {
         },
         set: function (_previous) {
             if (this.initialized) {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.READ_ONLY_ELEMENT);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
             }
-            if (check2004ValidFormat(_previous, regex.scorm2004_regex.NAVBoolean)) {
+            if (check2004ValidFormat(_previous, regex/* scorm2004_regex */.xt.NAVBoolean)) {
                 this._previous = _previous;
             }
         },
@@ -6290,17 +6231,17 @@ var ADLNavRequestValid = (function (_super) {
         },
         set: function (choice) {
             if (this.initialized) {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.READ_ONLY_ELEMENT);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
             }
             if (typeof choice !== "object") {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.TYPE_MISMATCH);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
             }
             for (var key in choice) {
                 if ({}.hasOwnProperty.call(choice, key)) {
-                    if (check2004ValidFormat(choice[key], regex.scorm2004_regex.NAVBoolean) &&
-                        check2004ValidFormat(key, regex.scorm2004_regex.NAVTarget)) {
+                    if (check2004ValidFormat(choice[key], regex/* scorm2004_regex */.xt.NAVBoolean) &&
+                        check2004ValidFormat(key, regex/* scorm2004_regex */.xt.NAVTarget)) {
                         this._choice[key] =
-                            enums.NAVBoolean[choice[key]];
+                            enums/* NAVBoolean */.K$[choice[key]];
                     }
                 }
             }
@@ -6314,16 +6255,16 @@ var ADLNavRequestValid = (function (_super) {
         },
         set: function (jump) {
             if (this.initialized) {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.READ_ONLY_ELEMENT);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
             }
             if (typeof jump !== "object") {
-                throw new Scorm2004ValidationError(error_codes.scorm2004_errors.TYPE_MISMATCH);
+                throw new Scorm2004ValidationError(error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
             }
             for (var key in jump) {
                 if ({}.hasOwnProperty.call(jump, key)) {
-                    if (check2004ValidFormat(jump[key], regex.scorm2004_regex.NAVBoolean) &&
-                        check2004ValidFormat(key, regex.scorm2004_regex.NAVTarget)) {
-                        this._jump[key] = enums.NAVBoolean[jump[key]];
+                    if (check2004ValidFormat(jump[key], regex/* scorm2004_regex */.xt.NAVBoolean) &&
+                        check2004ValidFormat(key, regex/* scorm2004_regex */.xt.NAVTarget)) {
+                        this._jump[key] = enums/* NAVBoolean */.K$[jump[key]];
                     }
                 }
             }
@@ -6343,7 +6284,7 @@ var ADLNavRequestValid = (function (_super) {
         return result;
     };
     return ADLNavRequestValid;
-}(base_cmi.BaseCMI));
+}(base_cmi/* BaseCMI */.J));
 
 
 ;// ./src/constants/language_constants.ts
@@ -6759,7 +6700,7 @@ function checkValidResponseType(response_type, value, interaction_type, throwSCO
         checkCorrectResponseValue(interaction_type, nodes, value);
     }
     else if (nodes.length > response_type.max) {
-        throwSCORMError(error_codes.scorm2004_errors.GENERAL_SET_FAILURE, "Data Model Element Pattern Too Long");
+        throwSCORMError(error_codes/* scorm2004_errors */.Rf.GENERAL_SET_FAILURE, "Data Model Element Pattern Too Long");
     }
 }
 function checkDuplicateChoiceResponse(interaction, value, throwSCORMError, lastErrorCode) {
@@ -6768,7 +6709,7 @@ function checkDuplicateChoiceResponse(interaction, value, throwSCORMError, lastE
         for (var i = 0; i < interaction_count && lastErrorCode === "0"; i++) {
             var response = interaction.correct_responses.childArray[i];
             if (response.pattern === value) {
-                throwSCORMError(error_codes.scorm2004_errors.GENERAL_SET_FAILURE);
+                throwSCORMError(error_codes/* scorm2004_errors */.Rf.GENERAL_SET_FAILURE);
             }
         }
     }
@@ -6789,12 +6730,12 @@ function validateCorrectResponse(CMIElement, value, interaction, throwSCORMError
         }
         else {
             if (lastErrorCode === "0") {
-                throwSCORMError(error_codes.scorm2004_errors.GENERAL_SET_FAILURE, "Data Model Element Pattern Already Exists");
+                throwSCORMError(error_codes/* scorm2004_errors */.Rf.GENERAL_SET_FAILURE, "Data Model Element Pattern Already Exists");
             }
         }
     }
     else {
-        throwSCORMError(error_codes.scorm2004_errors.GENERAL_SET_FAILURE, "Data Model Element Collection Limit Reached");
+        throwSCORMError(error_codes/* scorm2004_errors */.Rf.GENERAL_SET_FAILURE, "Data Model Element Collection Limit Reached");
     }
 }
 function checkDuplicatedPattern(correct_response, current_index, value) {
@@ -6819,36 +6760,36 @@ function checkCorrectResponseValue(interaction_type, nodes, value, throwSCORMErr
             if (values.length === 2) {
                 var matches = values[0].match(formatRegex);
                 if (!matches) {
-                    throwSCORMError(error_codes.scorm2004_errors.TYPE_MISMATCH);
+                    throwSCORMError(error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
                 }
                 else {
                     if (!response.format2 ||
                         !values[1].match(new RegExp(response.format2))) {
-                        throwSCORMError(error_codes.scorm2004_errors.TYPE_MISMATCH);
+                        throwSCORMError(error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
                     }
                 }
             }
             else {
-                throwSCORMError(error_codes.scorm2004_errors.TYPE_MISMATCH);
+                throwSCORMError(error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
             }
         }
         else {
             var matches = nodes[i].match(formatRegex);
             if ((!matches && value !== "") ||
                 (!matches && interaction_type === "true-false")) {
-                throwSCORMError(error_codes.scorm2004_errors.TYPE_MISMATCH);
+                throwSCORMError(error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
             }
             else {
                 if (interaction_type === "numeric" && nodes.length > 1) {
                     if (Number(nodes[0]) > Number(nodes[1])) {
-                        throwSCORMError(error_codes.scorm2004_errors.TYPE_MISMATCH);
+                        throwSCORMError(error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
                     }
                 }
                 else {
                     if (nodes[i] !== "" && response.unique) {
                         for (var j = 0; j < i && lastErrorCode === "0"; j++) {
                             if (nodes[i] === nodes[j]) {
-                                throwSCORMError(error_codes.scorm2004_errors.TYPE_MISMATCH);
+                                throwSCORMError(error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
                             }
                         }
                     }
@@ -6867,12 +6808,12 @@ function removeCorrectResponsePrefixes(node, throwSCORMError) {
     while (matches) {
         switch (matches[2]) {
             case "lang":
-                langMatches = node.match(regex.scorm2004_regex.CMILangcr);
+                langMatches = node.match(regex/* scorm2004_regex */.xt.CMILangcr);
                 if (langMatches) {
                     var lang = langMatches[3];
                     if (lang !== undefined && lang.length > 0) {
                         if (!language_constants.includes(lang.toLowerCase())) {
-                            throwSCORMError(error_codes.scorm2004_errors.TYPE_MISMATCH);
+                            throwSCORMError(error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
                         }
                     }
                 }
@@ -6881,7 +6822,7 @@ function removeCorrectResponsePrefixes(node, throwSCORMError) {
             case "case_matters":
                 if (!seenLang && !seenOrder && !seenCase) {
                     if (matches[3] !== "true" && matches[3] !== "false") {
-                        throwSCORMError(error_codes.scorm2004_errors.TYPE_MISMATCH);
+                        throwSCORMError(error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
                     }
                 }
                 seenCase = true;
@@ -6889,7 +6830,7 @@ function removeCorrectResponsePrefixes(node, throwSCORMError) {
             case "order_matters":
                 if (!seenCase && !seenLang && !seenOrder) {
                     if (matches[3] !== "true" && matches[3] !== "false") {
-                        throwSCORMError(error_codes.scorm2004_errors.TYPE_MISMATCH);
+                        throwSCORMError(error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
                     }
                 }
                 seenOrder = true;
@@ -6910,27 +6851,27 @@ function removeCorrectResponsePrefixes(node, throwSCORMError) {
 
 
 function getChildElement(CMIElement, value, foundFirstIndex, createCorrectResponsesObject) {
-    if ((0,utilities.stringMatches)(CMIElement, "cmi\\.objectives\\.\\d+")) {
+    if ((0,utilities/* stringMatches */.J6)(CMIElement, "cmi\\.objectives\\.\\d+")) {
         return new CMIObjectivesObject();
     }
     if (foundFirstIndex) {
-        if ((0,utilities.stringMatches)(CMIElement, "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+")) {
+        if ((0,utilities/* stringMatches */.J6)(CMIElement, "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+")) {
             return createCorrectResponsesObject(CMIElement, value);
         }
-        else if ((0,utilities.stringMatches)(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")) {
+        else if ((0,utilities/* stringMatches */.J6)(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")) {
             return new CMIInteractionsObjectivesObject();
         }
     }
-    else if ((0,utilities.stringMatches)(CMIElement, "cmi\\.interactions\\.\\d+")) {
+    else if ((0,utilities/* stringMatches */.J6)(CMIElement, "cmi\\.interactions\\.\\d+")) {
         return new CMIInteractionsObject();
     }
-    if ((0,utilities.stringMatches)(CMIElement, "cmi\\.comments_from_learner\\.\\d+")) {
+    if ((0,utilities/* stringMatches */.J6)(CMIElement, "cmi\\.comments_from_learner\\.\\d+")) {
         return new CMICommentsObject();
     }
-    else if ((0,utilities.stringMatches)(CMIElement, "cmi\\.comments_from_lms\\.\\d+")) {
+    else if ((0,utilities/* stringMatches */.J6)(CMIElement, "cmi\\.comments_from_lms\\.\\d+")) {
         return new CMICommentsObject(true);
     }
-    if ((0,utilities.stringMatches)(CMIElement, "adl\\.data\\.\\d+")) {
+    if ((0,utilities/* stringMatches */.J6)(CMIElement, "adl\\.data\\.\\d+")) {
         return new ADLDataObject();
     }
     return null;
@@ -6941,7 +6882,7 @@ function createCorrectResponsesObject(CMIElement, value, interactions, throwSCOR
     var interaction = interactions[index];
     if (isInitialized) {
         if (typeof interaction === "undefined" || !interaction.type) {
-            throwSCORMError(error_codes.scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED);
+            throwSCORMError(error_codes/* scorm2004_errors */.Rf.DEPENDENCY_NOT_ESTABLISHED);
             return null;
         }
         else {
@@ -6951,7 +6892,7 @@ function createCorrectResponsesObject(CMIElement, value, interactions, throwSCOR
                 checkValidResponseType(response_type, value, interaction.type, throwSCORMError, checkCorrectResponseValue);
             }
             else {
-                throwSCORMError(error_codes.scorm2004_errors.GENERAL_SET_FAILURE, "Incorrect Response Type: " + interaction.type);
+                throwSCORMError(error_codes/* scorm2004_errors */.Rf.GENERAL_SET_FAILURE, "Incorrect Response Type: " + interaction.type);
                 return null;
             }
         }
@@ -6966,12 +6907,12 @@ function createCorrectResponsesObject(CMIElement, value, interactions, throwSCOR
 
 
 function setCMIValue(CMIElement, value, commonSetCMIValue, globalObjectives, globalObjectiveIds, cmiObjectives) {
-    if ((0,utilities.stringMatches)(CMIElement, "cmi\\.objectives\\.\\d+")) {
+    if ((0,utilities/* stringMatches */.J6)(CMIElement, "cmi\\.objectives\\.\\d+")) {
         var parts = CMIElement.split(".");
         var index = Number(parts[2]);
         var element_base = "cmi.objectives.".concat(index);
         var objective_id_1;
-        var setting_id = (0,utilities.stringMatches)(CMIElement, "cmi\\.objectives\\.\\d+\\.id");
+        var setting_id = (0,utilities/* stringMatches */.J6)(CMIElement, "cmi\\.objectives\\.\\d+\\.id");
         if (setting_id) {
             objective_id_1 = value;
         }
@@ -7009,10 +6950,10 @@ function renderCommitCMI(terminateCommit, cmi, settings, renderCMIToJSONObject) 
         cmiExport.cmi.total_time = cmi.getCurrentTotalTime();
     }
     var result = [];
-    var flattened = utilities.flatten(cmiExport);
+    var flattened = utilities/* flatten */.Bq(cmiExport);
     switch (settings.dataCommitFormat) {
         case "flattened":
-            return utilities.flatten(cmiExport);
+            return utilities/* flatten */.Bq(cmiExport);
         case "params":
             for (var item in flattened) {
                 if ({}.hasOwnProperty.call(flattened, item)) {
@@ -7028,23 +6969,23 @@ function renderCommitCMI(terminateCommit, cmi, settings, renderCMIToJSONObject) 
 function renderCommitObject(terminateCommit, cmi, renderCommitCMIFn) {
     var cmiExport = renderCommitCMIFn(terminateCommit);
     var totalTimeDuration = cmi.getCurrentTotalTime();
-    var totalTimeSeconds = utilities.getDurationAsSeconds(totalTimeDuration, regex.scorm2004_regex.CMITimespan);
-    var completionStatus = enums.CompletionStatus.UNKNOWN;
-    var successStatus = enums.SuccessStatus.UNKNOWN;
+    var totalTimeSeconds = utilities/* getDurationAsSeconds */.OI(totalTimeDuration, regex/* scorm2004_regex */.xt.CMITimespan);
+    var completionStatus = enums/* CompletionStatus */.lC.UNKNOWN;
+    var successStatus = enums/* SuccessStatus */.YE.UNKNOWN;
     if (cmi.completion_status) {
         if (cmi.completion_status === "completed") {
-            completionStatus = enums.CompletionStatus.COMPLETED;
+            completionStatus = enums/* CompletionStatus */.lC.COMPLETED;
         }
         else if (cmi.completion_status === "incomplete") {
-            completionStatus = enums.CompletionStatus.INCOMPLETE;
+            completionStatus = enums/* CompletionStatus */.lC.INCOMPLETE;
         }
     }
     if (cmi.success_status) {
         if (cmi.success_status === "passed") {
-            successStatus = enums.SuccessStatus.PASSED;
+            successStatus = enums/* SuccessStatus */.YE.PASSED;
         }
         else if (cmi.success_status === "failed") {
-            successStatus = enums.SuccessStatus.FAILED;
+            successStatus = enums/* SuccessStatus */.YE.FAILED;
         }
     }
     var score = cmi.score;
@@ -7076,10 +7017,10 @@ function renderCommitObject(terminateCommit, cmi, renderCommitCMIFn) {
     return commitObject;
 }
 function storeData(terminateCommit, cmi, adl, startingData, settings, getCommitObject, processHttpRequest, processListeners) {
-    return (0,tslib_es6.__awaiter)(this, void 0, void 0, function () {
+    return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
         var navRequest, commitObject, result;
         var _a, _b;
-        return (0,tslib_es6.__generator)(this, function (_c) {
+        return (0,tslib_es6/* __generator */.YH)(this, function (_c) {
             switch (_c.label) {
                 case 0:
                     if (terminateCommit) {
@@ -7150,7 +7091,7 @@ function storeData(terminateCommit, cmi, adl, startingData, settings, getCommitO
 
 
 var Scorm2004Impl = (function (_super) {
-    (0,tslib_es6.__extends)(Scorm2004Impl, _super);
+    (0,tslib_es6/* __extends */.C6)(Scorm2004Impl, _super);
     function Scorm2004Impl(settings) {
         var _this = this;
         if (settings) {
@@ -7158,7 +7099,7 @@ var Scorm2004Impl = (function (_super) {
                 settings.mastery_override = false;
             }
         }
-        _this = _super.call(this, error_codes.scorm2004_errors, settings) || this;
+        _this = _super.call(this, error_codes/* scorm2004_errors */.Rf, settings) || this;
         _this._version = "1.0";
         _this._globalObjectives = [];
         _this.cmi = new CMI();
@@ -7199,8 +7140,8 @@ var Scorm2004Impl = (function (_super) {
     };
     Scorm2004Impl.prototype.lmsFinish = function () {
         var _this = this;
-        (function () { return (0,tslib_es6.__awaiter)(_this, void 0, void 0, function () {
-            return (0,tslib_es6.__generator)(this, function (_a) {
+        (function () { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () {
+            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4, this.internalFinish()];
                     case 1:
@@ -7209,18 +7150,18 @@ var Scorm2004Impl = (function (_super) {
                 }
             });
         }); })();
-        return api_constants.global_constants.SCORM_TRUE;
+        return api_constants/* global_constants */._y.SCORM_TRUE;
     };
     Scorm2004Impl.prototype.internalFinish = function () {
-        return (0,tslib_es6.__awaiter)(this, void 0, void 0, function () {
+        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
             var result, navActions, request, choiceJumpRegex, matches, target, action;
             var _a, _b, _c, _d;
-            return (0,tslib_es6.__generator)(this, function (_e) {
+            return (0,tslib_es6/* __generator */.YH)(this, function (_e) {
                 switch (_e.label) {
                     case 0: return [4, this.terminate("Terminate", true)];
                     case 1:
                         result = _e.sent();
-                        if (result === api_constants.global_constants.SCORM_TRUE) {
+                        if (result === api_constants/* global_constants */._y.SCORM_TRUE) {
                             if (this.adl.nav.request !== "_none_") {
                                 navActions = {
                                     continue: "SequenceNext",
@@ -7233,7 +7174,7 @@ var Scorm2004Impl = (function (_super) {
                                     abandonAll: "SequenceAbandonAll",
                                 };
                                 request = this.adl.nav.request;
-                                choiceJumpRegex = new RegExp(regex.scorm2004_regex.NAVEvent);
+                                choiceJumpRegex = new RegExp(regex/* scorm2004_regex */.xt.NAVEvent);
                                 matches = request.match(choiceJumpRegex);
                                 target = "";
                                 if (matches) {
@@ -7262,7 +7203,7 @@ var Scorm2004Impl = (function (_super) {
     };
     Scorm2004Impl.prototype.lmsGetValue = function (CMIElement) {
         var adlNavRequestRegex = "^adl\\.nav\\.request_valid\\.(choice|jump)\\.{target=\\S{0,}([a-zA-Z0-9-_]+)}$";
-        if ((0,utilities.stringMatches)(CMIElement, adlNavRequestRegex)) {
+        if ((0,utilities/* stringMatches */.J6)(CMIElement, adlNavRequestRegex)) {
             var matches = CMIElement.match(adlNavRequestRegex);
             var request = matches[1];
             var target = matches[2].replace("{target=", "").replace("}", "");
@@ -7284,8 +7225,8 @@ var Scorm2004Impl = (function (_super) {
             this.scheduleCommit(500, "Commit");
         }
         else {
-            (function () { return (0,tslib_es6.__awaiter)(_this, void 0, void 0, function () {
-                return (0,tslib_es6.__generator)(this, function (_a) {
+            (function () { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () {
+                return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
                     switch (_a.label) {
                         case 0: return [4, this.commit("Commit", false)];
                         case 1:
@@ -7295,7 +7236,7 @@ var Scorm2004Impl = (function (_super) {
                 });
             }); })();
         }
-        return api_constants.global_constants.SCORM_TRUE;
+        return api_constants/* global_constants */._y.SCORM_TRUE;
     };
     Scorm2004Impl.prototype.lmsGetLastError = function () {
         return this.getLastError("GetLastError");
@@ -7334,11 +7275,11 @@ var Scorm2004Impl = (function (_super) {
         var basicMessage = "";
         var detailMessage = "";
         errorNumber = String(errorNumber);
-        if (api_constants.scorm2004_constants.error_descriptions[errorNumber]) {
+        if (api_constants/* scorm2004_constants */.zR.error_descriptions[errorNumber]) {
             basicMessage =
-                api_constants.scorm2004_constants.error_descriptions[errorNumber].basicMessage;
+                api_constants/* scorm2004_constants */.zR.error_descriptions[errorNumber].basicMessage;
             detailMessage =
-                api_constants.scorm2004_constants.error_descriptions[errorNumber].detailMessage;
+                api_constants/* scorm2004_constants */.zR.error_descriptions[errorNumber].detailMessage;
         }
         return detail ? detailMessage : basicMessage;
     };
@@ -7362,14 +7303,14 @@ var Scorm2004Impl = (function (_super) {
         return renderCommitObject(terminateCommit, this.cmi, this.renderCommitCMI.bind(this));
     };
     Scorm2004Impl.prototype.storeData = function (terminateCommit) {
-        return (0,tslib_es6.__awaiter)(this, void 0, void 0, function () {
-            return (0,tslib_es6.__generator)(this, function (_a) {
+        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
+            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
                 return [2, storeData(terminateCommit, this.cmi, this.adl, this.startingData, this.settings, this.getCommitObject.bind(this), this.processHttpRequest.bind(this), this.processListeners.bind(this))];
             });
         });
     };
     return Scorm2004Impl;
-}(BaseAPI["default"]));
+}(BaseAPI/* default */.A));
 
 
 
@@ -7378,7 +7319,6 @@ var Scorm2004Impl = (function (_super) {
 /***/ 941:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-__webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   Scorm12API: function() { return /* binding */ Scorm12Impl; }
 /* harmony export */ });
@@ -7406,7 +7346,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 var Scorm12Impl = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_10__.__extends)(Scorm12Impl, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_10__/* .__extends */ .C6)(Scorm12Impl, _super);
     function Scorm12Impl(settings) {
         var _this = this;
         if (settings) {
@@ -7414,10 +7354,10 @@ var Scorm12Impl = (function (_super) {
                 settings.mastery_override = false;
             }
         }
-        _this = _super.call(this, _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors, settings) || this;
+        _this = _super.call(this, _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se, settings) || this;
         _this.statusSetByModule = false;
-        _this.cmi = new _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_0__.CMI();
-        _this.nav = new _cmi_scorm12_nav__WEBPACK_IMPORTED_MODULE_6__.NAV();
+        _this.cmi = new _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_0__/* .CMI */ .Y();
+        _this.nav = new _cmi_scorm12_nav__WEBPACK_IMPORTED_MODULE_6__/* .NAV */ .A();
         _this.LMSInitialize = _this.lmsInitialize;
         _this.LMSFinish = _this.lmsFinish;
         _this.LMSGetValue = _this.lmsGetValue;
@@ -7446,8 +7386,8 @@ var Scorm12Impl = (function (_super) {
     };
     Scorm12Impl.prototype.lmsFinish = function () {
         var _this = this;
-        (function () { return (0,tslib__WEBPACK_IMPORTED_MODULE_10__.__awaiter)(_this, void 0, void 0, function () {
-            return (0,tslib__WEBPACK_IMPORTED_MODULE_10__.__generator)(this, function (_a) {
+        (function () { return (0,tslib__WEBPACK_IMPORTED_MODULE_10__/* .__awaiter */ .sH)(_this, void 0, void 0, function () {
+            return (0,tslib__WEBPACK_IMPORTED_MODULE_10__/* .__generator */ .YH)(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4, this.internalFinish()];
                     case 1:
@@ -7456,17 +7396,17 @@ var Scorm12Impl = (function (_super) {
                 }
             });
         }); })();
-        return _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__.global_constants.SCORM_TRUE;
+        return _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* .global_constants */ ._y.SCORM_TRUE;
     };
     Scorm12Impl.prototype.internalFinish = function () {
-        return (0,tslib__WEBPACK_IMPORTED_MODULE_10__.__awaiter)(this, void 0, void 0, function () {
+        return (0,tslib__WEBPACK_IMPORTED_MODULE_10__/* .__awaiter */ .sH)(this, void 0, void 0, function () {
             var result;
-            return (0,tslib__WEBPACK_IMPORTED_MODULE_10__.__generator)(this, function (_a) {
+            return (0,tslib__WEBPACK_IMPORTED_MODULE_10__/* .__generator */ .YH)(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4, this.terminate("LMSFinish", true)];
                     case 1:
                         result = _a.sent();
-                        if (result === _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__.global_constants.SCORM_TRUE) {
+                        if (result === _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* .global_constants */ ._y.SCORM_TRUE) {
                             if (this.nav.event !== "") {
                                 if (this.nav.event === "continue") {
                                     this.processListeners("SequenceNext");
@@ -7499,8 +7439,8 @@ var Scorm12Impl = (function (_super) {
             this.scheduleCommit(500, "LMSCommit");
         }
         else {
-            (function () { return (0,tslib__WEBPACK_IMPORTED_MODULE_10__.__awaiter)(_this, void 0, void 0, function () {
-                return (0,tslib__WEBPACK_IMPORTED_MODULE_10__.__generator)(this, function (_a) {
+            (function () { return (0,tslib__WEBPACK_IMPORTED_MODULE_10__/* .__awaiter */ .sH)(_this, void 0, void 0, function () {
+                return (0,tslib__WEBPACK_IMPORTED_MODULE_10__/* .__generator */ .YH)(this, function (_a) {
                     switch (_a.label) {
                         case 0: return [4, this.commit("LMSCommit", false)];
                         case 1:
@@ -7510,7 +7450,7 @@ var Scorm12Impl = (function (_super) {
                 });
             }); })();
         }
-        return _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__.global_constants.SCORM_TRUE;
+        return _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* .global_constants */ ._y.SCORM_TRUE;
     };
     Scorm12Impl.prototype.lmsGetLastError = function () {
         return this.getLastError("LMSGetLastError");
@@ -7528,20 +7468,20 @@ var Scorm12Impl = (function (_super) {
         return this._commonGetCMIValue("getCMIValue", false, CMIElement);
     };
     Scorm12Impl.prototype.getChildElement = function (CMIElement, _value, foundFirstIndex) {
-        if ((0,_utilities__WEBPACK_IMPORTED_MODULE_1__.stringMatches)(CMIElement, "cmi\\.objectives\\.\\d+")) {
-            return new _cmi_scorm12_objectives__WEBPACK_IMPORTED_MODULE_4__.CMIObjectivesObject();
+        if ((0,_utilities__WEBPACK_IMPORTED_MODULE_1__/* .stringMatches */ .J6)(CMIElement, "cmi\\.objectives\\.\\d+")) {
+            return new _cmi_scorm12_objectives__WEBPACK_IMPORTED_MODULE_4__/* .CMIObjectivesObject */ .N();
         }
         else if (foundFirstIndex &&
-            (0,_utilities__WEBPACK_IMPORTED_MODULE_1__.stringMatches)(CMIElement, "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+")) {
-            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_5__.CMIInteractionsCorrectResponsesObject();
+            (0,_utilities__WEBPACK_IMPORTED_MODULE_1__/* .stringMatches */ .J6)(CMIElement, "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+")) {
+            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_5__/* .CMIInteractionsCorrectResponsesObject */ .cb();
         }
         else if (foundFirstIndex &&
-            (0,_utilities__WEBPACK_IMPORTED_MODULE_1__.stringMatches)(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")) {
-            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_5__.CMIInteractionsObjectivesObject();
+            (0,_utilities__WEBPACK_IMPORTED_MODULE_1__/* .stringMatches */ .J6)(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")) {
+            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_5__/* .CMIInteractionsObjectivesObject */ .Oh();
         }
         else if (!foundFirstIndex &&
-            (0,_utilities__WEBPACK_IMPORTED_MODULE_1__.stringMatches)(CMIElement, "cmi\\.interactions\\.\\d+")) {
-            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_5__.CMIInteractionsObject();
+            (0,_utilities__WEBPACK_IMPORTED_MODULE_1__/* .stringMatches */ .J6)(CMIElement, "cmi\\.interactions\\.\\d+")) {
+            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_5__/* .CMIInteractionsObject */ .WP();
         }
         return null;
     };
@@ -7551,11 +7491,11 @@ var Scorm12Impl = (function (_super) {
         var basicMessage = "No Error";
         var detailMessage = "No Error";
         errorNumber = String(errorNumber);
-        if (_constants_api_constants__WEBPACK_IMPORTED_MODULE_2__.scorm12_constants.error_descriptions[errorNumber]) {
+        if (_constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_constants */ .QP.error_descriptions[errorNumber]) {
             basicMessage =
-                _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__.scorm12_constants.error_descriptions[errorNumber].basicMessage;
+                _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_constants */ .QP.error_descriptions[errorNumber].basicMessage;
             detailMessage =
-                _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__.scorm12_constants.error_descriptions[errorNumber].detailMessage;
+                _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_constants */ .QP.error_descriptions[errorNumber].detailMessage;
         }
         return detail ? detailMessage : basicMessage;
     };
@@ -7568,10 +7508,10 @@ var Scorm12Impl = (function (_super) {
             cmiExport.cmi.core.total_time = this.cmi.getCurrentTotalTime();
         }
         var result = [];
-        var flattened = _utilities__WEBPACK_IMPORTED_MODULE_1__.flatten(cmiExport);
+        var flattened = _utilities__WEBPACK_IMPORTED_MODULE_1__/* .flatten */ .Bq(cmiExport);
         switch (this.settings.dataCommitFormat) {
             case "flattened":
-                return _utilities__WEBPACK_IMPORTED_MODULE_1__.flatten(cmiExport);
+                return _utilities__WEBPACK_IMPORTED_MODULE_1__/* .flatten */ .Bq(cmiExport);
             case "params":
                 for (var item in flattened) {
                     if ({}.hasOwnProperty.call(flattened, item)) {
@@ -7587,20 +7527,20 @@ var Scorm12Impl = (function (_super) {
     Scorm12Impl.prototype.renderCommitObject = function (terminateCommit) {
         var cmiExport = this.renderCommitCMI(terminateCommit);
         var totalTimeHHMMSS = this.cmi.getCurrentTotalTime();
-        var totalTimeSeconds = _utilities__WEBPACK_IMPORTED_MODULE_1__.getTimeAsSeconds(totalTimeHHMMSS, _constants_regex__WEBPACK_IMPORTED_MODULE_9__.scorm12_regex.CMITimespan);
+        var totalTimeSeconds = _utilities__WEBPACK_IMPORTED_MODULE_1__/* .getTimeAsSeconds */ .f4(totalTimeHHMMSS, _constants_regex__WEBPACK_IMPORTED_MODULE_9__/* .scorm12_regex */ .kS.CMITimespan);
         var lessonStatus = this.cmi.core.lesson_status;
-        var completionStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_7__.CompletionStatus.UNKNOWN;
-        var successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_7__.SuccessStatus.UNKNOWN;
+        var completionStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_7__/* .CompletionStatus */ .lC.UNKNOWN;
+        var successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_7__/* .SuccessStatus */ .YE.UNKNOWN;
         if (lessonStatus) {
             completionStatus =
                 lessonStatus === "completed" || lessonStatus === "passed"
-                    ? _constants_enums__WEBPACK_IMPORTED_MODULE_7__.CompletionStatus.COMPLETED
-                    : _constants_enums__WEBPACK_IMPORTED_MODULE_7__.CompletionStatus.INCOMPLETE;
+                    ? _constants_enums__WEBPACK_IMPORTED_MODULE_7__/* .CompletionStatus */ .lC.COMPLETED
+                    : _constants_enums__WEBPACK_IMPORTED_MODULE_7__/* .CompletionStatus */ .lC.INCOMPLETE;
             if (lessonStatus === "passed") {
-                successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_7__.SuccessStatus.PASSED;
+                successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_7__/* .SuccessStatus */ .YE.PASSED;
             }
             else if (lessonStatus === "failed") {
-                successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_7__.SuccessStatus.FAILED;
+                successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_7__/* .SuccessStatus */ .YE.FAILED;
             }
         }
         var score = this.cmi.core.score;
@@ -7629,10 +7569,10 @@ var Scorm12Impl = (function (_super) {
         return commitObject;
     };
     Scorm12Impl.prototype.storeData = function (terminateCommit) {
-        return (0,tslib__WEBPACK_IMPORTED_MODULE_10__.__awaiter)(this, void 0, void 0, function () {
+        return (0,tslib__WEBPACK_IMPORTED_MODULE_10__/* .__awaiter */ .sH)(this, void 0, void 0, function () {
             var originalStatus, commitObject;
             var _a, _b, _c;
-            return (0,tslib__WEBPACK_IMPORTED_MODULE_10__.__generator)(this, function (_d) {
+            return (0,tslib__WEBPACK_IMPORTED_MODULE_10__/* .__generator */ .YH)(this, function (_d) {
                 switch (_d.label) {
                     case 0:
                         if (terminateCommit) {
@@ -7667,7 +7607,7 @@ var Scorm12Impl = (function (_super) {
                         return [4, this.processHttpRequest(this.settings.lmsCommitUrl, commitObject, terminateCommit)];
                     case 1: return [2, _d.sent()];
                     case 2: return [2, {
-                            result: _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__.global_constants.SCORM_TRUE,
+                            result: _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* .global_constants */ ._y.SCORM_TRUE,
                             errorCode: 0,
                         }];
                 }
@@ -7675,7 +7615,7 @@ var Scorm12Impl = (function (_super) {
         });
     };
     return Scorm12Impl;
-}(_BaseAPI__WEBPACK_IMPORTED_MODULE_8__["default"]));
+}(_BaseAPI__WEBPACK_IMPORTED_MODULE_8__/* ["default"] */ .A));
 
 
 
@@ -7684,12 +7624,10 @@ var Scorm12Impl = (function (_super) {
 /***/ 989:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-// ESM COMPAT FLAG
-__webpack_require__.r(__webpack_exports__);
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
-  CMI: function() { return /* binding */ CMI; }
+  Y: function() { return /* binding */ CMI; }
 });
 
 // EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
@@ -7721,10 +7659,10 @@ var utilities = __webpack_require__(864);
 
 
 var CMICore = (function (_super) {
-    (0,tslib_es6.__extends)(CMICore, _super);
+    (0,tslib_es6/* __extends */.C6)(CMICore, _super);
     function CMICore() {
         var _this = _super.call(this) || this;
-        _this.__children = api_constants.scorm12_constants.core_children;
+        _this.__children = api_constants/* scorm12_constants */.QP.core_children;
         _this._student_id = "";
         _this._student_name = "";
         _this._lesson_location = "";
@@ -7736,13 +7674,13 @@ var CMICore = (function (_super) {
         _this._exit = "";
         _this._session_time = "00:00:00";
         _this._suspend_data = "";
-        _this.score = new score.CMIScore({
-            score_children: api_constants.scorm12_constants.score_children,
-            score_range: regex.scorm12_regex.score_range,
-            invalidErrorCode: error_codes.scorm12_errors.INVALID_SET_VALUE,
-            invalidTypeCode: error_codes.scorm12_errors.TYPE_MISMATCH,
-            invalidRangeCode: error_codes.scorm12_errors.VALUE_OUT_OF_RANGE,
-            errorClass: scorm12_exceptions.Scorm12ValidationError,
+        _this.score = new score/* CMIScore */._({
+            score_children: api_constants/* scorm12_constants */.QP.score_children,
+            score_range: regex/* scorm12_regex */.kS.score_range,
+            invalidErrorCode: error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE,
+            invalidTypeCode: error_codes/* scorm12_errors */.Se.TYPE_MISMATCH,
+            invalidRangeCode: error_codes/* scorm12_errors */.Se.VALUE_OUT_OF_RANGE,
+            errorClass: scorm12_exceptions/* Scorm12ValidationError */.t,
         });
         return _this;
     }
@@ -7764,7 +7702,7 @@ var CMICore = (function (_super) {
             return this.__children;
         },
         set: function (_children) {
-            throw new scorm12_exceptions.Scorm12ValidationError(error_codes.scorm12_errors.INVALID_SET_VALUE);
+            throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE);
         },
         enumerable: false,
         configurable: true
@@ -7775,7 +7713,7 @@ var CMICore = (function (_super) {
         },
         set: function (student_id) {
             if (this.initialized) {
-                throw new scorm12_exceptions.Scorm12ValidationError(error_codes.scorm12_errors.READ_ONLY_ELEMENT);
+                throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._student_id = student_id;
@@ -7790,7 +7728,7 @@ var CMICore = (function (_super) {
         },
         set: function (student_name) {
             if (this.initialized) {
-                throw new scorm12_exceptions.Scorm12ValidationError(error_codes.scorm12_errors.READ_ONLY_ELEMENT);
+                throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._student_name = student_name;
@@ -7804,7 +7742,7 @@ var CMICore = (function (_super) {
             return this._lesson_location;
         },
         set: function (lesson_location) {
-            if ((0,validation.check12ValidFormat)(lesson_location, regex.scorm12_regex.CMIString256, true)) {
+            if ((0,validation/* check12ValidFormat */.p)(lesson_location, regex/* scorm12_regex */.kS.CMIString256, true)) {
                 this._lesson_location = lesson_location;
             }
         },
@@ -7817,7 +7755,7 @@ var CMICore = (function (_super) {
         },
         set: function (credit) {
             if (this.initialized) {
-                throw new scorm12_exceptions.Scorm12ValidationError(error_codes.scorm12_errors.READ_ONLY_ELEMENT);
+                throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._credit = credit;
@@ -7832,12 +7770,12 @@ var CMICore = (function (_super) {
         },
         set: function (lesson_status) {
             if (this.initialized) {
-                if ((0,validation.check12ValidFormat)(lesson_status, regex.scorm12_regex.CMIStatus)) {
+                if ((0,validation/* check12ValidFormat */.p)(lesson_status, regex/* scorm12_regex */.kS.CMIStatus)) {
                     this._lesson_status = lesson_status;
                 }
             }
             else {
-                if ((0,validation.check12ValidFormat)(lesson_status, regex.scorm12_regex.CMIStatus2)) {
+                if ((0,validation/* check12ValidFormat */.p)(lesson_status, regex/* scorm12_regex */.kS.CMIStatus2)) {
                     this._lesson_status = lesson_status;
                 }
             }
@@ -7851,7 +7789,7 @@ var CMICore = (function (_super) {
         },
         set: function (entry) {
             if (this.initialized) {
-                throw new scorm12_exceptions.Scorm12ValidationError(error_codes.scorm12_errors.READ_ONLY_ELEMENT);
+                throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._entry = entry;
@@ -7866,7 +7804,7 @@ var CMICore = (function (_super) {
         },
         set: function (total_time) {
             if (this.initialized) {
-                throw new scorm12_exceptions.Scorm12ValidationError(error_codes.scorm12_errors.READ_ONLY_ELEMENT);
+                throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._total_time = total_time;
@@ -7881,7 +7819,7 @@ var CMICore = (function (_super) {
         },
         set: function (lesson_mode) {
             if (this.initialized) {
-                throw new scorm12_exceptions.Scorm12ValidationError(error_codes.scorm12_errors.READ_ONLY_ELEMENT);
+                throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._lesson_mode = lesson_mode;
@@ -7893,12 +7831,12 @@ var CMICore = (function (_super) {
     Object.defineProperty(CMICore.prototype, "exit", {
         get: function () {
             if (!this.jsonString) {
-                throw new scorm12_exceptions.Scorm12ValidationError(error_codes.scorm12_errors.WRITE_ONLY_ELEMENT);
+                throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.WRITE_ONLY_ELEMENT);
             }
             return this._exit;
         },
         set: function (exit) {
-            if ((0,validation.check12ValidFormat)(exit, regex.scorm12_regex.CMIExit, true)) {
+            if ((0,validation/* check12ValidFormat */.p)(exit, regex/* scorm12_regex */.kS.CMIExit, true)) {
                 this._exit = exit;
             }
         },
@@ -7908,12 +7846,12 @@ var CMICore = (function (_super) {
     Object.defineProperty(CMICore.prototype, "session_time", {
         get: function () {
             if (!this.jsonString) {
-                throw new scorm12_exceptions.Scorm12ValidationError(error_codes.scorm12_errors.WRITE_ONLY_ELEMENT);
+                throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.WRITE_ONLY_ELEMENT);
             }
             return this._session_time;
         },
         set: function (session_time) {
-            if ((0,validation.check12ValidFormat)(session_time, regex.scorm12_regex.CMITimespan)) {
+            if ((0,validation/* check12ValidFormat */.p)(session_time, regex/* scorm12_regex */.kS.CMITimespan)) {
                 this._session_time = session_time;
             }
         },
@@ -7925,7 +7863,7 @@ var CMICore = (function (_super) {
             return this._suspend_data;
         },
         set: function (suspend_data) {
-            if ((0,validation.check12ValidFormat)(suspend_data, regex.scorm12_regex.CMIString4096, true)) {
+            if ((0,validation/* check12ValidFormat */.p)(suspend_data, regex/* scorm12_regex */.kS.CMIString4096, true)) {
                 this._suspend_data = suspend_data;
             }
         },
@@ -7937,9 +7875,9 @@ var CMICore = (function (_super) {
         var startTime = start_time;
         if (typeof startTime !== "undefined" && startTime !== null) {
             var seconds = new Date().getTime() - startTime;
-            sessionTime = utilities.getSecondsAsHHMMSS(seconds / 1000);
+            sessionTime = utilities/* getSecondsAsHHMMSS */.UZ(seconds / 1000);
         }
-        return utilities.addHHMMSSTimeStrings(this._total_time, sessionTime, new RegExp(regex.scorm12_regex.CMITimespan));
+        return utilities/* addHHMMSSTimeStrings */.HT(this._total_time, sessionTime, new RegExp(regex/* scorm12_regex */.kS.CMITimespan));
     };
     CMICore.prototype.toJSON = function () {
         this.jsonString = true;
@@ -7959,7 +7897,7 @@ var CMICore = (function (_super) {
         return result;
     };
     return CMICore;
-}(base_cmi.BaseCMI));
+}(base_cmi/* BaseCMI */.J));
 
 
 // EXTERNAL MODULE: ./src/cmi/scorm12/objectives.ts
@@ -7984,7 +7922,7 @@ var interactions = __webpack_require__(833);
 
 
 var CMI = (function (_super) {
-    (0,tslib_es6.__extends)(CMI, _super);
+    (0,tslib_es6/* __extends */.C6)(CMI, _super);
     function CMI(cmi_children, student_data, initialized) {
         var _this = _super.call(this) || this;
         _this.__children = "";
@@ -7996,12 +7934,12 @@ var CMI = (function (_super) {
             _this.initialize();
         _this.__children = cmi_children
             ? cmi_children
-            : api_constants.scorm12_constants.cmi_children;
+            : api_constants/* scorm12_constants */.QP.cmi_children;
         _this.core = new CMICore();
-        _this.objectives = new objectives.CMIObjectives();
-        _this.student_data = student_data ? student_data : new scorm12_student_data.CMIStudentData();
-        _this.student_preference = new student_preference.CMIStudentPreference();
-        _this.interactions = new interactions.CMIInteractions();
+        _this.objectives = new objectives/* CMIObjectives */.C();
+        _this.student_data = student_data ? student_data : new scorm12_student_data/* CMIStudentData */.X();
+        _this.student_preference = new student_preference/* CMIStudentPreference */.G();
+        _this.interactions = new interactions/* CMIInteractions */.Xb();
         return _this;
     }
     CMI.prototype.reset = function () {
@@ -8010,8 +7948,8 @@ var CMI = (function (_super) {
         this._launch_data = "";
         this._comments = "";
         (_a = this.core) === null || _a === void 0 ? void 0 : _a.reset();
-        this.objectives = new objectives.CMIObjectives();
-        this.interactions = new interactions.CMIInteractions();
+        this.objectives = new objectives/* CMIObjectives */.C();
+        this.interactions = new interactions/* CMIInteractions */.Xb();
         (_b = this.student_data) === null || _b === void 0 ? void 0 : _b.reset();
         (_c = this.student_preference) === null || _c === void 0 ? void 0 : _c.reset();
     };
@@ -8045,7 +7983,7 @@ var CMI = (function (_super) {
             return this.__version;
         },
         set: function (_version) {
-            throw new scorm12_exceptions.Scorm12ValidationError(error_codes.scorm12_errors.INVALID_SET_VALUE);
+            throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE);
         },
         enumerable: false,
         configurable: true
@@ -8055,7 +7993,7 @@ var CMI = (function (_super) {
             return this.__children;
         },
         set: function (_children) {
-            throw new scorm12_exceptions.Scorm12ValidationError(error_codes.scorm12_errors.INVALID_SET_VALUE);
+            throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE);
         },
         enumerable: false,
         configurable: true
@@ -8079,7 +8017,7 @@ var CMI = (function (_super) {
         },
         set: function (launch_data) {
             if (this.initialized) {
-                throw new scorm12_exceptions.Scorm12ValidationError(error_codes.scorm12_errors.READ_ONLY_ELEMENT);
+                throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._launch_data = launch_data;
@@ -8093,7 +8031,7 @@ var CMI = (function (_super) {
             return this._comments;
         },
         set: function (comments) {
-            if ((0,validation.check12ValidFormat)(comments, regex.scorm12_regex.CMIString4096, true)) {
+            if ((0,validation/* check12ValidFormat */.p)(comments, regex/* scorm12_regex */.kS.CMIString4096, true)) {
                 this._comments = comments;
             }
         },
@@ -8106,7 +8044,7 @@ var CMI = (function (_super) {
         },
         set: function (comments_from_lms) {
             if (this.initialized) {
-                throw new scorm12_exceptions.Scorm12ValidationError(error_codes.scorm12_errors.READ_ONLY_ELEMENT);
+                throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._comments_from_lms = comments_from_lms;
@@ -8119,7 +8057,7 @@ var CMI = (function (_super) {
         return this.core.getCurrentTotalTime(this.start_time);
     };
     return CMI;
-}(base_cmi.BaseRootCMI));
+}(base_cmi/* BaseRootCMI */.r));
 
 
 

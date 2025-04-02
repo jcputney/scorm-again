@@ -14,10 +14,23 @@ const scorm12_errors = scorm12_constants.error_descriptions;
 const aicc_errors = aicc_constants.error_descriptions;
 const scorm2004_errors = scorm2004_constants.error_descriptions;
 
+type ErrorMessageType = {
+  [key: string]: {
+    basicMessage: string;
+    detailMessage: string;
+  };
+};
+
+type ValidationErrorConstructor = {
+  prototype: {
+    constructor: new (errorCode: number) => ValidationError;
+  };
+};
+
 type CheckValidationMessage = {
-  errorClass: any;
+  errorClass: ValidationErrorConstructor;
   errorCodes: number[];
-  error_messages: any;
+  error_messages: ErrorMessageType;
 };
 
 const checkValidationMessage = ({

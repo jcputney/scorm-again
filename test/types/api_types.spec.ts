@@ -30,7 +30,7 @@ describe("Settings Type", () => {
           httpResult.errorCode !== undefined ? httpResult.errorCode : 101,
       };
     },
-    requestHandler: (commitObject: any) => commitObject,
+    requestHandler: (commitObject: unknown) => commitObject,
     onLogMessage: DefaultSettings.onLogMessage,
   };
 

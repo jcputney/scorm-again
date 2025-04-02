@@ -83,3 +83,4 @@ coverage-*
 /test/integration/modules/
 /playwright-report/
 /playwright/.cache/
+summary.md

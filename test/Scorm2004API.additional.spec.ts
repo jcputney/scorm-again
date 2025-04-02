@@ -10,21 +10,28 @@ import { Settings } from "../src/types/api_types";
 import { LogLevelEnum } from "../src/constants/enums";
 import { CorrectResponses } from "../src/constants/response_constants";
 import { CMIInteractionsObject } from "../src/cmi/scorm2004/interactions";
+import { CMIArray } from "../src/cmi/common/array";
+
+declare global {
+  interface Window {
+    testNavRequestExecuted: boolean;
+  }
+}
 
 // Helper functions to create API instances
-const api = (settings?: Settings) => {
+const api = (settings?: Settings): Scorm2004API => {
   return new Scorm2004API({ ...settings, logLevel: LogLevelEnum.NONE });
 };
 
-const apiInitialized = (settings?: Settings) => {
+const apiInitialized = (settings?: Settings): Scorm2004API => {
   const API = api(settings);
   API.lmsInitialize();
   return API;
 };
 
-describe("SCORM 2004 API Additional Tests", () => {
-  describe("lmsGetValue()", () => {
-    it("should handle adl.nav.request_valid.choice with target", () => {
+describe("SCORM 2004 API Additional Tests", (): void => {
+  describe("lmsGetValue()", (): void => {
+    it("should handle adl.nav.request_valid.choice with target", (): void => {
       // Create a mock API with scoItemIds
       const scorm2004API = api({
         scoItemIds: ["sco-1", "sco-2"],
@@ -42,7 +49,7 @@ describe("SCORM 2004 API Additional Tests", () => {
       expect(result).toBe("false");
     });
 
-    it("should handle adl.nav.request_valid.jump with target", () => {
+    it("should handle adl.nav.request_valid.jump with target", (): void => {
       const scorm2004API = api({
         scoItemIds: ["sco-1", "sco-2"],
       });
@@ -59,7 +66,7 @@ describe("SCORM 2004 API Additional Tests", () => {
       expect(result).toBe("false");
     });
 
-    it("should return false for invalid target in adl.nav.request_valid.choice", () => {
+    it("should return false for invalid target in adl.nav.request_valid.choice", (): void => {
       const scorm2004API = api({
         scoItemIds: ["sco-1", "sco-2"],
       });
@@ -79,8 +86,8 @@ describe("SCORM 2004 API Additional Tests", () => {
       expect(result).toBe(expected);
     });
 
-    it("should use scoItemIdValidator if provided", () => {
-      const validator = sinon.stub().returns(true);
+    it("should use scoItemIdValidator if provided", (): void => {
+      const validator = sinon.stub<[string], boolean>().returns(true);
       const scorm2004API = api({
         scoItemIdValidator: validator,
       });
@@ -100,24 +107,20 @@ describe("SCORM 2004 API Additional Tests", () => {
     });
   });
 
-  describe("checkDuplicateChoiceResponse()", () => {
-    it("should throw an error when a duplicate choice response is found", () => {
+  describe("checkDuplicateChoiceResponse()", (): void => {
+    it("should throw an error when a duplicate choice response is found", (): void => {
       const scorm2004API = api();
-      const interaction: CMIInteractionsObject = {
+      const interaction = {
         type: "choice",
         correct_responses: {
           _count: 1,
           childArray: [{ pattern: "choice1" }],
           _errorCode: 0,
-          _errorClass: "",
-          __children: ["_count", "childArray"],
-          reset: () => {},
-          equals: () => false,
-          validate: () => true,
-          toJSON: () => ({}),
-          toString: () => "",
-        },
-      };
+          _errorClass: null,
+          reset: (): void => {},
+          toJSON: (): Record<string, unknown> => ({}),
+        } as unknown as CMIArray,
+      } as CMIInteractionsObject;
 
       scorm2004API.checkDuplicateChoiceResponse(interaction, "choice1");
 
@@ -126,22 +129,22 @@ describe("SCORM 2004 API Additional Tests", () => {
       );
     });
 
-    it("should not throw an error when no duplicate choice response is found", () => {
+    it("should not throw an error when no duplicate choice response is found", (): void => {
       const scorm2004API = api();
       const interaction = {
         type: "choice",
         correct_responses: {
           _count: 1,
           childArray: [{ pattern: "choice1" }],
-        },
-      };
+        } as CMIArray,
+      } as CMIInteractionsObject;
 
       scorm2004API.checkDuplicateChoiceResponse(interaction, "choice2");
 
       expect(scorm2004API.lmsGetLastError()).toBe("0");
     });
 
-    it("should not check for duplicates if interaction type is not choice", () => {
+    it("should not check for duplicates if interaction type is not choice", (): void => {
       const scorm2004API = api();
       const interaction = {
         type: "true-false",
@@ -149,7 +152,7 @@ describe("SCORM 2004 API Additional Tests", () => {
           _count: 1,
           childArray: [{ pattern: "true" }],
         },
-      };
+      } as CMIInteractionsObject;
 
       scorm2004API.checkDuplicateChoiceResponse(interaction, "true");
 
@@ -157,8 +160,8 @@ describe("SCORM 2004 API Additional Tests", () => {
     });
   });
 
-  describe("storeData()", () => {
-    it("should execute navigation request JavaScript when navRequest is true and result.navRequest is provided", async () => {
+  describe("storeData()", (): void => {
+    it("should execute navigation request JavaScript when navRequest is true and result.navRequest is provided", async (): Promise<void> => {
       const scorm2004API = api({
         lmsCommitUrl: "test-url",
       });
@@ -177,7 +180,9 @@ describe("SCORM 2004 API Additional Tests", () => {
         });
 
       // Create a global variable to check if the navigation request is executed
-      global.window = global.window || {};
+      global.window =
+        (global.window as Window & typeof globalThis) ||
+        ({} as Window & typeof globalThis);
       global.window.testNavRequestExecuted = false;
 
       await scorm2004API.storeData(true);
@@ -190,7 +195,7 @@ describe("SCORM 2004 API Additional Tests", () => {
       delete global.window.testNavRequestExecuted;
     });
 
-    it("should not execute navigation request JavaScript when navRequest is false", async () => {
+    it("should not execute navigation request JavaScript when navRequest is false", async (): Promise<void> => {
       const scorm2004API = api({
         lmsCommitUrl: "test-url",
       });
@@ -209,7 +214,9 @@ describe("SCORM 2004 API Additional Tests", () => {
         });
 
       // Create a global variable to check if the navigation request is executed
-      global.window = global.window || {};
+      global.window =
+        (global.window as Window & typeof globalThis) ||
+        ({} as Window & typeof globalThis);
       global.window.testNavRequestExecuted = false;
 
       await scorm2004API.storeData(true);
@@ -241,7 +248,9 @@ describe("SCORM 2004 API Additional Tests", () => {
         });
 
       // Create a global variable to check if the navigation request is executed
-      global.window = global.window || {};
+      global.window =
+        (global.window as Window & typeof globalThis) ||
+        ({} as Window & typeof globalThis);
       global.window.testNavRequestExecuted = false;
 
       await scorm2004API.storeData(true);
@@ -255,8 +264,8 @@ describe("SCORM 2004 API Additional Tests", () => {
     });
   });
 
-  describe("validateCorrectResponse()", () => {
-    it("should validate a correct response pattern for true-false interaction", () => {
+  describe("validateCorrectResponse()", (): void => {
+    it("should validate a correct response pattern for true-false interaction", (): void => {
       const scorm2004API = apiInitialized();
 
       // Set up an interaction

@@ -16,7 +16,10 @@ import {
 import { StringKeyMap } from "../src/utilities";
 
 let clock: sinon.SinonFakeTimers;
-const api = (settings?: Settings, startingData: StringKeyMap = {}) => {
+const api = (
+  settings?: Settings,
+  startingData: StringKeyMap = {},
+): Scorm12API => {
   const API = new Scorm12API({ ...settings, logLevel: LogLevelEnum.NONE });
   API.startingData = startingData;
   return API;
@@ -24,7 +27,7 @@ const api = (settings?: Settings, startingData: StringKeyMap = {}) => {
 const apiInitialized = (
   settings?: Settings,
   startingData: StringKeyMap = {},
-) => {
+): Scorm12API => {
   const API = api(settings);
   API.loadFromJSON(startingData ? startingData : {});
   API.lmsInitialize();
@@ -32,13 +35,13 @@ const apiInitialized = (
 };
 
 describe("SCORM 1.2 API Tests", () => {
-  before(() => {
+  before((): void => {
     clock = sinon.useFakeTimers();
 
     const server = new Pretender();
     server.post(
       "/scorm12",
-      () => {
+      (): [number, Record<string, string>, string] => {
         return [200, { "Content-Type": "application/json" }, "{}"];
       },
       false,
@@ -46,14 +49,14 @@ describe("SCORM 1.2 API Tests", () => {
 
     server.post(
       "/scorm12/error",
-      () => {
+      (): [number, Record<string, string>, string] => {
         return [500, { "Content-Type": "application/json" }, "{}"];
       },
       false,
     );
   });
 
-  after(() => {
+  after((): void => {
     clock.restore();
   });
 
@@ -449,8 +452,12 @@ describe("SCORM 1.2 API Tests", () => {
       const scorm12API = api();
       scorm12API.cmi.core.total_time = "12:34:56";
       scorm12API.cmi.core.session_time = "23:59:59";
-      const cmiExport: StringKeyMap = scorm12API.renderCommitCMI(true);
-      expect(cmiExport.cmi.core.total_time).toEqual("36:34:55");
+      const cmiExport: StringKeyMap = scorm12API.renderCommitCMI(
+        true,
+      ) as StringKeyMap;
+      const exportCmi = cmiExport.cmi as StringKeyMap;
+      const exportCore = exportCmi.core as StringKeyMap;
+      expect(exportCore.total_time).toEqual("36:34:55");
     });
     it("if the user passes, should calculate total time when terminateCommit passed", () => {
       const scorm12API = api();
@@ -461,8 +468,12 @@ describe("SCORM 1.2 API Tests", () => {
       scorm12API.cmi.core.lesson_status = "completed";
       scorm12API.cmi.core.total_time = "0000:00:00";
       scorm12API.cmi.core.session_time = "23:59:59";
-      const cmiExport: StringKeyMap = scorm12API.renderCommitCMI(true);
-      expect(cmiExport.cmi.core.total_time).toEqual("23:59:59");
+      const cmiExport: StringKeyMap = scorm12API.renderCommitCMI(
+        true,
+      ) as StringKeyMap;
+      const exportCmi = cmiExport.cmi as StringKeyMap;
+      const exportCore = exportCmi.core as StringKeyMap;
+      expect(exportCore.total_time).toEqual("23:59:59");
     });
     it("should return flattened format when dataCommitFormat is 'flattened'", function () {
       const scorm12API = api({
@@ -476,7 +487,9 @@ describe("SCORM 1.2 API Tests", () => {
       scorm12API.cmi.core.score.max = "100";
       scorm12API.cmi.core.score.min = "0";
       scorm12API.cmi.core.session_time = "23:59:59";
-      const cmiExport: StringKeyMap = scorm12API.renderCommitCMI(true);
+      const cmiExport: StringKeyMap = scorm12API.renderCommitCMI(
+        true,
+      ) as StringKeyMap;
       expect(cmiExport["cmi.core.student_id"]).toEqual("student_1");
       expect(cmiExport["cmi.core.student_name"]).toEqual("Student 1");
       expect(cmiExport["cmi.core.lesson_status"]).toEqual("completed");
@@ -517,9 +530,9 @@ describe("SCORM 1.2 API Tests", () => {
       const commitObject = scorm12API.renderCommitObject(true);
       expect(commitObject.successStatus).toEqual("unknown");
       expect(commitObject.completionStatus).toEqual("incomplete");
-      expect(commitObject.runtimeData.cmi.core.lesson_status).toEqual(
-        "incomplete",
-      );
+      const runtimeCmi = commitObject.runtimeData.cmi as StringKeyMap;
+      const runtimeCore = runtimeCmi.core as StringKeyMap;
+      expect(runtimeCore.lesson_status).toEqual("incomplete");
       expect(commitObject.totalTimeSeconds).toEqual(
         12 * 3600 + 34 * 60 + 56 + (23 * 3600 + 59 * 60 + 59),
       );
@@ -535,12 +548,13 @@ describe("SCORM 1.2 API Tests", () => {
       const commitObject = scorm12API.renderCommitObject(true);
       expect(commitObject.successStatus).toEqual("unknown");
       expect(commitObject.completionStatus).toEqual("completed");
-      expect(commitObject.runtimeData.cmi.core.lesson_status).toEqual(
-        "completed",
-      );
-      expect(commitObject.runtimeData.cmi.core.score.raw).toEqual("85");
-      expect(commitObject.runtimeData.cmi.core.score.min).toEqual("0");
-      expect(commitObject.runtimeData.cmi.core.score.max).toEqual("100");
+      const runtimeCmi = commitObject.runtimeData.cmi as StringKeyMap;
+      const runtimeCore = runtimeCmi.core as StringKeyMap;
+      expect(runtimeCore.lesson_status).toEqual("completed");
+      const runtimeScore = runtimeCore.score as StringKeyMap;
+      expect(runtimeScore.raw).toEqual("85");
+      expect(runtimeScore.min).toEqual("0");
+      expect(runtimeScore.max).toEqual("100");
       expect(commitObject.totalTimeSeconds).toEqual(0);
       expect(commitObject.score).toEqual({
         raw: 85,
@@ -555,7 +569,9 @@ describe("SCORM 1.2 API Tests", () => {
       const commitObject = scorm12API.renderCommitObject(true);
       expect(commitObject.successStatus).toEqual(SuccessStatus.PASSED);
       expect(commitObject.completionStatus).toEqual(CompletionStatus.COMPLETED);
-      expect(commitObject.runtimeData.cmi.core.lesson_status).toEqual("passed");
+      const runtimeCmi = commitObject.runtimeData.cmi as StringKeyMap;
+      const runtimeCore = runtimeCmi.core as StringKeyMap;
+      expect(runtimeCore.lesson_status).toEqual("passed");
     });
 
     it("should render commit object with failed success status", () => {
@@ -566,7 +582,9 @@ describe("SCORM 1.2 API Tests", () => {
       expect(commitObject.completionStatus).toEqual(
         CompletionStatus.INCOMPLETE,
       );
-      expect(commitObject.runtimeData.cmi.core.lesson_status).toEqual("failed");
+      const runtimeCmi = commitObject.runtimeData.cmi as StringKeyMap;
+      const runtimeCore = runtimeCmi.core as StringKeyMap;
+      expect(runtimeCore.lesson_status).toEqual("failed");
     });
 
     it("should calculate total time when terminateCommit is true", () => {
@@ -574,7 +592,9 @@ describe("SCORM 1.2 API Tests", () => {
       scorm12API.cmi.core.total_time = "12:34:56";
       scorm12API.cmi.core.session_time = "23:59:59";
       const commitObject = scorm12API.renderCommitObject(true);
-      expect(commitObject.runtimeData.cmi.core.total_time).toEqual("36:34:55");
+      const runtimeCmi = commitObject.runtimeData.cmi as StringKeyMap;
+      const runtimeCore = runtimeCmi.core as StringKeyMap;
+      expect(runtimeCore.total_time).toEqual("36:34:55");
     });
   });
 

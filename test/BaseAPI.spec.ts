@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, it } from "mocha";
 import { expect } from "expect";
 import * as sinon from "sinon";
 import BaseAPI from "../src/BaseAPI";
-import { BaseCMI } from "../src/cmi/common/base_cmi";
+import { BaseCMI, BaseRootCMI } from "../src/cmi/common/base_cmi";
 import { ErrorCode } from "../src/constants/error_codes";
 import { CommitObject, ResultObject, Settings } from "../src/types/api_types";
 import { global_constants } from "../src/constants/api_constants";
@@ -13,6 +13,7 @@ import {
 } from "../src/constants/enums";
 import { getLoggingService } from "../src/services/LoggingService";
 import { StringKeyMap } from "../src/utilities";
+import { SinonStub } from "sinon";
 
 // Create a concrete implementation of BaseAPI for testing
 class TestAPI extends BaseAPI {
@@ -20,11 +21,21 @@ class TestAPI extends BaseAPI {
     super(error_codes, settings);
   }
 
-  public cmi = {
+  public cmi: BaseRootCMI = {
     initialize: sinon.stub(),
     setStartTime: sinon.stub(),
     getCurrentTotalTime: sinon.stub().returns("PT0H0M0S"),
-  } as unknown as BaseCMI;
+    reset: sinon.stub(),
+    _initialized: false,
+    _start_time: 0,
+    get initialized(): boolean {
+      return this._initialized;
+    },
+    get start_time(): number | undefined {
+      return undefined;
+    },
+    jsonString: false,
+  } as unknown as BaseRootCMI;
 
   // Implement abstract methods
   reset() {}
@@ -37,7 +48,7 @@ class TestAPI extends BaseAPI {
   lmsGetValue(_CMIElement: string) {
     return "";
   }
-  lmsSetValue(_CMIElement: string, _value: any) {
+  lmsSetValue(_CMIElement: string, _value: unknown) {
     return "true";
   }
   lmsCommit() {
@@ -52,10 +63,10 @@ class TestAPI extends BaseAPI {
   lmsGetDiagnostic(_CMIErrorCode: string | number) {
     return "";
   }
-  validateCorrectResponse(_CMIElement: string, _value: any) {}
+  validateCorrectResponse(_CMIElement: string, _value: unknown): void {}
   getChildElement(
     _CMIElement: string,
-    _value: any,
+    _value: unknown,
     _foundFirstIndex: boolean,
   ): BaseCMI | null {
     return null;
@@ -63,7 +74,7 @@ class TestAPI extends BaseAPI {
   async storeData(_calculateTotalTime: boolean): Promise<ResultObject> {
     return { result: "true", errorCode: 0 };
   }
-  renderCommitCMI(_terminateCommit: boolean): StringKeyMap | Array<any> {
+  renderCommitCMI(_terminateCommit: boolean): StringKeyMap | Array<string> {
     return {};
   }
   renderCommitObject(_terminateCommit: boolean): CommitObject {
@@ -87,7 +98,7 @@ class TestAPI extends BaseAPI {
     return this.getCMIValue(CMIElement);
   }
 
-  public exposedSetCMIValue(CMIElement: string, value: any): string {
+  public exposedSetCMIValue(CMIElement: string, value: unknown): string {
     return this.setCMIValue(CMIElement, value);
   }
 }
@@ -110,7 +121,7 @@ describe("BaseAPI", () => {
       COMMIT_AFTER_TERM: 143,
       TERMINATION_BEFORE_INIT: 112,
       MULTIPLE_TERMINATION: 113,
-    } as ErrorCode;
+    };
 
     // Stub the logging service
     logServiceStub = sinon.stub(getLoggingService(), "log");
@@ -250,7 +261,8 @@ describe("BaseAPI", () => {
       // Assert
       expect(result).toBe(global_constants.SCORM_TRUE);
       expect(api.currentState).toBe(global_constants.STATE_INITIALIZED);
-      expect(api.cmi.setStartTime.calledOnce).toBe(true);
+      const startTime = api.cmi.setStartTime as SinonStub;
+      expect(startTime.calledOnce).toBe(true);
       expect(processListenersSpy.calledWith("initialize")).toBe(true);
     });
   });

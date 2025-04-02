@@ -22,20 +22,23 @@ import {
 import { StringKeyMap } from "../src/utilities";
 
 let clock: sinon.SinonFakeTimers;
-const api = (settings?: Settings, startingData: StringKeyMap = {}) => {
+const api = (
+  settings?: Settings,
+  startingData: StringKeyMap = {},
+): Scorm2004API => {
   const API = new Scorm2004API({ ...settings, logLevel: LogLevelEnum.NONE });
   if (startingData) {
     API.startingData = startingData;
   }
   return API;
 };
-const apiInitialized = (startingData?: StringKeyMap) => {
+const apiInitialized = (startingData?: StringKeyMap): Scorm2004API => {
   const API = api();
   API.loadFromJSON(startingData ? startingData : {}, "");
   API.lmsInitialize();
   return API;
 };
-const basicApi = (settings?: Settings) => {
+const basicApi = (settings?: Settings): Scorm2004API => {
   return new Scorm2004API({
     ...settings,
     logLevel: LogLevelEnum.NONE,
@@ -46,13 +49,13 @@ describe("SCORM 2004 API Tests", () => {
   let terminateStub: sinon.SinonStub;
   let processListenersSpy: sinon.SinonSpy;
 
-  before(() => {
+  before((): void => {
     clock = sinon.useFakeTimers();
 
     const server = new Pretender();
     server.post(
       "/scorm2004",
-      () => {
+      (): [number, Record<string, string>, string] => {
         return [200, { "Content-Type": "application/json" }, "{}"];
       },
       false,
@@ -60,14 +63,14 @@ describe("SCORM 2004 API Tests", () => {
 
     server.post(
       "/scorm2004/error",
-      () => {
+      (): [number, Record<string, string>, string] => {
         return [500, { "Content-Type": "application/json" }, "{}"];
       },
       false,
     );
   });
 
-  after(() => {
+  after((): void => {
     clock.restore();
   });
 
@@ -178,7 +181,7 @@ describe("SCORM 2004 API Tests", () => {
     });
 
     describe("Setting cmi.objectives.n.* should update globalObjectives if it exists", () => {
-      it("should update globalObjectives if it exists", () => {
+      it("should update globalObjectives if it exists", (): void => {
         const scorm2004API = api({
           globalObjectiveIds: ["Objective 1"],
         });
@@ -205,8 +208,20 @@ describe("SCORM 2004 API Tests", () => {
         );
         scorm2004API.setCMIValue("cmi.objectives.1.progress_measure", "0.5");
 
+        interface GlobalObjective {
+          id: string;
+          score: {
+            raw: string;
+            min: string;
+            max: string;
+          };
+          success_status: string;
+          completion_status: string;
+          progress_measure: string;
+        }
+
         const globalObjective = scorm2004API.globalObjectives.find(
-          (objective) => objective.id === "Objective 1",
+          (objective: GlobalObjective) => objective.id === "Objective 1",
         );
 
         expect(scorm2004API.getCMIValue("cmi.objectives.0.id")).toEqual(
@@ -240,7 +255,7 @@ describe("SCORM 2004 API Tests", () => {
         expect(globalObjective?.progress_measure).toEqual("1");
 
         const globalObjective2 = scorm2004API.globalObjectives.find(
-          (objective) => objective.id === "Objective 2",
+          (objective: GlobalObjective) => objective.id === "Objective 2",
         );
         expect(globalObjective2).toBe(undefined);
       });
@@ -422,7 +437,7 @@ describe("SCORM 2004 API Tests", () => {
         valueToTest: scorm2004Values.validTimestamps[0],
         errorThrown: false,
       });
-      it("should allow cmi.interactions.0.correct_responses.0.pattern to be set - T/F", () => {
+      it("should allow cmi.interactions.0.correct_responses.0.pattern to be set - T/F", (): void => {
         const scorm2004API = apiInitialized();
         scorm2004API.setCMIValue(
           "cmi.interactions.0.id",
@@ -435,7 +450,7 @@ describe("SCORM 2004 API Tests", () => {
         );
         expect(String(scorm2004API.lmsGetLastError())).toEqual(String(0));
       });
-      it("should allow cmi.interactions.10.correct_responses.0.pattern to be set - T/F", () => {
+      it("should allow cmi.interactions.10.correct_responses.0.pattern to be set - T/F", (): void => {
         const scorm2004API = apiInitialized();
         scorm2004API.setCMIValue(
           "cmi.interactions.0.id",
@@ -448,7 +463,7 @@ describe("SCORM 2004 API Tests", () => {
         );
         expect(String(scorm2004API.lmsGetLastError())).toEqual(String(0));
       });
-      it("should allow cmi.interactions.0.correct_responses.0.pattern to be set - choice", () => {
+      it("should allow cmi.interactions.0.correct_responses.0.pattern to be set - choice", (): void => {
         const scorm2004API = apiInitialized();
         scorm2004API.setCMIValue(
           "cmi.interactions.0.id",
@@ -461,7 +476,7 @@ describe("SCORM 2004 API Tests", () => {
         );
         expect(String(scorm2004API.lmsGetLastError())).toEqual(String(0));
       });
-      it("should allow cmi.interactions.0.correct_responses.0.pattern to be set - choice for SCORM 2004 4th Edition", () => {
+      it("should allow cmi.interactions.0.correct_responses.0.pattern to be set - choice for SCORM 2004 4th Edition", (): void => {
         const scorm2004API = apiInitialized();
         scorm2004API.setCMIValue(
           "cmi.interactions.0.id",
@@ -474,7 +489,7 @@ describe("SCORM 2004 API Tests", () => {
         );
         expect(String(scorm2004API.lmsGetLastError())).toEqual(String(0));
       });
-      it("should allow cmi.interactions.0.objectives.0.id to be set", () => {
+      it("should allow cmi.interactions.0.objectives.0.id to be set", (): void => {
         const scorm2004API = apiInitialized();
         scorm2004API.setCMIValue(
           "cmi.interactions.0.objectives.0.id",
@@ -482,7 +497,7 @@ describe("SCORM 2004 API Tests", () => {
         );
         expect(String(scorm2004API.lmsGetLastError())).toEqual(String(0));
       });
-      it("should allow cmi.interactions.0.learner_response to be set", () => {
+      it("should allow cmi.interactions.0.learner_response to be set", (): void => {
         const scorm2004API = apiInitialized();
         scorm2004API.setCMIValue(
           "cmi.interactions.0.id",
@@ -504,7 +519,7 @@ describe("SCORM 2004 API Tests", () => {
           scorm2004API.getCMIValue("cmi.interactions.0.learner_response"),
         ).toEqual("VP_on-call_or_President");
       });
-      it("should allow cmi.interactions.0.learner_response to be set for SCORM 2004 4th Edition", () => {
+      it("should allow cmi.interactions.0.learner_response to be set for SCORM 2004 4th Edition", (): void => {
         const scorm2004API = apiInitialized();
         scorm2004API.setCMIValue(
           "cmi.interactions.0.id",
@@ -526,7 +541,7 @@ describe("SCORM 2004 API Tests", () => {
           scorm2004API.getCMIValue("cmi.interactions.0.learner_response"),
         ).toEqual("urn:scormdriver:This%20is%20an%20incorrect%20response.");
       });
-      it("should allow `long-fill-in` cmi.interactions.0.learner_response to be set to 4000 characters", () => {
+      it("should allow `long-fill-in` cmi.interactions.0.learner_response to be set to 4000 characters", (): void => {
         const scorm2004API = apiInitialized();
         scorm2004API.setCMIValue(
           "cmi.interactions.0.id",
@@ -681,7 +696,7 @@ describe("SCORM 2004 API Tests", () => {
   });
 
   describe("reset()", () => {
-    it("should reset all CMI values to their default state", () => {
+    it("should reset all CMI values to their default state", (): void => {
       const scorm2004API = api();
       scorm2004API.cmi.learner_id = "student_1";
       scorm2004API.cmi.session_time = "PT1H0M0S";
@@ -694,7 +709,7 @@ describe("SCORM 2004 API Tests", () => {
       expect(scorm2004API.adl.nav).toEqual(new ADLNav());
     });
 
-    it("should keep original settings", () => {
+    it("should keep original settings", (): void => {
       const scorm2004API = api({
         dataCommitFormat: "flattened",
         autocommit: true,
@@ -709,7 +724,7 @@ describe("SCORM 2004 API Tests", () => {
       expect(scorm2004API.settings.autocommit).toEqual(true);
     });
 
-    it("should be able to override original settings", () => {
+    it("should be able to override original settings", (): void => {
       const scorm2004API = api({
         ...DefaultSettings,
         dataCommitFormat: "flattened",
@@ -731,7 +746,7 @@ describe("SCORM 2004 API Tests", () => {
       );
     });
 
-    it("should call commonReset from the superclass", () => {
+    it("should call commonReset from the superclass", (): void => {
       const scorm2004API = api();
       const commonResetSpy = sinon.spy(scorm2004API, "commonReset");
 
@@ -757,7 +772,7 @@ describe("SCORM 2004 API Tests", () => {
     });
 
     describe("lmsFinish()", () => {
-      it("should call internalFinish and return SCORM_TRUE", async () => {
+      it("should call internalFinish and return SCORM_TRUE", async (): Promise<void> => {
         const internalFinishStub = sinon
           .stub(scorm2004API, "internalFinish")
           .resolves(global_constants.SCORM_TRUE);
@@ -781,7 +796,7 @@ describe("SCORM 2004 API Tests", () => {
         abandonAll: "SequenceAbandonAll",
       };
 
-      it("should call terminate with 'Terminate' and true", async () => {
+      it("should call terminate with 'Terminate' and true", async (): Promise<void> => {
         terminateStub.resolves(global_constants.SCORM_TRUE);
         await scorm2004API.internalFinish();
         expect(terminateStub.calledWith("Terminate", true)).toBe(true);
@@ -798,7 +813,7 @@ describe("SCORM 2004 API Tests", () => {
         });
       }
 
-      it("should process 'SequenceNext' if adl.nav.request is '_none_' and autoProgress is true", async () => {
+      it("should process 'SequenceNext' if adl.nav.request is '_none_' and autoProgress is true", async (): Promise<void> => {
         terminateStub.resolves(global_constants.SCORM_TRUE);
         scorm2004API.adl.nav.request = "_none_";
         scorm2004API.settings.autoProgress = true;
@@ -806,7 +821,7 @@ describe("SCORM 2004 API Tests", () => {
         expect(processListenersSpy.calledWith("SequenceNext")).toBe(true);
       });
 
-      it("should not process any action if adl.nav.request is '_none_' and autoProgress is false", async () => {
+      it("should not process any action if adl.nav.request is '_none_' and autoProgress is false", async (): Promise<void> => {
         terminateStub.resolves(global_constants.SCORM_TRUE);
         scorm2004API.adl.nav.request = "_none_";
         scorm2004API.settings.autoProgress = false;
@@ -814,7 +829,7 @@ describe("SCORM 2004 API Tests", () => {
         expect(processListenersSpy.called).toBe(false);
       });
 
-      it("should return the result of terminate", async () => {
+      it("should return the result of terminate", async (): Promise<void> => {
         terminateStub.resolves(global_constants.SCORM_TRUE);
         const result = await scorm2004API.internalFinish();
         expect(result).toEqual(global_constants.SCORM_TRUE);
@@ -825,7 +840,7 @@ describe("SCORM 2004 API Tests", () => {
   describe("lmsCommit()", () => {
     const scorm2004API = api();
 
-    it("should call commit and return SCORM_TRUE", async () => {
+    it("should call commit and return SCORM_TRUE", async (): Promise<void> => {
       const commitStub = sinon
         .stub(scorm2004API, "commit")
         .resolves(global_constants.SCORM_TRUE);
@@ -837,7 +852,7 @@ describe("SCORM 2004 API Tests", () => {
   });
 
   describe("loadFromFlattenedJSON()", () => {
-    it("should load data, even if out of order", () => {
+    it("should load data, even if out of order", (): void => {
       const scorm2004API = api();
       scorm2004API.loadFromFlattenedJSON(
         {
@@ -867,15 +882,17 @@ describe("SCORM 2004 API Tests", () => {
   });
 
   describe("renderCommitCMI()", () => {
-    it("should calculate total time when terminateCommit passed", () => {
+    it("should calculate total time when terminateCommit passed", (): void => {
       const scorm2004API = api();
       scorm2004API.cmi.total_time = "PT12H34M56S";
       scorm2004API.cmi.session_time = "PT23H59M59S";
-      const cmiExport: StringKeyMap = scorm2004API.renderCommitCMI(true);
-      expect(cmiExport.cmi.total_time).toEqual("P1DT12H34M55S");
+      const cmiExport = scorm2004API.renderCommitCMI(true) as StringKeyMap;
+      const exportCmi = cmiExport.cmi as StringKeyMap;
+      expect(exportCmi).toHaveProperty("total_time");
+      expect(exportCmi.total_time).toEqual("P1DT12H34M55S");
     });
 
-    it("should return flattened format when dataCommitFormat is 'flattened'", function () {
+    it("should return flattened format when dataCommitFormat is 'flattened'", function (): void {
       const scorm2004API = api({
         ...DefaultSettings,
         dataCommitFormat: "flattened",
@@ -885,7 +902,7 @@ describe("SCORM 2004 API Tests", () => {
       expect({}.hasOwnProperty.call(result, "cmi.learner_id")).toBe(true);
     });
 
-    it("should return params format when dataCommitFormat is 'params'", function () {
+    it("should return params format when dataCommitFormat is 'params'", function (): void {
       const scorm2004API = api();
       scorm2004API.settings.dataCommitFormat = "params";
       const result = scorm2004API.renderCommitCMI(false);
@@ -894,30 +911,34 @@ describe("SCORM 2004 API Tests", () => {
       // Add more specific assertions based on expected params output
     });
 
-    it("should return JSON format when dataCommitFormat is 'json'", function () {
+    it("should return JSON format when dataCommitFormat is 'json'", function (): void {
       const scorm2004API = api();
       scorm2004API.settings.dataCommitFormat = "json";
-      const result = scorm2004API.renderCommitCMI(false) as any;
+      const result = scorm2004API.renderCommitCMI(false) as StringKeyMap;
       expect(result).toBeInstanceOf(Object);
       expect(result).toHaveProperty("cmi");
       expect(result.cmi).toBeInstanceOf(Object);
-      expect(result.cmi.credit).toEqual("credit");
+      const resultCmi = result.cmi as StringKeyMap;
+      expect(resultCmi).toHaveProperty("credit");
+      expect(resultCmi.credit).toEqual("credit");
       // Add more specific assertions based on expected JSON output
     });
 
-    it("should include total_time if terminateCommit is true", function () {
+    it("should include total_time if terminateCommit is true", function (): void {
       const scorm2004API = api();
       const spy = sinon.spy(scorm2004API.cmi, "getCurrentTotalTime");
-      const cmiExport = scorm2004API.renderCommitCMI(true) as any;
+      const cmiExport = scorm2004API.renderCommitCMI(true) as StringKeyMap;
       expect(spy.calledOnce).toBe(true);
-      expect(cmiExport.cmi.total_time).toEqual(spy.returnValues[0]);
+      const exportCmi = cmiExport.cmi as StringKeyMap;
+      expect(exportCmi).toHaveProperty("total_time");
+      expect(exportCmi.total_time).toEqual(spy.returnValues[0]);
       spy.restore();
     });
 
-    it("should not include total_time if terminateCommit is false", function () {
+    it("should not include total_time if terminateCommit is false", function (): void {
       const scorm2004API = api();
       const spy = sinon.spy(scorm2004API.cmi, "getCurrentTotalTime");
-      const cmiExport = scorm2004API.renderCommitCMI(false) as any;
+      const cmiExport = scorm2004API.renderCommitCMI(false) as StringKeyMap;
       expect(spy.called).toBe(false);
       expect(cmiExport.cmi).not.toHaveProperty("total_time");
       spy.restore();
@@ -925,7 +946,7 @@ describe("SCORM 2004 API Tests", () => {
   });
 
   describe("renderCommitObject()", () => {
-    it("should render commit object with default settings and no score", () => {
+    it("should render commit object with default settings and no score", (): void => {
       const scorm2004API = api();
       scorm2004API.cmi.completion_status = "incomplete";
       scorm2004API.cmi.total_time = "P12H34M56S";
@@ -933,15 +954,14 @@ describe("SCORM 2004 API Tests", () => {
       const commitObject = scorm2004API.renderCommitObject(true);
       expect(commitObject.successStatus).toEqual("unknown");
       expect(commitObject.completionStatus).toEqual("incomplete");
-      expect(commitObject.runtimeData.cmi.completion_status).toEqual(
-        "incomplete",
-      );
+      const runtimeCmi = commitObject.runtimeData.cmi as StringKeyMap;
+      expect(runtimeCmi.completion_status).toEqual("incomplete");
       expect(commitObject.totalTimeSeconds).toEqual(
         12 * 3600 + 34 * 60 + 56 + (23 * 3600 + 59 * 60 + 59),
       );
     });
 
-    it("should render commit object with score data", () => {
+    it("should render commit object with score data", (): void => {
       const scorm2004API = api();
       scorm2004API.cmi.completion_status = "completed";
       scorm2004API.cmi.score.raw = "85";
@@ -951,13 +971,13 @@ describe("SCORM 2004 API Tests", () => {
       const commitObject = scorm2004API.renderCommitObject(true);
       expect(commitObject.successStatus).toEqual("unknown");
       expect(commitObject.completionStatus).toEqual("completed");
-      expect(commitObject.runtimeData.cmi.completion_status).toEqual(
-        "completed",
-      );
-      expect(commitObject.runtimeData.cmi.score.raw).toEqual("85");
-      expect(commitObject.runtimeData.cmi.score.min).toEqual("0");
-      expect(commitObject.runtimeData.cmi.score.max).toEqual("100");
-      expect(commitObject.runtimeData.cmi.score.scaled).toEqual("0.85");
+      const runtimeCmi = commitObject.runtimeData.cmi as StringKeyMap;
+      const runtimeScore = runtimeCmi.score as StringKeyMap;
+      expect(runtimeCmi.completion_status).toEqual("completed");
+      expect(runtimeScore.raw).toEqual("85");
+      expect(runtimeScore.min).toEqual("0");
+      expect(runtimeScore.max).toEqual("100");
+      expect(runtimeScore.scaled).toEqual("0.85");
       expect(commitObject.totalTimeSeconds).toEqual(0);
       expect(commitObject.score).toEqual({
         raw: 85,
@@ -967,39 +987,38 @@ describe("SCORM 2004 API Tests", () => {
       });
     });
 
-    it("should render commit object with completion and success status", () => {
+    it("should render commit object with completion and success status", (): void => {
       const scorm2004API = api();
       scorm2004API.cmi.success_status = SuccessStatus.PASSED;
       const commitObject = scorm2004API.renderCommitObject(true);
       expect(commitObject.successStatus).toEqual(SuccessStatus.PASSED);
       expect(commitObject.completionStatus).toEqual(CompletionStatus.UNKNOWN);
-      expect(commitObject.runtimeData.cmi.success_status).toEqual(
-        SuccessStatus.PASSED,
-      );
+      const runtimeCmi = commitObject.runtimeData.cmi as StringKeyMap;
+      expect(runtimeCmi.success_status).toEqual(SuccessStatus.PASSED);
     });
 
-    it("should render commit object with failed success status", () => {
+    it("should render commit object with failed success status", (): void => {
       const scorm2004API = api();
       scorm2004API.cmi.success_status = SuccessStatus.FAILED;
       const commitObject = scorm2004API.renderCommitObject(true);
       expect(commitObject.successStatus).toEqual(SuccessStatus.FAILED);
       expect(commitObject.completionStatus).toEqual(CompletionStatus.UNKNOWN);
-      expect(commitObject.runtimeData.cmi.success_status).toEqual(
-        SuccessStatus.FAILED,
-      );
+      const runtimeCmi = commitObject.runtimeData.cmi as StringKeyMap;
+      expect(runtimeCmi.success_status).toEqual(SuccessStatus.FAILED);
     });
 
-    it("should calculate total time when terminateCommit is true", () => {
+    it("should calculate total time when terminateCommit is true", (): void => {
       const scorm2004API = api();
       scorm2004API.cmi.total_time = "P12H34M56S";
       scorm2004API.cmi.session_time = "P23H59M59S";
       const commitObject = scorm2004API.renderCommitObject(true);
-      expect(commitObject.runtimeData.cmi.total_time).toEqual("P1DT12H34M55S");
+      const runtimeCmi = commitObject.runtimeData.cmi as StringKeyMap;
+      expect(runtimeCmi.total_time).toEqual("P1DT12H34M55S");
     });
   });
 
   describe("lmsGetDiagnostic()", () => {
-    it("should return diagnostic information for a given error code", () => {
+    it("should return diagnostic information for a given error code", (): void => {
       const scorm2004API = api();
       const errorCode = scorm2004_errors.GENERAL;
       const diagnosticInfo = scorm2004API.lmsGetDiagnostic(errorCode);
@@ -1008,7 +1027,7 @@ describe("SCORM 2004 API Tests", () => {
       );
     });
 
-    it("should return an empty string for an unknown error code", () => {
+    it("should return an empty string for an unknown error code", (): void => {
       const scorm2004API = api();
       const unknownErrorCode = 9999;
       const diagnosticInfo = scorm2004API.lmsGetDiagnostic(unknownErrorCode);
@@ -1017,14 +1036,14 @@ describe("SCORM 2004 API Tests", () => {
   });
 
   describe("lmsGetErrorString()", () => {
-    it("should return the error string for a given error code", () => {
+    it("should return the error string for a given error code", (): void => {
       const scorm2004API = api();
       const errorCode = scorm2004_errors.GENERAL;
       const errorString = scorm2004API.lmsGetErrorString(errorCode);
       expect(errorString).toEqual("General Exception");
     });
 
-    it("should return an empty string for an unknown error code", () => {
+    it("should return an empty string for an unknown error code", (): void => {
       const scorm2004API = api();
       const unknownErrorCode = 9999;
       const errorString = scorm2004API.lmsGetErrorString(unknownErrorCode);
@@ -1033,7 +1052,7 @@ describe("SCORM 2004 API Tests", () => {
   });
 
   describe("replaceWithAnotherScormAPI()", () => {
-    it("should replace the current API with another API", () => {
+    it("should replace the current API with another API", (): void => {
       const firstAPI = api();
       const secondAPI = api();
 
@@ -1049,7 +1068,7 @@ describe("SCORM 2004 API Tests", () => {
   });
 
   describe("checkCorrectResponseValue()", () => {
-    it("should properly handle the true-false response type for unknown value", () => {
+    it("should properly handle the true-false response type for unknown value", (): void => {
       const scorm2004API = basicApi();
       scorm2004API.checkCorrectResponseValue("true-false", ["unknown"], "true");
       expect(scorm2004API.lmsGetLastError()).toEqual(
@@ -1057,13 +1076,13 @@ describe("SCORM 2004 API Tests", () => {
       );
     });
 
-    it("should properly handle the true-false response type for correct value", () => {
+    it("should properly handle the true-false response type for correct value", (): void => {
       const scorm2004API = basicApi();
       scorm2004API.checkCorrectResponseValue("true-false", ["true"], "true");
       expect(scorm2004API.lmsGetLastError()).toEqual(String(0));
     });
 
-    it("should properly handle the choice response type for value over 4000 characters", () => {
+    it("should properly handle the choice response type for value over 4000 characters", (): void => {
       const scorm2004API = basicApi();
       scorm2004API.checkCorrectResponseValue(
         "choice",

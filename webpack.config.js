@@ -31,8 +31,18 @@ const commonConfig = {
   module: {
     rules: [TSLoader],
   },
+  // Define externals for window-attached objects
+  externals: {
+    // These objects will be available on window in the browser
+    // so we don't need to include them in the bundle
+    "window.API": "API",
+    "window.API_1484_11": "API_1484_11",
+  },
   optimization: {
-    usedExports: false,
+    // Enable tree shaking to eliminate unused code
+    usedExports: true,
+    // Enable module concatenation for better tree shaking
+    concatenateModules: true,
     minimize: true,
     minimizer: [
       new TerserPlugin({
@@ -44,6 +54,18 @@ const commonConfig = {
           },
           compress: {
             passes: 3,
+            drop_console: false, // Changed from true to preserve console messages
+            pure_getters: true,
+            unsafe: true,
+            unsafe_comps: true,
+            unsafe_math: true,
+            unsafe_methods: true,
+            unsafe_proto: true,
+          },
+          mangle: {
+            properties: {
+              regex: /^_/, // Only mangle private properties (those starting with _)
+            },
           },
         },
       }),
