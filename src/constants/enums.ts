@@ -9,7 +9,7 @@ export const NAVBoolean = {
 };
 
 // Type for NAVBoolean values
-export type NAVBoolean = typeof NAVBoolean[keyof typeof NAVBoolean];
+export type NAVBoolean = (typeof NAVBoolean)[keyof typeof NAVBoolean];
 
 // SuccessStatus values
 export const SuccessStatus = {
@@ -19,7 +19,7 @@ export const SuccessStatus = {
 };
 
 // Type for SuccessStatus values
-export type SuccessStatus = typeof SuccessStatus[keyof typeof SuccessStatus];
+export type SuccessStatus = (typeof SuccessStatus)[keyof typeof SuccessStatus];
 
 // CompletionStatus values
 export const CompletionStatus = {
@@ -29,7 +29,8 @@ export const CompletionStatus = {
 };
 
 // Type for CompletionStatus values
-export type CompletionStatus = typeof CompletionStatus[keyof typeof CompletionStatus];
+export type CompletionStatus =
+  (typeof CompletionStatus)[keyof typeof CompletionStatus];
 
 // LogLevelEnum values
 export const LogLevelEnum = {
@@ -42,4 +43,4 @@ export const LogLevelEnum = {
 };
 
 // Type for LogLevelEnum values
-export type LogLevelEnum = typeof LogLevelEnum[keyof typeof LogLevelEnum];
+export type LogLevelEnum = (typeof LogLevelEnum)[keyof typeof LogLevelEnum];
