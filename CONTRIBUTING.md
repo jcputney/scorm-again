@@ -15,13 +15,13 @@ Please send a [GitHub Pull Request to scorm-again](https://github.com/jcputney/s
 Always write a clear log message for your commits. One-line messages are fine for small changes, but bigger changes should look like this:
 
     $ git commit -m "A brief summary of the commit
-    > 
+    >
     > A paragraph describing what changed and its impact."
 
 ## Coding conventions
 
 Start reading our code, and you'll get the hang of it. I try to optimize for readability:
 
-  * We indent using two spaces (soft tabs)
-  * We ALWAYS put spaces after list items and method parameters (`[1, 2, 3]`, not `[1,2,3]`), around operators (`x += 1`, not `x+=1`), and around hash arrows.
-  * `eslint ./src --fix` should always be run before submitting a pull request. Otherwise, the build could fail if you have issues with the formatting of your code.
+- We indent using two spaces (soft tabs)
+- We ALWAYS put spaces after list items and method parameters (`[1, 2, 3]`, not `[1,2,3]`), around operators (`x += 1`, not `x+=1`), and around hash arrows.
+- `eslint ./src --fix` should always be run before submitting a pull request. Otherwise, the build could fail if you have issues with the formatting of your code.

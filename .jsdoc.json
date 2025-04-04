@@ -1,11 +1,7 @@
 {
-  "plugins": [
-    "node_modules/jsdoc-babel"
-  ],
+  "plugins": ["node_modules/jsdoc-babel"],
   "babel": {
-    "presets": [
-      "@babel/preset-env"
-    ],
+    "presets": ["@babel/preset-env"],
     "plugins": [
       "@babel/plugin-transform-class-properties",
       "@babel/plugin-transform-private-methods",

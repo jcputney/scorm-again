@@ -33,7 +33,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'yarn'
+          cache: "yarn"
 
       # Install dependencies
       - name: Install dependencies
@@ -96,6 +96,6 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: '[skip ci] Add dist folder'
-          file_pattern: 'dist/*.* src/**/*.* test/**/*.* src/*.* test/*.*'
+          commit_message: "[skip ci] Add dist folder"
+          file_pattern: "dist/*.* src/**/*.* test/**/*.* src/*.* test/*.*"
           skip_dirty_check: false

@@ -33,6 +33,7 @@ not supported by IE11, you will need to provide your own polyfill for this funct
 ## Documentation
 
 ### API Usage Documentation
+
 - **API Examples**
   - [AICC API Examples](docs/api_usage/examples/aicc_examples.md)
   - [SCORM 1.2 API Examples](docs/api_usage/examples/scorm12_examples.md)
@@ -41,12 +42,14 @@ not supported by IE11, you will need to provide your own polyfill for this funct
 - [Troubleshooting Guide](docs/api_usage/troubleshooting/troubleshooting_guide.md)
 
 ### Developer Documentation
+
 - [Development Workflow](docs/developer/development_workflow.md)
 - [Contribution Guidelines](docs/developer/contribution_guidelines.md)
 - [Testing Strategy](docs/developer/testing_strategy.md)
 - [Method Standards](src/docs/method_standards.md)
 
 ### Style Guide
+
 - [TypeScript Style Guide](.junie/guidelines.md)
 
 ### Setup
@@ -54,7 +57,6 @@ not supported by IE11, you will need to provide your own polyfill for this funct
 To begin with, you include either the `scorm-again.js` or `scorm-again.min.js` file on your launching page:
 
 ```html
-
 <script type="text/javascript" src="/dist/scorm-again.js"></script>
 ```
 
@@ -62,7 +64,6 @@ Or, if you would like to only pull in one API, you include either the `aicc.js`,
 their minified versions on your launching page:
 
 ```html
-
 <script type="text/javascript" src="/dist/scorm2004.js"></script>
 ```
 
@@ -81,7 +82,7 @@ yarn add scorm-again
 You would then initialize the APIs using the following JS statements:
 
 ```javascript
-import {AICC, Scorm12API, Scorm2004API} from 'scorm-again'; // you only do this if you're using the package manager
+import { AICC, Scorm12API, Scorm2004API } from "scorm-again"; // you only do this if you're using the package manager
 
 var settings = {};
 
@@ -108,29 +109,29 @@ the `window` object, because that's where modules are supposed to look.
 
 The APIs include several settings to customize the functionality of each API:
 
-| Setting                    |             Default              |                                                      Values                                                       | Description                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-|----------------------------|:--------------------------------:|:-----------------------------------------------------------------------------------------------------------------:|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `autocommit`               |              false               |                                                    true/false                                                     | Determines whether the API schedules an autocommit to the LMS after setting a value.                                                                                                                                                                                                                                                                                                                                                                   |
-| `autocommitSeconds`        |                60                |                                                        int                                                        | Number of seconds to wait before autocommiting. Timer is restarted if another value is set.                                                                                                                                                                                                                                                                                                                                                            |
-| `asyncCommit`              |              false               |                                                    true/false                                                     | Determines whether the API should send the request to the `lmsCommitUrl` asynchronously.                                                                                                                                                                                                                                                                                                                                                               |
-| `sendFullCommit`           |               true               |                                                    true/false                                                     | Determines whether the API sends the full CMI object as part of the commit, or of it only sends the fields that actually contains values.                                                                                                                                                                                                                                                                                                              |
-| `lmsCommitUrl`             |              false               |                                                        url                                                        | The URL endpoint of the LMS where data should be sent upon commit. If no value is provided, modules will run as usual, but all method calls will be logged to the console.                                                                                                                                                                                                                                                                             |
-| `dataCommitFormat`         |              `json`              |                                           `json`, `flattened`, `params`                                           | `json` will send a JSON object to the lmsCommitUrl in the format of <br>`{'cmi': {'core': {...}}`<br><br> `flattened` will send the data in the format <br>`{'cmi.core.exit': 'suspend', 'cmi.core.mode': 'normal'...}`<br><br> `params` will send the data as <br>`?cmi.core.exit=suspend&cmi.core.mode=normal...`                                                                                                                                    |
-| `commitRequestDataType`    | 'application/json;charset=UTF-8' |                                                      string                                                       | This setting is provided in case your LMS expects a different content type or character set.                                                                                                                                                                                                                                                                                                                                                           |
-| `renderCommonCommitFields` |              false               |                                                    true/false                                                     | Determines whether the API should render the common fields in the commit object. Common fields are `successStatus`, `completionStatus`, `totalTimeSeconds`, `score`, and `runtimeData`. The `runtimeData` field contains the render CMI object. This allows for easier processing on the LMS.                                                                                                                                                          |
-| `autoProgress`             |              false               |                                                    true/false                                                     | In case Sequencing is being used, you can tell the API to automatically throw the `SequenceNext` event.                                                                                                                                                                                                                                                                                                                                                |
+| Setting                    |             Default              |                                                      Values                                                       | Description                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| -------------------------- | :------------------------------: | :---------------------------------------------------------------------------------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `autocommit`               |              false               |                                                    true/false                                                     | Determines whether the API schedules an autocommit to the LMS after setting a value.                                                                                                                                                                                                                                                                                                                                                                    |
+| `autocommitSeconds`        |                60                |                                                        int                                                        | Number of seconds to wait before autocommiting. Timer is restarted if another value is set.                                                                                                                                                                                                                                                                                                                                                             |
+| `asyncCommit`              |              false               |                                                    true/false                                                     | Determines whether the API should send the request to the `lmsCommitUrl` asynchronously.                                                                                                                                                                                                                                                                                                                                                                |
+| `sendFullCommit`           |               true               |                                                    true/false                                                     | Determines whether the API sends the full CMI object as part of the commit, or of it only sends the fields that actually contains values.                                                                                                                                                                                                                                                                                                               |
+| `lmsCommitUrl`             |              false               |                                                        url                                                        | The URL endpoint of the LMS where data should be sent upon commit. If no value is provided, modules will run as usual, but all method calls will be logged to the console.                                                                                                                                                                                                                                                                              |
+| `dataCommitFormat`         |              `json`              |                                           `json`, `flattened`, `params`                                           | `json` will send a JSON object to the lmsCommitUrl in the format of <br>`{'cmi': {'core': {...}}`<br><br> `flattened` will send the data in the format <br>`{'cmi.core.exit': 'suspend', 'cmi.core.mode': 'normal'...}`<br><br> `params` will send the data as <br>`?cmi.core.exit=suspend&cmi.core.mode=normal...`                                                                                                                                     |
+| `commitRequestDataType`    | 'application/json;charset=UTF-8' |                                                      string                                                       | This setting is provided in case your LMS expects a different content type or character set.                                                                                                                                                                                                                                                                                                                                                            |
+| `renderCommonCommitFields` |              false               |                                                    true/false                                                     | Determines whether the API should render the common fields in the commit object. Common fields are `successStatus`, `completionStatus`, `totalTimeSeconds`, `score`, and `runtimeData`. The `runtimeData` field contains the render CMI object. This allows for easier processing on the LMS.                                                                                                                                                           |
+| `autoProgress`             |              false               |                                                    true/false                                                     | In case Sequencing is being used, you can tell the API to automatically throw the `SequenceNext` event.                                                                                                                                                                                                                                                                                                                                                 |
 | `logLevel`                 |                4                 | number \| string \| LogLevelEnum<br><br>`1` => DEBUG<br>`2` => INFO<br>`3` => WARN<br>`4` => ERROR<br>`5` => NONE | By default, the APIs only log error messages.                                                                                                                                                                                                                                                                                                                                                                                                           |
 | `mastery_override`         |              false               |                                                    true/false                                                     | (SCORM 1.2) Used to override a module's `cmi.core.lesson_status` so that a pass/fail is determined based on a mastery score and the user's raw score, rather than using whatever status is provided by the module. An example of this would be if a module is published using a `Complete/Incomplete` final status, but the LMS always wants to receive a `Passed/Failed` for quizzes, then we can use this setting to override the given final status. |
-| `selfReportSessionTime`    |              false               |                                                    true/false                                                     | Should the API override the default `session_time` reported by the module? Useful when modules don't properly report time.                                                                                                                                                                                                                                                                                                                             |
-| `alwaysSendTotalTime`      |              false               |                                                    true/false                                                     | Should the API always send `total_time` when committing to the LMS                                                                                                                                                                                                                                                                                                                                                                                     |
-| `fetchMode`                |              'cors'              |                                   'cors', 'no-cors', 'same-origin', 'navigate'                                    | The fetch mode to use when sending requests to the LMS.                                                                                                                                                                                                                                                                                                                                                                                                |
-| `xhrWithCredentials`       |              false               |                                                    true/false                                                     | Sets the withCredentials flag on the request to the LMS                                                                                                                                                                                                                                                                                                                                                                                                |
-| `xhrHeaders`               |                {}                |                                                      Object                                                       | This allows setting of additional headers on the request to the LMS where the key should be the header name and the value is the value of the header you want to send                                                                                                                                                                                                                                                                                  |
-| `responseHandler`          |             function             |                                                                                                                   | A function to properly transform the response from the LMS to the correct format. The APIs expect the result from the LMS to be in the following format (errorCode is optional): `{ "result": true, "errorCode": 0 }`                                                                                                                                                                                                                                  |
-| `requestHandler`           |             function             |                                                                                                                   | A function to transform the commit object before sending it to `lmsCommitUrl`. By default it's the identity function (no transformation).                                                                                                                                                                                                                                                                                                              |
-| `onLogMessage`             |             function             |                                                                                                                   | A function to be called whenever a message is logged. Defaults to console.{error,warn,info,debug,log}                                                                                                                                                                                                                                                                                                                                                  |
-| `scoItemIds`               |                []                |                                                     string[]                                                      | A list of valid SCO IDs to be used for choice/jump sequence validation.                                                                                                                                                                                                                                                                                                                                                                                |
-| `scoItemIdValidator`       |              false               |                                                 false / function                                                  | A function to be called during choice/jump sequence checks to determine if a SCO ID is valid. Could be used to call an API to check validity.                                                                                                                                                                                                                                                                                                          |
+| `selfReportSessionTime`    |              false               |                                                    true/false                                                     | Should the API override the default `session_time` reported by the module? Useful when modules don't properly report time.                                                                                                                                                                                                                                                                                                                              |
+| `alwaysSendTotalTime`      |              false               |                                                    true/false                                                     | Should the API always send `total_time` when committing to the LMS                                                                                                                                                                                                                                                                                                                                                                                      |
+| `fetchMode`                |              'cors'              |                                   'cors', 'no-cors', 'same-origin', 'navigate'                                    | The fetch mode to use when sending requests to the LMS.                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `xhrWithCredentials`       |              false               |                                                    true/false                                                     | Sets the withCredentials flag on the request to the LMS                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `xhrHeaders`               |                {}                |                                                      Object                                                       | This allows setting of additional headers on the request to the LMS where the key should be the header name and the value is the value of the header you want to send                                                                                                                                                                                                                                                                                   |
+| `responseHandler`          |             function             |                                                                                                                   | A function to properly transform the response from the LMS to the correct format. The APIs expect the result from the LMS to be in the following format (errorCode is optional): `{ "result": true, "errorCode": 0 }`                                                                                                                                                                                                                                   |
+| `requestHandler`           |             function             |                                                                                                                   | A function to transform the commit object before sending it to `lmsCommitUrl`. By default it's the identity function (no transformation).                                                                                                                                                                                                                                                                                                               |
+| `onLogMessage`             |             function             |                                                                                                                   | A function to be called whenever a message is logged. Defaults to console.{error,warn,info,debug,log}                                                                                                                                                                                                                                                                                                                                                   |
+| `scoItemIds`               |                []                |                                                     string[]                                                      | A list of valid SCO IDs to be used for choice/jump sequence validation.                                                                                                                                                                                                                                                                                                                                                                                 |
+| `scoItemIdValidator`       |              false               |                                                 false / function                                                  | A function to be called during choice/jump sequence checks to determine if a SCO ID is valid. Could be used to call an API to check validity.                                                                                                                                                                                                                                                                                                           |
 
 ## Settings Function Examples
 
@@ -198,34 +199,35 @@ window.API_1484_11.loadFromJSON(json);
 <details>
   <summary>Example JSON input</summary>
 
-  ```javascript
-  var json = {
-    "learner_id": "123",
-    "learner_name": "Bob The Builder",
-    "suspend_data": "viewed=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31|lastviewedslide=31|7#1##,3,3,3,7,3,3,7,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,11#0#b5e89fbb-7cfb-46f0-a7cb-758165d3fe7e=236~262~2542812732762722742772682802752822882852892872832862962931000~3579~32590001001010101010101010101001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001010010010010010010010010011010010010010010010010010010010010112101021000171000~236a71d398e-4023-4967-88fe-1af18721422d06passed6failed000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000105wrong110000000000000000000000000000000000~3185000000000000000000000000000000000000000000000000000000000000000000000000000000000~283~2191w11~21113101w41689~256~2100723031840~21007230314509062302670~2110723031061120000000000000000000~240~234531618~21601011000100000002814169400,#-1",
-    "interactions": {
-        "0": {
-            "id": "Question14_1",
-            "type": "choice",
-            "timestamp": "2018-08-26T11:05:21",
-            "weighting": "1",
-            "learner_response": "HTH",
-            "result": "wrong",
-            "latency": "PT2M30S",
-            "objectives": {
-                "0": {
-                    "id": "Question14_1"
-                }
-            },
-            "correct_responses": {
-                "0": {
-                    "pattern": "CPR"
-                }
-            }
-        }
-    }
+```javascript
+var json = {
+  learner_id: "123",
+  learner_name: "Bob The Builder",
+  suspend_data:
+    "viewed=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31|lastviewedslide=31|7#1##,3,3,3,7,3,3,7,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,11#0#b5e89fbb-7cfb-46f0-a7cb-758165d3fe7e=236~262~2542812732762722742772682802752822882852892872832862962931000~3579~32590001001010101010101010101001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001010010010010010010010010011010010010010010010010010010010010112101021000171000~236a71d398e-4023-4967-88fe-1af18721422d06passed6failed000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000105wrong110000000000000000000000000000000000~3185000000000000000000000000000000000000000000000000000000000000000000000000000000000~283~2191w11~21113101w41689~256~2100723031840~21007230314509062302670~2110723031061120000000000000000000~240~234531618~21601011000100000002814169400,#-1",
+  interactions: {
+    0: {
+      id: "Question14_1",
+      type: "choice",
+      timestamp: "2018-08-26T11:05:21",
+      weighting: "1",
+      learner_response: "HTH",
+      result: "wrong",
+      latency: "PT2M30S",
+      objectives: {
+        0: {
+          id: "Question14_1",
+        },
+      },
+      correct_responses: {
+        0: {
+          pattern: "CPR",
+        },
+      },
+    },
+  },
 };
-  ```
+```
 
 </details>
 
@@ -239,22 +241,22 @@ window.API_1484_11.loadFromFlattenedJSON(json);
 <details>
   <summary>Example flattened JSON input</summary>
 
-  ```javascript
-  var json = {
-    "cmi.learner_id": "123",
-    "cmi.learner_name": "Bob The Builder",
-    "cmi.suspend_data": "viewed=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31|lastviewedslide=31|7#1##,3,3,3,7,3,3,7,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,11#0#b5e89fbb-7cfb-46f0-a7cb-758165d3fe7e=236~262~2542812732762722742772682802752822882852892872832862962931000~3579~32590001001010101010101010101001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001010010010010010010010010011010010010010010010010010010010010112101021000171000~236a71d398e-4023-4967-88fe-1af18721422d06passed6failed000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000105wrong110000000000000000000000000000000000~3185000000000000000000000000000000000000000000000000000000000000000000000000000000000~283~2191w11~21113101w41689~256~2100723031840~21007230314509062302670~2110723031061120000000000000000000~240~234531618~21601011000100000002814169400,#-1",
-    "cmi.interactions.0.id": "Question14_1",
-    "cmi.interactions.0.type": "choice",
-    "cmi.interactions.0.timestamp": "2018-08-26T11:05:21",
-    "cmi.interactions.0.weighting": "1",
-    "cmi.interactions.0.learner_response": "HTH",
-    "cmi.interactions.0.result": "wrong",
-    "cmi.interactions.0.latency": "PT2M30S",
-    "cmi.interactions.0.objectives.0.id": "Question14_1"
-    "cmi.interactions.0.objectives.0.correct_responses.0.pattern": "CPR"
+```javascript
+var json = {
+  "cmi.learner_id": "123",
+  "cmi.learner_name": "Bob The Builder",
+  "cmi.suspend_data": "viewed=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31|lastviewedslide=31|7#1##,3,3,3,7,3,3,7,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,11#0#b5e89fbb-7cfb-46f0-a7cb-758165d3fe7e=236~262~2542812732762722742772682802752822882852892872832862962931000~3579~32590001001010101010101010101001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001010010010010010010010010011010010010010010010010010010010010112101021000171000~236a71d398e-4023-4967-88fe-1af18721422d06passed6failed000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000105wrong110000000000000000000000000000000000~3185000000000000000000000000000000000000000000000000000000000000000000000000000000000~283~2191w11~21113101w41689~256~2100723031840~21007230314509062302670~2110723031061120000000000000000000~240~234531618~21601011000100000002814169400,#-1",
+  "cmi.interactions.0.id": "Question14_1",
+  "cmi.interactions.0.type": "choice",
+  "cmi.interactions.0.timestamp": "2018-08-26T11:05:21",
+  "cmi.interactions.0.weighting": "1",
+  "cmi.interactions.0.learner_response": "HTH",
+  "cmi.interactions.0.result": "wrong",
+  "cmi.interactions.0.latency": "PT2M30S",
+  "cmi.interactions.0.objectives.0.id": "Question14_1"
+  "cmi.interactions.0.objectives.0.correct_responses.0.pattern": "CPR"
 };
-  ```
+```
 
 </details>
 

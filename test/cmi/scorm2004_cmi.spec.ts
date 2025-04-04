@@ -833,10 +833,6 @@ describe("SCORM 2004 CMI Tests", () => {
         invalidValues: scorm2004Values.invalidScoreRange,
       });
 
-      /**
-       * TODO: Learner Response depends on first setting Type, so need to build out lots of test cases
-       */
-
       h.checkRead({
         cmi: interaction(),
         fieldName: "cmi.result",
