@@ -1,22 +1,17 @@
-import { ErrorCode } from "./constants/error_codes";
-import { global_constants } from "./constants/api_constants";
-import { formatMessage, StringKeyMap, stringMatches } from "./utilities";
-import { BaseCMI } from "./cmi/common/base_cmi";
-import {
-  CommitObject,
-  LogLevel,
-  ResultObject,
-  Settings,
-} from "./types/api_types";
-import { DefaultSettings } from "./constants/default_settings";
-import { IBaseAPI } from "./interfaces/IBaseAPI";
-import { ScheduledCommit } from "./helpers/scheduled_commit";
-import { LogLevelEnum } from "./constants/enums";
-import { HttpService } from "./services/HttpService";
-import { EventService } from "./services/EventService";
-import { SerializationService } from "./services/SerializationService";
-import { createErrorHandlingService } from "./services/ErrorHandlingService";
-import { getLoggingService } from "./services/LoggingService";
+import {ErrorCode} from "./constants/error_codes";
+import {global_constants} from "./constants/api_constants";
+import {formatMessage, StringKeyMap, stringMatches} from "./utilities";
+import {BaseCMI} from "./cmi/common/base_cmi";
+import {CommitObject, LogLevel, ResultObject, Settings,} from "./types/api_types";
+import {DefaultSettings} from "./constants/default_settings";
+import {IBaseAPI} from "./interfaces/IBaseAPI";
+import {ScheduledCommit} from "./helpers/scheduled_commit";
+import {LogLevelEnum} from "./constants/enums";
+import {HttpService} from "./services/HttpService";
+import {EventService} from "./services/EventService";
+import {SerializationService} from "./services/SerializationService";
+import {createErrorHandlingService} from "./services/ErrorHandlingService";
+import {getLoggingService} from "./services/LoggingService";
 import {
   ICMIDataService,
   IErrorHandlingService,
@@ -25,8 +20,8 @@ import {
   ILoggingService,
   ISerializationService,
 } from "./interfaces/services";
-import { isCMIArray, isError } from "./utils/type_guards";
-import { ValidationError } from "./exceptions";
+import {isCMIArray, isError} from "./utils/type_guards";
+import {ValidationError} from "./exceptions";
 
 /**
  * Base API class for AICC, SCORM 1.2, and SCORM 2004. Should be considered
@@ -846,15 +841,17 @@ export default abstract class BaseAPI implements IBaseAPI {
               foundFirstIndex = true;
 
               if (!newChild) {
-                this.throwSCORMError(
-                  CMIElement,
-                  invalidErrorCode,
-                  invalidErrorMessage,
-                );
+                if (this.lastErrorCode === "0") {
+                  this.throwSCORMError(
+                    CMIElement,
+                    invalidErrorCode,
+                    invalidErrorMessage,
+                  );
+                }
+                break;
               } else {
                 if (refObject.initialized) newChild.initialize();
-
-                refObject.childArray.push(newChild);
+                refObject.childArray[index] = newChild;
                 refObject = newChild;
               }
             }

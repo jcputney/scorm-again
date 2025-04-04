@@ -1,4 +1,11 @@
+---
 name: 'Close stale issues'
+
+permissions:
+  issues: write
+  pull-requests: write
+  discussions: write
+
 on:
   schedule:
     - cron: '30 1 * * *'

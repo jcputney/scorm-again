@@ -35,8 +35,8 @@ export const checkValidFormat = memoize(
   },
   // Custom key function that excludes the error class from the cache key
   // since it can't be stringified and doesn't affect the validation result
-  (value, regexPattern, errorCode, _errorClass, allowEmptyString) =>
-    `${value}:${regexPattern}:${errorCode}:${allowEmptyString || false}`,
+  (CMIElement, value, regexPattern, errorCode, _errorClass, allowEmptyString) =>
+    `${CMIElement}:${value}:${regexPattern}:${errorCode}:${allowEmptyString || false}`,
 );
 
 /**
@@ -70,6 +70,6 @@ export const checkValidRange = memoize(
   },
   // Custom key function that excludes the error class from the cache key
   // since it can't be stringified and doesn't affect the validation result
-  (value, rangePattern, errorCode, _errorClass) =>
-    `${value}:${rangePattern}:${errorCode}`,
+  (CMIElement, value, rangePattern, errorCode, _errorClass) =>
+    `${CMIElement}:${value}:${rangePattern}:${errorCode}`,
 );

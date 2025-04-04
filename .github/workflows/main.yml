@@ -1,4 +1,14 @@
+---
 name: Node.js CI
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  actions: read
+  statuses: write
+  deployments: write
+  issues: write
+  discussions: write
 
 on:
   push:
