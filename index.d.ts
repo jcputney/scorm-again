@@ -1,11 +1,11 @@
-import { Scorm12API as Scorm12Impl } from "./src/Scorm12API";
-import { CMI as Scorm12CMI } from "./src/cmi/scorm12/cmi";
-import { NAV as Scorm12NAV } from "./src/cmi/scorm12/nav";
-import { CMI as Scorm2004CMI } from "./src/cmi/scorm2004/cmi";
-import { ADL as Scorm2004ADL } from "./src/cmi/scorm2004/adl";
-import { Settings } from "./src/types/api_types";
-import { Scorm2004API as Scorm2004Impl } from "./src/Scorm2004API";
-import { AICC as AICCImpl } from "./src/AICC";
+import {Scorm12API as Scorm12Impl} from "./src/Scorm12API";
+import {CMI as Scorm12CMI} from "./src/cmi/scorm12/cmi";
+import {NAV as Scorm12NAV} from "./src/cmi/scorm12/nav";
+import {CMI as Scorm2004CMI} from "./src/cmi/scorm2004/cmi";
+import {ADL as Scorm2004ADL} from "./src/cmi/scorm2004/adl";
+import {Settings} from "./src/types/api_types";
+import {Scorm2004API as Scorm2004Impl} from "./src/Scorm2004API";
+import {AICC as AICCImpl} from "./src/AICC";
 
 declare class Scorm12API extends Scorm12Impl {
   constructor(settings?: Settings);
@@ -67,4 +67,4 @@ declare class AICC extends AICCImpl {
   reset(settings?: Settings): void;
 }
 
-export { Scorm12API, Scorm2004API, AICC, Settings };
+export {Scorm12API, Scorm2004API, AICC, Settings};

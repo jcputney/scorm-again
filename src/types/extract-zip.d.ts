@@ -7,5 +7,6 @@ declare module "extract-zip" {
   }
 
   function extract(zipPath: string, options: ExtractOptions): Promise<void>;
+
   export default extract;
 }

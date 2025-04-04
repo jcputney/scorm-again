@@ -4,8 +4,8 @@ import { Scorm2004API } from "../../src/Scorm2004API";
 import { Scorm12API } from "../../src/Scorm12API";
 import { AICC } from "../../src/AICC";
 import {
-  scorm2004_errors,
   scorm12_errors,
+  scorm2004_errors,
 } from "../../src/constants/error_codes";
 import { LogLevelEnum } from "../../src/constants/enums";
 import { StringKeyMap } from "../../src/utilities";

@@ -1,19 +1,22 @@
 // Test script to directly verify the regex pattern
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 // Read the regex.ts file
-const regexFile = fs.readFileSync(path.join(__dirname, '../src/constants/regex.ts'), 'utf8');
+const regexFile = fs.readFileSync(
+  path.join(__dirname, "../src/constants/regex.ts"),
+  "utf8",
+);
 
 // Extract the CMITime regex pattern
 const cmiTimeRegexMatch = regexFile.match(/CMITime:\s*"([^"]+)"/);
 if (!cmiTimeRegexMatch) {
-  console.error('Could not find CMITime regex pattern in the file');
+  console.error("Could not find CMITime regex pattern in the file");
   process.exit(1);
 }
 
 const cmiTimeRegex = cmiTimeRegexMatch[1];
-console.log('CMITime regex pattern:', cmiTimeRegex);
+console.log("CMITime regex pattern:", cmiTimeRegex);
 
 // Create a RegExp object from the pattern
 const regex = new RegExp(cmiTimeRegex);
@@ -38,11 +41,11 @@ const timestamps = [
   "1969-12-31",
   "-00:00:30",
   "0:50:30",
-  "23:00:30."
+  "23:00:30.",
 ];
 
-console.log('\nTesting other timestamps:');
-timestamps.forEach(ts => {
+console.log("\nTesting other timestamps:");
+timestamps.forEach((ts) => {
   const matches = regex.test(ts);
   console.log(`${ts}: ${matches}`);
 });

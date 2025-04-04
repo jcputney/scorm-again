@@ -42,6 +42,7 @@ export class CMIArray extends BaseCMI {
       }
     }
   }
+
   /**
    * Getter for _children
    * @return {string}

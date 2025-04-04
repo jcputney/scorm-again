@@ -3,6 +3,7 @@
 This document provides comprehensive examples for using the AICC API in SCORM Again.
 
 ## Table of Contents
+
 1. [Basic Setup](#basic-setup)
 2. [Initialization and Termination](#initialization-and-termination)
 3. [Setting and Getting Values](#setting-and-getting-values)
@@ -203,18 +204,18 @@ window.API.LMSCommit('');
 
 ```javascript
 // Listen for LMSInitialize
-window.API.on('LMSInitialize', function() {
-  console.log('LMSInitialize was called');
+window.API.on('LMSInitialize', function () {
+    console.log('LMSInitialize was called');
 });
 
 // Listen for LMSSetValue on a specific element
-window.API.on('LMSSetValue.cmi.core.lesson_status', function(element, value) {
-  console.log(`Lesson status changed to: ${value}`);
+window.API.on('LMSSetValue.cmi.core.lesson_status', function (element, value) {
+    console.log(`Lesson status changed to: ${value}`);
 });
 
 // Listen for any LMSSetValue call
-window.API.on('LMSSetValue.*', function(element, value) {
-  console.log(`Element ${element} set to: ${value}`);
+window.API.on('LMSSetValue.*', function (element, value) {
+    console.log(`Element ${element} set to: ${value}`);
 });
 ```
 
@@ -223,7 +224,7 @@ window.API.on('LMSSetValue.*', function(element, value) {
 ```javascript
 // Define a callback function
 function initCallback() {
-  console.log('LMSInitialize was called');
+    console.log('LMSInitialize was called');
 }
 
 // Add the listener
@@ -300,12 +301,12 @@ window.API.cmi.core.score.raw = '75';
 
 // Or load from JSON
 const studentData = {
-  'cmi.core.student_id': '12345',
-  'cmi.core.student_name': 'John Doe',
-  'cmi.core.entry': 'resume',
-  'cmi.core.lesson_location': 'page_5',
-  'cmi.core.lesson_status': 'incomplete',
-  'cmi.core.score.raw': '75'
+    'cmi.core.student_id': '12345',
+    'cmi.core.student_name': 'John Doe',
+    'cmi.core.entry': 'resume',
+    'cmi.core.lesson_location': 'page_5',
+    'cmi.core.lesson_status': 'incomplete',
+    'cmi.core.score.raw': '75'
 };
 
 window.API.loadFromFlattenedJSON(studentData);

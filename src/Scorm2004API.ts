@@ -15,9 +15,7 @@ import {
   ScoreObject,
   Settings,
 } from "./types/api_types";
-import { scorm2004_regex } from "./constants/regex";
-
-// Import functions from extracted modules
+import { scorm2004_regex } from "./constants/regex"; // Import functions from extracted modules
 import { BaseCMI } from "./cmi/common/base_cmi";
 import {
   CMIInteractionsCorrectResponsesObject,

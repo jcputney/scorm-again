@@ -1,6 +1,5 @@
 import { describe, it } from "mocha";
 import { expect } from "expect";
-import { scorm2004_errors } from "../../src/constants/error_codes";
 import { CMIInteractionsObject } from "../../src/cmi/scorm2004/interactions";
 
 describe("SCORM 2004 Interactions Tests", () => {
@@ -90,7 +89,10 @@ describe("SCORM 2004 Interactions Tests", () => {
         interaction.type = "choice";
 
         // Create a string with 37 choices (more than the max of 36)
-        const tooManyChoices = Array.from({ length: 37 }, (_, i) => `choice${i + 1}`).join(",");
+        const tooManyChoices = Array.from(
+          { length: 37 },
+          (_, i) => `choice${i + 1}`,
+        ).join(",");
 
         expect(() => {
           interaction.learner_response = tooManyChoices;
@@ -141,7 +143,10 @@ describe("SCORM 2004 Interactions Tests", () => {
         interaction.type = "fill-in";
 
         // Create a string with 11 responses (more than the max of 10)
-        const tooManyResponses = Array.from({ length: 11 }, (_, i) => `answer${i + 1}`).join(",");
+        const tooManyResponses = Array.from(
+          { length: 11 },
+          (_, i) => `answer${i + 1}`,
+        ).join(",");
 
         expect(() => {
           interaction.learner_response = tooManyResponses;
@@ -156,10 +161,13 @@ describe("SCORM 2004 Interactions Tests", () => {
         interaction.type = "long-fill-in";
 
         expect(() => {
-          interaction.learner_response = "This is a long answer that could be up to 4000 characters.";
+          interaction.learner_response =
+            "This is a long answer that could be up to 4000 characters.";
         }).not.toThrow();
 
-        expect(interaction.learner_response).toBe("This is a long answer that could be up to 4000 characters.");
+        expect(interaction.learner_response).toBe(
+          "This is a long answer that could be up to 4000 characters.",
+        );
       });
 
       it("should reject a response that's too long", () => {
@@ -197,7 +205,9 @@ describe("SCORM 2004 Interactions Tests", () => {
 
         // The format should include pairs of identifiers separated by periods,
         // with each pair separated by commas
-        expect(validFormat).toMatch(/^[\w\.\-\_]+\.[\w\.\-\_]+(,[\w\.\-\_]+\.[\w\.\-\_]+)*$/);
+        expect(validFormat).toMatch(
+          /^[\w\.\-\_]+\.[\w\.\-\_]+(,[\w\.\-\_]+\.[\w\.\-\_]+)*$/,
+        );
       });
 
       it("should reject invalid matching responses", () => {

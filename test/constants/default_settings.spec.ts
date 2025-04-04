@@ -1,4 +1,4 @@
-import { describe, it, beforeEach, afterEach } from "mocha";
+import { afterEach, beforeEach, describe, it } from "mocha";
 import { expect } from "expect";
 import * as sinon from "sinon";
 import { DefaultSettings } from "../../src/constants/default_settings";

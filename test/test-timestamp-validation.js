@@ -5,7 +5,10 @@
 window.API_1484_11.Initialize("");
 
 // Try to set an invalid timestamp value
-const result = window.API_1484_11.SetValue("cmi.interactions.0.timestamp", "328457jh");
+const result = window.API_1484_11.SetValue(
+  "cmi.interactions.0.timestamp",
+  "328457jh",
+);
 
 // Check the error code
 const errorCode = window.API_1484_11.GetLastError();
@@ -15,5 +18,7 @@ console.log(`Error code: ${errorCode}`);
 if (errorCode === "406") {
   console.log("Test passed: Error code is 406 (TYPE_MISMATCH) as expected");
 } else {
-  console.log(`Test failed: Error code is ${errorCode}, expected 406 (TYPE_MISMATCH)`);
+  console.log(
+    `Test failed: Error code is ${errorCode}, expected 406 (TYPE_MISMATCH)`,
+  );
 }

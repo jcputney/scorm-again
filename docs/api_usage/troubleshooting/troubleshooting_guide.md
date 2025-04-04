@@ -1,8 +1,10 @@
 # SCORM Again Troubleshooting Guide
 
-This guide provides solutions for common issues you might encounter when working with SCORM Again. It covers problems related to API initialization, data persistence, LMS communication, and more.
+This guide provides solutions for common issues you might encounter when working with SCORM Again. It covers problems
+related to API initialization, data persistence, LMS communication, and more.
 
 ## Table of Contents
+
 1. [API Initialization Issues](#api-initialization-issues)
 2. [Data Persistence Problems](#data-persistence-problems)
 3. [LMS Communication Errors](#lms-communication-errors)
@@ -19,11 +21,13 @@ This guide provides solutions for common issues you might encounter when working
 **Problem**: The SCORM API cannot be found by your content.
 
 **Symptoms**:
+
 - Console errors like "Cannot find API" or "API not found"
 - Content loads but doesn't save progress
 - LMS reports that the content never initialized
 
 **Solutions**:
+
 1. **Check API Discovery Implementation**:
    ```javascript
    function findAPI(win) {
@@ -55,7 +59,8 @@ This guide provides solutions for common issues you might encounter when working
 
 2. **Verify Content Launch Method**: Ensure your content is launched through the LMS, not directly from the file system.
 
-3. **Check for iFrame Issues**: If your content is in an iFrame, make sure it can access the parent window where the API might be located.
+3. **Check for iFrame Issues**: If your content is in an iFrame, make sure it can access the parent window where the API
+   might be located.
 
 4. **Implement Fallback Mode**: Add a standalone mode for when the API isn't available:
    ```javascript
@@ -71,11 +76,13 @@ This guide provides solutions for common issues you might encounter when working
 **Problem**: The API is found but fails to initialize.
 
 **Symptoms**:
+
 - LMSInitialize() or Initialize() returns "false"
 - Error codes returned from GetLastError()
 - Content loads but doesn't function properly
 
 **Solutions**:
+
 1. **Check Initialization Parameters**:
    ```javascript
    // SCORM 1.2 and AICC
@@ -85,7 +92,8 @@ This guide provides solutions for common issues you might encounter when working
    const result = window.API_1484_11.Initialize('');  // Empty string is required
    ```
 
-2. **Verify Initialization Timing**: Make sure you're not trying to initialize the API multiple times or after it's already been terminated.
+2. **Verify Initialization Timing**: Make sure you're not trying to initialize the API multiple times or after it's
+   already been terminated.
 
 3. **Check Error Codes**:
    ```javascript
@@ -126,11 +134,13 @@ This guide provides solutions for common issues you might encounter when working
 **Problem**: Changes made to CMI data are not being saved to the LMS.
 
 **Symptoms**:
+
 - Progress is lost between sessions
 - Scores are not recorded
 - Bookmarks don't work
 
 **Solutions**:
+
 1. **Ensure Proper Commit Calls**:
    ```javascript
    // After setting values, always commit
@@ -171,11 +181,13 @@ This guide provides solutions for common issues you might encounter when working
 **Problem**: Large suspend_data values are being truncated or not saving.
 
 **Symptoms**:
+
 - Complex state data is incomplete when resumed
 - Console errors about data size
 - Only partial data is recovered on resume
 
 **Solutions**:
+
 1. **Compress Data**:
    ```javascript
    function saveCompressedData(data) {
@@ -237,11 +249,13 @@ This guide provides solutions for common issues you might encounter when working
 **Problem**: Communication with the LMS server fails due to network issues.
 
 **Symptoms**:
+
 - Console errors about failed network requests
 - Commit calls return "false"
 - Data doesn't persist between sessions
 
 **Solutions**:
+
 1. **Implement Offline Mode**:
    ```javascript
    // See the "Offline Learning with Synchronization" section in the common use cases documentation
@@ -295,11 +309,13 @@ This guide provides solutions for common issues you might encounter when working
 **Problem**: API communication fails due to cross-domain restrictions.
 
 **Symptoms**:
+
 - Console errors about cross-origin frame access
 - API discovery fails
 - Security exceptions in the console
 
 **Solutions**:
+
 1. **Ensure Same-Origin Content**:
    Make sure your content is served from the same domain as the LMS, or that proper CORS headers are set.
 
@@ -324,11 +340,13 @@ This guide provides solutions for common issues you might encounter when working
 **Problem**: Content doesn't display properly when launched through the LMS.
 
 **Symptoms**:
+
 - Missing assets (images, videos, etc.)
 - Styling issues
 - JavaScript errors in the console
 
 **Solutions**:
+
 1. **Use Relative Paths**:
    ```html
    <!-- Good -->
@@ -354,11 +372,13 @@ This guide provides solutions for common issues you might encounter when working
 **Problem**: Content doesn't adapt well to the LMS's frame size.
 
 **Symptoms**:
+
 - Scrollbars appear unnecessarily
 - Content is cut off
 - Layout breaks at certain sizes
 
 **Solutions**:
+
 1. **Use Responsive Design Techniques**:
    ```css
    /* Use relative units */
@@ -412,11 +432,13 @@ This guide provides solutions for common issues you might encounter when working
 **Problem**: Course completion status is not being properly reported to the LMS.
 
 **Symptoms**:
+
 - LMS shows course as incomplete even after completion
 - Progress indicators don't update
 - Certificates or next activities don't unlock
 
 **Solutions**:
+
 1. **Verify Correct Status Values**:
    ```javascript
    // SCORM 1.2
@@ -463,11 +485,13 @@ This guide provides solutions for common issues you might encounter when working
 **Problem**: Quiz scores are not being properly reported to the LMS.
 
 **Symptoms**:
+
 - Scores show as 0 or blank in the LMS
 - Passing/failing status doesn't match the score
 - Different scores shown in content vs. LMS reports
 
 **Solutions**:
+
 1. **Use Correct Score Format**:
    ```javascript
    // SCORM 1.2
@@ -516,11 +540,13 @@ This guide provides solutions for common issues you might encounter when working
 **Problem**: Quiz question responses are not being properly tracked.
 
 **Symptoms**:
+
 - Question responses don't appear in LMS reports
 - Interaction data is incomplete
 - Error messages when setting interaction data
 
 **Solutions**:
+
 1. **Check Interaction Format**:
    ```javascript
    // SCORM 1.2
@@ -570,11 +596,13 @@ This guide provides solutions for common issues you might encounter when working
 **Problem**: Content doesn't work properly in Internet Explorer.
 
 **Symptoms**:
+
 - JavaScript errors in IE but not in other browsers
 - Features work in Chrome/Firefox but not in IE
 - API communication fails only in IE
 
 **Solutions**:
+
 1. **Use Polyfills**:
    ```javascript
    // Include polyfills for modern JavaScript features
@@ -631,11 +659,13 @@ This guide provides solutions for common issues you might encounter when working
 **Problem**: Content doesn't work properly on mobile devices.
 
 **Symptoms**:
+
 - Touch interactions don't work as expected
 - Layout issues on small screens
 - Performance problems on mobile devices
 
 **Solutions**:
+
 1. **Use Responsive Design**:
    ```html
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -685,11 +715,13 @@ This guide provides solutions for common issues you might encounter when working
 **Problem**: Content takes too long to load.
 
 **Symptoms**:
+
 - Long delay before content is usable
 - Blank screen for extended periods
 - Browser performance warnings
 
 **Solutions**:
+
 1. **Optimize Asset Loading**:
    ```javascript
    // Lazy load non-critical resources
@@ -761,11 +793,13 @@ This guide provides solutions for common issues you might encounter when working
 **Problem**: Content consumes increasing amounts of memory over time.
 
 **Symptoms**:
+
 - Browser becomes slower the longer the content is used
 - Browser crashes or content freezes after extended use
 - Memory usage warnings from browser
 
 **Solutions**:
+
 1. **Clean Up Event Listeners**:
    ```javascript
    // Bad: Event listeners that aren't removed
@@ -829,54 +863,55 @@ This guide provides solutions for common issues you might encounter when working
 
 ## Error Code Reference
 
-This section provides a reference for common error codes you might encounter when using SCORM Again with different SCORM versions.
+This section provides a reference for common error codes you might encounter when using SCORM Again with different SCORM
+versions.
 
 ### SCORM 1.2 Error Codes
 
-| Code | Description | Troubleshooting |
-|------|-------------|-----------------|
-| 0 | No error | Operation completed successfully |
-| 101 | General exception | Check for syntax errors or invalid parameters |
-| 201 | Invalid argument error | Verify the CMI element name and value format |
-| 202 | Element cannot have children | You're trying to set a value on a leaf node |
-| 203 | Element not an array - cannot have count | The element doesn't support indexed children |
-| 301 | Not initialized | Call LMSInitialize before other API functions |
-| 401 | Not implemented error | The function is not supported by this LMS |
-| 402 | Invalid set value, element is a keyword | You're trying to set a read-only element |
-| 403 | Element is read only | The element cannot be modified |
-| 404 | Element is write only | The element cannot be read |
-| 405 | Incorrect data type | The value doesn't match the expected data type |
+| Code | Description                              | Troubleshooting                                |
+|------|------------------------------------------|------------------------------------------------|
+| 0    | No error                                 | Operation completed successfully               |
+| 101  | General exception                        | Check for syntax errors or invalid parameters  |
+| 201  | Invalid argument error                   | Verify the CMI element name and value format   |
+| 202  | Element cannot have children             | You're trying to set a value on a leaf node    |
+| 203  | Element not an array - cannot have count | The element doesn't support indexed children   |
+| 301  | Not initialized                          | Call LMSInitialize before other API functions  |
+| 401  | Not implemented error                    | The function is not supported by this LMS      |
+| 402  | Invalid set value, element is a keyword  | You're trying to set a read-only element       |
+| 403  | Element is read only                     | The element cannot be modified                 |
+| 404  | Element is write only                    | The element cannot be read                     |
+| 405  | Incorrect data type                      | The value doesn't match the expected data type |
 
 ### SCORM 2004 Error Codes
 
-| Code | Description | Troubleshooting |
-|------|-------------|-----------------|
-| 0 | No error | Operation completed successfully |
-| 101 | General exception | Check for syntax errors or invalid parameters |
-| 102 | General initialization failure | Check if the API is available and properly initialized |
-| 103 | Already initialized | The API has already been initialized |
-| 104 | Content instance terminated | The API has been terminated |
-| 111 | General termination failure | Error during termination process |
-| 112 | Termination before initialization | Cannot terminate before initializing |
-| 113 | Termination after termination | API already terminated |
-| 122 | Retrieve data before initialization | Cannot get values before initializing |
-| 123 | Retrieve data after termination | Cannot get values after terminating |
-| 132 | Store data before initialization | Cannot set values before initializing |
-| 133 | Store data after termination | Cannot set values after terminating |
-| 142 | Commit before initialization | Cannot commit before initializing |
-| 143 | Commit after termination | Cannot commit after terminating |
-| 201 | General argument error | Invalid argument passed to API function |
-| 301 | General get failure | Error retrieving the requested data |
-| 351 | General set failure | Error setting the requested data |
-| 391 | General commit failure | Error committing data to the LMS |
-| 401 | Undefined data model element | The requested data model element doesn't exist |
-| 402 | Unimplemented data model element | The element exists but isn't implemented |
-| 403 | Data model element value not initialized | The element exists but has no value |
-| 404 | Data model element is read only | Cannot set a value for a read-only element |
-| 405 | Data model element is write only | Cannot get a value for a write-only element |
-| 406 | Data model element type mismatch | The value doesn't match the expected data type |
-| 407 | Data model element value out of range | The value is outside the allowed range |
-| 408 | Data model dependency not established | A prerequisite element hasn't been set |
+| Code | Description                              | Troubleshooting                                        |
+|------|------------------------------------------|--------------------------------------------------------|
+| 0    | No error                                 | Operation completed successfully                       |
+| 101  | General exception                        | Check for syntax errors or invalid parameters          |
+| 102  | General initialization failure           | Check if the API is available and properly initialized |
+| 103  | Already initialized                      | The API has already been initialized                   |
+| 104  | Content instance terminated              | The API has been terminated                            |
+| 111  | General termination failure              | Error during termination process                       |
+| 112  | Termination before initialization        | Cannot terminate before initializing                   |
+| 113  | Termination after termination            | API already terminated                                 |
+| 122  | Retrieve data before initialization      | Cannot get values before initializing                  |
+| 123  | Retrieve data after termination          | Cannot get values after terminating                    |
+| 132  | Store data before initialization         | Cannot set values before initializing                  |
+| 133  | Store data after termination             | Cannot set values after terminating                    |
+| 142  | Commit before initialization             | Cannot commit before initializing                      |
+| 143  | Commit after termination                 | Cannot commit after terminating                        |
+| 201  | General argument error                   | Invalid argument passed to API function                |
+| 301  | General get failure                      | Error retrieving the requested data                    |
+| 351  | General set failure                      | Error setting the requested data                       |
+| 391  | General commit failure                   | Error committing data to the LMS                       |
+| 401  | Undefined data model element             | The requested data model element doesn't exist         |
+| 402  | Unimplemented data model element         | The element exists but isn't implemented               |
+| 403  | Data model element value not initialized | The element exists but has no value                    |
+| 404  | Data model element is read only          | Cannot set a value for a read-only element             |
+| 405  | Data model element is write only         | Cannot get a value for a write-only element            |
+| 406  | Data model element type mismatch         | The value doesn't match the expected data type         |
+| 407  | Data model element value out of range    | The value is outside the allowed range                 |
+| 408  | Data model dependency not established    | A prerequisite element hasn't been set                 |
 
 ### Handling Error Codes
 
@@ -921,4 +956,5 @@ if (result !== 'true') {
 }
 ```
 
-By understanding these error codes and implementing proper error handling, you can create more robust SCORM content that gracefully handles issues and provides better feedback to both users and developers.
+By understanding these error codes and implementing proper error handling, you can create more robust SCORM content that
+gracefully handles issues and provides better feedback to both users and developers.

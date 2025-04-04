@@ -1,8 +1,10 @@
 # Common Use Cases for SCORM Again
 
-This document provides examples of common use cases and patterns when working with SCORM Again. These examples are applicable across all supported standards (AICC, SCORM 1.2, and SCORM 2004) with minor syntax differences.
+This document provides examples of common use cases and patterns when working with SCORM Again. These examples are
+applicable across all supported standards (AICC, SCORM 1.2, and SCORM 2004) with minor syntax differences.
 
 ## Table of Contents
+
 1. [E-Learning Course Initialization](#e-learning-course-initialization)
 2. [Tracking Course Completion](#tracking-course-completion)
 3. [Quiz and Assessment Handling](#quiz-and-assessment-handling)

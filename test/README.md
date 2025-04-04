@@ -6,8 +6,10 @@ This document explains how to run different types of tests in the SCORM Again pr
 
 The project has two types of tests:
 
-1. **Unit Tests**: These test individual components in isolation. They are located in the `test` directory (excluding the `integration` subdirectory).
-2. **Integration Tests**: These test how components work together, often involving browser interactions. They are located in the `test/integration` directory.
+1. **Unit Tests**: These test individual components in isolation. They are located in the `test` directory (excluding
+   the `integration` subdirectory).
+2. **Integration Tests**: These test how components work together, often involving browser interactions. They are
+   located in the `test/integration` directory.
 
 ## Running Tests
 
@@ -61,7 +63,8 @@ The test configuration is managed through several files:
 
 ### Unit Tests
 
-Unit tests should be placed in the `test` directory (not in the `integration` subdirectory) and should have the `.spec.ts` extension.
+Unit tests should be placed in the `test` directory (not in the `integration` subdirectory) and should have the
+`.spec.ts` extension.
 
 ### Integration Tests
 

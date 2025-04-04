@@ -1,6 +1,6 @@
 import { describe, it } from "mocha";
 import { expect } from "expect";
-import { ADL, ADLNav, ADLData, ADLNavRequestValid } from "../../src/cmi/scorm2004/adl";
+import { ADL, ADLNav, ADLNavRequestValid } from "../../src/cmi/scorm2004/adl";
 import { NAVBoolean } from "../../src/constants/enums";
 
 describe("SCORM 2004 ADL Tests", () => {
@@ -208,19 +208,25 @@ describe("SCORM 2004 ADL Tests", () => {
         requestValid.choice = { "{target=target1}": "true" };
       }).not.toThrow();
 
-      expect(requestValid.choice).toEqual({ "{target=target1}": NAVBoolean.TRUE });
+      expect(requestValid.choice).toEqual({
+        "{target=target1}": NAVBoolean.TRUE,
+      });
 
       expect(() => {
         requestValid.choice = { "{target=target1}": "false" };
       }).not.toThrow();
 
-      expect(requestValid.choice).toEqual({ "{target=target1}": NAVBoolean.FALSE });
+      expect(requestValid.choice).toEqual({
+        "{target=target1}": NAVBoolean.FALSE,
+      });
 
       expect(() => {
         requestValid.choice = { "{target=target1}": "unknown" };
       }).not.toThrow();
 
-      expect(requestValid.choice).toEqual({ "{target=target1}": NAVBoolean.UNKNOWN });
+      expect(requestValid.choice).toEqual({
+        "{target=target1}": NAVBoolean.UNKNOWN,
+      });
     });
 
     it("should export to JSON correctly", () => {

@@ -1,8 +1,10 @@
 # Development Workflow for SCORM Again
 
-This document outlines the recommended development workflow for contributing to the SCORM Again project. It covers setting up your development environment, making changes, testing, and submitting pull requests.
+This document outlines the recommended development workflow for contributing to the SCORM Again project. It covers
+setting up your development environment, making changes, testing, and submitting pull requests.
 
 ## Table of Contents
+
 1. [Setting Up Your Development Environment](#setting-up-your-development-environment)
 2. [Development Workflow](#development-workflow)
 3. [Code Style and Formatting](#code-style-and-formatting)
@@ -12,11 +14,13 @@ This document outlines the recommended development workflow for contributing to 
 ## Setting Up Your Development Environment
 
 ### Prerequisites
+
 - Node.js (LTS version recommended)
 - Yarn package manager
 - Git
 
 ### Initial Setup
+
 1. Fork the repository on GitHub
 2. Clone your fork locally:
    ```bash
@@ -33,7 +37,9 @@ This document outlines the recommended development workflow for contributing to 
    ```
 
 ### Keeping Your Fork Updated
+
 Regularly sync your fork with the upstream repository:
+
 ```bash
 git fetch upstream
 git checkout main
@@ -43,18 +49,22 @@ git merge upstream/main
 ## Development Workflow
 
 ### Creating a Feature Branch
+
 Always create a new branch for your changes:
+
 ```bash
 git checkout -b feature/your-feature-name
 ```
 
 Use a descriptive branch name that reflects the changes you're making. Common prefixes include:
+
 - `feature/` for new features
 - `bugfix/` for bug fixes
 - `docs/` for documentation changes
 - `test/` for test-only changes
 
 ### Making Changes
+
 1. Make your code changes following the project's coding standards
 2. Write or update tests for your changes
 3. Run tests locally to ensure they pass:
@@ -71,6 +81,7 @@ Use a descriptive branch name that reflects the changes you're making. Common pr
    ```
 
 ### Committing Changes
+
 1. Stage your changes:
    ```bash
    git add .
@@ -105,6 +116,7 @@ SCORM Again follows specific coding conventions to maintain consistency across t
    ```
 
 Key style points:
+
 - Use 2 spaces for indentation (soft tabs)
 - Always put spaces after list items and method parameters
 - Use spaces around operators and hash arrows
@@ -113,12 +125,15 @@ Key style points:
 ## Building the Project
 
 ### Development Build
+
 To build the project during development:
+
 ```bash
 yarn compile
 ```
 
 This will create the following files in the `dist` directory:
+
 - `scorm-again.js` - The full library
 - `scorm-again.min.js` - Minified version of the full library
 - `aicc.js` - AICC API only
@@ -126,7 +141,9 @@ This will create the following files in the `dist` directory:
 - `scorm2004.js` - SCORM 2004 API only
 
 ### Testing Your Build
+
 After building, you can test the library by:
+
 1. Including it in an HTML file:
    ```html
    <script src="dist/scorm-again.js"></script>
@@ -137,6 +154,7 @@ After building, you can test the library by:
 ## Submitting Changes
 
 ### Creating a Pull Request
+
 1. Ensure all tests pass:
    ```bash
    yarn test:min
@@ -150,18 +168,20 @@ After building, you can test the library by:
 5. Select "compare across forks"
 6. Select your fork and branch as the source
 7. Add a clear title and description for your pull request:
-   - Describe what the changes do
-   - Reference any related issues using the GitHub issue number (e.g., "Fixes #123")
-   - Mention any notable implementation details or design decisions
-   - List any manual testing you've performed
+    - Describe what the changes do
+    - Reference any related issues using the GitHub issue number (e.g., "Fixes #123")
+    - Mention any notable implementation details or design decisions
+    - List any manual testing you've performed
 
 ### Pull Request Review Process
+
 1. Maintainers will review your code
 2. Automated tests will run on your pull request
 3. You may be asked to make changes based on feedback
 4. Once approved, your changes will be merged into the main branch
 
 ### After Your Pull Request is Merged
+
 1. Update your local main branch:
    ```bash
    git checkout main
@@ -176,4 +196,5 @@ After building, you can test the library by:
    git push origin main
    ```
 
-By following this workflow, you'll help maintain a high-quality codebase and make the review process smoother for everyone involved.
+By following this workflow, you'll help maintain a high-quality codebase and make the review process smoother for
+everyone involved.

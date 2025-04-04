@@ -3,6 +3,7 @@
 This document provides comprehensive examples for using the SCORM 2004 API in SCORM Again.
 
 ## Table of Contents
+
 1. [Basic Setup](#basic-setup)
 2. [Initialization and Termination](#initialization-and-termination)
 3. [Setting and Getting Values](#setting-and-getting-values)

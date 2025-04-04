@@ -1,8 +1,10 @@
 # Contribution Guidelines for SCORM Again
 
-Thank you for your interest in contributing to SCORM Again! This document provides detailed guidelines for contributing to the project, including code standards, pull request process, and best practices.
+Thank you for your interest in contributing to SCORM Again! This document provides detailed guidelines for contributing
+to the project, including code standards, pull request process, and best practices.
 
 ## Table of Contents
+
 1. [Types of Contributions](#types-of-contributions)
 2. [Code Standards](#code-standards)
 3. [Documentation Standards](#documentation-standards)
@@ -15,6 +17,7 @@ Thank you for your interest in contributing to SCORM Again! This document provid
 We welcome various types of contributions to SCORM Again:
 
 ### Code Contributions
+
 - Bug fixes
 - Performance improvements
 - New features
@@ -22,18 +25,21 @@ We welcome various types of contributions to SCORM Again:
 - Dependency updates
 
 ### Documentation Contributions
+
 - API documentation improvements
 - Usage examples
 - Tutorials
 - Fixing typos or clarifying existing documentation
 
 ### Testing Contributions
+
 - Adding test cases for existing functionality
 - Improving test coverage
 - Creating test utilities
 - Adding integration tests
 
 ### Other Contributions
+
 - Reporting bugs
 - Suggesting enhancements
 - Helping with issue triage
@@ -44,6 +50,7 @@ We welcome various types of contributions to SCORM Again:
 SCORM Again follows strict coding standards to maintain a high-quality, consistent codebase:
 
 ### TypeScript Guidelines
+
 - Follow the TypeScript style guide in `.junie/guidelines.md`
 - Use TypeScript's strict mode
 - Provide explicit types for all parameters and return values
@@ -52,6 +59,7 @@ SCORM Again follows strict coding standards to maintain a high-quality, consiste
 - Use type aliases for union types, intersection types, and complex types
 
 ### Naming Conventions
+
 - Use `PascalCase` for class names, interfaces, and type aliases
 - Use `camelCase` for variables, functions, and method names
 - Use `UPPER_SNAKE_CASE` for constants and enum values
@@ -59,12 +67,14 @@ SCORM Again follows strict coding standards to maintain a high-quality, consiste
 - Prefix private class members with an underscore (e.g., `_checkObjectHasProperty`)
 
 ### Code Organization
+
 - Keep files focused on a single responsibility
 - Aim to keep files under 500 lines
 - Organize imports as specified in the style guide
 - Use barrel files (index.ts) to simplify imports from directories with multiple exports
 
 ### Error Handling
+
 - Use custom error classes for domain-specific errors
 - Throw specific error types rather than generic Error objects
 - Handle errors at the appropriate level of abstraction
@@ -75,18 +85,21 @@ SCORM Again follows strict coding standards to maintain a high-quality, consiste
 Good documentation is crucial for the usability of SCORM Again:
 
 ### Code Documentation
+
 - Use JSDoc comments for all public methods and classes
 - Include parameter descriptions, return types, and examples in JSDoc comments
 - Document complex algorithms and business logic with clear comments
 - Keep comments up-to-date with code changes
 
 ### API Documentation
+
 - Provide clear examples for each API
 - Document common use cases and patterns
 - Include troubleshooting information for common issues
 - Use consistent terminology throughout documentation
 
 ### README and Other Markdown Files
+
 - Use clear, concise language
 - Structure documents with appropriate headings
 - Include a table of contents for longer documents
@@ -97,18 +110,21 @@ Good documentation is crucial for the usability of SCORM Again:
 Testing is a critical part of maintaining SCORM Again's quality:
 
 ### Test Coverage
+
 - All new code should have corresponding tests
 - Aim for high test coverage, especially for critical functionality
 - Test both success and error cases
 - Test edge cases and boundary conditions
 
 ### Test Organization
+
 - Organize tests to mirror the source code structure
 - Use descriptive test names that explain the expected behavior
 - Follow the Arrange-Act-Assert pattern in tests
 - Keep tests independent of each other
 
 ### Running Tests
+
 - Ensure all tests pass before submitting a pull request:
   ```bash
   yarn test:min
@@ -119,6 +135,7 @@ Testing is a critical part of maintaining SCORM Again's quality:
   ```
 
 ### Test-Only Contributions
+
 - Test-only contributions are welcome and encouraged
 - Focus on improving coverage for critical or complex code
 - Add tests for edge cases and error conditions
@@ -139,7 +156,9 @@ Follow these steps to submit a pull request:
 9. **Pull Request**: Submit a pull request with a clear description of your changes
 
 ### Pull Request Description
+
 Include the following in your pull request description:
+
 - What the changes do
 - Why the changes are needed
 - Any notable implementation details
@@ -148,6 +167,7 @@ Include the following in your pull request description:
 - Any potential concerns or areas for reviewer focus
 
 ### Review Process
+
 - At least one maintainer will review your pull request
 - Automated tests will run on your pull request
 - You may be asked to make changes based on feedback
@@ -158,13 +178,16 @@ Include the following in your pull request description:
 SCORM Again is a community project, and we value respectful and constructive interaction:
 
 ### Communication
+
 - Be respectful and considerate in all communications
 - Provide constructive feedback
 - Be open to receiving feedback on your contributions
 - Ask questions if something is unclear
 
 ### Issue Reporting
+
 When reporting issues:
+
 - Use a clear, descriptive title
 - Provide detailed steps to reproduce the issue
 - Include relevant information about your environment
@@ -172,12 +195,15 @@ When reporting issues:
 - Suggest a fix if you have ideas
 
 ### Feature Requests
+
 When suggesting features:
+
 - Clearly describe the problem the feature would solve
 - Explain how the feature would benefit users
 - Consider potential implementation approaches
 - Be open to discussion about alternatives
 
-By following these guidelines, you'll help maintain SCORM Again as a high-quality, well-documented, and well-tested library that serves its users effectively.
+By following these guidelines, you'll help maintain SCORM Again as a high-quality, well-documented, and well-tested
+library that serves its users effectively.
 
 Thank you for contributing to SCORM Again!

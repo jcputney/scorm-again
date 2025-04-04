@@ -3,14 +3,12 @@ import { expect } from "expect";
 import * as sinon from "sinon";
 import {
   ADL,
-  ADLNav,
   ADLData,
   ADLDataObject,
+  ADLNav,
   ADLNavRequestValid,
 } from "../../../src/cmi/scorm2004/adl";
-import { NAVBoolean } from "../../../src/constants/enums";
 import { Scorm2004ValidationError } from "../../../src/exceptions/scorm2004_exceptions";
-import { scorm2004_errors } from "../../../src/constants/error_codes";
 
 describe("ADL Classes", () => {
   describe("ADL", () => {
@@ -63,7 +61,10 @@ describe("ADL Classes", () => {
 
     it("should initialize child objects when initialize is called", () => {
       const adlNav = new ADLNav();
-      const requestValidInitializeSpy = sinon.spy(adlNav.request_valid, "initialize");
+      const requestValidInitializeSpy = sinon.spy(
+        adlNav.request_valid,
+        "initialize",
+      );
 
       adlNav.initialize();
 
@@ -254,7 +255,7 @@ describe("ADL Classes", () => {
     it("should set choice property when not initialized", () => {
       const adlNavRequestValid = new ADLNavRequestValid();
       try {
-        adlNavRequestValid.choice = { "target1": "true" };
+        adlNavRequestValid.choice = { target1: "true" };
       } catch (e) {
         // Expected to throw an error
       }
@@ -268,7 +269,7 @@ describe("ADL Classes", () => {
       adlNavRequestValid.initialize();
 
       expect(() => {
-        adlNavRequestValid.choice = { "target1": "true" };
+        adlNavRequestValid.choice = { target1: "true" };
       }).toThrow(Scorm2004ValidationError);
     });
 
@@ -283,7 +284,7 @@ describe("ADL Classes", () => {
     it("should set jump property when not initialized", () => {
       const adlNavRequestValid = new ADLNavRequestValid();
       try {
-        adlNavRequestValid.jump = { "target1": "true" };
+        adlNavRequestValid.jump = { target1: "true" };
       } catch (e) {
         // Expected to throw an error
       }
@@ -297,7 +298,7 @@ describe("ADL Classes", () => {
       adlNavRequestValid.initialize();
 
       expect(() => {
-        adlNavRequestValid.jump = { "target1": "true" };
+        adlNavRequestValid.jump = { target1: "true" };
       }).toThrow(Scorm2004ValidationError);
     });
 

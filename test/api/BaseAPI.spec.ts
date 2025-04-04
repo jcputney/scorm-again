@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, it } from "mocha";
 import { expect } from "expect";
 import * as sinon from "sinon";
+import { SinonStub } from "sinon";
 import BaseAPI from "../../src/BaseAPI";
 import { BaseCMI, BaseRootCMI } from "../../src/cmi/common/base_cmi";
 import { ErrorCode } from "../../src/constants/error_codes";
@@ -17,7 +18,6 @@ import {
 } from "../../src/constants/enums";
 import { getLoggingService } from "../../src/services/LoggingService";
 import { StringKeyMap } from "../../src/utilities";
-import { SinonStub } from "sinon";
 
 // Create a concrete implementation of BaseAPI for testing
 class TestAPI extends BaseAPI {
@@ -43,31 +43,41 @@ class TestAPI extends BaseAPI {
 
   // Implement abstract methods
   reset() {}
+
   lmsInitialize() {
     return "true";
   }
+
   lmsFinish() {
     return "true";
   }
+
   lmsGetValue(_CMIElement: string) {
     return "";
   }
+
   lmsSetValue(_CMIElement: string, _value: unknown) {
     return "true";
   }
+
   lmsCommit() {
     return "true";
   }
+
   lmsGetLastError() {
     return "0";
   }
+
   lmsGetErrorString(_CMIErrorCode: string | number) {
     return "";
   }
+
   lmsGetDiagnostic(_CMIErrorCode: string | number) {
     return "";
   }
+
   validateCorrectResponse(_CMIElement: string, _value: unknown): void {}
+
   getChildElement(
     _CMIElement: string,
     _value: unknown,
@@ -75,12 +85,15 @@ class TestAPI extends BaseAPI {
   ): BaseCMI | null {
     return null;
   }
+
   async storeData(_calculateTotalTime: boolean): Promise<ResultObject> {
     return { result: "true", errorCode: 0 };
   }
+
   renderCommitCMI(_terminateCommit: boolean): StringKeyMap | Array<string> {
     return {};
   }
+
   renderCommitObject(_terminateCommit: boolean): CommitObject {
     return {
       successStatus: SuccessStatus.UNKNOWN,

@@ -1,11 +1,11 @@
 /**
  * Class representing session properties for SCORM 2004's cmi object
  */
-import { scorm2004_regex } from "../../constants/regex";
-import { scorm2004_errors } from "../../constants/error_codes";
-import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
-import { BaseCMI } from "../common/base_cmi";
-import { check2004ValidFormat } from "./validation";
+import {scorm2004_regex} from "../../constants/regex";
+import {scorm2004_errors} from "../../constants/error_codes";
+import {Scorm2004ValidationError} from "../../exceptions/scorm2004_exceptions";
+import {BaseCMI} from "../common/base_cmi";
+import {check2004ValidFormat} from "./validation";
 import * as Util from "../../utilities";
 
 /**

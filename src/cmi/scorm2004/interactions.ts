@@ -9,8 +9,8 @@ import { scorm2004_constants } from "../../constants/api_constants";
 import { check2004ValidFormat } from "./validation";
 import { scorm2004_regex } from "../../constants/regex";
 import {
-  LearnerResponses,
   CorrectResponses,
+  LearnerResponses,
 } from "../../constants/response_constants";
 
 export class CMIInteractions extends CMIArray {

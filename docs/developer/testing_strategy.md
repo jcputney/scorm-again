@@ -1,8 +1,10 @@
 # Testing Strategy for SCORM Again
 
-This document outlines the testing strategy for the SCORM Again project, including the types of tests, testing tools, test organization, and best practices for writing effective tests.
+This document outlines the testing strategy for the SCORM Again project, including the types of tests, testing tools,
+test organization, and best practices for writing effective tests.
 
 ## Table of Contents
+
 1. [Testing Philosophy](#testing-philosophy)
 2. [Testing Tools](#testing-tools)
 3. [Test Organization](#test-organization)
@@ -16,7 +18,8 @@ This document outlines the testing strategy for the SCORM Again project, includi
 
 SCORM Again follows these testing principles:
 
-1. **Test-Driven Development**: Where possible, write tests before implementing features to ensure code meets requirements.
+1. **Test-Driven Development**: Where possible, write tests before implementing features to ensure code meets
+   requirements.
 2. **Comprehensive Coverage**: Aim for high test coverage, especially for critical functionality.
 3. **Maintainable Tests**: Tests should be easy to understand and maintain.
 4. **Fast Execution**: Tests should run quickly to provide rapid feedback during development.
@@ -102,11 +105,13 @@ describe('SCORM 1.2 API Integration', () => {
 
 #### Browser-Based Integration Tests
 
-Browser-based integration tests verify that the library works correctly in an actual browser environment with real SCORM modules. These tests use Playwright to automate browser interactions and test against real SCORM content.
+Browser-based integration tests verify that the library works correctly in an actual browser environment with real SCORM
+modules. These tests use Playwright to automate browser interactions and test against real SCORM content.
 
 ##### Setup
 
 The integration test setup:
+
 1. Checks for locally cached test modules
 2. Downloads test modules if they don't exist
 3. Extracts the modules
@@ -127,6 +132,7 @@ To run the browser-based integration tests:
    ```
 
 This will:
+
 - Download the test modules if they don't exist locally
 - Start a local web server
 - Run the Playwright tests against the modules
@@ -134,13 +140,16 @@ This will:
 
 ##### Test Modules
 
-The test modules are downloaded from [SCORM.com's Golf Examples](https://cdn.noverant.com/AllGolfExamples.zip). These modules provide various SCORM content for testing different scenarios.
+The test modules are downloaded from [SCORM.com's Golf Examples](https://cdn.noverant.com/AllGolfExamples.zip). These
+modules provide various SCORM content for testing different scenarios.
 
-The modules are stored in the `test/integration/modules` directory, which is ignored by git to avoid committing large binary files to the repository.
+The modules are stored in the `test/integration/modules` directory, which is ignored by git to avoid committing large
+binary files to the repository.
 
 ##### Writing Browser-Based Integration Tests
 
-Browser-based integration tests are written using Playwright and are located in the `test/integration` directory. These tests:
+Browser-based integration tests are written using Playwright and are located in the `test/integration` directory. These
+tests:
 
 1. Navigate to a SCORM module
 2. Interact with the module
@@ -405,4 +414,5 @@ If CI fails:
 4. Push the fixes to your branch
 5. CI will automatically run again
 
-By following this testing strategy, SCORM Again maintains a high level of code quality and reliability, ensuring that the library works correctly across different environments and use cases.
+By following this testing strategy, SCORM Again maintains a high level of code quality and reliability, ensuring that
+the library works correctly across different environments and use cases.

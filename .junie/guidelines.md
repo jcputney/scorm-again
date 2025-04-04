@@ -1,8 +1,10 @@
 # TypeScript Style Guide for SCORM Again
 
-This style guide outlines the conventions and best practices for TypeScript development in the SCORM Again project. Following these guidelines will ensure code consistency, maintainability, and quality across the codebase.
+This style guide outlines the conventions and best practices for TypeScript development in the SCORM Again project.
+Following these guidelines will ensure code consistency, maintainability, and quality across the codebase.
 
 ## Table of Contents
+
 1. [TypeScript Configuration](#typescript-configuration)
 2. [Code Organization](#code-organization)
 3. [Naming Conventions](#naming-conventions)
@@ -16,24 +18,27 @@ This style guide outlines the conventions and best practices for TypeScript deve
 
 ## TypeScript Configuration
 
-- Use the project's `tsconfig.json` settings, which enforce strict type checking with `noImplicitAny` and `noImplicitOverride`.
+- Use the project's `tsconfig.json` settings, which enforce strict type checking with `noImplicitAny` and
+  `noImplicitOverride`.
 - Target ES5 for compatibility but use ES2015 modules.
 - Enforce consistent casing in file names with `forceConsistentCasingInFileNames`.
 
 ## Code Organization
 
 ### File Structure
+
 - Organize code by feature or domain rather than by type.
 - Keep files focused on a single responsibility.
 - Aim to keep files under 500 lines; consider refactoring larger files into smaller, more focused modules.
 - Use barrel files (index.ts) to simplify imports from directories with multiple exports.
 
 ### Imports
+
 - Use ES6 import syntax.
 - Group imports in the following order, separated by blank lines:
-  1. External libraries
-  2. Project modules
-  3. Relative imports
+    1. External libraries
+    2. Project modules
+    3. Relative imports
 - Sort imports alphabetically within each group.
 - Use named imports rather than namespace imports.
 
@@ -217,4 +222,5 @@ describe('BaseAPI', () => {
 });
 ```
 
-By following these guidelines, we can maintain a consistent, high-quality codebase that is easy to understand, extend, and maintain.
+By following these guidelines, we can maintain a consistent, high-quality codebase that is easy to understand, extend,
+and maintain.
