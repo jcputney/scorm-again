@@ -16,8 +16,9 @@ export class CMICore extends BaseCMI {
    * Constructor for `cmi.core`
    */
   constructor() {
-    super();
+    super("cmi.core");
     this.score = new CMIScore({
+      CMIElement: "cmi.core.score",
       score_children: scorm12_constants.score_children,
       score_range: scorm12_regex.score_range,
       invalidErrorCode: scorm12_errors.INVALID_SET_VALUE,
@@ -83,7 +84,10 @@ export class CMICore extends BaseCMI {
    * @private
    */
   set _children(_children: string) {
-    throw new Scorm12ValidationError(scorm12_errors.INVALID_SET_VALUE);
+    throw new Scorm12ValidationError(
+      this._cmi_element + "._children",
+      scorm12_errors.INVALID_SET_VALUE,
+    );
   }
 
   /**
@@ -100,7 +104,10 @@ export class CMICore extends BaseCMI {
    */
   set student_id(student_id: string) {
     if (this.initialized) {
-      throw new Scorm12ValidationError(scorm12_errors.READ_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".student_id",
+        scorm12_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._student_id = student_id;
     }
@@ -120,7 +127,10 @@ export class CMICore extends BaseCMI {
    */
   set student_name(student_name: string) {
     if (this.initialized) {
-      throw new Scorm12ValidationError(scorm12_errors.READ_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".student_name",
+        scorm12_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._student_name = student_name;
     }
@@ -139,7 +149,14 @@ export class CMICore extends BaseCMI {
    * @param {string} lesson_location
    */
   set lesson_location(lesson_location: string) {
-    if (check12ValidFormat(lesson_location, scorm12_regex.CMIString256, true)) {
+    if (
+      check12ValidFormat(
+        this._cmi_element + ".lesson_location",
+        lesson_location,
+        scorm12_regex.CMIString256,
+        true,
+      )
+    ) {
       this._lesson_location = lesson_location;
     }
   }
@@ -158,7 +175,10 @@ export class CMICore extends BaseCMI {
    */
   set credit(credit: string) {
     if (this.initialized) {
-      throw new Scorm12ValidationError(scorm12_errors.READ_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".credit",
+        scorm12_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._credit = credit;
     }
@@ -178,11 +198,23 @@ export class CMICore extends BaseCMI {
    */
   set lesson_status(lesson_status: string) {
     if (this.initialized) {
-      if (check12ValidFormat(lesson_status, scorm12_regex.CMIStatus)) {
+      if (
+        check12ValidFormat(
+          this._cmi_element + ".lesson_status",
+          lesson_status,
+          scorm12_regex.CMIStatus,
+        )
+      ) {
         this._lesson_status = lesson_status;
       }
     } else {
-      if (check12ValidFormat(lesson_status, scorm12_regex.CMIStatus2)) {
+      if (
+        check12ValidFormat(
+          this._cmi_element + ".lesson_status",
+          lesson_status,
+          scorm12_regex.CMIStatus2,
+        )
+      ) {
         this._lesson_status = lesson_status;
       }
     }
@@ -202,7 +234,10 @@ export class CMICore extends BaseCMI {
    */
   set entry(entry: string) {
     if (this.initialized) {
-      throw new Scorm12ValidationError(scorm12_errors.READ_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".entry",
+        scorm12_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._entry = entry;
     }
@@ -222,7 +257,10 @@ export class CMICore extends BaseCMI {
    */
   set total_time(total_time: string) {
     if (this.initialized) {
-      throw new Scorm12ValidationError(scorm12_errors.READ_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".total_time",
+        scorm12_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._total_time = total_time;
     }
@@ -242,7 +280,10 @@ export class CMICore extends BaseCMI {
    */
   set lesson_mode(lesson_mode: string) {
     if (this.initialized) {
-      throw new Scorm12ValidationError(scorm12_errors.READ_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".lesson_mode",
+        scorm12_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._lesson_mode = lesson_mode;
     }
@@ -254,7 +295,10 @@ export class CMICore extends BaseCMI {
    */
   get exit(): string {
     if (!this.jsonString) {
-      throw new Scorm12ValidationError(scorm12_errors.WRITE_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".exit",
+        scorm12_errors.WRITE_ONLY_ELEMENT,
+      );
     }
     return this._exit;
   }
@@ -264,7 +308,14 @@ export class CMICore extends BaseCMI {
    * @param {string} exit
    */
   set exit(exit: string) {
-    if (check12ValidFormat(exit, scorm12_regex.CMIExit, true)) {
+    if (
+      check12ValidFormat(
+        this._cmi_element + ".exit",
+        exit,
+        scorm12_regex.CMIExit,
+        true,
+      )
+    ) {
       this._exit = exit;
     }
   }
@@ -275,7 +326,10 @@ export class CMICore extends BaseCMI {
    */
   get session_time(): string {
     if (!this.jsonString) {
-      throw new Scorm12ValidationError(scorm12_errors.WRITE_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".session_time",
+        scorm12_errors.WRITE_ONLY_ELEMENT,
+      );
     }
     return this._session_time;
   }
@@ -285,7 +339,13 @@ export class CMICore extends BaseCMI {
    * @param {string} session_time
    */
   set session_time(session_time: string) {
-    if (check12ValidFormat(session_time, scorm12_regex.CMITimespan)) {
+    if (
+      check12ValidFormat(
+        this._cmi_element + ".session_time",
+        session_time,
+        scorm12_regex.CMITimespan,
+      )
+    ) {
       this._session_time = session_time;
     }
   }
@@ -303,7 +363,14 @@ export class CMICore extends BaseCMI {
    * @param {string} suspend_data
    */
   set suspend_data(suspend_data: string) {
-    if (check12ValidFormat(suspend_data, scorm12_regex.CMIString4096, true)) {
+    if (
+      check12ValidFormat(
+        this._cmi_element + ".suspend_data",
+        suspend_data,
+        scorm12_regex.CMIString4096,
+        true,
+      )
+    ) {
       this._suspend_data = suspend_data;
     }
   }

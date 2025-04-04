@@ -3,7 +3,7 @@ import { global_constants } from "../constants/api_constants";
 import { ErrorCode } from "../constants/error_codes";
 import { ValidationError } from "../exceptions";
 import { IErrorHandlingService } from "../interfaces/services";
-import { isValidationError, isError } from "../utils/type_guards";
+import { isError, isValidationError } from "../utils/type_guards";
 
 /**
  * Service for handling SCORM errors
@@ -15,8 +15,12 @@ export class ErrorHandlingService implements IErrorHandlingService {
     functionName: string,
     message: string,
     logLevel?: LogLevelEnum,
+    CMIElement?: string,
   ) => void;
-  private readonly _getLmsErrorMessageDetails: (errorCode: number) => string;
+  private readonly _getLmsErrorMessageDetails: (
+    errorCode: number,
+    detail: boolean,
+  ) => string;
 
   /**
    * Constructor for ErrorHandlingService
@@ -31,8 +35,9 @@ export class ErrorHandlingService implements IErrorHandlingService {
       functionName: string,
       message: string,
       logLevel?: LogLevelEnum,
+      CMIElement?: string,
     ) => void,
-    getLmsErrorMessageDetails: (errorCode: number) => string,
+    getLmsErrorMessageDetails: (errorCode: number, detail: boolean) => string,
   ) {
     this._errorCodes = errorCodes;
     this._apiLog = apiLog;
@@ -60,18 +65,25 @@ export class ErrorHandlingService implements IErrorHandlingService {
   /**
    * Throws a SCORM error
    *
+   * @param {string} CMIElement
    * @param {number} errorNumber - The error number
    * @param {string} message - The error message
+   * @throws {ValidationError} - If throwException is true, throws a ValidationError
    */
-  throwSCORMError(errorNumber: number, message?: string): void {
+  throwSCORMError(
+    CMIElement: string,
+    errorNumber: number,
+    message?: string,
+  ): void {
     if (!message) {
-      message = this._getLmsErrorMessageDetails(errorNumber);
+      message = this._getLmsErrorMessageDetails(errorNumber, true);
     }
 
     this._apiLog(
       "throwSCORMError",
       errorNumber + ": " + message,
       LogLevelEnum.ERROR,
+      CMIElement,
     );
 
     this._lastErrorCode = String(errorNumber);
@@ -116,6 +128,7 @@ export class ErrorHandlingService implements IErrorHandlingService {
    * This method is critical for maintaining SCORM compliance by ensuring that
    * all errors are properly translated into the appropriate SCORM error codes.
    *
+   * @param {string} CMIElement
    * @param {ValidationError|Error|unknown} e - The exception that was thrown
    * @param {string} returnValue - The default return value (typically an empty string)
    * @return {string} - Either the original returnValue or SCORM_FALSE if an error occurred
@@ -129,6 +142,7 @@ export class ErrorHandlingService implements IErrorHandlingService {
    * }
    */
   handleValueAccessException(
+    CMIElement: string,
     e: ValidationError | Error | unknown,
     returnValue: string,
   ): string {
@@ -138,10 +152,15 @@ export class ErrorHandlingService implements IErrorHandlingService {
     } else {
       if (isError(e) && e.message) {
         console.error(e.message);
+        this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, e.message);
       } else {
         console.error(e);
+        this.throwSCORMError(
+          CMIElement,
+          this._errorCodes.GENERAL,
+          "Unknown error",
+        );
       }
-      this.throwSCORMError(this._errorCodes.GENERAL);
     }
     return returnValue;
   }
@@ -163,8 +182,9 @@ export function createErrorHandlingService(
     functionName: string,
     message: string,
     logLevel?: LogLevelEnum,
+    CMIElement?: string,
   ) => void,
-  getLmsErrorMessageDetails: (errorCode: number) => string,
+  getLmsErrorMessageDetails: (errorCode: number, detail: boolean) => string,
 ): ErrorHandlingService {
   return new ErrorHandlingService(
     errorCodes,

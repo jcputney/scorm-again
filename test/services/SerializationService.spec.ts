@@ -33,22 +33,20 @@ describe("SerializationService", () => {
         "cmi.core.student_id": "123",
         "cmi.core.student_name": "John Doe",
       };
-      const loadFromJSONSpy = sinon.spy();
       const setCMIValueSpy = sinon.spy();
       const isNotInitializedStub = sinon.stub().returns(true);
+      const setStartingDataSpy = sinon.spy();
 
       // Act
       serializationService.loadFromFlattenedJSON(
         json,
         "",
-        loadFromJSONSpy,
         setCMIValueSpy,
         isNotInitializedStub,
+        setStartingDataSpy,
       );
 
       // Assert
-      expect(loadFromJSONSpy.called).toBe(true);
-      expect(loadFromJSONSpy.callCount).toBe(2);
       expect(isNotInitializedStub.called).toBe(true);
     });
 
@@ -57,55 +55,26 @@ describe("SerializationService", () => {
       const json: StringKeyMap = {
         "cmi.core.student_id": "123",
       };
-      const loadFromJSONSpy = sinon.spy();
       const setCMIValueSpy = sinon.spy();
       const isNotInitializedStub = sinon.stub().returns(false);
+      const setStartingDataSpy = sinon.spy();
 
       // Act
       serializationService.loadFromFlattenedJSON(
         json,
         "",
-        loadFromJSONSpy,
         setCMIValueSpy,
         isNotInitializedStub,
+        setStartingDataSpy,
       );
 
       // Assert
-      expect(loadFromJSONSpy.called).toBe(false);
       expect(consoleErrorStub.calledOnce).toBe(true);
       expect(
         consoleErrorStub.calledWith(
           "loadFromFlattenedJSON can only be called before the call to lmsInitialize.",
         ),
       ).toBe(true);
-    });
-
-    it("should sort interactions to load id and type before other fields", () => {
-      // Arrange
-      const json: StringKeyMap = {
-        "cmi.interactions.0.result": "correct",
-        "cmi.interactions.0.id": "question1",
-        "cmi.interactions.0.type": "choice",
-      };
-      const loadFromJSONSpy = sinon.spy();
-      const setCMIValueSpy = sinon.spy();
-      const isNotInitializedStub = sinon.stub().returns(true);
-
-      // Act
-      serializationService.loadFromFlattenedJSON(
-        json,
-        "",
-        loadFromJSONSpy,
-        setCMIValueSpy,
-        isNotInitializedStub,
-      );
-
-      // Assert
-      expect(loadFromJSONSpy.callCount).toBe(3);
-
-      // Since we can't directly test the sorting order due to the complexity of the implementation,
-      // we'll just verify that all items were processed
-      expect(loadFromJSONSpy.called).toBe(true);
     });
   });
 
@@ -230,7 +199,7 @@ describe("SerializationService", () => {
       const cmi = {
         core: {
           student_id: "123",
-          student_name: undefined,
+          student_name: undefined as any,
         },
       };
 

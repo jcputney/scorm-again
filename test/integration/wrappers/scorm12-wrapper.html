@@ -13,6 +13,33 @@
             mastery_override: false
         });
 
+        window.API.loadFromJSON({
+            "cmi": {
+                "core": {
+                    "student_id": "123456",
+                    "student_name": "John Doe",
+                    "lesson_status": "not attempted",
+                    "lesson_location": "",
+                    "credit": "credit",
+                    "exit": "time-out",
+                    "score": {
+                        "raw": 0,
+                        "min": 0,
+                        "max": 100
+                    }
+                },
+                "student_data": {
+                    "mastery_score": 80,
+                    "max_time_allowed": "PT1H",
+                    "time_limit_action": "exit,message"
+                },
+                "launch_data": {
+                    "lesson_location": "",
+                    "lesson_status": "not attempted"
+                }
+            }
+        })
+
         // Function to load the SCORM module
         function loadModule(modulePath) {
             document.getElementById('moduleFrame').src = modulePath;

@@ -14,7 +14,7 @@ export class CMIEvaluation extends BaseCMI {
    * Constructor for AICC Evaluation object
    */
   constructor() {
-    super();
+    super("cmi.evaluation");
     this.comments = new CMIEvaluationComments();
   }
 
@@ -62,6 +62,7 @@ class CMIEvaluationComments extends CMIArray {
    */
   constructor() {
     super({
+      CMIElement: "cmi.evaluation.comments",
       children: aicc_constants.comments_children,
       errorCode: scorm12_errors.INVALID_SET_VALUE,
       errorClass: AICCValidationError,
@@ -81,7 +82,7 @@ export class CMIEvaluationCommentsObject extends BaseCMI {
    * Constructor for Evaluation Comments
    */
   constructor() {
-    super();
+    super("cmi.evaluation.comments.n");
   }
 
   /**
@@ -108,7 +109,13 @@ export class CMIEvaluationCommentsObject extends BaseCMI {
    * @param {string} content
    */
   set content(content: string) {
-    if (checkAICCValidFormat(content, aicc_regex.CMIString256)) {
+    if (
+      checkAICCValidFormat(
+        this._cmi_element + ".content",
+        content,
+        aicc_regex.CMIString256,
+      )
+    ) {
       this._content = content;
     }
   }
@@ -126,7 +133,13 @@ export class CMIEvaluationCommentsObject extends BaseCMI {
    * @param {string} location
    */
   set location(location: string) {
-    if (checkAICCValidFormat(location, aicc_regex.CMIString256)) {
+    if (
+      checkAICCValidFormat(
+        this._cmi_element + ".location",
+        location,
+        aicc_regex.CMIString256,
+      )
+    ) {
       this._location = location;
     }
   }
@@ -144,7 +157,13 @@ export class CMIEvaluationCommentsObject extends BaseCMI {
    * @param {string} time
    */
   set time(time: string) {
-    if (checkAICCValidFormat(time, aicc_regex.CMITime)) {
+    if (
+      checkAICCValidFormat(
+        this._cmi_element + ".time",
+        time,
+        aicc_regex.CMITime,
+      )
+    ) {
       this._time = time;
     }
   }

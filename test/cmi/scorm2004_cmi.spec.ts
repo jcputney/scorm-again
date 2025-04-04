@@ -2,7 +2,7 @@ import { describe, it } from "mocha";
 import { scorm2004_errors } from "../../src/constants/error_codes";
 import { scorm2004_constants } from "../../src/constants/api_constants";
 import { CMI } from "../../src/cmi/scorm2004/cmi";
-import * as h from "../cmi_helpers";
+import * as h from "./cmi_helpers";
 import { expect } from "expect";
 import { scorm2004Values } from "../field_values";
 import {

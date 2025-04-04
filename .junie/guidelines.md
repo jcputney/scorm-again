@@ -180,6 +180,9 @@ function processHttpRequest(url: string, params: any, immediate: boolean): Promi
 - **Magic Numbers/Strings**: Use constants for magic numbers and strings.
 - **Mutable State**: Minimize mutable state. Use immutable data structures when possible.
 - **Tight Coupling**: Avoid tight coupling between modules. Use dependency injection or service locators.
+- **Use of `bind`**: Avoid using `bind` to set the context of `this`, especially when refactoring code.
+
+```typescript
 
 ## Testing
 

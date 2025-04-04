@@ -3,14 +3,14 @@
 import { expect } from "expect";
 import { describe, it } from "mocha";
 import * as sinon from "sinon";
-import { Scorm2004API } from "../src/Scorm2004API";
-import { scorm2004_errors } from "../src/constants/error_codes";
-import { global_constants } from "../src/constants/api_constants";
-import { Settings } from "../src/types/api_types";
-import { LogLevelEnum } from "../src/constants/enums";
-import { CorrectResponses } from "../src/constants/response_constants";
-import { CMIInteractionsObject } from "../src/cmi/scorm2004/interactions";
-import { CMIArray } from "../src/cmi/common/array";
+import { Scorm2004API } from "../../src/Scorm2004API";
+import { scorm2004_errors } from "../../src/constants/error_codes";
+import { global_constants } from "../../src/constants/api_constants";
+import { Settings } from "../../src/types/api_types";
+import { LogLevelEnum } from "../../src/constants/enums";
+import { CorrectResponses } from "../../src/constants/response_constants";
+import { CMIInteractionsObject } from "../../src/cmi/scorm2004/interactions";
+import { CMIArray } from "../../src/cmi/common/array";
 
 declare global {
   interface Window {
@@ -122,7 +122,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         } as unknown as CMIArray,
       } as CMIInteractionsObject;
 
-      scorm2004API.checkDuplicateChoiceResponse(interaction, "choice1");
+      scorm2004API.checkDuplicateChoiceResponse("api", interaction, "choice1");
 
       expect(scorm2004API.lmsGetLastError()).toBe(
         String(scorm2004_errors.GENERAL_SET_FAILURE),
@@ -139,7 +139,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         } as CMIArray,
       } as CMIInteractionsObject;
 
-      scorm2004API.checkDuplicateChoiceResponse(interaction, "choice2");
+      scorm2004API.checkDuplicateChoiceResponse("api", interaction, "choice2");
 
       expect(scorm2004API.lmsGetLastError()).toBe("0");
     });
@@ -154,7 +154,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         },
       } as CMIInteractionsObject;
 
-      scorm2004API.checkDuplicateChoiceResponse(interaction, "true");
+      scorm2004API.checkDuplicateChoiceResponse("api", interaction, "true");
 
       expect(scorm2004API.lmsGetLastError()).toBe("0");
     });
@@ -335,6 +335,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
           interaction_count >= response_type.limit
         ) {
           this.throwSCORMError(
+            CMIElement,
             scorm2004_errors.GENERAL_SET_FAILURE,
             "Data Model Element Collection Limit Reached",
           );

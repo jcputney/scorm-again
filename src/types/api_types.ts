@@ -65,7 +65,7 @@ export type RefArray = ReadonlyArray<RefValue>;
 export type ResultObject = {
   result: string;
   errorCode: number;
-  navRequest?: string;
+  navRequest?: string | StringKeyMap;
 };
 
 /**

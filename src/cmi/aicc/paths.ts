@@ -13,6 +13,7 @@ export class CMIPaths extends CMIArray {
    */
   constructor() {
     super({
+      CMIElement: "cmi.paths",
       children: aicc_constants.paths_children,
     });
   }
@@ -33,7 +34,7 @@ export class CMIPathsObject extends BaseCMI {
    * Constructor for AICC Paths objects
    */
   constructor() {
-    super();
+    super("cmi.paths.n");
   }
 
   /**
@@ -63,7 +64,13 @@ export class CMIPathsObject extends BaseCMI {
    * @param {string} location_id
    */
   set location_id(location_id: string) {
-    if (checkAICCValidFormat(location_id, aicc_regex.CMIString256)) {
+    if (
+      checkAICCValidFormat(
+        this._cmi_element + ".location_id",
+        location_id,
+        aicc_regex.CMIString256,
+      )
+    ) {
       this._location_id = location_id;
     }
   }
@@ -81,7 +88,13 @@ export class CMIPathsObject extends BaseCMI {
    * @param {string} date
    */
   set date(date: string) {
-    if (checkAICCValidFormat(date, aicc_regex.CMIString256)) {
+    if (
+      checkAICCValidFormat(
+        this._cmi_element + ".date",
+        date,
+        aicc_regex.CMIString256,
+      )
+    ) {
       this._date = date;
     }
   }
@@ -99,7 +112,13 @@ export class CMIPathsObject extends BaseCMI {
    * @param {string} time
    */
   set time(time: string) {
-    if (checkAICCValidFormat(time, aicc_regex.CMITime)) {
+    if (
+      checkAICCValidFormat(
+        this._cmi_element + ".time",
+        time,
+        aicc_regex.CMITime,
+      )
+    ) {
       this._time = time;
     }
   }
@@ -117,7 +136,13 @@ export class CMIPathsObject extends BaseCMI {
    * @param {string} status
    */
   set status(status: string) {
-    if (checkAICCValidFormat(status, aicc_regex.CMIStatus2)) {
+    if (
+      checkAICCValidFormat(
+        this._cmi_element + ".status",
+        status,
+        aicc_regex.CMIStatus2,
+      )
+    ) {
       this._status = status;
     }
   }
@@ -135,7 +160,13 @@ export class CMIPathsObject extends BaseCMI {
    * @param {string} why_left
    */
   set why_left(why_left: string) {
-    if (checkAICCValidFormat(why_left, aicc_regex.CMIString256)) {
+    if (
+      checkAICCValidFormat(
+        this._cmi_element + ".why_left",
+        why_left,
+        aicc_regex.CMIString256,
+      )
+    ) {
       this._why_left = why_left;
     }
   }
@@ -153,7 +184,13 @@ export class CMIPathsObject extends BaseCMI {
    * @param {string} time_in_element
    */
   set time_in_element(time_in_element: string) {
-    if (checkAICCValidFormat(time_in_element, aicc_regex.CMITime)) {
+    if (
+      checkAICCValidFormat(
+        this._cmi_element + ".time_in_element",
+        time_in_element,
+        aicc_regex.CMITime,
+      )
+    ) {
       this._time_in_element = time_in_element;
     }
   }

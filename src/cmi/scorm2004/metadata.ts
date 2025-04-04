@@ -17,7 +17,7 @@ export class CMIMetadata extends BaseCMI {
    * Constructor for CMIMetadata
    */
   constructor() {
-    super();
+    super("cmi");
   }
 
   /**
@@ -33,7 +33,10 @@ export class CMIMetadata extends BaseCMI {
    * @param {string} _version
    */
   set _version(_version: string) {
-    throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+    throw new Scorm2004ValidationError(
+      this._cmi_element + "._version",
+      scorm2004_errors.READ_ONLY_ELEMENT,
+    );
   }
 
   /**
@@ -49,7 +52,10 @@ export class CMIMetadata extends BaseCMI {
    * @param {number} _children
    */
   set _children(_children: number) {
-    throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+    throw new Scorm2004ValidationError(
+      this._cmi_element + "._children",
+      scorm2004_errors.READ_ONLY_ELEMENT,
+    );
   }
 
   /**

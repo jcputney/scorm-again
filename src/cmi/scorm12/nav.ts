@@ -10,7 +10,7 @@ export class NAV extends BaseCMI {
    * Constructor for NAV object
    */
   constructor() {
-    super();
+    super("cmi.nav");
   }
 
   /**
@@ -36,7 +36,14 @@ export class NAV extends BaseCMI {
    * @param {string} event
    */
   set event(event: string) {
-    if (event === "" || check12ValidFormat(event, scorm12_regex.NAVEvent)) {
+    if (
+      event === "" ||
+      check12ValidFormat(
+        this._cmi_element + ".event",
+        event,
+        scorm12_regex.NAVEvent,
+      )
+    ) {
       this._event = event;
     }
   }

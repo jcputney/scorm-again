@@ -1,5 +1,5 @@
 import { CommitObject, LogLevel } from "../types/api_types";
-import { StringKeyMap, unflatten, flatten } from "../utilities";
+import { StringKeyMap, unflatten } from "../utilities";
 import { LogLevelEnum } from "../constants/enums";
 import { BaseCMI } from "../cmi/common/base_cmi";
 import { ISerializationService } from "../interfaces/services";
@@ -31,10 +31,10 @@ export class SerializationService implements ISerializationService {
    *
    * @param {StringKeyMap} json - The flattened JSON object with dot notation keys
    * @param {string} CMIElement - The CMI element to start from (usually empty or "cmi")
-   * @param {Function} loadFromJSON - Function to load from JSON
    * @param {Function} setCMIValue - Function to set CMI value
    * @param {Function} isNotInitialized - Function to check if API is not initialized
    *
+   * @param setStartingData
    * @example
    * // Example of flattened JSON input:
    * // {
@@ -48,9 +48,9 @@ export class SerializationService implements ISerializationService {
   loadFromFlattenedJSON(
     json: StringKeyMap,
     CMIElement: string = "",
-    loadFromJSON: (json: StringKeyMap, CMIElement: string) => void,
     setCMIValue: (CMIElement: string, value: any) => void,
     isNotInitialized: () => boolean,
+    setStartingData: (data: StringKeyMap) => void,
   ): void {
     if (!isNotInitialized()) {
       console.error(
@@ -142,7 +142,13 @@ export class SerializationService implements ISerializationService {
       items.forEach((item) => {
         const obj: StringKeyMap = {};
         obj[item.key] = item.value;
-        loadFromJSON(unflatten(obj) as StringKeyMap, CMIElement);
+        this.loadFromJSON(
+          unflatten(obj) as StringKeyMap,
+          CMIElement,
+          setCMIValue,
+          isNotInitialized,
+          setStartingData,
+        );
       });
     };
 

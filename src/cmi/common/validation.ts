@@ -13,6 +13,7 @@ import { memoize } from "../../utilities";
  */
 export const checkValidFormat = memoize(
   (
+    CMIElement: string,
     value: string,
     regexPattern: string,
     errorCode: number,
@@ -28,14 +29,14 @@ export const checkValidFormat = memoize(
       return true;
     }
     if (value === undefined || !matches || matches[0] === "") {
-      throw new errorClass(errorCode);
+      throw new errorClass(CMIElement, errorCode);
     }
     return true;
   },
   // Custom key function that excludes the error class from the cache key
   // since it can't be stringified and doesn't affect the validation result
   (value, regexPattern, errorCode, _errorClass, allowEmptyString) =>
-    `${value}:${regexPattern}:${errorCode}:${allowEmptyString || false}`
+    `${value}:${regexPattern}:${errorCode}:${allowEmptyString || false}`,
 );
 
 /**
@@ -49,6 +50,7 @@ export const checkValidFormat = memoize(
  */
 export const checkValidRange = memoize(
   (
+    CMIElement: string,
     value: any,
     rangePattern: string,
     errorCode: number,
@@ -60,14 +62,14 @@ export const checkValidRange = memoize(
       if (ranges[1] === "*" || value <= ranges[1]) {
         return true;
       } else {
-        throw new errorClass(errorCode);
+        throw new errorClass(CMIElement, errorCode);
       }
     } else {
-      throw new errorClass(errorCode);
+      throw new errorClass(CMIElement, errorCode);
     }
   },
   // Custom key function that excludes the error class from the cache key
   // since it can't be stringified and doesn't affect the validation result
   (value, rangePattern, errorCode, _errorClass) =>
-    `${value}:${rangePattern}:${errorCode}`
+    `${value}:${rangePattern}:${errorCode}`,
 );

@@ -17,6 +17,7 @@ export class CMIObjectives extends CMIArray {
    */
   constructor() {
     super({
+      CMIElement: "cmi.objectives",
       children: scorm12_constants.objectives_children,
       errorCode: scorm12_errors.INVALID_SET_VALUE,
       errorClass: Scorm12ValidationError,
@@ -33,8 +34,9 @@ export class CMIObjectivesObject extends BaseCMI {
    * Constructor for cmi.objectives.n
    */
   constructor() {
-    super();
+    super("cmi.objectives.n");
     this.score = new CMIScore({
+      CMIElement: "cmi.objectives.n.score",
       score_children: scorm12_constants.score_children,
       score_range: scorm12_regex.score_range,
       invalidErrorCode: scorm12_errors.INVALID_SET_VALUE,
@@ -72,7 +74,13 @@ export class CMIObjectivesObject extends BaseCMI {
    * @param {string} id
    */
   set id(id: string) {
-    if (check12ValidFormat(id, scorm12_regex.CMIIdentifier)) {
+    if (
+      check12ValidFormat(
+        this._cmi_element + ".id",
+        id,
+        scorm12_regex.CMIIdentifier,
+      )
+    ) {
       this._id = id;
     }
   }
@@ -90,7 +98,13 @@ export class CMIObjectivesObject extends BaseCMI {
    * @param {string} status
    */
   set status(status: string) {
-    if (check12ValidFormat(status, scorm12_regex.CMIStatus2)) {
+    if (
+      check12ValidFormat(
+        this._cmi_element + ".status",
+        status,
+        scorm12_regex.CMIStatus2,
+      )
+    ) {
       this._status = status;
     }
   }

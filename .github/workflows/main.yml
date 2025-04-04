@@ -68,16 +68,11 @@ jobs:
         run: |
           ./node_modules/.bin/eslint ./src --format junit --output-file ./reports/eslint/eslint.xml
 
-      # Generate code coverage report and upload to Code Climate
-      - name: Upload Code Coverage Report
-        uses: paambaati/codeclimate-action@v9.0.0
-        env:
-          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+      # Generate code coverage report and upload to Qlty
+      - uses: qltysh/qlty-action/coverage@main
         with:
-          coverageCommand: yarn run test:coverage
-          coverageLocations: |
-            ${{github.workspace}}/coverage/lcov.info:lcov
-          debug: 'true'
+          coverage-token: {{secrets.QLTY_COVERAGE_TOKEN}}
+          files: ${{github.workspace}}/coverage/lcov.info
 
       # Format code with Prettier
       - name: Format code with Prettier

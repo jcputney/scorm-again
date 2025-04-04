@@ -1,14 +1,14 @@
 import { describe, it } from "mocha";
 import { expect } from "expect";
-import { ValidationError } from "../src/exceptions";
+import { ValidationError } from "../../src/exceptions";
 import {
   aicc_constants,
   scorm12_constants,
   scorm2004_constants,
-} from "../src/constants/api_constants";
-import { AICCValidationError } from "../src/exceptions/aicc_exceptions";
-import { Scorm12ValidationError } from "../src/exceptions/scorm12_exceptions";
-import { Scorm2004ValidationError } from "../src/exceptions/scorm2004_exceptions";
+} from "../../src/constants/api_constants";
+import { AICCValidationError } from "../../src/exceptions/aicc_exceptions";
+import { Scorm12ValidationError } from "../../src/exceptions/scorm12_exceptions";
+import { Scorm2004ValidationError } from "../../src/exceptions/scorm2004_exceptions";
 
 const scorm12_errors = scorm12_constants.error_descriptions;
 const aicc_errors = aicc_constants.error_descriptions;
@@ -23,7 +23,7 @@ type ErrorMessageType = {
 
 type ValidationErrorConstructor = {
   prototype: {
-    constructor: new (errorCode: number) => ValidationError;
+    constructor: new (CMIElement: string, errorCode: number) => ValidationError;
   };
 };
 
@@ -40,11 +40,13 @@ const checkValidationMessage = ({
 }: CheckValidationMessage) => {
   describe(`ValidationError: ${typeof errorClass}`, () => {
     it(`${typeof errorClass} should return general errorCode number when not recognized`, () => {
-      expect(new errorClass.prototype.constructor(53).errorCode).toEqual(101);
+      expect(new errorClass.prototype.constructor("api", 53).errorCode).toEqual(
+        101,
+      );
     });
     it(`${typeof errorClass}  should return general message when not recognized`, () => {
-      expect(new errorClass.prototype.constructor(53).message).toEqual(
-        error_messages["101"].basicMessage,
+      expect(new errorClass.prototype.constructor("api", 53).message).toEqual(
+        "api : " + error_messages["101"].basicMessage,
       );
     });
 
@@ -52,13 +54,13 @@ const checkValidationMessage = ({
       const errorCode = errorCodes[i];
       it(`${typeof errorClass} should return proper errorCode number when recognized`, () => {
         expect(
-          new errorClass.prototype.constructor(errorCode).errorCode,
+          new errorClass.prototype.constructor("api", errorCode).errorCode,
         ).toEqual(errorCode);
       });
       it(`${typeof errorClass} should return proper ${errorCode} message`, () => {
-        expect(new errorClass.prototype.constructor(errorCode).message).toEqual(
-          error_messages[String(errorCode)].basicMessage,
-        );
+        expect(
+          new errorClass.prototype.constructor("api", errorCode).message,
+        ).toEqual("api : " + error_messages[String(errorCode)].basicMessage);
       });
     }
   });
@@ -66,12 +68,12 @@ const checkValidationMessage = ({
 
 describe("Exception Tests", () => {
   it("ValidationException should return message string", () => {
-    expect(new ValidationError(0, "Error Message").message).toEqual(
-      "Error Message",
+    expect(new ValidationError("api", 0, "Error Message").message).toEqual(
+      "api : Error Message",
     );
   });
   it("ValidationException should return errorCode number", () => {
-    expect(new ValidationError(0, "Error Message").errorCode).toEqual(0);
+    expect(new ValidationError("api", 0, "Error Message").errorCode).toEqual(0);
   });
   checkValidationMessage({
     errorClass: AICCValidationError,

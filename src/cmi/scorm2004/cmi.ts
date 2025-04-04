@@ -21,7 +21,7 @@ export class CMI extends BaseRootCMI {
    * @param {boolean} initialized
    */
   constructor(initialized: boolean = false) {
-    super();
+    super("cmi");
     this.metadata = new CMIMetadata();
     this.learner = new CMILearner();
     this.status = new CMIStatus();

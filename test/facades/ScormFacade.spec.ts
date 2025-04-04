@@ -7,12 +7,12 @@
 import { expect } from "expect";
 import { describe, it } from "mocha";
 import * as sinon from "sinon";
-import { createScormFacade, IScormFacade } from "../src/facades/ScormFacade";
+import { createScormFacade, IScormFacade } from "../../src/facades/ScormFacade";
 import {
   CompletionStatus,
   LogLevelEnum,
   SuccessStatus,
-} from "../src/constants/enums";
+} from "../../src/constants/enums";
 
 describe("ScormFacade", () => {
   describe("Factory function", () => {

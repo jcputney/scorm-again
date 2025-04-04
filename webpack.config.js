@@ -62,11 +62,6 @@ const commonConfig = {
             unsafe_methods: true,
             unsafe_proto: true,
           },
-          mangle: {
-            properties: {
-              regex: /^_/, // Only mangle private properties (those starting with _)
-            },
-          },
         },
       }),
     ],

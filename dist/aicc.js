@@ -67,6 +67,7 @@ var CMIObjectives = (function (_super) {
     (0,tslib__WEBPACK_IMPORTED_MODULE_8__/* .__extends */ .C6)(CMIObjectives, _super);
     function CMIObjectives() {
         return _super.call(this, {
+            CMIElement: "cmi.objectives",
             children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_constants */ .QP.objectives_children,
             errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__/* .scorm12_errors */ .Se.INVALID_SET_VALUE,
             errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_5__/* .Scorm12ValidationError */ .t,
@@ -78,10 +79,11 @@ var CMIObjectives = (function (_super) {
 var CMIObjectivesObject = (function (_super) {
     (0,tslib__WEBPACK_IMPORTED_MODULE_8__/* .__extends */ .C6)(CMIObjectivesObject, _super);
     function CMIObjectivesObject() {
-        var _this = _super.call(this) || this;
+        var _this = _super.call(this, "cmi.objectives.n") || this;
         _this._id = "";
         _this._status = "";
         _this.score = new _common_score__WEBPACK_IMPORTED_MODULE_1__/* .CMIScore */ ._({
+            CMIElement: "cmi.objectives.n.score",
             score_children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_constants */ .QP.score_children,
             score_range: _constants_regex__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_regex */ .kS.score_range,
             invalidErrorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__/* .scorm12_errors */ .Se.INVALID_SET_VALUE,
@@ -103,7 +105,7 @@ var CMIObjectivesObject = (function (_super) {
             return this._id;
         },
         set: function (id) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_6__/* .check12ValidFormat */ .p)(id, _constants_regex__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_regex */ .kS.CMIIdentifier)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_6__/* .check12ValidFormat */ .p)(this._cmi_element + ".id", id, _constants_regex__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_regex */ .kS.CMIIdentifier)) {
                 this._id = id;
             }
         },
@@ -115,7 +117,7 @@ var CMIObjectivesObject = (function (_super) {
             return this._status;
         },
         set: function (status) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_6__/* .check12ValidFormat */ .p)(status, _constants_regex__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_regex */ .kS.CMIStatus2)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_6__/* .check12ValidFormat */ .p)(this._cmi_element + ".status", status, _constants_regex__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_regex */ .kS.CMIStatus2)) {
                 this._status = status;
             }
         },
@@ -154,13 +156,13 @@ var CMIObjectivesObject = (function (_super) {
 var scorm12_errors = _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_constants */ .QP.error_descriptions;
 var Scorm12ValidationError = (function (_super) {
     (0,tslib__WEBPACK_IMPORTED_MODULE_2__/* .__extends */ .C6)(Scorm12ValidationError, _super);
-    function Scorm12ValidationError(errorCode) {
+    function Scorm12ValidationError(CMIElement, errorCode) {
         var _this = this;
         if ({}.hasOwnProperty.call(scorm12_errors, String(errorCode))) {
-            _this = _super.call(this, errorCode, scorm12_errors[String(errorCode)].basicMessage, scorm12_errors[String(errorCode)].detailMessage) || this;
+            _this = _super.call(this, CMIElement, errorCode, scorm12_errors[String(errorCode)].basicMessage, scorm12_errors[String(errorCode)].detailMessage) || this;
         }
         else {
-            _this = _super.call(this, 101, scorm12_errors["101"].basicMessage, scorm12_errors["101"].detailMessage) || this;
+            _this = _super.call(this, CMIElement, 101, scorm12_errors["101"].basicMessage, scorm12_errors["101"].detailMessage) || this;
         }
         return _this;
     }
@@ -192,7 +194,7 @@ var Scorm12ValidationError = (function (_super) {
 var CMIStudentPreference = (function (_super) {
     (0,tslib__WEBPACK_IMPORTED_MODULE_5__/* .__extends */ .C6)(CMIStudentPreference, _super);
     function CMIStudentPreference(student_preference_children) {
-        var _this = _super.call(this) || this;
+        var _this = _super.call(this, "cmi.student_preference") || this;
         _this._audio = "";
         _this._language = "";
         _this._speed = "";
@@ -210,7 +212,7 @@ var CMIStudentPreference = (function (_super) {
             return this.__children;
         },
         set: function (_children) {
-            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.INVALID_SET_VALUE);
+            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t(this._cmi_element + "._children", _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.INVALID_SET_VALUE);
         },
         enumerable: false,
         configurable: true
@@ -220,7 +222,7 @@ var CMIStudentPreference = (function (_super) {
             return this._audio;
         },
         set: function (audio) {
-            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScorm12Audio(audio)) {
+            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScorm12Audio(this._cmi_element + ".audio", audio)) {
                 this._audio = audio;
             }
         },
@@ -232,7 +234,7 @@ var CMIStudentPreference = (function (_super) {
             return this._language;
         },
         set: function (language) {
-            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScorm12Language(language)) {
+            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScorm12Language(this._cmi_element + ".language", language)) {
                 this._language = language;
             }
         },
@@ -244,7 +246,7 @@ var CMIStudentPreference = (function (_super) {
             return this._speed;
         },
         set: function (speed) {
-            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScorm12Speed(speed)) {
+            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScorm12Speed(this._cmi_element + ".speed", speed)) {
                 this._speed = speed;
             }
         },
@@ -256,7 +258,7 @@ var CMIStudentPreference = (function (_super) {
             return this._text;
         },
         set: function (text) {
-            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScorm12Text(text)) {
+            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScorm12Text(this._cmi_element + ".text", text)) {
                 this._text = text;
             }
         },
@@ -281,7 +283,319 @@ var CMIStudentPreference = (function (_super) {
 
 /***/ }),
 
-/***/ 273:
+/***/ 319:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   J: function() { return /* binding */ BaseCMI; },
+/* harmony export */   r: function() { return /* binding */ BaseRootCMI; }
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+
+var BaseCMI = (function () {
+    function BaseCMI(cmi_element) {
+        this.jsonString = false;
+        this._initialized = false;
+        this._cmi_element = cmi_element;
+    }
+    Object.defineProperty(BaseCMI.prototype, "initialized", {
+        get: function () {
+            return this._initialized;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(BaseCMI.prototype, "start_time", {
+        get: function () {
+            return this._start_time;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    BaseCMI.prototype.initialize = function () {
+        this._initialized = true;
+    };
+    BaseCMI.prototype.setStartTime = function () {
+        this._start_time = new Date().getTime();
+    };
+    return BaseCMI;
+}());
+
+var BaseRootCMI = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(BaseRootCMI, _super);
+    function BaseRootCMI() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return BaseRootCMI;
+}(BaseCMI));
+
+
+
+/***/ }),
+
+/***/ 331:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   A: function() { return /* binding */ NAV; }
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(635);
+/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(319);
+/* harmony import */ var _validation__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(915);
+/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(417);
+
+
+
+
+var NAV = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_3__/* .__extends */ .C6)(NAV, _super);
+    function NAV() {
+        var _this = _super.call(this, "cmi.nav") || this;
+        _this._event = "";
+        return _this;
+    }
+    NAV.prototype.reset = function () {
+        this._event = "";
+        this._initialized = false;
+    };
+    Object.defineProperty(NAV.prototype, "event", {
+        get: function () {
+            return this._event;
+        },
+        set: function (event) {
+            if (event === "" ||
+                (0,_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidFormat */ .p)(this._cmi_element + ".event", event, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.NAVEvent)) {
+                this._event = event;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    NAV.prototype.toJSON = function () {
+        this.jsonString = true;
+        var result = {
+            event: this.event,
+        };
+        delete this.jsonString;
+        return result;
+    };
+    return NAV;
+}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_0__/* .BaseCMI */ .J));
+
+
+
+/***/ }),
+
+/***/ 340:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   BR: function() { return /* binding */ aicc_constants; },
+/* harmony export */   QP: function() { return /* binding */ scorm12_constants; },
+/* harmony export */   _y: function() { return /* binding */ global_constants; }
+/* harmony export */ });
+/* unused harmony export scorm2004_constants */
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+
+var global_constants = {
+    SCORM_TRUE: "true",
+    SCORM_FALSE: "false",
+    STATE_NOT_INITIALIZED: 0,
+    STATE_INITIALIZED: 1,
+    STATE_TERMINATED: 2,
+};
+var scorm12_constants = {
+    cmi_children: "core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions",
+    core_children: "student_id,student_name,lesson_location,credit,lesson_status,entry,score,total_time,lesson_mode,exit,session_time",
+    score_children: "raw,min,max",
+    comments_children: "content,location,time",
+    objectives_children: "id,score,status",
+    correct_responses_children: "pattern",
+    student_data_children: "mastery_score,max_time_allowed,time_limit_action",
+    student_preference_children: "audio,language,speed,text",
+    interactions_children: "id,objectives,time,type,correct_responses,weighting,student_response,result,latency",
+    error_descriptions: {
+        "101": {
+            basicMessage: "General Exception",
+            detailMessage: "No specific error code exists to describe the error. Use LMSGetDiagnostic for more information",
+        },
+        "201": {
+            basicMessage: "Invalid argument error",
+            detailMessage: "Indicates that an argument represents an invalid data model element or is otherwise incorrect.",
+        },
+        "202": {
+            basicMessage: "Element cannot have children",
+            detailMessage: 'Indicates that LMSGetValue was called with a data model element name that ends in "_children" for a data model element that does not support the "_children" suffix.',
+        },
+        "203": {
+            basicMessage: "Element not an array - cannot have count",
+            detailMessage: 'Indicates that LMSGetValue was called with a data model element name that ends in "_count" for a data model element that does not support the "_count" suffix.',
+        },
+        "301": {
+            basicMessage: "Not initialized",
+            detailMessage: "Indicates that an API call was made before the call to lmsInitialize.",
+        },
+        "401": {
+            basicMessage: "Not implemented error",
+            detailMessage: "The data model element indicated in a call to LMSGetValue or LMSSetValue is valid, but was not implemented by this LMS. SCORM 1.2 defines a set of data model elements as being optional for an LMS to implement.",
+        },
+        "402": {
+            basicMessage: "Invalid set value, element is a keyword",
+            detailMessage: 'Indicates that LMSSetValue was called on a data model element that represents a keyword (elements that end in "_children" and "_count").',
+        },
+        "403": {
+            basicMessage: "Element is read only",
+            detailMessage: "LMSSetValue was called with a data model element that can only be read.",
+        },
+        "404": {
+            basicMessage: "Element is write only",
+            detailMessage: "LMSGetValue was called on a data model element that can only be written to.",
+        },
+        "405": {
+            basicMessage: "Incorrect Data Type",
+            detailMessage: "LMSSetValue was called with a value that is not consistent with the data format of the supplied data model element.",
+        },
+        "407": {
+            basicMessage: "Element Value Out Of Range",
+            detailMessage: "The numeric value supplied to a LMSSetValue call is outside of the numeric range allowed for the supplied data model element.",
+        },
+        "408": {
+            basicMessage: "Data Model Dependency Not Established",
+            detailMessage: "Some data model elements cannot be set until another data model element was set. This error condition indicates that the prerequisite element was not set before the dependent element.",
+        },
+    },
+};
+var aicc_constants = (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)((0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)({}, scorm12_constants), {
+    cmi_children: "core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions,evaluation",
+    student_preference_children: "audio,language,lesson_type,speed,text,text_color,text_location,text_size,video,windows",
+    student_data_children: "attempt_number,tries,mastery_score,max_time_allowed,time_limit_action",
+    student_demographics_children: "city,class,company,country,experience,familiar_name,instructor_name,title,native_language,state,street_address,telephone,years_experience",
+    tries_children: "time,status,score",
+    attempt_records_children: "score,lesson_status",
+    paths_children: "location_id,date,time,status,why_left,time_in_element",
+});
+var scorm2004_constants = {
+    cmi_children: "_version,comments_from_learner,comments_from_lms,completion_status,credit,entry,exit,interactions,launch_data,learner_id,learner_name,learner_preference,location,max_time_allowed,mode,objectives,progress_measure,scaled_passing_score,score,session_time,success_status,suspend_data,time_limit_action,total_time",
+    comments_children: "comment,timestamp,location",
+    score_children: "max,raw,scaled,min",
+    objectives_children: "progress_measure,completion_status,success_status,description,score,id",
+    correct_responses_children: "pattern",
+    student_data_children: "mastery_score,max_time_allowed,time_limit_action",
+    student_preference_children: "audio_level,audio_captioning,delivery_speed,language",
+    interactions_children: "id,type,objectives,timestamp,correct_responses,weighting,learner_response,result,latency,description",
+    adl_data_children: "id,store",
+    error_descriptions: {
+        "0": {
+            basicMessage: "No Error",
+            detailMessage: "No error occurred, the previous API call was successful.",
+        },
+        "101": {
+            basicMessage: "General Exception",
+            detailMessage: "No specific error code exists to describe the error. Use GetDiagnostic for more information.",
+        },
+        "102": {
+            basicMessage: "General Initialization Failure",
+            detailMessage: "Call to Initialize failed for an unknown reason.",
+        },
+        "103": {
+            basicMessage: "Already Initialized",
+            detailMessage: "Call to Initialize failed because Initialize was already called.",
+        },
+        "104": {
+            basicMessage: "Content Instance Terminated",
+            detailMessage: "Call to Initialize failed because Terminate was already called.",
+        },
+        "111": {
+            basicMessage: "General Termination Failure",
+            detailMessage: "Call to Terminate failed for an unknown reason.",
+        },
+        "112": {
+            basicMessage: "Termination Before Initialization",
+            detailMessage: "Call to Terminate failed because it was made before the call to Initialize.",
+        },
+        "113": {
+            basicMessage: "Termination After Termination",
+            detailMessage: "Call to Terminate failed because Terminate was already called.",
+        },
+        "122": {
+            basicMessage: "Retrieve Data Before Initialization",
+            detailMessage: "Call to GetValue failed because it was made before the call to Initialize.",
+        },
+        "123": {
+            basicMessage: "Retrieve Data After Termination",
+            detailMessage: "Call to GetValue failed because it was made after the call to Terminate.",
+        },
+        "132": {
+            basicMessage: "Store Data Before Initialization",
+            detailMessage: "Call to SetValue failed because it was made before the call to Initialize.",
+        },
+        "133": {
+            basicMessage: "Store Data After Termination",
+            detailMessage: "Call to SetValue failed because it was made after the call to Terminate.",
+        },
+        "142": {
+            basicMessage: "Commit Before Initialization",
+            detailMessage: "Call to Commit failed because it was made before the call to Initialize.",
+        },
+        "143": {
+            basicMessage: "Commit After Termination",
+            detailMessage: "Call to Commit failed because it was made after the call to Terminate.",
+        },
+        "201": {
+            basicMessage: "General Argument Error",
+            detailMessage: "An invalid argument was passed to an API method (usually indicates that Initialize, Commit or Terminate did not receive the expected empty string argument.",
+        },
+        "301": {
+            basicMessage: "General Get Failure",
+            detailMessage: "Indicates a failed GetValue call where no other specific error code is applicable. Use GetDiagnostic for more information.",
+        },
+        "351": {
+            basicMessage: "General Set Failure",
+            detailMessage: "Indicates a failed SetValue call where no other specific error code is applicable. Use GetDiagnostic for more information.",
+        },
+        "391": {
+            basicMessage: "General Commit Failure",
+            detailMessage: "Indicates a failed Commit call where no other specific error code is applicable. Use GetDiagnostic for more information.",
+        },
+        "401": {
+            basicMessage: "Undefined Data Model Element",
+            detailMessage: "The data model element name passed to GetValue or SetValue is not a valid SCORM data model element.",
+        },
+        "402": {
+            basicMessage: "Unimplemented Data Model Element",
+            detailMessage: "The data model element indicated in a call to GetValue or SetValue is valid, but was not implemented by this LMS. In SCORM 2004, this error would indicate an LMS that is not fully SCORM conformant.",
+        },
+        "403": {
+            basicMessage: "Data Model Element Value Not Initialized",
+            detailMessage: "Attempt to read a data model element that has not been initialized by the LMS or through a SetValue call. This error condition is often reached during normal execution of a SCO.",
+        },
+        "404": {
+            basicMessage: "Data Model Element Is Read Only",
+            detailMessage: "SetValue was called with a data model element that can only be read.",
+        },
+        "405": {
+            basicMessage: "Data Model Element Is Write Only",
+            detailMessage: "GetValue was called on a data model element that can only be written to.",
+        },
+        "406": {
+            basicMessage: "Data Model Element Type Mismatch",
+            detailMessage: "SetValue was called with a value that is not consistent with the data format of the supplied data model element.",
+        },
+        "407": {
+            basicMessage: "Data Model Element Value Out Of Range",
+            detailMessage: "The numeric value supplied to a SetValue call is outside of the numeric range allowed for the supplied data model element.",
+        },
+        "408": {
+            basicMessage: "Data Model Dependency Not Established",
+            detailMessage: "Some data model elements cannot be set until another data model element was set. This error condition indicates that the prerequisite element was not set before the dependent element.",
+        },
+    },
+};
+
+
+/***/ }),
+
+/***/ 398:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 
@@ -564,9 +878,9 @@ var HttpService = (function () {
 
 var EventService = (function () {
     function EventService(apiLog) {
-        this.apiLog = apiLog;
         this.listenerMap = new Map();
         this.listenerCount = 0;
+        this.apiLog = apiLog;
     }
     EventService.prototype.parseListenerName = function (listenerName) {
         var listenerSplit = listenerName.split(".");
@@ -695,7 +1009,8 @@ var EventService = (function () {
 var SerializationService = (function () {
     function SerializationService() {
     }
-    SerializationService.prototype.loadFromFlattenedJSON = function (json, CMIElement, loadFromJSON, setCMIValue, isNotInitialized) {
+    SerializationService.prototype.loadFromFlattenedJSON = function (json, CMIElement, setCMIValue, isNotInitialized, setStartingData) {
+        var _this = this;
         if (CMIElement === void 0) { CMIElement = ""; }
         if (!isNotInitialized()) {
             console.error("loadFromFlattenedJSON can only be called before the call to lmsInitialize.");
@@ -760,7 +1075,7 @@ var SerializationService = (function () {
             items.forEach(function (item) {
                 var obj = {};
                 obj[item.key] = item.value;
-                loadFromJSON((0,utilities/* unflatten */.sB)(obj), CMIElement);
+                _this.loadFromJSON((0,utilities/* unflatten */.sB)(obj), CMIElement, setCMIValue, isNotInitialized, setStartingData);
             });
         };
         processItems(interactions);
@@ -843,173 +1158,6 @@ function isCMIArray(value) {
     return value instanceof array/* CMIArray */.B;
 }
 
-;// ./src/services/CMIDataService.ts
-
-
-
-
-
-var CMIDataService = (function () {
-    function CMIDataService(error_codes, apiLog, throwSCORMError, validateCorrectResponse, getChildElement, checkObjectHasProperty, errorHandlingService) {
-        this._error_codes = error_codes;
-        this._apiLog = apiLog;
-        this._throwSCORMError = throwSCORMError;
-        this._validateCorrectResponse = validateCorrectResponse;
-        this._getChildElement = getChildElement;
-        this._checkObjectHasProperty = checkObjectHasProperty;
-        this._errorHandlingService = errorHandlingService;
-    }
-    CMIDataService.prototype.updateLastErrorCode = function (errorCode) {
-        this._errorHandlingService.lastErrorCode = errorCode;
-    };
-    CMIDataService.prototype.throwSCORMError = function (errorNumber, message) {
-        this._throwSCORMError(errorNumber, message);
-    };
-    CMIDataService.prototype.setCMIValue = function (cmi, methodName, scorm2004, CMIElement, value, isInitialized) {
-        if (!CMIElement || CMIElement === "") {
-            return api_constants/* global_constants */._y.SCORM_FALSE;
-        }
-        var structure = CMIElement.split(".");
-        var refObject = cmi;
-        var returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-        var foundFirstIndex = false;
-        var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
-        var invalidErrorCode = scorm2004
-            ? this._error_codes.UNDEFINED_DATA_MODEL
-            : this._error_codes.GENERAL;
-        for (var idx = 0; idx < structure.length; idx++) {
-            var attribute = structure[idx];
-            if (idx === structure.length - 1) {
-                if (scorm2004 && attribute.substring(0, 8) === "{target=") {
-                    if (isInitialized) {
-                        this.throwSCORMError(this._error_codes.READ_ONLY_ELEMENT);
-                    }
-                    else {
-                        refObject = (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, refObject), { attribute: value });
-                    }
-                }
-                else if (!this._checkObjectHasProperty(refObject, attribute)) {
-                    this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
-                }
-                else {
-                    if ((0,utilities/* stringMatches */.J6)(CMIElement, "\\.correct_responses\\.\\d+") &&
-                        isInitialized) {
-                        this._validateCorrectResponse(CMIElement, value);
-                    }
-                    if (!scorm2004 || this._errorHandlingService.lastErrorCode === "0") {
-                        refObject[attribute] = value;
-                        returnValue = api_constants/* global_constants */._y.SCORM_TRUE;
-                    }
-                }
-            }
-            else {
-                refObject = refObject[attribute];
-                if (!refObject) {
-                    this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
-                    break;
-                }
-                if (isCMIArray(refObject)) {
-                    var index = parseInt(structure[idx + 1], 10);
-                    if (!isNaN(index)) {
-                        var item = refObject.childArray[index];
-                        if (item) {
-                            refObject = item;
-                            foundFirstIndex = true;
-                        }
-                        else {
-                            var newChild = this._getChildElement(CMIElement, value, foundFirstIndex);
-                            foundFirstIndex = true;
-                            if (!newChild) {
-                                this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
-                            }
-                            else {
-                                if (refObject.initialized)
-                                    newChild.initialize();
-                                refObject.childArray.push(newChild);
-                                refObject = newChild;
-                            }
-                        }
-                        idx++;
-                    }
-                }
-            }
-        }
-        if (returnValue === api_constants/* global_constants */._y.SCORM_FALSE) {
-            this._apiLog(methodName, "There was an error setting the value for: ".concat(CMIElement, ", value of: ").concat(value), enums/* LogLevelEnum */.Mb.WARN);
-        }
-        return returnValue;
-    };
-    CMIDataService.prototype.getCMIValue = function (cmi, methodName, scorm2004, CMIElement) {
-        if (!CMIElement || CMIElement === "") {
-            return "";
-        }
-        var structure = CMIElement.split(".");
-        var refObject = cmi;
-        var attribute = null;
-        var uninitializedErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") has not been initialized.");
-        var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
-        var invalidErrorCode = scorm2004
-            ? this._error_codes.UNDEFINED_DATA_MODEL
-            : this._error_codes.GENERAL;
-        for (var idx = 0; idx < structure.length; idx++) {
-            attribute = structure[idx];
-            if (!scorm2004) {
-                if (idx === structure.length - 1) {
-                    if (!this._checkObjectHasProperty(refObject, attribute)) {
-                        this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
-                        return;
-                    }
-                }
-            }
-            else {
-                if (String(attribute).substring(0, 8) === "{target=" &&
-                    typeof refObject._isTargetValid == "function") {
-                    var target = String(attribute).substring(8, String(attribute).length - 9);
-                    return refObject._isTargetValid(target);
-                }
-                else if (!this._checkObjectHasProperty(refObject, attribute)) {
-                    this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
-                    return;
-                }
-            }
-            refObject = refObject[attribute];
-            if (refObject === undefined) {
-                this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
-                break;
-            }
-            if (isCMIArray(refObject)) {
-                var index = parseInt(structure[idx + 1], 10);
-                if (!isNaN(index)) {
-                    var item = refObject.childArray[index];
-                    if (item) {
-                        refObject = item;
-                    }
-                    else {
-                        this.throwSCORMError(this._error_codes.VALUE_NOT_INITIALIZED, uninitializedErrorMessage);
-                        break;
-                    }
-                    idx++;
-                }
-            }
-        }
-        if (refObject === null || refObject === undefined) {
-            if (!scorm2004) {
-                if (attribute === "_children") {
-                    this.throwSCORMError(this._error_codes.CHILDREN_ERROR);
-                }
-                else if (attribute === "_count") {
-                    this.throwSCORMError(this._error_codes.COUNT_ERROR);
-                }
-            }
-        }
-        else {
-            return refObject;
-        }
-    };
-    return CMIDataService;
-}());
-
-
 ;// ./src/services/ErrorHandlingService.ts
 
 
@@ -1031,11 +1179,11 @@ var ErrorHandlingService = (function () {
         enumerable: false,
         configurable: true
     });
-    ErrorHandlingService.prototype.throwSCORMError = function (errorNumber, message) {
+    ErrorHandlingService.prototype.throwSCORMError = function (CMIElement, errorNumber, message) {
         if (!message) {
-            message = this._getLmsErrorMessageDetails(errorNumber);
+            message = this._getLmsErrorMessageDetails(errorNumber, true);
         }
-        this._apiLog("throwSCORMError", errorNumber + ": " + message, enums/* LogLevelEnum */.Mb.ERROR);
+        this._apiLog("throwSCORMError", errorNumber + ": " + message, enums/* LogLevelEnum */.Mb.ERROR, CMIElement);
         this._lastErrorCode = String(errorNumber);
     };
     ErrorHandlingService.prototype.clearSCORMError = function (success) {
@@ -1043,7 +1191,7 @@ var ErrorHandlingService = (function () {
             this._lastErrorCode = "0";
         }
     };
-    ErrorHandlingService.prototype.handleValueAccessException = function (e, returnValue) {
+    ErrorHandlingService.prototype.handleValueAccessException = function (CMIElement, e, returnValue) {
         if (isValidationError(e)) {
             this._lastErrorCode = String(e.errorCode);
             returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
@@ -1051,11 +1199,12 @@ var ErrorHandlingService = (function () {
         else {
             if (isError(e) && e.message) {
                 console.error(e.message);
+                this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, e.message);
             }
             else {
                 console.error(e);
+                this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, "Unknown error");
             }
-            this.throwSCORMError(this._errorCodes.GENERAL);
         }
         return returnValue;
     };
@@ -1163,9 +1312,11 @@ function getLoggingService() {
 
 
 
+
 var BaseAPI = (function () {
     function BaseAPI(error_codes, settings, httpService, eventService, serializationService, cmiDataService, errorHandlingService, loggingService) {
         var _newTarget = this.constructor;
+        var _this = this;
         this._settings = DefaultSettings;
         if (_newTarget === BaseAPI) {
             throw new TypeError("Cannot construct BaseAPI instances directly");
@@ -1188,15 +1339,19 @@ var BaseAPI = (function () {
         this._httpService =
             httpService || new HttpService(this.settings, this._error_codes);
         this._eventService =
-            eventService || new EventService(this.apiLog.bind(this));
+            eventService ||
+                new EventService(function (functionName, message, level, element) {
+                    return _this.apiLog(functionName, message, level, element);
+                });
         this._serializationService =
             serializationService || new SerializationService();
         this._errorHandlingService =
             errorHandlingService ||
-                createErrorHandlingService(this._error_codes, this.apiLog.bind(this), this.getLmsErrorMessageDetails.bind(this));
-        this._cmiDataService =
-            cmiDataService ||
-                new CMIDataService(this._error_codes, this.apiLog.bind(this), this.throwSCORMError.bind(this), this.validateCorrectResponse.bind(this), this.getChildElement.bind(this), this._checkObjectHasProperty.bind(this), this._errorHandlingService);
+                createErrorHandlingService(this._error_codes, function (functionName, message, level, element) {
+                    return _this.apiLog(functionName, message, level, element);
+                }, function (errorNumber, detail) {
+                    return _this.getLmsErrorMessageDetails(errorNumber, detail);
+                });
     }
     Object.defineProperty(BaseAPI.prototype, "lastErrorCode", {
         get: function () {
@@ -1223,10 +1378,10 @@ var BaseAPI = (function () {
     BaseAPI.prototype.initialize = function (callbackName, initializeMessage, terminationMessage) {
         var returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
         if (this.isInitialized()) {
-            this.throwSCORMError(this._error_codes.INITIALIZED, initializeMessage);
+            this.throwSCORMError("api", this._error_codes.INITIALIZED, initializeMessage);
         }
         else if (this.isTerminated()) {
-            this.throwSCORMError(this._error_codes.TERMINATED, terminationMessage);
+            this.throwSCORMError("api", this._error_codes.TERMINATED, terminationMessage);
         }
         else {
             if (this.selfReportSessionTime) {
@@ -1295,7 +1450,7 @@ var BaseAPI = (function () {
                     case 1:
                         result = _c.sent();
                         if (((_a = result.errorCode) !== null && _a !== void 0 ? _a : 0) > 0) {
-                            this.throwSCORMError(result.errorCode);
+                            this.throwSCORMError("api", result.errorCode);
                         }
                         returnValue = (_b = result === null || result === void 0 ? void 0 : result.result) !== null && _b !== void 0 ? _b : api_constants/* global_constants */._y.SCORM_FALSE;
                         if (checkTerminated)
@@ -1314,13 +1469,11 @@ var BaseAPI = (function () {
     BaseAPI.prototype.getValue = function (callbackName, checkTerminated, CMIElement) {
         var returnValue = "";
         if (this.checkState(checkTerminated, this._error_codes.RETRIEVE_BEFORE_INIT, this._error_codes.RETRIEVE_AFTER_TERM)) {
-            if (checkTerminated)
-                this.lastErrorCode = "0";
             try {
                 returnValue = this.getCMIValue(CMIElement);
             }
             catch (e) {
-                returnValue = this.handleValueAccessException(e, returnValue);
+                returnValue = this.handleValueAccessException(CMIElement, e, returnValue);
             }
             this.processListeners(callbackName, CMIElement);
         }
@@ -1328,7 +1481,9 @@ var BaseAPI = (function () {
         if (returnValue === undefined) {
             return "";
         }
-        this.clearSCORMError(returnValue);
+        if (this.lastErrorCode === "0") {
+            this.clearSCORMError(returnValue);
+        }
         return returnValue;
     };
     BaseAPI.prototype.setValue = function (callbackName, commitCallback, checkTerminated, CMIElement, value) {
@@ -1337,13 +1492,11 @@ var BaseAPI = (function () {
         }
         var returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
         if (this.checkState(checkTerminated, this._error_codes.STORE_BEFORE_INIT, this._error_codes.STORE_AFTER_TERM)) {
-            if (checkTerminated)
-                this.lastErrorCode = "0";
             try {
                 returnValue = this.setCMIValue(CMIElement, value);
             }
             catch (e) {
-                returnValue = this.handleValueAccessException(e, returnValue);
+                returnValue = this.handleValueAccessException(CMIElement, e, returnValue);
             }
             this.processListeners(callbackName, CMIElement, value);
         }
@@ -1356,7 +1509,9 @@ var BaseAPI = (function () {
             }
         }
         this.apiLog(callbackName, ": " + value + ": result: " + returnValue, enums/* LogLevelEnum */.Mb.INFO, CMIElement);
-        this.clearSCORMError(returnValue);
+        if (this.lastErrorCode === "0") {
+            this.clearSCORMError(returnValue);
+        }
         return returnValue;
     };
     BaseAPI.prototype.commit = function (callbackName_1) {
@@ -1374,7 +1529,7 @@ var BaseAPI = (function () {
                     case 1:
                         result = _c.sent();
                         if (((_a = result.errorCode) !== null && _a !== void 0 ? _a : 0) > 0) {
-                            this.throwSCORMError(result.errorCode);
+                            this.throwSCORMError("api", result.errorCode);
                         }
                         returnValue = (_b = result === null || result === void 0 ? void 0 : result.result) !== null && _b !== void 0 ? _b : api_constants/* global_constants */._y.SCORM_FALSE;
                         this.apiLog(callbackName, " Result: " + returnValue, enums/* LogLevelEnum */.Mb.DEBUG, "HttpRequest");
@@ -1384,7 +1539,9 @@ var BaseAPI = (function () {
                         _c.label = 2;
                     case 2:
                         this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
-                        this.clearSCORMError(returnValue);
+                        if (this.lastErrorCode === "0") {
+                            this.clearSCORMError(returnValue);
+                        }
                         return [2, returnValue];
                 }
             });
@@ -1416,11 +1573,11 @@ var BaseAPI = (function () {
     };
     BaseAPI.prototype.checkState = function (checkTerminated, beforeInitError, afterTermError) {
         if (this.isNotInitialized()) {
-            this.throwSCORMError(beforeInitError);
+            this.throwSCORMError("api", beforeInitError);
             return false;
         }
         else if (checkTerminated && this.isTerminated()) {
-            this.throwSCORMError(afterTermError);
+            this.throwSCORMError("api", afterTermError);
             return false;
         }
         return true;
@@ -1436,10 +1593,157 @@ var BaseAPI = (function () {
         throw new Error("The setCMIValue method has not been implemented");
     };
     BaseAPI.prototype._commonSetCMIValue = function (methodName, scorm2004, CMIElement, value) {
-        return this._cmiDataService.setCMIValue(this, methodName, scorm2004, CMIElement, value, this.isInitialized());
+        if (!CMIElement || CMIElement === "") {
+            return api_constants/* global_constants */._y.SCORM_FALSE;
+        }
+        this.lastErrorCode = "0";
+        var structure = CMIElement.split(".");
+        var refObject = this;
+        var returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
+        var foundFirstIndex = false;
+        var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
+        var invalidErrorCode = scorm2004
+            ? this._error_codes.UNDEFINED_DATA_MODEL
+            : this._error_codes.GENERAL;
+        for (var idx = 0; idx < structure.length; idx++) {
+            var attribute = structure[idx];
+            if (idx === structure.length - 1) {
+                if (scorm2004 && attribute.substring(0, 8) === "{target=") {
+                    if (this.isInitialized()) {
+                        this.throwSCORMError(CMIElement, this._error_codes.READ_ONLY_ELEMENT);
+                    }
+                    else {
+                        refObject = (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, refObject), { attribute: value });
+                    }
+                }
+                else if (attribute === "pattern" &&
+                    CMIElement.includes(".correct_responses.") &&
+                    this.isInitialized()) {
+                    this.validateCorrectResponse(CMIElement, value);
+                    if (this._errorHandlingService.lastErrorCode === "0") {
+                        refObject[attribute] = value;
+                        returnValue = api_constants/* global_constants */._y.SCORM_TRUE;
+                    }
+                    continue;
+                }
+                else if (!this._checkObjectHasProperty(refObject, attribute)) {
+                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+                }
+                else {
+                    if ((0,utilities/* stringMatches */.J6)(CMIElement, "\\.correct_responses\\.\\d+$") &&
+                        this.isInitialized() &&
+                        attribute !== "pattern") {
+                        this.validateCorrectResponse(CMIElement, value);
+                    }
+                    if (!scorm2004 || this._errorHandlingService.lastErrorCode === "0") {
+                        refObject[attribute] = value;
+                        returnValue = api_constants/* global_constants */._y.SCORM_TRUE;
+                    }
+                }
+            }
+            else {
+                refObject = refObject[attribute];
+                if (!refObject) {
+                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+                    break;
+                }
+                if (isCMIArray(refObject)) {
+                    var index = parseInt(structure[idx + 1], 10);
+                    if (!isNaN(index)) {
+                        var item = refObject.childArray[index];
+                        if (item) {
+                            refObject = item;
+                            foundFirstIndex = true;
+                        }
+                        else {
+                            var newChild = this.getChildElement(CMIElement, value, foundFirstIndex);
+                            foundFirstIndex = true;
+                            if (!newChild) {
+                                this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+                            }
+                            else {
+                                if (refObject.initialized)
+                                    newChild.initialize();
+                                refObject.childArray.push(newChild);
+                                refObject = newChild;
+                            }
+                        }
+                        idx++;
+                    }
+                }
+            }
+        }
+        if (returnValue === api_constants/* global_constants */._y.SCORM_FALSE) {
+            this.apiLog(methodName, "There was an error setting the value for: ".concat(CMIElement, ", value of: ").concat(value), enums/* LogLevelEnum */.Mb.WARN);
+        }
+        return returnValue;
     };
     BaseAPI.prototype._commonGetCMIValue = function (methodName, scorm2004, CMIElement) {
-        return this._cmiDataService.getCMIValue(this, methodName, scorm2004, CMIElement);
+        if (!CMIElement || CMIElement === "") {
+            return "";
+        }
+        var structure = CMIElement.split(".");
+        var refObject = this;
+        var attribute = null;
+        var uninitializedErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") has not been initialized.");
+        var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
+        var invalidErrorCode = scorm2004
+            ? this._error_codes.UNDEFINED_DATA_MODEL
+            : this._error_codes.GENERAL;
+        for (var idx = 0; idx < structure.length; idx++) {
+            attribute = structure[idx];
+            if (!scorm2004) {
+                if (idx === structure.length - 1) {
+                    if (!this._checkObjectHasProperty(refObject, attribute)) {
+                        this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+                        return;
+                    }
+                }
+            }
+            else {
+                if (String(attribute).substring(0, 8) === "{target=" &&
+                    typeof refObject._isTargetValid == "function") {
+                    var target = String(attribute).substring(8, String(attribute).length - 9);
+                    return refObject._isTargetValid(target);
+                }
+                else if (!this._checkObjectHasProperty(refObject, attribute)) {
+                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+                    return;
+                }
+            }
+            refObject = refObject[attribute];
+            if (refObject === undefined) {
+                this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+                break;
+            }
+            if (isCMIArray(refObject)) {
+                var index = parseInt(structure[idx + 1], 10);
+                if (!isNaN(index)) {
+                    var item = refObject.childArray[index];
+                    if (item) {
+                        refObject = item;
+                    }
+                    else {
+                        this.throwSCORMError(CMIElement, this._error_codes.VALUE_NOT_INITIALIZED, uninitializedErrorMessage);
+                        break;
+                    }
+                    idx++;
+                }
+            }
+        }
+        if (refObject === null || refObject === undefined) {
+            if (!scorm2004) {
+                if (attribute === "_children") {
+                    this.throwSCORMError(CMIElement, this._error_codes.CHILDREN_ERROR, undefined);
+                }
+                else if (attribute === "_count") {
+                    this.throwSCORMError(CMIElement, this._error_codes.COUNT_ERROR, undefined);
+                }
+            }
+        }
+        else {
+            return refObject;
+        }
     };
     BaseAPI.prototype.isInitialized = function () {
         return this.currentState === api_constants/* global_constants */._y.STATE_INITIALIZED;
@@ -1462,22 +1766,25 @@ var BaseAPI = (function () {
     BaseAPI.prototype.processListeners = function (functionName, CMIElement, value) {
         this._eventService.processListeners(functionName, CMIElement, value);
     };
-    BaseAPI.prototype.throwSCORMError = function (errorNumber, message) {
-        this._errorHandlingService.throwSCORMError(errorNumber, message);
+    BaseAPI.prototype.throwSCORMError = function (CMIElement, errorNumber, message) {
+        this._errorHandlingService.throwSCORMError(CMIElement, errorNumber, message);
     };
     BaseAPI.prototype.clearSCORMError = function (success) {
         this._errorHandlingService.clearSCORMError(success);
     };
     BaseAPI.prototype.loadFromFlattenedJSON = function (json, CMIElement) {
+        var _this = this;
         if (!CMIElement) {
             CMIElement = "";
         }
-        this._serializationService.loadFromFlattenedJSON(json, CMIElement, this.loadFromJSON.bind(this), this.setCMIValue.bind(this), this.isNotInitialized.bind(this));
+        this._serializationService.loadFromFlattenedJSON(json, CMIElement, function (CMIElement, value) { return _this.setCMIValue(CMIElement, value); }, function () { return _this.isNotInitialized(); }, function (data) {
+            _this.startingData = data;
+        });
     };
     BaseAPI.prototype.loadFromJSON = function (json, CMIElement) {
         var _this = this;
         if (CMIElement === void 0) { CMIElement = ""; }
-        this._serializationService.loadFromJSON(json, CMIElement, this.setCMIValue.bind(this), this.isNotInitialized.bind(this), function (data) {
+        this._serializationService.loadFromJSON(json, CMIElement, function (CMIElement, value) { return _this.setCMIValue(CMIElement, value); }, function () { return _this.isNotInitialized(); }, function (data) {
             _this.startingData = data;
         });
     };
@@ -1489,9 +1796,14 @@ var BaseAPI = (function () {
     };
     BaseAPI.prototype.processHttpRequest = function (url_1, params_1) {
         return (0,tslib_es6/* __awaiter */.sH)(this, arguments, void 0, function (url, params, immediate) {
+            var _this = this;
             if (immediate === void 0) { immediate = false; }
             return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                return [2, this._httpService.processHttpRequest(url, params, immediate, this.apiLog.bind(this), this.processListeners.bind(this))];
+                return [2, this._httpService.processHttpRequest(url, params, immediate, function (functionName, message, level, element) {
+                        return _this.apiLog(functionName, message, level, element);
+                    }, function (functionName, CMIElement, value) {
+                        return _this.processListeners(functionName, CMIElement, value);
+                    })];
             });
         });
     };
@@ -1513,325 +1825,30 @@ var BaseAPI = (function () {
             Object.getOwnPropertyDescriptor(Object.getPrototypeOf(StringKeyMap), attribute) != null ||
             attribute in StringKeyMap);
     };
-    BaseAPI.prototype.handleValueAccessException = function (e, returnValue) {
-        return this._errorHandlingService.handleValueAccessException(e, returnValue);
+    BaseAPI.prototype.handleValueAccessException = function (CMIElement, e, returnValue) {
+        if (e instanceof exceptions/* ValidationError */.y) {
+            this.lastErrorCode = String(e.errorCode);
+            returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
+        }
+        else {
+            if (isError(e) && e.message) {
+                console.error(e.message);
+                this.throwSCORMError(CMIElement, this._error_codes.GENERAL, e.message);
+            }
+            else {
+                console.error(e);
+                this.throwSCORMError(CMIElement, this._error_codes.GENERAL, "Unknown error");
+            }
+        }
+        return returnValue;
     };
     BaseAPI.prototype.getCommitObject = function (terminateCommit) {
-        return this._serializationService.getCommitObject(terminateCommit, this.settings.alwaysSendTotalTime, this.settings.renderCommonCommitFields, this.renderCommitObject.bind(this), this.renderCommitCMI.bind(this), this.apiLogLevel);
+        var _this = this;
+        return this._serializationService.getCommitObject(terminateCommit, this.settings.alwaysSendTotalTime, this.settings.renderCommonCommitFields, function (terminateCommit) { return _this.renderCommitObject(terminateCommit); }, function (terminateCommit) { return _this.renderCommitCMI(terminateCommit); }, this.apiLogLevel);
     };
     return BaseAPI;
 }());
 /* harmony default export */ var src_BaseAPI = (BaseAPI);
-
-
-/***/ }),
-
-/***/ 319:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   J: function() { return /* binding */ BaseCMI; },
-/* harmony export */   r: function() { return /* binding */ BaseRootCMI; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-
-var BaseCMI = (function () {
-    function BaseCMI() {
-        this.jsonString = false;
-        this._initialized = false;
-    }
-    Object.defineProperty(BaseCMI.prototype, "initialized", {
-        get: function () {
-            return this._initialized;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(BaseCMI.prototype, "start_time", {
-        get: function () {
-            return this._start_time;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    BaseCMI.prototype.initialize = function () {
-        this._initialized = true;
-    };
-    BaseCMI.prototype.setStartTime = function () {
-        this._start_time = new Date().getTime();
-    };
-    return BaseCMI;
-}());
-
-var BaseRootCMI = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(BaseRootCMI, _super);
-    function BaseRootCMI() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    return BaseRootCMI;
-}(BaseCMI));
-
-
-
-/***/ }),
-
-/***/ 331:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   A: function() { return /* binding */ NAV; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(635);
-/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(319);
-/* harmony import */ var _validation__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(915);
-/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(417);
-
-
-
-
-var NAV = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_3__/* .__extends */ .C6)(NAV, _super);
-    function NAV() {
-        var _this = _super.call(this) || this;
-        _this._event = "";
-        return _this;
-    }
-    NAV.prototype.reset = function () {
-        this._event = "";
-        this._initialized = false;
-    };
-    Object.defineProperty(NAV.prototype, "event", {
-        get: function () {
-            return this._event;
-        },
-        set: function (event) {
-            if (event === "" || (0,_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidFormat */ .p)(event, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.NAVEvent)) {
-                this._event = event;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    NAV.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            event: this.event,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return NAV;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_0__/* .BaseCMI */ .J));
-
-
-
-/***/ }),
-
-/***/ 340:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   BR: function() { return /* binding */ aicc_constants; },
-/* harmony export */   QP: function() { return /* binding */ scorm12_constants; },
-/* harmony export */   _y: function() { return /* binding */ global_constants; }
-/* harmony export */ });
-/* unused harmony export scorm2004_constants */
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-
-var global_constants = {
-    SCORM_TRUE: "true",
-    SCORM_FALSE: "false",
-    STATE_NOT_INITIALIZED: 0,
-    STATE_INITIALIZED: 1,
-    STATE_TERMINATED: 2,
-};
-var scorm12_constants = {
-    cmi_children: "core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions",
-    core_children: "student_id,student_name,lesson_location,credit,lesson_status,entry,score,total_time,lesson_mode,exit,session_time",
-    score_children: "raw,min,max",
-    comments_children: "content,location,time",
-    objectives_children: "id,score,status",
-    correct_responses_children: "pattern",
-    student_data_children: "mastery_score,max_time_allowed,time_limit_action",
-    student_preference_children: "audio,language,speed,text",
-    interactions_children: "id,objectives,time,type,correct_responses,weighting,student_response,result,latency",
-    error_descriptions: {
-        "101": {
-            basicMessage: "General Exception",
-            detailMessage: "No specific error code exists to describe the error. Use LMSGetDiagnostic for more information",
-        },
-        "201": {
-            basicMessage: "Invalid argument error",
-            detailMessage: "Indicates that an argument represents an invalid data model element or is otherwise incorrect.",
-        },
-        "202": {
-            basicMessage: "Element cannot have children",
-            detailMessage: 'Indicates that LMSGetValue was called with a data model element name that ends in "_children" for a data model element that does not support the "_children" suffix.',
-        },
-        "203": {
-            basicMessage: "Element not an array - cannot have count",
-            detailMessage: 'Indicates that LMSGetValue was called with a data model element name that ends in "_count" for a data model element that does not support the "_count" suffix.',
-        },
-        "301": {
-            basicMessage: "Not initialized",
-            detailMessage: "Indicates that an API call was made before the call to lmsInitialize.",
-        },
-        "401": {
-            basicMessage: "Not implemented error",
-            detailMessage: "The data model element indicated in a call to LMSGetValue or LMSSetValue is valid, but was not implemented by this LMS. SCORM 1.2 defines a set of data model elements as being optional for an LMS to implement.",
-        },
-        "402": {
-            basicMessage: "Invalid set value, element is a keyword",
-            detailMessage: 'Indicates that LMSSetValue was called on a data model element that represents a keyword (elements that end in "_children" and "_count").',
-        },
-        "403": {
-            basicMessage: "Element is read only",
-            detailMessage: "LMSSetValue was called with a data model element that can only be read.",
-        },
-        "404": {
-            basicMessage: "Element is write only",
-            detailMessage: "LMSGetValue was called on a data model element that can only be written to.",
-        },
-        "405": {
-            basicMessage: "Incorrect Data Type",
-            detailMessage: "LMSSetValue was called with a value that is not consistent with the data format of the supplied data model element.",
-        },
-        "407": {
-            basicMessage: "Element Value Out Of Range",
-            detailMessage: "The numeric value supplied to a LMSSetValue call is outside of the numeric range allowed for the supplied data model element.",
-        },
-        "408": {
-            basicMessage: "Data Model Dependency Not Established",
-            detailMessage: "Some data model elements cannot be set until another data model element was set. This error condition indicates that the prerequisite element was not set before the dependent element.",
-        },
-    },
-};
-var aicc_constants = (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)((0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)({}, scorm12_constants), {
-    cmi_children: "core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions,evaluation",
-    student_preference_children: "audio,language,lesson_type,speed,text,text_color,text_location,text_size,video,windows",
-    student_data_children: "attempt_number,tries,mastery_score,max_time_allowed,time_limit_action",
-    student_demographics_children: "city,class,company,country,experience,familiar_name,instructor_name,title,native_language,state,street_address,telephone,years_experience",
-    tries_children: "time,status,score",
-    attempt_records_children: "score,lesson_status",
-    paths_children: "location_id,date,time,status,why_left,time_in_element",
-});
-var scorm2004_constants = {
-    cmi_children: "_version,comments_from_learner,comments_from_lms,completion_status,credit,entry,exit,interactions,launch_data,learner_id,learner_name,learner_preference,location,max_time_allowed,mode,objectives,progress_measure,scaled_passing_score,score,session_time,success_status,suspend_data,time_limit_action,total_time",
-    comments_children: "comment,timestamp,location",
-    score_children: "max,raw,scaled,min",
-    objectives_children: "progress_measure,completion_status,success_status,description,score,id",
-    correct_responses_children: "pattern",
-    student_data_children: "mastery_score,max_time_allowed,time_limit_action",
-    student_preference_children: "audio_level,audio_captioning,delivery_speed,language",
-    interactions_children: "id,type,objectives,timestamp,correct_responses,weighting,learner_response,result,latency,description",
-    adl_data_children: "id,store",
-    error_descriptions: {
-        "0": {
-            basicMessage: "No Error",
-            detailMessage: "No error occurred, the previous API call was successful.",
-        },
-        "101": {
-            basicMessage: "General Exception",
-            detailMessage: "No specific error code exists to describe the error. Use GetDiagnostic for more information.",
-        },
-        "102": {
-            basicMessage: "General Initialization Failure",
-            detailMessage: "Call to Initialize failed for an unknown reason.",
-        },
-        "103": {
-            basicMessage: "Already Initialized",
-            detailMessage: "Call to Initialize failed because Initialize was already called.",
-        },
-        "104": {
-            basicMessage: "Content Instance Terminated",
-            detailMessage: "Call to Initialize failed because Terminate was already called.",
-        },
-        "111": {
-            basicMessage: "General Termination Failure",
-            detailMessage: "Call to Terminate failed for an unknown reason.",
-        },
-        "112": {
-            basicMessage: "Termination Before Initialization",
-            detailMessage: "Call to Terminate failed because it was made before the call to Initialize.",
-        },
-        "113": {
-            basicMessage: "Termination After Termination",
-            detailMessage: "Call to Terminate failed because Terminate was already called.",
-        },
-        "122": {
-            basicMessage: "Retrieve Data Before Initialization",
-            detailMessage: "Call to GetValue failed because it was made before the call to Initialize.",
-        },
-        "123": {
-            basicMessage: "Retrieve Data After Termination",
-            detailMessage: "Call to GetValue failed because it was made after the call to Terminate.",
-        },
-        "132": {
-            basicMessage: "Store Data Before Initialization",
-            detailMessage: "Call to SetValue failed because it was made before the call to Initialize.",
-        },
-        "133": {
-            basicMessage: "Store Data After Termination",
-            detailMessage: "Call to SetValue failed because it was made after the call to Terminate.",
-        },
-        "142": {
-            basicMessage: "Commit Before Initialization",
-            detailMessage: "Call to Commit failed because it was made before the call to Initialize.",
-        },
-        "143": {
-            basicMessage: "Commit After Termination",
-            detailMessage: "Call to Commit failed because it was made after the call to Terminate.",
-        },
-        "201": {
-            basicMessage: "General Argument Error",
-            detailMessage: "An invalid argument was passed to an API method (usually indicates that Initialize, Commit or Terminate did not receive the expected empty string argument.",
-        },
-        "301": {
-            basicMessage: "General Get Failure",
-            detailMessage: "Indicates a failed GetValue call where no other specific error code is applicable. Use GetDiagnostic for more information.",
-        },
-        "351": {
-            basicMessage: "General Set Failure",
-            detailMessage: "Indicates a failed SetValue call where no other specific error code is applicable. Use GetDiagnostic for more information.",
-        },
-        "391": {
-            basicMessage: "General Commit Failure",
-            detailMessage: "Indicates a failed Commit call where no other specific error code is applicable. Use GetDiagnostic for more information.",
-        },
-        "401": {
-            basicMessage: "Undefined Data Model Element",
-            detailMessage: "The data model element name passed to GetValue or SetValue is not a valid SCORM data model element.",
-        },
-        "402": {
-            basicMessage: "Unimplemented Data Model Element",
-            detailMessage: "The data model element indicated in a call to GetValue or SetValue is valid, but was not implemented by this LMS. In SCORM 2004, this error would indicate an LMS that is not fully SCORM conformant.",
-        },
-        "403": {
-            basicMessage: "Data Model Element Value Not Initialized",
-            detailMessage: "Attempt to read a data model element that has not been initialized by the LMS or through a SetValue call. This error condition is often reached during normal execution of a SCO.",
-        },
-        "404": {
-            basicMessage: "Data Model Element Is Read Only",
-            detailMessage: "SetValue was called with a data model element that can only be read.",
-        },
-        "405": {
-            basicMessage: "Data Model Element Is Write Only",
-            detailMessage: "GetValue was called on a data model element that can only be written to.",
-        },
-        "406": {
-            basicMessage: "Data Model Element Type Mismatch",
-            detailMessage: "SetValue was called with a value that is not consistent with the data format of the supplied data model element.",
-        },
-        "407": {
-            basicMessage: "Data Model Element Value Out Of Range",
-            detailMessage: "The numeric value supplied to a SetValue call is outside of the numeric range allowed for the supplied data model element.",
-        },
-        "408": {
-            basicMessage: "Data Model Dependency Not Established",
-            detailMessage: "Some data model elements cannot be set until another data model element was set. This error condition indicates that the prerequisite element was not set before the dependent element.",
-        },
-    },
-};
 
 
 /***/ }),
@@ -1883,7 +1900,7 @@ var scorm2004_regex = {
     CMILangcr: "^(({lang=([a-zA-Z]{2,3}|i|x)?(-[a-zA-Z0-9-]{2,8})?}))(.*?)$",
     CMILangString250cr: "^(({lang=([a-zA-Z]{2,3}|i|x)?(-[a-zA-Z0-9-]{2,8})?})?(.{0,250})?)?$",
     CMILangString4000: "^({lang=([a-zA-Z]{2,3}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,4000}$)?$",
-    CMITime: "^(19[7-9]{1}[0-9]{1}|20[0-2]{1}[0-9]{1}|203[0-8]{1})((-(0[1-9]{1}|1[0-2]{1}))((-(0[1-9]{1}|[1-2]{1}[0-9]{1}|3[0-1]{1}))(T([0-1]{1}[0-9]{1}|2[0-3]{1})((:[0-5]{1}[0-9]{1})((:[0-5]{1}[0-9]{1})((\\.[0-9]{1,2})((Z|([+|-]([0-1]{1}[0-9]{1}|2[0-3]{1})))(:[0-5]{1}[0-9]{1})?)?)?)?)?)?)?)?$",
+    CMITime: "^(19[7-9]{1}[0-9]{1}|20[0-2]{1}[0-9]{1}|203[0-8]{1})((-(0[1-9]{1}|1[0-2]{1}))((-(0[1-9]{1}|[1-2]{1}[0-9]{1}|3[0-1]{1}))(T([0-1]{1}[0-9]{1}|2[0-3]{1})((:[0-5]{1}[0-9]{1})((:[0-5]{1}[0-9]{1})((\\.[0-9]{1,6})((Z|([+|-]([0-1]{1}[0-9]{1}|2[0-3]{1})))(:[0-5]{1}[0-9]{1})?)?)?)?)?)?)?)?$",
     CMITimespan: "^P(?:([.,\\d]+)Y)?(?:([.,\\d]+)M)?(?:([.,\\d]+)W)?(?:([.,\\d]+)D)?(?:T?(?:([.,\\d]+)H)?(?:([.,\\d]+)M)?(?:([.,\\d]+)S)?)?$",
     CMIInteger: "^\\d+$",
     CMISInteger: "^-?([0-9]+)$",
@@ -1933,7 +1950,7 @@ var scorm2004_regex = {
 var CMIScore = (function (_super) {
     (0,tslib__WEBPACK_IMPORTED_MODULE_5__/* .__extends */ .C6)(CMIScore, _super);
     function CMIScore(params) {
-        var _this = _super.call(this) || this;
+        var _this = _super.call(this, params.CMIElement) || this;
         _this._raw = "";
         _this._min = "";
         _this.__children = params.score_children || _constants_api_constants__WEBPACK_IMPORTED_MODULE_0__/* .scorm12_constants */ .QP.score_children;
@@ -1959,7 +1976,7 @@ var CMIScore = (function (_super) {
             return this.__children;
         },
         set: function (_children) {
-            throw new this.__error_class(this.__invalid_error_code);
+            throw new this.__error_class(this._cmi_element + "._children", this.__invalid_error_code);
         },
         enumerable: false,
         configurable: true
@@ -1969,7 +1986,7 @@ var CMIScore = (function (_super) {
             return this._raw;
         },
         set: function (raw) {
-            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScore(raw, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
+            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScore(this._cmi_element + ".raw", raw, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
                 this._raw = raw;
             }
         },
@@ -1981,7 +1998,7 @@ var CMIScore = (function (_super) {
             return this._min;
         },
         set: function (min) {
-            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScore(min, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
+            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScore(this._cmi_element + ".min", min, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
                 this._min = min;
             }
         },
@@ -1993,7 +2010,7 @@ var CMIScore = (function (_super) {
             return this._max;
         },
         set: function (max) {
-            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScore(max, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
+            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScore(this._cmi_element + ".max", max, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
                 this._max = max;
             }
         },
@@ -2026,7 +2043,7 @@ var CMIScore = (function (_super) {
 /* harmony export */ });
 /* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(864);
 
-var checkValidFormat = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__/* .memoize */ .Bj)(function (value, regexPattern, errorCode, errorClass, allowEmptyString) {
+var checkValidFormat = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__/* .memoize */ .Bj)(function (CMIElement, value, regexPattern, errorCode, errorClass, allowEmptyString) {
     if (typeof value !== "string") {
         return false;
     }
@@ -2036,13 +2053,13 @@ var checkValidFormat = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__/* .memoize */ 
         return true;
     }
     if (value === undefined || !matches || matches[0] === "") {
-        throw new errorClass(errorCode);
+        throw new errorClass(CMIElement, errorCode);
     }
     return true;
 }, function (value, regexPattern, errorCode, _errorClass, allowEmptyString) {
     return "".concat(value, ":").concat(regexPattern, ":").concat(errorCode, ":").concat(allowEmptyString || false);
 });
-var checkValidRange = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__/* .memoize */ .Bj)(function (value, rangePattern, errorCode, errorClass) {
+var checkValidRange = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__/* .memoize */ .Bj)(function (CMIElement, value, rangePattern, errorCode, errorClass) {
     var ranges = rangePattern.split("#");
     value = value * 1.0;
     if (value >= ranges[0]) {
@@ -2050,11 +2067,11 @@ var checkValidRange = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__/* .memoize */ .
             return true;
         }
         else {
-            throw new errorClass(errorCode);
+            throw new errorClass(CMIElement, errorCode);
         }
     }
     else {
-        throw new errorClass(errorCode);
+        throw new errorClass(CMIElement, errorCode);
     }
 }, function (value, rangePattern, errorCode, _errorClass) {
     return "".concat(value, ":").concat(rangePattern, ":").concat(errorCode);
@@ -2084,7 +2101,7 @@ var checkValidRange = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__/* .memoize */ .
 var CMIStudentData = (function (_super) {
     (0,tslib__WEBPACK_IMPORTED_MODULE_5__/* .__extends */ .C6)(CMIStudentData, _super);
     function CMIStudentData(student_data_children) {
-        var _this = _super.call(this) || this;
+        var _this = _super.call(this, "cmi.student_data") || this;
         _this._mastery_score = "";
         _this._max_time_allowed = "";
         _this._time_limit_action = "";
@@ -2101,7 +2118,7 @@ var CMIStudentData = (function (_super) {
             return this.__children;
         },
         set: function (_children) {
-            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.INVALID_SET_VALUE);
+            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t(this._cmi_element + "._children", _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.INVALID_SET_VALUE);
         },
         enumerable: false,
         configurable: true
@@ -2111,7 +2128,7 @@ var CMIStudentData = (function (_super) {
             return this._mastery_score;
         },
         set: function (mastery_score) {
-            _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateReadOnly(this.initialized);
+            _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateReadOnly(this._cmi_element + ".mastery_score", this.initialized);
             this._mastery_score = mastery_score;
         },
         enumerable: false,
@@ -2122,7 +2139,7 @@ var CMIStudentData = (function (_super) {
             return this._max_time_allowed;
         },
         set: function (max_time_allowed) {
-            _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateReadOnly(this.initialized);
+            _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateReadOnly(this._cmi_element + ".max_time_allowed", this.initialized);
             this._max_time_allowed = max_time_allowed;
         },
         enumerable: false,
@@ -2133,7 +2150,7 @@ var CMIStudentData = (function (_super) {
             return this._time_limit_action;
         },
         set: function (time_limit_action) {
-            _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateReadOnly(this.initialized);
+            _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateReadOnly(this._cmi_element + ".time_limit_action", this.initialized);
             this._time_limit_action = time_limit_action;
         },
         enumerable: false,
@@ -2173,7 +2190,7 @@ var CMIStudentData = (function (_super) {
 var CMIArray = (function (_super) {
     (0,tslib__WEBPACK_IMPORTED_MODULE_3__/* .__extends */ .C6)(CMIArray, _super);
     function CMIArray(params) {
-        var _this = _super.call(this) || this;
+        var _this = _super.call(this, params.CMIElement) || this;
         _this.__children = params.children;
         _this._errorCode = params.errorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.GENERAL;
         _this._errorClass = params.errorClass || _exceptions__WEBPACK_IMPORTED_MODULE_1__/* .BaseScormValidationError */ .$;
@@ -2197,7 +2214,7 @@ var CMIArray = (function (_super) {
             return this.__children;
         },
         set: function (_children) {
-            throw new this._errorClass(this._errorCode);
+            throw new this._errorClass(this._cmi_element + "._children", this._errorCode);
         },
         enumerable: false,
         configurable: true
@@ -2207,7 +2224,7 @@ var CMIArray = (function (_super) {
             return this.childArray.length;
         },
         set: function (_count) {
-            throw new this._errorClass(this._errorCode);
+            throw new this._errorClass(this._cmi_element + "._count", this._errorCode);
         },
         enumerable: false,
         configurable: true
@@ -2631,8 +2648,8 @@ function __disposeResources(env) {
 
 var BaseScormValidationError = (function (_super) {
     (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(BaseScormValidationError, _super);
-    function BaseScormValidationError(errorCode) {
-        var _this = _super.call(this, errorCode.toString()) || this;
+    function BaseScormValidationError(CMIElement, errorCode) {
+        var _this = _super.call(this, "".concat(CMIElement, " : ").concat(errorCode.toString())) || this;
         _this._errorCode = errorCode;
         _this.name = "ScormValidationError";
         return _this;
@@ -2649,10 +2666,10 @@ var BaseScormValidationError = (function (_super) {
 
 var ValidationError = (function (_super) {
     (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(ValidationError, _super);
-    function ValidationError(errorCode, errorMessage, detailedMessage) {
-        var _this = _super.call(this, errorCode) || this;
+    function ValidationError(CMIElement, errorCode, errorMessage, detailedMessage) {
+        var _this = _super.call(this, CMIElement, errorCode) || this;
         _this._detailedMessage = "";
-        _this.message = errorMessage;
+        _this.message = "".concat(CMIElement, " : ").concat(errorMessage);
         _this._errorMessage = errorMessage;
         if (detailedMessage) {
             _this._detailedMessage = detailedMessage;
@@ -2745,29 +2762,29 @@ var scorm2004_errors = (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)
 var ValidationService = (function () {
     function ValidationService() {
     }
-    ValidationService.prototype.validateScore = function (value, decimalRegex, scoreRange, invalidTypeCode, invalidRangeCode, errorClass) {
-        return ((0,_cmi_common_validation__WEBPACK_IMPORTED_MODULE_0__/* .checkValidFormat */ .q)(value, decimalRegex, invalidTypeCode, errorClass) &&
+    ValidationService.prototype.validateScore = function (CMIElement, value, decimalRegex, scoreRange, invalidTypeCode, invalidRangeCode, errorClass) {
+        return ((0,_cmi_common_validation__WEBPACK_IMPORTED_MODULE_0__/* .checkValidFormat */ .q)(CMIElement, value, decimalRegex, invalidTypeCode, errorClass) &&
             (!scoreRange ||
-                (0,_cmi_common_validation__WEBPACK_IMPORTED_MODULE_0__/* .checkValidRange */ .W)(value, scoreRange, invalidRangeCode, errorClass)));
+                (0,_cmi_common_validation__WEBPACK_IMPORTED_MODULE_0__/* .checkValidRange */ .W)(CMIElement, value, scoreRange, invalidRangeCode, errorClass)));
     };
-    ValidationService.prototype.validateScorm12Audio = function (value) {
-        return ((0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidFormat */ .p)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.CMISInteger) &&
-            (0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidRange */ .h)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.audio_range));
+    ValidationService.prototype.validateScorm12Audio = function (CMIElement, value) {
+        return ((0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidFormat */ .p)(CMIElement, value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.CMISInteger) &&
+            (0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidRange */ .h)(CMIElement, value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.audio_range));
     };
-    ValidationService.prototype.validateScorm12Language = function (value) {
-        return (0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidFormat */ .p)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.CMIString256);
+    ValidationService.prototype.validateScorm12Language = function (CMIElement, value) {
+        return (0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidFormat */ .p)(CMIElement, value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.CMIString256);
     };
-    ValidationService.prototype.validateScorm12Speed = function (value) {
-        return ((0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidFormat */ .p)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.CMISInteger) &&
-            (0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidRange */ .h)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.speed_range));
+    ValidationService.prototype.validateScorm12Speed = function (CMIElement, value) {
+        return ((0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidFormat */ .p)(CMIElement, value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.CMISInteger) &&
+            (0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidRange */ .h)(CMIElement, value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.speed_range));
     };
-    ValidationService.prototype.validateScorm12Text = function (value) {
-        return ((0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidFormat */ .p)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.CMISInteger) &&
-            (0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidRange */ .h)(value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.text_range));
+    ValidationService.prototype.validateScorm12Text = function (CMIElement, value) {
+        return ((0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidFormat */ .p)(CMIElement, value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.CMISInteger) &&
+            (0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidRange */ .h)(CMIElement, value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.text_range));
     };
-    ValidationService.prototype.validateReadOnly = function (initialized) {
+    ValidationService.prototype.validateReadOnly = function (CMIElement, initialized) {
         if (initialized) {
-            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_4__/* .Scorm12ValidationError */ .t(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.READ_ONLY_ELEMENT);
+            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_4__/* .Scorm12ValidationError */ .t(CMIElement, _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.READ_ONLY_ELEMENT);
         }
     };
     return ValidationService;
@@ -2807,6 +2824,7 @@ var CMIInteractions = (function (_super) {
     (0,tslib__WEBPACK_IMPORTED_MODULE_7__/* .__extends */ .C6)(CMIInteractions, _super);
     function CMIInteractions() {
         return _super.call(this, {
+            CMIElement: "cmi.interactions",
             children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_constants */ .QP.interactions_children,
             errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.INVALID_SET_VALUE,
             errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t,
@@ -2818,7 +2836,7 @@ var CMIInteractions = (function (_super) {
 var CMIInteractionsObject = (function (_super) {
     (0,tslib__WEBPACK_IMPORTED_MODULE_7__/* .__extends */ .C6)(CMIInteractionsObject, _super);
     function CMIInteractionsObject() {
-        var _this = _super.call(this) || this;
+        var _this = _super.call(this, "cmi.interactions.n") || this;
         _this._id = "";
         _this._time = "";
         _this._type = "";
@@ -2827,11 +2845,13 @@ var CMIInteractionsObject = (function (_super) {
         _this._result = "";
         _this._latency = "";
         _this.objectives = new _common_array__WEBPACK_IMPORTED_MODULE_0__/* .CMIArray */ .B({
+            CMIElement: "cmi.interactions.n.objectives",
             errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.INVALID_SET_VALUE,
             errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t,
             children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_constants */ .QP.objectives_children,
         });
         _this.correct_responses = new _common_array__WEBPACK_IMPORTED_MODULE_0__/* .CMIArray */ .B({
+            CMIElement: "cmi.interactions.correct_responses",
             errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.INVALID_SET_VALUE,
             errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t,
             children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_constants */ .QP.correct_responses_children,
@@ -2860,12 +2880,12 @@ var CMIInteractionsObject = (function (_super) {
     Object.defineProperty(CMIInteractionsObject.prototype, "id", {
         get: function () {
             if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(this._cmi_element + ".id", _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
             }
             return this._id;
         },
         set: function (id) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(id, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIIdentifier)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(this._cmi_element + ".id", id, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIIdentifier)) {
                 this._id = id;
             }
         },
@@ -2875,12 +2895,12 @@ var CMIInteractionsObject = (function (_super) {
     Object.defineProperty(CMIInteractionsObject.prototype, "time", {
         get: function () {
             if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(this._cmi_element + ".time", _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
             }
             return this._time;
         },
         set: function (time) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(time, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMITime)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(this._cmi_element + ".time", time, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMITime)) {
                 this._time = time;
             }
         },
@@ -2890,12 +2910,12 @@ var CMIInteractionsObject = (function (_super) {
     Object.defineProperty(CMIInteractionsObject.prototype, "type", {
         get: function () {
             if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(this._cmi_element + ".type", _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
             }
             return this._type;
         },
         set: function (type) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(type, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIType)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(this._cmi_element + ".type", type, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIType)) {
                 this._type = type;
             }
         },
@@ -2905,13 +2925,13 @@ var CMIInteractionsObject = (function (_super) {
     Object.defineProperty(CMIInteractionsObject.prototype, "weighting", {
         get: function () {
             if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(this._cmi_element + ".weighting", _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
             }
             return this._weighting;
         },
         set: function (weighting) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(weighting, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIDecimal) &&
-                (0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidRange */ .h)(weighting, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.weighting_range)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(this._cmi_element + ".weighting", weighting, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIDecimal) &&
+                (0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidRange */ .h)(this._cmi_element + ".weighting", weighting, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.weighting_range)) {
                 this._weighting = weighting;
             }
         },
@@ -2921,12 +2941,12 @@ var CMIInteractionsObject = (function (_super) {
     Object.defineProperty(CMIInteractionsObject.prototype, "student_response", {
         get: function () {
             if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(this._cmi_element + ".student_response", _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
             }
             return this._student_response;
         },
         set: function (student_response) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(student_response, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIFeedback, true)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(this._cmi_element + ".student_response", student_response, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIFeedback, true)) {
                 this._student_response = student_response;
             }
         },
@@ -2936,12 +2956,12 @@ var CMIInteractionsObject = (function (_super) {
     Object.defineProperty(CMIInteractionsObject.prototype, "result", {
         get: function () {
             if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(this._cmi_element + ".result", _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
             }
             return this._result;
         },
         set: function (result) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(result, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIResult)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(this._cmi_element + ".result", result, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIResult)) {
                 this._result = result;
             }
         },
@@ -2951,12 +2971,12 @@ var CMIInteractionsObject = (function (_super) {
     Object.defineProperty(CMIInteractionsObject.prototype, "latency", {
         get: function () {
             if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(this._cmi_element + ".latency", _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
             }
             return this._latency;
         },
         set: function (latency) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(latency, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMITimespan)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(this._cmi_element + ".latency", latency, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMITimespan)) {
                 this._latency = latency;
             }
         },
@@ -2985,7 +3005,7 @@ var CMIInteractionsObject = (function (_super) {
 var CMIInteractionsObjectivesObject = (function (_super) {
     (0,tslib__WEBPACK_IMPORTED_MODULE_7__/* .__extends */ .C6)(CMIInteractionsObjectivesObject, _super);
     function CMIInteractionsObjectivesObject() {
-        var _this = _super.call(this) || this;
+        var _this = _super.call(this, "cmi.interactions.n.objectives.n") || this;
         _this._id = "";
         return _this;
     }
@@ -2998,7 +3018,7 @@ var CMIInteractionsObjectivesObject = (function (_super) {
             return this._id;
         },
         set: function (id) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(id, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIIdentifier)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(this._cmi_element + ".id", id, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIIdentifier)) {
                 this._id = id;
             }
         },
@@ -3019,7 +3039,7 @@ var CMIInteractionsObjectivesObject = (function (_super) {
 var CMIInteractionsCorrectResponsesObject = (function (_super) {
     (0,tslib__WEBPACK_IMPORTED_MODULE_7__/* .__extends */ .C6)(CMIInteractionsCorrectResponsesObject, _super);
     function CMIInteractionsCorrectResponsesObject() {
-        var _this = _super.call(this) || this;
+        var _this = _super.call(this, "cmi.interactions.correct_responses.n") || this;
         _this._pattern = "";
         return _this;
     }
@@ -3030,12 +3050,12 @@ var CMIInteractionsCorrectResponsesObject = (function (_super) {
     Object.defineProperty(CMIInteractionsCorrectResponsesObject.prototype, "pattern", {
         get: function () {
             if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(this._cmi_element + ".pattern", _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
             }
             return this._pattern;
         },
         set: function (pattern) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(pattern, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIFeedback, true)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(this._cmi_element + ".pattern", pattern, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIFeedback, true)) {
                 this._pattern = pattern;
             }
         },
@@ -3298,14 +3318,14 @@ function memoize(fn, keyFn) {
 
 
 
-function check12ValidFormat(value, regexPattern, allowEmptyString) {
-    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_0__/* .checkValidFormat */ .q)(value, regexPattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_errors */ .Se.TYPE_MISMATCH, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t, allowEmptyString);
+function check12ValidFormat(CMIElement, value, regexPattern, allowEmptyString) {
+    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_0__/* .checkValidFormat */ .q)(CMIElement, value, regexPattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_errors */ .Se.TYPE_MISMATCH, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t, allowEmptyString);
 }
-function check12ValidRange(value, rangePattern, allowEmptyString) {
+function check12ValidRange(CMIElement, value, rangePattern, allowEmptyString) {
     if (!allowEmptyString && value === "") {
-        throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t(_constants_error_codes__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_errors */ .Se.VALUE_OUT_OF_RANGE);
+        throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t(CMIElement, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_errors */ .Se.VALUE_OUT_OF_RANGE);
     }
-    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_0__/* .checkValidRange */ .W)(value, rangePattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_errors */ .Se.VALUE_OUT_OF_RANGE, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t);
+    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_0__/* .checkValidRange */ .W)(CMIElement, value, rangePattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_errors */ .Se.VALUE_OUT_OF_RANGE, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t);
 }
 
 
@@ -3326,7 +3346,7 @@ function check12ValidRange(value, rangePattern, allowEmptyString) {
 /* harmony import */ var _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(833);
 /* harmony import */ var _cmi_scorm12_nav__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(331);
 /* harmony import */ var _constants_enums__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(56);
-/* harmony import */ var _BaseAPI__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(273);
+/* harmony import */ var _BaseAPI__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(398);
 /* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(417);
 
 
@@ -3656,7 +3676,7 @@ var utilities = __webpack_require__(864);
 var CMICore = (function (_super) {
     (0,tslib_es6/* __extends */.C6)(CMICore, _super);
     function CMICore() {
-        var _this = _super.call(this) || this;
+        var _this = _super.call(this, "cmi.core") || this;
         _this.__children = api_constants/* scorm12_constants */.QP.core_children;
         _this._student_id = "";
         _this._student_name = "";
@@ -3670,6 +3690,7 @@ var CMICore = (function (_super) {
         _this._session_time = "00:00:00";
         _this._suspend_data = "";
         _this.score = new score/* CMIScore */._({
+            CMIElement: "cmi.core.score",
             score_children: api_constants/* scorm12_constants */.QP.score_children,
             score_range: regex/* scorm12_regex */.kS.score_range,
             invalidErrorCode: error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE,
@@ -3697,7 +3718,7 @@ var CMICore = (function (_super) {
             return this.__children;
         },
         set: function (_children) {
-            throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE);
+            throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + "._children", error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE);
         },
         enumerable: false,
         configurable: true
@@ -3708,7 +3729,7 @@ var CMICore = (function (_super) {
         },
         set: function (student_id) {
             if (this.initialized) {
-                throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
+                throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + ".student_id", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._student_id = student_id;
@@ -3723,7 +3744,7 @@ var CMICore = (function (_super) {
         },
         set: function (student_name) {
             if (this.initialized) {
-                throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
+                throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + ".student_name", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._student_name = student_name;
@@ -3737,7 +3758,7 @@ var CMICore = (function (_super) {
             return this._lesson_location;
         },
         set: function (lesson_location) {
-            if ((0,validation/* check12ValidFormat */.p)(lesson_location, regex/* scorm12_regex */.kS.CMIString256, true)) {
+            if ((0,validation/* check12ValidFormat */.p)(this._cmi_element + ".lesson_location", lesson_location, regex/* scorm12_regex */.kS.CMIString256, true)) {
                 this._lesson_location = lesson_location;
             }
         },
@@ -3750,7 +3771,7 @@ var CMICore = (function (_super) {
         },
         set: function (credit) {
             if (this.initialized) {
-                throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
+                throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + ".credit", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._credit = credit;
@@ -3765,12 +3786,12 @@ var CMICore = (function (_super) {
         },
         set: function (lesson_status) {
             if (this.initialized) {
-                if ((0,validation/* check12ValidFormat */.p)(lesson_status, regex/* scorm12_regex */.kS.CMIStatus)) {
+                if ((0,validation/* check12ValidFormat */.p)(this._cmi_element + ".lesson_status", lesson_status, regex/* scorm12_regex */.kS.CMIStatus)) {
                     this._lesson_status = lesson_status;
                 }
             }
             else {
-                if ((0,validation/* check12ValidFormat */.p)(lesson_status, regex/* scorm12_regex */.kS.CMIStatus2)) {
+                if ((0,validation/* check12ValidFormat */.p)(this._cmi_element + ".lesson_status", lesson_status, regex/* scorm12_regex */.kS.CMIStatus2)) {
                     this._lesson_status = lesson_status;
                 }
             }
@@ -3784,7 +3805,7 @@ var CMICore = (function (_super) {
         },
         set: function (entry) {
             if (this.initialized) {
-                throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
+                throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + ".entry", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._entry = entry;
@@ -3799,7 +3820,7 @@ var CMICore = (function (_super) {
         },
         set: function (total_time) {
             if (this.initialized) {
-                throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
+                throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + ".total_time", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._total_time = total_time;
@@ -3814,7 +3835,7 @@ var CMICore = (function (_super) {
         },
         set: function (lesson_mode) {
             if (this.initialized) {
-                throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
+                throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + ".lesson_mode", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._lesson_mode = lesson_mode;
@@ -3826,12 +3847,12 @@ var CMICore = (function (_super) {
     Object.defineProperty(CMICore.prototype, "exit", {
         get: function () {
             if (!this.jsonString) {
-                throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.WRITE_ONLY_ELEMENT);
+                throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + ".exit", error_codes/* scorm12_errors */.Se.WRITE_ONLY_ELEMENT);
             }
             return this._exit;
         },
         set: function (exit) {
-            if ((0,validation/* check12ValidFormat */.p)(exit, regex/* scorm12_regex */.kS.CMIExit, true)) {
+            if ((0,validation/* check12ValidFormat */.p)(this._cmi_element + ".exit", exit, regex/* scorm12_regex */.kS.CMIExit, true)) {
                 this._exit = exit;
             }
         },
@@ -3841,12 +3862,12 @@ var CMICore = (function (_super) {
     Object.defineProperty(CMICore.prototype, "session_time", {
         get: function () {
             if (!this.jsonString) {
-                throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.WRITE_ONLY_ELEMENT);
+                throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + ".session_time", error_codes/* scorm12_errors */.Se.WRITE_ONLY_ELEMENT);
             }
             return this._session_time;
         },
         set: function (session_time) {
-            if ((0,validation/* check12ValidFormat */.p)(session_time, regex/* scorm12_regex */.kS.CMITimespan)) {
+            if ((0,validation/* check12ValidFormat */.p)(this._cmi_element + ".session_time", session_time, regex/* scorm12_regex */.kS.CMITimespan)) {
                 this._session_time = session_time;
             }
         },
@@ -3858,7 +3879,7 @@ var CMICore = (function (_super) {
             return this._suspend_data;
         },
         set: function (suspend_data) {
-            if ((0,validation/* check12ValidFormat */.p)(suspend_data, regex/* scorm12_regex */.kS.CMIString4096, true)) {
+            if ((0,validation/* check12ValidFormat */.p)(this._cmi_element + ".suspend_data", suspend_data, regex/* scorm12_regex */.kS.CMIString4096, true)) {
                 this._suspend_data = suspend_data;
             }
         },
@@ -3919,7 +3940,7 @@ var interactions = __webpack_require__(833);
 var CMI = (function (_super) {
     (0,tslib_es6/* __extends */.C6)(CMI, _super);
     function CMI(cmi_children, student_data, initialized) {
-        var _this = _super.call(this) || this;
+        var _this = _super.call(this, "cmi") || this;
         _this.__children = "";
         _this.__version = "3.4";
         _this._launch_data = "";
@@ -3978,7 +3999,7 @@ var CMI = (function (_super) {
             return this.__version;
         },
         set: function (_version) {
-            throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE);
+            throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + "._version", error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE);
         },
         enumerable: false,
         configurable: true
@@ -3988,7 +4009,7 @@ var CMI = (function (_super) {
             return this.__children;
         },
         set: function (_children) {
-            throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE);
+            throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + "._children", error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE);
         },
         enumerable: false,
         configurable: true
@@ -4012,7 +4033,7 @@ var CMI = (function (_super) {
         },
         set: function (launch_data) {
             if (this.initialized) {
-                throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
+                throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + ".launch_data", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._launch_data = launch_data;
@@ -4026,7 +4047,7 @@ var CMI = (function (_super) {
             return this._comments;
         },
         set: function (comments) {
-            if ((0,validation/* check12ValidFormat */.p)(comments, regex/* scorm12_regex */.kS.CMIString4096, true)) {
+            if ((0,validation/* check12ValidFormat */.p)(this._cmi_element + ".comments", comments, regex/* scorm12_regex */.kS.CMIString4096, true)) {
                 this._comments = comments;
             }
         },
@@ -4039,7 +4060,7 @@ var CMI = (function (_super) {
         },
         set: function (comments_from_lms) {
             if (this.initialized) {
-                throw new scorm12_exceptions/* Scorm12ValidationError */.t(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
+                throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + ".comments_from_lms", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._comments_from_lms = comments_from_lms;
@@ -4142,13 +4163,13 @@ var exceptions = __webpack_require__(784);
 var aicc_errors = api_constants/* aicc_constants */.BR.error_descriptions;
 var AICCValidationError = (function (_super) {
     (0,tslib_es6/* __extends */.C6)(AICCValidationError, _super);
-    function AICCValidationError(errorCode) {
+    function AICCValidationError(CMIElement, errorCode) {
         var _this = this;
         if ({}.hasOwnProperty.call(aicc_errors, String(errorCode))) {
-            _this = _super.call(this, errorCode, aicc_errors[String(errorCode)].basicMessage, aicc_errors[String(errorCode)].detailMessage) || this;
+            _this = _super.call(this, CMIElement, errorCode, aicc_errors[String(errorCode)].basicMessage, aicc_errors[String(errorCode)].detailMessage) || this;
         }
         else {
-            _this = _super.call(this, 101, aicc_errors["101"].basicMessage, aicc_errors["101"].detailMessage) || this;
+            _this = _super.call(this, CMIElement, 101, aicc_errors["101"].basicMessage, aicc_errors["101"].detailMessage) || this;
         }
         return _this;
     }
@@ -4166,8 +4187,8 @@ var validation = __webpack_require__(449);
 
 
 
-function checkAICCValidFormat(value, regexPattern, allowEmptyString) {
-    return (0,validation/* checkValidFormat */.q)(value, regexPattern, error_codes/* scorm12_errors */.Se.TYPE_MISMATCH, AICCValidationError, allowEmptyString);
+function checkAICCValidFormat(CMIElement, value, regexPattern, allowEmptyString) {
+    return (0,validation/* checkValidFormat */.q)(CMIElement, value, regexPattern, error_codes/* scorm12_errors */.Se.TYPE_MISMATCH, AICCValidationError, allowEmptyString);
 }
 
 // EXTERNAL MODULE: ./src/constants/regex.ts
@@ -4184,7 +4205,7 @@ var regex = __webpack_require__(417);
 var CMIEvaluation = (function (_super) {
     (0,tslib_es6/* __extends */.C6)(CMIEvaluation, _super);
     function CMIEvaluation() {
-        var _this = _super.call(this) || this;
+        var _this = _super.call(this, "cmi.evaluation") || this;
         _this.comments = new CMIEvaluationComments();
         return _this;
     }
@@ -4213,6 +4234,7 @@ var CMIEvaluationComments = (function (_super) {
     (0,tslib_es6/* __extends */.C6)(CMIEvaluationComments, _super);
     function CMIEvaluationComments() {
         return _super.call(this, {
+            CMIElement: "cmi.evaluation.comments",
             children: api_constants/* aicc_constants */.BR.comments_children,
             errorCode: error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE,
             errorClass: AICCValidationError,
@@ -4223,7 +4245,7 @@ var CMIEvaluationComments = (function (_super) {
 var CMIEvaluationCommentsObject = (function (_super) {
     (0,tslib_es6/* __extends */.C6)(CMIEvaluationCommentsObject, _super);
     function CMIEvaluationCommentsObject() {
-        var _this = _super.call(this) || this;
+        var _this = _super.call(this, "cmi.evaluation.comments.n") || this;
         _this._content = "";
         _this._location = "";
         _this._time = "";
@@ -4240,7 +4262,7 @@ var CMIEvaluationCommentsObject = (function (_super) {
             return this._content;
         },
         set: function (content) {
-            if (checkAICCValidFormat(content, regex/* aicc_regex */.rN.CMIString256)) {
+            if (checkAICCValidFormat(this._cmi_element + ".content", content, regex/* aicc_regex */.rN.CMIString256)) {
                 this._content = content;
             }
         },
@@ -4252,7 +4274,7 @@ var CMIEvaluationCommentsObject = (function (_super) {
             return this._location;
         },
         set: function (location) {
-            if (checkAICCValidFormat(location, regex/* aicc_regex */.rN.CMIString256)) {
+            if (checkAICCValidFormat(this._cmi_element + ".location", location, regex/* aicc_regex */.rN.CMIString256)) {
                 this._location = location;
             }
         },
@@ -4264,7 +4286,7 @@ var CMIEvaluationCommentsObject = (function (_super) {
             return this._time;
         },
         set: function (time) {
-            if (checkAICCValidFormat(time, regex/* aicc_regex */.rN.CMITime)) {
+            if (checkAICCValidFormat(this._cmi_element + ".time", time, regex/* aicc_regex */.rN.CMITime)) {
                 this._time = time;
             }
         },
@@ -4306,6 +4328,7 @@ var AICCStudentPreferences = (function (_super) {
         _this._text_size = "";
         _this._video = "";
         _this.windows = new array/* CMIArray */.B({
+            CMIElement: "cmi.student_preference.windows",
             errorCode: error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE,
             errorClass: AICCValidationError,
             children: "",
@@ -4322,7 +4345,7 @@ var AICCStudentPreferences = (function (_super) {
             return this._lesson_type;
         },
         set: function (lesson_type) {
-            if (checkAICCValidFormat(lesson_type, regex/* aicc_regex */.rN.CMIString256)) {
+            if (checkAICCValidFormat(this._cmi_element + ".lesson_type", lesson_type, regex/* aicc_regex */.rN.CMIString256)) {
                 this._lesson_type = lesson_type;
             }
         },
@@ -4334,7 +4357,7 @@ var AICCStudentPreferences = (function (_super) {
             return this._text_color;
         },
         set: function (text_color) {
-            if (checkAICCValidFormat(text_color, regex/* aicc_regex */.rN.CMIString256)) {
+            if (checkAICCValidFormat(this._cmi_element + ".text_color", text_color, regex/* aicc_regex */.rN.CMIString256)) {
                 this._text_color = text_color;
             }
         },
@@ -4346,7 +4369,7 @@ var AICCStudentPreferences = (function (_super) {
             return this._text_location;
         },
         set: function (text_location) {
-            if (checkAICCValidFormat(text_location, regex/* aicc_regex */.rN.CMIString256)) {
+            if (checkAICCValidFormat(this._cmi_element + ".text_location", text_location, regex/* aicc_regex */.rN.CMIString256)) {
                 this._text_location = text_location;
             }
         },
@@ -4358,7 +4381,7 @@ var AICCStudentPreferences = (function (_super) {
             return this._text_size;
         },
         set: function (text_size) {
-            if (checkAICCValidFormat(text_size, regex/* aicc_regex */.rN.CMIString256)) {
+            if (checkAICCValidFormat(this._cmi_element + ".text_size", text_size, regex/* aicc_regex */.rN.CMIString256)) {
                 this._text_size = text_size;
             }
         },
@@ -4370,7 +4393,7 @@ var AICCStudentPreferences = (function (_super) {
             return this._video;
         },
         set: function (video) {
-            if (checkAICCValidFormat(video, regex/* aicc_regex */.rN.CMIString256)) {
+            if (checkAICCValidFormat(this._cmi_element + ".video", video, regex/* aicc_regex */.rN.CMIString256)) {
                 this._video = video;
             }
         },
@@ -4407,7 +4430,7 @@ var AICCStudentPreferences = (function (_super) {
 var CMIStudentDemographics = (function (_super) {
     (0,tslib_es6/* __extends */.C6)(CMIStudentDemographics, _super);
     function CMIStudentDemographics() {
-        var _this = _super.call(this) || this;
+        var _this = _super.call(this, "cmi.student_demographics") || this;
         _this.__children = api_constants/* aicc_constants */.BR.student_demographics_children;
         _this._city = "";
         _this._class = "";
@@ -4440,7 +4463,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (city) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
+                throw new AICCValidationError("cmi.student_demographics.city", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._city = city;
@@ -4455,7 +4478,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (clazz) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
+                throw new AICCValidationError("cmi.student_demographics.class", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._class = clazz;
@@ -4470,7 +4493,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (company) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
+                throw new AICCValidationError("cmi.student_demographics.company", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._company = company;
@@ -4485,7 +4508,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (country) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
+                throw new AICCValidationError("cmi.student_demographics.country", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._country = country;
@@ -4500,7 +4523,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (experience) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
+                throw new AICCValidationError("cmi.student_demographics.experience", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._experience = experience;
@@ -4515,7 +4538,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (familiar_name) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
+                throw new AICCValidationError("cmi.student_demographics.familiar_name", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._familiar_name = familiar_name;
@@ -4530,7 +4553,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (instructor_name) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
+                throw new AICCValidationError("cmi.student_demographics.instructor_name", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._instructor_name = instructor_name;
@@ -4545,7 +4568,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (title) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
+                throw new AICCValidationError("cmi.student_demographics.title", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._title = title;
@@ -4560,7 +4583,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (native_language) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
+                throw new AICCValidationError("cmi.student_demographics.native_language", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._native_language = native_language;
@@ -4575,7 +4598,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (state) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
+                throw new AICCValidationError("cmi.student_demographics.state", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._state = state;
@@ -4590,7 +4613,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (street_address) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
+                throw new AICCValidationError("cmi.student_demographics.street_address", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._street_address = street_address;
@@ -4605,7 +4628,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (telephone) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
+                throw new AICCValidationError("cmi.student_demographics.telephone", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._telephone = telephone;
@@ -4620,7 +4643,7 @@ var CMIStudentDemographics = (function (_super) {
         },
         set: function (years_experience) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
+                throw new AICCValidationError("cmi.student_demographics.years_experience", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._years_experience = years_experience;
@@ -4669,6 +4692,7 @@ var CMITries = (function (_super) {
     (0,tslib_es6/* __extends */.C6)(CMITries, _super);
     function CMITries() {
         return _super.call(this, {
+            CMIElement: "cmi.student_data.tries",
             children: api_constants/* aicc_constants */.BR.tries_children,
         }) || this;
     }
@@ -4678,10 +4702,11 @@ var CMITries = (function (_super) {
 var CMITriesObject = (function (_super) {
     (0,tslib_es6/* __extends */.C6)(CMITriesObject, _super);
     function CMITriesObject() {
-        var _this = _super.call(this) || this;
+        var _this = _super.call(this, "cmi.student_data.tries.n") || this;
         _this._status = "";
         _this._time = "";
         _this.score = new score/* CMIScore */._({
+            CMIElement: "cmi.student_data.tries.n.score",
             score_children: api_constants/* aicc_constants */.BR.score_children,
             score_range: regex/* aicc_regex */.rN.score_range,
             invalidErrorCode: error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE,
@@ -4708,7 +4733,7 @@ var CMITriesObject = (function (_super) {
             return this._status;
         },
         set: function (status) {
-            if (checkAICCValidFormat(status, regex/* aicc_regex */.rN.CMIStatus2)) {
+            if (checkAICCValidFormat(this._cmi_element + ".status", status, regex/* aicc_regex */.rN.CMIStatus2)) {
                 this._status = status;
             }
         },
@@ -4720,7 +4745,7 @@ var CMITriesObject = (function (_super) {
             return this._time;
         },
         set: function (time) {
-            if (checkAICCValidFormat(time, regex/* aicc_regex */.rN.CMITime)) {
+            if (checkAICCValidFormat(this._cmi_element + ".time", time, regex/* aicc_regex */.rN.CMITime)) {
                 this._time = time;
             }
         },
@@ -4757,6 +4782,7 @@ var CMIAttemptRecords = (function (_super) {
     (0,tslib_es6/* __extends */.C6)(CMIAttemptRecords, _super);
     function CMIAttemptRecords() {
         return _super.call(this, {
+            CMIElement: "cmi.student_data.attempt_records",
             children: api_constants/* aicc_constants */.BR.attempt_records_children,
         }) || this;
     }
@@ -4766,9 +4792,10 @@ var CMIAttemptRecords = (function (_super) {
 var CMIAttemptRecordsObject = (function (_super) {
     (0,tslib_es6/* __extends */.C6)(CMIAttemptRecordsObject, _super);
     function CMIAttemptRecordsObject() {
-        var _this = _super.call(this) || this;
+        var _this = _super.call(this, "cmi.student_data.attempt_records.n") || this;
         _this._lesson_status = "";
         _this.score = new score/* CMIScore */._({
+            CMIElement: "cmi.student_data.attempt_records.n.score",
             score_children: api_constants/* aicc_constants */.BR.score_children,
             score_range: regex/* aicc_regex */.rN.score_range,
             invalidErrorCode: error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE,
@@ -4794,7 +4821,7 @@ var CMIAttemptRecordsObject = (function (_super) {
             return this._lesson_status;
         },
         set: function (lesson_status) {
-            if (checkAICCValidFormat(lesson_status, regex/* aicc_regex */.rN.CMIStatus2)) {
+            if (checkAICCValidFormat(this._cmi_element + ".lesson_status", lesson_status, regex/* aicc_regex */.rN.CMIStatus2)) {
                 this._lesson_status = lesson_status;
             }
         },
@@ -4849,7 +4876,7 @@ var AICCCMIStudentData = (function (_super) {
         },
         set: function (tries_during_lesson) {
             if (this.initialized) {
-                throw new AICCValidationError(error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
+                throw new AICCValidationError("cmi.student_data.tries_during_lesson", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
             }
             else {
                 this._tries_during_lesson = tries_during_lesson;
@@ -4885,6 +4912,7 @@ var CMIPaths = (function (_super) {
     (0,tslib_es6/* __extends */.C6)(CMIPaths, _super);
     function CMIPaths() {
         return _super.call(this, {
+            CMIElement: "cmi.paths",
             children: api_constants/* aicc_constants */.BR.paths_children,
         }) || this;
     }
@@ -4894,7 +4922,7 @@ var CMIPaths = (function (_super) {
 var CMIPathsObject = (function (_super) {
     (0,tslib_es6/* __extends */.C6)(CMIPathsObject, _super);
     function CMIPathsObject() {
-        var _this = _super.call(this) || this;
+        var _this = _super.call(this, "cmi.paths.n") || this;
         _this._location_id = "";
         _this._date = "";
         _this._time = "";
@@ -4917,7 +4945,7 @@ var CMIPathsObject = (function (_super) {
             return this._location_id;
         },
         set: function (location_id) {
-            if (checkAICCValidFormat(location_id, regex/* aicc_regex */.rN.CMIString256)) {
+            if (checkAICCValidFormat(this._cmi_element + ".location_id", location_id, regex/* aicc_regex */.rN.CMIString256)) {
                 this._location_id = location_id;
             }
         },
@@ -4929,7 +4957,7 @@ var CMIPathsObject = (function (_super) {
             return this._date;
         },
         set: function (date) {
-            if (checkAICCValidFormat(date, regex/* aicc_regex */.rN.CMIString256)) {
+            if (checkAICCValidFormat(this._cmi_element + ".date", date, regex/* aicc_regex */.rN.CMIString256)) {
                 this._date = date;
             }
         },
@@ -4941,7 +4969,7 @@ var CMIPathsObject = (function (_super) {
             return this._time;
         },
         set: function (time) {
-            if (checkAICCValidFormat(time, regex/* aicc_regex */.rN.CMITime)) {
+            if (checkAICCValidFormat(this._cmi_element + ".time", time, regex/* aicc_regex */.rN.CMITime)) {
                 this._time = time;
             }
         },
@@ -4953,7 +4981,7 @@ var CMIPathsObject = (function (_super) {
             return this._status;
         },
         set: function (status) {
-            if (checkAICCValidFormat(status, regex/* aicc_regex */.rN.CMIStatus2)) {
+            if (checkAICCValidFormat(this._cmi_element + ".status", status, regex/* aicc_regex */.rN.CMIStatus2)) {
                 this._status = status;
             }
         },
@@ -4965,7 +4993,7 @@ var CMIPathsObject = (function (_super) {
             return this._why_left;
         },
         set: function (why_left) {
-            if (checkAICCValidFormat(why_left, regex/* aicc_regex */.rN.CMIString256)) {
+            if (checkAICCValidFormat(this._cmi_element + ".why_left", why_left, regex/* aicc_regex */.rN.CMIString256)) {
                 this._why_left = why_left;
             }
         },
@@ -4977,7 +5005,7 @@ var CMIPathsObject = (function (_super) {
             return this._time_in_element;
         },
         set: function (time_in_element) {
-            if (checkAICCValidFormat(time_in_element, regex/* aicc_regex */.rN.CMITime)) {
+            if (checkAICCValidFormat(this._cmi_element + ".time_in_element", time_in_element, regex/* aicc_regex */.rN.CMITime)) {
                 this._time_in_element = time_in_element;
             }
         },

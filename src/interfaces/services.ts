@@ -108,16 +108,16 @@ export interface ISerializationService {
    *
    * @param {object} json - The flattened JSON object
    * @param {string} CMIElement - The CMI element to load data into
-   * @param {Function} loadFromJSON - Function to load from JSON
    * @param {Function} setCMIValue - Function to set CMI values
    * @param {Function} isNotInitialized - Function to check if not initialized
+   * @param {Function} setStartingData - Function to set starting data
    */
   loadFromFlattenedJSON(
     json: object,
     CMIElement: string,
-    loadFromJSON: (json: object, CMIElement: string) => void,
     setCMIValue: (CMIElement: string, value: any) => void,
     isNotInitialized: () => boolean,
+    setStartingData: (data: StringKeyMap) => void,
   ): void;
 
   /**
@@ -198,10 +198,17 @@ export interface ICMIDataService {
   /**
    * Throws a SCORM error
    *
+   * @param {string} CMIElement
    * @param {number} errorNumber - The error number
    * @param {string} message - The error message
+   * @param {boolean} throwException - Whether to throw a ValidationError exception
    */
-  throwSCORMError(errorNumber: number, message?: string): void;
+  throwSCORMError(
+    CMIElement: string,
+    errorNumber: number,
+    message?: string,
+    throwException?: boolean,
+  ): void;
 
   /**
    * Sets a CMI value
@@ -261,10 +268,15 @@ export interface IErrorHandlingService {
   /**
    * Throws a SCORM error
    *
+   * @param {string} CMIElement
    * @param {number} errorNumber - The error number
    * @param {string} message - The error message
    */
-  throwSCORMError(errorNumber: number, message?: string): void;
+  throwSCORMError(
+    CMIElement: string,
+    errorNumber: number,
+    message?: string,
+  ): void;
 
   /**
    * Clears the last SCORM error code on success.
@@ -276,11 +288,13 @@ export interface IErrorHandlingService {
   /**
    * Handles the error that occurs when trying to access a value
    *
+   * @param {string} CMIElement
    * @param {ValidationError|Error|unknown} e - The exception that was thrown
    * @param {string} returnValue - The default return value
    * @return {string} - The return value after handling the exception
    */
   handleValueAccessException(
+    CMIElement: string,
     e: ValidationError | Error | unknown,
     returnValue: string,
   ): string;

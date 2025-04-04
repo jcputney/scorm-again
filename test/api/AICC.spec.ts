@@ -1,15 +1,14 @@
 import { expect } from "expect";
 import { describe, it } from "mocha";
 import * as h from "./api_helpers";
-import { scorm12_errors } from "../src/constants/error_codes";
-import { AICC } from "../src/AICC";
-import { DefaultSettings } from "../src/constants/default_settings";
+import { AICC } from "../../src/AICC";
+import { DefaultSettings } from "../../src/constants/default_settings";
 import * as sinon from "sinon";
-import { CMITries } from "../src/cmi/aicc/tries";
-import { CMIInteractions } from "../src/cmi/scorm12/interactions";
-import { Settings } from "../src/types/api_types";
-import { LogLevelEnum } from "../src/constants/enums";
-import { StringKeyMap } from "../src/utilities";
+import { CMITries } from "../../src/cmi/aicc/tries";
+import { CMIInteractions } from "../../src/cmi/scorm12/interactions";
+import { Settings } from "../../src/types/api_types";
+import { LogLevelEnum } from "../../src/constants/enums";
+import { StringKeyMap } from "../../src/utilities";
 
 const api = (settings?: Settings, startingData: StringKeyMap = {}) => {
   const API = new AICC({ ...settings, logLevel: LogLevelEnum.NONE });
@@ -31,52 +30,52 @@ describe("AICC API Tests", () => {
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi._version",
-        expectedError: scorm12_errors.INVALID_SET_VALUE,
+        expectedError: 402,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi._children",
-        expectedError: scorm12_errors.INVALID_SET_VALUE,
+        expectedError: 402,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.core._children",
-        expectedError: scorm12_errors.INVALID_SET_VALUE,
+        expectedError: 402,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.core.score._children",
-        expectedError: scorm12_errors.INVALID_SET_VALUE,
+        expectedError: 402,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.objectives._children",
-        expectedError: scorm12_errors.INVALID_SET_VALUE,
+        expectedError: 402,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.objectives._count",
-        expectedError: scorm12_errors.INVALID_SET_VALUE,
+        expectedError: 402,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.interactions._children",
-        expectedError: scorm12_errors.INVALID_SET_VALUE,
+        expectedError: 402,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.interactions._count",
-        expectedError: scorm12_errors.INVALID_SET_VALUE,
+        expectedError: 402,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.interactions.0.objectives._count",
-        expectedError: scorm12_errors.INVALID_SET_VALUE,
+        expectedError: 402,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.interactions.0.correct_responses._count",
-        expectedError: scorm12_errors.INVALID_SET_VALUE,
+        expectedError: 402,
       });
     });
 
@@ -84,57 +83,57 @@ describe("AICC API Tests", () => {
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.launch_data",
-        expectedError: scorm12_errors.READ_ONLY_ELEMENT,
+        expectedError: 403,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.comments_from_lms",
-        expectedError: scorm12_errors.READ_ONLY_ELEMENT,
+        expectedError: 403,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.core.student_id",
-        expectedError: scorm12_errors.READ_ONLY_ELEMENT,
+        expectedError: 403,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.core.student_name",
-        expectedError: scorm12_errors.READ_ONLY_ELEMENT,
+        expectedError: 403,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.core.credit",
-        expectedError: scorm12_errors.READ_ONLY_ELEMENT,
+        expectedError: 403,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.core.entry",
-        expectedError: scorm12_errors.READ_ONLY_ELEMENT,
+        expectedError: 403,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.core.total_time",
-        expectedError: scorm12_errors.READ_ONLY_ELEMENT,
+        expectedError: 403,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.core.lesson_mode",
-        expectedError: scorm12_errors.READ_ONLY_ELEMENT,
+        expectedError: 403,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.student_data.mastery_score",
-        expectedError: scorm12_errors.READ_ONLY_ELEMENT,
+        expectedError: 403,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.student_data.max_time_allowed",
-        expectedError: scorm12_errors.READ_ONLY_ELEMENT,
+        expectedError: 403,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.student_data.time_limit_action",
-        expectedError: scorm12_errors.READ_ONLY_ELEMENT,
+        expectedError: 403,
       });
     });
   });
@@ -144,19 +143,19 @@ describe("AICC API Tests", () => {
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.core.close",
-        expectedError: scorm12_errors.GENERAL,
+        expectedError: 101,
         errorThrown: false,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.exit",
-        expectedError: scorm12_errors.GENERAL,
+        expectedError: 101,
         errorThrown: false,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.entry",
-        expectedError: scorm12_errors.GENERAL,
+        expectedError: 101,
         errorThrown: false,
       });
     });
@@ -165,66 +164,66 @@ describe("AICC API Tests", () => {
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.core.exit",
-        expectedError: scorm12_errors.WRITE_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.core.session_time",
-        expectedError: scorm12_errors.WRITE_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.id",
         initializeFirst: true,
         initializationValue: "AAA",
-        expectedError: scorm12_errors.WRITE_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.time",
         initializeFirst: true,
         initializationValue: "12:59:59",
-        expectedError: scorm12_errors.WRITE_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.type",
         initializeFirst: true,
         initializationValue: "true-false",
-        expectedError: scorm12_errors.WRITE_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.weighting",
         initializeFirst: true,
         initializationValue: "0",
-        expectedError: scorm12_errors.WRITE_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.student_response",
         initializeFirst: true,
-        expectedError: scorm12_errors.WRITE_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.result",
         initializeFirst: true,
         initializationValue: "correct",
-        expectedError: scorm12_errors.WRITE_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.latency",
         initializeFirst: true,
         initializationValue: "01:59:59.99",
-        expectedError: scorm12_errors.WRITE_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.correct_responses.0.pattern",
         initializeFirst: true,
-        expectedError: scorm12_errors.WRITE_ONLY_ELEMENT,
+        expectedError: 404,
       });
     });
   });
@@ -234,12 +233,12 @@ describe("AICC API Tests", () => {
       h.checkLMSSetValue({
         api: api(),
         fieldName: "cmi.objectives.0.id",
-        expectedError: scorm12_errors.STORE_BEFORE_INIT,
+        expectedError: 301,
       });
       h.checkLMSSetValue({
         api: api(),
         fieldName: "cmi.interactions.0.id",
-        expectedError: scorm12_errors.STORE_BEFORE_INIT,
+        expectedError: 301,
       });
     });
 

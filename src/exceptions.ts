@@ -5,8 +5,8 @@ type APIError = {
 };
 
 export class BaseScormValidationError extends Error {
-  constructor(errorCode: number) {
-    super(errorCode.toString());
+  constructor(CMIElement: string, errorCode: number) {
+    super(`${CMIElement} : ${errorCode.toString()}`);
     this._errorCode = errorCode;
     this.name = "ScormValidationError";
   }
@@ -31,17 +31,19 @@ export class ValidationError
 {
   /**
    * Constructor to take in an error message and code
+   * @param {string} CMIElement
    * @param {number} errorCode
    * @param {string} errorMessage
    * @param {string} detailedMessage
    */
   constructor(
+    CMIElement: string,
     errorCode: number,
     errorMessage: string,
     detailedMessage?: string,
   ) {
-    super(errorCode);
-    this.message = errorMessage;
+    super(CMIElement, errorCode);
+    this.message = `${CMIElement} : ${errorMessage}`;
     this._errorMessage = errorMessage;
     if (detailedMessage) {
       this._detailedMessage = detailedMessage;

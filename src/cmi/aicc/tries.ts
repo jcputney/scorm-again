@@ -16,6 +16,7 @@ export class CMITries extends CMIArray {
    */
   constructor() {
     super({
+      CMIElement: "cmi.student_data.tries",
       children: aicc_constants.tries_children,
     });
   }
@@ -32,8 +33,9 @@ export class CMITriesObject extends BaseCMI {
    * Constructor for AICC Tries object
    */
   constructor() {
-    super();
+    super("cmi.student_data.tries.n");
     this.score = new CMIScore({
+      CMIElement: "cmi.student_data.tries.n.score",
       score_children: aicc_constants.score_children,
       score_range: aicc_regex.score_range,
       invalidErrorCode: scorm12_errors.INVALID_SET_VALUE,
@@ -76,7 +78,13 @@ export class CMITriesObject extends BaseCMI {
    * @param {string} status
    */
   set status(status: string) {
-    if (checkAICCValidFormat(status, aicc_regex.CMIStatus2)) {
+    if (
+      checkAICCValidFormat(
+        this._cmi_element + ".status",
+        status,
+        aicc_regex.CMIStatus2,
+      )
+    ) {
       this._status = status;
     }
   }
@@ -94,7 +102,13 @@ export class CMITriesObject extends BaseCMI {
    * @param {string} time
    */
   set time(time: string) {
-    if (checkAICCValidFormat(time, aicc_regex.CMITime)) {
+    if (
+      checkAICCValidFormat(
+        this._cmi_element + ".time",
+        time,
+        aicc_regex.CMITime,
+      )
+    ) {
       this._time = time;
     }
   }

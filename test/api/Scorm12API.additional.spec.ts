@@ -1,13 +1,13 @@
 import { expect } from "expect";
 import { describe, it } from "mocha";
 import * as sinon from "sinon";
-import { Scorm12API } from "../src/Scorm12API";
+import { Scorm12API } from "../../src/Scorm12API";
 import {
   global_constants,
   scorm12_constants,
-} from "../src/constants/api_constants";
-import { Settings } from "../src/types/api_types";
-import { LogLevelEnum } from "../src/constants/enums";
+} from "../../src/constants/api_constants";
+import { Settings } from "../../src/types/api_types";
+import { LogLevelEnum } from "../../src/constants/enums";
 
 // Helper functions to create API instances
 const api = (settings?: Settings) => {

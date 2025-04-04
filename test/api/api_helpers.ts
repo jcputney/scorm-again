@@ -1,6 +1,6 @@
 import { describe, it } from "mocha";
 import { expect } from "expect";
-import BaseAPI from "../src/BaseAPI";
+import BaseAPI from "../../src/BaseAPI";
 
 class NoErrorThrownError extends Error {}
 

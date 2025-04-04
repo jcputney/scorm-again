@@ -16,11 +16,12 @@ export class CMIArray extends BaseCMI {
    * @param {object} params
    */
   constructor(params: {
+    CMIElement: string;
     children: string;
     errorCode?: number;
     errorClass?: typeof BaseScormValidationError;
   }) {
-    super();
+    super(params.CMIElement);
     this.__children = params.children;
     this._errorCode = params.errorCode || scorm12_errors.GENERAL;
     this._errorClass = params.errorClass || BaseScormValidationError;
@@ -54,7 +55,10 @@ export class CMIArray extends BaseCMI {
    * @param {string} _children
    */
   set _children(_children: string) {
-    throw new this._errorClass(this._errorCode);
+    throw new this._errorClass(
+      this._cmi_element + "._children",
+      this._errorCode,
+    );
   }
 
   /**
@@ -70,7 +74,7 @@ export class CMIArray extends BaseCMI {
    * @param {number} _count
    */
   set _count(_count: number) {
-    throw new this._errorClass(this._errorCode);
+    throw new this._errorClass(this._cmi_element + "._count", this._errorCode);
   }
 
   /**

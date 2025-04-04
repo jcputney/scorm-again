@@ -4,13 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCORM 2004 Wrapper</title>
-    <script src="/dist/scorm2004.min.js"></script>
+    <script src="/dist/scorm2004.js"></script>
     <script>
         // Initialize the SCORM 2004 API
         window.API_1484_11 = new Scorm2004API({
             autocommit: true,
             logLevel: 1, // Debug level
             mastery_override: false
+        });
+
+        window.API_1484_11.loadFromJSON({
+            "cmi": {
+                "learner_id": "123456",
+                "learner_name": "John Doe",
+                "completion_status": "not attempted",
+                "entry": "ab-initio",
+                "credit": "credit",
+                "exit": "time-out",
+                "score": {
+                    "raw": 0,
+                    "min": 0,
+                    "max": 100
+                },
+                "time_limit_action": "exit,message",
+                "max_time_allowed": "PT1H",
+                "objectives": [
+                    {
+                        "id": "obj_playing",
+                        "score": {
+                            "raw": 0,
+                            "min": 0,
+                            "max": 100
+                        },
+                    }
+                ]
+            }
         });
 
         // Function to load the SCORM module

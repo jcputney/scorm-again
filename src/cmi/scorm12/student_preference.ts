@@ -16,7 +16,7 @@ export class CMIStudentPreference extends BaseCMI {
    * @param {string} student_preference_children
    */
   constructor(student_preference_children?: string) {
-    super();
+    super("cmi.student_preference");
     this.__children = student_preference_children
       ? student_preference_children
       : scorm12_constants.student_preference_children;
@@ -49,7 +49,10 @@ export class CMIStudentPreference extends BaseCMI {
    * @private
    */
   set _children(_children: string) {
-    throw new Scorm12ValidationError(scorm12_errors.INVALID_SET_VALUE);
+    throw new Scorm12ValidationError(
+      this._cmi_element + "._children",
+      scorm12_errors.INVALID_SET_VALUE,
+    );
   }
 
   /**
@@ -65,7 +68,12 @@ export class CMIStudentPreference extends BaseCMI {
    * @param {string} audio
    */
   set audio(audio: string) {
-    if (validationService.validateScorm12Audio(audio)) {
+    if (
+      validationService.validateScorm12Audio(
+        this._cmi_element + ".audio",
+        audio,
+      )
+    ) {
       this._audio = audio;
     }
   }
@@ -83,7 +91,12 @@ export class CMIStudentPreference extends BaseCMI {
    * @param {string} language
    */
   set language(language: string) {
-    if (validationService.validateScorm12Language(language)) {
+    if (
+      validationService.validateScorm12Language(
+        this._cmi_element + ".language",
+        language,
+      )
+    ) {
       this._language = language;
     }
   }
@@ -101,7 +114,12 @@ export class CMIStudentPreference extends BaseCMI {
    * @param {string} speed
    */
   set speed(speed: string) {
-    if (validationService.validateScorm12Speed(speed)) {
+    if (
+      validationService.validateScorm12Speed(
+        this._cmi_element + ".speed",
+        speed,
+      )
+    ) {
       this._speed = speed;
     }
   }
@@ -119,7 +137,9 @@ export class CMIStudentPreference extends BaseCMI {
    * @param {string} text
    */
   set text(text: string) {
-    if (validationService.validateScorm12Text(text)) {
+    if (
+      validationService.validateScorm12Text(this._cmi_element + ".text", text)
+    ) {
       this._text = text;
     }
   }

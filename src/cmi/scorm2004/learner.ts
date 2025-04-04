@@ -16,7 +16,7 @@ export class CMILearner extends BaseCMI {
    * Constructor for CMILearner
    */
   constructor() {
-    super();
+    super("cmi");
   }
 
   /**
@@ -33,7 +33,10 @@ export class CMILearner extends BaseCMI {
    */
   set learner_id(learner_id: string) {
     if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".learner_id",
+        scorm2004_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._learner_id = learner_id;
     }
@@ -53,7 +56,10 @@ export class CMILearner extends BaseCMI {
    */
   set learner_name(learner_name: string) {
     if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".learner_name",
+        scorm2004_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._learner_name = learner_name;
     }

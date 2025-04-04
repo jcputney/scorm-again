@@ -26,7 +26,7 @@ export class CMIStudentDemographics extends BaseCMI {
    * Constructor for AICC StudentDemographics object
    */
   constructor() {
-    super();
+    super("cmi.student_demographics");
   }
 
   /**
@@ -59,7 +59,10 @@ export class CMIStudentDemographics extends BaseCMI {
    */
   set city(city: string) {
     if (this.initialized) {
-      throw new AICCValidationError(scorm12_errors.READ_ONLY_ELEMENT);
+      throw new AICCValidationError(
+        "cmi.student_demographics.city",
+        scorm12_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._city = city;
     }
@@ -80,7 +83,10 @@ export class CMIStudentDemographics extends BaseCMI {
    */
   set class(clazz: string) {
     if (this.initialized) {
-      throw new AICCValidationError(scorm12_errors.READ_ONLY_ELEMENT);
+      throw new AICCValidationError(
+        "cmi.student_demographics.class",
+        scorm12_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._class = clazz;
     }
@@ -101,7 +107,10 @@ export class CMIStudentDemographics extends BaseCMI {
    */
   set company(company: string) {
     if (this.initialized) {
-      throw new AICCValidationError(scorm12_errors.READ_ONLY_ELEMENT);
+      throw new AICCValidationError(
+        "cmi.student_demographics.company",
+        scorm12_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._company = company;
     }
@@ -122,7 +131,10 @@ export class CMIStudentDemographics extends BaseCMI {
    */
   set country(country: string) {
     if (this.initialized) {
-      throw new AICCValidationError(scorm12_errors.READ_ONLY_ELEMENT);
+      throw new AICCValidationError(
+        "cmi.student_demographics.country",
+        scorm12_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._country = country;
     }
@@ -143,7 +155,10 @@ export class CMIStudentDemographics extends BaseCMI {
    */
   set experience(experience: string) {
     if (this.initialized) {
-      throw new AICCValidationError(scorm12_errors.READ_ONLY_ELEMENT);
+      throw new AICCValidationError(
+        "cmi.student_demographics.experience",
+        scorm12_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._experience = experience;
     }
@@ -164,7 +179,10 @@ export class CMIStudentDemographics extends BaseCMI {
    */
   set familiar_name(familiar_name: string) {
     if (this.initialized) {
-      throw new AICCValidationError(scorm12_errors.READ_ONLY_ELEMENT);
+      throw new AICCValidationError(
+        "cmi.student_demographics.familiar_name",
+        scorm12_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._familiar_name = familiar_name;
     }
@@ -185,7 +203,10 @@ export class CMIStudentDemographics extends BaseCMI {
    */
   set instructor_name(instructor_name: string) {
     if (this.initialized) {
-      throw new AICCValidationError(scorm12_errors.READ_ONLY_ELEMENT);
+      throw new AICCValidationError(
+        "cmi.student_demographics.instructor_name",
+        scorm12_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._instructor_name = instructor_name;
     }
@@ -206,7 +227,10 @@ export class CMIStudentDemographics extends BaseCMI {
    */
   set title(title: string) {
     if (this.initialized) {
-      throw new AICCValidationError(scorm12_errors.READ_ONLY_ELEMENT);
+      throw new AICCValidationError(
+        "cmi.student_demographics.title",
+        scorm12_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._title = title;
     }
@@ -227,7 +251,10 @@ export class CMIStudentDemographics extends BaseCMI {
    */
   set native_language(native_language: string) {
     if (this.initialized) {
-      throw new AICCValidationError(scorm12_errors.READ_ONLY_ELEMENT);
+      throw new AICCValidationError(
+        "cmi.student_demographics.native_language",
+        scorm12_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._native_language = native_language;
     }
@@ -248,7 +275,10 @@ export class CMIStudentDemographics extends BaseCMI {
    */
   set state(state: string) {
     if (this.initialized) {
-      throw new AICCValidationError(scorm12_errors.READ_ONLY_ELEMENT);
+      throw new AICCValidationError(
+        "cmi.student_demographics.state",
+        scorm12_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._state = state;
     }
@@ -269,7 +299,10 @@ export class CMIStudentDemographics extends BaseCMI {
    */
   set street_address(street_address: string) {
     if (this.initialized) {
-      throw new AICCValidationError(scorm12_errors.READ_ONLY_ELEMENT);
+      throw new AICCValidationError(
+        "cmi.student_demographics.street_address",
+        scorm12_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._street_address = street_address;
     }
@@ -290,7 +323,10 @@ export class CMIStudentDemographics extends BaseCMI {
    */
   set telephone(telephone: string) {
     if (this.initialized) {
-      throw new AICCValidationError(scorm12_errors.READ_ONLY_ELEMENT);
+      throw new AICCValidationError(
+        "cmi.student_demographics.telephone",
+        scorm12_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._telephone = telephone;
     }
@@ -311,7 +347,10 @@ export class CMIStudentDemographics extends BaseCMI {
    */
   set years_experience(years_experience: string) {
     if (this.initialized) {
-      throw new AICCValidationError(scorm12_errors.READ_ONLY_ELEMENT);
+      throw new AICCValidationError(
+        "cmi.student_demographics.years_experience",
+        scorm12_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._years_experience = years_experience;
     }

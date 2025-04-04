@@ -28,19 +28,28 @@ export class EventService implements IEventService {
   private listenerMap: Map<string, Listener[]> = new Map();
   // Total count of listeners for logging
   private listenerCount = 0;
+  // Function to log API messages
+  private readonly apiLog: (
+    functionName: string,
+    message: string,
+    messageLevel: LogLevel,
+    CMIElement?: string,
+  ) => void;
 
   /**
    * Constructor for EventService
    * @param {Function} apiLog - Function to log API messages
    */
   constructor(
-    private apiLog: (
+    apiLog: (
       functionName: string,
       message: string,
       messageLevel: LogLevel,
       CMIElement?: string,
     ) => void,
-  ) {}
+  ) {
+    this.apiLog = apiLog;
+  }
 
   /**
    * Parses a listener name into its components

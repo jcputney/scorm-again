@@ -21,7 +21,7 @@ export class CMISession extends BaseCMI {
    * Constructor for CMISession
    */
   constructor() {
-    super();
+    super("cmi");
   }
 
   /**
@@ -38,7 +38,10 @@ export class CMISession extends BaseCMI {
    */
   set entry(entry: string) {
     if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".entry",
+        scorm2004_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._entry = entry;
     }
@@ -50,7 +53,10 @@ export class CMISession extends BaseCMI {
    */
   get exit(): string {
     if (!this.jsonString) {
-      throw new Scorm2004ValidationError(scorm2004_errors.WRITE_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".exit",
+        scorm2004_errors.WRITE_ONLY_ELEMENT,
+      );
     }
     return this._exit;
   }
@@ -60,7 +66,14 @@ export class CMISession extends BaseCMI {
    * @param {string} exit
    */
   set exit(exit: string) {
-    if (check2004ValidFormat(exit, scorm2004_regex.CMIExit, true)) {
+    if (
+      check2004ValidFormat(
+        this._cmi_element + ".exit",
+        exit,
+        scorm2004_regex.CMIExit,
+        true,
+      )
+    ) {
       this._exit = exit;
     }
   }
@@ -71,7 +84,10 @@ export class CMISession extends BaseCMI {
    */
   get session_time(): string {
     if (!this.jsonString) {
-      throw new Scorm2004ValidationError(scorm2004_errors.WRITE_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".session_time",
+        scorm2004_errors.WRITE_ONLY_ELEMENT,
+      );
     }
     return this._session_time;
   }
@@ -81,7 +97,13 @@ export class CMISession extends BaseCMI {
    * @param {string} session_time
    */
   set session_time(session_time: string) {
-    if (check2004ValidFormat(session_time, scorm2004_regex.CMITimespan)) {
+    if (
+      check2004ValidFormat(
+        this._cmi_element + ".session_time",
+        session_time,
+        scorm2004_regex.CMITimespan,
+      )
+    ) {
       this._session_time = session_time;
     }
   }
@@ -100,7 +122,10 @@ export class CMISession extends BaseCMI {
    */
   set total_time(total_time: string) {
     if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".total_time",
+        scorm2004_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._total_time = total_time;
     }

@@ -19,7 +19,7 @@ export class CMIContent extends BaseCMI {
    * Constructor for CMIContent
    */
   constructor() {
-    super();
+    super("cmi");
   }
 
   /**
@@ -35,7 +35,13 @@ export class CMIContent extends BaseCMI {
    * @param {string} location
    */
   set location(location: string) {
-    if (check2004ValidFormat(location, scorm2004_regex.CMIString1000)) {
+    if (
+      check2004ValidFormat(
+        this._cmi_element + ".location",
+        location,
+        scorm2004_regex.CMIString1000,
+      )
+    ) {
       this._location = location;
     }
   }
@@ -54,7 +60,10 @@ export class CMIContent extends BaseCMI {
    */
   set launch_data(launch_data: string) {
     if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".launch_data",
+        scorm2004_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._launch_data = launch_data;
     }
@@ -74,7 +83,12 @@ export class CMIContent extends BaseCMI {
    */
   set suspend_data(suspend_data: string) {
     if (
-      check2004ValidFormat(suspend_data, scorm2004_regex.CMIString64000, true)
+      check2004ValidFormat(
+        this._cmi_element + ".suspend_data",
+        suspend_data,
+        scorm2004_regex.CMIString64000,
+        true,
+      )
     ) {
       this._suspend_data = suspend_data;
     }

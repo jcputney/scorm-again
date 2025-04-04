@@ -18,7 +18,7 @@ export class CMISettings extends BaseCMI {
    * Constructor for CMISettings
    */
   constructor() {
-    super();
+    super("cmi");
   }
 
   /**
@@ -35,7 +35,10 @@ export class CMISettings extends BaseCMI {
    */
   set credit(credit: string) {
     if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".credit",
+        scorm2004_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._credit = credit;
     }
@@ -55,7 +58,10 @@ export class CMISettings extends BaseCMI {
    */
   set mode(mode: string) {
     if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".mode",
+        scorm2004_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._mode = mode;
     }
@@ -75,7 +81,10 @@ export class CMISettings extends BaseCMI {
    */
   set time_limit_action(time_limit_action: string) {
     if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".time_limit_action",
+        scorm2004_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._time_limit_action = time_limit_action;
     }
@@ -95,7 +104,10 @@ export class CMISettings extends BaseCMI {
    */
   set max_time_allowed(max_time_allowed: string) {
     if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".max_time_allowed",
+        scorm2004_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._max_time_allowed = max_time_allowed;
     }

@@ -15,7 +15,7 @@ export class ADL extends BaseCMI {
    * Constructor for adl
    */
   constructor() {
-    super();
+    super("adl");
     this.nav = new ADLNav();
     this.data = new ADLData();
   }
@@ -73,7 +73,7 @@ export class ADLNav extends BaseCMI {
    * Constructor for `adl.nav`
    */
   constructor() {
-    super();
+    super("adl.nav");
     this.request_valid = new ADLNavRequestValid();
   }
 
@@ -109,7 +109,13 @@ export class ADLNav extends BaseCMI {
    * @param {string} request
    */
   set request(request: string) {
-    if (check2004ValidFormat(request, scorm2004_regex.NAVEvent)) {
+    if (
+      check2004ValidFormat(
+        this._cmi_element + ".request",
+        request,
+        scorm2004_regex.NAVEvent,
+      )
+    ) {
       this._request = request;
     }
   }
@@ -141,6 +147,7 @@ export class ADLNav extends BaseCMI {
 export class ADLData extends CMIArray {
   constructor() {
     super({
+      CMIElement: "adl.data",
       children: scorm2004_constants.adl_data_children,
       errorCode: scorm2004_errors.READ_ONLY_ELEMENT,
       errorClass: Scorm2004ValidationError,
@@ -156,7 +163,7 @@ export class ADLDataObject extends BaseCMI {
   private _store = "";
 
   constructor() {
-    super();
+    super("adl.data.n");
   }
 
   /**
@@ -179,7 +186,13 @@ export class ADLDataObject extends BaseCMI {
    * @param {string} id
    */
   set id(id: string) {
-    if (check2004ValidFormat(id, scorm2004_regex.CMILongIdentifier)) {
+    if (
+      check2004ValidFormat(
+        this._cmi_element + ".id",
+        id,
+        scorm2004_regex.CMILongIdentifier,
+      )
+    ) {
       this._id = id;
     }
   }
@@ -197,7 +210,13 @@ export class ADLDataObject extends BaseCMI {
    * @param {string} store
    */
   set store(store: string) {
-    if (check2004ValidFormat(store, scorm2004_regex.CMILangString4000)) {
+    if (
+      check2004ValidFormat(
+        this._cmi_element + ".store",
+        store,
+        scorm2004_regex.CMILangString4000,
+      )
+    ) {
       this._store = store;
     }
   }
@@ -244,7 +263,7 @@ export class ADLNavRequestValid extends BaseCMI {
    * Constructor for adl.nav.request_valid
    */
   constructor() {
-    super();
+    super("adl.nav.request_valid");
   }
 
   /**
@@ -270,9 +289,18 @@ export class ADLNavRequestValid extends BaseCMI {
    */
   set continue(_continue: string) {
     if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".continue",
+        scorm2004_errors.READ_ONLY_ELEMENT,
+      );
     }
-    if (check2004ValidFormat(_continue, scorm2004_regex.NAVBoolean)) {
+    if (
+      check2004ValidFormat(
+        this._cmi_element + ".continue",
+        _continue,
+        scorm2004_regex.NAVBoolean,
+      )
+    ) {
       this._continue = _continue;
     }
   }
@@ -291,9 +319,18 @@ export class ADLNavRequestValid extends BaseCMI {
    */
   set previous(_previous: string) {
     if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".previous",
+        scorm2004_errors.READ_ONLY_ELEMENT,
+      );
     }
-    if (check2004ValidFormat(_previous, scorm2004_regex.NAVBoolean)) {
+    if (
+      check2004ValidFormat(
+        this._cmi_element + ".previous",
+        _previous,
+        scorm2004_regex.NAVBoolean,
+      )
+    ) {
       this._previous = _previous;
     }
   }
@@ -312,19 +349,40 @@ export class ADLNavRequestValid extends BaseCMI {
    */
   set choice(choice: { [key: string]: string }) {
     if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".choice",
+        scorm2004_errors.READ_ONLY_ELEMENT,
+      );
     }
     if (typeof choice !== "object") {
-      throw new Scorm2004ValidationError(scorm2004_errors.TYPE_MISMATCH);
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".choice",
+        scorm2004_errors.TYPE_MISMATCH,
+      );
     }
     for (const key in choice) {
       if ({}.hasOwnProperty.call(choice, key)) {
         if (
-          check2004ValidFormat(choice[key], scorm2004_regex.NAVBoolean) &&
-          check2004ValidFormat(key, scorm2004_regex.NAVTarget)
+          check2004ValidFormat(
+            this._cmi_element + ".choice." + key,
+            choice[key],
+            scorm2004_regex.NAVBoolean,
+          ) &&
+          check2004ValidFormat(
+            this._cmi_element + ".choice." + key,
+            key,
+            scorm2004_regex.NAVTarget,
+          )
         ) {
-          this._choice[key] =
-            NAVBoolean[choice[key] as keyof typeof NAVBoolean];
+          // Convert string value to NAVBoolean enum value
+          const value = choice[key];
+          if (value === "true") {
+            this._choice[key] = NAVBoolean.TRUE;
+          } else if (value === "false") {
+            this._choice[key] = NAVBoolean.FALSE;
+          } else if (value === "unknown") {
+            this._choice[key] = NAVBoolean.UNKNOWN;
+          }
         }
       }
     }
@@ -344,18 +402,40 @@ export class ADLNavRequestValid extends BaseCMI {
    */
   set jump(jump: { [key: string]: string }) {
     if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".jump",
+        scorm2004_errors.READ_ONLY_ELEMENT,
+      );
     }
     if (typeof jump !== "object") {
-      throw new Scorm2004ValidationError(scorm2004_errors.TYPE_MISMATCH);
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".jump",
+        scorm2004_errors.TYPE_MISMATCH,
+      );
     }
     for (const key in jump) {
       if ({}.hasOwnProperty.call(jump, key)) {
         if (
-          check2004ValidFormat(jump[key], scorm2004_regex.NAVBoolean) &&
-          check2004ValidFormat(key, scorm2004_regex.NAVTarget)
+          check2004ValidFormat(
+            this._cmi_element + ".jump." + key,
+            jump[key],
+            scorm2004_regex.NAVBoolean,
+          ) &&
+          check2004ValidFormat(
+            this._cmi_element + ".jump." + key,
+            key,
+            scorm2004_regex.NAVTarget,
+          )
         ) {
-          this._jump[key] = NAVBoolean[jump[key] as keyof typeof NAVBoolean];
+          // Convert string value to NAVBoolean enum value
+          const value = jump[key];
+          if (value === "true") {
+            this._jump[key] = NAVBoolean.TRUE;
+          } else if (value === "false") {
+            this._jump[key] = NAVBoolean.FALSE;
+          } else if (value === "unknown") {
+            this._jump[key] = NAVBoolean.UNKNOWN;
+          }
         }
       }
     }

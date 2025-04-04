@@ -2,7 +2,7 @@ import { describe, it } from "mocha";
 import { aicc_constants } from "../../src/constants/api_constants";
 import { scorm12_errors } from "../../src/constants/error_codes";
 import { CMI } from "../../src/cmi/aicc/cmi";
-import * as h from "../cmi_helpers";
+import * as h from "./cmi_helpers";
 import { expect } from "expect";
 import { scorm12Values } from "../field_values";
 import { CMITriesObject } from "../../src/cmi/aicc/tries";

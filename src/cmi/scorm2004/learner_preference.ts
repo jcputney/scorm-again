@@ -19,7 +19,7 @@ export class CMILearnerPreference extends BaseCMI {
    * Constructor for cmi.learner_preference
    */
   constructor() {
-    super();
+    super("cmi.learner_preference");
   }
 
   /**
@@ -44,7 +44,10 @@ export class CMILearnerPreference extends BaseCMI {
    * @private
    */
   set _children(_children: string) {
-    throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+    throw new Scorm2004ValidationError(
+      this._cmi_element + "._children",
+      scorm2004_errors.READ_ONLY_ELEMENT,
+    );
   }
 
   /**
@@ -61,8 +64,16 @@ export class CMILearnerPreference extends BaseCMI {
    */
   set audio_level(audio_level: string) {
     if (
-      check2004ValidFormat(audio_level, scorm2004_regex.CMIDecimal) &&
-      check2004ValidRange(audio_level, scorm2004_regex.audio_range)
+      check2004ValidFormat(
+        this._cmi_element + ".audio_level",
+        audio_level,
+        scorm2004_regex.CMIDecimal,
+      ) &&
+      check2004ValidRange(
+        this._cmi_element + ".audio_level",
+        audio_level,
+        scorm2004_regex.audio_range,
+      )
     ) {
       this._audio_level = audio_level;
     }
@@ -81,7 +92,13 @@ export class CMILearnerPreference extends BaseCMI {
    * @param {string} language
    */
   set language(language: string) {
-    if (check2004ValidFormat(language, scorm2004_regex.CMILang)) {
+    if (
+      check2004ValidFormat(
+        this._cmi_element + ".language",
+        language,
+        scorm2004_regex.CMILang,
+      )
+    ) {
       this._language = language;
     }
   }
@@ -100,8 +117,16 @@ export class CMILearnerPreference extends BaseCMI {
    */
   set delivery_speed(delivery_speed: string) {
     if (
-      check2004ValidFormat(delivery_speed, scorm2004_regex.CMIDecimal) &&
-      check2004ValidRange(delivery_speed, scorm2004_regex.speed_range)
+      check2004ValidFormat(
+        this._cmi_element + ".delivery_speed",
+        delivery_speed,
+        scorm2004_regex.CMIDecimal,
+      ) &&
+      check2004ValidRange(
+        this._cmi_element + ".delivery_speed",
+        delivery_speed,
+        scorm2004_regex.speed_range,
+      )
     ) {
       this._delivery_speed = delivery_speed;
     }
@@ -121,8 +146,16 @@ export class CMILearnerPreference extends BaseCMI {
    */
   set audio_captioning(audio_captioning: string) {
     if (
-      check2004ValidFormat(audio_captioning, scorm2004_regex.CMISInteger) &&
-      check2004ValidRange(audio_captioning, scorm2004_regex.text_range)
+      check2004ValidFormat(
+        this._cmi_element + ".audio_captioning",
+        audio_captioning,
+        scorm2004_regex.CMISInteger,
+      ) &&
+      check2004ValidRange(
+        this._cmi_element + ".audio_captioning",
+        audio_captioning,
+        scorm2004_regex.text_range,
+      )
     ) {
       this._audio_captioning = audio_captioning;
     }

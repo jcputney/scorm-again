@@ -16,6 +16,7 @@ export class Scorm2004CMIScore extends CMIScore {
    */
   constructor() {
     super({
+      CMIElement: "cmi.score",
       score_children: scorm2004_constants.score_children,
       max: "",
       invalidErrorCode: scorm2004_errors.READ_ONLY_ELEMENT,
@@ -51,8 +52,16 @@ export class Scorm2004CMIScore extends CMIScore {
    */
   set scaled(scaled: string) {
     if (
-      check2004ValidFormat(scaled, scorm2004_regex.CMIDecimal) &&
-      check2004ValidRange(scaled, scorm2004_regex.scaled_range)
+      check2004ValidFormat(
+        this._cmi_element + ".scaled",
+        scaled,
+        scorm2004_regex.CMIDecimal,
+      ) &&
+      check2004ValidRange(
+        this._cmi_element + ".scaled",
+        scaled,
+        scorm2004_regex.scaled_range,
+      )
     ) {
       this._scaled = scaled;
     }

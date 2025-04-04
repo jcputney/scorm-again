@@ -2,8 +2,6 @@
  * Class representing status properties for SCORM 2004's cmi object
  */
 import { scorm2004_regex } from "../../constants/regex";
-import { scorm2004_errors } from "../../constants/error_codes";
-import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
 import { BaseCMI } from "../common/base_cmi";
 import { check2004ValidFormat, check2004ValidRange } from "./validation";
 
@@ -19,7 +17,7 @@ export class CMIStatus extends BaseCMI {
    * Constructor for CMIStatus
    */
   constructor() {
-    super();
+    super("cmi");
   }
 
   /**
@@ -35,7 +33,13 @@ export class CMIStatus extends BaseCMI {
    * @param {string} completion_status
    */
   set completion_status(completion_status: string) {
-    if (check2004ValidFormat(completion_status, scorm2004_regex.CMICStatus)) {
+    if (
+      check2004ValidFormat(
+        this._cmi_element + ".completion_status",
+        completion_status,
+        scorm2004_regex.CMICStatus,
+      )
+    ) {
       this._completion_status = completion_status;
     }
   }
@@ -53,7 +57,13 @@ export class CMIStatus extends BaseCMI {
    * @param {string} success_status
    */
   set success_status(success_status: string) {
-    if (check2004ValidFormat(success_status, scorm2004_regex.CMISStatus)) {
+    if (
+      check2004ValidFormat(
+        this._cmi_element + ".success_status",
+        success_status,
+        scorm2004_regex.CMISStatus,
+      )
+    ) {
       this._success_status = success_status;
     }
   }
@@ -72,8 +82,16 @@ export class CMIStatus extends BaseCMI {
    */
   set progress_measure(progress_measure: string) {
     if (
-      check2004ValidFormat(progress_measure, scorm2004_regex.CMIDecimal) &&
-      check2004ValidRange(progress_measure, scorm2004_regex.progress_range)
+      check2004ValidFormat(
+        this._cmi_element + ".progress_measure",
+        progress_measure,
+        scorm2004_regex.CMIDecimal,
+      ) &&
+      check2004ValidRange(
+        this._cmi_element + ".progress_measure",
+        progress_measure,
+        scorm2004_regex.progress_range,
+      )
     ) {
       this._progress_measure = progress_measure;
     }
@@ -84,7 +102,7 @@ export class CMIStatus extends BaseCMI {
    */
   reset(): void {
     this._initialized = false;
-    this._completion_status = "incomplete";
+    this._completion_status = "unknown";
     this._success_status = "unknown";
     this._progress_measure = "";
   }

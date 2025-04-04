@@ -3,7 +3,7 @@ import { describe, it } from "mocha";
 import { scorm12_constants } from "../../src/constants/api_constants";
 import { scorm12_errors } from "../../src/constants/error_codes";
 import { CMI } from "../../src/cmi/scorm12/cmi";
-import * as h from "../cmi_helpers";
+import * as h from "./cmi_helpers";
 import { scorm12Values } from "../field_values";
 import { CMIObjectivesObject } from "../../src/cmi/scorm12/objectives";
 import {

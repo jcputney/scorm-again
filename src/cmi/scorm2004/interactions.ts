@@ -8,7 +8,10 @@ import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions"
 import { scorm2004_constants } from "../../constants/api_constants";
 import { check2004ValidFormat } from "./validation";
 import { scorm2004_regex } from "../../constants/regex";
-import { LearnerResponses } from "../../constants/response_constants";
+import {
+  LearnerResponses,
+  CorrectResponses,
+} from "../../constants/response_constants";
 
 export class CMIInteractions extends CMIArray {
   /**
@@ -16,6 +19,7 @@ export class CMIInteractions extends CMIArray {
    */
   constructor() {
     super({
+      CMIElement: "cmi.interactions",
       children: scorm2004_constants.interactions_children,
       errorCode: scorm2004_errors.READ_ONLY_ELEMENT,
       errorClass: Scorm2004ValidationError,
@@ -41,13 +45,15 @@ export class CMIInteractionsObject extends BaseCMI {
    * Constructor for cmi.interaction.n
    */
   constructor() {
-    super();
+    super("cmi.interactions.n");
     this.objectives = new CMIArray({
+      CMIElement: "cmi.interactions.n.objectives",
       errorCode: scorm2004_errors.READ_ONLY_ELEMENT,
       errorClass: Scorm2004ValidationError,
       children: scorm2004_constants.objectives_children,
     });
     this.correct_responses = new CMIArray({
+      CMIElement: "cmi.interactions.n.correct_responses",
       errorCode: scorm2004_errors.READ_ONLY_ELEMENT,
       errorClass: Scorm2004ValidationError,
       children: scorm2004_constants.correct_responses_children,
@@ -80,11 +86,13 @@ export class CMIInteractionsObject extends BaseCMI {
     this._latency = "";
     this._description = "";
     this.objectives = new CMIArray({
+      CMIElement: "cmi.interactions.n.objectives",
       errorCode: scorm2004_errors.READ_ONLY_ELEMENT,
       errorClass: Scorm2004ValidationError,
       children: scorm2004_constants.objectives_children,
     });
     this.correct_responses = new CMIArray({
+      CMIElement: "cmi.interactions.n.correct_responses",
       errorCode: scorm2004_errors.READ_ONLY_ELEMENT,
       errorClass: Scorm2004ValidationError,
       children: scorm2004_constants.correct_responses_children,
@@ -104,7 +112,13 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} id
    */
   set id(id: string) {
-    if (check2004ValidFormat(id, scorm2004_regex.CMILongIdentifier)) {
+    if (
+      check2004ValidFormat(
+        this._cmi_element + ".id",
+        id,
+        scorm2004_regex.CMILongIdentifier,
+      )
+    ) {
       this._id = id;
     }
   }
@@ -124,10 +138,17 @@ export class CMIInteractionsObject extends BaseCMI {
   set type(type: string) {
     if (this.initialized && this._id === "") {
       throw new Scorm2004ValidationError(
+        this._cmi_element + ".type",
         scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
       );
     } else {
-      if (check2004ValidFormat(type, scorm2004_regex.CMIType)) {
+      if (
+        check2004ValidFormat(
+          this._cmi_element + ".type",
+          type,
+          scorm2004_regex.CMIType,
+        )
+      ) {
         this._type = type;
       }
     }
@@ -148,10 +169,17 @@ export class CMIInteractionsObject extends BaseCMI {
   set timestamp(timestamp: string) {
     if (this.initialized && this._id === "") {
       throw new Scorm2004ValidationError(
+        this._cmi_element + ".timestamp",
         scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
       );
     } else {
-      if (check2004ValidFormat(timestamp, scorm2004_regex.CMITime)) {
+      if (
+        check2004ValidFormat(
+          this._cmi_element + ".timestamp",
+          timestamp,
+          scorm2004_regex.CMITime,
+        )
+      ) {
         this._timestamp = timestamp;
       }
     }
@@ -172,10 +200,17 @@ export class CMIInteractionsObject extends BaseCMI {
   set weighting(weighting: string) {
     if (this.initialized && this._id === "") {
       throw new Scorm2004ValidationError(
+        this._cmi_element + ".weighting",
         scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
       );
     } else {
-      if (check2004ValidFormat(weighting, scorm2004_regex.CMIDecimal)) {
+      if (
+        check2004ValidFormat(
+          this._cmi_element + ".weighting",
+          weighting,
+          scorm2004_regex.CMIDecimal,
+        )
+      ) {
         this._weighting = weighting;
       }
     }
@@ -197,6 +232,7 @@ export class CMIInteractionsObject extends BaseCMI {
   set learner_response(learner_response: string) {
     if (this.initialized && (this._type === "" || this._id === "")) {
       throw new Scorm2004ValidationError(
+        this._cmi_element + ".learner_response",
         scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
       );
     } else {
@@ -205,7 +241,10 @@ export class CMIInteractionsObject extends BaseCMI {
 
       if (response_type) {
         if (response_type?.delimiter) {
-          nodes = learner_response.split(response_type.delimiter);
+          // Convert regex-style delimiter to actual character
+          const delimiter =
+            response_type.delimiter === "[,]" ? "," : response_type.delimiter;
+          nodes = learner_response.split(delimiter);
         } else {
           nodes[0] = learner_response;
         }
@@ -215,11 +254,17 @@ export class CMIInteractionsObject extends BaseCMI {
 
           for (let i = 0; i < nodes.length; i++) {
             if (response_type?.delimiter2) {
-              const values = nodes[i].split(response_type.delimiter2);
+              // Convert regex-style delimiter to actual character
+              const delimiter2 =
+                response_type.delimiter2 === "[.]"
+                  ? "."
+                  : response_type.delimiter2;
+              const values = nodes[i].split(delimiter2);
 
               if (values.length === 2) {
                 if (!values[0].match(formatRegex)) {
                   throw new Scorm2004ValidationError(
+                    this._cmi_element + ".learner_response",
                     scorm2004_errors.TYPE_MISMATCH,
                   );
                 } else {
@@ -228,18 +273,21 @@ export class CMIInteractionsObject extends BaseCMI {
                     !values[1].match(new RegExp(response_type.format2))
                   ) {
                     throw new Scorm2004ValidationError(
+                      this._cmi_element + ".learner_response",
                       scorm2004_errors.TYPE_MISMATCH,
                     );
                   }
                 }
               } else {
                 throw new Scorm2004ValidationError(
+                  this._cmi_element + ".learner_response",
                   scorm2004_errors.TYPE_MISMATCH,
                 );
               }
             } else {
               if (!nodes[i].match(formatRegex)) {
                 throw new Scorm2004ValidationError(
+                  this._cmi_element + ".learner_response",
                   scorm2004_errors.TYPE_MISMATCH,
                 );
               } else {
@@ -247,6 +295,7 @@ export class CMIInteractionsObject extends BaseCMI {
                   for (let j = 0; j < i; j++) {
                     if (nodes[i] === nodes[j]) {
                       throw new Scorm2004ValidationError(
+                        this._cmi_element + ".learner_response",
                         scorm2004_errors.TYPE_MISMATCH,
                       );
                     }
@@ -257,13 +306,17 @@ export class CMIInteractionsObject extends BaseCMI {
           }
         } else {
           throw new Scorm2004ValidationError(
+            this._cmi_element + ".learner_response",
             scorm2004_errors.GENERAL_SET_FAILURE,
           );
         }
 
         this._learner_response = learner_response;
       } else {
-        throw new Scorm2004ValidationError(scorm2004_errors.TYPE_MISMATCH);
+        throw new Scorm2004ValidationError(
+          this._cmi_element + ".learner_response",
+          scorm2004_errors.TYPE_MISMATCH,
+        );
       }
     }
   }
@@ -281,7 +334,13 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} result
    */
   set result(result: string) {
-    if (check2004ValidFormat(result, scorm2004_regex.CMIResult)) {
+    if (
+      check2004ValidFormat(
+        this._cmi_element + ".result",
+        result,
+        scorm2004_regex.CMIResult,
+      )
+    ) {
       this._result = result;
     }
   }
@@ -301,10 +360,17 @@ export class CMIInteractionsObject extends BaseCMI {
   set latency(latency: string) {
     if (this.initialized && this._id === "") {
       throw new Scorm2004ValidationError(
+        this._cmi_element + ".latency",
         scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
       );
     } else {
-      if (check2004ValidFormat(latency, scorm2004_regex.CMITimespan)) {
+      if (
+        check2004ValidFormat(
+          this._cmi_element + ".latency",
+          latency,
+          scorm2004_regex.CMITimespan,
+        )
+      ) {
         this._latency = latency;
       }
     }
@@ -325,11 +391,13 @@ export class CMIInteractionsObject extends BaseCMI {
   set description(description: string) {
     if (this.initialized && this._id === "") {
       throw new Scorm2004ValidationError(
+        this._cmi_element + ".description",
         scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
       );
     } else {
       if (
         check2004ValidFormat(
+          this._cmi_element + ".description",
           description,
           scorm2004_regex.CMILangString250,
           true,
@@ -398,7 +466,7 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
    * Constructor for cmi.interactions.n.objectives.n
    */
   constructor() {
-    super();
+    super("cmi.interactions.n.objectives.n");
   }
 
   /**
@@ -422,7 +490,13 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
    * @param {string} id
    */
   set id(id: string) {
-    if (check2004ValidFormat(id, scorm2004_regex.CMILongIdentifier)) {
+    if (
+      check2004ValidFormat(
+        this._cmi_element + ".id",
+        id,
+        scorm2004_regex.CMILongIdentifier,
+      )
+    ) {
       this._id = id;
     }
   }
@@ -452,12 +526,15 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
  */
 export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
   private _pattern = "";
+  private _parent?: CMIInteractionsObject;
 
   /**
    * Constructor for cmi.interactions.n.correct_responses.n
+   * @param {CMIInteractionsObject} parent - The parent interaction object
    */
-  constructor() {
-    super();
+  constructor(parent?: CMIInteractionsObject) {
+    super("cmi.interactions.n.correct_responses.n");
+    this._parent = parent;
   }
 
   /**
@@ -481,7 +558,72 @@ export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
    * @param {string} pattern
    */
   set pattern(pattern: string) {
-    if (check2004ValidFormat(pattern, scorm2004_regex.CMIFeedback)) {
+    // First do basic format validation
+    if (
+      check2004ValidFormat(
+        this._cmi_element + ".pattern",
+        pattern,
+        scorm2004_regex.CMIFeedback,
+      )
+    ) {
+      // If we have a parent interaction, validate the pattern against the interaction type
+      if (this._parent && this._parent.type) {
+        const interactionType = this._parent.type;
+        const response = CorrectResponses[interactionType];
+
+        if (response) {
+          // Validate the pattern against the interaction type
+          let isValid = true;
+          let nodes = [];
+
+          if (response?.delimiter) {
+            nodes = String(pattern).split(response.delimiter);
+          } else {
+            nodes[0] = pattern;
+          }
+
+          if (nodes.length > 0 && nodes.length <= response.max) {
+            const formatRegex = new RegExp(response.format);
+
+            for (let i = 0; i < nodes.length && isValid; i++) {
+              if (response?.delimiter2) {
+                const values = nodes[i].split(response.delimiter2);
+                if (values.length === 2) {
+                  const matches = values[0].match(formatRegex);
+                  if (!matches) {
+                    isValid = false;
+                  } else if (
+                    !response.format2 ||
+                    !values[1].match(new RegExp(response.format2))
+                  ) {
+                    isValid = false;
+                  }
+                } else {
+                  isValid = false;
+                }
+              } else {
+                const matches = nodes[i].match(formatRegex);
+                if (
+                  (!matches && pattern !== "") ||
+                  (!matches && interactionType === "true-false")
+                ) {
+                  isValid = false;
+                }
+              }
+            }
+          } else if (nodes.length > response.max) {
+            isValid = false;
+          }
+
+          if (!isValid) {
+            throw new Scorm2004ValidationError(
+              this._cmi_element + ".pattern",
+              scorm2004_errors.TYPE_MISMATCH,
+            );
+          }
+        }
+      }
+
       this._pattern = pattern;
     }
   }

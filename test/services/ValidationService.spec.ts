@@ -15,14 +15,15 @@ describe("ValidationService", () => {
   describe("validateScore", () => {
     // Create a custom error class for testing
     class TestValidationError extends BaseScormValidationError {
-      constructor(errorCode: number) {
-        super(errorCode, `Error ${errorCode}`);
+      constructor(CMIElement: string, errorCode: number) {
+        super(CMIElement, errorCode);
       }
     }
 
     it("should return true for valid score values", () => {
       // Valid decimal regex and no range check
       const result = validationService.validateScore(
+        "api",
         "80",
         "^[0-9]+(\\.[0-9]+)?$", // Simple decimal regex
         false,
@@ -36,6 +37,7 @@ describe("ValidationService", () => {
     it("should throw an error for invalid score format", () => {
       expect(() => {
         validationService.validateScore(
+          "api",
           "invalid",
           "^[0-9]+(\\.[0-9]+)?$", // Simple decimal regex
           false,
@@ -50,19 +52,19 @@ describe("ValidationService", () => {
   describe("validateScorm12Audio", () => {
     it("should return true for valid audio values", () => {
       // Valid audio values are integers 0-100
-      const result = validationService.validateScorm12Audio("50");
+      const result = validationService.validateScorm12Audio("api", "50");
       expect(result).toBe(true);
     });
 
     it("should throw an error for invalid audio values", () => {
       // Non-integer value
       expect(() => {
-        validationService.validateScorm12Audio("invalid");
+        validationService.validateScorm12Audio("api", "invalid");
       }).toThrow();
 
       // Out of range value
       expect(() => {
-        validationService.validateScorm12Audio("101");
+        validationService.validateScorm12Audio("api", "101");
       }).toThrow();
     });
   });
@@ -70,7 +72,7 @@ describe("ValidationService", () => {
   describe("validateScorm12Language", () => {
     it("should return true for valid language values", () => {
       // Any string up to 256 characters is valid
-      const result = validationService.validateScorm12Language("en-US");
+      const result = validationService.validateScorm12Language("api", "en-US");
       expect(result).toBe(true);
     });
 
@@ -78,7 +80,7 @@ describe("ValidationService", () => {
       // Create a string longer than 256 characters
       const longString = "a".repeat(257);
       expect(() => {
-        validationService.validateScorm12Language(longString);
+        validationService.validateScorm12Language("api", longString);
       }).toThrow();
     });
   });
@@ -86,19 +88,19 @@ describe("ValidationService", () => {
   describe("validateScorm12Speed", () => {
     it("should return true for valid speed values", () => {
       // Valid speed values are integers -100 to 100
-      const result = validationService.validateScorm12Speed("50");
+      const result = validationService.validateScorm12Speed("api", "50");
       expect(result).toBe(true);
     });
 
     it("should throw an error for invalid speed values", () => {
       // Non-integer value
       expect(() => {
-        validationService.validateScorm12Speed("invalid");
+        validationService.validateScorm12Speed("api", "invalid");
       }).toThrow();
 
       // Out of range value
       expect(() => {
-        validationService.validateScorm12Speed("101");
+        validationService.validateScorm12Speed("api", "101");
       }).toThrow();
     });
   });
@@ -106,19 +108,19 @@ describe("ValidationService", () => {
   describe("validateScorm12Text", () => {
     it("should return true for valid text values", () => {
       // Valid text values are integers -1 to 1
-      const result = validationService.validateScorm12Text("0");
+      const result = validationService.validateScorm12Text("api", "0");
       expect(result).toBe(true);
     });
 
     it("should throw an error for invalid text values", () => {
       // Non-integer value
       expect(() => {
-        validationService.validateScorm12Text("invalid");
+        validationService.validateScorm12Text("api", "invalid");
       }).toThrow();
 
       // Out of range value
       expect(() => {
-        validationService.validateScorm12Text("2");
+        validationService.validateScorm12Text("api", "2");
       }).toThrow();
     });
   });
@@ -127,18 +129,18 @@ describe("ValidationService", () => {
     it("should not throw an error when initialized is false", () => {
       // Act & Assert
       expect(() => {
-        validationService.validateReadOnly(false);
+        validationService.validateReadOnly("api", false);
       }).not.toThrow();
     });
 
     it("should throw a Scorm12ValidationError when initialized is true", () => {
       // Act & Assert
       expect(() => {
-        validationService.validateReadOnly(true);
+        validationService.validateReadOnly("api", true);
       }).toThrow(Scorm12ValidationError);
 
       try {
-        validationService.validateReadOnly(true);
+        validationService.validateReadOnly("api", true);
       } catch (error) {
         expect(error.errorCode).toBe(scorm12_errors.READ_ONLY_ELEMENT);
       }

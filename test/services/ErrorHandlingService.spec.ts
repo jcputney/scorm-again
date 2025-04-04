@@ -64,12 +64,12 @@ describe("ErrorHandlingService", () => {
 
   describe("throwSCORMError", () => {
     it("should set the last error code to the error number", () => {
-      errorHandlingService.throwSCORMError(101);
+      errorHandlingService.throwSCORMError("api", 101);
       expect(errorHandlingService.lastErrorCode).toBe("101");
     });
 
     it("should call apiLog with the error message", () => {
-      errorHandlingService.throwSCORMError(101);
+      errorHandlingService.throwSCORMError("api", 101);
       expect(apiLogStub.calledOnce).toBe(true);
       expect(
         apiLogStub.calledWith(
@@ -81,7 +81,7 @@ describe("ErrorHandlingService", () => {
     });
 
     it("should use the provided message if available", () => {
-      errorHandlingService.throwSCORMError(101, "Custom error message");
+      errorHandlingService.throwSCORMError("api", 101, "Custom error message");
       expect(
         apiLogStub.calledWith(
           "throwSCORMError",
@@ -92,7 +92,7 @@ describe("ErrorHandlingService", () => {
     });
 
     it("should get the error message from getLmsErrorMessageDetails if no message is provided", () => {
-      errorHandlingService.throwSCORMError(101);
+      errorHandlingService.throwSCORMError("api", 101);
       expect(getLmsErrorMessageDetailsStub.calledOnce).toBe(true);
       expect(getLmsErrorMessageDetailsStub.calledWith(101)).toBe(true);
     });
@@ -129,8 +129,13 @@ describe("ErrorHandlingService", () => {
 
   describe("handleValueAccessException", () => {
     it("should set the last error code from ValidationError", () => {
-      const validationError = new ValidationError(201, "Validation error");
+      const validationError = new ValidationError(
+        "api",
+        201,
+        "Validation error",
+      );
       const returnValue = errorHandlingService.handleValueAccessException(
+        "api",
         validationError,
         "",
       );
@@ -141,7 +146,7 @@ describe("ErrorHandlingService", () => {
 
     it("should log the error message for Error instances", () => {
       const error = new Error("General error");
-      errorHandlingService.handleValueAccessException(error, "");
+      errorHandlingService.handleValueAccessException("api", error, "");
 
       expect(consoleErrorStub.calledOnce).toBe(true);
       expect(consoleErrorStub.calledWith("General error")).toBe(true);
@@ -149,7 +154,7 @@ describe("ErrorHandlingService", () => {
 
     it("should log the error for non-Error instances", () => {
       const error = "String error";
-      errorHandlingService.handleValueAccessException(error, "");
+      errorHandlingService.handleValueAccessException("api", error, "");
 
       expect(consoleErrorStub.calledOnce).toBe(true);
       expect(consoleErrorStub.calledWith("String error")).toBe(true);
@@ -162,10 +167,12 @@ describe("ErrorHandlingService", () => {
         "throwSCORMError",
       );
 
-      errorHandlingService.handleValueAccessException(error, "");
+      errorHandlingService.handleValueAccessException("api", error, "");
 
       expect(throwSCORMErrorSpy.calledOnce).toBe(true);
-      expect(throwSCORMErrorSpy.calledWith(errorCodes.GENERAL)).toBe(true);
+      expect(throwSCORMErrorSpy.calledWith("api", errorCodes.GENERAL)).toBe(
+        true,
+      );
 
       throwSCORMErrorSpy.restore();
     });
@@ -173,6 +180,7 @@ describe("ErrorHandlingService", () => {
     it("should return the provided return value for non-ValidationError instances", () => {
       const error = new Error("General error");
       const returnValue = errorHandlingService.handleValueAccessException(
+        "api",
         error,
         "test",
       );

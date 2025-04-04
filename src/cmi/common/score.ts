@@ -34,6 +34,7 @@ export class CMIScore extends BaseCMI {
    * } params
    */
   constructor(params: {
+    CMIElement: string;
     score_children?: string;
     score_range?: string;
     max?: string;
@@ -43,7 +44,7 @@ export class CMIScore extends BaseCMI {
     decimalRegex?: string;
     errorClass: typeof BaseScormValidationError;
   }) {
-    super();
+    super(params.CMIElement);
 
     this.__children = params.score_children || scorm12_constants.score_children;
     this.__score_range = !params.score_range
@@ -80,7 +81,10 @@ export class CMIScore extends BaseCMI {
    * @param {string} _children
    */
   set _children(_children: string) {
-    throw new this.__error_class(this.__invalid_error_code);
+    throw new this.__error_class(
+      this._cmi_element + "._children",
+      this.__invalid_error_code,
+    );
   }
 
   /**
@@ -98,6 +102,7 @@ export class CMIScore extends BaseCMI {
   set raw(raw: string) {
     if (
       validationService.validateScore(
+        this._cmi_element + ".raw",
         raw,
         this.__decimal_regex,
         this.__score_range,
@@ -125,6 +130,7 @@ export class CMIScore extends BaseCMI {
   set min(min: string) {
     if (
       validationService.validateScore(
+        this._cmi_element + ".min",
         min,
         this.__decimal_regex,
         this.__score_range,
@@ -152,6 +158,7 @@ export class CMIScore extends BaseCMI {
   set max(max: string) {
     if (
       validationService.validateScore(
+        this._cmi_element + ".max",
         max,
         this.__decimal_regex,
         this.__score_range,

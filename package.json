@@ -49,6 +49,7 @@
     "eslint-webpack-plugin": "^5.0.0",
     "expect": "^29.7.0",
     "extract-zip": "^2.0.1",
+    "fast-check": "^4.0.1",
     "fetch-pretender": "https://github.com/jcputney/fetch-pretender#master",
     "globals": "^16.0.0",
     "http-server": "^14.1.1",
@@ -79,6 +80,7 @@
     "test:integration:setup": "tsx test/integration/setup.ts",
     "test:integration:server": "tsx test/integration/server.ts",
     "test:integration": "yarn compile && npx playwright test",
+    "test:integration:ci": "yarn compile && npx playwright test --reporter=list",
     "compile": "./node_modules/.bin/webpack --bail --config webpack.config.js --mode production",
     "fix": "./node_modules/.bin/eslint ./src --fix",
     "prettier": "./node_modules/.bin/prettier --write src/**/*.ts test/**/*.ts src/*.ts test/*.ts"

@@ -3,8 +3,17 @@
  */
 export abstract class BaseCMI {
   jsonString? = false;
+  protected readonly _cmi_element: string;
   protected _initialized = false;
   private _start_time: number | undefined;
+
+  /**
+   * Constructor for BaseCMI
+   * @param {string} cmi_element
+   */
+  constructor(cmi_element: string) {
+    this._cmi_element = cmi_element;
+  }
 
   /**
    * Getter for _initialized

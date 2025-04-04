@@ -9,17 +9,20 @@ const scorm12_errors = scorm12_constants.error_descriptions;
 export class Scorm12ValidationError extends ValidationError {
   /**
    * Constructor to take in an error code
+   * @param {string} CMIElement
    * @param {number} errorCode
    */
-  constructor(errorCode: number) {
+  constructor(CMIElement: string, errorCode: number) {
     if ({}.hasOwnProperty.call(scorm12_errors, String(errorCode))) {
       super(
+        CMIElement,
         errorCode,
         scorm12_errors[String(errorCode)].basicMessage,
         scorm12_errors[String(errorCode)].detailMessage,
       );
     } else {
       super(
+        CMIElement,
         101,
         scorm12_errors["101"].basicMessage,
         scorm12_errors["101"].detailMessage,

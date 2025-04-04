@@ -1,18 +1,22 @@
 import { afterEach, beforeEach, describe, it } from "mocha";
 import { expect } from "expect";
 import * as sinon from "sinon";
-import BaseAPI from "../src/BaseAPI";
-import { BaseCMI, BaseRootCMI } from "../src/cmi/common/base_cmi";
-import { ErrorCode } from "../src/constants/error_codes";
-import { CommitObject, ResultObject, Settings } from "../src/types/api_types";
-import { global_constants } from "../src/constants/api_constants";
+import BaseAPI from "../../src/BaseAPI";
+import { BaseCMI, BaseRootCMI } from "../../src/cmi/common/base_cmi";
+import { ErrorCode } from "../../src/constants/error_codes";
+import {
+  CommitObject,
+  ResultObject,
+  Settings,
+} from "../../src/types/api_types";
+import { global_constants } from "../../src/constants/api_constants";
 import {
   CompletionStatus,
   LogLevelEnum,
   SuccessStatus,
-} from "../src/constants/enums";
-import { getLoggingService } from "../src/services/LoggingService";
-import { StringKeyMap } from "../src/utilities";
+} from "../../src/constants/enums";
+import { getLoggingService } from "../../src/services/LoggingService";
+import { StringKeyMap } from "../../src/utilities";
 import { SinonStub } from "sinon";
 
 // Create a concrete implementation of BaseAPI for testing
@@ -221,6 +225,7 @@ describe("BaseAPI", () => {
       expect(result).toBe(global_constants.SCORM_FALSE);
       expect(
         throwSCORMErrorSpy.calledWith(
+          "api",
           errorCodes.INITIALIZED,
           "Already initialized",
         ),
@@ -243,6 +248,7 @@ describe("BaseAPI", () => {
       expect(result).toBe(global_constants.SCORM_FALSE);
       expect(
         throwSCORMErrorSpy.calledWith(
+          "api",
           errorCodes.TERMINATED,
           "Already terminated",
         ),

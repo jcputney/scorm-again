@@ -31,7 +31,7 @@ export class CMI extends BaseRootCMI {
     student_data?: CMIStudentData,
     initialized?: boolean,
   ) {
-    super();
+    super("cmi");
     if (initialized) this.initialize();
     this.__children = cmi_children
       ? cmi_children
@@ -133,7 +133,10 @@ export class CMI extends BaseRootCMI {
    * @param {string} _version
    */
   set _version(_version: string) {
-    throw new Scorm12ValidationError(scorm12_errors.INVALID_SET_VALUE);
+    throw new Scorm12ValidationError(
+      this._cmi_element + "._version",
+      scorm12_errors.INVALID_SET_VALUE,
+    );
   }
 
   /**
@@ -149,7 +152,10 @@ export class CMI extends BaseRootCMI {
    * @param {string} _children
    */
   set _children(_children: string) {
-    throw new Scorm12ValidationError(scorm12_errors.INVALID_SET_VALUE);
+    throw new Scorm12ValidationError(
+      this._cmi_element + "._children",
+      scorm12_errors.INVALID_SET_VALUE,
+    );
   }
 
   /**
@@ -184,7 +190,10 @@ export class CMI extends BaseRootCMI {
    */
   set launch_data(launch_data: string) {
     if (this.initialized) {
-      throw new Scorm12ValidationError(scorm12_errors.READ_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".launch_data",
+        scorm12_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._launch_data = launch_data;
     }
@@ -203,7 +212,14 @@ export class CMI extends BaseRootCMI {
    * @param {string} comments
    */
   set comments(comments: string) {
-    if (check12ValidFormat(comments, scorm12_regex.CMIString4096, true)) {
+    if (
+      check12ValidFormat(
+        this._cmi_element + ".comments",
+        comments,
+        scorm12_regex.CMIString4096,
+        true,
+      )
+    ) {
       this._comments = comments;
     }
   }
@@ -222,7 +238,10 @@ export class CMI extends BaseRootCMI {
    */
   set comments_from_lms(comments_from_lms: string) {
     if (this.initialized) {
-      throw new Scorm12ValidationError(scorm12_errors.READ_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".comments_from_lms",
+        scorm12_errors.READ_ONLY_ELEMENT,
+      );
     } else {
       this._comments_from_lms = comments_from_lms;
     }

@@ -16,6 +16,7 @@ export class CMIInteractions extends CMIArray {
    */
   constructor() {
     super({
+      CMIElement: "cmi.interactions",
       children: scorm12_constants.interactions_children,
       errorCode: scorm12_errors.INVALID_SET_VALUE,
       errorClass: Scorm12ValidationError,
@@ -32,13 +33,15 @@ export class CMIInteractionsObject extends BaseCMI {
    * Constructor for cmi.interactions.n object
    */
   constructor() {
-    super();
+    super("cmi.interactions.n");
     this.objectives = new CMIArray({
+      CMIElement: "cmi.interactions.n.objectives",
       errorCode: scorm12_errors.INVALID_SET_VALUE,
       errorClass: Scorm12ValidationError,
       children: scorm12_constants.objectives_children,
     });
     this.correct_responses = new CMIArray({
+      CMIElement: "cmi.interactions.correct_responses",
       errorCode: scorm12_errors.INVALID_SET_VALUE,
       errorClass: Scorm12ValidationError,
       children: scorm12_constants.correct_responses_children,
@@ -89,7 +92,10 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   get id(): string {
     if (!this.jsonString) {
-      throw new Scorm12ValidationError(scorm12_errors.WRITE_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".id",
+        scorm12_errors.WRITE_ONLY_ELEMENT,
+      );
     }
     return this._id;
   }
@@ -99,7 +105,13 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} id
    */
   set id(id: string) {
-    if (check12ValidFormat(id, scorm12_regex.CMIIdentifier)) {
+    if (
+      check12ValidFormat(
+        this._cmi_element + ".id",
+        id,
+        scorm12_regex.CMIIdentifier,
+      )
+    ) {
       this._id = id;
     }
   }
@@ -110,7 +122,10 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   get time(): string {
     if (!this.jsonString) {
-      throw new Scorm12ValidationError(scorm12_errors.WRITE_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".time",
+        scorm12_errors.WRITE_ONLY_ELEMENT,
+      );
     }
     return this._time;
   }
@@ -120,7 +135,13 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} time
    */
   set time(time: string) {
-    if (check12ValidFormat(time, scorm12_regex.CMITime)) {
+    if (
+      check12ValidFormat(
+        this._cmi_element + ".time",
+        time,
+        scorm12_regex.CMITime,
+      )
+    ) {
       this._time = time;
     }
   }
@@ -131,7 +152,10 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   get type(): string {
     if (!this.jsonString) {
-      throw new Scorm12ValidationError(scorm12_errors.WRITE_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".type",
+        scorm12_errors.WRITE_ONLY_ELEMENT,
+      );
     }
     return this._type;
   }
@@ -141,7 +165,13 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} type
    */
   set type(type: string) {
-    if (check12ValidFormat(type, scorm12_regex.CMIType)) {
+    if (
+      check12ValidFormat(
+        this._cmi_element + ".type",
+        type,
+        scorm12_regex.CMIType,
+      )
+    ) {
       this._type = type;
     }
   }
@@ -152,7 +182,10 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   get weighting(): string {
     if (!this.jsonString) {
-      throw new Scorm12ValidationError(scorm12_errors.WRITE_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".weighting",
+        scorm12_errors.WRITE_ONLY_ELEMENT,
+      );
     }
     return this._weighting;
   }
@@ -163,8 +196,16 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   set weighting(weighting: string) {
     if (
-      check12ValidFormat(weighting, scorm12_regex.CMIDecimal) &&
-      check12ValidRange(weighting, scorm12_regex.weighting_range)
+      check12ValidFormat(
+        this._cmi_element + ".weighting",
+        weighting,
+        scorm12_regex.CMIDecimal,
+      ) &&
+      check12ValidRange(
+        this._cmi_element + ".weighting",
+        weighting,
+        scorm12_regex.weighting_range,
+      )
     ) {
       this._weighting = weighting;
     }
@@ -176,7 +217,10 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   get student_response(): string {
     if (!this.jsonString) {
-      throw new Scorm12ValidationError(scorm12_errors.WRITE_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".student_response",
+        scorm12_errors.WRITE_ONLY_ELEMENT,
+      );
     }
     return this._student_response;
   }
@@ -186,7 +230,14 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} student_response
    */
   set student_response(student_response: string) {
-    if (check12ValidFormat(student_response, scorm12_regex.CMIFeedback, true)) {
+    if (
+      check12ValidFormat(
+        this._cmi_element + ".student_response",
+        student_response,
+        scorm12_regex.CMIFeedback,
+        true,
+      )
+    ) {
       this._student_response = student_response;
     }
   }
@@ -197,7 +248,10 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   get result(): string {
     if (!this.jsonString) {
-      throw new Scorm12ValidationError(scorm12_errors.WRITE_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".result",
+        scorm12_errors.WRITE_ONLY_ELEMENT,
+      );
     }
     return this._result;
   }
@@ -207,7 +261,13 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} result
    */
   set result(result: string) {
-    if (check12ValidFormat(result, scorm12_regex.CMIResult)) {
+    if (
+      check12ValidFormat(
+        this._cmi_element + ".result",
+        result,
+        scorm12_regex.CMIResult,
+      )
+    ) {
       this._result = result;
     }
   }
@@ -218,7 +278,10 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   get latency(): string {
     if (!this.jsonString) {
-      throw new Scorm12ValidationError(scorm12_errors.WRITE_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".latency",
+        scorm12_errors.WRITE_ONLY_ELEMENT,
+      );
     }
     return this._latency;
   }
@@ -228,7 +291,13 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} latency
    */
   set latency(latency: string) {
-    if (check12ValidFormat(latency, scorm12_regex.CMITimespan)) {
+    if (
+      check12ValidFormat(
+        this._cmi_element + ".latency",
+        latency,
+        scorm12_regex.CMITimespan,
+      )
+    ) {
       this._latency = latency;
     }
   }
@@ -287,7 +356,7 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
    * Constructor for cmi.interactions.n.objectives.n
    */
   constructor() {
-    super();
+    super("cmi.interactions.n.objectives.n");
   }
 
   private _id = "";
@@ -313,7 +382,13 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
    * @param {string} id
    */
   set id(id: string) {
-    if (check12ValidFormat(id, scorm12_regex.CMIIdentifier)) {
+    if (
+      check12ValidFormat(
+        this._cmi_element + ".id",
+        id,
+        scorm12_regex.CMIIdentifier,
+      )
+    ) {
       this._id = id;
     }
   }
@@ -347,7 +422,7 @@ export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
    * Constructor for cmi.interactions.correct_responses.n
    */
   constructor() {
-    super();
+    super("cmi.interactions.correct_responses.n");
   }
 
   private _pattern = "";
@@ -366,7 +441,10 @@ export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
    */
   get pattern(): string {
     if (!this.jsonString) {
-      throw new Scorm12ValidationError(scorm12_errors.WRITE_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".pattern",
+        scorm12_errors.WRITE_ONLY_ELEMENT,
+      );
     }
     return this._pattern;
   }
@@ -376,7 +454,14 @@ export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
    * @param {string} pattern
    */
   set pattern(pattern: string) {
-    if (check12ValidFormat(pattern, scorm12_regex.CMIFeedback, true)) {
+    if (
+      check12ValidFormat(
+        this._cmi_element + ".pattern",
+        pattern,
+        scorm12_regex.CMIFeedback,
+        true,
+      )
+    ) {
       this._pattern = pattern;
     }
   }

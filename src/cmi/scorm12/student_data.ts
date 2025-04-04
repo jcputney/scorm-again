@@ -19,7 +19,7 @@ export class CMIStudentData extends BaseCMI {
    * @param {string} student_data_children
    */
   constructor(student_data_children?: string) {
-    super();
+    super("cmi.student_data");
     this.__children = student_data_children
       ? student_data_children
       : scorm12_constants.student_data_children;
@@ -47,7 +47,10 @@ export class CMIStudentData extends BaseCMI {
    * @private
    */
   set _children(_children: string) {
-    throw new Scorm12ValidationError(scorm12_errors.INVALID_SET_VALUE);
+    throw new Scorm12ValidationError(
+      this._cmi_element + "._children",
+      scorm12_errors.INVALID_SET_VALUE,
+    );
   }
 
   /**
@@ -63,7 +66,10 @@ export class CMIStudentData extends BaseCMI {
    * @param {string} mastery_score
    */
   set mastery_score(mastery_score: string) {
-    validationService.validateReadOnly(this.initialized);
+    validationService.validateReadOnly(
+      this._cmi_element + ".mastery_score",
+      this.initialized,
+    );
     this._mastery_score = mastery_score;
   }
 
@@ -80,7 +86,10 @@ export class CMIStudentData extends BaseCMI {
    * @param {string} max_time_allowed
    */
   set max_time_allowed(max_time_allowed: string) {
-    validationService.validateReadOnly(this.initialized);
+    validationService.validateReadOnly(
+      this._cmi_element + ".max_time_allowed",
+      this.initialized,
+    );
     this._max_time_allowed = max_time_allowed;
   }
 
@@ -97,7 +106,10 @@ export class CMIStudentData extends BaseCMI {
    * @param {string} time_limit_action
    */
   set time_limit_action(time_limit_action: string) {
-    validationService.validateReadOnly(this.initialized);
+    validationService.validateReadOnly(
+      this._cmi_element + ".time_limit_action",
+      this.initialized,
+    );
     this._time_limit_action = time_limit_action;
   }
 

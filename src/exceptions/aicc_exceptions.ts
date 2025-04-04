@@ -9,17 +9,20 @@ const aicc_errors = aicc_constants.error_descriptions;
 export class AICCValidationError extends ValidationError {
   /**
    * Constructor to take in an error code
+   * @param {string} CMIElement
    * @param {number} errorCode
    */
-  constructor(errorCode: number) {
+  constructor(CMIElement: string, errorCode: number) {
     if ({}.hasOwnProperty.call(aicc_errors, String(errorCode))) {
       super(
+        CMIElement,
         errorCode,
         aicc_errors[String(errorCode)].basicMessage,
         aicc_errors[String(errorCode)].detailMessage,
       );
     } else {
       super(
+        CMIElement,
         101,
         aicc_errors["101"].basicMessage,
         aicc_errors["101"].detailMessage,

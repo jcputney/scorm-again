@@ -3,23 +3,22 @@ import { after, before, describe, it } from "mocha";
 import * as sinon from "sinon";
 import * as h from "./api_helpers";
 import Pretender from "fetch-pretender";
-import { scorm2004_errors } from "../src/constants/error_codes";
-import { Scorm2004API } from "../src/Scorm2004API";
-import { scorm2004Values } from "./field_values";
+import { Scorm2004API } from "../../src/Scorm2004API";
+import { scorm2004Values } from "../field_values";
 import {
   global_constants,
   scorm2004_constants,
-} from "../src/constants/api_constants";
-import { Settings } from "../src/types/api_types";
-import { DefaultSettings } from "../src/constants/default_settings";
-import { CMIInteractions } from "../src/cmi/scorm2004/interactions";
-import { ADLNav } from "../src/cmi/scorm2004/adl";
+} from "../../src/constants/api_constants";
+import { Settings } from "../../src/types/api_types";
+import { DefaultSettings } from "../../src/constants/default_settings";
+import { CMIInteractions } from "../../src/cmi/scorm2004/interactions";
+import { ADLNav } from "../../src/cmi/scorm2004/adl";
 import {
   CompletionStatus,
   LogLevelEnum,
   SuccessStatus,
-} from "../src/constants/enums";
-import { StringKeyMap } from "../src/utilities";
+} from "../../src/constants/enums";
+import { StringKeyMap } from "../../src/utilities";
 
 let clock: sinon.SinonFakeTimers;
 const api = (
@@ -106,77 +105,77 @@ describe("SCORM 2004 API Tests", () => {
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi._version",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi._children",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.comments_from_learner._children",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.comments_from_learner._count",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.comments_from_lms._children",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.comments_from_lms._count",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.interactions._children",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.interactions._count",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.interactions.0.objectives._count",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.interactions.0.correct_responses._count",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.learner_preference._children",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.objectives._children",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.objectives._count",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.objectives.0.score._children",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: api(),
         fieldName: "cmi.score._children",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
     });
 
@@ -265,72 +264,72 @@ describe("SCORM 2004 API Tests", () => {
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.completion_threshold",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.credit",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.entry",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.launch_data",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.learner_id",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.learner_name",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.max_time_allowed",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.mode",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.scaled_passing_score",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.time_limit_action",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.total_time",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.comments_from_lms.0.comment",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.comments_from_lms.0.location",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkSetCMIValue({
         api: apiInitialized(),
         fieldName: "cmi.comments_from_lms.0.timestamp",
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
     });
   });
@@ -340,19 +339,19 @@ describe("SCORM 2004 API Tests", () => {
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.core.close",
-        expectedError: scorm2004_errors.UNDEFINED_DATA_MODEL,
+        expectedError: 401,
         errorThrown: false,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.core.exit",
-        expectedError: scorm2004_errors.UNDEFINED_DATA_MODEL,
+        expectedError: 401,
         errorThrown: false,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.core.entry",
-        expectedError: scorm2004_errors.UNDEFINED_DATA_MODEL,
+        expectedError: 401,
         errorThrown: false,
       });
     });
@@ -361,12 +360,12 @@ describe("SCORM 2004 API Tests", () => {
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.exit",
-        expectedError: scorm2004_errors.WRITE_ONLY_ELEMENT,
+        expectedError: 405,
       });
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.session_time",
-        expectedError: scorm2004_errors.WRITE_ONLY_ELEMENT,
+        expectedError: 405,
       });
     });
   });
@@ -376,27 +375,27 @@ describe("SCORM 2004 API Tests", () => {
       h.checkLMSSetValue({
         api: api(),
         fieldName: "cmi.objectives.0.id",
-        expectedError: scorm2004_errors.STORE_BEFORE_INIT,
+        expectedError: 132,
       });
       h.checkLMSSetValue({
         api: api(),
         fieldName: "cmi.interactions.0.id",
-        expectedError: scorm2004_errors.STORE_BEFORE_INIT,
+        expectedError: 132,
       });
       h.checkLMSSetValue({
         api: api(),
         fieldName: "cmi.comments_from_learner.0.comment",
-        expectedError: scorm2004_errors.STORE_BEFORE_INIT,
+        expectedError: 132,
       });
       h.checkLMSSetValue({
         api: api(),
         fieldName: "cmi.comments_from_lms.0.comment",
-        expectedError: scorm2004_errors.STORE_BEFORE_INIT,
+        expectedError: 132,
       });
       h.checkLMSSetValue({
         api: api(),
         fieldName: "adl.data.0.store",
-        expectedError: scorm2004_errors.STORE_BEFORE_INIT,
+        expectedError: 132,
       });
     });
 
@@ -576,7 +575,7 @@ describe("SCORM 2004 API Tests", () => {
         valueToTest:
           "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer et sodales purus, in aliquam ex. Nunc suscipit interdum tortor ut hendrerit. Donec auctor erat suscipit justo hendrerit, at lacinia ipsum ullamcorper. Cras sollicitudin vestibulum malesuada. Sed non nibh pharetra, suscipit ipsum sed, maximus tortor. Morbi pharetra accumsan turpis id fringilla. In volutpat metus a dui semper, nec tincidunt nibh aliquam. Praesent viverra neque in elementum commodo. Integer hendrerit placerat ante, ac finibus urna tincidunt at. Phasellus consectetur mauris vitae orci viverra luctus. Proin vestibulum blandit mauris quis pellentesque. Proin volutpat hendrerit nisi. Etiam pellentesque urna nec massa congue ultricies. Mauris at eros viverra, posuere tortor id, elementum nisi. In hac habitasse platea dictumst. Pellentesque semper tristique arcu, in tristique metus. Vestibulum ut lacus dui. Aenean mattis malesuada arcu non ullamcorper. Suspendisse tincidunt euismod tincidunt. In tincidunt at nunc rhoncus vehicula. Quisque nulla massa, vestibulum nec laoreet sit amet, posuere eu massa. Donec accumsan efficitur turpis, quis eleifend odio aliquam a. Phasellus placerat ante id dui consectetur dictum. Morbi aliquam, nibh id elementum suscipit, neque ante scelerisque velit, at feugiat turpis odio ac ligula. Phasellus vel urna nulla. Donec vulputate nulla vel purus pellentesque gravida. Vestibulum rutrum, est vel cursus ultrices, orci arcu scelerisque magna, id facilisis mauris arcu ut turpis. Vestibulum consectetur faucibus ante, eu posuere quam ornare et. Aenean vitae dictum neque. Donec nisl justo, porta a sapien quis, luctus congue diam. Integer id metus dolor. Maecenas euismod vulputate leo in lobortis. Vestibulum dignissim finibus est, sed sollicitudin ipsum hendrerit ac. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Pellentesque diam lorem, mattis vel orci interdum, tempor luctus elit. Ut id porta nisi. In dignissim quam urna, et iaculis lectus eleifend ut. Nam vitae felis ac risus tincidunt elementum. Nunc hendrerit augue a nulla hendrerit rutrum. Integer euismod est at orci eleifend, sed laoreet justo auctor. Sed sem orci, imperdiet at erat non, vehicula convallis libero. Aenean hendrerit cursus leo ut malesuada. Donec eu placerat lorem. Sed mattis tristique lorem, eget placerat erat scelerisque faucibus. Vivamus eleifend in augue id mollis. Nulla vehicula, metus eu auctor accumsan, lectus sapien pretium dui, non scelerisque magna augue a sem. Suspendisse sem enim, mattis ac augue non, placerat accumsan sem. Vivamus hendrerit, sapien sit amet consectetur pulvinar, ante nisl pulvinar purus, a ullamcorper dolor leo id arcu. Aliquam sed metus arcu. Quisque erat libero, tincidunt non dictum vel, bibendum ut ante. Nunc vel imperdiet risus. Sed sit amet porta enim. Mauris metus tortor, mattis vitae convallis vitae, dictum nec dui. Aliquam volutpat nisi consequat, gravida tellus eget, cursus purus. Nunc at venenatis enim. Proin dictum, magna ultrices tempor aliquam, metus lacus consectetur odio, quis pharetra massa est at est. Nullam non nibh massa. Duis scelerisque massa a luctus vehicula. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Donec tortor lacus, consequat eget neque sit amet, imperdiet porttitor felis. Duis ante erat, cursus sed venenatis nec, semper sollicitudin felis. Sed tincidunt et tortor quis vehicula. Morbi porta dapibus quam quis iaculis. Nunc mauris dolor, rutrum non pellentesque consectetur, ornare quis lacus. Maecenas eget feugiat odio. Proin vitae magna ut justo bibendum lacinia consequat at orci. Phasellus tincidunt lorem eu justo mollis sagittis. Maecenas fermentum nunc augue, et bibendum augue varius venenatis. Donec eu purus at tellus ullamcorper imperdiet. Duis id orci laoreet, semper eros et, tincidunt nisl. Suspendisse vehicula sed enim ut dignissim. Nam ornare leo eu nibh malesuada, eget ullamcorper sapien egestas. In at commod1",
         errorThrown: false,
-        expectedError: scorm2004_errors.TYPE_MISMATCH,
+        expectedError: 406,
       });
       h.checkLMSSetValue({
         api: apiInitialized({
@@ -592,105 +591,105 @@ describe("SCORM 2004 API Tests", () => {
         fieldName: "cmi.interactions.0.type",
         valueToTest: "unknown",
         errorThrown: false,
-        expectedError: scorm2004_errors.TYPE_MISMATCH,
+        expectedError: 406,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.type",
         valueToTest: "true-false",
         errorThrown: false,
-        expectedError: scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
+        expectedError: 408,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.description",
         valueToTest: "this is an interaction",
         errorThrown: false,
-        expectedError: scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
+        expectedError: 408,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.timestamp",
         valueToTest: "PT1S",
         errorThrown: false,
-        expectedError: scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
+        expectedError: 408,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.weighting",
         valueToTest: 1.0,
         errorThrown: false,
-        expectedError: scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
+        expectedError: 408,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.learner_response",
         valueToTest: "true",
         errorThrown: false,
-        expectedError: scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
+        expectedError: 408,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.latency",
         valueToTest: "PT1S",
         errorThrown: false,
-        expectedError: scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
+        expectedError: 408,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.objectives.0.success_status",
         valueToTest: "passed",
         errorThrown: false,
-        expectedError: scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
+        expectedError: 408,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.objectives.0.completion_status",
         valueToTest: "completed",
         errorThrown: false,
-        expectedError: scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
+        expectedError: 408,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.objectives.0.progress_measure",
         valueToTest: 1.0,
         errorThrown: false,
-        expectedError: scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
+        expectedError: 408,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.objectives.0.description",
         valueToTest: "this is an objective",
         errorThrown: false,
-        expectedError: scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
+        expectedError: 408,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.comments_from_lms.0.comment",
         valueToTest: "comment",
         errorThrown: false,
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.comments_from_lms.0.location",
         valueToTest: "location",
         errorThrown: false,
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.comments_from_lms.0.timestamp",
         valueToTest: scorm2004Values.validTimestamps[0],
         errorThrown: false,
-        expectedError: scorm2004_errors.READ_ONLY_ELEMENT,
+        expectedError: 404,
       });
       h.checkLMSSetValue({
         api: apiInitialized(),
         fieldName: "cmi.unknown",
         valueToTest: "uknown",
         errorThrown: false,
-        expectedError: scorm2004_errors.UNDEFINED_DATA_MODEL,
+        expectedError: 401,
       });
     });
   });
@@ -1020,7 +1019,7 @@ describe("SCORM 2004 API Tests", () => {
   describe("lmsGetDiagnostic()", () => {
     it("should return diagnostic information for a given error code", (): void => {
       const scorm2004API = api();
-      const errorCode = scorm2004_errors.GENERAL;
+      const errorCode = 101;
       const diagnosticInfo = scorm2004API.lmsGetDiagnostic(errorCode);
       expect(diagnosticInfo).toEqual(
         scorm2004_constants.error_descriptions[errorCode].detailMessage,
@@ -1038,7 +1037,7 @@ describe("SCORM 2004 API Tests", () => {
   describe("lmsGetErrorString()", () => {
     it("should return the error string for a given error code", (): void => {
       const scorm2004API = api();
-      const errorCode = scorm2004_errors.GENERAL;
+      const errorCode = 101;
       const errorString = scorm2004API.lmsGetErrorString(errorCode);
       expect(errorString).toEqual("General Exception");
     });
@@ -1070,51 +1069,69 @@ describe("SCORM 2004 API Tests", () => {
   describe("checkCorrectResponseValue()", () => {
     it("should properly handle the true-false response type for unknown value", (): void => {
       const scorm2004API = basicApi();
-      scorm2004API.checkCorrectResponseValue("true-false", ["unknown"], "true");
-      expect(scorm2004API.lmsGetLastError()).toEqual(
-        String(scorm2004_errors.TYPE_MISMATCH),
+      scorm2004API.checkCorrectResponseValue(
+        "api",
+        "true-false",
+        ["unknown"],
+        "true",
       );
+      expect(scorm2004API.lmsGetLastError()).toEqual(String(406));
     });
 
     it("should properly handle the true-false response type for correct value", (): void => {
       const scorm2004API = basicApi();
-      scorm2004API.checkCorrectResponseValue("true-false", ["true"], "true");
+      scorm2004API.checkCorrectResponseValue(
+        "api",
+        "true-false",
+        ["true"],
+        "true",
+      );
       expect(scorm2004API.lmsGetLastError()).toEqual(String(0));
     });
 
     it("should properly handle the choice response type for value over 4000 characters", (): void => {
       const scorm2004API = basicApi();
       scorm2004API.checkCorrectResponseValue(
+        "api",
         "choice",
         ["x".repeat(4001)],
         "true",
       );
-      expect(scorm2004API.lmsGetLastError()).toEqual(
-        String(scorm2004_errors.TYPE_MISMATCH),
-      );
+      expect(scorm2004API.lmsGetLastError()).toEqual(String(406));
     });
 
     it("should properly handle the choice response type for correct value", () => {
       const scorm2004API = basicApi();
-      scorm2004API.checkCorrectResponseValue("choice", ["true"], "true");
+      scorm2004API.checkCorrectResponseValue("api", "choice", ["true"], "true");
       expect(scorm2004API.lmsGetLastError()).toEqual(String(0));
     });
 
     it("should properly handle the fill-in response type for correct value", () => {
       const scorm2004API = basicApi();
-      scorm2004API.checkCorrectResponseValue("fill-in", ["true"], "true");
+      scorm2004API.checkCorrectResponseValue(
+        "api",
+        "fill-in",
+        ["true"],
+        "true",
+      );
       expect(scorm2004API.lmsGetLastError()).toEqual(String(0));
     });
 
     it("should properly handle the long-fill-in response type for correct value", () => {
       const scorm2004API = basicApi();
-      scorm2004API.checkCorrectResponseValue("long-fill-in", ["true"], "true");
+      scorm2004API.checkCorrectResponseValue(
+        "api",
+        "long-fill-in",
+        ["true"],
+        "true",
+      );
       expect(scorm2004API.lmsGetLastError()).toEqual(String(0));
     });
 
     it("should properly handle the matching response type for correct value", () => {
       const scorm2004API = basicApi();
       scorm2004API.checkCorrectResponseValue(
+        "api",
         "matching",
         ["{order_matters=true}0[.]1"],
         "true",
@@ -1127,21 +1144,21 @@ describe("SCORM 2004 API Tests", () => {
     it("should remove the prefix from the string", () => {
       const scorm2004API = basicApi();
       const input = "{order_matters=true}correctResponse";
-      const result = scorm2004API.removeCorrectResponsePrefixes(input);
+      const result = scorm2004API.removeCorrectResponsePrefixes("api", input);
       expect(result).toBe("correctResponse");
     });
 
     it("should return the original string if no prefix is present", () => {
       const scorm2004API = basicApi();
       const input = "correctResponse";
-      const result = scorm2004API.removeCorrectResponsePrefixes(input);
+      const result = scorm2004API.removeCorrectResponsePrefixes("api", input);
       expect(result).toBe("correctResponse");
     });
 
     it("should handle empty strings correctly", () => {
       const scorm2004API = basicApi();
       const input = "";
-      const result = scorm2004API.removeCorrectResponsePrefixes(input);
+      const result = scorm2004API.removeCorrectResponsePrefixes("api", input);
       expect(result).toBe("");
     });
 
@@ -1149,42 +1166,36 @@ describe("SCORM 2004 API Tests", () => {
       const scorm2004API = basicApi();
       const input =
         "{lang=en}{order_matters=true}{case_matters=false}correctResponse";
-      const result = scorm2004API.removeCorrectResponsePrefixes(input);
+      const result = scorm2004API.removeCorrectResponsePrefixes("api", input);
       expect(result).toBe("correctResponse");
     });
 
     it("should throw an error for invalid order_matters value", () => {
       const scorm2004API = basicApi();
       const input = "{order_matters=invalid}correctResponse";
-      scorm2004API.removeCorrectResponsePrefixes(input);
-      expect(scorm2004API.lmsGetLastError()).toEqual(
-        String(scorm2004_errors.TYPE_MISMATCH),
-      );
+      scorm2004API.removeCorrectResponsePrefixes("api", input);
+      expect(scorm2004API.lmsGetLastError()).toEqual(String(406));
     });
 
     it("should throw an error for invalid case_matters value", () => {
       const scorm2004API = basicApi();
       const input = "{case_matters=invalid}correctResponse";
-      scorm2004API.removeCorrectResponsePrefixes(input);
-      expect(scorm2004API.lmsGetLastError()).toEqual(
-        String(scorm2004_errors.TYPE_MISMATCH),
-      );
+      scorm2004API.removeCorrectResponsePrefixes("api", input);
+      expect(scorm2004API.lmsGetLastError()).toEqual(String(406));
     });
 
     it("should ignore an unknown prefix", () => {
       const scorm2004API = basicApi();
       const input = "{unknown=true}correctResponse";
-      const result = scorm2004API.removeCorrectResponsePrefixes(input);
+      const result = scorm2004API.removeCorrectResponsePrefixes("api", input);
       expect(result).toBe("{unknown=true}correctResponse");
     });
 
     it("should throw an error with an invalid language code", () => {
       const scorm2004API = basicApi();
       const input = "{lang=xyz}correctResponse";
-      scorm2004API.removeCorrectResponsePrefixes(input);
-      expect(scorm2004API.lmsGetLastError()).toEqual(
-        String(scorm2004_errors.TYPE_MISMATCH),
-      );
+      scorm2004API.removeCorrectResponsePrefixes("api", input);
+      expect(scorm2004API.lmsGetLastError()).toEqual(String(406));
     });
   });
 
@@ -1203,9 +1214,7 @@ describe("SCORM 2004 API Tests", () => {
         true,
       );
       expect(result).toBeNull();
-      expect(scorm2004API.lmsGetLastError()).toEqual(
-        String(scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED),
-      );
+      expect(scorm2004API.lmsGetLastError()).toEqual(String(408));
     });
 
     it("should call throwSCORMError with the correct arguments in createCorrectResponsesObject", () => {
@@ -1237,8 +1246,9 @@ describe("SCORM 2004 API Tests", () => {
 
       expect(
         throwSCORMErrorSpy.calledWith(
-          scorm2004_errors.GENERAL_SET_FAILURE,
-          "Incorrect Response Type: " + interaction.type,
+          "cmi.interactions.0.correct_responses.0",
+          351,
+          `Incorrect Response Type: ${interaction.type}`,
         ),
       ).toBe(true);
     });
@@ -1483,6 +1493,55 @@ describe("SCORM 2004 API Tests", () => {
       );
 
       expect(scorm20004api.cmi.learner_preference).not.toBeNull();
+    });
+  });
+
+  describe("Additional Error Code Tests", () => {
+    describe("TYPE_MISMATCH Tests for Invalid Values", () => {
+      // Test with invalid timestamp
+      h.checkLMSSetValue({
+        api: apiInitialized(),
+        fieldName: "cmi.comments_from_learner.0.timestamp",
+        valueToTest: scorm2004Values.invalidTimestamps[0],
+        errorThrown: false,
+        expectedError: 406,
+      });
+
+      // Test with invalid completion status
+      h.checkLMSSetValue({
+        api: apiInitialized(),
+        fieldName: "cmi.completion_status",
+        valueToTest: scorm2004Values.invalidCStatus[0],
+        errorThrown: false,
+        expectedError: 406,
+      });
+
+      // Test with invalid success status
+      h.checkLMSSetValue({
+        api: apiInitialized(),
+        fieldName: "cmi.success_status",
+        valueToTest: scorm2004Values.invalidSStatus[0],
+        errorThrown: false,
+        expectedError: 406,
+      });
+
+      // Test with invalid exit value
+      h.checkLMSSetValue({
+        api: apiInitialized(),
+        fieldName: "cmi.exit",
+        valueToTest: scorm2004Values.invalidExit[0],
+        errorThrown: false,
+        expectedError: 406,
+      });
+
+      // Test with invalid ISO8601 duration
+      h.checkLMSSetValue({
+        api: apiInitialized(),
+        fieldName: "cmi.session_time",
+        valueToTest: scorm2004Values.invalidISO8601Durations[0],
+        errorThrown: false,
+        expectedError: 406,
+      });
     });
   });
 });
