@@ -81,7 +81,7 @@ jobs:
       # Generate code coverage report and upload to Qlty
       - uses: qltysh/qlty-action/coverage@main
         with:
-          coverage-token: {{secrets.QLTY_COVERAGE_TOKEN}}
+          coverage-token: ${{secrets.QLTY_COVERAGE_TOKEN}}
           files: ${{github.workspace}}/coverage/lcov.info
 
       # Format code with Prettier
