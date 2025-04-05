@@ -11,6 +11,9 @@ import { BaseScormValidationError } from "../../src/exceptions";
 class TestValidationError extends BaseScormValidationError {
   constructor(CMIElement: string, errorCode: number) {
     super(CMIElement, errorCode);
+
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, TestValidationError.prototype);
   }
 }
 

@@ -45,7 +45,7 @@ export default defineConfig({
   webServer: {
     command: "yarn run test:integration:server",
     url: "http://localhost:3000",
-    reuseExistingServer: false,
+    reuseExistingServer: true,
     stdout: "pipe",
     stderr: "pipe",
     timeout: 120000, // Increase timeout to 2 minutes

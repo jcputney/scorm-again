@@ -70,6 +70,7 @@ var Scorm2004ValidationError = (function (_super) {
         else {
             _this = _super.call(this, CMIElement, 101, scorm2004_errors["101"].basicMessage, scorm2004_errors["101"].detailMessage) || this;
         }
+        Object.setPrototypeOf(_this, Scorm2004ValidationError.prototype);
         return _this;
     }
     return Scorm2004ValidationError;
@@ -3191,6 +3192,7 @@ var Scorm12ValidationError = (function (_super) {
         else {
             _this = _super.call(this, CMIElement, 101, scorm12_errors["101"].basicMessage, scorm12_errors["101"].detailMessage) || this;
         }
+        Object.setPrototypeOf(_this, Scorm12ValidationError.prototype);
         return _this;
     }
     return Scorm12ValidationError;
@@ -4176,13 +4178,36 @@ var array = __webpack_require__(589);
 
 
 function isValidationError(value) {
-    return value instanceof exceptions/* ValidationError */.y;
+    if (value instanceof exceptions/* ValidationError */.y) {
+        return true;
+    }
+    return (value !== null &&
+        typeof value === "object" &&
+        "errorCode" in value &&
+        "errorMessage" in value &&
+        typeof value.errorCode === "number" &&
+        typeof value.errorMessage === "string");
 }
 function isError(value) {
-    return value instanceof Error;
+    if (value instanceof Error) {
+        return true;
+    }
+    return (value !== null &&
+        typeof value === "object" &&
+        "message" in value &&
+        typeof value.message === "string" &&
+        "name" in value &&
+        typeof value.name === "string");
 }
 function isCMIArray(value) {
-    return value instanceof array/* CMIArray */.B;
+    if (value instanceof array/* CMIArray */.B) {
+        return true;
+    }
+    return (value !== null &&
+        typeof value === "object" &&
+        "childArray" in value &&
+        Array.isArray(value.childArray) &&
+        "initialized" in value);
 }
 
 ;// ./src/services/ErrorHandlingService.ts
@@ -4220,7 +4245,8 @@ var ErrorHandlingService = (function () {
     };
     ErrorHandlingService.prototype.handleValueAccessException = function (CMIElement, e, returnValue) {
         if (isValidationError(e)) {
-            this._lastErrorCode = String(e.errorCode);
+            var validationError = e;
+            this._lastErrorCode = String(validationError.errorCode);
             returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
         }
         else {
@@ -4327,7 +4353,6 @@ function getLoggingService() {
 }
 
 ;// ./src/BaseAPI.ts
-
 
 
 
@@ -4638,29 +4663,25 @@ var BaseAPI = (function () {
                 if (scorm2004 && attribute.substring(0, 8) === "{target=") {
                     if (this.isInitialized()) {
                         this.throwSCORMError(CMIElement, this._error_codes.READ_ONLY_ELEMENT);
+                        break;
                     }
                     else {
                         refObject = (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, refObject), { attribute: value });
                     }
                 }
-                else if (attribute === "pattern" &&
-                    CMIElement.includes(".correct_responses.") &&
-                    this.isInitialized()) {
-                    this.validateCorrectResponse(CMIElement, value);
-                    if (this._errorHandlingService.lastErrorCode === "0") {
-                        refObject[attribute] = value;
-                        returnValue = api_constants/* global_constants */._y.SCORM_TRUE;
-                    }
-                    continue;
-                }
                 else if (!this._checkObjectHasProperty(refObject, attribute)) {
                     this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+                    break;
                 }
                 else {
                     if ((0,utilities/* stringMatches */.J6)(CMIElement, "\\.correct_responses\\.\\d+$") &&
                         this.isInitialized() &&
                         attribute !== "pattern") {
                         this.validateCorrectResponse(CMIElement, value);
+                        if (this.lastErrorCode !== "0") {
+                            this.throwSCORMError(CMIElement, this._error_codes.TYPE_MISMATCH);
+                            break;
+                        }
                     }
                     if (!scorm2004 || this._errorHandlingService.lastErrorCode === "0") {
                         refObject[attribute] = value;
@@ -4686,12 +4707,15 @@ var BaseAPI = (function () {
                             var newChild = this.getChildElement(CMIElement, value, foundFirstIndex);
                             foundFirstIndex = true;
                             if (!newChild) {
-                                this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+                                if (this.lastErrorCode === "0") {
+                                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+                                }
+                                break;
                             }
                             else {
                                 if (refObject.initialized)
                                     newChild.initialize();
-                                refObject.childArray.push(newChild);
+                                refObject.childArray[index] = newChild;
                                 refObject = newChild;
                             }
                         }
@@ -4853,9 +4877,10 @@ var BaseAPI = (function () {
             attribute in StringKeyMap);
     };
     BaseAPI.prototype.handleValueAccessException = function (CMIElement, e, returnValue) {
-        if (e instanceof exceptions/* ValidationError */.y) {
+        if (isValidationError(e)) {
             this.lastErrorCode = String(e.errorCode);
             returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
+            this.throwSCORMError(CMIElement, e.errorCode, e.errorMessage);
         }
         else {
             if (isError(e) && e.message) {
@@ -5083,8 +5108,8 @@ var checkValidFormat = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__/* .memoize */ 
         throw new errorClass(CMIElement, errorCode);
     }
     return true;
-}, function (value, regexPattern, errorCode, _errorClass, allowEmptyString) {
-    return "".concat(value, ":").concat(regexPattern, ":").concat(errorCode, ":").concat(allowEmptyString || false);
+}, function (CMIElement, value, regexPattern, errorCode, _errorClass, allowEmptyString) {
+    return "".concat(CMIElement, ":").concat(value, ":").concat(regexPattern, ":").concat(errorCode, ":").concat(allowEmptyString || false);
 });
 var checkValidRange = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__/* .memoize */ .Bj)(function (CMIElement, value, rangePattern, errorCode, errorClass) {
     var ranges = rangePattern.split("#");
@@ -5100,8 +5125,8 @@ var checkValidRange = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__/* .memoize */ .
     else {
         throw new errorClass(CMIElement, errorCode);
     }
-}, function (value, rangePattern, errorCode, _errorClass) {
-    return "".concat(value, ":").concat(rangePattern, ":").concat(errorCode);
+}, function (CMIElement, value, rangePattern, errorCode, _errorClass) {
+    return "".concat(CMIElement, ":").concat(value, ":").concat(rangePattern, ":").concat(errorCode);
 });
 
 
@@ -5678,7 +5703,7 @@ var BaseScormValidationError = (function (_super) {
     function BaseScormValidationError(CMIElement, errorCode) {
         var _this = _super.call(this, "".concat(CMIElement, " : ").concat(errorCode.toString())) || this;
         _this._errorCode = errorCode;
-        _this.name = "ScormValidationError";
+        Object.setPrototypeOf(_this, BaseScormValidationError.prototype);
         return _this;
     }
     Object.defineProperty(BaseScormValidationError.prototype, "errorCode", {
@@ -5701,6 +5726,7 @@ var ValidationError = (function (_super) {
         if (detailedMessage) {
             _this._detailedMessage = detailedMessage;
         }
+        Object.setPrototypeOf(_this, ValidationError.prototype);
         return _this;
     }
     Object.defineProperty(ValidationError.prototype, "errorMessage", {
@@ -6398,6 +6424,7 @@ var AICCValidationError = (function (_super) {
         else {
             _this = _super.call(this, CMIElement, 101, aicc_errors["101"].basicMessage, aicc_errors["101"].detailMessage) || this;
         }
+        Object.setPrototypeOf(_this, AICCValidationError.prototype);
         return _this;
     }
     return AICCValidationError;

@@ -8,7 +8,9 @@ export class BaseScormValidationError extends Error {
   constructor(CMIElement: string, errorCode: number) {
     super(`${CMIElement} : ${errorCode.toString()}`);
     this._errorCode = errorCode;
-    this.name = "ScormValidationError";
+
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, BaseScormValidationError.prototype);
   }
 
   private readonly _errorCode: number;
@@ -48,6 +50,9 @@ export class ValidationError
     if (detailedMessage) {
       this._detailedMessage = detailedMessage;
     }
+
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, ValidationError.prototype);
   }
 
   private readonly _errorMessage: string;

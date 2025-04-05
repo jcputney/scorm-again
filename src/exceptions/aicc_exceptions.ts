@@ -28,5 +28,8 @@ export class AICCValidationError extends ValidationError {
         aicc_errors["101"].detailMessage,
       );
     }
+
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, AICCValidationError.prototype);
   }
 }

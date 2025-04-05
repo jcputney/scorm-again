@@ -28,5 +28,8 @@ export class Scorm12ValidationError extends ValidationError {
         scorm12_errors["101"].detailMessage,
       );
     }
+
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, Scorm12ValidationError.prototype);
   }
 }

@@ -2,12 +2,15 @@ import { describe, it } from "mocha";
 import { expect } from "expect";
 import * as fc from "fast-check";
 import { validationService } from "../../src/services/ValidationService";
-import { BaseScormValidationError } from "../../src/exceptions";
+import { BaseScormValidationError } from "../../src/exceptions"; // Custom error class for testing
 
 // Custom error class for testing
 class TestValidationError extends BaseScormValidationError {
   constructor(CMIElement: string, errorCode: number) {
     super(CMIElement, errorCode);
+
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, TestValidationError.prototype);
   }
 }
 
