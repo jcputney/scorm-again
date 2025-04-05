@@ -86,7 +86,7 @@ logically ordered and covers both architectural and code-level improvements.
    - [x] Implement tests for "GetLastError" for all error codes
    - [x] Implement tests for all CMI data types
    - [x] Add tests for all SCORM data model elements
-   - [ ] Create tests for all error conditions
+   - [x] Create tests for all error conditions
    - [ ] Implement tests for all API methods
    - [ ] Add tests for all event handling scenarios
 
