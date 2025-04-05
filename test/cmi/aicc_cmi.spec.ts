@@ -514,9 +514,7 @@ describe("AICC CMI Tests", () => {
         const cmiObj = cmi();
         cmiObj.objectives.childArray.push(new CMIObjectivesObject());
         cmiObj.interactions.childArray.push(new CMIInteractionsObject());
-        cmiObj.evaluation.comments.childArray.push(
-          new CMIEvaluationCommentsObject(),
-        );
+        cmiObj.evaluation.comments.childArray.push(new CMIEvaluationCommentsObject());
         cmiObj.student_data.tries.childArray.push(new CMITriesObject());
         expect(JSON.stringify(cmiObj)).toEqual(
           '{"suspend_data":"","launch_data":"","comments":"","comments_from_lms":"","core":{"student_id":"","student_name":"","lesson_location":"","credit":"","lesson_status":"not attempted","entry":"","lesson_mode":"normal","exit":"","session_time":"00:00:00","score":{"raw":"","min":"","max":"100"}},"objectives":{"0":{"id":"","status":"","score":{"raw":"","min":"","max":"100"}}},"student_data":{"mastery_score":"","max_time_allowed":"","time_limit_action":"","tries":{"0":{"status":"","time":"","score":{"raw":"","min":"","max":"100"}}},"attempt_records":{}},"student_preference":{"audio":"","language":"","lesson_type":"","speed":"","text":"","text_color":"","text_location":"","text_size":"","video":"","windows":{}},"student_demographics":{"city":"","class":"","company":"","country":"","experience":"","familiar_name":"","instructor_name":"","title":"","native_language":"","state":"","street_address":"","telephone":"","years_experience":""},"interactions":{"0":{"id":"","time":"","type":"","weighting":"","student_response":"","result":"","latency":"","objectives":{},"correct_responses":{}}},"evaluation":{"comments":{"0":{"content":"","location":"","time":""}}},"paths":{}}',
@@ -812,9 +810,7 @@ describe("AICC CMI Tests", () => {
 
       it("should export JSON", () => {
         const cmi = evaluationComment();
-        expect(JSON.stringify(cmi)).toEqual(
-          '{"content":"","location":"","time":""}',
-        );
+        expect(JSON.stringify(cmi)).toEqual('{"content":"","location":"","time":""}');
       });
     });
 

@@ -288,9 +288,7 @@ describe("AICC API Tests", () => {
       aiccAPI.reset();
       expect(aiccAPI.cmi.interactions).toEqual(new CMIInteractions());
       expect(aiccAPI.cmi.core.student_id).toEqual("student_1");
-      expect(aiccAPI.getCMIValue("cmi.student_data.tries")).toEqual(
-        new CMITries(),
-      );
+      expect(aiccAPI.getCMIValue("cmi.student_data.tries")).toEqual(new CMITries());
     });
 
     it("should keep original settings", () => {
@@ -301,9 +299,7 @@ describe("AICC API Tests", () => {
 
       aiccAPI.reset();
 
-      expect(aiccAPI.settings.sendFullCommit).toEqual(
-        DefaultSettings.sendFullCommit,
-      );
+      expect(aiccAPI.settings.sendFullCommit).toEqual(DefaultSettings.sendFullCommit);
       expect(aiccAPI.settings.dataCommitFormat).toEqual("flattened");
       expect(aiccAPI.settings.autocommit).toEqual(true);
     });
@@ -319,14 +315,10 @@ describe("AICC API Tests", () => {
         alwaysSendTotalTime: !DefaultSettings.alwaysSendTotalTime,
       });
 
-      expect(aiccAPI.settings.sendFullCommit).toEqual(
-        DefaultSettings.sendFullCommit,
-      );
+      expect(aiccAPI.settings.sendFullCommit).toEqual(DefaultSettings.sendFullCommit);
       expect(aiccAPI.settings.dataCommitFormat).toEqual("flattened");
       expect(aiccAPI.settings.autocommit).toEqual(true);
-      expect(aiccAPI.settings.alwaysSendTotalTime).toEqual(
-        !DefaultSettings.alwaysSendTotalTime,
-      );
+      expect(aiccAPI.settings.alwaysSendTotalTime).toEqual(!DefaultSettings.alwaysSendTotalTime);
     });
 
     it("should call commonReset from the superclass", () => {

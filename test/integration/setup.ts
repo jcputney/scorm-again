@@ -52,9 +52,7 @@ function downloadModules(): Promise<void> {
     https
       .get(MODULES_URL, (response) => {
         if (response.statusCode !== 200) {
-          reject(
-            new Error(`Failed to download modules: ${response.statusCode}`),
-          );
+          reject(new Error(`Failed to download modules: ${response.statusCode}`));
           return;
         }
 

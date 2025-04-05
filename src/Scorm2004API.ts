@@ -2,19 +2,11 @@ import BaseAPI from "./BaseAPI";
 import { CMI } from "./cmi/scorm2004/cmi";
 import * as Utilities from "./utilities";
 import { StringKeyMap, stringMatches } from "./utilities";
-import {
-  global_constants,
-  scorm2004_constants,
-} from "./constants/api_constants";
+import { global_constants, scorm2004_constants } from "./constants/api_constants";
 import { scorm2004_errors } from "./constants/error_codes";
 import { CMIObjectivesObject } from "./cmi/scorm2004/objectives";
 import { ADL, ADLDataObject } from "./cmi/scorm2004/adl";
-import {
-  CommitObject,
-  ResultObject,
-  ScoreObject,
-  Settings,
-} from "./types/api_types";
+import { CommitObject, ResultObject, ScoreObject, Settings } from "./types/api_types";
 import { scorm2004_regex } from "./constants/regex"; // Import functions from extracted modules
 import { BaseCMI } from "./cmi/common/base_cmi";
 import {
@@ -261,10 +253,7 @@ class Scorm2004Impl extends BaseAPI {
       const element_base = `cmi.objectives.${index}`;
 
       let objective_id;
-      const setting_id = stringMatches(
-        CMIElement,
-        "cmi\\.objectives\\.\\d+\\.id",
-      );
+      const setting_id = stringMatches(CMIElement, "cmi\\.objectives\\.\\d+\\.id");
 
       if (setting_id) {
         // If we're setting the objective ID, capture it directly
@@ -276,14 +265,11 @@ class Scorm2004Impl extends BaseAPI {
       }
 
       // Check if the objective ID matches a global objective
-      const is_global =
-        objective_id && this.settings.globalObjectiveIds.includes(objective_id);
+      const is_global = objective_id && this.settings.globalObjectiveIds.includes(objective_id);
 
       if (is_global) {
         // Locate or create an entry in _globalObjectives for the global objective
-        let global_index = this._globalObjectives.findIndex(
-          (obj) => obj.id === objective_id,
-        );
+        let global_index = this._globalObjectives.findIndex((obj) => obj.id === objective_id);
 
         if (global_index === -1) {
           global_index = this._globalObjectives.length;
@@ -297,12 +283,7 @@ class Scorm2004Impl extends BaseAPI {
           element_base,
           `_globalObjectives.${global_index}`,
         );
-        this._commonSetCMIValue(
-          "SetGlobalObjectiveValue",
-          true,
-          global_element,
-          value,
-        );
+        this._commonSetCMIValue("SetGlobalObjectiveValue", true, global_element, value);
       }
     }
     return this._commonSetCMIValue("SetValue", true, CMIElement, value);
@@ -316,29 +297,15 @@ class Scorm2004Impl extends BaseAPI {
    * @param {boolean} foundFirstIndex
    * @return {BaseCMI|null}
    */
-  getChildElement(
-    CMIElement: string,
-    value: any,
-    foundFirstIndex: boolean,
-  ): BaseCMI | null {
+  getChildElement(CMIElement: string, value: any, foundFirstIndex: boolean): BaseCMI | null {
     if (stringMatches(CMIElement, "cmi\\.objectives\\.\\d+")) {
       return new CMIObjectivesObject();
     }
 
     if (foundFirstIndex) {
-      if (
-        stringMatches(
-          CMIElement,
-          "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+",
-        )
-      ) {
+      if (stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+")) {
         return this.createCorrectResponsesObject(CMIElement, value);
-      } else if (
-        stringMatches(
-          CMIElement,
-          "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+",
-        )
-      ) {
+      } else if (stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")) {
         return new CMIInteractionsObjectivesObject();
       }
     } else if (stringMatches(CMIElement, "cmi\\.interactions\\.\\d+")) {
@@ -365,32 +332,20 @@ class Scorm2004Impl extends BaseAPI {
    * @param {any} value
    * @return {BaseCMI|null}
    */
-  private createCorrectResponsesObject(
-    CMIElement: string,
-    value: any,
-  ): BaseCMI | null {
+  private createCorrectResponsesObject(CMIElement: string, value: any): BaseCMI | null {
     const parts = CMIElement.split(".");
     const index = Number(parts[2]);
     const interaction = this.cmi.interactions.childArray[index];
 
     if (this.isInitialized()) {
       if (typeof interaction === "undefined" || !interaction.type) {
-        this.throwSCORMError(
-          CMIElement,
-          scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
-          CMIElement,
-        );
+        this.throwSCORMError(CMIElement, scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED, CMIElement);
         return null;
       } else {
         this.checkDuplicateChoiceResponse(CMIElement, interaction, value);
         const response_type = CorrectResponses[interaction.type];
         if (response_type) {
-          this.checkValidResponseType(
-            CMIElement,
-            response_type,
-            value,
-            interaction.type,
-          );
+          this.checkValidResponseType(CMIElement, response_type, value, interaction.type);
         } else {
           this.throwSCORMError(
             CMIElement,
@@ -430,12 +385,7 @@ class Scorm2004Impl extends BaseAPI {
     }
 
     if (nodes.length > 0 && nodes.length <= response_type.max) {
-      this.checkCorrectResponseValue(
-        CMIElement,
-        interaction_type,
-        nodes,
-        value,
-      );
+      this.checkCorrectResponseValue(CMIElement, interaction_type, nodes, value);
     } else if (nodes.length > response_type.max) {
       this.throwSCORMError(
         CMIElement,
@@ -451,25 +401,13 @@ class Scorm2004Impl extends BaseAPI {
    * @param {CMIInteractionsObject} interaction
    * @param {any} value
    */
-  checkDuplicateChoiceResponse(
-    CMIElement: string,
-    interaction: CMIInteractionsObject,
-    value: any,
-  ) {
+  checkDuplicateChoiceResponse(CMIElement: string, interaction: CMIInteractionsObject, value: any) {
     const interaction_count = interaction.correct_responses._count;
     if (interaction.type === "choice") {
-      for (
-        let i = 0;
-        i < interaction_count && this.lastErrorCode === "0";
-        i++
-      ) {
+      for (let i = 0; i < interaction_count && this.lastErrorCode === "0"; i++) {
         const response = interaction.correct_responses.childArray[i];
         if (response.pattern === value) {
-          this.throwSCORMError(
-            CMIElement,
-            scorm2004_errors.GENERAL_SET_FAILURE,
-            `${value}`,
-          );
+          this.throwSCORMError(CMIElement, scorm2004_errors.GENERAL_SET_FAILURE, `${value}`);
         }
       }
     }
@@ -490,25 +428,13 @@ class Scorm2004Impl extends BaseAPI {
     this.checkDuplicateChoiceResponse(CMIElement, interaction, value);
 
     const response_type = CorrectResponses[interaction.type];
-    if (
-      typeof response_type.limit === "undefined" ||
-      interaction_count <= response_type.limit
-    ) {
-      this.checkValidResponseType(
-        CMIElement,
-        response_type,
-        value,
-        interaction.type,
-      );
+    if (typeof response_type.limit === "undefined" || interaction_count <= response_type.limit) {
+      this.checkValidResponseType(CMIElement, response_type, value, interaction.type);
 
       if (
         (this.lastErrorCode === "0" &&
           (!response_type.duplicate ||
-            !this.checkDuplicatedPattern(
-              interaction.correct_responses,
-              pattern_index,
-              value,
-            ))) ||
+            !this.checkDuplicatedPattern(interaction.correct_responses, pattern_index, value))) ||
         (this.lastErrorCode === "0" && value === "")
       ) {
         // do nothing, we want the inverse
@@ -547,20 +473,15 @@ class Scorm2004Impl extends BaseAPI {
    * @param {boolean} detail
    * @return {string}
    */
-  override getLmsErrorMessageDetails(
-    errorNumber: string | number,
-    detail: boolean,
-  ): string {
+  override getLmsErrorMessageDetails(errorNumber: string | number, detail: boolean): string {
     let basicMessage = "";
     let detailMessage = "";
 
     // Set error number to string since inconsistent from modules if string or number
     errorNumber = String(errorNumber);
     if (scorm2004_constants.error_descriptions[errorNumber]) {
-      basicMessage =
-        scorm2004_constants.error_descriptions[errorNumber].basicMessage;
-      detailMessage =
-        scorm2004_constants.error_descriptions[errorNumber].detailMessage;
+      basicMessage = scorm2004_constants.error_descriptions[errorNumber].basicMessage;
+      detailMessage = scorm2004_constants.error_descriptions[errorNumber].detailMessage;
     }
 
     return detail ? detailMessage : basicMessage;
@@ -573,11 +494,7 @@ class Scorm2004Impl extends BaseAPI {
    * @param {*} value
    * @return {boolean}
    */
-  checkDuplicatedPattern(
-    correct_response: CMIArray,
-    current_index: number,
-    value: any,
-  ): boolean {
+  checkDuplicatedPattern(correct_response: CMIArray, current_index: number, value: any): boolean {
     let found = false;
     const count = correct_response._count;
     for (let i = 0; i < count && !found; i++) {
@@ -612,11 +529,7 @@ class Scorm2004Impl extends BaseAPI {
     }
     const formatRegex = new RegExp(response.format);
     for (let i = 0; i < nodes.length && this.lastErrorCode === "0"; i++) {
-      if (
-        interaction_type.match(
-          "^(fill-in|long-fill-in|matching|performance|sequencing)$",
-        )
-      ) {
+      if (interaction_type.match("^(fill-in|long-fill-in|matching|performance|sequencing)$")) {
         nodes[i] = this.removeCorrectResponsePrefixes(CMIElement, nodes[i]);
       }
 
@@ -631,10 +544,7 @@ class Scorm2004Impl extends BaseAPI {
               `${interaction_type}: ${value}`,
             );
           } else {
-            if (
-              !response.format2 ||
-              !values[1].match(new RegExp(response.format2))
-            ) {
+            if (!response.format2 || !values[1].match(new RegExp(response.format2))) {
               this.throwSCORMError(
                 CMIElement,
                 scorm2004_errors.TYPE_MISMATCH,
@@ -651,10 +561,7 @@ class Scorm2004Impl extends BaseAPI {
         }
       } else {
         const matches = nodes[i].match(formatRegex);
-        if (
-          (!matches && value !== "") ||
-          (!matches && interaction_type === "true-false")
-        ) {
+        if ((!matches && value !== "") || (!matches && interaction_type === "true-false")) {
           this.throwSCORMError(
             CMIElement,
             scorm2004_errors.TYPE_MISMATCH,
@@ -698,9 +605,7 @@ class Scorm2004Impl extends BaseAPI {
     let seenCase = false;
     let seenLang = false;
 
-    const prefixRegex = new RegExp(
-      "^({(lang|case_matters|order_matters)=([^}]+)})",
-    );
+    const prefixRegex = new RegExp("^({(lang|case_matters|order_matters)=([^}]+)})");
     let matches = node.match(prefixRegex);
     let langMatches = null;
     while (matches) {
@@ -711,11 +616,7 @@ class Scorm2004Impl extends BaseAPI {
             const lang = langMatches[3];
             if (lang !== undefined && lang.length > 0) {
               if (!ValidLanguages.includes(lang.toLowerCase())) {
-                this.throwSCORMError(
-                  CMIElement,
-                  scorm2004_errors.TYPE_MISMATCH,
-                  `${node}`,
-                );
+                this.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, `${node}`);
               }
             }
           }
@@ -724,11 +625,7 @@ class Scorm2004Impl extends BaseAPI {
         case "case_matters":
           if (!seenLang && !seenOrder && !seenCase) {
             if (matches[3] !== "true" && matches[3] !== "false") {
-              this.throwSCORMError(
-                CMIElement,
-                scorm2004_errors.TYPE_MISMATCH,
-                `${node}`,
-              );
+              this.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, `${node}`);
             }
           }
 
@@ -737,11 +634,7 @@ class Scorm2004Impl extends BaseAPI {
         case "order_matters":
           if (!seenCase && !seenLang && !seenOrder) {
             if (matches[3] !== "true" && matches[3] !== "false") {
-              this.throwSCORMError(
-                CMIElement,
-                scorm2004_errors.TYPE_MISMATCH,
-                `${node}`,
-              );
+              this.throwSCORMError(CMIElement, scorm2004_errors.TYPE_MISMATCH, `${node}`);
             }
           }
 
@@ -775,9 +668,7 @@ class Scorm2004Impl extends BaseAPI {
     const cmiExport: StringKeyMap = this.renderCMIToJSONObject();
 
     if (terminateCommit) {
-      (cmiExport.cmi as any).total_time = (
-        this.cmi as any
-      ).getCurrentTotalTime();
+      (cmiExport.cmi as any).total_time = (this.cmi as any).getCurrentTotalTime();
     }
 
     const result = [];
@@ -890,8 +781,7 @@ class Scorm2004Impl extends BaseAPI {
     let navRequest = false;
     if (
       this.adl.nav.request !==
-        ((this.startingData?.adl as StringKeyMap)?.nav as StringKeyMap)
-          ?.request &&
+        ((this.startingData?.adl as StringKeyMap)?.nav as StringKeyMap)?.request &&
       this.adl.nav.request !== "_none_"
     ) {
       navRequest = true;
@@ -920,10 +810,7 @@ class Scorm2004Impl extends BaseAPI {
           typeof result.navRequest === "object" &&
           Object.hasOwnProperty.call(result.navRequest, "name")
         ) {
-          this.processListeners(
-            result.navRequest.name as string,
-            result.navRequest.data as string,
-          );
+          this.processListeners(result.navRequest.name as string, result.navRequest.data as string);
         }
       }
 

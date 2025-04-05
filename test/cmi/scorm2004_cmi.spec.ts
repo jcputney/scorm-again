@@ -724,9 +724,7 @@ describe("SCORM 2004 CMI Tests", () => {
 
       it("should export JSON", () => {
         const cmi = comments();
-        expect(JSON.stringify(cmi)).toEqual(
-          '{"comment":"","location":"","timestamp":""}',
-        );
+        expect(JSON.stringify(cmi)).toEqual('{"comment":"","location":"","timestamp":""}');
       });
     });
 
@@ -778,9 +776,7 @@ describe("SCORM 2004 CMI Tests", () => {
 
       it("should export JSON", () => {
         const cmi = lmsComments();
-        expect(JSON.stringify(cmi)).toEqual(
-          '{"comment":"","location":"","timestamp":""}',
-        );
+        expect(JSON.stringify(cmi)).toEqual('{"comment":"","location":"","timestamp":""}');
       });
     });
 
@@ -840,11 +836,7 @@ describe("SCORM 2004 CMI Tests", () => {
       h.checkValidValues({
         cmi: interaction(),
         fieldName: "cmi.result",
-        validValues: scorm2004Values.validResult.concat([
-          "1",
-          "999",
-          "999.99999",
-        ]),
+        validValues: scorm2004Values.validResult.concat(["1", "999", "999.99999"]),
         invalidValues: scorm2004Values.invalidResult,
       });
       h.checkRead({
@@ -868,9 +860,7 @@ describe("SCORM 2004 CMI Tests", () => {
       it("should export JSON", () => {
         const cmi = interaction();
         cmi.objectives.childArray.push(new CMIInteractionsObjectivesObject());
-        cmi.correct_responses.childArray.push(
-          new CMIInteractionsCorrectResponsesObject(),
-        );
+        cmi.correct_responses.childArray.push(new CMIInteractionsCorrectResponsesObject());
         expect(JSON.stringify(cmi)).toEqual(
           '{"id":"","type":"","objectives":{"0":{"id":""}},"timestamp":"","weighting":"","learner_response":"","result":"","latency":"","description":"","correct_responses":{"0":{"pattern":""}}}',
         );
@@ -1016,9 +1006,7 @@ describe("SCORM 2004 CMI Tests", () => {
 
         it("should export JSON", () => {
           const cmi = adl();
-          expect(JSON.stringify(cmi)).toEqual(
-            '{"nav":{"request":"_none_"},"data":{}}',
-          );
+          expect(JSON.stringify(cmi)).toEqual('{"nav":{"request":"_none_"},"data":{}}');
         });
       });
     });

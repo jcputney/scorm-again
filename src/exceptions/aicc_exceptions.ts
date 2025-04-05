@@ -21,12 +21,7 @@ export class AICCValidationError extends ValidationError {
         aicc_errors[String(errorCode)].detailMessage,
       );
     } else {
-      super(
-        CMIElement,
-        101,
-        aicc_errors["101"].basicMessage,
-        aicc_errors["101"].detailMessage,
-      );
+      super(CMIElement, 101, aicc_errors["101"].basicMessage, aicc_errors["101"].detailMessage);
     }
 
     // Set the prototype explicitly.

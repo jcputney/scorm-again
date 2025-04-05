@@ -27,12 +27,7 @@ describe("EventService", () => {
       // Assert
       expect(apiLogStub.calledOnce).toBe(true);
       expect(
-        apiLogStub.calledWith(
-          "on",
-          "Added event listener: 1",
-          LogLevelEnum.INFO,
-          "initialize",
-        ),
+        apiLogStub.calledWith("on", "Added event listener: 1", LogLevelEnum.INFO, "initialize"),
       ).toBe(true);
     });
 
@@ -46,12 +41,7 @@ describe("EventService", () => {
       // Assert
       expect(apiLogStub.calledOnce).toBe(true);
       expect(
-        apiLogStub.calledWith(
-          "on",
-          "Added event listener: 1",
-          LogLevelEnum.INFO,
-          "setValue",
-        ),
+        apiLogStub.calledWith("on", "Added event listener: 1", LogLevelEnum.INFO, "setValue"),
       ).toBe(true);
     });
 
@@ -118,12 +108,7 @@ describe("EventService", () => {
       // Assert
       expect(apiLogStub.calledOnce).toBe(true);
       expect(
-        apiLogStub.calledWith(
-          "off",
-          "Removed event listener: 0",
-          LogLevelEnum.INFO,
-          "initialize",
-        ),
+        apiLogStub.calledWith("off", "Removed event listener: 0", LogLevelEnum.INFO, "initialize"),
       ).toBe(true);
     });
 
@@ -139,12 +124,7 @@ describe("EventService", () => {
       // Assert
       expect(apiLogStub.calledOnce).toBe(true);
       expect(
-        apiLogStub.calledWith(
-          "off",
-          "Removed event listener: 0",
-          LogLevelEnum.INFO,
-          "setValue",
-        ),
+        apiLogStub.calledWith("off", "Removed event listener: 0", LogLevelEnum.INFO, "setValue"),
       ).toBe(true);
     });
 
@@ -357,11 +337,7 @@ describe("EventService", () => {
       apiLogStub.resetHistory();
 
       // Act
-      eventService.processListeners(
-        "setValue",
-        "cmi.core.student_name",
-        "John Doe",
-      );
+      eventService.processListeners("setValue", "cmi.core.student_name", "John Doe");
 
       // Assert
       expect(callback.called).toBe(false);

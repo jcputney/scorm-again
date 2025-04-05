@@ -29,8 +29,7 @@ export const CompletionStatus = {
 };
 
 // Type for CompletionStatus values
-export type CompletionStatus =
-  (typeof CompletionStatus)[keyof typeof CompletionStatus];
+export type CompletionStatus = (typeof CompletionStatus)[keyof typeof CompletionStatus];
 
 // LogLevelEnum values
 export const LogLevelEnum = {

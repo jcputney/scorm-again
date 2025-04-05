@@ -7,26 +7,16 @@ import * as sinon from "sinon";
 import Pretender from "fetch-pretender";
 import { Settings } from "../../src/types/api_types";
 import { DefaultSettings } from "../../src/constants/default_settings";
-import {
-  CompletionStatus,
-  LogLevelEnum,
-  SuccessStatus,
-} from "../../src/constants/enums";
+import { CompletionStatus, LogLevelEnum, SuccessStatus } from "../../src/constants/enums";
 import { StringKeyMap } from "../../src/utilities";
 
 let clock: sinon.SinonFakeTimers;
-const api = (
-  settings?: Settings,
-  startingData: StringKeyMap = {},
-): Scorm12API => {
+const api = (settings?: Settings, startingData: StringKeyMap = {}): Scorm12API => {
   const API = new Scorm12API({ ...settings, logLevel: LogLevelEnum.NONE });
   API.startingData = startingData;
   return API;
 };
-const apiInitialized = (
-  settings?: Settings,
-  startingData: StringKeyMap = {},
-): Scorm12API => {
+const apiInitialized = (settings?: Settings, startingData: StringKeyMap = {}): Scorm12API => {
   const API = api(settings);
   API.loadFromJSON(startingData ? startingData : {});
   API.lmsInitialize();
@@ -451,9 +441,7 @@ describe("SCORM 1.2 API Tests", () => {
       const scorm12API = api();
       scorm12API.cmi.core.total_time = "12:34:56";
       scorm12API.cmi.core.session_time = "23:59:59";
-      const cmiExport: StringKeyMap = scorm12API.renderCommitCMI(
-        true,
-      ) as StringKeyMap;
+      const cmiExport: StringKeyMap = scorm12API.renderCommitCMI(true) as StringKeyMap;
       const exportCmi = cmiExport.cmi as StringKeyMap;
       const exportCore = exportCmi.core as StringKeyMap;
       expect(exportCore.total_time).toEqual("36:34:55");
@@ -467,9 +455,7 @@ describe("SCORM 1.2 API Tests", () => {
       scorm12API.cmi.core.lesson_status = "completed";
       scorm12API.cmi.core.total_time = "0000:00:00";
       scorm12API.cmi.core.session_time = "23:59:59";
-      const cmiExport: StringKeyMap = scorm12API.renderCommitCMI(
-        true,
-      ) as StringKeyMap;
+      const cmiExport: StringKeyMap = scorm12API.renderCommitCMI(true) as StringKeyMap;
       const exportCmi = cmiExport.cmi as StringKeyMap;
       const exportCore = exportCmi.core as StringKeyMap;
       expect(exportCore.total_time).toEqual("23:59:59");
@@ -486,9 +472,7 @@ describe("SCORM 1.2 API Tests", () => {
       scorm12API.cmi.core.score.max = "100";
       scorm12API.cmi.core.score.min = "0";
       scorm12API.cmi.core.session_time = "23:59:59";
-      const cmiExport: StringKeyMap = scorm12API.renderCommitCMI(
-        true,
-      ) as StringKeyMap;
+      const cmiExport: StringKeyMap = scorm12API.renderCommitCMI(true) as StringKeyMap;
       expect(cmiExport["cmi.core.student_id"]).toEqual("student_1");
       expect(cmiExport["cmi.core.student_name"]).toEqual("Student 1");
       expect(cmiExport["cmi.core.lesson_status"]).toEqual("completed");
@@ -578,9 +562,7 @@ describe("SCORM 1.2 API Tests", () => {
       scorm12API.cmi.core.lesson_status = "failed";
       const commitObject = scorm12API.renderCommitObject(true);
       expect(commitObject.successStatus).toEqual(SuccessStatus.FAILED);
-      expect(commitObject.completionStatus).toEqual(
-        CompletionStatus.INCOMPLETE,
-      );
+      expect(commitObject.completionStatus).toEqual(CompletionStatus.INCOMPLETE);
       const runtimeCmi = commitObject.runtimeData.cmi as StringKeyMap;
       const runtimeCore = runtimeCmi.core as StringKeyMap;
       expect(runtimeCore.lesson_status).toEqual("failed");
@@ -1133,9 +1115,7 @@ describe("SCORM 1.2 API Tests", () => {
       );
       scorm12api.lmsInitialize();
 
-      expect(scorm12api.getCMIValue("cmi.objectives.10.id")).toEqual(
-        "topic-MllWvr",
-      );
+      expect(scorm12api.getCMIValue("cmi.objectives.10.id")).toEqual("topic-MllWvr");
     });
   });
 });

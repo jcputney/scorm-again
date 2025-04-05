@@ -2,10 +2,7 @@ import { expect } from "expect";
 import { describe, it } from "mocha";
 import * as sinon from "sinon";
 import { Scorm12API } from "../../src/Scorm12API";
-import {
-  global_constants,
-  scorm12_constants,
-} from "../../src/constants/api_constants";
+import { global_constants, scorm12_constants } from "../../src/constants/api_constants";
 import { Settings } from "../../src/types/api_types";
 import { LogLevelEnum } from "../../src/constants/enums";
 
@@ -122,9 +119,7 @@ describe("SCORM 1.2 API Additional Tests", () => {
       scorm12API.lmsGetErrorString("101");
 
       expect(getErrorStringSpy.calledOnce).toBe(true);
-      expect(getErrorStringSpy.calledWith("LMSGetErrorString", "101")).toBe(
-        true,
-      );
+      expect(getErrorStringSpy.calledWith("LMSGetErrorString", "101")).toBe(true);
     });
   });
 
@@ -159,9 +154,7 @@ describe("SCORM 1.2 API Additional Tests", () => {
 
       const result = scorm12API.getLmsErrorMessageDetails(101, false);
 
-      expect(result).toBe(
-        scorm12_constants.error_descriptions["101"].basicMessage,
-      );
+      expect(result).toBe(scorm12_constants.error_descriptions["101"].basicMessage);
     });
 
     it("should return detail message when detail is true", () => {
@@ -169,9 +162,7 @@ describe("SCORM 1.2 API Additional Tests", () => {
 
       const result = scorm12API.getLmsErrorMessageDetails(101, true);
 
-      expect(result).toBe(
-        scorm12_constants.error_descriptions["101"].detailMessage,
-      );
+      expect(result).toBe(scorm12_constants.error_descriptions["101"].detailMessage);
     });
 
     it("should handle string error codes", () => {
@@ -179,9 +170,7 @@ describe("SCORM 1.2 API Additional Tests", () => {
 
       const result = scorm12API.getLmsErrorMessageDetails("101", false);
 
-      expect(result).toBe(
-        scorm12_constants.error_descriptions["101"].basicMessage,
-      );
+      expect(result).toBe(scorm12_constants.error_descriptions["101"].basicMessage);
     });
 
     it("should return 'No Error' for unknown error codes", () => {

@@ -162,18 +162,10 @@ describe("SerializationService", () => {
       // Assert
       expect(setCMIValueSpy.called).toBe(true);
       expect(setCMIValueSpy.callCount).toBe(4);
-      expect(setCMIValueSpy.calledWith("cmi.objectives.0.id", "obj1")).toBe(
-        true,
-      );
-      expect(setCMIValueSpy.calledWith("cmi.objectives.0.score.raw", 80)).toBe(
-        true,
-      );
-      expect(setCMIValueSpy.calledWith("cmi.objectives.1.id", "obj2")).toBe(
-        true,
-      );
-      expect(setCMIValueSpy.calledWith("cmi.objectives.1.score.raw", 90)).toBe(
-        true,
-      );
+      expect(setCMIValueSpy.calledWith("cmi.objectives.0.id", "obj1")).toBe(true);
+      expect(setCMIValueSpy.calledWith("cmi.objectives.0.score.raw", 80)).toBe(true);
+      expect(setCMIValueSpy.calledWith("cmi.objectives.1.id", "obj2")).toBe(true);
+      expect(setCMIValueSpy.calledWith("cmi.objectives.1.score.raw", 90)).toBe(true);
     });
   });
 
@@ -225,10 +217,7 @@ describe("SerializationService", () => {
           student_name: "John Doe",
         },
       };
-      const renderCMIToJSONStringSpy = sinon.spy(
-        serializationService,
-        "renderCMIToJSONString",
-      );
+      const renderCMIToJSONStringSpy = sinon.spy(serializationService, "renderCMIToJSONString");
 
       // Act
       const result = serializationService.renderCMIToJSONObject(cmi, true);
@@ -277,9 +266,7 @@ describe("SerializationService", () => {
       const alwaysSendTotalTime = false;
       const renderCommonCommitFields = false;
       const renderCommitObjectStub = sinon.stub();
-      const renderCommitCMIStub = sinon
-        .stub()
-        .returns({ cmi: { core: { student_id: "123" } } });
+      const renderCommitCMIStub = sinon.stub().returns({ cmi: { core: { student_id: "123" } } });
       const apiLogLevel = LogLevelEnum.ERROR;
 
       // Act
@@ -305,9 +292,7 @@ describe("SerializationService", () => {
       const alwaysSendTotalTime = false;
       const renderCommonCommitFields = false;
       const renderCommitObjectStub = sinon.stub();
-      const renderCommitCMIStub = sinon
-        .stub()
-        .returns({ cmi: { core: { student_id: "123" } } });
+      const renderCommitCMIStub = sinon.stub().returns({ cmi: { core: { student_id: "123" } } });
       const apiLogLevel = LogLevelEnum.DEBUG;
 
       // Act

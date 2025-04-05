@@ -93,8 +93,7 @@ export const scorm12_constants: ScormConstants = {
     },
     "301": {
       basicMessage: "Not initialized",
-      detailMessage:
-        "Indicates that an API call was made before the call to lmsInitialize.",
+      detailMessage: "Indicates that an API call was made before the call to lmsInitialize.",
     },
     "401": {
       basicMessage: "Not implemented error",
@@ -108,13 +107,11 @@ export const scorm12_constants: ScormConstants = {
     },
     "403": {
       basicMessage: "Element is read only",
-      detailMessage:
-        "LMSSetValue was called with a data model element that can only be read.",
+      detailMessage: "LMSSetValue was called with a data model element that can only be read.",
     },
     "404": {
       basicMessage: "Element is write only",
-      detailMessage:
-        "LMSGetValue was called on a data model element that can only be written to.",
+      detailMessage: "LMSGetValue was called on a data model element that can only be written to.",
     },
     "405": {
       basicMessage: "Incorrect Data Type",
@@ -140,8 +137,7 @@ export const aicc_constants: AiccConstants = {
       "core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions,evaluation",
     student_preference_children:
       "audio,language,lesson_type,speed,text,text_color,text_location,text_size,video,windows",
-    student_data_children:
-      "attempt_number,tries,mastery_score,max_time_allowed,time_limit_action",
+    student_data_children: "attempt_number,tries,mastery_score,max_time_allowed,time_limit_action",
     student_demographics_children:
       "city,class,company,country,experience,familiar_name,instructor_name,title,native_language,state,street_address,telephone,years_experience",
     tries_children: "time,status,score",
@@ -156,12 +152,10 @@ export const scorm2004_constants: Scorm2004Constants = {
     "_version,comments_from_learner,comments_from_lms,completion_status,credit,entry,exit,interactions,launch_data,learner_id,learner_name,learner_preference,location,max_time_allowed,mode,objectives,progress_measure,scaled_passing_score,score,session_time,success_status,suspend_data,time_limit_action,total_time",
   comments_children: "comment,timestamp,location",
   score_children: "max,raw,scaled,min",
-  objectives_children:
-    "progress_measure,completion_status,success_status,description,score,id",
+  objectives_children: "progress_measure,completion_status,success_status,description,score,id",
   correct_responses_children: "pattern",
   student_data_children: "mastery_score,max_time_allowed,time_limit_action",
-  student_preference_children:
-    "audio_level,audio_captioning,delivery_speed,language",
+  student_preference_children: "audio_level,audio_captioning,delivery_speed,language",
   interactions_children:
     "id,type,objectives,timestamp,correct_responses,weighting,learner_response,result,latency,description",
   adl_data_children: "id,store",
@@ -181,13 +175,11 @@ export const scorm2004_constants: Scorm2004Constants = {
     },
     "103": {
       basicMessage: "Already Initialized",
-      detailMessage:
-        "Call to Initialize failed because Initialize was already called.",
+      detailMessage: "Call to Initialize failed because Initialize was already called.",
     },
     "104": {
       basicMessage: "Content Instance Terminated",
-      detailMessage:
-        "Call to Initialize failed because Terminate was already called.",
+      detailMessage: "Call to Initialize failed because Terminate was already called.",
     },
     "111": {
       basicMessage: "General Termination Failure",
@@ -195,43 +187,35 @@ export const scorm2004_constants: Scorm2004Constants = {
     },
     "112": {
       basicMessage: "Termination Before Initialization",
-      detailMessage:
-        "Call to Terminate failed because it was made before the call to Initialize.",
+      detailMessage: "Call to Terminate failed because it was made before the call to Initialize.",
     },
     "113": {
       basicMessage: "Termination After Termination",
-      detailMessage:
-        "Call to Terminate failed because Terminate was already called.",
+      detailMessage: "Call to Terminate failed because Terminate was already called.",
     },
     "122": {
       basicMessage: "Retrieve Data Before Initialization",
-      detailMessage:
-        "Call to GetValue failed because it was made before the call to Initialize.",
+      detailMessage: "Call to GetValue failed because it was made before the call to Initialize.",
     },
     "123": {
       basicMessage: "Retrieve Data After Termination",
-      detailMessage:
-        "Call to GetValue failed because it was made after the call to Terminate.",
+      detailMessage: "Call to GetValue failed because it was made after the call to Terminate.",
     },
     "132": {
       basicMessage: "Store Data Before Initialization",
-      detailMessage:
-        "Call to SetValue failed because it was made before the call to Initialize.",
+      detailMessage: "Call to SetValue failed because it was made before the call to Initialize.",
     },
     "133": {
       basicMessage: "Store Data After Termination",
-      detailMessage:
-        "Call to SetValue failed because it was made after the call to Terminate.",
+      detailMessage: "Call to SetValue failed because it was made after the call to Terminate.",
     },
     "142": {
       basicMessage: "Commit Before Initialization",
-      detailMessage:
-        "Call to Commit failed because it was made before the call to Initialize.",
+      detailMessage: "Call to Commit failed because it was made before the call to Initialize.",
     },
     "143": {
       basicMessage: "Commit After Termination",
-      detailMessage:
-        "Call to Commit failed because it was made after the call to Terminate.",
+      detailMessage: "Call to Commit failed because it was made after the call to Terminate.",
     },
     "201": {
       basicMessage: "General Argument Error",
@@ -270,13 +254,11 @@ export const scorm2004_constants: Scorm2004Constants = {
     },
     "404": {
       basicMessage: "Data Model Element Is Read Only",
-      detailMessage:
-        "SetValue was called with a data model element that can only be read.",
+      detailMessage: "SetValue was called with a data model element that can only be read.",
     },
     "405": {
       basicMessage: "Data Model Element Is Write Only",
-      detailMessage:
-        "GetValue was called on a data model element that can only be written to.",
+      detailMessage: "GetValue was called on a data model element that can only be written to.",
     },
     "406": {
       basicMessage: "Data Model Element Type Mismatch",

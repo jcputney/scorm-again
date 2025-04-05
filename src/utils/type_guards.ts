@@ -1,5 +1,5 @@
-import {ValidationError} from "../exceptions";
-import {CMIArray} from "../cmi/common/array";
+import { ValidationError } from "../exceptions";
+import { CMIArray } from "../cmi/common/array";
 
 /**
  * Type guard for ValidationError

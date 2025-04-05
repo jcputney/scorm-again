@@ -1,8 +1,4 @@
-import {
-  CompletionStatus,
-  LogLevelEnum,
-  SuccessStatus,
-} from "../constants/enums";
+import { CompletionStatus, LogLevelEnum, SuccessStatus } from "../constants/enums";
 import { StringKeyMap } from "../utilities";
 
 /**

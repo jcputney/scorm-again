@@ -38,10 +38,7 @@ describe("SCORM 2004 CMISession Tests", () => {
 
         expect(() => {
           session.entry = "resume";
-        }).toThrow(new Scorm2004ValidationError(
-          "cmi.entry",
-          scorm2004_errors.READ_ONLY_ELEMENT
-        ));
+        }).toThrow(new Scorm2004ValidationError("cmi.entry", scorm2004_errors.READ_ONLY_ELEMENT));
       });
     });
 
@@ -72,10 +69,7 @@ describe("SCORM 2004 CMISession Tests", () => {
 
         expect(() => {
           const exit = session.exit;
-        }).toThrow(new Scorm2004ValidationError(
-          "cmi.exit",
-          scorm2004_errors.WRITE_ONLY_ELEMENT
-        ));
+        }).toThrow(new Scorm2004ValidationError("cmi.exit", scorm2004_errors.WRITE_ONLY_ELEMENT));
       });
     });
 
@@ -106,10 +100,9 @@ describe("SCORM 2004 CMISession Tests", () => {
 
         expect(() => {
           const sessionTime = session.session_time;
-        }).toThrow(new Scorm2004ValidationError(
-          "cmi.session_time",
-          scorm2004_errors.WRITE_ONLY_ELEMENT
-        ));
+        }).toThrow(
+          new Scorm2004ValidationError("cmi.session_time", scorm2004_errors.WRITE_ONLY_ELEMENT),
+        );
       });
     });
 
@@ -129,10 +122,9 @@ describe("SCORM 2004 CMISession Tests", () => {
 
         expect(() => {
           session.total_time = "PT3H";
-        }).toThrow(new Scorm2004ValidationError(
-          "cmi.total_time",
-          scorm2004_errors.READ_ONLY_ELEMENT
-        ));
+        }).toThrow(
+          new Scorm2004ValidationError("cmi.total_time", scorm2004_errors.READ_ONLY_ELEMENT),
+        );
       });
     });
   });

@@ -82,124 +82,87 @@ describe("Utility Tests", () => {
 
   describe("getTimeAsSeconds()", () => {
     it("00:00:10 returns 10", () => {
-      expect(
-        Utilities.getTimeAsSeconds("00:00:10", scorm12_regex.CMITimespan),
-      ).toEqual(10);
+      expect(Utilities.getTimeAsSeconds("00:00:10", scorm12_regex.CMITimespan)).toEqual(10);
     });
 
     it("00:01:10 returns 70", () => {
-      expect(
-        Utilities.getTimeAsSeconds("00:01:10", scorm12_regex.CMITimespan),
-      ).toEqual(70);
+      expect(Utilities.getTimeAsSeconds("00:01:10", scorm12_regex.CMITimespan)).toEqual(70);
     });
 
     it("01:01:10 returns 3670", () => {
-      expect(
-        Utilities.getTimeAsSeconds("01:01:10", scorm12_regex.CMITimespan),
-      ).toEqual(3670);
+      expect(Utilities.getTimeAsSeconds("01:01:10", scorm12_regex.CMITimespan)).toEqual(3670);
     });
 
     it("100:00:00 returns 3670", () => {
-      expect(
-        Utilities.getTimeAsSeconds("100:00:00", scorm12_regex.CMITimespan),
-      ).toEqual(360000);
+      expect(Utilities.getTimeAsSeconds("100:00:00", scorm12_regex.CMITimespan)).toEqual(360000);
     });
 
     it("-01:00:00 returns 0", () => {
-      expect(
-        Utilities.getTimeAsSeconds("-01:00:00", scorm12_regex.CMITimespan),
-      ).toEqual(0);
+      expect(Utilities.getTimeAsSeconds("-01:00:00", scorm12_regex.CMITimespan)).toEqual(0);
     });
 
     it("Number value returns 0", () => {
-      expect(
-        Utilities.getTimeAsSeconds(999, scorm12_regex.CMITimespan),
-      ).toEqual(0);
+      expect(Utilities.getTimeAsSeconds(999, scorm12_regex.CMITimespan)).toEqual(0);
     });
 
     it("boolean value returns 0", () => {
-      expect(
-        Utilities.getTimeAsSeconds(true, scorm12_regex.CMITimespan),
-      ).toEqual(0);
+      expect(Utilities.getTimeAsSeconds(true, scorm12_regex.CMITimespan)).toEqual(0);
     });
 
     it("Empty value returns 0", () => {
-      expect(
-        Utilities.getTimeAsSeconds(null, scorm12_regex.CMITimespan),
-      ).toEqual(0);
+      expect(Utilities.getTimeAsSeconds(null, scorm12_regex.CMITimespan)).toEqual(0);
     });
   });
 
   describe("getDurationAsSeconds()", () => {
     it("P0S returns 0", () => {
-      expect(
-        Utilities.getDurationAsSeconds("P0S", scorm2004_regex.CMITimespan),
-      ).toEqual(0);
+      expect(Utilities.getDurationAsSeconds("P0S", scorm2004_regex.CMITimespan)).toEqual(0);
     });
 
     it("P70S returns 70", () => {
-      expect(
-        Utilities.getDurationAsSeconds("P70S", scorm2004_regex.CMITimespan),
-      ).toEqual(70);
+      expect(Utilities.getDurationAsSeconds("P70S", scorm2004_regex.CMITimespan)).toEqual(70);
     });
 
     it("PT1M10S returns 70", () => {
-      expect(
-        Utilities.getDurationAsSeconds("PT1M10S", scorm2004_regex.CMITimespan),
-      ).toEqual(70);
+      expect(Utilities.getDurationAsSeconds("PT1M10S", scorm2004_regex.CMITimespan)).toEqual(70);
     });
 
     it("PT15M16.88S returns 916.88", () => {
-      expect(
-        Utilities.getDurationAsSeconds(
-          "PT15M16.88S",
-          scorm2004_regex.CMITimespan,
-        ),
-      ).toEqual(916.88);
+      expect(Utilities.getDurationAsSeconds("PT15M16.88S", scorm2004_regex.CMITimespan)).toEqual(
+        916.88,
+      );
     });
 
     it("P1D returns 86400", () => {
-      expect(
-        Utilities.getDurationAsSeconds("P1D", scorm2004_regex.CMITimespan),
-      ).toEqual(24 * 60 * 60);
+      expect(Utilities.getDurationAsSeconds("P1D", scorm2004_regex.CMITimespan)).toEqual(
+        24 * 60 * 60,
+      );
     });
 
     it("P1Y returns number of seconds for one year from now", () => {
-      expect(
-        Utilities.getDurationAsSeconds("P1Y", scorm2004_regex.CMITimespan),
-      ).toEqual(365 * 24 * 60 * 60);
+      expect(Utilities.getDurationAsSeconds("P1Y", scorm2004_regex.CMITimespan)).toEqual(
+        365 * 24 * 60 * 60,
+      );
     });
 
     it("Invalid duration returns 0", () => {
-      expect(
-        Utilities.getDurationAsSeconds("T1M10S", scorm2004_regex.CMITimespan),
-      ).toEqual(0);
+      expect(Utilities.getDurationAsSeconds("T1M10S", scorm2004_regex.CMITimespan)).toEqual(0);
     });
 
     it("Empty duration returns 0", () => {
-      expect(
-        Utilities.getDurationAsSeconds(null, scorm2004_regex.CMITimespan),
-      ).toEqual(0);
+      expect(Utilities.getDurationAsSeconds(null, scorm2004_regex.CMITimespan)).toEqual(0);
     });
   });
 
   describe("addTwoDurations()", () => {
     it("P1H5M30.5S plus PT15M10S equals P1H20M40.5S", () => {
       expect(
-        Utilities.addTwoDurations(
-          "PT1H5M30.5S",
-          "PT15M30S",
-          scorm2004_regex.CMITimespan,
-        ),
+        Utilities.addTwoDurations("PT1H5M30.5S", "PT15M30S", scorm2004_regex.CMITimespan),
       ).toEqual("PT1H21M0.5S");
     });
     it("P1Y364D plus P2DT1H45M52S equals P731DT1H45M52S", () => {
       expect(
-        Utilities.addTwoDurations(
-          "P1Y364D",
-          "P2DT1H45M52S",
-          scorm2004_regex.CMITimespan,
-        ),
+        Utilities.addTwoDurations("P1Y364D", "P2DT1H45M52S", scorm2004_regex.CMITimespan),
       ).toEqual("P731DT1H45M52S");
     });
     it("Invalid plus valid equals valid", () => {
@@ -225,29 +188,17 @@ describe("Utility Tests", () => {
   describe("addHHMMSSTimeStrings()", () => {
     it("01:05:30.5 plus 00:15:10 equals 01:20:40.5", () => {
       expect(
-        Utilities.addHHMMSSTimeStrings(
-          "01:05:30.5",
-          "00:15:30",
-          scorm12_regex.CMITimespan,
-        ),
+        Utilities.addHHMMSSTimeStrings("01:05:30.5", "00:15:30", scorm12_regex.CMITimespan),
       ).toEqual("01:21:00.5");
     });
     it("17496:00:00 plus 49:35:52 equals 17545:35:52", () => {
       expect(
-        Utilities.addHHMMSSTimeStrings(
-          "17496:00:00",
-          "49:35:52",
-          scorm12_regex.CMITimespan,
-        ),
+        Utilities.addHHMMSSTimeStrings("17496:00:00", "49:35:52", scorm12_regex.CMITimespan),
       ).toEqual("17545:35:52");
     });
     it("Invalid plus valid equals valid", () => {
       expect(
-        Utilities.addHHMMSSTimeStrings(
-          "-00:15:10",
-          "01:05:30.5",
-          scorm12_regex.CMITimespan,
-        ),
+        Utilities.addHHMMSSTimeStrings("-00:15:10", "01:05:30.5", scorm12_regex.CMITimespan),
       ).toEqual("01:05:30.5");
     });
     it("Valid plus invalid equals valid", () => {

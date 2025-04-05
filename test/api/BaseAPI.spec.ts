@@ -5,17 +5,9 @@ import { SinonStub } from "sinon";
 import BaseAPI from "../../src/BaseAPI";
 import { BaseCMI, BaseRootCMI } from "../../src/cmi/common/base_cmi";
 import { ErrorCode } from "../../src/constants/error_codes";
-import {
-  CommitObject,
-  ResultObject,
-  Settings,
-} from "../../src/types/api_types";
+import { CommitObject, ResultObject, Settings } from "../../src/types/api_types";
 import { global_constants } from "../../src/constants/api_constants";
-import {
-  CompletionStatus,
-  LogLevelEnum,
-  SuccessStatus,
-} from "../../src/constants/enums";
+import { CompletionStatus, LogLevelEnum, SuccessStatus } from "../../src/constants/enums";
 import { getLoggingService } from "../../src/services/LoggingService";
 import { StringKeyMap } from "../../src/utilities";
 
@@ -78,11 +70,7 @@ class TestAPI extends BaseAPI {
 
   validateCorrectResponse(_CMIElement: string, _value: unknown): void {}
 
-  getChildElement(
-    _CMIElement: string,
-    _value: unknown,
-    _foundFirstIndex: boolean,
-  ): BaseCMI | null {
+  getChildElement(_CMIElement: string, _value: unknown, _foundFirstIndex: boolean): BaseCMI | null {
     return null;
   }
 
@@ -171,9 +159,7 @@ describe("BaseAPI", () => {
     it("should throw an error when called directly", () => {
       expect(() => {
         api.exposedGetLmsErrorMessageDetails(101);
-      }).toThrow(
-        "The getLmsErrorMessageDetails method has not been implemented",
-      );
+      }).toThrow("The getLmsErrorMessageDetails method has not been implemented");
     });
   });
 
@@ -189,12 +175,7 @@ describe("BaseAPI", () => {
 
       // Assert
       expect(renderCMIToJSONStringStub.calledOnce).toBe(true);
-      expect(
-        renderCMIToJSONStringStub.calledWith(
-          api.cmi,
-          api.settings.sendFullCommit,
-        ),
-      ).toBe(true);
+      expect(renderCMIToJSONStringStub.calledWith(api.cmi, api.settings.sendFullCommit)).toBe(true);
       expect(result).toBe("{}");
     });
   });
@@ -211,12 +192,7 @@ describe("BaseAPI", () => {
 
       // Assert
       expect(renderCMIToJSONObjectStub.calledOnce).toBe(true);
-      expect(
-        renderCMIToJSONObjectStub.calledWith(
-          api.cmi,
-          api.settings.sendFullCommit,
-        ),
-      ).toBe(true);
+      expect(renderCMIToJSONObjectStub.calledWith(api.cmi, api.settings.sendFullCommit)).toBe(true);
       expect(result).toEqual({});
     });
   });
@@ -228,20 +204,12 @@ describe("BaseAPI", () => {
       const throwSCORMErrorSpy = sinon.spy(api, "throwSCORMError");
 
       // Act
-      const result = api.initialize(
-        "initialize",
-        "Already initialized",
-        "Already terminated",
-      );
+      const result = api.initialize("initialize", "Already initialized", "Already terminated");
 
       // Assert
       expect(result).toBe(global_constants.SCORM_FALSE);
       expect(
-        throwSCORMErrorSpy.calledWith(
-          "api",
-          errorCodes.INITIALIZED,
-          "Already initialized",
-        ),
+        throwSCORMErrorSpy.calledWith("api", errorCodes.INITIALIZED, "Already initialized"),
       ).toBe(true);
     });
 
@@ -251,20 +219,12 @@ describe("BaseAPI", () => {
       const throwSCORMErrorSpy = sinon.spy(api, "throwSCORMError");
 
       // Act
-      const result = api.initialize(
-        "initialize",
-        "Already initialized",
-        "Already terminated",
-      );
+      const result = api.initialize("initialize", "Already initialized", "Already terminated");
 
       // Assert
       expect(result).toBe(global_constants.SCORM_FALSE);
       expect(
-        throwSCORMErrorSpy.calledWith(
-          "api",
-          errorCodes.TERMINATED,
-          "Already terminated",
-        ),
+        throwSCORMErrorSpy.calledWith("api", errorCodes.TERMINATED, "Already terminated"),
       ).toBe(true);
     });
 
@@ -345,10 +305,7 @@ describe("BaseAPI", () => {
   describe("loadFromJSON", () => {
     it("should call serializationService.loadFromJSON with correct parameters", () => {
       // Arrange
-      const loadFromJSONStub = sinon.stub(
-        api["_serializationService"],
-        "loadFromJSON",
-      );
+      const loadFromJSONStub = sinon.stub(api["_serializationService"], "loadFromJSON");
       const json = { cmi: { core: { student_id: "123" } } };
 
       // Act
@@ -380,15 +337,9 @@ describe("BaseAPI", () => {
       expect(loadFromFlattenedJSONStub.calledOnce).toBe(true);
       expect(loadFromFlattenedJSONStub.firstCall.args[0]).toBe(json);
       expect(loadFromFlattenedJSONStub.firstCall.args[1]).toBe("");
-      expect(typeof loadFromFlattenedJSONStub.firstCall.args[2]).toBe(
-        "function",
-      ); // loadFromJSON
-      expect(typeof loadFromFlattenedJSONStub.firstCall.args[3]).toBe(
-        "function",
-      ); // setCMIValue
-      expect(typeof loadFromFlattenedJSONStub.firstCall.args[4]).toBe(
-        "function",
-      ); // isNotInitialized
+      expect(typeof loadFromFlattenedJSONStub.firstCall.args[2]).toBe("function"); // loadFromJSON
+      expect(typeof loadFromFlattenedJSONStub.firstCall.args[3]).toBe("function"); // setCMIValue
+      expect(typeof loadFromFlattenedJSONStub.firstCall.args[4]).toBe("function"); // isNotInitialized
     });
 
     it("should use provided CMIElement when specified", () => {

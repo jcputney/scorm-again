@@ -1,17 +1,17 @@
-import {ErrorCode} from "./constants/error_codes";
-import {global_constants} from "./constants/api_constants";
-import {formatMessage, StringKeyMap, stringMatches} from "./utilities";
-import {BaseCMI} from "./cmi/common/base_cmi";
-import {CommitObject, LogLevel, ResultObject, Settings,} from "./types/api_types";
-import {DefaultSettings} from "./constants/default_settings";
-import {IBaseAPI} from "./interfaces/IBaseAPI";
-import {ScheduledCommit} from "./helpers/scheduled_commit";
-import {LogLevelEnum} from "./constants/enums";
-import {HttpService} from "./services/HttpService";
-import {EventService} from "./services/EventService";
-import {SerializationService} from "./services/SerializationService";
-import {createErrorHandlingService} from "./services/ErrorHandlingService";
-import {getLoggingService} from "./services/LoggingService";
+import { ErrorCode } from "./constants/error_codes";
+import { global_constants } from "./constants/api_constants";
+import { formatMessage, StringKeyMap, stringMatches } from "./utilities";
+import { BaseCMI } from "./cmi/common/base_cmi";
+import { CommitObject, LogLevel, ResultObject, Settings } from "./types/api_types";
+import { DefaultSettings } from "./constants/default_settings";
+import { IBaseAPI } from "./interfaces/IBaseAPI";
+import { ScheduledCommit } from "./helpers/scheduled_commit";
+import { LogLevelEnum } from "./constants/enums";
+import { HttpService } from "./services/HttpService";
+import { EventService } from "./services/EventService";
+import { SerializationService } from "./services/SerializationService";
+import { createErrorHandlingService } from "./services/ErrorHandlingService";
+import { getLoggingService } from "./services/LoggingService";
 import {
   ICMIDataService,
   IErrorHandlingService,
@@ -20,8 +20,8 @@ import {
   ILoggingService,
   ISerializationService,
 } from "./interfaces/services";
-import {isCMIArray, isError, isValidationError} from "./utils/type_guards";
-import {ValidationError} from "./exceptions";
+import { isCMIArray, isError, isValidationError } from "./utils/type_guards";
+import { ValidationError } from "./exceptions";
 
 /**
  * Base API class for AICC, SCORM 1.2, and SCORM 2004. Should be considered
@@ -86,8 +86,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     }
 
     // Initialize HTTP service
-    this._httpService =
-      httpService || new HttpService(this.settings, this._error_codes);
+    this._httpService = httpService || new HttpService(this.settings, this._error_codes);
 
     // Initialize Event service
     this._eventService =
@@ -97,8 +96,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       );
 
     // Initialize Serialization service
-    this._serializationService =
-      serializationService || new SerializationService();
+    this._serializationService = serializationService || new SerializationService();
 
     // Initialize Error Handling service
     this._errorHandlingService =
@@ -107,8 +105,7 @@ export default abstract class BaseAPI implements IBaseAPI {
         this._error_codes,
         (functionName, message, level, element) =>
           this.apiLog(functionName, message, level, element),
-        (errorNumber, detail) =>
-          this.getLmsErrorMessageDetails(errorNumber, detail),
+        (errorNumber, detail) => this.getLmsErrorMessageDetails(errorNumber, detail),
       );
   }
 
@@ -178,17 +175,9 @@ export default abstract class BaseAPI implements IBaseAPI {
     let returnValue = global_constants.SCORM_FALSE;
 
     if (this.isInitialized()) {
-      this.throwSCORMError(
-        "api",
-        this._error_codes.INITIALIZED,
-        initializeMessage,
-      );
+      this.throwSCORMError("api", this._error_codes.INITIALIZED, initializeMessage);
     } else if (this.isTerminated()) {
-      this.throwSCORMError(
-        "api",
-        this._error_codes.TERMINATED,
-        terminationMessage,
-      );
+      this.throwSCORMError("api", this._error_codes.TERMINATED, terminationMessage);
     } else {
       if (this.selfReportSessionTime) {
         this.cmi.setStartTime();
@@ -304,9 +293,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @return {StringKeyMap|Array}
    * @abstract
    */
-  abstract renderCommitCMI(
-    _terminateCommit: boolean,
-  ): StringKeyMap | Array<string>;
+  abstract renderCommitCMI(_terminateCommit: boolean): StringKeyMap | Array<string>;
 
   /**
    * Render the commit object to the shortened format for LMS commit.
@@ -335,12 +322,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {number} messageLevel
    * @param {string} CMIElement
    */
-  apiLog(
-    functionName: string,
-    logMessage: string,
-    messageLevel: LogLevel,
-    CMIElement?: string,
-  ) {
+  apiLog(functionName: string, logMessage: string, messageLevel: LogLevel, CMIElement?: string) {
     logMessage = formatMessage(functionName, logMessage, CMIElement);
 
     if (messageLevel >= this.apiLogLevel) {
@@ -351,8 +333,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       // and is different from the LoggingService's handler
       if (
         this.settings.onLogMessage &&
-        this.settings.onLogMessage !==
-          (this._loggingService as any)["_logHandler"]
+        this.settings.onLogMessage !== (this._loggingService as any)["_logHandler"]
       ) {
         this.settings.onLogMessage(messageLevel, logMessage);
       }
@@ -387,10 +368,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     this._httpService?.updateSettings(this._settings);
 
     // Update log level if it changed
-    if (
-      settings.logLevel !== undefined &&
-      settings.logLevel !== previousSettings.logLevel
-    ) {
+    if (settings.logLevel !== undefined && settings.logLevel !== previousSettings.logLevel) {
       this.apiLogLevel = settings.logLevel;
       this._loggingService?.setLogLevel(settings.logLevel);
     }
@@ -410,10 +388,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {boolean} checkTerminated
    * @return {string}
    */
-  async terminate(
-    callbackName: string,
-    checkTerminated: boolean,
-  ): Promise<string> {
+  async terminate(callbackName: string, checkTerminated: boolean): Promise<string> {
     let returnValue = global_constants.SCORM_FALSE;
 
     if (
@@ -451,11 +426,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {string} CMIElement
    * @return {string}
    */
-  getValue(
-    callbackName: string,
-    checkTerminated: boolean,
-    CMIElement: string,
-  ): string {
+  getValue(callbackName: string, checkTerminated: boolean, CMIElement: string): string {
     let returnValue: string = "";
 
     if (
@@ -470,21 +441,12 @@ export default abstract class BaseAPI implements IBaseAPI {
       try {
         returnValue = this.getCMIValue(CMIElement);
       } catch (e) {
-        returnValue = this.handleValueAccessException(
-          CMIElement,
-          e,
-          returnValue,
-        );
+        returnValue = this.handleValueAccessException(CMIElement, e, returnValue);
       }
       this.processListeners(callbackName, CMIElement);
     }
 
-    this.apiLog(
-      callbackName,
-      ": returned: " + returnValue,
-      LogLevelEnum.INFO,
-      CMIElement,
-    );
+    this.apiLog(callbackName, ": returned: " + returnValue, LogLevelEnum.INFO, CMIElement);
 
     if (returnValue === undefined) {
       return "";
@@ -532,11 +494,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       try {
         returnValue = this.setCMIValue(CMIElement, value);
       } catch (e) {
-        returnValue = this.handleValueAccessException(
-          CMIElement,
-          e,
-          returnValue,
-        );
+        returnValue = this.handleValueAccessException(CMIElement, e, returnValue);
       }
       this.processListeners(callbackName, CMIElement, value);
     }
@@ -549,10 +507,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     // schedule a commit, if autocommit is turned on
     if (String(this.lastErrorCode) === "0") {
       if (this.settings.autocommit) {
-        this.scheduleCommit(
-          this.settings.autocommitSeconds * 1000,
-          commitCallback,
-        );
+        this.scheduleCommit(this.settings.autocommitSeconds * 1000, commitCallback);
       }
     }
 
@@ -577,10 +532,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {boolean} checkTerminated
    * @return {string}
    */
-  async commit(
-    callbackName: string,
-    checkTerminated: boolean = false,
-  ): Promise<string> {
+  async commit(callbackName: string, checkTerminated: boolean = false): Promise<string> {
     this.clearScheduledCommit();
 
     let returnValue = global_constants.SCORM_FALSE;
@@ -598,12 +550,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       }
       returnValue = result?.result ?? global_constants.SCORM_FALSE;
 
-      this.apiLog(
-        callbackName,
-        " Result: " + returnValue,
-        LogLevelEnum.DEBUG,
-        "HttpRequest",
-      );
+      this.apiLog(callbackName, " Result: " + returnValue, LogLevelEnum.DEBUG, "HttpRequest");
 
       if (checkTerminated) this.lastErrorCode = "0";
 
@@ -683,11 +630,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {number} afterTermError
    * @return {boolean}
    */
-  checkState(
-    checkTerminated: boolean,
-    beforeInitError: number,
-    afterTermError: number,
-  ): boolean {
+  checkState(checkTerminated: boolean, beforeInitError: number, afterTermError: number): boolean {
     if (this.isNotInitialized()) {
       this.throwSCORMError("api", beforeInitError);
       return false;
@@ -708,13 +651,8 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @return {string}
    * @abstract
    */
-  getLmsErrorMessageDetails(
-    _errorNumber: string | number,
-    _detail: boolean = false,
-  ): string {
-    throw new Error(
-      "The getLmsErrorMessageDetails method has not been implemented",
-    );
+  getLmsErrorMessageDetails(_errorNumber: string | number, _detail: boolean = false): string {
+    throw new Error("The getLmsErrorMessageDetails method has not been implemented");
   }
 
   /**
@@ -779,10 +717,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       if (idx === structure.length - 1) {
         if (scorm2004 && attribute.substring(0, 8) === "{target=") {
           if (this.isInitialized()) {
-            this.throwSCORMError(
-              CMIElement,
-              this._error_codes.READ_ONLY_ELEMENT,
-            );
+            this.throwSCORMError(CMIElement, this._error_codes.READ_ONLY_ELEMENT);
             break;
           } else {
             refObject = {
@@ -790,14 +725,8 @@ export default abstract class BaseAPI implements IBaseAPI {
               attribute: value,
             };
           }
-        } else if (
-          !this._checkObjectHasProperty(refObject as StringKeyMap, attribute)
-        ) {
-          this.throwSCORMError(
-            CMIElement,
-            invalidErrorCode,
-            invalidErrorMessage,
-          );
+        } else if (!this._checkObjectHasProperty(refObject as StringKeyMap, attribute)) {
+          this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
           break;
         } else {
           if (
@@ -820,11 +749,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       } else {
         refObject = (refObject as StringKeyMap)[attribute] as StringKeyMap;
         if (!refObject) {
-          this.throwSCORMError(
-            CMIElement,
-            invalidErrorCode,
-            invalidErrorMessage,
-          );
+          this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
           break;
         }
 
@@ -839,20 +764,12 @@ export default abstract class BaseAPI implements IBaseAPI {
               refObject = item;
               foundFirstIndex = true;
             } else {
-              const newChild = this.getChildElement(
-                CMIElement,
-                value,
-                foundFirstIndex,
-              );
+              const newChild = this.getChildElement(CMIElement, value, foundFirstIndex);
               foundFirstIndex = true;
 
               if (!newChild) {
                 if (this.lastErrorCode === "0") {
-                  this.throwSCORMError(
-                    CMIElement,
-                    invalidErrorCode,
-                    invalidErrorMessage,
-                  );
+                  this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
                 }
                 break;
               } else {
@@ -888,11 +805,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {string} CMIElement
    * @return {any}
    */
-  _commonGetCMIValue(
-    methodName: string,
-    scorm2004: boolean,
-    CMIElement: string,
-  ): any {
+  _commonGetCMIValue(methodName: string, scorm2004: boolean, CMIElement: string): any {
     if (!CMIElement || CMIElement === "") {
       return "";
     }
@@ -913,11 +826,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       if (!scorm2004) {
         if (idx === structure.length - 1) {
           if (!this._checkObjectHasProperty(refObject, attribute)) {
-            this.throwSCORMError(
-              CMIElement,
-              invalidErrorCode,
-              invalidErrorMessage,
-            );
+            this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
             return;
           }
         }
@@ -926,17 +835,10 @@ export default abstract class BaseAPI implements IBaseAPI {
           String(attribute).substring(0, 8) === "{target=" &&
           typeof refObject._isTargetValid == "function"
         ) {
-          const target = String(attribute).substring(
-            8,
-            String(attribute).length - 9,
-          );
+          const target = String(attribute).substring(8, String(attribute).length - 9);
           return refObject._isTargetValid(target);
         } else if (!this._checkObjectHasProperty(refObject, attribute)) {
-          this.throwSCORMError(
-            CMIElement,
-            invalidErrorCode,
-            invalidErrorMessage,
-          );
+          this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
           return;
         }
       }
@@ -974,17 +876,9 @@ export default abstract class BaseAPI implements IBaseAPI {
     if (refObject === null || refObject === undefined) {
       if (!scorm2004) {
         if (attribute === "_children") {
-          this.throwSCORMError(
-            CMIElement,
-            this._error_codes.CHILDREN_ERROR,
-            undefined,
-          );
+          this.throwSCORMError(CMIElement, this._error_codes.CHILDREN_ERROR, undefined);
         } else if (attribute === "_count") {
-          this.throwSCORMError(
-            CMIElement,
-            this._error_codes.COUNT_ERROR,
-            undefined,
-          );
+          this.throwSCORMError(CMIElement, this._error_codes.COUNT_ERROR, undefined);
         }
       }
     } else {
@@ -1098,11 +992,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * this.throwSCORMError(301, "The API must be initialized before calling GetValue");
    */
   throwSCORMError(CMIElement: string, errorNumber: number, message?: string) {
-    this._errorHandlingService.throwSCORMError(
-      CMIElement,
-      errorNumber,
-      message,
-    );
+    this._errorHandlingService.throwSCORMError(CMIElement, errorNumber, message);
   }
 
   /**
@@ -1195,10 +1085,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * console.log(jsonString); // '{"core":{"student_id":"12345",...}}'
    */
   renderCMIToJSONString(): string {
-    return this._serializationService.renderCMIToJSONString(
-      this.cmi,
-      this.settings.sendFullCommit,
-    );
+    return this._serializationService.renderCMIToJSONString(this.cmi, this.settings.sendFullCommit);
   }
 
   /**
@@ -1213,10 +1100,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * console.log(cmiObject.core.student_id); // "12345"
    */
   renderCMIToJSONObject(): StringKeyMap {
-    return this._serializationService.renderCMIToJSONObject(
-      this.cmi,
-      this.settings.sendFullCommit,
-    );
+    return this._serializationService.renderCMIToJSONObject(this.cmi, this.settings.sendFullCommit);
   }
 
   /**
@@ -1246,10 +1130,8 @@ export default abstract class BaseAPI implements IBaseAPI {
       url,
       params,
       immediate,
-      (functionName, message, level, element) =>
-        this.apiLog(functionName, message, level, element),
-      (functionName, CMIElement, value) =>
-        this.processListeners(functionName, CMIElement, value),
+      (functionName, message, level, element) => this.apiLog(functionName, message, level, element),
+      (functionName, CMIElement, value) => this.processListeners(functionName, CMIElement, value),
     );
   }
 
@@ -1316,16 +1198,10 @@ export default abstract class BaseAPI implements IBaseAPI {
    * const obj = { name: "John" };
    * this._checkObjectHasProperty(obj, "age"); // Returns false
    */
-  private _checkObjectHasProperty(
-    StringKeyMap: StringKeyMap,
-    attribute: string,
-  ): boolean {
+  private _checkObjectHasProperty(StringKeyMap: StringKeyMap, attribute: string): boolean {
     return (
       Object.hasOwnProperty.call(StringKeyMap, attribute) ||
-      Object.getOwnPropertyDescriptor(
-        Object.getPrototypeOf(StringKeyMap),
-        attribute,
-      ) != null ||
+      Object.getOwnPropertyDescriptor(Object.getPrototypeOf(StringKeyMap), attribute) != null ||
       attribute in StringKeyMap
     );
   }
@@ -1359,11 +1235,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    *   return this.handleValueAccessException(e, "false");
    * }
    */
-  private handleValueAccessException(
-    CMIElement: string,
-    e: any,
-    returnValue: string,
-  ): string {
+  private handleValueAccessException(CMIElement: string, e: any, returnValue: string): string {
     if (isValidationError(e)) {
       this.lastErrorCode = String(e.errorCode);
       returnValue = global_constants.SCORM_FALSE;
@@ -1374,11 +1246,7 @@ export default abstract class BaseAPI implements IBaseAPI {
         this.throwSCORMError(CMIElement, this._error_codes.GENERAL, e.message);
       } else {
         console.error(e);
-        this.throwSCORMError(
-          CMIElement,
-          this._error_codes.GENERAL,
-          "Unknown error",
-        );
+        this.throwSCORMError(CMIElement, this._error_codes.GENERAL, "Unknown error");
       }
     }
     return returnValue;
@@ -1405,9 +1273,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * const terminationCommit = this.getCommitObject(true);
    * // Result might be: { cmi: { core: { lesson_status: "completed", total_time: "PT1H30M" } } }
    */
-  protected getCommitObject(
-    terminateCommit: boolean,
-  ): CommitObject | StringKeyMap | Array<any> {
+  protected getCommitObject(terminateCommit: boolean): CommitObject | StringKeyMap | Array<any> {
     return this._serializationService.getCommitObject(
       terminateCommit,
       this.settings.alwaysSendTotalTime,

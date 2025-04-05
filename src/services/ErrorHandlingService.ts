@@ -1,9 +1,9 @@
-import {LogLevelEnum} from "../constants/enums";
-import {global_constants} from "../constants/api_constants";
-import {ErrorCode} from "../constants/error_codes";
-import {ValidationError} from "../exceptions";
-import {IErrorHandlingService} from "../interfaces/services";
-import {isError, isValidationError} from "../utils/type_guards";
+import { LogLevelEnum } from "../constants/enums";
+import { global_constants } from "../constants/api_constants";
+import { ErrorCode } from "../constants/error_codes";
+import { ValidationError } from "../exceptions";
+import { IErrorHandlingService } from "../interfaces/services";
+import { isError, isValidationError } from "../utils/type_guards";
 
 /**
  * Service for handling SCORM errors
@@ -17,10 +17,7 @@ export class ErrorHandlingService implements IErrorHandlingService {
     logLevel?: LogLevelEnum,
     CMIElement?: string,
   ) => void;
-  private readonly _getLmsErrorMessageDetails: (
-    errorCode: number,
-    detail: boolean,
-  ) => string;
+  private readonly _getLmsErrorMessageDetails: (errorCode: number, detail: boolean) => string;
 
   /**
    * Constructor for ErrorHandlingService
@@ -70,21 +67,12 @@ export class ErrorHandlingService implements IErrorHandlingService {
    * @param {string} message - The error message
    * @throws {ValidationError} - If throwException is true, throws a ValidationError
    */
-  throwSCORMError(
-    CMIElement: string,
-    errorNumber: number,
-    message?: string,
-  ): void {
+  throwSCORMError(CMIElement: string, errorNumber: number, message?: string): void {
     if (!message) {
       message = this._getLmsErrorMessageDetails(errorNumber, true);
     }
 
-    this._apiLog(
-      "throwSCORMError",
-      errorNumber + ": " + message,
-      LogLevelEnum.ERROR,
-      CMIElement,
-    );
+    this._apiLog("throwSCORMError", errorNumber + ": " + message, LogLevelEnum.ERROR, CMIElement);
 
     this._lastErrorCode = String(errorNumber);
   }
@@ -156,11 +144,7 @@ export class ErrorHandlingService implements IErrorHandlingService {
         this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, e.message);
       } else {
         console.error(e);
-        this.throwSCORMError(
-          CMIElement,
-          this._errorCodes.GENERAL,
-          "Unknown error",
-        );
+        this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, "Unknown error");
       }
     }
     return returnValue;
@@ -187,9 +171,5 @@ export function createErrorHandlingService(
   ) => void,
   getLmsErrorMessageDetails: (errorCode: number, detail: boolean) => string,
 ): ErrorHandlingService {
-  return new ErrorHandlingService(
-    errorCodes,
-    apiLog,
-    getLmsErrorMessageDetails,
-  );
+  return new ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails);
 }

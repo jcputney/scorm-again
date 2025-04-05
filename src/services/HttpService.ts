@@ -87,11 +87,7 @@ export class HttpService implements IHttpService {
       messageLevel: LogLevelEnum,
       CMIElement?: string,
     ) => void,
-    processListeners: (
-      functionName: string,
-      CMIElement?: string,
-      value?: any,
-    ) => void,
+    processListeners: (functionName: string, CMIElement?: string, value?: any) => void,
   ): Promise<ResultObject> {
     const genericError: ResultObject = {
       result: global_constants.SCORM_FALSE,
@@ -116,10 +112,7 @@ export class HttpService implements IHttpService {
       settings: Settings,
     ): Promise<ResultObject> => {
       try {
-        params = settings.requestHandler(params) as
-          | CommitObject
-          | StringKeyMap
-          | Array<any>;
+        params = settings.requestHandler(params) as CommitObject | StringKeyMap | Array<any>;
         const response = await this.performFetch(url, params);
 
         return this.transformResponse(response, processListeners);
@@ -140,10 +133,7 @@ export class HttpService implements IHttpService {
    * @return {Promise<Response>} - The response from the LMS
    * @private
    */
-  private async performFetch(
-    url: string,
-    params: StringKeyMap | Array<any>,
-  ): Promise<Response> {
+  private async performFetch(url: string, params: StringKeyMap | Array<any>): Promise<Response> {
     return fetch(url, {
       method: "POST",
       mode: this.settings.fetchMode,
@@ -166,11 +156,7 @@ export class HttpService implements IHttpService {
    */
   private async transformResponse(
     response: Response,
-    processListeners: (
-      functionName: string,
-      CMIElement?: string,
-      value?: any,
-    ) => void,
+    processListeners: (functionName: string, CMIElement?: string, value?: any) => void,
   ): Promise<ResultObject> {
     const result =
       typeof this.settings.responseHandler === "function"

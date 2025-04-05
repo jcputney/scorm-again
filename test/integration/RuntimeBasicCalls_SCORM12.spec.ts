@@ -63,9 +63,7 @@ class ConsoleLogger {
    * @returns An array of matching messages
    */
   getMessagesMatching(pattern: RegExp): string[] {
-    return this.messages
-      .filter((msg) => pattern.test(msg.text))
-      .map((msg) => msg.text);
+    return this.messages.filter((msg) => pattern.test(msg.text)).map((msg) => msg.text);
   }
 
   /**
@@ -159,9 +157,7 @@ test.describe("SCORM Module Integration Tests", () => {
     await page.waitForLoadState("networkidle");
 
     // Verify that the course has started
-    expect(
-      await contentFrame.getByRole("heading", { name: "Par" }).isVisible(),
-    ).toBe(true);
+    expect(await contentFrame.getByRole("heading", { name: "Par" }).isVisible()).toBe(true);
 
     // Check if student name is set
     const studentName = await page.evaluate(() => {
@@ -188,9 +184,7 @@ test.describe("SCORM Module Integration Tests", () => {
     await page.waitForLoadState("networkidle");
 
     // Verify navigation worked
-    expect(
-      await contentFrame.getByRole("heading", { name: "Scoring" }).isVisible(),
-    ).toBe(true);
+    expect(await contentFrame.getByRole("heading", { name: "Scoring" }).isVisible()).toBe(true);
 
     // Complete the course
     await page.evaluate(() => {

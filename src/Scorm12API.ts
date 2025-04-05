@@ -12,12 +12,7 @@ import {
   CMIInteractionsObjectivesObject,
 } from "./cmi/scorm12/interactions";
 import { NAV } from "./cmi/scorm12/nav";
-import {
-  CommitObject,
-  ResultObject,
-  ScoreObject,
-  Settings,
-} from "./types/api_types";
+import { CommitObject, ResultObject, ScoreObject, Settings } from "./types/api_types";
 import { CompletionStatus, SuccessStatus } from "./constants/enums";
 import BaseAPI from "./BaseAPI";
 import { scorm12_regex } from "./constants/regex";
@@ -224,19 +219,12 @@ class Scorm12Impl extends BaseAPI {
    * @param {boolean} foundFirstIndex
    * @return {BaseCMI|null}
    */
-  getChildElement(
-    CMIElement: string,
-    _value: any,
-    foundFirstIndex: boolean,
-  ): BaseCMI | null {
+  getChildElement(CMIElement: string, _value: any, foundFirstIndex: boolean): BaseCMI | null {
     if (stringMatches(CMIElement, "cmi\\.objectives\\.\\d+")) {
       return new CMIObjectivesObject();
     } else if (
       foundFirstIndex &&
-      stringMatches(
-        CMIElement,
-        "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+",
-      )
+      stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+")
     ) {
       return new CMIInteractionsCorrectResponsesObject();
     } else if (
@@ -244,10 +232,7 @@ class Scorm12Impl extends BaseAPI {
       stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")
     ) {
       return new CMIInteractionsObjectivesObject();
-    } else if (
-      !foundFirstIndex &&
-      stringMatches(CMIElement, "cmi\\.interactions\\.\\d+")
-    ) {
+    } else if (!foundFirstIndex && stringMatches(CMIElement, "cmi\\.interactions\\.\\d+")) {
       return new CMIInteractionsObject();
     }
 
@@ -271,20 +256,15 @@ class Scorm12Impl extends BaseAPI {
    * @param {boolean} detail
    * @return {string}
    */
-  override getLmsErrorMessageDetails(
-    errorNumber: number | string,
-    detail: boolean,
-  ): string {
+  override getLmsErrorMessageDetails(errorNumber: number | string, detail: boolean): string {
     let basicMessage = "No Error";
     let detailMessage = "No Error";
 
     // Set error number to string since inconsistent from modules if string or number
     errorNumber = String(errorNumber);
     if (scorm12_constants.error_descriptions[errorNumber]) {
-      basicMessage =
-        scorm12_constants.error_descriptions[errorNumber].basicMessage;
-      detailMessage =
-        scorm12_constants.error_descriptions[errorNumber].detailMessage;
+      basicMessage = scorm12_constants.error_descriptions[errorNumber].basicMessage;
+      detailMessage = scorm12_constants.error_descriptions[errorNumber].detailMessage;
     }
 
     return detail ? detailMessage : basicMessage;
@@ -339,10 +319,7 @@ class Scorm12Impl extends BaseAPI {
   renderCommitObject(terminateCommit: boolean): CommitObject {
     const cmiExport = this.renderCommitCMI(terminateCommit);
     const totalTimeHHMMSS = this.cmi.getCurrentTotalTime();
-    const totalTimeSeconds = Utilities.getTimeAsSeconds(
-      totalTimeHHMMSS,
-      scorm12_regex.CMITimespan,
-    );
+    const totalTimeSeconds = Utilities.getTimeAsSeconds(totalTimeHHMMSS, scorm12_regex.CMITimespan);
     const lessonStatus = this.cmi.core.lesson_status;
     let completionStatus = CompletionStatus.UNKNOWN;
     let successStatus = SuccessStatus.UNKNOWN;
@@ -397,8 +374,7 @@ class Scorm12Impl extends BaseAPI {
       const originalStatus = this.cmi.core.lesson_status;
       if (
         !this.cmi.core.lesson_status ||
-        (!this.statusSetByModule &&
-          this.cmi.core.lesson_status === "not attempted")
+        (!this.statusSetByModule && this.cmi.core.lesson_status === "not attempted")
       ) {
         this.cmi.core.lesson_status = "completed";
       }
@@ -411,8 +387,7 @@ class Scorm12Impl extends BaseAPI {
             this.cmi.core.score.raw !== ""
           ) {
             this.cmi.core.lesson_status =
-              parseFloat(this.cmi.core.score.raw) >=
-              parseFloat(this.cmi.student_data.mastery_score)
+              parseFloat(this.cmi.core.score.raw) >= parseFloat(this.cmi.student_data.mastery_score)
                 ? "passed"
                 : "failed";
           }

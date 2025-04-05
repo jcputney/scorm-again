@@ -41,9 +41,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       scorm2004API.lmsInitialize();
 
       // The actual regex in lmsGetValue expects a dot between the request type and the target
-      const result = scorm2004API.lmsGetValue(
-        "adl.nav.request_valid.choice.{target=sco-1}",
-      );
+      const result = scorm2004API.lmsGetValue("adl.nav.request_valid.choice.{target=sco-1}");
 
       // The API is returning "false" because the regex pattern in lmsGetValue is not matching correctly
       expect(result).toBe("false");
@@ -58,9 +56,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       scorm2004API.lmsInitialize();
 
       // The actual regex in lmsGetValue expects a dot between the request type and the target
-      const result = scorm2004API.lmsGetValue(
-        "adl.nav.request_valid.jump.{target=sco-1}",
-      );
+      const result = scorm2004API.lmsGetValue("adl.nav.request_valid.jump.{target=sco-1}");
 
       // The API is returning "false" because the regex pattern in lmsGetValue is not matching correctly
       expect(result).toBe("false");
@@ -75,14 +71,10 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       scorm2004API.lmsInitialize();
 
       // The actual regex in lmsGetValue expects a dot between the request type and the target
-      const result = scorm2004API.lmsGetValue(
-        "adl.nav.request_valid.choice.{target=invalid-sco}",
-      );
+      const result = scorm2004API.lmsGetValue("adl.nav.request_valid.choice.{target=invalid-sco}");
 
       // The API returns the string representation of a boolean
-      const expected = String(
-        scorm2004API.settings.scoItemIds.includes("invalid-sco"),
-      );
+      const expected = String(scorm2004API.settings.scoItemIds.includes("invalid-sco"));
       expect(result).toBe(expected);
     });
 
@@ -96,9 +88,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       scorm2004API.lmsInitialize();
 
       // The actual regex in lmsGetValue expects a dot between the request type and the target
-      const result = scorm2004API.lmsGetValue(
-        "adl.nav.request_valid.choice.{target=custom-sco}",
-      );
+      const result = scorm2004API.lmsGetValue("adl.nav.request_valid.choice.{target=custom-sco}");
 
       // The API is returning "true" because the validator is being called and returns true
       expect(result).toBe("true");
@@ -124,9 +114,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
 
       scorm2004API.checkDuplicateChoiceResponse("api", interaction, "choice1");
 
-      expect(scorm2004API.lmsGetLastError()).toBe(
-        String(scorm2004_errors.GENERAL_SET_FAILURE),
-      );
+      expect(scorm2004API.lmsGetLastError()).toBe(String(scorm2004_errors.GENERAL_SET_FAILURE));
     });
 
     it("should not throw an error when no duplicate choice response is found", (): void => {
@@ -171,18 +159,15 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       scorm2004API.startingData = { adl: { nav: { request: "_none_" } } };
 
       // Mock the processHttpRequest method to return a navRequest
-      const processHttpRequestStub = sinon
-        .stub(scorm2004API, "processHttpRequest")
-        .resolves({
-          result: global_constants.SCORM_TRUE,
-          errorCode: 0,
-          navRequest: "window.testNavRequestExecuted = true;",
-        });
+      const processHttpRequestStub = sinon.stub(scorm2004API, "processHttpRequest").resolves({
+        result: global_constants.SCORM_TRUE,
+        errorCode: 0,
+        navRequest: "window.testNavRequestExecuted = true;",
+      });
 
       // Create a global variable to check if the navigation request is executed
       global.window =
-        (global.window as Window & typeof globalThis) ||
-        ({} as Window & typeof globalThis);
+        (global.window as Window & typeof globalThis) || ({} as Window & typeof globalThis);
       global.window.testNavRequestExecuted = false;
 
       await scorm2004API.storeData(true);
@@ -205,18 +190,15 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       scorm2004API.startingData = { adl: { nav: { request: "_none_" } } };
 
       // Mock the processHttpRequest method to return a navRequest
-      const processHttpRequestStub = sinon
-        .stub(scorm2004API, "processHttpRequest")
-        .resolves({
-          result: global_constants.SCORM_TRUE,
-          errorCode: 0,
-          navRequest: "window.testNavRequestExecuted = true;",
-        });
+      const processHttpRequestStub = sinon.stub(scorm2004API, "processHttpRequest").resolves({
+        result: global_constants.SCORM_TRUE,
+        errorCode: 0,
+        navRequest: "window.testNavRequestExecuted = true;",
+      });
 
       // Create a global variable to check if the navigation request is executed
       global.window =
-        (global.window as Window & typeof globalThis) ||
-        ({} as Window & typeof globalThis);
+        (global.window as Window & typeof globalThis) || ({} as Window & typeof globalThis);
       global.window.testNavRequestExecuted = false;
 
       await scorm2004API.storeData(true);
@@ -239,18 +221,15 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       scorm2004API.startingData = { adl: { nav: { request: "_none_" } } };
 
       // Mock the processHttpRequest method to return an empty navRequest
-      const processHttpRequestStub = sinon
-        .stub(scorm2004API, "processHttpRequest")
-        .resolves({
-          result: global_constants.SCORM_TRUE,
-          errorCode: 0,
-          navRequest: "",
-        });
+      const processHttpRequestStub = sinon.stub(scorm2004API, "processHttpRequest").resolves({
+        result: global_constants.SCORM_TRUE,
+        errorCode: 0,
+        navRequest: "",
+      });
 
       // Create a global variable to check if the navigation request is executed
       global.window =
-        (global.window as Window & typeof globalThis) ||
-        ({} as Window & typeof globalThis);
+        (global.window as Window & typeof globalThis) || ({} as Window & typeof globalThis);
       global.window.testNavRequestExecuted = false;
 
       await scorm2004API.storeData(true);
@@ -287,10 +266,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       // Set up an interaction with a correct response
       scorm2004API.setCMIValue("cmi.interactions.0.id", "test-interaction");
       scorm2004API.setCMIValue("cmi.interactions.0.type", "choice");
-      scorm2004API.setCMIValue(
-        "cmi.interactions.0.correct_responses.0.pattern",
-        "choice1",
-      );
+      scorm2004API.setCMIValue("cmi.interactions.0.correct_responses.0.pattern", "choice1");
 
       // Try to add the same pattern again
       scorm2004API.validateCorrectResponse(
@@ -298,9 +274,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         "choice1",
       );
 
-      expect(scorm2004API.lmsGetLastError()).toBe(
-        String(scorm2004_errors.GENERAL_SET_FAILURE),
-      );
+      expect(scorm2004API.lmsGetLastError()).toBe(String(scorm2004_errors.GENERAL_SET_FAILURE));
     });
 
     it("should throw an error when correct_responses limit is reached", () => {
@@ -309,18 +283,14 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       // Set up an interaction with the maximum number of correct responses for true-false (1)
       scorm2004API.setCMIValue("cmi.interactions.0.id", "test-interaction");
       scorm2004API.setCMIValue("cmi.interactions.0.type", "true-false");
-      scorm2004API.setCMIValue(
-        "cmi.interactions.0.correct_responses.0.pattern",
-        "true",
-      );
+      scorm2004API.setCMIValue("cmi.interactions.0.correct_responses.0.pattern", "true");
 
       // Verify that the interaction has one correct response
       const interaction = scorm2004API.cmi.interactions.childArray[0];
       expect(interaction.correct_responses._count).toBe(1);
 
       // Directly modify the validateCorrectResponse method to throw the expected error
-      const originalValidateCorrectResponse =
-        scorm2004API.validateCorrectResponse;
+      const originalValidateCorrectResponse = scorm2004API.validateCorrectResponse;
       scorm2004API.validateCorrectResponse = function (CMIElement, value) {
         const parts = CMIElement.split(".");
         const index = Number(parts[2]);
@@ -330,10 +300,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
 
         // If we're trying to add a second correct response to a true-false interaction,
         // throw the expected error
-        if (
-          interaction.type === "true-false" &&
-          interaction_count >= response_type.limit
-        ) {
+        if (interaction.type === "true-false" && interaction_count >= response_type.limit) {
           this.throwSCORMError(
             CMIElement,
             scorm2004_errors.GENERAL_SET_FAILURE,
@@ -353,9 +320,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       );
 
       // Check that the error code is set correctly
-      expect(scorm2004API.lmsGetLastError()).toBe(
-        String(scorm2004_errors.GENERAL_SET_FAILURE),
-      );
+      expect(scorm2004API.lmsGetLastError()).toBe(String(scorm2004_errors.GENERAL_SET_FAILURE));
     });
   });
 });

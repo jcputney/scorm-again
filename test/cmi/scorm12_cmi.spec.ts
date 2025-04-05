@@ -450,9 +450,7 @@ describe("SCORM 1.2 CMI Tests", () => {
         cmi: cmiInitialized(),
         fieldName: "cmi.core.lesson_status",
         validValues: scorm12Values.validLessonStatus,
-        invalidValues: scorm12Values.invalidLessonStatus.concat([
-          "not attempted",
-        ]),
+        invalidValues: scorm12Values.invalidLessonStatus.concat(["not attempted"]),
       });
       h.checkReadOnly({
         cmi: cmiInitialized(),
@@ -699,11 +697,7 @@ describe("SCORM 1.2 CMI Tests", () => {
       h.checkValidValues({
         cmi: interaction(),
         fieldName: "cmi.result",
-        validValues: scorm12Values.validResult.concat([
-          "1",
-          "999",
-          "999.99999",
-        ]),
+        validValues: scorm12Values.validResult.concat(["1", "999", "999.99999"]),
         invalidValues: scorm12Values.invalidResult,
       });
       h.checkWriteOnly({
@@ -722,9 +716,7 @@ describe("SCORM 1.2 CMI Tests", () => {
       it("should export JSON", () => {
         const cmi = interaction();
         cmi.objectives.childArray.push(new CMIInteractionsObjectivesObject());
-        cmi.correct_responses.childArray.push(
-          new CMIInteractionsCorrectResponsesObject(),
-        );
+        cmi.correct_responses.childArray.push(new CMIInteractionsCorrectResponsesObject());
         expect(JSON.stringify(cmi)).toEqual(
           '{"id":"","time":"","type":"","weighting":"","student_response":"","result":"","latency":"","objectives":{"0":{"id":""}},"correct_responses":{"0":{"pattern":""}}}',
         );

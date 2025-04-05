@@ -35,8 +35,7 @@ export const LearnerResponses: Responses = {
   },
   performance: {
     format: "^$|" + scorm2004_regex.CMIShortIdentifier,
-    format2:
-      scorm2004_regex.CMIDecimal + "|^$|" + scorm2004_regex.CMIShortIdentifier,
+    format2: scorm2004_regex.CMIDecimal + "|^$|" + scorm2004_regex.CMIShortIdentifier,
     max: 250,
     delimiter: "[,]",
     delimiter2: "[.]",
@@ -114,8 +113,7 @@ export const CorrectResponses: Responses = {
     unique: false,
     duplicate: false,
     format: "^$|" + scorm2004_regex.CMIShortIdentifier,
-    format2:
-      scorm2004_regex.CMIDecimal + "|^$|" + scorm2004_regex.CMIShortIdentifier,
+    format2: scorm2004_regex.CMIDecimal + "|^$|" + scorm2004_regex.CMIShortIdentifier,
   },
   sequencing: {
     max: 36,

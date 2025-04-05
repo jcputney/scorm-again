@@ -6,11 +6,7 @@ export interface IBaseAPI {
   cmi: BaseCMI;
   startingData?: StringKeyMap;
 
-  initialize(
-    callbackName: string,
-    initializeMessage?: string,
-    terminationMessage?: string,
-  ): string;
+  initialize(callbackName: string, initializeMessage?: string, terminationMessage?: string): string;
 
   lmsInitialize(): string;
 
@@ -32,10 +28,7 @@ export interface IBaseAPI {
 
   renderCommitCMI(_terminateCommit: boolean): StringKeyMap | Array<any>;
 
-  getLmsErrorMessageDetails(
-    _errorNumber: string | number,
-    _detail?: boolean,
-  ): string;
+  getLmsErrorMessageDetails(_errorNumber: string | number, _detail?: boolean): string;
 
   getCMIValue(_CMIElement: string): string;
 
@@ -43,9 +36,5 @@ export interface IBaseAPI {
 
   validateCorrectResponse(_CMIElement: string, _value: any): void;
 
-  getChildElement(
-    _CMIElement: string,
-    _value: any,
-    _foundFirstIndex: boolean,
-  ): BaseCMI | null;
+  getChildElement(_CMIElement: string, _value: any, _foundFirstIndex: boolean): BaseCMI | null;
 }

@@ -27,10 +27,7 @@ export class BaseScormValidationError extends Error {
 /**
  * Base Validation Exception
  */
-export class ValidationError
-  extends BaseScormValidationError
-  implements APIError
-{
+export class ValidationError extends BaseScormValidationError implements APIError {
   /**
    * Constructor to take in an error message and code
    * @param {string} CMIElement

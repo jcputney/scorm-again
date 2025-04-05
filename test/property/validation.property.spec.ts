@@ -1,10 +1,7 @@
 import { describe, it } from "mocha";
 import { expect } from "expect";
 import * as fc from "fast-check";
-import {
-  checkValidFormat,
-  checkValidRange,
-} from "../../src/cmi/common/validation";
+import { checkValidFormat, checkValidRange } from "../../src/cmi/common/validation";
 import { BaseScormValidationError } from "../../src/exceptions";
 
 // Custom error class for testing
@@ -49,13 +46,7 @@ describe("Validation Property-based Tests", () => {
           (invalidString) => {
             // This should throw an error
             expect(() => {
-              checkValidFormat(
-                "api",
-                invalidString,
-                "^[0-9]+$",
-                101,
-                TestValidationError,
-              );
+              checkValidFormat("api", invalidString, "^[0-9]+$", 101, TestValidationError);
             }).toThrow(TestValidationError);
           },
         ),
@@ -65,20 +56,11 @@ describe("Validation Property-based Tests", () => {
     // Test that empty strings are handled correctly based on allowEmptyString parameter
     it("should handle empty strings based on allowEmptyString parameter", () => {
       // When allowEmptyString is true, empty string should be accepted
-      expect(
-        checkValidFormat("api", "", "^[0-9]+$", 101, TestValidationError, true),
-      ).toBe(true);
+      expect(checkValidFormat("api", "", "^[0-9]+$", 101, TestValidationError, true)).toBe(true);
 
       // When allowEmptyString is false or undefined, empty string should be rejected
       expect(() => {
-        checkValidFormat(
-          "api",
-          "",
-          "^[0-9]+$",
-          101,
-          TestValidationError,
-          false,
-        );
+        checkValidFormat("api", "", "^[0-9]+$", 101, TestValidationError, false);
       }).toThrow(TestValidationError);
 
       expect(() => {
@@ -151,13 +133,7 @@ describe("Validation Property-based Tests", () => {
           (invalidNumber) => {
             // This should throw an error
             expect(() => {
-              checkValidRange(
-                "api",
-                invalidNumber.toString(),
-                "1#100",
-                102,
-                TestValidationError,
-              );
+              checkValidRange("api", invalidNumber.toString(), "1#100", 102, TestValidationError);
             }).toThrow(TestValidationError);
           },
         ),
@@ -173,13 +149,7 @@ describe("Validation Property-based Tests", () => {
           (invalidNumber) => {
             // This should throw an error
             expect(() => {
-              checkValidRange(
-                "api",
-                invalidNumber.toString(),
-                "1#100",
-                102,
-                TestValidationError,
-              );
+              checkValidRange("api", invalidNumber.toString(), "1#100", 102, TestValidationError);
             }).toThrow(TestValidationError);
           },
         ),

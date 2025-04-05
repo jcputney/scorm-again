@@ -1,10 +1,7 @@
 import { afterEach, beforeEach, describe, it } from "mocha";
 import { expect } from "expect";
 import * as sinon from "sinon";
-import {
-  getLoggingService,
-  LoggingService,
-} from "../../src/services/LoggingService";
+import { getLoggingService, LoggingService } from "../../src/services/LoggingService";
 import { LogLevelEnum } from "../../src/constants/enums";
 import { LogLevel } from "../../src/types/api_types";
 
@@ -82,9 +79,7 @@ describe("LoggingService", () => {
       loggingService.debug("Debug message");
 
       expect(customHandler.calledOnce).toBe(true);
-      expect(
-        customHandler.calledWith(LogLevelEnum.DEBUG, "Debug message"),
-      ).toBe(true);
+      expect(customHandler.calledWith(LogLevelEnum.DEBUG, "Debug message")).toBe(true);
       expect(consoleDebugStub.called).toBe(false);
     });
   });
@@ -159,14 +154,10 @@ describe("LoggingService", () => {
       loggingService.setLogLevel(LogLevelEnum.WARN);
 
       loggingService.error("Error message");
-      expect(
-        customHandler.calledWith(LogLevelEnum.ERROR, "Error message"),
-      ).toBe(true);
+      expect(customHandler.calledWith(LogLevelEnum.ERROR, "Error message")).toBe(true);
 
       loggingService.warn("Warn message");
-      expect(customHandler.calledWith(LogLevelEnum.WARN, "Warn message")).toBe(
-        true,
-      );
+      expect(customHandler.calledWith(LogLevelEnum.WARN, "Warn message")).toBe(true);
     });
   });
 
@@ -370,9 +361,7 @@ describe("LoggingService", () => {
     });
 
     it("should default to ERROR for unknown levels", () => {
-      expect(loggingService.getNumericLevel("UNKNOWN")).toBe(
-        LogLevelEnum.ERROR,
-      );
+      expect(loggingService.getNumericLevel("UNKNOWN")).toBe(LogLevelEnum.ERROR);
       expect(loggingService.getNumericLevel("6")).toBe(LogLevelEnum.ERROR);
       expect(loggingService.getNumericLevel({})).toBe(LogLevelEnum.ERROR);
     });

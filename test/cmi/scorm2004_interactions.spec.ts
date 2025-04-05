@@ -89,10 +89,7 @@ describe("SCORM 2004 Interactions Tests", () => {
         interaction.type = "choice";
 
         // Create a string with 37 choices (more than the max of 36)
-        const tooManyChoices = Array.from(
-          { length: 37 },
-          (_, i) => `choice${i + 1}`,
-        ).join(",");
+        const tooManyChoices = Array.from({ length: 37 }, (_, i) => `choice${i + 1}`).join(",");
 
         expect(() => {
           interaction.learner_response = tooManyChoices;
@@ -143,10 +140,7 @@ describe("SCORM 2004 Interactions Tests", () => {
         interaction.type = "fill-in";
 
         // Create a string with 11 responses (more than the max of 10)
-        const tooManyResponses = Array.from(
-          { length: 11 },
-          (_, i) => `answer${i + 1}`,
-        ).join(",");
+        const tooManyResponses = Array.from({ length: 11 }, (_, i) => `answer${i + 1}`).join(",");
 
         expect(() => {
           interaction.learner_response = tooManyResponses;
@@ -205,9 +199,7 @@ describe("SCORM 2004 Interactions Tests", () => {
 
         // The format should include pairs of identifiers separated by periods,
         // with each pair separated by commas
-        expect(validFormat).toMatch(
-          /^[\w\.\-\_]+\.[\w\.\-\_]+(,[\w\.\-\_]+\.[\w\.\-\_]+)*$/,
-        );
+        expect(validFormat).toMatch(/^[\w\.\-\_]+\.[\w\.\-\_]+(,[\w\.\-\_]+\.[\w\.\-\_]+)*$/);
       });
 
       it("should reject invalid matching responses", () => {

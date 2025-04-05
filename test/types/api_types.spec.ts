@@ -26,8 +26,7 @@ describe("Settings Type", () => {
       const httpResult = JSON.parse(await response.text());
       return {
         result: httpResult.result || global_constants.SCORM_FALSE,
-        errorCode:
-          httpResult.errorCode !== undefined ? httpResult.errorCode : 101,
+        errorCode: httpResult.errorCode !== undefined ? httpResult.errorCode : 101,
       };
     },
     requestHandler: (commitObject: unknown) => commitObject,
@@ -41,9 +40,7 @@ describe("Settings Type", () => {
     expect(defaultSettings.sendFullCommit).toBe(true);
     expect(defaultSettings.lmsCommitUrl).toBe(false);
     expect(defaultSettings.dataCommitFormat).toEqual("json");
-    expect(defaultSettings.commitRequestDataType).toEqual(
-      "application/json;charset=UTF-8",
-    );
+    expect(defaultSettings.commitRequestDataType).toEqual("application/json;charset=UTF-8");
     expect(defaultSettings.autoProgress).toBe(false);
     expect(defaultSettings.logLevel).toEqual(LogLevelEnum.ERROR);
     expect(defaultSettings.selfReportSessionTime).toBe(false);
@@ -54,9 +51,7 @@ describe("Settings Type", () => {
   });
 
   it("should handle response correctly in responseHandler", async () => {
-    const response = new Response(
-      JSON.stringify({ result: "true", errorCode: 0 }),
-    );
+    const response = new Response(JSON.stringify({ result: "true", errorCode: 0 }));
     const result = await defaultSettings.responseHandler(response);
     expect(result.result).toEqual("true");
     expect(result.errorCode).toEqual(0);
@@ -75,11 +70,7 @@ describe("Settings Type", () => {
     const consoleDebugStub = sinon.stub(console, "debug");
     const consoleLogStub = sinon.stub(console, "log");
 
-    const testLog = function (
-      stub: SinonStub,
-      level: LogLevel,
-      shouldBeLogged = true,
-    ) {
+    const testLog = function (stub: SinonStub, level: LogLevel, shouldBeLogged = true) {
       const message = `${level} message - ${typeof level}`;
       defaultSettings.onLogMessage(level, message);
       expect(stub.calledWith(message)).toBe(shouldBeLogged);

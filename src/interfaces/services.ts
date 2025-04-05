@@ -3,13 +3,7 @@
  * These interfaces are used for dependency injection to improve testability.
  */
 
-import {
-  CommitObject,
-  LogLevel,
-  RefValue,
-  ResultObject,
-  Settings,
-} from "../types/api_types";
+import { CommitObject, LogLevel, RefValue, ResultObject, Settings } from "../types/api_types";
 import { ErrorCode } from "../constants/error_codes";
 import { LogLevelEnum } from "../constants/enums";
 import { BaseCMI } from "../cmi/common/base_cmi";
@@ -39,11 +33,7 @@ export interface IHttpService {
       messageLevel: LogLevelEnum,
       CMIElement?: string,
     ) => void,
-    processListeners: (
-      functionName: string,
-      CMIElement?: string,
-      value?: any,
-    ) => void,
+    processListeners: (functionName: string, CMIElement?: string, value?: any) => void,
   ): Promise<ResultObject>;
 
   /**
@@ -87,11 +77,7 @@ export interface IEventService {
    * @param {string} CMIElement - The CMI element that was affected
    * @param {any} value - The value that was set
    */
-  processListeners(
-    functionName: string,
-    CMIElement?: string,
-    value?: any,
-  ): void;
+  processListeners(functionName: string, CMIElement?: string, value?: any): void;
 
   /**
    * Resets the event service by clearing all listeners
@@ -144,10 +130,7 @@ export interface ISerializationService {
    * @param {boolean} sendFullCommit - Whether to send the full commit
    * @return {string} - The JSON string
    */
-  renderCMIToJSONString(
-    cmi: BaseCMI | StringKeyMap,
-    sendFullCommit: boolean,
-  ): string;
+  renderCMIToJSONString(cmi: BaseCMI | StringKeyMap, sendFullCommit: boolean): string;
 
   /**
    * Renders CMI data to a JSON object
@@ -156,10 +139,7 @@ export interface ISerializationService {
    * @param {boolean} sendFullCommit - Whether to send the full commit
    * @return {object} - The JSON object
    */
-  renderCMIToJSONObject(
-    cmi: BaseCMI | StringKeyMap,
-    sendFullCommit: boolean,
-  ): StringKeyMap;
+  renderCMIToJSONObject(cmi: BaseCMI | StringKeyMap, sendFullCommit: boolean): StringKeyMap;
 
   /**
    * Gets a commit object for sending to the LMS
@@ -175,9 +155,7 @@ export interface ISerializationService {
   getCommitObject(
     terminateCommit: boolean,
     alwaysSendTotalTime: boolean,
-    renderCommonCommitFields:
-      | boolean
-      | ((commitObject: CommitObject) => boolean),
+    renderCommonCommitFields: boolean | ((commitObject: CommitObject) => boolean),
     renderCommitObject: (terminateCommit: boolean) => CommitObject,
     renderCommitCMI: (terminateCommit: boolean) => StringKeyMap | Array<any>,
     apiLogLevel: LogLevel,
@@ -272,11 +250,7 @@ export interface IErrorHandlingService {
    * @param {number} errorNumber - The error number
    * @param {string} message - The error message
    */
-  throwSCORMError(
-    CMIElement: string,
-    errorNumber: number,
-    message?: string,
-  ): void;
+  throwSCORMError(CMIElement: string, errorNumber: number, message?: string): void;
 
   /**
    * Clears the last SCORM error code on success.
@@ -330,9 +304,7 @@ export interface ILoggingService {
    *
    * @param {Function} handler - The function to handle log messages
    */
-  setLogHandler(
-    handler: (messageLevel: LogLevel, logMessage: string) => void,
-  ): void;
+  setLogHandler(handler: (messageLevel: LogLevel, logMessage: string) => void): void;
 
   /**
    * Logs a message if the message level is greater than or equal to the current log level

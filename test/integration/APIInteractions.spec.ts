@@ -60,16 +60,12 @@ test.describe("SCORM 1.2 API Interactions", () => {
         invalidElement: {
           setValue: window.API.LMSSetValue("cmi.invalid_element", "test"),
           errorCode: window.API.LMSGetLastError(),
-          errorString: window.API.LMSGetErrorString(
-            window.API.LMSGetLastError(),
-          ),
+          errorString: window.API.LMSGetErrorString(window.API.LMSGetLastError()),
         },
         readOnlyElement: {
           setValue: window.API.LMSSetValue("cmi.core.student_id", "12345"),
           errorCode: window.API.LMSGetLastError(),
-          errorString: window.API.LMSGetErrorString(
-            window.API.LMSGetLastError(),
-          ),
+          errorString: window.API.LMSGetErrorString(window.API.LMSGetLastError()),
         },
       };
 
@@ -90,24 +86,12 @@ test.describe("SCORM 1.2 API Interactions", () => {
     expect(testInteractions.results.commit).toBe("true");
 
     // Verify that error handling worked correctly
-    expect(testInteractions.errorHandling.invalidElement.setValue).toBe(
-      "false",
-    );
-    expect(testInteractions.errorHandling.invalidElement.errorCode).not.toBe(
-      "0",
-    );
-    expect(
-      testInteractions.errorHandling.invalidElement.errorString.length,
-    ).toBeGreaterThan(0);
-    expect(testInteractions.errorHandling.readOnlyElement.setValue).toBe(
-      "false",
-    );
-    expect(testInteractions.errorHandling.readOnlyElement.errorCode).not.toBe(
-      "0",
-    );
-    expect(
-      testInteractions.errorHandling.readOnlyElement.errorString.length,
-    ).toBeGreaterThan(0);
+    expect(testInteractions.errorHandling.invalidElement.setValue).toBe("false");
+    expect(testInteractions.errorHandling.invalidElement.errorCode).not.toBe("0");
+    expect(testInteractions.errorHandling.invalidElement.errorString.length).toBeGreaterThan(0);
+    expect(testInteractions.errorHandling.readOnlyElement.setValue).toBe("false");
+    expect(testInteractions.errorHandling.readOnlyElement.errorCode).not.toBe("0");
+    expect(testInteractions.errorHandling.readOnlyElement.errorString.length).toBeGreaterThan(0);
 
     // Test finishing the session
     const finishResult = await page.evaluate(() => {

@@ -43,36 +43,32 @@ const designations: Designation = {
  * // Returns "00:00:00"
  * getSecondsAsHHMMSS(null);
  */
-export const getSecondsAsHHMMSS = memoize(
-  (totalSeconds: number | null): string => {
-    // SCORM spec does not deal with negative durations, give zero back
-    if (!totalSeconds || totalSeconds <= 0) {
-      return "00:00:00";
+export const getSecondsAsHHMMSS = memoize((totalSeconds: number | null): string => {
+  // SCORM spec does not deal with negative durations, give zero back
+  if (!totalSeconds || totalSeconds <= 0) {
+    return "00:00:00";
+  }
+
+  const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
+  const dateObj = new Date(totalSeconds * 1000);
+  const minutes = dateObj.getUTCMinutes();
+  // make sure we add any possible decimal value
+  const seconds = dateObj.getSeconds();
+  const ms = totalSeconds % 1.0;
+  let msStr = "";
+
+  if (countDecimals(ms) > 0) {
+    if (countDecimals(ms) > 2) {
+      msStr = ms.toFixed(2);
+    } else {
+      msStr = String(ms);
     }
 
-    const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
-    const dateObj = new Date(totalSeconds * 1000);
-    const minutes = dateObj.getUTCMinutes();
-    // make sure we add any possible decimal value
-    const seconds = dateObj.getSeconds();
-    const ms = totalSeconds % 1.0;
-    let msStr = "";
+    msStr = "." + msStr.split(".")[1];
+  }
 
-    if (countDecimals(ms) > 0) {
-      if (countDecimals(ms) > 2) {
-        msStr = ms.toFixed(2);
-      } else {
-        msStr = String(ms);
-      }
-
-      msStr = "." + msStr.split(".")[1];
-    }
-
-    return (
-      (hours + ":" + minutes + ":" + seconds).replace(/\b\d\b/g, "0$&") + msStr
-    );
-  },
-);
+  return (hours + ":" + minutes + ":" + seconds).replace(/\b\d\b/g, "0$&") + msStr;
+});
 
 /**
  * Converts a number of seconds to an ISO 8601 duration string (e.g., "PT1H30M45S").
@@ -98,53 +94,50 @@ export const getSecondsAsHHMMSS = memoize(
  * // Returns "PT0S" (0 seconds)
  * getSecondsAsISODuration(null);
  */
-export const getSecondsAsISODuration = memoize(
-  (seconds: number | null): string => {
-    // SCORM spec does not deal with negative durations, give zero back
-    if (!seconds || seconds <= 0) {
-      return "PT0S";
+export const getSecondsAsISODuration = memoize((seconds: number | null): string => {
+  // SCORM spec does not deal with negative durations, give zero back
+  if (!seconds || seconds <= 0) {
+    return "PT0S";
+  }
+
+  let duration = "P";
+  let remainder = seconds;
+
+  // Convert to array of entries and use functional methods
+  const designationEntries = Object.entries(designations);
+
+  // Process each time designation
+  designationEntries.forEach(([designationsKey, current_seconds]) => {
+    let value = Math.floor(remainder / current_seconds);
+    remainder = remainder % current_seconds;
+
+    // Limit decimal places
+    if (countDecimals(remainder) > 2) {
+      remainder = Number(Number(remainder).toFixed(2));
     }
 
-    let duration = "P";
-    let remainder = seconds;
+    // If we have anything left in the remainder, and we're currently adding
+    // seconds to the duration, go ahead and add the decimal to the seconds
+    if (designationsKey === "S" && remainder > 0) {
+      value += remainder;
+    }
 
-    // Convert to array of entries and use functional methods
-    const designationEntries = Object.entries(designations);
+    if (value) {
+      // Add the 'T' separator for time components if needed
+      const needsTimeSeparator =
+        (duration.indexOf("D") > 0 || ["H", "M", "S"].includes(designationsKey)) &&
+        duration.indexOf("T") === -1;
 
-    // Process each time designation
-    designationEntries.forEach(([designationsKey, current_seconds]) => {
-      let value = Math.floor(remainder / current_seconds);
-      remainder = remainder % current_seconds;
-
-      // Limit decimal places
-      if (countDecimals(remainder) > 2) {
-        remainder = Number(Number(remainder).toFixed(2));
+      if (needsTimeSeparator) {
+        duration += "T";
       }
 
-      // If we have anything left in the remainder, and we're currently adding
-      // seconds to the duration, go ahead and add the decimal to the seconds
-      if (designationsKey === "S" && remainder > 0) {
-        value += remainder;
-      }
+      duration += `${value}${designationsKey}`;
+    }
+  });
 
-      if (value) {
-        // Add the 'T' separator for time components if needed
-        const needsTimeSeparator =
-          (duration.indexOf("D") > 0 ||
-            ["H", "M", "S"].includes(designationsKey)) &&
-          duration.indexOf("T") === -1;
-
-        if (needsTimeSeparator) {
-          duration += "T";
-        }
-
-        duration += `${value}${designationsKey}`;
-      }
-    });
-
-    return duration;
-  },
-);
+  return duration;
+});
 
 /**
  * Converts a time string in HH:MM:SS format to the equivalent number of seconds.
@@ -170,10 +163,7 @@ export const getSecondsAsISODuration = memoize(
  * getTimeAsSeconds(30, /^(\d+):(\d+):(\d+)$/);
  */
 export const getTimeAsSeconds = memoize(
-  (
-    timeString: string | number | boolean | null,
-    timeRegex: RegExp | string,
-  ): number => {
+  (timeString: string | number | boolean | null, timeRegex: RegExp | string): number => {
     if (typeof timeString === "number" || typeof timeString === "boolean") {
       timeString = String(timeString);
     }
@@ -192,10 +182,8 @@ export const getTimeAsSeconds = memoize(
   },
   // Custom key function to handle RegExp objects which can't be stringified
   (timeString, timeRegex) => {
-    const timeStr =
-      typeof timeString === "string" ? timeString : String(timeString ?? "");
-    const regexStr =
-      typeof timeRegex === "string" ? timeRegex : (timeRegex?.toString() ?? "");
+    const timeStr = typeof timeString === "string" ? timeString : String(timeString ?? "");
+    const regexStr = typeof timeRegex === "string" ? timeRegex : (timeRegex?.toString() ?? "");
     return `${timeStr}:${regexStr}`;
   },
 );
@@ -248,9 +236,7 @@ export const getDurationAsSeconds = memoize(
   (duration, durationRegex) => {
     const durationStr = duration ?? "";
     const regexStr =
-      typeof durationRegex === "string"
-        ? durationRegex
-        : (durationRegex?.toString() ?? "");
+      typeof durationRegex === "string" ? durationRegex : (durationRegex?.toString() ?? "");
     return `${durationStr}:${regexStr}`;
   },
 );
@@ -284,9 +270,7 @@ export function addTwoDurations(
   durationRegex: RegExp | string,
 ): string {
   const regex: RegExp =
-    typeof durationRegex === "string"
-      ? new RegExp(durationRegex)
-      : durationRegex;
+    typeof durationRegex === "string" ? new RegExp(durationRegex) : durationRegex;
   return getSecondsAsISODuration(
     getDurationAsSeconds(first, regex) + getDurationAsSeconds(second, regex),
   );
@@ -371,9 +355,7 @@ export function flatten(data: StringKeyMap): StringKeyMap {
 
       if (cur.length === 0) result[prop] = [];
     } else {
-      const keys = Object.keys(cur).filter((p) =>
-        Object.prototype.hasOwnProperty.call(cur, p),
-      );
+      const keys = Object.keys(cur).filter((p) => Object.prototype.hasOwnProperty.call(cur, p));
 
       const isEmpty = keys.length === 0;
 
@@ -444,14 +426,12 @@ export function unflatten(data: StringKeyMap): object {
       const regex = new RegExp(pattern);
 
       // Process all matches in the property path
-      Array.from(
-        { length: p.match(new RegExp(pattern, "g"))?.length ?? 0 },
-        () => regex.exec(p),
+      Array.from({ length: p.match(new RegExp(pattern, "g"))?.length ?? 0 }, () =>
+        regex.exec(p),
       ).forEach((m) => {
         if (m) {
           // Create array or object as needed
-          cur = (cur[prop] ??
-            (cur[prop] = m[2] ? [] : ({} as StringKeyMap))) as StringKeyMap;
+          cur = (cur[prop] ?? (cur[prop] = m[2] ? [] : ({} as StringKeyMap))) as StringKeyMap;
           prop = m[2] || m[1];
         }
       });
@@ -509,11 +489,7 @@ export function countDecimals(num: number): number {
  * // Returns "setValue            : cmi.core.lesson_status                                          : completed"
  * formatMessage("setValue", "completed", "cmi.core.lesson_status");
  */
-export function formatMessage(
-  functionName: string,
-  message: string,
-  CMIElement?: string,
-): string {
+export function formatMessage(functionName: string, message: string, CMIElement?: string): string {
   const baseLength = 20;
 
   // Use string padding instead of loops

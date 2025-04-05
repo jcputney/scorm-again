@@ -175,9 +175,7 @@ export class EventService implements IEventService {
         const listeners = this.listenerMap.get(functionName)!;
 
         // Filter out listeners that match the criteria
-        const newListeners = listeners.filter(
-          (obj) => obj.CMIElement !== CMIElement,
-        );
+        const newListeners = listeners.filter((obj) => obj.CMIElement !== CMIElement);
 
         // Update the count and map
         this.listenerCount -= listeners.length - newListeners.length;
@@ -210,11 +208,7 @@ export class EventService implements IEventService {
       let CMIElementsMatch = false;
 
       // Check if CMI elements match
-      if (
-        CMIElement &&
-        listener.CMIElement &&
-        listener.CMIElement.endsWith("*")
-      ) {
+      if (CMIElement && listener.CMIElement && listener.CMIElement.endsWith("*")) {
         const prefix = listener.CMIElement.slice(0, -1);
         CMIElementsMatch = stringMatches(CMIElement, prefix);
       } else {

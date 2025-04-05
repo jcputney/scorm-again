@@ -53,9 +53,7 @@ export class SerializationService implements ISerializationService {
     setStartingData: (data: StringKeyMap) => void,
   ): void {
     if (!isNotInitialized()) {
-      console.error(
-        "loadFromFlattenedJSON can only be called before the call to lmsInitialize.",
-      );
+      console.error("loadFromFlattenedJSON can only be called before the call to lmsInitialize.");
       return;
     }
 
@@ -210,9 +208,7 @@ export class SerializationService implements ISerializationService {
     setStartingData: (data: StringKeyMap) => void,
   ): void {
     if (!isNotInitialized()) {
-      console.error(
-        "loadFromJSON can only be called before the call to lmsInitialize.",
-      );
+      console.error("loadFromJSON can only be called before the call to lmsInitialize.");
       return;
     }
 
@@ -267,10 +263,7 @@ export class SerializationService implements ISerializationService {
    * @param {boolean} sendFullCommit - Whether to send the full commit
    * @return {string}
    */
-  renderCMIToJSONString(
-    cmi: BaseCMI | StringKeyMap,
-    sendFullCommit: boolean,
-  ): string {
+  renderCMIToJSONString(cmi: BaseCMI | StringKeyMap, sendFullCommit: boolean): string {
     // Do we want/need to return fields that have no set value?
     if (sendFullCommit) {
       return JSON.stringify({ cmi });
@@ -284,10 +277,7 @@ export class SerializationService implements ISerializationService {
    * @param {boolean} sendFullCommit - Whether to send the full commit
    * @return {object}
    */
-  renderCMIToJSONObject(
-    cmi: BaseCMI | StringKeyMap,
-    sendFullCommit: boolean,
-  ): StringKeyMap {
+  renderCMIToJSONObject(cmi: BaseCMI | StringKeyMap, sendFullCommit: boolean): StringKeyMap {
     // Revert to the original implementation to maintain compatibility with tests
     return JSON.parse(this.renderCMIToJSONString(cmi, sendFullCommit));
   }
@@ -305,9 +295,7 @@ export class SerializationService implements ISerializationService {
   getCommitObject(
     terminateCommit: boolean,
     alwaysSendTotalTime: boolean,
-    renderCommonCommitFields:
-      | boolean
-      | ((commitObject: CommitObject) => boolean),
+    renderCommonCommitFields: boolean | ((commitObject: CommitObject) => boolean),
     renderCommitObject: (terminateCommit: boolean) => CommitObject,
     renderCommitCMI: (terminateCommit: boolean) => StringKeyMap | Array<any>,
     apiLogLevel: LogLevel,
@@ -318,9 +306,7 @@ export class SerializationService implements ISerializationService {
       : renderCommitCMI(shouldTerminateCommit);
 
     if ([LogLevelEnum.DEBUG, "1", 1, "DEBUG"].includes(apiLogLevel)) {
-      console.debug(
-        "Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ",
-      );
+      console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");
       console.debug(commitObject);
     }
     return commitObject;

@@ -645,8 +645,7 @@ var DefaultSettings = {
                         if (responseText) {
                             httpResult = JSON.parse(responseText);
                         }
-                        if (httpResult === null ||
-                            !{}.hasOwnProperty.call(httpResult, "result")) {
+                        if (httpResult === null || !{}.hasOwnProperty.call(httpResult, "result")) {
                             if (response.status === 200) {
                                 return [2, {
                                         result: api_constants/* global_constants */._y.SCORM_TRUE,
@@ -978,9 +977,7 @@ var EventService = (function () {
             var listener = listeners_1[_i];
             var listenerHasCMIElement = !!listener.CMIElement;
             var CMIElementsMatch = false;
-            if (CMIElement &&
-                listener.CMIElement &&
-                listener.CMIElement.endsWith("*")) {
+            if (CMIElement && listener.CMIElement && listener.CMIElement.endsWith("*")) {
                 var prefix = listener.CMIElement.slice(0, -1);
                 CMIElementsMatch = (0,utilities/* stringMatches */.J6)(CMIElement, prefix);
             }
@@ -1357,22 +1354,18 @@ var BaseAPI = (function () {
         if (this.settings.onLogMessage) {
             this._loggingService.setLogHandler(this.settings.onLogMessage);
         }
-        this._httpService =
-            httpService || new HttpService(this.settings, this._error_codes);
+        this._httpService = httpService || new HttpService(this.settings, this._error_codes);
         this._eventService =
             eventService ||
                 new EventService(function (functionName, message, level, element) {
                     return _this.apiLog(functionName, message, level, element);
                 });
-        this._serializationService =
-            serializationService || new SerializationService();
+        this._serializationService = serializationService || new SerializationService();
         this._errorHandlingService =
             errorHandlingService ||
                 createErrorHandlingService(this._error_codes, function (functionName, message, level, element) {
                     return _this.apiLog(functionName, message, level, element);
-                }, function (errorNumber, detail) {
-                    return _this.getLmsErrorMessageDetails(errorNumber, detail);
-                });
+                }, function (errorNumber, detail) { return _this.getLmsErrorMessageDetails(errorNumber, detail); });
     }
     Object.defineProperty(BaseAPI.prototype, "lastErrorCode", {
         get: function () {
@@ -1422,8 +1415,7 @@ var BaseAPI = (function () {
         if (messageLevel >= this.apiLogLevel) {
             this._loggingService.log(messageLevel, logMessage);
             if (this.settings.onLogMessage &&
-                this.settings.onLogMessage !==
-                    this._loggingService["_logHandler"]) {
+                this.settings.onLogMessage !== this._loggingService["_logHandler"]) {
                 this.settings.onLogMessage(messageLevel, logMessage);
             }
         }
@@ -1444,8 +1436,7 @@ var BaseAPI = (function () {
             var previousSettings = this._settings;
             this._settings = (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, this._settings), settings);
             (_a = this._httpService) === null || _a === void 0 ? void 0 : _a.updateSettings(this._settings);
-            if (settings.logLevel !== undefined &&
-                settings.logLevel !== previousSettings.logLevel) {
+            if (settings.logLevel !== undefined && settings.logLevel !== previousSettings.logLevel) {
                 this.apiLogLevel = settings.logLevel;
                 (_b = this._loggingService) === null || _b === void 0 ? void 0 : _b.setLogLevel(settings.logLevel);
             }
@@ -1819,11 +1810,7 @@ var BaseAPI = (function () {
             var _this = this;
             if (immediate === void 0) { immediate = false; }
             return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                return [2, this._httpService.processHttpRequest(url, params, immediate, function (functionName, message, level, element) {
-                        return _this.apiLog(functionName, message, level, element);
-                    }, function (functionName, CMIElement, value) {
-                        return _this.processListeners(functionName, CMIElement, value);
-                    })];
+                return [2, this._httpService.processHttpRequest(url, params, immediate, function (functionName, message, level, element) { return _this.apiLog(functionName, message, level, element); }, function (functionName, CMIElement, value) { return _this.processListeners(functionName, CMIElement, value); })];
             });
         });
     };
@@ -2786,8 +2773,7 @@ var ValidationService = (function () {
     }
     ValidationService.prototype.validateScore = function (CMIElement, value, decimalRegex, scoreRange, invalidTypeCode, invalidRangeCode, errorClass) {
         return ((0,_cmi_common_validation__WEBPACK_IMPORTED_MODULE_0__/* .checkValidFormat */ .q)(CMIElement, value, decimalRegex, invalidTypeCode, errorClass) &&
-            (!scoreRange ||
-                (0,_cmi_common_validation__WEBPACK_IMPORTED_MODULE_0__/* .checkValidRange */ .W)(CMIElement, value, scoreRange, invalidRangeCode, errorClass)));
+            (!scoreRange || (0,_cmi_common_validation__WEBPACK_IMPORTED_MODULE_0__/* .checkValidRange */ .W)(CMIElement, value, scoreRange, invalidRangeCode, errorClass)));
     };
     ValidationService.prototype.validateScorm12Audio = function (CMIElement, value) {
         return ((0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidFormat */ .p)(CMIElement, value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.CMISInteger) &&
@@ -3142,7 +3128,7 @@ var getSecondsAsHHMMSS = memoize(function (totalSeconds) {
         }
         msStr = "." + msStr.split(".")[1];
     }
-    return ((hours + ":" + minutes + ":" + seconds).replace(/\b\d\b/g, "0$&") + msStr);
+    return (hours + ":" + minutes + ":" + seconds).replace(/\b\d\b/g, "0$&") + msStr;
 });
 var getSecondsAsISODuration = memoize(function (seconds) {
     if (!seconds || seconds <= 0) {
@@ -3162,8 +3148,7 @@ var getSecondsAsISODuration = memoize(function (seconds) {
             value += remainder;
         }
         if (value) {
-            var needsTimeSeparator = (duration.indexOf("D") > 0 ||
-                ["H", "M", "S"].includes(designationsKey)) &&
+            var needsTimeSeparator = (duration.indexOf("D") > 0 || ["H", "M", "S"].includes(designationsKey)) &&
                 duration.indexOf("T") === -1;
             if (needsTimeSeparator) {
                 duration += "T";
@@ -3214,15 +3199,11 @@ var getDurationAsSeconds = memoize(function (duration, durationRegex) {
 }, function (duration, durationRegex) {
     var _a;
     var durationStr = duration !== null && duration !== void 0 ? duration : "";
-    var regexStr = typeof durationRegex === "string"
-        ? durationRegex
-        : ((_a = durationRegex === null || durationRegex === void 0 ? void 0 : durationRegex.toString()) !== null && _a !== void 0 ? _a : "");
+    var regexStr = typeof durationRegex === "string" ? durationRegex : ((_a = durationRegex === null || durationRegex === void 0 ? void 0 : durationRegex.toString()) !== null && _a !== void 0 ? _a : "");
     return "".concat(durationStr, ":").concat(regexStr);
 });
 function addTwoDurations(first, second, durationRegex) {
-    var regex = typeof durationRegex === "string"
-        ? new RegExp(durationRegex)
-        : durationRegex;
+    var regex = typeof durationRegex === "string" ? new RegExp(durationRegex) : durationRegex;
     return getSecondsAsISODuration(getDurationAsSeconds(first, regex) + getDurationAsSeconds(second, regex));
 }
 function addHHMMSSTimeStrings(first, second, timeRegex) {
@@ -3245,9 +3226,7 @@ function flatten(data) {
                 result[prop] = [];
         }
         else {
-            var keys = Object.keys(cur).filter(function (p) {
-                return Object.prototype.hasOwnProperty.call(cur, p);
-            });
+            var keys = Object.keys(cur).filter(function (p) { return Object.prototype.hasOwnProperty.call(cur, p); });
             var isEmpty = keys.length === 0;
             keys.forEach(function (p) {
                 recurse(cur[p], prop ? "".concat(prop, ".").concat(p) : p);
@@ -3273,7 +3252,9 @@ function unflatten(data) {
         var cur = result;
         var prop = "";
         var regex = new RegExp(pattern);
-        Array.from({ length: (_b = (_a = p.match(new RegExp(pattern, "g"))) === null || _a === void 0 ? void 0 : _a.length) !== null && _b !== void 0 ? _b : 0 }, function () { return regex.exec(p); }).forEach(function (m) {
+        Array.from({ length: (_b = (_a = p.match(new RegExp(pattern, "g"))) === null || _a === void 0 ? void 0 : _a.length) !== null && _b !== void 0 ? _b : 0 }, function () {
+            return regex.exec(p);
+        }).forEach(function (m) {
             var _a;
             if (m) {
                 cur = ((_a = cur[prop]) !== null && _a !== void 0 ? _a : (cur[prop] = m[2] ? [] : {}));
@@ -4002,8 +3983,7 @@ var Scorm12Impl = (function (_super) {
             (0,_utilities__WEBPACK_IMPORTED_MODULE_1__/* .stringMatches */ .J6)(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")) {
             return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_5__/* .CMIInteractionsObjectivesObject */ .Oh();
         }
-        else if (!foundFirstIndex &&
-            (0,_utilities__WEBPACK_IMPORTED_MODULE_1__/* .stringMatches */ .J6)(CMIElement, "cmi\\.interactions\\.\\d+")) {
+        else if (!foundFirstIndex && (0,_utilities__WEBPACK_IMPORTED_MODULE_1__/* .stringMatches */ .J6)(CMIElement, "cmi\\.interactions\\.\\d+")) {
             return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_5__/* .CMIInteractionsObject */ .WP();
         }
         return null;
@@ -4015,10 +3995,8 @@ var Scorm12Impl = (function (_super) {
         var detailMessage = "No Error";
         errorNumber = String(errorNumber);
         if (_constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_constants */ .QP.error_descriptions[errorNumber]) {
-            basicMessage =
-                _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_constants */ .QP.error_descriptions[errorNumber].basicMessage;
-            detailMessage =
-                _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_constants */ .QP.error_descriptions[errorNumber].detailMessage;
+            basicMessage = _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_constants */ .QP.error_descriptions[errorNumber].basicMessage;
+            detailMessage = _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_constants */ .QP.error_descriptions[errorNumber].detailMessage;
         }
         return detail ? detailMessage : basicMessage;
     };
@@ -4101,8 +4079,7 @@ var Scorm12Impl = (function (_super) {
                         if (terminateCommit) {
                             originalStatus = this.cmi.core.lesson_status;
                             if (!this.cmi.core.lesson_status ||
-                                (!this.statusSetByModule &&
-                                    this.cmi.core.lesson_status === "not attempted")) {
+                                (!this.statusSetByModule && this.cmi.core.lesson_status === "not attempted")) {
                                 this.cmi.core.lesson_status = "completed";
                             }
                             if (this.cmi.core.lesson_mode === "normal") {
@@ -4111,8 +4088,7 @@ var Scorm12Impl = (function (_super) {
                                         this.cmi.student_data.mastery_score !== "" &&
                                         this.cmi.core.score.raw !== "") {
                                         this.cmi.core.lesson_status =
-                                            parseFloat(this.cmi.core.score.raw) >=
-                                                parseFloat(this.cmi.student_data.mastery_score)
+                                            parseFloat(this.cmi.core.score.raw) >= parseFloat(this.cmi.student_data.mastery_score)
                                                 ? "passed"
                                                 : "failed";
                                     }

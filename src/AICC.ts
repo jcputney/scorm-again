@@ -46,13 +46,9 @@ class AICCImpl extends Scorm12API {
     if (!newChild) {
       if (stringMatches(CMIElement, "cmi\\.evaluation\\.comments\\.\\d+")) {
         newChild = new CMIEvaluationCommentsObject();
-      } else if (
-        stringMatches(CMIElement, "cmi\\.student_data\\.tries\\.\\d+")
-      ) {
+      } else if (stringMatches(CMIElement, "cmi\\.student_data\\.tries\\.\\d+")) {
         newChild = new CMITriesObject();
-      } else if (
-        stringMatches(CMIElement, "cmi\\.student_data\\.attempt_records\\.\\d+")
-      ) {
+      } else if (stringMatches(CMIElement, "cmi\\.student_data\\.attempt_records\\.\\d+")) {
         newChild = new CMIAttemptRecordsObject();
       } else if (stringMatches(CMIElement, "cmi\\.paths\\.\\d+")) {
         newChild = new CMIPathsObject();

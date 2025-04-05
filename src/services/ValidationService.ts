@@ -1,9 +1,6 @@
 import { BaseScormValidationError } from "../exceptions";
 import { checkValidFormat, checkValidRange } from "../cmi/common/validation";
-import {
-  check12ValidFormat,
-  check12ValidRange,
-} from "../cmi/scorm12/validation";
+import { check12ValidFormat, check12ValidRange } from "../cmi/scorm12/validation";
 import { scorm12_regex } from "../constants/regex";
 import { scorm12_errors } from "../constants/error_codes";
 import { Scorm12ValidationError } from "../exceptions/scorm12_exceptions";
@@ -34,21 +31,8 @@ export class ValidationService {
     errorClass: typeof BaseScormValidationError,
   ): boolean {
     return (
-      checkValidFormat(
-        CMIElement,
-        value,
-        decimalRegex,
-        invalidTypeCode,
-        errorClass,
-      ) &&
-      (!scoreRange ||
-        checkValidRange(
-          CMIElement,
-          value,
-          scoreRange,
-          invalidRangeCode,
-          errorClass,
-        ))
+      checkValidFormat(CMIElement, value, decimalRegex, invalidTypeCode, errorClass) &&
+      (!scoreRange || checkValidRange(CMIElement, value, scoreRange, invalidRangeCode, errorClass))
     );
     // This line should never be reached due to exceptions being thrown
   }
@@ -115,10 +99,7 @@ export class ValidationService {
    */
   validateReadOnly(CMIElement: string, initialized: boolean): void {
     if (initialized) {
-      throw new Scorm12ValidationError(
-        CMIElement,
-        scorm12_errors.READ_ONLY_ELEMENT,
-      );
+      throw new Scorm12ValidationError(CMIElement, scorm12_errors.READ_ONLY_ELEMENT);
     }
   }
 }

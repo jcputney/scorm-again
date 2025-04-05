@@ -100,10 +100,7 @@ describe("ValidationService Property-based Tests", () => {
           fc.integer({ min: -1, max: 100 }).map((n) => n.toString()),
           (validAudio) => {
             // This should not throw an error
-            const result = validationService.validateScorm12Audio(
-              "api",
-              validAudio,
-            );
+            const result = validationService.validateScorm12Audio("api", validAudio);
             expect(result).toBe(true);
           },
         ),
@@ -155,10 +152,7 @@ describe("ValidationService Property-based Tests", () => {
           fc.string({ minLength: 1, maxLength: 256 }),
           (validLanguage) => {
             // This should not throw an error
-            const result = validationService.validateScorm12Language(
-              "api",
-              validLanguage,
-            );
+            const result = validationService.validateScorm12Language("api", validLanguage);
             expect(result).toBe(true);
           },
         ),
@@ -198,10 +192,7 @@ describe("ValidationService Property-based Tests", () => {
           fc.integer({ min: -100, max: 100 }).map((n) => n.toString()),
           (validSpeed) => {
             // This should not throw an error
-            const result = validationService.validateScorm12Speed(
-              "api",
-              validSpeed,
-            );
+            const result = validationService.validateScorm12Speed("api", validSpeed);
             expect(result).toBe(true);
           },
         ),
@@ -253,10 +244,7 @@ describe("ValidationService Property-based Tests", () => {
           fc.integer({ min: -1, max: 1 }).map((n) => n.toString()),
           (validText) => {
             // This should not throw an error
-            const result = validationService.validateScorm12Text(
-              "api",
-              validText,
-            );
+            const result = validationService.validateScorm12Text("api", validText);
             expect(result).toBe(true);
           },
         ),

@@ -55,9 +55,7 @@ export class LoggingService implements ILoggingService {
    *
    * @param {Function} handler - The function to handle log messages
    */
-  public setLogHandler(
-    handler: (messageLevel: LogLevel, logMessage: string) => void,
-  ): void {
+  public setLogHandler(handler: (messageLevel: LogLevel, logMessage: string) => void): void {
     this._logHandler = handler;
   }
 

@@ -40,9 +40,7 @@ const checkValidationMessage = ({
 }: CheckValidationMessage) => {
   describe(`ValidationError: ${typeof errorClass}`, () => {
     it(`${typeof errorClass} should return general errorCode number when not recognized`, () => {
-      expect(new errorClass.prototype.constructor("api", 53).errorCode).toEqual(
-        101,
-      );
+      expect(new errorClass.prototype.constructor("api", 53).errorCode).toEqual(101);
     });
     it(`${typeof errorClass}  should return general message when not recognized`, () => {
       expect(new errorClass.prototype.constructor("api", 53).message).toEqual(
@@ -53,14 +51,12 @@ const checkValidationMessage = ({
     for (let i = 0; i < errorCodes.length; i++) {
       const errorCode = errorCodes[i];
       it(`${typeof errorClass} should return proper errorCode number when recognized`, () => {
-        expect(
-          new errorClass.prototype.constructor("api", errorCode).errorCode,
-        ).toEqual(errorCode);
+        expect(new errorClass.prototype.constructor("api", errorCode).errorCode).toEqual(errorCode);
       });
       it(`${typeof errorClass} should return proper ${errorCode} message`, () => {
-        expect(
-          new errorClass.prototype.constructor("api", errorCode).message,
-        ).toEqual("api : " + error_messages[String(errorCode)].basicMessage);
+        expect(new errorClass.prototype.constructor("api", errorCode).message).toEqual(
+          "api : " + error_messages[String(errorCode)].basicMessage,
+        );
       });
     }
   });
@@ -68,9 +64,7 @@ const checkValidationMessage = ({
 
 describe("Exception Tests", () => {
   it("ValidationException should return message string", () => {
-    expect(new ValidationError("api", 0, "Error Message").message).toEqual(
-      "api : Error Message",
-    );
+    expect(new ValidationError("api", 0, "Error Message").message).toEqual("api : Error Message");
   });
   it("ValidationException should return errorCode number", () => {
     expect(new ValidationError("api", 0, "Error Message").errorCode).toEqual(0);
@@ -88,8 +82,8 @@ describe("Exception Tests", () => {
   checkValidationMessage({
     errorClass: Scorm2004ValidationError,
     errorCodes: [
-      0, 101, 102, 103, 104, 111, 112, 113, 122, 123, 132, 133, 142, 143, 201,
-      301, 351, 391, 401, 402, 403, 404, 405, 406, 407, 408,
+      0, 101, 102, 103, 104, 111, 112, 113, 122, 123, 132, 133, 142, 143, 201, 301, 351, 391, 401,
+      402, 403, 404, 405, 406, 407, 408,
     ],
     error_messages: scorm2004_errors,
   });

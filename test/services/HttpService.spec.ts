@@ -24,9 +24,7 @@ describe("HttpService", () => {
       requestHandler: (params) => params,
       responseHandler: async (response) => {
         const text = await response.text();
-        return text
-          ? JSON.parse(text)
-          : { result: global_constants.SCORM_TRUE, errorCode: 0 };
+        return text ? JSON.parse(text) : { result: global_constants.SCORM_TRUE, errorCode: 0 };
       },
     };
 
@@ -62,13 +60,7 @@ describe("HttpService", () => {
       fetchStub.resolves(mockResponse);
 
       // Act
-      await httpService.processHttpRequest(
-        url,
-        params,
-        false,
-        apiLogStub,
-        processListenersStub,
-      );
+      await httpService.processHttpRequest(url, params, false, apiLogStub, processListenersStub);
 
       // Assert
       expect(fetchStub.calledOnce).toBe(true);
@@ -76,9 +68,7 @@ describe("HttpService", () => {
       expect(fetchStub.firstCall.args[1].method).toBe("POST");
       expect(fetchStub.firstCall.args[1].mode).toBe("cors");
       expect(fetchStub.firstCall.args[1].body).toBe(JSON.stringify(params));
-      expect(fetchStub.firstCall.args[1].headers["Content-Type"]).toBe(
-        "application/json",
-      );
+      expect(fetchStub.firstCall.args[1].headers["Content-Type"]).toBe("application/json");
     });
 
     it("should handle immediate requests", async () => {
@@ -116,13 +106,7 @@ describe("HttpService", () => {
       const requestHandlerSpy = sinon.spy(settings, "requestHandler");
 
       // Act
-      await httpService.processHttpRequest(
-        url,
-        params,
-        false,
-        apiLogStub,
-        processListenersStub,
-      );
+      await httpService.processHttpRequest(url, params, false, apiLogStub, processListenersStub);
 
       // Assert
       expect(requestHandlerSpy.calledOnce).toBe(true);
@@ -142,13 +126,7 @@ describe("HttpService", () => {
       const responseHandlerSpy = sinon.spy(settings, "responseHandler");
 
       // Act
-      await httpService.processHttpRequest(
-        url,
-        params,
-        false,
-        apiLogStub,
-        processListenersStub,
-      );
+      await httpService.processHttpRequest(url, params, false, apiLogStub, processListenersStub);
 
       // Assert
       expect(responseHandlerSpy.calledOnce).toBe(true);
@@ -168,13 +146,7 @@ describe("HttpService", () => {
       fetchStub.resolves(mockResponse);
 
       // Act
-      await httpService.processHttpRequest(
-        url,
-        params,
-        false,
-        apiLogStub,
-        processListenersStub,
-      );
+      await httpService.processHttpRequest(url, params, false, apiLogStub, processListenersStub);
 
       // Assert
       expect(processListenersStub.calledWith("CommitSuccess")).toBe(true);
@@ -194,13 +166,7 @@ describe("HttpService", () => {
       fetchStub.resolves(mockResponse);
 
       // Act
-      await httpService.processHttpRequest(
-        url,
-        params,
-        false,
-        apiLogStub,
-        processListenersStub,
-      );
+      await httpService.processHttpRequest(url, params, false, apiLogStub, processListenersStub);
 
       // Assert
       expect(processListenersStub.calledWith("CommitError")).toBe(true);
@@ -244,19 +210,11 @@ describe("HttpService", () => {
       fetchStub.resolves(mockResponse);
 
       // Act
-      await httpService.processHttpRequest(
-        url,
-        params,
-        false,
-        apiLogStub,
-        processListenersStub,
-      );
+      await httpService.processHttpRequest(url, params, false, apiLogStub, processListenersStub);
 
       // Assert
       expect(fetchStub.calledOnce).toBe(true);
-      expect(fetchStub.firstCall.args[1].body).toBe(
-        "param1=value1&param2=value2",
-      );
+      expect(fetchStub.firstCall.args[1].body).toBe("param1=value1&param2=value2");
     });
   });
 
@@ -271,9 +229,7 @@ describe("HttpService", () => {
         requestHandler: (params) => params,
         responseHandler: async (response) => {
           const text = await response.text();
-          return text
-            ? JSON.parse(text)
-            : { result: global_constants.SCORM_TRUE, errorCode: 0 };
+          return text ? JSON.parse(text) : { result: global_constants.SCORM_TRUE, errorCode: 0 };
         },
       };
       const url = "https://example.com/api";
@@ -287,13 +243,7 @@ describe("HttpService", () => {
       httpService.updateSettings(newSettings);
 
       // Make a request to test the updated settings
-      await httpService.processHttpRequest(
-        url,
-        params,
-        false,
-        apiLogStub,
-        processListenersStub,
-      );
+      await httpService.processHttpRequest(url, params, false, apiLogStub, processListenersStub);
 
       // Assert
       expect(fetchStub.called).toBe(true);

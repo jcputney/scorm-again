@@ -29,10 +29,7 @@ export const DefaultSettings: Settings = {
       if (responseText) {
         httpResult = JSON.parse(responseText);
       }
-      if (
-        httpResult === null ||
-        !{}.hasOwnProperty.call(httpResult, "result")
-      ) {
+      if (httpResult === null || !{}.hasOwnProperty.call(httpResult, "result")) {
         if (response.status === 200) {
           return {
             result: global_constants.SCORM_TRUE,
@@ -69,10 +66,7 @@ export const DefaultSettings: Settings = {
   globalObjectiveIds: [],
 };
 
-export function defaultLogHandler(
-  messageLevel: LogLevel,
-  logMessage: string,
-): void {
+export function defaultLogHandler(messageLevel: LogLevel, logMessage: string): void {
   switch (messageLevel) {
     case "4":
     case 4:

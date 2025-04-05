@@ -19,15 +19,7 @@ const commonValues: CommonValues = {
   validScaledRange: ["1", "0.5", "0", "-0.5", "-1"],
   invalidScaledRange: ["-101", "25.1", "50.5", "75", "100"],
   validIntegerScaledRange: ["1", "0", "-1"],
-  invalidIntegerScaledRange: [
-    "-101",
-    "-0.5",
-    "0.5",
-    "25.1",
-    "50.5",
-    "75",
-    "100",
-  ],
+  invalidIntegerScaledRange: ["-101", "-0.5", "0.5", "25.1", "50.5", "75", "100"],
 };
 
 interface Scorm12Values extends CommonValues {
@@ -74,13 +66,7 @@ export const scorm12Values: Scorm12Values = {
   invalidScoreRange: ["invalid", "a100", "-1", "101", "-100000", "100000"],
   invalid0To100Range: ["invalid", "a100", "-2"],
   validTime: ["10:06:57", "23:59:59", "00:00:00"],
-  invalidTime: [
-    "47:59:59",
-    "00:00:01.56",
-    "06:5:13",
-    "23:59:59.123",
-    "P1DT23H59M59S",
-  ],
+  invalidTime: ["47:59:59", "00:00:01.56", "06:5:13", "23:59:59.123", "P1DT23H59M59S"],
   validTimespan: ["10:06:57", "00:00:01.56", "23:59:59", "47:59:59"],
   invalidTimespan: ["06:5:13", "23:59:59.123", "P1DT23H59M59S"],
 };
@@ -114,12 +100,7 @@ export const scorm2004Values: Scorm2004Values = {
   ...commonValues,
   validResult: ["correct", "incorrect", "unanticipated", "neutral"],
   invalidResult: ["-10000", "10000", "invalid", "wrong"],
-  validTimestamps: [
-    "2019-06-25",
-    "2019-06-25T23:59",
-    "2019-06-25T23:59:59.99",
-    "1970-01-01",
-  ],
+  validTimestamps: ["2019-06-25", "2019-06-25T23:59", "2019-06-25T23:59:59.99", "1970-01-01"],
   invalidTimestamps: [
     "2019-06-25T",
     "2019-06-25T23:59:59.999",

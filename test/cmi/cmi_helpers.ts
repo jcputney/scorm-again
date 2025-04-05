@@ -77,9 +77,7 @@ export const checkFieldConstraintSize = ({
     });
 
     it(`Should fail to write more than ${limit} characters to ${fieldName}`, async () => {
-      const error = await getError(async () =>
-        eval(`${fieldName} = 'x'.repeat(${limit + 1})`),
-      );
+      const error = await getError(async () => eval(`${fieldName} = 'x'.repeat(${limit + 1})`));
       expect(error).toHaveProperty("errorCode", expectedError);
     });
   });
@@ -103,11 +101,7 @@ export const checkReadOnly = ({
   });
 };
 
-export const checkRead = ({
-  cmi,
-  fieldName,
-  expectedValue = "",
-}: CheckRead) => {
+export const checkRead = ({ cmi, fieldName, expectedValue = "" }: CheckRead) => {
   describe(`Field: ${fieldName}`, () => {
     it(`Should be able to read from ${fieldName}`, () => {
       expect(eval(`${fieldName}`)).toEqual(expectedValue);
@@ -150,11 +144,7 @@ export const checkWriteOnly = ({
   });
 };
 
-export const checkWrite = ({
-  cmi,
-  fieldName,
-  valueToTest = "xxx",
-}: CheckWrite) => {
+export const checkWrite = ({ cmi, fieldName, valueToTest = "xxx" }: CheckWrite) => {
   describe(`Field: ${fieldName}`, () => {
     it(`Should successfully write to ${fieldName}`, () => {
       expect(() => eval(`${fieldName} = '${valueToTest}'`)).not.toThrow();
@@ -172,9 +162,7 @@ export const checkValidValues = ({
     for (const idx in validValues) {
       if ({}.hasOwnProperty.call(validValues, idx)) {
         it(`Should successfully write '${validValues[idx]}' to ${fieldName}`, () => {
-          expect(() =>
-            eval(`${fieldName} = '${validValues[idx]}'`),
-          ).not.toThrow();
+          expect(() => eval(`${fieldName} = '${validValues[idx]}'`)).not.toThrow();
         });
       }
     }
@@ -182,9 +170,7 @@ export const checkValidValues = ({
     for (const idx in invalidValues) {
       if ({}.hasOwnProperty.call(invalidValues, idx)) {
         it(`Should fail to write '${invalidValues[idx]}' to ${fieldName}`, () => {
-          expect(() =>
-            eval(`${fieldName} = '${invalidValues[idx]}'`),
-          ).toThrow();
+          expect(() => eval(`${fieldName} = '${invalidValues[idx]}'`)).toThrow();
         });
       }
     }

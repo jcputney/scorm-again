@@ -72,22 +72,14 @@ describe("ErrorHandlingService", () => {
       errorHandlingService.throwSCORMError("api", 101);
       expect(apiLogStub.calledOnce).toBe(true);
       expect(
-        apiLogStub.calledWith(
-          "throwSCORMError",
-          "101: Error message",
-          LogLevelEnum.ERROR,
-        ),
+        apiLogStub.calledWith("throwSCORMError", "101: Error message", LogLevelEnum.ERROR),
       ).toBe(true);
     });
 
     it("should use the provided message if available", () => {
       errorHandlingService.throwSCORMError("api", 101, "Custom error message");
       expect(
-        apiLogStub.calledWith(
-          "throwSCORMError",
-          "101: Custom error message",
-          LogLevelEnum.ERROR,
-        ),
+        apiLogStub.calledWith("throwSCORMError", "101: Custom error message", LogLevelEnum.ERROR),
       ).toBe(true);
     });
 
@@ -129,11 +121,7 @@ describe("ErrorHandlingService", () => {
 
   describe("handleValueAccessException", () => {
     it("should set the last error code from ValidationError", () => {
-      const validationError = new ValidationError(
-        "api",
-        201,
-        "Validation error",
-      );
+      const validationError = new ValidationError("api", 201, "Validation error");
       const returnValue = errorHandlingService.handleValueAccessException(
         "api",
         validationError,
@@ -162,28 +150,19 @@ describe("ErrorHandlingService", () => {
 
     it("should call throwSCORMError with GENERAL error code for non-ValidationError instances", () => {
       const error = new Error("General error");
-      const throwSCORMErrorSpy = sinon.spy(
-        errorHandlingService,
-        "throwSCORMError",
-      );
+      const throwSCORMErrorSpy = sinon.spy(errorHandlingService, "throwSCORMError");
 
       errorHandlingService.handleValueAccessException("api", error, "");
 
       expect(throwSCORMErrorSpy.calledOnce).toBe(true);
-      expect(throwSCORMErrorSpy.calledWith("api", errorCodes.GENERAL)).toBe(
-        true,
-      );
+      expect(throwSCORMErrorSpy.calledWith("api", errorCodes.GENERAL)).toBe(true);
 
       throwSCORMErrorSpy.restore();
     });
 
     it("should return the provided return value for non-ValidationError instances", () => {
       const error = new Error("General error");
-      const returnValue = errorHandlingService.handleValueAccessException(
-        "api",
-        error,
-        "test",
-      );
+      const returnValue = errorHandlingService.handleValueAccessException("api", error, "test");
 
       expect(returnValue).toBe("test");
     });

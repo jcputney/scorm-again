@@ -4,9 +4,7 @@ import BaseAPI from "../../src/BaseAPI";
 
 class NoErrorThrownError extends Error {}
 
-export const getError = async <TError>(
-  call: () => unknown,
-): Promise<TError> => {
+export const getError = async <TError>(call: () => unknown): Promise<TError> => {
   try {
     await call();
 
@@ -67,9 +65,7 @@ export const checkValidValues = ({
     for (const idx in invalidValues) {
       if ({}.hasOwnProperty.call(invalidValues, idx)) {
         it(`Should fail to write '${invalidValues[idx]}' to ${fieldName}`, () => {
-          expect(api.lmsSetValue(fieldName, invalidValues[idx])).toEqual(
-            "false",
-          );
+          expect(api.lmsSetValue(fieldName, invalidValues[idx])).toEqual("false");
         });
       }
     }
@@ -88,9 +84,7 @@ export const checkLMSSetValue = ({
     it(`Should ${status} set value for ${fieldName}`, async () => {
       if (expectedError > 0) {
         if (errorThrown) {
-          const error = await getError(async () =>
-            api.lmsSetValue(fieldName, valueToTest),
-          );
+          const error = await getError(async () => api.lmsSetValue(fieldName, valueToTest));
           expect(error).toHaveProperty("errorCode", expectedError);
         } else {
           api.lmsSetValue(fieldName, valueToTest);
@@ -98,9 +92,7 @@ export const checkLMSSetValue = ({
         }
       } else {
         if (errorThrown) {
-          const error = await getError(async () =>
-            api.lmsSetValue(fieldName, valueToTest),
-          );
+          const error = await getError(async () => api.lmsSetValue(fieldName, valueToTest));
           expect(error).toHaveProperty("errorCode", expectedError);
         } else {
           api.lmsSetValue(fieldName, valueToTest);
@@ -155,9 +147,7 @@ export const checkSetCMIValue = ({
     it(`Should ${status} set CMI value for ${fieldName}`, async () => {
       if (expectedError > 0) {
         if (errorThrown) {
-          const error = await getError(async () =>
-            api.setCMIValue(fieldName, valueToTest),
-          );
+          const error = await getError(async () => api.setCMIValue(fieldName, valueToTest));
           expect(error).toHaveProperty("errorCode", expectedError);
         } else {
           api.setCMIValue(fieldName, valueToTest);
