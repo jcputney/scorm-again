@@ -1,0 +1,74 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_size = 2
+indent_style = space
+max_line_length = 100
+tab_width = 2
+trim_trailing_whitespace = true
+insert_final_newline = true
+ij_continuation_indent_size = 4
+ij_formatter_off_tag = @formatter:off
+ij_formatter_on_tag = @formatter:on
+ij_formatter_tags_enabled = false
+ij_smart_tabs = false
+ij_wrap_on_typing = false
+
+[*.md]
+indent_size = 3
+
+[.editorconfig]
+ij_editorconfig_align_group_field_declarations = false
+ij_editorconfig_space_after_colon = false
+ij_editorconfig_space_after_comma = true
+ij_editorconfig_space_before_colon = false
+ij_editorconfig_space_before_comma = false
+ij_editorconfig_spaces_around_assignment_operators = true
+
+[{*.har,*.json}]
+ij_json_keep_blank_lines_in_code = 0
+ij_json_keep_indents_on_empty_lines = false
+ij_json_keep_line_breaks = true
+ij_json_space_after_colon = true
+ij_json_space_after_comma = true
+ij_json_space_before_colon = true
+ij_json_space_before_comma = false
+ij_json_spaces_within_braces = false
+ij_json_spaces_within_brackets = false
+ij_json_wrap_long_lines = false
+
+[{*.htm,*.html,*.sht,*.shtm,*.shtml}]
+ij_html_add_new_line_before_tags = body, div, p, form, h1, h2, h3
+ij_html_align_attributes = true
+ij_html_align_text = false
+ij_html_attribute_wrap = normal
+ij_html_block_comment_at_first_column = true
+ij_html_do_not_align_children_of_min_lines = 0
+ij_html_do_not_break_if_inline_tags = title, h1, h2, h3, h4, h5, h6, p
+ij_html_do_not_indent_children_of_tags = html, body, thead, tbody, tfoot
+ij_html_enforce_quotes = false
+ij_html_inline_tags = a, abbr, acronym, b, basefont, bdo, big, br, cite, cite, code, dfn, em, font, i, img, input, kbd, label, q, s, samp, select, small, span, strike, strong, sub, sup, textarea, tt, u, var
+ij_html_keep_blank_lines = 2
+ij_html_keep_indents_on_empty_lines = false
+ij_html_keep_line_breaks = true
+ij_html_keep_line_breaks_in_text = true
+ij_html_keep_whitespaces = false
+ij_html_keep_whitespaces_inside = span, pre, textarea
+ij_html_line_comment_at_first_column = true
+ij_html_new_line_after_last_attribute = never
+ij_html_new_line_before_first_attribute = never
+ij_html_quote_style = double
+ij_html_remove_new_line_before_tags = br
+ij_html_space_after_tag_name = false
+ij_html_space_around_equality_in_attribute = false
+ij_html_space_inside_empty_tag = false
+ij_html_text_wrap = normal
+
+[{*.yaml,*.yml}]
+ij_yaml_keep_indents_on_empty_lines = false
+ij_yaml_keep_line_breaks = true
+ij_yaml_space_before_colon = false
+ij_yaml_spaces_within_braces = true
+ij_yaml_spaces_within_brackets = true

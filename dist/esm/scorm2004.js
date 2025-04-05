@@ -1676,8 +1676,8 @@ var scorm2004_regex = {
     NAVBoolean: "^(unknown|true|false$)",
     NAVTarget: "^{target=\\S{0,}[a-zA-Z0-9-_]+}$",
     scaled_range: "-1#1",
-    audio_range: "0#*",
-    speed_range: "0#*",
+    audio_range: "0#999.9999999",
+    speed_range: "0#999.9999999",
     text_range: "-1#1",
     progress_range: "0#1",
 };
@@ -1813,7 +1813,8 @@ var checkValidFormat = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__/* .memoize */ 
     }
     return true;
 }, function (CMIElement, value, regexPattern, errorCode, _errorClass, allowEmptyString) {
-    return "".concat(CMIElement, ":").concat(value, ":").concat(regexPattern, ":").concat(errorCode, ":").concat(allowEmptyString || false);
+    var valueKey = typeof value === 'string' ? value : "[".concat(typeof value, "]");
+    return "".concat(CMIElement, ":").concat(valueKey, ":").concat(regexPattern, ":").concat(errorCode, ":").concat(allowEmptyString || false);
 });
 var checkValidRange = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__/* .memoize */ .Bj)(function (CMIElement, value, rangePattern, errorCode, errorClass) {
     var ranges = rangePattern.split("#");

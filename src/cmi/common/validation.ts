@@ -35,8 +35,11 @@ export const checkValidFormat = memoize(
   },
   // Custom key function that excludes the error class from the cache key
   // since it can't be stringified and doesn't affect the validation result
-  (CMIElement, value, regexPattern, errorCode, _errorClass, allowEmptyString) =>
-    `${CMIElement}:${value}:${regexPattern}:${errorCode}:${allowEmptyString || false}`,
+  (CMIElement, value, regexPattern, errorCode, _errorClass, allowEmptyString) => {
+    // Use typeof for non-string values to ensure consistent cache keys
+    const valueKey = typeof value === 'string' ? value : `[${typeof value}]`;
+    return `${CMIElement}:${valueKey}:${regexPattern}:${errorCode}:${allowEmptyString || false}`;
+  },
 );
 
 /**
