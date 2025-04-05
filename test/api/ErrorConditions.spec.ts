@@ -3,19 +3,13 @@ import { describe, it } from "mocha";
 import { Scorm2004API } from "../../src/Scorm2004API";
 import { Scorm12API } from "../../src/Scorm12API";
 import { AICC } from "../../src/AICC";
-import {
-  scorm12_errors,
-  scorm2004_errors,
-} from "../../src/constants/error_codes";
+import { scorm12_errors, scorm2004_errors } from "../../src/constants/error_codes";
 import { LogLevelEnum } from "../../src/constants/enums";
 import { StringKeyMap } from "../../src/utilities";
 import { Settings } from "../../src/types/api_types";
 
 // Helper functions to create API instances
-const scorm2004Api = (
-  settings?: Settings,
-  startingData: StringKeyMap = {},
-): Scorm2004API => {
+const scorm2004Api = (settings?: Settings, startingData: StringKeyMap = {}): Scorm2004API => {
   const API = new Scorm2004API({ ...settings, logLevel: LogLevelEnum.NONE });
   if (startingData) {
     API.startingData = startingData;
@@ -23,10 +17,7 @@ const scorm2004Api = (
   return API;
 };
 
-const scorm12Api = (
-  settings?: Settings,
-  startingData: StringKeyMap = {},
-): Scorm12API => {
+const scorm12Api = (settings?: Settings, startingData: StringKeyMap = {}): Scorm12API => {
   const API = new Scorm12API({ ...settings, logLevel: LogLevelEnum.NONE });
   if (startingData) {
     API.startingData = startingData;
@@ -34,10 +25,7 @@ const scorm12Api = (
   return API;
 };
 
-const aiccApi = (
-  settings?: Settings,
-  startingData: StringKeyMap = {},
-): AICC => {
+const aiccApi = (settings?: Settings, startingData: StringKeyMap = {}): AICC => {
   const API = new AICC({ ...settings, logLevel: LogLevelEnum.NONE });
   if (startingData) {
     API.startingData = startingData;
@@ -196,7 +184,9 @@ describe("Error Conditions Tests", () => {
 
         // Attempt to set a response to an interaction without setting the interaction type first
         api.lmsSetValue("cmi.interactions.0.id", "interaction_1");
-        expect(api.lmsSetValue("cmi.interactions.0.correct_responses.0.pattern", "true")).toEqual("false");
+        expect(api.lmsSetValue("cmi.interactions.0.correct_responses.0.pattern", "true")).toEqual(
+          "false",
+        );
         expect(api.lmsGetLastError()).toEqual(String(scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED));
       });
     });
@@ -328,7 +318,9 @@ describe("Error Conditions Tests", () => {
 
         // Attempt to set a response to an interaction without setting the interaction type first
         api.lmsSetValue("cmi.interactions.0.id", "interaction_1");
-        expect(api.lmsSetValue("cmi.interactions.0.correct_responses.0.pattern", "true")).toEqual("true");
+        expect(api.lmsSetValue("cmi.interactions.0.correct_responses.0.pattern", "true")).toEqual(
+          "true",
+        );
         expect(api.lmsGetLastError()).toEqual("0");
       });
     });
