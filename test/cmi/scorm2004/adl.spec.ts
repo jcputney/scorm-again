@@ -61,10 +61,7 @@ describe("ADL Classes", () => {
 
     it("should initialize child objects when initialize is called", () => {
       const adlNav = new ADLNav();
-      const requestValidInitializeSpy = sinon.spy(
-        adlNav.request_valid,
-        "initialize",
-      );
+      const requestValidInitializeSpy = sinon.spy(adlNav.request_valid, "initialize");
 
       adlNav.initialize();
 

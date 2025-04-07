@@ -12,6 +12,7 @@ import { CMIInteractions } from "../../src/cmi/scorm2004/interactions";
 import { ADLNav } from "../../src/cmi/scorm2004/adl";
 import { CompletionStatus, LogLevelEnum, SuccessStatus } from "../../src/constants/enums";
 import { StringKeyMap } from "../../src/utilities";
+import { CMIArray } from "../../src/cmi/common/array";
 
 let clock: sinon.SinonFakeTimers;
 const api = (settings?: Settings, startingData: StringKeyMap = {}): Scorm2004API => {
@@ -1392,6 +1393,56 @@ describe("SCORM 2004 API Tests", () => {
       );
 
       expect(scorm20004api.cmi.learner_preference).not.toBeNull();
+    });
+  });
+
+  describe("checkDuplicatedPattern()", () => {
+    it("should return true when a duplicate is found", () => {
+      const scorm2004API = basicApi();
+      const correct_response = {
+        _count: 3,
+        childArray: ["value1", "value2", "value3"],
+      } as unknown as CMIArray;
+
+      const result = scorm2004API.checkDuplicatedPattern(correct_response, 1, "value3");
+
+      expect(result).toBe(true);
+    });
+
+    it("should return false when no duplicate is found", () => {
+      const scorm2004API = basicApi();
+      const correct_response = {
+        _count: 3,
+        childArray: ["value1", "value2", "value3"],
+      } as unknown as CMIArray;
+
+      const result = scorm2004API.checkDuplicatedPattern(correct_response, 1, "value4");
+
+      expect(result).toBe(false);
+    });
+
+    it("should return false when the array is empty", () => {
+      const scorm2004API = basicApi();
+      const correct_response = {
+        _count: 0,
+        childArray: [],
+      } as unknown as CMIArray;
+
+      const result = scorm2004API.checkDuplicatedPattern(correct_response, 0, "value1");
+
+      expect(result).toBe(false);
+    });
+
+    it("should return false when checking the current index", () => {
+      const scorm2004API = basicApi();
+      const correct_response = {
+        _count: 3,
+        childArray: ["value1", "value2", "value3"],
+      } as unknown as CMIArray;
+
+      const result = scorm2004API.checkDuplicatedPattern(correct_response, 1, "value2");
+
+      expect(result).toBe(false);
     });
   });
 

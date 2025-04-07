@@ -1,10 +1,7 @@
 import { describe, it } from "mocha";
 import { expect } from "expect";
 import * as sinon from "sinon";
-import {
-  CMIAttemptRecords,
-  CMIAttemptRecordsObject,
-} from "../../../src/cmi/aicc/attempts";
+import { CMIAttemptRecords, CMIAttemptRecordsObject } from "../../../src/cmi/aicc/attempts";
 import { CMIScore } from "../../../src/cmi/common/score";
 
 describe("AICC Attempts Classes", () => {

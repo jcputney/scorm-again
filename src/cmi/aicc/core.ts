@@ -308,14 +308,7 @@ export class CMICore extends BaseCMI {
    * @param {string} exit
    */
   set exit(exit: string) {
-    if (
-      check12ValidFormat(
-        this._cmi_element + ".exit",
-        exit,
-        scorm12_regex.CMIExit,
-        true,
-      )
-    ) {
+    if (check12ValidFormat(this._cmi_element + ".exit", exit, scorm12_regex.CMIExit, true)) {
       this._exit = exit;
     }
   }

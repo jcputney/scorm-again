@@ -23,10 +23,7 @@ describe("AICCStudentPreferences", () => {
 
   it("should initialize child objects when initialize is called", () => {
     const studentPreferences = new AICCStudentPreferences();
-    const windowsInitializeSpy = sinon.spy(
-      studentPreferences.windows,
-      "initialize",
-    );
+    const windowsInitializeSpy = sinon.spy(studentPreferences.windows, "initialize");
 
     studentPreferences.initialize();
 

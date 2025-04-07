@@ -154,11 +154,7 @@ export class CMICommentsObject extends BaseCMI {
       );
     } else {
       if (
-        check2004ValidFormat(
-          this._cmi_element + ".timestamp",
-          timestamp,
-          scorm2004_regex.CMITime,
-        )
+        check2004ValidFormat(this._cmi_element + ".timestamp", timestamp, scorm2004_regex.CMITime)
       ) {
         this._timestamp = timestamp;
       }

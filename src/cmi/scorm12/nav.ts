@@ -38,11 +38,7 @@ export class NAV extends BaseCMI {
   set event(event: string) {
     if (
       event === "" ||
-      check12ValidFormat(
-        this._cmi_element + ".event",
-        event,
-        scorm12_regex.NAVEvent,
-      )
+      check12ValidFormat(this._cmi_element + ".event", event, scorm12_regex.NAVEvent)
     ) {
       this._event = event;
     }

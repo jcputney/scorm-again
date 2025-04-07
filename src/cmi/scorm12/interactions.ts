@@ -105,13 +105,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} id
    */
   set id(id: string) {
-    if (
-      check12ValidFormat(
-        this._cmi_element + ".id",
-        id,
-        scorm12_regex.CMIIdentifier,
-      )
-    ) {
+    if (check12ValidFormat(this._cmi_element + ".id", id, scorm12_regex.CMIIdentifier)) {
       this._id = id;
     }
   }
@@ -135,13 +129,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} time
    */
   set time(time: string) {
-    if (
-      check12ValidFormat(
-        this._cmi_element + ".time",
-        time,
-        scorm12_regex.CMITime,
-      )
-    ) {
+    if (check12ValidFormat(this._cmi_element + ".time", time, scorm12_regex.CMITime)) {
       this._time = time;
     }
   }
@@ -165,13 +153,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} type
    */
   set type(type: string) {
-    if (
-      check12ValidFormat(
-        this._cmi_element + ".type",
-        type,
-        scorm12_regex.CMIType,
-      )
-    ) {
+    if (check12ValidFormat(this._cmi_element + ".type", type, scorm12_regex.CMIType)) {
       this._type = type;
     }
   }
@@ -196,16 +178,8 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   set weighting(weighting: string) {
     if (
-      check12ValidFormat(
-        this._cmi_element + ".weighting",
-        weighting,
-        scorm12_regex.CMIDecimal,
-      ) &&
-      check12ValidRange(
-        this._cmi_element + ".weighting",
-        weighting,
-        scorm12_regex.weighting_range,
-      )
+      check12ValidFormat(this._cmi_element + ".weighting", weighting, scorm12_regex.CMIDecimal) &&
+      check12ValidRange(this._cmi_element + ".weighting", weighting, scorm12_regex.weighting_range)
     ) {
       this._weighting = weighting;
     }
@@ -261,13 +235,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} result
    */
   set result(result: string) {
-    if (
-      check12ValidFormat(
-        this._cmi_element + ".result",
-        result,
-        scorm12_regex.CMIResult,
-      )
-    ) {
+    if (check12ValidFormat(this._cmi_element + ".result", result, scorm12_regex.CMIResult)) {
       this._result = result;
     }
   }
@@ -291,13 +259,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} latency
    */
   set latency(latency: string) {
-    if (
-      check12ValidFormat(
-        this._cmi_element + ".latency",
-        latency,
-        scorm12_regex.CMITimespan,
-      )
-    ) {
+    if (check12ValidFormat(this._cmi_element + ".latency", latency, scorm12_regex.CMITimespan)) {
       this._latency = latency;
     }
   }
@@ -382,13 +344,7 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
    * @param {string} id
    */
   set id(id: string) {
-    if (
-      check12ValidFormat(
-        this._cmi_element + ".id",
-        id,
-        scorm12_regex.CMIIdentifier,
-      )
-    ) {
+    if (check12ValidFormat(this._cmi_element + ".id", id, scorm12_regex.CMIIdentifier)) {
       this._id = id;
     }
   }
@@ -455,12 +411,7 @@ export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
    */
   set pattern(pattern: string) {
     if (
-      check12ValidFormat(
-        this._cmi_element + ".pattern",
-        pattern,
-        scorm12_regex.CMIFeedback,
-        true,
-      )
+      check12ValidFormat(this._cmi_element + ".pattern", pattern, scorm12_regex.CMIFeedback, true)
     ) {
       this._pattern = pattern;
     }

@@ -56,10 +56,7 @@ export class CMIArray extends BaseCMI {
    * @param {string} _children
    */
   set _children(_children: string) {
-    throw new this._errorClass(
-      this._cmi_element + "._children",
-      this._errorCode,
-    );
+    throw new this._errorClass(this._cmi_element + "._children", this._errorCode);
   }
 
   /**

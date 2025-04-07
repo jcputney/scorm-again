@@ -1,5 +1,6 @@
 import { CompletionStatus, LogLevelEnum, SuccessStatus } from "../constants/enums";
 import { StringKeyMap } from "../utilities";
+import { SequencingSettings } from "./sequencing_types";
 
 /**
  * Base settings type with all properties optional
@@ -28,6 +29,7 @@ export type Settings = {
   scoItemIds?: string[];
   scoItemIdValidator?: false | ((scoItemId: string) => boolean);
   globalObjectiveIds?: string[];
+  sequencing?: SequencingSettings;
 };
 
 /**

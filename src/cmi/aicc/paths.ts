@@ -65,11 +65,7 @@ export class CMIPathsObject extends BaseCMI {
    */
   set location_id(location_id: string) {
     if (
-      checkAICCValidFormat(
-        this._cmi_element + ".location_id",
-        location_id,
-        aicc_regex.CMIString256,
-      )
+      checkAICCValidFormat(this._cmi_element + ".location_id", location_id, aicc_regex.CMIString256)
     ) {
       this._location_id = location_id;
     }
@@ -88,13 +84,7 @@ export class CMIPathsObject extends BaseCMI {
    * @param {string} date
    */
   set date(date: string) {
-    if (
-      checkAICCValidFormat(
-        this._cmi_element + ".date",
-        date,
-        aicc_regex.CMIString256,
-      )
-    ) {
+    if (checkAICCValidFormat(this._cmi_element + ".date", date, aicc_regex.CMIString256)) {
       this._date = date;
     }
   }
@@ -112,13 +102,7 @@ export class CMIPathsObject extends BaseCMI {
    * @param {string} time
    */
   set time(time: string) {
-    if (
-      checkAICCValidFormat(
-        this._cmi_element + ".time",
-        time,
-        aicc_regex.CMITime,
-      )
-    ) {
+    if (checkAICCValidFormat(this._cmi_element + ".time", time, aicc_regex.CMITime)) {
       this._time = time;
     }
   }
@@ -136,13 +120,7 @@ export class CMIPathsObject extends BaseCMI {
    * @param {string} status
    */
   set status(status: string) {
-    if (
-      checkAICCValidFormat(
-        this._cmi_element + ".status",
-        status,
-        aicc_regex.CMIStatus2,
-      )
-    ) {
+    if (checkAICCValidFormat(this._cmi_element + ".status", status, aicc_regex.CMIStatus2)) {
       this._status = status;
     }
   }
@@ -160,13 +138,7 @@ export class CMIPathsObject extends BaseCMI {
    * @param {string} why_left
    */
   set why_left(why_left: string) {
-    if (
-      checkAICCValidFormat(
-        this._cmi_element + ".why_left",
-        why_left,
-        aicc_regex.CMIString256,
-      )
-    ) {
+    if (checkAICCValidFormat(this._cmi_element + ".why_left", why_left, aicc_regex.CMIString256)) {
       this._why_left = why_left;
     }
   }

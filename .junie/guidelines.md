@@ -14,7 +14,7 @@ Following these guidelines will ensure code consistency, maintainability, and qu
 7. [Error Handling](#error-handling)
 8. [Comments and Documentation](#comments-and-documentation)
 9. [Common Pitfalls to Avoid](#common-pitfalls-to-avoid)
-10. [Testing](#testing)
+10.   [Testing](#testing)
 
 ## TypeScript Configuration
 
@@ -36,20 +36,20 @@ Following these guidelines will ensure code consistency, maintainability, and qu
 
 - Use ES6 import syntax.
 - Group imports in the following order, separated by blank lines:
-    1. External libraries
-    2. Project modules
-    3. Relative imports
+   1. External libraries
+   2. Project modules
+   3. Relative imports
 - Sort imports alphabetically within each group.
 - Use named imports rather than namespace imports.
 
 ```typescript
 // Good
-import { useState, useEffect } from 'react';
-import { ErrorCode } from './constants/error_codes';
-import { formatMessage } from './utilities';
+import { useState, useEffect } from "react";
+import { ErrorCode } from "./constants/error_codes";
+import { formatMessage } from "./utilities";
 
 // Avoid
-import * as React from 'react';
+import * as React from "react";
 ```
 
 ## Naming Conventions
@@ -73,14 +73,14 @@ import * as React from 'react';
 ```typescript
 // Good
 export type Settings = {
-  autocommit?: boolean;
-  logLevel?: LogLevel;
+   autocommit?: boolean;
+   logLevel?: LogLevel;
 };
 
 // Avoid
 export type Settings = {
-  autocommit: boolean | undefined;
-  logLevel: LogLevel | undefined;
+   autocommit: boolean | undefined;
+   logLevel: LogLevel | undefined;
 };
 ```
 
@@ -96,13 +96,13 @@ export type Settings = {
 
 ```typescript
 class BaseAPI implements IBaseAPI {
-  private _settings: Settings;
-  
-  constructor(settings: Settings) {
-    this._settings = { ...DefaultSettings, ...settings };
-  }
-  
-  // Methods...
+   private _settings: Settings;
+
+   constructor(settings: Settings) {
+      this._settings = { ...DefaultSettings, ...settings };
+   }
+
+   // Methods...
 }
 ```
 
@@ -146,10 +146,10 @@ function getValue(element: string, defaultValue: string): string {
 
 ```typescript
 try {
-  const value = this.getCMIValue(CMIElement);
-  // Process value...
+   const value = this.getCMIValue(CMIElement);
+   // Process value...
 } catch (e) {
-  return this.handleValueAccessException(e, '');
+   return this.handleValueAccessException(e, "");
 }
 ```
 
@@ -164,14 +164,14 @@ try {
 ```typescript
 /**
  * Processes an HTTP request to the LMS.
- * 
+ *
  * @param url - The URL to send the request to
  * @param params - The parameters to include in the request
  * @param immediate - Whether to send the request immediately
  * @returns A promise that resolves with the response
  */
 function processHttpRequest(url: string, params: any, immediate: boolean): Promise<any> {
-  // Implementation...
+   // Implementation...
 }
 ```
 
@@ -187,7 +187,7 @@ function processHttpRequest(url: string, params: any, immediate: boolean): Promi
 - **Tight Coupling**: Avoid tight coupling between modules. Use dependency injection or service locators.
 - **Use of `bind`**: Avoid using `bind` to set the context of `this`, especially when refactoring code.
 
-```typescript
+````typescript
 
 ## Testing
 
@@ -211,7 +211,7 @@ describe('BaseAPI', () => {
       // Assert
       expect(result).toBe('expected value');
     });
-    
+
     it('should throw an error when the element does not exist', () => {
       // Arrange
       const api = new BaseAPI();
@@ -220,7 +220,7 @@ describe('BaseAPI', () => {
     });
   });
 });
-```
+````
 
 By following these guidelines, we can maintain a consistent, high-quality codebase that is easy to understand, extend,
 and maintain.

@@ -35,9 +35,9 @@ not supported by IE11, you will need to provide your own polyfill for this funct
 ### API Usage Documentation
 
 - **API Examples**
-  - [AICC API Examples](docs/api_usage/examples/aicc_examples.md)
-  - [SCORM 1.2 API Examples](docs/api_usage/examples/scorm12_examples.md)
-  - [SCORM 2004 API Examples](docs/api_usage/examples/scorm2004_examples.md)
+   - [AICC API Examples](docs/api_usage/examples/aicc_examples.md)
+   - [SCORM 1.2 API Examples](docs/api_usage/examples/scorm12_examples.md)
+   - [SCORM 2004 API Examples](docs/api_usage/examples/scorm2004_examples.md)
 - [Common Use Cases](docs/api_usage/use_cases/common_use_cases.md)
 - [Troubleshooting Guide](docs/api_usage/troubleshooting/troubleshooting_guide.md)
 
@@ -130,8 +130,10 @@ The APIs include several settings to customize the functionality of each API:
 | `responseHandler`          |             function             |                                                                                                                   | A function to properly transform the response from the LMS to the correct format. The APIs expect the result from the LMS to be in the following format (errorCode is optional): `{ "result": true, "errorCode": 0 }`                                                                                                                                                                                                                                   |
 | `requestHandler`           |             function             |                                                                                                                   | A function to transform the commit object before sending it to `lmsCommitUrl`. By default it's the identity function (no transformation).                                                                                                                                                                                                                                                                                                               |
 | `onLogMessage`             |             function             |                                                                                                                   | A function to be called whenever a message is logged. Defaults to console.{error,warn,info,debug,log}                                                                                                                                                                                                                                                                                                                                                   |
-| `scoItemIds`               |                []                |                                                     string[]                                                      | A list of valid SCO IDs to be used for choice/jump sequence validation.                                                                                                                                                                                                                                                                                                                                                                                 |
+| `scoItemIds`               |                []                |                                                     string[]                                                      | A list of valid SCO IDs to be used for choice/jump sequence validation. If a `sequencing` configuration is provided with an activity tree, this list will be automatically populated with all activity IDs from the tree.                                                                                                                                                                                                                               |
 | `scoItemIdValidator`       |              false               |                                                 false / function                                                  | A function to be called during choice/jump sequence checks to determine if a SCO ID is valid. Could be used to call an API to check validity.                                                                                                                                                                                                                                                                                                           |
+| `globalObjectiveIds`       |                []                |                                                     string[]                                                      | (SCORM 2004) A list of objective IDs that are considered "global" and should be shared across SCOs.                                                                                                                                                                                                                                                                                                                                                     |
+| `sequencing`               |               null               |                                                SequencingSettings                                                 | (SCORM 2004) Configuration for SCORM 2004 sequencing, including activity tree, sequencing rules, sequencing controls, and rollup rules. See the [Sequencing Configuration documentation](docs/sequencing_configuration.md) for details.                                                                                                                                                                                                                 |
 
 ## Settings Function Examples
 
@@ -201,31 +203,31 @@ window.API_1484_11.loadFromJSON(json);
 
 ```javascript
 var json = {
-  learner_id: "123",
-  learner_name: "Bob The Builder",
-  suspend_data:
-    "viewed=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31|lastviewedslide=31|7#1##,3,3,3,7,3,3,7,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,11#0#b5e89fbb-7cfb-46f0-a7cb-758165d3fe7e=236~262~2542812732762722742772682802752822882852892872832862962931000~3579~32590001001010101010101010101001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001010010010010010010010010011010010010010010010010010010010010112101021000171000~236a71d398e-4023-4967-88fe-1af18721422d06passed6failed000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000105wrong110000000000000000000000000000000000~3185000000000000000000000000000000000000000000000000000000000000000000000000000000000~283~2191w11~21113101w41689~256~2100723031840~21007230314509062302670~2110723031061120000000000000000000~240~234531618~21601011000100000002814169400,#-1",
-  interactions: {
-    0: {
-      id: "Question14_1",
-      type: "choice",
-      timestamp: "2018-08-26T11:05:21",
-      weighting: "1",
-      learner_response: "HTH",
-      result: "wrong",
-      latency: "PT2M30S",
-      objectives: {
-        0: {
-          id: "Question14_1",
-        },
+   learner_id: "123",
+   learner_name: "Bob The Builder",
+   suspend_data:
+      "viewed=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31|lastviewedslide=31|7#1##,3,3,3,7,3,3,7,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,11#0#b5e89fbb-7cfb-46f0-a7cb-758165d3fe7e=236~262~2542812732762722742772682802752822882852892872832862962931000~3579~32590001001010101010101010101001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001010010010010010010010010011010010010010010010010010010010010112101021000171000~236a71d398e-4023-4967-88fe-1af18721422d06passed6failed000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000105wrong110000000000000000000000000000000000~3185000000000000000000000000000000000000000000000000000000000000000000000000000000000~283~2191w11~21113101w41689~256~2100723031840~21007230314509062302670~2110723031061120000000000000000000~240~234531618~21601011000100000002814169400,#-1",
+   interactions: {
+      0: {
+         id: "Question14_1",
+         type: "choice",
+         timestamp: "2018-08-26T11:05:21",
+         weighting: "1",
+         learner_response: "HTH",
+         result: "wrong",
+         latency: "PT2M30S",
+         objectives: {
+            0: {
+               id: "Question14_1",
+            },
+         },
+         correct_responses: {
+            0: {
+               pattern: "CPR",
+            },
+         },
       },
-      correct_responses: {
-        0: {
-          pattern: "CPR",
-        },
-      },
-    },
-  },
+   },
 };
 ```
 
@@ -389,9 +391,56 @@ changed based on scores, as well.
 
 ### Sequencing
 
-The APIs provide some hooks for the sequencing of modules, but this is primarily handled by the LMS, so no functionality
-beyond event listeners is provided. More work can be done in this area, but I'm primarily focused on the stability of
-the rest of the APIs at this point.
+SCORM 2004 sequencing allows you to control the flow of content in a SCORM package. It defines how learners navigate between activities, how activities are ordered, and how the status of activities is determined based on the status of their children.
+
+The SCORM Again library provides a comprehensive implementation of SCORM 2004 sequencing, which can be configured through the API settings. To configure sequencing, you need to provide a `sequencing` object in the settings when creating a SCORM 2004 API instance:
+
+```javascript
+import { Scorm2004API } from "scorm-again";
+
+const api = new Scorm2004API({
+   // Other settings...
+   sequencing: {
+      // Sequencing configuration...
+   },
+});
+```
+
+The `sequencing` object can contain the following properties:
+
+- `activityTree`: Configures the activity tree, which defines the hierarchy of activities in the SCORM package.
+- `sequencingRules`: Configures the sequencing rules, which define how navigation between activities is controlled.
+- `sequencingControls`: Configures the sequencing controls, which define general behavior for sequencing.
+- `rollupRules`: Configures the rollup rules, which define how the status of parent activities is determined based on the status of their children.
+
+Here's a basic example of configuring an activity tree:
+
+```javascript
+sequencing: {
+  activityTree: {
+    id: 'root',
+    title: 'Course',
+    children: [
+      {
+        id: 'module1',
+        title: 'Module 1',
+        children: [
+          {
+            id: 'lesson1',
+            title: 'Lesson 1'
+          },
+          {
+            id: 'lesson2',
+            title: 'Lesson 2'
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+For more detailed information and examples, see the [Sequencing Configuration documentation](docs/sequencing_configuration.md).
 
 ## Project Architecture
 

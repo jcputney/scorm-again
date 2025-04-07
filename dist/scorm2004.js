@@ -330,1274 +330,6 @@ var scorm2004_constants = {
 
 /***/ }),
 
-/***/ 398:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-
-// EXPORTS
-__webpack_require__.d(__webpack_exports__, {
-  A: function() { return /* binding */ src_BaseAPI; }
-});
-
-// EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
-var tslib_es6 = __webpack_require__(635);
-// EXTERNAL MODULE: ./src/constants/api_constants.ts
-var api_constants = __webpack_require__(340);
-// EXTERNAL MODULE: ./src/utilities.ts
-var utilities = __webpack_require__(864);
-// EXTERNAL MODULE: ./src/constants/enums.ts
-var enums = __webpack_require__(56);
-;// ./src/constants/default_settings.ts
-
-
-
-var DefaultSettings = {
-    autocommit: false,
-    autocommitSeconds: 10,
-    asyncCommit: false,
-    sendFullCommit: true,
-    lmsCommitUrl: false,
-    dataCommitFormat: "json",
-    commitRequestDataType: "application/json;charset=UTF-8",
-    autoProgress: false,
-    logLevel: enums/* LogLevelEnum */.Mb.ERROR,
-    selfReportSessionTime: false,
-    alwaysSendTotalTime: false,
-    renderCommonCommitFields: false,
-    strict_errors: true,
-    xhrHeaders: {},
-    xhrWithCredentials: false,
-    fetchMode: "cors",
-    responseHandler: function (response) {
-        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
-            var responseText, httpResult;
-            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        if (!(typeof response !== "undefined")) return [3, 2];
-                        return [4, response.text()];
-                    case 1:
-                        responseText = _a.sent();
-                        httpResult = null;
-                        if (responseText) {
-                            httpResult = JSON.parse(responseText);
-                        }
-                        if (httpResult === null || !{}.hasOwnProperty.call(httpResult, "result")) {
-                            if (response.status === 200) {
-                                return [2, {
-                                        result: api_constants/* global_constants */._y.SCORM_TRUE,
-                                        errorCode: 0,
-                                    }];
-                            }
-                            else {
-                                return [2, {
-                                        result: api_constants/* global_constants */._y.SCORM_FALSE,
-                                        errorCode: 101,
-                                    }];
-                            }
-                        }
-                        else {
-                            return [2, {
-                                    result: httpResult.result,
-                                    errorCode: httpResult.errorCode
-                                        ? httpResult.errorCode
-                                        : httpResult.result === api_constants/* global_constants */._y.SCORM_TRUE
-                                            ? 0
-                                            : 101,
-                                }];
-                        }
-                        _a.label = 2;
-                    case 2: return [2, {
-                            result: api_constants/* global_constants */._y.SCORM_FALSE,
-                            errorCode: 101,
-                        }];
-                }
-            });
-        });
-    },
-    requestHandler: function (commitObject) {
-        return commitObject;
-    },
-    onLogMessage: defaultLogHandler,
-    scoItemIds: [],
-    scoItemIdValidator: false,
-    globalObjectiveIds: [],
-};
-function defaultLogHandler(messageLevel, logMessage) {
-    switch (messageLevel) {
-        case "4":
-        case 4:
-        case "ERROR":
-        case enums/* LogLevelEnum */.Mb.ERROR:
-            console.error(logMessage);
-            break;
-        case "3":
-        case 3:
-        case "WARN":
-        case enums/* LogLevelEnum */.Mb.WARN:
-            console.warn(logMessage);
-            break;
-        case "2":
-        case 2:
-        case "INFO":
-        case enums/* LogLevelEnum */.Mb.INFO:
-            console.info(logMessage);
-            break;
-        case "1":
-        case 1:
-        case "DEBUG":
-        case enums/* LogLevelEnum */.Mb.DEBUG:
-            if (console.debug) {
-                console.debug(logMessage);
-            }
-            else {
-                console.log(logMessage);
-            }
-            break;
-    }
-}
-
-;// ./src/helpers/scheduled_commit.ts
-
-var ScheduledCommit = (function () {
-    function ScheduledCommit(API, when, callback) {
-        this._cancelled = false;
-        this._API = API;
-        this._timeout = setTimeout(this.wrapper.bind(this), when);
-        this._callback = callback;
-    }
-    ScheduledCommit.prototype.cancel = function () {
-        this._cancelled = true;
-        if (this._timeout) {
-            clearTimeout(this._timeout);
-        }
-    };
-    ScheduledCommit.prototype.wrapper = function () {
-        var _this = this;
-        if (!this._cancelled) {
-            (function () { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () { return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4, this._API.commit(this._callback)];
-                    case 1: return [2, _a.sent()];
-                }
-            }); }); })();
-        }
-    };
-    return ScheduledCommit;
-}());
-
-
-;// ./src/services/HttpService.ts
-
-
-
-var HttpService = (function () {
-    function HttpService(settings, error_codes) {
-        this.settings = settings;
-        this.error_codes = error_codes;
-    }
-    HttpService.prototype.processHttpRequest = function (url_1, params_1) {
-        return (0,tslib_es6/* __awaiter */.sH)(this, arguments, void 0, function (url, params, immediate, apiLog, processListeners) {
-            var genericError, process;
-            var _this = this;
-            if (immediate === void 0) { immediate = false; }
-            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        genericError = {
-                            result: api_constants/* global_constants */._y.SCORM_FALSE,
-                            errorCode: this.error_codes.GENERAL,
-                        };
-                        if (immediate) {
-                            this.performFetch(url, params).then(function (response) { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () {
-                                return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                                    switch (_a.label) {
-                                        case 0: return [4, this.transformResponse(response, processListeners)];
-                                        case 1:
-                                            _a.sent();
-                                            return [2];
-                                    }
-                                });
-                            }); });
-                            return [2, {
-                                    result: api_constants/* global_constants */._y.SCORM_TRUE,
-                                    errorCode: 0,
-                                }];
-                        }
-                        process = function (url, params, settings) { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () {
-                            var response, e_1;
-                            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                                switch (_a.label) {
-                                    case 0:
-                                        _a.trys.push([0, 2, , 3]);
-                                        params = settings.requestHandler(params);
-                                        return [4, this.performFetch(url, params)];
-                                    case 1:
-                                        response = _a.sent();
-                                        return [2, this.transformResponse(response, processListeners)];
-                                    case 2:
-                                        e_1 = _a.sent();
-                                        apiLog("processHttpRequest", e_1, enums/* LogLevelEnum */.Mb.ERROR);
-                                        processListeners("CommitError");
-                                        return [2, genericError];
-                                    case 3: return [2];
-                                }
-                            });
-                        }); };
-                        return [4, process(url, params, this.settings)];
-                    case 1: return [2, _a.sent()];
-                }
-            });
-        });
-    };
-    HttpService.prototype.performFetch = function (url, params) {
-        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
-            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                return [2, fetch(url, {
-                        method: "POST",
-                        mode: this.settings.fetchMode,
-                        body: params instanceof Array ? params.join("&") : JSON.stringify(params),
-                        headers: (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, this.settings.xhrHeaders), { "Content-Type": this.settings.commitRequestDataType }),
-                        credentials: this.settings.xhrWithCredentials ? "include" : undefined,
-                        keepalive: true,
-                    })];
-            });
-        });
-    };
-    HttpService.prototype.transformResponse = function (response, processListeners) {
-        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
-            var result, _a;
-            return (0,tslib_es6/* __generator */.YH)(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        if (!(typeof this.settings.responseHandler === "function")) return [3, 2];
-                        return [4, this.settings.responseHandler(response)];
-                    case 1:
-                        _a = _b.sent();
-                        return [3, 4];
-                    case 2: return [4, response.json()];
-                    case 3:
-                        _a = _b.sent();
-                        _b.label = 4;
-                    case 4:
-                        result = _a;
-                        if (response.status >= 200 &&
-                            response.status <= 299 &&
-                            (result.result === true || result.result === api_constants/* global_constants */._y.SCORM_TRUE)) {
-                            processListeners("CommitSuccess");
-                            if (!Object.hasOwnProperty.call(result, "errorCode")) {
-                                result.errorCode = 0;
-                            }
-                        }
-                        else {
-                            processListeners("CommitError");
-                            if (!Object.hasOwnProperty.call(result, "errorCode")) {
-                                result.errorCode = this.error_codes.GENERAL;
-                            }
-                        }
-                        return [2, result];
-                }
-            });
-        });
-    };
-    HttpService.prototype.updateSettings = function (settings) {
-        this.settings = settings;
-    };
-    return HttpService;
-}());
-
-
-;// ./src/services/EventService.ts
-
-
-var EventService = (function () {
-    function EventService(apiLog) {
-        this.listenerMap = new Map();
-        this.listenerCount = 0;
-        this.apiLog = apiLog;
-    }
-    EventService.prototype.parseListenerName = function (listenerName) {
-        var listenerSplit = listenerName.split(".");
-        if (listenerSplit.length === 0)
-            return null;
-        var functionName = listenerSplit[0];
-        var CMIElement = null;
-        if (listenerSplit.length > 1) {
-            CMIElement = listenerName.replace("".concat(functionName, "."), "");
-        }
-        return { functionName: functionName, CMIElement: CMIElement };
-    };
-    EventService.prototype.on = function (listenerName, callback) {
-        var _a;
-        if (!callback)
-            return;
-        var listenerFunctions = listenerName.split(" ");
-        for (var _i = 0, listenerFunctions_1 = listenerFunctions; _i < listenerFunctions_1.length; _i++) {
-            var listenerFunction = listenerFunctions_1[_i];
-            var parsedListener = this.parseListenerName(listenerFunction);
-            if (!parsedListener)
-                continue;
-            var functionName = parsedListener.functionName, CMIElement = parsedListener.CMIElement;
-            var listeners = (_a = this.listenerMap.get(functionName)) !== null && _a !== void 0 ? _a : [];
-            listeners.push({
-                functionName: functionName,
-                CMIElement: CMIElement,
-                callback: callback,
-            });
-            this.listenerMap.set(functionName, listeners);
-            this.listenerCount++;
-            this.apiLog("on", "Added event listener: ".concat(this.listenerCount), enums/* LogLevelEnum */.Mb.INFO, functionName);
-        }
-    };
-    EventService.prototype.off = function (listenerName, callback) {
-        if (!callback)
-            return;
-        var listenerFunctions = listenerName.split(" ");
-        var _loop_1 = function (listenerFunction) {
-            var parsedListener = this_1.parseListenerName(listenerFunction);
-            if (!parsedListener)
-                return "continue";
-            var functionName = parsedListener.functionName, CMIElement = parsedListener.CMIElement;
-            var listeners = this_1.listenerMap.get(functionName);
-            if (!listeners)
-                return "continue";
-            var removeIndex = listeners.findIndex(function (obj) { return obj.CMIElement === CMIElement && obj.callback === callback; });
-            if (removeIndex !== -1) {
-                listeners.splice(removeIndex, 1);
-                this_1.listenerCount--;
-                if (listeners.length === 0) {
-                    this_1.listenerMap.delete(functionName);
-                }
-                else {
-                    this_1.listenerMap.set(functionName, listeners);
-                }
-                this_1.apiLog("off", "Removed event listener: ".concat(this_1.listenerCount), enums/* LogLevelEnum */.Mb.INFO, functionName);
-            }
-        };
-        var this_1 = this;
-        for (var _i = 0, listenerFunctions_2 = listenerFunctions; _i < listenerFunctions_2.length; _i++) {
-            var listenerFunction = listenerFunctions_2[_i];
-            _loop_1(listenerFunction);
-        }
-    };
-    EventService.prototype.clear = function (listenerName) {
-        var listenerFunctions = listenerName.split(" ");
-        var _loop_2 = function (listenerFunction) {
-            var parsedListener = this_2.parseListenerName(listenerFunction);
-            if (!parsedListener)
-                return "continue";
-            var functionName = parsedListener.functionName, CMIElement = parsedListener.CMIElement;
-            if (this_2.listenerMap.has(functionName)) {
-                var listeners = this_2.listenerMap.get(functionName);
-                var newListeners = listeners.filter(function (obj) { return obj.CMIElement !== CMIElement; });
-                this_2.listenerCount -= listeners.length - newListeners.length;
-                if (newListeners.length === 0) {
-                    this_2.listenerMap.delete(functionName);
-                }
-                else {
-                    this_2.listenerMap.set(functionName, newListeners);
-                }
-            }
-        };
-        var this_2 = this;
-        for (var _i = 0, listenerFunctions_3 = listenerFunctions; _i < listenerFunctions_3.length; _i++) {
-            var listenerFunction = listenerFunctions_3[_i];
-            _loop_2(listenerFunction);
-        }
-    };
-    EventService.prototype.processListeners = function (functionName, CMIElement, value) {
-        this.apiLog(functionName, value, enums/* LogLevelEnum */.Mb.INFO, CMIElement);
-        var listeners = this.listenerMap.get(functionName);
-        if (!listeners)
-            return;
-        for (var _i = 0, listeners_1 = listeners; _i < listeners_1.length; _i++) {
-            var listener = listeners_1[_i];
-            var listenerHasCMIElement = !!listener.CMIElement;
-            var CMIElementsMatch = false;
-            if (CMIElement && listener.CMIElement && listener.CMIElement.endsWith("*")) {
-                var prefix = listener.CMIElement.slice(0, -1);
-                CMIElementsMatch = (0,utilities/* stringMatches */.J6)(CMIElement, prefix);
-            }
-            else {
-                CMIElementsMatch = listener.CMIElement === CMIElement;
-            }
-            if (!listenerHasCMIElement || CMIElementsMatch) {
-                this.apiLog("processListeners", "Processing listener: ".concat(listener.functionName), enums/* LogLevelEnum */.Mb.DEBUG, CMIElement);
-                listener.callback(CMIElement, value);
-            }
-        }
-    };
-    EventService.prototype.reset = function () {
-        this.listenerMap.clear();
-        this.listenerCount = 0;
-    };
-    return EventService;
-}());
-
-
-;// ./src/services/SerializationService.ts
-
-
-var SerializationService = (function () {
-    function SerializationService() {
-    }
-    SerializationService.prototype.loadFromFlattenedJSON = function (json, CMIElement, setCMIValue, isNotInitialized, setStartingData) {
-        var _this = this;
-        if (CMIElement === void 0) { CMIElement = ""; }
-        if (!isNotInitialized()) {
-            console.error("loadFromFlattenedJSON can only be called before the call to lmsInitialize.");
-            return;
-        }
-        var int_pattern = /^(cmi\.interactions\.)(\d+)\.(.*)$/;
-        var obj_pattern = /^(cmi\.objectives\.)(\d+)\.(.*)$/;
-        var interactions = [];
-        var objectives = [];
-        var others = [];
-        for (var key in json) {
-            if (Object.prototype.hasOwnProperty.call(json, key)) {
-                var intMatch = key.match(int_pattern);
-                if (intMatch) {
-                    interactions.push({
-                        key: key,
-                        value: json[key],
-                        index: Number(intMatch[2]),
-                        field: intMatch[3],
-                    });
-                    continue;
-                }
-                var objMatch = key.match(obj_pattern);
-                if (objMatch) {
-                    objectives.push({
-                        key: key,
-                        value: json[key],
-                        index: Number(objMatch[2]),
-                        field: objMatch[3],
-                    });
-                    continue;
-                }
-                others.push({ key: key, value: json[key] });
-            }
-        }
-        interactions.sort(function (a, b) {
-            if (a.index !== b.index) {
-                return a.index - b.index;
-            }
-            if (a.field === "id")
-                return -1;
-            if (b.field === "id")
-                return 1;
-            if (a.field === "type")
-                return -1;
-            if (b.field === "type")
-                return 1;
-            return a.field.localeCompare(b.field);
-        });
-        objectives.sort(function (a, b) {
-            if (a.index !== b.index) {
-                return a.index - b.index;
-            }
-            if (a.field === "id")
-                return -1;
-            if (b.field === "id")
-                return 1;
-            return a.field.localeCompare(b.field);
-        });
-        others.sort(function (a, b) { return a.key.localeCompare(b.key); });
-        var processItems = function (items) {
-            items.forEach(function (item) {
-                var obj = {};
-                obj[item.key] = item.value;
-                _this.loadFromJSON((0,utilities/* unflatten */.sB)(obj), CMIElement, setCMIValue, isNotInitialized, setStartingData);
-            });
-        };
-        processItems(interactions);
-        processItems(objectives);
-        processItems(others);
-    };
-    SerializationService.prototype.loadFromJSON = function (json, CMIElement, setCMIValue, isNotInitialized, setStartingData) {
-        if (CMIElement === void 0) { CMIElement = ""; }
-        if (!isNotInitialized()) {
-            console.error("loadFromJSON can only be called before the call to lmsInitialize.");
-            return;
-        }
-        CMIElement = CMIElement !== undefined ? CMIElement : "cmi";
-        setStartingData(json);
-        for (var key in json) {
-            if (Object.prototype.hasOwnProperty.call(json, key) && json[key]) {
-                var currentCMIElement = (CMIElement ? CMIElement + "." : "") + key;
-                var value = json[key];
-                if (value.constructor === Array) {
-                    for (var i = 0; i < value.length; i++) {
-                        if (value[i]) {
-                            var item = value[i];
-                            var tempCMIElement = "".concat(currentCMIElement, ".").concat(i);
-                            if (item.constructor === Object) {
-                                this.loadFromJSON(item, tempCMIElement, setCMIValue, isNotInitialized, setStartingData);
-                            }
-                            else {
-                                setCMIValue(tempCMIElement, item);
-                            }
-                        }
-                    }
-                }
-                else if (value.constructor === Object) {
-                    this.loadFromJSON(value, currentCMIElement, setCMIValue, isNotInitialized, setStartingData);
-                }
-                else {
-                    setCMIValue(currentCMIElement, value);
-                }
-            }
-        }
-    };
-    SerializationService.prototype.renderCMIToJSONString = function (cmi, sendFullCommit) {
-        if (sendFullCommit) {
-            return JSON.stringify({ cmi: cmi });
-        }
-        return JSON.stringify({ cmi: cmi }, function (k, v) { return (v === undefined ? null : v); }, 2);
-    };
-    SerializationService.prototype.renderCMIToJSONObject = function (cmi, sendFullCommit) {
-        return JSON.parse(this.renderCMIToJSONString(cmi, sendFullCommit));
-    };
-    SerializationService.prototype.getCommitObject = function (terminateCommit, alwaysSendTotalTime, renderCommonCommitFields, renderCommitObject, renderCommitCMI, apiLogLevel) {
-        var shouldTerminateCommit = terminateCommit || alwaysSendTotalTime;
-        var commitObject = renderCommonCommitFields
-            ? renderCommitObject(shouldTerminateCommit)
-            : renderCommitCMI(shouldTerminateCommit);
-        if ([enums/* LogLevelEnum */.Mb.DEBUG, "1", 1, "DEBUG"].includes(apiLogLevel)) {
-            console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");
-            console.debug(commitObject);
-        }
-        return commitObject;
-    };
-    return SerializationService;
-}());
-
-
-// EXTERNAL MODULE: ./src/exceptions.ts
-var exceptions = __webpack_require__(784);
-// EXTERNAL MODULE: ./src/cmi/common/array.ts
-var array = __webpack_require__(589);
-;// ./src/utils/type_guards.ts
-
-
-function isValidationError(value) {
-    if (value instanceof exceptions/* ValidationError */.y) {
-        return true;
-    }
-    return (value !== null &&
-        typeof value === "object" &&
-        "errorCode" in value &&
-        "errorMessage" in value &&
-        typeof value.errorCode === "number" &&
-        typeof value.errorMessage === "string");
-}
-function isError(value) {
-    if (value instanceof Error) {
-        return true;
-    }
-    return (value !== null &&
-        typeof value === "object" &&
-        "message" in value &&
-        typeof value.message === "string" &&
-        "name" in value &&
-        typeof value.name === "string");
-}
-function isCMIArray(value) {
-    if (value instanceof array/* CMIArray */.B) {
-        return true;
-    }
-    return (value !== null &&
-        typeof value === "object" &&
-        "childArray" in value &&
-        Array.isArray(value.childArray) &&
-        "initialized" in value);
-}
-
-;// ./src/services/ErrorHandlingService.ts
-
-
-
-var ErrorHandlingService = (function () {
-    function ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails) {
-        this._lastErrorCode = "0";
-        this._errorCodes = errorCodes;
-        this._apiLog = apiLog;
-        this._getLmsErrorMessageDetails = getLmsErrorMessageDetails;
-    }
-    Object.defineProperty(ErrorHandlingService.prototype, "lastErrorCode", {
-        get: function () {
-            return this._lastErrorCode;
-        },
-        set: function (errorCode) {
-            this._lastErrorCode = errorCode;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    ErrorHandlingService.prototype.throwSCORMError = function (CMIElement, errorNumber, message) {
-        if (!message) {
-            message = this._getLmsErrorMessageDetails(errorNumber, true);
-        }
-        this._apiLog("throwSCORMError", errorNumber + ": " + message, enums/* LogLevelEnum */.Mb.ERROR, CMIElement);
-        this._lastErrorCode = String(errorNumber);
-    };
-    ErrorHandlingService.prototype.clearSCORMError = function (success) {
-        if (success !== undefined && success !== api_constants/* global_constants */._y.SCORM_FALSE) {
-            this._lastErrorCode = "0";
-        }
-    };
-    ErrorHandlingService.prototype.handleValueAccessException = function (CMIElement, e, returnValue) {
-        if (isValidationError(e)) {
-            var validationError = e;
-            this._lastErrorCode = String(validationError.errorCode);
-            returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-        }
-        else {
-            if (isError(e) && e.message) {
-                console.error(e.message);
-                this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, e.message);
-            }
-            else {
-                console.error(e);
-                this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, "Unknown error");
-            }
-        }
-        return returnValue;
-    };
-    Object.defineProperty(ErrorHandlingService.prototype, "errorCodes", {
-        get: function () {
-            return this._errorCodes;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    return ErrorHandlingService;
-}());
-
-function createErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails) {
-    return new ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails);
-}
-
-;// ./src/services/LoggingService.ts
-
-
-var LoggingService = (function () {
-    function LoggingService() {
-        this._logLevel = enums/* LogLevelEnum */.Mb.ERROR;
-        this._logHandler = defaultLogHandler;
-    }
-    LoggingService.getInstance = function () {
-        if (!LoggingService._instance) {
-            LoggingService._instance = new LoggingService();
-        }
-        return LoggingService._instance;
-    };
-    LoggingService.prototype.setLogLevel = function (level) {
-        this._logLevel = level;
-    };
-    LoggingService.prototype.getLogLevel = function () {
-        return this._logLevel;
-    };
-    LoggingService.prototype.setLogHandler = function (handler) {
-        this._logHandler = handler;
-    };
-    LoggingService.prototype.log = function (messageLevel, logMessage) {
-        if (this.shouldLog(messageLevel)) {
-            this._logHandler(messageLevel, logMessage);
-        }
-    };
-    LoggingService.prototype.error = function (logMessage) {
-        this.log(enums/* LogLevelEnum */.Mb.ERROR, logMessage);
-    };
-    LoggingService.prototype.warn = function (logMessage) {
-        this.log(enums/* LogLevelEnum */.Mb.WARN, logMessage);
-    };
-    LoggingService.prototype.info = function (logMessage) {
-        this.log(enums/* LogLevelEnum */.Mb.INFO, logMessage);
-    };
-    LoggingService.prototype.debug = function (logMessage) {
-        this.log(enums/* LogLevelEnum */.Mb.DEBUG, logMessage);
-    };
-    LoggingService.prototype.shouldLog = function (messageLevel) {
-        var numericMessageLevel = this.getNumericLevel(messageLevel);
-        var numericLogLevel = this.getNumericLevel(this._logLevel);
-        return numericMessageLevel >= numericLogLevel;
-    };
-    LoggingService.prototype.getNumericLevel = function (level) {
-        if (level === undefined)
-            return enums/* LogLevelEnum */.Mb.NONE;
-        if (typeof level === "number")
-            return level;
-        switch (level) {
-            case "1":
-            case "DEBUG":
-                return enums/* LogLevelEnum */.Mb.DEBUG;
-            case "2":
-            case "INFO":
-                return enums/* LogLevelEnum */.Mb.INFO;
-            case "3":
-            case "WARN":
-                return enums/* LogLevelEnum */.Mb.WARN;
-            case "4":
-            case "ERROR":
-                return enums/* LogLevelEnum */.Mb.ERROR;
-            case "5":
-            case "NONE":
-                return enums/* LogLevelEnum */.Mb.NONE;
-            default:
-                return enums/* LogLevelEnum */.Mb.ERROR;
-        }
-    };
-    return LoggingService;
-}());
-
-function getLoggingService() {
-    return LoggingService.getInstance();
-}
-
-;// ./src/BaseAPI.ts
-
-
-
-
-
-
-
-
-
-
-
-
-var BaseAPI = (function () {
-    function BaseAPI(error_codes, settings, httpService, eventService, serializationService, cmiDataService, errorHandlingService, loggingService) {
-        var _newTarget = this.constructor;
-        var _this = this;
-        this._settings = DefaultSettings;
-        if (_newTarget === BaseAPI) {
-            throw new TypeError("Cannot construct BaseAPI instances directly");
-        }
-        this.currentState = api_constants/* global_constants */._y.STATE_NOT_INITIALIZED;
-        this._error_codes = error_codes;
-        if (settings) {
-            this.settings = settings;
-        }
-        this.apiLogLevel = this.settings.logLevel;
-        this.selfReportSessionTime = this.settings.selfReportSessionTime;
-        if (this.apiLogLevel === undefined) {
-            this.apiLogLevel = enums/* LogLevelEnum */.Mb.NONE;
-        }
-        this._loggingService = loggingService || getLoggingService();
-        this._loggingService.setLogLevel(this.apiLogLevel);
-        if (this.settings.onLogMessage) {
-            this._loggingService.setLogHandler(this.settings.onLogMessage);
-        }
-        this._httpService = httpService || new HttpService(this.settings, this._error_codes);
-        this._eventService =
-            eventService ||
-                new EventService(function (functionName, message, level, element) {
-                    return _this.apiLog(functionName, message, level, element);
-                });
-        this._serializationService = serializationService || new SerializationService();
-        this._errorHandlingService =
-            errorHandlingService ||
-                createErrorHandlingService(this._error_codes, function (functionName, message, level, element) {
-                    return _this.apiLog(functionName, message, level, element);
-                }, function (errorNumber, detail) { return _this.getLmsErrorMessageDetails(errorNumber, detail); });
-    }
-    Object.defineProperty(BaseAPI.prototype, "lastErrorCode", {
-        get: function () {
-            var _a, _b;
-            return (_b = (_a = this._errorHandlingService) === null || _a === void 0 ? void 0 : _a.lastErrorCode) !== null && _b !== void 0 ? _b : "0";
-        },
-        set: function (errorCode) {
-            if (this._errorHandlingService) {
-                this._errorHandlingService.lastErrorCode = errorCode;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    BaseAPI.prototype.commonReset = function (settings) {
-        this.apiLog("reset", "Called", enums/* LogLevelEnum */.Mb.INFO);
-        this.settings = (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, this.settings), settings);
-        this.clearScheduledCommit();
-        this.currentState = api_constants/* global_constants */._y.STATE_NOT_INITIALIZED;
-        this.lastErrorCode = "0";
-        this._eventService.reset();
-        this.startingData = undefined;
-    };
-    BaseAPI.prototype.initialize = function (callbackName, initializeMessage, terminationMessage) {
-        var returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-        if (this.isInitialized()) {
-            this.throwSCORMError("api", this._error_codes.INITIALIZED, initializeMessage);
-        }
-        else if (this.isTerminated()) {
-            this.throwSCORMError("api", this._error_codes.TERMINATED, terminationMessage);
-        }
-        else {
-            if (this.selfReportSessionTime) {
-                this.cmi.setStartTime();
-            }
-            this.currentState = api_constants/* global_constants */._y.STATE_INITIALIZED;
-            this.lastErrorCode = "0";
-            returnValue = api_constants/* global_constants */._y.SCORM_TRUE;
-            this.processListeners(callbackName);
-        }
-        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
-        this.clearSCORMError(returnValue);
-        return returnValue;
-    };
-    BaseAPI.prototype.apiLog = function (functionName, logMessage, messageLevel, CMIElement) {
-        logMessage = (0,utilities/* formatMessage */.hw)(functionName, logMessage, CMIElement);
-        if (messageLevel >= this.apiLogLevel) {
-            this._loggingService.log(messageLevel, logMessage);
-            if (this.settings.onLogMessage &&
-                this.settings.onLogMessage !== this._loggingService["_logHandler"]) {
-                this.settings.onLogMessage(messageLevel, logMessage);
-            }
-        }
-    };
-    Object.defineProperty(BaseAPI.prototype, "error_codes", {
-        get: function () {
-            return this._error_codes;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(BaseAPI.prototype, "settings", {
-        get: function () {
-            return this._settings;
-        },
-        set: function (settings) {
-            var _a, _b, _c;
-            var previousSettings = this._settings;
-            this._settings = (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, this._settings), settings);
-            (_a = this._httpService) === null || _a === void 0 ? void 0 : _a.updateSettings(this._settings);
-            if (settings.logLevel !== undefined && settings.logLevel !== previousSettings.logLevel) {
-                this.apiLogLevel = settings.logLevel;
-                (_b = this._loggingService) === null || _b === void 0 ? void 0 : _b.setLogLevel(settings.logLevel);
-            }
-            if (settings.onLogMessage !== undefined &&
-                settings.onLogMessage !== previousSettings.onLogMessage) {
-                (_c = this._loggingService) === null || _c === void 0 ? void 0 : _c.setLogHandler(settings.onLogMessage);
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    BaseAPI.prototype.terminate = function (callbackName, checkTerminated) {
-        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
-            var returnValue, result;
-            var _a, _b;
-            return (0,tslib_es6/* __generator */.YH)(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-                        if (!this.checkState(checkTerminated, this._error_codes.TERMINATION_BEFORE_INIT, this._error_codes.MULTIPLE_TERMINATION)) return [3, 2];
-                        this.currentState = api_constants/* global_constants */._y.STATE_TERMINATED;
-                        return [4, this.storeData(true)];
-                    case 1:
-                        result = _c.sent();
-                        if (((_a = result.errorCode) !== null && _a !== void 0 ? _a : 0) > 0) {
-                            this.throwSCORMError("api", result.errorCode);
-                        }
-                        returnValue = (_b = result === null || result === void 0 ? void 0 : result.result) !== null && _b !== void 0 ? _b : api_constants/* global_constants */._y.SCORM_FALSE;
-                        if (checkTerminated)
-                            this.lastErrorCode = "0";
-                        returnValue = api_constants/* global_constants */._y.SCORM_TRUE;
-                        this.processListeners(callbackName);
-                        _c.label = 2;
-                    case 2:
-                        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
-                        this.clearSCORMError(returnValue);
-                        return [2, returnValue];
-                }
-            });
-        });
-    };
-    BaseAPI.prototype.getValue = function (callbackName, checkTerminated, CMIElement) {
-        var returnValue = "";
-        if (this.checkState(checkTerminated, this._error_codes.RETRIEVE_BEFORE_INIT, this._error_codes.RETRIEVE_AFTER_TERM)) {
-            try {
-                returnValue = this.getCMIValue(CMIElement);
-            }
-            catch (e) {
-                returnValue = this.handleValueAccessException(CMIElement, e, returnValue);
-            }
-            this.processListeners(callbackName, CMIElement);
-        }
-        this.apiLog(callbackName, ": returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO, CMIElement);
-        if (returnValue === undefined) {
-            return "";
-        }
-        if (this.lastErrorCode === "0") {
-            this.clearSCORMError(returnValue);
-        }
-        return returnValue;
-    };
-    BaseAPI.prototype.setValue = function (callbackName, commitCallback, checkTerminated, CMIElement, value) {
-        if (value !== undefined) {
-            value = String(value);
-        }
-        var returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-        if (this.checkState(checkTerminated, this._error_codes.STORE_BEFORE_INIT, this._error_codes.STORE_AFTER_TERM)) {
-            try {
-                returnValue = this.setCMIValue(CMIElement, value);
-            }
-            catch (e) {
-                returnValue = this.handleValueAccessException(CMIElement, e, returnValue);
-            }
-            this.processListeners(callbackName, CMIElement, value);
-        }
-        if (returnValue === undefined) {
-            returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-        }
-        if (String(this.lastErrorCode) === "0") {
-            if (this.settings.autocommit) {
-                this.scheduleCommit(this.settings.autocommitSeconds * 1000, commitCallback);
-            }
-        }
-        this.apiLog(callbackName, ": " + value + ": result: " + returnValue, enums/* LogLevelEnum */.Mb.INFO, CMIElement);
-        if (this.lastErrorCode === "0") {
-            this.clearSCORMError(returnValue);
-        }
-        return returnValue;
-    };
-    BaseAPI.prototype.commit = function (callbackName_1) {
-        return (0,tslib_es6/* __awaiter */.sH)(this, arguments, void 0, function (callbackName, checkTerminated) {
-            var returnValue, result;
-            var _a, _b;
-            if (checkTerminated === void 0) { checkTerminated = false; }
-            return (0,tslib_es6/* __generator */.YH)(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        this.clearScheduledCommit();
-                        returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-                        if (!this.checkState(checkTerminated, this._error_codes.COMMIT_BEFORE_INIT, this._error_codes.COMMIT_AFTER_TERM)) return [3, 2];
-                        return [4, this.storeData(false)];
-                    case 1:
-                        result = _c.sent();
-                        if (((_a = result.errorCode) !== null && _a !== void 0 ? _a : 0) > 0) {
-                            this.throwSCORMError("api", result.errorCode);
-                        }
-                        returnValue = (_b = result === null || result === void 0 ? void 0 : result.result) !== null && _b !== void 0 ? _b : api_constants/* global_constants */._y.SCORM_FALSE;
-                        this.apiLog(callbackName, " Result: " + returnValue, enums/* LogLevelEnum */.Mb.DEBUG, "HttpRequest");
-                        if (checkTerminated)
-                            this.lastErrorCode = "0";
-                        this.processListeners(callbackName);
-                        _c.label = 2;
-                    case 2:
-                        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
-                        if (this.lastErrorCode === "0") {
-                            this.clearSCORMError(returnValue);
-                        }
-                        return [2, returnValue];
-                }
-            });
-        });
-    };
-    BaseAPI.prototype.getLastError = function (callbackName) {
-        var returnValue = String(this.lastErrorCode);
-        this.processListeners(callbackName);
-        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
-        return returnValue;
-    };
-    BaseAPI.prototype.getErrorString = function (callbackName, CMIErrorCode) {
-        var returnValue = "";
-        if (CMIErrorCode !== null && CMIErrorCode !== "") {
-            returnValue = this.getLmsErrorMessageDetails(CMIErrorCode);
-            this.processListeners(callbackName);
-        }
-        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
-        return returnValue;
-    };
-    BaseAPI.prototype.getDiagnostic = function (callbackName, CMIErrorCode) {
-        var returnValue = "";
-        if (CMIErrorCode !== null && CMIErrorCode !== "") {
-            returnValue = this.getLmsErrorMessageDetails(CMIErrorCode, true);
-            this.processListeners(callbackName);
-        }
-        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
-        return returnValue;
-    };
-    BaseAPI.prototype.checkState = function (checkTerminated, beforeInitError, afterTermError) {
-        if (this.isNotInitialized()) {
-            this.throwSCORMError("api", beforeInitError);
-            return false;
-        }
-        else if (checkTerminated && this.isTerminated()) {
-            this.throwSCORMError("api", afterTermError);
-            return false;
-        }
-        return true;
-    };
-    BaseAPI.prototype.getLmsErrorMessageDetails = function (_errorNumber, _detail) {
-        if (_detail === void 0) { _detail = false; }
-        throw new Error("The getLmsErrorMessageDetails method has not been implemented");
-    };
-    BaseAPI.prototype.getCMIValue = function (_CMIElement) {
-        throw new Error("The getCMIValue method has not been implemented");
-    };
-    BaseAPI.prototype.setCMIValue = function (_CMIElement, _value) {
-        throw new Error("The setCMIValue method has not been implemented");
-    };
-    BaseAPI.prototype._commonSetCMIValue = function (methodName, scorm2004, CMIElement, value) {
-        if (!CMIElement || CMIElement === "") {
-            return api_constants/* global_constants */._y.SCORM_FALSE;
-        }
-        this.lastErrorCode = "0";
-        var structure = CMIElement.split(".");
-        var refObject = this;
-        var returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-        var foundFirstIndex = false;
-        var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
-        var invalidErrorCode = scorm2004
-            ? this._error_codes.UNDEFINED_DATA_MODEL
-            : this._error_codes.GENERAL;
-        for (var idx = 0; idx < structure.length; idx++) {
-            var attribute = structure[idx];
-            if (idx === structure.length - 1) {
-                if (scorm2004 && attribute.substring(0, 8) === "{target=") {
-                    if (this.isInitialized()) {
-                        this.throwSCORMError(CMIElement, this._error_codes.READ_ONLY_ELEMENT);
-                        break;
-                    }
-                    else {
-                        refObject = (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, refObject), { attribute: value });
-                    }
-                }
-                else if (!this._checkObjectHasProperty(refObject, attribute)) {
-                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-                    break;
-                }
-                else {
-                    if ((0,utilities/* stringMatches */.J6)(CMIElement, "\\.correct_responses\\.\\d+$") &&
-                        this.isInitialized() &&
-                        attribute !== "pattern") {
-                        this.validateCorrectResponse(CMIElement, value);
-                        if (this.lastErrorCode !== "0") {
-                            this.throwSCORMError(CMIElement, this._error_codes.TYPE_MISMATCH);
-                            break;
-                        }
-                    }
-                    if (!scorm2004 || this._errorHandlingService.lastErrorCode === "0") {
-                        refObject[attribute] = value;
-                        returnValue = api_constants/* global_constants */._y.SCORM_TRUE;
-                    }
-                }
-            }
-            else {
-                refObject = refObject[attribute];
-                if (!refObject) {
-                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-                    break;
-                }
-                if (isCMIArray(refObject)) {
-                    var index = parseInt(structure[idx + 1], 10);
-                    if (!isNaN(index)) {
-                        var item = refObject.childArray[index];
-                        if (item) {
-                            refObject = item;
-                            foundFirstIndex = true;
-                        }
-                        else {
-                            var newChild = this.getChildElement(CMIElement, value, foundFirstIndex);
-                            foundFirstIndex = true;
-                            if (!newChild) {
-                                if (this.lastErrorCode === "0") {
-                                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-                                }
-                                break;
-                            }
-                            else {
-                                if (refObject.initialized)
-                                    newChild.initialize();
-                                refObject.childArray[index] = newChild;
-                                refObject = newChild;
-                            }
-                        }
-                        idx++;
-                    }
-                }
-            }
-        }
-        if (returnValue === api_constants/* global_constants */._y.SCORM_FALSE) {
-            this.apiLog(methodName, "There was an error setting the value for: ".concat(CMIElement, ", value of: ").concat(value), enums/* LogLevelEnum */.Mb.WARN);
-        }
-        return returnValue;
-    };
-    BaseAPI.prototype._commonGetCMIValue = function (methodName, scorm2004, CMIElement) {
-        if (!CMIElement || CMIElement === "") {
-            return "";
-        }
-        var structure = CMIElement.split(".");
-        var refObject = this;
-        var attribute = null;
-        var uninitializedErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") has not been initialized.");
-        var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
-        var invalidErrorCode = scorm2004
-            ? this._error_codes.UNDEFINED_DATA_MODEL
-            : this._error_codes.GENERAL;
-        for (var idx = 0; idx < structure.length; idx++) {
-            attribute = structure[idx];
-            if (!scorm2004) {
-                if (idx === structure.length - 1) {
-                    if (!this._checkObjectHasProperty(refObject, attribute)) {
-                        this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-                        return;
-                    }
-                }
-            }
-            else {
-                if (String(attribute).substring(0, 8) === "{target=" &&
-                    typeof refObject._isTargetValid == "function") {
-                    var target = String(attribute).substring(8, String(attribute).length - 9);
-                    return refObject._isTargetValid(target);
-                }
-                else if (!this._checkObjectHasProperty(refObject, attribute)) {
-                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-                    return;
-                }
-            }
-            refObject = refObject[attribute];
-            if (refObject === undefined) {
-                this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-                break;
-            }
-            if (isCMIArray(refObject)) {
-                var index = parseInt(structure[idx + 1], 10);
-                if (!isNaN(index)) {
-                    var item = refObject.childArray[index];
-                    if (item) {
-                        refObject = item;
-                    }
-                    else {
-                        this.throwSCORMError(CMIElement, this._error_codes.VALUE_NOT_INITIALIZED, uninitializedErrorMessage);
-                        break;
-                    }
-                    idx++;
-                }
-            }
-        }
-        if (refObject === null || refObject === undefined) {
-            if (!scorm2004) {
-                if (attribute === "_children") {
-                    this.throwSCORMError(CMIElement, this._error_codes.CHILDREN_ERROR, undefined);
-                }
-                else if (attribute === "_count") {
-                    this.throwSCORMError(CMIElement, this._error_codes.COUNT_ERROR, undefined);
-                }
-            }
-        }
-        else {
-            return refObject;
-        }
-    };
-    BaseAPI.prototype.isInitialized = function () {
-        return this.currentState === api_constants/* global_constants */._y.STATE_INITIALIZED;
-    };
-    BaseAPI.prototype.isNotInitialized = function () {
-        return this.currentState === api_constants/* global_constants */._y.STATE_NOT_INITIALIZED;
-    };
-    BaseAPI.prototype.isTerminated = function () {
-        return this.currentState === api_constants/* global_constants */._y.STATE_TERMINATED;
-    };
-    BaseAPI.prototype.on = function (listenerName, callback) {
-        this._eventService.on(listenerName, callback);
-    };
-    BaseAPI.prototype.off = function (listenerName, callback) {
-        this._eventService.off(listenerName, callback);
-    };
-    BaseAPI.prototype.clear = function (listenerName) {
-        this._eventService.clear(listenerName);
-    };
-    BaseAPI.prototype.processListeners = function (functionName, CMIElement, value) {
-        this._eventService.processListeners(functionName, CMIElement, value);
-    };
-    BaseAPI.prototype.throwSCORMError = function (CMIElement, errorNumber, message) {
-        this._errorHandlingService.throwSCORMError(CMIElement, errorNumber, message);
-    };
-    BaseAPI.prototype.clearSCORMError = function (success) {
-        this._errorHandlingService.clearSCORMError(success);
-    };
-    BaseAPI.prototype.loadFromFlattenedJSON = function (json, CMIElement) {
-        var _this = this;
-        if (!CMIElement) {
-            CMIElement = "";
-        }
-        this._serializationService.loadFromFlattenedJSON(json, CMIElement, function (CMIElement, value) { return _this.setCMIValue(CMIElement, value); }, function () { return _this.isNotInitialized(); }, function (data) {
-            _this.startingData = data;
-        });
-    };
-    BaseAPI.prototype.loadFromJSON = function (json, CMIElement) {
-        var _this = this;
-        if (CMIElement === void 0) { CMIElement = ""; }
-        this._serializationService.loadFromJSON(json, CMIElement, function (CMIElement, value) { return _this.setCMIValue(CMIElement, value); }, function () { return _this.isNotInitialized(); }, function (data) {
-            _this.startingData = data;
-        });
-    };
-    BaseAPI.prototype.renderCMIToJSONString = function () {
-        return this._serializationService.renderCMIToJSONString(this.cmi, this.settings.sendFullCommit);
-    };
-    BaseAPI.prototype.renderCMIToJSONObject = function () {
-        return this._serializationService.renderCMIToJSONObject(this.cmi, this.settings.sendFullCommit);
-    };
-    BaseAPI.prototype.processHttpRequest = function (url_1, params_1) {
-        return (0,tslib_es6/* __awaiter */.sH)(this, arguments, void 0, function (url, params, immediate) {
-            var _this = this;
-            if (immediate === void 0) { immediate = false; }
-            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                return [2, this._httpService.processHttpRequest(url, params, immediate, function (functionName, message, level, element) { return _this.apiLog(functionName, message, level, element); }, function (functionName, CMIElement, value) { return _this.processListeners(functionName, CMIElement, value); })];
-            });
-        });
-    };
-    BaseAPI.prototype.scheduleCommit = function (when, callback) {
-        if (!this._timeout) {
-            this._timeout = new ScheduledCommit(this, when, callback);
-            this.apiLog("scheduleCommit", "scheduled", enums/* LogLevelEnum */.Mb.DEBUG, "");
-        }
-    };
-    BaseAPI.prototype.clearScheduledCommit = function () {
-        if (this._timeout) {
-            this._timeout.cancel();
-            this._timeout = undefined;
-            this.apiLog("clearScheduledCommit", "cleared", enums/* LogLevelEnum */.Mb.DEBUG, "");
-        }
-    };
-    BaseAPI.prototype._checkObjectHasProperty = function (StringKeyMap, attribute) {
-        return (Object.hasOwnProperty.call(StringKeyMap, attribute) ||
-            Object.getOwnPropertyDescriptor(Object.getPrototypeOf(StringKeyMap), attribute) != null ||
-            attribute in StringKeyMap);
-    };
-    BaseAPI.prototype.handleValueAccessException = function (CMIElement, e, returnValue) {
-        if (isValidationError(e)) {
-            this.lastErrorCode = String(e.errorCode);
-            returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-            this.throwSCORMError(CMIElement, e.errorCode, e.errorMessage);
-        }
-        else {
-            if (isError(e) && e.message) {
-                console.error(e.message);
-                this.throwSCORMError(CMIElement, this._error_codes.GENERAL, e.message);
-            }
-            else {
-                console.error(e);
-                this.throwSCORMError(CMIElement, this._error_codes.GENERAL, "Unknown error");
-            }
-        }
-        return returnValue;
-    };
-    BaseAPI.prototype.getCommitObject = function (terminateCommit) {
-        var _this = this;
-        return this._serializationService.getCommitObject(terminateCommit, this.settings.alwaysSendTotalTime, this.settings.renderCommonCommitFields, function (terminateCommit) { return _this.renderCommitObject(terminateCommit); }, function (terminateCommit) { return _this.renderCommitCMI(terminateCommit); }, this.apiLogLevel);
-    };
-    return BaseAPI;
-}());
-/* harmony default export */ var src_BaseAPI = (BaseAPI);
-
-
-/***/ }),
-
 /***/ 417:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
@@ -2290,6 +1022,1251 @@ function __disposeResources(env) {
 
 /***/ }),
 
+/***/ 672:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+
+// EXPORTS
+__webpack_require__.d(__webpack_exports__, {
+  A: function() { return /* binding */ src_BaseAPI; }
+});
+
+// EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
+var tslib_es6 = __webpack_require__(635);
+// EXTERNAL MODULE: ./src/constants/api_constants.ts
+var api_constants = __webpack_require__(340);
+// EXTERNAL MODULE: ./src/utilities.ts
+var utilities = __webpack_require__(864);
+// EXTERNAL MODULE: ./src/constants/enums.ts
+var enums = __webpack_require__(56);
+;// ./src/constants/default_settings.ts
+
+
+
+var DefaultSettings = {
+    autocommit: false,
+    autocommitSeconds: 10,
+    asyncCommit: false,
+    sendFullCommit: true,
+    lmsCommitUrl: false,
+    dataCommitFormat: "json",
+    commitRequestDataType: "application/json;charset=UTF-8",
+    autoProgress: false,
+    logLevel: enums/* LogLevelEnum */.Mb.ERROR,
+    selfReportSessionTime: false,
+    alwaysSendTotalTime: false,
+    renderCommonCommitFields: false,
+    strict_errors: true,
+    xhrHeaders: {},
+    xhrWithCredentials: false,
+    fetchMode: "cors",
+    responseHandler: function (response) {
+        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
+            var responseText, httpResult;
+            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!(typeof response !== "undefined")) return [3, 2];
+                        return [4, response.text()];
+                    case 1:
+                        responseText = _a.sent();
+                        httpResult = null;
+                        if (responseText) {
+                            httpResult = JSON.parse(responseText);
+                        }
+                        if (httpResult === null || !{}.hasOwnProperty.call(httpResult, "result")) {
+                            if (response.status === 200) {
+                                return [2, {
+                                        result: api_constants/* global_constants */._y.SCORM_TRUE,
+                                        errorCode: 0,
+                                    }];
+                            }
+                            else {
+                                return [2, {
+                                        result: api_constants/* global_constants */._y.SCORM_FALSE,
+                                        errorCode: 101,
+                                    }];
+                            }
+                        }
+                        else {
+                            return [2, {
+                                    result: httpResult.result,
+                                    errorCode: httpResult.errorCode
+                                        ? httpResult.errorCode
+                                        : httpResult.result === api_constants/* global_constants */._y.SCORM_TRUE
+                                            ? 0
+                                            : 101,
+                                }];
+                        }
+                        _a.label = 2;
+                    case 2: return [2, {
+                            result: api_constants/* global_constants */._y.SCORM_FALSE,
+                            errorCode: 101,
+                        }];
+                }
+            });
+        });
+    },
+    requestHandler: function (commitObject) {
+        return commitObject;
+    },
+    onLogMessage: defaultLogHandler,
+    scoItemIds: [],
+    scoItemIdValidator: false,
+    globalObjectiveIds: [],
+};
+function defaultLogHandler(messageLevel, logMessage) {
+    switch (messageLevel) {
+        case "4":
+        case 4:
+        case "ERROR":
+        case enums/* LogLevelEnum */.Mb.ERROR:
+            console.error(logMessage);
+            break;
+        case "3":
+        case 3:
+        case "WARN":
+        case enums/* LogLevelEnum */.Mb.WARN:
+            console.warn(logMessage);
+            break;
+        case "2":
+        case 2:
+        case "INFO":
+        case enums/* LogLevelEnum */.Mb.INFO:
+            console.info(logMessage);
+            break;
+        case "1":
+        case 1:
+        case "DEBUG":
+        case enums/* LogLevelEnum */.Mb.DEBUG:
+            if (console.debug) {
+                console.debug(logMessage);
+            }
+            else {
+                console.log(logMessage);
+            }
+            break;
+    }
+}
+
+;// ./src/helpers/scheduled_commit.ts
+
+var ScheduledCommit = (function () {
+    function ScheduledCommit(API, when, callback) {
+        this._cancelled = false;
+        this._API = API;
+        this._timeout = setTimeout(this.wrapper.bind(this), when);
+        this._callback = callback;
+    }
+    ScheduledCommit.prototype.cancel = function () {
+        this._cancelled = true;
+        if (this._timeout) {
+            clearTimeout(this._timeout);
+        }
+    };
+    ScheduledCommit.prototype.wrapper = function () {
+        var _this = this;
+        if (!this._cancelled) {
+            (function () { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () { return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4, this._API.commit(this._callback)];
+                    case 1: return [2, _a.sent()];
+                }
+            }); }); })();
+        }
+    };
+    return ScheduledCommit;
+}());
+
+
+;// ./src/services/HttpService.ts
+
+
+
+var HttpService = (function () {
+    function HttpService(settings, error_codes) {
+        this.settings = settings;
+        this.error_codes = error_codes;
+    }
+    HttpService.prototype.processHttpRequest = function (url_1, params_1) {
+        return (0,tslib_es6/* __awaiter */.sH)(this, arguments, void 0, function (url, params, immediate, apiLog, processListeners) {
+            var genericError, process;
+            var _this = this;
+            if (immediate === void 0) { immediate = false; }
+            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        genericError = {
+                            result: api_constants/* global_constants */._y.SCORM_FALSE,
+                            errorCode: this.error_codes.GENERAL,
+                        };
+                        if (immediate) {
+                            this.performFetch(url, params).then(function (response) { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () {
+                                return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
+                                    switch (_a.label) {
+                                        case 0: return [4, this.transformResponse(response, processListeners)];
+                                        case 1:
+                                            _a.sent();
+                                            return [2];
+                                    }
+                                });
+                            }); });
+                            return [2, {
+                                    result: api_constants/* global_constants */._y.SCORM_TRUE,
+                                    errorCode: 0,
+                                }];
+                        }
+                        process = function (url, params, settings) { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () {
+                            var response, e_1;
+                            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        _a.trys.push([0, 2, , 3]);
+                                        params = settings.requestHandler(params);
+                                        return [4, this.performFetch(url, params)];
+                                    case 1:
+                                        response = _a.sent();
+                                        return [2, this.transformResponse(response, processListeners)];
+                                    case 2:
+                                        e_1 = _a.sent();
+                                        apiLog("processHttpRequest", e_1, enums/* LogLevelEnum */.Mb.ERROR);
+                                        processListeners("CommitError");
+                                        return [2, genericError];
+                                    case 3: return [2];
+                                }
+                            });
+                        }); };
+                        return [4, process(url, params, this.settings)];
+                    case 1: return [2, _a.sent()];
+                }
+            });
+        });
+    };
+    HttpService.prototype.performFetch = function (url, params) {
+        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
+            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
+                return [2, fetch(url, {
+                        method: "POST",
+                        mode: this.settings.fetchMode,
+                        body: params instanceof Array ? params.join("&") : JSON.stringify(params),
+                        headers: (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, this.settings.xhrHeaders), { "Content-Type": this.settings.commitRequestDataType }),
+                        credentials: this.settings.xhrWithCredentials ? "include" : undefined,
+                        keepalive: true,
+                    })];
+            });
+        });
+    };
+    HttpService.prototype.transformResponse = function (response, processListeners) {
+        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
+            var result, _a;
+            return (0,tslib_es6/* __generator */.YH)(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        if (!(typeof this.settings.responseHandler === "function")) return [3, 2];
+                        return [4, this.settings.responseHandler(response)];
+                    case 1:
+                        _a = _b.sent();
+                        return [3, 4];
+                    case 2: return [4, response.json()];
+                    case 3:
+                        _a = _b.sent();
+                        _b.label = 4;
+                    case 4:
+                        result = _a;
+                        if (response.status >= 200 &&
+                            response.status <= 299 &&
+                            (result.result === true || result.result === api_constants/* global_constants */._y.SCORM_TRUE)) {
+                            processListeners("CommitSuccess");
+                            if (!Object.hasOwnProperty.call(result, "errorCode")) {
+                                result.errorCode = 0;
+                            }
+                        }
+                        else {
+                            if (!Object.hasOwnProperty.call(result, "errorCode")) {
+                                result.errorCode = this.error_codes.GENERAL;
+                            }
+                            processListeners("CommitError", null, result.errorCode);
+                        }
+                        return [2, result];
+                }
+            });
+        });
+    };
+    HttpService.prototype.updateSettings = function (settings) {
+        this.settings = settings;
+    };
+    return HttpService;
+}());
+
+
+;// ./src/services/EventService.ts
+
+var EventService = (function () {
+    function EventService(apiLog) {
+        this.listenerMap = new Map();
+        this.listenerCount = 0;
+        this.apiLog = apiLog;
+    }
+    EventService.prototype.parseListenerName = function (listenerName) {
+        var listenerSplit = listenerName.split(".");
+        if (listenerSplit.length === 0)
+            return null;
+        var functionName = listenerSplit[0];
+        var CMIElement = null;
+        if (listenerSplit.length > 1) {
+            CMIElement = listenerName.replace("".concat(functionName, "."), "");
+        }
+        return { functionName: functionName, CMIElement: CMIElement };
+    };
+    EventService.prototype.on = function (listenerName, callback) {
+        var _a;
+        if (!callback)
+            return;
+        var listenerFunctions = listenerName.split(" ");
+        for (var _i = 0, listenerFunctions_1 = listenerFunctions; _i < listenerFunctions_1.length; _i++) {
+            var listenerFunction = listenerFunctions_1[_i];
+            var parsedListener = this.parseListenerName(listenerFunction);
+            if (!parsedListener)
+                continue;
+            var functionName = parsedListener.functionName, CMIElement = parsedListener.CMIElement;
+            var listeners = (_a = this.listenerMap.get(functionName)) !== null && _a !== void 0 ? _a : [];
+            listeners.push({
+                functionName: functionName,
+                CMIElement: CMIElement,
+                callback: callback,
+            });
+            this.listenerMap.set(functionName, listeners);
+            this.listenerCount++;
+            this.apiLog("on", "Added event listener: ".concat(this.listenerCount), enums/* LogLevelEnum */.Mb.INFO, functionName);
+        }
+    };
+    EventService.prototype.off = function (listenerName, callback) {
+        if (!callback)
+            return;
+        var listenerFunctions = listenerName.split(" ");
+        var _loop_1 = function (listenerFunction) {
+            var parsedListener = this_1.parseListenerName(listenerFunction);
+            if (!parsedListener)
+                return "continue";
+            var functionName = parsedListener.functionName, CMIElement = parsedListener.CMIElement;
+            var listeners = this_1.listenerMap.get(functionName);
+            if (!listeners)
+                return "continue";
+            var removeIndex = listeners.findIndex(function (obj) { return obj.CMIElement === CMIElement && obj.callback === callback; });
+            if (removeIndex !== -1) {
+                listeners.splice(removeIndex, 1);
+                this_1.listenerCount--;
+                if (listeners.length === 0) {
+                    this_1.listenerMap.delete(functionName);
+                }
+                else {
+                    this_1.listenerMap.set(functionName, listeners);
+                }
+                this_1.apiLog("off", "Removed event listener: ".concat(this_1.listenerCount), enums/* LogLevelEnum */.Mb.INFO, functionName);
+            }
+        };
+        var this_1 = this;
+        for (var _i = 0, listenerFunctions_2 = listenerFunctions; _i < listenerFunctions_2.length; _i++) {
+            var listenerFunction = listenerFunctions_2[_i];
+            _loop_1(listenerFunction);
+        }
+    };
+    EventService.prototype.clear = function (listenerName) {
+        var listenerFunctions = listenerName.split(" ");
+        var _loop_2 = function (listenerFunction) {
+            var parsedListener = this_2.parseListenerName(listenerFunction);
+            if (!parsedListener)
+                return "continue";
+            var functionName = parsedListener.functionName, CMIElement = parsedListener.CMIElement;
+            if (this_2.listenerMap.has(functionName)) {
+                var listeners = this_2.listenerMap.get(functionName);
+                var newListeners = listeners.filter(function (obj) { return obj.CMIElement !== CMIElement; });
+                this_2.listenerCount -= listeners.length - newListeners.length;
+                if (newListeners.length === 0) {
+                    this_2.listenerMap.delete(functionName);
+                }
+                else {
+                    this_2.listenerMap.set(functionName, newListeners);
+                }
+            }
+        };
+        var this_2 = this;
+        for (var _i = 0, listenerFunctions_3 = listenerFunctions; _i < listenerFunctions_3.length; _i++) {
+            var listenerFunction = listenerFunctions_3[_i];
+            _loop_2(listenerFunction);
+        }
+    };
+    EventService.prototype.processListeners = function (functionName, CMIElement, value) {
+        this.apiLog(functionName, value, enums/* LogLevelEnum */.Mb.INFO, CMIElement);
+        var listeners = this.listenerMap.get(functionName);
+        if (!listeners)
+            return;
+        for (var _i = 0, listeners_1 = listeners; _i < listeners_1.length; _i++) {
+            var listener = listeners_1[_i];
+            var listenerHasCMIElement = !!listener.CMIElement;
+            var CMIElementsMatch = false;
+            if (CMIElement && listener.CMIElement) {
+                if (listener.CMIElement.endsWith("*")) {
+                    var prefix = listener.CMIElement.slice(0, -1);
+                    CMIElementsMatch = CMIElement.startsWith(prefix);
+                }
+                else {
+                    CMIElementsMatch = listener.CMIElement === CMIElement;
+                }
+            }
+            if (!listenerHasCMIElement || CMIElementsMatch) {
+                this.apiLog("processListeners", "Processing listener: ".concat(listener.functionName), enums/* LogLevelEnum */.Mb.DEBUG, CMIElement);
+                if (functionName.startsWith("Sequence")) {
+                    listener.callback(value);
+                }
+                else if (functionName === "CommitError") {
+                    listener.callback(value);
+                }
+                else if (functionName === "CommitSuccess") {
+                    listener.callback();
+                }
+                else {
+                    listener.callback(CMIElement, value);
+                }
+            }
+        }
+    };
+    EventService.prototype.reset = function () {
+        this.listenerMap.clear();
+        this.listenerCount = 0;
+    };
+    return EventService;
+}());
+
+
+;// ./src/services/SerializationService.ts
+
+
+var SerializationService = (function () {
+    function SerializationService() {
+    }
+    SerializationService.prototype.loadFromFlattenedJSON = function (json, CMIElement, setCMIValue, isNotInitialized, setStartingData) {
+        var _this = this;
+        if (CMIElement === void 0) { CMIElement = ""; }
+        if (!isNotInitialized()) {
+            console.error("loadFromFlattenedJSON can only be called before the call to lmsInitialize.");
+            return;
+        }
+        var int_pattern = /^(cmi\.interactions\.)(\d+)\.(.*)$/;
+        var obj_pattern = /^(cmi\.objectives\.)(\d+)\.(.*)$/;
+        var interactions = [];
+        var objectives = [];
+        var others = [];
+        for (var key in json) {
+            if (Object.prototype.hasOwnProperty.call(json, key)) {
+                var intMatch = key.match(int_pattern);
+                if (intMatch) {
+                    interactions.push({
+                        key: key,
+                        value: json[key],
+                        index: Number(intMatch[2]),
+                        field: intMatch[3],
+                    });
+                    continue;
+                }
+                var objMatch = key.match(obj_pattern);
+                if (objMatch) {
+                    objectives.push({
+                        key: key,
+                        value: json[key],
+                        index: Number(objMatch[2]),
+                        field: objMatch[3],
+                    });
+                    continue;
+                }
+                others.push({ key: key, value: json[key] });
+            }
+        }
+        interactions.sort(function (a, b) {
+            if (a.index !== b.index) {
+                return a.index - b.index;
+            }
+            if (a.field === "id")
+                return -1;
+            if (b.field === "id")
+                return 1;
+            if (a.field === "type")
+                return -1;
+            if (b.field === "type")
+                return 1;
+            return a.field.localeCompare(b.field);
+        });
+        objectives.sort(function (a, b) {
+            if (a.index !== b.index) {
+                return a.index - b.index;
+            }
+            if (a.field === "id")
+                return -1;
+            if (b.field === "id")
+                return 1;
+            return a.field.localeCompare(b.field);
+        });
+        others.sort(function (a, b) { return a.key.localeCompare(b.key); });
+        var processItems = function (items) {
+            items.forEach(function (item) {
+                var obj = {};
+                obj[item.key] = item.value;
+                _this.loadFromJSON((0,utilities/* unflatten */.sB)(obj), CMIElement, setCMIValue, isNotInitialized, setStartingData);
+            });
+        };
+        processItems(interactions);
+        processItems(objectives);
+        processItems(others);
+    };
+    SerializationService.prototype.loadFromJSON = function (json, CMIElement, setCMIValue, isNotInitialized, setStartingData) {
+        if (CMIElement === void 0) { CMIElement = ""; }
+        if (!isNotInitialized()) {
+            console.error("loadFromJSON can only be called before the call to lmsInitialize.");
+            return;
+        }
+        CMIElement = CMIElement !== undefined ? CMIElement : "cmi";
+        setStartingData(json);
+        for (var key in json) {
+            if (Object.prototype.hasOwnProperty.call(json, key) && json[key]) {
+                var currentCMIElement = (CMIElement ? CMIElement + "." : "") + key;
+                var value = json[key];
+                if (value.constructor === Array) {
+                    for (var i = 0; i < value.length; i++) {
+                        if (value[i]) {
+                            var item = value[i];
+                            var tempCMIElement = "".concat(currentCMIElement, ".").concat(i);
+                            if (item.constructor === Object) {
+                                this.loadFromJSON(item, tempCMIElement, setCMIValue, isNotInitialized, setStartingData);
+                            }
+                            else {
+                                setCMIValue(tempCMIElement, item);
+                            }
+                        }
+                    }
+                }
+                else if (value.constructor === Object) {
+                    this.loadFromJSON(value, currentCMIElement, setCMIValue, isNotInitialized, setStartingData);
+                }
+                else {
+                    setCMIValue(currentCMIElement, value);
+                }
+            }
+        }
+    };
+    SerializationService.prototype.renderCMIToJSONString = function (cmi, sendFullCommit) {
+        if (sendFullCommit) {
+            return JSON.stringify({ cmi: cmi });
+        }
+        return JSON.stringify({ cmi: cmi }, function (k, v) { return (v === undefined ? null : v); }, 2);
+    };
+    SerializationService.prototype.renderCMIToJSONObject = function (cmi, sendFullCommit) {
+        return JSON.parse(this.renderCMIToJSONString(cmi, sendFullCommit));
+    };
+    SerializationService.prototype.getCommitObject = function (terminateCommit, alwaysSendTotalTime, renderCommonCommitFields, renderCommitObject, renderCommitCMI, apiLogLevel) {
+        var shouldTerminateCommit = terminateCommit || alwaysSendTotalTime;
+        var commitObject = renderCommonCommitFields
+            ? renderCommitObject(shouldTerminateCommit)
+            : renderCommitCMI(shouldTerminateCommit);
+        if ([enums/* LogLevelEnum */.Mb.DEBUG, "1", 1, "DEBUG"].includes(apiLogLevel)) {
+            console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");
+            console.debug(commitObject);
+        }
+        return commitObject;
+    };
+    return SerializationService;
+}());
+
+
+// EXTERNAL MODULE: ./src/exceptions.ts
+var exceptions = __webpack_require__(784);
+;// ./src/services/ErrorHandlingService.ts
+
+
+
+var ErrorHandlingService = (function () {
+    function ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails) {
+        this._lastErrorCode = "0";
+        this._errorCodes = errorCodes;
+        this._apiLog = apiLog;
+        this._getLmsErrorMessageDetails = getLmsErrorMessageDetails;
+    }
+    Object.defineProperty(ErrorHandlingService.prototype, "lastErrorCode", {
+        get: function () {
+            return this._lastErrorCode;
+        },
+        set: function (errorCode) {
+            this._lastErrorCode = errorCode;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    ErrorHandlingService.prototype.throwSCORMError = function (CMIElement, errorNumber, message) {
+        if (!message) {
+            message = this._getLmsErrorMessageDetails(errorNumber, true);
+        }
+        this._apiLog("throwSCORMError", errorNumber + ": " + message, enums/* LogLevelEnum */.Mb.ERROR, CMIElement);
+        this._lastErrorCode = String(errorNumber);
+    };
+    ErrorHandlingService.prototype.clearSCORMError = function (success) {
+        if (success !== undefined && success !== api_constants/* global_constants */._y.SCORM_FALSE) {
+            this._lastErrorCode = "0";
+        }
+    };
+    ErrorHandlingService.prototype.handleValueAccessException = function (CMIElement, e, returnValue) {
+        if (e instanceof exceptions/* ValidationError */.y) {
+            var validationError = e;
+            this._lastErrorCode = String(validationError.errorCode);
+            returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
+        }
+        else {
+            if (e instanceof Error && e.message) {
+                console.error(e.message);
+                this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, e.message);
+            }
+            else {
+                console.error(e);
+                this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, "Unknown error");
+            }
+        }
+        return returnValue;
+    };
+    Object.defineProperty(ErrorHandlingService.prototype, "errorCodes", {
+        get: function () {
+            return this._errorCodes;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    return ErrorHandlingService;
+}());
+
+function createErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails) {
+    return new ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails);
+}
+
+;// ./src/services/LoggingService.ts
+
+
+var LoggingService = (function () {
+    function LoggingService() {
+        this._logLevel = enums/* LogLevelEnum */.Mb.ERROR;
+        this._logHandler = defaultLogHandler;
+    }
+    LoggingService.getInstance = function () {
+        if (!LoggingService._instance) {
+            LoggingService._instance = new LoggingService();
+        }
+        return LoggingService._instance;
+    };
+    LoggingService.prototype.setLogLevel = function (level) {
+        this._logLevel = level;
+    };
+    LoggingService.prototype.getLogLevel = function () {
+        return this._logLevel;
+    };
+    LoggingService.prototype.setLogHandler = function (handler) {
+        this._logHandler = handler;
+    };
+    LoggingService.prototype.log = function (messageLevel, logMessage) {
+        if (this.shouldLog(messageLevel)) {
+            this._logHandler(messageLevel, logMessage);
+        }
+    };
+    LoggingService.prototype.error = function (logMessage) {
+        this.log(enums/* LogLevelEnum */.Mb.ERROR, logMessage);
+    };
+    LoggingService.prototype.warn = function (logMessage) {
+        this.log(enums/* LogLevelEnum */.Mb.WARN, logMessage);
+    };
+    LoggingService.prototype.info = function (logMessage) {
+        this.log(enums/* LogLevelEnum */.Mb.INFO, logMessage);
+    };
+    LoggingService.prototype.debug = function (logMessage) {
+        this.log(enums/* LogLevelEnum */.Mb.DEBUG, logMessage);
+    };
+    LoggingService.prototype.shouldLog = function (messageLevel) {
+        var numericMessageLevel = this.getNumericLevel(messageLevel);
+        var numericLogLevel = this.getNumericLevel(this._logLevel);
+        return numericMessageLevel >= numericLogLevel;
+    };
+    LoggingService.prototype.getNumericLevel = function (level) {
+        if (level === undefined)
+            return enums/* LogLevelEnum */.Mb.NONE;
+        if (typeof level === "number")
+            return level;
+        switch (level) {
+            case "1":
+            case "DEBUG":
+                return enums/* LogLevelEnum */.Mb.DEBUG;
+            case "2":
+            case "INFO":
+                return enums/* LogLevelEnum */.Mb.INFO;
+            case "3":
+            case "WARN":
+                return enums/* LogLevelEnum */.Mb.WARN;
+            case "4":
+            case "ERROR":
+                return enums/* LogLevelEnum */.Mb.ERROR;
+            case "5":
+            case "NONE":
+                return enums/* LogLevelEnum */.Mb.NONE;
+            default:
+                return enums/* LogLevelEnum */.Mb.ERROR;
+        }
+    };
+    return LoggingService;
+}());
+
+function getLoggingService() {
+    return LoggingService.getInstance();
+}
+
+// EXTERNAL MODULE: ./src/cmi/common/array.ts
+var array = __webpack_require__(589);
+;// ./src/BaseAPI.ts
+
+
+
+
+
+
+
+
+
+
+
+
+
+var BaseAPI = (function () {
+    function BaseAPI(error_codes, settings, httpService, eventService, serializationService, cmiDataService, errorHandlingService, loggingService) {
+        var _newTarget = this.constructor;
+        var _this = this;
+        this._settings = DefaultSettings;
+        if (_newTarget === BaseAPI) {
+            throw new TypeError("Cannot construct BaseAPI instances directly");
+        }
+        this.currentState = api_constants/* global_constants */._y.STATE_NOT_INITIALIZED;
+        this._error_codes = error_codes;
+        if (settings) {
+            this.settings = settings;
+        }
+        this.apiLogLevel = this.settings.logLevel;
+        this.selfReportSessionTime = this.settings.selfReportSessionTime;
+        if (this.apiLogLevel === undefined) {
+            this.apiLogLevel = enums/* LogLevelEnum */.Mb.NONE;
+        }
+        this._loggingService = loggingService || getLoggingService();
+        this._loggingService.setLogLevel(this.apiLogLevel);
+        if (this.settings.onLogMessage) {
+            this._loggingService.setLogHandler(this.settings.onLogMessage);
+        }
+        this._httpService = httpService || new HttpService(this.settings, this._error_codes);
+        this._eventService =
+            eventService ||
+                new EventService(function (functionName, message, level, element) {
+                    return _this.apiLog(functionName, message, level, element);
+                });
+        this._serializationService = serializationService || new SerializationService();
+        this._errorHandlingService =
+            errorHandlingService ||
+                createErrorHandlingService(this._error_codes, function (functionName, message, level, element) {
+                    return _this.apiLog(functionName, message, level, element);
+                }, function (errorNumber, detail) { return _this.getLmsErrorMessageDetails(errorNumber, detail); });
+    }
+    Object.defineProperty(BaseAPI.prototype, "lastErrorCode", {
+        get: function () {
+            var _a, _b;
+            return (_b = (_a = this._errorHandlingService) === null || _a === void 0 ? void 0 : _a.lastErrorCode) !== null && _b !== void 0 ? _b : "0";
+        },
+        set: function (errorCode) {
+            if (this._errorHandlingService) {
+                this._errorHandlingService.lastErrorCode = errorCode;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    BaseAPI.prototype.commonReset = function (settings) {
+        this.apiLog("reset", "Called", enums/* LogLevelEnum */.Mb.INFO);
+        this.settings = (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, this.settings), settings);
+        this.clearScheduledCommit();
+        this.currentState = api_constants/* global_constants */._y.STATE_NOT_INITIALIZED;
+        this.lastErrorCode = "0";
+        this._eventService.reset();
+        this.startingData = undefined;
+    };
+    BaseAPI.prototype.initialize = function (callbackName, initializeMessage, terminationMessage) {
+        var returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
+        if (this.isInitialized()) {
+            this.throwSCORMError("api", this._error_codes.INITIALIZED, initializeMessage);
+        }
+        else if (this.isTerminated()) {
+            this.throwSCORMError("api", this._error_codes.TERMINATED, terminationMessage);
+        }
+        else {
+            if (this.selfReportSessionTime) {
+                this.cmi.setStartTime();
+            }
+            this.currentState = api_constants/* global_constants */._y.STATE_INITIALIZED;
+            this.lastErrorCode = "0";
+            returnValue = api_constants/* global_constants */._y.SCORM_TRUE;
+            this.processListeners(callbackName);
+        }
+        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
+        this.clearSCORMError(returnValue);
+        return returnValue;
+    };
+    BaseAPI.prototype.apiLog = function (functionName, logMessage, messageLevel, CMIElement) {
+        logMessage = (0,utilities/* formatMessage */.hw)(functionName, logMessage, CMIElement);
+        if (messageLevel >= this.apiLogLevel) {
+            this._loggingService.log(messageLevel, logMessage);
+            if (this.settings.onLogMessage &&
+                this.settings.onLogMessage !== this._loggingService["_logHandler"]) {
+                this.settings.onLogMessage(messageLevel, logMessage);
+            }
+        }
+    };
+    Object.defineProperty(BaseAPI.prototype, "error_codes", {
+        get: function () {
+            return this._error_codes;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(BaseAPI.prototype, "settings", {
+        get: function () {
+            return this._settings;
+        },
+        set: function (settings) {
+            var _a, _b, _c;
+            var previousSettings = this._settings;
+            this._settings = (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, this._settings), settings);
+            (_a = this._httpService) === null || _a === void 0 ? void 0 : _a.updateSettings(this._settings);
+            if (settings.logLevel !== undefined && settings.logLevel !== previousSettings.logLevel) {
+                this.apiLogLevel = settings.logLevel;
+                (_b = this._loggingService) === null || _b === void 0 ? void 0 : _b.setLogLevel(settings.logLevel);
+            }
+            if (settings.onLogMessage !== undefined &&
+                settings.onLogMessage !== previousSettings.onLogMessage) {
+                (_c = this._loggingService) === null || _c === void 0 ? void 0 : _c.setLogHandler(settings.onLogMessage);
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    BaseAPI.prototype.terminate = function (callbackName, checkTerminated) {
+        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
+            var returnValue, result;
+            var _a, _b;
+            return (0,tslib_es6/* __generator */.YH)(this, function (_c) {
+                switch (_c.label) {
+                    case 0:
+                        returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
+                        if (!this.checkState(checkTerminated, this._error_codes.TERMINATION_BEFORE_INIT, this._error_codes.MULTIPLE_TERMINATION)) return [3, 2];
+                        this.currentState = api_constants/* global_constants */._y.STATE_TERMINATED;
+                        return [4, this.storeData(true)];
+                    case 1:
+                        result = _c.sent();
+                        if (((_a = result.errorCode) !== null && _a !== void 0 ? _a : 0) > 0) {
+                            this.throwSCORMError("api", result.errorCode);
+                        }
+                        returnValue = (_b = result === null || result === void 0 ? void 0 : result.result) !== null && _b !== void 0 ? _b : api_constants/* global_constants */._y.SCORM_FALSE;
+                        if (checkTerminated)
+                            this.lastErrorCode = "0";
+                        returnValue = api_constants/* global_constants */._y.SCORM_TRUE;
+                        this.processListeners(callbackName);
+                        _c.label = 2;
+                    case 2:
+                        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
+                        this.clearSCORMError(returnValue);
+                        return [2, returnValue];
+                }
+            });
+        });
+    };
+    BaseAPI.prototype.getValue = function (callbackName, checkTerminated, CMIElement) {
+        var returnValue = "";
+        if (this.checkState(checkTerminated, this._error_codes.RETRIEVE_BEFORE_INIT, this._error_codes.RETRIEVE_AFTER_TERM)) {
+            try {
+                returnValue = this.getCMIValue(CMIElement);
+            }
+            catch (e) {
+                returnValue = this.handleValueAccessException(CMIElement, e, returnValue);
+            }
+            this.processListeners(callbackName, CMIElement);
+        }
+        this.apiLog(callbackName, ": returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO, CMIElement);
+        if (returnValue === undefined) {
+            return "";
+        }
+        if (this.lastErrorCode === "0") {
+            this.clearSCORMError(returnValue);
+        }
+        return returnValue;
+    };
+    BaseAPI.prototype.setValue = function (callbackName, commitCallback, checkTerminated, CMIElement, value) {
+        if (value !== undefined) {
+            value = String(value);
+        }
+        var returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
+        if (this.checkState(checkTerminated, this._error_codes.STORE_BEFORE_INIT, this._error_codes.STORE_AFTER_TERM)) {
+            try {
+                returnValue = this.setCMIValue(CMIElement, value);
+            }
+            catch (e) {
+                returnValue = this.handleValueAccessException(CMIElement, e, returnValue);
+            }
+            this.processListeners(callbackName, CMIElement, value);
+        }
+        if (returnValue === undefined) {
+            returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
+        }
+        if (String(this.lastErrorCode) === "0") {
+            if (this.settings.autocommit) {
+                this.scheduleCommit(this.settings.autocommitSeconds * 1000, commitCallback);
+            }
+        }
+        this.apiLog(callbackName, ": " + value + ": result: " + returnValue, enums/* LogLevelEnum */.Mb.INFO, CMIElement);
+        if (this.lastErrorCode === "0") {
+            this.clearSCORMError(returnValue);
+        }
+        return returnValue;
+    };
+    BaseAPI.prototype.commit = function (callbackName_1) {
+        return (0,tslib_es6/* __awaiter */.sH)(this, arguments, void 0, function (callbackName, checkTerminated) {
+            var returnValue, result;
+            var _a, _b;
+            if (checkTerminated === void 0) { checkTerminated = false; }
+            return (0,tslib_es6/* __generator */.YH)(this, function (_c) {
+                switch (_c.label) {
+                    case 0:
+                        this.clearScheduledCommit();
+                        returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
+                        if (!this.checkState(checkTerminated, this._error_codes.COMMIT_BEFORE_INIT, this._error_codes.COMMIT_AFTER_TERM)) return [3, 2];
+                        return [4, this.storeData(false)];
+                    case 1:
+                        result = _c.sent();
+                        if (((_a = result.errorCode) !== null && _a !== void 0 ? _a : 0) > 0) {
+                            this.throwSCORMError("api", result.errorCode);
+                        }
+                        returnValue = (_b = result === null || result === void 0 ? void 0 : result.result) !== null && _b !== void 0 ? _b : api_constants/* global_constants */._y.SCORM_FALSE;
+                        this.apiLog(callbackName, " Result: " + returnValue, enums/* LogLevelEnum */.Mb.DEBUG, "HttpRequest");
+                        if (checkTerminated)
+                            this.lastErrorCode = "0";
+                        this.processListeners(callbackName);
+                        _c.label = 2;
+                    case 2:
+                        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
+                        if (this.lastErrorCode === "0") {
+                            this.clearSCORMError(returnValue);
+                        }
+                        return [2, returnValue];
+                }
+            });
+        });
+    };
+    BaseAPI.prototype.getLastError = function (callbackName) {
+        var returnValue = String(this.lastErrorCode);
+        this.processListeners(callbackName);
+        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
+        return returnValue;
+    };
+    BaseAPI.prototype.getErrorString = function (callbackName, CMIErrorCode) {
+        var returnValue = "";
+        if (CMIErrorCode !== null && CMIErrorCode !== "") {
+            returnValue = this.getLmsErrorMessageDetails(CMIErrorCode);
+            this.processListeners(callbackName);
+        }
+        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
+        return returnValue;
+    };
+    BaseAPI.prototype.getDiagnostic = function (callbackName, CMIErrorCode) {
+        var returnValue = "";
+        if (CMIErrorCode !== null && CMIErrorCode !== "") {
+            returnValue = this.getLmsErrorMessageDetails(CMIErrorCode, true);
+            this.processListeners(callbackName);
+        }
+        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
+        return returnValue;
+    };
+    BaseAPI.prototype.checkState = function (checkTerminated, beforeInitError, afterTermError) {
+        if (this.isNotInitialized()) {
+            this.throwSCORMError("api", beforeInitError);
+            return false;
+        }
+        else if (checkTerminated && this.isTerminated()) {
+            this.throwSCORMError("api", afterTermError);
+            return false;
+        }
+        return true;
+    };
+    BaseAPI.prototype.getLmsErrorMessageDetails = function (_errorNumber, _detail) {
+        if (_detail === void 0) { _detail = false; }
+        throw new Error("The getLmsErrorMessageDetails method has not been implemented");
+    };
+    BaseAPI.prototype.getCMIValue = function (_CMIElement) {
+        throw new Error("The getCMIValue method has not been implemented");
+    };
+    BaseAPI.prototype.setCMIValue = function (_CMIElement, _value) {
+        throw new Error("The setCMIValue method has not been implemented");
+    };
+    BaseAPI.prototype._commonSetCMIValue = function (methodName, scorm2004, CMIElement, value) {
+        if (!CMIElement || CMIElement === "") {
+            return api_constants/* global_constants */._y.SCORM_FALSE;
+        }
+        this.lastErrorCode = "0";
+        var structure = CMIElement.split(".");
+        var refObject = this;
+        var returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
+        var foundFirstIndex = false;
+        var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
+        var invalidErrorCode = scorm2004
+            ? this._error_codes.UNDEFINED_DATA_MODEL
+            : this._error_codes.GENERAL;
+        for (var idx = 0; idx < structure.length; idx++) {
+            var attribute = structure[idx];
+            if (idx === structure.length - 1) {
+                if (scorm2004 && attribute.substring(0, 8) === "{target=") {
+                    if (this.isInitialized()) {
+                        this.throwSCORMError(CMIElement, this._error_codes.READ_ONLY_ELEMENT);
+                        break;
+                    }
+                    else {
+                        refObject = (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, refObject), { attribute: value });
+                    }
+                }
+                else if (!this._checkObjectHasProperty(refObject, attribute)) {
+                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+                    break;
+                }
+                else {
+                    if ((0,utilities/* stringMatches */.J6)(CMIElement, "\\.correct_responses\\.\\d+$") &&
+                        this.isInitialized() &&
+                        attribute !== "pattern") {
+                        this.validateCorrectResponse(CMIElement, value);
+                        if (this.lastErrorCode !== "0") {
+                            this.throwSCORMError(CMIElement, this._error_codes.TYPE_MISMATCH);
+                            break;
+                        }
+                    }
+                    if (!scorm2004 || this._errorHandlingService.lastErrorCode === "0") {
+                        refObject[attribute] = value;
+                        returnValue = api_constants/* global_constants */._y.SCORM_TRUE;
+                    }
+                }
+            }
+            else {
+                refObject = refObject[attribute];
+                if (!refObject) {
+                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+                    break;
+                }
+                if (refObject instanceof array/* CMIArray */.B) {
+                    var index = parseInt(structure[idx + 1], 10);
+                    if (!isNaN(index)) {
+                        var item = refObject.childArray[index];
+                        if (item) {
+                            refObject = item;
+                            foundFirstIndex = true;
+                        }
+                        else {
+                            var newChild = this.getChildElement(CMIElement, value, foundFirstIndex);
+                            foundFirstIndex = true;
+                            if (!newChild) {
+                                if (this.lastErrorCode === "0") {
+                                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+                                }
+                                break;
+                            }
+                            else {
+                                if (refObject.initialized)
+                                    newChild.initialize();
+                                refObject.childArray[index] = newChild;
+                                refObject = newChild;
+                            }
+                        }
+                        idx++;
+                    }
+                }
+            }
+        }
+        if (returnValue === api_constants/* global_constants */._y.SCORM_FALSE) {
+            this.apiLog(methodName, "There was an error setting the value for: ".concat(CMIElement, ", value of: ").concat(value), enums/* LogLevelEnum */.Mb.WARN);
+        }
+        return returnValue;
+    };
+    BaseAPI.prototype._commonGetCMIValue = function (methodName, scorm2004, CMIElement) {
+        if (!CMIElement || CMIElement === "") {
+            return "";
+        }
+        var structure = CMIElement.split(".");
+        var refObject = this;
+        var attribute = null;
+        var uninitializedErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") has not been initialized.");
+        var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
+        var invalidErrorCode = scorm2004
+            ? this._error_codes.UNDEFINED_DATA_MODEL
+            : this._error_codes.GENERAL;
+        for (var idx = 0; idx < structure.length; idx++) {
+            attribute = structure[idx];
+            if (!scorm2004) {
+                if (idx === structure.length - 1) {
+                    if (!this._checkObjectHasProperty(refObject, attribute)) {
+                        this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+                        return;
+                    }
+                }
+            }
+            else {
+                if (String(attribute).substring(0, 8) === "{target=" &&
+                    typeof refObject._isTargetValid == "function") {
+                    var target = String(attribute).substring(8, String(attribute).length - 9);
+                    return refObject._isTargetValid(target);
+                }
+                else if (!this._checkObjectHasProperty(refObject, attribute)) {
+                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+                    return;
+                }
+            }
+            refObject = refObject[attribute];
+            if (refObject === undefined) {
+                this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+                break;
+            }
+            if (refObject instanceof array/* CMIArray */.B) {
+                var index = parseInt(structure[idx + 1], 10);
+                if (!isNaN(index)) {
+                    var item = refObject.childArray[index];
+                    if (item) {
+                        refObject = item;
+                    }
+                    else {
+                        this.throwSCORMError(CMIElement, this._error_codes.VALUE_NOT_INITIALIZED, uninitializedErrorMessage);
+                        break;
+                    }
+                    idx++;
+                }
+            }
+        }
+        if (refObject === null || refObject === undefined) {
+            if (!scorm2004) {
+                if (attribute === "_children") {
+                    this.throwSCORMError(CMIElement, this._error_codes.CHILDREN_ERROR, undefined);
+                }
+                else if (attribute === "_count") {
+                    this.throwSCORMError(CMIElement, this._error_codes.COUNT_ERROR, undefined);
+                }
+            }
+        }
+        else {
+            return refObject;
+        }
+    };
+    BaseAPI.prototype.isInitialized = function () {
+        return this.currentState === api_constants/* global_constants */._y.STATE_INITIALIZED;
+    };
+    BaseAPI.prototype.isNotInitialized = function () {
+        return this.currentState === api_constants/* global_constants */._y.STATE_NOT_INITIALIZED;
+    };
+    BaseAPI.prototype.isTerminated = function () {
+        return this.currentState === api_constants/* global_constants */._y.STATE_TERMINATED;
+    };
+    BaseAPI.prototype.on = function (listenerName, callback) {
+        this._eventService.on(listenerName, callback);
+    };
+    BaseAPI.prototype.off = function (listenerName, callback) {
+        this._eventService.off(listenerName, callback);
+    };
+    BaseAPI.prototype.clear = function (listenerName) {
+        this._eventService.clear(listenerName);
+    };
+    BaseAPI.prototype.processListeners = function (functionName, CMIElement, value) {
+        this._eventService.processListeners(functionName, CMIElement, value);
+    };
+    BaseAPI.prototype.throwSCORMError = function (CMIElement, errorNumber, message) {
+        this._errorHandlingService.throwSCORMError(CMIElement, errorNumber, message);
+    };
+    BaseAPI.prototype.clearSCORMError = function (success) {
+        this._errorHandlingService.clearSCORMError(success);
+    };
+    BaseAPI.prototype.loadFromFlattenedJSON = function (json, CMIElement) {
+        var _this = this;
+        if (!CMIElement) {
+            CMIElement = "";
+        }
+        this._serializationService.loadFromFlattenedJSON(json, CMIElement, function (CMIElement, value) { return _this.setCMIValue(CMIElement, value); }, function () { return _this.isNotInitialized(); }, function (data) {
+            _this.startingData = data;
+        });
+    };
+    BaseAPI.prototype.loadFromJSON = function (json, CMIElement) {
+        var _this = this;
+        if (CMIElement === void 0) { CMIElement = ""; }
+        this._serializationService.loadFromJSON(json, CMIElement, function (CMIElement, value) { return _this.setCMIValue(CMIElement, value); }, function () { return _this.isNotInitialized(); }, function (data) {
+            _this.startingData = data;
+        });
+    };
+    BaseAPI.prototype.renderCMIToJSONString = function () {
+        return this._serializationService.renderCMIToJSONString(this.cmi, this.settings.sendFullCommit);
+    };
+    BaseAPI.prototype.renderCMIToJSONObject = function () {
+        return this._serializationService.renderCMIToJSONObject(this.cmi, this.settings.sendFullCommit);
+    };
+    BaseAPI.prototype.processHttpRequest = function (url_1, params_1) {
+        return (0,tslib_es6/* __awaiter */.sH)(this, arguments, void 0, function (url, params, immediate) {
+            var _this = this;
+            if (immediate === void 0) { immediate = false; }
+            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
+                return [2, this._httpService.processHttpRequest(url, params, immediate, function (functionName, message, level, element) { return _this.apiLog(functionName, message, level, element); }, function (functionName, CMIElement, value) { return _this.processListeners(functionName, CMIElement, value); })];
+            });
+        });
+    };
+    BaseAPI.prototype.scheduleCommit = function (when, callback) {
+        if (!this._timeout) {
+            this._timeout = new ScheduledCommit(this, when, callback);
+            this.apiLog("scheduleCommit", "scheduled", enums/* LogLevelEnum */.Mb.DEBUG, "");
+        }
+    };
+    BaseAPI.prototype.clearScheduledCommit = function () {
+        if (this._timeout) {
+            this._timeout.cancel();
+            this._timeout = undefined;
+            this.apiLog("clearScheduledCommit", "cleared", enums/* LogLevelEnum */.Mb.DEBUG, "");
+        }
+    };
+    BaseAPI.prototype._checkObjectHasProperty = function (StringKeyMap, attribute) {
+        return (Object.hasOwnProperty.call(StringKeyMap, attribute) ||
+            Object.getOwnPropertyDescriptor(Object.getPrototypeOf(StringKeyMap), attribute) != null ||
+            attribute in StringKeyMap);
+    };
+    BaseAPI.prototype.handleValueAccessException = function (CMIElement, e, returnValue) {
+        if (e instanceof exceptions/* ValidationError */.y) {
+            this.lastErrorCode = String(e.errorCode);
+            returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
+            this.throwSCORMError(CMIElement, e.errorCode, e.errorMessage);
+        }
+        else {
+            if (e instanceof Error && e.message) {
+                console.error(e.message);
+                this.throwSCORMError(CMIElement, this._error_codes.GENERAL, e.message);
+            }
+            else {
+                console.error(e);
+                this.throwSCORMError(CMIElement, this._error_codes.GENERAL, "Unknown error");
+            }
+        }
+        return returnValue;
+    };
+    BaseAPI.prototype.getCommitObject = function (terminateCommit) {
+        var _this = this;
+        return this._serializationService.getCommitObject(terminateCommit, this.settings.alwaysSendTotalTime, this.settings.renderCommonCommitFields, function (terminateCommit) { return _this.renderCommitObject(terminateCommit); }, function (terminateCommit) { return _this.renderCommitCMI(terminateCommit); }, this.apiLogLevel);
+    };
+    return BaseAPI;
+}());
+/* harmony default export */ var src_BaseAPI = (BaseAPI);
+
+
+/***/ }),
+
 /***/ 784:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
@@ -2765,8 +2742,8 @@ __webpack_require__.d(__webpack_exports__, {
 
 // EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
 var tslib_es6 = __webpack_require__(635);
-// EXTERNAL MODULE: ./src/BaseAPI.ts + 8 modules
-var BaseAPI = __webpack_require__(398);
+// EXTERNAL MODULE: ./src/BaseAPI.ts + 7 modules
+var BaseAPI = __webpack_require__(672);
 // EXTERNAL MODULE: ./src/cmi/common/base_cmi.ts
 var base_cmi = __webpack_require__(319);
 // EXTERNAL MODULE: ./src/constants/api_constants.ts
@@ -4562,6 +4539,7 @@ var ADL = (function (_super) {
     function ADL() {
         var _this = _super.call(this, "adl") || this;
         _this.data = new ADLData();
+        _this._sequencing = null;
         _this.nav = new ADLNav();
         _this.data = new ADLData();
         return _this;
@@ -4576,6 +4554,20 @@ var ADL = (function (_super) {
         this._initialized = false;
         (_a = this.nav) === null || _a === void 0 ? void 0 : _a.reset();
     };
+    Object.defineProperty(ADL.prototype, "sequencing", {
+        get: function () {
+            return this._sequencing;
+        },
+        set: function (sequencing) {
+            this._sequencing = sequencing;
+            if (sequencing) {
+                sequencing.adlNav = this.nav;
+                this.nav.sequencing = sequencing;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
     ADL.prototype.toJSON = function () {
         this.jsonString = true;
         var result = {
@@ -4593,9 +4585,20 @@ var ADLNav = (function (_super) {
     function ADLNav() {
         var _this = _super.call(this, "adl.nav") || this;
         _this._request = "_none_";
+        _this._sequencing = null;
         _this.request_valid = new ADLNavRequestValid();
         return _this;
     }
+    Object.defineProperty(ADLNav.prototype, "sequencing", {
+        get: function () {
+            return this._sequencing;
+        },
+        set: function (sequencing) {
+            this._sequencing = sequencing;
+        },
+        enumerable: false,
+        configurable: true
+    });
     ADLNav.prototype.initialize = function () {
         var _a;
         _super.prototype.initialize.call(this);
@@ -4605,6 +4608,7 @@ var ADLNav = (function (_super) {
         var _a;
         this._initialized = false;
         this._request = "_none_";
+        this._sequencing = null;
         (_a = this.request_valid) === null || _a === void 0 ? void 0 : _a.reset();
     };
     Object.defineProperty(ADLNav.prototype, "request", {
@@ -4613,7 +4617,12 @@ var ADLNav = (function (_super) {
         },
         set: function (request) {
             if (check2004ValidFormat(this._cmi_element + ".request", request, regex/* scorm2004_regex */.xt.NAVEvent)) {
-                this._request = request;
+                if (this._request !== request) {
+                    this._request = request;
+                    if (this._sequencing) {
+                        this._sequencing.processNavigationRequest(request);
+                    }
+                }
             }
         },
         enumerable: false,
@@ -4811,6 +4820,664 @@ var ADLNavRequestValid = (function (_super) {
         return result;
     };
     return ADLNavRequestValid;
+}(base_cmi/* BaseCMI */.J));
+
+
+;// ./src/cmi/scorm2004/sequencing/sequencing_rules.ts
+
+
+
+
+
+var RuleConditionOperator;
+(function (RuleConditionOperator) {
+    RuleConditionOperator["NOT"] = "not";
+    RuleConditionOperator["AND"] = "and";
+    RuleConditionOperator["OR"] = "or";
+})(RuleConditionOperator || (RuleConditionOperator = {}));
+var RuleConditionType;
+(function (RuleConditionType) {
+    RuleConditionType["SATISFIED"] = "satisfied";
+    RuleConditionType["OBJECTIVE_STATUS_KNOWN"] = "objectiveStatusKnown";
+    RuleConditionType["OBJECTIVE_MEASURE_KNOWN"] = "objectiveMeasureKnown";
+    RuleConditionType["OBJECTIVE_MEASURE_GREATER_THAN"] = "objectiveMeasureGreaterThan";
+    RuleConditionType["OBJECTIVE_MEASURE_LESS_THAN"] = "objectiveMeasureLessThan";
+    RuleConditionType["COMPLETED"] = "completed";
+    RuleConditionType["PROGRESS_KNOWN"] = "progressKnown";
+    RuleConditionType["ATTEMPTED"] = "attempted";
+    RuleConditionType["ATTEMPT_LIMIT_EXCEEDED"] = "attemptLimitExceeded";
+    RuleConditionType["TIME_LIMIT_EXCEEDED"] = "timeLimitExceeded";
+    RuleConditionType["OUTSIDE_AVAILABLE_TIME_RANGE"] = "outsideAvailableTimeRange";
+    RuleConditionType["ALWAYS"] = "always";
+})(RuleConditionType || (RuleConditionType = {}));
+var RuleActionType;
+(function (RuleActionType) {
+    RuleActionType["SKIP"] = "skip";
+    RuleActionType["DISABLED"] = "disabled";
+    RuleActionType["HIDE_FROM_CHOICE"] = "hideFromChoice";
+    RuleActionType["STOP_FORWARD_TRAVERSAL"] = "stopForwardTraversal";
+    RuleActionType["EXIT_PARENT"] = "exitParent";
+    RuleActionType["EXIT_ALL"] = "exitAll";
+    RuleActionType["RETRY"] = "retry";
+    RuleActionType["RETRY_ALL"] = "retryAll";
+    RuleActionType["CONTINUE"] = "continue";
+    RuleActionType["PREVIOUS"] = "previous";
+    RuleActionType["EXIT"] = "exit";
+})(RuleActionType || (RuleActionType = {}));
+var RuleCondition = (function (_super) {
+    (0,tslib_es6/* __extends */.C6)(RuleCondition, _super);
+    function RuleCondition(condition, operator, parameters) {
+        if (condition === void 0) { condition = RuleConditionType.ALWAYS; }
+        if (operator === void 0) { operator = null; }
+        if (parameters === void 0) { parameters = new Map(); }
+        var _this = _super.call(this, "ruleCondition") || this;
+        _this._condition = RuleConditionType.ALWAYS;
+        _this._operator = null;
+        _this._parameters = new Map();
+        _this._condition = condition;
+        _this._operator = operator;
+        _this._parameters = parameters;
+        return _this;
+    }
+    RuleCondition.prototype.reset = function () {
+        this._initialized = false;
+    };
+    Object.defineProperty(RuleCondition.prototype, "condition", {
+        get: function () {
+            return this._condition;
+        },
+        set: function (condition) {
+            this._condition = condition;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(RuleCondition.prototype, "operator", {
+        get: function () {
+            return this._operator;
+        },
+        set: function (operator) {
+            this._operator = operator;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(RuleCondition.prototype, "parameters", {
+        get: function () {
+            return this._parameters;
+        },
+        set: function (parameters) {
+            this._parameters = parameters;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    RuleCondition.prototype.evaluate = function (activity) {
+        switch (this._condition) {
+            case RuleConditionType.SATISFIED:
+                return activity.successStatus === enums/* SuccessStatus */.YE.PASSED;
+            case RuleConditionType.OBJECTIVE_STATUS_KNOWN:
+                return activity.objectiveMeasureStatus;
+            case RuleConditionType.OBJECTIVE_MEASURE_KNOWN:
+                return activity.objectiveMeasureStatus;
+            case RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN:
+                var greaterThanValue = this._parameters.get("threshold") || 0;
+                return activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue;
+            case RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN:
+                var lessThanValue = this._parameters.get("threshold") || 0;
+                return activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue;
+            case RuleConditionType.COMPLETED:
+                return activity.isCompleted;
+            case RuleConditionType.PROGRESS_KNOWN:
+                return activity.completionStatus !== "unknown";
+            case RuleConditionType.ATTEMPTED:
+                return activity.attemptCount > 0;
+            case RuleConditionType.ATTEMPT_LIMIT_EXCEEDED:
+                var attemptLimit = this._parameters.get("attemptLimit") || 0;
+                return attemptLimit > 0 && activity.attemptCount >= attemptLimit;
+            case RuleConditionType.TIME_LIMIT_EXCEEDED:
+                return false;
+            case RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE:
+                return false;
+            case RuleConditionType.ALWAYS:
+                return true;
+            default:
+                return false;
+        }
+    };
+    RuleCondition.prototype.toJSON = function () {
+        this.jsonString = true;
+        var result = {
+            condition: this._condition,
+            operator: this._operator,
+            parameters: Object.fromEntries(this._parameters),
+        };
+        delete this.jsonString;
+        return result;
+    };
+    return RuleCondition;
+}(base_cmi/* BaseCMI */.J));
+
+var SequencingRule = (function (_super) {
+    (0,tslib_es6/* __extends */.C6)(SequencingRule, _super);
+    function SequencingRule(action, conditionCombination) {
+        if (action === void 0) { action = RuleActionType.SKIP; }
+        if (conditionCombination === void 0) { conditionCombination = RuleConditionOperator.AND; }
+        var _this = _super.call(this, "sequencingRule") || this;
+        _this._conditions = [];
+        _this._action = RuleActionType.SKIP;
+        _this._conditionCombination = RuleConditionOperator.AND;
+        _this._action = action;
+        _this._conditionCombination = conditionCombination;
+        return _this;
+    }
+    SequencingRule.prototype.reset = function () {
+        this._initialized = false;
+        this._conditions = [];
+    };
+    Object.defineProperty(SequencingRule.prototype, "conditions", {
+        get: function () {
+            return this._conditions;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    SequencingRule.prototype.addCondition = function (condition) {
+        if (!(condition instanceof RuleCondition)) {
+            throw new Scorm2004ValidationError(this._cmi_element + ".conditions", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
+        }
+        this._conditions.push(condition);
+    };
+    SequencingRule.prototype.removeCondition = function (condition) {
+        var index = this._conditions.indexOf(condition);
+        if (index !== -1) {
+            this._conditions.splice(index, 1);
+            return true;
+        }
+        return false;
+    };
+    Object.defineProperty(SequencingRule.prototype, "action", {
+        get: function () {
+            return this._action;
+        },
+        set: function (action) {
+            this._action = action;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(SequencingRule.prototype, "conditionCombination", {
+        get: function () {
+            return this._conditionCombination;
+        },
+        set: function (conditionCombination) {
+            this._conditionCombination = conditionCombination;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    SequencingRule.prototype.evaluate = function (activity) {
+        if (this._conditions.length === 0) {
+            return true;
+        }
+        if (this._conditionCombination === RuleConditionOperator.AND) {
+            return this._conditions.every(function (condition) { return condition.evaluate(activity); });
+        }
+        else if (this._conditionCombination === RuleConditionOperator.OR) {
+            return this._conditions.some(function (condition) { return condition.evaluate(activity); });
+        }
+        return false;
+    };
+    SequencingRule.prototype.toJSON = function () {
+        this.jsonString = true;
+        var result = {
+            conditions: this._conditions,
+            action: this._action,
+            conditionCombination: this._conditionCombination,
+        };
+        delete this.jsonString;
+        return result;
+    };
+    return SequencingRule;
+}(base_cmi/* BaseCMI */.J));
+
+var SequencingRules = (function (_super) {
+    (0,tslib_es6/* __extends */.C6)(SequencingRules, _super);
+    function SequencingRules() {
+        var _this = _super.call(this, "sequencingRules") || this;
+        _this._preConditionRules = [];
+        _this._exitConditionRules = [];
+        _this._postConditionRules = [];
+        return _this;
+    }
+    SequencingRules.prototype.reset = function () {
+        this._initialized = false;
+        this._preConditionRules = [];
+        this._exitConditionRules = [];
+        this._postConditionRules = [];
+    };
+    Object.defineProperty(SequencingRules.prototype, "preConditionRules", {
+        get: function () {
+            return this._preConditionRules;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    SequencingRules.prototype.addPreConditionRule = function (rule) {
+        if (!(rule instanceof SequencingRule)) {
+            throw new Scorm2004ValidationError(this._cmi_element + ".preConditionRules", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
+        }
+        this._preConditionRules.push(rule);
+    };
+    Object.defineProperty(SequencingRules.prototype, "exitConditionRules", {
+        get: function () {
+            return this._exitConditionRules;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    SequencingRules.prototype.addExitConditionRule = function (rule) {
+        if (!(rule instanceof SequencingRule)) {
+            throw new Scorm2004ValidationError(this._cmi_element + ".exitConditionRules", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
+        }
+        this._exitConditionRules.push(rule);
+    };
+    Object.defineProperty(SequencingRules.prototype, "postConditionRules", {
+        get: function () {
+            return this._postConditionRules;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    SequencingRules.prototype.addPostConditionRule = function (rule) {
+        if (!(rule instanceof SequencingRule)) {
+            throw new Scorm2004ValidationError(this._cmi_element + ".postConditionRules", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
+        }
+        this._postConditionRules.push(rule);
+    };
+    SequencingRules.prototype.evaluatePreConditionRules = function (activity) {
+        for (var _i = 0, _a = this._preConditionRules; _i < _a.length; _i++) {
+            var rule = _a[_i];
+            if (rule.evaluate(activity)) {
+                return rule.action;
+            }
+        }
+        return null;
+    };
+    SequencingRules.prototype.evaluateExitConditionRules = function (activity) {
+        for (var _i = 0, _a = this._exitConditionRules; _i < _a.length; _i++) {
+            var rule = _a[_i];
+            if (rule.evaluate(activity)) {
+                return rule.action;
+            }
+        }
+        return null;
+    };
+    SequencingRules.prototype.evaluatePostConditionRules = function (activity) {
+        for (var _i = 0, _a = this._postConditionRules; _i < _a.length; _i++) {
+            var rule = _a[_i];
+            if (rule.evaluate(activity)) {
+                return rule.action;
+            }
+        }
+        return null;
+    };
+    SequencingRules.prototype.toJSON = function () {
+        this.jsonString = true;
+        var result = {
+            preConditionRules: this._preConditionRules,
+            exitConditionRules: this._exitConditionRules,
+            postConditionRules: this._postConditionRules,
+        };
+        delete this.jsonString;
+        return result;
+    };
+    return SequencingRules;
+}(base_cmi/* BaseCMI */.J));
+
+
+;// ./src/cmi/scorm2004/sequencing/rollup_rules.ts
+
+
+
+
+
+var RollupActionType;
+(function (RollupActionType) {
+    RollupActionType["SATISFIED"] = "satisfied";
+    RollupActionType["NOT_SATISFIED"] = "notSatisfied";
+    RollupActionType["COMPLETED"] = "completed";
+    RollupActionType["INCOMPLETE"] = "incomplete";
+})(RollupActionType || (RollupActionType = {}));
+var RollupConditionType;
+(function (RollupConditionType) {
+    RollupConditionType["SATISFIED"] = "satisfied";
+    RollupConditionType["OBJECTIVE_STATUS_KNOWN"] = "objectiveStatusKnown";
+    RollupConditionType["OBJECTIVE_MEASURE_KNOWN"] = "objectiveMeasureKnown";
+    RollupConditionType["OBJECTIVE_MEASURE_GREATER_THAN"] = "objectiveMeasureGreaterThan";
+    RollupConditionType["OBJECTIVE_MEASURE_LESS_THAN"] = "objectiveMeasureLessThan";
+    RollupConditionType["COMPLETED"] = "completed";
+    RollupConditionType["PROGRESS_KNOWN"] = "progressKnown";
+    RollupConditionType["ATTEMPTED"] = "attempted";
+    RollupConditionType["NOT_ATTEMPTED"] = "notAttempted";
+    RollupConditionType["ALWAYS"] = "always";
+})(RollupConditionType || (RollupConditionType = {}));
+var RollupConsiderationType;
+(function (RollupConsiderationType) {
+    RollupConsiderationType["ALL"] = "all";
+    RollupConsiderationType["ANY"] = "any";
+    RollupConsiderationType["NONE"] = "none";
+    RollupConsiderationType["AT_LEAST_COUNT"] = "atLeastCount";
+    RollupConsiderationType["AT_LEAST_PERCENT"] = "atLeastPercent";
+})(RollupConsiderationType || (RollupConsiderationType = {}));
+var RollupCondition = (function (_super) {
+    (0,tslib_es6/* __extends */.C6)(RollupCondition, _super);
+    function RollupCondition(condition, parameters) {
+        if (condition === void 0) { condition = RollupConditionType.ALWAYS; }
+        if (parameters === void 0) { parameters = new Map(); }
+        var _this = _super.call(this, "rollupCondition") || this;
+        _this._condition = RollupConditionType.ALWAYS;
+        _this._parameters = new Map();
+        _this._condition = condition;
+        _this._parameters = parameters;
+        return _this;
+    }
+    RollupCondition.prototype.reset = function () {
+        this._initialized = false;
+    };
+    Object.defineProperty(RollupCondition.prototype, "condition", {
+        get: function () {
+            return this._condition;
+        },
+        set: function (condition) {
+            this._condition = condition;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(RollupCondition.prototype, "parameters", {
+        get: function () {
+            return this._parameters;
+        },
+        set: function (parameters) {
+            this._parameters = parameters;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    RollupCondition.prototype.evaluate = function (activity) {
+        switch (this._condition) {
+            case RollupConditionType.SATISFIED:
+                return activity.successStatus === enums/* SuccessStatus */.YE.PASSED;
+            case RollupConditionType.OBJECTIVE_STATUS_KNOWN:
+                return activity.objectiveMeasureStatus;
+            case RollupConditionType.OBJECTIVE_MEASURE_KNOWN:
+                return activity.objectiveMeasureStatus;
+            case RollupConditionType.OBJECTIVE_MEASURE_GREATER_THAN:
+                var greaterThanValue = this._parameters.get("threshold") || 0;
+                return activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue;
+            case RollupConditionType.OBJECTIVE_MEASURE_LESS_THAN:
+                var lessThanValue = this._parameters.get("threshold") || 0;
+                return activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue;
+            case RollupConditionType.COMPLETED:
+                return activity.isCompleted;
+            case RollupConditionType.PROGRESS_KNOWN:
+                return activity.completionStatus !== enums/* CompletionStatus */.lC.UNKNOWN;
+            case RollupConditionType.ATTEMPTED:
+                return activity.attemptCount > 0;
+            case RollupConditionType.NOT_ATTEMPTED:
+                return activity.attemptCount === 0;
+            case RollupConditionType.ALWAYS:
+                return true;
+            default:
+                return false;
+        }
+    };
+    RollupCondition.prototype.toJSON = function () {
+        this.jsonString = true;
+        var result = {
+            condition: this._condition,
+            parameters: Object.fromEntries(this._parameters),
+        };
+        delete this.jsonString;
+        return result;
+    };
+    return RollupCondition;
+}(base_cmi/* BaseCMI */.J));
+
+var RollupRule = (function (_super) {
+    (0,tslib_es6/* __extends */.C6)(RollupRule, _super);
+    function RollupRule(action, consideration, minimumCount, minimumPercent) {
+        if (action === void 0) { action = RollupActionType.SATISFIED; }
+        if (consideration === void 0) { consideration = RollupConsiderationType.ALL; }
+        if (minimumCount === void 0) { minimumCount = 0; }
+        if (minimumPercent === void 0) { minimumPercent = 0; }
+        var _this = _super.call(this, "rollupRule") || this;
+        _this._conditions = [];
+        _this._action = RollupActionType.SATISFIED;
+        _this._consideration = RollupConsiderationType.ALL;
+        _this._minimumCount = 0;
+        _this._minimumPercent = 0;
+        _this._action = action;
+        _this._consideration = consideration;
+        _this._minimumCount = minimumCount;
+        _this._minimumPercent = minimumPercent;
+        return _this;
+    }
+    RollupRule.prototype.reset = function () {
+        this._initialized = false;
+        this._conditions = [];
+    };
+    Object.defineProperty(RollupRule.prototype, "conditions", {
+        get: function () {
+            return this._conditions;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    RollupRule.prototype.addCondition = function (condition) {
+        if (!(condition instanceof RollupCondition)) {
+            throw new Scorm2004ValidationError(this._cmi_element + ".conditions", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
+        }
+        this._conditions.push(condition);
+    };
+    RollupRule.prototype.removeCondition = function (condition) {
+        var index = this._conditions.indexOf(condition);
+        if (index !== -1) {
+            this._conditions.splice(index, 1);
+            return true;
+        }
+        return false;
+    };
+    Object.defineProperty(RollupRule.prototype, "action", {
+        get: function () {
+            return this._action;
+        },
+        set: function (action) {
+            this._action = action;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(RollupRule.prototype, "consideration", {
+        get: function () {
+            return this._consideration;
+        },
+        set: function (consideration) {
+            this._consideration = consideration;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(RollupRule.prototype, "minimumCount", {
+        get: function () {
+            return this._minimumCount;
+        },
+        set: function (minimumCount) {
+            if (minimumCount >= 0) {
+                this._minimumCount = minimumCount;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(RollupRule.prototype, "minimumPercent", {
+        get: function () {
+            return this._minimumPercent;
+        },
+        set: function (minimumPercent) {
+            if (minimumPercent >= 0 && minimumPercent <= 100) {
+                this._minimumPercent = minimumPercent;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    RollupRule.prototype.evaluate = function (children) {
+        var _this = this;
+        if (children.length === 0) {
+            return false;
+        }
+        var matchingChildren = children.filter(function (child) {
+            return _this._conditions.every(function (condition) { return condition.evaluate(child); });
+        });
+        switch (this._consideration) {
+            case RollupConsiderationType.ALL:
+                return matchingChildren.length === children.length;
+            case RollupConsiderationType.ANY:
+                return matchingChildren.length > 0;
+            case RollupConsiderationType.NONE:
+                return matchingChildren.length === 0;
+            case RollupConsiderationType.AT_LEAST_COUNT:
+                return matchingChildren.length >= this._minimumCount;
+            case RollupConsiderationType.AT_LEAST_PERCENT:
+                var percent = (matchingChildren.length / children.length) * 100;
+                return percent >= this._minimumPercent;
+            default:
+                return false;
+        }
+    };
+    RollupRule.prototype.toJSON = function () {
+        this.jsonString = true;
+        var result = {
+            conditions: this._conditions,
+            action: this._action,
+            consideration: this._consideration,
+            minimumCount: this._minimumCount,
+            minimumPercent: this._minimumPercent,
+        };
+        delete this.jsonString;
+        return result;
+    };
+    return RollupRule;
+}(base_cmi/* BaseCMI */.J));
+
+var RollupRules = (function (_super) {
+    (0,tslib_es6/* __extends */.C6)(RollupRules, _super);
+    function RollupRules() {
+        var _this = _super.call(this, "rollupRules") || this;
+        _this._rules = [];
+        return _this;
+    }
+    RollupRules.prototype.reset = function () {
+        this._initialized = false;
+        this._rules = [];
+    };
+    Object.defineProperty(RollupRules.prototype, "rules", {
+        get: function () {
+            return this._rules;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    RollupRules.prototype.addRule = function (rule) {
+        if (!(rule instanceof RollupRule)) {
+            throw new Scorm2004ValidationError(this._cmi_element + ".rules", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
+        }
+        this._rules.push(rule);
+    };
+    RollupRules.prototype.removeRule = function (rule) {
+        var index = this._rules.indexOf(rule);
+        if (index !== -1) {
+            this._rules.splice(index, 1);
+            return true;
+        }
+        return false;
+    };
+    RollupRules.prototype.processRollup = function (activity) {
+        if (!activity || activity.children.length === 0) {
+            return;
+        }
+        var children = activity.children;
+        var completionRollup = false;
+        var successRollup = false;
+        for (var _i = 0, _a = this._rules; _i < _a.length; _i++) {
+            var rule = _a[_i];
+            if (rule.evaluate(children)) {
+                switch (rule.action) {
+                    case RollupActionType.SATISFIED:
+                        activity.successStatus = enums/* SuccessStatus */.YE.PASSED;
+                        successRollup = true;
+                        break;
+                    case RollupActionType.NOT_SATISFIED:
+                        activity.successStatus = enums/* SuccessStatus */.YE.FAILED;
+                        successRollup = true;
+                        break;
+                    case RollupActionType.COMPLETED:
+                        activity.completionStatus = enums/* CompletionStatus */.lC.COMPLETED;
+                        activity.isCompleted = true;
+                        completionRollup = true;
+                        break;
+                    case RollupActionType.INCOMPLETE:
+                        activity.completionStatus = enums/* CompletionStatus */.lC.INCOMPLETE;
+                        activity.isCompleted = false;
+                        completionRollup = true;
+                        break;
+                }
+            }
+        }
+        if (!completionRollup) {
+            this._defaultCompletionRollup(activity, children);
+        }
+        if (!successRollup) {
+            this._defaultSuccessRollup(activity, children);
+        }
+    };
+    RollupRules.prototype._defaultCompletionRollup = function (activity, children) {
+        var allCompleted = children.every(function (child) { return child.isCompleted; });
+        if (allCompleted) {
+            activity.completionStatus = enums/* CompletionStatus */.lC.COMPLETED;
+            activity.isCompleted = true;
+        }
+        else {
+            var anyIncomplete = children.some(function (child) { return child.completionStatus === enums/* CompletionStatus */.lC.INCOMPLETE; });
+            if (anyIncomplete) {
+                activity.completionStatus = enums/* CompletionStatus */.lC.INCOMPLETE;
+                activity.isCompleted = false;
+            }
+        }
+    };
+    RollupRules.prototype._defaultSuccessRollup = function (activity, children) {
+        var allSatisfied = children.every(function (child) { return child.successStatus === enums/* SuccessStatus */.YE.PASSED; });
+        if (allSatisfied) {
+            activity.successStatus = enums/* SuccessStatus */.YE.PASSED;
+        }
+        else {
+            var anyNotSatisfied = children.some(function (child) { return child.successStatus === enums/* SuccessStatus */.YE.FAILED; });
+            if (anyNotSatisfied) {
+                activity.successStatus = enums/* SuccessStatus */.YE.FAILED;
+            }
+        }
+    };
+    RollupRules.prototype.toJSON = function () {
+        this.jsonString = true;
+        var result = {
+            rules: this._rules,
+        };
+        delete this.jsonString;
+        return result;
+    };
+    return RollupRules;
 }(base_cmi/* BaseCMI */.J));
 
 
@@ -5210,7 +5877,920 @@ var ValidLanguages = [
 ];
 /* harmony default export */ var language_constants = (ValidLanguages);
 
+;// ./src/cmi/scorm2004/sequencing/activity.ts
+
+
+
+
+
+
+
+var Activity = (function (_super) {
+    (0,tslib_es6/* __extends */.C6)(Activity, _super);
+    function Activity(id, title) {
+        if (id === void 0) { id = ""; }
+        if (title === void 0) { title = ""; }
+        var _this = _super.call(this, "activity") || this;
+        _this._id = "";
+        _this._title = "";
+        _this._children = [];
+        _this._parent = null;
+        _this._isVisible = true;
+        _this._isActive = false;
+        _this._isSuspended = false;
+        _this._isCompleted = false;
+        _this._completionStatus = enums/* CompletionStatus */.lC.UNKNOWN;
+        _this._successStatus = enums/* SuccessStatus */.YE.UNKNOWN;
+        _this._attemptCount = 0;
+        _this._attemptCompletionAmount = 0;
+        _this._attemptAbsoluteDuration = "PT0H0M0S";
+        _this._attemptExperiencedDuration = "PT0H0M0S";
+        _this._activityAbsoluteDuration = "PT0H0M0S";
+        _this._activityExperiencedDuration = "PT0H0M0S";
+        _this._objectiveSatisfiedStatus = false;
+        _this._objectiveMeasureStatus = false;
+        _this._objectiveNormalizedMeasure = 0;
+        _this._id = id;
+        _this._title = title;
+        return _this;
+    }
+    Activity.prototype.initialize = function () {
+        _super.prototype.initialize.call(this);
+        for (var _i = 0, _a = this._children; _i < _a.length; _i++) {
+            var child = _a[_i];
+            child.initialize();
+        }
+    };
+    Activity.prototype.reset = function () {
+        this._initialized = false;
+        this._isActive = false;
+        this._isSuspended = false;
+        this._isCompleted = false;
+        this._completionStatus = enums/* CompletionStatus */.lC.UNKNOWN;
+        this._successStatus = enums/* SuccessStatus */.YE.UNKNOWN;
+        this._attemptCount = 0;
+        this._attemptCompletionAmount = 0;
+        this._attemptAbsoluteDuration = "PT0H0M0S";
+        this._attemptExperiencedDuration = "PT0H0M0S";
+        this._activityAbsoluteDuration = "PT0H0M0S";
+        this._activityExperiencedDuration = "PT0H0M0S";
+        this._objectiveSatisfiedStatus = false;
+        this._objectiveMeasureStatus = false;
+        this._objectiveNormalizedMeasure = 0;
+        for (var _i = 0, _a = this._children; _i < _a.length; _i++) {
+            var child = _a[_i];
+            child.reset();
+        }
+    };
+    Object.defineProperty(Activity.prototype, "id", {
+        get: function () {
+            return this._id;
+        },
+        set: function (id) {
+            if (check2004ValidFormat(this._cmi_element + ".id", id, regex/* scorm2004_regex */.xt.CMILongIdentifier)) {
+                this._id = id;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Activity.prototype, "title", {
+        get: function () {
+            return this._title;
+        },
+        set: function (title) {
+            if (check2004ValidFormat(this._cmi_element + ".title", title, regex/* scorm2004_regex */.xt.CMILangString250)) {
+                this._title = title;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Activity.prototype, "children", {
+        get: function () {
+            return this._children;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Activity.prototype.addChild = function (child) {
+        if (!(child instanceof Activity)) {
+            throw new Scorm2004ValidationError(this._cmi_element + ".children", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
+        }
+        child._parent = this;
+        this._children.push(child);
+    };
+    Activity.prototype.removeChild = function (child) {
+        var index = this._children.indexOf(child);
+        if (index !== -1) {
+            this._children.splice(index, 1);
+            child._parent = null;
+            return true;
+        }
+        return false;
+    };
+    Object.defineProperty(Activity.prototype, "parent", {
+        get: function () {
+            return this._parent;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Activity.prototype, "isVisible", {
+        get: function () {
+            return this._isVisible;
+        },
+        set: function (isVisible) {
+            this._isVisible = isVisible;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Activity.prototype, "isActive", {
+        get: function () {
+            return this._isActive;
+        },
+        set: function (isActive) {
+            this._isActive = isActive;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Activity.prototype, "isSuspended", {
+        get: function () {
+            return this._isSuspended;
+        },
+        set: function (isSuspended) {
+            this._isSuspended = isSuspended;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Activity.prototype, "isCompleted", {
+        get: function () {
+            return this._isCompleted;
+        },
+        set: function (isCompleted) {
+            this._isCompleted = isCompleted;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Activity.prototype, "completionStatus", {
+        get: function () {
+            return this._completionStatus;
+        },
+        set: function (completionStatus) {
+            this._completionStatus = completionStatus;
+            this._isCompleted = completionStatus === enums/* CompletionStatus */.lC.COMPLETED;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Activity.prototype, "successStatus", {
+        get: function () {
+            return this._successStatus;
+        },
+        set: function (successStatus) {
+            this._successStatus = successStatus;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Activity.prototype, "attemptCount", {
+        get: function () {
+            return this._attemptCount;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Activity.prototype.incrementAttemptCount = function () {
+        this._attemptCount++;
+    };
+    Object.defineProperty(Activity.prototype, "objectiveMeasureStatus", {
+        get: function () {
+            return this._objectiveMeasureStatus;
+        },
+        set: function (objectiveMeasureStatus) {
+            this._objectiveMeasureStatus = objectiveMeasureStatus;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Activity.prototype, "objectiveNormalizedMeasure", {
+        get: function () {
+            return this._objectiveNormalizedMeasure;
+        },
+        set: function (objectiveNormalizedMeasure) {
+            this._objectiveNormalizedMeasure = objectiveNormalizedMeasure;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Activity.prototype.toJSON = function () {
+        this.jsonString = true;
+        var result = {
+            id: this._id,
+            title: this._title,
+            isVisible: this._isVisible,
+            isActive: this._isActive,
+            isSuspended: this._isSuspended,
+            isCompleted: this._isCompleted,
+            completionStatus: this._completionStatus,
+            successStatus: this._successStatus,
+            attemptCount: this._attemptCount,
+            attemptCompletionAmount: this._attemptCompletionAmount,
+            attemptAbsoluteDuration: this._attemptAbsoluteDuration,
+            attemptExperiencedDuration: this._attemptExperiencedDuration,
+            activityAbsoluteDuration: this._activityAbsoluteDuration,
+            activityExperiencedDuration: this._activityExperiencedDuration,
+            objectiveSatisfiedStatus: this._objectiveSatisfiedStatus,
+            objectiveMeasureStatus: this._objectiveMeasureStatus,
+            objectiveNormalizedMeasure: this._objectiveNormalizedMeasure,
+            children: this._children.map(function (child) { return child.toJSON(); }),
+        };
+        delete this.jsonString;
+        return result;
+    };
+    return Activity;
+}(base_cmi/* BaseCMI */.J));
+
+
+;// ./src/cmi/scorm2004/sequencing/activity_tree.ts
+
+
+
+
+
+var ActivityTree = (function (_super) {
+    (0,tslib_es6/* __extends */.C6)(ActivityTree, _super);
+    function ActivityTree() {
+        var _this = _super.call(this, "activityTree") || this;
+        _this._root = null;
+        _this._currentActivity = null;
+        _this._suspendedActivity = null;
+        _this._activities = new Map();
+        return _this;
+    }
+    ActivityTree.prototype.initialize = function () {
+        _super.prototype.initialize.call(this);
+        if (this._root) {
+            this._root.initialize();
+        }
+    };
+    ActivityTree.prototype.reset = function () {
+        this._initialized = false;
+        this._currentActivity = null;
+        this._suspendedActivity = null;
+        if (this._root) {
+            this._root.reset();
+        }
+    };
+    Object.defineProperty(ActivityTree.prototype, "root", {
+        get: function () {
+            return this._root;
+        },
+        set: function (root) {
+            if (root !== null && !(root instanceof Activity)) {
+                throw new Scorm2004ValidationError(this._cmi_element + ".root", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
+            }
+            this._root = root;
+            if (root) {
+                this._activities.set(root.id, root);
+                this._addActivitiesToMap(root);
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    ActivityTree.prototype._addActivitiesToMap = function (activity) {
+        for (var _i = 0, _a = activity.children; _i < _a.length; _i++) {
+            var child = _a[_i];
+            this._activities.set(child.id, child);
+            this._addActivitiesToMap(child);
+        }
+    };
+    Object.defineProperty(ActivityTree.prototype, "currentActivity", {
+        get: function () {
+            return this._currentActivity;
+        },
+        set: function (activity) {
+            if (activity !== null && !(activity instanceof Activity)) {
+                throw new Scorm2004ValidationError(this._cmi_element + ".currentActivity", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
+            }
+            if (this._currentActivity) {
+                this._currentActivity.isActive = false;
+            }
+            this._currentActivity = activity;
+            if (activity) {
+                activity.isActive = true;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(ActivityTree.prototype, "suspendedActivity", {
+        get: function () {
+            return this._suspendedActivity;
+        },
+        set: function (activity) {
+            if (activity !== null && !(activity instanceof Activity)) {
+                throw new Scorm2004ValidationError(this._cmi_element + ".suspendedActivity", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
+            }
+            if (this._suspendedActivity) {
+                this._suspendedActivity.isSuspended = false;
+            }
+            this._suspendedActivity = activity;
+            if (activity) {
+                activity.isSuspended = true;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    ActivityTree.prototype.getActivity = function (id) {
+        return this._activities.get(id);
+    };
+    ActivityTree.prototype.getAllActivities = function () {
+        return Array.from(this._activities.values());
+    };
+    ActivityTree.prototype.getParent = function (activity) {
+        return activity.parent;
+    };
+    ActivityTree.prototype.getChildren = function (activity) {
+        return activity.children;
+    };
+    ActivityTree.prototype.getSiblings = function (activity) {
+        if (!activity.parent) {
+            return [];
+        }
+        return activity.parent.children.filter(function (child) { return child !== activity; });
+    };
+    ActivityTree.prototype.getNextSibling = function (activity) {
+        if (!activity.parent) {
+            return null;
+        }
+        var siblings = activity.parent.children;
+        var index = siblings.indexOf(activity);
+        if (index === -1 || index === siblings.length - 1) {
+            return null;
+        }
+        return siblings[index + 1];
+    };
+    ActivityTree.prototype.getPreviousSibling = function (activity) {
+        if (!activity.parent) {
+            return null;
+        }
+        var siblings = activity.parent.children;
+        var index = siblings.indexOf(activity);
+        if (index <= 0) {
+            return null;
+        }
+        return siblings[index - 1];
+    };
+    ActivityTree.prototype.getFirstChild = function (activity) {
+        if (activity.children.length === 0) {
+            return null;
+        }
+        return activity.children[0];
+    };
+    ActivityTree.prototype.getLastChild = function (activity) {
+        if (activity.children.length === 0) {
+            return null;
+        }
+        return activity.children[activity.children.length - 1];
+    };
+    ActivityTree.prototype.getCommonAncestor = function (activity1, activity2) {
+        var path1 = [];
+        var current = activity1;
+        while (current) {
+            path1.unshift(current);
+            current = current.parent;
+        }
+        current = activity2;
+        while (current) {
+            if (path1.includes(current)) {
+                return current;
+            }
+            current = current.parent;
+        }
+        return null;
+    };
+    ActivityTree.prototype.toJSON = function () {
+        this.jsonString = true;
+        var result = {
+            root: this._root,
+            currentActivity: this._currentActivity ? this._currentActivity.id : null,
+            suspendedActivity: this._suspendedActivity ? this._suspendedActivity.id : null,
+        };
+        delete this.jsonString;
+        return result;
+    };
+    return ActivityTree;
+}(base_cmi/* BaseCMI */.J));
+
+
+;// ./src/cmi/scorm2004/sequencing/sequencing_controls.ts
+
+
+var SequencingControls = (function (_super) {
+    (0,tslib_es6/* __extends */.C6)(SequencingControls, _super);
+    function SequencingControls() {
+        var _this = _super.call(this, "sequencingControls") || this;
+        _this._enabled = true;
+        _this._choiceExit = true;
+        _this._flow = false;
+        _this._forwardOnly = false;
+        _this._useCurrentAttemptObjectiveInfo = true;
+        _this._useCurrentAttemptProgressInfo = true;
+        _this._preventActivation = false;
+        _this._constrainChoice = false;
+        _this._rollupObjectiveSatisfied = true;
+        _this._rollupProgressCompletion = true;
+        _this._objectiveMeasureWeight = 1.0;
+        return _this;
+    }
+    SequencingControls.prototype.reset = function () {
+        this._initialized = false;
+        this._enabled = true;
+        this._choiceExit = true;
+        this._flow = false;
+        this._forwardOnly = false;
+        this._useCurrentAttemptObjectiveInfo = true;
+        this._useCurrentAttemptProgressInfo = true;
+        this._preventActivation = false;
+        this._constrainChoice = false;
+        this._rollupObjectiveSatisfied = true;
+        this._rollupProgressCompletion = true;
+        this._objectiveMeasureWeight = 1.0;
+    };
+    Object.defineProperty(SequencingControls.prototype, "enabled", {
+        get: function () {
+            return this._enabled;
+        },
+        set: function (enabled) {
+            this._enabled = enabled;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(SequencingControls.prototype, "choiceExit", {
+        get: function () {
+            return this._choiceExit;
+        },
+        set: function (choiceExit) {
+            this._choiceExit = choiceExit;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(SequencingControls.prototype, "flow", {
+        get: function () {
+            return this._flow;
+        },
+        set: function (flow) {
+            this._flow = flow;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(SequencingControls.prototype, "forwardOnly", {
+        get: function () {
+            return this._forwardOnly;
+        },
+        set: function (forwardOnly) {
+            this._forwardOnly = forwardOnly;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(SequencingControls.prototype, "useCurrentAttemptObjectiveInfo", {
+        get: function () {
+            return this._useCurrentAttemptObjectiveInfo;
+        },
+        set: function (useCurrentAttemptObjectiveInfo) {
+            this._useCurrentAttemptObjectiveInfo = useCurrentAttemptObjectiveInfo;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(SequencingControls.prototype, "useCurrentAttemptProgressInfo", {
+        get: function () {
+            return this._useCurrentAttemptProgressInfo;
+        },
+        set: function (useCurrentAttemptProgressInfo) {
+            this._useCurrentAttemptProgressInfo = useCurrentAttemptProgressInfo;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(SequencingControls.prototype, "preventActivation", {
+        get: function () {
+            return this._preventActivation;
+        },
+        set: function (preventActivation) {
+            this._preventActivation = preventActivation;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(SequencingControls.prototype, "constrainChoice", {
+        get: function () {
+            return this._constrainChoice;
+        },
+        set: function (constrainChoice) {
+            this._constrainChoice = constrainChoice;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(SequencingControls.prototype, "rollupObjectiveSatisfied", {
+        get: function () {
+            return this._rollupObjectiveSatisfied;
+        },
+        set: function (rollupObjectiveSatisfied) {
+            this._rollupObjectiveSatisfied = rollupObjectiveSatisfied;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(SequencingControls.prototype, "rollupProgressCompletion", {
+        get: function () {
+            return this._rollupProgressCompletion;
+        },
+        set: function (rollupProgressCompletion) {
+            this._rollupProgressCompletion = rollupProgressCompletion;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(SequencingControls.prototype, "objectiveMeasureWeight", {
+        get: function () {
+            return this._objectiveMeasureWeight;
+        },
+        set: function (objectiveMeasureWeight) {
+            if (objectiveMeasureWeight >= 0 && objectiveMeasureWeight <= 1) {
+                this._objectiveMeasureWeight = objectiveMeasureWeight;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    SequencingControls.prototype.isChoiceNavigationAllowed = function () {
+        return this._enabled && !this._constrainChoice;
+    };
+    SequencingControls.prototype.isFlowNavigationAllowed = function () {
+        return this._enabled && this._flow;
+    };
+    SequencingControls.prototype.isForwardNavigationAllowed = function () {
+        return this._enabled && (!this._forwardOnly || this._flow);
+    };
+    SequencingControls.prototype.isBackwardNavigationAllowed = function () {
+        return this._enabled && !this._forwardOnly;
+    };
+    SequencingControls.prototype.toJSON = function () {
+        this.jsonString = true;
+        var result = {
+            enabled: this._enabled,
+            choiceExit: this._choiceExit,
+            flow: this._flow,
+            forwardOnly: this._forwardOnly,
+            useCurrentAttemptObjectiveInfo: this._useCurrentAttemptObjectiveInfo,
+            useCurrentAttemptProgressInfo: this._useCurrentAttemptProgressInfo,
+            preventActivation: this._preventActivation,
+            constrainChoice: this._constrainChoice,
+            rollupObjectiveSatisfied: this._rollupObjectiveSatisfied,
+            rollupProgressCompletion: this._rollupProgressCompletion,
+            objectiveMeasureWeight: this._objectiveMeasureWeight,
+        };
+        delete this.jsonString;
+        return result;
+    };
+    return SequencingControls;
+}(base_cmi/* BaseCMI */.J));
+
+
+;// ./src/cmi/scorm2004/sequencing/sequencing.ts
+
+
+
+
+
+
+
+
+var Sequencing = (function (_super) {
+    (0,tslib_es6/* __extends */.C6)(Sequencing, _super);
+    function Sequencing() {
+        var _this = _super.call(this, "sequencing") || this;
+        _this._adlNav = null;
+        _this._activityTree = new ActivityTree();
+        _this._sequencingRules = new SequencingRules();
+        _this._sequencingControls = new SequencingControls();
+        _this._rollupRules = new RollupRules();
+        return _this;
+    }
+    Sequencing.prototype.initialize = function () {
+        _super.prototype.initialize.call(this);
+        this._activityTree.initialize();
+        this._sequencingRules.initialize();
+        this._sequencingControls.initialize();
+        this._rollupRules.initialize();
+    };
+    Sequencing.prototype.reset = function () {
+        this._initialized = false;
+        this._activityTree.reset();
+        this._sequencingRules.reset();
+        this._sequencingControls.reset();
+        this._rollupRules.reset();
+    };
+    Object.defineProperty(Sequencing.prototype, "activityTree", {
+        get: function () {
+            return this._activityTree;
+        },
+        set: function (activityTree) {
+            if (!(activityTree instanceof ActivityTree)) {
+                throw new Scorm2004ValidationError(this._cmi_element + ".activityTree", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
+            }
+            this._activityTree = activityTree;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Sequencing.prototype, "sequencingRules", {
+        get: function () {
+            return this._sequencingRules;
+        },
+        set: function (sequencingRules) {
+            if (!(sequencingRules instanceof SequencingRules)) {
+                throw new Scorm2004ValidationError(this._cmi_element + ".sequencingRules", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
+            }
+            this._sequencingRules = sequencingRules;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Sequencing.prototype, "sequencingControls", {
+        get: function () {
+            return this._sequencingControls;
+        },
+        set: function (sequencingControls) {
+            if (!(sequencingControls instanceof SequencingControls)) {
+                throw new Scorm2004ValidationError(this._cmi_element + ".sequencingControls", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
+            }
+            this._sequencingControls = sequencingControls;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Sequencing.prototype, "rollupRules", {
+        get: function () {
+            return this._rollupRules;
+        },
+        set: function (rollupRules) {
+            if (!(rollupRules instanceof RollupRules)) {
+                throw new Scorm2004ValidationError(this._cmi_element + ".rollupRules", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
+            }
+            this._rollupRules = rollupRules;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Sequencing.prototype, "adlNav", {
+        get: function () {
+            return this._adlNav;
+        },
+        set: function (adlNav) {
+            this._adlNav = adlNav;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Sequencing.prototype.processNavigationRequest = function (request) {
+        if (!this._adlNav) {
+            return false;
+        }
+        this._adlNav.request = request;
+        var currentActivity = this._activityTree.currentActivity;
+        if (!currentActivity) {
+            return false;
+        }
+        var preConditionAction = this._sequencingRules.evaluatePreConditionRules(currentActivity);
+        if (preConditionAction) {
+            switch (preConditionAction) {
+                case RuleActionType.SKIP:
+                    return false;
+                case RuleActionType.DISABLED:
+                    return false;
+                case RuleActionType.HIDE_FROM_CHOICE:
+                    return false;
+                case RuleActionType.STOP_FORWARD_TRAVERSAL:
+                    return false;
+                default:
+                    break;
+            }
+        }
+        switch (request) {
+            case "continue":
+                return this.processContinueRequest(currentActivity);
+            case "previous":
+                return this.processPreviousRequest(currentActivity);
+            case "choice":
+                return false;
+            case "exit":
+                return this.processExitRequest(currentActivity);
+            case "exitAll":
+                return this.processExitAllRequest(currentActivity);
+            case "abandon":
+                return this.processAbandonRequest(currentActivity);
+            case "abandonAll":
+                return this.processAbandonAllRequest(currentActivity);
+            case "suspendAll":
+                return this.processSuspendAllRequest(currentActivity);
+            case "resumeAll":
+                return this.processResumeAllRequest();
+            default:
+                return false;
+        }
+    };
+    Sequencing.prototype.processContinueRequest = function (currentActivity) {
+        if (!this._sequencingControls.isForwardNavigationAllowed()) {
+            return false;
+        }
+        var nextActivity = this._activityTree.getNextSibling(currentActivity);
+        if (!nextActivity) {
+            return false;
+        }
+        var exitConditionAction = this._sequencingRules.evaluateExitConditionRules(currentActivity);
+        if (exitConditionAction) {
+            switch (exitConditionAction) {
+                case RuleActionType.EXIT_PARENT:
+                    var parent_1 = currentActivity.parent;
+                    if (parent_1) {
+                        this._activityTree.currentActivity = parent_1;
+                        return true;
+                    }
+                    return false;
+                case RuleActionType.EXIT_ALL:
+                    this._activityTree.currentActivity = null;
+                    return true;
+                default:
+                    break;
+            }
+        }
+        this._activityTree.currentActivity = nextActivity;
+        var postConditionAction = this._sequencingRules.evaluatePostConditionRules(nextActivity);
+        if (postConditionAction) {
+            switch (postConditionAction) {
+                case RuleActionType.RETRY:
+                    nextActivity.incrementAttemptCount();
+                    return true;
+                case RuleActionType.RETRY_ALL:
+                    this._activityTree.getAllActivities().forEach(function (activity) {
+                        activity.incrementAttemptCount();
+                    });
+                    return true;
+                case RuleActionType.CONTINUE:
+                    return this.processContinueRequest(nextActivity);
+                case RuleActionType.PREVIOUS:
+                    return this.processPreviousRequest(nextActivity);
+                case RuleActionType.EXIT:
+                    this._activityTree.currentActivity = currentActivity;
+                    return true;
+                default:
+                    break;
+            }
+        }
+        return true;
+    };
+    Sequencing.prototype.processPreviousRequest = function (currentActivity) {
+        if (!this._sequencingControls.isBackwardNavigationAllowed()) {
+            return false;
+        }
+        var previousActivity = this._activityTree.getPreviousSibling(currentActivity);
+        if (!previousActivity) {
+            return false;
+        }
+        var exitConditionAction = this._sequencingRules.evaluateExitConditionRules(currentActivity);
+        if (exitConditionAction) {
+            switch (exitConditionAction) {
+                case RuleActionType.EXIT_PARENT:
+                    var parent_2 = currentActivity.parent;
+                    if (parent_2) {
+                        this._activityTree.currentActivity = parent_2;
+                        return true;
+                    }
+                    return false;
+                case RuleActionType.EXIT_ALL:
+                    this._activityTree.currentActivity = null;
+                    return true;
+                default:
+                    break;
+            }
+        }
+        this._activityTree.currentActivity = previousActivity;
+        var postConditionAction = this._sequencingRules.evaluatePostConditionRules(previousActivity);
+        if (postConditionAction) {
+            switch (postConditionAction) {
+                case RuleActionType.RETRY:
+                    previousActivity.incrementAttemptCount();
+                    return true;
+                case RuleActionType.RETRY_ALL:
+                    this._activityTree.getAllActivities().forEach(function (activity) {
+                        activity.incrementAttemptCount();
+                    });
+                    return true;
+                case RuleActionType.CONTINUE:
+                    return this.processContinueRequest(previousActivity);
+                case RuleActionType.PREVIOUS:
+                    return this.processPreviousRequest(previousActivity);
+                case RuleActionType.EXIT:
+                    this._activityTree.currentActivity = currentActivity;
+                    return true;
+                default:
+                    break;
+            }
+        }
+        return true;
+    };
+    Sequencing.prototype.processExitRequest = function (currentActivity) {
+        if (!this._sequencingControls.choiceExit) {
+            return false;
+        }
+        var parent = currentActivity.parent;
+        if (!parent) {
+            return false;
+        }
+        this._activityTree.currentActivity = parent;
+        return true;
+    };
+    Sequencing.prototype.processExitAllRequest = function (currentActivity) {
+        if (!this._sequencingControls.choiceExit) {
+            return false;
+        }
+        this._activityTree.currentActivity = null;
+        return true;
+    };
+    Sequencing.prototype.processAbandonRequest = function (currentActivity) {
+        var parent = currentActivity.parent;
+        if (!parent) {
+            return false;
+        }
+        this._activityTree.currentActivity = parent;
+        return true;
+    };
+    Sequencing.prototype.processAbandonAllRequest = function (currentActivity) {
+        this._activityTree.currentActivity = null;
+        return true;
+    };
+    Sequencing.prototype.processSuspendAllRequest = function (currentActivity) {
+        this._activityTree.suspendedActivity = currentActivity;
+        this._activityTree.currentActivity = null;
+        return true;
+    };
+    Sequencing.prototype.processResumeAllRequest = function () {
+        var suspendedActivity = this._activityTree.suspendedActivity;
+        if (!suspendedActivity) {
+            return false;
+        }
+        this._activityTree.currentActivity = suspendedActivity;
+        this._activityTree.suspendedActivity = null;
+        return true;
+    };
+    Sequencing.prototype.processRollup = function () {
+        var root = this._activityTree.root;
+        if (!root) {
+            return;
+        }
+        this._processRollupRecursive(root);
+    };
+    Sequencing.prototype._processRollupRecursive = function (activity) {
+        for (var _i = 0, _a = activity.children; _i < _a.length; _i++) {
+            var child = _a[_i];
+            this._processRollupRecursive(child);
+        }
+        this._rollupRules.processRollup(activity);
+    };
+    Sequencing.prototype.toJSON = function () {
+        this.jsonString = true;
+        var result = {
+            activityTree: this._activityTree,
+            sequencingRules: this._sequencingRules,
+            sequencingControls: this._sequencingControls,
+            rollupRules: this._rollupRules,
+        };
+        delete this.jsonString;
+        return result;
+    };
+    return Sequencing;
+}(base_cmi/* BaseCMI */.J));
+
+
 ;// ./src/Scorm2004API.ts
+
+
+
+
 
 
 
@@ -5240,6 +6820,11 @@ var Scorm2004Impl = (function (_super) {
         _this._globalObjectives = [];
         _this.cmi = new CMI();
         _this.adl = new ADL();
+        _this._sequencing = new Sequencing();
+        _this.adl.sequencing = _this._sequencing;
+        if (settings === null || settings === void 0 ? void 0 : settings.sequencing) {
+            _this.configureSequencing(settings.sequencing);
+        }
         _this.Initialize = _this.lmsInitialize;
         _this.Terminate = _this.lmsFinish;
         _this.GetValue = _this.lmsGetValue;
@@ -5251,10 +6836,11 @@ var Scorm2004Impl = (function (_super) {
         return _this;
     }
     Scorm2004Impl.prototype.reset = function (settings) {
-        var _a, _b;
+        var _a, _b, _c;
         this.commonReset(settings);
         (_a = this.cmi) === null || _a === void 0 ? void 0 : _a.reset();
         (_b = this.adl) === null || _b === void 0 ? void 0 : _b.reset();
+        (_c = this._sequencing) === null || _c === void 0 ? void 0 : _c.reset();
     };
     Object.defineProperty(Scorm2004Impl.prototype, "version", {
         get: function () {
@@ -5329,7 +6915,7 @@ var Scorm2004Impl = (function (_super) {
                                 }
                             }
                             else if (this.settings.autoProgress) {
-                                this.processListeners("SequenceNext");
+                                this.processListeners("SequenceNext", null, "next");
                             }
                         }
                         return [2, result];
@@ -5771,6 +7357,136 @@ var Scorm2004Impl = (function (_super) {
                 }
             });
         });
+    };
+    Scorm2004Impl.prototype.configureSequencing = function (sequencingSettings) {
+        if (sequencingSettings.activityTree) {
+            this.configureActivityTree(sequencingSettings.activityTree);
+        }
+        if (sequencingSettings.sequencingRules) {
+            this.configureSequencingRules(sequencingSettings.sequencingRules);
+        }
+        if (sequencingSettings.sequencingControls) {
+            this.configureSequencingControls(sequencingSettings.sequencingControls);
+        }
+        if (sequencingSettings.rollupRules) {
+            this.configureRollupRules(sequencingSettings.rollupRules);
+        }
+    };
+    Scorm2004Impl.prototype.configureActivityTree = function (activityTreeSettings) {
+        var rootActivity = this.createActivity(activityTreeSettings);
+        var activityTree = this._sequencing.activityTree;
+        activityTree.root = rootActivity;
+    };
+    Scorm2004Impl.prototype.createActivity = function (activitySettings) {
+        var activity = new Activity(activitySettings.id, activitySettings.title);
+        if (activitySettings.isVisible !== undefined) {
+            activity.isVisible = activitySettings.isVisible;
+        }
+        if (activitySettings.isActive !== undefined) {
+            activity.isActive = activitySettings.isActive;
+        }
+        if (activitySettings.isSuspended !== undefined) {
+            activity.isSuspended = activitySettings.isSuspended;
+        }
+        if (activitySettings.isCompleted !== undefined) {
+            activity.isCompleted = activitySettings.isCompleted;
+        }
+        if (activitySettings.children) {
+            for (var _i = 0, _a = activitySettings.children; _i < _a.length; _i++) {
+                var childSettings = _a[_i];
+                var childActivity = this.createActivity(childSettings);
+                activity.addChild(childActivity);
+            }
+        }
+        return activity;
+    };
+    Scorm2004Impl.prototype.configureSequencingRules = function (sequencingRulesSettings) {
+        var sequencingRules = this._sequencing.sequencingRules;
+        if (sequencingRulesSettings.preConditionRules) {
+            for (var _i = 0, _a = sequencingRulesSettings.preConditionRules; _i < _a.length; _i++) {
+                var ruleSettings = _a[_i];
+                var rule = this.createSequencingRule(ruleSettings);
+                sequencingRules.addPreConditionRule(rule);
+            }
+        }
+        if (sequencingRulesSettings.exitConditionRules) {
+            for (var _b = 0, _c = sequencingRulesSettings.exitConditionRules; _b < _c.length; _b++) {
+                var ruleSettings = _c[_b];
+                var rule = this.createSequencingRule(ruleSettings);
+                sequencingRules.addExitConditionRule(rule);
+            }
+        }
+        if (sequencingRulesSettings.postConditionRules) {
+            for (var _d = 0, _e = sequencingRulesSettings.postConditionRules; _d < _e.length; _d++) {
+                var ruleSettings = _e[_d];
+                var rule = this.createSequencingRule(ruleSettings);
+                sequencingRules.addPostConditionRule(rule);
+            }
+        }
+    };
+    Scorm2004Impl.prototype.createSequencingRule = function (ruleSettings) {
+        var rule = new SequencingRule(ruleSettings.action, ruleSettings.conditionCombination);
+        for (var _i = 0, _a = ruleSettings.conditions; _i < _a.length; _i++) {
+            var conditionSettings = _a[_i];
+            var condition = new RuleCondition(conditionSettings.condition, conditionSettings.operator, new Map(Object.entries(conditionSettings.parameters || {})));
+            rule.addCondition(condition);
+        }
+        return rule;
+    };
+    Scorm2004Impl.prototype.configureSequencingControls = function (sequencingControlsSettings) {
+        var sequencingControls = this._sequencing.sequencingControls;
+        if (sequencingControlsSettings.enabled !== undefined) {
+            sequencingControls.enabled = sequencingControlsSettings.enabled;
+        }
+        if (sequencingControlsSettings.choiceExit !== undefined) {
+            sequencingControls.choiceExit = sequencingControlsSettings.choiceExit;
+        }
+        if (sequencingControlsSettings.flow !== undefined) {
+            sequencingControls.flow = sequencingControlsSettings.flow;
+        }
+        if (sequencingControlsSettings.forwardOnly !== undefined) {
+            sequencingControls.forwardOnly = sequencingControlsSettings.forwardOnly;
+        }
+        if (sequencingControlsSettings.useCurrentAttemptObjectiveInfo !== undefined) {
+            sequencingControls.useCurrentAttemptObjectiveInfo = sequencingControlsSettings.useCurrentAttemptObjectiveInfo;
+        }
+        if (sequencingControlsSettings.useCurrentAttemptProgressInfo !== undefined) {
+            sequencingControls.useCurrentAttemptProgressInfo = sequencingControlsSettings.useCurrentAttemptProgressInfo;
+        }
+        if (sequencingControlsSettings.preventActivation !== undefined) {
+            sequencingControls.preventActivation = sequencingControlsSettings.preventActivation;
+        }
+        if (sequencingControlsSettings.constrainChoice !== undefined) {
+            sequencingControls.constrainChoice = sequencingControlsSettings.constrainChoice;
+        }
+        if (sequencingControlsSettings.rollupObjectiveSatisfied !== undefined) {
+            sequencingControls.rollupObjectiveSatisfied = sequencingControlsSettings.rollupObjectiveSatisfied;
+        }
+        if (sequencingControlsSettings.rollupProgressCompletion !== undefined) {
+            sequencingControls.rollupProgressCompletion = sequencingControlsSettings.rollupProgressCompletion;
+        }
+        if (sequencingControlsSettings.objectiveMeasureWeight !== undefined) {
+            sequencingControls.objectiveMeasureWeight = sequencingControlsSettings.objectiveMeasureWeight;
+        }
+    };
+    Scorm2004Impl.prototype.configureRollupRules = function (rollupRulesSettings) {
+        var rollupRules = this._sequencing.rollupRules;
+        if (rollupRulesSettings.rules) {
+            for (var _i = 0, _a = rollupRulesSettings.rules; _i < _a.length; _i++) {
+                var ruleSettings = _a[_i];
+                var rule = this.createRollupRule(ruleSettings);
+                rollupRules.addRule(rule);
+            }
+        }
+    };
+    Scorm2004Impl.prototype.createRollupRule = function (ruleSettings) {
+        var rule = new RollupRule(ruleSettings.action, ruleSettings.consideration, ruleSettings.minimumCount, ruleSettings.minimumPercent);
+        for (var _i = 0, _a = ruleSettings.conditions; _i < _a.length; _i++) {
+            var conditionSettings = _a[_i];
+            var condition = new RollupCondition(conditionSettings.condition, new Map(Object.entries(conditionSettings.parameters || {})));
+            rule.addCondition(condition);
+        }
+        return rule;
     };
     return Scorm2004Impl;
 }(BaseAPI/* default */.A));

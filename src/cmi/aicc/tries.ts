@@ -78,13 +78,7 @@ export class CMITriesObject extends BaseCMI {
    * @param {string} status
    */
   set status(status: string) {
-    if (
-      checkAICCValidFormat(
-        this._cmi_element + ".status",
-        status,
-        aicc_regex.CMIStatus2,
-      )
-    ) {
+    if (checkAICCValidFormat(this._cmi_element + ".status", status, aicc_regex.CMIStatus2)) {
       this._status = status;
     }
   }
@@ -102,13 +96,7 @@ export class CMITriesObject extends BaseCMI {
    * @param {string} time
    */
   set time(time: string) {
-    if (
-      checkAICCValidFormat(
-        this._cmi_element + ".time",
-        time,
-        aicc_regex.CMITime,
-      )
-    ) {
+    if (checkAICCValidFormat(this._cmi_element + ".time", time, aicc_regex.CMITime)) {
       this._time = time;
     }
   }

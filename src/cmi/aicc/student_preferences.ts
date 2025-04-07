@@ -53,11 +53,7 @@ export class AICCStudentPreferences extends CMIStudentPreference {
    */
   set lesson_type(lesson_type: string) {
     if (
-      checkAICCValidFormat(
-        this._cmi_element + ".lesson_type",
-        lesson_type,
-        aicc_regex.CMIString256,
-      )
+      checkAICCValidFormat(this._cmi_element + ".lesson_type", lesson_type, aicc_regex.CMIString256)
     ) {
       this._lesson_type = lesson_type;
     }
@@ -77,11 +73,7 @@ export class AICCStudentPreferences extends CMIStudentPreference {
    */
   set text_color(text_color: string) {
     if (
-      checkAICCValidFormat(
-        this._cmi_element + ".text_color",
-        text_color,
-        aicc_regex.CMIString256,
-      )
+      checkAICCValidFormat(this._cmi_element + ".text_color", text_color, aicc_regex.CMIString256)
     ) {
       this._text_color = text_color;
     }
@@ -125,11 +117,7 @@ export class AICCStudentPreferences extends CMIStudentPreference {
    */
   set text_size(text_size: string) {
     if (
-      checkAICCValidFormat(
-        this._cmi_element + ".text_size",
-        text_size,
-        aicc_regex.CMIString256,
-      )
+      checkAICCValidFormat(this._cmi_element + ".text_size", text_size, aicc_regex.CMIString256)
     ) {
       this._text_size = text_size;
     }
@@ -148,13 +136,7 @@ export class AICCStudentPreferences extends CMIStudentPreference {
    * @param {string} video
    */
   set video(video: string) {
-    if (
-      checkAICCValidFormat(
-        this._cmi_element + ".video",
-        video,
-        aicc_regex.CMIString256,
-      )
-    ) {
+    if (checkAICCValidFormat(this._cmi_element + ".video", video, aicc_regex.CMIString256)) {
       this._video = video;
     }
   }

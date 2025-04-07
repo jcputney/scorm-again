@@ -26,16 +26,10 @@ export class CMI extends BaseRootCMI {
    * @param {(CMIStudentData|AICCCMIStudentData)} student_data
    * @param {boolean} initialized
    */
-  constructor(
-    cmi_children?: string,
-    student_data?: CMIStudentData,
-    initialized?: boolean,
-  ) {
+  constructor(cmi_children?: string, student_data?: CMIStudentData, initialized?: boolean) {
     super("cmi");
     if (initialized) this.initialize();
-    this.__children = cmi_children
-      ? cmi_children
-      : scorm12_constants.cmi_children;
+    this.__children = cmi_children ? cmi_children : scorm12_constants.cmi_children;
     this.core = new CMICore();
     this.objectives = new CMIObjectives();
     this.student_data = student_data ? student_data : new CMIStudentData();

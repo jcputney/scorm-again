@@ -74,13 +74,7 @@ export class CMIObjectivesObject extends BaseCMI {
    * @param {string} id
    */
   set id(id: string) {
-    if (
-      check12ValidFormat(
-        this._cmi_element + ".id",
-        id,
-        scorm12_regex.CMIIdentifier,
-      )
-    ) {
+    if (check12ValidFormat(this._cmi_element + ".id", id, scorm12_regex.CMIIdentifier)) {
       this._id = id;
     }
   }
@@ -98,13 +92,7 @@ export class CMIObjectivesObject extends BaseCMI {
    * @param {string} status
    */
   set status(status: string) {
-    if (
-      check12ValidFormat(
-        this._cmi_element + ".status",
-        status,
-        scorm12_regex.CMIStatus2,
-      )
-    ) {
+    if (check12ValidFormat(this._cmi_element + ".status", status, scorm12_regex.CMIStatus2)) {
       this._status = status;
     }
   }

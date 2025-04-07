@@ -595,1274 +595,6 @@ var scorm2004_constants = {
 
 /***/ }),
 
-/***/ 398:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-
-// EXPORTS
-__webpack_require__.d(__webpack_exports__, {
-  A: function() { return /* binding */ src_BaseAPI; }
-});
-
-// EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
-var tslib_es6 = __webpack_require__(635);
-// EXTERNAL MODULE: ./src/constants/api_constants.ts
-var api_constants = __webpack_require__(340);
-// EXTERNAL MODULE: ./src/utilities.ts
-var utilities = __webpack_require__(864);
-// EXTERNAL MODULE: ./src/constants/enums.ts
-var enums = __webpack_require__(56);
-;// ./src/constants/default_settings.ts
-
-
-
-var DefaultSettings = {
-    autocommit: false,
-    autocommitSeconds: 10,
-    asyncCommit: false,
-    sendFullCommit: true,
-    lmsCommitUrl: false,
-    dataCommitFormat: "json",
-    commitRequestDataType: "application/json;charset=UTF-8",
-    autoProgress: false,
-    logLevel: enums/* LogLevelEnum */.Mb.ERROR,
-    selfReportSessionTime: false,
-    alwaysSendTotalTime: false,
-    renderCommonCommitFields: false,
-    strict_errors: true,
-    xhrHeaders: {},
-    xhrWithCredentials: false,
-    fetchMode: "cors",
-    responseHandler: function (response) {
-        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
-            var responseText, httpResult;
-            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        if (!(typeof response !== "undefined")) return [3, 2];
-                        return [4, response.text()];
-                    case 1:
-                        responseText = _a.sent();
-                        httpResult = null;
-                        if (responseText) {
-                            httpResult = JSON.parse(responseText);
-                        }
-                        if (httpResult === null || !{}.hasOwnProperty.call(httpResult, "result")) {
-                            if (response.status === 200) {
-                                return [2, {
-                                        result: api_constants/* global_constants */._y.SCORM_TRUE,
-                                        errorCode: 0,
-                                    }];
-                            }
-                            else {
-                                return [2, {
-                                        result: api_constants/* global_constants */._y.SCORM_FALSE,
-                                        errorCode: 101,
-                                    }];
-                            }
-                        }
-                        else {
-                            return [2, {
-                                    result: httpResult.result,
-                                    errorCode: httpResult.errorCode
-                                        ? httpResult.errorCode
-                                        : httpResult.result === api_constants/* global_constants */._y.SCORM_TRUE
-                                            ? 0
-                                            : 101,
-                                }];
-                        }
-                        _a.label = 2;
-                    case 2: return [2, {
-                            result: api_constants/* global_constants */._y.SCORM_FALSE,
-                            errorCode: 101,
-                        }];
-                }
-            });
-        });
-    },
-    requestHandler: function (commitObject) {
-        return commitObject;
-    },
-    onLogMessage: defaultLogHandler,
-    scoItemIds: [],
-    scoItemIdValidator: false,
-    globalObjectiveIds: [],
-};
-function defaultLogHandler(messageLevel, logMessage) {
-    switch (messageLevel) {
-        case "4":
-        case 4:
-        case "ERROR":
-        case enums/* LogLevelEnum */.Mb.ERROR:
-            console.error(logMessage);
-            break;
-        case "3":
-        case 3:
-        case "WARN":
-        case enums/* LogLevelEnum */.Mb.WARN:
-            console.warn(logMessage);
-            break;
-        case "2":
-        case 2:
-        case "INFO":
-        case enums/* LogLevelEnum */.Mb.INFO:
-            console.info(logMessage);
-            break;
-        case "1":
-        case 1:
-        case "DEBUG":
-        case enums/* LogLevelEnum */.Mb.DEBUG:
-            if (console.debug) {
-                console.debug(logMessage);
-            }
-            else {
-                console.log(logMessage);
-            }
-            break;
-    }
-}
-
-;// ./src/helpers/scheduled_commit.ts
-
-var ScheduledCommit = (function () {
-    function ScheduledCommit(API, when, callback) {
-        this._cancelled = false;
-        this._API = API;
-        this._timeout = setTimeout(this.wrapper.bind(this), when);
-        this._callback = callback;
-    }
-    ScheduledCommit.prototype.cancel = function () {
-        this._cancelled = true;
-        if (this._timeout) {
-            clearTimeout(this._timeout);
-        }
-    };
-    ScheduledCommit.prototype.wrapper = function () {
-        var _this = this;
-        if (!this._cancelled) {
-            (function () { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () { return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4, this._API.commit(this._callback)];
-                    case 1: return [2, _a.sent()];
-                }
-            }); }); })();
-        }
-    };
-    return ScheduledCommit;
-}());
-
-
-;// ./src/services/HttpService.ts
-
-
-
-var HttpService = (function () {
-    function HttpService(settings, error_codes) {
-        this.settings = settings;
-        this.error_codes = error_codes;
-    }
-    HttpService.prototype.processHttpRequest = function (url_1, params_1) {
-        return (0,tslib_es6/* __awaiter */.sH)(this, arguments, void 0, function (url, params, immediate, apiLog, processListeners) {
-            var genericError, process;
-            var _this = this;
-            if (immediate === void 0) { immediate = false; }
-            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        genericError = {
-                            result: api_constants/* global_constants */._y.SCORM_FALSE,
-                            errorCode: this.error_codes.GENERAL,
-                        };
-                        if (immediate) {
-                            this.performFetch(url, params).then(function (response) { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () {
-                                return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                                    switch (_a.label) {
-                                        case 0: return [4, this.transformResponse(response, processListeners)];
-                                        case 1:
-                                            _a.sent();
-                                            return [2];
-                                    }
-                                });
-                            }); });
-                            return [2, {
-                                    result: api_constants/* global_constants */._y.SCORM_TRUE,
-                                    errorCode: 0,
-                                }];
-                        }
-                        process = function (url, params, settings) { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () {
-                            var response, e_1;
-                            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                                switch (_a.label) {
-                                    case 0:
-                                        _a.trys.push([0, 2, , 3]);
-                                        params = settings.requestHandler(params);
-                                        return [4, this.performFetch(url, params)];
-                                    case 1:
-                                        response = _a.sent();
-                                        return [2, this.transformResponse(response, processListeners)];
-                                    case 2:
-                                        e_1 = _a.sent();
-                                        apiLog("processHttpRequest", e_1, enums/* LogLevelEnum */.Mb.ERROR);
-                                        processListeners("CommitError");
-                                        return [2, genericError];
-                                    case 3: return [2];
-                                }
-                            });
-                        }); };
-                        return [4, process(url, params, this.settings)];
-                    case 1: return [2, _a.sent()];
-                }
-            });
-        });
-    };
-    HttpService.prototype.performFetch = function (url, params) {
-        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
-            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                return [2, fetch(url, {
-                        method: "POST",
-                        mode: this.settings.fetchMode,
-                        body: params instanceof Array ? params.join("&") : JSON.stringify(params),
-                        headers: (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, this.settings.xhrHeaders), { "Content-Type": this.settings.commitRequestDataType }),
-                        credentials: this.settings.xhrWithCredentials ? "include" : undefined,
-                        keepalive: true,
-                    })];
-            });
-        });
-    };
-    HttpService.prototype.transformResponse = function (response, processListeners) {
-        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
-            var result, _a;
-            return (0,tslib_es6/* __generator */.YH)(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        if (!(typeof this.settings.responseHandler === "function")) return [3, 2];
-                        return [4, this.settings.responseHandler(response)];
-                    case 1:
-                        _a = _b.sent();
-                        return [3, 4];
-                    case 2: return [4, response.json()];
-                    case 3:
-                        _a = _b.sent();
-                        _b.label = 4;
-                    case 4:
-                        result = _a;
-                        if (response.status >= 200 &&
-                            response.status <= 299 &&
-                            (result.result === true || result.result === api_constants/* global_constants */._y.SCORM_TRUE)) {
-                            processListeners("CommitSuccess");
-                            if (!Object.hasOwnProperty.call(result, "errorCode")) {
-                                result.errorCode = 0;
-                            }
-                        }
-                        else {
-                            processListeners("CommitError");
-                            if (!Object.hasOwnProperty.call(result, "errorCode")) {
-                                result.errorCode = this.error_codes.GENERAL;
-                            }
-                        }
-                        return [2, result];
-                }
-            });
-        });
-    };
-    HttpService.prototype.updateSettings = function (settings) {
-        this.settings = settings;
-    };
-    return HttpService;
-}());
-
-
-;// ./src/services/EventService.ts
-
-
-var EventService = (function () {
-    function EventService(apiLog) {
-        this.listenerMap = new Map();
-        this.listenerCount = 0;
-        this.apiLog = apiLog;
-    }
-    EventService.prototype.parseListenerName = function (listenerName) {
-        var listenerSplit = listenerName.split(".");
-        if (listenerSplit.length === 0)
-            return null;
-        var functionName = listenerSplit[0];
-        var CMIElement = null;
-        if (listenerSplit.length > 1) {
-            CMIElement = listenerName.replace("".concat(functionName, "."), "");
-        }
-        return { functionName: functionName, CMIElement: CMIElement };
-    };
-    EventService.prototype.on = function (listenerName, callback) {
-        var _a;
-        if (!callback)
-            return;
-        var listenerFunctions = listenerName.split(" ");
-        for (var _i = 0, listenerFunctions_1 = listenerFunctions; _i < listenerFunctions_1.length; _i++) {
-            var listenerFunction = listenerFunctions_1[_i];
-            var parsedListener = this.parseListenerName(listenerFunction);
-            if (!parsedListener)
-                continue;
-            var functionName = parsedListener.functionName, CMIElement = parsedListener.CMIElement;
-            var listeners = (_a = this.listenerMap.get(functionName)) !== null && _a !== void 0 ? _a : [];
-            listeners.push({
-                functionName: functionName,
-                CMIElement: CMIElement,
-                callback: callback,
-            });
-            this.listenerMap.set(functionName, listeners);
-            this.listenerCount++;
-            this.apiLog("on", "Added event listener: ".concat(this.listenerCount), enums/* LogLevelEnum */.Mb.INFO, functionName);
-        }
-    };
-    EventService.prototype.off = function (listenerName, callback) {
-        if (!callback)
-            return;
-        var listenerFunctions = listenerName.split(" ");
-        var _loop_1 = function (listenerFunction) {
-            var parsedListener = this_1.parseListenerName(listenerFunction);
-            if (!parsedListener)
-                return "continue";
-            var functionName = parsedListener.functionName, CMIElement = parsedListener.CMIElement;
-            var listeners = this_1.listenerMap.get(functionName);
-            if (!listeners)
-                return "continue";
-            var removeIndex = listeners.findIndex(function (obj) { return obj.CMIElement === CMIElement && obj.callback === callback; });
-            if (removeIndex !== -1) {
-                listeners.splice(removeIndex, 1);
-                this_1.listenerCount--;
-                if (listeners.length === 0) {
-                    this_1.listenerMap.delete(functionName);
-                }
-                else {
-                    this_1.listenerMap.set(functionName, listeners);
-                }
-                this_1.apiLog("off", "Removed event listener: ".concat(this_1.listenerCount), enums/* LogLevelEnum */.Mb.INFO, functionName);
-            }
-        };
-        var this_1 = this;
-        for (var _i = 0, listenerFunctions_2 = listenerFunctions; _i < listenerFunctions_2.length; _i++) {
-            var listenerFunction = listenerFunctions_2[_i];
-            _loop_1(listenerFunction);
-        }
-    };
-    EventService.prototype.clear = function (listenerName) {
-        var listenerFunctions = listenerName.split(" ");
-        var _loop_2 = function (listenerFunction) {
-            var parsedListener = this_2.parseListenerName(listenerFunction);
-            if (!parsedListener)
-                return "continue";
-            var functionName = parsedListener.functionName, CMIElement = parsedListener.CMIElement;
-            if (this_2.listenerMap.has(functionName)) {
-                var listeners = this_2.listenerMap.get(functionName);
-                var newListeners = listeners.filter(function (obj) { return obj.CMIElement !== CMIElement; });
-                this_2.listenerCount -= listeners.length - newListeners.length;
-                if (newListeners.length === 0) {
-                    this_2.listenerMap.delete(functionName);
-                }
-                else {
-                    this_2.listenerMap.set(functionName, newListeners);
-                }
-            }
-        };
-        var this_2 = this;
-        for (var _i = 0, listenerFunctions_3 = listenerFunctions; _i < listenerFunctions_3.length; _i++) {
-            var listenerFunction = listenerFunctions_3[_i];
-            _loop_2(listenerFunction);
-        }
-    };
-    EventService.prototype.processListeners = function (functionName, CMIElement, value) {
-        this.apiLog(functionName, value, enums/* LogLevelEnum */.Mb.INFO, CMIElement);
-        var listeners = this.listenerMap.get(functionName);
-        if (!listeners)
-            return;
-        for (var _i = 0, listeners_1 = listeners; _i < listeners_1.length; _i++) {
-            var listener = listeners_1[_i];
-            var listenerHasCMIElement = !!listener.CMIElement;
-            var CMIElementsMatch = false;
-            if (CMIElement && listener.CMIElement && listener.CMIElement.endsWith("*")) {
-                var prefix = listener.CMIElement.slice(0, -1);
-                CMIElementsMatch = (0,utilities/* stringMatches */.J6)(CMIElement, prefix);
-            }
-            else {
-                CMIElementsMatch = listener.CMIElement === CMIElement;
-            }
-            if (!listenerHasCMIElement || CMIElementsMatch) {
-                this.apiLog("processListeners", "Processing listener: ".concat(listener.functionName), enums/* LogLevelEnum */.Mb.DEBUG, CMIElement);
-                listener.callback(CMIElement, value);
-            }
-        }
-    };
-    EventService.prototype.reset = function () {
-        this.listenerMap.clear();
-        this.listenerCount = 0;
-    };
-    return EventService;
-}());
-
-
-;// ./src/services/SerializationService.ts
-
-
-var SerializationService = (function () {
-    function SerializationService() {
-    }
-    SerializationService.prototype.loadFromFlattenedJSON = function (json, CMIElement, setCMIValue, isNotInitialized, setStartingData) {
-        var _this = this;
-        if (CMIElement === void 0) { CMIElement = ""; }
-        if (!isNotInitialized()) {
-            console.error("loadFromFlattenedJSON can only be called before the call to lmsInitialize.");
-            return;
-        }
-        var int_pattern = /^(cmi\.interactions\.)(\d+)\.(.*)$/;
-        var obj_pattern = /^(cmi\.objectives\.)(\d+)\.(.*)$/;
-        var interactions = [];
-        var objectives = [];
-        var others = [];
-        for (var key in json) {
-            if (Object.prototype.hasOwnProperty.call(json, key)) {
-                var intMatch = key.match(int_pattern);
-                if (intMatch) {
-                    interactions.push({
-                        key: key,
-                        value: json[key],
-                        index: Number(intMatch[2]),
-                        field: intMatch[3],
-                    });
-                    continue;
-                }
-                var objMatch = key.match(obj_pattern);
-                if (objMatch) {
-                    objectives.push({
-                        key: key,
-                        value: json[key],
-                        index: Number(objMatch[2]),
-                        field: objMatch[3],
-                    });
-                    continue;
-                }
-                others.push({ key: key, value: json[key] });
-            }
-        }
-        interactions.sort(function (a, b) {
-            if (a.index !== b.index) {
-                return a.index - b.index;
-            }
-            if (a.field === "id")
-                return -1;
-            if (b.field === "id")
-                return 1;
-            if (a.field === "type")
-                return -1;
-            if (b.field === "type")
-                return 1;
-            return a.field.localeCompare(b.field);
-        });
-        objectives.sort(function (a, b) {
-            if (a.index !== b.index) {
-                return a.index - b.index;
-            }
-            if (a.field === "id")
-                return -1;
-            if (b.field === "id")
-                return 1;
-            return a.field.localeCompare(b.field);
-        });
-        others.sort(function (a, b) { return a.key.localeCompare(b.key); });
-        var processItems = function (items) {
-            items.forEach(function (item) {
-                var obj = {};
-                obj[item.key] = item.value;
-                _this.loadFromJSON((0,utilities/* unflatten */.sB)(obj), CMIElement, setCMIValue, isNotInitialized, setStartingData);
-            });
-        };
-        processItems(interactions);
-        processItems(objectives);
-        processItems(others);
-    };
-    SerializationService.prototype.loadFromJSON = function (json, CMIElement, setCMIValue, isNotInitialized, setStartingData) {
-        if (CMIElement === void 0) { CMIElement = ""; }
-        if (!isNotInitialized()) {
-            console.error("loadFromJSON can only be called before the call to lmsInitialize.");
-            return;
-        }
-        CMIElement = CMIElement !== undefined ? CMIElement : "cmi";
-        setStartingData(json);
-        for (var key in json) {
-            if (Object.prototype.hasOwnProperty.call(json, key) && json[key]) {
-                var currentCMIElement = (CMIElement ? CMIElement + "." : "") + key;
-                var value = json[key];
-                if (value.constructor === Array) {
-                    for (var i = 0; i < value.length; i++) {
-                        if (value[i]) {
-                            var item = value[i];
-                            var tempCMIElement = "".concat(currentCMIElement, ".").concat(i);
-                            if (item.constructor === Object) {
-                                this.loadFromJSON(item, tempCMIElement, setCMIValue, isNotInitialized, setStartingData);
-                            }
-                            else {
-                                setCMIValue(tempCMIElement, item);
-                            }
-                        }
-                    }
-                }
-                else if (value.constructor === Object) {
-                    this.loadFromJSON(value, currentCMIElement, setCMIValue, isNotInitialized, setStartingData);
-                }
-                else {
-                    setCMIValue(currentCMIElement, value);
-                }
-            }
-        }
-    };
-    SerializationService.prototype.renderCMIToJSONString = function (cmi, sendFullCommit) {
-        if (sendFullCommit) {
-            return JSON.stringify({ cmi: cmi });
-        }
-        return JSON.stringify({ cmi: cmi }, function (k, v) { return (v === undefined ? null : v); }, 2);
-    };
-    SerializationService.prototype.renderCMIToJSONObject = function (cmi, sendFullCommit) {
-        return JSON.parse(this.renderCMIToJSONString(cmi, sendFullCommit));
-    };
-    SerializationService.prototype.getCommitObject = function (terminateCommit, alwaysSendTotalTime, renderCommonCommitFields, renderCommitObject, renderCommitCMI, apiLogLevel) {
-        var shouldTerminateCommit = terminateCommit || alwaysSendTotalTime;
-        var commitObject = renderCommonCommitFields
-            ? renderCommitObject(shouldTerminateCommit)
-            : renderCommitCMI(shouldTerminateCommit);
-        if ([enums/* LogLevelEnum */.Mb.DEBUG, "1", 1, "DEBUG"].includes(apiLogLevel)) {
-            console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");
-            console.debug(commitObject);
-        }
-        return commitObject;
-    };
-    return SerializationService;
-}());
-
-
-// EXTERNAL MODULE: ./src/exceptions.ts
-var exceptions = __webpack_require__(784);
-// EXTERNAL MODULE: ./src/cmi/common/array.ts
-var array = __webpack_require__(589);
-;// ./src/utils/type_guards.ts
-
-
-function isValidationError(value) {
-    if (value instanceof exceptions/* ValidationError */.y) {
-        return true;
-    }
-    return (value !== null &&
-        typeof value === "object" &&
-        "errorCode" in value &&
-        "errorMessage" in value &&
-        typeof value.errorCode === "number" &&
-        typeof value.errorMessage === "string");
-}
-function isError(value) {
-    if (value instanceof Error) {
-        return true;
-    }
-    return (value !== null &&
-        typeof value === "object" &&
-        "message" in value &&
-        typeof value.message === "string" &&
-        "name" in value &&
-        typeof value.name === "string");
-}
-function isCMIArray(value) {
-    if (value instanceof array/* CMIArray */.B) {
-        return true;
-    }
-    return (value !== null &&
-        typeof value === "object" &&
-        "childArray" in value &&
-        Array.isArray(value.childArray) &&
-        "initialized" in value);
-}
-
-;// ./src/services/ErrorHandlingService.ts
-
-
-
-var ErrorHandlingService = (function () {
-    function ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails) {
-        this._lastErrorCode = "0";
-        this._errorCodes = errorCodes;
-        this._apiLog = apiLog;
-        this._getLmsErrorMessageDetails = getLmsErrorMessageDetails;
-    }
-    Object.defineProperty(ErrorHandlingService.prototype, "lastErrorCode", {
-        get: function () {
-            return this._lastErrorCode;
-        },
-        set: function (errorCode) {
-            this._lastErrorCode = errorCode;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    ErrorHandlingService.prototype.throwSCORMError = function (CMIElement, errorNumber, message) {
-        if (!message) {
-            message = this._getLmsErrorMessageDetails(errorNumber, true);
-        }
-        this._apiLog("throwSCORMError", errorNumber + ": " + message, enums/* LogLevelEnum */.Mb.ERROR, CMIElement);
-        this._lastErrorCode = String(errorNumber);
-    };
-    ErrorHandlingService.prototype.clearSCORMError = function (success) {
-        if (success !== undefined && success !== api_constants/* global_constants */._y.SCORM_FALSE) {
-            this._lastErrorCode = "0";
-        }
-    };
-    ErrorHandlingService.prototype.handleValueAccessException = function (CMIElement, e, returnValue) {
-        if (isValidationError(e)) {
-            var validationError = e;
-            this._lastErrorCode = String(validationError.errorCode);
-            returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-        }
-        else {
-            if (isError(e) && e.message) {
-                console.error(e.message);
-                this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, e.message);
-            }
-            else {
-                console.error(e);
-                this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, "Unknown error");
-            }
-        }
-        return returnValue;
-    };
-    Object.defineProperty(ErrorHandlingService.prototype, "errorCodes", {
-        get: function () {
-            return this._errorCodes;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    return ErrorHandlingService;
-}());
-
-function createErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails) {
-    return new ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails);
-}
-
-;// ./src/services/LoggingService.ts
-
-
-var LoggingService = (function () {
-    function LoggingService() {
-        this._logLevel = enums/* LogLevelEnum */.Mb.ERROR;
-        this._logHandler = defaultLogHandler;
-    }
-    LoggingService.getInstance = function () {
-        if (!LoggingService._instance) {
-            LoggingService._instance = new LoggingService();
-        }
-        return LoggingService._instance;
-    };
-    LoggingService.prototype.setLogLevel = function (level) {
-        this._logLevel = level;
-    };
-    LoggingService.prototype.getLogLevel = function () {
-        return this._logLevel;
-    };
-    LoggingService.prototype.setLogHandler = function (handler) {
-        this._logHandler = handler;
-    };
-    LoggingService.prototype.log = function (messageLevel, logMessage) {
-        if (this.shouldLog(messageLevel)) {
-            this._logHandler(messageLevel, logMessage);
-        }
-    };
-    LoggingService.prototype.error = function (logMessage) {
-        this.log(enums/* LogLevelEnum */.Mb.ERROR, logMessage);
-    };
-    LoggingService.prototype.warn = function (logMessage) {
-        this.log(enums/* LogLevelEnum */.Mb.WARN, logMessage);
-    };
-    LoggingService.prototype.info = function (logMessage) {
-        this.log(enums/* LogLevelEnum */.Mb.INFO, logMessage);
-    };
-    LoggingService.prototype.debug = function (logMessage) {
-        this.log(enums/* LogLevelEnum */.Mb.DEBUG, logMessage);
-    };
-    LoggingService.prototype.shouldLog = function (messageLevel) {
-        var numericMessageLevel = this.getNumericLevel(messageLevel);
-        var numericLogLevel = this.getNumericLevel(this._logLevel);
-        return numericMessageLevel >= numericLogLevel;
-    };
-    LoggingService.prototype.getNumericLevel = function (level) {
-        if (level === undefined)
-            return enums/* LogLevelEnum */.Mb.NONE;
-        if (typeof level === "number")
-            return level;
-        switch (level) {
-            case "1":
-            case "DEBUG":
-                return enums/* LogLevelEnum */.Mb.DEBUG;
-            case "2":
-            case "INFO":
-                return enums/* LogLevelEnum */.Mb.INFO;
-            case "3":
-            case "WARN":
-                return enums/* LogLevelEnum */.Mb.WARN;
-            case "4":
-            case "ERROR":
-                return enums/* LogLevelEnum */.Mb.ERROR;
-            case "5":
-            case "NONE":
-                return enums/* LogLevelEnum */.Mb.NONE;
-            default:
-                return enums/* LogLevelEnum */.Mb.ERROR;
-        }
-    };
-    return LoggingService;
-}());
-
-function getLoggingService() {
-    return LoggingService.getInstance();
-}
-
-;// ./src/BaseAPI.ts
-
-
-
-
-
-
-
-
-
-
-
-
-var BaseAPI = (function () {
-    function BaseAPI(error_codes, settings, httpService, eventService, serializationService, cmiDataService, errorHandlingService, loggingService) {
-        var _newTarget = this.constructor;
-        var _this = this;
-        this._settings = DefaultSettings;
-        if (_newTarget === BaseAPI) {
-            throw new TypeError("Cannot construct BaseAPI instances directly");
-        }
-        this.currentState = api_constants/* global_constants */._y.STATE_NOT_INITIALIZED;
-        this._error_codes = error_codes;
-        if (settings) {
-            this.settings = settings;
-        }
-        this.apiLogLevel = this.settings.logLevel;
-        this.selfReportSessionTime = this.settings.selfReportSessionTime;
-        if (this.apiLogLevel === undefined) {
-            this.apiLogLevel = enums/* LogLevelEnum */.Mb.NONE;
-        }
-        this._loggingService = loggingService || getLoggingService();
-        this._loggingService.setLogLevel(this.apiLogLevel);
-        if (this.settings.onLogMessage) {
-            this._loggingService.setLogHandler(this.settings.onLogMessage);
-        }
-        this._httpService = httpService || new HttpService(this.settings, this._error_codes);
-        this._eventService =
-            eventService ||
-                new EventService(function (functionName, message, level, element) {
-                    return _this.apiLog(functionName, message, level, element);
-                });
-        this._serializationService = serializationService || new SerializationService();
-        this._errorHandlingService =
-            errorHandlingService ||
-                createErrorHandlingService(this._error_codes, function (functionName, message, level, element) {
-                    return _this.apiLog(functionName, message, level, element);
-                }, function (errorNumber, detail) { return _this.getLmsErrorMessageDetails(errorNumber, detail); });
-    }
-    Object.defineProperty(BaseAPI.prototype, "lastErrorCode", {
-        get: function () {
-            var _a, _b;
-            return (_b = (_a = this._errorHandlingService) === null || _a === void 0 ? void 0 : _a.lastErrorCode) !== null && _b !== void 0 ? _b : "0";
-        },
-        set: function (errorCode) {
-            if (this._errorHandlingService) {
-                this._errorHandlingService.lastErrorCode = errorCode;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    BaseAPI.prototype.commonReset = function (settings) {
-        this.apiLog("reset", "Called", enums/* LogLevelEnum */.Mb.INFO);
-        this.settings = (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, this.settings), settings);
-        this.clearScheduledCommit();
-        this.currentState = api_constants/* global_constants */._y.STATE_NOT_INITIALIZED;
-        this.lastErrorCode = "0";
-        this._eventService.reset();
-        this.startingData = undefined;
-    };
-    BaseAPI.prototype.initialize = function (callbackName, initializeMessage, terminationMessage) {
-        var returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-        if (this.isInitialized()) {
-            this.throwSCORMError("api", this._error_codes.INITIALIZED, initializeMessage);
-        }
-        else if (this.isTerminated()) {
-            this.throwSCORMError("api", this._error_codes.TERMINATED, terminationMessage);
-        }
-        else {
-            if (this.selfReportSessionTime) {
-                this.cmi.setStartTime();
-            }
-            this.currentState = api_constants/* global_constants */._y.STATE_INITIALIZED;
-            this.lastErrorCode = "0";
-            returnValue = api_constants/* global_constants */._y.SCORM_TRUE;
-            this.processListeners(callbackName);
-        }
-        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
-        this.clearSCORMError(returnValue);
-        return returnValue;
-    };
-    BaseAPI.prototype.apiLog = function (functionName, logMessage, messageLevel, CMIElement) {
-        logMessage = (0,utilities/* formatMessage */.hw)(functionName, logMessage, CMIElement);
-        if (messageLevel >= this.apiLogLevel) {
-            this._loggingService.log(messageLevel, logMessage);
-            if (this.settings.onLogMessage &&
-                this.settings.onLogMessage !== this._loggingService["_logHandler"]) {
-                this.settings.onLogMessage(messageLevel, logMessage);
-            }
-        }
-    };
-    Object.defineProperty(BaseAPI.prototype, "error_codes", {
-        get: function () {
-            return this._error_codes;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(BaseAPI.prototype, "settings", {
-        get: function () {
-            return this._settings;
-        },
-        set: function (settings) {
-            var _a, _b, _c;
-            var previousSettings = this._settings;
-            this._settings = (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, this._settings), settings);
-            (_a = this._httpService) === null || _a === void 0 ? void 0 : _a.updateSettings(this._settings);
-            if (settings.logLevel !== undefined && settings.logLevel !== previousSettings.logLevel) {
-                this.apiLogLevel = settings.logLevel;
-                (_b = this._loggingService) === null || _b === void 0 ? void 0 : _b.setLogLevel(settings.logLevel);
-            }
-            if (settings.onLogMessage !== undefined &&
-                settings.onLogMessage !== previousSettings.onLogMessage) {
-                (_c = this._loggingService) === null || _c === void 0 ? void 0 : _c.setLogHandler(settings.onLogMessage);
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    BaseAPI.prototype.terminate = function (callbackName, checkTerminated) {
-        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
-            var returnValue, result;
-            var _a, _b;
-            return (0,tslib_es6/* __generator */.YH)(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-                        if (!this.checkState(checkTerminated, this._error_codes.TERMINATION_BEFORE_INIT, this._error_codes.MULTIPLE_TERMINATION)) return [3, 2];
-                        this.currentState = api_constants/* global_constants */._y.STATE_TERMINATED;
-                        return [4, this.storeData(true)];
-                    case 1:
-                        result = _c.sent();
-                        if (((_a = result.errorCode) !== null && _a !== void 0 ? _a : 0) > 0) {
-                            this.throwSCORMError("api", result.errorCode);
-                        }
-                        returnValue = (_b = result === null || result === void 0 ? void 0 : result.result) !== null && _b !== void 0 ? _b : api_constants/* global_constants */._y.SCORM_FALSE;
-                        if (checkTerminated)
-                            this.lastErrorCode = "0";
-                        returnValue = api_constants/* global_constants */._y.SCORM_TRUE;
-                        this.processListeners(callbackName);
-                        _c.label = 2;
-                    case 2:
-                        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
-                        this.clearSCORMError(returnValue);
-                        return [2, returnValue];
-                }
-            });
-        });
-    };
-    BaseAPI.prototype.getValue = function (callbackName, checkTerminated, CMIElement) {
-        var returnValue = "";
-        if (this.checkState(checkTerminated, this._error_codes.RETRIEVE_BEFORE_INIT, this._error_codes.RETRIEVE_AFTER_TERM)) {
-            try {
-                returnValue = this.getCMIValue(CMIElement);
-            }
-            catch (e) {
-                returnValue = this.handleValueAccessException(CMIElement, e, returnValue);
-            }
-            this.processListeners(callbackName, CMIElement);
-        }
-        this.apiLog(callbackName, ": returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO, CMIElement);
-        if (returnValue === undefined) {
-            return "";
-        }
-        if (this.lastErrorCode === "0") {
-            this.clearSCORMError(returnValue);
-        }
-        return returnValue;
-    };
-    BaseAPI.prototype.setValue = function (callbackName, commitCallback, checkTerminated, CMIElement, value) {
-        if (value !== undefined) {
-            value = String(value);
-        }
-        var returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-        if (this.checkState(checkTerminated, this._error_codes.STORE_BEFORE_INIT, this._error_codes.STORE_AFTER_TERM)) {
-            try {
-                returnValue = this.setCMIValue(CMIElement, value);
-            }
-            catch (e) {
-                returnValue = this.handleValueAccessException(CMIElement, e, returnValue);
-            }
-            this.processListeners(callbackName, CMIElement, value);
-        }
-        if (returnValue === undefined) {
-            returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-        }
-        if (String(this.lastErrorCode) === "0") {
-            if (this.settings.autocommit) {
-                this.scheduleCommit(this.settings.autocommitSeconds * 1000, commitCallback);
-            }
-        }
-        this.apiLog(callbackName, ": " + value + ": result: " + returnValue, enums/* LogLevelEnum */.Mb.INFO, CMIElement);
-        if (this.lastErrorCode === "0") {
-            this.clearSCORMError(returnValue);
-        }
-        return returnValue;
-    };
-    BaseAPI.prototype.commit = function (callbackName_1) {
-        return (0,tslib_es6/* __awaiter */.sH)(this, arguments, void 0, function (callbackName, checkTerminated) {
-            var returnValue, result;
-            var _a, _b;
-            if (checkTerminated === void 0) { checkTerminated = false; }
-            return (0,tslib_es6/* __generator */.YH)(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        this.clearScheduledCommit();
-                        returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-                        if (!this.checkState(checkTerminated, this._error_codes.COMMIT_BEFORE_INIT, this._error_codes.COMMIT_AFTER_TERM)) return [3, 2];
-                        return [4, this.storeData(false)];
-                    case 1:
-                        result = _c.sent();
-                        if (((_a = result.errorCode) !== null && _a !== void 0 ? _a : 0) > 0) {
-                            this.throwSCORMError("api", result.errorCode);
-                        }
-                        returnValue = (_b = result === null || result === void 0 ? void 0 : result.result) !== null && _b !== void 0 ? _b : api_constants/* global_constants */._y.SCORM_FALSE;
-                        this.apiLog(callbackName, " Result: " + returnValue, enums/* LogLevelEnum */.Mb.DEBUG, "HttpRequest");
-                        if (checkTerminated)
-                            this.lastErrorCode = "0";
-                        this.processListeners(callbackName);
-                        _c.label = 2;
-                    case 2:
-                        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
-                        if (this.lastErrorCode === "0") {
-                            this.clearSCORMError(returnValue);
-                        }
-                        return [2, returnValue];
-                }
-            });
-        });
-    };
-    BaseAPI.prototype.getLastError = function (callbackName) {
-        var returnValue = String(this.lastErrorCode);
-        this.processListeners(callbackName);
-        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
-        return returnValue;
-    };
-    BaseAPI.prototype.getErrorString = function (callbackName, CMIErrorCode) {
-        var returnValue = "";
-        if (CMIErrorCode !== null && CMIErrorCode !== "") {
-            returnValue = this.getLmsErrorMessageDetails(CMIErrorCode);
-            this.processListeners(callbackName);
-        }
-        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
-        return returnValue;
-    };
-    BaseAPI.prototype.getDiagnostic = function (callbackName, CMIErrorCode) {
-        var returnValue = "";
-        if (CMIErrorCode !== null && CMIErrorCode !== "") {
-            returnValue = this.getLmsErrorMessageDetails(CMIErrorCode, true);
-            this.processListeners(callbackName);
-        }
-        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
-        return returnValue;
-    };
-    BaseAPI.prototype.checkState = function (checkTerminated, beforeInitError, afterTermError) {
-        if (this.isNotInitialized()) {
-            this.throwSCORMError("api", beforeInitError);
-            return false;
-        }
-        else if (checkTerminated && this.isTerminated()) {
-            this.throwSCORMError("api", afterTermError);
-            return false;
-        }
-        return true;
-    };
-    BaseAPI.prototype.getLmsErrorMessageDetails = function (_errorNumber, _detail) {
-        if (_detail === void 0) { _detail = false; }
-        throw new Error("The getLmsErrorMessageDetails method has not been implemented");
-    };
-    BaseAPI.prototype.getCMIValue = function (_CMIElement) {
-        throw new Error("The getCMIValue method has not been implemented");
-    };
-    BaseAPI.prototype.setCMIValue = function (_CMIElement, _value) {
-        throw new Error("The setCMIValue method has not been implemented");
-    };
-    BaseAPI.prototype._commonSetCMIValue = function (methodName, scorm2004, CMIElement, value) {
-        if (!CMIElement || CMIElement === "") {
-            return api_constants/* global_constants */._y.SCORM_FALSE;
-        }
-        this.lastErrorCode = "0";
-        var structure = CMIElement.split(".");
-        var refObject = this;
-        var returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-        var foundFirstIndex = false;
-        var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
-        var invalidErrorCode = scorm2004
-            ? this._error_codes.UNDEFINED_DATA_MODEL
-            : this._error_codes.GENERAL;
-        for (var idx = 0; idx < structure.length; idx++) {
-            var attribute = structure[idx];
-            if (idx === structure.length - 1) {
-                if (scorm2004 && attribute.substring(0, 8) === "{target=") {
-                    if (this.isInitialized()) {
-                        this.throwSCORMError(CMIElement, this._error_codes.READ_ONLY_ELEMENT);
-                        break;
-                    }
-                    else {
-                        refObject = (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, refObject), { attribute: value });
-                    }
-                }
-                else if (!this._checkObjectHasProperty(refObject, attribute)) {
-                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-                    break;
-                }
-                else {
-                    if ((0,utilities/* stringMatches */.J6)(CMIElement, "\\.correct_responses\\.\\d+$") &&
-                        this.isInitialized() &&
-                        attribute !== "pattern") {
-                        this.validateCorrectResponse(CMIElement, value);
-                        if (this.lastErrorCode !== "0") {
-                            this.throwSCORMError(CMIElement, this._error_codes.TYPE_MISMATCH);
-                            break;
-                        }
-                    }
-                    if (!scorm2004 || this._errorHandlingService.lastErrorCode === "0") {
-                        refObject[attribute] = value;
-                        returnValue = api_constants/* global_constants */._y.SCORM_TRUE;
-                    }
-                }
-            }
-            else {
-                refObject = refObject[attribute];
-                if (!refObject) {
-                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-                    break;
-                }
-                if (isCMIArray(refObject)) {
-                    var index = parseInt(structure[idx + 1], 10);
-                    if (!isNaN(index)) {
-                        var item = refObject.childArray[index];
-                        if (item) {
-                            refObject = item;
-                            foundFirstIndex = true;
-                        }
-                        else {
-                            var newChild = this.getChildElement(CMIElement, value, foundFirstIndex);
-                            foundFirstIndex = true;
-                            if (!newChild) {
-                                if (this.lastErrorCode === "0") {
-                                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-                                }
-                                break;
-                            }
-                            else {
-                                if (refObject.initialized)
-                                    newChild.initialize();
-                                refObject.childArray[index] = newChild;
-                                refObject = newChild;
-                            }
-                        }
-                        idx++;
-                    }
-                }
-            }
-        }
-        if (returnValue === api_constants/* global_constants */._y.SCORM_FALSE) {
-            this.apiLog(methodName, "There was an error setting the value for: ".concat(CMIElement, ", value of: ").concat(value), enums/* LogLevelEnum */.Mb.WARN);
-        }
-        return returnValue;
-    };
-    BaseAPI.prototype._commonGetCMIValue = function (methodName, scorm2004, CMIElement) {
-        if (!CMIElement || CMIElement === "") {
-            return "";
-        }
-        var structure = CMIElement.split(".");
-        var refObject = this;
-        var attribute = null;
-        var uninitializedErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") has not been initialized.");
-        var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
-        var invalidErrorCode = scorm2004
-            ? this._error_codes.UNDEFINED_DATA_MODEL
-            : this._error_codes.GENERAL;
-        for (var idx = 0; idx < structure.length; idx++) {
-            attribute = structure[idx];
-            if (!scorm2004) {
-                if (idx === structure.length - 1) {
-                    if (!this._checkObjectHasProperty(refObject, attribute)) {
-                        this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-                        return;
-                    }
-                }
-            }
-            else {
-                if (String(attribute).substring(0, 8) === "{target=" &&
-                    typeof refObject._isTargetValid == "function") {
-                    var target = String(attribute).substring(8, String(attribute).length - 9);
-                    return refObject._isTargetValid(target);
-                }
-                else if (!this._checkObjectHasProperty(refObject, attribute)) {
-                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-                    return;
-                }
-            }
-            refObject = refObject[attribute];
-            if (refObject === undefined) {
-                this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-                break;
-            }
-            if (isCMIArray(refObject)) {
-                var index = parseInt(structure[idx + 1], 10);
-                if (!isNaN(index)) {
-                    var item = refObject.childArray[index];
-                    if (item) {
-                        refObject = item;
-                    }
-                    else {
-                        this.throwSCORMError(CMIElement, this._error_codes.VALUE_NOT_INITIALIZED, uninitializedErrorMessage);
-                        break;
-                    }
-                    idx++;
-                }
-            }
-        }
-        if (refObject === null || refObject === undefined) {
-            if (!scorm2004) {
-                if (attribute === "_children") {
-                    this.throwSCORMError(CMIElement, this._error_codes.CHILDREN_ERROR, undefined);
-                }
-                else if (attribute === "_count") {
-                    this.throwSCORMError(CMIElement, this._error_codes.COUNT_ERROR, undefined);
-                }
-            }
-        }
-        else {
-            return refObject;
-        }
-    };
-    BaseAPI.prototype.isInitialized = function () {
-        return this.currentState === api_constants/* global_constants */._y.STATE_INITIALIZED;
-    };
-    BaseAPI.prototype.isNotInitialized = function () {
-        return this.currentState === api_constants/* global_constants */._y.STATE_NOT_INITIALIZED;
-    };
-    BaseAPI.prototype.isTerminated = function () {
-        return this.currentState === api_constants/* global_constants */._y.STATE_TERMINATED;
-    };
-    BaseAPI.prototype.on = function (listenerName, callback) {
-        this._eventService.on(listenerName, callback);
-    };
-    BaseAPI.prototype.off = function (listenerName, callback) {
-        this._eventService.off(listenerName, callback);
-    };
-    BaseAPI.prototype.clear = function (listenerName) {
-        this._eventService.clear(listenerName);
-    };
-    BaseAPI.prototype.processListeners = function (functionName, CMIElement, value) {
-        this._eventService.processListeners(functionName, CMIElement, value);
-    };
-    BaseAPI.prototype.throwSCORMError = function (CMIElement, errorNumber, message) {
-        this._errorHandlingService.throwSCORMError(CMIElement, errorNumber, message);
-    };
-    BaseAPI.prototype.clearSCORMError = function (success) {
-        this._errorHandlingService.clearSCORMError(success);
-    };
-    BaseAPI.prototype.loadFromFlattenedJSON = function (json, CMIElement) {
-        var _this = this;
-        if (!CMIElement) {
-            CMIElement = "";
-        }
-        this._serializationService.loadFromFlattenedJSON(json, CMIElement, function (CMIElement, value) { return _this.setCMIValue(CMIElement, value); }, function () { return _this.isNotInitialized(); }, function (data) {
-            _this.startingData = data;
-        });
-    };
-    BaseAPI.prototype.loadFromJSON = function (json, CMIElement) {
-        var _this = this;
-        if (CMIElement === void 0) { CMIElement = ""; }
-        this._serializationService.loadFromJSON(json, CMIElement, function (CMIElement, value) { return _this.setCMIValue(CMIElement, value); }, function () { return _this.isNotInitialized(); }, function (data) {
-            _this.startingData = data;
-        });
-    };
-    BaseAPI.prototype.renderCMIToJSONString = function () {
-        return this._serializationService.renderCMIToJSONString(this.cmi, this.settings.sendFullCommit);
-    };
-    BaseAPI.prototype.renderCMIToJSONObject = function () {
-        return this._serializationService.renderCMIToJSONObject(this.cmi, this.settings.sendFullCommit);
-    };
-    BaseAPI.prototype.processHttpRequest = function (url_1, params_1) {
-        return (0,tslib_es6/* __awaiter */.sH)(this, arguments, void 0, function (url, params, immediate) {
-            var _this = this;
-            if (immediate === void 0) { immediate = false; }
-            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                return [2, this._httpService.processHttpRequest(url, params, immediate, function (functionName, message, level, element) { return _this.apiLog(functionName, message, level, element); }, function (functionName, CMIElement, value) { return _this.processListeners(functionName, CMIElement, value); })];
-            });
-        });
-    };
-    BaseAPI.prototype.scheduleCommit = function (when, callback) {
-        if (!this._timeout) {
-            this._timeout = new ScheduledCommit(this, when, callback);
-            this.apiLog("scheduleCommit", "scheduled", enums/* LogLevelEnum */.Mb.DEBUG, "");
-        }
-    };
-    BaseAPI.prototype.clearScheduledCommit = function () {
-        if (this._timeout) {
-            this._timeout.cancel();
-            this._timeout = undefined;
-            this.apiLog("clearScheduledCommit", "cleared", enums/* LogLevelEnum */.Mb.DEBUG, "");
-        }
-    };
-    BaseAPI.prototype._checkObjectHasProperty = function (StringKeyMap, attribute) {
-        return (Object.hasOwnProperty.call(StringKeyMap, attribute) ||
-            Object.getOwnPropertyDescriptor(Object.getPrototypeOf(StringKeyMap), attribute) != null ||
-            attribute in StringKeyMap);
-    };
-    BaseAPI.prototype.handleValueAccessException = function (CMIElement, e, returnValue) {
-        if (isValidationError(e)) {
-            this.lastErrorCode = String(e.errorCode);
-            returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-            this.throwSCORMError(CMIElement, e.errorCode, e.errorMessage);
-        }
-        else {
-            if (isError(e) && e.message) {
-                console.error(e.message);
-                this.throwSCORMError(CMIElement, this._error_codes.GENERAL, e.message);
-            }
-            else {
-                console.error(e);
-                this.throwSCORMError(CMIElement, this._error_codes.GENERAL, "Unknown error");
-            }
-        }
-        return returnValue;
-    };
-    BaseAPI.prototype.getCommitObject = function (terminateCommit) {
-        var _this = this;
-        return this._serializationService.getCommitObject(terminateCommit, this.settings.alwaysSendTotalTime, this.settings.renderCommonCommitFields, function (terminateCommit) { return _this.renderCommitObject(terminateCommit); }, function (terminateCommit) { return _this.renderCommitCMI(terminateCommit); }, this.apiLogLevel);
-    };
-    return BaseAPI;
-}());
-/* harmony default export */ var src_BaseAPI = (BaseAPI);
-
-
-/***/ }),
-
 /***/ 417:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
@@ -2643,6 +1375,1251 @@ function __disposeResources(env) {
   __addDisposableResource,
   __disposeResources,
 });
+
+
+/***/ }),
+
+/***/ 672:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+
+// EXPORTS
+__webpack_require__.d(__webpack_exports__, {
+  A: function() { return /* binding */ src_BaseAPI; }
+});
+
+// EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
+var tslib_es6 = __webpack_require__(635);
+// EXTERNAL MODULE: ./src/constants/api_constants.ts
+var api_constants = __webpack_require__(340);
+// EXTERNAL MODULE: ./src/utilities.ts
+var utilities = __webpack_require__(864);
+// EXTERNAL MODULE: ./src/constants/enums.ts
+var enums = __webpack_require__(56);
+;// ./src/constants/default_settings.ts
+
+
+
+var DefaultSettings = {
+    autocommit: false,
+    autocommitSeconds: 10,
+    asyncCommit: false,
+    sendFullCommit: true,
+    lmsCommitUrl: false,
+    dataCommitFormat: "json",
+    commitRequestDataType: "application/json;charset=UTF-8",
+    autoProgress: false,
+    logLevel: enums/* LogLevelEnum */.Mb.ERROR,
+    selfReportSessionTime: false,
+    alwaysSendTotalTime: false,
+    renderCommonCommitFields: false,
+    strict_errors: true,
+    xhrHeaders: {},
+    xhrWithCredentials: false,
+    fetchMode: "cors",
+    responseHandler: function (response) {
+        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
+            var responseText, httpResult;
+            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!(typeof response !== "undefined")) return [3, 2];
+                        return [4, response.text()];
+                    case 1:
+                        responseText = _a.sent();
+                        httpResult = null;
+                        if (responseText) {
+                            httpResult = JSON.parse(responseText);
+                        }
+                        if (httpResult === null || !{}.hasOwnProperty.call(httpResult, "result")) {
+                            if (response.status === 200) {
+                                return [2, {
+                                        result: api_constants/* global_constants */._y.SCORM_TRUE,
+                                        errorCode: 0,
+                                    }];
+                            }
+                            else {
+                                return [2, {
+                                        result: api_constants/* global_constants */._y.SCORM_FALSE,
+                                        errorCode: 101,
+                                    }];
+                            }
+                        }
+                        else {
+                            return [2, {
+                                    result: httpResult.result,
+                                    errorCode: httpResult.errorCode
+                                        ? httpResult.errorCode
+                                        : httpResult.result === api_constants/* global_constants */._y.SCORM_TRUE
+                                            ? 0
+                                            : 101,
+                                }];
+                        }
+                        _a.label = 2;
+                    case 2: return [2, {
+                            result: api_constants/* global_constants */._y.SCORM_FALSE,
+                            errorCode: 101,
+                        }];
+                }
+            });
+        });
+    },
+    requestHandler: function (commitObject) {
+        return commitObject;
+    },
+    onLogMessage: defaultLogHandler,
+    scoItemIds: [],
+    scoItemIdValidator: false,
+    globalObjectiveIds: [],
+};
+function defaultLogHandler(messageLevel, logMessage) {
+    switch (messageLevel) {
+        case "4":
+        case 4:
+        case "ERROR":
+        case enums/* LogLevelEnum */.Mb.ERROR:
+            console.error(logMessage);
+            break;
+        case "3":
+        case 3:
+        case "WARN":
+        case enums/* LogLevelEnum */.Mb.WARN:
+            console.warn(logMessage);
+            break;
+        case "2":
+        case 2:
+        case "INFO":
+        case enums/* LogLevelEnum */.Mb.INFO:
+            console.info(logMessage);
+            break;
+        case "1":
+        case 1:
+        case "DEBUG":
+        case enums/* LogLevelEnum */.Mb.DEBUG:
+            if (console.debug) {
+                console.debug(logMessage);
+            }
+            else {
+                console.log(logMessage);
+            }
+            break;
+    }
+}
+
+;// ./src/helpers/scheduled_commit.ts
+
+var ScheduledCommit = (function () {
+    function ScheduledCommit(API, when, callback) {
+        this._cancelled = false;
+        this._API = API;
+        this._timeout = setTimeout(this.wrapper.bind(this), when);
+        this._callback = callback;
+    }
+    ScheduledCommit.prototype.cancel = function () {
+        this._cancelled = true;
+        if (this._timeout) {
+            clearTimeout(this._timeout);
+        }
+    };
+    ScheduledCommit.prototype.wrapper = function () {
+        var _this = this;
+        if (!this._cancelled) {
+            (function () { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () { return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4, this._API.commit(this._callback)];
+                    case 1: return [2, _a.sent()];
+                }
+            }); }); })();
+        }
+    };
+    return ScheduledCommit;
+}());
+
+
+;// ./src/services/HttpService.ts
+
+
+
+var HttpService = (function () {
+    function HttpService(settings, error_codes) {
+        this.settings = settings;
+        this.error_codes = error_codes;
+    }
+    HttpService.prototype.processHttpRequest = function (url_1, params_1) {
+        return (0,tslib_es6/* __awaiter */.sH)(this, arguments, void 0, function (url, params, immediate, apiLog, processListeners) {
+            var genericError, process;
+            var _this = this;
+            if (immediate === void 0) { immediate = false; }
+            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        genericError = {
+                            result: api_constants/* global_constants */._y.SCORM_FALSE,
+                            errorCode: this.error_codes.GENERAL,
+                        };
+                        if (immediate) {
+                            this.performFetch(url, params).then(function (response) { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () {
+                                return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
+                                    switch (_a.label) {
+                                        case 0: return [4, this.transformResponse(response, processListeners)];
+                                        case 1:
+                                            _a.sent();
+                                            return [2];
+                                    }
+                                });
+                            }); });
+                            return [2, {
+                                    result: api_constants/* global_constants */._y.SCORM_TRUE,
+                                    errorCode: 0,
+                                }];
+                        }
+                        process = function (url, params, settings) { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () {
+                            var response, e_1;
+                            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        _a.trys.push([0, 2, , 3]);
+                                        params = settings.requestHandler(params);
+                                        return [4, this.performFetch(url, params)];
+                                    case 1:
+                                        response = _a.sent();
+                                        return [2, this.transformResponse(response, processListeners)];
+                                    case 2:
+                                        e_1 = _a.sent();
+                                        apiLog("processHttpRequest", e_1, enums/* LogLevelEnum */.Mb.ERROR);
+                                        processListeners("CommitError");
+                                        return [2, genericError];
+                                    case 3: return [2];
+                                }
+                            });
+                        }); };
+                        return [4, process(url, params, this.settings)];
+                    case 1: return [2, _a.sent()];
+                }
+            });
+        });
+    };
+    HttpService.prototype.performFetch = function (url, params) {
+        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
+            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
+                return [2, fetch(url, {
+                        method: "POST",
+                        mode: this.settings.fetchMode,
+                        body: params instanceof Array ? params.join("&") : JSON.stringify(params),
+                        headers: (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, this.settings.xhrHeaders), { "Content-Type": this.settings.commitRequestDataType }),
+                        credentials: this.settings.xhrWithCredentials ? "include" : undefined,
+                        keepalive: true,
+                    })];
+            });
+        });
+    };
+    HttpService.prototype.transformResponse = function (response, processListeners) {
+        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
+            var result, _a;
+            return (0,tslib_es6/* __generator */.YH)(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        if (!(typeof this.settings.responseHandler === "function")) return [3, 2];
+                        return [4, this.settings.responseHandler(response)];
+                    case 1:
+                        _a = _b.sent();
+                        return [3, 4];
+                    case 2: return [4, response.json()];
+                    case 3:
+                        _a = _b.sent();
+                        _b.label = 4;
+                    case 4:
+                        result = _a;
+                        if (response.status >= 200 &&
+                            response.status <= 299 &&
+                            (result.result === true || result.result === api_constants/* global_constants */._y.SCORM_TRUE)) {
+                            processListeners("CommitSuccess");
+                            if (!Object.hasOwnProperty.call(result, "errorCode")) {
+                                result.errorCode = 0;
+                            }
+                        }
+                        else {
+                            if (!Object.hasOwnProperty.call(result, "errorCode")) {
+                                result.errorCode = this.error_codes.GENERAL;
+                            }
+                            processListeners("CommitError", null, result.errorCode);
+                        }
+                        return [2, result];
+                }
+            });
+        });
+    };
+    HttpService.prototype.updateSettings = function (settings) {
+        this.settings = settings;
+    };
+    return HttpService;
+}());
+
+
+;// ./src/services/EventService.ts
+
+var EventService = (function () {
+    function EventService(apiLog) {
+        this.listenerMap = new Map();
+        this.listenerCount = 0;
+        this.apiLog = apiLog;
+    }
+    EventService.prototype.parseListenerName = function (listenerName) {
+        var listenerSplit = listenerName.split(".");
+        if (listenerSplit.length === 0)
+            return null;
+        var functionName = listenerSplit[0];
+        var CMIElement = null;
+        if (listenerSplit.length > 1) {
+            CMIElement = listenerName.replace("".concat(functionName, "."), "");
+        }
+        return { functionName: functionName, CMIElement: CMIElement };
+    };
+    EventService.prototype.on = function (listenerName, callback) {
+        var _a;
+        if (!callback)
+            return;
+        var listenerFunctions = listenerName.split(" ");
+        for (var _i = 0, listenerFunctions_1 = listenerFunctions; _i < listenerFunctions_1.length; _i++) {
+            var listenerFunction = listenerFunctions_1[_i];
+            var parsedListener = this.parseListenerName(listenerFunction);
+            if (!parsedListener)
+                continue;
+            var functionName = parsedListener.functionName, CMIElement = parsedListener.CMIElement;
+            var listeners = (_a = this.listenerMap.get(functionName)) !== null && _a !== void 0 ? _a : [];
+            listeners.push({
+                functionName: functionName,
+                CMIElement: CMIElement,
+                callback: callback,
+            });
+            this.listenerMap.set(functionName, listeners);
+            this.listenerCount++;
+            this.apiLog("on", "Added event listener: ".concat(this.listenerCount), enums/* LogLevelEnum */.Mb.INFO, functionName);
+        }
+    };
+    EventService.prototype.off = function (listenerName, callback) {
+        if (!callback)
+            return;
+        var listenerFunctions = listenerName.split(" ");
+        var _loop_1 = function (listenerFunction) {
+            var parsedListener = this_1.parseListenerName(listenerFunction);
+            if (!parsedListener)
+                return "continue";
+            var functionName = parsedListener.functionName, CMIElement = parsedListener.CMIElement;
+            var listeners = this_1.listenerMap.get(functionName);
+            if (!listeners)
+                return "continue";
+            var removeIndex = listeners.findIndex(function (obj) { return obj.CMIElement === CMIElement && obj.callback === callback; });
+            if (removeIndex !== -1) {
+                listeners.splice(removeIndex, 1);
+                this_1.listenerCount--;
+                if (listeners.length === 0) {
+                    this_1.listenerMap.delete(functionName);
+                }
+                else {
+                    this_1.listenerMap.set(functionName, listeners);
+                }
+                this_1.apiLog("off", "Removed event listener: ".concat(this_1.listenerCount), enums/* LogLevelEnum */.Mb.INFO, functionName);
+            }
+        };
+        var this_1 = this;
+        for (var _i = 0, listenerFunctions_2 = listenerFunctions; _i < listenerFunctions_2.length; _i++) {
+            var listenerFunction = listenerFunctions_2[_i];
+            _loop_1(listenerFunction);
+        }
+    };
+    EventService.prototype.clear = function (listenerName) {
+        var listenerFunctions = listenerName.split(" ");
+        var _loop_2 = function (listenerFunction) {
+            var parsedListener = this_2.parseListenerName(listenerFunction);
+            if (!parsedListener)
+                return "continue";
+            var functionName = parsedListener.functionName, CMIElement = parsedListener.CMIElement;
+            if (this_2.listenerMap.has(functionName)) {
+                var listeners = this_2.listenerMap.get(functionName);
+                var newListeners = listeners.filter(function (obj) { return obj.CMIElement !== CMIElement; });
+                this_2.listenerCount -= listeners.length - newListeners.length;
+                if (newListeners.length === 0) {
+                    this_2.listenerMap.delete(functionName);
+                }
+                else {
+                    this_2.listenerMap.set(functionName, newListeners);
+                }
+            }
+        };
+        var this_2 = this;
+        for (var _i = 0, listenerFunctions_3 = listenerFunctions; _i < listenerFunctions_3.length; _i++) {
+            var listenerFunction = listenerFunctions_3[_i];
+            _loop_2(listenerFunction);
+        }
+    };
+    EventService.prototype.processListeners = function (functionName, CMIElement, value) {
+        this.apiLog(functionName, value, enums/* LogLevelEnum */.Mb.INFO, CMIElement);
+        var listeners = this.listenerMap.get(functionName);
+        if (!listeners)
+            return;
+        for (var _i = 0, listeners_1 = listeners; _i < listeners_1.length; _i++) {
+            var listener = listeners_1[_i];
+            var listenerHasCMIElement = !!listener.CMIElement;
+            var CMIElementsMatch = false;
+            if (CMIElement && listener.CMIElement) {
+                if (listener.CMIElement.endsWith("*")) {
+                    var prefix = listener.CMIElement.slice(0, -1);
+                    CMIElementsMatch = CMIElement.startsWith(prefix);
+                }
+                else {
+                    CMIElementsMatch = listener.CMIElement === CMIElement;
+                }
+            }
+            if (!listenerHasCMIElement || CMIElementsMatch) {
+                this.apiLog("processListeners", "Processing listener: ".concat(listener.functionName), enums/* LogLevelEnum */.Mb.DEBUG, CMIElement);
+                if (functionName.startsWith("Sequence")) {
+                    listener.callback(value);
+                }
+                else if (functionName === "CommitError") {
+                    listener.callback(value);
+                }
+                else if (functionName === "CommitSuccess") {
+                    listener.callback();
+                }
+                else {
+                    listener.callback(CMIElement, value);
+                }
+            }
+        }
+    };
+    EventService.prototype.reset = function () {
+        this.listenerMap.clear();
+        this.listenerCount = 0;
+    };
+    return EventService;
+}());
+
+
+;// ./src/services/SerializationService.ts
+
+
+var SerializationService = (function () {
+    function SerializationService() {
+    }
+    SerializationService.prototype.loadFromFlattenedJSON = function (json, CMIElement, setCMIValue, isNotInitialized, setStartingData) {
+        var _this = this;
+        if (CMIElement === void 0) { CMIElement = ""; }
+        if (!isNotInitialized()) {
+            console.error("loadFromFlattenedJSON can only be called before the call to lmsInitialize.");
+            return;
+        }
+        var int_pattern = /^(cmi\.interactions\.)(\d+)\.(.*)$/;
+        var obj_pattern = /^(cmi\.objectives\.)(\d+)\.(.*)$/;
+        var interactions = [];
+        var objectives = [];
+        var others = [];
+        for (var key in json) {
+            if (Object.prototype.hasOwnProperty.call(json, key)) {
+                var intMatch = key.match(int_pattern);
+                if (intMatch) {
+                    interactions.push({
+                        key: key,
+                        value: json[key],
+                        index: Number(intMatch[2]),
+                        field: intMatch[3],
+                    });
+                    continue;
+                }
+                var objMatch = key.match(obj_pattern);
+                if (objMatch) {
+                    objectives.push({
+                        key: key,
+                        value: json[key],
+                        index: Number(objMatch[2]),
+                        field: objMatch[3],
+                    });
+                    continue;
+                }
+                others.push({ key: key, value: json[key] });
+            }
+        }
+        interactions.sort(function (a, b) {
+            if (a.index !== b.index) {
+                return a.index - b.index;
+            }
+            if (a.field === "id")
+                return -1;
+            if (b.field === "id")
+                return 1;
+            if (a.field === "type")
+                return -1;
+            if (b.field === "type")
+                return 1;
+            return a.field.localeCompare(b.field);
+        });
+        objectives.sort(function (a, b) {
+            if (a.index !== b.index) {
+                return a.index - b.index;
+            }
+            if (a.field === "id")
+                return -1;
+            if (b.field === "id")
+                return 1;
+            return a.field.localeCompare(b.field);
+        });
+        others.sort(function (a, b) { return a.key.localeCompare(b.key); });
+        var processItems = function (items) {
+            items.forEach(function (item) {
+                var obj = {};
+                obj[item.key] = item.value;
+                _this.loadFromJSON((0,utilities/* unflatten */.sB)(obj), CMIElement, setCMIValue, isNotInitialized, setStartingData);
+            });
+        };
+        processItems(interactions);
+        processItems(objectives);
+        processItems(others);
+    };
+    SerializationService.prototype.loadFromJSON = function (json, CMIElement, setCMIValue, isNotInitialized, setStartingData) {
+        if (CMIElement === void 0) { CMIElement = ""; }
+        if (!isNotInitialized()) {
+            console.error("loadFromJSON can only be called before the call to lmsInitialize.");
+            return;
+        }
+        CMIElement = CMIElement !== undefined ? CMIElement : "cmi";
+        setStartingData(json);
+        for (var key in json) {
+            if (Object.prototype.hasOwnProperty.call(json, key) && json[key]) {
+                var currentCMIElement = (CMIElement ? CMIElement + "." : "") + key;
+                var value = json[key];
+                if (value.constructor === Array) {
+                    for (var i = 0; i < value.length; i++) {
+                        if (value[i]) {
+                            var item = value[i];
+                            var tempCMIElement = "".concat(currentCMIElement, ".").concat(i);
+                            if (item.constructor === Object) {
+                                this.loadFromJSON(item, tempCMIElement, setCMIValue, isNotInitialized, setStartingData);
+                            }
+                            else {
+                                setCMIValue(tempCMIElement, item);
+                            }
+                        }
+                    }
+                }
+                else if (value.constructor === Object) {
+                    this.loadFromJSON(value, currentCMIElement, setCMIValue, isNotInitialized, setStartingData);
+                }
+                else {
+                    setCMIValue(currentCMIElement, value);
+                }
+            }
+        }
+    };
+    SerializationService.prototype.renderCMIToJSONString = function (cmi, sendFullCommit) {
+        if (sendFullCommit) {
+            return JSON.stringify({ cmi: cmi });
+        }
+        return JSON.stringify({ cmi: cmi }, function (k, v) { return (v === undefined ? null : v); }, 2);
+    };
+    SerializationService.prototype.renderCMIToJSONObject = function (cmi, sendFullCommit) {
+        return JSON.parse(this.renderCMIToJSONString(cmi, sendFullCommit));
+    };
+    SerializationService.prototype.getCommitObject = function (terminateCommit, alwaysSendTotalTime, renderCommonCommitFields, renderCommitObject, renderCommitCMI, apiLogLevel) {
+        var shouldTerminateCommit = terminateCommit || alwaysSendTotalTime;
+        var commitObject = renderCommonCommitFields
+            ? renderCommitObject(shouldTerminateCommit)
+            : renderCommitCMI(shouldTerminateCommit);
+        if ([enums/* LogLevelEnum */.Mb.DEBUG, "1", 1, "DEBUG"].includes(apiLogLevel)) {
+            console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");
+            console.debug(commitObject);
+        }
+        return commitObject;
+    };
+    return SerializationService;
+}());
+
+
+// EXTERNAL MODULE: ./src/exceptions.ts
+var exceptions = __webpack_require__(784);
+;// ./src/services/ErrorHandlingService.ts
+
+
+
+var ErrorHandlingService = (function () {
+    function ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails) {
+        this._lastErrorCode = "0";
+        this._errorCodes = errorCodes;
+        this._apiLog = apiLog;
+        this._getLmsErrorMessageDetails = getLmsErrorMessageDetails;
+    }
+    Object.defineProperty(ErrorHandlingService.prototype, "lastErrorCode", {
+        get: function () {
+            return this._lastErrorCode;
+        },
+        set: function (errorCode) {
+            this._lastErrorCode = errorCode;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    ErrorHandlingService.prototype.throwSCORMError = function (CMIElement, errorNumber, message) {
+        if (!message) {
+            message = this._getLmsErrorMessageDetails(errorNumber, true);
+        }
+        this._apiLog("throwSCORMError", errorNumber + ": " + message, enums/* LogLevelEnum */.Mb.ERROR, CMIElement);
+        this._lastErrorCode = String(errorNumber);
+    };
+    ErrorHandlingService.prototype.clearSCORMError = function (success) {
+        if (success !== undefined && success !== api_constants/* global_constants */._y.SCORM_FALSE) {
+            this._lastErrorCode = "0";
+        }
+    };
+    ErrorHandlingService.prototype.handleValueAccessException = function (CMIElement, e, returnValue) {
+        if (e instanceof exceptions/* ValidationError */.y) {
+            var validationError = e;
+            this._lastErrorCode = String(validationError.errorCode);
+            returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
+        }
+        else {
+            if (e instanceof Error && e.message) {
+                console.error(e.message);
+                this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, e.message);
+            }
+            else {
+                console.error(e);
+                this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, "Unknown error");
+            }
+        }
+        return returnValue;
+    };
+    Object.defineProperty(ErrorHandlingService.prototype, "errorCodes", {
+        get: function () {
+            return this._errorCodes;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    return ErrorHandlingService;
+}());
+
+function createErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails) {
+    return new ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails);
+}
+
+;// ./src/services/LoggingService.ts
+
+
+var LoggingService = (function () {
+    function LoggingService() {
+        this._logLevel = enums/* LogLevelEnum */.Mb.ERROR;
+        this._logHandler = defaultLogHandler;
+    }
+    LoggingService.getInstance = function () {
+        if (!LoggingService._instance) {
+            LoggingService._instance = new LoggingService();
+        }
+        return LoggingService._instance;
+    };
+    LoggingService.prototype.setLogLevel = function (level) {
+        this._logLevel = level;
+    };
+    LoggingService.prototype.getLogLevel = function () {
+        return this._logLevel;
+    };
+    LoggingService.prototype.setLogHandler = function (handler) {
+        this._logHandler = handler;
+    };
+    LoggingService.prototype.log = function (messageLevel, logMessage) {
+        if (this.shouldLog(messageLevel)) {
+            this._logHandler(messageLevel, logMessage);
+        }
+    };
+    LoggingService.prototype.error = function (logMessage) {
+        this.log(enums/* LogLevelEnum */.Mb.ERROR, logMessage);
+    };
+    LoggingService.prototype.warn = function (logMessage) {
+        this.log(enums/* LogLevelEnum */.Mb.WARN, logMessage);
+    };
+    LoggingService.prototype.info = function (logMessage) {
+        this.log(enums/* LogLevelEnum */.Mb.INFO, logMessage);
+    };
+    LoggingService.prototype.debug = function (logMessage) {
+        this.log(enums/* LogLevelEnum */.Mb.DEBUG, logMessage);
+    };
+    LoggingService.prototype.shouldLog = function (messageLevel) {
+        var numericMessageLevel = this.getNumericLevel(messageLevel);
+        var numericLogLevel = this.getNumericLevel(this._logLevel);
+        return numericMessageLevel >= numericLogLevel;
+    };
+    LoggingService.prototype.getNumericLevel = function (level) {
+        if (level === undefined)
+            return enums/* LogLevelEnum */.Mb.NONE;
+        if (typeof level === "number")
+            return level;
+        switch (level) {
+            case "1":
+            case "DEBUG":
+                return enums/* LogLevelEnum */.Mb.DEBUG;
+            case "2":
+            case "INFO":
+                return enums/* LogLevelEnum */.Mb.INFO;
+            case "3":
+            case "WARN":
+                return enums/* LogLevelEnum */.Mb.WARN;
+            case "4":
+            case "ERROR":
+                return enums/* LogLevelEnum */.Mb.ERROR;
+            case "5":
+            case "NONE":
+                return enums/* LogLevelEnum */.Mb.NONE;
+            default:
+                return enums/* LogLevelEnum */.Mb.ERROR;
+        }
+    };
+    return LoggingService;
+}());
+
+function getLoggingService() {
+    return LoggingService.getInstance();
+}
+
+// EXTERNAL MODULE: ./src/cmi/common/array.ts
+var array = __webpack_require__(589);
+;// ./src/BaseAPI.ts
+
+
+
+
+
+
+
+
+
+
+
+
+
+var BaseAPI = (function () {
+    function BaseAPI(error_codes, settings, httpService, eventService, serializationService, cmiDataService, errorHandlingService, loggingService) {
+        var _newTarget = this.constructor;
+        var _this = this;
+        this._settings = DefaultSettings;
+        if (_newTarget === BaseAPI) {
+            throw new TypeError("Cannot construct BaseAPI instances directly");
+        }
+        this.currentState = api_constants/* global_constants */._y.STATE_NOT_INITIALIZED;
+        this._error_codes = error_codes;
+        if (settings) {
+            this.settings = settings;
+        }
+        this.apiLogLevel = this.settings.logLevel;
+        this.selfReportSessionTime = this.settings.selfReportSessionTime;
+        if (this.apiLogLevel === undefined) {
+            this.apiLogLevel = enums/* LogLevelEnum */.Mb.NONE;
+        }
+        this._loggingService = loggingService || getLoggingService();
+        this._loggingService.setLogLevel(this.apiLogLevel);
+        if (this.settings.onLogMessage) {
+            this._loggingService.setLogHandler(this.settings.onLogMessage);
+        }
+        this._httpService = httpService || new HttpService(this.settings, this._error_codes);
+        this._eventService =
+            eventService ||
+                new EventService(function (functionName, message, level, element) {
+                    return _this.apiLog(functionName, message, level, element);
+                });
+        this._serializationService = serializationService || new SerializationService();
+        this._errorHandlingService =
+            errorHandlingService ||
+                createErrorHandlingService(this._error_codes, function (functionName, message, level, element) {
+                    return _this.apiLog(functionName, message, level, element);
+                }, function (errorNumber, detail) { return _this.getLmsErrorMessageDetails(errorNumber, detail); });
+    }
+    Object.defineProperty(BaseAPI.prototype, "lastErrorCode", {
+        get: function () {
+            var _a, _b;
+            return (_b = (_a = this._errorHandlingService) === null || _a === void 0 ? void 0 : _a.lastErrorCode) !== null && _b !== void 0 ? _b : "0";
+        },
+        set: function (errorCode) {
+            if (this._errorHandlingService) {
+                this._errorHandlingService.lastErrorCode = errorCode;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    BaseAPI.prototype.commonReset = function (settings) {
+        this.apiLog("reset", "Called", enums/* LogLevelEnum */.Mb.INFO);
+        this.settings = (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, this.settings), settings);
+        this.clearScheduledCommit();
+        this.currentState = api_constants/* global_constants */._y.STATE_NOT_INITIALIZED;
+        this.lastErrorCode = "0";
+        this._eventService.reset();
+        this.startingData = undefined;
+    };
+    BaseAPI.prototype.initialize = function (callbackName, initializeMessage, terminationMessage) {
+        var returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
+        if (this.isInitialized()) {
+            this.throwSCORMError("api", this._error_codes.INITIALIZED, initializeMessage);
+        }
+        else if (this.isTerminated()) {
+            this.throwSCORMError("api", this._error_codes.TERMINATED, terminationMessage);
+        }
+        else {
+            if (this.selfReportSessionTime) {
+                this.cmi.setStartTime();
+            }
+            this.currentState = api_constants/* global_constants */._y.STATE_INITIALIZED;
+            this.lastErrorCode = "0";
+            returnValue = api_constants/* global_constants */._y.SCORM_TRUE;
+            this.processListeners(callbackName);
+        }
+        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
+        this.clearSCORMError(returnValue);
+        return returnValue;
+    };
+    BaseAPI.prototype.apiLog = function (functionName, logMessage, messageLevel, CMIElement) {
+        logMessage = (0,utilities/* formatMessage */.hw)(functionName, logMessage, CMIElement);
+        if (messageLevel >= this.apiLogLevel) {
+            this._loggingService.log(messageLevel, logMessage);
+            if (this.settings.onLogMessage &&
+                this.settings.onLogMessage !== this._loggingService["_logHandler"]) {
+                this.settings.onLogMessage(messageLevel, logMessage);
+            }
+        }
+    };
+    Object.defineProperty(BaseAPI.prototype, "error_codes", {
+        get: function () {
+            return this._error_codes;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(BaseAPI.prototype, "settings", {
+        get: function () {
+            return this._settings;
+        },
+        set: function (settings) {
+            var _a, _b, _c;
+            var previousSettings = this._settings;
+            this._settings = (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, this._settings), settings);
+            (_a = this._httpService) === null || _a === void 0 ? void 0 : _a.updateSettings(this._settings);
+            if (settings.logLevel !== undefined && settings.logLevel !== previousSettings.logLevel) {
+                this.apiLogLevel = settings.logLevel;
+                (_b = this._loggingService) === null || _b === void 0 ? void 0 : _b.setLogLevel(settings.logLevel);
+            }
+            if (settings.onLogMessage !== undefined &&
+                settings.onLogMessage !== previousSettings.onLogMessage) {
+                (_c = this._loggingService) === null || _c === void 0 ? void 0 : _c.setLogHandler(settings.onLogMessage);
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    BaseAPI.prototype.terminate = function (callbackName, checkTerminated) {
+        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
+            var returnValue, result;
+            var _a, _b;
+            return (0,tslib_es6/* __generator */.YH)(this, function (_c) {
+                switch (_c.label) {
+                    case 0:
+                        returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
+                        if (!this.checkState(checkTerminated, this._error_codes.TERMINATION_BEFORE_INIT, this._error_codes.MULTIPLE_TERMINATION)) return [3, 2];
+                        this.currentState = api_constants/* global_constants */._y.STATE_TERMINATED;
+                        return [4, this.storeData(true)];
+                    case 1:
+                        result = _c.sent();
+                        if (((_a = result.errorCode) !== null && _a !== void 0 ? _a : 0) > 0) {
+                            this.throwSCORMError("api", result.errorCode);
+                        }
+                        returnValue = (_b = result === null || result === void 0 ? void 0 : result.result) !== null && _b !== void 0 ? _b : api_constants/* global_constants */._y.SCORM_FALSE;
+                        if (checkTerminated)
+                            this.lastErrorCode = "0";
+                        returnValue = api_constants/* global_constants */._y.SCORM_TRUE;
+                        this.processListeners(callbackName);
+                        _c.label = 2;
+                    case 2:
+                        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
+                        this.clearSCORMError(returnValue);
+                        return [2, returnValue];
+                }
+            });
+        });
+    };
+    BaseAPI.prototype.getValue = function (callbackName, checkTerminated, CMIElement) {
+        var returnValue = "";
+        if (this.checkState(checkTerminated, this._error_codes.RETRIEVE_BEFORE_INIT, this._error_codes.RETRIEVE_AFTER_TERM)) {
+            try {
+                returnValue = this.getCMIValue(CMIElement);
+            }
+            catch (e) {
+                returnValue = this.handleValueAccessException(CMIElement, e, returnValue);
+            }
+            this.processListeners(callbackName, CMIElement);
+        }
+        this.apiLog(callbackName, ": returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO, CMIElement);
+        if (returnValue === undefined) {
+            return "";
+        }
+        if (this.lastErrorCode === "0") {
+            this.clearSCORMError(returnValue);
+        }
+        return returnValue;
+    };
+    BaseAPI.prototype.setValue = function (callbackName, commitCallback, checkTerminated, CMIElement, value) {
+        if (value !== undefined) {
+            value = String(value);
+        }
+        var returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
+        if (this.checkState(checkTerminated, this._error_codes.STORE_BEFORE_INIT, this._error_codes.STORE_AFTER_TERM)) {
+            try {
+                returnValue = this.setCMIValue(CMIElement, value);
+            }
+            catch (e) {
+                returnValue = this.handleValueAccessException(CMIElement, e, returnValue);
+            }
+            this.processListeners(callbackName, CMIElement, value);
+        }
+        if (returnValue === undefined) {
+            returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
+        }
+        if (String(this.lastErrorCode) === "0") {
+            if (this.settings.autocommit) {
+                this.scheduleCommit(this.settings.autocommitSeconds * 1000, commitCallback);
+            }
+        }
+        this.apiLog(callbackName, ": " + value + ": result: " + returnValue, enums/* LogLevelEnum */.Mb.INFO, CMIElement);
+        if (this.lastErrorCode === "0") {
+            this.clearSCORMError(returnValue);
+        }
+        return returnValue;
+    };
+    BaseAPI.prototype.commit = function (callbackName_1) {
+        return (0,tslib_es6/* __awaiter */.sH)(this, arguments, void 0, function (callbackName, checkTerminated) {
+            var returnValue, result;
+            var _a, _b;
+            if (checkTerminated === void 0) { checkTerminated = false; }
+            return (0,tslib_es6/* __generator */.YH)(this, function (_c) {
+                switch (_c.label) {
+                    case 0:
+                        this.clearScheduledCommit();
+                        returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
+                        if (!this.checkState(checkTerminated, this._error_codes.COMMIT_BEFORE_INIT, this._error_codes.COMMIT_AFTER_TERM)) return [3, 2];
+                        return [4, this.storeData(false)];
+                    case 1:
+                        result = _c.sent();
+                        if (((_a = result.errorCode) !== null && _a !== void 0 ? _a : 0) > 0) {
+                            this.throwSCORMError("api", result.errorCode);
+                        }
+                        returnValue = (_b = result === null || result === void 0 ? void 0 : result.result) !== null && _b !== void 0 ? _b : api_constants/* global_constants */._y.SCORM_FALSE;
+                        this.apiLog(callbackName, " Result: " + returnValue, enums/* LogLevelEnum */.Mb.DEBUG, "HttpRequest");
+                        if (checkTerminated)
+                            this.lastErrorCode = "0";
+                        this.processListeners(callbackName);
+                        _c.label = 2;
+                    case 2:
+                        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
+                        if (this.lastErrorCode === "0") {
+                            this.clearSCORMError(returnValue);
+                        }
+                        return [2, returnValue];
+                }
+            });
+        });
+    };
+    BaseAPI.prototype.getLastError = function (callbackName) {
+        var returnValue = String(this.lastErrorCode);
+        this.processListeners(callbackName);
+        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
+        return returnValue;
+    };
+    BaseAPI.prototype.getErrorString = function (callbackName, CMIErrorCode) {
+        var returnValue = "";
+        if (CMIErrorCode !== null && CMIErrorCode !== "") {
+            returnValue = this.getLmsErrorMessageDetails(CMIErrorCode);
+            this.processListeners(callbackName);
+        }
+        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
+        return returnValue;
+    };
+    BaseAPI.prototype.getDiagnostic = function (callbackName, CMIErrorCode) {
+        var returnValue = "";
+        if (CMIErrorCode !== null && CMIErrorCode !== "") {
+            returnValue = this.getLmsErrorMessageDetails(CMIErrorCode, true);
+            this.processListeners(callbackName);
+        }
+        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
+        return returnValue;
+    };
+    BaseAPI.prototype.checkState = function (checkTerminated, beforeInitError, afterTermError) {
+        if (this.isNotInitialized()) {
+            this.throwSCORMError("api", beforeInitError);
+            return false;
+        }
+        else if (checkTerminated && this.isTerminated()) {
+            this.throwSCORMError("api", afterTermError);
+            return false;
+        }
+        return true;
+    };
+    BaseAPI.prototype.getLmsErrorMessageDetails = function (_errorNumber, _detail) {
+        if (_detail === void 0) { _detail = false; }
+        throw new Error("The getLmsErrorMessageDetails method has not been implemented");
+    };
+    BaseAPI.prototype.getCMIValue = function (_CMIElement) {
+        throw new Error("The getCMIValue method has not been implemented");
+    };
+    BaseAPI.prototype.setCMIValue = function (_CMIElement, _value) {
+        throw new Error("The setCMIValue method has not been implemented");
+    };
+    BaseAPI.prototype._commonSetCMIValue = function (methodName, scorm2004, CMIElement, value) {
+        if (!CMIElement || CMIElement === "") {
+            return api_constants/* global_constants */._y.SCORM_FALSE;
+        }
+        this.lastErrorCode = "0";
+        var structure = CMIElement.split(".");
+        var refObject = this;
+        var returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
+        var foundFirstIndex = false;
+        var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
+        var invalidErrorCode = scorm2004
+            ? this._error_codes.UNDEFINED_DATA_MODEL
+            : this._error_codes.GENERAL;
+        for (var idx = 0; idx < structure.length; idx++) {
+            var attribute = structure[idx];
+            if (idx === structure.length - 1) {
+                if (scorm2004 && attribute.substring(0, 8) === "{target=") {
+                    if (this.isInitialized()) {
+                        this.throwSCORMError(CMIElement, this._error_codes.READ_ONLY_ELEMENT);
+                        break;
+                    }
+                    else {
+                        refObject = (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, refObject), { attribute: value });
+                    }
+                }
+                else if (!this._checkObjectHasProperty(refObject, attribute)) {
+                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+                    break;
+                }
+                else {
+                    if ((0,utilities/* stringMatches */.J6)(CMIElement, "\\.correct_responses\\.\\d+$") &&
+                        this.isInitialized() &&
+                        attribute !== "pattern") {
+                        this.validateCorrectResponse(CMIElement, value);
+                        if (this.lastErrorCode !== "0") {
+                            this.throwSCORMError(CMIElement, this._error_codes.TYPE_MISMATCH);
+                            break;
+                        }
+                    }
+                    if (!scorm2004 || this._errorHandlingService.lastErrorCode === "0") {
+                        refObject[attribute] = value;
+                        returnValue = api_constants/* global_constants */._y.SCORM_TRUE;
+                    }
+                }
+            }
+            else {
+                refObject = refObject[attribute];
+                if (!refObject) {
+                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+                    break;
+                }
+                if (refObject instanceof array/* CMIArray */.B) {
+                    var index = parseInt(structure[idx + 1], 10);
+                    if (!isNaN(index)) {
+                        var item = refObject.childArray[index];
+                        if (item) {
+                            refObject = item;
+                            foundFirstIndex = true;
+                        }
+                        else {
+                            var newChild = this.getChildElement(CMIElement, value, foundFirstIndex);
+                            foundFirstIndex = true;
+                            if (!newChild) {
+                                if (this.lastErrorCode === "0") {
+                                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+                                }
+                                break;
+                            }
+                            else {
+                                if (refObject.initialized)
+                                    newChild.initialize();
+                                refObject.childArray[index] = newChild;
+                                refObject = newChild;
+                            }
+                        }
+                        idx++;
+                    }
+                }
+            }
+        }
+        if (returnValue === api_constants/* global_constants */._y.SCORM_FALSE) {
+            this.apiLog(methodName, "There was an error setting the value for: ".concat(CMIElement, ", value of: ").concat(value), enums/* LogLevelEnum */.Mb.WARN);
+        }
+        return returnValue;
+    };
+    BaseAPI.prototype._commonGetCMIValue = function (methodName, scorm2004, CMIElement) {
+        if (!CMIElement || CMIElement === "") {
+            return "";
+        }
+        var structure = CMIElement.split(".");
+        var refObject = this;
+        var attribute = null;
+        var uninitializedErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") has not been initialized.");
+        var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
+        var invalidErrorCode = scorm2004
+            ? this._error_codes.UNDEFINED_DATA_MODEL
+            : this._error_codes.GENERAL;
+        for (var idx = 0; idx < structure.length; idx++) {
+            attribute = structure[idx];
+            if (!scorm2004) {
+                if (idx === structure.length - 1) {
+                    if (!this._checkObjectHasProperty(refObject, attribute)) {
+                        this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+                        return;
+                    }
+                }
+            }
+            else {
+                if (String(attribute).substring(0, 8) === "{target=" &&
+                    typeof refObject._isTargetValid == "function") {
+                    var target = String(attribute).substring(8, String(attribute).length - 9);
+                    return refObject._isTargetValid(target);
+                }
+                else if (!this._checkObjectHasProperty(refObject, attribute)) {
+                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+                    return;
+                }
+            }
+            refObject = refObject[attribute];
+            if (refObject === undefined) {
+                this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+                break;
+            }
+            if (refObject instanceof array/* CMIArray */.B) {
+                var index = parseInt(structure[idx + 1], 10);
+                if (!isNaN(index)) {
+                    var item = refObject.childArray[index];
+                    if (item) {
+                        refObject = item;
+                    }
+                    else {
+                        this.throwSCORMError(CMIElement, this._error_codes.VALUE_NOT_INITIALIZED, uninitializedErrorMessage);
+                        break;
+                    }
+                    idx++;
+                }
+            }
+        }
+        if (refObject === null || refObject === undefined) {
+            if (!scorm2004) {
+                if (attribute === "_children") {
+                    this.throwSCORMError(CMIElement, this._error_codes.CHILDREN_ERROR, undefined);
+                }
+                else if (attribute === "_count") {
+                    this.throwSCORMError(CMIElement, this._error_codes.COUNT_ERROR, undefined);
+                }
+            }
+        }
+        else {
+            return refObject;
+        }
+    };
+    BaseAPI.prototype.isInitialized = function () {
+        return this.currentState === api_constants/* global_constants */._y.STATE_INITIALIZED;
+    };
+    BaseAPI.prototype.isNotInitialized = function () {
+        return this.currentState === api_constants/* global_constants */._y.STATE_NOT_INITIALIZED;
+    };
+    BaseAPI.prototype.isTerminated = function () {
+        return this.currentState === api_constants/* global_constants */._y.STATE_TERMINATED;
+    };
+    BaseAPI.prototype.on = function (listenerName, callback) {
+        this._eventService.on(listenerName, callback);
+    };
+    BaseAPI.prototype.off = function (listenerName, callback) {
+        this._eventService.off(listenerName, callback);
+    };
+    BaseAPI.prototype.clear = function (listenerName) {
+        this._eventService.clear(listenerName);
+    };
+    BaseAPI.prototype.processListeners = function (functionName, CMIElement, value) {
+        this._eventService.processListeners(functionName, CMIElement, value);
+    };
+    BaseAPI.prototype.throwSCORMError = function (CMIElement, errorNumber, message) {
+        this._errorHandlingService.throwSCORMError(CMIElement, errorNumber, message);
+    };
+    BaseAPI.prototype.clearSCORMError = function (success) {
+        this._errorHandlingService.clearSCORMError(success);
+    };
+    BaseAPI.prototype.loadFromFlattenedJSON = function (json, CMIElement) {
+        var _this = this;
+        if (!CMIElement) {
+            CMIElement = "";
+        }
+        this._serializationService.loadFromFlattenedJSON(json, CMIElement, function (CMIElement, value) { return _this.setCMIValue(CMIElement, value); }, function () { return _this.isNotInitialized(); }, function (data) {
+            _this.startingData = data;
+        });
+    };
+    BaseAPI.prototype.loadFromJSON = function (json, CMIElement) {
+        var _this = this;
+        if (CMIElement === void 0) { CMIElement = ""; }
+        this._serializationService.loadFromJSON(json, CMIElement, function (CMIElement, value) { return _this.setCMIValue(CMIElement, value); }, function () { return _this.isNotInitialized(); }, function (data) {
+            _this.startingData = data;
+        });
+    };
+    BaseAPI.prototype.renderCMIToJSONString = function () {
+        return this._serializationService.renderCMIToJSONString(this.cmi, this.settings.sendFullCommit);
+    };
+    BaseAPI.prototype.renderCMIToJSONObject = function () {
+        return this._serializationService.renderCMIToJSONObject(this.cmi, this.settings.sendFullCommit);
+    };
+    BaseAPI.prototype.processHttpRequest = function (url_1, params_1) {
+        return (0,tslib_es6/* __awaiter */.sH)(this, arguments, void 0, function (url, params, immediate) {
+            var _this = this;
+            if (immediate === void 0) { immediate = false; }
+            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
+                return [2, this._httpService.processHttpRequest(url, params, immediate, function (functionName, message, level, element) { return _this.apiLog(functionName, message, level, element); }, function (functionName, CMIElement, value) { return _this.processListeners(functionName, CMIElement, value); })];
+            });
+        });
+    };
+    BaseAPI.prototype.scheduleCommit = function (when, callback) {
+        if (!this._timeout) {
+            this._timeout = new ScheduledCommit(this, when, callback);
+            this.apiLog("scheduleCommit", "scheduled", enums/* LogLevelEnum */.Mb.DEBUG, "");
+        }
+    };
+    BaseAPI.prototype.clearScheduledCommit = function () {
+        if (this._timeout) {
+            this._timeout.cancel();
+            this._timeout = undefined;
+            this.apiLog("clearScheduledCommit", "cleared", enums/* LogLevelEnum */.Mb.DEBUG, "");
+        }
+    };
+    BaseAPI.prototype._checkObjectHasProperty = function (StringKeyMap, attribute) {
+        return (Object.hasOwnProperty.call(StringKeyMap, attribute) ||
+            Object.getOwnPropertyDescriptor(Object.getPrototypeOf(StringKeyMap), attribute) != null ||
+            attribute in StringKeyMap);
+    };
+    BaseAPI.prototype.handleValueAccessException = function (CMIElement, e, returnValue) {
+        if (e instanceof exceptions/* ValidationError */.y) {
+            this.lastErrorCode = String(e.errorCode);
+            returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
+            this.throwSCORMError(CMIElement, e.errorCode, e.errorMessage);
+        }
+        else {
+            if (e instanceof Error && e.message) {
+                console.error(e.message);
+                this.throwSCORMError(CMIElement, this._error_codes.GENERAL, e.message);
+            }
+            else {
+                console.error(e);
+                this.throwSCORMError(CMIElement, this._error_codes.GENERAL, "Unknown error");
+            }
+        }
+        return returnValue;
+    };
+    BaseAPI.prototype.getCommitObject = function (terminateCommit) {
+        var _this = this;
+        return this._serializationService.getCommitObject(terminateCommit, this.settings.alwaysSendTotalTime, this.settings.renderCommonCommitFields, function (terminateCommit) { return _this.renderCommitObject(terminateCommit); }, function (terminateCommit) { return _this.renderCommitCMI(terminateCommit); }, this.apiLogLevel);
+    };
+    return BaseAPI;
+}());
+/* harmony default export */ var src_BaseAPI = (BaseAPI);
 
 
 /***/ }),
@@ -3849,7 +3826,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(833);
 /* harmony import */ var _cmi_scorm12_nav__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(331);
 /* harmony import */ var _constants_enums__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(56);
-/* harmony import */ var _BaseAPI__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(398);
+/* harmony import */ var _BaseAPI__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(672);
 /* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(417);
 
 

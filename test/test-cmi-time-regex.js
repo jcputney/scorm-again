@@ -4,8 +4,7 @@
 const timestamp = "2025-04-02T18:49:50.328Z";
 
 // Create a simple regex that matches ISO 8601 dates with optional milliseconds
-const regex =
-  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,6})?(Z|[+-]\d{2}:\d{2})?$/;
+const regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,6})?(Z|[+-]\d{2}:\d{2})?$/;
 
 // Test if the timestamp matches the pattern
 const isMatch = regex.test(timestamp);

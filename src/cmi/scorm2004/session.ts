@@ -66,14 +66,7 @@ export class CMISession extends BaseCMI {
    * @param {string} exit
    */
   set exit(exit: string) {
-    if (
-      check2004ValidFormat(
-        this._cmi_element + ".exit",
-        exit,
-        scorm2004_regex.CMIExit,
-        true,
-      )
-    ) {
+    if (check2004ValidFormat(this._cmi_element + ".exit", exit, scorm2004_regex.CMIExit, true)) {
       this._exit = exit;
     }
   }
@@ -145,11 +138,7 @@ export class CMISession extends BaseCMI {
       sessionTime = Util.getSecondsAsISODuration(seconds / 1000);
     }
 
-    return Util.addTwoDurations(
-      this._total_time,
-      sessionTime,
-      scorm2004_regex.CMITimespan,
-    );
+    return Util.addTwoDurations(this._total_time, sessionTime, scorm2004_regex.CMITimespan);
   }
 
   /**

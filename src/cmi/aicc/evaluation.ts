@@ -109,13 +109,7 @@ export class CMIEvaluationCommentsObject extends BaseCMI {
    * @param {string} content
    */
   set content(content: string) {
-    if (
-      checkAICCValidFormat(
-        this._cmi_element + ".content",
-        content,
-        aicc_regex.CMIString256,
-      )
-    ) {
+    if (checkAICCValidFormat(this._cmi_element + ".content", content, aicc_regex.CMIString256)) {
       this._content = content;
     }
   }
@@ -133,13 +127,7 @@ export class CMIEvaluationCommentsObject extends BaseCMI {
    * @param {string} location
    */
   set location(location: string) {
-    if (
-      checkAICCValidFormat(
-        this._cmi_element + ".location",
-        location,
-        aicc_regex.CMIString256,
-      )
-    ) {
+    if (checkAICCValidFormat(this._cmi_element + ".location", location, aicc_regex.CMIString256)) {
       this._location = location;
     }
   }
@@ -157,13 +145,7 @@ export class CMIEvaluationCommentsObject extends BaseCMI {
    * @param {string} time
    */
   set time(time: string) {
-    if (
-      checkAICCValidFormat(
-        this._cmi_element + ".time",
-        time,
-        aicc_regex.CMITime,
-      )
-    ) {
+    if (checkAICCValidFormat(this._cmi_element + ".time", time, aicc_regex.CMITime)) {
       this._time = time;
     }
   }

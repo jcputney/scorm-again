@@ -92,13 +92,7 @@ export class CMILearnerPreference extends BaseCMI {
    * @param {string} language
    */
   set language(language: string) {
-    if (
-      check2004ValidFormat(
-        this._cmi_element + ".language",
-        language,
-        scorm2004_regex.CMILang,
-      )
-    ) {
+    if (check2004ValidFormat(this._cmi_element + ".language", language, scorm2004_regex.CMILang)) {
       this._language = language;
     }
   }

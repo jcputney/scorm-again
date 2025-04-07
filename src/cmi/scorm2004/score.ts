@@ -52,16 +52,8 @@ export class Scorm2004CMIScore extends CMIScore {
    */
   set scaled(scaled: string) {
     if (
-      check2004ValidFormat(
-        this._cmi_element + ".scaled",
-        scaled,
-        scorm2004_regex.CMIDecimal,
-      ) &&
-      check2004ValidRange(
-        this._cmi_element + ".scaled",
-        scaled,
-        scorm2004_regex.scaled_range,
-      )
+      check2004ValidFormat(this._cmi_element + ".scaled", scaled, scorm2004_regex.CMIDecimal) &&
+      check2004ValidRange(this._cmi_element + ".scaled", scaled, scorm2004_regex.scaled_range)
     ) {
       this._scaled = scaled;
     }

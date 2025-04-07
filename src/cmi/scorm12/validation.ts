@@ -41,10 +41,7 @@ export function check12ValidRange(
   allowEmptyString?: boolean,
 ): boolean {
   if (!allowEmptyString && value === "") {
-    throw new Scorm12ValidationError(
-      CMIElement,
-      scorm12_errors.VALUE_OUT_OF_RANGE,
-    );
+    throw new Scorm12ValidationError(CMIElement, scorm12_errors.VALUE_OUT_OF_RANGE);
   }
 
   return checkValidRange(

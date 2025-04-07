@@ -6,6 +6,7 @@ import { NAVBoolean } from "../../constants/enums";
 import { CMIArray } from "../common/array";
 import { scorm2004_constants } from "../../constants/api_constants";
 import { scorm2004_errors } from "../../constants/error_codes";
+import { Sequencing } from "./sequencing/sequencing";
 
 /**
  * Class representing SCORM 2004's adl object
@@ -22,6 +23,7 @@ export class ADL extends BaseCMI {
 
   public nav: ADLNav;
   public data = new ADLData();
+  private _sequencing: Sequencing | null = null;
 
   /**
    * Called when the API has been initialized after the CMI has been created
@@ -37,6 +39,26 @@ export class ADL extends BaseCMI {
   reset() {
     this._initialized = false;
     this.nav?.reset();
+  }
+
+  /**
+   * Getter for sequencing
+   * @return {Sequencing | null}
+   */
+  get sequencing(): Sequencing | null {
+    return this._sequencing;
+  }
+
+  /**
+   * Setter for sequencing
+   * @param {Sequencing | null} sequencing
+   */
+  set sequencing(sequencing: Sequencing | null) {
+    this._sequencing = sequencing;
+    if (sequencing) {
+      sequencing.adlNav = this.nav;
+      this.nav.sequencing = sequencing;
+    }
   }
 
   /**
@@ -68,6 +90,7 @@ export class ADL extends BaseCMI {
 
 export class ADLNav extends BaseCMI {
   private _request = "_none_";
+  private _sequencing: Sequencing | null = null;
 
   /**
    * Constructor for `adl.nav`
@@ -78,6 +101,22 @@ export class ADLNav extends BaseCMI {
   }
 
   public request_valid: ADLNavRequestValid;
+
+  /**
+   * Getter for sequencing
+   * @return {Sequencing | null}
+   */
+  get sequencing(): Sequencing | null {
+    return this._sequencing;
+  }
+
+  /**
+   * Setter for sequencing
+   * @param {Sequencing | null} sequencing
+   */
+  set sequencing(sequencing: Sequencing | null) {
+    this._sequencing = sequencing;
+  }
 
   /**
    * Called when the API has been initialized after the CMI has been created
@@ -93,6 +132,7 @@ export class ADLNav extends BaseCMI {
   reset() {
     this._initialized = false;
     this._request = "_none_";
+    this._sequencing = null;
     this.request_valid?.reset();
   }
 
@@ -109,14 +149,16 @@ export class ADLNav extends BaseCMI {
    * @param {string} request
    */
   set request(request: string) {
-    if (
-      check2004ValidFormat(
-        this._cmi_element + ".request",
-        request,
-        scorm2004_regex.NAVEvent,
-      )
-    ) {
-      this._request = request;
+    if (check2004ValidFormat(this._cmi_element + ".request", request, scorm2004_regex.NAVEvent)) {
+      // Only process if the request is different from the current request
+      if (this._request !== request) {
+        this._request = request;
+
+        // Process the navigation request using the sequencing implementation
+        if (this._sequencing) {
+          this._sequencing.processNavigationRequest(request);
+        }
+      }
     }
   }
 
@@ -186,13 +228,7 @@ export class ADLDataObject extends BaseCMI {
    * @param {string} id
    */
   set id(id: string) {
-    if (
-      check2004ValidFormat(
-        this._cmi_element + ".id",
-        id,
-        scorm2004_regex.CMILongIdentifier,
-      )
-    ) {
+    if (check2004ValidFormat(this._cmi_element + ".id", id, scorm2004_regex.CMILongIdentifier)) {
       this._id = id;
     }
   }
@@ -211,11 +247,7 @@ export class ADLDataObject extends BaseCMI {
    */
   set store(store: string) {
     if (
-      check2004ValidFormat(
-        this._cmi_element + ".store",
-        store,
-        scorm2004_regex.CMILangString4000,
-      )
+      check2004ValidFormat(this._cmi_element + ".store", store, scorm2004_regex.CMILangString4000)
     ) {
       this._store = store;
     }
@@ -295,11 +327,7 @@ export class ADLNavRequestValid extends BaseCMI {
       );
     }
     if (
-      check2004ValidFormat(
-        this._cmi_element + ".continue",
-        _continue,
-        scorm2004_regex.NAVBoolean,
-      )
+      check2004ValidFormat(this._cmi_element + ".continue", _continue, scorm2004_regex.NAVBoolean)
     ) {
       this._continue = _continue;
     }
@@ -325,11 +353,7 @@ export class ADLNavRequestValid extends BaseCMI {
       );
     }
     if (
-      check2004ValidFormat(
-        this._cmi_element + ".previous",
-        _previous,
-        scorm2004_regex.NAVBoolean,
-      )
+      check2004ValidFormat(this._cmi_element + ".previous", _previous, scorm2004_regex.NAVBoolean)
     ) {
       this._previous = _previous;
     }
@@ -368,11 +392,7 @@ export class ADLNavRequestValid extends BaseCMI {
             choice[key],
             scorm2004_regex.NAVBoolean,
           ) &&
-          check2004ValidFormat(
-            this._cmi_element + ".choice." + key,
-            key,
-            scorm2004_regex.NAVTarget,
-          )
+          check2004ValidFormat(this._cmi_element + ".choice." + key, key, scorm2004_regex.NAVTarget)
         ) {
           // Convert string value to NAVBoolean enum value
           const value = choice[key];
@@ -421,11 +441,7 @@ export class ADLNavRequestValid extends BaseCMI {
             jump[key],
             scorm2004_regex.NAVBoolean,
           ) &&
-          check2004ValidFormat(
-            this._cmi_element + ".jump." + key,
-            key,
-            scorm2004_regex.NAVTarget,
-          )
+          check2004ValidFormat(this._cmi_element + ".jump." + key, key, scorm2004_regex.NAVTarget)
         ) {
           // Convert string value to NAVBoolean enum value
           const value = jump[key];

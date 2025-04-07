@@ -37,7 +37,7 @@ export const checkValidFormat = memoize(
   // since it can't be stringified and doesn't affect the validation result
   (CMIElement, value, regexPattern, errorCode, _errorClass, allowEmptyString) => {
     // Use typeof for non-string values to ensure consistent cache keys
-    const valueKey = typeof value === 'string' ? value : `[${typeof value}]`;
+    const valueKey = typeof value === "string" ? value : `[${typeof value}]`;
     return `${CMIElement}:${valueKey}:${regexPattern}:${errorCode}:${allowEmptyString || false}`;
   },
 );

@@ -15,15 +15,23 @@ describe("Event Handling", () => {
     // Set up a mock server for HTTP requests
     server = new Pretender();
     server.post("/scorm2004", () => {
-      return [200, { "Content-Type": "application/json" }, JSON.stringify({ result: "true", errorCode: 0 })];
+      return [
+        200,
+        { "Content-Type": "application/json" },
+        JSON.stringify({ result: "true", errorCode: 0 }),
+      ];
     });
     server.post("/scorm2004/error", () => {
-      return [500, { "Content-Type": "application/json" }, JSON.stringify({ result: "false", errorCode: 101 })];
+      return [
+        500,
+        { "Content-Type": "application/json" },
+        JSON.stringify({ result: "false", errorCode: 101 }),
+      ];
     });
 
-    api = new Scorm2004API({ 
+    api = new Scorm2004API({
       logLevel: LogLevelEnum.NONE,
-      lmsCommitUrl: "/scorm2004"
+      lmsCommitUrl: "/scorm2004",
     });
     eventCallback = sinon.spy();
   });
@@ -113,10 +121,10 @@ describe("Event Handling", () => {
   describe("SCORM 2004 Specific Events", () => {
     it("should trigger SequenceNext event on autoProgress", async () => {
       // Arrange
-      api = new Scorm2004API({ 
-        logLevel: LogLevelEnum.NONE, 
+      api = new Scorm2004API({
+        logLevel: LogLevelEnum.NONE,
         autoProgress: true,
-        lmsCommitUrl: "/scorm2004"
+        lmsCommitUrl: "/scorm2004",
       });
       const navCallback = sinon.spy();
       api.on("SequenceNext", navCallback);
@@ -124,21 +132,25 @@ describe("Event Handling", () => {
 
       // Set up server response for navigation request
       server.post("/scorm2004", () => {
-        return [200, { "Content-Type": "application/json" }, JSON.stringify({
-          result: "true",
-          errorCode: 0,
-          navRequest: {
-            name: "SequenceNext",
-            data: "next"
-          }
-        })];
+        return [
+          200,
+          { "Content-Type": "application/json" },
+          JSON.stringify({
+            result: "true",
+            errorCode: 0,
+            navRequest: {
+              name: "SequenceNext",
+              data: "next",
+            },
+          }),
+        ];
       });
 
       // Act
       await api.internalFinish();
 
       // Wait for the next tick to allow event processing
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       // Assert
       expect(navCallback.calledOnce).toBe(true);
@@ -153,28 +165,32 @@ describe("Event Handling", () => {
 
       // Set up server response for navigation request
       server.post("/scorm2004", () => {
-        return [200, { "Content-Type": "application/json" }, JSON.stringify({
-          result: "true",
-          errorCode: 0,
-          navRequest: {
-            name: "SequenceChoice",
-            data: "activity_1"
-          }
-        })];
+        return [
+          200,
+          { "Content-Type": "application/json" },
+          JSON.stringify({
+            result: "true",
+            errorCode: 0,
+            navRequest: {
+              name: "SequenceChoice",
+              data: "activity_1",
+            },
+          }),
+        ];
       });
 
       // Act
       const target = "activity_1";
       const navRequest = `{target=${target}}choice`;
       api.SetValue("adl.nav.request", navRequest);
-      
+
       // Wait for the next tick to allow event processing
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       await api.internalFinish();
 
       // Wait for the next tick to allow event processing
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       // Assert
       expect(navCallback.calledOnce).toBe(true);
@@ -193,23 +209,27 @@ describe("Event Handling", () => {
 
       // Set up server response for successful commit
       server.post("/scorm2004", () => {
-        return [200, { "Content-Type": "application/json" }, JSON.stringify({
-          result: "true",
-          errorCode: 0,
-          commitObject: {
-            completionStatus: "completed",
-            successStatus: "passed",
-            totalTimeSeconds: 0,
-            runtimeData: {}
-          }
-        })];
+        return [
+          200,
+          { "Content-Type": "application/json" },
+          JSON.stringify({
+            result: "true",
+            errorCode: 0,
+            commitObject: {
+              completionStatus: "completed",
+              successStatus: "passed",
+              totalTimeSeconds: 0,
+              runtimeData: {},
+            },
+          }),
+        ];
       });
 
       // Act
       await api.storeData(false);
 
       // Wait for the next tick to allow event processing
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       // Assert
       expect(successCallback.calledOnce).toBe(true);
@@ -227,18 +247,22 @@ describe("Event Handling", () => {
 
       // Set up server response for failed commit
       server.post("/scorm2004/error", () => {
-        return [500, { "Content-Type": "application/json" }, JSON.stringify({
-          result: "false",
-          errorCode: 101,
-          errorMessage: "General error"
-        })];
+        return [
+          500,
+          { "Content-Type": "application/json" },
+          JSON.stringify({
+            result: "false",
+            errorCode: 101,
+            errorMessage: "General error",
+          }),
+        ];
       });
 
       // Act
       await api.storeData(false);
 
       // Wait for the next tick to allow event processing
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       // Assert
       expect(successCallback.notCalled).toBe(true);
@@ -256,21 +280,25 @@ describe("Event Handling", () => {
 
       // Set up server response for successful commit
       server.post("/scorm2004", () => {
-        return [200, { "Content-Type": "application/json" }, JSON.stringify({
-          result: "true",
-          errorCode: 0,
-          commitObject: {
-            completionStatus: "completed",
-            successStatus: "passed",
-            totalTimeSeconds: 0,
-            runtimeData: {
-              "cmi.score.scaled": "0.8",
-              "cmi.score.raw": "80",
-              "cmi.score.min": "0",
-              "cmi.score.max": "100"
-            }
-          }
-        })];
+        return [
+          200,
+          { "Content-Type": "application/json" },
+          JSON.stringify({
+            result: "true",
+            errorCode: 0,
+            commitObject: {
+              completionStatus: "completed",
+              successStatus: "passed",
+              totalTimeSeconds: 0,
+              runtimeData: {
+                "cmi.score.scaled": "0.8",
+                "cmi.score.raw": "80",
+                "cmi.score.min": "0",
+                "cmi.score.max": "100",
+              },
+            },
+          }),
+        ];
       });
 
       // Act
@@ -303,4 +331,4 @@ describe("Event Handling", () => {
       expect(callback.calledWith("cmi.score.scaled", "0.8")).toBe(true);
     });
   });
-}); 
+});

@@ -68,12 +68,7 @@ export class CMIStudentPreference extends BaseCMI {
    * @param {string} audio
    */
   set audio(audio: string) {
-    if (
-      validationService.validateScorm12Audio(
-        this._cmi_element + ".audio",
-        audio,
-      )
-    ) {
+    if (validationService.validateScorm12Audio(this._cmi_element + ".audio", audio)) {
       this._audio = audio;
     }
   }
@@ -91,12 +86,7 @@ export class CMIStudentPreference extends BaseCMI {
    * @param {string} language
    */
   set language(language: string) {
-    if (
-      validationService.validateScorm12Language(
-        this._cmi_element + ".language",
-        language,
-      )
-    ) {
+    if (validationService.validateScorm12Language(this._cmi_element + ".language", language)) {
       this._language = language;
     }
   }
@@ -114,12 +104,7 @@ export class CMIStudentPreference extends BaseCMI {
    * @param {string} speed
    */
   set speed(speed: string) {
-    if (
-      validationService.validateScorm12Speed(
-        this._cmi_element + ".speed",
-        speed,
-      )
-    ) {
+    if (validationService.validateScorm12Speed(this._cmi_element + ".speed", speed)) {
       this._speed = speed;
     }
   }
@@ -137,9 +122,7 @@ export class CMIStudentPreference extends BaseCMI {
    * @param {string} text
    */
   set text(text: string) {
-    if (
-      validationService.validateScorm12Text(this._cmi_element + ".text", text)
-    ) {
+    if (validationService.validateScorm12Text(this._cmi_element + ".text", text)) {
       this._text = text;
     }
   }

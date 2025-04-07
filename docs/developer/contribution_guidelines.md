@@ -126,13 +126,13 @@ Testing is a critical part of maintaining SCORM Again's quality:
 ### Running Tests
 
 - Ensure all tests pass before submitting a pull request:
-  ```bash
-  yarn test:min
-  ```
+   ```bash
+   yarn test:min
+   ```
 - Check test coverage when adding new features:
-  ```bash
-  yarn test:coverage
-  ```
+   ```bash
+   yarn test:coverage
+   ```
 
 ### Test-Only Contributions
 

@@ -91,13 +91,7 @@ export class CMIObjectivesObject extends BaseCMI {
    * @param {string} id
    */
   set id(id: string) {
-    if (
-      check2004ValidFormat(
-        this._cmi_element + ".id",
-        id,
-        scorm2004_regex.CMILongIdentifier,
-      )
-    ) {
+    if (check2004ValidFormat(this._cmi_element + ".id", id, scorm2004_regex.CMILongIdentifier)) {
       this._id = id;
     }
   }

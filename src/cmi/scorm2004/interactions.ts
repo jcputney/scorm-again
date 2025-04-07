@@ -8,10 +8,7 @@ import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions"
 import { scorm2004_constants } from "../../constants/api_constants";
 import { check2004ValidFormat } from "./validation";
 import { scorm2004_regex } from "../../constants/regex";
-import {
-  CorrectResponses,
-  LearnerResponses,
-} from "../../constants/response_constants";
+import { CorrectResponses, LearnerResponses } from "../../constants/response_constants";
 
 export class CMIInteractions extends CMIArray {
   /**
@@ -112,13 +109,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} id
    */
   set id(id: string) {
-    if (
-      check2004ValidFormat(
-        this._cmi_element + ".id",
-        id,
-        scorm2004_regex.CMILongIdentifier,
-      )
-    ) {
+    if (check2004ValidFormat(this._cmi_element + ".id", id, scorm2004_regex.CMILongIdentifier)) {
       this._id = id;
     }
   }
@@ -142,13 +133,7 @@ export class CMIInteractionsObject extends BaseCMI {
         scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
       );
     } else {
-      if (
-        check2004ValidFormat(
-          this._cmi_element + ".type",
-          type,
-          scorm2004_regex.CMIType,
-        )
-      ) {
+      if (check2004ValidFormat(this._cmi_element + ".type", type, scorm2004_regex.CMIType)) {
         this._type = type;
       }
     }
@@ -174,11 +159,7 @@ export class CMIInteractionsObject extends BaseCMI {
       );
     } else {
       if (
-        check2004ValidFormat(
-          this._cmi_element + ".timestamp",
-          timestamp,
-          scorm2004_regex.CMITime,
-        )
+        check2004ValidFormat(this._cmi_element + ".timestamp", timestamp, scorm2004_regex.CMITime)
       ) {
         this._timestamp = timestamp;
       }
@@ -242,8 +223,7 @@ export class CMIInteractionsObject extends BaseCMI {
       if (response_type) {
         if (response_type?.delimiter) {
           // Convert regex-style delimiter to actual character
-          const delimiter =
-            response_type.delimiter === "[,]" ? "," : response_type.delimiter;
+          const delimiter = response_type.delimiter === "[,]" ? "," : response_type.delimiter;
           nodes = learner_response.split(delimiter);
         } else {
           nodes[0] = learner_response;
@@ -256,9 +236,7 @@ export class CMIInteractionsObject extends BaseCMI {
             if (response_type?.delimiter2) {
               // Convert regex-style delimiter to actual character
               const delimiter2 =
-                response_type.delimiter2 === "[.]"
-                  ? "."
-                  : response_type.delimiter2;
+                response_type.delimiter2 === "[.]" ? "." : response_type.delimiter2;
               const values = nodes[i].split(delimiter2);
 
               if (values.length === 2) {
@@ -334,13 +312,7 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} result
    */
   set result(result: string) {
-    if (
-      check2004ValidFormat(
-        this._cmi_element + ".result",
-        result,
-        scorm2004_regex.CMIResult,
-      )
-    ) {
+    if (check2004ValidFormat(this._cmi_element + ".result", result, scorm2004_regex.CMIResult)) {
       this._result = result;
     }
   }
@@ -365,11 +337,7 @@ export class CMIInteractionsObject extends BaseCMI {
       );
     } else {
       if (
-        check2004ValidFormat(
-          this._cmi_element + ".latency",
-          latency,
-          scorm2004_regex.CMITimespan,
-        )
+        check2004ValidFormat(this._cmi_element + ".latency", latency, scorm2004_regex.CMITimespan)
       ) {
         this._latency = latency;
       }
@@ -490,13 +458,7 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
    * @param {string} id
    */
   set id(id: string) {
-    if (
-      check2004ValidFormat(
-        this._cmi_element + ".id",
-        id,
-        scorm2004_regex.CMILongIdentifier,
-      )
-    ) {
+    if (check2004ValidFormat(this._cmi_element + ".id", id, scorm2004_regex.CMILongIdentifier)) {
       this._id = id;
     }
   }
@@ -560,11 +522,7 @@ export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
   set pattern(pattern: string) {
     // First do basic format validation
     if (
-      check2004ValidFormat(
-        this._cmi_element + ".pattern",
-        pattern,
-        scorm2004_regex.CMIFeedback,
-      )
+      check2004ValidFormat(this._cmi_element + ".pattern", pattern, scorm2004_regex.CMIFeedback)
     ) {
       // If we have a parent interaction, validate the pattern against the interaction type
       if (this._parent && this._parent.type) {
@@ -592,10 +550,7 @@ export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
                   const matches = values[0].match(formatRegex);
                   if (!matches) {
                     isValid = false;
-                  } else if (
-                    !response.format2 ||
-                    !values[1].match(new RegExp(response.format2))
-                  ) {
+                  } else if (!response.format2 || !values[1].match(new RegExp(response.format2))) {
                     isValid = false;
                   }
                 } else {

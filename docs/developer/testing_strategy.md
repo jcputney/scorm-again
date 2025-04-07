@@ -63,20 +63,20 @@ SCORM Again includes several types of tests:
 Unit tests verify that individual components (functions, classes, methods) work correctly in isolation:
 
 ```typescript
-describe('BaseAPI', () => {
-  describe('getValue', () => {
-    it('should return the value when the element exists', () => {
-      // Arrange
-      const api = new BaseAPI();
-      api.cmi.core.student_name = 'Test Student';
+describe("BaseAPI", () => {
+   describe("getValue", () => {
+      it("should return the value when the element exists", () => {
+         // Arrange
+         const api = new BaseAPI();
+         api.cmi.core.student_name = "Test Student";
 
-      // Act
-      const result = api.getValue('cmi.core.student_name');
+         // Act
+         const result = api.getValue("cmi.core.student_name");
 
-      // Assert
-      expect(result).toBe('Test Student');
-    });
-  });
+         // Assert
+         expect(result).toBe("Test Student");
+      });
+   });
 });
 ```
 
@@ -89,17 +89,17 @@ Integration tests verify that multiple components work together correctly:
 These tests verify that different components of the API work together correctly in a programmatic context:
 
 ```typescript
-describe('SCORM 1.2 API Integration', () => {
-  it('should initialize, set values, and terminate correctly', () => {
-    // Arrange
-    const api = new Scorm12API();
+describe("SCORM 1.2 API Integration", () => {
+   it("should initialize, set values, and terminate correctly", () => {
+      // Arrange
+      const api = new Scorm12API();
 
-    // Act & Assert
-    expect(api.LMSInitialize('')).toBe('true');
-    expect(api.LMSSetValue('cmi.core.lesson_status', 'completed')).toBe('true');
-    expect(api.LMSCommit('')).toBe('true');
-    expect(api.LMSFinish('')).toBe('true');
-  });
+      // Act & Assert
+      expect(api.LMSInitialize("")).toBe("true");
+      expect(api.LMSSetValue("cmi.core.lesson_status", "completed")).toBe("true");
+      expect(api.LMSCommit("")).toBe("true");
+      expect(api.LMSFinish("")).toBe("true");
+   });
 });
 ```
 
@@ -122,6 +122,7 @@ The integration test setup:
 To run the browser-based integration tests:
 
 1. Ensure you have the necessary dependencies installed:
+
    ```
    yarn install
    ```
@@ -159,21 +160,21 @@ tests:
 Example:
 
 ```typescript
-test('should load a SCORM module and initialize correctly', async ({ page }) => {
-  // Navigate to the module
-  await page.goto('/GolfExample_SCORM12/shared/launchpage.html');
+test("should load a SCORM module and initialize correctly", async ({ page }) => {
+   // Navigate to the module
+   await page.goto("/GolfExample_SCORM12/shared/launchpage.html");
 
-  // Verify the API is available
-  const apiExists = await page.evaluate(() => {
-    return typeof window.API !== 'undefined';
-  });
-  expect(apiExists).toBeTruthy();
+   // Verify the API is available
+   const apiExists = await page.evaluate(() => {
+      return typeof window.API !== "undefined";
+   });
+   expect(apiExists).toBeTruthy();
 
-  // Test API functionality
-  const result = await page.evaluate(() => {
-    return window.API.LMSInitialize('');
-  });
-  expect(result).toBe('true');
+   // Test API functionality
+   const result = await page.evaluate(() => {
+      return window.API.LMSInitialize("");
+   });
+   expect(result).toBe("true");
 });
 ```
 
@@ -182,29 +183,29 @@ test('should load a SCORM module and initialize correctly', async ({ page }) => 
 Functional tests verify that the API behaves correctly from an end-user perspective:
 
 ```typescript
-describe('SCORM 1.2 Functional Tests', () => {
-  it('should track completion status correctly', () => {
-    // Arrange
-    const api = new Scorm12API();
-    api.LMSInitialize('');
+describe("SCORM 1.2 Functional Tests", () => {
+   it("should track completion status correctly", () => {
+      // Arrange
+      const api = new Scorm12API();
+      api.LMSInitialize("");
 
-    // Act
-    api.LMSSetValue('cmi.core.lesson_status', 'incomplete');
-    api.LMSSetValue('cmi.core.score.raw', '80');
-    api.LMSSetValue('cmi.core.score.min', '0');
-    api.LMSSetValue('cmi.core.score.max', '100');
-    api.LMSCommit('');
+      // Act
+      api.LMSSetValue("cmi.core.lesson_status", "incomplete");
+      api.LMSSetValue("cmi.core.score.raw", "80");
+      api.LMSSetValue("cmi.core.score.min", "0");
+      api.LMSSetValue("cmi.core.score.max", "100");
+      api.LMSCommit("");
 
-    // Assert
-    expect(api.LMSGetValue('cmi.core.lesson_status')).toBe('incomplete');
+      // Assert
+      expect(api.LMSGetValue("cmi.core.lesson_status")).toBe("incomplete");
 
-    // Act again
-    api.LMSSetValue('cmi.core.lesson_status', 'completed');
-    api.LMSCommit('');
+      // Act again
+      api.LMSSetValue("cmi.core.lesson_status", "completed");
+      api.LMSCommit("");
 
-    // Assert again
-    expect(api.LMSGetValue('cmi.core.lesson_status')).toBe('completed');
-  });
+      // Assert again
+      expect(api.LMSGetValue("cmi.core.lesson_status")).toBe("completed");
+   });
 });
 ```
 
@@ -213,26 +214,26 @@ describe('SCORM 1.2 Functional Tests', () => {
 Edge case tests verify that the API handles unusual or boundary conditions correctly:
 
 ```typescript
-describe('Edge Cases', () => {
-  it('should handle empty values correctly', () => {
-    // Arrange
-    const api = new Scorm12API();
-    api.LMSInitialize('');
+describe("Edge Cases", () => {
+   it("should handle empty values correctly", () => {
+      // Arrange
+      const api = new Scorm12API();
+      api.LMSInitialize("");
 
-    // Act & Assert
-    expect(api.LMSSetValue('cmi.core.student_name', '')).toBe('true');
-    expect(api.LMSGetValue('cmi.core.student_name')).toBe('');
-  });
+      // Act & Assert
+      expect(api.LMSSetValue("cmi.core.student_name", "")).toBe("true");
+      expect(api.LMSGetValue("cmi.core.student_name")).toBe("");
+   });
 
-  it('should handle invalid CMI elements', () => {
-    // Arrange
-    const api = new Scorm12API();
-    api.LMSInitialize('');
+   it("should handle invalid CMI elements", () => {
+      // Arrange
+      const api = new Scorm12API();
+      api.LMSInitialize("");
 
-    // Act & Assert
-    expect(api.LMSSetValue('cmi.invalid.element', 'value')).toBe('false');
-    expect(api.LMSGetLastError()).not.toBe('0');
-  });
+      // Act & Assert
+      expect(api.LMSSetValue("cmi.invalid.element", "value")).toBe("false");
+      expect(api.LMSGetLastError()).not.toBe("0");
+   });
 });
 ```
 
@@ -245,17 +246,17 @@ Follow these best practices when writing tests:
 Use the Arrange-Act-Assert pattern:
 
 ```typescript
-it('should do something specific', () => {
-  // Arrange - set up the test
-  const api = new Scorm12API();
-  api.LMSInitialize('');
+it("should do something specific", () => {
+   // Arrange - set up the test
+   const api = new Scorm12API();
+   api.LMSInitialize("");
 
-  // Act - perform the action being tested
-  const result = api.LMSSetValue('cmi.core.lesson_status', 'completed');
+   // Act - perform the action being tested
+   const result = api.LMSSetValue("cmi.core.lesson_status", "completed");
 
-  // Assert - verify the expected outcome
-  expect(result).toBe('true');
-  expect(api.LMSGetValue('cmi.core.lesson_status')).toBe('completed');
+   // Assert - verify the expected outcome
+   expect(result).toBe("true");
+   expect(api.LMSGetValue("cmi.core.lesson_status")).toBe("completed");
 });
 ```
 
@@ -265,13 +266,13 @@ Use descriptive test names that explain the expected behavior:
 
 ```typescript
 // Good
-it('should return false when setting a read-only element', () => {
-  // Test code
+it("should return false when setting a read-only element", () => {
+   // Test code
 });
 
 // Avoid
-it('test read-only element', () => {
-  // Test code
+it("test read-only element", () => {
+   // Test code
 });
 ```
 
@@ -282,14 +283,14 @@ Each test should be independent and not rely on the state from other tests:
 ```typescript
 // Before each test, reset the API
 beforeEach(() => {
-  api = new Scorm12API();
-  api.LMSInitialize('');
+   api = new Scorm12API();
+   api.LMSInitialize("");
 });
 
 // After each test, terminate the API
 afterEach(() => {
-  api.LMSFinish('');
-  api = null;
+   api.LMSFinish("");
+   api = null;
 });
 ```
 
@@ -299,8 +300,9 @@ Use mocks and stubs to isolate the code being tested:
 
 ```typescript
 // Mock HTTP requests
-const httpServiceStub = sinon.stub(HttpService.prototype, 'processHttpRequest')
-  .resolves({ result: true, errorCode: 0 });
+const httpServiceStub = sinon
+   .stub(HttpService.prototype, "processHttpRequest")
+   .resolves({ result: true, errorCode: 0 });
 
 // Test code that uses HttpService
 

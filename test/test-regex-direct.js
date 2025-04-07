@@ -3,10 +3,7 @@ const fs = require("fs");
 const path = require("path");
 
 // Read the regex.ts file
-const regexFile = fs.readFileSync(
-  path.join(__dirname, "../src/constants/regex.ts"),
-  "utf8",
-);
+const regexFile = fs.readFileSync(path.join(__dirname, "../src/constants/regex.ts"), "utf8");
 
 // Extract the CMITime regex pattern
 const cmiTimeRegexMatch = regexFile.match(/CMITime:\s*"([^"]+)"/);

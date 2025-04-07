@@ -3,7 +3,6 @@ import { global_constants } from "../constants/api_constants";
 import { ErrorCode } from "../constants/error_codes";
 import { ValidationError } from "../exceptions";
 import { IErrorHandlingService } from "../interfaces/services";
-import { isError, isValidationError } from "../utils/type_guards";
 
 /**
  * Service for handling SCORM errors
@@ -134,12 +133,12 @@ export class ErrorHandlingService implements IErrorHandlingService {
     e: Error | ValidationError,
     returnValue: string,
   ): string {
-    if (isValidationError(e)) {
+    if (e instanceof ValidationError) {
       const validationError = e as ValidationError;
       this._lastErrorCode = String(validationError.errorCode);
       returnValue = global_constants.SCORM_FALSE;
     } else {
-      if (isError(e) && e.message) {
+      if (e instanceof Error && e.message) {
         console.error(e.message);
         this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, e.message);
       } else {

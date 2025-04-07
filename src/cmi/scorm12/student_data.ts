@@ -66,10 +66,7 @@ export class CMIStudentData extends BaseCMI {
    * @param {string} mastery_score
    */
   set mastery_score(mastery_score: string) {
-    validationService.validateReadOnly(
-      this._cmi_element + ".mastery_score",
-      this.initialized,
-    );
+    validationService.validateReadOnly(this._cmi_element + ".mastery_score", this.initialized);
     this._mastery_score = mastery_score;
   }
 
@@ -86,10 +83,7 @@ export class CMIStudentData extends BaseCMI {
    * @param {string} max_time_allowed
    */
   set max_time_allowed(max_time_allowed: string) {
-    validationService.validateReadOnly(
-      this._cmi_element + ".max_time_allowed",
-      this.initialized,
-    );
+    validationService.validateReadOnly(this._cmi_element + ".max_time_allowed", this.initialized);
     this._max_time_allowed = max_time_allowed;
   }
 
@@ -106,10 +100,7 @@ export class CMIStudentData extends BaseCMI {
    * @param {string} time_limit_action
    */
   set time_limit_action(time_limit_action: string) {
-    validationService.validateReadOnly(
-      this._cmi_element + ".time_limit_action",
-      this.initialized,
-    );
+    validationService.validateReadOnly(this._cmi_element + ".time_limit_action", this.initialized);
     this._time_limit_action = time_limit_action;
   }
 

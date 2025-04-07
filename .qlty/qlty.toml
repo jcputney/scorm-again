@@ -55,6 +55,9 @@ test_patterns = [
   "**/spec_*.*",
 ]
 
+[[ignore]]
+rules = ["qlty:similar-code"]
+
 [smells]
 mode = "comment"
 

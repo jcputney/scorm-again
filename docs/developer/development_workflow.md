@@ -87,15 +87,19 @@ Use a descriptive branch name that reflects the changes you're making. Common pr
    git add .
    ```
 2. Commit your changes with a descriptive message:
+
    ```bash
    git commit -m "A brief summary of the commit"
    ```
+
    For larger changes, use a multi-line commit message:
+
    ```bash
    git commit -m "A brief summary of the commit
-   
+
    A paragraph describing what changed and its impact."
    ```
+
 3. Push your changes to your fork:
    ```bash
    git push origin feature/your-feature-name
@@ -168,10 +172,10 @@ After building, you can test the library by:
 5. Select "compare across forks"
 6. Select your fork and branch as the source
 7. Add a clear title and description for your pull request:
-    - Describe what the changes do
-    - Reference any related issues using the GitHub issue number (e.g., "Fixes #123")
-    - Mention any notable implementation details or design decisions
-    - List any manual testing you've performed
+   - Describe what the changes do
+   - Reference any related issues using the GitHub issue number (e.g., "Fixes #123")
+   - Mention any notable implementation details or design decisions
+   - List any manual testing you've performed
 
 ### Pull Request Review Process
 

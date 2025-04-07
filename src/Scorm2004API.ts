@@ -7,6 +7,17 @@ import { scorm2004_errors } from "./constants/error_codes";
 import { CMIObjectivesObject } from "./cmi/scorm2004/objectives";
 import { ADL, ADLDataObject } from "./cmi/scorm2004/adl";
 import { CommitObject, ResultObject, ScoreObject, Settings } from "./types/api_types";
+import {
+  ActivitySettings,
+  SequencingSettings,
+  SequencingRulesSettings,
+  SequencingControlsSettings,
+  RollupRulesSettings,
+  SequencingRuleSettings,
+  RollupRuleSettings,
+} from "./types/sequencing_types";
+import { SequencingRule, RuleCondition } from "./cmi/scorm2004/sequencing/sequencing_rules";
+import { RollupRule, RollupCondition } from "./cmi/scorm2004/sequencing/rollup_rules";
 import { scorm2004_regex } from "./constants/regex"; // Import functions from extracted modules
 import { BaseCMI } from "./cmi/common/base_cmi";
 import {
@@ -19,6 +30,8 @@ import { CorrectResponses, ResponseType } from "./constants/response_constants";
 import { CMICommentsObject } from "./cmi/scorm2004/comments";
 import ValidLanguages from "./constants/language_constants";
 import { CompletionStatus, SuccessStatus } from "./constants/enums";
+import { Sequencing } from "./cmi/scorm2004/sequencing/sequencing";
+import { Activity } from "./cmi/scorm2004/sequencing/activity";
 
 /**
  * API class for SCORM 2004
@@ -26,6 +39,8 @@ import { CompletionStatus, SuccessStatus } from "./constants/enums";
 class Scorm2004Impl extends BaseAPI {
   private _version: string = "1.0";
   private _globalObjectives: CMIObjectivesObject[] = [];
+  private _sequencing: Sequencing;
+  private _extractedScoItemIds: string[] = [];
 
   /**
    * Constructor for SCORM 2004 API
@@ -42,6 +57,17 @@ class Scorm2004Impl extends BaseAPI {
 
     this.cmi = new CMI();
     this.adl = new ADL();
+    this._sequencing = new Sequencing();
+
+    // Connect the sequencing object to the ADL's sequencing property
+    // The Sequencing object is used for both configuration and runtime navigation processing
+    // It needs to be attached to the ADL object for runtime navigation requests (adl.nav.request)
+    this.adl.sequencing = this._sequencing;
+
+    // Configure sequencing if settings are provided
+    if (settings?.sequencing) {
+      this.configureSequencing(settings.sequencing);
+    }
 
     // Rename functions to match 2004 Spec and expose to modules
     this.Initialize = this.lmsInitialize;
@@ -74,6 +100,7 @@ class Scorm2004Impl extends BaseAPI {
 
     this.cmi?.reset();
     this.adl?.reset();
+    this._sequencing?.reset();
   }
 
   /**
@@ -175,6 +202,11 @@ class Scorm2004Impl extends BaseAPI {
         if (this.settings.scoItemIdValidator) {
           return String(this.settings.scoItemIdValidator(target));
         }
+        // If we have extracted IDs from sequencing, use those exclusively
+        if (this._extractedScoItemIds.length > 0) {
+          return String(this._extractedScoItemIds.includes(target));
+        }
+        // Otherwise use the scoItemIds from settings
         return String(this.settings.scoItemIds.includes(target));
       }
     }
@@ -821,6 +853,243 @@ class Scorm2004Impl extends BaseAPI {
       result: "true",
       errorCode: 0,
     };
+  }
+
+  /**
+   * Configure sequencing based on provided settings
+   * @param {SequencingSettings} sequencingSettings - The sequencing settings
+   */
+  private configureSequencing(sequencingSettings: SequencingSettings): void {
+    // Configure activity tree
+    if (sequencingSettings.activityTree) {
+      this.configureActivityTree(sequencingSettings.activityTree);
+    }
+
+    // Configure sequencing rules
+    if (sequencingSettings.sequencingRules) {
+      this.configureSequencingRules(sequencingSettings.sequencingRules);
+    }
+
+    // Configure sequencing controls
+    if (sequencingSettings.sequencingControls) {
+      this.configureSequencingControls(sequencingSettings.sequencingControls);
+    }
+
+    // Configure rollup rules
+    if (sequencingSettings.rollupRules) {
+      this.configureRollupRules(sequencingSettings.rollupRules);
+    }
+  }
+
+  /**
+   * Configure activity tree based on provided settings
+   * @param {ActivitySettings} activityTreeSettings - The activity tree settings
+   */
+  private configureActivityTree(activityTreeSettings: ActivitySettings): void {
+    // Create root activity
+    const rootActivity = this.createActivity(activityTreeSettings);
+
+    // Create activity tree
+    const activityTree = this._sequencing.activityTree;
+    activityTree.root = rootActivity;
+
+    // Extract activity IDs for use as scoItemIds
+    this._extractedScoItemIds = this.extractActivityIds(rootActivity);
+  }
+
+  /**
+   * Extract all activity IDs from an activity and its children
+   * @param {Activity} activity - The activity to extract IDs from
+   * @return {string[]} - Array of activity IDs
+   */
+  private extractActivityIds(activity: Activity): string[] {
+    const ids = [activity.id];
+
+    // Recursively extract IDs from children
+    for (const child of activity.children) {
+      ids.push(...this.extractActivityIds(child));
+    }
+
+    return ids;
+  }
+
+  /**
+   * Create an activity from settings
+   * @param {ActivitySettings} activitySettings - The activity settings
+   * @return {Activity} - The created activity
+   */
+  private createActivity(activitySettings: ActivitySettings): Activity {
+    // Create activity
+    const activity = new Activity(activitySettings.id, activitySettings.title);
+
+    // Set activity properties
+    if (activitySettings.isVisible !== undefined) {
+      activity.isVisible = activitySettings.isVisible;
+    }
+    if (activitySettings.isActive !== undefined) {
+      activity.isActive = activitySettings.isActive;
+    }
+    if (activitySettings.isSuspended !== undefined) {
+      activity.isSuspended = activitySettings.isSuspended;
+    }
+    if (activitySettings.isCompleted !== undefined) {
+      activity.isCompleted = activitySettings.isCompleted;
+    }
+
+    // Create child activities
+    if (activitySettings.children) {
+      for (const childSettings of activitySettings.children) {
+        const childActivity = this.createActivity(childSettings);
+        activity.addChild(childActivity);
+      }
+    }
+
+    return activity;
+  }
+
+  /**
+   * Configure sequencing rules based on provided settings
+   * @param {SequencingRulesSettings} sequencingRulesSettings - The sequencing rules settings
+   */
+  private configureSequencingRules(sequencingRulesSettings: SequencingRulesSettings): void {
+    const sequencingRules = this._sequencing.sequencingRules;
+
+    // Configure pre-condition rules
+    if (sequencingRulesSettings.preConditionRules) {
+      for (const ruleSettings of sequencingRulesSettings.preConditionRules) {
+        const rule = this.createSequencingRule(ruleSettings);
+        sequencingRules.addPreConditionRule(rule);
+      }
+    }
+
+    // Configure exit condition rules
+    if (sequencingRulesSettings.exitConditionRules) {
+      for (const ruleSettings of sequencingRulesSettings.exitConditionRules) {
+        const rule = this.createSequencingRule(ruleSettings);
+        sequencingRules.addExitConditionRule(rule);
+      }
+    }
+
+    // Configure post-condition rules
+    if (sequencingRulesSettings.postConditionRules) {
+      for (const ruleSettings of sequencingRulesSettings.postConditionRules) {
+        const rule = this.createSequencingRule(ruleSettings);
+        sequencingRules.addPostConditionRule(rule);
+      }
+    }
+  }
+
+  /**
+   * Create a sequencing rule from settings
+   * @param {SequencingRuleSettings} ruleSettings - The sequencing rule settings
+   * @return {SequencingRule} - The created sequencing rule
+   */
+  private createSequencingRule(ruleSettings: SequencingRuleSettings): SequencingRule {
+    // Create rule
+    const rule = new SequencingRule(ruleSettings.action, ruleSettings.conditionCombination);
+
+    // Add conditions
+    for (const conditionSettings of ruleSettings.conditions) {
+      const condition = new RuleCondition(
+        conditionSettings.condition,
+        conditionSettings.operator,
+        new Map(Object.entries(conditionSettings.parameters || {})),
+      );
+      rule.addCondition(condition);
+    }
+
+    return rule;
+  }
+
+  /**
+   * Configure sequencing controls based on provided settings
+   * @param {SequencingControlsSettings} sequencingControlsSettings - The sequencing controls settings
+   */
+  private configureSequencingControls(
+    sequencingControlsSettings: SequencingControlsSettings,
+  ): void {
+    const sequencingControls = this._sequencing.sequencingControls;
+
+    // Set sequencing control properties
+    if (sequencingControlsSettings.enabled !== undefined) {
+      sequencingControls.enabled = sequencingControlsSettings.enabled;
+    }
+    if (sequencingControlsSettings.choiceExit !== undefined) {
+      sequencingControls.choiceExit = sequencingControlsSettings.choiceExit;
+    }
+    if (sequencingControlsSettings.flow !== undefined) {
+      sequencingControls.flow = sequencingControlsSettings.flow;
+    }
+    if (sequencingControlsSettings.forwardOnly !== undefined) {
+      sequencingControls.forwardOnly = sequencingControlsSettings.forwardOnly;
+    }
+    if (sequencingControlsSettings.useCurrentAttemptObjectiveInfo !== undefined) {
+      sequencingControls.useCurrentAttemptObjectiveInfo =
+        sequencingControlsSettings.useCurrentAttemptObjectiveInfo;
+    }
+    if (sequencingControlsSettings.useCurrentAttemptProgressInfo !== undefined) {
+      sequencingControls.useCurrentAttemptProgressInfo =
+        sequencingControlsSettings.useCurrentAttemptProgressInfo;
+    }
+    if (sequencingControlsSettings.preventActivation !== undefined) {
+      sequencingControls.preventActivation = sequencingControlsSettings.preventActivation;
+    }
+    if (sequencingControlsSettings.constrainChoice !== undefined) {
+      sequencingControls.constrainChoice = sequencingControlsSettings.constrainChoice;
+    }
+    if (sequencingControlsSettings.rollupObjectiveSatisfied !== undefined) {
+      sequencingControls.rollupObjectiveSatisfied =
+        sequencingControlsSettings.rollupObjectiveSatisfied;
+    }
+    if (sequencingControlsSettings.rollupProgressCompletion !== undefined) {
+      sequencingControls.rollupProgressCompletion =
+        sequencingControlsSettings.rollupProgressCompletion;
+    }
+    if (sequencingControlsSettings.objectiveMeasureWeight !== undefined) {
+      sequencingControls.objectiveMeasureWeight = sequencingControlsSettings.objectiveMeasureWeight;
+    }
+  }
+
+  /**
+   * Configure rollup rules based on provided settings
+   * @param {RollupRulesSettings} rollupRulesSettings - The rollup rules settings
+   */
+  private configureRollupRules(rollupRulesSettings: RollupRulesSettings): void {
+    const rollupRules = this._sequencing.rollupRules;
+
+    // Configure rollup rules
+    if (rollupRulesSettings.rules) {
+      for (const ruleSettings of rollupRulesSettings.rules) {
+        const rule = this.createRollupRule(ruleSettings);
+        rollupRules.addRule(rule);
+      }
+    }
+  }
+
+  /**
+   * Create a rollup rule from settings
+   * @param {RollupRuleSettings} ruleSettings - The rollup rule settings
+   * @return {RollupRule} - The created rollup rule
+   */
+  private createRollupRule(ruleSettings: RollupRuleSettings): RollupRule {
+    // Create rule
+    const rule = new RollupRule(
+      ruleSettings.action,
+      ruleSettings.consideration,
+      ruleSettings.minimumCount,
+      ruleSettings.minimumPercent,
+    );
+
+    // Add conditions
+    for (const conditionSettings of ruleSettings.conditions) {
+      const condition = new RollupCondition(
+        conditionSettings.condition,
+        new Map(Object.entries(conditionSettings.parameters || {})),
+      );
+      rule.addCondition(condition);
+    }
+
+    return rule;
   }
 }
 

@@ -20,7 +20,7 @@ import {
   ILoggingService,
   ISerializationService,
 } from "./interfaces/services";
-import { isCMIArray, isError, isValidationError } from "./utils/type_guards";
+import { CMIArray } from "./cmi/common/array";
 import { ValidationError } from "./exceptions";
 
 /**
@@ -753,7 +753,7 @@ export default abstract class BaseAPI implements IBaseAPI {
           break;
         }
 
-        if (isCMIArray(refObject)) {
+        if (refObject instanceof CMIArray) {
           const index = parseInt(structure[idx + 1], 10);
 
           // SCO is trying to set an item on an array
@@ -849,7 +849,7 @@ export default abstract class BaseAPI implements IBaseAPI {
         break;
       }
 
-      if (isCMIArray(refObject)) {
+      if (refObject instanceof CMIArray) {
         const index = parseInt(structure[idx + 1], 10);
 
         // SCO is trying to set an item on an array
@@ -1236,12 +1236,12 @@ export default abstract class BaseAPI implements IBaseAPI {
    * }
    */
   private handleValueAccessException(CMIElement: string, e: any, returnValue: string): string {
-    if (isValidationError(e)) {
+    if (e instanceof ValidationError) {
       this.lastErrorCode = String(e.errorCode);
       returnValue = global_constants.SCORM_FALSE;
       this.throwSCORMError(CMIElement, e.errorCode, e.errorMessage);
     } else {
-      if (isError(e) && e.message) {
+      if (e instanceof Error && e.message) {
         console.error(e.message);
         this.throwSCORMError(CMIElement, this._error_codes.GENERAL, e.message);
       } else {

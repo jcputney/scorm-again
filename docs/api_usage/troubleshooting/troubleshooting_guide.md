@@ -29,31 +29,32 @@ related to API initialization, data persistence, LMS communication, and more.
 **Solutions**:
 
 1. **Check API Discovery Implementation**:
+
    ```javascript
    function findAPI(win) {
-     // Check if the API is directly available
-     if (win.API_1484_11) {
-       return { api: win.API_1484_11, version: '2004' };
-     } else if (win.API) {
-       return { api: win.API, version: '1.2' };
-     }
+      // Check if the API is directly available
+      if (win.API_1484_11) {
+         return { api: win.API_1484_11, version: "2004" };
+      } else if (win.API) {
+         return { api: win.API, version: "1.2" };
+      }
 
-     // Try to find the API in the parent window
-     let findAttempts = 0;
-     const MAX_ATTEMPTS = 10;
+      // Try to find the API in the parent window
+      let findAttempts = 0;
+      const MAX_ATTEMPTS = 10;
 
-     while (win.parent && win.parent !== win && findAttempts < MAX_ATTEMPTS) {
-       findAttempts++;
-       win = win.parent;
+      while (win.parent && win.parent !== win && findAttempts < MAX_ATTEMPTS) {
+         findAttempts++;
+         win = win.parent;
 
-       if (win.API_1484_11) {
-         return { api: win.API_1484_11, version: '2004' };
-       } else if (win.API) {
-         return { api: win.API, version: '1.2' };
-       }
-     }
+         if (win.API_1484_11) {
+            return { api: win.API_1484_11, version: "2004" };
+         } else if (win.API) {
+            return { api: win.API, version: "1.2" };
+         }
+      }
 
-     return { api: null, version: null };
+      return { api: null, version: null };
    }
    ```
 
@@ -66,8 +67,8 @@ related to API initialization, data persistence, LMS communication, and more.
    ```javascript
    const { api, version } = findAPI(window);
    if (!api) {
-     console.warn('No SCORM API found. Running in standalone mode.');
-     initializeStandaloneMode();
+      console.warn("No SCORM API found. Running in standalone mode.");
+      initializeStandaloneMode();
    }
    ```
 
@@ -84,46 +85,49 @@ related to API initialization, data persistence, LMS communication, and more.
 **Solutions**:
 
 1. **Check Initialization Parameters**:
+
    ```javascript
    // SCORM 1.2 and AICC
-   const result = window.API.LMSInitialize('');  // Empty string is required
+   const result = window.API.LMSInitialize(""); // Empty string is required
 
    // SCORM 2004
-   const result = window.API_1484_11.Initialize('');  // Empty string is required
+   const result = window.API_1484_11.Initialize(""); // Empty string is required
    ```
 
 2. **Verify Initialization Timing**: Make sure you're not trying to initialize the API multiple times or after it's
    already been terminated.
 
 3. **Check Error Codes**:
+
    ```javascript
-   if (result !== 'true') {
-     const errorCode = window.API.LMSGetLastError();
-     const errorString = window.API.LMSGetErrorString(errorCode);
-     const diagnostic = window.API.LMSGetDiagnostic(errorCode);
-     console.error(`Initialization failed: ${errorCode} - ${errorString} - ${diagnostic}`);
+   if (result !== "true") {
+      const errorCode = window.API.LMSGetLastError();
+      const errorString = window.API.LMSGetErrorString(errorCode);
+      const diagnostic = window.API.LMSGetDiagnostic(errorCode);
+      console.error(`Initialization failed: ${errorCode} - ${errorString} - ${diagnostic}`);
    }
    ```
 
 4. **Implement Retry Logic**:
+
    ```javascript
    function initializeWithRetry(maxAttempts = 3) {
-     let attempts = 0;
-     let success = false;
+      let attempts = 0;
+      let success = false;
 
-     while (!success && attempts < maxAttempts) {
-       attempts++;
-       const result = window.API.LMSInitialize('');
-       success = (result === 'true');
+      while (!success && attempts < maxAttempts) {
+         attempts++;
+         const result = window.API.LMSInitialize("");
+         success = result === "true";
 
-       if (!success) {
-         console.warn(`Initialization attempt ${attempts} failed. Retrying...`);
-         // Wait a moment before retrying
-         setTimeout(() => {}, 500);
-       }
-     }
+         if (!success) {
+            console.warn(`Initialization attempt ${attempts} failed. Retrying...`);
+            // Wait a moment before retrying
+            setTimeout(() => {}, 500);
+         }
+      }
 
-     return success;
+      return success;
    }
    ```
 
@@ -142,38 +146,42 @@ related to API initialization, data persistence, LMS communication, and more.
 **Solutions**:
 
 1. **Ensure Proper Commit Calls**:
+
    ```javascript
    // After setting values, always commit
-   window.API.LMSSetValue('cmi.core.lesson_status', 'completed');
-   window.API.LMSCommit('');  // Don't forget to commit!
+   window.API.LMSSetValue("cmi.core.lesson_status", "completed");
+   window.API.LMSCommit(""); // Don't forget to commit!
    ```
 
 2. **Check for Commit Errors**:
+
    ```javascript
-   const commitResult = window.API.LMSCommit('');
-   if (commitResult !== 'true') {
-     const errorCode = window.API.LMSGetLastError();
-     console.error(`Commit failed: ${errorCode}`);
+   const commitResult = window.API.LMSCommit("");
+   if (commitResult !== "true") {
+      const errorCode = window.API.LMSGetLastError();
+      console.error(`Commit failed: ${errorCode}`);
    }
    ```
 
 3. **Implement Automatic Commits**:
+
    ```javascript
    // Set up automatic commits every 30 seconds
    const settings = {
-     autocommit: true,
-     autocommitSeconds: 30
+      autocommit: true,
+      autocommitSeconds: 30,
    };
    window.API = new Scorm12API(settings);
    ```
 
 4. **Verify Data Format**:
+
    ```javascript
    // SCORM 1.2 time format must be HH:MM:SS
-   window.API.LMSSetValue('cmi.core.session_time', '01:30:00');
+   window.API.LMSSetValue("cmi.core.session_time", "01:30:00");
 
    // SCORM 2004 time format must be ISO 8601 duration
-   window.API_1484_11.SetValue('cmi.session_time', 'PT1H30M0S');
+   window.API_1484_11.SetValue("cmi.session_time", "PT1H30M0S");
    ```
 
 ### Suspend Data Size Limitations
@@ -189,56 +197,59 @@ related to API initialization, data persistence, LMS communication, and more.
 **Solutions**:
 
 1. **Compress Data**:
+
    ```javascript
    function saveCompressedData(data) {
-     // Convert to JSON string
-     const jsonString = JSON.stringify(data);
+      // Convert to JSON string
+      const jsonString = JSON.stringify(data);
 
-     // Use a compression library like lz-string
-     const compressed = LZString.compressToBase64(jsonString);
+      // Use a compression library like lz-string
+      const compressed = LZString.compressToBase64(jsonString);
 
-     // Save compressed data
-     window.API.LMSSetValue('cmi.suspend_data', compressed);
-     window.API.LMSCommit('');
+      // Save compressed data
+      window.API.LMSSetValue("cmi.suspend_data", compressed);
+      window.API.LMSCommit("");
    }
 
    function loadCompressedData() {
-     const compressed = window.API.LMSGetValue('cmi.suspend_data');
-     if (!compressed) return null;
+      const compressed = window.API.LMSGetValue("cmi.suspend_data");
+      if (!compressed) return null;
 
-     // Decompress
-     const jsonString = LZString.decompressFromBase64(compressed);
-     if (!jsonString) return null;
+      // Decompress
+      const jsonString = LZString.decompressFromBase64(compressed);
+      if (!jsonString) return null;
 
-     // Parse JSON
-     try {
-       return JSON.parse(jsonString);
-     } catch (e) {
-       console.error('Error parsing suspend data:', e);
-       return null;
-     }
+      // Parse JSON
+      try {
+         return JSON.parse(jsonString);
+      } catch (e) {
+         console.error("Error parsing suspend data:", e);
+         return null;
+      }
    }
    ```
 
 2. **Use Chunking Strategy**:
+
    ```javascript
    // See the "Handling Large Data Sets" section in the common use cases documentation
    // for a complete implementation of data chunking
    ```
 
 3. **Prioritize Critical Data**:
+
    ```javascript
    function saveEssentialData(allData) {
-     // Extract only the most critical data
-     const essentialData = {
-       currentPage: allData.currentPage,
-       completionStatus: allData.completionStatus,
-       lastQuizScore: allData.quizResults?.score
-     };
+      // Extract only the most critical data
+      const essentialData = {
+         currentPage: allData.currentPage,
+         completionStatus: allData.completionStatus,
+         lastQuizScore: allData.quizResults?.score,
+      };
 
-     // Save this smaller object
-     window.API.LMSSetValue('cmi.suspend_data', JSON.stringify(essentialData));
-     window.API.LMSCommit('');
+      // Save this smaller object
+      window.API.LMSSetValue("cmi.suspend_data", JSON.stringify(essentialData));
+      window.API.LMSCommit("");
    }
    ```
 
@@ -257,50 +268,52 @@ related to API initialization, data persistence, LMS communication, and more.
 **Solutions**:
 
 1. **Implement Offline Mode**:
+
    ```javascript
    // See the "Offline Learning with Synchronization" section in the common use cases documentation
    // for a complete implementation of offline mode
    ```
 
 2. **Add Retry Logic**:
+
    ```javascript
    async function commitWithRetry(maxAttempts = 3) {
-     let attempts = 0;
-     let success = false;
+      let attempts = 0;
+      let success = false;
 
-     while (!success && attempts < maxAttempts) {
-       attempts++;
-       const result = window.API.LMSCommit('');
-       success = (result === 'true');
+      while (!success && attempts < maxAttempts) {
+         attempts++;
+         const result = window.API.LMSCommit("");
+         success = result === "true";
 
-       if (!success) {
-         const errorCode = window.API.LMSGetLastError();
-         console.warn(`Commit attempt ${attempts} failed with error ${errorCode}. Retrying...`);
-         // Wait before retrying, with exponential backoff
-         await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
-       }
-     }
+         if (!success) {
+            const errorCode = window.API.LMSGetLastError();
+            console.warn(`Commit attempt ${attempts} failed with error ${errorCode}. Retrying...`);
+            // Wait before retrying, with exponential backoff
+            await new Promise((resolve) => setTimeout(resolve, 1000 * attempts));
+         }
+      }
 
-     return success;
+      return success;
    }
    ```
 
 3. **Handle Specific Error Codes**:
    ```javascript
    function handleCommitError(errorCode) {
-     switch(errorCode) {
-       case '101': // General exception
-         console.error('General exception during commit. Will retry later.');
-         queueForRetry();
-         break;
-       case '301': // Not initialized
-         console.error('API not initialized. Attempting to reinitialize.');
-         window.API.LMSInitialize('');
-         break;
-       // Handle other error codes
-       default:
-         console.error(`Unknown error during commit: ${errorCode}`);
-     }
+      switch (errorCode) {
+         case "101": // General exception
+            console.error("General exception during commit. Will retry later.");
+            queueForRetry();
+            break;
+         case "301": // Not initialized
+            console.error("API not initialized. Attempting to reinitialize.");
+            window.API.LMSInitialize("");
+            break;
+         // Handle other error codes
+         default:
+            console.error(`Unknown error during commit: ${errorCode}`);
+      }
    }
    ```
 
@@ -320,12 +333,13 @@ related to API initialization, data persistence, LMS communication, and more.
    Make sure your content is served from the same domain as the LMS, or that proper CORS headers are set.
 
 2. **Use Proxy if Needed**:
+
    ```javascript
    const settings = {
-     lmsCommitUrl: '/proxy-to-lms', // A server-side proxy on your domain
-     xhrHeaders: {
-       'X-Original-LMS-URL': 'https://actual-lms.com/endpoint'
-     }
+      lmsCommitUrl: "/proxy-to-lms", // A server-side proxy on your domain
+      xhrHeaders: {
+         "X-Original-LMS-URL": "https://actual-lms.com/endpoint",
+      },
    };
    window.API = new Scorm12API(settings);
    ```
@@ -348,13 +362,14 @@ related to API initialization, data persistence, LMS communication, and more.
 **Solutions**:
 
 1. **Use Relative Paths**:
+
    ```html
    <!-- Good -->
-   <img src="./images/logo.png">
+   <img src="./images/logo.png" />
    <script src="./scripts/main.js"></script>
 
    <!-- Avoid -->
-   <img src="/images/logo.png">
+   <img src="/images/logo.png" />
    <script src="C:/development/project/scripts/main.js"></script>
    ```
 
@@ -380,34 +395,36 @@ related to API initialization, data persistence, LMS communication, and more.
 **Solutions**:
 
 1. **Use Responsive Design Techniques**:
+
    ```css
    /* Use relative units */
    .container {
-     width: 100%;
-     max-width: 1200px;
-     margin: 0 auto;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
    }
 
    /* Use media queries */
    @media (max-width: 768px) {
-     .sidebar {
-       display: none;
-     }
+      .sidebar {
+         display: none;
+      }
    }
    ```
 
 2. **Adapt to Container Size**:
+
    ```javascript
    function resizeContent() {
-     const container = document.getElementById('scorm-content');
-     const parentHeight = window.innerHeight;
-     const parentWidth = window.innerWidth;
+      const container = document.getElementById("scorm-content");
+      const parentHeight = window.innerHeight;
+      const parentWidth = window.innerWidth;
 
-     container.style.height = `${parentHeight}px`;
-     container.style.width = `${parentWidth}px`;
+      container.style.height = `${parentHeight}px`;
+      container.style.width = `${parentWidth}px`;
    }
 
-   window.addEventListener('resize', resizeContent);
+   window.addEventListener("resize", resizeContent);
    resizeContent(); // Call initially
    ```
 
@@ -415,13 +432,16 @@ related to API initialization, data persistence, LMS communication, and more.
    ```javascript
    // Request more space from the parent frame if needed
    function requestMoreSpace(width, height) {
-     if (window.parent && window.parent !== window) {
-       window.parent.postMessage({
-         type: 'resize-request',
-         width: width,
-         height: height
-       }, '*');
-     }
+      if (window.parent && window.parent !== window) {
+         window.parent.postMessage(
+            {
+               type: "resize-request",
+               width: width,
+               height: height,
+            },
+            "*",
+         );
+      }
    }
    ```
 
@@ -440,44 +460,48 @@ related to API initialization, data persistence, LMS communication, and more.
 **Solutions**:
 
 1. **Verify Correct Status Values**:
+
    ```javascript
    // SCORM 1.2
-   window.API.LMSSetValue('cmi.core.lesson_status', 'completed'); // or 'passed', 'failed', 'incomplete', 'browsed', 'not attempted'
+   window.API.LMSSetValue("cmi.core.lesson_status", "completed"); // or 'passed', 'failed', 'incomplete', 'browsed', 'not attempted'
 
    // SCORM 2004
-   window.API_1484_11.SetValue('cmi.completion_status', 'completed'); // 'completed', 'incomplete', 'not attempted', 'unknown'
-   window.API_1484_11.SetValue('cmi.success_status', 'passed'); // 'passed', 'failed', 'unknown'
+   window.API_1484_11.SetValue("cmi.completion_status", "completed"); // 'completed', 'incomplete', 'not attempted', 'unknown'
+   window.API_1484_11.SetValue("cmi.success_status", "passed"); // 'passed', 'failed', 'unknown'
    ```
 
 2. **Check Completion Requirements**:
    Some LMSs require both completion_status and success_status to be set in SCORM 2004:
+
    ```javascript
    // Set both for maximum compatibility
-   window.API_1484_11.SetValue('cmi.completion_status', 'completed');
-   window.API_1484_11.SetValue('cmi.success_status', 'passed');
-   window.API_1484_11.Commit('');
+   window.API_1484_11.SetValue("cmi.completion_status", "completed");
+   window.API_1484_11.SetValue("cmi.success_status", "passed");
+   window.API_1484_11.Commit("");
    ```
 
 3. **Verify Commit Timing**:
+
    ```javascript
    // Make sure to commit after setting status
-   window.API.LMSSetValue('cmi.core.lesson_status', 'completed');
-   const result = window.API.LMSCommit('');
+   window.API.LMSSetValue("cmi.core.lesson_status", "completed");
+   const result = window.API.LMSCommit("");
 
-   if (result !== 'true') {
-     console.error('Failed to commit completion status');
-     // Implement retry logic here
+   if (result !== "true") {
+      console.error("Failed to commit completion status");
+      // Implement retry logic here
    }
    ```
 
 4. **Check LMS Requirements**:
    Some LMSs have specific requirements for marking a course as complete:
+
    ```javascript
    // Some LMSs require progress_measure to be set
-   window.API_1484_11.SetValue('cmi.progress_measure', '1.0');
+   window.API_1484_11.SetValue("cmi.progress_measure", "1.0");
 
    // Some require a minimum session time
-   window.API_1484_11.SetValue('cmi.session_time', 'PT5M0S'); // 5 minutes
+   window.API_1484_11.SetValue("cmi.session_time", "PT5M0S"); // 5 minutes
    ```
 
 ### Score Reporting Issues
@@ -493,45 +517,48 @@ related to API initialization, data persistence, LMS communication, and more.
 **Solutions**:
 
 1. **Use Correct Score Format**:
+
    ```javascript
    // SCORM 1.2
-   window.API.LMSSetValue('cmi.core.score.raw', '85'); // String value
-   window.API.LMSSetValue('cmi.core.score.min', '0');
-   window.API.LMSSetValue('cmi.core.score.max', '100');
+   window.API.LMSSetValue("cmi.core.score.raw", "85"); // String value
+   window.API.LMSSetValue("cmi.core.score.min", "0");
+   window.API.LMSSetValue("cmi.core.score.max", "100");
 
    // SCORM 2004
-   window.API_1484_11.SetValue('cmi.score.scaled', '0.85'); // Between 0 and 1
-   window.API_1484_11.SetValue('cmi.score.raw', '85');
-   window.API_1484_11.SetValue('cmi.score.min', '0');
-   window.API_1484_11.SetValue('cmi.score.max', '100');
+   window.API_1484_11.SetValue("cmi.score.scaled", "0.85"); // Between 0 and 1
+   window.API_1484_11.SetValue("cmi.score.raw", "85");
+   window.API_1484_11.SetValue("cmi.score.min", "0");
+   window.API_1484_11.SetValue("cmi.score.max", "100");
    ```
 
 2. **Set Consistent Pass/Fail Status**:
+
    ```javascript
    // SCORM 1.2
    const score = 85;
    const passingScore = 70;
-   window.API.LMSSetValue('cmi.core.score.raw', score.toString());
-   window.API.LMSSetValue('cmi.core.lesson_status', score >= passingScore ? 'passed' : 'failed');
+   window.API.LMSSetValue("cmi.core.score.raw", score.toString());
+   window.API.LMSSetValue("cmi.core.lesson_status", score >= passingScore ? "passed" : "failed");
 
    // SCORM 2004
    const score = 85;
    const passingScore = 70;
-   window.API_1484_11.SetValue('cmi.score.raw', score.toString());
-   window.API_1484_11.SetValue('cmi.success_status', score >= passingScore ? 'passed' : 'failed');
+   window.API_1484_11.SetValue("cmi.score.raw", score.toString());
+   window.API_1484_11.SetValue("cmi.success_status", score >= passingScore ? "passed" : "failed");
    ```
 
 3. **Use Mastery Score Override**:
+
    ```javascript
    // Use the mastery_override setting in SCORM Again
    const settings = {
-     mastery_override: true
+      mastery_override: true,
    };
    window.API = new Scorm12API(settings);
 
    // Set the mastery score and raw score
-   window.API.LMSSetValue('cmi.student_data.mastery_score', '70');
-   window.API.LMSSetValue('cmi.core.score.raw', '85');
+   window.API.LMSSetValue("cmi.student_data.mastery_score", "70");
+   window.API.LMSSetValue("cmi.core.score.raw", "85");
    // The API will automatically set lesson_status to 'passed' or 'failed'
    ```
 
@@ -548,36 +575,39 @@ related to API initialization, data persistence, LMS communication, and more.
 **Solutions**:
 
 1. **Check Interaction Format**:
+
    ```javascript
    // SCORM 1.2
-   window.API.LMSSetValue('cmi.interactions.0.id', 'question1');
-   window.API.LMSSetValue('cmi.interactions.0.type', 'choice');
-   window.API.LMSSetValue('cmi.interactions.0.student_response', 'a,c');
-   window.API.LMSSetValue('cmi.interactions.0.correct_responses.0.pattern', 'a,c');
-   window.API.LMSSetValue('cmi.interactions.0.result', 'correct');
+   window.API.LMSSetValue("cmi.interactions.0.id", "question1");
+   window.API.LMSSetValue("cmi.interactions.0.type", "choice");
+   window.API.LMSSetValue("cmi.interactions.0.student_response", "a,c");
+   window.API.LMSSetValue("cmi.interactions.0.correct_responses.0.pattern", "a,c");
+   window.API.LMSSetValue("cmi.interactions.0.result", "correct");
 
    // SCORM 2004
-   window.API_1484_11.SetValue('cmi.interactions.0.id', 'question1');
-   window.API_1484_11.SetValue('cmi.interactions.0.type', 'choice');
-   window.API_1484_11.SetValue('cmi.interactions.0.learner_response', 'a[,]c');
-   window.API_1484_11.SetValue('cmi.interactions.0.correct_responses.0.pattern', 'a[,]c');
-   window.API_1484_11.SetValue('cmi.interactions.0.result', 'correct');
+   window.API_1484_11.SetValue("cmi.interactions.0.id", "question1");
+   window.API_1484_11.SetValue("cmi.interactions.0.type", "choice");
+   window.API_1484_11.SetValue("cmi.interactions.0.learner_response", "a[,]c");
+   window.API_1484_11.SetValue("cmi.interactions.0.correct_responses.0.pattern", "a[,]c");
+   window.API_1484_11.SetValue("cmi.interactions.0.result", "correct");
    ```
 
 2. **Set Interactions in Order**:
+
    ```javascript
    // Set interaction properties in the correct order
    // First set the ID and type
-   window.API.LMSSetValue('cmi.interactions.0.id', 'question1');
-   window.API.LMSSetValue('cmi.interactions.0.type', 'choice');
+   window.API.LMSSetValue("cmi.interactions.0.id", "question1");
+   window.API.LMSSetValue("cmi.interactions.0.type", "choice");
 
    // Then set responses and results
-   window.API.LMSSetValue('cmi.interactions.0.student_response', 'a,c');
-   window.API.LMSSetValue('cmi.interactions.0.correct_responses.0.pattern', 'a,c');
-   window.API.LMSSetValue('cmi.interactions.0.result', 'correct');
+   window.API.LMSSetValue("cmi.interactions.0.student_response", "a,c");
+   window.API.LMSSetValue("cmi.interactions.0.correct_responses.0.pattern", "a,c");
+   window.API.LMSSetValue("cmi.interactions.0.result", "correct");
    ```
 
 3. **Verify Interaction Types**:
+
    ```javascript
    // Make sure to use the correct interaction type
    // SCORM 1.2 and 2004 types: 'true-false', 'choice', 'fill-in', 'matching', 'performance', 'sequencing', 'likert', 'numeric'
@@ -585,8 +615,8 @@ related to API initialization, data persistence, LMS communication, and more.
 
    // And use the correct response format for each type
    // For example, true-false in SCORM 2004:
-   window.API_1484_11.SetValue('cmi.interactions.0.type', 'true-false');
-   window.API_1484_11.SetValue('cmi.interactions.0.learner_response', 'true'); // Must be 'true' or 'false'
+   window.API_1484_11.SetValue("cmi.interactions.0.type", "true-false");
+   window.API_1484_11.SetValue("cmi.interactions.0.learner_response", "true"); // Must be 'true' or 'false'
    ```
 
 ## Cross-Browser Compatibility
@@ -604,31 +634,37 @@ related to API initialization, data persistence, LMS communication, and more.
 **Solutions**:
 
 1. **Use Polyfills**:
+
    ```javascript
    // Include polyfills for modern JavaScript features
    // For example, for fetch API:
    if (!window.fetch) {
-     // Include a fetch polyfill
-     document.write('<script src="https://cdn.jsdelivr.net/npm/whatwg-fetch@3.6.2/dist/fetch.umd.min.js"><\/script>');
+      // Include a fetch polyfill
+      document.write(
+         '<script src="https://cdn.jsdelivr.net/npm/whatwg-fetch@3.6.2/dist/fetch.umd.min.js"><\/script>',
+      );
    }
 
    // For Promise:
    if (!window.Promise) {
-     document.write('<script src="https://cdn.jsdelivr.net/npm/promise-polyfill@8.2.3/dist/polyfill.min.js"><\/script>');
+      document.write(
+         '<script src="https://cdn.jsdelivr.net/npm/promise-polyfill@8.2.3/dist/polyfill.min.js"><\/script>',
+      );
    }
    ```
 
 2. **Avoid Modern Syntax**:
+
    ```javascript
    // Avoid arrow functions
    // Instead of:
    const handleClick = () => {
-     console.log('Clicked');
+      console.log("Clicked");
    };
 
    // Use:
    function handleClick() {
-     console.log('Clicked');
+      console.log("Clicked");
    }
 
    // Avoid template literals
@@ -636,7 +672,7 @@ related to API initialization, data persistence, LMS communication, and more.
    const message = `Hello, ${name}`;
 
    // Use:
-   var message = 'Hello, ' + name;
+   var message = "Hello, " + name;
    ```
 
 3. **Use Transpilation**:
@@ -644,13 +680,16 @@ related to API initialization, data persistence, LMS communication, and more.
    ```javascript
    // In your webpack.config.js or babel.config.js
    module.exports = {
-     presets: [
-       ['@babel/preset-env', {
-         targets: {
-           ie: '11'
-         }
-       }]
-     ]
+      presets: [
+         [
+            "@babel/preset-env",
+            {
+               targets: {
+                  ie: "11",
+               },
+            },
+         ],
+      ],
    };
    ```
 
@@ -667,44 +706,49 @@ related to API initialization, data persistence, LMS communication, and more.
 **Solutions**:
 
 1. **Use Responsive Design**:
+
    ```html
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
    ```
 
    ```css
    /* Use media queries for different screen sizes */
    @media (max-width: 768px) {
-     .content {
-       padding: 10px;
-       font-size: 16px;
-     }
+      .content {
+         padding: 10px;
+         font-size: 16px;
+      }
    }
    ```
 
 2. **Handle Touch Events**:
+
    ```javascript
    // Add support for both mouse and touch events
-   const element = document.getElementById('interactive-element');
+   const element = document.getElementById("interactive-element");
 
    // Mouse events
-   element.addEventListener('mousedown', handleInteraction);
+   element.addEventListener("mousedown", handleInteraction);
 
    // Touch events
-   element.addEventListener('touchstart', function(e) {
-     // Prevent default to avoid scrolling in some cases
-     e.preventDefault();
-     handleInteraction(e.touches[0]);
+   element.addEventListener("touchstart", function (e) {
+      // Prevent default to avoid scrolling in some cases
+      e.preventDefault();
+      handleInteraction(e.touches[0]);
    });
    ```
 
 3. **Optimize Performance**:
+
    ```javascript
    // Reduce animations on mobile
-   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent,
+   );
 
    if (isMobile) {
-     // Simplify animations or disable non-essential features
-     document.body.classList.add('mobile-optimized');
+      // Simplify animations or disable non-essential features
+      document.body.classList.add("mobile-optimized");
    }
    ```
 
@@ -723,68 +767,71 @@ related to API initialization, data persistence, LMS communication, and more.
 **Solutions**:
 
 1. **Optimize Asset Loading**:
+
    ```javascript
    // Lazy load non-critical resources
    function lazyLoadImages() {
-     const images = document.querySelectorAll('img[data-src]');
+      const images = document.querySelectorAll("img[data-src]");
 
-     images.forEach(img => {
-       if (isInViewport(img)) {
-         img.src = img.dataset.src;
-         img.removeAttribute('data-src');
-       }
-     });
+      images.forEach((img) => {
+         if (isInViewport(img)) {
+            img.src = img.dataset.src;
+            img.removeAttribute("data-src");
+         }
+      });
    }
 
-   window.addEventListener('scroll', lazyLoadImages);
-   window.addEventListener('resize', lazyLoadImages);
+   window.addEventListener("scroll", lazyLoadImages);
+   window.addEventListener("resize", lazyLoadImages);
    lazyLoadImages(); // Call initially
    ```
 
 2. **Minimize API Calls**:
+
    ```javascript
    // Batch CMI value updates
    let pendingUpdates = {};
 
    function setCMIValue(key, value) {
-     pendingUpdates[key] = value;
+      pendingUpdates[key] = value;
 
-     // Debounce the actual API calls
-     clearTimeout(window.updateTimeout);
-     window.updateTimeout = setTimeout(flushUpdates, 100);
+      // Debounce the actual API calls
+      clearTimeout(window.updateTimeout);
+      window.updateTimeout = setTimeout(flushUpdates, 100);
    }
 
    function flushUpdates() {
-     for (const key in pendingUpdates) {
-       window.API.LMSSetValue(key, pendingUpdates[key]);
-     }
+      for (const key in pendingUpdates) {
+         window.API.LMSSetValue(key, pendingUpdates[key]);
+      }
 
-     window.API.LMSCommit('');
-     pendingUpdates = {};
+      window.API.LMSCommit("");
+      pendingUpdates = {};
    }
    ```
 
 3. **Reduce Initial Payload**:
+
    ```javascript
    // Load content progressively
    function loadModule(moduleId) {
-     const moduleContainer = document.getElementById('module-container');
+      const moduleContainer = document.getElementById("module-container");
 
-     // Show loading indicator
-     moduleContainer.innerHTML = '<div class="loading">Loading...</div>';
+      // Show loading indicator
+      moduleContainer.innerHTML = '<div class="loading">Loading...</div>';
 
-     // Fetch module content
-     fetch(`modules/${moduleId}.html`)
-       .then(response => response.text())
-       .then(html => {
-         moduleContainer.innerHTML = html;
-         // Initialize module scripts
-         initializeModule(moduleId);
-       })
-       .catch(error => {
-         console.error('Error loading module:', error);
-         moduleContainer.innerHTML = '<div class="error">Failed to load content</div>';
-       });
+      // Fetch module content
+      fetch(`modules/${moduleId}.html`)
+         .then((response) => response.text())
+         .then((html) => {
+            moduleContainer.innerHTML = html;
+            // Initialize module scripts
+            initializeModule(moduleId);
+         })
+         .catch((error) => {
+            console.error("Error loading module:", error);
+            moduleContainer.innerHTML = '<div class="error">Failed to load content</div>';
+         });
    }
    ```
 
@@ -801,63 +848,66 @@ related to API initialization, data persistence, LMS communication, and more.
 **Solutions**:
 
 1. **Clean Up Event Listeners**:
+
    ```javascript
    // Bad: Event listeners that aren't removed
    function setupPage() {
-     const button = document.getElementById('next-button');
-     button.addEventListener('click', handleNextClick);
+      const button = document.getElementById("next-button");
+      button.addEventListener("click", handleNextClick);
    }
 
    // Good: Keep references and remove listeners when done
    let nextButtonListener;
 
    function setupPage() {
-     const button = document.getElementById('next-button');
-     nextButtonListener = handleNextClick;
-     button.addEventListener('click', nextButtonListener);
+      const button = document.getElementById("next-button");
+      nextButtonListener = handleNextClick;
+      button.addEventListener("click", nextButtonListener);
    }
 
    function cleanupPage() {
-     const button = document.getElementById('next-button');
-     if (button && nextButtonListener) {
-       button.removeEventListener('click', nextButtonListener);
-     }
+      const button = document.getElementById("next-button");
+      if (button && nextButtonListener) {
+         button.removeEventListener("click", nextButtonListener);
+      }
    }
    ```
 
 2. **Avoid Circular References**:
+
    ```javascript
    // Bad: Circular reference
    function createObject() {
-     const parent = {};
-     const child = { parent: parent };
-     parent.child = child; // Creates a circular reference
-     return parent;
+      const parent = {};
+      const child = { parent: parent };
+      parent.child = child; // Creates a circular reference
+      return parent;
    }
 
    // Good: Avoid circular references or use WeakMap/WeakSet
    function createObject() {
-     const parent = {};
-     const child = { parentId: 'parent1' }; // Reference by ID instead
-     parent.child = child;
-     return parent;
+      const parent = {};
+      const child = { parentId: "parent1" }; // Reference by ID instead
+      parent.child = child;
+      return parent;
    }
    ```
 
 3. **Dispose of Large Objects**:
+
    ```javascript
    // Clear large objects when they're no longer needed
    function loadModule(moduleId) {
-     // Load large data
-     fetch(`data/${moduleId}.json`)
-       .then(response => response.json())
-       .then(data => {
-         // Use the data
-         processData(data);
+      // Load large data
+      fetch(`data/${moduleId}.json`)
+         .then((response) => response.json())
+         .then((data) => {
+            // Use the data
+            processData(data);
 
-         // When done, explicitly clear references
-         window.moduleData = null;
-       });
+            // When done, explicitly clear references
+            window.moduleData = null;
+         });
    }
    ```
 
@@ -869,7 +919,7 @@ versions.
 ### SCORM 1.2 Error Codes
 
 | Code | Description                              | Troubleshooting                                |
-|------|------------------------------------------|------------------------------------------------|
+| ---- | ---------------------------------------- | ---------------------------------------------- |
 | 0    | No error                                 | Operation completed successfully               |
 | 101  | General exception                        | Check for syntax errors or invalid parameters  |
 | 201  | Invalid argument error                   | Verify the CMI element name and value format   |
@@ -885,7 +935,7 @@ versions.
 ### SCORM 2004 Error Codes
 
 | Code | Description                              | Troubleshooting                                        |
-|------|------------------------------------------|--------------------------------------------------------|
+| ---- | ---------------------------------------- | ------------------------------------------------------ |
 | 0    | No error                                 | Operation completed successfully                       |
 | 101  | General exception                        | Check for syntax errors or invalid parameters          |
 | 102  | General initialization failure           | Check if the API is available and properly initialized |
@@ -919,40 +969,40 @@ When you encounter an error code, you can use the following pattern to handle it
 
 ```javascript
 function handleAPIError(functionName, errorCode) {
-  let errorString, diagnostic;
+   let errorString, diagnostic;
 
-  if (window.API_1484_11) {
-    // SCORM 2004
-    errorString = window.API_1484_11.GetErrorString(errorCode);
-    diagnostic = window.API_1484_11.GetDiagnostic(errorCode);
-  } else if (window.API) {
-    // SCORM 1.2
-    errorString = window.API.LMSGetErrorString(errorCode);
-    diagnostic = window.API.LMSGetDiagnostic(errorCode);
-  }
+   if (window.API_1484_11) {
+      // SCORM 2004
+      errorString = window.API_1484_11.GetErrorString(errorCode);
+      diagnostic = window.API_1484_11.GetDiagnostic(errorCode);
+   } else if (window.API) {
+      // SCORM 1.2
+      errorString = window.API.LMSGetErrorString(errorCode);
+      diagnostic = window.API.LMSGetDiagnostic(errorCode);
+   }
 
-  console.error(`Error in ${functionName}: ${errorCode} - ${errorString}`);
-  console.debug(`Diagnostic: ${diagnostic}`);
+   console.error(`Error in ${functionName}: ${errorCode} - ${errorString}`);
+   console.debug(`Diagnostic: ${diagnostic}`);
 
-  // Handle specific error codes
-  switch(errorCode) {
-    case '301': // Not initialized
-      console.warn('API not initialized. Attempting to initialize...');
-      initializeAPI();
-      break;
-    case '101': // General exception
-      console.warn('General exception. Retrying operation...');
-      // Implement retry logic
-      break;
-    // Add more specific error handling as needed
-  }
+   // Handle specific error codes
+   switch (errorCode) {
+      case "301": // Not initialized
+         console.warn("API not initialized. Attempting to initialize...");
+         initializeAPI();
+         break;
+      case "101": // General exception
+         console.warn("General exception. Retrying operation...");
+         // Implement retry logic
+         break;
+      // Add more specific error handling as needed
+   }
 }
 
 // Example usage
-const result = window.API.LMSSetValue('cmi.core.lesson_status', 'completed');
-if (result !== 'true') {
-  const errorCode = window.API.LMSGetLastError();
-  handleAPIError('LMSSetValue', errorCode);
+const result = window.API.LMSSetValue("cmi.core.lesson_status", "completed");
+if (result !== "true") {
+   const errorCode = window.API.LMSGetLastError();
+   handleAPIError("LMSSetValue", errorCode);
 }
 ```
 
