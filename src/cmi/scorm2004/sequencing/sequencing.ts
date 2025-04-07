@@ -1,12 +1,12 @@
-import { BaseCMI } from "../../common/base_cmi";
-import { Activity } from "./activity";
-import { ActivityTree } from "./activity_tree";
-import { SequencingRules, RuleActionType } from "./sequencing_rules";
-import { SequencingControls } from "./sequencing_controls";
-import { RollupRules } from "./rollup_rules";
-import { ADLNav } from "../adl";
-import { Scorm2004ValidationError } from "../../../exceptions/scorm2004_exceptions";
-import { scorm2004_errors } from "../../../constants/error_codes";
+import {BaseCMI} from "../../common/base_cmi";
+import {Activity} from "./activity";
+import {ActivityTree} from "./activity_tree";
+import {RuleActionType, SequencingRules} from "./sequencing_rules";
+import {SequencingControls} from "./sequencing_controls";
+import {RollupRules} from "./rollup_rules";
+import {ADLNav} from "../adl";
+import {Scorm2004ValidationError} from "../../../exceptions/scorm2004_exceptions";
+import {scorm2004_errors} from "../../../constants/error_codes";
 
 /**
  * Class representing SCORM 2004 sequencing
@@ -208,11 +208,11 @@ export class Sequencing extends BaseCMI {
       case "exit":
         return this.processExitRequest(currentActivity);
       case "exitAll":
-        return this.processExitAllRequest(currentActivity);
+        return this.processExitAllRequest();
       case "abandon":
         return this.processAbandonRequest(currentActivity);
       case "abandonAll":
-        return this.processAbandonAllRequest(currentActivity);
+        return this.processAbandonAllRequest();
       case "suspendAll":
         return this.processSuspendAllRequest(currentActivity);
       case "resumeAll":
@@ -244,7 +244,7 @@ export class Sequencing extends BaseCMI {
     if (exitConditionAction) {
       // Handle exit condition action
       switch (exitConditionAction) {
-        case RuleActionType.EXIT_PARENT:
+        case RuleActionType.EXIT_PARENT: {
           // Exit to parent
           const parent = currentActivity.parent;
           if (parent) {
@@ -252,6 +252,7 @@ export class Sequencing extends BaseCMI {
             return true;
           }
           return false;
+        }
         case RuleActionType.EXIT_ALL:
           // Exit all
           this._activityTree.currentActivity = null;
@@ -319,7 +320,7 @@ export class Sequencing extends BaseCMI {
     if (exitConditionAction) {
       // Handle exit condition action
       switch (exitConditionAction) {
-        case RuleActionType.EXIT_PARENT:
+        case RuleActionType.EXIT_PARENT: {
           // Exit to parent
           const parent = currentActivity.parent;
           if (parent) {
@@ -327,6 +328,7 @@ export class Sequencing extends BaseCMI {
             return true;
           }
           return false;
+        }
         case RuleActionType.EXIT_ALL:
           // Exit all
           this._activityTree.currentActivity = null;
@@ -397,10 +399,9 @@ export class Sequencing extends BaseCMI {
 
   /**
    * Process exit all request
-   * @param {Activity} currentActivity - The current activity
    * @return {boolean} - True if the request is valid, false otherwise
    */
-  processExitAllRequest(currentActivity: Activity): boolean {
+  processExitAllRequest(): boolean {
     // Check if exit is allowed
     if (!this._sequencingControls.choiceExit) {
       return false;
@@ -432,10 +433,9 @@ export class Sequencing extends BaseCMI {
 
   /**
    * Process abandon all request
-   * @param {Activity} currentActivity - The current activity
    * @return {boolean} - True if the request is valid, false otherwise
    */
-  processAbandonAllRequest(currentActivity: Activity): boolean {
+  processAbandonAllRequest(): boolean {
     // Set no activity as current without processing exit rules
     this._activityTree.currentActivity = null;
 

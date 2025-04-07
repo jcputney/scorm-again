@@ -1,8 +1,8 @@
-import { BaseCMI } from "../../common/base_cmi";
-import { Activity } from "./activity";
-import { Scorm2004ValidationError } from "../../../exceptions/scorm2004_exceptions";
-import { scorm2004_errors } from "../../../constants/error_codes";
-import { CompletionStatus, SuccessStatus } from "../../../constants/enums";
+import {BaseCMI} from "../../common/base_cmi";
+import {Activity} from "./activity";
+import {Scorm2004ValidationError} from "../../../exceptions/scorm2004_exceptions";
+import {scorm2004_errors} from "../../../constants/error_codes";
+import {CompletionStatus, SuccessStatus} from "../../../constants/enums";
 
 /**
  * Enum for rollup action types
@@ -114,16 +114,18 @@ export class RollupCondition extends BaseCMI {
         return activity.objectiveMeasureStatus;
       case RollupConditionType.OBJECTIVE_MEASURE_KNOWN:
         return activity.objectiveMeasureStatus;
-      case RollupConditionType.OBJECTIVE_MEASURE_GREATER_THAN:
+      case RollupConditionType.OBJECTIVE_MEASURE_GREATER_THAN: {
         const greaterThanValue = this._parameters.get("threshold") || 0;
         return (
           activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue
         );
-      case RollupConditionType.OBJECTIVE_MEASURE_LESS_THAN:
+      }
+      case RollupConditionType.OBJECTIVE_MEASURE_LESS_THAN: {
         const lessThanValue = this._parameters.get("threshold") || 0;
         return (
           activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue
         );
+      }
       case RollupConditionType.COMPLETED:
         return activity.isCompleted;
       case RollupConditionType.PROGRESS_KNOWN:
@@ -321,9 +323,10 @@ export class RollupRule extends BaseCMI {
         return matchingChildren.length === 0;
       case RollupConsiderationType.AT_LEAST_COUNT:
         return matchingChildren.length >= this._minimumCount;
-      case RollupConsiderationType.AT_LEAST_PERCENT:
+      case RollupConsiderationType.AT_LEAST_PERCENT: {
         const percent = (matchingChildren.length / children.length) * 100;
         return percent >= this._minimumPercent;
+      }
       default:
         return false;
     }

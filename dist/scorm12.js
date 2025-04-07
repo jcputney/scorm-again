@@ -695,16 +695,11 @@ var CMIScore = (function (_super) {
         _this._raw = "";
         _this._min = "";
         _this.__children = params.score_children || _constants_api_constants__WEBPACK_IMPORTED_MODULE_0__/* .scorm12_constants */ .QP.score_children;
-        _this.__score_range = !params.score_range
-            ? false
-            : _constants_regex__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_regex */ .kS.score_range;
+        _this.__score_range = !params.score_range ? false : _constants_regex__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_regex */ .kS.score_range;
         _this._max = params.max || params.max === "" ? params.max : "100";
-        _this.__invalid_error_code =
-            params.invalidErrorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.INVALID_SET_VALUE;
-        _this.__invalid_type_code =
-            params.invalidTypeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.TYPE_MISMATCH;
-        _this.__invalid_range_code =
-            params.invalidRangeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.VALUE_OUT_OF_RANGE;
+        _this.__invalid_error_code = params.invalidErrorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.INVALID_SET_VALUE;
+        _this.__invalid_type_code = params.invalidTypeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.TYPE_MISMATCH;
+        _this.__invalid_range_code = params.invalidRangeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.VALUE_OUT_OF_RANGE;
         _this.__decimal_regex = params.decimalRegex || _constants_regex__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_regex */ .kS.CMIDecimal;
         _this.__error_class = params.errorClass;
         return _this;
@@ -798,7 +793,7 @@ var checkValidFormat = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__/* .memoize */ 
     }
     return true;
 }, function (CMIElement, value, regexPattern, errorCode, _errorClass, allowEmptyString) {
-    var valueKey = typeof value === 'string' ? value : "[".concat(typeof value, "]");
+    var valueKey = typeof value === "string" ? value : "[".concat(typeof value, "]");
     return "".concat(CMIElement, ":").concat(valueKey, ":").concat(regexPattern, ":").concat(errorCode, ":").concat(allowEmptyString || false);
 });
 var checkValidRange = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__/* .memoize */ .Bj)(function (CMIElement, value, rangePattern, errorCode, errorClass) {
@@ -3625,9 +3620,7 @@ var CMI = (function (_super) {
         _this._comments_from_lms = "";
         if (initialized)
             _this.initialize();
-        _this.__children = cmi_children
-            ? cmi_children
-            : api_constants/* scorm12_constants */.QP.cmi_children;
+        _this.__children = cmi_children ? cmi_children : api_constants/* scorm12_constants */.QP.cmi_children;
         _this.core = new CMICore();
         _this.objectives = new objectives/* CMIObjectives */.C();
         _this.student_data = student_data ? student_data : new scorm12_student_data/* CMIStudentData */.X();

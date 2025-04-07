@@ -695,16 +695,11 @@ var CMIScore = (function (_super) {
         _this._raw = "";
         _this._min = "";
         _this.__children = params.score_children || _constants_api_constants__WEBPACK_IMPORTED_MODULE_0__/* .scorm12_constants */ .QP.score_children;
-        _this.__score_range = !params.score_range
-            ? false
-            : _constants_regex__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_regex */ .kS.score_range;
+        _this.__score_range = !params.score_range ? false : _constants_regex__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_regex */ .kS.score_range;
         _this._max = params.max || params.max === "" ? params.max : "100";
-        _this.__invalid_error_code =
-            params.invalidErrorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.INVALID_SET_VALUE;
-        _this.__invalid_type_code =
-            params.invalidTypeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.TYPE_MISMATCH;
-        _this.__invalid_range_code =
-            params.invalidRangeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.VALUE_OUT_OF_RANGE;
+        _this.__invalid_error_code = params.invalidErrorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.INVALID_SET_VALUE;
+        _this.__invalid_type_code = params.invalidTypeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.TYPE_MISMATCH;
+        _this.__invalid_range_code = params.invalidRangeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.VALUE_OUT_OF_RANGE;
         _this.__decimal_regex = params.decimalRegex || _constants_regex__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_regex */ .kS.CMIDecimal;
         _this.__error_class = params.errorClass;
         return _this;
@@ -798,7 +793,7 @@ var checkValidFormat = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__/* .memoize */ 
     }
     return true;
 }, function (CMIElement, value, regexPattern, errorCode, _errorClass, allowEmptyString) {
-    var valueKey = typeof value === 'string' ? value : "[".concat(typeof value, "]");
+    var valueKey = typeof value === "string" ? value : "[".concat(typeof value, "]");
     return "".concat(CMIElement, ":").concat(valueKey, ":").concat(regexPattern, ":").concat(errorCode, ":").concat(allowEmptyString || false);
 });
 var checkValidRange = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__/* .memoize */ .Bj)(function (CMIElement, value, rangePattern, errorCode, errorClass) {
@@ -1387,9 +1382,7 @@ var CMIInteractionsObject = (function (_super) {
                         var formatRegex = new RegExp(response_type.format);
                         for (var i = 0; i < nodes.length; i++) {
                             if (response_type === null || response_type === void 0 ? void 0 : response_type.delimiter2) {
-                                var delimiter2 = response_type.delimiter2 === "[.]"
-                                    ? "."
-                                    : response_type.delimiter2;
+                                var delimiter2 = response_type.delimiter2 === "[.]" ? "." : response_type.delimiter2;
                                 var values = nodes[i].split(delimiter2);
                                 if (values.length === 2) {
                                     if (!values[0].match(formatRegex)) {
@@ -1575,8 +1568,7 @@ var CMIInteractionsCorrectResponsesObject = (function (_super) {
                                         if (!matches) {
                                             isValid = false;
                                         }
-                                        else if (!response.format2 ||
-                                            !values[1].match(new RegExp(response.format2))) {
+                                        else if (!response.format2 || !values[1].match(new RegExp(response.format2))) {
                                             isValid = false;
                                         }
                                     }
@@ -3104,21 +3096,24 @@ var RuleCondition = (function (_super) {
                 return activity.objectiveMeasureStatus;
             case RuleConditionType.OBJECTIVE_MEASURE_KNOWN:
                 return activity.objectiveMeasureStatus;
-            case RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN:
+            case RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN: {
                 var greaterThanValue = this._parameters.get("threshold") || 0;
-                return activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue;
-            case RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN:
+                return (activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue);
+            }
+            case RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN: {
                 var lessThanValue = this._parameters.get("threshold") || 0;
-                return activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue;
+                return (activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue);
+            }
             case RuleConditionType.COMPLETED:
                 return activity.isCompleted;
             case RuleConditionType.PROGRESS_KNOWN:
                 return activity.completionStatus !== "unknown";
             case RuleConditionType.ATTEMPTED:
                 return activity.attemptCount > 0;
-            case RuleConditionType.ATTEMPT_LIMIT_EXCEEDED:
+            case RuleConditionType.ATTEMPT_LIMIT_EXCEEDED: {
                 var attemptLimit = this._parameters.get("attemptLimit") || 0;
                 return attemptLimit > 0 && activity.attemptCount >= attemptLimit;
+            }
             case RuleConditionType.TIME_LIMIT_EXCEEDED:
                 return false;
             case RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE:
@@ -3397,12 +3392,14 @@ var RollupCondition = (function (_super) {
                 return activity.objectiveMeasureStatus;
             case RollupConditionType.OBJECTIVE_MEASURE_KNOWN:
                 return activity.objectiveMeasureStatus;
-            case RollupConditionType.OBJECTIVE_MEASURE_GREATER_THAN:
+            case RollupConditionType.OBJECTIVE_MEASURE_GREATER_THAN: {
                 var greaterThanValue = this._parameters.get("threshold") || 0;
-                return activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue;
-            case RollupConditionType.OBJECTIVE_MEASURE_LESS_THAN:
+                return (activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue);
+            }
+            case RollupConditionType.OBJECTIVE_MEASURE_LESS_THAN: {
                 var lessThanValue = this._parameters.get("threshold") || 0;
-                return activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue;
+                return (activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue);
+            }
             case RollupConditionType.COMPLETED:
                 return activity.isCompleted;
             case RollupConditionType.PROGRESS_KNOWN:
@@ -3534,9 +3531,10 @@ var RollupRule = (function (_super) {
                 return matchingChildren.length === 0;
             case RollupConsiderationType.AT_LEAST_COUNT:
                 return matchingChildren.length >= this._minimumCount;
-            case RollupConsiderationType.AT_LEAST_PERCENT:
+            case RollupConsiderationType.AT_LEAST_PERCENT: {
                 var percent = (matchingChildren.length / children.length) * 100;
                 return percent >= this._minimumPercent;
+            }
             default:
                 return false;
         }
@@ -4784,11 +4782,11 @@ var Sequencing = (function (_super) {
             case "exit":
                 return this.processExitRequest(currentActivity);
             case "exitAll":
-                return this.processExitAllRequest(currentActivity);
+                return this.processExitAllRequest();
             case "abandon":
                 return this.processAbandonRequest(currentActivity);
             case "abandonAll":
-                return this.processAbandonAllRequest(currentActivity);
+                return this.processAbandonAllRequest();
             case "suspendAll":
                 return this.processSuspendAllRequest(currentActivity);
             case "resumeAll":
@@ -4808,13 +4806,14 @@ var Sequencing = (function (_super) {
         var exitConditionAction = this._sequencingRules.evaluateExitConditionRules(currentActivity);
         if (exitConditionAction) {
             switch (exitConditionAction) {
-                case RuleActionType.EXIT_PARENT:
+                case RuleActionType.EXIT_PARENT: {
                     var parent_1 = currentActivity.parent;
                     if (parent_1) {
                         this._activityTree.currentActivity = parent_1;
                         return true;
                     }
                     return false;
+                }
                 case RuleActionType.EXIT_ALL:
                     this._activityTree.currentActivity = null;
                     return true;
@@ -4858,13 +4857,14 @@ var Sequencing = (function (_super) {
         var exitConditionAction = this._sequencingRules.evaluateExitConditionRules(currentActivity);
         if (exitConditionAction) {
             switch (exitConditionAction) {
-                case RuleActionType.EXIT_PARENT:
+                case RuleActionType.EXIT_PARENT: {
                     var parent_2 = currentActivity.parent;
                     if (parent_2) {
                         this._activityTree.currentActivity = parent_2;
                         return true;
                     }
                     return false;
+                }
                 case RuleActionType.EXIT_ALL:
                     this._activityTree.currentActivity = null;
                     return true;
@@ -4908,7 +4908,7 @@ var Sequencing = (function (_super) {
         this._activityTree.currentActivity = parent;
         return true;
     };
-    Sequencing.prototype.processExitAllRequest = function (currentActivity) {
+    Sequencing.prototype.processExitAllRequest = function () {
         if (!this._sequencingControls.choiceExit) {
             return false;
         }
@@ -4923,7 +4923,7 @@ var Sequencing = (function (_super) {
         this._activityTree.currentActivity = parent;
         return true;
     };
-    Sequencing.prototype.processAbandonAllRequest = function (currentActivity) {
+    Sequencing.prototype.processAbandonAllRequest = function () {
         this._activityTree.currentActivity = null;
         return true;
     };
@@ -5002,6 +5002,7 @@ var Scorm2004Impl = (function (_super) {
         _this = _super.call(this, error_codes/* scorm2004_errors */.Rf, settings) || this;
         _this._version = "1.0";
         _this._globalObjectives = [];
+        _this._extractedScoItemIds = [];
         _this.cmi = new CMI();
         _this.adl = new ADL();
         _this._sequencing = new Sequencing();
@@ -5116,6 +5117,9 @@ var Scorm2004Impl = (function (_super) {
             if (request === "choice" || request === "jump") {
                 if (this.settings.scoItemIdValidator) {
                     return String(this.settings.scoItemIdValidator(target));
+                }
+                if (this._extractedScoItemIds.length > 0) {
+                    return String(this._extractedScoItemIds.includes(target));
                 }
                 return String(this.settings.scoItemIds.includes(target));
             }
@@ -5560,6 +5564,15 @@ var Scorm2004Impl = (function (_super) {
         var rootActivity = this.createActivity(activityTreeSettings);
         var activityTree = this._sequencing.activityTree;
         activityTree.root = rootActivity;
+        this._extractedScoItemIds = this.extractActivityIds(rootActivity);
+    };
+    Scorm2004Impl.prototype.extractActivityIds = function (activity) {
+        var ids = [activity.id];
+        for (var _i = 0, _a = activity.children; _i < _a.length; _i++) {
+            var child = _a[_i];
+            ids.push.apply(ids, this.extractActivityIds(child));
+        }
+        return ids;
     };
     Scorm2004Impl.prototype.createActivity = function (activitySettings) {
         var activity = new Activity(activitySettings.id, activitySettings.title);
@@ -5632,10 +5645,12 @@ var Scorm2004Impl = (function (_super) {
             sequencingControls.forwardOnly = sequencingControlsSettings.forwardOnly;
         }
         if (sequencingControlsSettings.useCurrentAttemptObjectiveInfo !== undefined) {
-            sequencingControls.useCurrentAttemptObjectiveInfo = sequencingControlsSettings.useCurrentAttemptObjectiveInfo;
+            sequencingControls.useCurrentAttemptObjectiveInfo =
+                sequencingControlsSettings.useCurrentAttemptObjectiveInfo;
         }
         if (sequencingControlsSettings.useCurrentAttemptProgressInfo !== undefined) {
-            sequencingControls.useCurrentAttemptProgressInfo = sequencingControlsSettings.useCurrentAttemptProgressInfo;
+            sequencingControls.useCurrentAttemptProgressInfo =
+                sequencingControlsSettings.useCurrentAttemptProgressInfo;
         }
         if (sequencingControlsSettings.preventActivation !== undefined) {
             sequencingControls.preventActivation = sequencingControlsSettings.preventActivation;
@@ -5644,10 +5659,12 @@ var Scorm2004Impl = (function (_super) {
             sequencingControls.constrainChoice = sequencingControlsSettings.constrainChoice;
         }
         if (sequencingControlsSettings.rollupObjectiveSatisfied !== undefined) {
-            sequencingControls.rollupObjectiveSatisfied = sequencingControlsSettings.rollupObjectiveSatisfied;
+            sequencingControls.rollupObjectiveSatisfied =
+                sequencingControlsSettings.rollupObjectiveSatisfied;
         }
         if (sequencingControlsSettings.rollupProgressCompletion !== undefined) {
-            sequencingControls.rollupProgressCompletion = sequencingControlsSettings.rollupProgressCompletion;
+            sequencingControls.rollupProgressCompletion =
+                sequencingControlsSettings.rollupProgressCompletion;
         }
         if (sequencingControlsSettings.objectiveMeasureWeight !== undefined) {
             sequencingControls.objectiveMeasureWeight = sequencingControlsSettings.objectiveMeasureWeight;
@@ -9694,9 +9711,7 @@ var CMI = (function (_super) {
         _this._comments_from_lms = "";
         if (initialized)
             _this.initialize();
-        _this.__children = cmi_children
-            ? cmi_children
-            : api_constants/* scorm12_constants */.QP.cmi_children;
+        _this.__children = cmi_children ? cmi_children : api_constants/* scorm12_constants */.QP.cmi_children;
         _this.core = new CMICore();
         _this.objectives = new objectives/* CMIObjectives */.C();
         _this.student_data = student_data ? student_data : new scorm12_student_data/* CMIStudentData */.X();

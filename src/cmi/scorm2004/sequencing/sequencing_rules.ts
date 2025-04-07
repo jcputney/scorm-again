@@ -1,8 +1,8 @@
-import { BaseCMI } from "../../common/base_cmi";
-import { Activity } from "./activity";
-import { Scorm2004ValidationError } from "../../../exceptions/scorm2004_exceptions";
-import { scorm2004_errors } from "../../../constants/error_codes";
-import { SuccessStatus } from "../../../constants/enums";
+import {BaseCMI} from "../../common/base_cmi";
+import {Activity} from "./activity";
+import {Scorm2004ValidationError} from "../../../exceptions/scorm2004_exceptions";
+import {scorm2004_errors} from "../../../constants/error_codes";
+import {SuccessStatus} from "../../../constants/enums";
 
 /**
  * Enum for rule condition operators
@@ -141,25 +141,28 @@ export class RuleCondition extends BaseCMI {
         return activity.objectiveMeasureStatus;
       case RuleConditionType.OBJECTIVE_MEASURE_KNOWN:
         return activity.objectiveMeasureStatus;
-      case RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN:
+      case RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN: {
         const greaterThanValue = this._parameters.get("threshold") || 0;
         return (
           activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue
         );
-      case RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN:
+      }
+      case RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN: {
         const lessThanValue = this._parameters.get("threshold") || 0;
         return (
           activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue
         );
+      }
       case RuleConditionType.COMPLETED:
         return activity.isCompleted;
       case RuleConditionType.PROGRESS_KNOWN:
         return activity.completionStatus !== "unknown";
       case RuleConditionType.ATTEMPTED:
         return activity.attemptCount > 0;
-      case RuleConditionType.ATTEMPT_LIMIT_EXCEEDED:
+      case RuleConditionType.ATTEMPT_LIMIT_EXCEEDED: {
         const attemptLimit = this._parameters.get("attemptLimit") || 0;
         return attemptLimit > 0 && activity.attemptCount >= attemptLimit;
+      }
       case RuleConditionType.TIME_LIMIT_EXCEEDED:
         // Time limit exceeded would require additional tracking
         return false;
