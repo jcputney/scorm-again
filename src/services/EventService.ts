@@ -208,11 +208,15 @@ export class EventService implements IEventService {
       let CMIElementsMatch = false;
 
       // Check if CMI elements match
-      if (CMIElement && listener.CMIElement && listener.CMIElement.endsWith("*")) {
-        const prefix = listener.CMIElement.slice(0, -1);
-        CMIElementsMatch = stringMatches(CMIElement, prefix);
-      } else {
-        CMIElementsMatch = listener.CMIElement === CMIElement;
+      if (CMIElement && listener.CMIElement) {
+        if (listener.CMIElement.endsWith("*")) {
+          // For wildcard matches, check if the CMI element starts with the prefix
+          const prefix = listener.CMIElement.slice(0, -1);
+          CMIElementsMatch = CMIElement.startsWith(prefix);
+        } else {
+          // For exact matches, compare the strings directly
+          CMIElementsMatch = listener.CMIElement === CMIElement;
+        }
       }
 
       // If the listener matches, call the callback
@@ -223,7 +227,21 @@ export class EventService implements IEventService {
           LogLevelEnum.DEBUG,
           CMIElement,
         );
-        listener.callback(CMIElement, value);
+
+        // Handle special event types
+        if (functionName.startsWith("Sequence")) {
+          // For sequence events, pass the target as the first argument
+          listener.callback(value);
+        } else if (functionName === "CommitError") {
+          // For commit error events, pass the error code
+          listener.callback(value);
+        } else if (functionName === "CommitSuccess") {
+          // For commit success events, pass no arguments
+          listener.callback();
+        } else {
+          // For regular events, pass CMIElement and value
+          listener.callback(CMIElement, value);
+        }
       }
     }
   }

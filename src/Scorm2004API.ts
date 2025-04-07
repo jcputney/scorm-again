@@ -151,7 +151,7 @@ class Scorm2004Impl extends BaseAPI {
           this.processListeners(action, "adl.nav.request", target);
         }
       } else if (this.settings.autoProgress) {
-        this.processListeners("SequenceNext");
+        this.processListeners("SequenceNext", null, "next");
       }
     }
 

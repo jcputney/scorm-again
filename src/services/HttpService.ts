@@ -173,10 +173,10 @@ export class HttpService implements IHttpService {
         result.errorCode = 0;
       }
     } else {
-      processListeners("CommitError");
       if (!Object.hasOwnProperty.call(result, "errorCode")) {
         result.errorCode = this.error_codes.GENERAL;
       }
+      processListeners("CommitError", null, result.errorCode);
     }
     return result;
   }
