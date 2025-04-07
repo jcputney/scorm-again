@@ -1,8 +1,8 @@
-import {BaseCMI} from "../../common/base_cmi";
-import {Activity} from "./activity";
-import {Scorm2004ValidationError} from "../../../exceptions/scorm2004_exceptions";
-import {scorm2004_errors} from "../../../constants/error_codes";
-import {CompletionStatus, SuccessStatus} from "../../../constants/enums";
+import { BaseCMI } from "../../common/base_cmi";
+import { Activity } from "./activity";
+import { Scorm2004ValidationError } from "../../../exceptions/scorm2004_exceptions";
+import { scorm2004_errors } from "../../../constants/error_codes";
+import { CompletionStatus, SuccessStatus } from "../../../constants/enums";
 
 /**
  * Enum for rollup action types

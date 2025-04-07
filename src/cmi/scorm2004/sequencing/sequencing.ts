@@ -1,12 +1,12 @@
-import {BaseCMI} from "../../common/base_cmi";
-import {Activity} from "./activity";
-import {ActivityTree} from "./activity_tree";
-import {RuleActionType, SequencingRules} from "./sequencing_rules";
-import {SequencingControls} from "./sequencing_controls";
-import {RollupRules} from "./rollup_rules";
-import {ADLNav} from "../adl";
-import {Scorm2004ValidationError} from "../../../exceptions/scorm2004_exceptions";
-import {scorm2004_errors} from "../../../constants/error_codes";
+import { BaseCMI } from "../../common/base_cmi";
+import { Activity } from "./activity";
+import { ActivityTree } from "./activity_tree";
+import { RuleActionType, SequencingRules } from "./sequencing_rules";
+import { SequencingControls } from "./sequencing_controls";
+import { RollupRules } from "./rollup_rules";
+import { ADLNav } from "../adl";
+import { Scorm2004ValidationError } from "../../../exceptions/scorm2004_exceptions";
+import { scorm2004_errors } from "../../../constants/error_codes";
 
 /**
  * Class representing SCORM 2004 sequencing
