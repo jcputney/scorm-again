@@ -3986,10 +3986,10 @@ fake-xml-http-request@^2.1.2:
   resolved "https://registry.yarnpkg.com/fake-xml-http-request/-/fake-xml-http-request-2.1.2.tgz#f1786720cae50bbb46273035a0173414f3e85e74"
   integrity "sha1-8XhnIMrlC7tGJzA1oBc0FPPoXnQ= sha512-HaFMBi7r+oEC9iJNpc3bvcW7Z7iLmM26hPDmlb0mFwyANSsOQAtJxbdWsXITKOzZUyMYK0zYCv3h5yDj9TsiXg=="
 
-fast-check@4.1.0:
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/fast-check/-/fast-check-4.1.0.tgz#15f73697fe41a5ddfca6b590a503dd54a279378a"
-  integrity sha512-CS4wKJyv6/oq3DbuvaB9i3QqHgFlbs7N+lzBosBFqwm4+Nr1EWBs72rC62lzqSEEtEiQfB3UOvomGAOhjvH02A==
+fast-check@4.1.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/fast-check/-/fast-check-4.1.1.tgz#bc5ae58550439b7099e841b80d832d51e50b7600"
+  integrity sha512-8+yQYeNYqBfWem0Nmm7BUnh27wm+qwGvI0xln60c8RPM5rVekxZf/Ildng2GNBfjaG6utIebFmVBPlNtZlBLxg==
   dependencies:
     pure-rand "^7.0.0"
 
