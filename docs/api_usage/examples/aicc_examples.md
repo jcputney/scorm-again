@@ -1,6 +1,6 @@
 # AICC API Examples
 
-This document provides comprehensive examples for using the AICC API in SCORM Again.
+This document provides comprehensive examples for using the AICC API in scorm-again.
 
 ## Table of Contents
 

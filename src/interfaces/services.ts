@@ -1,5 +1,5 @@
 /**
- * This file contains interfaces for all services used in the SCORM Again project.
+ * This file contains interfaces for all services used in the scorm-again project.
  * These interfaces are used for dependency injection to improve testability.
  */
 

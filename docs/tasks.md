@@ -1,6 +1,6 @@
-# SCORM Again Improvement Tasks
+# scorm-again Improvement Tasks
 
-This document contains a detailed list of actionable improvement tasks for the SCORM Again project.
+This document contains a detailed list of actionable improvement tasks for the scorm-again project.
 Each task is
 logically ordered and covers both architectural and code-level improvements.
 
@@ -108,21 +108,16 @@ logically ordered and covers both architectural and code-level improvements.
    - [x] Configure separate production and development builds
 
 - [x] Enhance CI/CD pipeline
-  - [x] Implement automated code quality checks
-  - [x] Add performance regression testing
-  - [x] Automate release process
+   - [x] Implement automated code quality checks
+   - [x] Add performance regression testing
+   - [x] Automate release process
 
 - [x] Improve package management
-  - [x] Update dependencies to latest versions
-  - [x] Audit and fix security vulnerabilities
-  - [x] Optimize npm/yarn configuration
+   - [x] Update dependencies to latest versions
+   - [x] Audit and fix security vulnerabilities
+   - [x] Optimize npm/yarn configuration
 
 ## Feature Enhancements
-
-- [ ] Add support for additional standards
-   - [ ] Implement TinCan/xAPI support
-   - [ ] Add CMI5 support
-   - [ ] Ensure backward compatibility with older standards
 
 - [ ] Enhance existing functionality
    - [ ] Improve error reporting and diagnostics
@@ -133,6 +128,11 @@ logically ordered and covers both architectural and code-level improvements.
    - [ ] Create visualization tools for SCORM data
    - [ ] Implement offline support with synchronization
    - [ ] Add analytics capabilities for learning data
+
+- [ ] Add support for additional standards
+   - [ ] Implement TinCan/xAPI support
+   - [ ] Add CMI5 support
+   - [ ] Ensure backward compatibility with older standards
 
 ## Maintenance Tasks
 

@@ -1,10 +1,13 @@
 # Release Process
 
-This document outlines the release process for SCORM Again.
+This document outlines the release process for scorm-again.
 
 ## Automated Release Process
 
-SCORM Again uses an automated release process to ensure consistent and reliable releases. The process is built around [standard-version](https://github.com/conventional-changelog/standard-version) for versioning and changelog generation, and GitHub Actions for CI/CD.
+scorm-again uses an automated release process to ensure consistent and reliable releases. The
+process is built
+around [standard-version](https://github.com/conventional-changelog/standard-version) for versioning
+and changelog generation, and GitHub Actions for CI/CD.
 
 ## Release Types
 
@@ -30,13 +33,13 @@ The following commands are available for creating releases:
 
 1. Run `yarn release` to create a new release
    - This will:
-     - Run tests to ensure everything is working
-     - Bump the version based on commit messages
-     - Generate a changelog
-     - Create a git tag
-     - Build the project
-     - Push to GitHub
-     - Publish to npm
+      - Run tests to ensure everything is working
+      - Bump the version based on commit messages
+      - Generate a changelog
+      - Create a git tag
+      - Build the project
+      - Push to GitHub
+      - Publish to npm
 
 ### Manual Process
 
@@ -62,7 +65,8 @@ When a new release is created on GitHub:
 
 ## Commit Message Convention
 
-This project follows the [Conventional Commits](https://www.conventionalcommits.org/) specification for commit messages. This enables automatic version bumping and changelog generation.
+This project follows the [Conventional Commits](https://www.conventionalcommits.org/) specification
+for commit messages. This enables automatic version bumping and changelog generation.
 
 The commit message should be structured as follows:
 

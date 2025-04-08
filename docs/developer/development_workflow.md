@@ -1,6 +1,7 @@
-# Development Workflow for SCORM Again
+# Development Workflow for scorm-again
 
-This document outlines the recommended development workflow for contributing to the SCORM Again project. It covers
+This document outlines the recommended development workflow for contributing to the scorm-again
+project. It covers
 setting up your development environment, making changes, testing, and submitting pull requests.
 
 ## Table of Contents
@@ -107,7 +108,7 @@ Use a descriptive branch name that reflects the changes you're making. Common pr
 
 ## Code Style and Formatting
 
-SCORM Again follows specific coding conventions to maintain consistency across the codebase:
+scorm-again follows specific coding conventions to maintain consistency across the codebase:
 
 1. Use the TypeScript style guide in `.junie/guidelines.md`
 2. Run Prettier to automatically format your code:
@@ -167,7 +168,7 @@ After building, you can test the library by:
    ```bash
    git push origin feature/your-feature-name
    ```
-3. Go to the [SCORM Again repository](https://github.com/jcputney/scorm-again) on GitHub
+3. Go to the [scorm-again repository](https://github.com/jcputney/scorm-again) on GitHub
 4. Click "New Pull Request"
 5. Select "compare across forks"
 6. Select your fork and branch as the source
@@ -200,5 +201,6 @@ After building, you can test the library by:
    git push origin main
    ```
 
-By following this workflow, you'll help maintain a high-quality codebase and make the review process smoother for
+By following this workflow, you'll help maintain a high-quality codebase and make the review process
+smoother for
 everyone involved.

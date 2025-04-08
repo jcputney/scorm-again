@@ -1,7 +1,9 @@
-# Common Use Cases for SCORM Again
+# Common Use Cases for scorm-again
 
-This document provides examples of common use cases and patterns when working with SCORM Again. These examples are
-applicable across all supported standards (AICC, SCORM 1.2, and SCORM 2004) with minor syntax differences.
+This document provides examples of common use cases and patterns when working with scorm-again.
+These examples are
+applicable across all supported standards (AICC, SCORM 1.2, and SCORM 2004) with minor syntax
+differences.
 
 ## Table of Contents
 
@@ -228,34 +230,34 @@ function recordQuizResults(score, maxScore, passed) {
 
 ```javascript
 function recordQuestionResponse(
-   questionIndex,
-   questionId,
-   questionType,
-   userResponse,
-   correctResponse,
-   result,
-   timeSpent,
+    questionIndex,
+    questionId,
+    questionType,
+    userResponse,
+    correctResponse,
+    result,
+    timeSpent,
 ) {
    if (window.API_1484_11) {
       // SCORM 2004
       window.API_1484_11.SetValue(`cmi.interactions.${questionIndex}.id`, questionId);
       window.API_1484_11.SetValue(`cmi.interactions.${questionIndex}.type`, questionType);
       window.API_1484_11.SetValue(
-         `cmi.interactions.${questionIndex}.learner_response`,
-         userResponse,
+          `cmi.interactions.${questionIndex}.learner_response`,
+          userResponse,
       );
       window.API_1484_11.SetValue(
-         `cmi.interactions.${questionIndex}.correct_responses.0.pattern`,
-         correctResponse,
+          `cmi.interactions.${questionIndex}.correct_responses.0.pattern`,
+          correctResponse,
       );
       window.API_1484_11.SetValue(`cmi.interactions.${questionIndex}.result`, result);
       window.API_1484_11.SetValue(
-         `cmi.interactions.${questionIndex}.latency`,
-         formatTimeSpent(timeSpent, true),
+          `cmi.interactions.${questionIndex}.latency`,
+          formatTimeSpent(timeSpent, true),
       );
       window.API_1484_11.SetValue(
-         `cmi.interactions.${questionIndex}.timestamp`,
-         new Date().toISOString(),
+          `cmi.interactions.${questionIndex}.timestamp`,
+          new Date().toISOString(),
       );
    } else if (window.API) {
       // SCORM 1.2 or AICC
@@ -263,13 +265,13 @@ function recordQuestionResponse(
       window.API.LMSSetValue(`cmi.interactions.${questionIndex}.type`, questionType);
       window.API.LMSSetValue(`cmi.interactions.${questionIndex}.student_response`, userResponse);
       window.API.LMSSetValue(
-         `cmi.interactions.${questionIndex}.correct_responses.0.pattern`,
-         correctResponse,
+          `cmi.interactions.${questionIndex}.correct_responses.0.pattern`,
+          correctResponse,
       );
       window.API.LMSSetValue(`cmi.interactions.${questionIndex}.result`, result);
       window.API.LMSSetValue(
-         `cmi.interactions.${questionIndex}.latency`,
-         formatTimeSpent(timeSpent, false),
+          `cmi.interactions.${questionIndex}.latency`,
+          formatTimeSpent(timeSpent, false),
       );
    }
 }
@@ -409,7 +411,7 @@ function loadState() {
    } else if (location) {
       // If we only have location data, navigate to that page
       navigateToPage(location);
-      return { currentPage: location };
+      return {currentPage: location};
    }
 
    return null;
@@ -598,7 +600,7 @@ function saveCustomData(dataObject) {
       }
 
       // Merge new data with existing data
-      suspendData = { ...suspendData, ...dataObject };
+      suspendData = {...suspendData, ...dataObject};
 
       // Save back to LMS
       window.API_1484_11.SetValue("cmi.suspend_data", JSON.stringify(suspendData));
@@ -616,7 +618,7 @@ function saveCustomData(dataObject) {
       }
 
       // Merge new data with existing data
-      suspendData = { ...suspendData, ...dataObject };
+      suspendData = {...suspendData, ...dataObject};
 
       // Save back to LMS
       window.API.LMSSetValue("cmi.suspend_data", JSON.stringify(suspendData));
@@ -669,7 +671,7 @@ function saveChunkedData(dataObject) {
 
    if (jsonString.length <= CHUNK_SIZE) {
       // Data fits in a single chunk
-      saveCustomData({ data: jsonString });
+      saveCustomData({data: jsonString});
       return;
    }
 
@@ -792,9 +794,9 @@ function loadChunkedData() {
 function findAPI(win) {
    // Check if the API is directly available
    if (win.API_1484_11) {
-      return { api: win.API_1484_11, version: "2004" };
+      return {api: win.API_1484_11, version: "2004"};
    } else if (win.API) {
-      return { api: win.API, version: "1.2" };
+      return {api: win.API, version: "1.2"};
    }
 
    // Try to find the API in the parent window
@@ -806,9 +808,9 @@ function findAPI(win) {
       win = win.parent;
 
       if (win.API_1484_11) {
-         return { api: win.API_1484_11, version: "2004" };
+         return {api: win.API_1484_11, version: "2004"};
       } else if (win.API) {
-         return { api: win.API, version: "1.2" };
+         return {api: win.API, version: "1.2"};
       }
    }
 
@@ -817,17 +819,17 @@ function findAPI(win) {
       const openerWin = window.opener;
 
       if (openerWin.API_1484_11) {
-         return { api: openerWin.API_1484_11, version: "2004" };
+         return {api: openerWin.API_1484_11, version: "2004"};
       } else if (openerWin.API) {
-         return { api: openerWin.API, version: "1.2" };
+         return {api: openerWin.API, version: "1.2"};
       }
    }
 
-   return { api: null, version: null };
+   return {api: null, version: null};
 }
 
 function initializeCourseWithAPIDetection() {
-   const { api, version } = findAPI(window);
+   const {api, version} = findAPI(window);
 
    if (!api) {
       console.error("No SCORM API found. Running in standalone mode.");
@@ -998,8 +1000,8 @@ function applyMoodleAdaptations() {
 
    // Example: Moodle might have issues with certain data formats
    window.originalSetValue = window.API_1484_11
-      ? window.API_1484_11.SetValue
-      : window.API.LMSSetValue;
+       ? window.API_1484_11.SetValue
+       : window.API.LMSSetValue;
 
    if (window.API_1484_11) {
       window.API_1484_11.SetValue = function (key, value) {
@@ -1014,9 +1016,9 @@ function applyMoodleAdaptations() {
       window.API.LMSSetValue = function (key, value) {
          // Moodle-specific value transformations
          if (
-            key.includes("cmi.interactions") &&
-            key.includes(".result") &&
-            value === "unanticipated"
+             key.includes("cmi.interactions") &&
+             key.includes(".result") &&
+             value === "unanticipated"
          ) {
             value = "neutral";
          }

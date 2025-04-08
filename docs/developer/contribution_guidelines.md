@@ -1,6 +1,7 @@
-# Contribution Guidelines for SCORM Again
+# Contribution Guidelines for scorm-again
 
-Thank you for your interest in contributing to SCORM Again! This document provides detailed guidelines for contributing
+Thank you for your interest in contributing to scorm-again! This document provides detailed
+guidelines for contributing
 to the project, including code standards, pull request process, and best practices.
 
 ## Table of Contents
@@ -14,7 +15,7 @@ to the project, including code standards, pull request process, and best practic
 
 ## Types of Contributions
 
-We welcome various types of contributions to SCORM Again:
+We welcome various types of contributions to scorm-again:
 
 ### Code Contributions
 
@@ -47,7 +48,7 @@ We welcome various types of contributions to SCORM Again:
 
 ## Code Standards
 
-SCORM Again follows strict coding standards to maintain a high-quality, consistent codebase:
+scorm-again follows strict coding standards to maintain a high-quality, consistent codebase:
 
 ### TypeScript Guidelines
 
@@ -82,7 +83,7 @@ SCORM Again follows strict coding standards to maintain a high-quality, consiste
 
 ## Documentation Standards
 
-Good documentation is crucial for the usability of SCORM Again:
+Good documentation is crucial for the usability of scorm-again:
 
 ### Code Documentation
 
@@ -107,7 +108,7 @@ Good documentation is crucial for the usability of SCORM Again:
 
 ## Testing Requirements
 
-Testing is a critical part of maintaining SCORM Again's quality:
+Testing is a critical part of maintaining scorm-again's quality:
 
 ### Test Coverage
 
@@ -175,7 +176,7 @@ Include the following in your pull request description:
 
 ## Community Guidelines
 
-SCORM Again is a community project, and we value respectful and constructive interaction:
+scorm-again is a community project, and we value respectful and constructive interaction:
 
 ### Communication
 
@@ -203,7 +204,8 @@ When suggesting features:
 - Consider potential implementation approaches
 - Be open to discussion about alternatives
 
-By following these guidelines, you'll help maintain SCORM Again as a high-quality, well-documented, and well-tested
+By following these guidelines, you'll help maintain scorm-again as a high-quality, well-documented,
+and well-tested
 library that serves its users effectively.
 
-Thank you for contributing to SCORM Again!
+Thank you for contributing to scorm-again!

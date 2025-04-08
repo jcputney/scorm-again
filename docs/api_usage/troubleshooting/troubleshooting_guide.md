@@ -1,6 +1,7 @@
-# SCORM Again Troubleshooting Guide
+# scorm-again Troubleshooting Guide
 
-This guide provides solutions for common issues you might encounter when working with SCORM Again. It covers problems
+This guide provides solutions for common issues you might encounter when working with scorm-again.
+It covers problems
 related to API initialization, data persistence, LMS communication, and more.
 
 ## Table of Contents
@@ -58,9 +59,11 @@ related to API initialization, data persistence, LMS communication, and more.
    }
    ```
 
-2. **Verify Content Launch Method**: Ensure your content is launched through the LMS, not directly from the file system.
+2. **Verify Content Launch Method**: Ensure your content is launched through the LMS, not directly
+   from the file system.
 
-3. **Check for iFrame Issues**: If your content is in an iFrame, make sure it can access the parent window where the API
+3. **Check for iFrame Issues**: If your content is in an iFrame, make sure it can access the parent
+   window where the API
    might be located.
 
 4. **Implement Fallback Mode**: Add a standalone mode for when the API isn't available:
@@ -94,7 +97,8 @@ related to API initialization, data persistence, LMS communication, and more.
    const result = window.API_1484_11.Initialize(""); // Empty string is required
    ```
 
-2. **Verify Initialization Timing**: Make sure you're not trying to initialize the API multiple times or after it's
+2. **Verify Initialization Timing**: Make sure you're not trying to initialize the API multiple
+   times or after it's
    already been terminated.
 
 3. **Check Error Codes**:
@@ -330,7 +334,8 @@ related to API initialization, data persistence, LMS communication, and more.
 **Solutions**:
 
 1. **Ensure Same-Origin Content**:
-   Make sure your content is served from the same domain as the LMS, or that proper CORS headers are set.
+   Make sure your content is served from the same domain as the LMS, or that proper CORS headers are
+   set.
 
 2. **Use Proxy if Needed**:
 
@@ -345,7 +350,8 @@ related to API initialization, data persistence, LMS communication, and more.
    ```
 
 3. **Check iFrame Permissions**:
-   If your content is in an iFrame, ensure it doesn't have `sandbox` attributes that restrict communication.
+   If your content is in an iFrame, ensure it doesn't have `sandbox` attributes that restrict
+   communication.
 
 ## Content Display Issues
 
@@ -550,7 +556,7 @@ related to API initialization, data persistence, LMS communication, and more.
 3. **Use Mastery Score Override**:
 
    ```javascript
-   // Use the mastery_override setting in SCORM Again
+   // Use the mastery_override setting in scorm-again
    const settings = {
       mastery_override: true,
    };
@@ -913,13 +919,14 @@ related to API initialization, data persistence, LMS communication, and more.
 
 ## Error Code Reference
 
-This section provides a reference for common error codes you might encounter when using SCORM Again with different SCORM
+This section provides a reference for common error codes you might encounter when using scorm-again
+with different SCORM
 versions.
 
 ### SCORM 1.2 Error Codes
 
 | Code | Description                              | Troubleshooting                                |
-| ---- | ---------------------------------------- | ---------------------------------------------- |
+|------|------------------------------------------|------------------------------------------------|
 | 0    | No error                                 | Operation completed successfully               |
 | 101  | General exception                        | Check for syntax errors or invalid parameters  |
 | 201  | Invalid argument error                   | Verify the CMI element name and value format   |
@@ -935,7 +942,7 @@ versions.
 ### SCORM 2004 Error Codes
 
 | Code | Description                              | Troubleshooting                                        |
-| ---- | ---------------------------------------- | ------------------------------------------------------ |
+|------|------------------------------------------|--------------------------------------------------------|
 | 0    | No error                                 | Operation completed successfully                       |
 | 101  | General exception                        | Check for syntax errors or invalid parameters          |
 | 102  | General initialization failure           | Check if the API is available and properly initialized |
@@ -994,7 +1001,7 @@ function handleAPIError(functionName, errorCode) {
          console.warn("General exception. Retrying operation...");
          // Implement retry logic
          break;
-      // Add more specific error handling as needed
+       // Add more specific error handling as needed
    }
 }
 
@@ -1006,5 +1013,6 @@ if (result !== "true") {
 }
 ```
 
-By understanding these error codes and implementing proper error handling, you can create more robust SCORM content that
+By understanding these error codes and implementing proper error handling, you can create more
+robust SCORM content that
 gracefully handles issues and provides better feedback to both users and developers.

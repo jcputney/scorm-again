@@ -1,16 +1,20 @@
 # SCORM 2004 Sequencing Configuration
 
-This document explains how to configure SCORM 2004 sequencing in the SCORM Again library.
+This document explains how to configure SCORM 2004 sequencing in the scorm-again library.
 
 ## Overview
 
-SCORM 2004 sequencing allows you to control the flow of content in a SCORM package. It defines how learners navigate between activities, how activities are ordered, and how the status of activities is determined based on the status of their children.
+SCORM 2004 sequencing allows you to control the flow of content in a SCORM package. It defines how
+learners navigate between activities, how activities are ordered, and how the status of activities
+is determined based on the status of their children.
 
-The SCORM Again library provides a comprehensive implementation of SCORM 2004 sequencing, which can be configured through the API settings.
+The scorm-again library provides a comprehensive implementation of SCORM 2004 sequencing, which can
+be configured through the API settings.
 
 ## Configuration
 
-To configure SCORM 2004 sequencing, you need to provide a `sequencing` object in the settings when creating a SCORM 2004 API instance:
+To configure SCORM 2004 sequencing, you need to provide a `sequencing` object in the settings when
+creating a SCORM 2004 API instance:
 
 ```javascript
 import { Scorm2004API } from "scorm-again";
@@ -25,14 +29,19 @@ const api = new Scorm2004API({
 
 The `sequencing` object can contain the following properties:
 
-- `activityTree`: Configures the activity tree, which defines the hierarchy of activities in the SCORM package.
-- `sequencingRules`: Configures the sequencing rules, which define how navigation between activities is controlled.
-- `sequencingControls`: Configures the sequencing controls, which define general behavior for sequencing.
-- `rollupRules`: Configures the rollup rules, which define how the status of parent activities is determined based on the status of their children.
+- `activityTree`: Configures the activity tree, which defines the hierarchy of activities in the
+  SCORM package.
+- `sequencingRules`: Configures the sequencing rules, which define how navigation between activities
+  is controlled.
+- `sequencingControls`: Configures the sequencing controls, which define general behavior for
+  sequencing.
+- `rollupRules`: Configures the rollup rules, which define how the status of parent activities is
+  determined based on the status of their children.
 
 ### Activity Tree
 
-The activity tree defines the hierarchy of activities in the SCORM package. Each activity has an ID, a title, and can have child activities.
+The activity tree defines the hierarchy of activities in the SCORM package. Each activity has an ID,
+a title, and can have child activities.
 
 ```javascript
 sequencing: {
@@ -82,7 +91,8 @@ Each activity can also have the following properties:
 
 ### Sequencing Rules
 
-Sequencing rules define how navigation between activities is controlled. There are three types of sequencing rules:
+Sequencing rules define how navigation between activities is controlled. There are three types of
+sequencing rules:
 
 - `preConditionRules`: Rules that are evaluated before an activity is attempted.
 - `exitConditionRules`: Rules that are evaluated when an activity is exited.
@@ -127,11 +137,14 @@ sequencing: {
 }
 ```
 
-Each rule has an `action`, an optional `conditionCombination` (which can be `all` or `any`), and an array of `conditions`. Each condition has a `condition` type, an optional `operator` (which can be `not`), and optional `parameters`.
+Each rule has an `action`, an optional `conditionCombination` (which can be `all` or `any`), and an
+array of `conditions`. Each condition has a `condition` type, an optional `operator` (which can be
+`not`), and optional `parameters`.
 
 ### Sequencing Controls
 
-Sequencing controls define general behavior for sequencing, such as whether flow navigation is enabled, whether choice navigation is constrained, etc.
+Sequencing controls define general behavior for sequencing, such as whether flow navigation is
+enabled, whether choice navigation is constrained, etc.
 
 ```javascript
 sequencing: {
@@ -153,7 +166,8 @@ sequencing: {
 
 ### Rollup Rules
 
-Rollup rules define how the status of parent activities is determined based on the status of their children.
+Rollup rules define how the status of parent activities is determined based on the status of their
+children.
 
 ```javascript
 sequencing: {
@@ -182,7 +196,10 @@ sequencing: {
 }
 ```
 
-Each rule has an `action`, a `consideration` (which can be `all`, `any`, `none`, `atLeastCount`, or `atLeastPercent`), optional `minimumCount` and `minimumPercent` values (for `atLeastCount` and `atLeastPercent` considerations), and an array of `conditions`. Each condition has a `condition` type and optional `parameters`.
+Each rule has an `action`, a `consideration` (which can be `all`, `any`, `none`, `atLeastCount`, or
+`atLeastPercent`), optional `minimumCount` and `minimumPercent` values (for `atLeastCount` and
+`atLeastPercent` considerations), and an array of `conditions`. Each condition has a `condition`
+type and optional `parameters`.
 
 ## Example
 
@@ -301,4 +318,7 @@ const api = new Scorm2004API({
 });
 ```
 
-This configuration creates a course with two modules, each with two lessons. It defines rules for skipping completed activities, exiting to the parent when an activity is completed, and continuing to the next activity when an activity is completed. It also defines rules for determining when a parent activity is completed or satisfied based on its children.
+This configuration creates a course with two modules, each with two lessons. It defines rules for
+skipping completed activities, exiting to the parent when an activity is completed, and continuing
+to the next activity when an activity is completed. It also defines rules for determining when a
+parent activity is completed or satisfied based on its children.

@@ -1,5 +1,5 @@
 /**
- * Mock utilities for SCORM Again tests
+ * Mock utilities for scorm-again tests
  *
  * This file contains utility functions for creating mock objects that can be used in tests.
  */
@@ -22,15 +22,12 @@ import * as sinon from "sinon";
 export const createMockResponse = (
   body: any = {},
   status: number = 200,
-  headers: Record<string, string> = {}
+  headers: Record<string, string> = {},
 ): Response => {
-  return new Response(
-    typeof body === "string" ? body : JSON.stringify(body),
-    {
-      status,
-      headers: new Headers(headers)
-    }
-  );
+  return new Response(typeof body === "string" ? body : JSON.stringify(body), {
+    status,
+    headers: new Headers(headers),
+  });
 };
 
 /**
@@ -42,11 +39,11 @@ export const createMockResponse = (
  */
 export const createMockScormResponse = (
   result: string = "true",
-  errorCode: number = 0
+  errorCode: number = 0,
 ): Response => {
   return createMockResponse({
     result,
-    errorCode
+    errorCode,
   });
 };
 
@@ -56,12 +53,10 @@ export const createMockScormResponse = (
  * @param overrides - Settings properties to override
  * @returns A mock Settings object
  */
-export const createMockSettings = (
-  overrides: Partial<Settings> = {}
-): Settings => {
+export const createMockSettings = (overrides: Partial<Settings> = {}): Settings => {
   return {
     ...DefaultSettings,
-    ...overrides
+    ...overrides,
   };
 };
 
@@ -71,9 +66,7 @@ export const createMockSettings = (
  * @param overrides - Error code properties to override
  * @returns A mock ErrorCodes object
  */
-export const createMockErrorCodes = (
-  overrides: Partial<ErrorCodes> = {}
-): ErrorCodes => {
+export const createMockErrorCodes = (overrides: Partial<ErrorCodes> = {}): ErrorCodes => {
   const defaultErrorCodes: ErrorCodes = {
     NO_ERROR: 0,
     GENERAL_EXCEPTION: 101,
@@ -109,12 +102,12 @@ export const createMockErrorCodes = (
     INVALID_FIELD_COUNT: 1005,
     ABORT_PACKET: 1006,
     UNKNOWN_PACKET_TYPE: 1007,
-    UNKNOWN_ERROR: 1008
+    UNKNOWN_ERROR: 1008,
   };
 
   return {
     ...defaultErrorCodes,
-    ...overrides
+    ...overrides,
   };
 };
 
@@ -124,9 +117,7 @@ export const createMockErrorCodes = (
  * @param overrides - Properties to override on the CMI object
  * @returns A mock BaseCMI object
  */
-export const createMockCMI = (
-  overrides: Partial<BaseCMI> = {}
-): BaseCMI => {
+export const createMockCMI = (overrides: Partial<BaseCMI> = {}): BaseCMI => {
   const defaultCMI: BaseCMI = {
     initialize: sinon.stub(),
     terminate: sinon.stub(),
@@ -141,7 +132,7 @@ export const createMockCMI = (
 
   return {
     ...defaultCMI,
-    ...overrides
+    ...overrides,
   };
 };
 
@@ -154,7 +145,7 @@ export const createMockCMI = (
  */
 export const createMockAPI = (
   overrides: Partial<BaseAPI> = {},
-  settings: Settings = DefaultSettings
+  settings: Settings = DefaultSettings,
 ): BaseAPI => {
   const mockAPI = {
     isInitialized: false,
@@ -170,7 +161,7 @@ export const createMockAPI = (
     getCMIValue: sinon.stub().returns(""),
     setCMIValue: sinon.stub(),
     processHttpRequest: sinon.stub().resolves({ result: "true", errorCode: 0 }),
-    ...overrides
+    ...overrides,
   } as unknown as BaseAPI;
 
   return mockAPI;
@@ -195,7 +186,7 @@ export const createStub = <T>(returnValue: T): sinon.SinonStub => {
  */
 export const createSpy = <T extends object, K extends keyof T>(
   obj: T,
-  method: K
+  method: K,
 ): sinon.SinonSpy => {
   return sinon.spy(obj, method as string);
 };

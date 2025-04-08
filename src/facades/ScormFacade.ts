@@ -1,7 +1,7 @@
 /**
  * ScormFacade.ts
  *
- * This file implements the Facade pattern for the SCORM Again API.
+ * This file implements the Facade pattern for the scorm-again API.
  * It provides a simplified interface to the complex subsystem of SCORM APIs.
  */
 

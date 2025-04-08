@@ -1,6 +1,6 @@
 # SCORM 2004 API Examples
 
-This document provides comprehensive examples for using the SCORM 2004 API in SCORM Again.
+This document provides comprehensive examples for using the SCORM 2004 API in scorm-again.
 
 ## Table of Contents
 
@@ -221,8 +221,8 @@ window.API_1484_11.SetValue("cmi.interactions.0.result", "correct");
 
 // Set description
 window.API_1484_11.SetValue(
-   "cmi.interactions.0.description",
-   "Which of the following are primary colors?",
+    "cmi.interactions.0.description",
+    "Which of the following are primary colors?",
 );
 
 // Set timestamp
@@ -274,8 +274,8 @@ window.API_1484_11.SetValue("cmi.interactions.2.learner_response", "Paris");
 
 // Set correct response (case insensitive match)
 window.API_1484_11.SetValue(
-   "cmi.interactions.2.correct_responses.0.pattern",
-   "{case_matters=false}Paris",
+    "cmi.interactions.2.correct_responses.0.pattern",
+    "{case_matters=false}Paris",
 );
 
 // Set result
@@ -299,8 +299,8 @@ window.API_1484_11.SetValue("cmi.interactions.3.learner_response", "a[.]1[,]b[.]
 
 // Set correct response
 window.API_1484_11.SetValue(
-   "cmi.interactions.3.correct_responses.0.pattern",
-   "a[.]1[,]b[.]2[,]c[.]3",
+    "cmi.interactions.3.correct_responses.0.pattern",
+    "a[.]1[,]b[.]2[,]c[.]3",
 );
 
 // Set result

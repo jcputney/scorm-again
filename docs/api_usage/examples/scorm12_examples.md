@@ -1,6 +1,6 @@
 # SCORM 1.2 API Examples
 
-This document provides comprehensive examples for using the SCORM 1.2 API in SCORM Again.
+This document provides comprehensive examples for using the SCORM 1.2 API in scorm-again.
 
 ## Table of Contents
 

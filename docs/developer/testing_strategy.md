@@ -1,6 +1,7 @@
-# Testing Strategy for SCORM Again
+# Testing Strategy for scorm-again
 
-This document outlines the testing strategy for the SCORM Again project, including the types of tests, testing tools,
+This document outlines the testing strategy for the scorm-again project, including the types of
+tests, testing tools,
 test organization, and best practices for writing effective tests.
 
 ## Table of Contents
@@ -16,9 +17,10 @@ test organization, and best practices for writing effective tests.
 
 ## Testing Philosophy
 
-SCORM Again follows these testing principles:
+scorm-again follows these testing principles:
 
-1. **Test-Driven Development**: Where possible, write tests before implementing features to ensure code meets
+1. **Test-Driven Development**: Where possible, write tests before implementing features to ensure
+   code meets
    requirements.
 2. **Comprehensive Coverage**: Aim for high test coverage, especially for critical functionality.
 3. **Maintainable Tests**: Tests should be easy to understand and maintain.
@@ -27,7 +29,7 @@ SCORM Again follows these testing principles:
 
 ## Testing Tools
 
-SCORM Again uses the following testing tools:
+scorm-again uses the following testing tools:
 
 1. **Mocha**: The primary test runner for executing tests.
 2. **Sinon**: For creating test spies, stubs, and mocks.
@@ -52,15 +54,17 @@ test/
 └── helpers/              # Test helper functions
 ```
 
-Each test file corresponds to a source file, making it easy to locate tests for specific functionality.
+Each test file corresponds to a source file, making it easy to locate tests for specific
+functionality.
 
 ## Types of Tests
 
-SCORM Again includes several types of tests:
+scorm-again includes several types of tests:
 
 ### Unit Tests
 
-Unit tests verify that individual components (functions, classes, methods) work correctly in isolation:
+Unit tests verify that individual components (functions, classes, methods) work correctly in
+isolation:
 
 ```typescript
 describe("BaseAPI", () => {
@@ -86,7 +90,8 @@ Integration tests verify that multiple components work together correctly:
 
 #### Programmatic Integration Tests
 
-These tests verify that different components of the API work together correctly in a programmatic context:
+These tests verify that different components of the API work together correctly in a programmatic
+context:
 
 ```typescript
 describe("SCORM 1.2 API Integration", () => {
@@ -105,8 +110,10 @@ describe("SCORM 1.2 API Integration", () => {
 
 #### Browser-Based Integration Tests
 
-Browser-based integration tests verify that the library works correctly in an actual browser environment with real SCORM
-modules. These tests use Playwright to automate browser interactions and test against real SCORM content.
+Browser-based integration tests verify that the library works correctly in an actual browser
+environment with real SCORM
+modules. These tests use Playwright to automate browser interactions and test against real SCORM
+content.
 
 ##### Setup
 
@@ -141,15 +148,18 @@ This will:
 
 ##### Test Modules
 
-The test modules are downloaded from [SCORM.com's Golf Examples](https://cdn.noverant.com/AllGolfExamples.zip). These
+The test modules are downloaded
+from [SCORM.com's Golf Examples](https://cdn.noverant.com/AllGolfExamples.zip). These
 modules provide various SCORM content for testing different scenarios.
 
-The modules are stored in the `test/integration/modules` directory, which is ignored by git to avoid committing large
+The modules are stored in the `test/integration/modules` directory, which is ignored by git to avoid
+committing large
 binary files to the repository.
 
 ##### Writing Browser-Based Integration Tests
 
-Browser-based integration tests are written using Playwright and are located in the `test/integration` directory. These
+Browser-based integration tests are written using Playwright and are located in the
+`test/integration` directory. These
 tests:
 
 1. Navigate to a SCORM module
@@ -312,7 +322,7 @@ httpServiceStub.restore();
 
 ## Running Tests
 
-SCORM Again provides several scripts for running tests:
+scorm-again provides several scripts for running tests:
 
 ### Running Unit Tests Only
 
@@ -364,7 +374,7 @@ npx playwright test test/integration/RuntimeBasicCalls_SCORM12.spec.ts
 
 ## Test Coverage
 
-SCORM Again uses c8 to measure test coverage. The coverage report shows:
+scorm-again uses c8 to measure test coverage. The coverage report shows:
 
 - Line coverage: Percentage of code lines executed during tests
 - Branch coverage: Percentage of code branches (if/else, switch) executed during tests
@@ -387,9 +397,10 @@ The coverage report is generated in the `coverage` directory.
 
 ## Continuous Integration
 
-SCORM Again uses GitHub Actions for continuous integration:
+scorm-again uses GitHub Actions for continuous integration:
 
-1. **Automated Testing**: All tests run automatically on pull requests and commits to the main branch
+1. **Automated Testing**: All tests run automatically on pull requests and commits to the main
+   branch
 2. **Coverage Reporting**: Test coverage is reported to ensure it meets the required thresholds
 3. **Linting**: Code style is checked using ESLint
 4. **Build Verification**: The project is built to ensure it compiles correctly
@@ -416,5 +427,6 @@ If CI fails:
 4. Push the fixes to your branch
 5. CI will automatically run again
 
-By following this testing strategy, SCORM Again maintains a high level of code quality and reliability, ensuring that
+By following this testing strategy, scorm-again maintains a high level of code quality and
+reliability, ensuring that
 the library works correctly across different environments and use cases.

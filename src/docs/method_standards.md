@@ -1,7 +1,9 @@
 # Method Signature and Return Type Standards
 
-This document defines standard patterns for method signatures and return types in the SCORM Again project. Following
-these standards will ensure consistency across the codebase and make it easier for developers to understand and use the
+This document defines standard patterns for method signatures and return types in the scorm-again
+project. Following
+these standards will ensure consistency across the codebase and make it easier for developers to
+understand and use the
 API.
 
 ## Table of Contents
@@ -67,7 +69,8 @@ API.
 
 - SCORM API methods should return `string` as per the SCORM specification
 - Use `"true"` and `"false"` (as strings) for success/failure indicators
-- For internal methods that don't need to follow the SCORM specification, use `boolean` instead of string booleans
+- For internal methods that don't need to follow the SCORM specification, use `boolean` instead of
+  string booleans
 
 ### Getter Methods
 
@@ -173,5 +176,6 @@ throwSCORMError(errorNumber: number, message?: string): void;
 handleValueAccessException(e: Error, returnValue: string): string;
 ```
 
-By following these standards, we can ensure consistency across the codebase and make it easier for developers to
+By following these standards, we can ensure consistency across the codebase and make it easier for
+developers to
 understand and use the API.

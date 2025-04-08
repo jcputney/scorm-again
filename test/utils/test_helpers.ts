@@ -1,5 +1,5 @@
 /**
- * Common test utilities for SCORM Again
+ * Common test utilities for scorm-again
  *
  * This file contains utility functions that can be used across different test files
  * to simplify test writing and reduce duplication.
@@ -140,7 +140,7 @@ export const testFieldConstraintSize = (
   fieldName: string,
   limit: number,
   expectedValue: string = "",
-  expectedError: number
+  expectedError: number,
 ) => {
   describe(`Field: ${fieldName}`, () => {
     it(`Should be able to read from ${fieldName}`, () => {
@@ -152,7 +152,9 @@ export const testFieldConstraintSize = (
     });
 
     it(`Should fail to write more than ${limit} characters to ${fieldName}`, async () => {
-      const error = await getError(async () => setNestedProperty(cmi, fieldName, "x".repeat(limit + 1)));
+      const error = await getError(async () =>
+        setNestedProperty(cmi, fieldName, "x".repeat(limit + 1)),
+      );
       expect(error).toHaveProperty("errorCode", expectedError);
     });
   });
@@ -170,7 +172,7 @@ export const testReadOnly = (
   cmi: BaseCMI,
   fieldName: string,
   expectedValue: string | number = "",
-  expectedError: number
+  expectedError: number,
 ) => {
   describe(`Field: ${fieldName}`, () => {
     it(`Should be able to read from ${fieldName}`, () => {
@@ -196,7 +198,7 @@ export const testValidValues = (
   api: BaseAPI,
   fieldName: string,
   validValues: (string | number)[],
-  invalidValues: string[]
+  invalidValues: string[],
 ) => {
   describe(`Field: ${fieldName}`, () => {
     for (const value of validValues) {
@@ -225,7 +227,7 @@ export const testCMIValidValues = (
   cmi: BaseCMI,
   fieldName: string,
   validValues: (string | number)[],
-  invalidValues: string[]
+  invalidValues: string[],
 ) => {
   describe(`Field: ${fieldName}`, () => {
     for (const value of validValues) {
@@ -254,7 +256,7 @@ export const testReadAndWrite = (
   cmi: BaseCMI,
   fieldName: string,
   expectedValue: string = "",
-  valueToTest: string = "xxx"
+  valueToTest: string = "xxx",
 ) => {
   describe(`Field: ${fieldName}`, () => {
     it(`Should be able to read from ${fieldName}`, () => {
@@ -274,11 +276,7 @@ export const testReadAndWrite = (
  * @param fieldName - The name of the field to test
  * @param expectedValue - The expected value of the field
  */
-export const testRead = (
-  cmi: BaseCMI,
-  fieldName: string,
-  expectedValue: string = ""
-) => {
+export const testRead = (cmi: BaseCMI, fieldName: string, expectedValue: string = "") => {
   describe(`Field: ${fieldName}`, () => {
     it(`Should be able to read from ${fieldName}`, () => {
       expect(getNestedProperty(cmi, fieldName)).toEqual(expectedValue);
@@ -293,11 +291,7 @@ export const testRead = (
  * @param fieldName - The name of the field to test
  * @param valueToTest - The value to write to the field
  */
-export const testWrite = (
-  cmi: BaseCMI,
-  fieldName: string,
-  valueToTest: string = "xxx"
-) => {
+export const testWrite = (cmi: BaseCMI, fieldName: string, valueToTest: string = "xxx") => {
   describe(`Field: ${fieldName}`, () => {
     it(`Should successfully write to ${fieldName}`, () => {
       expect(() => setNestedProperty(cmi, fieldName, valueToTest)).not.toThrow();
@@ -317,7 +311,7 @@ export const testWriteOnly = (
   cmi: BaseCMI,
   fieldName: string,
   valueToTest: string = "xxx",
-  expectedError: number
+  expectedError: number,
 ) => {
   describe(`Field: ${fieldName}`, () => {
     it(`Should fail to read from ${fieldName}`, async () => {
@@ -347,7 +341,7 @@ export const testGetCurrentTotalTime = (
   sessionFieldName: string,
   startingTotal: string,
   sessionTime: string,
-  expectedTotal: string
+  expectedTotal: string,
 ) => {
   it(`Should return ${expectedTotal} with a starting time of ${startingTotal} and a session time of ${sessionTime}`, () => {
     setNestedProperty(cmi, totalFieldName, startingTotal);
@@ -370,7 +364,7 @@ export const testLMSSetValue = (
   fieldName: string,
   valueToTest: string | number = "xxx",
   expectedError: number = 0,
-  errorThrown: boolean = false
+  errorThrown: boolean = false,
 ) => {
   describe(`Field: ${fieldName}`, () => {
     const status = expectedError > 0 ? "fail to" : "successfully";
@@ -414,7 +408,7 @@ export const testLMSGetValue = (
   initializeFirst: boolean = false,
   initializationValue: string = "",
   expectedError: number = 0,
-  errorThrown: boolean = false
+  errorThrown: boolean = false,
 ) => {
   describe(`Field: ${fieldName}`, () => {
     const status = expectedError > 0 ? "fail to" : "successfully";
@@ -453,7 +447,7 @@ export const testSetCMIValue = (
   fieldName: string,
   valueToTest: string = "xxx",
   expectedError: number = 0,
-  errorThrown: boolean = true
+  errorThrown: boolean = true,
 ) => {
   describe(`Field: ${fieldName}`, () => {
     const status = expectedError > 0 ? "fail to" : "successfully";

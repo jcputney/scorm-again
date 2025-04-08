@@ -1,7 +1,9 @@
-# TypeScript Style Guide for SCORM Again
+# TypeScript Style Guide for scorm-again
 
-This style guide outlines the conventions and best practices for TypeScript development in the SCORM Again project.
-Following these guidelines will ensure code consistency, maintainability, and quality across the codebase.
+This style guide outlines the conventions and best practices for TypeScript development in the SCORM
+Again project.
+Following these guidelines will ensure code consistency, maintainability, and quality across the
+codebase.
 
 ## Table of Contents
 
@@ -14,11 +16,12 @@ Following these guidelines will ensure code consistency, maintainability, and qu
 7. [Error Handling](#error-handling)
 8. [Comments and Documentation](#comments-and-documentation)
 9. [Common Pitfalls to Avoid](#common-pitfalls-to-avoid)
-10.   [Testing](#testing)
+10. [Testing](#testing)
 
 ## TypeScript Configuration
 
-- Use the project's `tsconfig.json` settings, which enforce strict type checking with `noImplicitAny` and
+- Use the project's `tsconfig.json` settings, which enforce strict type checking with
+  `noImplicitAny` and
   `noImplicitOverride`.
 - Target ES5 for compatibility but use ES2015 modules.
 - Enforce consistent casing in file names with `forceConsistentCasingInFileNames`.
@@ -29,7 +32,8 @@ Following these guidelines will ensure code consistency, maintainability, and qu
 
 - Organize code by feature or domain rather than by type.
 - Keep files focused on a single responsibility.
-- Aim to keep files under 500 lines; consider refactoring larger files into smaller, more focused modules.
+- Aim to keep files under 500 lines; consider refactoring larger files into smaller, more focused
+  modules.
 - Use barrel files (index.ts) to simplify imports from directories with multiple exports.
 
 ### Imports
@@ -99,7 +103,7 @@ class BaseAPI implements IBaseAPI {
    private _settings: Settings;
 
    constructor(settings: Settings) {
-      this._settings = { ...DefaultSettings, ...settings };
+      this._settings = {...DefaultSettings, ...settings};
    }
 
    // Methods...
@@ -118,20 +122,20 @@ class BaseAPI implements IBaseAPI {
 ```typescript
 // Good
 function getValue(element: string, defaultValue = ''): string {
-  if (!element) return defaultValue;
-  // Rest of the function...
+   if (!element) return defaultValue;
+   // Rest of the function...
 }
 
 // Avoid
 function getValue(element: string, defaultValue: string): string {
-  let result;
-  if (element) {
-    // Complex logic...
-    result = // ...
-  } else {
-    result = defaultValue;
-  }
-  return result;
+   let result;
+   if (element) {
+      // Complex logic...
+      result = // ...
+   } else {
+      result = defaultValue;
+   }
+   return result;
 }
 ```
 
@@ -177,17 +181,18 @@ function processHttpRequest(url: string, params: any, immediate: boolean): Promi
 
 ## Common Pitfalls to Avoid
 
-- **Type Assertions**: Avoid using type assertions (`as Type`) when possible. Use type guards instead.
+- **Type Assertions**: Avoid using type assertions (`as Type`) when possible. Use type guards
+  instead.
 - **any Type**: Minimize the use of `any`. Use `unknown` if the type is truly unknown.
 - **Callback Hell**: Use promises or async/await instead of nested callbacks.
 - **Large Files**: Break down large files into smaller, more focused modules.
 - **Complex Conditionals**: Simplify complex conditionals with helper functions or variables.
 - **Magic Numbers/Strings**: Use constants for magic numbers and strings.
 - **Mutable State**: Minimize mutable state. Use immutable data structures when possible.
-- **Tight Coupling**: Avoid tight coupling between modules. Use dependency injection or service locators.
-- **Use of `bind`**: Avoid using `bind` to set the context of `this`, especially when refactoring code.
-
-````typescript
+- **Tight Coupling**: Avoid tight coupling between modules. Use dependency injection or service
+  locators.
+- **Use of `bind`**: Avoid using `bind` to set the context of `this`, especially when refactoring
+  code.
 
 ## Testing
 
@@ -202,25 +207,26 @@ function processHttpRequest(url: string, params: any, immediate: boolean): Promi
 
 ```typescript
 describe('BaseAPI', () => {
-  describe('getValue', () => {
-    it('should return the value when the element exists', () => {
-      // Arrange
-      const api = new BaseAPI();
-      // Act
-      const result = api.getValue('element');
-      // Assert
-      expect(result).toBe('expected value');
-    });
+   describe('getValue', () => {
+      it('should return the value when the element exists', () => {
+         // Arrange
+         const api = new BaseAPI();
+         // Act
+         const result = api.getValue('element');
+         // Assert
+         expect(result).toBe('expected value');
+      });
 
-    it('should throw an error when the element does not exist', () => {
-      // Arrange
-      const api = new BaseAPI();
-      // Act & Assert
-      expect(() => api.getValue('nonexistent')).toThrow();
-    });
-  });
+      it('should throw an error when the element does not exist', () => {
+         // Arrange
+         const api = new BaseAPI();
+         // Act & Assert
+         expect(() => api.getValue('nonexistent')).toThrow();
+      });
+   });
 });
 ````
 
-By following these guidelines, we can maintain a consistent, high-quality codebase that is easy to understand, extend,
+By following these guidelines, we can maintain a consistent, high-quality codebase that is easy to
+understand, extend,
 and maintain.

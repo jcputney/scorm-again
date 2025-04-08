@@ -5,7 +5,7 @@ import { BaseCMI } from "../cmi/common/base_cmi";
 import { ISerializationService } from "../interfaces/services";
 
 /**
- * Service for handling data serialization and deserialization in SCORM Again
+ * Service for handling data serialization and deserialization in scorm-again
  */
 export class SerializationService implements ISerializationService {
   /**
