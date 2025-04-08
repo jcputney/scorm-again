@@ -5090,7 +5090,7 @@ var AICCImpl = (function (_super) {
 }(Scorm12API/* Scorm12API */.Y));
 
 
-var __webpack_exports__AICC = __webpack_exports__.j;
+var __webpack_exports__AICC = __webpack_exports__.j
 export { __webpack_exports__AICC as AICC };
 
 //# sourceMappingURL=aicc.js.map

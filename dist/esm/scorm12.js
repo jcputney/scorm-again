@@ -4087,7 +4087,7 @@ var Scorm12Impl = (function (_super) {
 }(_BaseAPI__WEBPACK_IMPORTED_MODULE_10__/* ["default"] */ .A));
 
 
-var __webpack_exports__Scorm12API = __webpack_exports__.Y;
+var __webpack_exports__Scorm12API = __webpack_exports__.Y
 export { __webpack_exports__Scorm12API as Scorm12API };
 
 //# sourceMappingURL=scorm12.js.map

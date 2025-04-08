@@ -18,7 +18,10 @@ import Pretender from "fetch-pretender";
  * @param iterations Number of iterations to run
  * @returns Average execution time in milliseconds
  */
-async function measureExecutionTime(fn: () => any | Promise<any>, iterations: number = 100): Promise<number> {
+async function measureExecutionTime(
+  fn: () => any | Promise<any>,
+  iterations: number = 100,
+): Promise<number> {
   const times: number[] = [];
 
   for (let i = 0; i < iterations; i++) {
@@ -48,7 +51,7 @@ describe("Performance Tests", () => {
             scaled: 0.8,
             raw: 80,
             min: 0,
-            max: 100
+            max: 100,
           },
           completion_status: "completed",
           success_status: "passed",
@@ -64,12 +67,10 @@ describe("Performance Tests", () => {
               learner_response: "choice_1",
               result: "correct",
               latency: "PT1M30S",
-              objectives: [
-                { id: "objective_1" }
-              ]
-            }
-          ]
-        })
+              objectives: [{ id: "objective_1" }],
+            },
+          ],
+        }),
       } as unknown as BaseCMI;
     });
 
@@ -116,7 +117,7 @@ describe("Performance Tests", () => {
           lmsCommitUrl: "/scorm2004",
           logLevel: LogLevelEnum.NONE,
         },
-        scorm2004_errors
+        scorm2004_errors,
       );
     });
 
@@ -132,8 +133,8 @@ describe("Performance Tests", () => {
           scaled: 0.8,
           raw: 80,
           min: 0,
-          max: 100
-        }
+          max: 100,
+        },
       };
 
       const averageTime = await measureExecutionTime(async () => {
@@ -142,7 +143,7 @@ describe("Performance Tests", () => {
           commitObject,
           false,
           apiLogSpy,
-          processListenersSpy
+          processListenersSpy,
         );
       }, 20); // Fewer iterations for network requests
 
@@ -158,7 +159,9 @@ describe("Performance Tests", () => {
     beforeEach(() => {
       const apiLogSpy = sinon.spy();
       eventService = new EventService(apiLogSpy);
-      callbacks = Array(100).fill(0).map(() => sinon.spy());
+      callbacks = Array(100)
+        .fill(0)
+        .map(() => sinon.spy());
     });
 
     afterEach(() => {

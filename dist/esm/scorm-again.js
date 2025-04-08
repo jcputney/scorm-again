@@ -9899,9 +9899,9 @@ var __webpack_exports__ = {};
 
 
 
-var __webpack_exports__AICC = __webpack_exports__.jr;
-var __webpack_exports__Scorm12API = __webpack_exports__.Yq;
-var __webpack_exports__Scorm2004API = __webpack_exports__.VE;
+var __webpack_exports__AICC = __webpack_exports__.jr
+var __webpack_exports__Scorm12API = __webpack_exports__.Yq
+var __webpack_exports__Scorm2004API = __webpack_exports__.VE
 export { __webpack_exports__AICC as AICC, __webpack_exports__Scorm12API as Scorm12API, __webpack_exports__Scorm2004API as Scorm2004API };
 
 //# sourceMappingURL=scorm-again.js.map

@@ -1,8 +1,8 @@
-import { spawn } from 'child_process';
-import * as fs from 'fs';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import { spawn } from "child_process";
+import * as fs from "fs";
+import * as path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
 // Get the directory name in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -15,11 +15,20 @@ const __dirname = dirname(__filename);
 async function runPerformanceTests(): Promise<Record<string, number>> {
   return new Promise((resolve, reject) => {
     const metrics: Record<string, number> = {};
-    const mochaProcess = spawn('yarn', ['run', 'mocha', '--import=tsx', '--bdd', 'test/performance/PerformanceTests.spec.ts', 'test/performance/StressTests.spec.ts', '--reporter', 'min']);
+    const mochaProcess = spawn("yarn", [
+      "run",
+      "mocha",
+      "--import=tsx",
+      "--bdd",
+      "test/performance/PerformanceTests.spec.ts",
+      "test/performance/StressTests.spec.ts",
+      "--reporter",
+      "min",
+    ]);
 
-    mochaProcess.stdout.on('data', (data) => {
+    mochaProcess.stdout.on("data", (data) => {
       const output = data.toString();
-      const lines = output.split('\n');
+      const lines = output.split("\n");
 
       for (const line of lines) {
         // Extract metrics from console.log output in the tests
@@ -38,11 +47,11 @@ async function runPerformanceTests(): Promise<Record<string, number>> {
       }
     });
 
-    mochaProcess.stderr.on('data', (data) => {
+    mochaProcess.stderr.on("data", (data) => {
       console.error(`stderr: ${data}`);
     });
 
-    mochaProcess.on('close', (code) => {
+    mochaProcess.on("close", (code) => {
       if (code !== 0) {
         reject(new Error(`Performance tests exited with code ${code}`));
       } else {
@@ -57,14 +66,14 @@ async function runPerformanceTests(): Promise<Record<string, number>> {
  * @returns Previous benchmark results or null if the file doesn't exist
  */
 function loadPreviousBenchmark(): Record<string, number> | null {
-  const benchmarkPath = path.join(__dirname, '../../reports/performance-benchmark.json');
+  const benchmarkPath = path.join(__dirname, "../../reports/performance-benchmark.json");
 
   if (fs.existsSync(benchmarkPath)) {
     try {
-      const data = fs.readFileSync(benchmarkPath, 'utf8');
+      const data = fs.readFileSync(benchmarkPath, "utf8");
       return JSON.parse(data);
     } catch (error) {
-      console.error('Error loading previous benchmark:', error);
+      console.error("Error loading previous benchmark:", error);
       return null;
     }
   }
@@ -77,15 +86,15 @@ function loadPreviousBenchmark(): Record<string, number> | null {
  * @param metrics Current benchmark results
  */
 function saveBenchmark(metrics: Record<string, number>): void {
-  const reportsDir = path.join(__dirname, '../../reports');
-  const benchmarkPath = path.join(reportsDir, 'performance-benchmark.json');
+  const reportsDir = path.join(__dirname, "../../reports");
+  const benchmarkPath = path.join(reportsDir, "performance-benchmark.json");
 
   // Ensure reports directory exists
   if (!fs.existsSync(reportsDir)) {
     fs.mkdirSync(reportsDir, { recursive: true });
   }
 
-  fs.writeFileSync(benchmarkPath, JSON.stringify(metrics, null, 2), 'utf8');
+  fs.writeFileSync(benchmarkPath, JSON.stringify(metrics, null, 2), "utf8");
   console.log(`Benchmark saved to ${benchmarkPath}`);
 }
 
@@ -95,9 +104,12 @@ function saveBenchmark(metrics: Record<string, number>): void {
  * @param previous Previous benchmark results
  * @returns Object containing regression information
  */
-function detectRegressions(current: Record<string, number>, previous: Record<string, number> | null): {
-  regressions: Array<{ metric: string, previous: number, current: number, percentChange: number }>,
-  hasSignificantRegression: boolean
+function detectRegressions(
+  current: Record<string, number>,
+  previous: Record<string, number> | null,
+): {
+  regressions: Array<{ metric: string; previous: number; current: number; percentChange: number }>;
+  hasSignificantRegression: boolean;
 } {
   const regressions = [];
   let hasSignificantRegression = false;
@@ -118,7 +130,7 @@ function detectRegressions(current: Record<string, number>, previous: Record<str
         metric,
         previous: previousValue,
         current: currentValue,
-        percentChange
+        percentChange,
       });
 
       if (percentChange > 20) {
@@ -134,9 +146,11 @@ function detectRegressions(current: Record<string, number>, previous: Record<str
  * Saves regression details to a JSON file for GitHub Actions to use
  * @param regressions Array of regression details
  */
-function saveRegressionDetails(regressions: Array<{ metric: string, previous: number, current: number, percentChange: number }>): void {
-  const reportsDir = path.join(__dirname, '../../reports');
-  const regressionPath = path.join(reportsDir, 'performance-regressions.json');
+function saveRegressionDetails(
+  regressions: Array<{ metric: string; previous: number; current: number; percentChange: number }>,
+): void {
+  const reportsDir = path.join(__dirname, "../../reports");
+  const regressionPath = path.join(reportsDir, "performance-regressions.json");
 
   // Ensure reports directory exists
   if (!fs.existsSync(reportsDir)) {
@@ -147,12 +161,15 @@ function saveRegressionDetails(regressions: Array<{ metric: string, previous: nu
     timestamp: new Date().toISOString(),
     regressions,
     summary: `${regressions.length} performance regression(s) detected`,
-    details: regressions.map(({ metric, previous, current, percentChange }) =>
-      `${metric}: ${previous.toFixed(3)}ms → ${current.toFixed(3)}ms (${percentChange.toFixed(2)}% slower)`
-    ).join('\n')
+    details: regressions
+      .map(
+        ({ metric, previous, current, percentChange }) =>
+          `${metric}: ${previous.toFixed(3)}ms → ${current.toFixed(3)}ms (${percentChange.toFixed(2)}% slower)`,
+      )
+      .join("\n"),
   };
 
-  fs.writeFileSync(regressionPath, JSON.stringify(regressionDetails, null, 2), 'utf8');
+  fs.writeFileSync(regressionPath, JSON.stringify(regressionDetails, null, 2), "utf8");
   console.log(`Regression details saved to ${regressionPath}`);
 }
 
@@ -161,7 +178,7 @@ function saveRegressionDetails(regressions: Array<{ metric: string, previous: nu
  */
 async function main() {
   try {
-    console.log('Running performance benchmark...');
+    console.log("Running performance benchmark...");
     const metrics = await runPerformanceTests();
 
     // Load previous benchmark for comparison
@@ -174,23 +191,25 @@ async function main() {
     const { regressions, hasSignificantRegression } = detectRegressions(metrics, previous);
 
     if (regressions.length > 0) {
-      console.log('\nPerformance regressions detected:');
+      console.log("\nPerformance regressions detected:");
       for (const { metric, previous, current, percentChange } of regressions) {
-        console.log(`  ${metric}: ${previous.toFixed(3)}ms → ${current.toFixed(3)}ms (${percentChange.toFixed(2)}% slower)`);
+        console.log(
+          `  ${metric}: ${previous.toFixed(3)}ms → ${current.toFixed(3)}ms (${percentChange.toFixed(2)}% slower)`,
+        );
       }
 
       // Save regression details for GitHub Actions
       saveRegressionDetails(regressions);
 
       if (hasSignificantRegression) {
-        console.error('\n⚠️ SIGNIFICANT PERFORMANCE REGRESSION DETECTED ⚠️');
+        console.error("\n⚠️ SIGNIFICANT PERFORMANCE REGRESSION DETECTED ⚠️");
         process.exit(1);
       }
     } else {
-      console.log('\nNo performance regressions detected.');
+      console.log("\nNo performance regressions detected.");
     }
   } catch (error) {
-    console.error('Error running benchmark:', error);
+    console.error("Error running benchmark:", error);
     process.exit(1);
   }
 }

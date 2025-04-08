@@ -7494,7 +7494,7 @@ var Scorm2004Impl = (function (_super) {
 }(BaseAPI/* default */.A));
 
 
-var __webpack_exports__Scorm2004API = __webpack_exports__.V;
+var __webpack_exports__Scorm2004API = __webpack_exports__.V
 export { __webpack_exports__Scorm2004API as Scorm2004API };
 
 //# sourceMappingURL=scorm2004.js.map

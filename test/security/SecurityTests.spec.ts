@@ -44,7 +44,13 @@ describe("Security Tests for Data Validation", () => {
       const executionTime = measureExecutionTime(() => {
         try {
           // We expect this to throw an error because the input doesn't match the pattern
-          checkValidFormat("test", longInput, potentiallyDangerousPattern, 101, TestValidationError);
+          checkValidFormat(
+            "test",
+            longInput,
+            potentiallyDangerousPattern,
+            101,
+            TestValidationError,
+          );
         } catch (e) {
           // Expected error
         }
@@ -75,16 +81,7 @@ describe("Security Tests for Data Validation", () => {
   describe("Type Confusion Tests", () => {
     it("should handle non-string values safely in checkValidFormat", () => {
       // Test with various non-string inputs
-      const nonStringValues = [
-        null,
-        undefined,
-        123,
-        true,
-        false,
-        {},
-        [],
-        () => {}
-      ];
+      const nonStringValues = [null, undefined, 123, true, false, {}, [], () => {}];
 
       for (const value of nonStringValues) {
         expect(() => {
@@ -101,7 +98,7 @@ describe("Security Tests for Data Validation", () => {
         "\\", // Trailing backslash
         "(", // Unclosed group
         "?{}", // Invalid quantifier
-        "*+" // Adjacent quantifiers
+        "*+", // Adjacent quantifiers
       ];
 
       for (const pattern of invalidPatterns) {
@@ -159,7 +156,7 @@ describe("Security Tests for Data Validation", () => {
         "\t", // Tab
         "\v", // Vertical tab
         "\f", // Form feed
-        "\u200B" // Zero-width space
+        "\u200B", // Zero-width space
       ];
 
       for (const char of specialChars) {
@@ -192,7 +189,7 @@ describe("Security Tests for Data Validation", () => {
         "0x7B", // Hexadecimal
         "true", // String boolean
         "null", // String null
-        "undefined" // String undefined
+        "undefined", // String undefined
       ];
 
       for (const value of coercibleValues) {
@@ -224,7 +221,7 @@ describe("Security Tests for Data Validation", () => {
         "10", // Missing separator
         "#10", // Missing lower bound
         "10#", // Missing upper bound
-        "10#5" // Lower bound greater than upper bound
+        "10#5", // Lower bound greater than upper bound
       ];
 
       for (const range of invalidRanges) {
@@ -234,7 +231,11 @@ describe("Security Tests for Data Validation", () => {
             checkValidRange("test", "50", range, 101, TestValidationError);
           } catch (e) {
             // Expected errors are fine
-            if (!(e instanceof TestValidationError) && !(e instanceof TypeError) && !(e instanceof RangeError)) {
+            if (
+              !(e instanceof TestValidationError) &&
+              !(e instanceof TypeError) &&
+              !(e instanceof RangeError)
+            ) {
               throw e;
             }
           }
@@ -259,7 +260,7 @@ describe("Security Tests for Data Validation", () => {
         "-1", // Below minimum
         "101", // Above maximum
         "abc", // Non-numeric
-        "" // Empty string
+        "", // Empty string
       ];
 
       for (const input of edgeCaseInputs) {
@@ -273,7 +274,7 @@ describe("Security Tests for Data Validation", () => {
               scorm12_regex.score_range,
               101,
               102,
-              TestValidationError
+              TestValidationError,
             );
           } catch (e) {
             // Expected errors are fine
@@ -297,7 +298,7 @@ describe("Security Tests for Data Validation", () => {
         "-1", // Below minimum
         "101", // Above maximum
         "abc", // Non-numeric
-        "" // Empty string
+        "", // Empty string
       ];
 
       for (const input of edgeCaseInputs) {
@@ -326,7 +327,7 @@ describe("Security Tests for Data Validation", () => {
         "a".repeat(257), // String exceeding length limit
         "", // Empty string
         "en-US<script>", // String with potential XSS
-        "en\nUS" // String with newline
+        "en\nUS", // String with newline
       ];
 
       for (const input of edgeCaseInputs) {
@@ -354,7 +355,7 @@ describe("Security Tests for Data Validation", () => {
       const testInputs = [
         ["test:value:pattern:101:false", "^[a-z]+$", 101], // Input that looks like a cache key
         ["test", "value:pattern:101:false", 101], // Another potential collision
-        ["test", "value", "pattern:101:false"] // Yet another potential collision
+        ["test", "value", "pattern:101:false"], // Yet another potential collision
       ];
 
       for (const [element, value, pattern] of testInputs) {

@@ -60,9 +60,7 @@ class ConsoleLogger {
    * @returns An array of matching messages
    */
   getMessagesMatching(pattern: RegExp): string[] {
-    return this.messages
-      .filter((msg) => pattern.test(msg.text()))
-      .map((msg) => msg.text());
+    return this.messages.filter((msg) => pattern.test(msg.text())).map((msg) => msg.text());
   }
 
   /**
