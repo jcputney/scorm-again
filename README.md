@@ -79,12 +79,166 @@ or
 yarn add scorm-again
 ```
 
-You would then initialize the APIs using the following JS statements:
+### Legacy vs Modern Builds
+
+SCORM Again provides two different build options to accommodate different browser support requirements:
+
+#### Legacy Build (Default)
+
+The legacy build targets ES5 and is compatible with older browsers including IE11 (with a fetch polyfill). This is the default build located in the `dist` directory.
+
+```html
+<script type="text/javascript" src="/dist/scorm-again.js"></script>
+```
+
+#### Modern Build
+
+The modern build targets ES2015 (ES6) and newer browsers, resulting in smaller bundle sizes and potentially better performance. This build is located in the `dist/modern` directory.
+
+The modern build uses ES modules, so you need to use the `type="module"` attribute when including it:
+
+```html
+<script type="module" src="/dist/modern/scorm-again.js"></script>
+```
+
+Or, if you would like to only pull in one API:
+
+```html
+<script type="module" src="/dist/modern/scorm2004.min.js"></script>
+<script type="module" src="/dist/modern/scorm12.min.js"></script>
+<script type="module" src="/dist/modern/aicc.min.js"></script>
+```
+
+When using the modern build, you can also import the API directly in your JavaScript:
 
 ```javascript
-import { AICC, Scorm12API, Scorm2004API } from "scorm-again"; // you only do this if you're using the package manager
+import { Scorm2004API } from "/dist/modern/scorm2004.min.js";
 
-var settings = {};
+// Initialize the API
+window.API_1484_11 = new Scorm2004API({
+  autocommit: true,
+  logLevel: 1
+});
+```
+
+Key differences in the modern build:
+- Smaller bundle size due to less transpilation
+- Preserves ES2015+ features like arrow functions
+- Uses ES modules format
+- Better tree shaking capabilities
+- Requires modern browsers that support ES2015+
+
+Choose the appropriate build based on your browser support requirements:
+- Use the legacy build if you need to support older browsers like IE11
+- Use the modern build if you only need to support modern browsers and want better performance
+
+### Importing and Using the Package
+
+SCORM Again can be imported and used in various ways depending on your environment and module system. Here are examples for different scenarios:
+
+#### Browser Usage with Script Tags
+
+**Legacy Build (ES5, supports IE11 with fetch polyfill):**
+```html
+<!-- Full library -->
+<script type="text/javascript" src="/dist/scorm-again.js"></script>
+
+<!-- Individual APIs -->
+<script type="text/javascript" src="/dist/aicc.js"></script>
+<script type="text/javascript" src="/dist/scorm12.js"></script>
+<script type="text/javascript" src="/dist/scorm2004.js"></script>
+
+<!-- Minified versions -->
+<script type="text/javascript" src="/dist/scorm-again.min.js"></script>
+```
+
+**Modern Build (ES2015+, smaller bundle size):**
+```html
+<!-- Full library -->
+<script type="text/javascript" src="/dist/modern/scorm-again.js"></script>
+
+<!-- Individual APIs -->
+<script type="text/javascript" src="/dist/modern/aicc.js"></script>
+<script type="text/javascript" src="/dist/modern/scorm12.js"></script>
+<script type="text/javascript" src="/dist/modern/scorm2004.js"></script>
+
+<!-- Minified versions -->
+<script type="text/javascript" src="/dist/modern/scorm-again.min.js"></script>
+```
+
+#### NPM/Yarn with ES Modules (ESM)
+
+**Installing the package:**
+```sh
+npm install scorm-again
+# or
+yarn add scorm-again
+```
+
+**Importing the legacy build (default):**
+```javascript
+// Full library
+import { AICC, Scorm12API, Scorm2004API } from 'scorm-again';
+
+// Individual APIs
+import { AICC } from 'scorm-again/aicc';
+import { Scorm12API } from 'scorm-again/scorm12';
+import { Scorm2004API } from 'scorm-again/scorm2004';
+```
+
+**Importing the modern build:**
+```javascript
+// Full library
+import { AICC, Scorm12API, Scorm2004API } from 'scorm-again/modern';
+
+// Individual APIs
+import { AICC } from 'scorm-again/aicc/modern';
+import { Scorm12API } from 'scorm-again/scorm12/modern';
+import { Scorm2004API } from 'scorm-again/scorm2004/modern';
+```
+
+#### CommonJS (Node.js or bundlers with CommonJS support)
+
+**Importing the legacy build:**
+```javascript
+// Full library
+const { AICC, Scorm12API, Scorm2004API } = require('scorm-again');
+
+// Individual APIs
+const { AICC } = require('scorm-again/aicc');
+const { Scorm12API } = require('scorm-again/scorm12');
+const { Scorm2004API } = require('scorm-again/scorm2004');
+```
+
+#### TypeScript Usage
+
+TypeScript types are included with the package:
+
+```typescript
+import { AICC, Scorm12API, Scorm2004API } from 'scorm-again';
+import { Settings } from 'scorm-again'; // Import types
+
+// With modern build
+import { Scorm2004API } from 'scorm-again/modern';
+
+// Create an instance with typed settings
+const settings: Settings = {
+  autocommit: true,
+  logLevel: 'DEBUG'
+};
+
+const api = new Scorm2004API(settings);
+```
+
+#### Usage Examples
+
+**Creating an API instance:**
+```javascript
+// Browser (after including the script)
+const settings = {
+  autocommit: true,
+  lmsCommitUrl: 'https://your-lms.com/commit'
+};
 
 // AICC
 window.API = new AICC(settings);
@@ -94,6 +248,24 @@ window.API = new Scorm12API(settings);
 
 // SCORM 2004
 window.API_1484_11 = new Scorm2004API(settings);
+```
+
+**Module usage with ES imports:**
+```javascript
+import { Scorm2004API } from 'scorm-again/modern';
+
+const settings = {
+  autocommit: true,
+  lmsCommitUrl: 'https://your-lms.com/commit'
+};
+
+// Create and attach to window for SCORM content to discover
+window.API_1484_11 = new Scorm2004API(settings);
+
+// Listen for events
+window.API_1484_11.on('Initialize', () => {
+  console.log('SCORM API initialized');
+});
 ```
 
 ### A Note About API Discovery

@@ -2,76 +2,176 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 56:
+/***/ 12:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   K$: function() { return /* binding */ NAVBoolean; },
-/* harmony export */   Mb: function() { return /* binding */ LogLevelEnum; },
-/* harmony export */   YE: function() { return /* binding */ SuccessStatus; },
-/* harmony export */   lC: function() { return /* binding */ CompletionStatus; }
+/* harmony export */   Rf: function() { return /* binding */ scorm2004_errors; },
+/* harmony export */   Se: function() { return /* binding */ scorm12_errors; }
 /* harmony export */ });
-var NAVBoolean = {
-    UNKNOWN: "unknown",
-    TRUE: "true",
-    FALSE: "false",
+/* unused harmony export global_errors */
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+
+var global_errors = {
+    GENERAL: 101,
+    INITIALIZATION_FAILED: 101,
+    INITIALIZED: 101,
+    TERMINATED: 101,
+    TERMINATION_FAILURE: 101,
+    TERMINATION_BEFORE_INIT: 101,
+    MULTIPLE_TERMINATION: 101,
+    RETRIEVE_BEFORE_INIT: 101,
+    RETRIEVE_AFTER_TERM: 101,
+    STORE_BEFORE_INIT: 101,
+    STORE_AFTER_TERM: 101,
+    COMMIT_BEFORE_INIT: 101,
+    COMMIT_AFTER_TERM: 101,
+    ARGUMENT_ERROR: 101,
+    CHILDREN_ERROR: 101,
+    COUNT_ERROR: 101,
+    GENERAL_GET_FAILURE: 101,
+    GENERAL_SET_FAILURE: 101,
+    GENERAL_COMMIT_FAILURE: 101,
+    UNDEFINED_DATA_MODEL: 101,
+    UNIMPLEMENTED_ELEMENT: 101,
+    VALUE_NOT_INITIALIZED: 101,
+    INVALID_SET_VALUE: 101,
+    READ_ONLY_ELEMENT: 101,
+    WRITE_ONLY_ELEMENT: 101,
+    TYPE_MISMATCH: 101,
+    VALUE_OUT_OF_RANGE: 101,
+    DEPENDENCY_NOT_ESTABLISHED: 101,
 };
-var SuccessStatus = {
-    PASSED: "passed",
-    FAILED: "failed",
-    UNKNOWN: "unknown",
+var scorm12_errors = (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)((0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)({}, global_errors), { RETRIEVE_BEFORE_INIT: 301, STORE_BEFORE_INIT: 301, COMMIT_BEFORE_INIT: 301, ARGUMENT_ERROR: 201, CHILDREN_ERROR: 202, COUNT_ERROR: 203, UNDEFINED_DATA_MODEL: 401, UNIMPLEMENTED_ELEMENT: 401, VALUE_NOT_INITIALIZED: 301, INVALID_SET_VALUE: 402, READ_ONLY_ELEMENT: 403, WRITE_ONLY_ELEMENT: 404, TYPE_MISMATCH: 405, VALUE_OUT_OF_RANGE: 407, DEPENDENCY_NOT_ESTABLISHED: 408 });
+var scorm2004_errors = (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)((0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)({}, global_errors), { INITIALIZATION_FAILED: 102, INITIALIZED: 103, TERMINATED: 104, TERMINATION_FAILURE: 111, TERMINATION_BEFORE_INIT: 112, MULTIPLE_TERMINATIONS: 113, RETRIEVE_BEFORE_INIT: 122, RETRIEVE_AFTER_TERM: 123, STORE_BEFORE_INIT: 132, STORE_AFTER_TERM: 133, COMMIT_BEFORE_INIT: 142, COMMIT_AFTER_TERM: 143, ARGUMENT_ERROR: 201, GENERAL_GET_FAILURE: 301, GENERAL_SET_FAILURE: 351, GENERAL_COMMIT_FAILURE: 391, UNDEFINED_DATA_MODEL: 401, UNIMPLEMENTED_ELEMENT: 402, VALUE_NOT_INITIALIZED: 403, READ_ONLY_ELEMENT: 404, WRITE_ONLY_ELEMENT: 405, TYPE_MISMATCH: 406, VALUE_OUT_OF_RANGE: 407, DEPENDENCY_NOT_ESTABLISHED: 408 });
+
+
+/***/ }),
+
+/***/ 64:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   kS: function() { return /* binding */ scorm12_regex; },
+/* harmony export */   xt: function() { return /* binding */ scorm2004_regex; }
+/* harmony export */ });
+/* unused harmony export aicc_regex */
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+
+var scorm12_regex = {
+    CMIString256: "^.{0,255}$",
+    CMIString4096: "^.{0,4096}$",
+    CMITime: "^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)$",
+    CMITimespan: "^([0-9]{2,}):([0-9]{2}):([0-9]{2})(.[0-9]{1,2})?$",
+    CMIInteger: "^\\d+$",
+    CMISInteger: "^-?([0-9]+)$",
+    CMIDecimal: "^-?([0-9]{0,3})(.[0-9]*)?$",
+    CMIIdentifier: "^[\\u0021-\\u007E\\s]{0,255}$",
+    CMIFeedback: "^.{0,255}$",
+    CMIIndex: "[._](\\d+).",
+    CMIStatus: "^(passed|completed|failed|incomplete|browsed)$",
+    CMIStatus2: "^(passed|completed|failed|incomplete|browsed|not attempted)$",
+    CMIExit: "^(time-out|suspend|logout|)$",
+    CMIType: "^(true-false|choice|fill-in|matching|performance|sequencing|likert|numeric)$",
+    CMIResult: "^(correct|wrong|unanticipated|neutral|([0-9]{0,3})?(\\.[0-9]*)?)$",
+    NAVEvent: "^(previous|continue)$",
+    score_range: "0#100",
+    audio_range: "-1#100",
+    speed_range: "-100#100",
+    weighting_range: "-100#100",
+    text_range: "-1#1",
 };
-var CompletionStatus = {
-    COMPLETED: "completed",
-    INCOMPLETE: "incomplete",
-    UNKNOWN: "unknown",
-};
-var LogLevelEnum = {
-    _: 0,
-    DEBUG: 1,
-    INFO: 2,
-    WARN: 3,
-    ERROR: 4,
-    NONE: 5,
+var aicc_regex = (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)((0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)({}, scorm12_regex), {
+    CMIIdentifier: "^\\w{1,255}$",
+});
+var scorm2004_regex = {
+    CMIString200: "^[\\u0000-\\uFFFF]{0,200}$",
+    CMIString250: "^[\\u0000-\\uFFFF]{0,250}$",
+    CMIString1000: "^[\\u0000-\\uFFFF]{0,1000}$",
+    CMIString4000: "^[\\u0000-\\uFFFF]{0,4000}$",
+    CMIString64000: "^[\\u0000-\\uFFFF]{0,64000}$",
+    CMILang: "^([a-zA-Z]{2,3}|i|x)(-[a-zA-Z0-9-]{2,8})?$|^$",
+    CMILangString250: "^({lang=([a-zA-Z]{2,3}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,250}$)?$",
+    CMILangcr: "^(({lang=([a-zA-Z]{2,3}|i|x)?(-[a-zA-Z0-9-]{2,8})?}))(.*?)$",
+    CMILangString250cr: "^(({lang=([a-zA-Z]{2,3}|i|x)?(-[a-zA-Z0-9-]{2,8})?})?(.{0,250})?)?$",
+    CMILangString4000: "^({lang=([a-zA-Z]{2,3}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,4000}$)?$",
+    CMITime: "^(19[7-9]{1}[0-9]{1}|20[0-2]{1}[0-9]{1}|203[0-8]{1})((-(0[1-9]{1}|1[0-2]{1}))((-(0[1-9]{1}|[1-2]{1}[0-9]{1}|3[0-1]{1}))(T([0-1]{1}[0-9]{1}|2[0-3]{1})((:[0-5]{1}[0-9]{1})((:[0-5]{1}[0-9]{1})((\\.[0-9]{1,6})((Z|([+|-]([0-1]{1}[0-9]{1}|2[0-3]{1})))(:[0-5]{1}[0-9]{1})?)?)?)?)?)?)?)?$",
+    CMITimespan: "^P(?:([.,\\d]+)Y)?(?:([.,\\d]+)M)?(?:([.,\\d]+)W)?(?:([.,\\d]+)D)?(?:T?(?:([.,\\d]+)H)?(?:([.,\\d]+)M)?(?:([.,\\d]+)S)?)?$",
+    CMIInteger: "^\\d+$",
+    CMISInteger: "^-?([0-9]+)$",
+    CMIDecimal: "^-?([0-9]{1,5})(\\.[0-9]{1,18})?$",
+    CMIIdentifier: "^\\S{1,250}[a-zA-Z0-9]$",
+    CMIShortIdentifier: "^[\\w\\.\\-\\_]{1,250}$",
+    CMILongIdentifier: "^(?:(?!urn:)\\S{1,4000}|urn:[A-Za-z0-9-]{1,31}:\\S{1,4000}|.{1,4000})$",
+    CMIFeedback: "^.*$",
+    CMIIndex: "[._](\\d+).",
+    CMIIndexStore: ".N(\\d+).",
+    CMICStatus: "^(completed|incomplete|not attempted|unknown)$",
+    CMISStatus: "^(passed|failed|unknown)$",
+    CMIExit: "^(time-out|suspend|logout|normal)$",
+    CMIType: "^(true-false|choice|fill-in|long-fill-in|matching|performance|sequencing|likert|numeric|other)$",
+    CMIResult: "^(correct|incorrect|unanticipated|neutral|-?([0-9]{1,4})(\\.[0-9]{1,18})?)$",
+    NAVEvent: "^(previous|continue|exit|exitAll|abandon|abandonAll|suspendAll|_none_|(\\{target=(?<choice_target>\\S{0,}[a-zA-Z0-9-_]+)})?choice|(\\{target=(?<jump_target>\\S{0,}[a-zA-Z0-9-_]+)})?jump)$",
+    NAVBoolean: "^(unknown|true|false$)",
+    NAVTarget: "^{target=\\S{0,}[a-zA-Z0-9-_]+}$",
+    scaled_range: "-1#1",
+    audio_range: "0#999.9999999",
+    speed_range: "0#999.9999999",
+    text_range: "-1#1",
+    progress_range: "0#1",
 };
 
 
 /***/ }),
 
-/***/ 179:
+/***/ 144:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   t: function() { return /* binding */ Scorm12ValidationError; }
+/* harmony export */   W: function() { return /* binding */ checkValidRange; },
+/* harmony export */   q: function() { return /* binding */ checkValidFormat; }
 /* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(635);
-/* harmony import */ var _exceptions__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(784);
-/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(340);
+/* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(557);
 
-
-
-var scorm12_errors = _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_constants */ .QP.error_descriptions;
-var Scorm12ValidationError = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_2__/* .__extends */ .C6)(Scorm12ValidationError, _super);
-    function Scorm12ValidationError(CMIElement, errorCode) {
-        var _this = this;
-        if ({}.hasOwnProperty.call(scorm12_errors, String(errorCode))) {
-            _this = _super.call(this, CMIElement, errorCode, scorm12_errors[String(errorCode)].basicMessage, scorm12_errors[String(errorCode)].detailMessage) || this;
+var checkValidFormat = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__/* .memoize */ .Bj)(function (CMIElement, value, regexPattern, errorCode, errorClass, allowEmptyString) {
+    if (typeof value !== "string") {
+        return false;
+    }
+    var formatRegex = new RegExp(regexPattern);
+    var matches = value.match(formatRegex);
+    if (allowEmptyString && value === "") {
+        return true;
+    }
+    if (value === undefined || !matches || matches[0] === "") {
+        throw new errorClass(CMIElement, errorCode);
+    }
+    return true;
+}, function (CMIElement, value, regexPattern, errorCode, _errorClass, allowEmptyString) {
+    var valueKey = typeof value === "string" ? value : "[".concat(typeof value, "]");
+    return "".concat(CMIElement, ":").concat(valueKey, ":").concat(regexPattern, ":").concat(errorCode, ":").concat(allowEmptyString || false);
+});
+var checkValidRange = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__/* .memoize */ .Bj)(function (CMIElement, value, rangePattern, errorCode, errorClass) {
+    var ranges = rangePattern.split("#");
+    value = value * 1.0;
+    if (value >= ranges[0]) {
+        if (ranges[1] === "*" || value <= ranges[1]) {
+            return true;
         }
         else {
-            _this = _super.call(this, CMIElement, 101, scorm12_errors["101"].basicMessage, scorm12_errors["101"].detailMessage) || this;
+            throw new errorClass(CMIElement, errorCode);
         }
-        Object.setPrototypeOf(_this, Scorm12ValidationError.prototype);
-        return _this;
     }
-    return Scorm12ValidationError;
-}(_exceptions__WEBPACK_IMPORTED_MODULE_0__/* .ValidationError */ .y));
-
+    else {
+        throw new errorClass(CMIElement, errorCode);
+    }
+}, function (CMIElement, value, rangePattern, errorCode, _errorClass) {
+    return "".concat(CMIElement, ":").concat(value, ":").concat(rangePattern, ":").concat(errorCode);
+});
 
 
 /***/ }),
 
-/***/ 319:
+/***/ 166:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -121,7 +221,133 @@ var BaseRootCMI = (function (_super) {
 
 /***/ }),
 
-/***/ 340:
+/***/ 209:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   _: function() { return /* binding */ CMIScore; }
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(441);
+/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(64);
+/* harmony import */ var _base_cmi__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(166);
+/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(12);
+/* harmony import */ var _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(888);
+
+
+
+
+
+
+var CMIScore = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(CMIScore, _super);
+    function CMIScore(params) {
+        var _this = _super.call(this, params.CMIElement) || this;
+        _this._raw = "";
+        _this._min = "";
+        _this.__children = params.score_children || _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_constants */ .QP.score_children;
+        _this.__score_range = !params.score_range ? false : _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.score_range;
+        _this._max = params.max || params.max === "" ? params.max : "100";
+        _this.__invalid_error_code = params.invalidErrorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.INVALID_SET_VALUE;
+        _this.__invalid_type_code = params.invalidTypeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.TYPE_MISMATCH;
+        _this.__invalid_range_code = params.invalidRangeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.VALUE_OUT_OF_RANGE;
+        _this.__decimal_regex = params.decimalRegex || _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.CMIDecimal;
+        _this.__error_class = params.errorClass;
+        return _this;
+    }
+    CMIScore.prototype.reset = function () {
+        this._initialized = false;
+    };
+    Object.defineProperty(CMIScore.prototype, "_children", {
+        get: function () {
+            return this.__children;
+        },
+        set: function (_children) {
+            throw new this.__error_class(this._cmi_element + "._children", this.__invalid_error_code);
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(CMIScore.prototype, "raw", {
+        get: function () {
+            return this._raw;
+        },
+        set: function (raw) {
+            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScore(this._cmi_element + ".raw", raw, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
+                this._raw = raw;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(CMIScore.prototype, "min", {
+        get: function () {
+            return this._min;
+        },
+        set: function (min) {
+            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScore(this._cmi_element + ".min", min, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
+                this._min = min;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(CMIScore.prototype, "max", {
+        get: function () {
+            return this._max;
+        },
+        set: function (max) {
+            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScore(this._cmi_element + ".max", max, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
+                this._max = max;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    CMIScore.prototype.toJSON = function () {
+        this.jsonString = true;
+        var result = {
+            raw: this.raw,
+            min: this.min,
+            max: this.max,
+        };
+        delete this.jsonString;
+        return result;
+    };
+    return CMIScore;
+}(_base_cmi__WEBPACK_IMPORTED_MODULE_5__/* .BaseCMI */ .J));
+
+
+
+/***/ }),
+
+/***/ 392:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   h: function() { return /* binding */ check12ValidRange; },
+/* harmony export */   p: function() { return /* binding */ check12ValidFormat; }
+/* harmony export */ });
+/* harmony import */ var _common_validation__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(144);
+/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(12);
+/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(878);
+
+
+
+function check12ValidFormat(CMIElement, value, regexPattern, allowEmptyString) {
+    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_0__/* .checkValidFormat */ .q)(CMIElement, value, regexPattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_errors */ .Se.TYPE_MISMATCH, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t, allowEmptyString);
+}
+function check12ValidRange(CMIElement, value, rangePattern, allowEmptyString) {
+    if (!allowEmptyString && value === "") {
+        throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t(CMIElement, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_errors */ .Se.VALUE_OUT_OF_RANGE);
+    }
+    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_0__/* .checkValidRange */ .W)(CMIElement, value, rangePattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_errors */ .Se.VALUE_OUT_OF_RANGE, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t);
+}
+
+
+/***/ }),
+
+/***/ 441:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -330,297 +556,322 @@ var scorm2004_constants = {
 
 /***/ }),
 
-/***/ 417:
+/***/ 519:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   kS: function() { return /* binding */ scorm12_regex; },
-/* harmony export */   xt: function() { return /* binding */ scorm2004_regex; }
+/* harmony export */   $: function() { return /* binding */ BaseScormValidationError; },
+/* harmony export */   y: function() { return /* binding */ ValidationError; }
 /* harmony export */ });
-/* unused harmony export aicc_regex */
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
 
-var scorm12_regex = {
-    CMIString256: "^.{0,255}$",
-    CMIString4096: "^.{0,4096}$",
-    CMITime: "^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)$",
-    CMITimespan: "^([0-9]{2,}):([0-9]{2}):([0-9]{2})(.[0-9]{1,2})?$",
-    CMIInteger: "^\\d+$",
-    CMISInteger: "^-?([0-9]+)$",
-    CMIDecimal: "^-?([0-9]{0,3})(.[0-9]*)?$",
-    CMIIdentifier: "^[\\u0021-\\u007E\\s]{0,255}$",
-    CMIFeedback: "^.{0,255}$",
-    CMIIndex: "[._](\\d+).",
-    CMIStatus: "^(passed|completed|failed|incomplete|browsed)$",
-    CMIStatus2: "^(passed|completed|failed|incomplete|browsed|not attempted)$",
-    CMIExit: "^(time-out|suspend|logout|)$",
-    CMIType: "^(true-false|choice|fill-in|matching|performance|sequencing|likert|numeric)$",
-    CMIResult: "^(correct|wrong|unanticipated|neutral|([0-9]{0,3})?(\\.[0-9]*)?)$",
-    NAVEvent: "^(previous|continue)$",
-    score_range: "0#100",
-    audio_range: "-1#100",
-    speed_range: "-100#100",
-    weighting_range: "-100#100",
-    text_range: "-1#1",
-};
-var aicc_regex = (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)((0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)({}, scorm12_regex), {
-    CMIIdentifier: "^\\w{1,255}$",
-});
-var scorm2004_regex = {
-    CMIString200: "^[\\u0000-\\uFFFF]{0,200}$",
-    CMIString250: "^[\\u0000-\\uFFFF]{0,250}$",
-    CMIString1000: "^[\\u0000-\\uFFFF]{0,1000}$",
-    CMIString4000: "^[\\u0000-\\uFFFF]{0,4000}$",
-    CMIString64000: "^[\\u0000-\\uFFFF]{0,64000}$",
-    CMILang: "^([a-zA-Z]{2,3}|i|x)(-[a-zA-Z0-9-]{2,8})?$|^$",
-    CMILangString250: "^({lang=([a-zA-Z]{2,3}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,250}$)?$",
-    CMILangcr: "^(({lang=([a-zA-Z]{2,3}|i|x)?(-[a-zA-Z0-9-]{2,8})?}))(.*?)$",
-    CMILangString250cr: "^(({lang=([a-zA-Z]{2,3}|i|x)?(-[a-zA-Z0-9-]{2,8})?})?(.{0,250})?)?$",
-    CMILangString4000: "^({lang=([a-zA-Z]{2,3}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,4000}$)?$",
-    CMITime: "^(19[7-9]{1}[0-9]{1}|20[0-2]{1}[0-9]{1}|203[0-8]{1})((-(0[1-9]{1}|1[0-2]{1}))((-(0[1-9]{1}|[1-2]{1}[0-9]{1}|3[0-1]{1}))(T([0-1]{1}[0-9]{1}|2[0-3]{1})((:[0-5]{1}[0-9]{1})((:[0-5]{1}[0-9]{1})((\\.[0-9]{1,6})((Z|([+|-]([0-1]{1}[0-9]{1}|2[0-3]{1})))(:[0-5]{1}[0-9]{1})?)?)?)?)?)?)?)?$",
-    CMITimespan: "^P(?:([.,\\d]+)Y)?(?:([.,\\d]+)M)?(?:([.,\\d]+)W)?(?:([.,\\d]+)D)?(?:T?(?:([.,\\d]+)H)?(?:([.,\\d]+)M)?(?:([.,\\d]+)S)?)?$",
-    CMIInteger: "^\\d+$",
-    CMISInteger: "^-?([0-9]+)$",
-    CMIDecimal: "^-?([0-9]{1,5})(\\.[0-9]{1,18})?$",
-    CMIIdentifier: "^\\S{1,250}[a-zA-Z0-9]$",
-    CMIShortIdentifier: "^[\\w\\.\\-\\_]{1,250}$",
-    CMILongIdentifier: "^(?:(?!urn:)\\S{1,4000}|urn:[A-Za-z0-9-]{1,31}:\\S{1,4000}|.{1,4000})$",
-    CMIFeedback: "^.*$",
-    CMIIndex: "[._](\\d+).",
-    CMIIndexStore: ".N(\\d+).",
-    CMICStatus: "^(completed|incomplete|not attempted|unknown)$",
-    CMISStatus: "^(passed|failed|unknown)$",
-    CMIExit: "^(time-out|suspend|logout|normal)$",
-    CMIType: "^(true-false|choice|fill-in|long-fill-in|matching|performance|sequencing|likert|numeric|other)$",
-    CMIResult: "^(correct|incorrect|unanticipated|neutral|-?([0-9]{1,4})(\\.[0-9]{1,18})?)$",
-    NAVEvent: "^(previous|continue|exit|exitAll|abandon|abandonAll|suspendAll|_none_|(\\{target=(?<choice_target>\\S{0,}[a-zA-Z0-9-_]+)})?choice|(\\{target=(?<jump_target>\\S{0,}[a-zA-Z0-9-_]+)})?jump)$",
-    NAVBoolean: "^(unknown|true|false$)",
-    NAVTarget: "^{target=\\S{0,}[a-zA-Z0-9-_]+}$",
-    scaled_range: "-1#1",
-    audio_range: "0#999.9999999",
-    speed_range: "0#999.9999999",
-    text_range: "-1#1",
-    progress_range: "0#1",
-};
-
-
-/***/ }),
-
-/***/ 434:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   _: function() { return /* binding */ CMIScore; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(635);
-/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(340);
-/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(417);
-/* harmony import */ var _base_cmi__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(319);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(797);
-/* harmony import */ var _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(819);
-
-
-
-
-
-
-var CMIScore = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_5__/* .__extends */ .C6)(CMIScore, _super);
-    function CMIScore(params) {
-        var _this = _super.call(this, params.CMIElement) || this;
-        _this._raw = "";
-        _this._min = "";
-        _this.__children = params.score_children || _constants_api_constants__WEBPACK_IMPORTED_MODULE_0__/* .scorm12_constants */ .QP.score_children;
-        _this.__score_range = !params.score_range ? false : _constants_regex__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_regex */ .kS.score_range;
-        _this._max = params.max || params.max === "" ? params.max : "100";
-        _this.__invalid_error_code = params.invalidErrorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.INVALID_SET_VALUE;
-        _this.__invalid_type_code = params.invalidTypeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.TYPE_MISMATCH;
-        _this.__invalid_range_code = params.invalidRangeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.VALUE_OUT_OF_RANGE;
-        _this.__decimal_regex = params.decimalRegex || _constants_regex__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_regex */ .kS.CMIDecimal;
-        _this.__error_class = params.errorClass;
+var BaseScormValidationError = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(BaseScormValidationError, _super);
+    function BaseScormValidationError(CMIElement, errorCode) {
+        var _this = _super.call(this, "".concat(CMIElement, " : ").concat(errorCode.toString())) || this;
+        _this._errorCode = errorCode;
+        Object.setPrototypeOf(_this, BaseScormValidationError.prototype);
         return _this;
     }
-    CMIScore.prototype.reset = function () {
-        this._initialized = false;
-    };
-    Object.defineProperty(CMIScore.prototype, "_children", {
+    Object.defineProperty(BaseScormValidationError.prototype, "errorCode", {
         get: function () {
-            return this.__children;
-        },
-        set: function (_children) {
-            throw new this.__error_class(this._cmi_element + "._children", this.__invalid_error_code);
+            return this._errorCode;
         },
         enumerable: false,
         configurable: true
     });
-    Object.defineProperty(CMIScore.prototype, "raw", {
-        get: function () {
-            return this._raw;
-        },
-        set: function (raw) {
-            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScore(this._cmi_element + ".raw", raw, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
-                this._raw = raw;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIScore.prototype, "min", {
-        get: function () {
-            return this._min;
-        },
-        set: function (min) {
-            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScore(this._cmi_element + ".min", min, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
-                this._min = min;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIScore.prototype, "max", {
-        get: function () {
-            return this._max;
-        },
-        set: function (max) {
-            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScore(this._cmi_element + ".max", max, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
-                this._max = max;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIScore.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            raw: this.raw,
-            min: this.min,
-            max: this.max,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMIScore;
-}(_base_cmi__WEBPACK_IMPORTED_MODULE_2__/* .BaseCMI */ .J));
+    return BaseScormValidationError;
+}(Error));
 
-
-
-/***/ }),
-
-/***/ 449:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   W: function() { return /* binding */ checkValidRange; },
-/* harmony export */   q: function() { return /* binding */ checkValidFormat; }
-/* harmony export */ });
-/* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(864);
-
-var checkValidFormat = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__/* .memoize */ .Bj)(function (CMIElement, value, regexPattern, errorCode, errorClass, allowEmptyString) {
-    if (typeof value !== "string") {
-        return false;
-    }
-    var formatRegex = new RegExp(regexPattern);
-    var matches = value.match(formatRegex);
-    if (allowEmptyString && value === "") {
-        return true;
-    }
-    if (value === undefined || !matches || matches[0] === "") {
-        throw new errorClass(CMIElement, errorCode);
-    }
-    return true;
-}, function (CMIElement, value, regexPattern, errorCode, _errorClass, allowEmptyString) {
-    var valueKey = typeof value === "string" ? value : "[".concat(typeof value, "]");
-    return "".concat(CMIElement, ":").concat(valueKey, ":").concat(regexPattern, ":").concat(errorCode, ":").concat(allowEmptyString || false);
-});
-var checkValidRange = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__/* .memoize */ .Bj)(function (CMIElement, value, rangePattern, errorCode, errorClass) {
-    var ranges = rangePattern.split("#");
-    value = value * 1.0;
-    if (value >= ranges[0]) {
-        if (ranges[1] === "*" || value <= ranges[1]) {
-            return true;
+var ValidationError = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(ValidationError, _super);
+    function ValidationError(CMIElement, errorCode, errorMessage, detailedMessage) {
+        var _this = _super.call(this, CMIElement, errorCode) || this;
+        _this._detailedMessage = "";
+        _this.message = "".concat(CMIElement, " : ").concat(errorMessage);
+        _this._errorMessage = errorMessage;
+        if (detailedMessage) {
+            _this._detailedMessage = detailedMessage;
         }
-        else {
-            throw new errorClass(CMIElement, errorCode);
-        }
-    }
-    else {
-        throw new errorClass(CMIElement, errorCode);
-    }
-}, function (CMIElement, value, rangePattern, errorCode, _errorClass) {
-    return "".concat(CMIElement, ":").concat(value, ":").concat(rangePattern, ":").concat(errorCode);
-});
-
-
-/***/ }),
-
-/***/ 589:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   B: function() { return /* binding */ CMIArray; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(635);
-/* harmony import */ var _base_cmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(319);
-/* harmony import */ var _exceptions__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(784);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(797);
-
-
-
-
-var CMIArray = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_3__/* .__extends */ .C6)(CMIArray, _super);
-    function CMIArray(params) {
-        var _this = _super.call(this, params.CMIElement) || this;
-        _this.__children = params.children;
-        _this._errorCode = params.errorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.GENERAL;
-        _this._errorClass = params.errorClass || _exceptions__WEBPACK_IMPORTED_MODULE_1__/* .BaseScormValidationError */ .$;
-        _this.childArray = [];
+        Object.setPrototypeOf(_this, ValidationError.prototype);
         return _this;
     }
-    CMIArray.prototype.reset = function (wipe) {
-        if (wipe === void 0) { wipe = false; }
-        this._initialized = false;
-        if (wipe) {
-            this.childArray = [];
+    Object.defineProperty(ValidationError.prototype, "errorMessage", {
+        get: function () {
+            return this._errorMessage;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(ValidationError.prototype, "detailedMessage", {
+        get: function () {
+            return this._detailedMessage;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    return ValidationError;
+}(BaseScormValidationError));
+
+
+
+/***/ }),
+
+/***/ 557:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   $o: function() { return /* binding */ addTwoDurations; },
+/* harmony export */   Bj: function() { return /* binding */ memoize; },
+/* harmony export */   Bq: function() { return /* binding */ flatten; },
+/* harmony export */   J6: function() { return /* binding */ stringMatches; },
+/* harmony export */   OI: function() { return /* binding */ getDurationAsSeconds; },
+/* harmony export */   hw: function() { return /* binding */ formatMessage; },
+/* harmony export */   sB: function() { return /* binding */ unflatten; },
+/* harmony export */   xE: function() { return /* binding */ getSecondsAsISODuration; }
+/* harmony export */ });
+/* unused harmony exports SECONDS_PER_SECOND, SECONDS_PER_MINUTE, SECONDS_PER_HOUR, SECONDS_PER_DAY, getSecondsAsHHMMSS, getTimeAsSeconds, addHHMMSSTimeStrings, countDecimals */
+var SECONDS_PER_SECOND = 1.0;
+var SECONDS_PER_MINUTE = 60;
+var SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
+var SECONDS_PER_DAY = 24 * SECONDS_PER_HOUR;
+var designations = {
+    D: SECONDS_PER_DAY,
+    H: SECONDS_PER_HOUR,
+    M: SECONDS_PER_MINUTE,
+    S: SECONDS_PER_SECOND,
+};
+var getSecondsAsHHMMSS = memoize(function (totalSeconds) {
+    if (!totalSeconds || totalSeconds <= 0) {
+        return "00:00:00";
+    }
+    var hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
+    var dateObj = new Date(totalSeconds * 1000);
+    var minutes = dateObj.getUTCMinutes();
+    var seconds = dateObj.getSeconds();
+    var ms = totalSeconds % 1.0;
+    var msStr = "";
+    if (countDecimals(ms) > 0) {
+        if (countDecimals(ms) > 2) {
+            msStr = ms.toFixed(2);
         }
         else {
-            for (var i = 0; i < this.childArray.length; i++) {
-                this.childArray[i].reset();
+            msStr = String(ms);
+        }
+        msStr = "." + msStr.split(".")[1];
+    }
+    return (hours + ":" + minutes + ":" + seconds).replace(/\b\d\b/g, "0$&") + msStr;
+});
+var getSecondsAsISODuration = memoize(function (seconds) {
+    if (!seconds || seconds <= 0) {
+        return "PT0S";
+    }
+    var duration = "P";
+    var remainder = seconds;
+    var designationEntries = Object.entries(designations);
+    designationEntries.forEach(function (_a) {
+        var designationsKey = _a[0], current_seconds = _a[1];
+        var value = Math.floor(remainder / current_seconds);
+        remainder = remainder % current_seconds;
+        if (countDecimals(remainder) > 2) {
+            remainder = Number(Number(remainder).toFixed(2));
+        }
+        if (designationsKey === "S" && remainder > 0) {
+            value += remainder;
+        }
+        if (value) {
+            var needsTimeSeparator = (duration.indexOf("D") > 0 || ["H", "M", "S"].includes(designationsKey)) &&
+                duration.indexOf("T") === -1;
+            if (needsTimeSeparator) {
+                duration += "T";
             }
+            duration += "".concat(value).concat(designationsKey);
         }
-    };
-    Object.defineProperty(CMIArray.prototype, "_children", {
-        get: function () {
-            return this.__children;
-        },
-        set: function (_children) {
-            throw new this._errorClass(this._cmi_element + "._children", this._errorCode);
-        },
-        enumerable: false,
-        configurable: true
     });
-    Object.defineProperty(CMIArray.prototype, "_count", {
-        get: function () {
-            return this.childArray.length;
-        },
-        set: function (_count) {
-            throw new this._errorClass(this._cmi_element + "._count", this._errorCode);
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIArray.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {};
-        for (var i = 0; i < this.childArray.length; i++) {
-            result[i + ""] = this.childArray[i];
+    return duration;
+});
+var getTimeAsSeconds = memoize(function (timeString, timeRegex) {
+    var _a;
+    if (typeof timeString === "number" || typeof timeString === "boolean") {
+        timeString = String(timeString);
+    }
+    if (typeof timeRegex === "string") {
+        timeRegex = new RegExp(timeRegex);
+    }
+    if (!timeString || !((_a = timeString === null || timeString === void 0 ? void 0 : timeString.match) === null || _a === void 0 ? void 0 : _a.call(timeString, timeRegex))) {
+        return 0;
+    }
+    var parts = timeString.split(":");
+    var hours = Number(parts[0]);
+    var minutes = Number(parts[1]);
+    var seconds = Number(parts[2]);
+    return hours * 3600 + minutes * 60 + seconds;
+}, function (timeString, timeRegex) {
+    var _a;
+    var timeStr = typeof timeString === "string" ? timeString : String(timeString !== null && timeString !== void 0 ? timeString : "");
+    var regexStr = typeof timeRegex === "string" ? timeRegex : ((_a = timeRegex === null || timeRegex === void 0 ? void 0 : timeRegex.toString()) !== null && _a !== void 0 ? _a : "");
+    return "".concat(timeStr, ":").concat(regexStr);
+});
+var getDurationAsSeconds = memoize(function (duration, durationRegex) {
+    var _a, _b, _c, _d;
+    if (typeof durationRegex === "string") {
+        durationRegex = new RegExp(durationRegex);
+    }
+    if (!duration || !((_a = duration === null || duration === void 0 ? void 0 : duration.match) === null || _a === void 0 ? void 0 : _a.call(duration, durationRegex))) {
+        return 0;
+    }
+    var _e = (_d = (_c = (_b = new RegExp(durationRegex)).exec) === null || _c === void 0 ? void 0 : _c.call(_b, duration)) !== null && _d !== void 0 ? _d : [], years = _e[1], _ = _e[2], days = _e[4], hours = _e[5], minutes = _e[6], seconds = _e[7];
+    var result = 0.0;
+    result += Number(seconds) || 0.0;
+    result += Number(minutes) * 60.0 || 0.0;
+    result += Number(hours) * 3600.0 || 0.0;
+    result += Number(days) * (60 * 60 * 24.0) || 0.0;
+    result += Number(years) * (60 * 60 * 24 * 365.0) || 0.0;
+    return result;
+}, function (duration, durationRegex) {
+    var _a;
+    var durationStr = duration !== null && duration !== void 0 ? duration : "";
+    var regexStr = typeof durationRegex === "string" ? durationRegex : ((_a = durationRegex === null || durationRegex === void 0 ? void 0 : durationRegex.toString()) !== null && _a !== void 0 ? _a : "");
+    return "".concat(durationStr, ":").concat(regexStr);
+});
+function addTwoDurations(first, second, durationRegex) {
+    var regex = typeof durationRegex === "string" ? new RegExp(durationRegex) : durationRegex;
+    return getSecondsAsISODuration(getDurationAsSeconds(first, regex) + getDurationAsSeconds(second, regex));
+}
+function addHHMMSSTimeStrings(first, second, timeRegex) {
+    if (typeof timeRegex === "string") {
+        timeRegex = new RegExp(timeRegex);
+    }
+    return getSecondsAsHHMMSS(getTimeAsSeconds(first, timeRegex) + getTimeAsSeconds(second, timeRegex));
+}
+function flatten(data) {
+    var result = {};
+    function recurse(cur, prop) {
+        if (Object(cur) !== cur) {
+            result[prop] = cur;
         }
-        delete this.jsonString;
-        return result;
-    };
-    return CMIArray;
-}(_base_cmi__WEBPACK_IMPORTED_MODULE_0__/* .BaseCMI */ .J));
+        else if (Array.isArray(cur)) {
+            cur.forEach(function (item, i) {
+                recurse(item, "".concat(prop, "[").concat(i, "]"));
+            });
+            if (cur.length === 0)
+                result[prop] = [];
+        }
+        else {
+            var keys = Object.keys(cur).filter(function (p) { return Object.prototype.hasOwnProperty.call(cur, p); });
+            var isEmpty = keys.length === 0;
+            keys.forEach(function (p) {
+                recurse(cur[p], prop ? "".concat(prop, ".").concat(p) : p);
+            });
+            if (isEmpty && prop)
+                result[prop] = {};
+        }
+    }
+    recurse(data, "");
+    return result;
+}
+function unflatten(data) {
+    "use strict";
+    var _a;
+    if (Object(data) !== data || Array.isArray(data))
+        return data;
+    var result = {};
+    var pattern = /\.?([^.[\]]+)|\[(\d+)]/g;
+    Object.keys(data)
+        .filter(function (p) { return Object.prototype.hasOwnProperty.call(data, p); })
+        .forEach(function (p) {
+        var _a, _b;
+        var cur = result;
+        var prop = "";
+        var regex = new RegExp(pattern);
+        Array.from({ length: (_b = (_a = p.match(new RegExp(pattern, "g"))) === null || _a === void 0 ? void 0 : _a.length) !== null && _b !== void 0 ? _b : 0 }, function () {
+            return regex.exec(p);
+        }).forEach(function (m) {
+            var _a;
+            if (m) {
+                cur = ((_a = cur[prop]) !== null && _a !== void 0 ? _a : (cur[prop] = m[2] ? [] : {}));
+                prop = m[2] || m[1];
+            }
+        });
+        cur[prop] = data[p];
+    });
+    return ((_a = result[""]) !== null && _a !== void 0 ? _a : result);
+}
+function countDecimals(num) {
+    var _a, _b, _c, _d;
+    if (Math.floor(num) === num || ((_b = (_a = String(num)) === null || _a === void 0 ? void 0 : _a.indexOf) === null || _b === void 0 ? void 0 : _b.call(_a, ".")) < 0)
+        return 0;
+    var parts = (_c = num.toString().split(".")) === null || _c === void 0 ? void 0 : _c[1];
+    return (_d = parts === null || parts === void 0 ? void 0 : parts.length) !== null && _d !== void 0 ? _d : 0;
+}
+function formatMessage(functionName, message, CMIElement) {
+    var baseLength = 20;
+    var paddedFunction = functionName.padEnd(baseLength);
+    var messageString = "".concat(paddedFunction, ": ");
+    if (CMIElement) {
+        var CMIElementBaseLength = 70;
+        messageString += CMIElement;
+        messageString = messageString.padEnd(CMIElementBaseLength);
+    }
+    messageString += message !== null && message !== void 0 ? message : "";
+    return messageString;
+}
+function stringMatches(str, tester) {
+    return (str === null || str === void 0 ? void 0 : str.match(tester)) !== null;
+}
+function memoize(fn, keyFn) {
+    var cache = new Map();
+    return (function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        var key = keyFn ? keyFn.apply(void 0, args) : JSON.stringify(args);
+        return cache.has(key)
+            ? cache.get(key)
+            : (function () {
+                var result = fn.apply(void 0, args);
+                cache.set(key, result);
+                return result;
+            })();
+    });
+}
 
+
+/***/ }),
+
+/***/ 573:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   K$: function() { return /* binding */ NAVBoolean; },
+/* harmony export */   Mb: function() { return /* binding */ LogLevelEnum; },
+/* harmony export */   YE: function() { return /* binding */ SuccessStatus; },
+/* harmony export */   lC: function() { return /* binding */ CompletionStatus; }
+/* harmony export */ });
+var NAVBoolean = {
+    UNKNOWN: "unknown",
+    TRUE: "true",
+    FALSE: "false",
+};
+var SuccessStatus = {
+    PASSED: "passed",
+    FAILED: "failed",
+    UNKNOWN: "unknown",
+};
+var CompletionStatus = {
+    COMPLETED: "completed",
+    INCOMPLETE: "incomplete",
+    UNKNOWN: "unknown",
+};
+var LogLevelEnum = {
+    _: 0,
+    DEBUG: 1,
+    INFO: 2,
+    WARN: 3,
+    ERROR: 4,
+    NONE: 5,
+};
 
 
 /***/ }),
@@ -1017,7 +1268,79 @@ function __disposeResources(env) {
 
 /***/ }),
 
-/***/ 672:
+/***/ 682:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   B: function() { return /* binding */ CMIArray; }
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+/* harmony import */ var _base_cmi__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(166);
+/* harmony import */ var _exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(519);
+/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(12);
+
+
+
+
+var CMIArray = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(CMIArray, _super);
+    function CMIArray(params) {
+        var _this = _super.call(this, params.CMIElement) || this;
+        _this.__children = params.children;
+        _this._errorCode = params.errorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_errors */ .Se.GENERAL;
+        _this._errorClass = params.errorClass || _exceptions__WEBPACK_IMPORTED_MODULE_2__/* .BaseScormValidationError */ .$;
+        _this.childArray = [];
+        return _this;
+    }
+    CMIArray.prototype.reset = function (wipe) {
+        if (wipe === void 0) { wipe = false; }
+        this._initialized = false;
+        if (wipe) {
+            this.childArray = [];
+        }
+        else {
+            for (var i = 0; i < this.childArray.length; i++) {
+                this.childArray[i].reset();
+            }
+        }
+    };
+    Object.defineProperty(CMIArray.prototype, "_children", {
+        get: function () {
+            return this.__children;
+        },
+        set: function (_children) {
+            throw new this._errorClass(this._cmi_element + "._children", this._errorCode);
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(CMIArray.prototype, "_count", {
+        get: function () {
+            return this.childArray.length;
+        },
+        set: function (_count) {
+            throw new this._errorClass(this._cmi_element + "._count", this._errorCode);
+        },
+        enumerable: false,
+        configurable: true
+    });
+    CMIArray.prototype.toJSON = function () {
+        this.jsonString = true;
+        var result = {};
+        for (var i = 0; i < this.childArray.length; i++) {
+            result[i + ""] = this.childArray[i];
+        }
+        delete this.jsonString;
+        return result;
+    };
+    return CMIArray;
+}(_base_cmi__WEBPACK_IMPORTED_MODULE_3__/* .BaseCMI */ .J));
+
+
+
+/***/ }),
+
+/***/ 838:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 
@@ -1029,11 +1352,11 @@ __webpack_require__.d(__webpack_exports__, {
 // EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
 var tslib_es6 = __webpack_require__(635);
 // EXTERNAL MODULE: ./src/constants/api_constants.ts
-var api_constants = __webpack_require__(340);
+var api_constants = __webpack_require__(441);
 // EXTERNAL MODULE: ./src/utilities.ts
-var utilities = __webpack_require__(864);
+var utilities = __webpack_require__(557);
 // EXTERNAL MODULE: ./src/constants/enums.ts
-var enums = __webpack_require__(56);
+var enums = __webpack_require__(573);
 ;// ./src/constants/default_settings.ts
 
 
@@ -1573,7 +1896,7 @@ var SerializationService = (function () {
 
 
 // EXTERNAL MODULE: ./src/exceptions.ts
-var exceptions = __webpack_require__(784);
+var exceptions = __webpack_require__(519);
 ;// ./src/services/ErrorHandlingService.ts
 
 
@@ -1717,7 +2040,7 @@ function getLoggingService() {
 }
 
 // EXTERNAL MODULE: ./src/cmi/common/array.ts
-var array = __webpack_require__(589);
+var array = __webpack_require__(682);
 ;// ./src/BaseAPI.ts
 
 
@@ -2262,125 +2585,51 @@ var BaseAPI = (function () {
 
 /***/ }),
 
-/***/ 784:
+/***/ 878:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   $: function() { return /* binding */ BaseScormValidationError; },
-/* harmony export */   y: function() { return /* binding */ ValidationError; }
+/* harmony export */   t: function() { return /* binding */ Scorm12ValidationError; }
 /* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(635);
+/* harmony import */ var _exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(519);
+/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(441);
 
-var BaseScormValidationError = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(BaseScormValidationError, _super);
-    function BaseScormValidationError(CMIElement, errorCode) {
-        var _this = _super.call(this, "".concat(CMIElement, " : ").concat(errorCode.toString())) || this;
-        _this._errorCode = errorCode;
-        Object.setPrototypeOf(_this, BaseScormValidationError.prototype);
-        return _this;
-    }
-    Object.defineProperty(BaseScormValidationError.prototype, "errorCode", {
-        get: function () {
-            return this._errorCode;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    return BaseScormValidationError;
-}(Error));
 
-var ValidationError = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(ValidationError, _super);
-    function ValidationError(CMIElement, errorCode, errorMessage, detailedMessage) {
-        var _this = _super.call(this, CMIElement, errorCode) || this;
-        _this._detailedMessage = "";
-        _this.message = "".concat(CMIElement, " : ").concat(errorMessage);
-        _this._errorMessage = errorMessage;
-        if (detailedMessage) {
-            _this._detailedMessage = detailedMessage;
+
+var scorm12_errors = _constants_api_constants__WEBPACK_IMPORTED_MODULE_0__/* .scorm12_constants */ .QP.error_descriptions;
+var Scorm12ValidationError = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_1__/* .__extends */ .C6)(Scorm12ValidationError, _super);
+    function Scorm12ValidationError(CMIElement, errorCode) {
+        var _this = this;
+        if ({}.hasOwnProperty.call(scorm12_errors, String(errorCode))) {
+            _this = _super.call(this, CMIElement, errorCode, scorm12_errors[String(errorCode)].basicMessage, scorm12_errors[String(errorCode)].detailMessage) || this;
         }
-        Object.setPrototypeOf(_this, ValidationError.prototype);
+        else {
+            _this = _super.call(this, CMIElement, 101, scorm12_errors["101"].basicMessage, scorm12_errors["101"].detailMessage) || this;
+        }
+        Object.setPrototypeOf(_this, Scorm12ValidationError.prototype);
         return _this;
     }
-    Object.defineProperty(ValidationError.prototype, "errorMessage", {
-        get: function () {
-            return this._errorMessage;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(ValidationError.prototype, "detailedMessage", {
-        get: function () {
-            return this._detailedMessage;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    return ValidationError;
-}(BaseScormValidationError));
+    return Scorm12ValidationError;
+}(_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .ValidationError */ .y));
 
 
 
 /***/ }),
 
-/***/ 797:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Rf: function() { return /* binding */ scorm2004_errors; },
-/* harmony export */   Se: function() { return /* binding */ scorm12_errors; }
-/* harmony export */ });
-/* unused harmony export global_errors */
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-
-var global_errors = {
-    GENERAL: 101,
-    INITIALIZATION_FAILED: 101,
-    INITIALIZED: 101,
-    TERMINATED: 101,
-    TERMINATION_FAILURE: 101,
-    TERMINATION_BEFORE_INIT: 101,
-    MULTIPLE_TERMINATION: 101,
-    RETRIEVE_BEFORE_INIT: 101,
-    RETRIEVE_AFTER_TERM: 101,
-    STORE_BEFORE_INIT: 101,
-    STORE_AFTER_TERM: 101,
-    COMMIT_BEFORE_INIT: 101,
-    COMMIT_AFTER_TERM: 101,
-    ARGUMENT_ERROR: 101,
-    CHILDREN_ERROR: 101,
-    COUNT_ERROR: 101,
-    GENERAL_GET_FAILURE: 101,
-    GENERAL_SET_FAILURE: 101,
-    GENERAL_COMMIT_FAILURE: 101,
-    UNDEFINED_DATA_MODEL: 101,
-    UNIMPLEMENTED_ELEMENT: 101,
-    VALUE_NOT_INITIALIZED: 101,
-    INVALID_SET_VALUE: 101,
-    READ_ONLY_ELEMENT: 101,
-    WRITE_ONLY_ELEMENT: 101,
-    TYPE_MISMATCH: 101,
-    VALUE_OUT_OF_RANGE: 101,
-    DEPENDENCY_NOT_ESTABLISHED: 101,
-};
-var scorm12_errors = (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)((0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)({}, global_errors), { RETRIEVE_BEFORE_INIT: 301, STORE_BEFORE_INIT: 301, COMMIT_BEFORE_INIT: 301, ARGUMENT_ERROR: 201, CHILDREN_ERROR: 202, COUNT_ERROR: 203, UNDEFINED_DATA_MODEL: 401, UNIMPLEMENTED_ELEMENT: 401, VALUE_NOT_INITIALIZED: 301, INVALID_SET_VALUE: 402, READ_ONLY_ELEMENT: 403, WRITE_ONLY_ELEMENT: 404, TYPE_MISMATCH: 405, VALUE_OUT_OF_RANGE: 407, DEPENDENCY_NOT_ESTABLISHED: 408 });
-var scorm2004_errors = (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)((0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)({}, global_errors), { INITIALIZATION_FAILED: 102, INITIALIZED: 103, TERMINATED: 104, TERMINATION_FAILURE: 111, TERMINATION_BEFORE_INIT: 112, MULTIPLE_TERMINATIONS: 113, RETRIEVE_BEFORE_INIT: 122, RETRIEVE_AFTER_TERM: 123, STORE_BEFORE_INIT: 132, STORE_AFTER_TERM: 133, COMMIT_BEFORE_INIT: 142, COMMIT_AFTER_TERM: 143, ARGUMENT_ERROR: 201, GENERAL_GET_FAILURE: 301, GENERAL_SET_FAILURE: 351, GENERAL_COMMIT_FAILURE: 391, UNDEFINED_DATA_MODEL: 401, UNIMPLEMENTED_ELEMENT: 402, VALUE_NOT_INITIALIZED: 403, READ_ONLY_ELEMENT: 404, WRITE_ONLY_ELEMENT: 405, TYPE_MISMATCH: 406, VALUE_OUT_OF_RANGE: 407, DEPENDENCY_NOT_ESTABLISHED: 408 });
-
-
-/***/ }),
-
-/***/ 819:
+/***/ 888:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   v: function() { return /* binding */ validationService; }
 /* harmony export */ });
 /* unused harmony export ValidationService */
-/* harmony import */ var _cmi_common_validation__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(449);
-/* harmony import */ var _cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(915);
-/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(417);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(797);
-/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(179);
+/* harmony import */ var _cmi_common_validation__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(144);
+/* harmony import */ var _cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(392);
+/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(64);
+/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(12);
+/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(878);
 
 
 
@@ -2410,262 +2659,13 @@ var ValidationService = (function () {
     };
     ValidationService.prototype.validateReadOnly = function (CMIElement, initialized) {
         if (initialized) {
-            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_4__/* .Scorm12ValidationError */ .t(CMIElement, _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.READ_ONLY_ELEMENT);
+            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(CMIElement, _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__/* .scorm12_errors */ .Se.READ_ONLY_ELEMENT);
         }
     };
     return ValidationService;
 }());
 
 var validationService = new ValidationService();
-
-
-/***/ }),
-
-/***/ 864:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   $o: function() { return /* binding */ addTwoDurations; },
-/* harmony export */   Bj: function() { return /* binding */ memoize; },
-/* harmony export */   Bq: function() { return /* binding */ flatten; },
-/* harmony export */   J6: function() { return /* binding */ stringMatches; },
-/* harmony export */   OI: function() { return /* binding */ getDurationAsSeconds; },
-/* harmony export */   hw: function() { return /* binding */ formatMessage; },
-/* harmony export */   sB: function() { return /* binding */ unflatten; },
-/* harmony export */   xE: function() { return /* binding */ getSecondsAsISODuration; }
-/* harmony export */ });
-/* unused harmony exports SECONDS_PER_SECOND, SECONDS_PER_MINUTE, SECONDS_PER_HOUR, SECONDS_PER_DAY, getSecondsAsHHMMSS, getTimeAsSeconds, addHHMMSSTimeStrings, countDecimals */
-var SECONDS_PER_SECOND = 1.0;
-var SECONDS_PER_MINUTE = 60;
-var SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
-var SECONDS_PER_DAY = 24 * SECONDS_PER_HOUR;
-var designations = {
-    D: SECONDS_PER_DAY,
-    H: SECONDS_PER_HOUR,
-    M: SECONDS_PER_MINUTE,
-    S: SECONDS_PER_SECOND,
-};
-var getSecondsAsHHMMSS = memoize(function (totalSeconds) {
-    if (!totalSeconds || totalSeconds <= 0) {
-        return "00:00:00";
-    }
-    var hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
-    var dateObj = new Date(totalSeconds * 1000);
-    var minutes = dateObj.getUTCMinutes();
-    var seconds = dateObj.getSeconds();
-    var ms = totalSeconds % 1.0;
-    var msStr = "";
-    if (countDecimals(ms) > 0) {
-        if (countDecimals(ms) > 2) {
-            msStr = ms.toFixed(2);
-        }
-        else {
-            msStr = String(ms);
-        }
-        msStr = "." + msStr.split(".")[1];
-    }
-    return (hours + ":" + minutes + ":" + seconds).replace(/\b\d\b/g, "0$&") + msStr;
-});
-var getSecondsAsISODuration = memoize(function (seconds) {
-    if (!seconds || seconds <= 0) {
-        return "PT0S";
-    }
-    var duration = "P";
-    var remainder = seconds;
-    var designationEntries = Object.entries(designations);
-    designationEntries.forEach(function (_a) {
-        var designationsKey = _a[0], current_seconds = _a[1];
-        var value = Math.floor(remainder / current_seconds);
-        remainder = remainder % current_seconds;
-        if (countDecimals(remainder) > 2) {
-            remainder = Number(Number(remainder).toFixed(2));
-        }
-        if (designationsKey === "S" && remainder > 0) {
-            value += remainder;
-        }
-        if (value) {
-            var needsTimeSeparator = (duration.indexOf("D") > 0 || ["H", "M", "S"].includes(designationsKey)) &&
-                duration.indexOf("T") === -1;
-            if (needsTimeSeparator) {
-                duration += "T";
-            }
-            duration += "".concat(value).concat(designationsKey);
-        }
-    });
-    return duration;
-});
-var getTimeAsSeconds = memoize(function (timeString, timeRegex) {
-    var _a;
-    if (typeof timeString === "number" || typeof timeString === "boolean") {
-        timeString = String(timeString);
-    }
-    if (typeof timeRegex === "string") {
-        timeRegex = new RegExp(timeRegex);
-    }
-    if (!timeString || !((_a = timeString === null || timeString === void 0 ? void 0 : timeString.match) === null || _a === void 0 ? void 0 : _a.call(timeString, timeRegex))) {
-        return 0;
-    }
-    var parts = timeString.split(":");
-    var hours = Number(parts[0]);
-    var minutes = Number(parts[1]);
-    var seconds = Number(parts[2]);
-    return hours * 3600 + minutes * 60 + seconds;
-}, function (timeString, timeRegex) {
-    var _a;
-    var timeStr = typeof timeString === "string" ? timeString : String(timeString !== null && timeString !== void 0 ? timeString : "");
-    var regexStr = typeof timeRegex === "string" ? timeRegex : ((_a = timeRegex === null || timeRegex === void 0 ? void 0 : timeRegex.toString()) !== null && _a !== void 0 ? _a : "");
-    return "".concat(timeStr, ":").concat(regexStr);
-});
-var getDurationAsSeconds = memoize(function (duration, durationRegex) {
-    var _a, _b, _c, _d;
-    if (typeof durationRegex === "string") {
-        durationRegex = new RegExp(durationRegex);
-    }
-    if (!duration || !((_a = duration === null || duration === void 0 ? void 0 : duration.match) === null || _a === void 0 ? void 0 : _a.call(duration, durationRegex))) {
-        return 0;
-    }
-    var _e = (_d = (_c = (_b = new RegExp(durationRegex)).exec) === null || _c === void 0 ? void 0 : _c.call(_b, duration)) !== null && _d !== void 0 ? _d : [], years = _e[1], _ = _e[2], days = _e[4], hours = _e[5], minutes = _e[6], seconds = _e[7];
-    var result = 0.0;
-    result += Number(seconds) || 0.0;
-    result += Number(minutes) * 60.0 || 0.0;
-    result += Number(hours) * 3600.0 || 0.0;
-    result += Number(days) * (60 * 60 * 24.0) || 0.0;
-    result += Number(years) * (60 * 60 * 24 * 365.0) || 0.0;
-    return result;
-}, function (duration, durationRegex) {
-    var _a;
-    var durationStr = duration !== null && duration !== void 0 ? duration : "";
-    var regexStr = typeof durationRegex === "string" ? durationRegex : ((_a = durationRegex === null || durationRegex === void 0 ? void 0 : durationRegex.toString()) !== null && _a !== void 0 ? _a : "");
-    return "".concat(durationStr, ":").concat(regexStr);
-});
-function addTwoDurations(first, second, durationRegex) {
-    var regex = typeof durationRegex === "string" ? new RegExp(durationRegex) : durationRegex;
-    return getSecondsAsISODuration(getDurationAsSeconds(first, regex) + getDurationAsSeconds(second, regex));
-}
-function addHHMMSSTimeStrings(first, second, timeRegex) {
-    if (typeof timeRegex === "string") {
-        timeRegex = new RegExp(timeRegex);
-    }
-    return getSecondsAsHHMMSS(getTimeAsSeconds(first, timeRegex) + getTimeAsSeconds(second, timeRegex));
-}
-function flatten(data) {
-    var result = {};
-    function recurse(cur, prop) {
-        if (Object(cur) !== cur) {
-            result[prop] = cur;
-        }
-        else if (Array.isArray(cur)) {
-            cur.forEach(function (item, i) {
-                recurse(item, "".concat(prop, "[").concat(i, "]"));
-            });
-            if (cur.length === 0)
-                result[prop] = [];
-        }
-        else {
-            var keys = Object.keys(cur).filter(function (p) { return Object.prototype.hasOwnProperty.call(cur, p); });
-            var isEmpty = keys.length === 0;
-            keys.forEach(function (p) {
-                recurse(cur[p], prop ? "".concat(prop, ".").concat(p) : p);
-            });
-            if (isEmpty && prop)
-                result[prop] = {};
-        }
-    }
-    recurse(data, "");
-    return result;
-}
-function unflatten(data) {
-    "use strict";
-    var _a;
-    if (Object(data) !== data || Array.isArray(data))
-        return data;
-    var result = {};
-    var pattern = /\.?([^.[\]]+)|\[(\d+)]/g;
-    Object.keys(data)
-        .filter(function (p) { return Object.prototype.hasOwnProperty.call(data, p); })
-        .forEach(function (p) {
-        var _a, _b;
-        var cur = result;
-        var prop = "";
-        var regex = new RegExp(pattern);
-        Array.from({ length: (_b = (_a = p.match(new RegExp(pattern, "g"))) === null || _a === void 0 ? void 0 : _a.length) !== null && _b !== void 0 ? _b : 0 }, function () {
-            return regex.exec(p);
-        }).forEach(function (m) {
-            var _a;
-            if (m) {
-                cur = ((_a = cur[prop]) !== null && _a !== void 0 ? _a : (cur[prop] = m[2] ? [] : {}));
-                prop = m[2] || m[1];
-            }
-        });
-        cur[prop] = data[p];
-    });
-    return ((_a = result[""]) !== null && _a !== void 0 ? _a : result);
-}
-function countDecimals(num) {
-    var _a, _b, _c, _d;
-    if (Math.floor(num) === num || ((_b = (_a = String(num)) === null || _a === void 0 ? void 0 : _a.indexOf) === null || _b === void 0 ? void 0 : _b.call(_a, ".")) < 0)
-        return 0;
-    var parts = (_c = num.toString().split(".")) === null || _c === void 0 ? void 0 : _c[1];
-    return (_d = parts === null || parts === void 0 ? void 0 : parts.length) !== null && _d !== void 0 ? _d : 0;
-}
-function formatMessage(functionName, message, CMIElement) {
-    var baseLength = 20;
-    var paddedFunction = functionName.padEnd(baseLength);
-    var messageString = "".concat(paddedFunction, ": ");
-    if (CMIElement) {
-        var CMIElementBaseLength = 70;
-        messageString += CMIElement;
-        messageString = messageString.padEnd(CMIElementBaseLength);
-    }
-    messageString += message !== null && message !== void 0 ? message : "";
-    return messageString;
-}
-function stringMatches(str, tester) {
-    return (str === null || str === void 0 ? void 0 : str.match(tester)) !== null;
-}
-function memoize(fn, keyFn) {
-    var cache = new Map();
-    return (function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        var key = keyFn ? keyFn.apply(void 0, args) : JSON.stringify(args);
-        return cache.has(key)
-            ? cache.get(key)
-            : (function () {
-                var result = fn.apply(void 0, args);
-                cache.set(key, result);
-                return result;
-            })();
-    });
-}
-
-
-/***/ }),
-
-/***/ 915:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   h: function() { return /* binding */ check12ValidRange; },
-/* harmony export */   p: function() { return /* binding */ check12ValidFormat; }
-/* harmony export */ });
-/* harmony import */ var _common_validation__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(449);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(797);
-/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(179);
-
-
-
-function check12ValidFormat(CMIElement, value, regexPattern, allowEmptyString) {
-    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_0__/* .checkValidFormat */ .q)(CMIElement, value, regexPattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_errors */ .Se.TYPE_MISMATCH, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t, allowEmptyString);
-}
-function check12ValidRange(CMIElement, value, rangePattern, allowEmptyString) {
-    if (!allowEmptyString && value === "") {
-        throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t(CMIElement, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_errors */ .Se.VALUE_OUT_OF_RANGE);
-    }
-    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_0__/* .checkValidRange */ .W)(CMIElement, value, rangePattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_errors */ .Se.VALUE_OUT_OF_RANGE, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t);
-}
 
 
 /***/ })
@@ -2738,13 +2738,13 @@ __webpack_require__.d(__webpack_exports__, {
 // EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
 var tslib_es6 = __webpack_require__(635);
 // EXTERNAL MODULE: ./src/BaseAPI.ts + 7 modules
-var BaseAPI = __webpack_require__(672);
+var BaseAPI = __webpack_require__(838);
 // EXTERNAL MODULE: ./src/cmi/common/base_cmi.ts
-var base_cmi = __webpack_require__(319);
+var base_cmi = __webpack_require__(166);
 // EXTERNAL MODULE: ./src/constants/api_constants.ts
-var api_constants = __webpack_require__(340);
+var api_constants = __webpack_require__(441);
 // EXTERNAL MODULE: ./src/exceptions.ts
-var exceptions = __webpack_require__(784);
+var exceptions = __webpack_require__(519);
 ;// ./src/exceptions/scorm2004_exceptions.ts
 
 
@@ -2768,9 +2768,9 @@ var Scorm2004ValidationError = (function (_super) {
 
 
 // EXTERNAL MODULE: ./src/constants/error_codes.ts
-var error_codes = __webpack_require__(797);
+var error_codes = __webpack_require__(12);
 // EXTERNAL MODULE: ./src/cmi/common/validation.ts
-var validation = __webpack_require__(449);
+var validation = __webpack_require__(144);
 ;// ./src/cmi/scorm2004/validation.ts
 
 
@@ -2783,7 +2783,7 @@ function check2004ValidRange(CMIElement, value, rangePattern) {
 }
 
 // EXTERNAL MODULE: ./src/constants/regex.ts
-var regex = __webpack_require__(417);
+var regex = __webpack_require__(64);
 ;// ./src/cmi/scorm2004/learner_preference.ts
 
 
@@ -2883,7 +2883,7 @@ var CMILearnerPreference = (function (_super) {
 
 
 // EXTERNAL MODULE: ./src/cmi/common/array.ts
-var array = __webpack_require__(589);
+var array = __webpack_require__(682);
 ;// ./src/constants/response_constants.ts
 
 var LearnerResponses = {
@@ -3428,7 +3428,7 @@ var CMIInteractionsCorrectResponsesObject = (function (_super) {
 
 
 // EXTERNAL MODULE: ./src/cmi/common/score.ts
-var score = __webpack_require__(434);
+var score = __webpack_require__(209);
 ;// ./src/cmi/scorm2004/score.ts
 
 
@@ -3908,7 +3908,7 @@ var CMIStatus = (function (_super) {
 
 
 // EXTERNAL MODULE: ./src/utilities.ts
-var utilities = __webpack_require__(864);
+var utilities = __webpack_require__(557);
 ;// ./src/cmi/scorm2004/session.ts
 
 
@@ -4515,7 +4515,7 @@ var CMI = (function (_super) {
 
 
 // EXTERNAL MODULE: ./src/constants/enums.ts
-var enums = __webpack_require__(56);
+var enums = __webpack_require__(573);
 ;// ./src/cmi/scorm2004/adl.ts
 
 

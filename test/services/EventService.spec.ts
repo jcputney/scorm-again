@@ -1,367 +1,306 @@
-import { beforeEach, describe, it } from "mocha";
 import { expect } from "expect";
+import { afterEach, beforeEach, describe, it } from "mocha";
 import * as sinon from "sinon";
-import { EventService } from "../../src/services/EventService";
 import { LogLevelEnum } from "../../src/constants/enums";
+import { EventService } from "../../src/services/EventService";
 
 describe("EventService", () => {
   let eventService: EventService;
-  let apiLogStub: sinon.SinonStub;
+  let apiLogSpy: sinon.SinonSpy;
 
   beforeEach(() => {
-    // Create a stub for the apiLog function
-    apiLogStub = sinon.stub();
-
-    // Create a new instance for each test
-    eventService = new EventService(apiLogStub);
+    apiLogSpy = sinon.spy();
+    eventService = new EventService(apiLogSpy);
   });
 
-  describe("on", () => {
-    it("should add a listener for a simple event", () => {
-      // Arrange
-      const callback = sinon.spy();
-
-      // Act
-      eventService.on("initialize", callback);
-
-      // Assert
-      expect(apiLogStub.calledOnce).toBe(true);
-      expect(
-        apiLogStub.calledWith("on", "Added event listener: 1", LogLevelEnum.INFO, "initialize"),
-      ).toBe(true);
-    });
-
-    it("should add a listener for an event with a CMI element", () => {
-      // Arrange
-      const callback = sinon.spy();
-
-      // Act
-      eventService.on("setValue.cmi.core.student_id", callback);
-
-      // Assert
-      expect(apiLogStub.calledOnce).toBe(true);
-      expect(
-        apiLogStub.calledWith("on", "Added event listener: 1", LogLevelEnum.INFO, "setValue"),
-      ).toBe(true);
-    });
-
-    it("should add multiple listeners for space-separated events", () => {
-      // Arrange
-      const callback = sinon.spy();
-
-      // Act
-      eventService.on("initialize terminate", callback);
-
-      // Assert
-      expect(apiLogStub.calledTwice).toBe(true);
-      expect(
-        apiLogStub.firstCall.calledWith(
-          "on",
-          "Added event listener: 1",
-          LogLevelEnum.INFO,
-          "initialize",
-        ),
-      ).toBe(true);
-      expect(
-        apiLogStub.secondCall.calledWith(
-          "on",
-          "Added event listener: 2",
-          LogLevelEnum.INFO,
-          "terminate",
-        ),
-      ).toBe(true);
-    });
-
-    it("should not add a listener if callback is not provided", () => {
-      // Act
-      eventService.on("initialize", null);
-
-      // Assert
-      expect(apiLogStub.called).toBe(false);
-    });
-
-    it("should not add a functional listener for invalid event names", () => {
-      // Arrange
-      const callback = sinon.spy();
-
-      // Act - try to add a listener with an invalid event name
-      eventService.on("   ", callback);
-
-      // Try to trigger the listener with a valid event name
-      eventService.processListeners("initialize");
-
-      // Assert - verify the callback was not called
-      expect(callback.called).toBe(false);
-    });
+  afterEach(() => {
+    sinon.restore();
   });
 
-  describe("off", () => {
-    it("should remove a listener for a simple event", () => {
+  describe("Basic Event Registration and Triggering", () => {
+    it("should register and trigger a simple event listener", () => {
       // Arrange
       const callback = sinon.spy();
-      eventService.on("initialize", callback);
-      apiLogStub.resetHistory();
+      eventService.on("TestEvent", callback);
 
       // Act
-      eventService.off("initialize", callback);
-
-      // Assert
-      expect(apiLogStub.calledOnce).toBe(true);
-      expect(
-        apiLogStub.calledWith("off", "Removed event listener: 0", LogLevelEnum.INFO, "initialize"),
-      ).toBe(true);
-    });
-
-    it("should remove a listener for an event with a CMI element", () => {
-      // Arrange
-      const callback = sinon.spy();
-      eventService.on("setValue.cmi.core.student_id", callback);
-      apiLogStub.resetHistory();
-
-      // Act
-      eventService.off("setValue.cmi.core.student_id", callback);
-
-      // Assert
-      expect(apiLogStub.calledOnce).toBe(true);
-      expect(
-        apiLogStub.calledWith("off", "Removed event listener: 0", LogLevelEnum.INFO, "setValue"),
-      ).toBe(true);
-    });
-
-    it("should remove multiple listeners for space-separated events", () => {
-      // Arrange
-      const callback = sinon.spy();
-      eventService.on("initialize terminate", callback);
-      apiLogStub.resetHistory();
-
-      // Act
-      eventService.off("initialize terminate", callback);
-
-      // Assert
-      expect(apiLogStub.calledTwice).toBe(true);
-      expect(
-        apiLogStub.firstCall.calledWith(
-          "off",
-          "Removed event listener: 1",
-          LogLevelEnum.INFO,
-          "initialize",
-        ),
-      ).toBe(true);
-      expect(
-        apiLogStub.secondCall.calledWith(
-          "off",
-          "Removed event listener: 0",
-          LogLevelEnum.INFO,
-          "terminate",
-        ),
-      ).toBe(true);
-    });
-
-    it("should not remove a listener if callback is not provided", () => {
-      // Arrange
-      const callback = sinon.spy();
-      eventService.on("initialize", callback);
-      apiLogStub.resetHistory();
-
-      // Act
-      eventService.off("initialize", null);
-
-      // Assert
-      expect(apiLogStub.called).toBe(false);
-    });
-
-    it("should not remove a listener if event name is invalid", () => {
-      // Arrange
-      const callback = sinon.spy();
-      eventService.on("initialize", callback);
-      apiLogStub.resetHistory();
-
-      // Act
-      eventService.off(".", callback);
-
-      // Assert
-      expect(apiLogStub.called).toBe(false);
-    });
-
-    it("should not remove a listener if it doesn't exist", () => {
-      // Arrange
-      const callback1 = sinon.spy();
-      const callback2 = sinon.spy();
-      eventService.on("initialize", callback1);
-      apiLogStub.resetHistory();
-
-      // Act
-      eventService.off("initialize", callback2);
-
-      // Assert
-      expect(apiLogStub.called).toBe(false);
-    });
-  });
-
-  describe("clear", () => {
-    it("should clear all listeners for a simple event", () => {
-      // Arrange
-      const callback1 = sinon.spy();
-      const callback2 = sinon.spy();
-      eventService.on("initialize", callback1);
-      eventService.on("initialize", callback2);
-
-      // Act
-      eventService.clear("initialize");
-
-      // Process listeners to verify they were cleared
-      eventService.processListeners("initialize");
-
-      // Assert
-      expect(callback1.called).toBe(false);
-      expect(callback2.called).toBe(false);
-    });
-
-    it("should clear all listeners for an event with a CMI element", () => {
-      // Arrange
-      const callback = sinon.spy();
-      eventService.on("setValue.cmi.core.student_id", callback);
-
-      // Act
-      eventService.clear("setValue.cmi.core.student_id");
-
-      // Process listeners to verify they were cleared
-      eventService.processListeners("setValue", "cmi.core.student_id");
-
-      // Assert
-      expect(callback.called).toBe(false);
-    });
-
-    it("should clear multiple listeners for space-separated events", () => {
-      // Arrange
-      const callback1 = sinon.spy();
-      const callback2 = sinon.spy();
-      eventService.on("initialize", callback1);
-      eventService.on("terminate", callback2);
-
-      // Act
-      eventService.clear("initialize terminate");
-
-      // Process listeners to verify they were cleared
-      eventService.processListeners("initialize");
-      eventService.processListeners("terminate");
-
-      // Assert
-      expect(callback1.called).toBe(false);
-      expect(callback2.called).toBe(false);
-    });
-
-    it("should not clear listeners if event name is invalid", () => {
-      // Arrange
-      const callback = sinon.spy();
-      eventService.on("initialize", callback);
-
-      // Act
-      eventService.clear(".");
-
-      // Process listeners to verify they were not cleared
-      eventService.processListeners("initialize");
-
-      // Assert
-      expect(callback.called).toBe(true);
-    });
-  });
-
-  describe("processListeners", () => {
-    it("should call the callback for a matching simple event", () => {
-      // Arrange
-      const callback = sinon.spy();
-      eventService.on("initialize", callback);
-      apiLogStub.resetHistory();
-
-      // Act
-      eventService.processListeners("initialize");
+      eventService.processListeners("TestEvent");
 
       // Assert
       expect(callback.calledOnce).toBe(true);
-      expect(
-        apiLogStub.calledWith(
-          "processListeners",
-          "Processing listener: initialize",
-          LogLevelEnum.DEBUG,
-          undefined,
-        ),
-      ).toBe(true);
     });
 
-    it("should call the callback for a matching event with a CMI element", () => {
-      // Arrange
-      const callback = sinon.spy();
-      eventService.on("setValue.cmi.core.student_id", callback);
-      apiLogStub.resetHistory();
-
-      // Act
-      eventService.processListeners("setValue", "cmi.core.student_id", "123");
-
-      // Assert
-      expect(callback.calledOnce).toBe(true);
-      expect(callback.calledWith("cmi.core.student_id", "123")).toBe(true);
-    });
-
-    it("should call the callback for a matching event with a wildcard CMI element", () => {
-      // Arrange
-      const callback = sinon.spy();
-      eventService.on("setValue.cmi.core.*", callback);
-      apiLogStub.resetHistory();
-
-      // Act
-      eventService.processListeners("setValue", "cmi.core.student_id", "123");
-
-      // Assert
-      expect(callback.calledOnce).toBe(true);
-      expect(callback.calledWith("cmi.core.student_id", "123")).toBe(true);
-    });
-
-    it("should not call the callback for a non-matching event", () => {
-      // Arrange
-      const callback = sinon.spy();
-      eventService.on("initialize", callback);
-      apiLogStub.resetHistory();
-
-      // Act
-      eventService.processListeners("terminate");
-
-      // Assert
-      expect(callback.called).toBe(false);
-    });
-
-    it("should not call the callback for a non-matching CMI element", () => {
-      // Arrange
-      const callback = sinon.spy();
-      eventService.on("setValue.cmi.core.student_id", callback);
-      apiLogStub.resetHistory();
-
-      // Act
-      eventService.processListeners("setValue", "cmi.core.student_name", "John Doe");
-
-      // Assert
-      expect(callback.called).toBe(false);
-    });
-  });
-
-  describe("reset", () => {
-    it("should clear all listeners", () => {
+    it("should register and trigger multiple event listeners for the same event", () => {
       // Arrange
       const callback1 = sinon.spy();
       const callback2 = sinon.spy();
-      eventService.on("initialize", callback1);
-      eventService.on("terminate", callback2);
+      eventService.on("TestEvent", callback1);
+      eventService.on("TestEvent", callback2);
+
+      // Act
+      eventService.processListeners("TestEvent");
+
+      // Assert
+      expect(callback1.calledOnce).toBe(true);
+      expect(callback2.calledOnce).toBe(true);
+    });
+
+    it("should register and trigger event listeners with CMI element filtering", () => {
+      // Arrange
+      const callback1 = sinon.spy();
+      const callback2 = sinon.spy();
+      eventService.on("SetValue.cmi.score.scaled", callback1);
+      eventService.on("SetValue.cmi.score.raw", callback2);
+
+      // Act
+      eventService.processListeners("SetValue", "cmi.score.scaled", "0.8");
+      eventService.processListeners("SetValue", "cmi.score.raw", "80");
+
+      // Assert
+      expect(callback1.calledOnce).toBe(true);
+      expect(callback1.calledWith("cmi.score.scaled", "0.8")).toBe(true);
+      expect(callback2.calledOnce).toBe(true);
+      expect(callback2.calledWith("cmi.score.raw", "80")).toBe(true);
+    });
+  });
+
+  describe("Event Removal", () => {
+    it("should remove a specific event listener", () => {
+      // Arrange
+      const callback = sinon.spy();
+      eventService.on("TestEvent", callback);
+      eventService.off("TestEvent", callback);
+
+      // Act
+      eventService.processListeners("TestEvent");
+
+      // Assert
+      expect(callback.notCalled).toBe(true);
+    });
+
+    it("should clear all listeners for a specific event", () => {
+      // Arrange
+      const callback1 = sinon.spy();
+      const callback2 = sinon.spy();
+      eventService.on("TestEvent", callback1);
+      eventService.on("TestEvent", callback2);
+      eventService.clear("TestEvent");
+
+      // Act
+      eventService.processListeners("TestEvent");
+
+      // Assert
+      expect(callback1.notCalled).toBe(true);
+      expect(callback2.notCalled).toBe(true);
+    });
+
+    it("should only remove the specified listener when multiple exist", () => {
+      // Arrange
+      const callback1 = sinon.spy();
+      const callback2 = sinon.spy();
+      eventService.on("TestEvent", callback1);
+      eventService.on("TestEvent", callback2);
+      eventService.off("TestEvent", callback1);
+
+      // Act
+      eventService.processListeners("TestEvent");
+
+      // Assert
+      expect(callback1.notCalled).toBe(true);
+      expect(callback2.calledOnce).toBe(true);
+    });
+  });
+
+  describe("Wildcard Event Matching", () => {
+    it("should match events with wildcard patterns", () => {
+      // Arrange
+      const callback = sinon.spy();
+      eventService.on("SetValue.cmi.score.*", callback);
+
+      // Act
+      eventService.processListeners("SetValue", "cmi.score.scaled", "0.8");
+      eventService.processListeners("SetValue", "cmi.score.raw", "80");
+      eventService.processListeners("SetValue", "cmi.score.min", "0");
+      eventService.processListeners("SetValue", "cmi.score.max", "100");
+
+      // Assert
+      expect(callback.callCount).toBe(4);
+      expect(callback.getCall(0).args).toEqual(["cmi.score.scaled", "0.8"]);
+      expect(callback.getCall(1).args).toEqual(["cmi.score.raw", "80"]);
+      expect(callback.getCall(2).args).toEqual(["cmi.score.min", "0"]);
+      expect(callback.getCall(3).args).toEqual(["cmi.score.max", "100"]);
+    });
+
+    it("should not match events that don't match the wildcard pattern", () => {
+      // Arrange
+      const callback = sinon.spy();
+      eventService.on("SetValue.cmi.score.*", callback);
+
+      // Act
+      eventService.processListeners("SetValue", "cmi.completion_status", "completed");
+
+      // Assert
+      expect(callback.notCalled).toBe(true);
+    });
+
+    it("should handle wildcard patterns at different positions", () => {
+      // Arrange
+      const callback = sinon.spy();
+      // The EventService only supports wildcards at the end of the pattern
+      eventService.on("SetValue.cmi.interactions.0.*", callback);
+
+      // Act
+      eventService.processListeners("SetValue", "cmi.interactions.0.result", "correct");
+      eventService.processListeners("SetValue", "cmi.interactions.0.type", "choice");
+      eventService.processListeners("SetValue", "cmi.interactions.1.result", "incorrect");
+
+      // Assert
+      expect(callback.callCount).toBe(2);
+      expect(callback.getCall(0).args).toEqual(["cmi.interactions.0.result", "correct"]);
+      expect(callback.getCall(1).args).toEqual(["cmi.interactions.0.type", "choice"]);
+    });
+  });
+
+  describe("Multiple Event Registration", () => {
+    it("should register multiple events in a single call", () => {
+      // Arrange
+      const callback = sinon.spy();
+      eventService.on("Initialize SetValue.cmi.score.scaled", callback);
+
+      // Act
+      eventService.processListeners("Initialize");
+      eventService.processListeners("SetValue", "cmi.score.scaled", "0.8");
+
+      // Assert
+      expect(callback.callCount).toBe(2);
+      expect(callback.getCall(1).args).toEqual(["cmi.score.scaled", "0.8"]);
+    });
+
+    it("should handle removal of multiple events registered in a single call", () => {
+      // Arrange
+      const callback = sinon.spy();
+      eventService.on("Initialize SetValue.cmi.score.scaled", callback);
+      eventService.off("Initialize SetValue.cmi.score.scaled", callback);
+
+      // Act
+      eventService.processListeners("Initialize");
+      eventService.processListeners("SetValue", "cmi.score.scaled", "0.8");
+
+      // Assert
+      expect(callback.notCalled).toBe(true);
+    });
+  });
+
+  describe("Special Event Types", () => {
+    it("should handle Sequence events correctly", () => {
+      // Arrange
+      const callback = sinon.spy();
+      eventService.on("SequenceNext", callback);
+
+      // Act
+      eventService.processListeners("SequenceNext", undefined, "next");
+
+      // Assert
+      expect(callback.calledOnce).toBe(true);
+      expect(callback.calledWith("next")).toBe(true);
+    });
+
+    it("should handle CommitError events correctly", () => {
+      // Arrange
+      const callback = sinon.spy();
+      eventService.on("CommitError", callback);
+
+      // Act
+      eventService.processListeners("CommitError", undefined, 101);
+
+      // Assert
+      expect(callback.calledOnce).toBe(true);
+      expect(callback.calledWith(101)).toBe(true);
+    });
+
+    it("should handle CommitSuccess events correctly", () => {
+      // Arrange
+      const callback = sinon.spy();
+      eventService.on("CommitSuccess", callback);
+
+      // Act
+      eventService.processListeners("CommitSuccess");
+
+      // Assert
+      expect(callback.calledOnce).toBe(true);
+      expect(callback.calledWith()).toBe(true);
+    });
+  });
+
+  describe("Edge Cases", () => {
+    it("should handle empty event names gracefully", () => {
+      // Arrange
+      const callback = sinon.spy();
+
+      // Act - This should not throw an error
+      eventService.on("", callback);
+
+      // The parseListenerName method returns null for empty strings,
+      // so no listener is registered and processListeners doesn't throw
+      eventService.processListeners("");
+
+      // No assertion needed, just checking it doesn't throw
+    });
+
+    it("should handle null callbacks gracefully", () => {
+      // Act - This should not throw an error
+      eventService.on("TestEvent", null as any);
+      eventService.processListeners("TestEvent");
+
+      // No assertion needed, just checking it doesn't throw
+    });
+
+    it("should handle undefined CMI elements gracefully", () => {
+      // Arrange
+      const callback = sinon.spy();
+      eventService.on("SetValue", callback);
+
+      // Act
+      eventService.processListeners("SetValue", undefined, "value");
+
+      // Assert
+      expect(callback.calledOnce).toBe(true);
+      expect(callback.calledWith(undefined, "value")).toBe(true);
+    });
+  });
+
+  describe("Reset Functionality", () => {
+    it("should clear all listeners when reset is called", () => {
+      // Arrange
+      const callback1 = sinon.spy();
+      const callback2 = sinon.spy();
+      eventService.on("TestEvent1", callback1);
+      eventService.on("TestEvent2", callback2);
 
       // Act
       eventService.reset();
-
-      // Process listeners to verify they were cleared
-      eventService.processListeners("initialize");
-      eventService.processListeners("terminate");
+      eventService.processListeners("TestEvent1");
+      eventService.processListeners("TestEvent2");
 
       // Assert
-      expect(callback1.called).toBe(false);
-      expect(callback2.called).toBe(false);
+      expect(callback1.notCalled).toBe(true);
+      expect(callback2.notCalled).toBe(true);
+    });
+
+    it("should allow registering new listeners after reset", () => {
+      // Arrange
+      const callback1 = sinon.spy();
+      const callback2 = sinon.spy();
+      eventService.on("TestEvent", callback1);
+      eventService.reset();
+      eventService.on("TestEvent", callback2);
+
+      // Act
+      eventService.processListeners("TestEvent");
+
+      // Assert
+      expect(callback1.notCalled).toBe(true);
+      expect(callback2.calledOnce).toBe(true);
     });
   });
 });

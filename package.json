@@ -6,6 +6,52 @@
   "types": "index.d.ts",
   "module": "dist/esm/scorm-again.js",
   "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/scorm-again.js",
+      "require": "./dist/scorm-again.js",
+      "types": "./index.d.ts",
+      "default": "./dist/scorm-again.js"
+    },
+    "./modern": {
+      "import": "./dist/modern/scorm-again.js",
+      "types": "./index.d.ts",
+      "default": "./dist/modern/scorm-again.js"
+    },
+    "./aicc": {
+      "import": "./dist/esm/aicc.js",
+      "require": "./dist/aicc.js",
+      "default": "./dist/aicc.js"
+    },
+    "./aicc/modern": {
+      "import": "./dist/modern/aicc.js",
+      "default": "./dist/modern/aicc.js"
+    },
+    "./scorm12": {
+      "import": "./dist/esm/scorm12.js",
+      "require": "./dist/scorm12.js",
+      "default": "./dist/scorm12.js"
+    },
+    "./scorm12/modern": {
+      "import": "./dist/modern/scorm12.js",
+      "default": "./dist/modern/scorm12.js"
+    },
+    "./scorm2004": {
+      "import": "./dist/esm/scorm2004.js",
+      "require": "./dist/scorm2004.js",
+      "default": "./dist/scorm2004.js"
+    },
+    "./scorm2004/modern": {
+      "import": "./dist/modern/scorm2004.js",
+      "default": "./dist/modern/scorm2004.js"
+    }
+  },
+  "files": [
+    "dist/",
+    "dist/esm/",
+    "dist/modern/",
+    "index.d.ts"
+  ],
   "browser": {
     "electron": false
   },
@@ -40,9 +86,11 @@
     "c8-as-nyc": "1.1.11",
     "eslint": "9.24.0",
     "eslint-formatter-junit": "8.40.0",
+    "eslint-plugin-complexity": "1.0.2",
     "eslint-plugin-import": "2.31.0",
     "eslint-plugin-jsdoc": "50.6.9",
     "eslint-webpack-plugin": "5.0.0",
+    "standard-version": "9.5.0",
     "expect": "29.7.0",
     "extract-zip": "2.0.1",
     "fast-check": "4.0.1",
@@ -67,19 +115,38 @@
     "webpack": "5.98.0",
     "webpack-cli": "6.0.1"
   },
+  "engines": {
+    "node": ">=16.0.0",
+    "yarn": ">=1.22.0"
+  },
+  "sideEffects": false,
   "scripts": {
-    "test": "./node_modules/.bin/mocha --import=tsx --bdd --recursive --reporter list",
-    "test:min": "./node_modules/.bin/mocha --import=tsx --bdd --recursive --reporter min --timeout 10000",
-    "test:all": "./node_modules/.bin/mocha --import=tsx --bdd --recursive --reporter list --config .mocharc.all.json",
-    "test:coverage": "./node_modules/.bin/c8 ./node_modules/.bin/mocha --import=tsx --recursive --timeout=10000 --exit --reporter json --reporter-option output=test-results.json",
-    "test:coverage:all": "./node_modules/.bin/c8 ./node_modules/.bin/mocha --import=tsx --recursive --timeout=10000 --exit --reporter json --reporter-option output=test-results.json --config .mocharc.all.json",
+    "test": "mocha --import=tsx --bdd --recursive --reporter list",
+    "test:min": "mocha --import=tsx --bdd --recursive --reporter min --timeout 10000",
+    "test:all": "mocha --import=tsx --bdd --recursive --reporter list --config .mocharc.all.json",
+    "test:coverage": "c8 mocha --import=tsx --recursive --timeout=10000 --exit --reporter json --reporter-option output=test-results.json",
+    "test:coverage:all": "c8 mocha --import=tsx --recursive --timeout=10000 --exit --reporter json --reporter-option output=test-results.json --config .mocharc.all.json",
     "test:integration:setup": "tsx test/integration/setup.ts",
     "test:integration:server": "tsx test/integration/server.ts",
     "test:integration": "yarn compile && npx playwright test",
-    "test:integration:ci": "yarn compile && npx playwright test --reporter=list",
-    "compile": "./node_modules/.bin/webpack --bail --config webpack.config.js --mode production",
-    "fix": "./node_modules/.bin/eslint ./src --fix",
-    "prettier": "./node_modules/.bin/prettier --write src/**/*.ts test/**/*.ts src/*.ts test/*.ts"
+    "test:integration:ci": "yarn compile && yarn compile:modern && npx playwright test --reporter=list",
+    "test:performance": "tsx test/performance/benchmark.ts",
+    "compile": "webpack --bail --config webpack.config.js --mode production",
+    "compile:dev": "webpack --bail --config webpack.config.js --mode development --watch",
+    "compile:modern": "webpack --bail --config webpack.config.js --mode production --env modern=true",
+    "fix": "eslint ./src --fix",
+    "prettier": "prettier --write src/**/*.ts test/**/*.ts src/*.ts test/*.ts",
+    "lint": "eslint ./src && prettier --check src/**/*.ts test/**/*.ts src/*.ts test/*.ts",
+    "lint:fix": "yarn fix && yarn prettier",
+    "dev": "yarn compile:dev",
+    "build": "yarn compile && yarn compile:modern",
+    "test:all:coverage": "yarn test:coverage:all && yarn test:integration:ci",
+    "postinstall": "mkdir -p node_modules/nyc/bin && echo \"require('../../c8/bin/c8.js')\" > node_modules/nyc/bin/nyc.js",
+    "release:prepare": "standard-version --no-verify",
+    "release:alpha": "standard-version --prerelease alpha --no-verify",
+    "release:beta": "standard-version --prerelease beta --no-verify",
+    "release:publish": "git push --follow-tags origin master && npm publish",
+    "release": "yarn test:min && yarn test:integration:ci && yarn release:prepare && yarn compile && yarn compile:modern && yarn release:publish"
   },
   "repository": {
     "type": "git",
@@ -96,8 +163,6 @@
     "url": "https://github.com/jcputney/scorm-again/issues"
   },
   "homepage": "https://github.com/jcputney/scorm-again",
-  "dependencies": {},
-  "postinstall": "mkdir -p node_modules/nyc/bin && echo \"require('../../c8/bin/c8.js')\" > node_modules/nyc/bin/nyc.js",
   "c8": {
     "extends": "@istanbuljs/nyc-config-typescript",
     "check-coverage": true,
