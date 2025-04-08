@@ -86,7 +86,6 @@
     "c8-as-nyc": "1.1.11",
     "eslint": "9.24.0",
     "eslint-formatter-junit": "8.40.0",
-    "eslint-plugin-complexity": "1.0.2",
     "eslint-plugin-import": "2.31.0",
     "eslint-plugin-jsdoc": "50.6.9",
     "eslint-webpack-plugin": "5.0.0",
