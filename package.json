@@ -93,7 +93,7 @@
     "standard-version": "9.5.0",
     "expect": "29.7.0",
     "extract-zip": "2.0.1",
-    "fast-check": "4.0.1",
+    "fast-check": "4.1.0",
     "fetch-pretender": "https://github.com/jcputney/fetch-pretender#master",
     "globals": "16.0.0",
     "http-server": "14.1.1",
