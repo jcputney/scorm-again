@@ -77,7 +77,7 @@ export class ErrorHandlingService implements IErrorHandlingService {
     }
 
     // Format a more descriptive error message with context
-    const formattedMessage = `SCORM Error ${errorNumber}: ${message}${CMIElement ? ` [Element: ${CMIElement}]` : ''}`;
+    const formattedMessage = `SCORM Error ${errorNumber}: ${message}${CMIElement ? ` [Element: ${CMIElement}]` : ""}`;
 
     // Log using both the API log and the logging service for consistency
     this._apiLog("throwSCORMError", errorNumber + ": " + message, LogLevelEnum.ERROR, CMIElement);
@@ -156,7 +156,7 @@ export class ErrorHandlingService implements IErrorHandlingService {
       // For standard JS errors, include the stack trace and error type
       const errorType = e.constructor.name; // Gets the error type (e.g., TypeError, ReferenceError)
       const errorMessage = `${errorType}: ${e.message} [Element: ${CMIElement}]`;
-      const stackTrace = e.stack || '';
+      const stackTrace = e.stack || "";
 
       // Keep direct console.error call for backward compatibility with tests
       console.error(e.message);
@@ -180,7 +180,7 @@ export class ErrorHandlingService implements IErrorHandlingService {
         this._loggingService.error(`Error details: ${errorDetails}`);
       } catch (jsonError) {
         // If stringify fails, log that we couldn't get more details
-        this._loggingService.error('Could not stringify error object for details');
+        this._loggingService.error("Could not stringify error object for details");
       }
 
       this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, "Unknown error");
