@@ -680,6 +680,19 @@ maintainability:
 The project follows object-oriented principles with TypeScript, emphasizing type safety and clear
 interfaces between components.
 
+### Bundle Size Optimization
+
+scorm-again is optimized for minimal bundle size while maintaining compatibility with both legacy and modern browsers:
+
+- **Code Splitting**: Common code is extracted into shared chunks to reduce duplication
+- **Tree Shaking**: Unused code is eliminated from the final bundles
+- **Minification**: All production builds are minified to reduce size
+- **ES Module Support**: ES modules enable better tree shaking by modern bundlers
+- **Separate Entry Points**: Import only what you need with granular entry points
+- **Modern Builds**: ES2015+ builds for modern browsers with smaller footprint
+
+These optimizations result in significantly smaller bundle sizes, especially when importing only the specific standard you need.
+
 ## Compatibility
 
 scorm-again is compatible with:
@@ -704,6 +717,24 @@ For optimal performance:
 
 - Use the specific API version you need (aicc.js, scorm12.js, or scorm2004.js) instead of the full
   library
+- Use the minified versions of the bundles (*.min.js) for production environments
+- Import only the specific standard you need to reduce bundle size:
+  ```javascript
+  // Instead of importing the full library
+  import { Scorm12API } from 'scorm-again';
+
+  // Import only the specific standard you need
+  import { Scorm12API } from 'scorm-again/scorm12';
+
+  // Or use the minified version for even smaller bundle size
+  import { Scorm12API } from 'scorm-again/scorm12/min';
+  ```
+- For modern browsers, use the ES2015 builds which are smaller and more efficient:
+  ```javascript
+  import { Scorm12API } from 'scorm-again/scorm12/modern';
+  // Or minified
+  import { Scorm12API } from 'scorm-again/scorm12/modern/min';
+  ```
 - Consider setting `autocommit` to `true` with a reasonable `autocommitSeconds` value to balance
   network traffic
 - Large datasets should be compressed before storing in `suspend_data`

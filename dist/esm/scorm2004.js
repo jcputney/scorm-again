@@ -1895,71 +1895,6 @@ var SerializationService = (function () {
 
 // EXTERNAL MODULE: ./src/exceptions.ts
 var exceptions = __webpack_require__(519);
-;// ./src/services/ErrorHandlingService.ts
-
-
-
-var ErrorHandlingService = (function () {
-    function ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails) {
-        this._lastErrorCode = "0";
-        this._errorCodes = errorCodes;
-        this._apiLog = apiLog;
-        this._getLmsErrorMessageDetails = getLmsErrorMessageDetails;
-    }
-    Object.defineProperty(ErrorHandlingService.prototype, "lastErrorCode", {
-        get: function () {
-            return this._lastErrorCode;
-        },
-        set: function (errorCode) {
-            this._lastErrorCode = errorCode;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    ErrorHandlingService.prototype.throwSCORMError = function (CMIElement, errorNumber, message) {
-        if (!message) {
-            message = this._getLmsErrorMessageDetails(errorNumber, true);
-        }
-        this._apiLog("throwSCORMError", errorNumber + ": " + message, enums/* LogLevelEnum */.Mb.ERROR, CMIElement);
-        this._lastErrorCode = String(errorNumber);
-    };
-    ErrorHandlingService.prototype.clearSCORMError = function (success) {
-        if (success !== undefined && success !== api_constants/* global_constants */._y.SCORM_FALSE) {
-            this._lastErrorCode = "0";
-        }
-    };
-    ErrorHandlingService.prototype.handleValueAccessException = function (CMIElement, e, returnValue) {
-        if (e instanceof exceptions/* ValidationError */.y) {
-            var validationError = e;
-            this._lastErrorCode = String(validationError.errorCode);
-            returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-        }
-        else {
-            if (e instanceof Error && e.message) {
-                console.error(e.message);
-                this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, e.message);
-            }
-            else {
-                console.error(e);
-                this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, "Unknown error");
-            }
-        }
-        return returnValue;
-    };
-    Object.defineProperty(ErrorHandlingService.prototype, "errorCodes", {
-        get: function () {
-            return this._errorCodes;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    return ErrorHandlingService;
-}());
-
-function createErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails) {
-    return new ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails);
-}
-
 ;// ./src/services/LoggingService.ts
 
 
@@ -2035,6 +1970,88 @@ var LoggingService = (function () {
 
 function getLoggingService() {
     return LoggingService.getInstance();
+}
+
+;// ./src/services/ErrorHandlingService.ts
+
+
+
+
+var ErrorHandlingService = (function () {
+    function ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService) {
+        this._lastErrorCode = "0";
+        this._errorCodes = errorCodes;
+        this._apiLog = apiLog;
+        this._getLmsErrorMessageDetails = getLmsErrorMessageDetails;
+        this._loggingService = loggingService || getLoggingService();
+    }
+    Object.defineProperty(ErrorHandlingService.prototype, "lastErrorCode", {
+        get: function () {
+            return this._lastErrorCode;
+        },
+        set: function (errorCode) {
+            this._lastErrorCode = errorCode;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    ErrorHandlingService.prototype.throwSCORMError = function (CMIElement, errorNumber, message) {
+        if (!message) {
+            message = this._getLmsErrorMessageDetails(errorNumber, true);
+        }
+        var formattedMessage = "SCORM Error ".concat(errorNumber, ": ").concat(message).concat(CMIElement ? " [Element: ".concat(CMIElement, "]") : '');
+        this._apiLog("throwSCORMError", errorNumber + ": " + message, enums/* LogLevelEnum */.Mb.ERROR, CMIElement);
+        this._loggingService.error(formattedMessage);
+        this._lastErrorCode = String(errorNumber);
+    };
+    ErrorHandlingService.prototype.clearSCORMError = function (success) {
+        if (success !== undefined && success !== api_constants/* global_constants */._y.SCORM_FALSE) {
+            this._lastErrorCode = "0";
+        }
+    };
+    ErrorHandlingService.prototype.handleValueAccessException = function (CMIElement, e, returnValue) {
+        if (e instanceof exceptions/* ValidationError */.y) {
+            var validationError = e;
+            this._lastErrorCode = String(validationError.errorCode);
+            var errorMessage = "Validation Error ".concat(validationError.errorCode, ": ").concat(validationError.message, " [Element: ").concat(CMIElement, "]");
+            this._loggingService.warn(errorMessage);
+            returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
+        }
+        else if (e instanceof Error) {
+            var errorType = e.constructor.name;
+            var errorMessage = "".concat(errorType, ": ").concat(e.message, " [Element: ").concat(CMIElement, "]");
+            var stackTrace = e.stack || '';
+            console.error(e.message);
+            this._loggingService.error("".concat(errorMessage, "\n").concat(stackTrace));
+            this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, "".concat(errorType, ": ").concat(e.message));
+        }
+        else {
+            var errorMessage = "Unknown error occurred while accessing [Element: ".concat(CMIElement, "]");
+            console.error(e);
+            this._loggingService.error(errorMessage);
+            try {
+                var errorDetails = JSON.stringify(e);
+                this._loggingService.error("Error details: ".concat(errorDetails));
+            }
+            catch (jsonError) {
+                this._loggingService.error('Could not stringify error object for details');
+            }
+            this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, "Unknown error");
+        }
+        return returnValue;
+    };
+    Object.defineProperty(ErrorHandlingService.prototype, "errorCodes", {
+        get: function () {
+            return this._errorCodes;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    return ErrorHandlingService;
+}());
+
+function createErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService) {
+    return new ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService);
 }
 
 // EXTERNAL MODULE: ./src/cmi/common/array.ts
@@ -7496,5 +7513,3 @@ var Scorm2004Impl = (function (_super) {
 
 var __webpack_exports__Scorm2004API = __webpack_exports__.V
 export { __webpack_exports__Scorm2004API as Scorm2004API };
-
-//# sourceMappingURL=scorm2004.js.map

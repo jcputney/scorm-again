@@ -18,25 +18,23 @@ export default (env, argv) => {
   const isProduction = argv.mode === "production";
 
   // Configure source maps based on mode
-  const devtool = isProduction ? "source-map" : "eval-source-map";
+  const devtool = isProduction ? false : "eval-source-map";
 
-  // Define entry points
-  const entries = {
+  // Define entry points for regular files
+  const regularEntries = {
     aicc: "./src/AICC.ts",
     scorm12: "./src/Scorm12API.ts",
     scorm2004: "./src/Scorm2004API.ts",
     "scorm-again": "./src/ScormAgain.ts",
   };
 
-  // In production, add minified versions
-  if (isProduction) {
-    Object.assign(entries, {
-      "aicc.min": "./src/AICC.ts",
-      "scorm12.min": "./src/Scorm12API.ts",
-      "scorm2004.min": "./src/Scorm2004API.ts",
-      "scorm-again.min": "./src/ScormAgain.ts",
-    });
-  }
+  // Define entry points for minified files (only in production)
+  const minEntries = isProduction ? {
+    "aicc.min": "./src/AICC.ts",
+    "scorm12.min": "./src/Scorm12API.ts",
+    "scorm2004.min": "./src/Scorm2004API.ts",
+    "scorm-again.min": "./src/ScormAgain.ts",
+  } : {};
 
   // TypeScript loader configuration
   const TSLoader = {
@@ -49,24 +47,36 @@ export default (env, argv) => {
         transpileOnly: !isProduction,
       },
     },
+    sideEffects: false,
   };
 
-  // Define optimization settings
-  const optimization = {
+  // Define base optimization settings
+  const baseOptimization = {
     // Enable tree shaking to eliminate unused code
     usedExports: true,
     // Enable module concatenation for better tree shaking
     concatenateModules: true,
-    // Only minimize in production
+    // Disable code splitting for integration tests
+    splitChunks: false,
+  };
+
+  // Optimization settings for regular files (no minification)
+  const regularOptimization = {
+    ...baseOptimization,
+    minimize: false,
+  };
+
+  // Optimization settings for minified files
+  const minOptimization = {
+    ...baseOptimization,
     minimize: isProduction,
   };
 
-  // Add minimizer in production mode
+  // Add minimizer for minified files in production mode
   if (isProduction) {
-    optimization.minimizer = [
+    minOptimization.minimizer = [
       new TerserPlugin({
         parallel: true,
-        include: /\.min\.js$/,
         terserOptions: {
           output: {
             comments: false,
@@ -81,16 +91,17 @@ export default (env, argv) => {
             unsafe_methods: true,
             unsafe_proto: true,
           },
+          mangle: true,
         },
+        extractComments: false,
       }),
     ];
   }
 
-  // Common configuration for all builds
-  const commonConfig = {
+  // Base configuration for all builds
+  const baseConfig = {
     mode: isProduction ? "production" : "development",
     devtool,
-    entry: entries,
     module: {
       rules: [TSLoader],
     },
@@ -101,7 +112,6 @@ export default (env, argv) => {
       "window.API": "API",
       "window.API_1484_11": "API_1484_11",
     },
-    optimization,
     resolve: {
       extensions: [".ts", ".js"],
     },
@@ -119,12 +129,23 @@ export default (env, argv) => {
     ],
   };
 
-  // ES5 CommonJS configuration
-  const cjsConfig = {
-    ...commonConfig,
-    name: "cjs",
-    target: ["web", "es5"],
-    output: {
+  // Configuration for regular (non-minified) files
+  const regularConfig = {
+    ...baseConfig,
+    entry: regularEntries,
+    optimization: regularOptimization,
+  };
+
+  // Configuration for minified files
+  const minConfig = {
+    ...baseConfig,
+    entry: minEntries,
+    optimization: minOptimization,
+  };
+
+  // Create output configurations
+  const outputConfigs = {
+    cjs: {
       path: path.resolve(__dirname, "dist"),
       filename: "[name].js",
       library: {
@@ -134,14 +155,7 @@ export default (env, argv) => {
         arrowFunction: false,
       },
     },
-  };
-
-  // ES5 ESM configuration
-  const esmConfig = {
-    ...commonConfig,
-    name: "esm",
-    target: ["web", "es5"],
-    output: {
+    esm: {
       path: path.resolve(__dirname, "dist/esm"),
       filename: "[name].js",
       library: {
@@ -151,34 +165,80 @@ export default (env, argv) => {
         arrowFunction: false,
       },
     },
-    experiments: {
-      outputModule: true,
-    },
-  };
-
-  // Modern build configuration (ES2015+)
-  const modernConfig = {
-    ...commonConfig,
-    name: "modern",
-    target: ["web", "es2015"],
-    output: {
+    modern: {
       path: path.resolve(__dirname, "dist/modern"),
       filename: "[name].js",
       library: {
-        type: "module",
+        type: "window",
       },
       environment: {
         arrowFunction: true,
       },
     },
+  };
+
+  // Create configurations for regular files
+  const cjsRegularConfig = {
+    ...regularConfig,
+    name: "cjs-regular",
+    target: ["web", "es5"],
+    output: outputConfigs.cjs,
+  };
+
+  const esmRegularConfig = {
+    ...regularConfig,
+    name: "esm-regular",
+    target: ["web", "es5"],
+    output: outputConfigs.esm,
     experiments: {
       outputModule: true,
     },
   };
 
-  // Return all configurations
-  // In development, only build the CJS and ESM versions to speed up builds
-  return isProduction
-    ? [cjsConfig, esmConfig, modernConfig]
-    : [cjsConfig, esmConfig];
+  const modernRegularConfig = {
+    ...regularConfig,
+    name: "modern-regular",
+    target: ["web", "es2015"],
+    output: outputConfigs.modern,
+  };
+
+  // Create configurations for minified files (only in production)
+  const cjsMinConfig = {
+    ...minConfig,
+    name: "cjs-min",
+    target: ["web", "es5"],
+    output: outputConfigs.cjs,
+  };
+
+  const esmMinConfig = {
+    ...minConfig,
+    name: "esm-min",
+    target: ["web", "es5"],
+    output: outputConfigs.esm,
+    experiments: {
+      outputModule: true,
+    },
+  };
+
+  const modernMinConfig = {
+    ...minConfig,
+    name: "modern-min",
+    target: ["web", "es2015"],
+    output: outputConfigs.modern,
+  };
+
+  // Combine configurations
+  const configs = [cjsRegularConfig, esmRegularConfig];
+
+  if (isProduction) {
+    // Add modern build in production
+    configs.push(modernRegularConfig);
+
+    // Add minified builds in production
+    if (Object.keys(minEntries).length > 0) {
+      configs.push(cjsMinConfig, esmMinConfig, modernMinConfig);
+    }
+  }
+
+  return configs;
 };

@@ -27,6 +27,15 @@
       "import": "./dist/modern/aicc.js",
       "default": "./dist/modern/aicc.js"
     },
+    "./aicc/min": {
+      "import": "./dist/esm/aicc.min.js",
+      "require": "./dist/aicc.min.js",
+      "default": "./dist/aicc.min.js"
+    },
+    "./aicc/modern/min": {
+      "import": "./dist/modern/aicc.min.js",
+      "default": "./dist/modern/aicc.min.js"
+    },
     "./scorm12": {
       "import": "./dist/esm/scorm12.js",
       "require": "./dist/scorm12.js",
@@ -36,6 +45,15 @@
       "import": "./dist/modern/scorm12.js",
       "default": "./dist/modern/scorm12.js"
     },
+    "./scorm12/min": {
+      "import": "./dist/esm/scorm12.min.js",
+      "require": "./dist/scorm12.min.js",
+      "default": "./dist/scorm12.min.js"
+    },
+    "./scorm12/modern/min": {
+      "import": "./dist/modern/scorm12.min.js",
+      "default": "./dist/modern/scorm12.min.js"
+    },
     "./scorm2004": {
       "import": "./dist/esm/scorm2004.js",
       "require": "./dist/scorm2004.js",
@@ -44,6 +62,24 @@
     "./scorm2004/modern": {
       "import": "./dist/modern/scorm2004.js",
       "default": "./dist/modern/scorm2004.js"
+    },
+    "./scorm2004/min": {
+      "import": "./dist/esm/scorm2004.min.js",
+      "require": "./dist/scorm2004.min.js",
+      "default": "./dist/scorm2004.min.js"
+    },
+    "./scorm2004/modern/min": {
+      "import": "./dist/modern/scorm2004.min.js",
+      "default": "./dist/modern/scorm2004.min.js"
+    },
+    "./min": {
+      "import": "./dist/esm/scorm-again.min.js",
+      "require": "./dist/scorm-again.min.js",
+      "default": "./dist/scorm-again.min.js"
+    },
+    "./modern/min": {
+      "import": "./dist/modern/scorm-again.min.js",
+      "default": "./dist/modern/scorm-again.min.js"
     }
   },
   "files": [
