@@ -1,18 +1,206 @@
-/******/ (function() { // webpackBootstrap
-/******/ 	"use strict";
-/******/ 	var __webpack_modules__ = ({
+(function (exports) {
+  'use strict';
 
-/***/ 12:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+  const global_constants = {
+    SCORM_TRUE: "true",
+    SCORM_FALSE: "false",
+    STATE_NOT_INITIALIZED: 0,
+    STATE_INITIALIZED: 1,
+    STATE_TERMINATED: 2
+  };
+  const scorm12_constants = {
+    // Children lists
+    cmi_children: "core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions",
+    core_children: "student_id,student_name,lesson_location,credit,lesson_status,entry,score,total_time,lesson_mode,exit,session_time",
+    score_children: "raw,min,max",
+    comments_children: "content,location,time",
+    objectives_children: "id,score,status",
+    correct_responses_children: "pattern",
+    student_data_children: "mastery_score,max_time_allowed,time_limit_action",
+    student_preference_children: "audio,language,speed,text",
+    interactions_children: "id,objectives,time,type,correct_responses,weighting,student_response,result,latency",
+    error_descriptions: {
+      "101": {
+        basicMessage: "General Exception",
+        detailMessage: "No specific error code exists to describe the error. Use LMSGetDiagnostic for more information"
+      },
+      "201": {
+        basicMessage: "Invalid argument error",
+        detailMessage: "Indicates that an argument represents an invalid data model element or is otherwise incorrect."
+      },
+      "202": {
+        basicMessage: "Element cannot have children",
+        detailMessage: 'Indicates that LMSGetValue was called with a data model element name that ends in "_children" for a data model element that does not support the "_children" suffix.'
+      },
+      "203": {
+        basicMessage: "Element not an array - cannot have count",
+        detailMessage: 'Indicates that LMSGetValue was called with a data model element name that ends in "_count" for a data model element that does not support the "_count" suffix.'
+      },
+      "301": {
+        basicMessage: "Not initialized",
+        detailMessage: "Indicates that an API call was made before the call to lmsInitialize."
+      },
+      "401": {
+        basicMessage: "Not implemented error",
+        detailMessage: "The data model element indicated in a call to LMSGetValue or LMSSetValue is valid, but was not implemented by this LMS. SCORM 1.2 defines a set of data model elements as being optional for an LMS to implement."
+      },
+      "402": {
+        basicMessage: "Invalid set value, element is a keyword",
+        detailMessage: 'Indicates that LMSSetValue was called on a data model element that represents a keyword (elements that end in "_children" and "_count").'
+      },
+      "403": {
+        basicMessage: "Element is read only",
+        detailMessage: "LMSSetValue was called with a data model element that can only be read."
+      },
+      "404": {
+        basicMessage: "Element is write only",
+        detailMessage: "LMSGetValue was called on a data model element that can only be written to."
+      },
+      "405": {
+        basicMessage: "Incorrect Data Type",
+        detailMessage: "LMSSetValue was called with a value that is not consistent with the data format of the supplied data model element."
+      },
+      "407": {
+        basicMessage: "Element Value Out Of Range",
+        detailMessage: "The numeric value supplied to a LMSSetValue call is outside of the numeric range allowed for the supplied data model element."
+      },
+      "408": {
+        basicMessage: "Data Model Dependency Not Established",
+        detailMessage: "Some data model elements cannot be set until another data model element was set. This error condition indicates that the prerequisite element was not set before the dependent element."
+      }
+    }
+  };
+  const aicc_constants = {
+    ...scorm12_constants,
+    ...{
+      cmi_children: "core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions,evaluation",
+      student_preference_children: "audio,language,lesson_type,speed,text,text_color,text_location,text_size,video,windows",
+      student_data_children: "attempt_number,tries,mastery_score,max_time_allowed,time_limit_action",
+      student_demographics_children: "city,class,company,country,experience,familiar_name,instructor_name,title,native_language,state,street_address,telephone,years_experience",
+      tries_children: "time,status,score",
+      attempt_records_children: "score,lesson_status",
+      paths_children: "location_id,date,time,status,why_left,time_in_element"
+    }
+  };
+  const scorm2004_constants = {
+    // Children lists
+    cmi_children: "_version,comments_from_learner,comments_from_lms,completion_status,credit,entry,exit,interactions,launch_data,learner_id,learner_name,learner_preference,location,max_time_allowed,mode,objectives,progress_measure,scaled_passing_score,score,session_time,success_status,suspend_data,time_limit_action,total_time",
+    comments_children: "comment,timestamp,location",
+    score_children: "max,raw,scaled,min",
+    objectives_children: "progress_measure,completion_status,success_status,description,score,id",
+    correct_responses_children: "pattern",
+    student_preference_children: "audio_level,audio_captioning,delivery_speed,language",
+    interactions_children: "id,type,objectives,timestamp,correct_responses,weighting,learner_response,result,latency,description",
+    adl_data_children: "id,store",
+    error_descriptions: {
+      "0": {
+        basicMessage: "No Error",
+        detailMessage: "No error occurred, the previous API call was successful."
+      },
+      "101": {
+        basicMessage: "General Exception",
+        detailMessage: "No specific error code exists to describe the error. Use GetDiagnostic for more information."
+      },
+      "102": {
+        basicMessage: "General Initialization Failure",
+        detailMessage: "Call to Initialize failed for an unknown reason."
+      },
+      "103": {
+        basicMessage: "Already Initialized",
+        detailMessage: "Call to Initialize failed because Initialize was already called."
+      },
+      "104": {
+        basicMessage: "Content Instance Terminated",
+        detailMessage: "Call to Initialize failed because Terminate was already called."
+      },
+      "111": {
+        basicMessage: "General Termination Failure",
+        detailMessage: "Call to Terminate failed for an unknown reason."
+      },
+      "112": {
+        basicMessage: "Termination Before Initialization",
+        detailMessage: "Call to Terminate failed because it was made before the call to Initialize."
+      },
+      "113": {
+        basicMessage: "Termination After Termination",
+        detailMessage: "Call to Terminate failed because Terminate was already called."
+      },
+      "122": {
+        basicMessage: "Retrieve Data Before Initialization",
+        detailMessage: "Call to GetValue failed because it was made before the call to Initialize."
+      },
+      "123": {
+        basicMessage: "Retrieve Data After Termination",
+        detailMessage: "Call to GetValue failed because it was made after the call to Terminate."
+      },
+      "132": {
+        basicMessage: "Store Data Before Initialization",
+        detailMessage: "Call to SetValue failed because it was made before the call to Initialize."
+      },
+      "133": {
+        basicMessage: "Store Data After Termination",
+        detailMessage: "Call to SetValue failed because it was made after the call to Terminate."
+      },
+      "142": {
+        basicMessage: "Commit Before Initialization",
+        detailMessage: "Call to Commit failed because it was made before the call to Initialize."
+      },
+      "143": {
+        basicMessage: "Commit After Termination",
+        detailMessage: "Call to Commit failed because it was made after the call to Terminate."
+      },
+      "201": {
+        basicMessage: "General Argument Error",
+        detailMessage: "An invalid argument was passed to an API method (usually indicates that Initialize, Commit or Terminate did not receive the expected empty string argument."
+      },
+      "301": {
+        basicMessage: "General Get Failure",
+        detailMessage: "Indicates a failed GetValue call where no other specific error code is applicable. Use GetDiagnostic for more information."
+      },
+      "351": {
+        basicMessage: "General Set Failure",
+        detailMessage: "Indicates a failed SetValue call where no other specific error code is applicable. Use GetDiagnostic for more information."
+      },
+      "391": {
+        basicMessage: "General Commit Failure",
+        detailMessage: "Indicates a failed Commit call where no other specific error code is applicable. Use GetDiagnostic for more information."
+      },
+      "401": {
+        basicMessage: "Undefined Data Model Element",
+        detailMessage: "The data model element name passed to GetValue or SetValue is not a valid SCORM data model element."
+      },
+      "402": {
+        basicMessage: "Unimplemented Data Model Element",
+        detailMessage: "The data model element indicated in a call to GetValue or SetValue is valid, but was not implemented by this LMS. In SCORM 2004, this error would indicate an LMS that is not fully SCORM conformant."
+      },
+      "403": {
+        basicMessage: "Data Model Element Value Not Initialized",
+        detailMessage: "Attempt to read a data model element that has not been initialized by the LMS or through a SetValue call. This error condition is often reached during normal execution of a SCO."
+      },
+      "404": {
+        basicMessage: "Data Model Element Is Read Only",
+        detailMessage: "SetValue was called with a data model element that can only be read."
+      },
+      "405": {
+        basicMessage: "Data Model Element Is Write Only",
+        detailMessage: "GetValue was called on a data model element that can only be written to."
+      },
+      "406": {
+        basicMessage: "Data Model Element Type Mismatch",
+        detailMessage: "SetValue was called with a value that is not consistent with the data format of the supplied data model element."
+      },
+      "407": {
+        basicMessage: "Data Model Element Value Out Of Range",
+        detailMessage: "The numeric value supplied to a SetValue call is outside of the numeric range allowed for the supplied data model element."
+      },
+      "408": {
+        basicMessage: "Data Model Dependency Not Established",
+        detailMessage: "Some data model elements cannot be set until another data model element was set. This error condition indicates that the prerequisite element was not set before the dependent element."
+      }
+    }
+  };
 
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Rf: function() { return /* binding */ scorm2004_errors; },
-/* harmony export */   Se: function() { return /* binding */ scorm12_errors; }
-/* harmony export */ });
-/* unused harmony export global_errors */
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-
-var global_errors = {
+  const global_errors = {
     GENERAL: 101,
     INITIALIZATION_FAILED: 101,
     INITIALIZED: 101,
@@ -40,435 +228,55 @@ var global_errors = {
     WRITE_ONLY_ELEMENT: 101,
     TYPE_MISMATCH: 101,
     VALUE_OUT_OF_RANGE: 101,
-    DEPENDENCY_NOT_ESTABLISHED: 101,
-};
-var scorm12_errors = (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)((0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)({}, global_errors), { RETRIEVE_BEFORE_INIT: 301, STORE_BEFORE_INIT: 301, COMMIT_BEFORE_INIT: 301, ARGUMENT_ERROR: 201, CHILDREN_ERROR: 202, COUNT_ERROR: 203, UNDEFINED_DATA_MODEL: 401, UNIMPLEMENTED_ELEMENT: 401, VALUE_NOT_INITIALIZED: 301, INVALID_SET_VALUE: 402, READ_ONLY_ELEMENT: 403, WRITE_ONLY_ELEMENT: 404, TYPE_MISMATCH: 405, VALUE_OUT_OF_RANGE: 407, DEPENDENCY_NOT_ESTABLISHED: 408 });
-var scorm2004_errors = (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)((0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)({}, global_errors), { INITIALIZATION_FAILED: 102, INITIALIZED: 103, TERMINATED: 104, TERMINATION_FAILURE: 111, TERMINATION_BEFORE_INIT: 112, MULTIPLE_TERMINATIONS: 113, RETRIEVE_BEFORE_INIT: 122, RETRIEVE_AFTER_TERM: 123, STORE_BEFORE_INIT: 132, STORE_AFTER_TERM: 133, COMMIT_BEFORE_INIT: 142, COMMIT_AFTER_TERM: 143, ARGUMENT_ERROR: 201, GENERAL_GET_FAILURE: 301, GENERAL_SET_FAILURE: 351, GENERAL_COMMIT_FAILURE: 391, UNDEFINED_DATA_MODEL: 401, UNIMPLEMENTED_ELEMENT: 402, VALUE_NOT_INITIALIZED: 403, READ_ONLY_ELEMENT: 404, WRITE_ONLY_ELEMENT: 405, TYPE_MISMATCH: 406, VALUE_OUT_OF_RANGE: 407, DEPENDENCY_NOT_ESTABLISHED: 408 });
+    DEPENDENCY_NOT_ESTABLISHED: 101
+  };
+  const scorm12_errors$1 = {
+    ...global_errors,
+    RETRIEVE_BEFORE_INIT: 301,
+    STORE_BEFORE_INIT: 301,
+    COMMIT_BEFORE_INIT: 301,
+    ARGUMENT_ERROR: 201,
+    CHILDREN_ERROR: 202,
+    COUNT_ERROR: 203,
+    UNDEFINED_DATA_MODEL: 401,
+    UNIMPLEMENTED_ELEMENT: 401,
+    VALUE_NOT_INITIALIZED: 301,
+    INVALID_SET_VALUE: 402,
+    READ_ONLY_ELEMENT: 403,
+    WRITE_ONLY_ELEMENT: 404,
+    TYPE_MISMATCH: 405,
+    VALUE_OUT_OF_RANGE: 407,
+    DEPENDENCY_NOT_ESTABLISHED: 408
+  };
+  const scorm2004_errors$1 = {
+    ...global_errors,
+    INITIALIZATION_FAILED: 102,
+    INITIALIZED: 103,
+    TERMINATED: 104,
+    TERMINATION_FAILURE: 111,
+    TERMINATION_BEFORE_INIT: 112,
+    MULTIPLE_TERMINATIONS: 113,
+    RETRIEVE_BEFORE_INIT: 122,
+    RETRIEVE_AFTER_TERM: 123,
+    STORE_BEFORE_INIT: 132,
+    STORE_AFTER_TERM: 133,
+    COMMIT_BEFORE_INIT: 142,
+    COMMIT_AFTER_TERM: 143,
+    ARGUMENT_ERROR: 201,
+    GENERAL_GET_FAILURE: 301,
+    GENERAL_SET_FAILURE: 351,
+    GENERAL_COMMIT_FAILURE: 391,
+    UNDEFINED_DATA_MODEL: 401,
+    UNIMPLEMENTED_ELEMENT: 402,
+    VALUE_NOT_INITIALIZED: 403,
+    READ_ONLY_ELEMENT: 404,
+    WRITE_ONLY_ELEMENT: 405,
+    TYPE_MISMATCH: 406,
+    VALUE_OUT_OF_RANGE: 407,
+    DEPENDENCY_NOT_ESTABLISHED: 408
+  };
 
-
-/***/ }),
-
-/***/ 34:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   G: function() { return /* binding */ CMIStudentPreference; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(166);
-/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(441);
-/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(878);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(12);
-/* harmony import */ var _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(888);
-
-
-
-
-
-
-var CMIStudentPreference = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(CMIStudentPreference, _super);
-    function CMIStudentPreference(student_preference_children) {
-        var _this = _super.call(this, "cmi.student_preference") || this;
-        _this._audio = "";
-        _this._language = "";
-        _this._speed = "";
-        _this._text = "";
-        _this.__children = student_preference_children
-            ? student_preference_children
-            : _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_constants */ .QP.student_preference_children;
-        return _this;
-    }
-    CMIStudentPreference.prototype.reset = function () {
-        this._initialized = false;
-    };
-    Object.defineProperty(CMIStudentPreference.prototype, "_children", {
-        get: function () {
-            return this.__children;
-        },
-        set: function (_children) {
-            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t(this._cmi_element + "._children", _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.INVALID_SET_VALUE);
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentPreference.prototype, "audio", {
-        get: function () {
-            return this._audio;
-        },
-        set: function (audio) {
-            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScorm12Audio(this._cmi_element + ".audio", audio)) {
-                this._audio = audio;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentPreference.prototype, "language", {
-        get: function () {
-            return this._language;
-        },
-        set: function (language) {
-            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScorm12Language(this._cmi_element + ".language", language)) {
-                this._language = language;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentPreference.prototype, "speed", {
-        get: function () {
-            return this._speed;
-        },
-        set: function (speed) {
-            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScorm12Speed(this._cmi_element + ".speed", speed)) {
-                this._speed = speed;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentPreference.prototype, "text", {
-        get: function () {
-            return this._text;
-        },
-        set: function (text) {
-            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScorm12Text(this._cmi_element + ".text", text)) {
-                this._text = text;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIStudentPreference.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            audio: this.audio,
-            language: this.language,
-            speed: this.speed,
-            text: this.text,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMIStudentPreference;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_5__/* .BaseCMI */ .J));
-
-
-
-/***/ }),
-
-/***/ 42:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Scorm12API: function() { return /* binding */ Scorm12Impl; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-/* harmony import */ var _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(368);
-/* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(557);
-/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(441);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(12);
-/* harmony import */ var _cmi_scorm12_objectives__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(531);
-/* harmony import */ var _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(426);
-/* harmony import */ var _cmi_scorm12_nav__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(586);
-/* harmony import */ var _constants_enums__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(573);
-/* harmony import */ var _BaseAPI__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(838);
-/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(64);
-
-
-
-
-
-
-
-
-
-
-
-
-var Scorm12Impl = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(Scorm12Impl, _super);
-    function Scorm12Impl(settings) {
-        var _this = this;
-        if (settings) {
-            if (settings.mastery_override === undefined) {
-                settings.mastery_override = false;
-            }
-        }
-        _this = _super.call(this, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_errors */ .Se, settings) || this;
-        _this.statusSetByModule = false;
-        _this.cmi = new _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_2__/* .CMI */ .Y();
-        _this.nav = new _cmi_scorm12_nav__WEBPACK_IMPORTED_MODULE_3__/* .NAV */ .A();
-        _this.LMSInitialize = _this.lmsInitialize;
-        _this.LMSFinish = _this.lmsFinish;
-        _this.LMSGetValue = _this.lmsGetValue;
-        _this.LMSSetValue = _this.lmsSetValue;
-        _this.LMSCommit = _this.lmsCommit;
-        _this.LMSGetLastError = _this.lmsGetLastError;
-        _this.LMSGetErrorString = _this.lmsGetErrorString;
-        _this.LMSGetDiagnostic = _this.lmsGetDiagnostic;
-        return _this;
-    }
-    Scorm12Impl.prototype.reset = function (settings) {
-        var _a, _b;
-        this.commonReset(settings);
-        (_a = this.cmi) === null || _a === void 0 ? void 0 : _a.reset();
-        (_b = this.nav) === null || _b === void 0 ? void 0 : _b.reset();
-    };
-    Scorm12Impl.prototype.lmsInitialize = function () {
-        this.cmi.initialize();
-        if (this.cmi.core.lesson_status) {
-            this.statusSetByModule = true;
-        }
-        else {
-            this.cmi.core.lesson_status = "not attempted";
-        }
-        return this.initialize("LMSInitialize", "LMS was already initialized!", "LMS is already finished!");
-    };
-    Scorm12Impl.prototype.lmsFinish = function () {
-        var _this = this;
-        (function () { return (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__awaiter */ .sH)(_this, void 0, void 0, function () {
-            return (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__generator */ .YH)(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4, this.internalFinish()];
-                    case 1:
-                        _a.sent();
-                        return [2];
-                }
-            });
-        }); })();
-        return _constants_api_constants__WEBPACK_IMPORTED_MODULE_4__/* .global_constants */ ._y.SCORM_TRUE;
-    };
-    Scorm12Impl.prototype.internalFinish = function () {
-        return (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__awaiter */ .sH)(this, void 0, void 0, function () {
-            var result;
-            return (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__generator */ .YH)(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4, this.terminate("LMSFinish", true)];
-                    case 1:
-                        result = _a.sent();
-                        if (result === _constants_api_constants__WEBPACK_IMPORTED_MODULE_4__/* .global_constants */ ._y.SCORM_TRUE) {
-                            if (this.nav.event !== "") {
-                                if (this.nav.event === "continue") {
-                                    this.processListeners("SequenceNext");
-                                }
-                                else {
-                                    this.processListeners("SequencePrevious");
-                                }
-                            }
-                            else if (this.settings.autoProgress) {
-                                this.processListeners("SequenceNext");
-                            }
-                        }
-                        return [2, result];
-                }
-            });
-        });
-    };
-    Scorm12Impl.prototype.lmsGetValue = function (CMIElement) {
-        return this.getValue("LMSGetValue", false, CMIElement);
-    };
-    Scorm12Impl.prototype.lmsSetValue = function (CMIElement, value) {
-        if (CMIElement === "cmi.core.lesson_status") {
-            this.statusSetByModule = true;
-        }
-        return this.setValue("LMSSetValue", "LMSCommit", false, CMIElement, value);
-    };
-    Scorm12Impl.prototype.lmsCommit = function () {
-        var _this = this;
-        if (this.settings.asyncCommit) {
-            this.scheduleCommit(500, "LMSCommit");
-        }
-        else {
-            (function () { return (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__awaiter */ .sH)(_this, void 0, void 0, function () {
-                return (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__generator */ .YH)(this, function (_a) {
-                    switch (_a.label) {
-                        case 0: return [4, this.commit("LMSCommit", false)];
-                        case 1:
-                            _a.sent();
-                            return [2];
-                    }
-                });
-            }); })();
-        }
-        return _constants_api_constants__WEBPACK_IMPORTED_MODULE_4__/* .global_constants */ ._y.SCORM_TRUE;
-    };
-    Scorm12Impl.prototype.lmsGetLastError = function () {
-        return this.getLastError("LMSGetLastError");
-    };
-    Scorm12Impl.prototype.lmsGetErrorString = function (CMIErrorCode) {
-        return this.getErrorString("LMSGetErrorString", CMIErrorCode);
-    };
-    Scorm12Impl.prototype.lmsGetDiagnostic = function (CMIErrorCode) {
-        return this.getDiagnostic("LMSGetDiagnostic", CMIErrorCode);
-    };
-    Scorm12Impl.prototype.setCMIValue = function (CMIElement, value) {
-        return this._commonSetCMIValue("LMSSetValue", false, CMIElement, value);
-    };
-    Scorm12Impl.prototype.getCMIValue = function (CMIElement) {
-        return this._commonGetCMIValue("getCMIValue", false, CMIElement);
-    };
-    Scorm12Impl.prototype.getChildElement = function (CMIElement, _value, foundFirstIndex) {
-        if ((0,_utilities__WEBPACK_IMPORTED_MODULE_5__/* .stringMatches */ .J6)(CMIElement, "cmi\\.objectives\\.\\d+")) {
-            return new _cmi_scorm12_objectives__WEBPACK_IMPORTED_MODULE_6__/* .CMIObjectivesObject */ .N();
-        }
-        else if (foundFirstIndex &&
-            (0,_utilities__WEBPACK_IMPORTED_MODULE_5__/* .stringMatches */ .J6)(CMIElement, "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+")) {
-            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_7__/* .CMIInteractionsCorrectResponsesObject */ .cb();
-        }
-        else if (foundFirstIndex &&
-            (0,_utilities__WEBPACK_IMPORTED_MODULE_5__/* .stringMatches */ .J6)(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")) {
-            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_7__/* .CMIInteractionsObjectivesObject */ .Oh();
-        }
-        else if (!foundFirstIndex && (0,_utilities__WEBPACK_IMPORTED_MODULE_5__/* .stringMatches */ .J6)(CMIElement, "cmi\\.interactions\\.\\d+")) {
-            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_7__/* .CMIInteractionsObject */ .WP();
-        }
-        return null;
-    };
-    Scorm12Impl.prototype.validateCorrectResponse = function (_CMIElement, _value) {
-    };
-    Scorm12Impl.prototype.getLmsErrorMessageDetails = function (errorNumber, detail) {
-        var basicMessage = "No Error";
-        var detailMessage = "No Error";
-        errorNumber = String(errorNumber);
-        if (_constants_api_constants__WEBPACK_IMPORTED_MODULE_4__/* .scorm12_constants */ .QP.error_descriptions[errorNumber]) {
-            basicMessage = _constants_api_constants__WEBPACK_IMPORTED_MODULE_4__/* .scorm12_constants */ .QP.error_descriptions[errorNumber].basicMessage;
-            detailMessage = _constants_api_constants__WEBPACK_IMPORTED_MODULE_4__/* .scorm12_constants */ .QP.error_descriptions[errorNumber].detailMessage;
-        }
-        return detail ? detailMessage : basicMessage;
-    };
-    Scorm12Impl.prototype.replaceWithAnotherScormAPI = function (newAPI) {
-        this.cmi = newAPI.cmi;
-    };
-    Scorm12Impl.prototype.renderCommitCMI = function (terminateCommit) {
-        var cmiExport = this.renderCMIToJSONObject();
-        if (terminateCommit) {
-            cmiExport.cmi.core.total_time = this.cmi.getCurrentTotalTime();
-        }
-        var result = [];
-        var flattened = _utilities__WEBPACK_IMPORTED_MODULE_5__/* .flatten */ .Bq(cmiExport);
-        switch (this.settings.dataCommitFormat) {
-            case "flattened":
-                return _utilities__WEBPACK_IMPORTED_MODULE_5__/* .flatten */ .Bq(cmiExport);
-            case "params":
-                for (var item in flattened) {
-                    if ({}.hasOwnProperty.call(flattened, item)) {
-                        result.push("".concat(item, "=").concat(flattened[item]));
-                    }
-                }
-                return result;
-            case "json":
-            default:
-                return cmiExport;
-        }
-    };
-    Scorm12Impl.prototype.renderCommitObject = function (terminateCommit) {
-        var cmiExport = this.renderCommitCMI(terminateCommit);
-        var totalTimeHHMMSS = this.cmi.getCurrentTotalTime();
-        var totalTimeSeconds = _utilities__WEBPACK_IMPORTED_MODULE_5__/* .getTimeAsSeconds */ .f4(totalTimeHHMMSS, _constants_regex__WEBPACK_IMPORTED_MODULE_8__/* .scorm12_regex */ .kS.CMITimespan);
-        var lessonStatus = this.cmi.core.lesson_status;
-        var completionStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_9__/* .CompletionStatus */ .lC.UNKNOWN;
-        var successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_9__/* .SuccessStatus */ .YE.UNKNOWN;
-        if (lessonStatus) {
-            completionStatus =
-                lessonStatus === "completed" || lessonStatus === "passed"
-                    ? _constants_enums__WEBPACK_IMPORTED_MODULE_9__/* .CompletionStatus */ .lC.COMPLETED
-                    : _constants_enums__WEBPACK_IMPORTED_MODULE_9__/* .CompletionStatus */ .lC.INCOMPLETE;
-            if (lessonStatus === "passed") {
-                successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_9__/* .SuccessStatus */ .YE.PASSED;
-            }
-            else if (lessonStatus === "failed") {
-                successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_9__/* .SuccessStatus */ .YE.FAILED;
-            }
-        }
-        var score = this.cmi.core.score;
-        var scoreObject = null;
-        if (score) {
-            scoreObject = {};
-            if (!Number.isNaN(Number.parseFloat(score.raw))) {
-                scoreObject.raw = Number.parseFloat(score.raw);
-            }
-            if (!Number.isNaN(Number.parseFloat(score.min))) {
-                scoreObject.min = Number.parseFloat(score.min);
-            }
-            if (!Number.isNaN(Number.parseFloat(score.max))) {
-                scoreObject.max = Number.parseFloat(score.max);
-            }
-        }
-        var commitObject = {
-            successStatus: successStatus,
-            completionStatus: completionStatus,
-            runtimeData: cmiExport,
-            totalTimeSeconds: totalTimeSeconds,
-        };
-        if (scoreObject) {
-            commitObject.score = scoreObject;
-        }
-        return commitObject;
-    };
-    Scorm12Impl.prototype.storeData = function (terminateCommit) {
-        return (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__awaiter */ .sH)(this, void 0, void 0, function () {
-            var originalStatus, commitObject;
-            var _a, _b, _c;
-            return (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__generator */ .YH)(this, function (_d) {
-                switch (_d.label) {
-                    case 0:
-                        if (terminateCommit) {
-                            originalStatus = this.cmi.core.lesson_status;
-                            if (!this.cmi.core.lesson_status ||
-                                (!this.statusSetByModule && this.cmi.core.lesson_status === "not attempted")) {
-                                this.cmi.core.lesson_status = "completed";
-                            }
-                            if (this.cmi.core.lesson_mode === "normal") {
-                                if (this.cmi.core.credit === "credit") {
-                                    if (this.settings.mastery_override &&
-                                        this.cmi.student_data.mastery_score !== "" &&
-                                        this.cmi.core.score.raw !== "") {
-                                        this.cmi.core.lesson_status =
-                                            parseFloat(this.cmi.core.score.raw) >= parseFloat(this.cmi.student_data.mastery_score)
-                                                ? "passed"
-                                                : "failed";
-                                    }
-                                }
-                            }
-                            else if (this.cmi.core.lesson_mode === "browse") {
-                                if ((((_c = (_b = (_a = this.startingData) === null || _a === void 0 ? void 0 : _a.cmi) === null || _b === void 0 ? void 0 : _b.core) === null || _c === void 0 ? void 0 : _c.lesson_status) || "") === "" &&
-                                    originalStatus === "not attempted") {
-                                    this.cmi.core.lesson_status = "browsed";
-                                }
-                            }
-                        }
-                        commitObject = this.getCommitObject(terminateCommit);
-                        if (!(typeof this.settings.lmsCommitUrl === "string")) return [3, 2];
-                        return [4, this.processHttpRequest(this.settings.lmsCommitUrl, commitObject, terminateCommit)];
-                    case 1: return [2, _d.sent()];
-                    case 2: return [2, {
-                            result: _constants_api_constants__WEBPACK_IMPORTED_MODULE_4__/* .global_constants */ ._y.SCORM_TRUE,
-                            errorCode: 0,
-                        }];
-                }
-            });
-        });
-    };
-    return Scorm12Impl;
-}(_BaseAPI__WEBPACK_IMPORTED_MODULE_10__/* ["default"] */ .A));
-
-
-
-/***/ }),
-
-/***/ 64:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   kS: function() { return /* binding */ scorm12_regex; },
-/* harmony export */   rN: function() { return /* binding */ aicc_regex; },
-/* harmony export */   xt: function() { return /* binding */ scorm2004_regex; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-
-var scorm12_regex = {
+  const scorm12_regex = {
     CMIString256: "^.{0,255}$",
     CMIString4096: "^.{0,4096}$",
     CMITime: "^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)$",
@@ -478,24 +286,29 @@ var scorm12_regex = {
     CMIDecimal: "^-?([0-9]{0,3})(.[0-9]*)?$",
     CMIIdentifier: "^[\\u0021-\\u007E\\s]{0,255}$",
     CMIFeedback: "^.{0,255}$",
+    // This must be redefined
     CMIIndex: "[._](\\d+).",
+    // Vocabulary Data Type Definition
     CMIStatus: "^(passed|completed|failed|incomplete|browsed)$",
     CMIStatus2: "^(passed|completed|failed|incomplete|browsed|not attempted)$",
     CMIExit: "^(time-out|suspend|logout|)$",
     CMIType: "^(true-false|choice|fill-in|matching|performance|sequencing|likert|numeric)$",
     CMIResult: "^(correct|wrong|unanticipated|neutral|([0-9]{0,3})?(\\.[0-9]*)?)$",
     NAVEvent: "^(previous|continue)$",
+    // Data ranges
     score_range: "0#100",
     audio_range: "-1#100",
     speed_range: "-100#100",
     weighting_range: "-100#100",
-    text_range: "-1#1",
-};
-var aicc_regex = (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)((0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)({}, scorm12_regex), {
-    CMIIdentifier: "^\\w{1,255}$",
-});
-var scorm2004_regex = {
-    CMIString200: "^[\\u0000-\\uFFFF]{0,200}$",
+    text_range: "-1#1"
+  };
+  const aicc_regex = {
+    ...scorm12_regex,
+    ...{
+      CMIIdentifier: "^\\w{1,255}$"
+    }
+  };
+  const scorm2004_regex = {
     CMIString250: "^[\\u0000-\\uFFFF]{0,250}$",
     CMIString1000: "^[\\u0000-\\uFFFF]{0,1000}$",
     CMIString4000: "^[\\u0000-\\uFFFF]{0,4000}$",
@@ -507,15 +320,13 @@ var scorm2004_regex = {
     CMILangString4000: "^({lang=([a-zA-Z]{2,3}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,4000}$)?$",
     CMITime: "^(19[7-9]{1}[0-9]{1}|20[0-2]{1}[0-9]{1}|203[0-8]{1})((-(0[1-9]{1}|1[0-2]{1}))((-(0[1-9]{1}|[1-2]{1}[0-9]{1}|3[0-1]{1}))(T([0-1]{1}[0-9]{1}|2[0-3]{1})((:[0-5]{1}[0-9]{1})((:[0-5]{1}[0-9]{1})((\\.[0-9]{1,6})((Z|([+|-]([0-1]{1}[0-9]{1}|2[0-3]{1})))(:[0-5]{1}[0-9]{1})?)?)?)?)?)?)?)?$",
     CMITimespan: "^P(?:([.,\\d]+)Y)?(?:([.,\\d]+)M)?(?:([.,\\d]+)W)?(?:([.,\\d]+)D)?(?:T?(?:([.,\\d]+)H)?(?:([.,\\d]+)M)?(?:([.,\\d]+)S)?)?$",
-    CMIInteger: "^\\d+$",
     CMISInteger: "^-?([0-9]+)$",
     CMIDecimal: "^-?([0-9]{1,5})(\\.[0-9]{1,18})?$",
-    CMIIdentifier: "^\\S{1,250}[a-zA-Z0-9]$",
     CMIShortIdentifier: "^[\\w\\.\\-\\_]{1,250}$",
     CMILongIdentifier: "^(?:(?!urn:)\\S{1,4000}|urn:[A-Za-z0-9-]{1,31}:\\S{1,4000}|.{1,4000})$",
+    // need to re-examine this
     CMIFeedback: "^.*$",
-    CMIIndex: "[._](\\d+).",
-    CMIIndexStore: ".N(\\d+).",
+    // Vocabulary Data Type Definition
     CMICStatus: "^(completed|incomplete|not attempted|unknown)$",
     CMISStatus: "^(passed|failed|unknown)$",
     CMIExit: "^(time-out|suspend|logout|normal)$",
@@ -524,8016 +335,1831 @@ var scorm2004_regex = {
     NAVEvent: "^(previous|continue|exit|exitAll|abandon|abandonAll|suspendAll|_none_|(\\{target=(?<choice_target>\\S{0,}[a-zA-Z0-9-_]+)})?choice|(\\{target=(?<jump_target>\\S{0,}[a-zA-Z0-9-_]+)})?jump)$",
     NAVBoolean: "^(unknown|true|false$)",
     NAVTarget: "^{target=\\S{0,}[a-zA-Z0-9-_]+}$",
+    // Data ranges
     scaled_range: "-1#1",
     audio_range: "0#999.9999999",
     speed_range: "0#999.9999999",
     text_range: "-1#1",
-    progress_range: "0#1",
-};
+    progress_range: "0#1"
+  };
 
-
-/***/ }),
-
-/***/ 144:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   W: function() { return /* binding */ checkValidRange; },
-/* harmony export */   q: function() { return /* binding */ checkValidFormat; }
-/* harmony export */ });
-/* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(557);
-
-var checkValidFormat = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__/* .memoize */ .Bj)(function (CMIElement, value, regexPattern, errorCode, errorClass, allowEmptyString) {
-    if (typeof value !== "string") {
-        return false;
+  class BaseScormValidationError extends Error {
+    constructor(CMIElement, errorCode) {
+      super(`${CMIElement} : ${errorCode.toString()}`);
+      this._errorCode = errorCode;
+      Object.setPrototypeOf(this, BaseScormValidationError.prototype);
     }
-    var formatRegex = new RegExp(regexPattern);
-    var matches = value.match(formatRegex);
-    if (allowEmptyString && value === "") {
-        return true;
+    /**
+     * Getter for _errorCode
+     * @return {number}
+     */
+    get errorCode() {
+      return this._errorCode;
     }
-    if (value === undefined || !matches || matches[0] === "") {
-        throw new errorClass(CMIElement, errorCode);
+  }
+  class ValidationError extends BaseScormValidationError {
+    /**
+     * Constructor to take in an error message and code
+     * @param {string} CMIElement
+     * @param {number} errorCode
+     * @param {string} errorMessage
+     * @param {string} detailedMessage
+     */
+    constructor(CMIElement, errorCode, errorMessage, detailedMessage) {
+      super(CMIElement, errorCode);
+      this._detailedMessage = "";
+      this.message = `${CMIElement} : ${errorMessage}`;
+      this._errorMessage = errorMessage;
+      if (detailedMessage) {
+        this._detailedMessage = detailedMessage;
+      }
+      Object.setPrototypeOf(this, ValidationError.prototype);
     }
-    return true;
-}, function (CMIElement, value, regexPattern, errorCode, _errorClass, allowEmptyString) {
-    var valueKey = typeof value === "string" ? value : "[".concat(typeof value, "]");
-    return "".concat(CMIElement, ":").concat(valueKey, ":").concat(regexPattern, ":").concat(errorCode, ":").concat(allowEmptyString || false);
-});
-var checkValidRange = (0,_utilities__WEBPACK_IMPORTED_MODULE_0__/* .memoize */ .Bj)(function (CMIElement, value, rangePattern, errorCode, errorClass) {
-    var ranges = rangePattern.split("#");
-    value = value * 1.0;
-    if (value >= ranges[0]) {
-        if (ranges[1] === "*" || value <= ranges[1]) {
-            return true;
-        }
-        else {
-            throw new errorClass(CMIElement, errorCode);
-        }
+    /**
+     * Getter for _errorMessage
+     * @return {string}
+     */
+    get errorMessage() {
+      return this._errorMessage;
     }
-    else {
-        throw new errorClass(CMIElement, errorCode);
+    /**
+     * Getter for _detailedMessage
+     * @return {string}
+     */
+    get detailedMessage() {
+      return this._detailedMessage;
     }
-}, function (CMIElement, value, rangePattern, errorCode, _errorClass) {
-    return "".concat(CMIElement, ":").concat(value, ":").concat(rangePattern, ":").concat(errorCode);
-});
+  }
 
-
-/***/ }),
-
-/***/ 166:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   J: function() { return /* binding */ BaseCMI; },
-/* harmony export */   r: function() { return /* binding */ BaseRootCMI; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-
-var BaseCMI = (function () {
-    function BaseCMI(cmi_element) {
-        this.jsonString = false;
-        this._initialized = false;
-        this._cmi_element = cmi_element;
+  const scorm12_errors = scorm12_constants.error_descriptions;
+  class Scorm12ValidationError extends ValidationError {
+    /**
+     * Constructor to take in an error code
+     * @param {string} CMIElement
+     * @param {number} errorCode
+     */
+    constructor(CMIElement, errorCode) {
+      if ({}.hasOwnProperty.call(scorm12_errors, String(errorCode))) {
+        super(CMIElement, errorCode, scorm12_errors[String(errorCode)].basicMessage, scorm12_errors[String(errorCode)].detailMessage);
+      } else {
+        super(CMIElement, 101, scorm12_errors["101"].basicMessage, scorm12_errors["101"].detailMessage);
+      }
+      Object.setPrototypeOf(this, Scorm12ValidationError.prototype);
     }
-    Object.defineProperty(BaseCMI.prototype, "initialized", {
-        get: function () {
-            return this._initialized;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(BaseCMI.prototype, "start_time", {
-        get: function () {
-            return this._start_time;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    BaseCMI.prototype.initialize = function () {
-        this._initialized = true;
-    };
-    BaseCMI.prototype.setStartTime = function () {
-        this._start_time = new Date().getTime();
-    };
-    return BaseCMI;
-}());
+  }
 
-var BaseRootCMI = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(BaseRootCMI, _super);
-    function BaseRootCMI() {
-        return _super !== null && _super.apply(this, arguments) || this;
+  class BaseCMI {
+    /**
+     * Constructor for BaseCMI
+     * @param {string} cmi_element
+     */
+    constructor(cmi_element) {
+      this.jsonString = false;
+      this._initialized = false;
+      this._cmi_element = cmi_element;
     }
-    return BaseRootCMI;
-}(BaseCMI));
-
-
-
-/***/ }),
-
-/***/ 198:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-
-// EXPORTS
-__webpack_require__.d(__webpack_exports__, {
-  Scorm2004API: function() { return /* binding */ Scorm2004Impl; }
-});
-
-// EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
-var tslib_es6 = __webpack_require__(635);
-// EXTERNAL MODULE: ./src/BaseAPI.ts + 7 modules
-var BaseAPI = __webpack_require__(838);
-// EXTERNAL MODULE: ./src/cmi/common/base_cmi.ts
-var base_cmi = __webpack_require__(166);
-// EXTERNAL MODULE: ./src/constants/api_constants.ts
-var api_constants = __webpack_require__(441);
-// EXTERNAL MODULE: ./src/exceptions.ts
-var exceptions = __webpack_require__(519);
-;// ./src/exceptions/scorm2004_exceptions.ts
-
-
-
-var scorm2004_errors = api_constants/* scorm2004_constants */.zR.error_descriptions;
-var Scorm2004ValidationError = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(Scorm2004ValidationError, _super);
-    function Scorm2004ValidationError(CMIElement, errorCode) {
-        var _this = this;
-        if ({}.hasOwnProperty.call(scorm2004_errors, String(errorCode))) {
-            _this = _super.call(this, CMIElement, errorCode, scorm2004_errors[String(errorCode)].basicMessage, scorm2004_errors[String(errorCode)].detailMessage) || this;
-        }
-        else {
-            _this = _super.call(this, CMIElement, 101, scorm2004_errors["101"].basicMessage, scorm2004_errors["101"].detailMessage) || this;
-        }
-        Object.setPrototypeOf(_this, Scorm2004ValidationError.prototype);
-        return _this;
+    /**
+     * Getter for _initialized
+     * @return {boolean}
+     */
+    get initialized() {
+      return this._initialized;
     }
-    return Scorm2004ValidationError;
-}(exceptions/* ValidationError */.y));
-
-
-// EXTERNAL MODULE: ./src/constants/error_codes.ts
-var error_codes = __webpack_require__(12);
-// EXTERNAL MODULE: ./src/cmi/common/validation.ts
-var validation = __webpack_require__(144);
-;// ./src/cmi/scorm2004/validation.ts
-
-
-
-function check2004ValidFormat(CMIElement, value, regexPattern, allowEmptyString) {
-    return (0,validation/* checkValidFormat */.q)(CMIElement, value, regexPattern, error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH, Scorm2004ValidationError, allowEmptyString);
-}
-function check2004ValidRange(CMIElement, value, rangePattern) {
-    return (0,validation/* checkValidRange */.W)(CMIElement, value, rangePattern, error_codes/* scorm2004_errors */.Rf.VALUE_OUT_OF_RANGE, Scorm2004ValidationError);
-}
-
-// EXTERNAL MODULE: ./src/constants/regex.ts
-var regex = __webpack_require__(64);
-;// ./src/cmi/scorm2004/learner_preference.ts
-
-
-
-
-
-
-
-var CMILearnerPreference = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMILearnerPreference, _super);
-    function CMILearnerPreference() {
-        var _this = _super.call(this, "cmi.learner_preference") || this;
-        _this.__children = api_constants/* scorm2004_constants */.zR.student_preference_children;
-        _this._audio_level = "1";
-        _this._language = "";
-        _this._delivery_speed = "1";
-        _this._audio_captioning = "0";
-        return _this;
+    /**
+     * Getter for _start_time
+     * @return {number | undefined}
+     */
+    get start_time() {
+      return this._start_time;
     }
-    CMILearnerPreference.prototype.reset = function () {
-        this._initialized = false;
-    };
-    Object.defineProperty(CMILearnerPreference.prototype, "_children", {
-        get: function () {
-            return this.__children;
-        },
-        set: function (_children) {
-            throw new Scorm2004ValidationError(this._cmi_element + "._children", error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMILearnerPreference.prototype, "audio_level", {
-        get: function () {
-            return this._audio_level;
-        },
-        set: function (audio_level) {
-            if (check2004ValidFormat(this._cmi_element + ".audio_level", audio_level, regex/* scorm2004_regex */.xt.CMIDecimal) &&
-                check2004ValidRange(this._cmi_element + ".audio_level", audio_level, regex/* scorm2004_regex */.xt.audio_range)) {
-                this._audio_level = audio_level;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMILearnerPreference.prototype, "language", {
-        get: function () {
-            return this._language;
-        },
-        set: function (language) {
-            if (check2004ValidFormat(this._cmi_element + ".language", language, regex/* scorm2004_regex */.xt.CMILang)) {
-                this._language = language;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMILearnerPreference.prototype, "delivery_speed", {
-        get: function () {
-            return this._delivery_speed;
-        },
-        set: function (delivery_speed) {
-            if (check2004ValidFormat(this._cmi_element + ".delivery_speed", delivery_speed, regex/* scorm2004_regex */.xt.CMIDecimal) &&
-                check2004ValidRange(this._cmi_element + ".delivery_speed", delivery_speed, regex/* scorm2004_regex */.xt.speed_range)) {
-                this._delivery_speed = delivery_speed;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMILearnerPreference.prototype, "audio_captioning", {
-        get: function () {
-            return this._audio_captioning;
-        },
-        set: function (audio_captioning) {
-            if (check2004ValidFormat(this._cmi_element + ".audio_captioning", audio_captioning, regex/* scorm2004_regex */.xt.CMISInteger) &&
-                check2004ValidRange(this._cmi_element + ".audio_captioning", audio_captioning, regex/* scorm2004_regex */.xt.text_range)) {
-                this._audio_captioning = audio_captioning;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMILearnerPreference.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            audio_level: this.audio_level,
-            language: this.language,
-            delivery_speed: this.delivery_speed,
-            audio_captioning: this.audio_captioning,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMILearnerPreference;
-}(base_cmi/* BaseCMI */.J));
-
-
-// EXTERNAL MODULE: ./src/cmi/common/array.ts
-var array = __webpack_require__(682);
-;// ./src/constants/response_constants.ts
-
-var LearnerResponses = {
-    "true-false": {
-        format: "^true$|^false$",
-        max: 1,
-        delimiter: "",
-        unique: false,
-    },
-    choice: {
-        format: regex/* scorm2004_regex */.xt.CMILongIdentifier,
-        max: 36,
-        delimiter: "[,]",
-        unique: true,
-    },
-    "fill-in": {
-        format: regex/* scorm2004_regex */.xt.CMILangString250,
-        max: 10,
-        delimiter: "[,]",
-        unique: false,
-    },
-    "long-fill-in": {
-        format: regex/* scorm2004_regex */.xt.CMILangString4000,
-        max: 1,
-        delimiter: "",
-        unique: false,
-    },
-    matching: {
-        format: regex/* scorm2004_regex */.xt.CMIShortIdentifier,
-        format2: regex/* scorm2004_regex */.xt.CMIShortIdentifier,
-        max: 36,
-        delimiter: "[,]",
-        delimiter2: "[.]",
-        unique: false,
-    },
-    performance: {
-        format: "^$|" + regex/* scorm2004_regex */.xt.CMIShortIdentifier,
-        format2: regex/* scorm2004_regex */.xt.CMIDecimal + "|^$|" + regex/* scorm2004_regex */.xt.CMIShortIdentifier,
-        max: 250,
-        delimiter: "[,]",
-        delimiter2: "[.]",
-        unique: false,
-    },
-    sequencing: {
-        format: regex/* scorm2004_regex */.xt.CMIShortIdentifier,
-        max: 36,
-        delimiter: "[,]",
-        unique: false,
-    },
-    likert: {
-        format: regex/* scorm2004_regex */.xt.CMIShortIdentifier,
-        max: 1,
-        delimiter: "",
-        unique: false,
-    },
-    numeric: {
-        format: regex/* scorm2004_regex */.xt.CMIDecimal,
-        max: 1,
-        delimiter: "",
-        unique: false,
-    },
-    other: {
-        format: regex/* scorm2004_regex */.xt.CMIString4000,
-        max: 1,
-        delimiter: "",
-        unique: false,
-    },
-};
-var CorrectResponses = {
-    "true-false": {
-        max: 1,
-        delimiter: "",
-        unique: false,
-        duplicate: false,
-        format: "^true$|^false$",
-        limit: 1,
-    },
-    choice: {
-        max: 36,
-        delimiter: "[,]",
-        unique: true,
-        duplicate: false,
-        format: regex/* scorm2004_regex */.xt.CMILongIdentifier,
-    },
-    "fill-in": {
-        max: 10,
-        delimiter: "[,]",
-        unique: false,
-        duplicate: false,
-        format: regex/* scorm2004_regex */.xt.CMILangString250cr,
-    },
-    "long-fill-in": {
-        max: 1,
-        delimiter: "",
-        unique: false,
-        duplicate: true,
-        format: regex/* scorm2004_regex */.xt.CMILangString4000,
-    },
-    matching: {
-        max: 36,
-        delimiter: "[,]",
-        delimiter2: "[.]",
-        unique: false,
-        duplicate: false,
-        format: regex/* scorm2004_regex */.xt.CMIShortIdentifier,
-        format2: regex/* scorm2004_regex */.xt.CMIShortIdentifier,
-    },
-    performance: {
-        max: 250,
-        delimiter: "[,]",
-        delimiter2: "[.]",
-        delimiter3: "[:]",
-        unique: false,
-        duplicate: false,
-        format: "^$|" + regex/* scorm2004_regex */.xt.CMIShortIdentifier,
-        format2: regex/* scorm2004_regex */.xt.CMIDecimal + "|^$|" + regex/* scorm2004_regex */.xt.CMIShortIdentifier,
-    },
-    sequencing: {
-        max: 36,
-        delimiter: "[,]",
-        unique: false,
-        duplicate: false,
-        format: regex/* scorm2004_regex */.xt.CMIShortIdentifier,
-    },
-    likert: {
-        max: 1,
-        delimiter: "",
-        unique: false,
-        duplicate: false,
-        format: regex/* scorm2004_regex */.xt.CMIShortIdentifier,
-        limit: 1,
-    },
-    numeric: {
-        max: 2,
-        delimiter: "[:]",
-        unique: false,
-        duplicate: false,
-        format: regex/* scorm2004_regex */.xt.CMIDecimal,
-        limit: 1,
-    },
-    other: {
-        max: 1,
-        delimiter: "",
-        unique: false,
-        duplicate: false,
-        format: regex/* scorm2004_regex */.xt.CMIString4000,
-        limit: 1,
-    },
-};
-
-;// ./src/cmi/scorm2004/interactions.ts
-
-
-
-
-
-
-
-
-
-var CMIInteractions = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMIInteractions, _super);
-    function CMIInteractions() {
-        return _super.call(this, {
-            CMIElement: "cmi.interactions",
-            children: api_constants/* scorm2004_constants */.zR.interactions_children,
-            errorCode: error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT,
-            errorClass: Scorm2004ValidationError,
-        }) || this;
+    /**
+     * Called when the API has been initialized after the CMI has been created
+     */
+    initialize() {
+      this._initialized = true;
     }
-    return CMIInteractions;
-}(array/* CMIArray */.B));
-
-var CMIInteractionsObject = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMIInteractionsObject, _super);
-    function CMIInteractionsObject() {
-        var _this = _super.call(this, "cmi.interactions.n") || this;
-        _this._id = "";
-        _this._type = "";
-        _this._timestamp = "";
-        _this._weighting = "";
-        _this._learner_response = "";
-        _this._result = "";
-        _this._latency = "";
-        _this._description = "";
-        _this.objectives = new array/* CMIArray */.B({
-            CMIElement: "cmi.interactions.n.objectives",
-            errorCode: error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT,
-            errorClass: Scorm2004ValidationError,
-            children: api_constants/* scorm2004_constants */.zR.objectives_children,
-        });
-        _this.correct_responses = new array/* CMIArray */.B({
-            CMIElement: "cmi.interactions.n.correct_responses",
-            errorCode: error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT,
-            errorClass: Scorm2004ValidationError,
-            children: api_constants/* scorm2004_constants */.zR.correct_responses_children,
-        });
-        return _this;
+    /**
+     * Called when the player should override the 'session_time' provided by
+     * the module
+     */
+    setStartTime() {
+      this._start_time = (/* @__PURE__ */new Date()).getTime();
     }
-    CMIInteractionsObject.prototype.initialize = function () {
-        var _a, _b;
-        _super.prototype.initialize.call(this);
-        (_a = this.objectives) === null || _a === void 0 ? void 0 : _a.initialize();
-        (_b = this.correct_responses) === null || _b === void 0 ? void 0 : _b.initialize();
-    };
-    CMIInteractionsObject.prototype.reset = function () {
-        this._initialized = false;
-        this._id = "";
-        this._type = "";
-        this._timestamp = "";
-        this._weighting = "";
-        this._learner_response = "";
-        this._result = "";
-        this._latency = "";
-        this._description = "";
-        this.objectives = new array/* CMIArray */.B({
-            CMIElement: "cmi.interactions.n.objectives",
-            errorCode: error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT,
-            errorClass: Scorm2004ValidationError,
-            children: api_constants/* scorm2004_constants */.zR.objectives_children,
-        });
-        this.correct_responses = new array/* CMIArray */.B({
-            CMIElement: "cmi.interactions.n.correct_responses",
-            errorCode: error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT,
-            errorClass: Scorm2004ValidationError,
-            children: api_constants/* scorm2004_constants */.zR.correct_responses_children,
-        });
-    };
-    Object.defineProperty(CMIInteractionsObject.prototype, "id", {
-        get: function () {
-            return this._id;
-        },
-        set: function (id) {
-            if (check2004ValidFormat(this._cmi_element + ".id", id, regex/* scorm2004_regex */.xt.CMILongIdentifier)) {
-                this._id = id;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIInteractionsObject.prototype, "type", {
-        get: function () {
-            return this._type;
-        },
-        set: function (type) {
-            if (this.initialized && this._id === "") {
-                throw new Scorm2004ValidationError(this._cmi_element + ".type", error_codes/* scorm2004_errors */.Rf.DEPENDENCY_NOT_ESTABLISHED);
-            }
-            else {
-                if (check2004ValidFormat(this._cmi_element + ".type", type, regex/* scorm2004_regex */.xt.CMIType)) {
-                    this._type = type;
-                }
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIInteractionsObject.prototype, "timestamp", {
-        get: function () {
-            return this._timestamp;
-        },
-        set: function (timestamp) {
-            if (this.initialized && this._id === "") {
-                throw new Scorm2004ValidationError(this._cmi_element + ".timestamp", error_codes/* scorm2004_errors */.Rf.DEPENDENCY_NOT_ESTABLISHED);
-            }
-            else {
-                if (check2004ValidFormat(this._cmi_element + ".timestamp", timestamp, regex/* scorm2004_regex */.xt.CMITime)) {
-                    this._timestamp = timestamp;
-                }
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIInteractionsObject.prototype, "weighting", {
-        get: function () {
-            return this._weighting;
-        },
-        set: function (weighting) {
-            if (this.initialized && this._id === "") {
-                throw new Scorm2004ValidationError(this._cmi_element + ".weighting", error_codes/* scorm2004_errors */.Rf.DEPENDENCY_NOT_ESTABLISHED);
-            }
-            else {
-                if (check2004ValidFormat(this._cmi_element + ".weighting", weighting, regex/* scorm2004_regex */.xt.CMIDecimal)) {
-                    this._weighting = weighting;
-                }
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIInteractionsObject.prototype, "learner_response", {
-        get: function () {
-            return this._learner_response;
-        },
-        set: function (learner_response) {
-            if (this.initialized && (this._type === "" || this._id === "")) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", error_codes/* scorm2004_errors */.Rf.DEPENDENCY_NOT_ESTABLISHED);
-            }
-            else {
-                var nodes = [];
-                var response_type = LearnerResponses[this.type];
-                if (response_type) {
-                    if (response_type === null || response_type === void 0 ? void 0 : response_type.delimiter) {
-                        var delimiter = response_type.delimiter === "[,]" ? "," : response_type.delimiter;
-                        nodes = learner_response.split(delimiter);
-                    }
-                    else {
-                        nodes[0] = learner_response;
-                    }
-                    if (nodes.length > 0 && nodes.length <= response_type.max) {
-                        var formatRegex = new RegExp(response_type.format);
-                        for (var i = 0; i < nodes.length; i++) {
-                            if (response_type === null || response_type === void 0 ? void 0 : response_type.delimiter2) {
-                                var delimiter2 = response_type.delimiter2 === "[.]" ? "." : response_type.delimiter2;
-                                var values = nodes[i].split(delimiter2);
-                                if (values.length === 2) {
-                                    if (!values[0].match(formatRegex)) {
-                                        throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
-                                    }
-                                    else {
-                                        if (!response_type.format2 ||
-                                            !values[1].match(new RegExp(response_type.format2))) {
-                                            throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
-                                        }
-                                    }
-                                }
-                                else {
-                                    throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
-                                }
-                            }
-                            else {
-                                if (!nodes[i].match(formatRegex)) {
-                                    throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
-                                }
-                                else {
-                                    if (nodes[i] !== "" && response_type.unique) {
-                                        for (var j = 0; j < i; j++) {
-                                            if (nodes[i] === nodes[j]) {
-                                                throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else {
-                        throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", error_codes/* scorm2004_errors */.Rf.GENERAL_SET_FAILURE);
-                    }
-                    this._learner_response = learner_response;
-                }
-                else {
-                    throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
-                }
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIInteractionsObject.prototype, "result", {
-        get: function () {
-            return this._result;
-        },
-        set: function (result) {
-            if (check2004ValidFormat(this._cmi_element + ".result", result, regex/* scorm2004_regex */.xt.CMIResult)) {
-                this._result = result;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIInteractionsObject.prototype, "latency", {
-        get: function () {
-            return this._latency;
-        },
-        set: function (latency) {
-            if (this.initialized && this._id === "") {
-                throw new Scorm2004ValidationError(this._cmi_element + ".latency", error_codes/* scorm2004_errors */.Rf.DEPENDENCY_NOT_ESTABLISHED);
-            }
-            else {
-                if (check2004ValidFormat(this._cmi_element + ".latency", latency, regex/* scorm2004_regex */.xt.CMITimespan)) {
-                    this._latency = latency;
-                }
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIInteractionsObject.prototype, "description", {
-        get: function () {
-            return this._description;
-        },
-        set: function (description) {
-            if (this.initialized && this._id === "") {
-                throw new Scorm2004ValidationError(this._cmi_element + ".description", error_codes/* scorm2004_errors */.Rf.DEPENDENCY_NOT_ESTABLISHED);
-            }
-            else {
-                if (check2004ValidFormat(this._cmi_element + ".description", description, regex/* scorm2004_regex */.xt.CMILangString250, true)) {
-                    this._description = description;
-                }
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIInteractionsObject.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            id: this.id,
-            type: this.type,
-            objectives: this.objectives,
-            timestamp: this.timestamp,
-            weighting: this.weighting,
-            learner_response: this.learner_response,
-            result: this.result,
-            latency: this.latency,
-            description: this.description,
-            correct_responses: this.correct_responses,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMIInteractionsObject;
-}(base_cmi/* BaseCMI */.J));
-
-var CMIInteractionsObjectivesObject = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMIInteractionsObjectivesObject, _super);
-    function CMIInteractionsObjectivesObject() {
-        var _this = _super.call(this, "cmi.interactions.n.objectives.n") || this;
-        _this._id = "";
-        return _this;
-    }
-    CMIInteractionsObjectivesObject.prototype.reset = function () {
-        this._initialized = false;
-        this._id = "";
-    };
-    Object.defineProperty(CMIInteractionsObjectivesObject.prototype, "id", {
-        get: function () {
-            return this._id;
-        },
-        set: function (id) {
-            if (check2004ValidFormat(this._cmi_element + ".id", id, regex/* scorm2004_regex */.xt.CMILongIdentifier)) {
-                this._id = id;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIInteractionsObjectivesObject.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            id: this.id,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMIInteractionsObjectivesObject;
-}(base_cmi/* BaseCMI */.J));
-
-var CMIInteractionsCorrectResponsesObject = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMIInteractionsCorrectResponsesObject, _super);
-    function CMIInteractionsCorrectResponsesObject(parent) {
-        var _this = _super.call(this, "cmi.interactions.n.correct_responses.n") || this;
-        _this._pattern = "";
-        _this._parent = parent;
-        return _this;
-    }
-    CMIInteractionsCorrectResponsesObject.prototype.reset = function () {
-        this._initialized = false;
-        this._pattern = "";
-    };
-    Object.defineProperty(CMIInteractionsCorrectResponsesObject.prototype, "pattern", {
-        get: function () {
-            return this._pattern;
-        },
-        set: function (pattern) {
-            if (check2004ValidFormat(this._cmi_element + ".pattern", pattern, regex/* scorm2004_regex */.xt.CMIFeedback)) {
-                if (this._parent && this._parent.type) {
-                    var interactionType = this._parent.type;
-                    var response = CorrectResponses[interactionType];
-                    if (response) {
-                        var isValid = true;
-                        var nodes = [];
-                        if (response === null || response === void 0 ? void 0 : response.delimiter) {
-                            nodes = String(pattern).split(response.delimiter);
-                        }
-                        else {
-                            nodes[0] = pattern;
-                        }
-                        if (nodes.length > 0 && nodes.length <= response.max) {
-                            var formatRegex = new RegExp(response.format);
-                            for (var i = 0; i < nodes.length && isValid; i++) {
-                                if (response === null || response === void 0 ? void 0 : response.delimiter2) {
-                                    var values = nodes[i].split(response.delimiter2);
-                                    if (values.length === 2) {
-                                        var matches = values[0].match(formatRegex);
-                                        if (!matches) {
-                                            isValid = false;
-                                        }
-                                        else if (!response.format2 || !values[1].match(new RegExp(response.format2))) {
-                                            isValid = false;
-                                        }
-                                    }
-                                    else {
-                                        isValid = false;
-                                    }
-                                }
-                                else {
-                                    var matches = nodes[i].match(formatRegex);
-                                    if ((!matches && pattern !== "") ||
-                                        (!matches && interactionType === "true-false")) {
-                                        isValid = false;
-                                    }
-                                }
-                            }
-                        }
-                        else if (nodes.length > response.max) {
-                            isValid = false;
-                        }
-                        if (!isValid) {
-                            throw new Scorm2004ValidationError(this._cmi_element + ".pattern", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
-                        }
-                    }
-                }
-                this._pattern = pattern;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIInteractionsCorrectResponsesObject.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            pattern: this.pattern,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMIInteractionsCorrectResponsesObject;
-}(base_cmi/* BaseCMI */.J));
-
-
-// EXTERNAL MODULE: ./src/cmi/common/score.ts
-var score = __webpack_require__(209);
-;// ./src/cmi/scorm2004/score.ts
-
-
-
-
-
-
-
-var Scorm2004CMIScore = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(Scorm2004CMIScore, _super);
-    function Scorm2004CMIScore() {
-        var _this = _super.call(this, {
-            CMIElement: "cmi.score",
-            score_children: api_constants/* scorm2004_constants */.zR.score_children,
-            max: "",
-            invalidErrorCode: error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT,
-            invalidTypeCode: error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH,
-            invalidRangeCode: error_codes/* scorm2004_errors */.Rf.VALUE_OUT_OF_RANGE,
-            decimalRegex: regex/* scorm2004_regex */.xt.CMIDecimal,
-            errorClass: Scorm2004ValidationError,
-        }) || this;
-        _this._scaled = "";
-        return _this;
-    }
-    Scorm2004CMIScore.prototype.reset = function () {
-        this._initialized = false;
-        this._scaled = "";
-        this._raw = "";
-        this._min = "";
-        this._max = "";
-    };
-    Object.defineProperty(Scorm2004CMIScore.prototype, "scaled", {
-        get: function () {
-            return this._scaled;
-        },
-        set: function (scaled) {
-            if (check2004ValidFormat(this._cmi_element + ".scaled", scaled, regex/* scorm2004_regex */.xt.CMIDecimal) &&
-                check2004ValidRange(this._cmi_element + ".scaled", scaled, regex/* scorm2004_regex */.xt.scaled_range)) {
-                this._scaled = scaled;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Scorm2004CMIScore.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            scaled: this.scaled,
-            raw: this.raw,
-            min: this.min,
-            max: this.max,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return Scorm2004CMIScore;
-}(score/* CMIScore */._));
-
-
-;// ./src/cmi/scorm2004/comments.ts
-
-
-
-
-
-
-
-
-var CMICommentsFromLMS = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMICommentsFromLMS, _super);
-    function CMICommentsFromLMS() {
-        return _super.call(this, {
-            CMIElement: "cmi.comments_from_lms",
-            children: api_constants/* scorm2004_constants */.zR.comments_children,
-            errorCode: error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT,
-            errorClass: Scorm2004ValidationError,
-        }) || this;
-    }
-    return CMICommentsFromLMS;
-}(array/* CMIArray */.B));
-
-var CMICommentsFromLearner = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMICommentsFromLearner, _super);
-    function CMICommentsFromLearner() {
-        return _super.call(this, {
-            CMIElement: "cmi.comments_from_learner",
-            children: api_constants/* scorm2004_constants */.zR.comments_children,
-            errorCode: error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT,
-            errorClass: Scorm2004ValidationError,
-        }) || this;
-    }
-    return CMICommentsFromLearner;
-}(array/* CMIArray */.B));
-
-var CMICommentsObject = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMICommentsObject, _super);
-    function CMICommentsObject(readOnlyAfterInit) {
-        if (readOnlyAfterInit === void 0) { readOnlyAfterInit = false; }
-        var _this = _super.call(this, "cmi.comments_from_learner.n") || this;
-        _this._comment = "";
-        _this._location = "";
-        _this._timestamp = "";
-        _this._comment = "";
-        _this._location = "";
-        _this._timestamp = "";
-        _this._readOnlyAfterInit = readOnlyAfterInit;
-        return _this;
-    }
-    CMICommentsObject.prototype.reset = function () {
-        this._initialized = false;
-    };
-    Object.defineProperty(CMICommentsObject.prototype, "comment", {
-        get: function () {
-            return this._comment;
-        },
-        set: function (comment) {
-            if (this.initialized && this._readOnlyAfterInit) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".comment", error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
-            }
-            else {
-                if (check2004ValidFormat(this._cmi_element + ".comment", comment, regex/* scorm2004_regex */.xt.CMILangString4000, true)) {
-                    this._comment = comment;
-                }
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMICommentsObject.prototype, "location", {
-        get: function () {
-            return this._location;
-        },
-        set: function (location) {
-            if (this.initialized && this._readOnlyAfterInit) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".location", error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
-            }
-            else {
-                if (check2004ValidFormat(this._cmi_element + ".location", location, regex/* scorm2004_regex */.xt.CMIString250)) {
-                    this._location = location;
-                }
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMICommentsObject.prototype, "timestamp", {
-        get: function () {
-            return this._timestamp;
-        },
-        set: function (timestamp) {
-            if (this.initialized && this._readOnlyAfterInit) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".timestamp", error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
-            }
-            else {
-                if (check2004ValidFormat(this._cmi_element + ".timestamp", timestamp, regex/* scorm2004_regex */.xt.CMITime)) {
-                    this._timestamp = timestamp;
-                }
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMICommentsObject.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            comment: this.comment,
-            location: this.location,
-            timestamp: this.timestamp,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMICommentsObject;
-}(base_cmi/* BaseCMI */.J));
-
-
-;// ./src/cmi/scorm2004/objectives.ts
-
-
-
-
-
-
-
-
-
-var CMIObjectives = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMIObjectives, _super);
-    function CMIObjectives() {
-        return _super.call(this, {
-            CMIElement: "cmi.objectives",
-            children: api_constants/* scorm2004_constants */.zR.objectives_children,
-            errorCode: error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT,
-            errorClass: Scorm2004ValidationError,
-        }) || this;
-    }
-    CMIObjectives.prototype.findObjectiveById = function (id) {
-        return this.childArray.find(function (objective) { return objective.id === id; });
-    };
-    CMIObjectives.prototype.findObjectiveByIndex = function (index) {
-        return this.childArray[index];
-    };
-    CMIObjectives.prototype.setObjectiveByIndex = function (index, objective) {
-        this.childArray[index] = objective;
-    };
-    return CMIObjectives;
-}(array/* CMIArray */.B));
-
-var CMIObjectivesObject = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMIObjectivesObject, _super);
-    function CMIObjectivesObject() {
-        var _this = _super.call(this, "cmi.objectives.n") || this;
-        _this._id = "";
-        _this._success_status = "unknown";
-        _this._completion_status = "unknown";
-        _this._progress_measure = "";
-        _this._description = "";
-        _this.score = new Scorm2004CMIScore();
-        return _this;
-    }
-    CMIObjectivesObject.prototype.reset = function () {
-        this._initialized = false;
-    };
-    CMIObjectivesObject.prototype.initialize = function () {
-        var _a;
-        _super.prototype.initialize.call(this);
-        (_a = this.score) === null || _a === void 0 ? void 0 : _a.initialize();
-    };
-    Object.defineProperty(CMIObjectivesObject.prototype, "id", {
-        get: function () {
-            return this._id;
-        },
-        set: function (id) {
-            if (check2004ValidFormat(this._cmi_element + ".id", id, regex/* scorm2004_regex */.xt.CMILongIdentifier)) {
-                this._id = id;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIObjectivesObject.prototype, "success_status", {
-        get: function () {
-            return this._success_status;
-        },
-        set: function (success_status) {
-            if (this.initialized && this._id === "") {
-                throw new Scorm2004ValidationError(this._cmi_element + ".success_status", error_codes/* scorm2004_errors */.Rf.DEPENDENCY_NOT_ESTABLISHED);
-            }
-            else {
-                if (check2004ValidFormat(this._cmi_element + ".success_status", success_status, regex/* scorm2004_regex */.xt.CMISStatus)) {
-                    this._success_status = success_status;
-                }
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIObjectivesObject.prototype, "completion_status", {
-        get: function () {
-            return this._completion_status;
-        },
-        set: function (completion_status) {
-            if (this.initialized && this._id === "") {
-                throw new Scorm2004ValidationError(this._cmi_element + ".completion_status", error_codes/* scorm2004_errors */.Rf.DEPENDENCY_NOT_ESTABLISHED);
-            }
-            else {
-                if (check2004ValidFormat(this._cmi_element + ".completion_status", completion_status, regex/* scorm2004_regex */.xt.CMICStatus)) {
-                    this._completion_status = completion_status;
-                }
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIObjectivesObject.prototype, "progress_measure", {
-        get: function () {
-            return this._progress_measure;
-        },
-        set: function (progress_measure) {
-            if (this.initialized && this._id === "") {
-                throw new Scorm2004ValidationError(this._cmi_element + ".progress_measure", error_codes/* scorm2004_errors */.Rf.DEPENDENCY_NOT_ESTABLISHED);
-            }
-            else {
-                if (check2004ValidFormat(this._cmi_element + ".progress_measure", progress_measure, regex/* scorm2004_regex */.xt.CMIDecimal) &&
-                    check2004ValidRange(this._cmi_element + ".progress_measure", progress_measure, regex/* scorm2004_regex */.xt.progress_range)) {
-                    this._progress_measure = progress_measure;
-                }
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIObjectivesObject.prototype, "description", {
-        get: function () {
-            return this._description;
-        },
-        set: function (description) {
-            if (this.initialized && this._id === "") {
-                throw new Scorm2004ValidationError(this._cmi_element + ".description", error_codes/* scorm2004_errors */.Rf.DEPENDENCY_NOT_ESTABLISHED);
-            }
-            else {
-                if (check2004ValidFormat(this._cmi_element + ".description", description, regex/* scorm2004_regex */.xt.CMILangString250, true)) {
-                    this._description = description;
-                }
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIObjectivesObject.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            id: this.id,
-            success_status: this.success_status,
-            completion_status: this.completion_status,
-            progress_measure: this.progress_measure,
-            description: this.description,
-            score: this.score,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMIObjectivesObject;
-}(base_cmi/* BaseCMI */.J));
-
-
-;// ./src/cmi/scorm2004/metadata.ts
-
-
-
-
-
-var CMIMetadata = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMIMetadata, _super);
-    function CMIMetadata() {
-        var _this = _super.call(this, "cmi") || this;
-        _this.__version = "1.0";
-        _this.__children = api_constants/* scorm2004_constants */.zR.cmi_children;
-        return _this;
-    }
-    Object.defineProperty(CMIMetadata.prototype, "_version", {
-        get: function () {
-            return this.__version;
-        },
-        set: function (_version) {
-            throw new Scorm2004ValidationError(this._cmi_element + "._version", error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIMetadata.prototype, "_children", {
-        get: function () {
-            return this.__children;
-        },
-        set: function (_children) {
-            throw new Scorm2004ValidationError(this._cmi_element + "._children", error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIMetadata.prototype.reset = function () {
-        this._initialized = false;
-    };
-    return CMIMetadata;
-}(base_cmi/* BaseCMI */.J));
-
-
-;// ./src/cmi/scorm2004/learner.ts
-
-
-
-
-var CMILearner = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMILearner, _super);
-    function CMILearner() {
-        var _this = _super.call(this, "cmi") || this;
-        _this._learner_id = "";
-        _this._learner_name = "";
-        return _this;
-    }
-    Object.defineProperty(CMILearner.prototype, "learner_id", {
-        get: function () {
-            return this._learner_id;
-        },
-        set: function (learner_id) {
-            if (this.initialized) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".learner_id", error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._learner_id = learner_id;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMILearner.prototype, "learner_name", {
-        get: function () {
-            return this._learner_name;
-        },
-        set: function (learner_name) {
-            if (this.initialized) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".learner_name", error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._learner_name = learner_name;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMILearner.prototype.reset = function () {
-        this._initialized = false;
-    };
-    return CMILearner;
-}(base_cmi/* BaseCMI */.J));
-
-
-;// ./src/cmi/scorm2004/status.ts
-
-
-
-
-var CMIStatus = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMIStatus, _super);
-    function CMIStatus() {
-        var _this = _super.call(this, "cmi") || this;
-        _this._completion_status = "unknown";
-        _this._success_status = "unknown";
-        _this._progress_measure = "";
-        return _this;
-    }
-    Object.defineProperty(CMIStatus.prototype, "completion_status", {
-        get: function () {
-            return this._completion_status;
-        },
-        set: function (completion_status) {
-            if (check2004ValidFormat(this._cmi_element + ".completion_status", completion_status, regex/* scorm2004_regex */.xt.CMICStatus)) {
-                this._completion_status = completion_status;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStatus.prototype, "success_status", {
-        get: function () {
-            return this._success_status;
-        },
-        set: function (success_status) {
-            if (check2004ValidFormat(this._cmi_element + ".success_status", success_status, regex/* scorm2004_regex */.xt.CMISStatus)) {
-                this._success_status = success_status;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStatus.prototype, "progress_measure", {
-        get: function () {
-            return this._progress_measure;
-        },
-        set: function (progress_measure) {
-            if (check2004ValidFormat(this._cmi_element + ".progress_measure", progress_measure, regex/* scorm2004_regex */.xt.CMIDecimal) &&
-                check2004ValidRange(this._cmi_element + ".progress_measure", progress_measure, regex/* scorm2004_regex */.xt.progress_range)) {
-                this._progress_measure = progress_measure;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIStatus.prototype.reset = function () {
-        this._initialized = false;
-        this._completion_status = "unknown";
-        this._success_status = "unknown";
-        this._progress_measure = "";
-    };
-    return CMIStatus;
-}(base_cmi/* BaseCMI */.J));
-
-
-// EXTERNAL MODULE: ./src/utilities.ts
-var utilities = __webpack_require__(557);
-;// ./src/cmi/scorm2004/session.ts
-
-
-
-
-
-
-
-var CMISession = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMISession, _super);
-    function CMISession() {
-        var _this = _super.call(this, "cmi") || this;
-        _this._entry = "";
-        _this._exit = "";
-        _this._session_time = "PT0H0M0S";
-        _this._total_time = "";
-        return _this;
-    }
-    Object.defineProperty(CMISession.prototype, "entry", {
-        get: function () {
-            return this._entry;
-        },
-        set: function (entry) {
-            if (this.initialized) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".entry", error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._entry = entry;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMISession.prototype, "exit", {
-        get: function () {
-            if (!this.jsonString) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".exit", error_codes/* scorm2004_errors */.Rf.WRITE_ONLY_ELEMENT);
-            }
-            return this._exit;
-        },
-        set: function (exit) {
-            if (check2004ValidFormat(this._cmi_element + ".exit", exit, regex/* scorm2004_regex */.xt.CMIExit, true)) {
-                this._exit = exit;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMISession.prototype, "session_time", {
-        get: function () {
-            if (!this.jsonString) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".session_time", error_codes/* scorm2004_errors */.Rf.WRITE_ONLY_ELEMENT);
-            }
-            return this._session_time;
-        },
-        set: function (session_time) {
-            if (check2004ValidFormat(this._cmi_element + ".session_time", session_time, regex/* scorm2004_regex */.xt.CMITimespan)) {
-                this._session_time = session_time;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMISession.prototype, "total_time", {
-        get: function () {
-            return this._total_time;
-        },
-        set: function (total_time) {
-            if (this.initialized) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".total_time", error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._total_time = total_time;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMISession.prototype.getCurrentTotalTime = function () {
-        var sessionTime = this._session_time;
-        var startTime = this.start_time;
-        if (typeof startTime !== "undefined" && startTime !== null) {
-            var seconds = new Date().getTime() - startTime;
-            sessionTime = utilities/* getSecondsAsISODuration */.xE(seconds / 1000);
-        }
-        return utilities/* addTwoDurations */.$o(this._total_time, sessionTime, regex/* scorm2004_regex */.xt.CMITimespan);
-    };
-    CMISession.prototype.reset = function () {
-        this._initialized = false;
-        this._entry = "";
-        this._exit = "";
-        this._session_time = "PT0H0M0S";
-    };
-    return CMISession;
-}(base_cmi/* BaseCMI */.J));
-
-
-;// ./src/cmi/scorm2004/content.ts
-
-
-
-
-
-
-var CMIContent = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMIContent, _super);
-    function CMIContent() {
-        var _this = _super.call(this, "cmi") || this;
-        _this._location = "";
-        _this._launch_data = "";
-        _this._suspend_data = "";
-        return _this;
-    }
-    Object.defineProperty(CMIContent.prototype, "location", {
-        get: function () {
-            return this._location;
-        },
-        set: function (location) {
-            if (check2004ValidFormat(this._cmi_element + ".location", location, regex/* scorm2004_regex */.xt.CMIString1000)) {
-                this._location = location;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIContent.prototype, "launch_data", {
-        get: function () {
-            return this._launch_data;
-        },
-        set: function (launch_data) {
-            if (this.initialized) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".launch_data", error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._launch_data = launch_data;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIContent.prototype, "suspend_data", {
-        get: function () {
-            return this._suspend_data;
-        },
-        set: function (suspend_data) {
-            if (check2004ValidFormat(this._cmi_element + ".suspend_data", suspend_data, regex/* scorm2004_regex */.xt.CMIString64000, true)) {
-                this._suspend_data = suspend_data;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIContent.prototype.reset = function () {
-        this._initialized = false;
-        this._location = "";
-        this._suspend_data = "";
-    };
-    return CMIContent;
-}(base_cmi/* BaseCMI */.J));
-
-
-;// ./src/cmi/scorm2004/settings.ts
-
-
-
-
-var CMISettings = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMISettings, _super);
-    function CMISettings() {
-        var _this = _super.call(this, "cmi") || this;
-        _this._credit = "credit";
-        _this._mode = "normal";
-        _this._time_limit_action = "continue,no message";
-        _this._max_time_allowed = "";
-        return _this;
-    }
-    Object.defineProperty(CMISettings.prototype, "credit", {
-        get: function () {
-            return this._credit;
-        },
-        set: function (credit) {
-            if (this.initialized) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".credit", error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._credit = credit;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMISettings.prototype, "mode", {
-        get: function () {
-            return this._mode;
-        },
-        set: function (mode) {
-            if (this.initialized) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".mode", error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._mode = mode;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMISettings.prototype, "time_limit_action", {
-        get: function () {
-            return this._time_limit_action;
-        },
-        set: function (time_limit_action) {
-            if (this.initialized) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".time_limit_action", error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._time_limit_action = time_limit_action;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMISettings.prototype, "max_time_allowed", {
-        get: function () {
-            return this._max_time_allowed;
-        },
-        set: function (max_time_allowed) {
-            if (this.initialized) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".max_time_allowed", error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._max_time_allowed = max_time_allowed;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMISettings.prototype.reset = function () {
-        this._initialized = false;
-    };
-    return CMISettings;
-}(base_cmi/* BaseCMI */.J));
-
-
-;// ./src/cmi/scorm2004/thresholds.ts
-
-
-
-
-var CMIThresholds = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMIThresholds, _super);
-    function CMIThresholds() {
-        var _this = _super.call(this, "cmi") || this;
-        _this._scaled_passing_score = "";
-        _this._completion_threshold = "";
-        return _this;
-    }
-    Object.defineProperty(CMIThresholds.prototype, "scaled_passing_score", {
-        get: function () {
-            return this._scaled_passing_score;
-        },
-        set: function (scaled_passing_score) {
-            if (this.initialized) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".scaled_passing_score", error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._scaled_passing_score = scaled_passing_score;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIThresholds.prototype, "completion_threshold", {
-        get: function () {
-            return this._completion_threshold;
-        },
-        set: function (completion_threshold) {
-            if (this.initialized) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".completion_threshold", error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._completion_threshold = completion_threshold;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIThresholds.prototype.reset = function () {
-        this._initialized = false;
-    };
-    return CMIThresholds;
-}(base_cmi/* BaseCMI */.J));
-
-
-;// ./src/cmi/scorm2004/cmi.ts
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-var CMI = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMI, _super);
-    function CMI(initialized) {
-        if (initialized === void 0) { initialized = false; }
-        var _this = _super.call(this, "cmi") || this;
-        _this.metadata = new CMIMetadata();
-        _this.learner = new CMILearner();
-        _this.status = new CMIStatus();
-        _this.session = new CMISession();
-        _this.content = new CMIContent();
-        _this.settings = new CMISettings();
-        _this.thresholds = new CMIThresholds();
-        _this.learner_preference = new CMILearnerPreference();
-        _this.score = new Scorm2004CMIScore();
-        _this.comments_from_learner = new CMICommentsFromLearner();
-        _this.comments_from_lms = new CMICommentsFromLMS();
-        _this.interactions = new CMIInteractions();
-        _this.objectives = new CMIObjectives();
-        if (initialized)
-            _this.initialize();
-        return _this;
-    }
-    CMI.prototype.initialize = function () {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
-        _super.prototype.initialize.call(this);
-        (_a = this.metadata) === null || _a === void 0 ? void 0 : _a.initialize();
-        (_b = this.learner) === null || _b === void 0 ? void 0 : _b.initialize();
-        (_c = this.status) === null || _c === void 0 ? void 0 : _c.initialize();
-        (_d = this.session) === null || _d === void 0 ? void 0 : _d.initialize();
-        (_e = this.content) === null || _e === void 0 ? void 0 : _e.initialize();
-        (_f = this.settings) === null || _f === void 0 ? void 0 : _f.initialize();
-        (_g = this.thresholds) === null || _g === void 0 ? void 0 : _g.initialize();
-        (_h = this.learner_preference) === null || _h === void 0 ? void 0 : _h.initialize();
-        (_j = this.score) === null || _j === void 0 ? void 0 : _j.initialize();
-        (_k = this.comments_from_learner) === null || _k === void 0 ? void 0 : _k.initialize();
-        (_l = this.comments_from_lms) === null || _l === void 0 ? void 0 : _l.initialize();
-        (_m = this.interactions) === null || _m === void 0 ? void 0 : _m.initialize();
-        (_o = this.objectives) === null || _o === void 0 ? void 0 : _o.initialize();
-    };
-    CMI.prototype.reset = function () {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
-        this._initialized = false;
-        (_a = this.metadata) === null || _a === void 0 ? void 0 : _a.reset();
-        (_b = this.learner) === null || _b === void 0 ? void 0 : _b.reset();
-        (_c = this.status) === null || _c === void 0 ? void 0 : _c.reset();
-        (_d = this.session) === null || _d === void 0 ? void 0 : _d.reset();
-        (_e = this.content) === null || _e === void 0 ? void 0 : _e.reset();
-        (_f = this.settings) === null || _f === void 0 ? void 0 : _f.reset();
-        (_g = this.thresholds) === null || _g === void 0 ? void 0 : _g.reset();
-        (_h = this.objectives) === null || _h === void 0 ? void 0 : _h.reset(false);
-        (_j = this.interactions) === null || _j === void 0 ? void 0 : _j.reset(true);
-        (_k = this.score) === null || _k === void 0 ? void 0 : _k.reset();
-        (_l = this.comments_from_learner) === null || _l === void 0 ? void 0 : _l.reset();
-        (_m = this.comments_from_lms) === null || _m === void 0 ? void 0 : _m.reset();
-        (_o = this.learner_preference) === null || _o === void 0 ? void 0 : _o.reset();
-    };
-    Object.defineProperty(CMI.prototype, "_version", {
-        get: function () {
-            return this.metadata._version;
-        },
-        set: function (_version) {
-            this.metadata._version = _version;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMI.prototype, "_children", {
-        get: function () {
-            return this.metadata._children;
-        },
-        set: function (_children) {
-            this.metadata._children = _children;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMI.prototype, "completion_status", {
-        get: function () {
-            return this.status.completion_status;
-        },
-        set: function (completion_status) {
-            this.status.completion_status = completion_status;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMI.prototype, "completion_threshold", {
-        get: function () {
-            return this.thresholds.completion_threshold;
-        },
-        set: function (completion_threshold) {
-            this.thresholds.completion_threshold = completion_threshold;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMI.prototype, "credit", {
-        get: function () {
-            return this.settings.credit;
-        },
-        set: function (credit) {
-            this.settings.credit = credit;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMI.prototype, "entry", {
-        get: function () {
-            return this.session.entry;
-        },
-        set: function (entry) {
-            this.session.entry = entry;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMI.prototype, "exit", {
-        get: function () {
-            this.session.jsonString = this.jsonString;
-            return this.session.exit;
-        },
-        set: function (exit) {
-            this.session.exit = exit;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMI.prototype, "launch_data", {
-        get: function () {
-            return this.content.launch_data;
-        },
-        set: function (launch_data) {
-            this.content.launch_data = launch_data;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMI.prototype, "learner_id", {
-        get: function () {
-            return this.learner.learner_id;
-        },
-        set: function (learner_id) {
-            this.learner.learner_id = learner_id;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMI.prototype, "learner_name", {
-        get: function () {
-            return this.learner.learner_name;
-        },
-        set: function (learner_name) {
-            this.learner.learner_name = learner_name;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMI.prototype, "location", {
-        get: function () {
-            return this.content.location;
-        },
-        set: function (location) {
-            this.content.location = location;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMI.prototype, "max_time_allowed", {
-        get: function () {
-            return this.settings.max_time_allowed;
-        },
-        set: function (max_time_allowed) {
-            this.settings.max_time_allowed = max_time_allowed;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMI.prototype, "mode", {
-        get: function () {
-            return this.settings.mode;
-        },
-        set: function (mode) {
-            this.settings.mode = mode;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMI.prototype, "progress_measure", {
-        get: function () {
-            return this.status.progress_measure;
-        },
-        set: function (progress_measure) {
-            this.status.progress_measure = progress_measure;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMI.prototype, "scaled_passing_score", {
-        get: function () {
-            return this.thresholds.scaled_passing_score;
-        },
-        set: function (scaled_passing_score) {
-            this.thresholds.scaled_passing_score = scaled_passing_score;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMI.prototype, "session_time", {
-        get: function () {
-            this.session.jsonString = this.jsonString;
-            return this.session.session_time;
-        },
-        set: function (session_time) {
-            this.session.session_time = session_time;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMI.prototype, "success_status", {
-        get: function () {
-            return this.status.success_status;
-        },
-        set: function (success_status) {
-            this.status.success_status = success_status;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMI.prototype, "suspend_data", {
-        get: function () {
-            return this.content.suspend_data;
-        },
-        set: function (suspend_data) {
-            this.content.suspend_data = suspend_data;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMI.prototype, "time_limit_action", {
-        get: function () {
-            return this.settings.time_limit_action;
-        },
-        set: function (time_limit_action) {
-            this.settings.time_limit_action = time_limit_action;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMI.prototype, "total_time", {
-        get: function () {
-            return this.session.total_time;
-        },
-        set: function (total_time) {
-            this.session.total_time = total_time;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMI.prototype.getCurrentTotalTime = function () {
-        return this.session.getCurrentTotalTime();
-    };
-    CMI.prototype.toJSON = function () {
-        this.jsonString = true;
-        this.session.jsonString = true;
-        var result = {
-            comments_from_learner: this.comments_from_learner,
-            comments_from_lms: this.comments_from_lms,
-            completion_status: this.completion_status,
-            completion_threshold: this.completion_threshold,
-            credit: this.credit,
-            entry: this.entry,
-            exit: this.exit,
-            interactions: this.interactions,
-            launch_data: this.launch_data,
-            learner_id: this.learner_id,
-            learner_name: this.learner_name,
-            learner_preference: this.learner_preference,
-            location: this.location,
-            max_time_allowed: this.max_time_allowed,
-            mode: this.mode,
-            objectives: this.objectives,
-            progress_measure: this.progress_measure,
-            scaled_passing_score: this.scaled_passing_score,
-            score: this.score,
-            session_time: this.session_time,
-            success_status: this.success_status,
-            suspend_data: this.suspend_data,
-            time_limit_action: this.time_limit_action,
-        };
-        delete this.jsonString;
-        delete this.session.jsonString;
-        return result;
-    };
-    return CMI;
-}(base_cmi/* BaseRootCMI */.r));
-
-
-// EXTERNAL MODULE: ./src/constants/enums.ts
-var enums = __webpack_require__(573);
-;// ./src/cmi/scorm2004/adl.ts
-
-
-
-
-
-
-
-
-
-var ADL = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(ADL, _super);
-    function ADL() {
-        var _this = _super.call(this, "adl") || this;
-        _this.data = new ADLData();
-        _this._sequencing = null;
-        _this.nav = new ADLNav();
-        _this.data = new ADLData();
-        return _this;
-    }
-    ADL.prototype.initialize = function () {
-        var _a;
-        _super.prototype.initialize.call(this);
-        (_a = this.nav) === null || _a === void 0 ? void 0 : _a.initialize();
-    };
-    ADL.prototype.reset = function () {
-        var _a;
-        this._initialized = false;
-        (_a = this.nav) === null || _a === void 0 ? void 0 : _a.reset();
-    };
-    Object.defineProperty(ADL.prototype, "sequencing", {
-        get: function () {
-            return this._sequencing;
-        },
-        set: function (sequencing) {
-            this._sequencing = sequencing;
-            if (sequencing) {
-                sequencing.adlNav = this.nav;
-                this.nav.sequencing = sequencing;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    ADL.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            nav: this.nav,
-            data: this.data,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return ADL;
-}(base_cmi/* BaseCMI */.J));
-
-var ADLNav = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(ADLNav, _super);
-    function ADLNav() {
-        var _this = _super.call(this, "adl.nav") || this;
-        _this._request = "_none_";
-        _this._sequencing = null;
-        _this.request_valid = new ADLNavRequestValid();
-        return _this;
-    }
-    Object.defineProperty(ADLNav.prototype, "sequencing", {
-        get: function () {
-            return this._sequencing;
-        },
-        set: function (sequencing) {
-            this._sequencing = sequencing;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    ADLNav.prototype.initialize = function () {
-        var _a;
-        _super.prototype.initialize.call(this);
-        (_a = this.request_valid) === null || _a === void 0 ? void 0 : _a.initialize();
-    };
-    ADLNav.prototype.reset = function () {
-        var _a;
-        this._initialized = false;
-        this._request = "_none_";
-        this._sequencing = null;
-        (_a = this.request_valid) === null || _a === void 0 ? void 0 : _a.reset();
-    };
-    Object.defineProperty(ADLNav.prototype, "request", {
-        get: function () {
-            return this._request;
-        },
-        set: function (request) {
-            if (check2004ValidFormat(this._cmi_element + ".request", request, regex/* scorm2004_regex */.xt.NAVEvent)) {
-                if (this._request !== request) {
-                    this._request = request;
-                    if (this._sequencing) {
-                        this._sequencing.processNavigationRequest(request);
-                    }
-                }
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    ADLNav.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            request: this.request,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return ADLNav;
-}(base_cmi/* BaseCMI */.J));
-
-var ADLData = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(ADLData, _super);
-    function ADLData() {
-        return _super.call(this, {
-            CMIElement: "adl.data",
-            children: api_constants/* scorm2004_constants */.zR.adl_data_children,
-            errorCode: error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT,
-            errorClass: Scorm2004ValidationError,
-        }) || this;
-    }
-    return ADLData;
-}(array/* CMIArray */.B));
-
-var ADLDataObject = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(ADLDataObject, _super);
-    function ADLDataObject() {
-        var _this = _super.call(this, "adl.data.n") || this;
-        _this._id = "";
-        _this._store = "";
-        return _this;
-    }
-    ADLDataObject.prototype.reset = function () {
-        this._initialized = false;
-    };
-    Object.defineProperty(ADLDataObject.prototype, "id", {
-        get: function () {
-            return this._id;
-        },
-        set: function (id) {
-            if (check2004ValidFormat(this._cmi_element + ".id", id, regex/* scorm2004_regex */.xt.CMILongIdentifier)) {
-                this._id = id;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(ADLDataObject.prototype, "store", {
-        get: function () {
-            return this._store;
-        },
-        set: function (store) {
-            if (check2004ValidFormat(this._cmi_element + ".store", store, regex/* scorm2004_regex */.xt.CMILangString4000)) {
-                this._store = store;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    ADLDataObject.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            id: this._id,
-            store: this._store,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return ADLDataObject;
-}(base_cmi/* BaseCMI */.J));
-
-var ADLNavRequestValid = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(ADLNavRequestValid, _super);
-    function ADLNavRequestValid() {
-        var _this = _super.call(this, "adl.nav.request_valid") || this;
-        _this._continue = "unknown";
-        _this._previous = "unknown";
-        _this._choice = {};
-        _this._jump = {};
-        return _this;
-    }
-    ADLNavRequestValid.prototype.reset = function () {
-        this._initialized = false;
-        this._continue = "unknown";
-        this._previous = "unknown";
-    };
-    Object.defineProperty(ADLNavRequestValid.prototype, "continue", {
-        get: function () {
-            return this._continue;
-        },
-        set: function (_continue) {
-            if (this.initialized) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".continue", error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
-            }
-            if (check2004ValidFormat(this._cmi_element + ".continue", _continue, regex/* scorm2004_regex */.xt.NAVBoolean)) {
-                this._continue = _continue;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(ADLNavRequestValid.prototype, "previous", {
-        get: function () {
-            return this._previous;
-        },
-        set: function (_previous) {
-            if (this.initialized) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".previous", error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
-            }
-            if (check2004ValidFormat(this._cmi_element + ".previous", _previous, regex/* scorm2004_regex */.xt.NAVBoolean)) {
-                this._previous = _previous;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(ADLNavRequestValid.prototype, "choice", {
-        get: function () {
-            return this._choice;
-        },
-        set: function (choice) {
-            if (this.initialized) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".choice", error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
-            }
-            if (typeof choice !== "object") {
-                throw new Scorm2004ValidationError(this._cmi_element + ".choice", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
-            }
-            for (var key in choice) {
-                if ({}.hasOwnProperty.call(choice, key)) {
-                    if (check2004ValidFormat(this._cmi_element + ".choice." + key, choice[key], regex/* scorm2004_regex */.xt.NAVBoolean) &&
-                        check2004ValidFormat(this._cmi_element + ".choice." + key, key, regex/* scorm2004_regex */.xt.NAVTarget)) {
-                        var value = choice[key];
-                        if (value === "true") {
-                            this._choice[key] = enums/* NAVBoolean */.K$.TRUE;
-                        }
-                        else if (value === "false") {
-                            this._choice[key] = enums/* NAVBoolean */.K$.FALSE;
-                        }
-                        else if (value === "unknown") {
-                            this._choice[key] = enums/* NAVBoolean */.K$.UNKNOWN;
-                        }
-                    }
-                }
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(ADLNavRequestValid.prototype, "jump", {
-        get: function () {
-            return this._jump;
-        },
-        set: function (jump) {
-            if (this.initialized) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".jump", error_codes/* scorm2004_errors */.Rf.READ_ONLY_ELEMENT);
-            }
-            if (typeof jump !== "object") {
-                throw new Scorm2004ValidationError(this._cmi_element + ".jump", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
-            }
-            for (var key in jump) {
-                if ({}.hasOwnProperty.call(jump, key)) {
-                    if (check2004ValidFormat(this._cmi_element + ".jump." + key, jump[key], regex/* scorm2004_regex */.xt.NAVBoolean) &&
-                        check2004ValidFormat(this._cmi_element + ".jump." + key, key, regex/* scorm2004_regex */.xt.NAVTarget)) {
-                        var value = jump[key];
-                        if (value === "true") {
-                            this._jump[key] = enums/* NAVBoolean */.K$.TRUE;
-                        }
-                        else if (value === "false") {
-                            this._jump[key] = enums/* NAVBoolean */.K$.FALSE;
-                        }
-                        else if (value === "unknown") {
-                            this._jump[key] = enums/* NAVBoolean */.K$.UNKNOWN;
-                        }
-                    }
-                }
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    ADLNavRequestValid.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            previous: this._previous,
-            continue: this._continue,
-            choice: this._choice,
-            jump: this._jump,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return ADLNavRequestValid;
-}(base_cmi/* BaseCMI */.J));
-
-
-;// ./src/cmi/scorm2004/sequencing/sequencing_rules.ts
-
-
-
-
-
-var RuleConditionOperator;
-(function (RuleConditionOperator) {
-    RuleConditionOperator["NOT"] = "not";
-    RuleConditionOperator["AND"] = "and";
-    RuleConditionOperator["OR"] = "or";
-})(RuleConditionOperator || (RuleConditionOperator = {}));
-var RuleConditionType;
-(function (RuleConditionType) {
-    RuleConditionType["SATISFIED"] = "satisfied";
-    RuleConditionType["OBJECTIVE_STATUS_KNOWN"] = "objectiveStatusKnown";
-    RuleConditionType["OBJECTIVE_MEASURE_KNOWN"] = "objectiveMeasureKnown";
-    RuleConditionType["OBJECTIVE_MEASURE_GREATER_THAN"] = "objectiveMeasureGreaterThan";
-    RuleConditionType["OBJECTIVE_MEASURE_LESS_THAN"] = "objectiveMeasureLessThan";
-    RuleConditionType["COMPLETED"] = "completed";
-    RuleConditionType["PROGRESS_KNOWN"] = "progressKnown";
-    RuleConditionType["ATTEMPTED"] = "attempted";
-    RuleConditionType["ATTEMPT_LIMIT_EXCEEDED"] = "attemptLimitExceeded";
-    RuleConditionType["TIME_LIMIT_EXCEEDED"] = "timeLimitExceeded";
-    RuleConditionType["OUTSIDE_AVAILABLE_TIME_RANGE"] = "outsideAvailableTimeRange";
-    RuleConditionType["ALWAYS"] = "always";
-})(RuleConditionType || (RuleConditionType = {}));
-var RuleActionType;
-(function (RuleActionType) {
-    RuleActionType["SKIP"] = "skip";
-    RuleActionType["DISABLED"] = "disabled";
-    RuleActionType["HIDE_FROM_CHOICE"] = "hideFromChoice";
-    RuleActionType["STOP_FORWARD_TRAVERSAL"] = "stopForwardTraversal";
-    RuleActionType["EXIT_PARENT"] = "exitParent";
-    RuleActionType["EXIT_ALL"] = "exitAll";
-    RuleActionType["RETRY"] = "retry";
-    RuleActionType["RETRY_ALL"] = "retryAll";
-    RuleActionType["CONTINUE"] = "continue";
-    RuleActionType["PREVIOUS"] = "previous";
-    RuleActionType["EXIT"] = "exit";
-})(RuleActionType || (RuleActionType = {}));
-var RuleCondition = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(RuleCondition, _super);
-    function RuleCondition(condition, operator, parameters) {
-        if (condition === void 0) { condition = RuleConditionType.ALWAYS; }
-        if (operator === void 0) { operator = null; }
-        if (parameters === void 0) { parameters = new Map(); }
-        var _this = _super.call(this, "ruleCondition") || this;
-        _this._condition = RuleConditionType.ALWAYS;
-        _this._operator = null;
-        _this._parameters = new Map();
-        _this._condition = condition;
-        _this._operator = operator;
-        _this._parameters = parameters;
-        return _this;
-    }
-    RuleCondition.prototype.reset = function () {
-        this._initialized = false;
-    };
-    Object.defineProperty(RuleCondition.prototype, "condition", {
-        get: function () {
-            return this._condition;
-        },
-        set: function (condition) {
-            this._condition = condition;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(RuleCondition.prototype, "operator", {
-        get: function () {
-            return this._operator;
-        },
-        set: function (operator) {
-            this._operator = operator;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(RuleCondition.prototype, "parameters", {
-        get: function () {
-            return this._parameters;
-        },
-        set: function (parameters) {
-            this._parameters = parameters;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    RuleCondition.prototype.evaluate = function (activity) {
-        switch (this._condition) {
-            case RuleConditionType.SATISFIED:
-                return activity.successStatus === enums/* SuccessStatus */.YE.PASSED;
-            case RuleConditionType.OBJECTIVE_STATUS_KNOWN:
-                return activity.objectiveMeasureStatus;
-            case RuleConditionType.OBJECTIVE_MEASURE_KNOWN:
-                return activity.objectiveMeasureStatus;
-            case RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN: {
-                var greaterThanValue = this._parameters.get("threshold") || 0;
-                return (activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue);
-            }
-            case RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN: {
-                var lessThanValue = this._parameters.get("threshold") || 0;
-                return (activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue);
-            }
-            case RuleConditionType.COMPLETED:
-                return activity.isCompleted;
-            case RuleConditionType.PROGRESS_KNOWN:
-                return activity.completionStatus !== "unknown";
-            case RuleConditionType.ATTEMPTED:
-                return activity.attemptCount > 0;
-            case RuleConditionType.ATTEMPT_LIMIT_EXCEEDED: {
-                var attemptLimit = this._parameters.get("attemptLimit") || 0;
-                return attemptLimit > 0 && activity.attemptCount >= attemptLimit;
-            }
-            case RuleConditionType.TIME_LIMIT_EXCEEDED:
-                return false;
-            case RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE:
-                return false;
-            case RuleConditionType.ALWAYS:
-                return true;
-            default:
-                return false;
-        }
-    };
-    RuleCondition.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            condition: this._condition,
-            operator: this._operator,
-            parameters: Object.fromEntries(this._parameters),
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return RuleCondition;
-}(base_cmi/* BaseCMI */.J));
-
-var SequencingRule = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(SequencingRule, _super);
-    function SequencingRule(action, conditionCombination) {
-        if (action === void 0) { action = RuleActionType.SKIP; }
-        if (conditionCombination === void 0) { conditionCombination = RuleConditionOperator.AND; }
-        var _this = _super.call(this, "sequencingRule") || this;
-        _this._conditions = [];
-        _this._action = RuleActionType.SKIP;
-        _this._conditionCombination = RuleConditionOperator.AND;
-        _this._action = action;
-        _this._conditionCombination = conditionCombination;
-        return _this;
-    }
-    SequencingRule.prototype.reset = function () {
-        this._initialized = false;
-        this._conditions = [];
-    };
-    Object.defineProperty(SequencingRule.prototype, "conditions", {
-        get: function () {
-            return this._conditions;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    SequencingRule.prototype.addCondition = function (condition) {
-        if (!(condition instanceof RuleCondition)) {
-            throw new Scorm2004ValidationError(this._cmi_element + ".conditions", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
-        }
-        this._conditions.push(condition);
-    };
-    SequencingRule.prototype.removeCondition = function (condition) {
-        var index = this._conditions.indexOf(condition);
-        if (index !== -1) {
-            this._conditions.splice(index, 1);
-            return true;
-        }
-        return false;
-    };
-    Object.defineProperty(SequencingRule.prototype, "action", {
-        get: function () {
-            return this._action;
-        },
-        set: function (action) {
-            this._action = action;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(SequencingRule.prototype, "conditionCombination", {
-        get: function () {
-            return this._conditionCombination;
-        },
-        set: function (conditionCombination) {
-            this._conditionCombination = conditionCombination;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    SequencingRule.prototype.evaluate = function (activity) {
-        if (this._conditions.length === 0) {
-            return true;
-        }
-        if (this._conditionCombination === RuleConditionOperator.AND) {
-            return this._conditions.every(function (condition) { return condition.evaluate(activity); });
-        }
-        else if (this._conditionCombination === RuleConditionOperator.OR) {
-            return this._conditions.some(function (condition) { return condition.evaluate(activity); });
-        }
-        return false;
-    };
-    SequencingRule.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            conditions: this._conditions,
-            action: this._action,
-            conditionCombination: this._conditionCombination,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return SequencingRule;
-}(base_cmi/* BaseCMI */.J));
-
-var SequencingRules = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(SequencingRules, _super);
-    function SequencingRules() {
-        var _this = _super.call(this, "sequencingRules") || this;
-        _this._preConditionRules = [];
-        _this._exitConditionRules = [];
-        _this._postConditionRules = [];
-        return _this;
-    }
-    SequencingRules.prototype.reset = function () {
-        this._initialized = false;
-        this._preConditionRules = [];
-        this._exitConditionRules = [];
-        this._postConditionRules = [];
-    };
-    Object.defineProperty(SequencingRules.prototype, "preConditionRules", {
-        get: function () {
-            return this._preConditionRules;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    SequencingRules.prototype.addPreConditionRule = function (rule) {
-        if (!(rule instanceof SequencingRule)) {
-            throw new Scorm2004ValidationError(this._cmi_element + ".preConditionRules", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
-        }
-        this._preConditionRules.push(rule);
-    };
-    Object.defineProperty(SequencingRules.prototype, "exitConditionRules", {
-        get: function () {
-            return this._exitConditionRules;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    SequencingRules.prototype.addExitConditionRule = function (rule) {
-        if (!(rule instanceof SequencingRule)) {
-            throw new Scorm2004ValidationError(this._cmi_element + ".exitConditionRules", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
-        }
-        this._exitConditionRules.push(rule);
-    };
-    Object.defineProperty(SequencingRules.prototype, "postConditionRules", {
-        get: function () {
-            return this._postConditionRules;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    SequencingRules.prototype.addPostConditionRule = function (rule) {
-        if (!(rule instanceof SequencingRule)) {
-            throw new Scorm2004ValidationError(this._cmi_element + ".postConditionRules", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
-        }
-        this._postConditionRules.push(rule);
-    };
-    SequencingRules.prototype.evaluatePreConditionRules = function (activity) {
-        for (var _i = 0, _a = this._preConditionRules; _i < _a.length; _i++) {
-            var rule = _a[_i];
-            if (rule.evaluate(activity)) {
-                return rule.action;
-            }
-        }
-        return null;
-    };
-    SequencingRules.prototype.evaluateExitConditionRules = function (activity) {
-        for (var _i = 0, _a = this._exitConditionRules; _i < _a.length; _i++) {
-            var rule = _a[_i];
-            if (rule.evaluate(activity)) {
-                return rule.action;
-            }
-        }
-        return null;
-    };
-    SequencingRules.prototype.evaluatePostConditionRules = function (activity) {
-        for (var _i = 0, _a = this._postConditionRules; _i < _a.length; _i++) {
-            var rule = _a[_i];
-            if (rule.evaluate(activity)) {
-                return rule.action;
-            }
-        }
-        return null;
-    };
-    SequencingRules.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            preConditionRules: this._preConditionRules,
-            exitConditionRules: this._exitConditionRules,
-            postConditionRules: this._postConditionRules,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return SequencingRules;
-}(base_cmi/* BaseCMI */.J));
-
-
-;// ./src/cmi/scorm2004/sequencing/rollup_rules.ts
-
-
-
-
-
-var RollupActionType;
-(function (RollupActionType) {
-    RollupActionType["SATISFIED"] = "satisfied";
-    RollupActionType["NOT_SATISFIED"] = "notSatisfied";
-    RollupActionType["COMPLETED"] = "completed";
-    RollupActionType["INCOMPLETE"] = "incomplete";
-})(RollupActionType || (RollupActionType = {}));
-var RollupConditionType;
-(function (RollupConditionType) {
-    RollupConditionType["SATISFIED"] = "satisfied";
-    RollupConditionType["OBJECTIVE_STATUS_KNOWN"] = "objectiveStatusKnown";
-    RollupConditionType["OBJECTIVE_MEASURE_KNOWN"] = "objectiveMeasureKnown";
-    RollupConditionType["OBJECTIVE_MEASURE_GREATER_THAN"] = "objectiveMeasureGreaterThan";
-    RollupConditionType["OBJECTIVE_MEASURE_LESS_THAN"] = "objectiveMeasureLessThan";
-    RollupConditionType["COMPLETED"] = "completed";
-    RollupConditionType["PROGRESS_KNOWN"] = "progressKnown";
-    RollupConditionType["ATTEMPTED"] = "attempted";
-    RollupConditionType["NOT_ATTEMPTED"] = "notAttempted";
-    RollupConditionType["ALWAYS"] = "always";
-})(RollupConditionType || (RollupConditionType = {}));
-var RollupConsiderationType;
-(function (RollupConsiderationType) {
-    RollupConsiderationType["ALL"] = "all";
-    RollupConsiderationType["ANY"] = "any";
-    RollupConsiderationType["NONE"] = "none";
-    RollupConsiderationType["AT_LEAST_COUNT"] = "atLeastCount";
-    RollupConsiderationType["AT_LEAST_PERCENT"] = "atLeastPercent";
-})(RollupConsiderationType || (RollupConsiderationType = {}));
-var RollupCondition = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(RollupCondition, _super);
-    function RollupCondition(condition, parameters) {
-        if (condition === void 0) { condition = RollupConditionType.ALWAYS; }
-        if (parameters === void 0) { parameters = new Map(); }
-        var _this = _super.call(this, "rollupCondition") || this;
-        _this._condition = RollupConditionType.ALWAYS;
-        _this._parameters = new Map();
-        _this._condition = condition;
-        _this._parameters = parameters;
-        return _this;
-    }
-    RollupCondition.prototype.reset = function () {
-        this._initialized = false;
-    };
-    Object.defineProperty(RollupCondition.prototype, "condition", {
-        get: function () {
-            return this._condition;
-        },
-        set: function (condition) {
-            this._condition = condition;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(RollupCondition.prototype, "parameters", {
-        get: function () {
-            return this._parameters;
-        },
-        set: function (parameters) {
-            this._parameters = parameters;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    RollupCondition.prototype.evaluate = function (activity) {
-        switch (this._condition) {
-            case RollupConditionType.SATISFIED:
-                return activity.successStatus === enums/* SuccessStatus */.YE.PASSED;
-            case RollupConditionType.OBJECTIVE_STATUS_KNOWN:
-                return activity.objectiveMeasureStatus;
-            case RollupConditionType.OBJECTIVE_MEASURE_KNOWN:
-                return activity.objectiveMeasureStatus;
-            case RollupConditionType.OBJECTIVE_MEASURE_GREATER_THAN: {
-                var greaterThanValue = this._parameters.get("threshold") || 0;
-                return (activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue);
-            }
-            case RollupConditionType.OBJECTIVE_MEASURE_LESS_THAN: {
-                var lessThanValue = this._parameters.get("threshold") || 0;
-                return (activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue);
-            }
-            case RollupConditionType.COMPLETED:
-                return activity.isCompleted;
-            case RollupConditionType.PROGRESS_KNOWN:
-                return activity.completionStatus !== enums/* CompletionStatus */.lC.UNKNOWN;
-            case RollupConditionType.ATTEMPTED:
-                return activity.attemptCount > 0;
-            case RollupConditionType.NOT_ATTEMPTED:
-                return activity.attemptCount === 0;
-            case RollupConditionType.ALWAYS:
-                return true;
-            default:
-                return false;
-        }
-    };
-    RollupCondition.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            condition: this._condition,
-            parameters: Object.fromEntries(this._parameters),
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return RollupCondition;
-}(base_cmi/* BaseCMI */.J));
-
-var RollupRule = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(RollupRule, _super);
-    function RollupRule(action, consideration, minimumCount, minimumPercent) {
-        if (action === void 0) { action = RollupActionType.SATISFIED; }
-        if (consideration === void 0) { consideration = RollupConsiderationType.ALL; }
-        if (minimumCount === void 0) { minimumCount = 0; }
-        if (minimumPercent === void 0) { minimumPercent = 0; }
-        var _this = _super.call(this, "rollupRule") || this;
-        _this._conditions = [];
-        _this._action = RollupActionType.SATISFIED;
-        _this._consideration = RollupConsiderationType.ALL;
-        _this._minimumCount = 0;
-        _this._minimumPercent = 0;
-        _this._action = action;
-        _this._consideration = consideration;
-        _this._minimumCount = minimumCount;
-        _this._minimumPercent = minimumPercent;
-        return _this;
-    }
-    RollupRule.prototype.reset = function () {
-        this._initialized = false;
-        this._conditions = [];
-    };
-    Object.defineProperty(RollupRule.prototype, "conditions", {
-        get: function () {
-            return this._conditions;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    RollupRule.prototype.addCondition = function (condition) {
-        if (!(condition instanceof RollupCondition)) {
-            throw new Scorm2004ValidationError(this._cmi_element + ".conditions", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
-        }
-        this._conditions.push(condition);
-    };
-    RollupRule.prototype.removeCondition = function (condition) {
-        var index = this._conditions.indexOf(condition);
-        if (index !== -1) {
-            this._conditions.splice(index, 1);
-            return true;
-        }
-        return false;
-    };
-    Object.defineProperty(RollupRule.prototype, "action", {
-        get: function () {
-            return this._action;
-        },
-        set: function (action) {
-            this._action = action;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(RollupRule.prototype, "consideration", {
-        get: function () {
-            return this._consideration;
-        },
-        set: function (consideration) {
-            this._consideration = consideration;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(RollupRule.prototype, "minimumCount", {
-        get: function () {
-            return this._minimumCount;
-        },
-        set: function (minimumCount) {
-            if (minimumCount >= 0) {
-                this._minimumCount = minimumCount;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(RollupRule.prototype, "minimumPercent", {
-        get: function () {
-            return this._minimumPercent;
-        },
-        set: function (minimumPercent) {
-            if (minimumPercent >= 0 && minimumPercent <= 100) {
-                this._minimumPercent = minimumPercent;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    RollupRule.prototype.evaluate = function (children) {
-        var _this = this;
-        if (children.length === 0) {
-            return false;
-        }
-        var matchingChildren = children.filter(function (child) {
-            return _this._conditions.every(function (condition) { return condition.evaluate(child); });
-        });
-        switch (this._consideration) {
-            case RollupConsiderationType.ALL:
-                return matchingChildren.length === children.length;
-            case RollupConsiderationType.ANY:
-                return matchingChildren.length > 0;
-            case RollupConsiderationType.NONE:
-                return matchingChildren.length === 0;
-            case RollupConsiderationType.AT_LEAST_COUNT:
-                return matchingChildren.length >= this._minimumCount;
-            case RollupConsiderationType.AT_LEAST_PERCENT: {
-                var percent = (matchingChildren.length / children.length) * 100;
-                return percent >= this._minimumPercent;
-            }
-            default:
-                return false;
-        }
-    };
-    RollupRule.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            conditions: this._conditions,
-            action: this._action,
-            consideration: this._consideration,
-            minimumCount: this._minimumCount,
-            minimumPercent: this._minimumPercent,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return RollupRule;
-}(base_cmi/* BaseCMI */.J));
-
-var RollupRules = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(RollupRules, _super);
-    function RollupRules() {
-        var _this = _super.call(this, "rollupRules") || this;
-        _this._rules = [];
-        return _this;
-    }
-    RollupRules.prototype.reset = function () {
-        this._initialized = false;
-        this._rules = [];
-    };
-    Object.defineProperty(RollupRules.prototype, "rules", {
-        get: function () {
-            return this._rules;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    RollupRules.prototype.addRule = function (rule) {
-        if (!(rule instanceof RollupRule)) {
-            throw new Scorm2004ValidationError(this._cmi_element + ".rules", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
-        }
-        this._rules.push(rule);
-    };
-    RollupRules.prototype.removeRule = function (rule) {
-        var index = this._rules.indexOf(rule);
-        if (index !== -1) {
-            this._rules.splice(index, 1);
-            return true;
-        }
-        return false;
-    };
-    RollupRules.prototype.processRollup = function (activity) {
-        if (!activity || activity.children.length === 0) {
-            return;
-        }
-        var children = activity.children;
-        var completionRollup = false;
-        var successRollup = false;
-        for (var _i = 0, _a = this._rules; _i < _a.length; _i++) {
-            var rule = _a[_i];
-            if (rule.evaluate(children)) {
-                switch (rule.action) {
-                    case RollupActionType.SATISFIED:
-                        activity.successStatus = enums/* SuccessStatus */.YE.PASSED;
-                        successRollup = true;
-                        break;
-                    case RollupActionType.NOT_SATISFIED:
-                        activity.successStatus = enums/* SuccessStatus */.YE.FAILED;
-                        successRollup = true;
-                        break;
-                    case RollupActionType.COMPLETED:
-                        activity.completionStatus = enums/* CompletionStatus */.lC.COMPLETED;
-                        activity.isCompleted = true;
-                        completionRollup = true;
-                        break;
-                    case RollupActionType.INCOMPLETE:
-                        activity.completionStatus = enums/* CompletionStatus */.lC.INCOMPLETE;
-                        activity.isCompleted = false;
-                        completionRollup = true;
-                        break;
-                }
-            }
-        }
-        if (!completionRollup) {
-            this._defaultCompletionRollup(activity, children);
-        }
-        if (!successRollup) {
-            this._defaultSuccessRollup(activity, children);
-        }
-    };
-    RollupRules.prototype._defaultCompletionRollup = function (activity, children) {
-        var allCompleted = children.every(function (child) { return child.isCompleted; });
-        if (allCompleted) {
-            activity.completionStatus = enums/* CompletionStatus */.lC.COMPLETED;
-            activity.isCompleted = true;
-        }
-        else {
-            var anyIncomplete = children.some(function (child) { return child.completionStatus === enums/* CompletionStatus */.lC.INCOMPLETE; });
-            if (anyIncomplete) {
-                activity.completionStatus = enums/* CompletionStatus */.lC.INCOMPLETE;
-                activity.isCompleted = false;
-            }
-        }
-    };
-    RollupRules.prototype._defaultSuccessRollup = function (activity, children) {
-        var allSatisfied = children.every(function (child) { return child.successStatus === enums/* SuccessStatus */.YE.PASSED; });
-        if (allSatisfied) {
-            activity.successStatus = enums/* SuccessStatus */.YE.PASSED;
-        }
-        else {
-            var anyNotSatisfied = children.some(function (child) { return child.successStatus === enums/* SuccessStatus */.YE.FAILED; });
-            if (anyNotSatisfied) {
-                activity.successStatus = enums/* SuccessStatus */.YE.FAILED;
-            }
-        }
-    };
-    RollupRules.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            rules: this._rules,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return RollupRules;
-}(base_cmi/* BaseCMI */.J));
-
-
-;// ./src/constants/language_constants.ts
-var ValidLanguages = [
-    "aa",
-    "ab",
-    "ae",
-    "af",
-    "ak",
-    "am",
-    "an",
-    "ar",
-    "as",
-    "av",
-    "ay",
-    "az",
-    "ba",
-    "be",
-    "bg",
-    "bh",
-    "bi",
-    "bm",
-    "bn",
-    "bo",
-    "br",
-    "bs",
-    "ca",
-    "ce",
-    "ch",
-    "co",
-    "cr",
-    "cs",
-    "cu",
-    "cv",
-    "cy",
-    "da",
-    "de",
-    "dv",
-    "dz",
-    "ee",
-    "el",
-    "en",
-    "eo",
-    "es",
-    "et",
-    "eu",
-    "fa",
-    "ff",
-    "fi",
-    "fj",
-    "fo",
-    "fr",
-    "fy",
-    "ga",
-    "gd",
-    "gl",
-    "gn",
-    "gu",
-    "gv",
-    "ha",
-    "he",
-    "hi",
-    "ho",
-    "hr",
-    "ht",
-    "hu",
-    "hy",
-    "hz",
-    "ia",
-    "id",
-    "ie",
-    "ig",
-    "ii",
-    "ik",
-    "io",
-    "is",
-    "it",
-    "iu",
-    "ja",
-    "jv",
-    "ka",
-    "kg",
-    "ki",
-    "kj",
-    "kk",
-    "kl",
-    "km",
-    "kn",
-    "ko",
-    "kr",
-    "ks",
-    "ku",
-    "kv",
-    "kw",
-    "ky",
-    "la",
-    "lb",
-    "lg",
-    "li",
-    "ln",
-    "lo",
-    "lt",
-    "lu",
-    "lv",
-    "mg",
-    "mh",
-    "mi",
-    "mk",
-    "ml",
-    "mn",
-    "mo",
-    "mr",
-    "ms",
-    "mt",
-    "my",
-    "na",
-    "nb",
-    "nd",
-    "ne",
-    "ng",
-    "nl",
-    "nn",
-    "no",
-    "nr",
-    "nv",
-    "ny",
-    "oc",
-    "oj",
-    "om",
-    "or",
-    "os",
-    "pa",
-    "pi",
-    "pl",
-    "ps",
-    "pt",
-    "qu",
-    "rm",
-    "rn",
-    "ro",
-    "ru",
-    "rw",
-    "sa",
-    "sc",
-    "sd",
-    "se",
-    "sg",
-    "sh",
-    "si",
-    "sk",
-    "sl",
-    "sm",
-    "sn",
-    "so",
-    "sq",
-    "sr",
-    "ss",
-    "st",
-    "su",
-    "sv",
-    "sw",
-    "ta",
-    "te",
-    "tg",
-    "th",
-    "ti",
-    "tk",
-    "tl",
-    "tn",
-    "to",
-    "tr",
-    "ts",
-    "tt",
-    "tw",
-    "ty",
-    "ug",
-    "uk",
-    "ur",
-    "uz",
-    "ve",
-    "vi",
-    "vo",
-    "wa",
-    "wo",
-    "xh",
-    "yi",
-    "yo",
-    "za",
-    "zh",
-    "zu",
-    "aar",
-    "abk",
-    "ave",
-    "afr",
-    "aka",
-    "amh",
-    "arg",
-    "ara",
-    "asm",
-    "ava",
-    "aym",
-    "aze",
-    "bak",
-    "bel",
-    "bul",
-    "bih",
-    "bis",
-    "bam",
-    "ben",
-    "tib",
-    "bod",
-    "bre",
-    "bos",
-    "cat",
-    "che",
-    "cha",
-    "cos",
-    "cre",
-    "cze",
-    "ces",
-    "chu",
-    "chv",
-    "wel",
-    "cym",
-    "dan",
-    "ger",
-    "deu",
-    "div",
-    "dzo",
-    "ewe",
-    "gre",
-    "ell",
-    "eng",
-    "epo",
-    "spa",
-    "est",
-    "baq",
-    "eus",
-    "per",
-    "fas",
-    "ful",
-    "fin",
-    "fij",
-    "fao",
-    "fre",
-    "fra",
-    "fry",
-    "gle",
-    "gla",
-    "glg",
-    "grn",
-    "guj",
-    "glv",
-    "hau",
-    "heb",
-    "hin",
-    "hmo",
-    "hrv",
-    "hat",
-    "hun",
-    "arm",
-    "hye",
-    "her",
-    "ina",
-    "ind",
-    "ile",
-    "ibo",
-    "iii",
-    "ipk",
-    "ido",
-    "ice",
-    "isl",
-    "ita",
-    "iku",
-    "jpn",
-    "jav",
-    "geo",
-    "kat",
-    "kon",
-    "kik",
-    "kua",
-    "kaz",
-    "kal",
-    "khm",
-    "kan",
-    "kor",
-    "kau",
-    "kas",
-    "kur",
-    "kom",
-    "cor",
-    "kir",
-    "lat",
-    "ltz",
-    "lug",
-    "lim",
-    "lin",
-    "lao",
-    "lit",
-    "lub",
-    "lav",
-    "mlg",
-    "mah",
-    "mao",
-    "mri",
-    "mac",
-    "mkd",
-    "mal",
-    "mon",
-    "mol",
-    "mar",
-    "may",
-    "msa",
-    "mlt",
-    "bur",
-    "mya",
-    "nau",
-    "nob",
-    "nde",
-    "nep",
-    "ndo",
-    "dut",
-    "nld",
-    "nno",
-    "nor",
-    "nbl",
-    "nav",
-    "nya",
-    "oci",
-    "oji",
-    "orm",
-    "ori",
-    "oss",
-    "pan",
-    "pli",
-    "pol",
-    "pus",
-    "por",
-    "que",
-    "roh",
-    "run",
-    "rum",
-    "ron",
-    "rus",
-    "kin",
-    "san",
-    "srd",
-    "snd",
-    "sme",
-    "sag",
-    "slo",
-    "sin",
-    "slk",
-    "slv",
-    "smo",
-    "sna",
-    "som",
-    "alb",
-    "sqi",
-    "srp",
-    "ssw",
-    "sot",
-    "sun",
-    "swe",
-    "swa",
-    "tam",
-    "tel",
-    "tgk",
-    "tha",
-    "tir",
-    "tuk",
-    "tgl",
-    "tsn",
-    "ton",
-    "tur",
-    "tso",
-    "tat",
-    "twi",
-    "tah",
-    "uig",
-    "ukr",
-    "urd",
-    "uzb",
-    "ven",
-    "vie",
-    "vol",
-    "wln",
-    "wol",
-    "xho",
-    "yid",
-    "yor",
-    "zha",
-    "chi",
-    "zho",
-    "zul",
-];
-/* harmony default export */ var language_constants = (ValidLanguages);
-
-;// ./src/cmi/scorm2004/sequencing/activity.ts
-
-
-
-
-
-
-
-var Activity = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(Activity, _super);
-    function Activity(id, title) {
-        if (id === void 0) { id = ""; }
-        if (title === void 0) { title = ""; }
-        var _this = _super.call(this, "activity") || this;
-        _this._id = "";
-        _this._title = "";
-        _this._children = [];
-        _this._parent = null;
-        _this._isVisible = true;
-        _this._isActive = false;
-        _this._isSuspended = false;
-        _this._isCompleted = false;
-        _this._completionStatus = enums/* CompletionStatus */.lC.UNKNOWN;
-        _this._successStatus = enums/* SuccessStatus */.YE.UNKNOWN;
-        _this._attemptCount = 0;
-        _this._attemptCompletionAmount = 0;
-        _this._attemptAbsoluteDuration = "PT0H0M0S";
-        _this._attemptExperiencedDuration = "PT0H0M0S";
-        _this._activityAbsoluteDuration = "PT0H0M0S";
-        _this._activityExperiencedDuration = "PT0H0M0S";
-        _this._objectiveSatisfiedStatus = false;
-        _this._objectiveMeasureStatus = false;
-        _this._objectiveNormalizedMeasure = 0;
-        _this._id = id;
-        _this._title = title;
-        return _this;
-    }
-    Activity.prototype.initialize = function () {
-        _super.prototype.initialize.call(this);
-        for (var _i = 0, _a = this._children; _i < _a.length; _i++) {
-            var child = _a[_i];
-            child.initialize();
-        }
-    };
-    Activity.prototype.reset = function () {
-        this._initialized = false;
-        this._isActive = false;
-        this._isSuspended = false;
-        this._isCompleted = false;
-        this._completionStatus = enums/* CompletionStatus */.lC.UNKNOWN;
-        this._successStatus = enums/* SuccessStatus */.YE.UNKNOWN;
-        this._attemptCount = 0;
-        this._attemptCompletionAmount = 0;
-        this._attemptAbsoluteDuration = "PT0H0M0S";
-        this._attemptExperiencedDuration = "PT0H0M0S";
-        this._activityAbsoluteDuration = "PT0H0M0S";
-        this._activityExperiencedDuration = "PT0H0M0S";
-        this._objectiveSatisfiedStatus = false;
-        this._objectiveMeasureStatus = false;
-        this._objectiveNormalizedMeasure = 0;
-        for (var _i = 0, _a = this._children; _i < _a.length; _i++) {
-            var child = _a[_i];
-            child.reset();
-        }
-    };
-    Object.defineProperty(Activity.prototype, "id", {
-        get: function () {
-            return this._id;
-        },
-        set: function (id) {
-            if (check2004ValidFormat(this._cmi_element + ".id", id, regex/* scorm2004_regex */.xt.CMILongIdentifier)) {
-                this._id = id;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Activity.prototype, "title", {
-        get: function () {
-            return this._title;
-        },
-        set: function (title) {
-            if (check2004ValidFormat(this._cmi_element + ".title", title, regex/* scorm2004_regex */.xt.CMILangString250)) {
-                this._title = title;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Activity.prototype, "children", {
-        get: function () {
-            return this._children;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Activity.prototype.addChild = function (child) {
-        if (!(child instanceof Activity)) {
-            throw new Scorm2004ValidationError(this._cmi_element + ".children", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
-        }
-        child._parent = this;
-        this._children.push(child);
-    };
-    Activity.prototype.removeChild = function (child) {
-        var index = this._children.indexOf(child);
-        if (index !== -1) {
-            this._children.splice(index, 1);
-            child._parent = null;
-            return true;
-        }
-        return false;
-    };
-    Object.defineProperty(Activity.prototype, "parent", {
-        get: function () {
-            return this._parent;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Activity.prototype, "isVisible", {
-        get: function () {
-            return this._isVisible;
-        },
-        set: function (isVisible) {
-            this._isVisible = isVisible;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Activity.prototype, "isActive", {
-        get: function () {
-            return this._isActive;
-        },
-        set: function (isActive) {
-            this._isActive = isActive;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Activity.prototype, "isSuspended", {
-        get: function () {
-            return this._isSuspended;
-        },
-        set: function (isSuspended) {
-            this._isSuspended = isSuspended;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Activity.prototype, "isCompleted", {
-        get: function () {
-            return this._isCompleted;
-        },
-        set: function (isCompleted) {
-            this._isCompleted = isCompleted;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Activity.prototype, "completionStatus", {
-        get: function () {
-            return this._completionStatus;
-        },
-        set: function (completionStatus) {
-            this._completionStatus = completionStatus;
-            this._isCompleted = completionStatus === enums/* CompletionStatus */.lC.COMPLETED;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Activity.prototype, "successStatus", {
-        get: function () {
-            return this._successStatus;
-        },
-        set: function (successStatus) {
-            this._successStatus = successStatus;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Activity.prototype, "attemptCount", {
-        get: function () {
-            return this._attemptCount;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Activity.prototype.incrementAttemptCount = function () {
-        this._attemptCount++;
-    };
-    Object.defineProperty(Activity.prototype, "objectiveMeasureStatus", {
-        get: function () {
-            return this._objectiveMeasureStatus;
-        },
-        set: function (objectiveMeasureStatus) {
-            this._objectiveMeasureStatus = objectiveMeasureStatus;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Activity.prototype, "objectiveNormalizedMeasure", {
-        get: function () {
-            return this._objectiveNormalizedMeasure;
-        },
-        set: function (objectiveNormalizedMeasure) {
-            this._objectiveNormalizedMeasure = objectiveNormalizedMeasure;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Activity.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            id: this._id,
-            title: this._title,
-            isVisible: this._isVisible,
-            isActive: this._isActive,
-            isSuspended: this._isSuspended,
-            isCompleted: this._isCompleted,
-            completionStatus: this._completionStatus,
-            successStatus: this._successStatus,
-            attemptCount: this._attemptCount,
-            attemptCompletionAmount: this._attemptCompletionAmount,
-            attemptAbsoluteDuration: this._attemptAbsoluteDuration,
-            attemptExperiencedDuration: this._attemptExperiencedDuration,
-            activityAbsoluteDuration: this._activityAbsoluteDuration,
-            activityExperiencedDuration: this._activityExperiencedDuration,
-            objectiveSatisfiedStatus: this._objectiveSatisfiedStatus,
-            objectiveMeasureStatus: this._objectiveMeasureStatus,
-            objectiveNormalizedMeasure: this._objectiveNormalizedMeasure,
-            children: this._children.map(function (child) { return child.toJSON(); }),
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return Activity;
-}(base_cmi/* BaseCMI */.J));
-
-
-;// ./src/cmi/scorm2004/sequencing/activity_tree.ts
-
-
-
-
-
-var ActivityTree = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(ActivityTree, _super);
-    function ActivityTree() {
-        var _this = _super.call(this, "activityTree") || this;
-        _this._root = null;
-        _this._currentActivity = null;
-        _this._suspendedActivity = null;
-        _this._activities = new Map();
-        return _this;
-    }
-    ActivityTree.prototype.initialize = function () {
-        _super.prototype.initialize.call(this);
-        if (this._root) {
-            this._root.initialize();
-        }
-    };
-    ActivityTree.prototype.reset = function () {
-        this._initialized = false;
-        this._currentActivity = null;
-        this._suspendedActivity = null;
-        if (this._root) {
-            this._root.reset();
-        }
-    };
-    Object.defineProperty(ActivityTree.prototype, "root", {
-        get: function () {
-            return this._root;
-        },
-        set: function (root) {
-            if (root !== null && !(root instanceof Activity)) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".root", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
-            }
-            this._root = root;
-            if (root) {
-                this._activities.set(root.id, root);
-                this._addActivitiesToMap(root);
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    ActivityTree.prototype._addActivitiesToMap = function (activity) {
-        for (var _i = 0, _a = activity.children; _i < _a.length; _i++) {
-            var child = _a[_i];
-            this._activities.set(child.id, child);
-            this._addActivitiesToMap(child);
-        }
-    };
-    Object.defineProperty(ActivityTree.prototype, "currentActivity", {
-        get: function () {
-            return this._currentActivity;
-        },
-        set: function (activity) {
-            if (activity !== null && !(activity instanceof Activity)) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".currentActivity", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
-            }
-            if (this._currentActivity) {
-                this._currentActivity.isActive = false;
-            }
-            this._currentActivity = activity;
-            if (activity) {
-                activity.isActive = true;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(ActivityTree.prototype, "suspendedActivity", {
-        get: function () {
-            return this._suspendedActivity;
-        },
-        set: function (activity) {
-            if (activity !== null && !(activity instanceof Activity)) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".suspendedActivity", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
-            }
-            if (this._suspendedActivity) {
-                this._suspendedActivity.isSuspended = false;
-            }
-            this._suspendedActivity = activity;
-            if (activity) {
-                activity.isSuspended = true;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    ActivityTree.prototype.getActivity = function (id) {
-        return this._activities.get(id);
-    };
-    ActivityTree.prototype.getAllActivities = function () {
-        return Array.from(this._activities.values());
-    };
-    ActivityTree.prototype.getParent = function (activity) {
-        return activity.parent;
-    };
-    ActivityTree.prototype.getChildren = function (activity) {
-        return activity.children;
-    };
-    ActivityTree.prototype.getSiblings = function (activity) {
-        if (!activity.parent) {
-            return [];
-        }
-        return activity.parent.children.filter(function (child) { return child !== activity; });
-    };
-    ActivityTree.prototype.getNextSibling = function (activity) {
-        if (!activity.parent) {
-            return null;
-        }
-        var siblings = activity.parent.children;
-        var index = siblings.indexOf(activity);
-        if (index === -1 || index === siblings.length - 1) {
-            return null;
-        }
-        return siblings[index + 1];
-    };
-    ActivityTree.prototype.getPreviousSibling = function (activity) {
-        if (!activity.parent) {
-            return null;
-        }
-        var siblings = activity.parent.children;
-        var index = siblings.indexOf(activity);
-        if (index <= 0) {
-            return null;
-        }
-        return siblings[index - 1];
-    };
-    ActivityTree.prototype.getFirstChild = function (activity) {
-        if (activity.children.length === 0) {
-            return null;
-        }
-        return activity.children[0];
-    };
-    ActivityTree.prototype.getLastChild = function (activity) {
-        if (activity.children.length === 0) {
-            return null;
-        }
-        return activity.children[activity.children.length - 1];
-    };
-    ActivityTree.prototype.getCommonAncestor = function (activity1, activity2) {
-        var path1 = [];
-        var current = activity1;
-        while (current) {
-            path1.unshift(current);
-            current = current.parent;
-        }
-        current = activity2;
-        while (current) {
-            if (path1.includes(current)) {
-                return current;
-            }
-            current = current.parent;
-        }
-        return null;
-    };
-    ActivityTree.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            root: this._root,
-            currentActivity: this._currentActivity ? this._currentActivity.id : null,
-            suspendedActivity: this._suspendedActivity ? this._suspendedActivity.id : null,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return ActivityTree;
-}(base_cmi/* BaseCMI */.J));
-
-
-;// ./src/cmi/scorm2004/sequencing/sequencing_controls.ts
-
-
-var SequencingControls = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(SequencingControls, _super);
-    function SequencingControls() {
-        var _this = _super.call(this, "sequencingControls") || this;
-        _this._enabled = true;
-        _this._choiceExit = true;
-        _this._flow = false;
-        _this._forwardOnly = false;
-        _this._useCurrentAttemptObjectiveInfo = true;
-        _this._useCurrentAttemptProgressInfo = true;
-        _this._preventActivation = false;
-        _this._constrainChoice = false;
-        _this._rollupObjectiveSatisfied = true;
-        _this._rollupProgressCompletion = true;
-        _this._objectiveMeasureWeight = 1.0;
-        return _this;
-    }
-    SequencingControls.prototype.reset = function () {
-        this._initialized = false;
-        this._enabled = true;
-        this._choiceExit = true;
-        this._flow = false;
-        this._forwardOnly = false;
-        this._useCurrentAttemptObjectiveInfo = true;
-        this._useCurrentAttemptProgressInfo = true;
-        this._preventActivation = false;
-        this._constrainChoice = false;
-        this._rollupObjectiveSatisfied = true;
-        this._rollupProgressCompletion = true;
-        this._objectiveMeasureWeight = 1.0;
-    };
-    Object.defineProperty(SequencingControls.prototype, "enabled", {
-        get: function () {
-            return this._enabled;
-        },
-        set: function (enabled) {
-            this._enabled = enabled;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(SequencingControls.prototype, "choiceExit", {
-        get: function () {
-            return this._choiceExit;
-        },
-        set: function (choiceExit) {
-            this._choiceExit = choiceExit;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(SequencingControls.prototype, "flow", {
-        get: function () {
-            return this._flow;
-        },
-        set: function (flow) {
-            this._flow = flow;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(SequencingControls.prototype, "forwardOnly", {
-        get: function () {
-            return this._forwardOnly;
-        },
-        set: function (forwardOnly) {
-            this._forwardOnly = forwardOnly;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(SequencingControls.prototype, "useCurrentAttemptObjectiveInfo", {
-        get: function () {
-            return this._useCurrentAttemptObjectiveInfo;
-        },
-        set: function (useCurrentAttemptObjectiveInfo) {
-            this._useCurrentAttemptObjectiveInfo = useCurrentAttemptObjectiveInfo;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(SequencingControls.prototype, "useCurrentAttemptProgressInfo", {
-        get: function () {
-            return this._useCurrentAttemptProgressInfo;
-        },
-        set: function (useCurrentAttemptProgressInfo) {
-            this._useCurrentAttemptProgressInfo = useCurrentAttemptProgressInfo;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(SequencingControls.prototype, "preventActivation", {
-        get: function () {
-            return this._preventActivation;
-        },
-        set: function (preventActivation) {
-            this._preventActivation = preventActivation;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(SequencingControls.prototype, "constrainChoice", {
-        get: function () {
-            return this._constrainChoice;
-        },
-        set: function (constrainChoice) {
-            this._constrainChoice = constrainChoice;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(SequencingControls.prototype, "rollupObjectiveSatisfied", {
-        get: function () {
-            return this._rollupObjectiveSatisfied;
-        },
-        set: function (rollupObjectiveSatisfied) {
-            this._rollupObjectiveSatisfied = rollupObjectiveSatisfied;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(SequencingControls.prototype, "rollupProgressCompletion", {
-        get: function () {
-            return this._rollupProgressCompletion;
-        },
-        set: function (rollupProgressCompletion) {
-            this._rollupProgressCompletion = rollupProgressCompletion;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(SequencingControls.prototype, "objectiveMeasureWeight", {
-        get: function () {
-            return this._objectiveMeasureWeight;
-        },
-        set: function (objectiveMeasureWeight) {
-            if (objectiveMeasureWeight >= 0 && objectiveMeasureWeight <= 1) {
-                this._objectiveMeasureWeight = objectiveMeasureWeight;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    SequencingControls.prototype.isChoiceNavigationAllowed = function () {
-        return this._enabled && !this._constrainChoice;
-    };
-    SequencingControls.prototype.isFlowNavigationAllowed = function () {
-        return this._enabled && this._flow;
-    };
-    SequencingControls.prototype.isForwardNavigationAllowed = function () {
-        return this._enabled && (!this._forwardOnly || this._flow);
-    };
-    SequencingControls.prototype.isBackwardNavigationAllowed = function () {
-        return this._enabled && !this._forwardOnly;
-    };
-    SequencingControls.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            enabled: this._enabled,
-            choiceExit: this._choiceExit,
-            flow: this._flow,
-            forwardOnly: this._forwardOnly,
-            useCurrentAttemptObjectiveInfo: this._useCurrentAttemptObjectiveInfo,
-            useCurrentAttemptProgressInfo: this._useCurrentAttemptProgressInfo,
-            preventActivation: this._preventActivation,
-            constrainChoice: this._constrainChoice,
-            rollupObjectiveSatisfied: this._rollupObjectiveSatisfied,
-            rollupProgressCompletion: this._rollupProgressCompletion,
-            objectiveMeasureWeight: this._objectiveMeasureWeight,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return SequencingControls;
-}(base_cmi/* BaseCMI */.J));
-
-
-;// ./src/cmi/scorm2004/sequencing/sequencing.ts
-
-
-
-
-
-
-
-
-var Sequencing = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(Sequencing, _super);
-    function Sequencing() {
-        var _this = _super.call(this, "sequencing") || this;
-        _this._adlNav = null;
-        _this._activityTree = new ActivityTree();
-        _this._sequencingRules = new SequencingRules();
-        _this._sequencingControls = new SequencingControls();
-        _this._rollupRules = new RollupRules();
-        return _this;
-    }
-    Sequencing.prototype.initialize = function () {
-        _super.prototype.initialize.call(this);
-        this._activityTree.initialize();
-        this._sequencingRules.initialize();
-        this._sequencingControls.initialize();
-        this._rollupRules.initialize();
-    };
-    Sequencing.prototype.reset = function () {
-        this._initialized = false;
-        this._activityTree.reset();
-        this._sequencingRules.reset();
-        this._sequencingControls.reset();
-        this._rollupRules.reset();
-    };
-    Object.defineProperty(Sequencing.prototype, "activityTree", {
-        get: function () {
-            return this._activityTree;
-        },
-        set: function (activityTree) {
-            if (!(activityTree instanceof ActivityTree)) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".activityTree", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
-            }
-            this._activityTree = activityTree;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Sequencing.prototype, "sequencingRules", {
-        get: function () {
-            return this._sequencingRules;
-        },
-        set: function (sequencingRules) {
-            if (!(sequencingRules instanceof SequencingRules)) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".sequencingRules", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
-            }
-            this._sequencingRules = sequencingRules;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Sequencing.prototype, "sequencingControls", {
-        get: function () {
-            return this._sequencingControls;
-        },
-        set: function (sequencingControls) {
-            if (!(sequencingControls instanceof SequencingControls)) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".sequencingControls", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
-            }
-            this._sequencingControls = sequencingControls;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Sequencing.prototype, "rollupRules", {
-        get: function () {
-            return this._rollupRules;
-        },
-        set: function (rollupRules) {
-            if (!(rollupRules instanceof RollupRules)) {
-                throw new Scorm2004ValidationError(this._cmi_element + ".rollupRules", error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH);
-            }
-            this._rollupRules = rollupRules;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Sequencing.prototype, "adlNav", {
-        get: function () {
-            return this._adlNav;
-        },
-        set: function (adlNav) {
-            this._adlNav = adlNav;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Sequencing.prototype.processNavigationRequest = function (request) {
-        if (!this._adlNav) {
-            return false;
-        }
-        this._adlNav.request = request;
-        var currentActivity = this._activityTree.currentActivity;
-        if (!currentActivity) {
-            return false;
-        }
-        var preConditionAction = this._sequencingRules.evaluatePreConditionRules(currentActivity);
-        if (preConditionAction) {
-            switch (preConditionAction) {
-                case RuleActionType.SKIP:
-                    return false;
-                case RuleActionType.DISABLED:
-                    return false;
-                case RuleActionType.HIDE_FROM_CHOICE:
-                    return false;
-                case RuleActionType.STOP_FORWARD_TRAVERSAL:
-                    return false;
-                default:
-                    break;
-            }
-        }
-        switch (request) {
-            case "continue":
-                return this.processContinueRequest(currentActivity);
-            case "previous":
-                return this.processPreviousRequest(currentActivity);
-            case "choice":
-                return false;
-            case "exit":
-                return this.processExitRequest(currentActivity);
-            case "exitAll":
-                return this.processExitAllRequest();
-            case "abandon":
-                return this.processAbandonRequest(currentActivity);
-            case "abandonAll":
-                return this.processAbandonAllRequest();
-            case "suspendAll":
-                return this.processSuspendAllRequest(currentActivity);
-            case "resumeAll":
-                return this.processResumeAllRequest();
-            default:
-                return false;
-        }
-    };
-    Sequencing.prototype.processContinueRequest = function (currentActivity) {
-        if (!this._sequencingControls.isForwardNavigationAllowed()) {
-            return false;
-        }
-        var nextActivity = this._activityTree.getNextSibling(currentActivity);
-        if (!nextActivity) {
-            return false;
-        }
-        var exitConditionAction = this._sequencingRules.evaluateExitConditionRules(currentActivity);
-        if (exitConditionAction) {
-            switch (exitConditionAction) {
-                case RuleActionType.EXIT_PARENT: {
-                    var parent_1 = currentActivity.parent;
-                    if (parent_1) {
-                        this._activityTree.currentActivity = parent_1;
-                        return true;
-                    }
-                    return false;
-                }
-                case RuleActionType.EXIT_ALL:
-                    this._activityTree.currentActivity = null;
-                    return true;
-                default:
-                    break;
-            }
-        }
-        this._activityTree.currentActivity = nextActivity;
-        var postConditionAction = this._sequencingRules.evaluatePostConditionRules(nextActivity);
-        if (postConditionAction) {
-            switch (postConditionAction) {
-                case RuleActionType.RETRY:
-                    nextActivity.incrementAttemptCount();
-                    return true;
-                case RuleActionType.RETRY_ALL:
-                    this._activityTree.getAllActivities().forEach(function (activity) {
-                        activity.incrementAttemptCount();
-                    });
-                    return true;
-                case RuleActionType.CONTINUE:
-                    return this.processContinueRequest(nextActivity);
-                case RuleActionType.PREVIOUS:
-                    return this.processPreviousRequest(nextActivity);
-                case RuleActionType.EXIT:
-                    this._activityTree.currentActivity = currentActivity;
-                    return true;
-                default:
-                    break;
-            }
-        }
-        return true;
-    };
-    Sequencing.prototype.processPreviousRequest = function (currentActivity) {
-        if (!this._sequencingControls.isBackwardNavigationAllowed()) {
-            return false;
-        }
-        var previousActivity = this._activityTree.getPreviousSibling(currentActivity);
-        if (!previousActivity) {
-            return false;
-        }
-        var exitConditionAction = this._sequencingRules.evaluateExitConditionRules(currentActivity);
-        if (exitConditionAction) {
-            switch (exitConditionAction) {
-                case RuleActionType.EXIT_PARENT: {
-                    var parent_2 = currentActivity.parent;
-                    if (parent_2) {
-                        this._activityTree.currentActivity = parent_2;
-                        return true;
-                    }
-                    return false;
-                }
-                case RuleActionType.EXIT_ALL:
-                    this._activityTree.currentActivity = null;
-                    return true;
-                default:
-                    break;
-            }
-        }
-        this._activityTree.currentActivity = previousActivity;
-        var postConditionAction = this._sequencingRules.evaluatePostConditionRules(previousActivity);
-        if (postConditionAction) {
-            switch (postConditionAction) {
-                case RuleActionType.RETRY:
-                    previousActivity.incrementAttemptCount();
-                    return true;
-                case RuleActionType.RETRY_ALL:
-                    this._activityTree.getAllActivities().forEach(function (activity) {
-                        activity.incrementAttemptCount();
-                    });
-                    return true;
-                case RuleActionType.CONTINUE:
-                    return this.processContinueRequest(previousActivity);
-                case RuleActionType.PREVIOUS:
-                    return this.processPreviousRequest(previousActivity);
-                case RuleActionType.EXIT:
-                    this._activityTree.currentActivity = currentActivity;
-                    return true;
-                default:
-                    break;
-            }
-        }
-        return true;
-    };
-    Sequencing.prototype.processExitRequest = function (currentActivity) {
-        if (!this._sequencingControls.choiceExit) {
-            return false;
-        }
-        var parent = currentActivity.parent;
-        if (!parent) {
-            return false;
-        }
-        this._activityTree.currentActivity = parent;
-        return true;
-    };
-    Sequencing.prototype.processExitAllRequest = function () {
-        if (!this._sequencingControls.choiceExit) {
-            return false;
-        }
-        this._activityTree.currentActivity = null;
-        return true;
-    };
-    Sequencing.prototype.processAbandonRequest = function (currentActivity) {
-        var parent = currentActivity.parent;
-        if (!parent) {
-            return false;
-        }
-        this._activityTree.currentActivity = parent;
-        return true;
-    };
-    Sequencing.prototype.processAbandonAllRequest = function () {
-        this._activityTree.currentActivity = null;
-        return true;
-    };
-    Sequencing.prototype.processSuspendAllRequest = function (currentActivity) {
-        this._activityTree.suspendedActivity = currentActivity;
-        this._activityTree.currentActivity = null;
-        return true;
-    };
-    Sequencing.prototype.processResumeAllRequest = function () {
-        var suspendedActivity = this._activityTree.suspendedActivity;
-        if (!suspendedActivity) {
-            return false;
-        }
-        this._activityTree.currentActivity = suspendedActivity;
-        this._activityTree.suspendedActivity = null;
-        return true;
-    };
-    Sequencing.prototype.processRollup = function () {
-        var root = this._activityTree.root;
-        if (!root) {
-            return;
-        }
-        this._processRollupRecursive(root);
-    };
-    Sequencing.prototype._processRollupRecursive = function (activity) {
-        for (var _i = 0, _a = activity.children; _i < _a.length; _i++) {
-            var child = _a[_i];
-            this._processRollupRecursive(child);
-        }
-        this._rollupRules.processRollup(activity);
-    };
-    Sequencing.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            activityTree: this._activityTree,
-            sequencingRules: this._sequencingRules,
-            sequencingControls: this._sequencingControls,
-            rollupRules: this._rollupRules,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return Sequencing;
-}(base_cmi/* BaseCMI */.J));
-
-
-;// ./src/Scorm2004API.ts
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-var Scorm2004Impl = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(Scorm2004Impl, _super);
-    function Scorm2004Impl(settings) {
-        var _this = this;
-        if (settings) {
-            if (settings.mastery_override === undefined) {
-                settings.mastery_override = false;
-            }
-        }
-        _this = _super.call(this, error_codes/* scorm2004_errors */.Rf, settings) || this;
-        _this._version = "1.0";
-        _this._globalObjectives = [];
-        _this._extractedScoItemIds = [];
-        _this.cmi = new CMI();
-        _this.adl = new ADL();
-        _this._sequencing = new Sequencing();
-        _this.adl.sequencing = _this._sequencing;
-        if (settings === null || settings === void 0 ? void 0 : settings.sequencing) {
-            _this.configureSequencing(settings.sequencing);
-        }
-        _this.Initialize = _this.lmsInitialize;
-        _this.Terminate = _this.lmsFinish;
-        _this.GetValue = _this.lmsGetValue;
-        _this.SetValue = _this.lmsSetValue;
-        _this.Commit = _this.lmsCommit;
-        _this.GetLastError = _this.lmsGetLastError;
-        _this.GetErrorString = _this.lmsGetErrorString;
-        _this.GetDiagnostic = _this.lmsGetDiagnostic;
-        return _this;
-    }
-    Scorm2004Impl.prototype.reset = function (settings) {
-        var _a, _b, _c;
-        this.commonReset(settings);
-        (_a = this.cmi) === null || _a === void 0 ? void 0 : _a.reset();
-        (_b = this.adl) === null || _b === void 0 ? void 0 : _b.reset();
-        (_c = this._sequencing) === null || _c === void 0 ? void 0 : _c.reset();
-    };
-    Object.defineProperty(Scorm2004Impl.prototype, "version", {
-        get: function () {
-            return this._version;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Scorm2004Impl.prototype, "globalObjectives", {
-        get: function () {
-            return this._globalObjectives;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Scorm2004Impl.prototype.lmsInitialize = function () {
-        this.cmi.initialize();
-        return this.initialize("Initialize", "LMS was already initialized!", "LMS is already finished!");
-    };
-    Scorm2004Impl.prototype.lmsFinish = function () {
-        var _this = this;
-        (function () { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () {
-            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4, this.internalFinish()];
-                    case 1:
-                        _a.sent();
-                        return [2];
-                }
-            });
-        }); })();
-        return api_constants/* global_constants */._y.SCORM_TRUE;
-    };
-    Scorm2004Impl.prototype.internalFinish = function () {
-        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
-            var result, navActions, request, choiceJumpRegex, matches, target, action;
-            var _a, _b, _c, _d;
-            return (0,tslib_es6/* __generator */.YH)(this, function (_e) {
-                switch (_e.label) {
-                    case 0: return [4, this.terminate("Terminate", true)];
-                    case 1:
-                        result = _e.sent();
-                        if (result === api_constants/* global_constants */._y.SCORM_TRUE) {
-                            if (this.adl.nav.request !== "_none_") {
-                                navActions = {
-                                    continue: "SequenceNext",
-                                    previous: "SequencePrevious",
-                                    choice: "SequenceChoice",
-                                    jump: "SequenceJump",
-                                    exit: "SequenceExit",
-                                    exitAll: "SequenceExitAll",
-                                    abandon: "SequenceAbandon",
-                                    abandonAll: "SequenceAbandonAll",
-                                };
-                                request = this.adl.nav.request;
-                                choiceJumpRegex = new RegExp(regex/* scorm2004_regex */.xt.NAVEvent);
-                                matches = request.match(choiceJumpRegex);
-                                target = "";
-                                if (matches) {
-                                    if ((_a = matches.groups) === null || _a === void 0 ? void 0 : _a.choice_target) {
-                                        target = (_b = matches.groups) === null || _b === void 0 ? void 0 : _b.choice_target;
-                                        request = "choice";
-                                    }
-                                    else if ((_c = matches.groups) === null || _c === void 0 ? void 0 : _c.jump_target) {
-                                        target = (_d = matches.groups) === null || _d === void 0 ? void 0 : _d.jump_target;
-                                        request = "jump";
-                                    }
-                                }
-                                action = navActions[request];
-                                if (action) {
-                                    this.processListeners(action, "adl.nav.request", target);
-                                }
-                            }
-                            else if (this.settings.autoProgress) {
-                                this.processListeners("SequenceNext", null, "next");
-                            }
-                        }
-                        return [2, result];
-                }
-            });
-        });
-    };
-    Scorm2004Impl.prototype.lmsGetValue = function (CMIElement) {
-        var adlNavRequestRegex = "^adl\\.nav\\.request_valid\\.(choice|jump)\\.{target=\\S{0,}([a-zA-Z0-9-_]+)}$";
-        if ((0,utilities/* stringMatches */.J6)(CMIElement, adlNavRequestRegex)) {
-            var matches = CMIElement.match(adlNavRequestRegex);
-            var request = matches[1];
-            var target = matches[2].replace("{target=", "").replace("}", "");
-            if (request === "choice" || request === "jump") {
-                if (this.settings.scoItemIdValidator) {
-                    return String(this.settings.scoItemIdValidator(target));
-                }
-                if (this._extractedScoItemIds.length > 0) {
-                    return String(this._extractedScoItemIds.includes(target));
-                }
-                return String(this.settings.scoItemIds.includes(target));
-            }
-        }
-        return this.getValue("GetValue", true, CMIElement);
-    };
-    Scorm2004Impl.prototype.lmsSetValue = function (CMIElement, value) {
-        return this.setValue("SetValue", "Commit", true, CMIElement, value);
-    };
-    Scorm2004Impl.prototype.lmsCommit = function () {
-        var _this = this;
-        if (this.settings.asyncCommit) {
-            this.scheduleCommit(500, "Commit");
-        }
-        else {
-            (function () { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () {
-                return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                    switch (_a.label) {
-                        case 0: return [4, this.commit("Commit", false)];
-                        case 1:
-                            _a.sent();
-                            return [2];
-                    }
-                });
-            }); })();
-        }
-        return api_constants/* global_constants */._y.SCORM_TRUE;
-    };
-    Scorm2004Impl.prototype.lmsGetLastError = function () {
-        return this.getLastError("GetLastError");
-    };
-    Scorm2004Impl.prototype.lmsGetErrorString = function (CMIErrorCode) {
-        return this.getErrorString("GetErrorString", CMIErrorCode);
-    };
-    Scorm2004Impl.prototype.lmsGetDiagnostic = function (CMIErrorCode) {
-        return this.getDiagnostic("GetDiagnostic", CMIErrorCode);
-    };
-    Scorm2004Impl.prototype.setCMIValue = function (CMIElement, value) {
-        if ((0,utilities/* stringMatches */.J6)(CMIElement, "cmi\\.objectives\\.\\d+")) {
-            var parts = CMIElement.split(".");
-            var index = Number(parts[2]);
-            var element_base = "cmi.objectives.".concat(index);
-            var objective_id_1;
-            var setting_id = (0,utilities/* stringMatches */.J6)(CMIElement, "cmi\\.objectives\\.\\d+\\.id");
-            if (setting_id) {
-                objective_id_1 = value;
-            }
-            else {
-                var objective = this.cmi.objectives.findObjectiveByIndex(index);
-                objective_id_1 = objective ? objective.id : undefined;
-            }
-            var is_global = objective_id_1 && this.settings.globalObjectiveIds.includes(objective_id_1);
-            if (is_global) {
-                var global_index = this._globalObjectives.findIndex(function (obj) { return obj.id === objective_id_1; });
-                if (global_index === -1) {
-                    global_index = this._globalObjectives.length;
-                    var newGlobalObjective = new CMIObjectivesObject();
-                    newGlobalObjective.id = objective_id_1;
-                    this._globalObjectives.push(newGlobalObjective);
-                }
-                var global_element = CMIElement.replace(element_base, "_globalObjectives.".concat(global_index));
-                this._commonSetCMIValue("SetGlobalObjectiveValue", true, global_element, value);
-            }
-        }
-        return this._commonSetCMIValue("SetValue", true, CMIElement, value);
-    };
-    Scorm2004Impl.prototype.getChildElement = function (CMIElement, value, foundFirstIndex) {
-        if ((0,utilities/* stringMatches */.J6)(CMIElement, "cmi\\.objectives\\.\\d+")) {
-            return new CMIObjectivesObject();
-        }
-        if (foundFirstIndex) {
-            if ((0,utilities/* stringMatches */.J6)(CMIElement, "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+")) {
-                return this.createCorrectResponsesObject(CMIElement, value);
-            }
-            else if ((0,utilities/* stringMatches */.J6)(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")) {
-                return new CMIInteractionsObjectivesObject();
-            }
-        }
-        else if ((0,utilities/* stringMatches */.J6)(CMIElement, "cmi\\.interactions\\.\\d+")) {
-            return new CMIInteractionsObject();
-        }
-        if ((0,utilities/* stringMatches */.J6)(CMIElement, "cmi\\.comments_from_learner\\.\\d+")) {
-            return new CMICommentsObject();
-        }
-        else if ((0,utilities/* stringMatches */.J6)(CMIElement, "cmi\\.comments_from_lms\\.\\d+")) {
-            return new CMICommentsObject(true);
-        }
-        if ((0,utilities/* stringMatches */.J6)(CMIElement, "adl\\.data\\.\\d+")) {
-            return new ADLDataObject();
-        }
-        return null;
-    };
-    Scorm2004Impl.prototype.createCorrectResponsesObject = function (CMIElement, value) {
-        var parts = CMIElement.split(".");
-        var index = Number(parts[2]);
-        var interaction = this.cmi.interactions.childArray[index];
-        if (this.isInitialized()) {
-            if (typeof interaction === "undefined" || !interaction.type) {
-                this.throwSCORMError(CMIElement, error_codes/* scorm2004_errors */.Rf.DEPENDENCY_NOT_ESTABLISHED, CMIElement);
-                return null;
-            }
-            else {
-                this.checkDuplicateChoiceResponse(CMIElement, interaction, value);
-                var response_type = CorrectResponses[interaction.type];
-                if (response_type) {
-                    this.checkValidResponseType(CMIElement, response_type, value, interaction.type);
-                }
-                else {
-                    this.throwSCORMError(CMIElement, error_codes/* scorm2004_errors */.Rf.GENERAL_SET_FAILURE, "Incorrect Response Type: ".concat(interaction.type));
-                    return null;
-                }
-            }
-        }
-        if (this.lastErrorCode === "0") {
-            return new CMIInteractionsCorrectResponsesObject(interaction);
-        }
-        return null;
-    };
-    Scorm2004Impl.prototype.checkValidResponseType = function (CMIElement, response_type, value, interaction_type) {
-        var nodes = [];
-        if (response_type === null || response_type === void 0 ? void 0 : response_type.delimiter) {
-            nodes = String(value).split(response_type.delimiter);
-        }
-        else {
-            nodes[0] = value;
-        }
-        if (nodes.length > 0 && nodes.length <= response_type.max) {
-            this.checkCorrectResponseValue(CMIElement, interaction_type, nodes, value);
-        }
-        else if (nodes.length > response_type.max) {
-            this.throwSCORMError(CMIElement, error_codes/* scorm2004_errors */.Rf.GENERAL_SET_FAILURE, "Data Model Element Pattern Too Long: ".concat(value));
-        }
-    };
-    Scorm2004Impl.prototype.checkDuplicateChoiceResponse = function (CMIElement, interaction, value) {
-        var interaction_count = interaction.correct_responses._count;
-        if (interaction.type === "choice") {
-            for (var i = 0; i < interaction_count && this.lastErrorCode === "0"; i++) {
-                var response = interaction.correct_responses.childArray[i];
-                if (response.pattern === value) {
-                    this.throwSCORMError(CMIElement, error_codes/* scorm2004_errors */.Rf.GENERAL_SET_FAILURE, "".concat(value));
-                }
-            }
-        }
-    };
-    Scorm2004Impl.prototype.validateCorrectResponse = function (CMIElement, value) {
-        var parts = CMIElement.split(".");
-        var index = Number(parts[2]);
-        var pattern_index = Number(parts[4]);
-        var interaction = this.cmi.interactions.childArray[index];
-        var interaction_count = interaction.correct_responses._count;
-        this.checkDuplicateChoiceResponse(CMIElement, interaction, value);
-        var response_type = CorrectResponses[interaction.type];
-        if (typeof response_type.limit === "undefined" || interaction_count <= response_type.limit) {
-            this.checkValidResponseType(CMIElement, response_type, value, interaction.type);
-            if ((this.lastErrorCode === "0" &&
-                (!response_type.duplicate ||
-                    !this.checkDuplicatedPattern(interaction.correct_responses, pattern_index, value))) ||
-                (this.lastErrorCode === "0" && value === "")) {
-            }
-            else {
-                if (this.lastErrorCode === "0") {
-                    this.throwSCORMError(CMIElement, error_codes/* scorm2004_errors */.Rf.GENERAL_SET_FAILURE, "Data Model Element Pattern Already Exists: ".concat(CMIElement, " - ").concat(value));
-                }
-            }
-        }
-        else {
-            this.throwSCORMError(CMIElement, error_codes/* scorm2004_errors */.Rf.GENERAL_SET_FAILURE, "Data Model Element Collection Limit Reached: ".concat(CMIElement, " - ").concat(value));
-        }
-    };
-    Scorm2004Impl.prototype.getCMIValue = function (CMIElement) {
-        return this._commonGetCMIValue("GetValue", true, CMIElement);
-    };
-    Scorm2004Impl.prototype.getLmsErrorMessageDetails = function (errorNumber, detail) {
-        var basicMessage = "";
-        var detailMessage = "";
-        errorNumber = String(errorNumber);
-        if (api_constants/* scorm2004_constants */.zR.error_descriptions[errorNumber]) {
-            basicMessage = api_constants/* scorm2004_constants */.zR.error_descriptions[errorNumber].basicMessage;
-            detailMessage = api_constants/* scorm2004_constants */.zR.error_descriptions[errorNumber].detailMessage;
-        }
-        return detail ? detailMessage : basicMessage;
-    };
-    Scorm2004Impl.prototype.checkDuplicatedPattern = function (correct_response, current_index, value) {
-        var found = false;
-        var count = correct_response._count;
-        for (var i = 0; i < count && !found; i++) {
-            if (i !== current_index && correct_response.childArray[i] === value) {
-                found = true;
-            }
-        }
-        return found;
-    };
-    Scorm2004Impl.prototype.checkCorrectResponseValue = function (CMIElement, interaction_type, nodes, value) {
-        var response = CorrectResponses[interaction_type];
-        if (!response) {
-            this.throwSCORMError(CMIElement, error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH, "Incorrect Response Type: ".concat(interaction_type));
-            return;
-        }
-        var formatRegex = new RegExp(response.format);
-        for (var i = 0; i < nodes.length && this.lastErrorCode === "0"; i++) {
-            if (interaction_type.match("^(fill-in|long-fill-in|matching|performance|sequencing)$")) {
-                nodes[i] = this.removeCorrectResponsePrefixes(CMIElement, nodes[i]);
-            }
-            if (response === null || response === void 0 ? void 0 : response.delimiter2) {
-                var values = nodes[i].split(response.delimiter2);
-                if (values.length === 2) {
-                    var matches = values[0].match(formatRegex);
-                    if (!matches) {
-                        this.throwSCORMError(CMIElement, error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH, "".concat(interaction_type, ": ").concat(value));
-                    }
-                    else {
-                        if (!response.format2 || !values[1].match(new RegExp(response.format2))) {
-                            this.throwSCORMError(CMIElement, error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH, "".concat(interaction_type, ": ").concat(value));
-                        }
-                    }
-                }
-                else {
-                    this.throwSCORMError(CMIElement, error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH, "".concat(interaction_type, ": ").concat(value));
-                }
-            }
-            else {
-                var matches = nodes[i].match(formatRegex);
-                if ((!matches && value !== "") || (!matches && interaction_type === "true-false")) {
-                    this.throwSCORMError(CMIElement, error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH, "".concat(interaction_type, ": ").concat(value));
-                }
-                else {
-                    if (interaction_type === "numeric" && nodes.length > 1) {
-                        if (Number(nodes[0]) > Number(nodes[1])) {
-                            this.throwSCORMError(CMIElement, error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH, "".concat(interaction_type, ": ").concat(value));
-                        }
-                    }
-                    else {
-                        if (nodes[i] !== "" && response.unique) {
-                            for (var j = 0; j < i && this.lastErrorCode === "0"; j++) {
-                                if (nodes[i] === nodes[j]) {
-                                    this.throwSCORMError(CMIElement, error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH, "".concat(interaction_type, ": ").concat(value));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    };
-    Scorm2004Impl.prototype.removeCorrectResponsePrefixes = function (CMIElement, node) {
-        var seenOrder = false;
-        var seenCase = false;
-        var seenLang = false;
-        var prefixRegex = new RegExp("^({(lang|case_matters|order_matters)=([^}]+)})");
-        var matches = node.match(prefixRegex);
-        var langMatches = null;
-        while (matches) {
-            switch (matches[2]) {
-                case "lang":
-                    langMatches = node.match(regex/* scorm2004_regex */.xt.CMILangcr);
-                    if (langMatches) {
-                        var lang = langMatches[3];
-                        if (lang !== undefined && lang.length > 0) {
-                            if (!language_constants.includes(lang.toLowerCase())) {
-                                this.throwSCORMError(CMIElement, error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH, "".concat(node));
-                            }
-                        }
-                    }
-                    seenLang = true;
-                    break;
-                case "case_matters":
-                    if (!seenLang && !seenOrder && !seenCase) {
-                        if (matches[3] !== "true" && matches[3] !== "false") {
-                            this.throwSCORMError(CMIElement, error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH, "".concat(node));
-                        }
-                    }
-                    seenCase = true;
-                    break;
-                case "order_matters":
-                    if (!seenCase && !seenLang && !seenOrder) {
-                        if (matches[3] !== "true" && matches[3] !== "false") {
-                            this.throwSCORMError(CMIElement, error_codes/* scorm2004_errors */.Rf.TYPE_MISMATCH, "".concat(node));
-                        }
-                    }
-                    seenOrder = true;
-                    break;
-            }
-            node = node.substring(matches[1].length);
-            matches = node.match(prefixRegex);
-        }
-        return node;
-    };
-    Scorm2004Impl.prototype.replaceWithAnotherScormAPI = function (newAPI) {
-        this.cmi = newAPI.cmi;
-        this.adl = newAPI.adl;
-    };
-    Scorm2004Impl.prototype.renderCommitCMI = function (terminateCommit) {
-        var cmiExport = this.renderCMIToJSONObject();
-        if (terminateCommit) {
-            cmiExport.cmi.total_time = this.cmi.getCurrentTotalTime();
-        }
-        var result = [];
-        var flattened = utilities/* flatten */.Bq(cmiExport);
-        switch (this.settings.dataCommitFormat) {
-            case "flattened":
-                return utilities/* flatten */.Bq(cmiExport);
-            case "params":
-                for (var item in flattened) {
-                    if ({}.hasOwnProperty.call(flattened, item)) {
-                        result.push("".concat(item, "=").concat(flattened[item]));
-                    }
-                }
-                return result;
-            case "json":
-            default:
-                return cmiExport;
-        }
-    };
-    Scorm2004Impl.prototype.renderCommitObject = function (terminateCommit) {
-        var cmiExport = this.renderCommitCMI(terminateCommit);
-        var totalTimeDuration = this.cmi.getCurrentTotalTime();
-        var totalTimeSeconds = utilities/* getDurationAsSeconds */.OI(totalTimeDuration, regex/* scorm2004_regex */.xt.CMITimespan);
-        var completionStatus = enums/* CompletionStatus */.lC.UNKNOWN;
-        var successStatus = enums/* SuccessStatus */.YE.UNKNOWN;
-        if (this.cmi.completion_status) {
-            if (this.cmi.completion_status === "completed") {
-                completionStatus = enums/* CompletionStatus */.lC.COMPLETED;
-            }
-            else if (this.cmi.completion_status === "incomplete") {
-                completionStatus = enums/* CompletionStatus */.lC.INCOMPLETE;
-            }
-        }
-        if (this.cmi.success_status) {
-            if (this.cmi.success_status === "passed") {
-                successStatus = enums/* SuccessStatus */.YE.PASSED;
-            }
-            else if (this.cmi.success_status === "failed") {
-                successStatus = enums/* SuccessStatus */.YE.FAILED;
-            }
-        }
-        var score = this.cmi.score;
-        var scoreObject = null;
-        if (score) {
-            scoreObject = {};
-            if (!Number.isNaN(Number.parseFloat(score.raw))) {
-                scoreObject.raw = Number.parseFloat(score.raw);
-            }
-            if (!Number.isNaN(Number.parseFloat(score.min))) {
-                scoreObject.min = Number.parseFloat(score.min);
-            }
-            if (!Number.isNaN(Number.parseFloat(score.max))) {
-                scoreObject.max = Number.parseFloat(score.max);
-            }
-            if (!Number.isNaN(Number.parseFloat(score.scaled))) {
-                scoreObject.scaled = Number.parseFloat(score.scaled);
-            }
-        }
-        var commitObject = {
-            completionStatus: completionStatus,
-            successStatus: successStatus,
-            totalTimeSeconds: totalTimeSeconds,
-            runtimeData: cmiExport,
-        };
-        if (scoreObject) {
-            commitObject.score = scoreObject;
-        }
-        return commitObject;
-    };
-    Scorm2004Impl.prototype.storeData = function (terminateCommit) {
-        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
-            var navRequest, commitObject, result;
-            var _a, _b, _c;
-            return (0,tslib_es6/* __generator */.YH)(this, function (_d) {
-                switch (_d.label) {
-                    case 0:
-                        if (terminateCommit) {
-                            if (this.cmi.mode === "normal") {
-                                if (this.cmi.credit === "credit") {
-                                    if (this.cmi.completion_threshold && this.cmi.progress_measure) {
-                                        if (this.cmi.progress_measure >= this.cmi.completion_threshold) {
-                                            this.cmi.completion_status = "completed";
-                                        }
-                                        else {
-                                            this.cmi.completion_status = "incomplete";
-                                        }
-                                    }
-                                    if (this.cmi.scaled_passing_score && this.cmi.score.scaled) {
-                                        if (this.cmi.score.scaled >= this.cmi.scaled_passing_score) {
-                                            this.cmi.success_status = "passed";
-                                        }
-                                        else {
-                                            this.cmi.success_status = "failed";
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        navRequest = false;
-                        if (this.adl.nav.request !==
-                            ((_c = (_b = (_a = this.startingData) === null || _a === void 0 ? void 0 : _a.adl) === null || _b === void 0 ? void 0 : _b.nav) === null || _c === void 0 ? void 0 : _c.request) &&
-                            this.adl.nav.request !== "_none_") {
-                            navRequest = true;
-                        }
-                        commitObject = this.getCommitObject(terminateCommit);
-                        if (!(typeof this.settings.lmsCommitUrl === "string")) return [3, 2];
-                        return [4, this.processHttpRequest(this.settings.lmsCommitUrl, {
-                                commitObject: commitObject,
-                            }, terminateCommit)];
-                    case 1:
-                        result = _d.sent();
-                        if (navRequest &&
-                            result.navRequest !== undefined &&
-                            result.navRequest !== "" &&
-                            typeof result.navRequest === "string") {
-                            Function("\"use strict\";(() => { ".concat(result.navRequest, " })()"))();
-                        }
-                        else if ((result === null || result === void 0 ? void 0 : result.navRequest) && !navRequest) {
-                            if (typeof result.navRequest === "object" &&
-                                Object.hasOwnProperty.call(result.navRequest, "name")) {
-                                this.processListeners(result.navRequest.name, result.navRequest.data);
-                            }
-                        }
-                        return [2, result];
-                    case 2: return [2, {
-                            result: "true",
-                            errorCode: 0,
-                        }];
-                }
-            });
-        });
-    };
-    Scorm2004Impl.prototype.configureSequencing = function (sequencingSettings) {
-        if (sequencingSettings.activityTree) {
-            this.configureActivityTree(sequencingSettings.activityTree);
-        }
-        if (sequencingSettings.sequencingRules) {
-            this.configureSequencingRules(sequencingSettings.sequencingRules);
-        }
-        if (sequencingSettings.sequencingControls) {
-            this.configureSequencingControls(sequencingSettings.sequencingControls);
-        }
-        if (sequencingSettings.rollupRules) {
-            this.configureRollupRules(sequencingSettings.rollupRules);
-        }
-    };
-    Scorm2004Impl.prototype.configureActivityTree = function (activityTreeSettings) {
-        var rootActivity = this.createActivity(activityTreeSettings);
-        var activityTree = this._sequencing.activityTree;
-        activityTree.root = rootActivity;
-        this._extractedScoItemIds = this.extractActivityIds(rootActivity);
-    };
-    Scorm2004Impl.prototype.extractActivityIds = function (activity) {
-        var ids = [activity.id];
-        for (var _i = 0, _a = activity.children; _i < _a.length; _i++) {
-            var child = _a[_i];
-            ids.push.apply(ids, this.extractActivityIds(child));
-        }
-        return ids;
-    };
-    Scorm2004Impl.prototype.createActivity = function (activitySettings) {
-        var activity = new Activity(activitySettings.id, activitySettings.title);
-        if (activitySettings.isVisible !== undefined) {
-            activity.isVisible = activitySettings.isVisible;
-        }
-        if (activitySettings.isActive !== undefined) {
-            activity.isActive = activitySettings.isActive;
-        }
-        if (activitySettings.isSuspended !== undefined) {
-            activity.isSuspended = activitySettings.isSuspended;
-        }
-        if (activitySettings.isCompleted !== undefined) {
-            activity.isCompleted = activitySettings.isCompleted;
-        }
-        if (activitySettings.children) {
-            for (var _i = 0, _a = activitySettings.children; _i < _a.length; _i++) {
-                var childSettings = _a[_i];
-                var childActivity = this.createActivity(childSettings);
-                activity.addChild(childActivity);
-            }
-        }
-        return activity;
-    };
-    Scorm2004Impl.prototype.configureSequencingRules = function (sequencingRulesSettings) {
-        var sequencingRules = this._sequencing.sequencingRules;
-        if (sequencingRulesSettings.preConditionRules) {
-            for (var _i = 0, _a = sequencingRulesSettings.preConditionRules; _i < _a.length; _i++) {
-                var ruleSettings = _a[_i];
-                var rule = this.createSequencingRule(ruleSettings);
-                sequencingRules.addPreConditionRule(rule);
-            }
-        }
-        if (sequencingRulesSettings.exitConditionRules) {
-            for (var _b = 0, _c = sequencingRulesSettings.exitConditionRules; _b < _c.length; _b++) {
-                var ruleSettings = _c[_b];
-                var rule = this.createSequencingRule(ruleSettings);
-                sequencingRules.addExitConditionRule(rule);
-            }
-        }
-        if (sequencingRulesSettings.postConditionRules) {
-            for (var _d = 0, _e = sequencingRulesSettings.postConditionRules; _d < _e.length; _d++) {
-                var ruleSettings = _e[_d];
-                var rule = this.createSequencingRule(ruleSettings);
-                sequencingRules.addPostConditionRule(rule);
-            }
-        }
-    };
-    Scorm2004Impl.prototype.createSequencingRule = function (ruleSettings) {
-        var rule = new SequencingRule(ruleSettings.action, ruleSettings.conditionCombination);
-        for (var _i = 0, _a = ruleSettings.conditions; _i < _a.length; _i++) {
-            var conditionSettings = _a[_i];
-            var condition = new RuleCondition(conditionSettings.condition, conditionSettings.operator, new Map(Object.entries(conditionSettings.parameters || {})));
-            rule.addCondition(condition);
-        }
-        return rule;
-    };
-    Scorm2004Impl.prototype.configureSequencingControls = function (sequencingControlsSettings) {
-        var sequencingControls = this._sequencing.sequencingControls;
-        if (sequencingControlsSettings.enabled !== undefined) {
-            sequencingControls.enabled = sequencingControlsSettings.enabled;
-        }
-        if (sequencingControlsSettings.choiceExit !== undefined) {
-            sequencingControls.choiceExit = sequencingControlsSettings.choiceExit;
-        }
-        if (sequencingControlsSettings.flow !== undefined) {
-            sequencingControls.flow = sequencingControlsSettings.flow;
-        }
-        if (sequencingControlsSettings.forwardOnly !== undefined) {
-            sequencingControls.forwardOnly = sequencingControlsSettings.forwardOnly;
-        }
-        if (sequencingControlsSettings.useCurrentAttemptObjectiveInfo !== undefined) {
-            sequencingControls.useCurrentAttemptObjectiveInfo =
-                sequencingControlsSettings.useCurrentAttemptObjectiveInfo;
-        }
-        if (sequencingControlsSettings.useCurrentAttemptProgressInfo !== undefined) {
-            sequencingControls.useCurrentAttemptProgressInfo =
-                sequencingControlsSettings.useCurrentAttemptProgressInfo;
-        }
-        if (sequencingControlsSettings.preventActivation !== undefined) {
-            sequencingControls.preventActivation = sequencingControlsSettings.preventActivation;
-        }
-        if (sequencingControlsSettings.constrainChoice !== undefined) {
-            sequencingControls.constrainChoice = sequencingControlsSettings.constrainChoice;
-        }
-        if (sequencingControlsSettings.rollupObjectiveSatisfied !== undefined) {
-            sequencingControls.rollupObjectiveSatisfied =
-                sequencingControlsSettings.rollupObjectiveSatisfied;
-        }
-        if (sequencingControlsSettings.rollupProgressCompletion !== undefined) {
-            sequencingControls.rollupProgressCompletion =
-                sequencingControlsSettings.rollupProgressCompletion;
-        }
-        if (sequencingControlsSettings.objectiveMeasureWeight !== undefined) {
-            sequencingControls.objectiveMeasureWeight = sequencingControlsSettings.objectiveMeasureWeight;
-        }
-    };
-    Scorm2004Impl.prototype.configureRollupRules = function (rollupRulesSettings) {
-        var rollupRules = this._sequencing.rollupRules;
-        if (rollupRulesSettings.rules) {
-            for (var _i = 0, _a = rollupRulesSettings.rules; _i < _a.length; _i++) {
-                var ruleSettings = _a[_i];
-                var rule = this.createRollupRule(ruleSettings);
-                rollupRules.addRule(rule);
-            }
-        }
-    };
-    Scorm2004Impl.prototype.createRollupRule = function (ruleSettings) {
-        var rule = new RollupRule(ruleSettings.action, ruleSettings.consideration, ruleSettings.minimumCount, ruleSettings.minimumPercent);
-        for (var _i = 0, _a = ruleSettings.conditions; _i < _a.length; _i++) {
-            var conditionSettings = _a[_i];
-            var condition = new RollupCondition(conditionSettings.condition, new Map(Object.entries(conditionSettings.parameters || {})));
-            rule.addCondition(condition);
-        }
-        return rule;
-    };
-    return Scorm2004Impl;
-}(BaseAPI/* default */.A));
-
-
-
-/***/ }),
-
-/***/ 209:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   _: function() { return /* binding */ CMIScore; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(441);
-/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(64);
-/* harmony import */ var _base_cmi__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(166);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(12);
-/* harmony import */ var _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(888);
-
-
-
-
-
-
-var CMIScore = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(CMIScore, _super);
-    function CMIScore(params) {
-        var _this = _super.call(this, params.CMIElement) || this;
-        _this._raw = "";
-        _this._min = "";
-        _this.__children = params.score_children || _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_constants */ .QP.score_children;
-        _this.__score_range = !params.score_range ? false : _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.score_range;
-        _this._max = params.max || params.max === "" ? params.max : "100";
-        _this.__invalid_error_code = params.invalidErrorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.INVALID_SET_VALUE;
-        _this.__invalid_type_code = params.invalidTypeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.TYPE_MISMATCH;
-        _this.__invalid_range_code = params.invalidRangeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.VALUE_OUT_OF_RANGE;
-        _this.__decimal_regex = params.decimalRegex || _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.CMIDecimal;
-        _this.__error_class = params.errorClass;
-        return _this;
-    }
-    CMIScore.prototype.reset = function () {
-        this._initialized = false;
-    };
-    Object.defineProperty(CMIScore.prototype, "_children", {
-        get: function () {
-            return this.__children;
-        },
-        set: function (_children) {
-            throw new this.__error_class(this._cmi_element + "._children", this.__invalid_error_code);
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIScore.prototype, "raw", {
-        get: function () {
-            return this._raw;
-        },
-        set: function (raw) {
-            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScore(this._cmi_element + ".raw", raw, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
-                this._raw = raw;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIScore.prototype, "min", {
-        get: function () {
-            return this._min;
-        },
-        set: function (min) {
-            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScore(this._cmi_element + ".min", min, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
-                this._min = min;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIScore.prototype, "max", {
-        get: function () {
-            return this._max;
-        },
-        set: function (max) {
-            if (_services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateScore(this._cmi_element + ".max", max, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
-                this._max = max;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIScore.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            raw: this.raw,
-            min: this.min,
-            max: this.max,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMIScore;
-}(_base_cmi__WEBPACK_IMPORTED_MODULE_5__/* .BaseCMI */ .J));
-
-
-
-/***/ }),
-
-/***/ 251:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   X: function() { return /* binding */ CMIStudentData; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(166);
-/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(441);
-/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(878);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(12);
-/* harmony import */ var _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(888);
-
-
-
-
-
-
-var CMIStudentData = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(CMIStudentData, _super);
-    function CMIStudentData(student_data_children) {
-        var _this = _super.call(this, "cmi.student_data") || this;
-        _this._mastery_score = "";
-        _this._max_time_allowed = "";
-        _this._time_limit_action = "";
-        _this.__children = student_data_children
-            ? student_data_children
-            : _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_constants */ .QP.student_data_children;
-        return _this;
-    }
-    CMIStudentData.prototype.reset = function () {
-        this._initialized = false;
-    };
-    Object.defineProperty(CMIStudentData.prototype, "_children", {
-        get: function () {
-            return this.__children;
-        },
-        set: function (_children) {
-            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t(this._cmi_element + "._children", _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__/* .scorm12_errors */ .Se.INVALID_SET_VALUE);
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentData.prototype, "mastery_score", {
-        get: function () {
-            return this._mastery_score;
-        },
-        set: function (mastery_score) {
-            _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateReadOnly(this._cmi_element + ".mastery_score", this.initialized);
-            this._mastery_score = mastery_score;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentData.prototype, "max_time_allowed", {
-        get: function () {
-            return this._max_time_allowed;
-        },
-        set: function (max_time_allowed) {
-            _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateReadOnly(this._cmi_element + ".max_time_allowed", this.initialized);
-            this._max_time_allowed = max_time_allowed;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentData.prototype, "time_limit_action", {
-        get: function () {
-            return this._time_limit_action;
-        },
-        set: function (time_limit_action) {
-            _services_ValidationService__WEBPACK_IMPORTED_MODULE_4__/* .validationService */ .v.validateReadOnly(this._cmi_element + ".time_limit_action", this.initialized);
-            this._time_limit_action = time_limit_action;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIStudentData.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            mastery_score: this.mastery_score,
-            max_time_allowed: this.max_time_allowed,
-            time_limit_action: this.time_limit_action,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMIStudentData;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_5__/* .BaseCMI */ .J));
-
-
-
-/***/ }),
-
-/***/ 368:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-
-// EXPORTS
-__webpack_require__.d(__webpack_exports__, {
-  Y: function() { return /* binding */ CMI; }
-});
-
-// EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
-var tslib_es6 = __webpack_require__(635);
-// EXTERNAL MODULE: ./src/constants/api_constants.ts
-var api_constants = __webpack_require__(441);
-// EXTERNAL MODULE: ./src/constants/error_codes.ts
-var error_codes = __webpack_require__(12);
-// EXTERNAL MODULE: ./src/constants/regex.ts
-var regex = __webpack_require__(64);
-// EXTERNAL MODULE: ./src/exceptions/scorm12_exceptions.ts
-var scorm12_exceptions = __webpack_require__(878);
-// EXTERNAL MODULE: ./src/cmi/common/base_cmi.ts
-var base_cmi = __webpack_require__(166);
-// EXTERNAL MODULE: ./src/cmi/scorm12/validation.ts
-var validation = __webpack_require__(392);
-// EXTERNAL MODULE: ./src/cmi/common/score.ts
-var score = __webpack_require__(209);
-// EXTERNAL MODULE: ./src/utilities.ts
-var utilities = __webpack_require__(557);
-;// ./src/cmi/aicc/core.ts
-
-
-
-
-
-
-
-
-
-var CMICore = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMICore, _super);
-    function CMICore() {
-        var _this = _super.call(this, "cmi.core") || this;
-        _this.__children = api_constants/* scorm12_constants */.QP.core_children;
-        _this._student_id = "";
-        _this._student_name = "";
-        _this._lesson_location = "";
-        _this._credit = "";
-        _this._lesson_status = "not attempted";
-        _this._entry = "";
-        _this._total_time = "";
-        _this._lesson_mode = "normal";
-        _this._exit = "";
-        _this._session_time = "00:00:00";
-        _this._suspend_data = "";
-        _this.score = new score/* CMIScore */._({
-            CMIElement: "cmi.core.score",
-            score_children: api_constants/* scorm12_constants */.QP.score_children,
-            score_range: regex/* scorm12_regex */.kS.score_range,
-            invalidErrorCode: error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE,
-            invalidTypeCode: error_codes/* scorm12_errors */.Se.TYPE_MISMATCH,
-            invalidRangeCode: error_codes/* scorm12_errors */.Se.VALUE_OUT_OF_RANGE,
-            errorClass: scorm12_exceptions/* Scorm12ValidationError */.t,
-        });
-        return _this;
-    }
-    CMICore.prototype.initialize = function () {
-        var _a;
-        _super.prototype.initialize.call(this);
-        (_a = this.score) === null || _a === void 0 ? void 0 : _a.initialize();
-    };
-    CMICore.prototype.reset = function () {
-        var _a;
-        this._initialized = false;
-        this._exit = "";
-        this._entry = "";
-        this._session_time = "00:00:00";
-        (_a = this.score) === null || _a === void 0 ? void 0 : _a.reset();
-    };
-    Object.defineProperty(CMICore.prototype, "_children", {
-        get: function () {
-            return this.__children;
-        },
-        set: function (_children) {
-            throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + "._children", error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE);
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMICore.prototype, "student_id", {
-        get: function () {
-            return this._student_id;
-        },
-        set: function (student_id) {
-            if (this.initialized) {
-                throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + ".student_id", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._student_id = student_id;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMICore.prototype, "student_name", {
-        get: function () {
-            return this._student_name;
-        },
-        set: function (student_name) {
-            if (this.initialized) {
-                throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + ".student_name", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._student_name = student_name;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMICore.prototype, "lesson_location", {
-        get: function () {
-            return this._lesson_location;
-        },
-        set: function (lesson_location) {
-            if ((0,validation/* check12ValidFormat */.p)(this._cmi_element + ".lesson_location", lesson_location, regex/* scorm12_regex */.kS.CMIString256, true)) {
-                this._lesson_location = lesson_location;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMICore.prototype, "credit", {
-        get: function () {
-            return this._credit;
-        },
-        set: function (credit) {
-            if (this.initialized) {
-                throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + ".credit", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._credit = credit;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMICore.prototype, "lesson_status", {
-        get: function () {
-            return this._lesson_status;
-        },
-        set: function (lesson_status) {
-            if (this.initialized) {
-                if ((0,validation/* check12ValidFormat */.p)(this._cmi_element + ".lesson_status", lesson_status, regex/* scorm12_regex */.kS.CMIStatus)) {
-                    this._lesson_status = lesson_status;
-                }
-            }
-            else {
-                if ((0,validation/* check12ValidFormat */.p)(this._cmi_element + ".lesson_status", lesson_status, regex/* scorm12_regex */.kS.CMIStatus2)) {
-                    this._lesson_status = lesson_status;
-                }
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMICore.prototype, "entry", {
-        get: function () {
-            return this._entry;
-        },
-        set: function (entry) {
-            if (this.initialized) {
-                throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + ".entry", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._entry = entry;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMICore.prototype, "total_time", {
-        get: function () {
-            return this._total_time;
-        },
-        set: function (total_time) {
-            if (this.initialized) {
-                throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + ".total_time", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._total_time = total_time;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMICore.prototype, "lesson_mode", {
-        get: function () {
-            return this._lesson_mode;
-        },
-        set: function (lesson_mode) {
-            if (this.initialized) {
-                throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + ".lesson_mode", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._lesson_mode = lesson_mode;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMICore.prototype, "exit", {
-        get: function () {
-            if (!this.jsonString) {
-                throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + ".exit", error_codes/* scorm12_errors */.Se.WRITE_ONLY_ELEMENT);
-            }
-            return this._exit;
-        },
-        set: function (exit) {
-            if ((0,validation/* check12ValidFormat */.p)(this._cmi_element + ".exit", exit, regex/* scorm12_regex */.kS.CMIExit, true)) {
-                this._exit = exit;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMICore.prototype, "session_time", {
-        get: function () {
-            if (!this.jsonString) {
-                throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + ".session_time", error_codes/* scorm12_errors */.Se.WRITE_ONLY_ELEMENT);
-            }
-            return this._session_time;
-        },
-        set: function (session_time) {
-            if ((0,validation/* check12ValidFormat */.p)(this._cmi_element + ".session_time", session_time, regex/* scorm12_regex */.kS.CMITimespan)) {
-                this._session_time = session_time;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMICore.prototype, "suspend_data", {
-        get: function () {
-            return this._suspend_data;
-        },
-        set: function (suspend_data) {
-            if ((0,validation/* check12ValidFormat */.p)(this._cmi_element + ".suspend_data", suspend_data, regex/* scorm12_regex */.kS.CMIString4096, true)) {
-                this._suspend_data = suspend_data;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMICore.prototype.getCurrentTotalTime = function (start_time) {
-        var sessionTime = this._session_time;
-        var startTime = start_time;
-        if (typeof startTime !== "undefined" && startTime !== null) {
-            var seconds = new Date().getTime() - startTime;
-            sessionTime = utilities/* getSecondsAsHHMMSS */.UZ(seconds / 1000);
-        }
-        return utilities/* addHHMMSSTimeStrings */.HT(this._total_time, sessionTime, new RegExp(regex/* scorm12_regex */.kS.CMITimespan));
-    };
-    CMICore.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            student_id: this.student_id,
-            student_name: this.student_name,
-            lesson_location: this.lesson_location,
-            credit: this.credit,
-            lesson_status: this.lesson_status,
-            entry: this.entry,
-            lesson_mode: this.lesson_mode,
-            exit: this.exit,
-            session_time: this.session_time,
-            score: this.score,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMICore;
-}(base_cmi/* BaseCMI */.J));
-
-
-// EXTERNAL MODULE: ./src/cmi/scorm12/objectives.ts
-var objectives = __webpack_require__(531);
-// EXTERNAL MODULE: ./src/cmi/scorm12/student_data.ts
-var scorm12_student_data = __webpack_require__(251);
-// EXTERNAL MODULE: ./src/cmi/scorm12/student_preference.ts
-var student_preference = __webpack_require__(34);
-// EXTERNAL MODULE: ./src/cmi/scorm12/interactions.ts
-var interactions = __webpack_require__(426);
-;// ./src/cmi/scorm12/cmi.ts
-
-
-
-
-
-
-
-
-
-
-
-
-var CMI = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMI, _super);
-    function CMI(cmi_children, student_data, initialized) {
-        var _this = _super.call(this, "cmi") || this;
-        _this.__children = "";
-        _this.__version = "3.4";
-        _this._launch_data = "";
-        _this._comments = "";
-        _this._comments_from_lms = "";
-        if (initialized)
-            _this.initialize();
-        _this.__children = cmi_children ? cmi_children : api_constants/* scorm12_constants */.QP.cmi_children;
-        _this.core = new CMICore();
-        _this.objectives = new objectives/* CMIObjectives */.C();
-        _this.student_data = student_data ? student_data : new scorm12_student_data/* CMIStudentData */.X();
-        _this.student_preference = new student_preference/* CMIStudentPreference */.G();
-        _this.interactions = new interactions/* CMIInteractions */.Xb();
-        return _this;
-    }
-    CMI.prototype.reset = function () {
-        var _a, _b, _c;
-        this._initialized = false;
-        this._launch_data = "";
-        this._comments = "";
-        (_a = this.core) === null || _a === void 0 ? void 0 : _a.reset();
-        this.objectives = new objectives/* CMIObjectives */.C();
-        this.interactions = new interactions/* CMIInteractions */.Xb();
-        (_b = this.student_data) === null || _b === void 0 ? void 0 : _b.reset();
-        (_c = this.student_preference) === null || _c === void 0 ? void 0 : _c.reset();
-    };
-    CMI.prototype.initialize = function () {
-        var _a, _b, _c, _d, _e;
-        _super.prototype.initialize.call(this);
-        (_a = this.core) === null || _a === void 0 ? void 0 : _a.initialize();
-        (_b = this.objectives) === null || _b === void 0 ? void 0 : _b.initialize();
-        (_c = this.student_data) === null || _c === void 0 ? void 0 : _c.initialize();
-        (_d = this.student_preference) === null || _d === void 0 ? void 0 : _d.initialize();
-        (_e = this.interactions) === null || _e === void 0 ? void 0 : _e.initialize();
-    };
-    CMI.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            suspend_data: this.suspend_data,
-            launch_data: this.launch_data,
-            comments: this.comments,
-            comments_from_lms: this.comments_from_lms,
-            core: this.core,
-            objectives: this.objectives,
-            student_data: this.student_data,
-            student_preference: this.student_preference,
-            interactions: this.interactions,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    Object.defineProperty(CMI.prototype, "_version", {
-        get: function () {
-            return this.__version;
-        },
-        set: function (_version) {
-            throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + "._version", error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE);
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMI.prototype, "_children", {
-        get: function () {
-            return this.__children;
-        },
-        set: function (_children) {
-            throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + "._children", error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE);
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMI.prototype, "suspend_data", {
-        get: function () {
-            var _a;
-            return (_a = this.core) === null || _a === void 0 ? void 0 : _a.suspend_data;
-        },
-        set: function (suspend_data) {
-            if (this.core) {
-                this.core.suspend_data = suspend_data;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMI.prototype, "launch_data", {
-        get: function () {
-            return this._launch_data;
-        },
-        set: function (launch_data) {
-            if (this.initialized) {
-                throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + ".launch_data", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._launch_data = launch_data;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMI.prototype, "comments", {
-        get: function () {
-            return this._comments;
-        },
-        set: function (comments) {
-            if ((0,validation/* check12ValidFormat */.p)(this._cmi_element + ".comments", comments, regex/* scorm12_regex */.kS.CMIString4096, true)) {
-                this._comments = comments;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMI.prototype, "comments_from_lms", {
-        get: function () {
-            return this._comments_from_lms;
-        },
-        set: function (comments_from_lms) {
-            if (this.initialized) {
-                throw new scorm12_exceptions/* Scorm12ValidationError */.t(this._cmi_element + ".comments_from_lms", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._comments_from_lms = comments_from_lms;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMI.prototype.getCurrentTotalTime = function () {
-        return this.core.getCurrentTotalTime(this.start_time);
-    };
-    return CMI;
-}(base_cmi/* BaseRootCMI */.r));
-
-
-
-/***/ }),
-
-/***/ 392:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   h: function() { return /* binding */ check12ValidRange; },
-/* harmony export */   p: function() { return /* binding */ check12ValidFormat; }
-/* harmony export */ });
-/* harmony import */ var _common_validation__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(144);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(12);
-/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(878);
-
-
-
-function check12ValidFormat(CMIElement, value, regexPattern, allowEmptyString) {
-    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_0__/* .checkValidFormat */ .q)(CMIElement, value, regexPattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_errors */ .Se.TYPE_MISMATCH, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t, allowEmptyString);
-}
-function check12ValidRange(CMIElement, value, rangePattern, allowEmptyString) {
-    if (!allowEmptyString && value === "") {
-        throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t(CMIElement, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_errors */ .Se.VALUE_OUT_OF_RANGE);
-    }
-    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_0__/* .checkValidRange */ .W)(CMIElement, value, rangePattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_errors */ .Se.VALUE_OUT_OF_RANGE, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .Scorm12ValidationError */ .t);
-}
-
-
-/***/ }),
-
-/***/ 426:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Oh: function() { return /* binding */ CMIInteractionsObjectivesObject; },
-/* harmony export */   WP: function() { return /* binding */ CMIInteractionsObject; },
-/* harmony export */   Xb: function() { return /* binding */ CMIInteractions; },
-/* harmony export */   cb: function() { return /* binding */ CMIInteractionsCorrectResponsesObject; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-/* harmony import */ var _common_array__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(682);
-/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(441);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(12);
-/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(878);
-/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(166);
-/* harmony import */ var _validation__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(392);
-/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(64);
-
-
-
-
-
-
-
-
-var CMIInteractions = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(CMIInteractions, _super);
-    function CMIInteractions() {
-        return _super.call(this, {
-            CMIElement: "cmi.interactions",
-            children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_constants */ .QP.interactions_children,
-            errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.INVALID_SET_VALUE,
-            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t,
-        }) || this;
-    }
-    return CMIInteractions;
-}(_common_array__WEBPACK_IMPORTED_MODULE_4__/* .CMIArray */ .B));
-
-var CMIInteractionsObject = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(CMIInteractionsObject, _super);
-    function CMIInteractionsObject() {
-        var _this = _super.call(this, "cmi.interactions.n") || this;
-        _this._id = "";
-        _this._time = "";
-        _this._type = "";
-        _this._weighting = "";
-        _this._student_response = "";
-        _this._result = "";
-        _this._latency = "";
-        _this.objectives = new _common_array__WEBPACK_IMPORTED_MODULE_4__/* .CMIArray */ .B({
-            CMIElement: "cmi.interactions.n.objectives",
-            errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.INVALID_SET_VALUE,
-            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t,
-            children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_constants */ .QP.objectives_children,
-        });
-        _this.correct_responses = new _common_array__WEBPACK_IMPORTED_MODULE_4__/* .CMIArray */ .B({
-            CMIElement: "cmi.interactions.correct_responses",
-            errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.INVALID_SET_VALUE,
-            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t,
-            children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_constants */ .QP.correct_responses_children,
-        });
-        return _this;
-    }
-    CMIInteractionsObject.prototype.initialize = function () {
-        var _a, _b;
-        _super.prototype.initialize.call(this);
-        (_a = this.objectives) === null || _a === void 0 ? void 0 : _a.initialize();
-        (_b = this.correct_responses) === null || _b === void 0 ? void 0 : _b.initialize();
-    };
-    CMIInteractionsObject.prototype.reset = function () {
-        var _a, _b;
-        this._initialized = false;
-        this._id = "";
-        this._time = "";
-        this._type = "";
-        this._weighting = "";
-        this._student_response = "";
-        this._result = "";
-        this._latency = "";
-        (_a = this.objectives) === null || _a === void 0 ? void 0 : _a.reset();
-        (_b = this.correct_responses) === null || _b === void 0 ? void 0 : _b.reset();
-    };
-    Object.defineProperty(CMIInteractionsObject.prototype, "id", {
-        get: function () {
-            if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(this._cmi_element + ".id", _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
-            }
-            return this._id;
-        },
-        set: function (id) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(this._cmi_element + ".id", id, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIIdentifier)) {
-                this._id = id;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIInteractionsObject.prototype, "time", {
-        get: function () {
-            if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(this._cmi_element + ".time", _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
-            }
-            return this._time;
-        },
-        set: function (time) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(this._cmi_element + ".time", time, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMITime)) {
-                this._time = time;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIInteractionsObject.prototype, "type", {
-        get: function () {
-            if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(this._cmi_element + ".type", _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
-            }
-            return this._type;
-        },
-        set: function (type) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(this._cmi_element + ".type", type, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIType)) {
-                this._type = type;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIInteractionsObject.prototype, "weighting", {
-        get: function () {
-            if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(this._cmi_element + ".weighting", _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
-            }
-            return this._weighting;
-        },
-        set: function (weighting) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(this._cmi_element + ".weighting", weighting, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIDecimal) &&
-                (0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidRange */ .h)(this._cmi_element + ".weighting", weighting, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.weighting_range)) {
-                this._weighting = weighting;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIInteractionsObject.prototype, "student_response", {
-        get: function () {
-            if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(this._cmi_element + ".student_response", _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
-            }
-            return this._student_response;
-        },
-        set: function (student_response) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(this._cmi_element + ".student_response", student_response, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIFeedback, true)) {
-                this._student_response = student_response;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIInteractionsObject.prototype, "result", {
-        get: function () {
-            if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(this._cmi_element + ".result", _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
-            }
-            return this._result;
-        },
-        set: function (result) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(this._cmi_element + ".result", result, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIResult)) {
-                this._result = result;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIInteractionsObject.prototype, "latency", {
-        get: function () {
-            if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(this._cmi_element + ".latency", _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
-            }
-            return this._latency;
-        },
-        set: function (latency) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(this._cmi_element + ".latency", latency, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMITimespan)) {
-                this._latency = latency;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIInteractionsObject.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            id: this.id,
-            time: this.time,
-            type: this.type,
-            weighting: this.weighting,
-            student_response: this.student_response,
-            result: this.result,
-            latency: this.latency,
-            objectives: this.objectives,
-            correct_responses: this.correct_responses,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMIInteractionsObject;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_7__/* .BaseCMI */ .J));
-
-var CMIInteractionsObjectivesObject = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(CMIInteractionsObjectivesObject, _super);
-    function CMIInteractionsObjectivesObject() {
-        var _this = _super.call(this, "cmi.interactions.n.objectives.n") || this;
-        _this._id = "";
-        return _this;
-    }
-    CMIInteractionsObjectivesObject.prototype.reset = function () {
-        this._initialized = false;
-        this._id = "";
-    };
-    Object.defineProperty(CMIInteractionsObjectivesObject.prototype, "id", {
-        get: function () {
-            return this._id;
-        },
-        set: function (id) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(this._cmi_element + ".id", id, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIIdentifier)) {
-                this._id = id;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIInteractionsObjectivesObject.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            id: this.id,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMIInteractionsObjectivesObject;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_7__/* .BaseCMI */ .J));
-
-var CMIInteractionsCorrectResponsesObject = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(CMIInteractionsCorrectResponsesObject, _super);
-    function CMIInteractionsCorrectResponsesObject() {
-        var _this = _super.call(this, "cmi.interactions.correct_responses.n") || this;
-        _this._pattern = "";
-        return _this;
-    }
-    CMIInteractionsCorrectResponsesObject.prototype.reset = function () {
-        this._initialized = false;
-        this._pattern = "";
-    };
-    Object.defineProperty(CMIInteractionsCorrectResponsesObject.prototype, "pattern", {
-        get: function () {
-            if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(this._cmi_element + ".pattern", _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.WRITE_ONLY_ELEMENT);
-            }
-            return this._pattern;
-        },
-        set: function (pattern) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__/* .check12ValidFormat */ .p)(this._cmi_element + ".pattern", pattern, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIFeedback, true)) {
-                this._pattern = pattern;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIInteractionsCorrectResponsesObject.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            pattern: this._pattern,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMIInteractionsCorrectResponsesObject;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_7__/* .BaseCMI */ .J));
-
-
-
-/***/ }),
-
-/***/ 441:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   BR: function() { return /* binding */ aicc_constants; },
-/* harmony export */   QP: function() { return /* binding */ scorm12_constants; },
-/* harmony export */   _y: function() { return /* binding */ global_constants; },
-/* harmony export */   zR: function() { return /* binding */ scorm2004_constants; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-
-var global_constants = {
-    SCORM_TRUE: "true",
-    SCORM_FALSE: "false",
-    STATE_NOT_INITIALIZED: 0,
-    STATE_INITIALIZED: 1,
-    STATE_TERMINATED: 2,
-};
-var scorm12_constants = {
-    cmi_children: "core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions",
-    core_children: "student_id,student_name,lesson_location,credit,lesson_status,entry,score,total_time,lesson_mode,exit,session_time",
-    score_children: "raw,min,max",
-    comments_children: "content,location,time",
-    objectives_children: "id,score,status",
-    correct_responses_children: "pattern",
-    student_data_children: "mastery_score,max_time_allowed,time_limit_action",
-    student_preference_children: "audio,language,speed,text",
-    interactions_children: "id,objectives,time,type,correct_responses,weighting,student_response,result,latency",
-    error_descriptions: {
-        "101": {
-            basicMessage: "General Exception",
-            detailMessage: "No specific error code exists to describe the error. Use LMSGetDiagnostic for more information",
-        },
-        "201": {
-            basicMessage: "Invalid argument error",
-            detailMessage: "Indicates that an argument represents an invalid data model element or is otherwise incorrect.",
-        },
-        "202": {
-            basicMessage: "Element cannot have children",
-            detailMessage: 'Indicates that LMSGetValue was called with a data model element name that ends in "_children" for a data model element that does not support the "_children" suffix.',
-        },
-        "203": {
-            basicMessage: "Element not an array - cannot have count",
-            detailMessage: 'Indicates that LMSGetValue was called with a data model element name that ends in "_count" for a data model element that does not support the "_count" suffix.',
-        },
-        "301": {
-            basicMessage: "Not initialized",
-            detailMessage: "Indicates that an API call was made before the call to lmsInitialize.",
-        },
-        "401": {
-            basicMessage: "Not implemented error",
-            detailMessage: "The data model element indicated in a call to LMSGetValue or LMSSetValue is valid, but was not implemented by this LMS. SCORM 1.2 defines a set of data model elements as being optional for an LMS to implement.",
-        },
-        "402": {
-            basicMessage: "Invalid set value, element is a keyword",
-            detailMessage: 'Indicates that LMSSetValue was called on a data model element that represents a keyword (elements that end in "_children" and "_count").',
-        },
-        "403": {
-            basicMessage: "Element is read only",
-            detailMessage: "LMSSetValue was called with a data model element that can only be read.",
-        },
-        "404": {
-            basicMessage: "Element is write only",
-            detailMessage: "LMSGetValue was called on a data model element that can only be written to.",
-        },
-        "405": {
-            basicMessage: "Incorrect Data Type",
-            detailMessage: "LMSSetValue was called with a value that is not consistent with the data format of the supplied data model element.",
-        },
-        "407": {
-            basicMessage: "Element Value Out Of Range",
-            detailMessage: "The numeric value supplied to a LMSSetValue call is outside of the numeric range allowed for the supplied data model element.",
-        },
-        "408": {
-            basicMessage: "Data Model Dependency Not Established",
-            detailMessage: "Some data model elements cannot be set until another data model element was set. This error condition indicates that the prerequisite element was not set before the dependent element.",
-        },
-    },
-};
-var aicc_constants = (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)((0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__assign */ .Cl)({}, scorm12_constants), {
-    cmi_children: "core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions,evaluation",
-    student_preference_children: "audio,language,lesson_type,speed,text,text_color,text_location,text_size,video,windows",
-    student_data_children: "attempt_number,tries,mastery_score,max_time_allowed,time_limit_action",
-    student_demographics_children: "city,class,company,country,experience,familiar_name,instructor_name,title,native_language,state,street_address,telephone,years_experience",
-    tries_children: "time,status,score",
-    attempt_records_children: "score,lesson_status",
-    paths_children: "location_id,date,time,status,why_left,time_in_element",
-});
-var scorm2004_constants = {
-    cmi_children: "_version,comments_from_learner,comments_from_lms,completion_status,credit,entry,exit,interactions,launch_data,learner_id,learner_name,learner_preference,location,max_time_allowed,mode,objectives,progress_measure,scaled_passing_score,score,session_time,success_status,suspend_data,time_limit_action,total_time",
-    comments_children: "comment,timestamp,location",
-    score_children: "max,raw,scaled,min",
-    objectives_children: "progress_measure,completion_status,success_status,description,score,id",
-    correct_responses_children: "pattern",
-    student_data_children: "mastery_score,max_time_allowed,time_limit_action",
-    student_preference_children: "audio_level,audio_captioning,delivery_speed,language",
-    interactions_children: "id,type,objectives,timestamp,correct_responses,weighting,learner_response,result,latency,description",
-    adl_data_children: "id,store",
-    error_descriptions: {
-        "0": {
-            basicMessage: "No Error",
-            detailMessage: "No error occurred, the previous API call was successful.",
-        },
-        "101": {
-            basicMessage: "General Exception",
-            detailMessage: "No specific error code exists to describe the error. Use GetDiagnostic for more information.",
-        },
-        "102": {
-            basicMessage: "General Initialization Failure",
-            detailMessage: "Call to Initialize failed for an unknown reason.",
-        },
-        "103": {
-            basicMessage: "Already Initialized",
-            detailMessage: "Call to Initialize failed because Initialize was already called.",
-        },
-        "104": {
-            basicMessage: "Content Instance Terminated",
-            detailMessage: "Call to Initialize failed because Terminate was already called.",
-        },
-        "111": {
-            basicMessage: "General Termination Failure",
-            detailMessage: "Call to Terminate failed for an unknown reason.",
-        },
-        "112": {
-            basicMessage: "Termination Before Initialization",
-            detailMessage: "Call to Terminate failed because it was made before the call to Initialize.",
-        },
-        "113": {
-            basicMessage: "Termination After Termination",
-            detailMessage: "Call to Terminate failed because Terminate was already called.",
-        },
-        "122": {
-            basicMessage: "Retrieve Data Before Initialization",
-            detailMessage: "Call to GetValue failed because it was made before the call to Initialize.",
-        },
-        "123": {
-            basicMessage: "Retrieve Data After Termination",
-            detailMessage: "Call to GetValue failed because it was made after the call to Terminate.",
-        },
-        "132": {
-            basicMessage: "Store Data Before Initialization",
-            detailMessage: "Call to SetValue failed because it was made before the call to Initialize.",
-        },
-        "133": {
-            basicMessage: "Store Data After Termination",
-            detailMessage: "Call to SetValue failed because it was made after the call to Terminate.",
-        },
-        "142": {
-            basicMessage: "Commit Before Initialization",
-            detailMessage: "Call to Commit failed because it was made before the call to Initialize.",
-        },
-        "143": {
-            basicMessage: "Commit After Termination",
-            detailMessage: "Call to Commit failed because it was made after the call to Terminate.",
-        },
-        "201": {
-            basicMessage: "General Argument Error",
-            detailMessage: "An invalid argument was passed to an API method (usually indicates that Initialize, Commit or Terminate did not receive the expected empty string argument.",
-        },
-        "301": {
-            basicMessage: "General Get Failure",
-            detailMessage: "Indicates a failed GetValue call where no other specific error code is applicable. Use GetDiagnostic for more information.",
-        },
-        "351": {
-            basicMessage: "General Set Failure",
-            detailMessage: "Indicates a failed SetValue call where no other specific error code is applicable. Use GetDiagnostic for more information.",
-        },
-        "391": {
-            basicMessage: "General Commit Failure",
-            detailMessage: "Indicates a failed Commit call where no other specific error code is applicable. Use GetDiagnostic for more information.",
-        },
-        "401": {
-            basicMessage: "Undefined Data Model Element",
-            detailMessage: "The data model element name passed to GetValue or SetValue is not a valid SCORM data model element.",
-        },
-        "402": {
-            basicMessage: "Unimplemented Data Model Element",
-            detailMessage: "The data model element indicated in a call to GetValue or SetValue is valid, but was not implemented by this LMS. In SCORM 2004, this error would indicate an LMS that is not fully SCORM conformant.",
-        },
-        "403": {
-            basicMessage: "Data Model Element Value Not Initialized",
-            detailMessage: "Attempt to read a data model element that has not been initialized by the LMS or through a SetValue call. This error condition is often reached during normal execution of a SCO.",
-        },
-        "404": {
-            basicMessage: "Data Model Element Is Read Only",
-            detailMessage: "SetValue was called with a data model element that can only be read.",
-        },
-        "405": {
-            basicMessage: "Data Model Element Is Write Only",
-            detailMessage: "GetValue was called on a data model element that can only be written to.",
-        },
-        "406": {
-            basicMessage: "Data Model Element Type Mismatch",
-            detailMessage: "SetValue was called with a value that is not consistent with the data format of the supplied data model element.",
-        },
-        "407": {
-            basicMessage: "Data Model Element Value Out Of Range",
-            detailMessage: "The numeric value supplied to a SetValue call is outside of the numeric range allowed for the supplied data model element.",
-        },
-        "408": {
-            basicMessage: "Data Model Dependency Not Established",
-            detailMessage: "Some data model elements cannot be set until another data model element was set. This error condition indicates that the prerequisite element was not set before the dependent element.",
-        },
-    },
-};
-
-
-/***/ }),
-
-/***/ 519:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   $: function() { return /* binding */ BaseScormValidationError; },
-/* harmony export */   y: function() { return /* binding */ ValidationError; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-
-var BaseScormValidationError = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(BaseScormValidationError, _super);
-    function BaseScormValidationError(CMIElement, errorCode) {
-        var _this = _super.call(this, "".concat(CMIElement, " : ").concat(errorCode.toString())) || this;
-        _this._errorCode = errorCode;
-        Object.setPrototypeOf(_this, BaseScormValidationError.prototype);
-        return _this;
-    }
-    Object.defineProperty(BaseScormValidationError.prototype, "errorCode", {
-        get: function () {
-            return this._errorCode;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    return BaseScormValidationError;
-}(Error));
-
-var ValidationError = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(ValidationError, _super);
-    function ValidationError(CMIElement, errorCode, errorMessage, detailedMessage) {
-        var _this = _super.call(this, CMIElement, errorCode) || this;
-        _this._detailedMessage = "";
-        _this.message = "".concat(CMIElement, " : ").concat(errorMessage);
-        _this._errorMessage = errorMessage;
-        if (detailedMessage) {
-            _this._detailedMessage = detailedMessage;
-        }
-        Object.setPrototypeOf(_this, ValidationError.prototype);
-        return _this;
-    }
-    Object.defineProperty(ValidationError.prototype, "errorMessage", {
-        get: function () {
-            return this._errorMessage;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(ValidationError.prototype, "detailedMessage", {
-        get: function () {
-            return this._detailedMessage;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    return ValidationError;
-}(BaseScormValidationError));
-
-
-
-/***/ }),
-
-/***/ 531:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   C: function() { return /* binding */ CMIObjectives; },
-/* harmony export */   N: function() { return /* binding */ CMIObjectivesObject; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(166);
-/* harmony import */ var _common_score__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(209);
-/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(441);
-/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(64);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(12);
-/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(878);
-/* harmony import */ var _validation__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(392);
-/* harmony import */ var _common_array__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(682);
-
-
-
-
-
-
-
-
-
-var CMIObjectives = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(CMIObjectives, _super);
-    function CMIObjectives() {
-        return _super.call(this, {
-            CMIElement: "cmi.objectives",
-            children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_constants */ .QP.objectives_children,
-            errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.INVALID_SET_VALUE,
-            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t,
-        }) || this;
-    }
-    return CMIObjectives;
-}(_common_array__WEBPACK_IMPORTED_MODULE_4__/* .CMIArray */ .B));
-
-var CMIObjectivesObject = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(CMIObjectivesObject, _super);
-    function CMIObjectivesObject() {
-        var _this = _super.call(this, "cmi.objectives.n") || this;
-        _this._id = "";
-        _this._status = "";
-        _this.score = new _common_score__WEBPACK_IMPORTED_MODULE_5__/* .CMIScore */ ._({
-            CMIElement: "cmi.objectives.n.score",
-            score_children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_constants */ .QP.score_children,
-            score_range: _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.score_range,
-            invalidErrorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.INVALID_SET_VALUE,
-            invalidTypeCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.TYPE_MISMATCH,
-            invalidRangeCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_errors */ .Se.VALUE_OUT_OF_RANGE,
-            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t,
-        });
-        return _this;
-    }
-    CMIObjectivesObject.prototype.reset = function () {
-        var _a;
-        this._initialized = false;
-        this._id = "";
-        this._status = "";
-        (_a = this.score) === null || _a === void 0 ? void 0 : _a.reset();
-    };
-    Object.defineProperty(CMIObjectivesObject.prototype, "id", {
-        get: function () {
-            return this._id;
-        },
-        set: function (id) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_7__/* .check12ValidFormat */ .p)(this._cmi_element + ".id", id, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIIdentifier)) {
-                this._id = id;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIObjectivesObject.prototype, "status", {
-        get: function () {
-            return this._status;
-        },
-        set: function (status) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_7__/* .check12ValidFormat */ .p)(this._cmi_element + ".status", status, _constants_regex__WEBPACK_IMPORTED_MODULE_6__/* .scorm12_regex */ .kS.CMIStatus2)) {
-                this._status = status;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIObjectivesObject.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            id: this.id,
-            status: this.status,
-            score: this.score,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMIObjectivesObject;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_8__/* .BaseCMI */ .J));
-
-
-
-/***/ }),
-
-/***/ 557:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   $o: function() { return /* binding */ addTwoDurations; },
-/* harmony export */   Bj: function() { return /* binding */ memoize; },
-/* harmony export */   Bq: function() { return /* binding */ flatten; },
-/* harmony export */   HT: function() { return /* binding */ addHHMMSSTimeStrings; },
-/* harmony export */   J6: function() { return /* binding */ stringMatches; },
-/* harmony export */   OI: function() { return /* binding */ getDurationAsSeconds; },
-/* harmony export */   UZ: function() { return /* binding */ getSecondsAsHHMMSS; },
-/* harmony export */   f4: function() { return /* binding */ getTimeAsSeconds; },
-/* harmony export */   hw: function() { return /* binding */ formatMessage; },
-/* harmony export */   sB: function() { return /* binding */ unflatten; },
-/* harmony export */   xE: function() { return /* binding */ getSecondsAsISODuration; }
-/* harmony export */ });
-/* unused harmony exports SECONDS_PER_SECOND, SECONDS_PER_MINUTE, SECONDS_PER_HOUR, SECONDS_PER_DAY, countDecimals */
-var SECONDS_PER_SECOND = 1.0;
-var SECONDS_PER_MINUTE = 60;
-var SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
-var SECONDS_PER_DAY = 24 * SECONDS_PER_HOUR;
-var designations = {
+  }
+  class BaseRootCMI extends BaseCMI {}
+
+  const SECONDS_PER_SECOND = 1;
+  const SECONDS_PER_MINUTE = 60;
+  const SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
+  const SECONDS_PER_DAY = 24 * SECONDS_PER_HOUR;
+  const designations = {
     D: SECONDS_PER_DAY,
     H: SECONDS_PER_HOUR,
     M: SECONDS_PER_MINUTE,
-    S: SECONDS_PER_SECOND,
-};
-var getSecondsAsHHMMSS = memoize(function (totalSeconds) {
+    S: SECONDS_PER_SECOND
+  };
+  const getSecondsAsHHMMSS = memoize(totalSeconds => {
     if (!totalSeconds || totalSeconds <= 0) {
-        return "00:00:00";
+      return "00:00:00";
     }
-    var hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
-    var dateObj = new Date(totalSeconds * 1000);
-    var minutes = dateObj.getUTCMinutes();
-    var seconds = dateObj.getSeconds();
-    var ms = totalSeconds % 1.0;
-    var msStr = "";
+    const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
+    const dateObj = new Date(totalSeconds * 1e3);
+    const minutes = dateObj.getUTCMinutes();
+    const seconds = dateObj.getSeconds();
+    const ms = totalSeconds % 1;
+    let msStr = "";
     if (countDecimals(ms) > 0) {
-        if (countDecimals(ms) > 2) {
-            msStr = ms.toFixed(2);
-        }
-        else {
-            msStr = String(ms);
-        }
-        msStr = "." + msStr.split(".")[1];
+      if (countDecimals(ms) > 2) {
+        msStr = ms.toFixed(2);
+      } else {
+        msStr = String(ms);
+      }
+      msStr = "." + msStr.split(".")[1];
     }
     return (hours + ":" + minutes + ":" + seconds).replace(/\b\d\b/g, "0$&") + msStr;
-});
-var getSecondsAsISODuration = memoize(function (seconds) {
+  });
+  const getSecondsAsISODuration = memoize(seconds => {
     if (!seconds || seconds <= 0) {
-        return "PT0S";
+      return "PT0S";
     }
-    var duration = "P";
-    var remainder = seconds;
-    var designationEntries = Object.entries(designations);
-    designationEntries.forEach(function (_a) {
-        var designationsKey = _a[0], current_seconds = _a[1];
-        var value = Math.floor(remainder / current_seconds);
-        remainder = remainder % current_seconds;
-        if (countDecimals(remainder) > 2) {
-            remainder = Number(Number(remainder).toFixed(2));
+    let duration = "P";
+    let remainder = seconds;
+    const designationEntries = Object.entries(designations);
+    designationEntries.forEach(_ref => {
+      let [designationsKey, current_seconds] = _ref;
+      let value = Math.floor(remainder / current_seconds);
+      remainder = remainder % current_seconds;
+      if (countDecimals(remainder) > 2) {
+        remainder = Number(Number(remainder).toFixed(2));
+      }
+      if (designationsKey === "S" && remainder > 0) {
+        value += remainder;
+      }
+      if (value) {
+        const needsTimeSeparator = (duration.indexOf("D") > 0 || ["H", "M", "S"].includes(designationsKey)) && duration.indexOf("T") === -1;
+        if (needsTimeSeparator) {
+          duration += "T";
         }
-        if (designationsKey === "S" && remainder > 0) {
-            value += remainder;
-        }
-        if (value) {
-            var needsTimeSeparator = (duration.indexOf("D") > 0 || ["H", "M", "S"].includes(designationsKey)) &&
-                duration.indexOf("T") === -1;
-            if (needsTimeSeparator) {
-                duration += "T";
-            }
-            duration += "".concat(value).concat(designationsKey);
-        }
+        duration += `${value}${designationsKey}`;
+      }
     });
     return duration;
-});
-var getTimeAsSeconds = memoize(function (timeString, timeRegex) {
-    var _a;
+  });
+  const getTimeAsSeconds = memoize((timeString, timeRegex) => {
     if (typeof timeString === "number" || typeof timeString === "boolean") {
-        timeString = String(timeString);
+      timeString = String(timeString);
     }
     if (typeof timeRegex === "string") {
-        timeRegex = new RegExp(timeRegex);
+      timeRegex = new RegExp(timeRegex);
     }
-    if (!timeString || !((_a = timeString === null || timeString === void 0 ? void 0 : timeString.match) === null || _a === void 0 ? void 0 : _a.call(timeString, timeRegex))) {
-        return 0;
+    if (!timeString || !timeString?.match?.(timeRegex)) {
+      return 0;
     }
-    var parts = timeString.split(":");
-    var hours = Number(parts[0]);
-    var minutes = Number(parts[1]);
-    var seconds = Number(parts[2]);
+    const parts = timeString.split(":");
+    const hours = Number(parts[0]);
+    const minutes = Number(parts[1]);
+    const seconds = Number(parts[2]);
     return hours * 3600 + minutes * 60 + seconds;
-}, function (timeString, timeRegex) {
-    var _a;
-    var timeStr = typeof timeString === "string" ? timeString : String(timeString !== null && timeString !== void 0 ? timeString : "");
-    var regexStr = typeof timeRegex === "string" ? timeRegex : ((_a = timeRegex === null || timeRegex === void 0 ? void 0 : timeRegex.toString()) !== null && _a !== void 0 ? _a : "");
-    return "".concat(timeStr, ":").concat(regexStr);
-});
-var getDurationAsSeconds = memoize(function (duration, durationRegex) {
-    var _a, _b, _c, _d;
+  },
+  // Custom key function to handle RegExp objects which can't be stringified
+  (timeString, timeRegex) => {
+    const timeStr = typeof timeString === "string" ? timeString : String(timeString ?? "");
+    const regexStr = typeof timeRegex === "string" ? timeRegex : timeRegex?.toString() ?? "";
+    return `${timeStr}:${regexStr}`;
+  });
+  const getDurationAsSeconds = memoize((duration, durationRegex) => {
     if (typeof durationRegex === "string") {
-        durationRegex = new RegExp(durationRegex);
+      durationRegex = new RegExp(durationRegex);
     }
-    if (!duration || !((_a = duration === null || duration === void 0 ? void 0 : duration.match) === null || _a === void 0 ? void 0 : _a.call(duration, durationRegex))) {
-        return 0;
+    if (!duration || !duration?.match?.(durationRegex)) {
+      return 0;
     }
-    var _e = (_d = (_c = (_b = new RegExp(durationRegex)).exec) === null || _c === void 0 ? void 0 : _c.call(_b, duration)) !== null && _d !== void 0 ? _d : [], years = _e[1], _ = _e[2], days = _e[4], hours = _e[5], minutes = _e[6], seconds = _e[7];
-    var result = 0.0;
-    result += Number(seconds) || 0.0;
-    result += Number(minutes) * 60.0 || 0.0;
-    result += Number(hours) * 3600.0 || 0.0;
-    result += Number(days) * (60 * 60 * 24.0) || 0.0;
-    result += Number(years) * (60 * 60 * 24 * 365.0) || 0.0;
+    const [, years, _,, days, hours, minutes, seconds] = new RegExp(durationRegex).exec?.(duration) ?? [];
+    let result = 0;
+    result += Number(seconds) || 0;
+    result += Number(minutes) * 60 || 0;
+    result += Number(hours) * 3600 || 0;
+    result += Number(days) * (60 * 60 * 24) || 0;
+    result += Number(years) * (60 * 60 * 24 * 365) || 0;
     return result;
-}, function (duration, durationRegex) {
-    var _a;
-    var durationStr = duration !== null && duration !== void 0 ? duration : "";
-    var regexStr = typeof durationRegex === "string" ? durationRegex : ((_a = durationRegex === null || durationRegex === void 0 ? void 0 : durationRegex.toString()) !== null && _a !== void 0 ? _a : "");
-    return "".concat(durationStr, ":").concat(regexStr);
-});
-function addTwoDurations(first, second, durationRegex) {
-    var regex = typeof durationRegex === "string" ? new RegExp(durationRegex) : durationRegex;
+  },
+  // Custom key function to handle RegExp objects which can't be stringified
+  (duration, durationRegex) => {
+    const durationStr = duration ?? "";
+    const regexStr = typeof durationRegex === "string" ? durationRegex : durationRegex?.toString() ?? "";
+    return `${durationStr}:${regexStr}`;
+  });
+  function addTwoDurations(first, second, durationRegex) {
+    const regex = new RegExp(durationRegex) ;
     return getSecondsAsISODuration(getDurationAsSeconds(first, regex) + getDurationAsSeconds(second, regex));
-}
-function addHHMMSSTimeStrings(first, second, timeRegex) {
+  }
+  function addHHMMSSTimeStrings(first, second, timeRegex) {
     if (typeof timeRegex === "string") {
-        timeRegex = new RegExp(timeRegex);
+      timeRegex = new RegExp(timeRegex);
     }
     return getSecondsAsHHMMSS(getTimeAsSeconds(first, timeRegex) + getTimeAsSeconds(second, timeRegex));
-}
-function flatten(data) {
-    var result = {};
+  }
+  function flatten(data) {
+    const result = {};
     function recurse(cur, prop) {
-        if (Object(cur) !== cur) {
-            result[prop] = cur;
-        }
-        else if (Array.isArray(cur)) {
-            cur.forEach(function (item, i) {
-                recurse(item, "".concat(prop, "[").concat(i, "]"));
-            });
-            if (cur.length === 0)
-                result[prop] = [];
-        }
-        else {
-            var keys = Object.keys(cur).filter(function (p) { return Object.prototype.hasOwnProperty.call(cur, p); });
-            var isEmpty = keys.length === 0;
-            keys.forEach(function (p) {
-                recurse(cur[p], prop ? "".concat(prop, ".").concat(p) : p);
-            });
-            if (isEmpty && prop)
-                result[prop] = {};
-        }
+      if (Object(cur) !== cur) {
+        result[prop] = cur;
+      } else if (Array.isArray(cur)) {
+        cur.forEach((item, i) => {
+          recurse(item, `${prop}[${i}]`);
+        });
+        if (cur.length === 0) result[prop] = [];
+      } else {
+        const keys = Object.keys(cur).filter(p => Object.prototype.hasOwnProperty.call(cur, p));
+        const isEmpty = keys.length === 0;
+        keys.forEach(p => {
+          recurse(cur[p], prop ? `${prop}.${p}` : p);
+        });
+        if (isEmpty && prop) result[prop] = {};
+      }
     }
     recurse(data, "");
     return result;
-}
-function unflatten(data) {
-    "use strict";
-    var _a;
-    if (Object(data) !== data || Array.isArray(data))
-        return data;
-    var result = {};
-    var pattern = /\.?([^.[\]]+)|\[(\d+)]/g;
-    Object.keys(data)
-        .filter(function (p) { return Object.prototype.hasOwnProperty.call(data, p); })
-        .forEach(function (p) {
-        var _a, _b;
-        var cur = result;
-        var prop = "";
-        var regex = new RegExp(pattern);
-        Array.from({ length: (_b = (_a = p.match(new RegExp(pattern, "g"))) === null || _a === void 0 ? void 0 : _a.length) !== null && _b !== void 0 ? _b : 0 }, function () {
-            return regex.exec(p);
-        }).forEach(function (m) {
-            var _a;
-            if (m) {
-                cur = ((_a = cur[prop]) !== null && _a !== void 0 ? _a : (cur[prop] = m[2] ? [] : {}));
-                prop = m[2] || m[1];
-            }
-        });
-        cur[prop] = data[p];
-    });
-    return ((_a = result[""]) !== null && _a !== void 0 ? _a : result);
-}
-function countDecimals(num) {
-    var _a, _b, _c, _d;
-    if (Math.floor(num) === num || ((_b = (_a = String(num)) === null || _a === void 0 ? void 0 : _a.indexOf) === null || _b === void 0 ? void 0 : _b.call(_a, ".")) < 0)
-        return 0;
-    var parts = (_c = num.toString().split(".")) === null || _c === void 0 ? void 0 : _c[1];
-    return (_d = parts === null || parts === void 0 ? void 0 : parts.length) !== null && _d !== void 0 ? _d : 0;
-}
-function formatMessage(functionName, message, CMIElement) {
-    var baseLength = 20;
-    var paddedFunction = functionName.padEnd(baseLength);
-    var messageString = "".concat(paddedFunction, ": ");
-    if (CMIElement) {
-        var CMIElementBaseLength = 70;
-        messageString += CMIElement;
-        messageString = messageString.padEnd(CMIElementBaseLength);
-    }
-    messageString += message !== null && message !== void 0 ? message : "";
-    return messageString;
-}
-function stringMatches(str, tester) {
-    return (str === null || str === void 0 ? void 0 : str.match(tester)) !== null;
-}
-function memoize(fn, keyFn) {
-    var cache = new Map();
-    return (function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
+  }
+  function unflatten(data) {
+
+    if (Object(data) !== data || Array.isArray(data)) return data;
+    const result = {};
+    const pattern = /\.?([^.[\]]+)|\[(\d+)]/g;
+    Object.keys(data).filter(p => Object.prototype.hasOwnProperty.call(data, p)).forEach(p => {
+      let cur = result;
+      let prop = "";
+      const regex = new RegExp(pattern);
+      Array.from({
+        length: p.match(new RegExp(pattern, "g"))?.length ?? 0
+      }, () => regex.exec(p)).forEach(m => {
+        if (m) {
+          cur = cur[prop] ?? (cur[prop] = m[2] ? [] : {});
+          prop = m[2] || m[1];
         }
-        var key = keyFn ? keyFn.apply(void 0, args) : JSON.stringify(args);
-        return cache.has(key)
-            ? cache.get(key)
-            : (function () {
-                var result = fn.apply(void 0, args);
-                cache.set(key, result);
-                return result;
-            })();
+      });
+      cur[prop] = data[p];
     });
-}
+    return result[""] ?? result;
+  }
+  function countDecimals(num) {
+    if (Math.floor(num) === num || String(num)?.indexOf?.(".") < 0) return 0;
+    const parts = num.toString().split(".")?.[1];
+    return parts?.length ?? 0;
+  }
+  function formatMessage(functionName, message, CMIElement) {
+    const baseLength = 20;
+    const paddedFunction = functionName.padEnd(baseLength);
+    let messageString = `${paddedFunction}: `;
+    if (CMIElement) {
+      const CMIElementBaseLength = 70;
+      messageString += CMIElement;
+      messageString = messageString.padEnd(CMIElementBaseLength);
+    }
+    messageString += message ?? "";
+    return messageString;
+  }
+  function stringMatches(str, tester) {
+    return str?.match(tester) !== null;
+  }
+  function memoize(fn, keyFn) {
+    const cache = /* @__PURE__ */new Map();
+    return function () {
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+      const key = keyFn ? keyFn(...args) : JSON.stringify(args);
+      return cache.has(key) ? cache.get(key) : (() => {
+        const result = fn(...args);
+        cache.set(key, result);
+        return result;
+      })();
+    };
+  }
 
+  const checkValidFormat = memoize((CMIElement, value, regexPattern, errorCode, errorClass, allowEmptyString) => {
+    if (typeof value !== "string") {
+      return false;
+    }
+    const formatRegex = new RegExp(regexPattern);
+    const matches = value.match(formatRegex);
+    if (allowEmptyString && value === "") {
+      return true;
+    }
+    if (value === void 0 || !matches || matches[0] === "") {
+      throw new errorClass(CMIElement, errorCode);
+    }
+    return true;
+  },
+  // Custom key function that excludes the error class from the cache key
+  // since it can't be stringified and doesn't affect the validation result
+  (CMIElement, value, regexPattern, errorCode, _errorClass, allowEmptyString) => {
+    const valueKey = typeof value === "string" ? value : `[${typeof value}]`;
+    return `${CMIElement}:${valueKey}:${regexPattern}:${errorCode}:${allowEmptyString || false}`;
+  });
+  const checkValidRange = memoize((CMIElement, value, rangePattern, errorCode, errorClass) => {
+    const ranges = rangePattern.split("#");
+    value = value * 1;
+    if (value >= ranges[0]) {
+      if (ranges[1] === "*" || value <= ranges[1]) {
+        return true;
+      } else {
+        throw new errorClass(CMIElement, errorCode);
+      }
+    } else {
+      throw new errorClass(CMIElement, errorCode);
+    }
+  },
+  // Custom key function that excludes the error class from the cache key
+  // since it can't be stringified and doesn't affect the validation result
+  (CMIElement, value, rangePattern, errorCode, _errorClass) => `${CMIElement}:${value}:${rangePattern}:${errorCode}`);
 
-/***/ }),
+  function check12ValidFormat(CMIElement, value, regexPattern, allowEmptyString) {
+    return checkValidFormat(CMIElement, value, regexPattern, scorm12_errors$1.TYPE_MISMATCH, Scorm12ValidationError, allowEmptyString);
+  }
+  function check12ValidRange(CMIElement, value, rangePattern, allowEmptyString) {
+    if (value === "") {
+      throw new Scorm12ValidationError(CMIElement, scorm12_errors$1.VALUE_OUT_OF_RANGE);
+    }
+    return checkValidRange(CMIElement, value, rangePattern, scorm12_errors$1.VALUE_OUT_OF_RANGE, Scorm12ValidationError);
+  }
 
-/***/ 573:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+  class ValidationService {
+    /**
+     * Validates a score property (raw, min, max)
+     *
+     * @param {string} CMIElement
+     * @param {string} value - The value to validate
+     * @param {string} decimalRegex - The regex pattern for decimal validation
+     * @param {string | false} scoreRange - The range pattern for score validation, or false if no range validation is needed
+     * @param {number} invalidTypeCode - The error code for invalid type
+     * @param {number} invalidRangeCode - The error code for invalid range
+     * @param {typeof BaseScormValidationError} errorClass - The error class to use for validation errors
+     * @return {boolean} - True if validation passes, throws an error otherwise
+     */
+    validateScore(CMIElement, value, decimalRegex, scoreRange, invalidTypeCode, invalidRangeCode, errorClass) {
+      return checkValidFormat(CMIElement, value, decimalRegex, invalidTypeCode, errorClass) && (!scoreRange || checkValidRange(CMIElement, value, scoreRange, invalidRangeCode, errorClass));
+    }
+    /**
+     * Validates a SCORM 1.2 audio property
+     *
+     * @param {string} CMIElement
+     * @param {string} value - The value to validate
+     * @return {boolean} - True if validation passes, throws an error otherwise
+     */
+    validateScorm12Audio(CMIElement, value) {
+      return check12ValidFormat(CMIElement, value, scorm12_regex.CMISInteger) && check12ValidRange(CMIElement, value, scorm12_regex.audio_range);
+    }
+    /**
+     * Validates a SCORM 1.2 language property
+     *
+     * @param {string} CMIElement
+     * @param {string} value - The value to validate
+     * @return {boolean} - True if validation passes, throws an error otherwise
+     */
+    validateScorm12Language(CMIElement, value) {
+      return check12ValidFormat(CMIElement, value, scorm12_regex.CMIString256);
+    }
+    /**
+     * Validates a SCORM 1.2 speed property
+     *
+     * @param {string} CMIElement
+     * @param {string} value - The value to validate
+     * @return {boolean} - True if validation passes, throws an error otherwise
+     */
+    validateScorm12Speed(CMIElement, value) {
+      return check12ValidFormat(CMIElement, value, scorm12_regex.CMISInteger) && check12ValidRange(CMIElement, value, scorm12_regex.speed_range);
+    }
+    /**
+     * Validates a SCORM 1.2 text property
+     *
+     * @param {string} CMIElement
+     * @param {string} value - The value to validate
+     * @return {boolean} - True if validation passes, throws an error otherwise
+     */
+    validateScorm12Text(CMIElement, value) {
+      return check12ValidFormat(CMIElement, value, scorm12_regex.CMISInteger) && check12ValidRange(CMIElement, value, scorm12_regex.text_range);
+    }
+    /**
+     * Validates if a property is read-only
+     *
+     * @param {string} CMIElement
+     * @param {boolean} initialized - Whether the object is initialized
+     * @throws {BaseScormValidationError} - Throws an error if the object is initialized
+     */
+    validateReadOnly(CMIElement, initialized) {
+      if (initialized) {
+        throw new Scorm12ValidationError(CMIElement, scorm12_errors$1.READ_ONLY_ELEMENT);
+      }
+    }
+  }
+  const validationService = new ValidationService();
 
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   K$: function() { return /* binding */ NAVBoolean; },
-/* harmony export */   Mb: function() { return /* binding */ LogLevelEnum; },
-/* harmony export */   YE: function() { return /* binding */ SuccessStatus; },
-/* harmony export */   lC: function() { return /* binding */ CompletionStatus; }
-/* harmony export */ });
-var NAVBoolean = {
+  class CMIScore extends BaseCMI {
+    /**
+     * Constructor for *.score
+     * @param {
+     *     score_children: string,
+     *     score_range: string,
+     *     max: string,
+     *     invalidErrorCode: number,
+     *     invalidTypeCode: number,
+     *     invalidRangeCode: number,
+     *     decimalRegex: string,
+     *     errorClass: typeof BaseScormValidationError
+     * } params
+     */
+    constructor(params) {
+      super(params.CMIElement);
+      this._raw = "";
+      this._min = "";
+      this.__children = params.score_children || scorm12_constants.score_children;
+      this.__score_range = !params.score_range ? false : scorm12_regex.score_range;
+      this._max = params.max || params.max === "" ? params.max : "100";
+      this.__invalid_error_code = params.invalidErrorCode || scorm12_errors$1.INVALID_SET_VALUE;
+      this.__invalid_type_code = params.invalidTypeCode || scorm12_errors$1.TYPE_MISMATCH;
+      this.__invalid_range_code = params.invalidRangeCode || scorm12_errors$1.VALUE_OUT_OF_RANGE;
+      this.__decimal_regex = params.decimalRegex || scorm12_regex.CMIDecimal;
+      this.__error_class = params.errorClass;
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      this._initialized = false;
+    }
+    /**
+     * Getter for _children
+     * @return {string}
+     */
+    get _children() {
+      return this.__children;
+    }
+    /**
+     * Setter for _children. Just throws an error.
+     * @param {string} _children
+     */
+    set _children(_children) {
+      throw new this.__error_class(this._cmi_element + "._children", this.__invalid_error_code);
+    }
+    /**
+     * Getter for _raw
+     * @return {string}
+     */
+    get raw() {
+      return this._raw;
+    }
+    /**
+     * Setter for _raw
+     * @param {string} raw
+     */
+    set raw(raw) {
+      if (validationService.validateScore(this._cmi_element + ".raw", raw, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
+        this._raw = raw;
+      }
+    }
+    /**
+     * Getter for _min
+     * @return {string}
+     */
+    get min() {
+      return this._min;
+    }
+    /**
+     * Setter for _min
+     * @param {string} min
+     */
+    set min(min) {
+      if (validationService.validateScore(this._cmi_element + ".min", min, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
+        this._min = min;
+      }
+    }
+    /**
+     * Getter for _max
+     * @return {string}
+     */
+    get max() {
+      return this._max;
+    }
+    /**
+     * Setter for _max
+     * @param {string} max
+     */
+    set max(max) {
+      if (validationService.validateScore(this._cmi_element + ".max", max, this.__decimal_regex, this.__score_range, this.__invalid_type_code, this.__invalid_range_code, this.__error_class)) {
+        this._max = max;
+      }
+    }
+    /**
+     * toJSON for *.score
+     * @return {
+     *    {
+     *      min: string,
+     *      max: string,
+     *      raw: string
+     *    }
+     *    }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        raw: this.raw,
+        min: this.min,
+        max: this.max
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+
+  class CMICore extends BaseCMI {
+    /**
+     * Constructor for `cmi.core`
+     */
+    constructor() {
+      super("cmi.core");
+      this.__children = scorm12_constants.core_children;
+      this._student_id = "";
+      this._student_name = "";
+      this._lesson_location = "";
+      this._credit = "";
+      this._lesson_status = "not attempted";
+      this._entry = "";
+      this._total_time = "";
+      this._lesson_mode = "normal";
+      this._exit = "";
+      this._session_time = "00:00:00";
+      this._suspend_data = "";
+      this.score = new CMIScore({
+        CMIElement: "cmi.core.score",
+        score_children: scorm12_constants.score_children,
+        score_range: scorm12_regex.score_range,
+        invalidErrorCode: scorm12_errors$1.INVALID_SET_VALUE,
+        invalidTypeCode: scorm12_errors$1.TYPE_MISMATCH,
+        invalidRangeCode: scorm12_errors$1.VALUE_OUT_OF_RANGE,
+        errorClass: Scorm12ValidationError
+      });
+    }
+    /**
+     * Called when the API has been initialized after the CMI has been created
+     */
+    initialize() {
+      super.initialize();
+      this.score?.initialize();
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      this._initialized = false;
+      this._exit = "";
+      this._entry = "";
+      this._session_time = "00:00:00";
+      this.score?.reset();
+    }
+    /**
+     * Getter for __children
+     * @return {string}
+     * @private
+     */
+    get _children() {
+      return this.__children;
+    }
+    /**
+     * Setter for __children. Just throws an error.
+     * @param {string} _children
+     * @private
+     */
+    set _children(_children) {
+      throw new Scorm12ValidationError(this._cmi_element + "._children", scorm12_errors$1.INVALID_SET_VALUE);
+    }
+    /**
+     * Getter for _student_id
+     * @return {string}
+     */
+    get student_id() {
+      return this._student_id;
+    }
+    /**
+     * Setter for _student_id. Can only be called before  initialization.
+     * @param {string} student_id
+     */
+    set student_id(student_id) {
+      if (this.initialized) {
+        throw new Scorm12ValidationError(this._cmi_element + ".student_id", scorm12_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._student_id = student_id;
+      }
+    }
+    /**
+     * Getter for _student_name
+     * @return {string}
+     */
+    get student_name() {
+      return this._student_name;
+    }
+    /**
+     * Setter for _student_name. Can only be called before  initialization.
+     * @param {string} student_name
+     */
+    set student_name(student_name) {
+      if (this.initialized) {
+        throw new Scorm12ValidationError(this._cmi_element + ".student_name", scorm12_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._student_name = student_name;
+      }
+    }
+    /**
+     * Getter for _lesson_location
+     * @return {string}
+     */
+    get lesson_location() {
+      return this._lesson_location;
+    }
+    /**
+     * Setter for _lesson_location
+     * @param {string} lesson_location
+     */
+    set lesson_location(lesson_location) {
+      if (check12ValidFormat(this._cmi_element + ".lesson_location", lesson_location, scorm12_regex.CMIString256, true)) {
+        this._lesson_location = lesson_location;
+      }
+    }
+    /**
+     * Getter for _credit
+     * @return {string}
+     */
+    get credit() {
+      return this._credit;
+    }
+    /**
+     * Setter for _credit. Can only be called before  initialization.
+     * @param {string} credit
+     */
+    set credit(credit) {
+      if (this.initialized) {
+        throw new Scorm12ValidationError(this._cmi_element + ".credit", scorm12_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._credit = credit;
+      }
+    }
+    /**
+     * Getter for _lesson_status
+     * @return {string}
+     */
+    get lesson_status() {
+      return this._lesson_status;
+    }
+    /**
+     * Setter for _lesson_status
+     * @param {string} lesson_status
+     */
+    set lesson_status(lesson_status) {
+      if (this.initialized) {
+        if (check12ValidFormat(this._cmi_element + ".lesson_status", lesson_status, scorm12_regex.CMIStatus)) {
+          this._lesson_status = lesson_status;
+        }
+      } else {
+        if (check12ValidFormat(this._cmi_element + ".lesson_status", lesson_status, scorm12_regex.CMIStatus2)) {
+          this._lesson_status = lesson_status;
+        }
+      }
+    }
+    /**
+     * Getter for _entry
+     * @return {string}
+     */
+    get entry() {
+      return this._entry;
+    }
+    /**
+     * Setter for _entry. Can only be called before  initialization.
+     * @param {string} entry
+     */
+    set entry(entry) {
+      if (this.initialized) {
+        throw new Scorm12ValidationError(this._cmi_element + ".entry", scorm12_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._entry = entry;
+      }
+    }
+    /**
+     * Getter for _total_time
+     * @return {string}
+     */
+    get total_time() {
+      return this._total_time;
+    }
+    /**
+     * Setter for _total_time. Can only be called before  initialization.
+     * @param {string} total_time
+     */
+    set total_time(total_time) {
+      if (this.initialized) {
+        throw new Scorm12ValidationError(this._cmi_element + ".total_time", scorm12_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._total_time = total_time;
+      }
+    }
+    /**
+     * Getter for _lesson_mode
+     * @return {string}
+     */
+    get lesson_mode() {
+      return this._lesson_mode;
+    }
+    /**
+     * Setter for _lesson_mode. Can only be called before  initialization.
+     * @param {string} lesson_mode
+     */
+    set lesson_mode(lesson_mode) {
+      if (this.initialized) {
+        throw new Scorm12ValidationError(this._cmi_element + ".lesson_mode", scorm12_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._lesson_mode = lesson_mode;
+      }
+    }
+    /**
+     * Getter for _exit. Should only be called during JSON export.
+     * @return {string}
+     */
+    get exit() {
+      if (!this.jsonString) {
+        throw new Scorm12ValidationError(this._cmi_element + ".exit", scorm12_errors$1.WRITE_ONLY_ELEMENT);
+      }
+      return this._exit;
+    }
+    /**
+     * Setter for _exit
+     * @param {string} exit
+     */
+    set exit(exit) {
+      if (check12ValidFormat(this._cmi_element + ".exit", exit, scorm12_regex.CMIExit, true)) {
+        this._exit = exit;
+      }
+    }
+    /**
+     * Getter for _session_time. Should only be called during JSON export.
+     * @return {string}
+     */
+    get session_time() {
+      if (!this.jsonString) {
+        throw new Scorm12ValidationError(this._cmi_element + ".session_time", scorm12_errors$1.WRITE_ONLY_ELEMENT);
+      }
+      return this._session_time;
+    }
+    /**
+     * Setter for _session_time
+     * @param {string} session_time
+     */
+    set session_time(session_time) {
+      if (check12ValidFormat(this._cmi_element + ".session_time", session_time, scorm12_regex.CMITimespan)) {
+        this._session_time = session_time;
+      }
+    }
+    /**
+     * Getter for _suspend_data
+     * @return {string}
+     */
+    get suspend_data() {
+      return this._suspend_data;
+    }
+    /**
+     * Setter for _suspend_data
+     * @param {string} suspend_data
+     */
+    set suspend_data(suspend_data) {
+      if (check12ValidFormat(this._cmi_element + ".suspend_data", suspend_data, scorm12_regex.CMIString4096, true)) {
+        this._suspend_data = suspend_data;
+      }
+    }
+    /**
+     * Adds the current session time to the existing total time.
+     * @param {number} start_time
+     * @return {string}
+     */
+    getCurrentTotalTime(start_time) {
+      let sessionTime = this._session_time;
+      const startTime = start_time;
+      if (typeof startTime !== "undefined" && startTime !== null) {
+        const seconds = (/* @__PURE__ */new Date()).getTime() - startTime;
+        sessionTime = getSecondsAsHHMMSS(seconds / 1e3);
+      }
+      return addHHMMSSTimeStrings(this._total_time, sessionTime, new RegExp(scorm12_regex.CMITimespan));
+    }
+    /**
+     * toJSON for cmi.core
+     *
+     * @return {
+     *    {
+     *      student_name: string,
+     *      entry: string,
+     *      exit: string,
+     *      score: CMIScore,
+     *      student_id: string,
+     *      lesson_mode: string,
+     *      lesson_location: string,
+     *      lesson_status: string,
+     *      credit: string,
+     *      session_time: string
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        student_id: this.student_id,
+        student_name: this.student_name,
+        lesson_location: this.lesson_location,
+        credit: this.credit,
+        lesson_status: this.lesson_status,
+        entry: this.entry,
+        lesson_mode: this.lesson_mode,
+        exit: this.exit,
+        session_time: this.session_time,
+        score: this.score
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+
+  class CMIArray extends BaseCMI {
+    /**
+     * Constructor cmi *.n arrays
+     * @param {object} params
+     */
+    constructor(params) {
+      super(params.CMIElement);
+      this.__children = params.children;
+      this._errorCode = params.errorCode || scorm12_errors$1.GENERAL;
+      this._errorClass = params.errorClass || BaseScormValidationError;
+      this.childArray = [];
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      let wipe = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+      this._initialized = false;
+      if (wipe) {
+        this.childArray = [];
+      } else {
+        for (let i = 0; i < this.childArray.length; i++) {
+          this.childArray[i].reset();
+        }
+      }
+    }
+    /**
+     * Getter for _children
+     * @return {string}
+     */
+    get _children() {
+      return this.__children;
+    }
+    /**
+     * Setter for _children. Just throws an error.
+     * @param {string} _children
+     */
+    set _children(_children) {
+      throw new this._errorClass(this._cmi_element + "._children", this._errorCode);
+    }
+    /**
+     * Getter for _count
+     * @return {number}
+     */
+    get _count() {
+      return this.childArray.length;
+    }
+    /**
+     * Setter for _count. Just throws an error.
+     * @param {number} _count
+     */
+    set _count(_count) {
+      throw new this._errorClass(this._cmi_element + "._count", this._errorCode);
+    }
+    /**
+     * toJSON for *.n arrays
+     * @return {object}
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {};
+      for (let i = 0; i < this.childArray.length; i++) {
+        result[i + ""] = this.childArray[i];
+      }
+      delete this.jsonString;
+      return result;
+    }
+  }
+
+  let CMIObjectives$1 = class CMIObjectives extends CMIArray {
+    /**
+     * Constructor for `cmi.objectives`
+     */
+    constructor() {
+      super({
+        CMIElement: "cmi.objectives",
+        children: scorm12_constants.objectives_children,
+        errorCode: scorm12_errors$1.INVALID_SET_VALUE,
+        errorClass: Scorm12ValidationError
+      });
+    }
+  };
+  let CMIObjectivesObject$1 = class CMIObjectivesObject extends BaseCMI {
+    /**
+     * Constructor for cmi.objectives.n
+     */
+    constructor() {
+      super("cmi.objectives.n");
+      this._id = "";
+      this._status = "";
+      this.score = new CMIScore({
+        CMIElement: "cmi.objectives.n.score",
+        score_children: scorm12_constants.score_children,
+        score_range: scorm12_regex.score_range,
+        invalidErrorCode: scorm12_errors$1.INVALID_SET_VALUE,
+        invalidTypeCode: scorm12_errors$1.TYPE_MISMATCH,
+        invalidRangeCode: scorm12_errors$1.VALUE_OUT_OF_RANGE,
+        errorClass: Scorm12ValidationError
+      });
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      this._initialized = false;
+      this._id = "";
+      this._status = "";
+      this.score?.reset();
+    }
+    /**
+     * Getter for _id
+     * @return {string}
+     */
+    get id() {
+      return this._id;
+    }
+    /**
+     * Setter for _id
+     * @param {string} id
+     */
+    set id(id) {
+      if (check12ValidFormat(this._cmi_element + ".id", id, scorm12_regex.CMIIdentifier)) {
+        this._id = id;
+      }
+    }
+    /**
+     * Getter for _status
+     * @return {string}
+     */
+    get status() {
+      return this._status;
+    }
+    /**
+     * Setter for _status
+     * @param {string} status
+     */
+    set status(status) {
+      if (check12ValidFormat(this._cmi_element + ".status", status, scorm12_regex.CMIStatus2)) {
+        this._status = status;
+      }
+    }
+    /**
+     * toJSON for cmi.objectives.n
+     * @return {
+     *    {
+     *      id: string,
+     *      status: string,
+     *      score: CMIScore
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        id: this.id,
+        status: this.status,
+        score: this.score
+      };
+      delete this.jsonString;
+      return result;
+    }
+  };
+
+  class CMIStudentData extends BaseCMI {
+    /**
+     * Constructor for cmi.student_data
+     * @param {string} student_data_children
+     */
+    constructor(student_data_children) {
+      super("cmi.student_data");
+      this._mastery_score = "";
+      this._max_time_allowed = "";
+      this._time_limit_action = "";
+      this.__children = student_data_children ? student_data_children : scorm12_constants.student_data_children;
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      this._initialized = false;
+    }
+    /**
+     * Getter for __children
+     * @return {string}
+     * @private
+     */
+    get _children() {
+      return this.__children;
+    }
+    /**
+     * Setter for __children. Just throws an error.
+     * @param {string} _children
+     * @private
+     */
+    set _children(_children) {
+      throw new Scorm12ValidationError(this._cmi_element + "._children", scorm12_errors$1.INVALID_SET_VALUE);
+    }
+    /**
+     * Getter for _master_score
+     * @return {string}
+     */
+    get mastery_score() {
+      return this._mastery_score;
+    }
+    /**
+     * Setter for _master_score. Can only be called before  initialization.
+     * @param {string} mastery_score
+     */
+    set mastery_score(mastery_score) {
+      validationService.validateReadOnly(this._cmi_element + ".mastery_score", this.initialized);
+      this._mastery_score = mastery_score;
+    }
+    /**
+     * Getter for _max_time_allowed
+     * @return {string}
+     */
+    get max_time_allowed() {
+      return this._max_time_allowed;
+    }
+    /**
+     * Setter for _max_time_allowed. Can only be called before  initialization.
+     * @param {string} max_time_allowed
+     */
+    set max_time_allowed(max_time_allowed) {
+      validationService.validateReadOnly(this._cmi_element + ".max_time_allowed", this.initialized);
+      this._max_time_allowed = max_time_allowed;
+    }
+    /**
+     * Getter for _time_limit_action
+     * @return {string}
+     */
+    get time_limit_action() {
+      return this._time_limit_action;
+    }
+    /**
+     * Setter for _time_limit_action. Can only be called before  initialization.
+     * @param {string} time_limit_action
+     */
+    set time_limit_action(time_limit_action) {
+      validationService.validateReadOnly(this._cmi_element + ".time_limit_action", this.initialized);
+      this._time_limit_action = time_limit_action;
+    }
+    /**
+     * toJSON for cmi.student_data
+     *
+     * @return {
+     *    {
+     *      max_time_allowed: string,
+     *      time_limit_action: string,
+     *      mastery_score: string
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        mastery_score: this.mastery_score,
+        max_time_allowed: this.max_time_allowed,
+        time_limit_action: this.time_limit_action
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+
+  class CMIStudentPreference extends BaseCMI {
+    /**
+     * Constructor for cmi.student_preference
+     * @param {string} student_preference_children
+     */
+    constructor(student_preference_children) {
+      super("cmi.student_preference");
+      this._audio = "";
+      this._language = "";
+      this._speed = "";
+      this._text = "";
+      this.__children = student_preference_children ? student_preference_children : scorm12_constants.student_preference_children;
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      this._initialized = false;
+    }
+    /**
+     * Getter for __children
+     * @return {string}
+     * @private
+     */
+    get _children() {
+      return this.__children;
+    }
+    /**
+     * Setter for __children. Just throws an error.
+     * @param {string} _children
+     * @private
+     */
+    set _children(_children) {
+      throw new Scorm12ValidationError(this._cmi_element + "._children", scorm12_errors$1.INVALID_SET_VALUE);
+    }
+    /**
+     * Getter for _audio
+     * @return {string}
+     */
+    get audio() {
+      return this._audio;
+    }
+    /**
+     * Setter for _audio
+     * @param {string} audio
+     */
+    set audio(audio) {
+      if (validationService.validateScorm12Audio(this._cmi_element + ".audio", audio)) {
+        this._audio = audio;
+      }
+    }
+    /**
+     * Getter for _language
+     * @return {string}
+     */
+    get language() {
+      return this._language;
+    }
+    /**
+     * Setter for _language
+     * @param {string} language
+     */
+    set language(language) {
+      if (validationService.validateScorm12Language(this._cmi_element + ".language", language)) {
+        this._language = language;
+      }
+    }
+    /**
+     * Getter for _speed
+     * @return {string}
+     */
+    get speed() {
+      return this._speed;
+    }
+    /**
+     * Setter for _speed
+     * @param {string} speed
+     */
+    set speed(speed) {
+      if (validationService.validateScorm12Speed(this._cmi_element + ".speed", speed)) {
+        this._speed = speed;
+      }
+    }
+    /**
+     * Getter for _text
+     * @return {string}
+     */
+    get text() {
+      return this._text;
+    }
+    /**
+     * Setter for _text
+     * @param {string} text
+     */
+    set text(text) {
+      if (validationService.validateScorm12Text(this._cmi_element + ".text", text)) {
+        this._text = text;
+      }
+    }
+    /**
+     * toJSON for cmi.student_preference
+     *
+     * @return {
+     *    {
+     *      audio: string,
+     *      language: string,
+     *      speed: string,
+     *      text: string
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        audio: this.audio,
+        language: this.language,
+        speed: this.speed,
+        text: this.text
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+
+  let CMIInteractions$1 = class CMIInteractions extends CMIArray {
+    /**
+     * Constructor for `cmi.interactions`
+     */
+    constructor() {
+      super({
+        CMIElement: "cmi.interactions",
+        children: scorm12_constants.interactions_children,
+        errorCode: scorm12_errors$1.INVALID_SET_VALUE,
+        errorClass: Scorm12ValidationError
+      });
+    }
+  };
+  let CMIInteractionsObject$1 = class CMIInteractionsObject extends BaseCMI {
+    /**
+     * Constructor for cmi.interactions.n object
+     */
+    constructor() {
+      super("cmi.interactions.n");
+      this._id = "";
+      this._time = "";
+      this._type = "";
+      this._weighting = "";
+      this._student_response = "";
+      this._result = "";
+      this._latency = "";
+      this.objectives = new CMIArray({
+        CMIElement: "cmi.interactions.n.objectives",
+        errorCode: scorm12_errors$1.INVALID_SET_VALUE,
+        errorClass: Scorm12ValidationError,
+        children: scorm12_constants.objectives_children
+      });
+      this.correct_responses = new CMIArray({
+        CMIElement: "cmi.interactions.correct_responses",
+        errorCode: scorm12_errors$1.INVALID_SET_VALUE,
+        errorClass: Scorm12ValidationError,
+        children: scorm12_constants.correct_responses_children
+      });
+    }
+    /**
+     * Called when the API has been initialized after the CMI has been created
+     */
+    initialize() {
+      super.initialize();
+      this.objectives?.initialize();
+      this.correct_responses?.initialize();
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      this._initialized = false;
+      this._id = "";
+      this._time = "";
+      this._type = "";
+      this._weighting = "";
+      this._student_response = "";
+      this._result = "";
+      this._latency = "";
+      this.objectives?.reset();
+      this.correct_responses?.reset();
+    }
+    /**
+     * Getter for _id. Should only be called during JSON export.
+     * @return {string}
+     */
+    get id() {
+      if (!this.jsonString) {
+        throw new Scorm12ValidationError(this._cmi_element + ".id", scorm12_errors$1.WRITE_ONLY_ELEMENT);
+      }
+      return this._id;
+    }
+    /**
+     * Setter for _id
+     * @param {string} id
+     */
+    set id(id) {
+      if (check12ValidFormat(this._cmi_element + ".id", id, scorm12_regex.CMIIdentifier)) {
+        this._id = id;
+      }
+    }
+    /**
+     * Getter for _time. Should only be called during JSON export.
+     * @return {string}
+     */
+    get time() {
+      if (!this.jsonString) {
+        throw new Scorm12ValidationError(this._cmi_element + ".time", scorm12_errors$1.WRITE_ONLY_ELEMENT);
+      }
+      return this._time;
+    }
+    /**
+     * Setter for _time
+     * @param {string} time
+     */
+    set time(time) {
+      if (check12ValidFormat(this._cmi_element + ".time", time, scorm12_regex.CMITime)) {
+        this._time = time;
+      }
+    }
+    /**
+     * Getter for _type. Should only be called during JSON export.
+     * @return {string}
+     */
+    get type() {
+      if (!this.jsonString) {
+        throw new Scorm12ValidationError(this._cmi_element + ".type", scorm12_errors$1.WRITE_ONLY_ELEMENT);
+      }
+      return this._type;
+    }
+    /**
+     * Setter for _type
+     * @param {string} type
+     */
+    set type(type) {
+      if (check12ValidFormat(this._cmi_element + ".type", type, scorm12_regex.CMIType)) {
+        this._type = type;
+      }
+    }
+    /**
+     * Getter for _weighting. Should only be called during JSON export.
+     * @return {string}
+     */
+    get weighting() {
+      if (!this.jsonString) {
+        throw new Scorm12ValidationError(this._cmi_element + ".weighting", scorm12_errors$1.WRITE_ONLY_ELEMENT);
+      }
+      return this._weighting;
+    }
+    /**
+     * Setter for _weighting
+     * @param {string} weighting
+     */
+    set weighting(weighting) {
+      if (check12ValidFormat(this._cmi_element + ".weighting", weighting, scorm12_regex.CMIDecimal) && check12ValidRange(this._cmi_element + ".weighting", weighting, scorm12_regex.weighting_range)) {
+        this._weighting = weighting;
+      }
+    }
+    /**
+     * Getter for _student_response. Should only be called during JSON export.
+     * @return {string}
+     */
+    get student_response() {
+      if (!this.jsonString) {
+        throw new Scorm12ValidationError(this._cmi_element + ".student_response", scorm12_errors$1.WRITE_ONLY_ELEMENT);
+      }
+      return this._student_response;
+    }
+    /**
+     * Setter for _student_response
+     * @param {string} student_response
+     */
+    set student_response(student_response) {
+      if (check12ValidFormat(this._cmi_element + ".student_response", student_response, scorm12_regex.CMIFeedback, true)) {
+        this._student_response = student_response;
+      }
+    }
+    /**
+     * Getter for _result. Should only be called during JSON export.
+     * @return {string}
+     */
+    get result() {
+      if (!this.jsonString) {
+        throw new Scorm12ValidationError(this._cmi_element + ".result", scorm12_errors$1.WRITE_ONLY_ELEMENT);
+      }
+      return this._result;
+    }
+    /**
+     * Setter for _result
+     * @param {string} result
+     */
+    set result(result) {
+      if (check12ValidFormat(this._cmi_element + ".result", result, scorm12_regex.CMIResult)) {
+        this._result = result;
+      }
+    }
+    /**
+     * Getter for _latency. Should only be called during JSON export.
+     * @return {string}
+     */
+    get latency() {
+      if (!this.jsonString) {
+        throw new Scorm12ValidationError(this._cmi_element + ".latency", scorm12_errors$1.WRITE_ONLY_ELEMENT);
+      }
+      return this._latency;
+    }
+    /**
+     * Setter for _latency
+     * @param {string} latency
+     */
+    set latency(latency) {
+      if (check12ValidFormat(this._cmi_element + ".latency", latency, scorm12_regex.CMITimespan)) {
+        this._latency = latency;
+      }
+    }
+    /**
+     * toJSON for cmi.interactions.n
+     *
+     * @return {
+     *    {
+     *      id: string,
+     *      time: string,
+     *      type: string,
+     *      weighting: string,
+     *      student_response: string,
+     *      result: string,
+     *      latency: string,
+     *      objectives: CMIArray,
+     *      correct_responses: CMIArray
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        id: this.id,
+        time: this.time,
+        type: this.type,
+        weighting: this.weighting,
+        student_response: this.student_response,
+        result: this.result,
+        latency: this.latency,
+        objectives: this.objectives,
+        correct_responses: this.correct_responses
+      };
+      delete this.jsonString;
+      return result;
+    }
+  };
+  let CMIInteractionsObjectivesObject$1 = class CMIInteractionsObjectivesObject extends BaseCMI {
+    /**
+     * Constructor for cmi.interactions.n.objectives.n
+     */
+    constructor() {
+      super("cmi.interactions.n.objectives.n");
+      this._id = "";
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      this._initialized = false;
+      this._id = "";
+    }
+    /**
+     * Getter for _id
+     * @return {string}
+     */
+    get id() {
+      return this._id;
+    }
+    /**
+     * Setter for _id
+     * @param {string} id
+     */
+    set id(id) {
+      if (check12ValidFormat(this._cmi_element + ".id", id, scorm12_regex.CMIIdentifier)) {
+        this._id = id;
+      }
+    }
+    /**
+     * toJSON for cmi.interactions.n.objectives.n
+     * @return {
+     *    {
+     *      id: string
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        id: this.id
+      };
+      delete this.jsonString;
+      return result;
+    }
+  };
+  let CMIInteractionsCorrectResponsesObject$1 = class CMIInteractionsCorrectResponsesObject extends BaseCMI {
+    /**
+     * Constructor for cmi.interactions.correct_responses.n
+     */
+    constructor() {
+      super("cmi.interactions.correct_responses.n");
+      this._pattern = "";
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      this._initialized = false;
+      this._pattern = "";
+    }
+    /**
+     * Getter for _pattern
+     * @return {string}
+     */
+    get pattern() {
+      if (!this.jsonString) {
+        throw new Scorm12ValidationError(this._cmi_element + ".pattern", scorm12_errors$1.WRITE_ONLY_ELEMENT);
+      }
+      return this._pattern;
+    }
+    /**
+     * Setter for _pattern
+     * @param {string} pattern
+     */
+    set pattern(pattern) {
+      if (check12ValidFormat(this._cmi_element + ".pattern", pattern, scorm12_regex.CMIFeedback, true)) {
+        this._pattern = pattern;
+      }
+    }
+    /**
+     * toJSON for cmi.interactions.correct_responses.n
+     * @return {
+     *    {
+     *      pattern: string
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        pattern: this._pattern
+      };
+      delete this.jsonString;
+      return result;
+    }
+  };
+
+  let CMI$2 = class CMI extends BaseRootCMI {
+    /**
+     * Constructor for the SCORM 1.2 cmi object
+     * @param {string} cmi_children
+     * @param {(CMIStudentData|AICCCMIStudentData)} student_data
+     * @param {boolean} initialized
+     */
+    constructor(cmi_children, student_data, initialized) {
+      super("cmi");
+      this.__children = "";
+      this.__version = "3.4";
+      this._launch_data = "";
+      this._comments = "";
+      this._comments_from_lms = "";
+      if (initialized) this.initialize();
+      this.__children = cmi_children ? cmi_children : scorm12_constants.cmi_children;
+      this.core = new CMICore();
+      this.objectives = new CMIObjectives$1();
+      this.student_data = student_data ? student_data : new CMIStudentData();
+      this.student_preference = new CMIStudentPreference();
+      this.interactions = new CMIInteractions$1();
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      this._initialized = false;
+      this._launch_data = "";
+      this._comments = "";
+      this.core?.reset();
+      this.objectives = new CMIObjectives$1();
+      this.interactions = new CMIInteractions$1();
+      this.student_data?.reset();
+      this.student_preference?.reset();
+    }
+    /**
+     * Called when the API has been initialized after the CMI has been created
+     */
+    initialize() {
+      super.initialize();
+      this.core?.initialize();
+      this.objectives?.initialize();
+      this.student_data?.initialize();
+      this.student_preference?.initialize();
+      this.interactions?.initialize();
+    }
+    /**
+     * toJSON for cmi
+     *
+     * @return {
+     *    {
+     *      suspend_data: string,
+     *      launch_data: string,
+     *      comments: string,
+     *      comments_from_lms: string,
+     *      core: CMICore,
+     *      objectives: CMIObjectives,
+     *      student_data: CMIStudentData,
+     *      student_preference: CMIStudentPreference,
+     *      interactions: CMIInteractions
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        suspend_data: this.suspend_data,
+        launch_data: this.launch_data,
+        comments: this.comments,
+        comments_from_lms: this.comments_from_lms,
+        core: this.core,
+        objectives: this.objectives,
+        student_data: this.student_data,
+        student_preference: this.student_preference,
+        interactions: this.interactions
+      };
+      delete this.jsonString;
+      return result;
+    }
+    /**
+     * Getter for __version
+     * @return {string}
+     */
+    get _version() {
+      return this.__version;
+    }
+    /**
+     * Setter for __version. Just throws an error.
+     * @param {string} _version
+     */
+    set _version(_version) {
+      throw new Scorm12ValidationError(this._cmi_element + "._version", scorm12_errors$1.INVALID_SET_VALUE);
+    }
+    /**
+     * Getter for __children
+     * @return {string}
+     */
+    get _children() {
+      return this.__children;
+    }
+    /**
+     * Setter for __version. Just throws an error.
+     * @param {string} _children
+     */
+    set _children(_children) {
+      throw new Scorm12ValidationError(this._cmi_element + "._children", scorm12_errors$1.INVALID_SET_VALUE);
+    }
+    /**
+     * Getter for _suspend_data
+     * @return {string}
+     */
+    get suspend_data() {
+      return this.core?.suspend_data;
+    }
+    /**
+     * Setter for _suspend_data
+     * @param {string} suspend_data
+     */
+    set suspend_data(suspend_data) {
+      if (this.core) {
+        this.core.suspend_data = suspend_data;
+      }
+    }
+    /**
+     * Getter for _launch_data
+     * @return {string}
+     */
+    get launch_data() {
+      return this._launch_data;
+    }
+    /**
+     * Setter for _launch_data. Can only be called before  initialization.
+     * @param {string} launch_data
+     */
+    set launch_data(launch_data) {
+      if (this.initialized) {
+        throw new Scorm12ValidationError(this._cmi_element + ".launch_data", scorm12_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._launch_data = launch_data;
+      }
+    }
+    /**
+     * Getter for _comments
+     * @return {string}
+     */
+    get comments() {
+      return this._comments;
+    }
+    /**
+     * Setter for _comments
+     * @param {string} comments
+     */
+    set comments(comments) {
+      if (check12ValidFormat(this._cmi_element + ".comments", comments, scorm12_regex.CMIString4096, true)) {
+        this._comments = comments;
+      }
+    }
+    /**
+     * Getter for _comments_from_lms
+     * @return {string}
+     */
+    get comments_from_lms() {
+      return this._comments_from_lms;
+    }
+    /**
+     * Setter for _comments_from_lms. Can only be called before  initialization.
+     * @param {string} comments_from_lms
+     */
+    set comments_from_lms(comments_from_lms) {
+      if (this.initialized) {
+        throw new Scorm12ValidationError(this._cmi_element + ".comments_from_lms", scorm12_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._comments_from_lms = comments_from_lms;
+      }
+    }
+    /**
+     * Adds the current session time to the existing total time.
+     *
+     * @return {string}
+     */
+    getCurrentTotalTime() {
+      return this.core.getCurrentTotalTime(this.start_time);
+    }
+  };
+
+  class NAV extends BaseCMI {
+    /**
+     * Constructor for NAV object
+     */
+    constructor() {
+      super("cmi.nav");
+      this._event = "";
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      this._event = "";
+      this._initialized = false;
+    }
+    /**
+     * Getter for _event
+     * @return {string}
+     */
+    get event() {
+      return this._event;
+    }
+    /**
+     * Setter for _event
+     * @param {string} event
+     */
+    set event(event) {
+      if (event === "" || check12ValidFormat(this._cmi_element + ".event", event, scorm12_regex.NAVEvent)) {
+        this._event = event;
+      }
+    }
+    /**
+     * toJSON for nav object
+     * @return {
+     *    {
+     *      event: string
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        event: this.event
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+
+  const NAVBoolean = {
     UNKNOWN: "unknown",
     TRUE: "true",
-    FALSE: "false",
-};
-var SuccessStatus = {
+    FALSE: "false"
+  };
+  const SuccessStatus = {
     PASSED: "passed",
     FAILED: "failed",
-    UNKNOWN: "unknown",
-};
-var CompletionStatus = {
+    UNKNOWN: "unknown"
+  };
+  const CompletionStatus = {
     COMPLETED: "completed",
     INCOMPLETE: "incomplete",
-    UNKNOWN: "unknown",
-};
-var LogLevelEnum = {
-    _: 0,
+    UNKNOWN: "unknown"
+  };
+  const LogLevelEnum = {
     DEBUG: 1,
     INFO: 2,
     WARN: 3,
     ERROR: 4,
-    NONE: 5,
-};
-
-
-/***/ }),
-
-/***/ 586:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   A: function() { return /* binding */ NAV; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(166);
-/* harmony import */ var _validation__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(392);
-/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(64);
-
-
-
-
-var NAV = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(NAV, _super);
-    function NAV() {
-        var _this = _super.call(this, "cmi.nav") || this;
-        _this._event = "";
-        return _this;
-    }
-    NAV.prototype.reset = function () {
-        this._event = "";
-        this._initialized = false;
-    };
-    Object.defineProperty(NAV.prototype, "event", {
-        get: function () {
-            return this._event;
-        },
-        set: function (event) {
-            if (event === "" ||
-                (0,_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidFormat */ .p)(this._cmi_element + ".event", event, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.NAVEvent)) {
-                this._event = event;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    NAV.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            event: this.event,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return NAV;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_3__/* .BaseCMI */ .J));
-
-
-
-/***/ }),
-
-/***/ 635:
-/***/ (function(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   C6: function() { return /* binding */ __extends; },
-/* harmony export */   Cl: function() { return /* binding */ __assign; },
-/* harmony export */   YH: function() { return /* binding */ __generator; },
-/* harmony export */   sH: function() { return /* binding */ __awaiter; }
-/* harmony export */ });
-/* unused harmony exports __rest, __decorate, __param, __esDecorate, __runInitializers, __propKey, __setFunctionName, __metadata, __createBinding, __exportStar, __values, __read, __spread, __spreadArrays, __spreadArray, __await, __asyncGenerator, __asyncDelegator, __asyncValues, __makeTemplateObject, __importStar, __importDefault, __classPrivateFieldGet, __classPrivateFieldSet, __classPrivateFieldIn, __addDisposableResource, __disposeResources */
-/******************************************************************************
-Copyright (c) Microsoft Corporation.
-
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-PERFORMANCE OF THIS SOFTWARE.
-***************************************************************************** */
-/* global Reflect, Promise, SuppressedError, Symbol, Iterator */
-
-var extendStatics = function(d, b) {
-  extendStatics = Object.setPrototypeOf ||
-      ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-      function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-  return extendStatics(d, b);
-};
-
-function __extends(d, b) {
-  if (typeof b !== "function" && b !== null)
-      throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
-  extendStatics(d, b);
-  function __() { this.constructor = d; }
-  d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-}
-
-var __assign = function() {
-  __assign = Object.assign || function __assign(t) {
-      for (var s, i = 1, n = arguments.length; i < n; i++) {
-          s = arguments[i];
-          for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
-      }
-      return t;
-  }
-  return __assign.apply(this, arguments);
-}
-
-function __rest(s, e) {
-  var t = {};
-  for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-      t[p] = s[p];
-  if (s != null && typeof Object.getOwnPropertySymbols === "function")
-      for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-          if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-              t[p[i]] = s[p[i]];
-      }
-  return t;
-}
-
-function __decorate(decorators, target, key, desc) {
-  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-  if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-  else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-  return c > 3 && r && Object.defineProperty(target, key, r), r;
-}
-
-function __param(paramIndex, decorator) {
-  return function (target, key) { decorator(target, key, paramIndex); }
-}
-
-function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
-  function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
-  var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
-  var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
-  var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
-  var _, done = false;
-  for (var i = decorators.length - 1; i >= 0; i--) {
-      var context = {};
-      for (var p in contextIn) context[p] = p === "access" ? {} : contextIn[p];
-      for (var p in contextIn.access) context.access[p] = contextIn.access[p];
-      context.addInitializer = function (f) { if (done) throw new TypeError("Cannot add initializers after decoration has completed"); extraInitializers.push(accept(f || null)); };
-      var result = (0, decorators[i])(kind === "accessor" ? { get: descriptor.get, set: descriptor.set } : descriptor[key], context);
-      if (kind === "accessor") {
-          if (result === void 0) continue;
-          if (result === null || typeof result !== "object") throw new TypeError("Object expected");
-          if (_ = accept(result.get)) descriptor.get = _;
-          if (_ = accept(result.set)) descriptor.set = _;
-          if (_ = accept(result.init)) initializers.unshift(_);
-      }
-      else if (_ = accept(result)) {
-          if (kind === "field") initializers.unshift(_);
-          else descriptor[key] = _;
-      }
-  }
-  if (target) Object.defineProperty(target, contextIn.name, descriptor);
-  done = true;
-};
-
-function __runInitializers(thisArg, initializers, value) {
-  var useValue = arguments.length > 2;
-  for (var i = 0; i < initializers.length; i++) {
-      value = useValue ? initializers[i].call(thisArg, value) : initializers[i].call(thisArg);
-  }
-  return useValue ? value : void 0;
-};
-
-function __propKey(x) {
-  return typeof x === "symbol" ? x : "".concat(x);
-};
-
-function __setFunctionName(f, name, prefix) {
-  if (typeof name === "symbol") name = name.description ? "[".concat(name.description, "]") : "";
-  return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
-};
-
-function __metadata(metadataKey, metadataValue) {
-  if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(metadataKey, metadataValue);
-}
-
-function __awaiter(thisArg, _arguments, P, generator) {
-  function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-  return new (P || (P = Promise))(function (resolve, reject) {
-      function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-      function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-      function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-      step((generator = generator.apply(thisArg, _arguments || [])).next());
-  });
-}
-
-function __generator(thisArg, body) {
-  var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-  function verb(n) { return function (v) { return step([n, v]); }; }
-  function step(op) {
-      if (f) throw new TypeError("Generator is already executing.");
-      while (g && (g = 0, op[0] && (_ = 0)), _) try {
-          if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-          if (y = 0, t) op = [op[0] & 2, t.value];
-          switch (op[0]) {
-              case 0: case 1: t = op; break;
-              case 4: _.label++; return { value: op[1], done: false };
-              case 5: _.label++; y = op[1]; op = [0]; continue;
-              case 7: op = _.ops.pop(); _.trys.pop(); continue;
-              default:
-                  if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                  if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                  if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                  if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                  if (t[2]) _.ops.pop();
-                  _.trys.pop(); continue;
-          }
-          op = body.call(thisArg, _);
-      } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-      if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-  }
-}
-
-var __createBinding = Object.create ? (function(o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  var desc = Object.getOwnPropertyDescriptor(m, k);
-  if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-  }
-  Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-function __exportStar(m, o) {
-  for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(o, p)) __createBinding(o, m, p);
-}
-
-function __values(o) {
-  var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
-  if (m) return m.call(o);
-  if (o && typeof o.length === "number") return {
-      next: function () {
-          if (o && i >= o.length) o = void 0;
-          return { value: o && o[i++], done: !o };
-      }
+    NONE: 5
   };
-  throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
-}
 
-function __read(o, n) {
-  var m = typeof Symbol === "function" && o[Symbol.iterator];
-  if (!m) return o;
-  var i = m.call(o), r, ar = [], e;
-  try {
-      while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-  }
-  catch (error) { e = { error: error }; }
-  finally {
-      try {
-          if (r && !r.done && (m = i["return"])) m.call(i);
-      }
-      finally { if (e) throw e.error; }
-  }
-  return ar;
-}
-
-/** @deprecated */
-function __spread() {
-  for (var ar = [], i = 0; i < arguments.length; i++)
-      ar = ar.concat(__read(arguments[i]));
-  return ar;
-}
-
-/** @deprecated */
-function __spreadArrays() {
-  for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-  for (var r = Array(s), k = 0, i = 0; i < il; i++)
-      for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
-          r[k] = a[j];
-  return r;
-}
-
-function __spreadArray(to, from, pack) {
-  if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-      if (ar || !(i in from)) {
-          if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-          ar[i] = from[i];
-      }
-  }
-  return to.concat(ar || Array.prototype.slice.call(from));
-}
-
-function __await(v) {
-  return this instanceof __await ? (this.v = v, this) : new __await(v);
-}
-
-function __asyncGenerator(thisArg, _arguments, generator) {
-  if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-  var g = generator.apply(thisArg, _arguments || []), i, q = [];
-  return i = Object.create((typeof AsyncIterator === "function" ? AsyncIterator : Object).prototype), verb("next"), verb("throw"), verb("return", awaitReturn), i[Symbol.asyncIterator] = function () { return this; }, i;
-  function awaitReturn(f) { return function (v) { return Promise.resolve(v).then(f, reject); }; }
-  function verb(n, f) { if (g[n]) { i[n] = function (v) { return new Promise(function (a, b) { q.push([n, v, a, b]) > 1 || resume(n, v); }); }; if (f) i[n] = f(i[n]); } }
-  function resume(n, v) { try { step(g[n](v)); } catch (e) { settle(q[0][3], e); } }
-  function step(r) { r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r); }
-  function fulfill(value) { resume("next", value); }
-  function reject(value) { resume("throw", value); }
-  function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }
-}
-
-function __asyncDelegator(o) {
-  var i, p;
-  return i = {}, verb("next"), verb("throw", function (e) { throw e; }), verb("return"), i[Symbol.iterator] = function () { return this; }, i;
-  function verb(n, f) { i[n] = o[n] ? function (v) { return (p = !p) ? { value: __await(o[n](v)), done: false } : f ? f(v) : v; } : f; }
-}
-
-function __asyncValues(o) {
-  if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-  var m = o[Symbol.asyncIterator], i;
-  return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
-  function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
-  function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
-}
-
-function __makeTemplateObject(cooked, raw) {
-  if (Object.defineProperty) { Object.defineProperty(cooked, "raw", { value: raw }); } else { cooked.raw = raw; }
-  return cooked;
-};
-
-var __setModuleDefault = Object.create ? (function(o, v) {
-  Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-  o["default"] = v;
-};
-
-function __importStar(mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-  __setModuleDefault(result, mod);
-  return result;
-}
-
-function __importDefault(mod) {
-  return (mod && mod.__esModule) ? mod : { default: mod };
-}
-
-function __classPrivateFieldGet(receiver, state, kind, f) {
-  if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-  return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-}
-
-function __classPrivateFieldSet(receiver, state, value, kind, f) {
-  if (kind === "m") throw new TypeError("Private method is not writable");
-  if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
-  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
-  return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-}
-
-function __classPrivateFieldIn(state, receiver) {
-  if (receiver === null || (typeof receiver !== "object" && typeof receiver !== "function")) throw new TypeError("Cannot use 'in' operator on non-object");
-  return typeof state === "function" ? receiver === state : state.has(receiver);
-}
-
-function __addDisposableResource(env, value, async) {
-  if (value !== null && value !== void 0) {
-    if (typeof value !== "object" && typeof value !== "function") throw new TypeError("Object expected.");
-    var dispose, inner;
-    if (async) {
-      if (!Symbol.asyncDispose) throw new TypeError("Symbol.asyncDispose is not defined.");
-      dispose = value[Symbol.asyncDispose];
-    }
-    if (dispose === void 0) {
-      if (!Symbol.dispose) throw new TypeError("Symbol.dispose is not defined.");
-      dispose = value[Symbol.dispose];
-      if (async) inner = dispose;
-    }
-    if (typeof dispose !== "function") throw new TypeError("Object not disposable.");
-    if (inner) dispose = function() { try { inner.call(this); } catch (e) { return Promise.reject(e); } };
-    env.stack.push({ value: value, dispose: dispose, async: async });
-  }
-  else if (async) {
-    env.stack.push({ async: true });
-  }
-  return value;
-}
-
-var _SuppressedError = typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
-  var e = new Error(message);
-  return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
-};
-
-function __disposeResources(env) {
-  function fail(e) {
-    env.error = env.hasError ? new _SuppressedError(e, env.error, "An error was suppressed during disposal.") : e;
-    env.hasError = true;
-  }
-  var r, s = 0;
-  function next() {
-    while (r = env.stack.pop()) {
-      try {
-        if (!r.async && s === 1) return s = 0, env.stack.push(r), Promise.resolve().then(next);
-        if (r.dispose) {
-          var result = r.dispose.call(r.value);
-          if (r.async) return s |= 2, Promise.resolve(result).then(next, function(e) { fail(e); return next(); });
-        }
-        else s |= 1;
-      }
-      catch (e) {
-        fail(e);
-      }
-    }
-    if (s === 1) return env.hasError ? Promise.reject(env.error) : Promise.resolve();
-    if (env.hasError) throw env.error;
-  }
-  return next();
-}
-
-/* unused harmony default export */ var __WEBPACK_DEFAULT_EXPORT__ = ({
-  __extends,
-  __assign,
-  __rest,
-  __decorate,
-  __param,
-  __metadata,
-  __awaiter,
-  __generator,
-  __createBinding,
-  __exportStar,
-  __values,
-  __read,
-  __spread,
-  __spreadArrays,
-  __spreadArray,
-  __await,
-  __asyncGenerator,
-  __asyncDelegator,
-  __asyncValues,
-  __makeTemplateObject,
-  __importStar,
-  __importDefault,
-  __classPrivateFieldGet,
-  __classPrivateFieldSet,
-  __classPrivateFieldIn,
-  __addDisposableResource,
-  __disposeResources,
-});
-
-
-/***/ }),
-
-/***/ 682:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   B: function() { return /* binding */ CMIArray; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-/* harmony import */ var _base_cmi__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(166);
-/* harmony import */ var _exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(519);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(12);
-
-
-
-
-var CMIArray = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__/* .__extends */ .C6)(CMIArray, _super);
-    function CMIArray(params) {
-        var _this = _super.call(this, params.CMIElement) || this;
-        _this.__children = params.children;
-        _this._errorCode = params.errorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__/* .scorm12_errors */ .Se.GENERAL;
-        _this._errorClass = params.errorClass || _exceptions__WEBPACK_IMPORTED_MODULE_2__/* .BaseScormValidationError */ .$;
-        _this.childArray = [];
-        return _this;
-    }
-    CMIArray.prototype.reset = function (wipe) {
-        if (wipe === void 0) { wipe = false; }
-        this._initialized = false;
-        if (wipe) {
-            this.childArray = [];
-        }
-        else {
-            for (var i = 0; i < this.childArray.length; i++) {
-                this.childArray[i].reset();
-            }
-        }
-    };
-    Object.defineProperty(CMIArray.prototype, "_children", {
-        get: function () {
-            return this.__children;
-        },
-        set: function (_children) {
-            throw new this._errorClass(this._cmi_element + "._children", this._errorCode);
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIArray.prototype, "_count", {
-        get: function () {
-            return this.childArray.length;
-        },
-        set: function (_count) {
-            throw new this._errorClass(this._cmi_element + "._count", this._errorCode);
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIArray.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {};
-        for (var i = 0; i < this.childArray.length; i++) {
-            result[i + ""] = this.childArray[i];
-        }
-        delete this.jsonString;
-        return result;
-    };
-    return CMIArray;
-}(_base_cmi__WEBPACK_IMPORTED_MODULE_3__/* .BaseCMI */ .J));
-
-
-
-/***/ }),
-
-/***/ 831:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-
-// EXPORTS
-__webpack_require__.d(__webpack_exports__, {
-  AICC: function() { return /* binding */ AICCImpl; }
-});
-
-// EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
-var tslib_es6 = __webpack_require__(635);
-// EXTERNAL MODULE: ./src/Scorm12API.ts
-var Scorm12API = __webpack_require__(42);
-// EXTERNAL MODULE: ./src/cmi/scorm12/cmi.ts + 1 modules
-var cmi = __webpack_require__(368);
-// EXTERNAL MODULE: ./src/constants/api_constants.ts
-var api_constants = __webpack_require__(441);
-// EXTERNAL MODULE: ./src/cmi/common/array.ts
-var array = __webpack_require__(682);
-// EXTERNAL MODULE: ./src/exceptions.ts
-var exceptions = __webpack_require__(519);
-;// ./src/exceptions/aicc_exceptions.ts
-
-
-
-var aicc_errors = api_constants/* aicc_constants */.BR.error_descriptions;
-var AICCValidationError = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(AICCValidationError, _super);
-    function AICCValidationError(CMIElement, errorCode) {
-        var _this = this;
-        if ({}.hasOwnProperty.call(aicc_errors, String(errorCode))) {
-            _this = _super.call(this, CMIElement, errorCode, aicc_errors[String(errorCode)].basicMessage, aicc_errors[String(errorCode)].detailMessage) || this;
-        }
-        else {
-            _this = _super.call(this, CMIElement, 101, aicc_errors["101"].basicMessage, aicc_errors["101"].detailMessage) || this;
-        }
-        Object.setPrototypeOf(_this, AICCValidationError.prototype);
-        return _this;
-    }
-    return AICCValidationError;
-}(exceptions/* ValidationError */.y));
-
-
-// EXTERNAL MODULE: ./src/cmi/common/base_cmi.ts
-var base_cmi = __webpack_require__(166);
-// EXTERNAL MODULE: ./src/constants/error_codes.ts
-var error_codes = __webpack_require__(12);
-// EXTERNAL MODULE: ./src/cmi/common/validation.ts
-var validation = __webpack_require__(144);
-;// ./src/cmi/aicc/validation.ts
-
-
-
-function checkAICCValidFormat(CMIElement, value, regexPattern, allowEmptyString) {
-    return (0,validation/* checkValidFormat */.q)(CMIElement, value, regexPattern, error_codes/* scorm12_errors */.Se.TYPE_MISMATCH, AICCValidationError, allowEmptyString);
-}
-
-// EXTERNAL MODULE: ./src/constants/regex.ts
-var regex = __webpack_require__(64);
-;// ./src/cmi/aicc/evaluation.ts
-
-
-
-
-
-
-
-
-var CMIEvaluation = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMIEvaluation, _super);
-    function CMIEvaluation() {
-        var _this = _super.call(this, "cmi.evaluation") || this;
-        _this.comments = new CMIEvaluationComments();
-        return _this;
-    }
-    CMIEvaluation.prototype.initialize = function () {
-        var _a;
-        _super.prototype.initialize.call(this);
-        (_a = this.comments) === null || _a === void 0 ? void 0 : _a.initialize();
-    };
-    CMIEvaluation.prototype.reset = function () {
-        var _a;
-        this._initialized = false;
-        (_a = this.comments) === null || _a === void 0 ? void 0 : _a.reset();
-    };
-    CMIEvaluation.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            comments: this.comments,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMIEvaluation;
-}(base_cmi/* BaseCMI */.J));
-
-var CMIEvaluationComments = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMIEvaluationComments, _super);
-    function CMIEvaluationComments() {
-        return _super.call(this, {
-            CMIElement: "cmi.evaluation.comments",
-            children: api_constants/* aicc_constants */.BR.comments_children,
-            errorCode: error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE,
-            errorClass: AICCValidationError,
-        }) || this;
-    }
-    return CMIEvaluationComments;
-}(array/* CMIArray */.B));
-var CMIEvaluationCommentsObject = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMIEvaluationCommentsObject, _super);
-    function CMIEvaluationCommentsObject() {
-        var _this = _super.call(this, "cmi.evaluation.comments.n") || this;
-        _this._content = "";
-        _this._location = "";
-        _this._time = "";
-        return _this;
-    }
-    CMIEvaluationCommentsObject.prototype.reset = function () {
-        this._initialized = false;
-        this._content = "";
-        this._location = "";
-        this._time = "";
-    };
-    Object.defineProperty(CMIEvaluationCommentsObject.prototype, "content", {
-        get: function () {
-            return this._content;
-        },
-        set: function (content) {
-            if (checkAICCValidFormat(this._cmi_element + ".content", content, regex/* aicc_regex */.rN.CMIString256)) {
-                this._content = content;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIEvaluationCommentsObject.prototype, "location", {
-        get: function () {
-            return this._location;
-        },
-        set: function (location) {
-            if (checkAICCValidFormat(this._cmi_element + ".location", location, regex/* aicc_regex */.rN.CMIString256)) {
-                this._location = location;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIEvaluationCommentsObject.prototype, "time", {
-        get: function () {
-            return this._time;
-        },
-        set: function (time) {
-            if (checkAICCValidFormat(this._cmi_element + ".time", time, regex/* aicc_regex */.rN.CMITime)) {
-                this._time = time;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIEvaluationCommentsObject.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            content: this.content,
-            location: this.location,
-            time: this.time,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMIEvaluationCommentsObject;
-}(base_cmi/* BaseCMI */.J));
-
-
-// EXTERNAL MODULE: ./src/cmi/scorm12/student_preference.ts
-var student_preference = __webpack_require__(34);
-;// ./src/cmi/aicc/student_preferences.ts
-
-
-
-
-
-
-
-
-var AICCStudentPreferences = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(AICCStudentPreferences, _super);
-    function AICCStudentPreferences() {
-        var _this = _super.call(this, api_constants/* aicc_constants */.BR.student_preference_children) || this;
-        _this._lesson_type = "";
-        _this._text_color = "";
-        _this._text_location = "";
-        _this._text_size = "";
-        _this._video = "";
-        _this.windows = new array/* CMIArray */.B({
-            CMIElement: "cmi.student_preference.windows",
-            errorCode: error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE,
-            errorClass: AICCValidationError,
-            children: "",
-        });
-        return _this;
-    }
-    AICCStudentPreferences.prototype.initialize = function () {
-        var _a;
-        _super.prototype.initialize.call(this);
-        (_a = this.windows) === null || _a === void 0 ? void 0 : _a.initialize();
-    };
-    Object.defineProperty(AICCStudentPreferences.prototype, "lesson_type", {
-        get: function () {
-            return this._lesson_type;
-        },
-        set: function (lesson_type) {
-            if (checkAICCValidFormat(this._cmi_element + ".lesson_type", lesson_type, regex/* aicc_regex */.rN.CMIString256)) {
-                this._lesson_type = lesson_type;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(AICCStudentPreferences.prototype, "text_color", {
-        get: function () {
-            return this._text_color;
-        },
-        set: function (text_color) {
-            if (checkAICCValidFormat(this._cmi_element + ".text_color", text_color, regex/* aicc_regex */.rN.CMIString256)) {
-                this._text_color = text_color;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(AICCStudentPreferences.prototype, "text_location", {
-        get: function () {
-            return this._text_location;
-        },
-        set: function (text_location) {
-            if (checkAICCValidFormat(this._cmi_element + ".text_location", text_location, regex/* aicc_regex */.rN.CMIString256)) {
-                this._text_location = text_location;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(AICCStudentPreferences.prototype, "text_size", {
-        get: function () {
-            return this._text_size;
-        },
-        set: function (text_size) {
-            if (checkAICCValidFormat(this._cmi_element + ".text_size", text_size, regex/* aicc_regex */.rN.CMIString256)) {
-                this._text_size = text_size;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(AICCStudentPreferences.prototype, "video", {
-        get: function () {
-            return this._video;
-        },
-        set: function (video) {
-            if (checkAICCValidFormat(this._cmi_element + ".video", video, regex/* aicc_regex */.rN.CMIString256)) {
-                this._video = video;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    AICCStudentPreferences.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            audio: this.audio,
-            language: this.language,
-            lesson_type: this.lesson_type,
-            speed: this.speed,
-            text: this.text,
-            text_color: this.text_color,
-            text_location: this.text_location,
-            text_size: this.text_size,
-            video: this.video,
-            windows: this.windows,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return AICCStudentPreferences;
-}(student_preference/* CMIStudentPreference */.G));
-
-
-;// ./src/cmi/aicc/student_demographics.ts
-
-
-
-
-
-var CMIStudentDemographics = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMIStudentDemographics, _super);
-    function CMIStudentDemographics() {
-        var _this = _super.call(this, "cmi.student_demographics") || this;
-        _this.__children = api_constants/* aicc_constants */.BR.student_demographics_children;
-        _this._city = "";
-        _this._class = "";
-        _this._company = "";
-        _this._country = "";
-        _this._experience = "";
-        _this._familiar_name = "";
-        _this._instructor_name = "";
-        _this._title = "";
-        _this._native_language = "";
-        _this._state = "";
-        _this._street_address = "";
-        _this._telephone = "";
-        _this._years_experience = "";
-        return _this;
-    }
-    CMIStudentDemographics.prototype.reset = function () {
-        this._initialized = false;
-    };
-    Object.defineProperty(CMIStudentDemographics.prototype, "_children", {
-        get: function () {
-            return this.__children;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentDemographics.prototype, "city", {
-        get: function () {
-            return this._city;
-        },
-        set: function (city) {
-            if (this.initialized) {
-                throw new AICCValidationError("cmi.student_demographics.city", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._city = city;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentDemographics.prototype, "class", {
-        get: function () {
-            return this._class;
-        },
-        set: function (clazz) {
-            if (this.initialized) {
-                throw new AICCValidationError("cmi.student_demographics.class", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._class = clazz;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentDemographics.prototype, "company", {
-        get: function () {
-            return this._company;
-        },
-        set: function (company) {
-            if (this.initialized) {
-                throw new AICCValidationError("cmi.student_demographics.company", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._company = company;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentDemographics.prototype, "country", {
-        get: function () {
-            return this._country;
-        },
-        set: function (country) {
-            if (this.initialized) {
-                throw new AICCValidationError("cmi.student_demographics.country", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._country = country;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentDemographics.prototype, "experience", {
-        get: function () {
-            return this._experience;
-        },
-        set: function (experience) {
-            if (this.initialized) {
-                throw new AICCValidationError("cmi.student_demographics.experience", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._experience = experience;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentDemographics.prototype, "familiar_name", {
-        get: function () {
-            return this._familiar_name;
-        },
-        set: function (familiar_name) {
-            if (this.initialized) {
-                throw new AICCValidationError("cmi.student_demographics.familiar_name", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._familiar_name = familiar_name;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentDemographics.prototype, "instructor_name", {
-        get: function () {
-            return this._instructor_name;
-        },
-        set: function (instructor_name) {
-            if (this.initialized) {
-                throw new AICCValidationError("cmi.student_demographics.instructor_name", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._instructor_name = instructor_name;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentDemographics.prototype, "title", {
-        get: function () {
-            return this._title;
-        },
-        set: function (title) {
-            if (this.initialized) {
-                throw new AICCValidationError("cmi.student_demographics.title", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._title = title;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentDemographics.prototype, "native_language", {
-        get: function () {
-            return this._native_language;
-        },
-        set: function (native_language) {
-            if (this.initialized) {
-                throw new AICCValidationError("cmi.student_demographics.native_language", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._native_language = native_language;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentDemographics.prototype, "state", {
-        get: function () {
-            return this._state;
-        },
-        set: function (state) {
-            if (this.initialized) {
-                throw new AICCValidationError("cmi.student_demographics.state", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._state = state;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentDemographics.prototype, "street_address", {
-        get: function () {
-            return this._street_address;
-        },
-        set: function (street_address) {
-            if (this.initialized) {
-                throw new AICCValidationError("cmi.student_demographics.street_address", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._street_address = street_address;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentDemographics.prototype, "telephone", {
-        get: function () {
-            return this._telephone;
-        },
-        set: function (telephone) {
-            if (this.initialized) {
-                throw new AICCValidationError("cmi.student_demographics.telephone", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._telephone = telephone;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentDemographics.prototype, "years_experience", {
-        get: function () {
-            return this._years_experience;
-        },
-        set: function (years_experience) {
-            if (this.initialized) {
-                throw new AICCValidationError("cmi.student_demographics.years_experience", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._years_experience = years_experience;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIStudentDemographics.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            city: this.city,
-            class: this.class,
-            company: this.company,
-            country: this.country,
-            experience: this.experience,
-            familiar_name: this.familiar_name,
-            instructor_name: this.instructor_name,
-            title: this.title,
-            native_language: this.native_language,
-            state: this.state,
-            street_address: this.street_address,
-            telephone: this.telephone,
-            years_experience: this.years_experience,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMIStudentDemographics;
-}(base_cmi/* BaseCMI */.J));
-
-
-// EXTERNAL MODULE: ./src/cmi/common/score.ts
-var score = __webpack_require__(209);
-;// ./src/cmi/aicc/tries.ts
-
-
-
-
-
-
-
-
-
-var CMITries = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMITries, _super);
-    function CMITries() {
-        return _super.call(this, {
-            CMIElement: "cmi.student_data.tries",
-            children: api_constants/* aicc_constants */.BR.tries_children,
-        }) || this;
-    }
-    return CMITries;
-}(array/* CMIArray */.B));
-
-var CMITriesObject = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMITriesObject, _super);
-    function CMITriesObject() {
-        var _this = _super.call(this, "cmi.student_data.tries.n") || this;
-        _this._status = "";
-        _this._time = "";
-        _this.score = new score/* CMIScore */._({
-            CMIElement: "cmi.student_data.tries.n.score",
-            score_children: api_constants/* aicc_constants */.BR.score_children,
-            score_range: regex/* aicc_regex */.rN.score_range,
-            invalidErrorCode: error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE,
-            invalidTypeCode: error_codes/* scorm12_errors */.Se.TYPE_MISMATCH,
-            invalidRangeCode: error_codes/* scorm12_errors */.Se.VALUE_OUT_OF_RANGE,
-            errorClass: AICCValidationError,
-        });
-        return _this;
-    }
-    CMITriesObject.prototype.initialize = function () {
-        var _a;
-        _super.prototype.initialize.call(this);
-        (_a = this.score) === null || _a === void 0 ? void 0 : _a.initialize();
-    };
-    CMITriesObject.prototype.reset = function () {
-        var _a;
-        this._initialized = false;
-        this._status = "";
-        this._time = "";
-        (_a = this.score) === null || _a === void 0 ? void 0 : _a.reset();
-    };
-    Object.defineProperty(CMITriesObject.prototype, "status", {
-        get: function () {
-            return this._status;
-        },
-        set: function (status) {
-            if (checkAICCValidFormat(this._cmi_element + ".status", status, regex/* aicc_regex */.rN.CMIStatus2)) {
-                this._status = status;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMITriesObject.prototype, "time", {
-        get: function () {
-            return this._time;
-        },
-        set: function (time) {
-            if (checkAICCValidFormat(this._cmi_element + ".time", time, regex/* aicc_regex */.rN.CMITime)) {
-                this._time = time;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMITriesObject.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            status: this.status,
-            time: this.time,
-            score: this.score,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMITriesObject;
-}(base_cmi/* BaseCMI */.J));
-
-
-// EXTERNAL MODULE: ./src/cmi/scorm12/student_data.ts
-var student_data = __webpack_require__(251);
-;// ./src/cmi/aicc/attempts.ts
-
-
-
-
-
-
-
-
-
-var CMIAttemptRecords = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMIAttemptRecords, _super);
-    function CMIAttemptRecords() {
-        return _super.call(this, {
-            CMIElement: "cmi.student_data.attempt_records",
-            children: api_constants/* aicc_constants */.BR.attempt_records_children,
-        }) || this;
-    }
-    return CMIAttemptRecords;
-}(array/* CMIArray */.B));
-
-var CMIAttemptRecordsObject = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMIAttemptRecordsObject, _super);
-    function CMIAttemptRecordsObject() {
-        var _this = _super.call(this, "cmi.student_data.attempt_records.n") || this;
-        _this._lesson_status = "";
-        _this.score = new score/* CMIScore */._({
-            CMIElement: "cmi.student_data.attempt_records.n.score",
-            score_children: api_constants/* aicc_constants */.BR.score_children,
-            score_range: regex/* aicc_regex */.rN.score_range,
-            invalidErrorCode: error_codes/* scorm12_errors */.Se.INVALID_SET_VALUE,
-            invalidTypeCode: error_codes/* scorm12_errors */.Se.TYPE_MISMATCH,
-            invalidRangeCode: error_codes/* scorm12_errors */.Se.VALUE_OUT_OF_RANGE,
-            errorClass: AICCValidationError,
-        });
-        return _this;
-    }
-    CMIAttemptRecordsObject.prototype.initialize = function () {
-        var _a;
-        _super.prototype.initialize.call(this);
-        this._lesson_status = "";
-        (_a = this.score) === null || _a === void 0 ? void 0 : _a.initialize();
-    };
-    CMIAttemptRecordsObject.prototype.reset = function () {
-        var _a;
-        this._initialized = false;
-        (_a = this.score) === null || _a === void 0 ? void 0 : _a.reset();
-    };
-    Object.defineProperty(CMIAttemptRecordsObject.prototype, "lesson_status", {
-        get: function () {
-            return this._lesson_status;
-        },
-        set: function (lesson_status) {
-            if (checkAICCValidFormat(this._cmi_element + ".lesson_status", lesson_status, regex/* aicc_regex */.rN.CMIStatus2)) {
-                this._lesson_status = lesson_status;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIAttemptRecordsObject.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            lesson_status: this.lesson_status,
-            score: this.score,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMIAttemptRecordsObject;
-}(base_cmi/* BaseCMI */.J));
-
-
-;// ./src/cmi/aicc/student_data.ts
-
-
-
-
-
-
-
-var AICCCMIStudentData = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(AICCCMIStudentData, _super);
-    function AICCCMIStudentData() {
-        var _this = _super.call(this, api_constants/* aicc_constants */.BR.student_data_children) || this;
-        _this._tries_during_lesson = "";
-        _this.tries = new CMITries();
-        _this.attempt_records = new CMIAttemptRecords();
-        return _this;
-    }
-    AICCCMIStudentData.prototype.initialize = function () {
-        var _a, _b;
-        _super.prototype.initialize.call(this);
-        (_a = this.tries) === null || _a === void 0 ? void 0 : _a.initialize();
-        (_b = this.attempt_records) === null || _b === void 0 ? void 0 : _b.initialize();
-    };
-    AICCCMIStudentData.prototype.reset = function () {
-        var _a, _b;
-        this._initialized = false;
-        (_a = this.tries) === null || _a === void 0 ? void 0 : _a.reset(true);
-        (_b = this.attempt_records) === null || _b === void 0 ? void 0 : _b.reset(true);
-    };
-    Object.defineProperty(AICCCMIStudentData.prototype, "tries_during_lesson", {
-        get: function () {
-            return this._tries_during_lesson;
-        },
-        set: function (tries_during_lesson) {
-            if (this.initialized) {
-                throw new AICCValidationError("cmi.student_data.tries_during_lesson", error_codes/* scorm12_errors */.Se.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._tries_during_lesson = tries_during_lesson;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    AICCCMIStudentData.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            mastery_score: this.mastery_score,
-            max_time_allowed: this.max_time_allowed,
-            time_limit_action: this.time_limit_action,
-            tries: this.tries,
-            attempt_records: this.attempt_records,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return AICCCMIStudentData;
-}(student_data/* CMIStudentData */.X));
-
-
-;// ./src/cmi/aicc/paths.ts
-
-
-
-
-
-
-var CMIPaths = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMIPaths, _super);
-    function CMIPaths() {
-        return _super.call(this, {
-            CMIElement: "cmi.paths",
-            children: api_constants/* aicc_constants */.BR.paths_children,
-        }) || this;
-    }
-    return CMIPaths;
-}(array/* CMIArray */.B));
-
-var CMIPathsObject = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMIPathsObject, _super);
-    function CMIPathsObject() {
-        var _this = _super.call(this, "cmi.paths.n") || this;
-        _this._location_id = "";
-        _this._date = "";
-        _this._time = "";
-        _this._status = "";
-        _this._why_left = "";
-        _this._time_in_element = "";
-        return _this;
-    }
-    CMIPathsObject.prototype.reset = function () {
-        this._initialized = false;
-        this._location_id = "";
-        this._date = "";
-        this._time = "";
-        this._status = "";
-        this._why_left = "";
-        this._time_in_element = "";
-    };
-    Object.defineProperty(CMIPathsObject.prototype, "location_id", {
-        get: function () {
-            return this._location_id;
-        },
-        set: function (location_id) {
-            if (checkAICCValidFormat(this._cmi_element + ".location_id", location_id, regex/* aicc_regex */.rN.CMIString256)) {
-                this._location_id = location_id;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIPathsObject.prototype, "date", {
-        get: function () {
-            return this._date;
-        },
-        set: function (date) {
-            if (checkAICCValidFormat(this._cmi_element + ".date", date, regex/* aicc_regex */.rN.CMIString256)) {
-                this._date = date;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIPathsObject.prototype, "time", {
-        get: function () {
-            return this._time;
-        },
-        set: function (time) {
-            if (checkAICCValidFormat(this._cmi_element + ".time", time, regex/* aicc_regex */.rN.CMITime)) {
-                this._time = time;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIPathsObject.prototype, "status", {
-        get: function () {
-            return this._status;
-        },
-        set: function (status) {
-            if (checkAICCValidFormat(this._cmi_element + ".status", status, regex/* aicc_regex */.rN.CMIStatus2)) {
-                this._status = status;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIPathsObject.prototype, "why_left", {
-        get: function () {
-            return this._why_left;
-        },
-        set: function (why_left) {
-            if (checkAICCValidFormat(this._cmi_element + ".why_left", why_left, regex/* aicc_regex */.rN.CMIString256)) {
-                this._why_left = why_left;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIPathsObject.prototype, "time_in_element", {
-        get: function () {
-            return this._time_in_element;
-        },
-        set: function (time_in_element) {
-            if (checkAICCValidFormat(this._cmi_element + ".time_in_element", time_in_element, regex/* aicc_regex */.rN.CMITime)) {
-                this._time_in_element = time_in_element;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIPathsObject.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            location_id: this.location_id,
-            date: this.date,
-            time: this.time,
-            status: this.status,
-            why_left: this.why_left,
-            time_in_element: this.time_in_element,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMIPathsObject;
-}(base_cmi/* BaseCMI */.J));
-
-
-;// ./src/cmi/aicc/cmi.ts
-
-
-
-
-
-
-
-
-var CMI = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(CMI, _super);
-    function CMI(initialized) {
-        if (initialized === void 0) { initialized = false; }
-        var _this = _super.call(this, api_constants/* aicc_constants */.BR.cmi_children) || this;
-        if (initialized)
-            _this.initialize();
-        _this.student_preference = new AICCStudentPreferences();
-        _this.student_data = new AICCCMIStudentData();
-        _this.student_demographics = new CMIStudentDemographics();
-        _this.evaluation = new CMIEvaluation();
-        _this.paths = new CMIPaths();
-        return _this;
-    }
-    CMI.prototype.initialize = function () {
-        var _a, _b, _c, _d, _e;
-        _super.prototype.initialize.call(this);
-        (_a = this.student_preference) === null || _a === void 0 ? void 0 : _a.initialize();
-        (_b = this.student_data) === null || _b === void 0 ? void 0 : _b.initialize();
-        (_c = this.student_demographics) === null || _c === void 0 ? void 0 : _c.initialize();
-        (_d = this.evaluation) === null || _d === void 0 ? void 0 : _d.initialize();
-        (_e = this.paths) === null || _e === void 0 ? void 0 : _e.initialize();
-    };
-    CMI.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            suspend_data: this.suspend_data,
-            launch_data: this.launch_data,
-            comments: this.comments,
-            comments_from_lms: this.comments_from_lms,
-            core: this.core,
-            objectives: this.objectives,
-            student_data: this.student_data,
-            student_preference: this.student_preference,
-            student_demographics: this.student_demographics,
-            interactions: this.interactions,
-            evaluation: this.evaluation,
-            paths: this.paths,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMI;
-}(cmi/* CMI */.Y));
-
-
-// EXTERNAL MODULE: ./src/cmi/scorm12/nav.ts
-var nav = __webpack_require__(586);
-// EXTERNAL MODULE: ./src/utilities.ts
-var utilities = __webpack_require__(557);
-;// ./src/AICC.ts
-
-
-
-
-
-
-
-
-
-var AICCImpl = (function (_super) {
-    (0,tslib_es6/* __extends */.C6)(AICCImpl, _super);
-    function AICCImpl(settings) {
-        var _this = _super.call(this, settings) || this;
-        _this.cmi = new CMI();
-        _this.nav = new nav/* NAV */.A();
-        return _this;
-    }
-    AICCImpl.prototype.getChildElement = function (CMIElement, value, foundFirstIndex) {
-        var newChild = _super.prototype.getChildElement.call(this, CMIElement, value, foundFirstIndex);
-        if (!newChild) {
-            if ((0,utilities/* stringMatches */.J6)(CMIElement, "cmi\\.evaluation\\.comments\\.\\d+")) {
-                newChild = new CMIEvaluationCommentsObject();
-            }
-            else if ((0,utilities/* stringMatches */.J6)(CMIElement, "cmi\\.student_data\\.tries\\.\\d+")) {
-                newChild = new CMITriesObject();
-            }
-            else if ((0,utilities/* stringMatches */.J6)(CMIElement, "cmi\\.student_data\\.attempt_records\\.\\d+")) {
-                newChild = new CMIAttemptRecordsObject();
-            }
-            else if ((0,utilities/* stringMatches */.J6)(CMIElement, "cmi\\.paths\\.\\d+")) {
-                newChild = new CMIPathsObject();
-            }
-        }
-        return newChild;
-    };
-    AICCImpl.prototype.replaceWithAnotherScormAPI = function (newAPI) {
-        this.cmi = newAPI.cmi;
-        this.nav = newAPI.nav;
-    };
-    return AICCImpl;
-}(Scorm12API.Scorm12API));
-
-
-
-/***/ }),
-
-/***/ 838:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-
-// EXPORTS
-__webpack_require__.d(__webpack_exports__, {
-  A: function() { return /* binding */ src_BaseAPI; }
-});
-
-// EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
-var tslib_es6 = __webpack_require__(635);
-// EXTERNAL MODULE: ./src/constants/api_constants.ts
-var api_constants = __webpack_require__(441);
-// EXTERNAL MODULE: ./src/utilities.ts
-var utilities = __webpack_require__(557);
-// EXTERNAL MODULE: ./src/constants/enums.ts
-var enums = __webpack_require__(573);
-;// ./src/constants/default_settings.ts
-
-
-
-var DefaultSettings = {
+  const DefaultSettings = {
     autocommit: false,
     autocommitSeconds: 10,
     asyncCommit: false,
@@ -8542,7 +2168,7 @@ var DefaultSettings = {
     dataCommitFormat: "json",
     commitRequestDataType: "application/json;charset=UTF-8",
     autoProgress: false,
-    logLevel: enums/* LogLevelEnum */.Mb.ERROR,
+    logLevel: LogLevelEnum.ERROR,
     selfReportSessionTime: false,
     alwaysSendTotalTime: false,
     renderCommonCommitFields: false,
@@ -8550,1388 +2176,8372 @@ var DefaultSettings = {
     xhrHeaders: {},
     xhrWithCredentials: false,
     fetchMode: "cors",
-    responseHandler: function (response) {
-        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
-            var responseText, httpResult;
-            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        if (!(typeof response !== "undefined")) return [3, 2];
-                        return [4, response.text()];
-                    case 1:
-                        responseText = _a.sent();
-                        httpResult = null;
-                        if (responseText) {
-                            httpResult = JSON.parse(responseText);
-                        }
-                        if (httpResult === null || !{}.hasOwnProperty.call(httpResult, "result")) {
-                            if (response.status === 200) {
-                                return [2, {
-                                        result: api_constants/* global_constants */._y.SCORM_TRUE,
-                                        errorCode: 0,
-                                    }];
-                            }
-                            else {
-                                return [2, {
-                                        result: api_constants/* global_constants */._y.SCORM_FALSE,
-                                        errorCode: 101,
-                                    }];
-                            }
-                        }
-                        else {
-                            return [2, {
-                                    result: httpResult.result,
-                                    errorCode: httpResult.errorCode
-                                        ? httpResult.errorCode
-                                        : httpResult.result === api_constants/* global_constants */._y.SCORM_TRUE
-                                            ? 0
-                                            : 101,
-                                }];
-                        }
-                        _a.label = 2;
-                    case 2: return [2, {
-                            result: api_constants/* global_constants */._y.SCORM_FALSE,
-                            errorCode: 101,
-                        }];
-                }
-            });
-        });
+    responseHandler: async function (response) {
+      if (typeof response !== "undefined") {
+        let httpResult = null;
+        try {
+          if (typeof response.json === "function") {
+            httpResult = await response.json();
+          } else if (typeof response.text === "function") {
+            const responseText = await response.text();
+            if (responseText) {
+              httpResult = JSON.parse(responseText);
+            }
+          }
+        } catch (e) {}
+        if (httpResult === null || !{}.hasOwnProperty.call(httpResult, "result")) {
+          if (response.status === 200) {
+            return {
+              result: global_constants.SCORM_TRUE,
+              errorCode: 0
+            };
+          } else {
+            return {
+              result: global_constants.SCORM_FALSE,
+              errorCode: 101
+            };
+          }
+        } else {
+          return {
+            result: httpResult.result,
+            errorCode: httpResult.errorCode ? httpResult.errorCode : httpResult.result === global_constants.SCORM_TRUE ? 0 : 101
+          };
+        }
+      }
+      return {
+        result: global_constants.SCORM_FALSE,
+        errorCode: 101
+      };
     },
     requestHandler: function (commitObject) {
-        return commitObject;
+      return commitObject;
     },
     onLogMessage: defaultLogHandler,
     scoItemIds: [],
     scoItemIdValidator: false,
-    globalObjectiveIds: [],
-};
-function defaultLogHandler(messageLevel, logMessage) {
+    globalObjectiveIds: []
+  };
+  function defaultLogHandler(messageLevel, logMessage) {
     switch (messageLevel) {
-        case "4":
-        case 4:
-        case "ERROR":
-        case enums/* LogLevelEnum */.Mb.ERROR:
-            console.error(logMessage);
-            break;
-        case "3":
-        case 3:
-        case "WARN":
-        case enums/* LogLevelEnum */.Mb.WARN:
-            console.warn(logMessage);
-            break;
-        case "2":
-        case 2:
-        case "INFO":
-        case enums/* LogLevelEnum */.Mb.INFO:
-            console.info(logMessage);
-            break;
-        case "1":
-        case 1:
-        case "DEBUG":
-        case enums/* LogLevelEnum */.Mb.DEBUG:
-            if (console.debug) {
-                console.debug(logMessage);
-            }
-            else {
-                console.log(logMessage);
-            }
-            break;
-    }
-}
-
-;// ./src/helpers/scheduled_commit.ts
-
-var ScheduledCommit = (function () {
-    function ScheduledCommit(API, when, callback) {
-        this._cancelled = false;
-        this._API = API;
-        this._timeout = setTimeout(this.wrapper.bind(this), when);
-        this._callback = callback;
-    }
-    ScheduledCommit.prototype.cancel = function () {
-        this._cancelled = true;
-        if (this._timeout) {
-            clearTimeout(this._timeout);
+      case "4":
+      case 4:
+      case "ERROR":
+      case LogLevelEnum.ERROR:
+        console.error(logMessage);
+        break;
+      case "3":
+      case 3:
+      case "WARN":
+      case LogLevelEnum.WARN:
+        console.warn(logMessage);
+        break;
+      case "2":
+      case 2:
+      case "INFO":
+      case LogLevelEnum.INFO:
+        console.info(logMessage);
+        break;
+      case "1":
+      case 1:
+      case "DEBUG":
+      case LogLevelEnum.DEBUG:
+        if (console.debug) {
+          console.debug(logMessage);
+        } else {
+          console.log(logMessage);
         }
-    };
-    ScheduledCommit.prototype.wrapper = function () {
-        var _this = this;
-        if (!this._cancelled) {
-            (function () { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () { return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4, this._API.commit(this._callback)];
-                    case 1: return [2, _a.sent()];
-                }
-            }); }); })();
-        }
-    };
-    return ScheduledCommit;
-}());
-
-
-;// ./src/services/HttpService.ts
-
-
-
-var HttpService = (function () {
-    function HttpService(settings, error_codes) {
-        this.settings = settings;
-        this.error_codes = error_codes;
+        break;
     }
-    HttpService.prototype.processHttpRequest = function (url_1, params_1) {
-        return (0,tslib_es6/* __awaiter */.sH)(this, arguments, void 0, function (url, params, immediate, apiLog, processListeners) {
-            var genericError, process;
-            var _this = this;
-            if (immediate === void 0) { immediate = false; }
-            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        genericError = {
-                            result: api_constants/* global_constants */._y.SCORM_FALSE,
-                            errorCode: this.error_codes.GENERAL,
-                        };
-                        if (immediate) {
-                            this.performFetch(url, params).then(function (response) { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () {
-                                return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                                    switch (_a.label) {
-                                        case 0: return [4, this.transformResponse(response, processListeners)];
-                                        case 1:
-                                            _a.sent();
-                                            return [2];
-                                    }
-                                });
-                            }); });
-                            return [2, {
-                                    result: api_constants/* global_constants */._y.SCORM_TRUE,
-                                    errorCode: 0,
-                                }];
-                        }
-                        process = function (url, params, settings) { return (0,tslib_es6/* __awaiter */.sH)(_this, void 0, void 0, function () {
-                            var response, e_1;
-                            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                                switch (_a.label) {
-                                    case 0:
-                                        _a.trys.push([0, 2, , 3]);
-                                        params = settings.requestHandler(params);
-                                        return [4, this.performFetch(url, params)];
-                                    case 1:
-                                        response = _a.sent();
-                                        return [2, this.transformResponse(response, processListeners)];
-                                    case 2:
-                                        e_1 = _a.sent();
-                                        apiLog("processHttpRequest", e_1, enums/* LogLevelEnum */.Mb.ERROR);
-                                        processListeners("CommitError");
-                                        return [2, genericError];
-                                    case 3: return [2];
-                                }
-                            });
-                        }); };
-                        return [4, process(url, params, this.settings)];
-                    case 1: return [2, _a.sent()];
-                }
-            });
-        });
-    };
-    HttpService.prototype.performFetch = function (url, params) {
-        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
-            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                return [2, fetch(url, {
-                        method: "POST",
-                        mode: this.settings.fetchMode,
-                        body: params instanceof Array ? params.join("&") : JSON.stringify(params),
-                        headers: (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, this.settings.xhrHeaders), { "Content-Type": this.settings.commitRequestDataType }),
-                        credentials: this.settings.xhrWithCredentials ? "include" : undefined,
-                        keepalive: true,
-                    })];
-            });
-        });
-    };
-    HttpService.prototype.transformResponse = function (response, processListeners) {
-        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
-            var result, _a;
-            return (0,tslib_es6/* __generator */.YH)(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        if (!(typeof this.settings.responseHandler === "function")) return [3, 2];
-                        return [4, this.settings.responseHandler(response)];
-                    case 1:
-                        _a = _b.sent();
-                        return [3, 4];
-                    case 2: return [4, response.json()];
-                    case 3:
-                        _a = _b.sent();
-                        _b.label = 4;
-                    case 4:
-                        result = _a;
-                        if (response.status >= 200 &&
-                            response.status <= 299 &&
-                            (result.result === true || result.result === api_constants/* global_constants */._y.SCORM_TRUE)) {
-                            processListeners("CommitSuccess");
-                            if (!Object.hasOwnProperty.call(result, "errorCode")) {
-                                result.errorCode = 0;
-                            }
-                        }
-                        else {
-                            if (!Object.hasOwnProperty.call(result, "errorCode")) {
-                                result.errorCode = this.error_codes.GENERAL;
-                            }
-                            processListeners("CommitError", null, result.errorCode);
-                        }
-                        return [2, result];
-                }
-            });
-        });
-    };
-    HttpService.prototype.updateSettings = function (settings) {
-        this.settings = settings;
-    };
-    return HttpService;
-}());
+  }
 
-
-;// ./src/services/EventService.ts
-
-var EventService = (function () {
-    function EventService(apiLog) {
-        this.listenerMap = new Map();
-        this.listenerCount = 0;
-        this.apiLog = apiLog;
+  class ScheduledCommit {
+    /**
+     * Constructor for ScheduledCommit
+     * @param {BaseAPI} API
+     * @param {number} when
+     * @param {string} callback
+     */
+    constructor(API, when, callback) {
+      this._cancelled = false;
+      this._API = API;
+      this._timeout = setTimeout(this.wrapper.bind(this), when);
+      this._callback = callback;
     }
-    EventService.prototype.parseListenerName = function (listenerName) {
-        var listenerSplit = listenerName.split(".");
-        if (listenerSplit.length === 0)
-            return null;
-        var functionName = listenerSplit[0];
-        var CMIElement = null;
-        if (listenerSplit.length > 1) {
-            CMIElement = listenerName.replace("".concat(functionName, "."), "");
+    /**
+     * Cancel any currently scheduled commit
+     */
+    cancel() {
+      this._cancelled = true;
+      if (this._timeout) {
+        clearTimeout(this._timeout);
+      }
+    }
+    /**
+     * Wrap the API commit call to check if the call has already been cancelled
+     */
+    wrapper() {
+      if (!this._cancelled) {
+        (async () => await this._API.commit(this._callback))();
+      }
+    }
+  }
+
+  class HttpService {
+    /**
+     * Constructor for HttpService
+     * @param {Settings} settings - The settings object
+     * @param {ErrorCode} error_codes - The error codes object
+     */
+    constructor(settings, error_codes) {
+      this.settings = settings;
+      this.error_codes = error_codes;
+    }
+    /**
+     * Sends HTTP requests to the LMS with special handling for immediate and standard requests.
+     *
+     * This method handles communication with the LMS server, implementing two distinct
+     * request handling strategies based on the context:
+     *
+     * 1. Immediate Mode (used during termination):
+     *    When immediate=true, the method:
+     *    - Initiates the fetch request but doesn't wait for it to complete
+     *    - Returns a success result immediately
+     *    - Processes the response asynchronously when it arrives
+     *
+     *    This is critical for browser compatibility during page unload/termination,
+     *    as some browsers (especially Chrome) may cancel synchronous or awaited
+     *    requests when a page is closing.
+     *
+     * 2. Standard Mode (normal operation):
+     *    When immediate=false, the method:
+     *    - Processes the request parameters through the configured requestHandler
+     *    - Awaits the fetch response completely
+     *    - Transforms the response using the configured responseHandler
+     *    - Triggers appropriate event listeners based on success/failure
+     *    - Returns the complete result with appropriate error codes
+     *
+     * The method also includes error handling to catch network failures or other
+     * exceptions that might occur during the request process.
+     *
+     * @param {string} url - The URL endpoint to send the request to
+     * @param {CommitObject|StringKeyMap|Array} params - The data to send to the LMS
+     * @param {boolean} immediate - Whether to send the request immediately without waiting (true) or process normally (false)
+     * @param {Function} apiLog - Function to log API messages with appropriate levels
+     * @param {Function} processListeners - Function to trigger event listeners for commit events
+     * @return {Promise<ResultObject>} - A promise that resolves with the result of the request
+     *
+     * @example
+     * // Standard request (waits for response)
+     * const result = await httpService.processHttpRequest(
+     *   "https://lms.example.com/commit",
+     *   { cmi: { core: { lesson_status: "completed" } } },
+     *   false,
+     *   console.log,
+     *   (event) => dispatchEvent(new CustomEvent(event))
+     * );
+     *
+     * @example
+     * // Immediate request (for termination)
+     * const result = await httpService.processHttpRequest(
+     *   "https://lms.example.com/commit",
+     *   { cmi: { core: { lesson_status: "completed" } } },
+     *   true,
+     *   console.log,
+     *   (event) => dispatchEvent(new CustomEvent(event))
+     * );
+     * // result will be success immediately, regardless of actual HTTP result
+     */
+    async processHttpRequest(url, params) {
+      let immediate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+      let apiLog = arguments.length > 3 ? arguments[3] : undefined;
+      let processListeners = arguments.length > 4 ? arguments[4] : undefined;
+      const genericError = {
+        result: global_constants.SCORM_FALSE,
+        errorCode: this.error_codes.GENERAL
+      };
+      if (immediate) {
+        this.performFetch(url, params).then(async response => {
+          await this.transformResponse(response, processListeners);
+        });
+        return {
+          result: global_constants.SCORM_TRUE,
+          errorCode: 0
+        };
+      }
+      const process = async (url2, params2, settings) => {
+        try {
+          params2 = settings.requestHandler(params2);
+          const response = await this.performFetch(url2, params2);
+          return this.transformResponse(response, processListeners);
+        } catch (e) {
+          apiLog("processHttpRequest", e, LogLevelEnum.ERROR);
+          processListeners("CommitError");
+          return genericError;
         }
-        return { functionName: functionName, CMIElement: CMIElement };
-    };
-    EventService.prototype.on = function (listenerName, callback) {
-        var _a;
-        if (!callback)
-            return;
-        var listenerFunctions = listenerName.split(" ");
-        for (var _i = 0, listenerFunctions_1 = listenerFunctions; _i < listenerFunctions_1.length; _i++) {
-            var listenerFunction = listenerFunctions_1[_i];
-            var parsedListener = this.parseListenerName(listenerFunction);
-            if (!parsedListener)
-                continue;
-            var functionName = parsedListener.functionName, CMIElement = parsedListener.CMIElement;
-            var listeners = (_a = this.listenerMap.get(functionName)) !== null && _a !== void 0 ? _a : [];
-            listeners.push({
-                functionName: functionName,
-                CMIElement: CMIElement,
-                callback: callback,
-            });
+      };
+      return await process(url, params, this.settings);
+    }
+    /**
+     * Perform the fetch request to the LMS
+     * @param {string} url - The URL to send the request to
+     * @param {StringKeyMap|Array} params - The parameters to include in the request
+     * @return {Promise<Response>} - The response from the LMS
+     * @private
+     */
+    async performFetch(url, params) {
+      return fetch(url, {
+        method: "POST",
+        mode: this.settings.fetchMode,
+        body: params instanceof Array ? params.join("&") : JSON.stringify(params),
+        headers: {
+          ...this.settings.xhrHeaders,
+          "Content-Type": this.settings.commitRequestDataType
+        },
+        credentials: this.settings.xhrWithCredentials ? "include" : void 0,
+        keepalive: true
+      });
+    }
+    /**
+     * Transforms the response from the LMS to a ResultObject
+     * @param {Response} response - The response from the LMS
+     * @param {Function} processListeners - Function to process event listeners
+     * @return {Promise<ResultObject>} - The transformed response
+     * @private
+     */
+    async transformResponse(response, processListeners) {
+      const result = typeof this.settings.responseHandler === "function" ? await this.settings.responseHandler(response) : await response.json();
+      if (response.status >= 200 && response.status <= 299 && (result.result === true || result.result === global_constants.SCORM_TRUE)) {
+        processListeners("CommitSuccess");
+        if (!Object.hasOwnProperty.call(result, "errorCode")) {
+          result.errorCode = 0;
+        }
+      } else {
+        if (!Object.hasOwnProperty.call(result, "errorCode")) {
+          result.errorCode = this.error_codes.GENERAL;
+        }
+        processListeners("CommitError", null, result.errorCode);
+      }
+      return result;
+    }
+    /**
+     * Updates the service settings
+     * @param {Settings} settings - The new settings
+     */
+    updateSettings(settings) {
+      this.settings = settings;
+    }
+  }
+
+  class EventService {
+    /**
+     * Constructor for EventService
+     * @param {Function} apiLog - Function to log API messages
+     */
+    constructor(apiLog) {
+      // Map of function names to listeners for faster lookups
+      this.listenerMap = /* @__PURE__ */new Map();
+      // Total count of listeners for logging
+      this.listenerCount = 0;
+      this.apiLog = apiLog;
+    }
+    /**
+     * Parses a listener name into its components
+     *
+     * @param {string} listenerName - The name of the listener
+     * @returns {ParsedListener|null} - The parsed listener information or null if invalid
+     */
+    parseListenerName(listenerName) {
+      const listenerSplit = listenerName.split(".");
+      if (listenerSplit.length === 0) return null;
+      const functionName = listenerSplit[0];
+      let CMIElement = null;
+      if (listenerSplit.length > 1) {
+        CMIElement = listenerName.replace(`${functionName}.`, "");
+      }
+      return {
+        functionName,
+        CMIElement
+      };
+    }
+    /**
+     * Provides a mechanism for attaching to a specific SCORM event
+     *
+     * @param {string} listenerName - The name of the listener
+     * @param {Function} callback - The callback function to execute when the event occurs
+     */
+    on(listenerName, callback) {
+      if (!callback) return;
+      const listenerFunctions = listenerName.split(" ");
+      for (const listenerFunction of listenerFunctions) {
+        const parsedListener = this.parseListenerName(listenerFunction);
+        if (!parsedListener) continue;
+        const {
+          functionName,
+          CMIElement
+        } = parsedListener;
+        const listeners = this.listenerMap.get(functionName) ?? [];
+        listeners.push({
+          functionName,
+          CMIElement,
+          callback
+        });
+        this.listenerMap.set(functionName, listeners);
+        this.listenerCount++;
+        this.apiLog("on", `Added event listener: ${this.listenerCount}`, LogLevelEnum.INFO, functionName);
+      }
+    }
+    /**
+     * Provides a mechanism for detaching a specific SCORM event listener
+     *
+     * @param {string} listenerName - The name of the listener to remove
+     * @param {Function} callback - The callback function to remove
+     */
+    off(listenerName, callback) {
+      if (!callback) return;
+      const listenerFunctions = listenerName.split(" ");
+      for (const listenerFunction of listenerFunctions) {
+        const parsedListener = this.parseListenerName(listenerFunction);
+        if (!parsedListener) continue;
+        const {
+          functionName,
+          CMIElement
+        } = parsedListener;
+        const listeners = this.listenerMap.get(functionName);
+        if (!listeners) continue;
+        const removeIndex = listeners.findIndex(obj => obj.CMIElement === CMIElement && obj.callback === callback);
+        if (removeIndex !== -1) {
+          listeners.splice(removeIndex, 1);
+          this.listenerCount--;
+          if (listeners.length === 0) {
+            this.listenerMap.delete(functionName);
+          } else {
             this.listenerMap.set(functionName, listeners);
-            this.listenerCount++;
-            this.apiLog("on", "Added event listener: ".concat(this.listenerCount), enums/* LogLevelEnum */.Mb.INFO, functionName);
+          }
+          this.apiLog("off", `Removed event listener: ${this.listenerCount}`, LogLevelEnum.INFO, functionName);
         }
-    };
-    EventService.prototype.off = function (listenerName, callback) {
-        if (!callback)
-            return;
-        var listenerFunctions = listenerName.split(" ");
-        var _loop_1 = function (listenerFunction) {
-            var parsedListener = this_1.parseListenerName(listenerFunction);
-            if (!parsedListener)
-                return "continue";
-            var functionName = parsedListener.functionName, CMIElement = parsedListener.CMIElement;
-            var listeners = this_1.listenerMap.get(functionName);
-            if (!listeners)
-                return "continue";
-            var removeIndex = listeners.findIndex(function (obj) { return obj.CMIElement === CMIElement && obj.callback === callback; });
-            if (removeIndex !== -1) {
-                listeners.splice(removeIndex, 1);
-                this_1.listenerCount--;
-                if (listeners.length === 0) {
-                    this_1.listenerMap.delete(functionName);
-                }
-                else {
-                    this_1.listenerMap.set(functionName, listeners);
-                }
-                this_1.apiLog("off", "Removed event listener: ".concat(this_1.listenerCount), enums/* LogLevelEnum */.Mb.INFO, functionName);
-            }
-        };
-        var this_1 = this;
-        for (var _i = 0, listenerFunctions_2 = listenerFunctions; _i < listenerFunctions_2.length; _i++) {
-            var listenerFunction = listenerFunctions_2[_i];
-            _loop_1(listenerFunction);
-        }
-    };
-    EventService.prototype.clear = function (listenerName) {
-        var listenerFunctions = listenerName.split(" ");
-        var _loop_2 = function (listenerFunction) {
-            var parsedListener = this_2.parseListenerName(listenerFunction);
-            if (!parsedListener)
-                return "continue";
-            var functionName = parsedListener.functionName, CMIElement = parsedListener.CMIElement;
-            if (this_2.listenerMap.has(functionName)) {
-                var listeners = this_2.listenerMap.get(functionName);
-                var newListeners = listeners.filter(function (obj) { return obj.CMIElement !== CMIElement; });
-                this_2.listenerCount -= listeners.length - newListeners.length;
-                if (newListeners.length === 0) {
-                    this_2.listenerMap.delete(functionName);
-                }
-                else {
-                    this_2.listenerMap.set(functionName, newListeners);
-                }
-            }
-        };
-        var this_2 = this;
-        for (var _i = 0, listenerFunctions_3 = listenerFunctions; _i < listenerFunctions_3.length; _i++) {
-            var listenerFunction = listenerFunctions_3[_i];
-            _loop_2(listenerFunction);
-        }
-    };
-    EventService.prototype.processListeners = function (functionName, CMIElement, value) {
-        this.apiLog(functionName, value, enums/* LogLevelEnum */.Mb.INFO, CMIElement);
-        var listeners = this.listenerMap.get(functionName);
-        if (!listeners)
-            return;
-        for (var _i = 0, listeners_1 = listeners; _i < listeners_1.length; _i++) {
-            var listener = listeners_1[_i];
-            var listenerHasCMIElement = !!listener.CMIElement;
-            var CMIElementsMatch = false;
-            if (CMIElement && listener.CMIElement) {
-                if (listener.CMIElement.endsWith("*")) {
-                    var prefix = listener.CMIElement.slice(0, -1);
-                    CMIElementsMatch = CMIElement.startsWith(prefix);
-                }
-                else {
-                    CMIElementsMatch = listener.CMIElement === CMIElement;
-                }
-            }
-            if (!listenerHasCMIElement || CMIElementsMatch) {
-                this.apiLog("processListeners", "Processing listener: ".concat(listener.functionName), enums/* LogLevelEnum */.Mb.DEBUG, CMIElement);
-                if (functionName.startsWith("Sequence")) {
-                    listener.callback(value);
-                }
-                else if (functionName === "CommitError") {
-                    listener.callback(value);
-                }
-                else if (functionName === "CommitSuccess") {
-                    listener.callback();
-                }
-                else {
-                    listener.callback(CMIElement, value);
-                }
-            }
-        }
-    };
-    EventService.prototype.reset = function () {
-        this.listenerMap.clear();
-        this.listenerCount = 0;
-    };
-    return EventService;
-}());
-
-
-;// ./src/services/SerializationService.ts
-
-
-var SerializationService = (function () {
-    function SerializationService() {
+      }
     }
-    SerializationService.prototype.loadFromFlattenedJSON = function (json, CMIElement, setCMIValue, isNotInitialized, setStartingData) {
-        var _this = this;
-        if (CMIElement === void 0) { CMIElement = ""; }
-        if (!isNotInitialized()) {
-            console.error("loadFromFlattenedJSON can only be called before the call to lmsInitialize.");
-            return;
+    /**
+     * Provides a mechanism for clearing all listeners from a specific SCORM event
+     *
+     * @param {string} listenerName - The name of the listener to clear
+     */
+    clear(listenerName) {
+      const listenerFunctions = listenerName.split(" ");
+      for (const listenerFunction of listenerFunctions) {
+        const parsedListener = this.parseListenerName(listenerFunction);
+        if (!parsedListener) continue;
+        const {
+          functionName,
+          CMIElement
+        } = parsedListener;
+        if (this.listenerMap.has(functionName)) {
+          const listeners = this.listenerMap.get(functionName);
+          const newListeners = listeners.filter(obj => obj.CMIElement !== CMIElement);
+          this.listenerCount -= listeners.length - newListeners.length;
+          if (newListeners.length === 0) {
+            this.listenerMap.delete(functionName);
+          } else {
+            this.listenerMap.set(functionName, newListeners);
+          }
         }
-        var int_pattern = /^(cmi\.interactions\.)(\d+)\.(.*)$/;
-        var obj_pattern = /^(cmi\.objectives\.)(\d+)\.(.*)$/;
-        var interactions = [];
-        var objectives = [];
-        var others = [];
-        for (var key in json) {
-            if (Object.prototype.hasOwnProperty.call(json, key)) {
-                var intMatch = key.match(int_pattern);
-                if (intMatch) {
-                    interactions.push({
-                        key: key,
-                        value: json[key],
-                        index: Number(intMatch[2]),
-                        field: intMatch[3],
-                    });
-                    continue;
-                }
-                var objMatch = key.match(obj_pattern);
-                if (objMatch) {
-                    objectives.push({
-                        key: key,
-                        value: json[key],
-                        index: Number(objMatch[2]),
-                        field: objMatch[3],
-                    });
-                    continue;
-                }
-                others.push({ key: key, value: json[key] });
-            }
+      }
+    }
+    /**
+     * Processes any 'on' listeners that have been created
+     *
+     * @param {string} functionName - The name of the function that triggered the event
+     * @param {string} CMIElement - The CMI element that was affected
+     * @param {any} value - The value that was set
+     */
+    processListeners(functionName, CMIElement, value) {
+      this.apiLog(functionName, value, LogLevelEnum.INFO, CMIElement);
+      const listeners = this.listenerMap.get(functionName);
+      if (!listeners) return;
+      for (const listener of listeners) {
+        const listenerHasCMIElement = !!listener.CMIElement;
+        let CMIElementsMatch = false;
+        if (CMIElement && listener.CMIElement) {
+          if (listener.CMIElement.endsWith("*")) {
+            const prefix = listener.CMIElement.slice(0, -1);
+            CMIElementsMatch = CMIElement.startsWith(prefix);
+          } else {
+            CMIElementsMatch = listener.CMIElement === CMIElement;
+          }
         }
-        interactions.sort(function (a, b) {
-            if (a.index !== b.index) {
-                return a.index - b.index;
-            }
-            if (a.field === "id")
-                return -1;
-            if (b.field === "id")
-                return 1;
-            if (a.field === "type")
-                return -1;
-            if (b.field === "type")
-                return 1;
-            return a.field.localeCompare(b.field);
-        });
-        objectives.sort(function (a, b) {
-            if (a.index !== b.index) {
-                return a.index - b.index;
-            }
-            if (a.field === "id")
-                return -1;
-            if (b.field === "id")
-                return 1;
-            return a.field.localeCompare(b.field);
-        });
-        others.sort(function (a, b) { return a.key.localeCompare(b.key); });
-        var processItems = function (items) {
-            items.forEach(function (item) {
-                var obj = {};
-                obj[item.key] = item.value;
-                _this.loadFromJSON((0,utilities/* unflatten */.sB)(obj), CMIElement, setCMIValue, isNotInitialized, setStartingData);
+        if (!listenerHasCMIElement || CMIElementsMatch) {
+          this.apiLog("processListeners", `Processing listener: ${listener.functionName}`, LogLevelEnum.DEBUG, CMIElement);
+          if (functionName.startsWith("Sequence")) {
+            listener.callback(value);
+          } else if (functionName === "CommitError") {
+            listener.callback(value);
+          } else if (functionName === "CommitSuccess") {
+            listener.callback();
+          } else {
+            listener.callback(CMIElement, value);
+          }
+        }
+      }
+    }
+    /**
+     * Resets the event service by clearing all listeners
+     */
+    reset() {
+      this.listenerMap.clear();
+      this.listenerCount = 0;
+    }
+  }
+
+  class SerializationService {
+    /**
+     * Loads CMI data from a flattened JSON object with special handling for arrays and ordering.
+     *
+     * This method implements a complex algorithm for loading flattened JSON data into the CMI
+     * object structure. It handles several key challenges:
+     *
+     * 1. Ordering dependencies: Some CMI elements (like interactions and objectives) must be
+     *    loaded in a specific order to ensure proper initialization.
+     *
+     * 2. Array handling: Interactions and objectives are stored as arrays, and their properties
+     *    must be loaded in the correct order (e.g., 'id' and 'type' must be set before other properties).
+     *
+     * 3. Unflattening: The method converts flattened dot notation (e.g., "cmi.objectives.0.id")
+     *    back into nested objects before loading.
+     *
+     * The algorithm works by:
+     * - Categorizing keys into interactions, objectives, and other properties
+     * - Sorting interactions to prioritize 'id' and 'type' fields within each index
+     * - Sorting objectives to prioritize 'id' fields within each index
+     * - Processing each category in order: interactions, objectives, then other properties
+     *
+     * @param {StringKeyMap} json - The flattened JSON object with dot notation keys
+     * @param {string} CMIElement - The CMI element to start from (usually empty or "cmi")
+     * @param {Function} setCMIValue - Function to set CMI value
+     * @param {Function} isNotInitialized - Function to check if API is not initialized
+     *
+     * @param setStartingData
+     * @example
+     * // Example of flattened JSON input:
+     * // {
+     * //   "cmi.objectives.0.id": "obj1",
+     * //   "cmi.objectives.0.score.raw": "80",
+     * //   "cmi.interactions.0.id": "int1",
+     * //   "cmi.interactions.0.type": "choice",
+     * //   "cmi.interactions.0.result": "correct"
+     * // }
+     */
+    loadFromFlattenedJSON(json) {
+      let CMIElement = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "";
+      let setCMIValue = arguments.length > 2 ? arguments[2] : undefined;
+      let isNotInitialized = arguments.length > 3 ? arguments[3] : undefined;
+      let setStartingData = arguments.length > 4 ? arguments[4] : undefined;
+      if (!isNotInitialized()) {
+        console.error("loadFromFlattenedJSON can only be called before the call to lmsInitialize.");
+        return;
+      }
+      const int_pattern = /^(cmi\.interactions\.)(\d+)\.(.*)$/;
+      const obj_pattern = /^(cmi\.objectives\.)(\d+)\.(.*)$/;
+      const interactions = [];
+      const objectives = [];
+      const others = [];
+      for (const key in json) {
+        if (Object.prototype.hasOwnProperty.call(json, key)) {
+          const intMatch = key.match(int_pattern);
+          if (intMatch) {
+            interactions.push({
+              key,
+              value: json[key],
+              index: Number(intMatch[2]),
+              field: intMatch[3]
             });
-        };
-        processItems(interactions);
-        processItems(objectives);
-        processItems(others);
-    };
-    SerializationService.prototype.loadFromJSON = function (json, CMIElement, setCMIValue, isNotInitialized, setStartingData) {
-        if (CMIElement === void 0) { CMIElement = ""; }
-        if (!isNotInitialized()) {
-            console.error("loadFromJSON can only be called before the call to lmsInitialize.");
-            return;
+            continue;
+          }
+          const objMatch = key.match(obj_pattern);
+          if (objMatch) {
+            objectives.push({
+              key,
+              value: json[key],
+              index: Number(objMatch[2]),
+              field: objMatch[3]
+            });
+            continue;
+          }
+          others.push({
+            key,
+            value: json[key]
+          });
         }
-        CMIElement = CMIElement !== undefined ? CMIElement : "cmi";
-        setStartingData(json);
-        for (var key in json) {
-            if (Object.prototype.hasOwnProperty.call(json, key) && json[key]) {
-                var currentCMIElement = (CMIElement ? CMIElement + "." : "") + key;
-                var value = json[key];
-                if (value.constructor === Array) {
-                    for (var i = 0; i < value.length; i++) {
-                        if (value[i]) {
-                            var item = value[i];
-                            var tempCMIElement = "".concat(currentCMIElement, ".").concat(i);
-                            if (item.constructor === Object) {
-                                this.loadFromJSON(item, tempCMIElement, setCMIValue, isNotInitialized, setStartingData);
-                            }
-                            else {
-                                setCMIValue(tempCMIElement, item);
-                            }
-                        }
-                    }
-                }
-                else if (value.constructor === Object) {
-                    this.loadFromJSON(value, currentCMIElement, setCMIValue, isNotInitialized, setStartingData);
-                }
-                else {
-                    setCMIValue(currentCMIElement, value);
-                }
-            }
+      }
+      interactions.sort((a, b) => {
+        if (a.index !== b.index) {
+          return a.index - b.index;
         }
-    };
-    SerializationService.prototype.renderCMIToJSONString = function (cmi, sendFullCommit) {
-        if (sendFullCommit) {
-            return JSON.stringify({ cmi: cmi });
+        if (a.field === "id") return -1;
+        if (b.field === "id") return 1;
+        if (a.field === "type") return -1;
+        if (b.field === "type") return 1;
+        return a.field.localeCompare(b.field);
+      });
+      objectives.sort((a, b) => {
+        if (a.index !== b.index) {
+          return a.index - b.index;
         }
-        return JSON.stringify({ cmi: cmi }, function (k, v) { return (v === undefined ? null : v); }, 2);
-    };
-    SerializationService.prototype.renderCMIToJSONObject = function (cmi, sendFullCommit) {
-        return JSON.parse(this.renderCMIToJSONString(cmi, sendFullCommit));
-    };
-    SerializationService.prototype.getCommitObject = function (terminateCommit, alwaysSendTotalTime, renderCommonCommitFields, renderCommitObject, renderCommitCMI, apiLogLevel) {
-        var shouldTerminateCommit = terminateCommit || alwaysSendTotalTime;
-        var commitObject = renderCommonCommitFields
-            ? renderCommitObject(shouldTerminateCommit)
-            : renderCommitCMI(shouldTerminateCommit);
-        if ([enums/* LogLevelEnum */.Mb.DEBUG, "1", 1, "DEBUG"].includes(apiLogLevel)) {
-            console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");
-            console.debug(commitObject);
-        }
-        return commitObject;
-    };
-    return SerializationService;
-}());
-
-
-// EXTERNAL MODULE: ./src/exceptions.ts
-var exceptions = __webpack_require__(519);
-;// ./src/services/LoggingService.ts
-
-
-var LoggingService = (function () {
-    function LoggingService() {
-        this._logLevel = enums/* LogLevelEnum */.Mb.ERROR;
-        this._logHandler = defaultLogHandler;
+        if (a.field === "id") return -1;
+        if (b.field === "id") return 1;
+        return a.field.localeCompare(b.field);
+      });
+      others.sort((a, b) => a.key.localeCompare(b.key));
+      const processItems = items => {
+        items.forEach(item => {
+          const obj = {};
+          obj[item.key] = item.value;
+          this.loadFromJSON(unflatten(obj), CMIElement, setCMIValue, isNotInitialized, setStartingData);
+        });
+      };
+      processItems(interactions);
+      processItems(objectives);
+      processItems(others);
     }
-    LoggingService.getInstance = function () {
-        if (!LoggingService._instance) {
-            LoggingService._instance = new LoggingService();
+    /**
+     * Loads CMI data from a nested JSON object with recursive traversal.
+     *
+     * This method implements a recursive algorithm for loading nested JSON data into the CMI
+     * object structure. It handles several key aspects:
+     *
+     * 1. Recursive traversal: The method recursively traverses the nested JSON structure,
+     *    building CMI element paths as it goes (e.g., "cmi.core.student_id").
+     *
+     * 2. Type-specific handling: Different data types are handled differently:
+     *    - Arrays: Each array element is processed individually with its index in the path
+     *    - Objects: Recursively processed with updated path
+     *    - Primitives: Set directly using setCMIValue
+     *
+     * 3. Initialization check: Ensures the method is only called before API initialization
+     *
+     * 4. Starting data storage: Stores the original JSON data for potential future use
+     *
+     * The algorithm works by:
+     * - First storing the complete JSON object via setStartingData
+     * - Iterating through each property in the JSON object
+     * - For each property, determining its type and handling it accordingly
+     * - Building the CMI element path as it traverses the structure
+     * - Setting values at the appropriate paths using setCMIValue
+     *
+     * @param {{[key: string]: any}} json - The nested JSON object to load
+     * @param {string} CMIElement - The CMI element to start from (usually empty or "cmi")
+     * @param {Function} setCMIValue - Function to set CMI value at a specific path
+     * @param {Function} isNotInitialized - Function to check if API is not initialized
+     * @param {Function} setStartingData - Function to store the original JSON data
+     *
+     * @example
+     * // Example of nested JSON input:
+     * // {
+     * //   "core": {
+     * //     "student_id": "12345",
+     * //     "student_name": "John Doe"
+     * //   },
+     * //   "objectives": [
+     * //     { "id": "obj1", "score": { "raw": 80 } },
+     * //     { "id": "obj2", "score": { "raw": 90 } }
+     * //   ]
+     * // }
+     */
+    loadFromJSON(json) {
+      let CMIElement = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "";
+      let setCMIValue = arguments.length > 2 ? arguments[2] : undefined;
+      let isNotInitialized = arguments.length > 3 ? arguments[3] : undefined;
+      let setStartingData = arguments.length > 4 ? arguments[4] : undefined;
+      if (!isNotInitialized()) {
+        console.error("loadFromJSON can only be called before the call to lmsInitialize.");
+        return;
+      }
+      CMIElement = CMIElement !== void 0 ? CMIElement : "cmi";
+      setStartingData(json);
+      for (const key in json) {
+        if (Object.prototype.hasOwnProperty.call(json, key) && json[key]) {
+          const currentCMIElement = (CMIElement ? CMIElement + "." : "") + key;
+          const value = json[key];
+          if (value.constructor === Array) {
+            for (let i = 0; i < value.length; i++) {
+              if (value[i]) {
+                const item = value[i];
+                const tempCMIElement = `${currentCMIElement}.${i}`;
+                if (item.constructor === Object) {
+                  this.loadFromJSON(item, tempCMIElement, setCMIValue, isNotInitialized, setStartingData);
+                } else {
+                  setCMIValue(tempCMIElement, item);
+                }
+              }
+            }
+          } else if (value.constructor === Object) {
+            this.loadFromJSON(value, currentCMIElement, setCMIValue, isNotInitialized, setStartingData);
+          } else {
+            setCMIValue(currentCMIElement, value);
+          }
         }
-        return LoggingService._instance;
-    };
-    LoggingService.prototype.setLogLevel = function (level) {
-        this._logLevel = level;
-    };
-    LoggingService.prototype.getLogLevel = function () {
-        return this._logLevel;
-    };
-    LoggingService.prototype.setLogHandler = function (handler) {
-        this._logHandler = handler;
-    };
-    LoggingService.prototype.log = function (messageLevel, logMessage) {
-        if (this.shouldLog(messageLevel)) {
-            this._logHandler(messageLevel, logMessage);
-        }
-    };
-    LoggingService.prototype.error = function (logMessage) {
-        this.log(enums/* LogLevelEnum */.Mb.ERROR, logMessage);
-    };
-    LoggingService.prototype.warn = function (logMessage) {
-        this.log(enums/* LogLevelEnum */.Mb.WARN, logMessage);
-    };
-    LoggingService.prototype.info = function (logMessage) {
-        this.log(enums/* LogLevelEnum */.Mb.INFO, logMessage);
-    };
-    LoggingService.prototype.debug = function (logMessage) {
-        this.log(enums/* LogLevelEnum */.Mb.DEBUG, logMessage);
-    };
-    LoggingService.prototype.shouldLog = function (messageLevel) {
-        var numericMessageLevel = this.getNumericLevel(messageLevel);
-        var numericLogLevel = this.getNumericLevel(this._logLevel);
-        return numericMessageLevel >= numericLogLevel;
-    };
-    LoggingService.prototype.getNumericLevel = function (level) {
-        if (level === undefined)
-            return enums/* LogLevelEnum */.Mb.NONE;
-        if (typeof level === "number")
-            return level;
-        switch (level) {
-            case "1":
-            case "DEBUG":
-                return enums/* LogLevelEnum */.Mb.DEBUG;
-            case "2":
-            case "INFO":
-                return enums/* LogLevelEnum */.Mb.INFO;
-            case "3":
-            case "WARN":
-                return enums/* LogLevelEnum */.Mb.WARN;
-            case "4":
-            case "ERROR":
-                return enums/* LogLevelEnum */.Mb.ERROR;
-            case "5":
-            case "NONE":
-                return enums/* LogLevelEnum */.Mb.NONE;
-            default:
-                return enums/* LogLevelEnum */.Mb.ERROR;
-        }
-    };
-    return LoggingService;
-}());
+      }
+    }
+    /**
+     * Render the CMI object to JSON for sending to an LMS.
+     *
+     * @param {BaseCMI|StringKeyMap} cmi - The CMI object
+     * @param {boolean} sendFullCommit - Whether to send the full commit
+     * @return {string}
+     */
+    renderCMIToJSONString(cmi, sendFullCommit) {
+      if (sendFullCommit) {
+        return JSON.stringify({
+          cmi
+        });
+      }
+      return JSON.stringify({
+        cmi
+      }, (k, v) => v === void 0 ? null : v, 2);
+    }
+    /**
+     * Returns a JS object representing the current cmi
+     * @param {BaseCMI|StringKeyMap} cmi - The CMI object
+     * @param {boolean} sendFullCommit - Whether to send the full commit
+     * @return {object}
+     */
+    renderCMIToJSONObject(cmi, sendFullCommit) {
+      return JSON.parse(this.renderCMIToJSONString(cmi, sendFullCommit));
+    }
+    /**
+     * Builds the commit object to be sent to the LMS
+     * @param {boolean} terminateCommit - Whether this is a termination commit
+     * @param {boolean} alwaysSendTotalTime - Whether to always send total time
+     * @param {boolean|Function} renderCommonCommitFields - Whether to render common commit fields
+     * @param {Function} renderCommitObject - Function to render commit object
+     * @param {Function} renderCommitCMI - Function to render commit CMI
+     * @param {LogLevel} apiLogLevel - The API log level
+     * @return {CommitObject|StringKeyMap|Array<any>}
+     */
+    getCommitObject(terminateCommit, alwaysSendTotalTime, renderCommonCommitFields, renderCommitObject, renderCommitCMI, apiLogLevel) {
+      const shouldTerminateCommit = terminateCommit || alwaysSendTotalTime;
+      const commitObject = renderCommonCommitFields ? renderCommitObject(shouldTerminateCommit) : renderCommitCMI(shouldTerminateCommit);
+      if ([LogLevelEnum.DEBUG, "1", 1, "DEBUG"].includes(apiLogLevel)) {
+        console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");
+        console.debug(commitObject);
+      }
+      return commitObject;
+    }
+  }
 
-function getLoggingService() {
+  class LoggingService {
+    /**
+     * Private constructor to prevent direct instantiation
+     */
+    constructor() {
+      this._logLevel = LogLevelEnum.ERROR;
+      this._logHandler = defaultLogHandler;
+    }
+    /**
+     * Get the singleton instance of LoggingService
+     *
+     * @returns {LoggingService} The singleton instance
+     */
+    static getInstance() {
+      if (!LoggingService._instance) {
+        LoggingService._instance = new LoggingService();
+      }
+      return LoggingService._instance;
+    }
+    /**
+     * Set the log level
+     *
+     * @param {LogLevel} level - The log level to set
+     */
+    setLogLevel(level) {
+      this._logLevel = level;
+    }
+    /**
+     * Get the current log level
+     *
+     * @returns {LogLevel} The current log level
+     */
+    getLogLevel() {
+      return this._logLevel;
+    }
+    /**
+     * Set a custom log handler
+     *
+     * @param {Function} handler - The function to handle log messages
+     */
+    setLogHandler(handler) {
+      this._logHandler = handler;
+    }
+    /**
+     * Log a message if the message level is greater than or equal to the current log level
+     *
+     * @param {LogLevel} messageLevel - The level of the message
+     * @param {string} logMessage - The message to log
+     */
+    log(messageLevel, logMessage) {
+      if (this.shouldLog(messageLevel)) {
+        this._logHandler(messageLevel, logMessage);
+      }
+    }
+    /**
+     * Log a message at ERROR level
+     *
+     * @param {string} logMessage - The message to log
+     */
+    error(logMessage) {
+      this.log(LogLevelEnum.ERROR, logMessage);
+    }
+    /**
+     * Log a message at WARN level
+     *
+     * @param {string} logMessage - The message to log
+     */
+    warn(logMessage) {
+      this.log(LogLevelEnum.WARN, logMessage);
+    }
+    /**
+     * Log a message at INFO level
+     *
+     * @param {string} logMessage - The message to log
+     */
+    info(logMessage) {
+      this.log(LogLevelEnum.INFO, logMessage);
+    }
+    /**
+     * Log a message at DEBUG level
+     *
+     * @param {string} logMessage - The message to log
+     */
+    debug(logMessage) {
+      this.log(LogLevelEnum.DEBUG, logMessage);
+    }
+    /**
+     * Determine if a message should be logged based on its level and the current log level
+     *
+     * @param {LogLevel} messageLevel - The level of the message
+     * @returns {boolean} Whether the message should be logged
+     */
+    shouldLog(messageLevel) {
+      const numericMessageLevel = this.getNumericLevel(messageLevel);
+      const numericLogLevel = this.getNumericLevel(this._logLevel);
+      return numericMessageLevel >= numericLogLevel;
+    }
+    /**
+     * Convert a log level to its numeric value
+     *
+     * @param {LogLevel} level - The log level to convert
+     * @returns {number} The numeric value of the log level
+     */
+    getNumericLevel(level) {
+      if (level === void 0) return LogLevelEnum.NONE;
+      if (typeof level === "number") return level;
+      switch (level) {
+        case "1":
+        case "DEBUG":
+          return LogLevelEnum.DEBUG;
+        case "2":
+        case "INFO":
+          return LogLevelEnum.INFO;
+        case "3":
+        case "WARN":
+          return LogLevelEnum.WARN;
+        case "4":
+        case "ERROR":
+          return LogLevelEnum.ERROR;
+        case "5":
+        case "NONE":
+          return LogLevelEnum.NONE;
+        default:
+          return LogLevelEnum.ERROR;
+      }
+    }
+  }
+  function getLoggingService() {
     return LoggingService.getInstance();
-}
+  }
 
-;// ./src/services/ErrorHandlingService.ts
-
-
-
-
-var ErrorHandlingService = (function () {
-    function ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService) {
+  class ErrorHandlingService {
+    /**
+     * Constructor for ErrorHandlingService
+     *
+     * @param {ErrorCode} errorCodes - The error codes object
+     * @param {Function} apiLog - Function for logging API calls
+     * @param {Function} getLmsErrorMessageDetails - Function for getting error message details
+     * @param {ILoggingService} loggingService - Optional logging service instance
+     */
+    constructor(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService) {
+      this._lastErrorCode = "0";
+      this._errorCodes = errorCodes;
+      this._apiLog = apiLog;
+      this._getLmsErrorMessageDetails = getLmsErrorMessageDetails;
+      this._loggingService = loggingService || getLoggingService();
+    }
+    /**
+     * Get the last error code
+     *
+     * @return {string} - The last error code
+     */
+    get lastErrorCode() {
+      return this._lastErrorCode;
+    }
+    /**
+     * Set the last error code
+     *
+     * @param {string} errorCode - The error code to set
+     */
+    set lastErrorCode(errorCode) {
+      this._lastErrorCode = errorCode;
+    }
+    /**
+     * Throws a SCORM error
+     *
+     * @param {string} CMIElement
+     * @param {number} errorNumber - The error number
+     * @param {string} message - The error message
+     * @throws {ValidationError} - If throwException is true, throws a ValidationError
+     */
+    throwSCORMError(CMIElement, errorNumber, message) {
+      if (!message) {
+        message = this._getLmsErrorMessageDetails(errorNumber, true);
+      }
+      const formattedMessage = `SCORM Error ${errorNumber}: ${message}${CMIElement ? ` [Element: ${CMIElement}]` : ""}`;
+      this._apiLog("throwSCORMError", errorNumber + ": " + message, LogLevelEnum.ERROR, CMIElement);
+      this._loggingService.error(formattedMessage);
+      this._lastErrorCode = String(errorNumber);
+    }
+    /**
+     * Clears the last SCORM error code on success.
+     *
+     * @param {string} success - Whether the operation was successful
+     */
+    clearSCORMError(success) {
+      if (success !== void 0 && success !== global_constants.SCORM_FALSE) {
         this._lastErrorCode = "0";
-        this._errorCodes = errorCodes;
-        this._apiLog = apiLog;
-        this._getLmsErrorMessageDetails = getLmsErrorMessageDetails;
-        this._loggingService = loggingService || getLoggingService();
+      }
     }
-    Object.defineProperty(ErrorHandlingService.prototype, "lastErrorCode", {
-        get: function () {
-            return this._lastErrorCode;
-        },
-        set: function (errorCode) {
-            this._lastErrorCode = errorCode;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    ErrorHandlingService.prototype.throwSCORMError = function (CMIElement, errorNumber, message) {
-        if (!message) {
-            message = this._getLmsErrorMessageDetails(errorNumber, true);
+    /**
+     * Handles exceptions that occur when accessing or setting CMI values.
+     *
+     * This method provides centralized error handling for exceptions that occur during
+     * CMI data operations. It differentiates between different types of errors and
+     * handles them appropriately:
+     *
+     * 1. ValidationError: These are expected errors from the validation system that
+     *    indicate a specific SCORM error condition (like invalid data format or range).
+     *    For these errors, the method:
+     *    - Sets the lastErrorCode to the error code from the ValidationError
+     *    - Returns SCORM_FALSE to indicate failure to the caller
+     *
+     * 2. Standard JavaScript Error: For general JavaScript errors (like TypeError,
+     *    ReferenceError, etc.), the method:
+     *    - Logs the error message with stack trace to the logging service
+     *    - Sets a general SCORM error
+     *    - Returns SCORM_FALSE to indicate failure
+     *
+     * 3. Unknown exceptions: For any other type of exception that doesn't match the
+     *    above categories, the method:
+     *    - Logs the entire exception object to the logging service
+     *    - Sets a general SCORM error
+     *    - Returns SCORM_FALSE to indicate failure
+     *
+     * This method is critical for maintaining SCORM compliance by ensuring that
+     * all errors are properly translated into the appropriate SCORM error codes.
+     *
+     * @param {string} CMIElement
+     * @param {ValidationError|Error|unknown} e - The exception that was thrown
+     * @param {string} returnValue - The default return value (typically an empty string)
+     * @return {string} - Either the original returnValue or SCORM_FALSE if an error occurred
+     *
+     * @example
+     * try {
+     *   const value = getCMIValue("cmi.core.score.raw");
+     *   return value;
+     * } catch (e) {
+     *   return handleValueAccessException(e, "");
+     * }
+     */
+    handleValueAccessException(CMIElement, e, returnValue) {
+      if (e instanceof ValidationError) {
+        const validationError = e;
+        this._lastErrorCode = String(validationError.errorCode);
+        const errorMessage = `Validation Error ${validationError.errorCode}: ${validationError.message} [Element: ${CMIElement}]`;
+        this._loggingService.warn(errorMessage);
+        returnValue = global_constants.SCORM_FALSE;
+      } else if (e instanceof Error) {
+        const errorType = e.constructor.name;
+        const errorMessage = `${errorType}: ${e.message} [Element: ${CMIElement}]`;
+        const stackTrace = e.stack || "";
+        this._loggingService.error(`${errorMessage}
+${stackTrace}`);
+        this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, `${errorType}: ${e.message}`);
+      } else {
+        const errorMessage = `Unknown error occurred while accessing [Element: ${CMIElement}]`;
+        this._loggingService.error(errorMessage);
+        try {
+          const errorDetails = JSON.stringify(e);
+          this._loggingService.error(`Error details: ${errorDetails}`);
+        } catch (jsonError) {
+          this._loggingService.error("Could not stringify error object for details");
         }
-        var formattedMessage = "SCORM Error ".concat(errorNumber, ": ").concat(message).concat(CMIElement ? " [Element: ".concat(CMIElement, "]") : "");
-        this._apiLog("throwSCORMError", errorNumber + ": " + message, enums/* LogLevelEnum */.Mb.ERROR, CMIElement);
-        this._loggingService.error(formattedMessage);
-        this._lastErrorCode = String(errorNumber);
-    };
-    ErrorHandlingService.prototype.clearSCORMError = function (success) {
-        if (success !== undefined && success !== api_constants/* global_constants */._y.SCORM_FALSE) {
-            this._lastErrorCode = "0";
-        }
-    };
-    ErrorHandlingService.prototype.handleValueAccessException = function (CMIElement, e, returnValue) {
-        if (e instanceof exceptions/* ValidationError */.y) {
-            var validationError = e;
-            this._lastErrorCode = String(validationError.errorCode);
-            var errorMessage = "Validation Error ".concat(validationError.errorCode, ": ").concat(validationError.message, " [Element: ").concat(CMIElement, "]");
-            this._loggingService.warn(errorMessage);
-            returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-        }
-        else if (e instanceof Error) {
-            var errorType = e.constructor.name;
-            var errorMessage = "".concat(errorType, ": ").concat(e.message, " [Element: ").concat(CMIElement, "]");
-            var stackTrace = e.stack || "";
-            console.error(e.message);
-            this._loggingService.error("".concat(errorMessage, "\n").concat(stackTrace));
-            this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, "".concat(errorType, ": ").concat(e.message));
-        }
-        else {
-            var errorMessage = "Unknown error occurred while accessing [Element: ".concat(CMIElement, "]");
-            console.error(e);
-            this._loggingService.error(errorMessage);
-            try {
-                var errorDetails = JSON.stringify(e);
-                this._loggingService.error("Error details: ".concat(errorDetails));
-            }
-            catch (jsonError) {
-                this._loggingService.error("Could not stringify error object for details");
-            }
-            this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, "Unknown error");
-        }
-        return returnValue;
-    };
-    Object.defineProperty(ErrorHandlingService.prototype, "errorCodes", {
-        get: function () {
-            return this._errorCodes;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    return ErrorHandlingService;
-}());
-
-function createErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService) {
+        this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, "Unknown error");
+      }
+      return returnValue;
+    }
+    /**
+     * Get the error codes object
+     *
+     * @return {ErrorCode} - The error codes object
+     */
+    get errorCodes() {
+      return this._errorCodes;
+    }
+  }
+  function createErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService) {
     return new ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService);
-}
+  }
 
-// EXTERNAL MODULE: ./src/cmi/common/array.ts
-var array = __webpack_require__(682);
-;// ./src/BaseAPI.ts
-
-
-
-
-
-
-
-
-
-
-
-
-
-var BaseAPI = (function () {
-    function BaseAPI(error_codes, settings, httpService, eventService, serializationService, cmiDataService, errorHandlingService, loggingService) {
-        var _newTarget = this.constructor;
-        var _this = this;
-        this._settings = DefaultSettings;
-        if (_newTarget === BaseAPI) {
-            throw new TypeError("Cannot construct BaseAPI instances directly");
-        }
-        this.currentState = api_constants/* global_constants */._y.STATE_NOT_INITIALIZED;
-        this._error_codes = error_codes;
-        if (settings) {
-            this.settings = settings;
-        }
-        this.apiLogLevel = this.settings.logLevel;
-        this.selfReportSessionTime = this.settings.selfReportSessionTime;
-        if (this.apiLogLevel === undefined) {
-            this.apiLogLevel = enums/* LogLevelEnum */.Mb.NONE;
-        }
-        this._loggingService = loggingService || getLoggingService();
-        this._loggingService.setLogLevel(this.apiLogLevel);
-        if (this.settings.onLogMessage) {
-            this._loggingService.setLogHandler(this.settings.onLogMessage);
-        }
-        this._httpService = httpService || new HttpService(this.settings, this._error_codes);
-        this._eventService =
-            eventService ||
-                new EventService(function (functionName, message, level, element) {
-                    return _this.apiLog(functionName, message, level, element);
-                });
-        this._serializationService = serializationService || new SerializationService();
-        this._errorHandlingService =
-            errorHandlingService ||
-                createErrorHandlingService(this._error_codes, function (functionName, message, level, element) {
-                    return _this.apiLog(functionName, message, level, element);
-                }, function (errorNumber, detail) { return _this.getLmsErrorMessageDetails(errorNumber, detail); });
+  class BaseAPI {
+    /**
+     * Constructor for Base API class. Sets some shared API fields, as well as
+     * sets up options for the API.
+     * @param {ErrorCode} error_codes - The error codes object
+     * @param {Settings} settings - Optional settings for the API
+     * @param {IHttpService} httpService - Optional HTTP service instance
+     * @param {IEventService} eventService - Optional Event service instance
+     * @param {ISerializationService} serializationService - Optional Serialization service instance
+     * @param {ICMIDataService} cmiDataService - Optional CMI Data service instance
+     * @param {IErrorHandlingService} errorHandlingService - Optional Error Handling service instance
+     * @param {ILoggingService} loggingService - Optional Logging service instance
+     */
+    constructor(error_codes, settings, httpService, eventService, serializationService, cmiDataService, errorHandlingService, loggingService) {
+      this._settings = DefaultSettings;
+      if (new.target === BaseAPI) {
+        throw new TypeError("Cannot construct BaseAPI instances directly");
+      }
+      this.currentState = global_constants.STATE_NOT_INITIALIZED;
+      this._error_codes = error_codes;
+      if (settings) {
+        this.settings = settings;
+      }
+      this.apiLogLevel = this.settings.logLevel;
+      this.selfReportSessionTime = this.settings.selfReportSessionTime;
+      if (this.apiLogLevel === void 0) {
+        this.apiLogLevel = LogLevelEnum.NONE;
+      }
+      this._loggingService = loggingService || getLoggingService();
+      this._loggingService.setLogLevel(this.apiLogLevel);
+      if (this.settings.onLogMessage) {
+        this._loggingService.setLogHandler(this.settings.onLogMessage);
+      }
+      this._httpService = httpService || new HttpService(this.settings, this._error_codes);
+      this._eventService = eventService || new EventService((functionName, message, level, element) => this.apiLog(functionName, message, level, element));
+      this._serializationService = serializationService || new SerializationService();
+      this._errorHandlingService = errorHandlingService || createErrorHandlingService(this._error_codes, (functionName, message, level, element) => this.apiLog(functionName, message, level, element), (errorNumber, detail) => this.getLmsErrorMessageDetails(errorNumber, detail));
     }
-    Object.defineProperty(BaseAPI.prototype, "lastErrorCode", {
-        get: function () {
-            var _a, _b;
-            return (_b = (_a = this._errorHandlingService) === null || _a === void 0 ? void 0 : _a.lastErrorCode) !== null && _b !== void 0 ? _b : "0";
-        },
-        set: function (errorCode) {
-            if (this._errorHandlingService) {
-                this._errorHandlingService.lastErrorCode = errorCode;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    BaseAPI.prototype.commonReset = function (settings) {
-        this.apiLog("reset", "Called", enums/* LogLevelEnum */.Mb.INFO);
-        this.settings = (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, this.settings), settings);
-        this.clearScheduledCommit();
-        this.currentState = api_constants/* global_constants */._y.STATE_NOT_INITIALIZED;
+    /**
+     * Get the last error code
+     * @return {string}
+     */
+    get lastErrorCode() {
+      return this._errorHandlingService?.lastErrorCode ?? "0";
+    }
+    /**
+     * Set the last error code
+     * @param {string} errorCode
+     */
+    set lastErrorCode(errorCode) {
+      if (this._errorHandlingService) {
+        this._errorHandlingService.lastErrorCode = errorCode;
+      }
+    }
+    /**
+     * Common reset method for all APIs. New settings are merged with the existing settings.
+     * @param {Settings} settings
+     * @protected
+     */
+    commonReset(settings) {
+      this.apiLog("reset", "Called", LogLevelEnum.INFO);
+      this.settings = {
+        ...this.settings,
+        ...settings
+      };
+      this.clearScheduledCommit();
+      this.currentState = global_constants.STATE_NOT_INITIALIZED;
+      this.lastErrorCode = "0";
+      this._eventService.reset();
+      this.startingData = void 0;
+    }
+    /**
+     * Initialize the API
+     * @param {string} callbackName
+     * @param {string} initializeMessage
+     * @param {string} terminationMessage
+     * @return {string}
+     */
+    initialize(callbackName, initializeMessage, terminationMessage) {
+      let returnValue = global_constants.SCORM_FALSE;
+      if (this.isInitialized()) {
+        this.throwSCORMError("api", this._error_codes.INITIALIZED, initializeMessage);
+      } else if (this.isTerminated()) {
+        this.throwSCORMError("api", this._error_codes.TERMINATED, terminationMessage);
+      } else {
+        if (this.selfReportSessionTime) {
+          this.cmi.setStartTime();
+        }
+        this.currentState = global_constants.STATE_INITIALIZED;
         this.lastErrorCode = "0";
-        this._eventService.reset();
-        this.startingData = undefined;
-    };
-    BaseAPI.prototype.initialize = function (callbackName, initializeMessage, terminationMessage) {
-        var returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-        if (this.isInitialized()) {
-            this.throwSCORMError("api", this._error_codes.INITIALIZED, initializeMessage);
-        }
-        else if (this.isTerminated()) {
-            this.throwSCORMError("api", this._error_codes.TERMINATED, terminationMessage);
-        }
-        else {
-            if (this.selfReportSessionTime) {
-                this.cmi.setStartTime();
-            }
-            this.currentState = api_constants/* global_constants */._y.STATE_INITIALIZED;
-            this.lastErrorCode = "0";
-            returnValue = api_constants/* global_constants */._y.SCORM_TRUE;
-            this.processListeners(callbackName);
-        }
-        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
-        this.clearSCORMError(returnValue);
-        return returnValue;
-    };
-    BaseAPI.prototype.apiLog = function (functionName, logMessage, messageLevel, CMIElement) {
-        logMessage = (0,utilities/* formatMessage */.hw)(functionName, logMessage, CMIElement);
-        if (messageLevel >= this.apiLogLevel) {
-            this._loggingService.log(messageLevel, logMessage);
-            if (this.settings.onLogMessage &&
-                this.settings.onLogMessage !== this._loggingService["_logHandler"]) {
-                this.settings.onLogMessage(messageLevel, logMessage);
-            }
-        }
-    };
-    Object.defineProperty(BaseAPI.prototype, "error_codes", {
-        get: function () {
-            return this._error_codes;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(BaseAPI.prototype, "settings", {
-        get: function () {
-            return this._settings;
-        },
-        set: function (settings) {
-            var _a, _b, _c;
-            var previousSettings = this._settings;
-            this._settings = (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, this._settings), settings);
-            (_a = this._httpService) === null || _a === void 0 ? void 0 : _a.updateSettings(this._settings);
-            if (settings.logLevel !== undefined && settings.logLevel !== previousSettings.logLevel) {
-                this.apiLogLevel = settings.logLevel;
-                (_b = this._loggingService) === null || _b === void 0 ? void 0 : _b.setLogLevel(settings.logLevel);
-            }
-            if (settings.onLogMessage !== undefined &&
-                settings.onLogMessage !== previousSettings.onLogMessage) {
-                (_c = this._loggingService) === null || _c === void 0 ? void 0 : _c.setLogHandler(settings.onLogMessage);
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    BaseAPI.prototype.terminate = function (callbackName, checkTerminated) {
-        return (0,tslib_es6/* __awaiter */.sH)(this, void 0, void 0, function () {
-            var returnValue, result;
-            var _a, _b;
-            return (0,tslib_es6/* __generator */.YH)(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-                        if (!this.checkState(checkTerminated, this._error_codes.TERMINATION_BEFORE_INIT, this._error_codes.MULTIPLE_TERMINATION)) return [3, 2];
-                        this.currentState = api_constants/* global_constants */._y.STATE_TERMINATED;
-                        return [4, this.storeData(true)];
-                    case 1:
-                        result = _c.sent();
-                        if (((_a = result.errorCode) !== null && _a !== void 0 ? _a : 0) > 0) {
-                            this.throwSCORMError("api", result.errorCode);
-                        }
-                        returnValue = (_b = result === null || result === void 0 ? void 0 : result.result) !== null && _b !== void 0 ? _b : api_constants/* global_constants */._y.SCORM_FALSE;
-                        if (checkTerminated)
-                            this.lastErrorCode = "0";
-                        returnValue = api_constants/* global_constants */._y.SCORM_TRUE;
-                        this.processListeners(callbackName);
-                        _c.label = 2;
-                    case 2:
-                        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
-                        this.clearSCORMError(returnValue);
-                        return [2, returnValue];
-                }
-            });
-        });
-    };
-    BaseAPI.prototype.getValue = function (callbackName, checkTerminated, CMIElement) {
-        var returnValue = "";
-        if (this.checkState(checkTerminated, this._error_codes.RETRIEVE_BEFORE_INIT, this._error_codes.RETRIEVE_AFTER_TERM)) {
-            try {
-                returnValue = this.getCMIValue(CMIElement);
-            }
-            catch (e) {
-                returnValue = this.handleValueAccessException(CMIElement, e, returnValue);
-            }
-            this.processListeners(callbackName, CMIElement);
-        }
-        this.apiLog(callbackName, ": returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO, CMIElement);
-        if (returnValue === undefined) {
-            return "";
-        }
-        if (this.lastErrorCode === "0") {
-            this.clearSCORMError(returnValue);
-        }
-        return returnValue;
-    };
-    BaseAPI.prototype.setValue = function (callbackName, commitCallback, checkTerminated, CMIElement, value) {
-        if (value !== undefined) {
-            value = String(value);
-        }
-        var returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-        if (this.checkState(checkTerminated, this._error_codes.STORE_BEFORE_INIT, this._error_codes.STORE_AFTER_TERM)) {
-            try {
-                returnValue = this.setCMIValue(CMIElement, value);
-            }
-            catch (e) {
-                returnValue = this.handleValueAccessException(CMIElement, e, returnValue);
-            }
-            this.processListeners(callbackName, CMIElement, value);
-        }
-        if (returnValue === undefined) {
-            returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-        }
-        if (String(this.lastErrorCode) === "0") {
-            if (this.settings.autocommit) {
-                this.scheduleCommit(this.settings.autocommitSeconds * 1000, commitCallback);
-            }
-        }
-        this.apiLog(callbackName, ": " + value + ": result: " + returnValue, enums/* LogLevelEnum */.Mb.INFO, CMIElement);
-        if (this.lastErrorCode === "0") {
-            this.clearSCORMError(returnValue);
-        }
-        return returnValue;
-    };
-    BaseAPI.prototype.commit = function (callbackName_1) {
-        return (0,tslib_es6/* __awaiter */.sH)(this, arguments, void 0, function (callbackName, checkTerminated) {
-            var returnValue, result;
-            var _a, _b;
-            if (checkTerminated === void 0) { checkTerminated = false; }
-            return (0,tslib_es6/* __generator */.YH)(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        this.clearScheduledCommit();
-                        returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-                        if (!this.checkState(checkTerminated, this._error_codes.COMMIT_BEFORE_INIT, this._error_codes.COMMIT_AFTER_TERM)) return [3, 2];
-                        return [4, this.storeData(false)];
-                    case 1:
-                        result = _c.sent();
-                        if (((_a = result.errorCode) !== null && _a !== void 0 ? _a : 0) > 0) {
-                            this.throwSCORMError("api", result.errorCode);
-                        }
-                        returnValue = (_b = result === null || result === void 0 ? void 0 : result.result) !== null && _b !== void 0 ? _b : api_constants/* global_constants */._y.SCORM_FALSE;
-                        this.apiLog(callbackName, " Result: " + returnValue, enums/* LogLevelEnum */.Mb.DEBUG, "HttpRequest");
-                        if (checkTerminated)
-                            this.lastErrorCode = "0";
-                        this.processListeners(callbackName);
-                        _c.label = 2;
-                    case 2:
-                        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
-                        if (this.lastErrorCode === "0") {
-                            this.clearSCORMError(returnValue);
-                        }
-                        return [2, returnValue];
-                }
-            });
-        });
-    };
-    BaseAPI.prototype.getLastError = function (callbackName) {
-        var returnValue = String(this.lastErrorCode);
+        returnValue = global_constants.SCORM_TRUE;
         this.processListeners(callbackName);
-        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
-        return returnValue;
-    };
-    BaseAPI.prototype.getErrorString = function (callbackName, CMIErrorCode) {
-        var returnValue = "";
-        if (CMIErrorCode !== null && CMIErrorCode !== "") {
-            returnValue = this.getLmsErrorMessageDetails(CMIErrorCode);
-            this.processListeners(callbackName);
+      }
+      this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
+      this.clearSCORMError(returnValue);
+      return returnValue;
+    }
+    /**
+     * Logging for all SCORM actions
+     *
+     * @param {string} functionName
+     * @param {string} logMessage
+     * @param {number} messageLevel
+     * @param {string} CMIElement
+     */
+    apiLog(functionName, logMessage, messageLevel, CMIElement) {
+      logMessage = formatMessage(functionName, logMessage, CMIElement);
+      if (messageLevel >= this.apiLogLevel) {
+        this._loggingService.log(messageLevel, logMessage);
+      }
+    }
+    /**
+     * Getter for _error_codes
+     * @return {ErrorCode}
+     */
+    get error_codes() {
+      return this._error_codes;
+    }
+    /**
+     * Getter for _settings
+     * @return {Settings}
+     */
+    get settings() {
+      return this._settings;
+    }
+    /**
+     * Setter for _settings
+     * @param {Settings} settings
+     */
+    set settings(settings) {
+      const previousSettings = this._settings;
+      this._settings = {
+        ...this._settings,
+        ...settings
+      };
+      this._httpService?.updateSettings(this._settings);
+      if (settings.logLevel !== void 0 && settings.logLevel !== previousSettings.logLevel) {
+        this.apiLogLevel = settings.logLevel;
+        this._loggingService?.setLogLevel(settings.logLevel);
+      }
+      if (settings.onLogMessage !== void 0 && settings.onLogMessage !== previousSettings.onLogMessage) {
+        this._loggingService?.setLogHandler(settings.onLogMessage);
+      }
+    }
+    /**
+     * Terminates the current run of the API
+     * @param {string} callbackName
+     * @param {boolean} checkTerminated
+     * @return {string}
+     */
+    async terminate(callbackName, checkTerminated) {
+      let returnValue = global_constants.SCORM_FALSE;
+      if (this.checkState(checkTerminated, this._error_codes.TERMINATION_BEFORE_INIT, this._error_codes.MULTIPLE_TERMINATION)) {
+        this.currentState = global_constants.STATE_TERMINATED;
+        const result = await this.storeData(true);
+        if ((result.errorCode ?? 0) > 0) {
+          this.throwSCORMError("api", result.errorCode);
         }
-        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
-        return returnValue;
-    };
-    BaseAPI.prototype.getDiagnostic = function (callbackName, CMIErrorCode) {
-        var returnValue = "";
-        if (CMIErrorCode !== null && CMIErrorCode !== "") {
-            returnValue = this.getLmsErrorMessageDetails(CMIErrorCode, true);
-            this.processListeners(callbackName);
+        returnValue = result?.result ?? global_constants.SCORM_FALSE;
+        if (checkTerminated) this.lastErrorCode = "0";
+        returnValue = global_constants.SCORM_TRUE;
+        this.processListeners(callbackName);
+      }
+      this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
+      this.clearSCORMError(returnValue);
+      return returnValue;
+    }
+    /**
+     * Get the value of the CMIElement.
+     *
+     * @param {string} callbackName
+     * @param {boolean} checkTerminated
+     * @param {string} CMIElement
+     * @return {string}
+     */
+    getValue(callbackName, checkTerminated, CMIElement) {
+      let returnValue = "";
+      if (this.checkState(checkTerminated, this._error_codes.RETRIEVE_BEFORE_INIT, this._error_codes.RETRIEVE_AFTER_TERM)) {
+        try {
+          returnValue = this.getCMIValue(CMIElement);
+        } catch (e) {
+          returnValue = this.handleValueAccessException(CMIElement, e, returnValue);
         }
-        this.apiLog(callbackName, "returned: " + returnValue, enums/* LogLevelEnum */.Mb.INFO);
-        return returnValue;
-    };
-    BaseAPI.prototype.checkState = function (checkTerminated, beforeInitError, afterTermError) {
-        if (this.isNotInitialized()) {
-            this.throwSCORMError("api", beforeInitError);
-            return false;
+        this.processListeners(callbackName, CMIElement);
+      }
+      this.apiLog(callbackName, ": returned: " + returnValue, LogLevelEnum.INFO, CMIElement);
+      if (returnValue === void 0) {
+        return "";
+      }
+      if (this.lastErrorCode === "0") {
+        this.clearSCORMError(returnValue);
+      }
+      return returnValue;
+    }
+    /**
+     * Sets the value of the CMIElement.
+     *
+     * @param {string} callbackName
+     * @param {string} commitCallback
+     * @param {boolean} checkTerminated
+     * @param {string} CMIElement
+     * @param {*} value
+     * @return {string}
+     */
+    setValue(callbackName, commitCallback, checkTerminated, CMIElement, value) {
+      if (value !== void 0) {
+        value = String(value);
+      }
+      let returnValue = global_constants.SCORM_FALSE;
+      if (this.checkState(checkTerminated, this._error_codes.STORE_BEFORE_INIT, this._error_codes.STORE_AFTER_TERM)) {
+        try {
+          returnValue = this.setCMIValue(CMIElement, value);
+        } catch (e) {
+          returnValue = this.handleValueAccessException(CMIElement, e, returnValue);
         }
-        else if (checkTerminated && this.isTerminated()) {
-            this.throwSCORMError("api", afterTermError);
-            return false;
+        this.processListeners(callbackName, CMIElement, value);
+      }
+      if (returnValue === void 0) {
+        returnValue = global_constants.SCORM_FALSE;
+      }
+      if (String(this.lastErrorCode) === "0") {
+        if (this.settings.autocommit) {
+          this.scheduleCommit(this.settings.autocommitSeconds * 1e3, commitCallback);
         }
-        return true;
-    };
-    BaseAPI.prototype.getLmsErrorMessageDetails = function (_errorNumber, _detail) {
-        if (_detail === void 0) { _detail = false; }
-        throw new Error("The getLmsErrorMessageDetails method has not been implemented");
-    };
-    BaseAPI.prototype.getCMIValue = function (_CMIElement) {
-        throw new Error("The getCMIValue method has not been implemented");
-    };
-    BaseAPI.prototype.setCMIValue = function (_CMIElement, _value) {
-        throw new Error("The setCMIValue method has not been implemented");
-    };
-    BaseAPI.prototype._commonSetCMIValue = function (methodName, scorm2004, CMIElement, value) {
-        if (!CMIElement || CMIElement === "") {
-            return api_constants/* global_constants */._y.SCORM_FALSE;
+      }
+      this.apiLog(callbackName, ": " + value + ": result: " + returnValue, LogLevelEnum.INFO, CMIElement);
+      if (this.lastErrorCode === "0") {
+        this.clearSCORMError(returnValue);
+      }
+      return returnValue;
+    }
+    /**
+     * Orders LMS to store all content parameters
+     * @param {string} callbackName
+     * @param {boolean} checkTerminated
+     * @return {string}
+     */
+    async commit(callbackName) {
+      let checkTerminated = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+      this.clearScheduledCommit();
+      let returnValue = global_constants.SCORM_FALSE;
+      if (this.checkState(checkTerminated, this._error_codes.COMMIT_BEFORE_INIT, this._error_codes.COMMIT_AFTER_TERM)) {
+        const result = await this.storeData(false);
+        if ((result.errorCode ?? 0) > 0) {
+          this.throwSCORMError("api", result.errorCode);
         }
-        this.lastErrorCode = "0";
-        var structure = CMIElement.split(".");
-        var refObject = this;
-        var returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-        var foundFirstIndex = false;
-        var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
-        var invalidErrorCode = scorm2004
-            ? this._error_codes.UNDEFINED_DATA_MODEL
-            : this._error_codes.GENERAL;
-        for (var idx = 0; idx < structure.length; idx++) {
-            var attribute = structure[idx];
-            if (idx === structure.length - 1) {
-                if (scorm2004 && attribute.substring(0, 8) === "{target=") {
-                    if (this.isInitialized()) {
-                        this.throwSCORMError(CMIElement, this._error_codes.READ_ONLY_ELEMENT);
-                        break;
-                    }
-                    else {
-                        refObject = (0,tslib_es6/* __assign */.Cl)((0,tslib_es6/* __assign */.Cl)({}, refObject), { attribute: value });
-                    }
-                }
-                else if (!this._checkObjectHasProperty(refObject, attribute)) {
-                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-                    break;
-                }
-                else {
-                    if ((0,utilities/* stringMatches */.J6)(CMIElement, "\\.correct_responses\\.\\d+$") &&
-                        this.isInitialized() &&
-                        attribute !== "pattern") {
-                        this.validateCorrectResponse(CMIElement, value);
-                        if (this.lastErrorCode !== "0") {
-                            this.throwSCORMError(CMIElement, this._error_codes.TYPE_MISMATCH);
-                            break;
-                        }
-                    }
-                    if (!scorm2004 || this._errorHandlingService.lastErrorCode === "0") {
-                        refObject[attribute] = value;
-                        returnValue = api_constants/* global_constants */._y.SCORM_TRUE;
-                    }
-                }
+        returnValue = result?.result ?? global_constants.SCORM_FALSE;
+        this.apiLog(callbackName, " Result: " + returnValue, LogLevelEnum.DEBUG, "HttpRequest");
+        if (checkTerminated) this.lastErrorCode = "0";
+        this.processListeners(callbackName);
+      }
+      this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
+      if (this.lastErrorCode === "0") {
+        this.clearSCORMError(returnValue);
+      }
+      return returnValue;
+    }
+    /**
+     * Returns last error code
+     * @param {string} callbackName
+     * @return {string}
+     */
+    getLastError(callbackName) {
+      const returnValue = String(this.lastErrorCode);
+      this.processListeners(callbackName);
+      this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
+      return returnValue;
+    }
+    /**
+     * Returns the errorNumber error description
+     *
+     * @param {string} callbackName
+     * @param {(string|number)} CMIErrorCode
+     * @return {string}
+     */
+    getErrorString(callbackName, CMIErrorCode) {
+      let returnValue = "";
+      if (CMIErrorCode !== null && CMIErrorCode !== "") {
+        returnValue = this.getLmsErrorMessageDetails(CMIErrorCode);
+        this.processListeners(callbackName);
+      }
+      this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
+      return returnValue;
+    }
+    /**
+     * Returns a comprehensive description of the errorNumber error.
+     *
+     * @param {string} callbackName
+     * @param {(string|number)} CMIErrorCode
+     * @return {string}
+     */
+    getDiagnostic(callbackName, CMIErrorCode) {
+      let returnValue = "";
+      if (CMIErrorCode !== null && CMIErrorCode !== "") {
+        returnValue = this.getLmsErrorMessageDetails(CMIErrorCode, true);
+        this.processListeners(callbackName);
+      }
+      this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
+      return returnValue;
+    }
+    /**
+     * Checks the LMS state and ensures it has been initialized.
+     *
+     * @param {boolean} checkTerminated
+     * @param {number} beforeInitError
+     * @param {number} afterTermError
+     * @return {boolean}
+     */
+    checkState(checkTerminated, beforeInitError, afterTermError) {
+      if (this.isNotInitialized()) {
+        this.throwSCORMError("api", beforeInitError);
+        return false;
+      } else if (checkTerminated && this.isTerminated()) {
+        this.throwSCORMError("api", afterTermError);
+        return false;
+      }
+      return true;
+    }
+    /**
+     * Returns the message that corresponds to errorNumber
+     * APIs that inherit BaseAPI should override this function
+     *
+     * @param {(string|number)} _errorNumber
+     * @param {boolean} _detail
+     * @return {string}
+     * @abstract
+     */
+    getLmsErrorMessageDetails(_errorNumber) {
+      throw new Error("The getLmsErrorMessageDetails method has not been implemented");
+    }
+    /**
+     * Gets the value for the specific element.
+     * APIs that inherit BaseAPI should override this function
+     *
+     * @param {string} _CMIElement
+     * @return {string}
+     * @abstract
+     */
+    getCMIValue(_CMIElement) {
+      throw new Error("The getCMIValue method has not been implemented");
+    }
+    /**
+     * Sets the value for the specific element.
+     * APIs that inherit BaseAPI should override this function
+     *
+     * @param {string} _CMIElement
+     * @param {any} _value
+     * @return {string}
+     * @abstract
+     */
+    setCMIValue(_CMIElement, _value) {
+      throw new Error("The setCMIValue method has not been implemented");
+    }
+    /**
+     * Shared API method to set a valid for a given element.
+     *
+     * @param {string} methodName
+     * @param {boolean} scorm2004
+     * @param {string} CMIElement
+     * @param {any} value
+     * @return {string}
+     */
+    _commonSetCMIValue(methodName, scorm2004, CMIElement, value) {
+      if (!CMIElement || CMIElement === "") {
+        return global_constants.SCORM_FALSE;
+      }
+      this.lastErrorCode = "0";
+      const structure = CMIElement.split(".");
+      let refObject = this;
+      let returnValue = global_constants.SCORM_FALSE;
+      let foundFirstIndex = false;
+      const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
+      const invalidErrorCode = scorm2004 ? this._error_codes.UNDEFINED_DATA_MODEL : this._error_codes.GENERAL;
+      for (let idx = 0; idx < structure.length; idx++) {
+        const attribute = structure[idx];
+        if (idx === structure.length - 1) {
+          if (scorm2004 && attribute.substring(0, 8) === "{target=") {
+            if (this.isInitialized()) {
+              this.throwSCORMError(CMIElement, this._error_codes.READ_ONLY_ELEMENT);
+              break;
+            } else {
+              refObject = {
+                ...refObject,
+                attribute: value
+              };
             }
-            else {
-                refObject = refObject[attribute];
-                if (!refObject) {
-                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-                    break;
-                }
-                if (refObject instanceof array/* CMIArray */.B) {
-                    var index = parseInt(structure[idx + 1], 10);
-                    if (!isNaN(index)) {
-                        var item = refObject.childArray[index];
-                        if (item) {
-                            refObject = item;
-                            foundFirstIndex = true;
-                        }
-                        else {
-                            var newChild = this.getChildElement(CMIElement, value, foundFirstIndex);
-                            foundFirstIndex = true;
-                            if (!newChild) {
-                                if (this.lastErrorCode === "0") {
-                                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-                                }
-                                break;
-                            }
-                            else {
-                                if (refObject.initialized)
-                                    newChild.initialize();
-                                refObject.childArray[index] = newChild;
-                                refObject = newChild;
-                            }
-                        }
-                        idx++;
-                    }
-                }
-            }
-        }
-        if (returnValue === api_constants/* global_constants */._y.SCORM_FALSE) {
-            this.apiLog(methodName, "There was an error setting the value for: ".concat(CMIElement, ", value of: ").concat(value), enums/* LogLevelEnum */.Mb.WARN);
-        }
-        return returnValue;
-    };
-    BaseAPI.prototype._commonGetCMIValue = function (methodName, scorm2004, CMIElement) {
-        if (!CMIElement || CMIElement === "") {
-            return "";
-        }
-        var structure = CMIElement.split(".");
-        var refObject = this;
-        var attribute = null;
-        var uninitializedErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") has not been initialized.");
-        var invalidErrorMessage = "The data model element passed to ".concat(methodName, " (").concat(CMIElement, ") is not a valid SCORM data model element.");
-        var invalidErrorCode = scorm2004
-            ? this._error_codes.UNDEFINED_DATA_MODEL
-            : this._error_codes.GENERAL;
-        for (var idx = 0; idx < structure.length; idx++) {
-            attribute = structure[idx];
-            if (!scorm2004) {
-                if (idx === structure.length - 1) {
-                    if (!this._checkObjectHasProperty(refObject, attribute)) {
-                        this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-                        return;
-                    }
-                }
-            }
-            else {
-                if (String(attribute).substring(0, 8) === "{target=" &&
-                    typeof refObject._isTargetValid == "function") {
-                    var target = String(attribute).substring(8, String(attribute).length - 9);
-                    return refObject._isTargetValid(target);
-                }
-                else if (!this._checkObjectHasProperty(refObject, attribute)) {
-                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-                    return;
-                }
-            }
-            refObject = refObject[attribute];
-            if (refObject === undefined) {
-                this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+          } else if (!this._checkObjectHasProperty(refObject, attribute)) {
+            this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+            break;
+          } else {
+            if (stringMatches(CMIElement, "\\.correct_responses\\.\\d+$") && this.isInitialized() && attribute !== "pattern") {
+              this.validateCorrectResponse(CMIElement, value);
+              if (this.lastErrorCode !== "0") {
+                this.throwSCORMError(CMIElement, this._error_codes.TYPE_MISMATCH);
                 break;
+              }
             }
-            if (refObject instanceof array/* CMIArray */.B) {
-                var index = parseInt(structure[idx + 1], 10);
-                if (!isNaN(index)) {
-                    var item = refObject.childArray[index];
-                    if (item) {
-                        refObject = item;
+            if (!scorm2004 || this._errorHandlingService.lastErrorCode === "0") {
+              refObject[attribute] = value;
+              returnValue = global_constants.SCORM_TRUE;
+            }
+          }
+        } else {
+          refObject = refObject[attribute];
+          if (!refObject) {
+            this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+            break;
+          }
+          if (refObject instanceof CMIArray) {
+            const index = parseInt(structure[idx + 1], 10);
+            if (!isNaN(index)) {
+              const item = refObject.childArray[index];
+              if (item) {
+                refObject = item;
+                foundFirstIndex = true;
+              } else {
+                const newChild = this.getChildElement(CMIElement, value, foundFirstIndex);
+                foundFirstIndex = true;
+                if (!newChild) {
+                  if (this.lastErrorCode === "0") {
+                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+                  }
+                  break;
+                } else {
+                  if (refObject.initialized) newChild.initialize();
+                  refObject.childArray[index] = newChild;
+                  refObject = newChild;
+                }
+              }
+              idx++;
+            }
+          }
+        }
+      }
+      if (returnValue === global_constants.SCORM_FALSE) {
+        this.apiLog(methodName, `There was an error setting the value for: ${CMIElement}, value of: ${value}`, LogLevelEnum.WARN);
+      }
+      return returnValue;
+    }
+    /**
+     * Gets a value from the CMI Object
+     *
+     * @param {string} methodName
+     * @param {boolean} scorm2004
+     * @param {string} CMIElement
+     * @return {any}
+     */
+    _commonGetCMIValue(methodName, scorm2004, CMIElement) {
+      if (!CMIElement || CMIElement === "") {
+        return "";
+      }
+      const structure = CMIElement.split(".");
+      let refObject = this;
+      let attribute = null;
+      const uninitializedErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) has not been initialized.`;
+      const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
+      const invalidErrorCode = scorm2004 ? this._error_codes.UNDEFINED_DATA_MODEL : this._error_codes.GENERAL;
+      for (let idx = 0; idx < structure.length; idx++) {
+        attribute = structure[idx];
+        if (!scorm2004) {
+          if (idx === structure.length - 1) {
+            if (!this._checkObjectHasProperty(refObject, attribute)) {
+              this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+              return;
+            }
+          }
+        } else {
+          if (String(attribute).substring(0, 8) === "{target=" && typeof refObject._isTargetValid == "function") {
+            const target = String(attribute).substring(8, String(attribute).length - 9);
+            return refObject._isTargetValid(target);
+          } else if (!this._checkObjectHasProperty(refObject, attribute)) {
+            this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+            return;
+          }
+        }
+        refObject = refObject[attribute];
+        if (refObject === void 0) {
+          this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+          break;
+        }
+        if (refObject instanceof CMIArray) {
+          const index = parseInt(structure[idx + 1], 10);
+          if (!isNaN(index)) {
+            const item = refObject.childArray[index];
+            if (item) {
+              refObject = item;
+            } else {
+              this.throwSCORMError(CMIElement, this._error_codes.VALUE_NOT_INITIALIZED, uninitializedErrorMessage);
+              break;
+            }
+            idx++;
+          }
+        }
+      }
+      if (refObject === null || refObject === void 0) {
+        if (!scorm2004) {
+          if (attribute === "_children") {
+            this.throwSCORMError(CMIElement, this._error_codes.CHILDREN_ERROR, void 0);
+          } else if (attribute === "_count") {
+            this.throwSCORMError(CMIElement, this._error_codes.COUNT_ERROR, void 0);
+          }
+        }
+      } else {
+        return refObject;
+      }
+    }
+    /**
+     * Returns true if the API's current state is STATE_INITIALIZED
+     *
+     * @return {boolean}
+     */
+    isInitialized() {
+      return this.currentState === global_constants.STATE_INITIALIZED;
+    }
+    /**
+     * Returns true if the API's current state is STATE_NOT_INITIALIZED
+     *
+     * @return {boolean}
+     */
+    isNotInitialized() {
+      return this.currentState === global_constants.STATE_NOT_INITIALIZED;
+    }
+    /**
+     * Returns true if the API's current state is STATE_TERMINATED
+     *
+     * @return {boolean}
+     */
+    isTerminated() {
+      return this.currentState === global_constants.STATE_TERMINATED;
+    }
+    /**
+     * Provides a mechanism for attaching to a specific SCORM event.
+     * This method allows you to register a callback function that will be executed
+     * when the specified event occurs.
+     *
+     * @param {string} listenerName - The name of the event to listen for (e.g., "Initialize", "Terminate", "GetValue", "SetValue", "Commit")
+     * @param {function} callback - The function to execute when the event occurs. The callback will receive relevant event data.
+     * @example
+     * // Listen for Initialize events
+     * api.on("Initialize", function() {
+     *   console.log("API has been initialized");
+     * });
+     *
+     * // Listen for SetValue events
+     * api.on("SetValue", function(element, value) {
+     *   console.log("Setting " + element + " to " + value);
+     * });
+     */
+    on(listenerName, callback) {
+      this._eventService.on(listenerName, callback);
+    }
+    /**
+     * Provides a mechanism for detaching a specific SCORM event listener.
+     * This method removes a previously registered callback for an event.
+     * Both the event name and the callback reference must match what was used in the 'on' method.
+     *
+     * @param {string} listenerName - The name of the event to stop listening for
+     * @param {function} callback - The callback function to remove
+     * @example
+     * // Remove a specific listener
+     * const myCallback = function() { console.log("API initialized"); };
+     * api.on("Initialize", myCallback);
+     * // Later, when you want to remove it:
+     * api.off("Initialize", myCallback);
+     */
+    off(listenerName, callback) {
+      this._eventService.off(listenerName, callback);
+    }
+    /**
+     * Provides a mechanism for clearing all listeners from a specific SCORM event.
+     * This method removes all callbacks registered for the specified event.
+     *
+     * @param {string} listenerName - The name of the event to clear all listeners for
+     * @example
+     * // Remove all listeners for the Initialize event
+     * api.clear("Initialize");
+     */
+    clear(listenerName) {
+      this._eventService.clear(listenerName);
+    }
+    /**
+     * Processes any 'on' listeners that have been created for a specific event.
+     * This method is called internally when SCORM events occur to notify all registered listeners.
+     * It triggers all callback functions registered for the specified event.
+     *
+     * @param {string} functionName - The name of the function/event that occurred
+     * @param {string} CMIElement - Optional CMI element involved in the event
+     * @param {any} value - Optional value associated with the event
+     */
+    processListeners(functionName, CMIElement, value) {
+      this._eventService.processListeners(functionName, CMIElement, value);
+    }
+    /**
+     * Throws a SCORM error with the specified error number and optional message.
+     * This method sets the last error code and can be used to indicate that an operation failed.
+     * The error number should correspond to one of the standard SCORM error codes.
+     *
+     * @param {string} CMIElement
+     * @param {number} errorNumber - The SCORM error code to set
+     * @param {string} message - Optional custom error message to provide additional context
+     * @example
+     * // Throw a "not initialized" error
+     * this.throwSCORMError(301, "The API must be initialized before calling GetValue");
+     */
+    throwSCORMError(CMIElement, errorNumber, message) {
+      this._errorHandlingService.throwSCORMError(CMIElement, errorNumber, message);
+    }
+    /**
+     * Clears the last SCORM error code when an operation succeeds.
+     * This method is typically called after successful API operations to reset the error state.
+     * It only clears the error if the success parameter is "true".
+     *
+     * @param {string} success - A string indicating whether the operation succeeded ("true" or "false")
+     * @example
+     * // Clear error after successful operation
+     * this.clearSCORMError("true");
+     */
+    clearSCORMError(success) {
+      this._errorHandlingService.clearSCORMError(success);
+    }
+    /**
+     * Load the CMI from a flattened JSON object.
+     * This method populates the CMI data model from a flattened JSON structure
+     * where keys represent CMI element paths (e.g., "cmi.core.student_id").
+     *
+     * @param {StringKeyMap} json - The flattened JSON object containing CMI data
+     * @param {string} CMIElement - Optional base CMI element path to prepend to all keys
+     * @example
+     * // Load data from a flattened JSON structure
+     * api.loadFromFlattenedJSON({
+     *   "cmi.core.student_id": "12345",
+     *   "cmi.core.student_name": "John Doe",
+     *   "cmi.core.lesson_status": "incomplete"
+     * });
+     */
+    loadFromFlattenedJSON(json, CMIElement) {
+      if (!CMIElement) {
+        CMIElement = "";
+      }
+      this._serializationService.loadFromFlattenedJSON(json, CMIElement, (CMIElement2, value) => this.setCMIValue(CMIElement2, value), () => this.isNotInitialized(), data => {
+        this.startingData = data;
+      });
+    }
+    /**
+     * Loads CMI data from a hierarchical JSON object.
+     * This method populates the CMI data model from a nested JSON structure
+     * that mirrors the CMI object hierarchy.
+     *
+     * @param {StringKeyMap} json - The hierarchical JSON object containing CMI data
+     * @param {string} CMIElement - Optional base CMI element path to prepend to all keys
+     * @example
+     * // Load data from a hierarchical JSON structure
+     * api.loadFromJSON({
+     *   core: {
+     *     student_id: "12345",
+     *     student_name: "John Doe",
+     *     lesson_status: "incomplete"
+     *   },
+     *   objectives: [
+     *     { id: "obj1", score: { raw: 85 } }
+     *   ]
+     * });
+     */
+    loadFromJSON(json) {
+      let CMIElement = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "";
+      this._serializationService.loadFromJSON(json, CMIElement, (CMIElement2, value) => this.setCMIValue(CMIElement2, value), () => this.isNotInitialized(), data => {
+        this.startingData = data;
+      });
+    }
+    /**
+     * Render the CMI object to a JSON string for sending to an LMS.
+     * This method serializes the current CMI data model to a JSON string.
+     * The output format is controlled by the sendFullCommit setting.
+     *
+     * @return {string} A JSON string representation of the CMI data
+     * @example
+     * // Get the current CMI data as a JSON string
+     * const jsonString = api.renderCMIToJSONString();
+     * console.log(jsonString); // '{"core":{"student_id":"12345",...}}'
+     */
+    renderCMIToJSONString() {
+      return this._serializationService.renderCMIToJSONString(this.cmi, this.settings.sendFullCommit);
+    }
+    /**
+     * Returns a JavaScript object representing the current CMI data.
+     * This method creates a plain JavaScript object that mirrors the
+     * structure of the CMI data model, suitable for further processing.
+     *
+     * @return {StringKeyMap} A JavaScript object representing the CMI data
+     * @example
+     * // Get the current CMI data as a JavaScript object
+     * const cmiObject = api.renderCMIToJSONObject();
+     * console.log(cmiObject.core.student_id); // "12345"
+     */
+    renderCMIToJSONObject() {
+      return this._serializationService.renderCMIToJSONObject(this.cmi, this.settings.sendFullCommit);
+    }
+    /**
+     * Sends a request to the LMS with the specified parameters.
+     * This method handles communication with the LMS server, including
+     * formatting the request, handling the response, and triggering appropriate events.
+     *
+     * @param {string} url - The URL endpoint to send the request to
+     * @param {CommitObject|StringKeyMap|Array} params - The data to send to the LMS
+     * @param {boolean} immediate - Whether to send the request immediately (true) or queue it (false)
+     * @return {Promise<ResultObject>} A promise that resolves with the result of the request
+     * @example
+     * // Send data to the LMS immediately
+     * const result = await api.processHttpRequest(
+     *   "https://lms.example.com/scorm/commit",
+     *   { method: "POST", params: { cmi: { core: { lesson_status: "completed" } } } },
+     *   true
+     * );
+     * console.log(result.errorCode === 0 ? "Success" : "Failed");
+     */
+    async processHttpRequest(url, params) {
+      let immediate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+      return this._httpService.processHttpRequest(url, params, immediate, (functionName, message, level, element) => this.apiLog(functionName, message, level, element), (functionName, CMIElement, value) => this.processListeners(functionName, CMIElement, value));
+    }
+    /**
+     * Schedules a commit operation to occur after a specified delay.
+     * This method is used to implement auto-commit functionality, where data
+     * is periodically sent to the LMS without requiring explicit commit calls.
+     *
+     * @param {number} when - The number of milliseconds to wait before committing
+     * @param {string} callback - The name of the commit event callback
+     * @example
+     * // Schedule a commit to happen in 60 seconds
+     * api.scheduleCommit(60000, "commit");
+     */
+    scheduleCommit(when, callback) {
+      if (!this._timeout) {
+        this._timeout = new ScheduledCommit(this, when, callback);
+        this.apiLog("scheduleCommit", "scheduled", LogLevelEnum.DEBUG, "");
+      }
+    }
+    /**
+     * Clears and cancels any currently scheduled commits.
+     * This method is typically called when an explicit commit is performed
+     * or when the API is terminated, to prevent redundant commits.
+     *
+     * @example
+     * // Cancel any pending scheduled commits
+     * api.clearScheduledCommit();
+     */
+    clearScheduledCommit() {
+      if (this._timeout) {
+        this._timeout.cancel();
+        this._timeout = void 0;
+        this.apiLog("clearScheduledCommit", "cleared", LogLevelEnum.DEBUG, "");
+      }
+    }
+    /**
+     * Checks if an object has a specific property, using multiple detection methods.
+     * This method performs a thorough check for property existence by:
+     * 1. Checking if it's an own property using Object.hasOwnProperty
+     * 2. Checking if it's defined in the prototype with a property descriptor
+     * 3. Checking if it's accessible via the 'in' operator (includes inherited properties)
+     *
+     * @param {StringKeyMap} StringKeyMap - The object to check for the property
+     * @param {string} attribute - The property name to look for
+     * @return {boolean} True if the property exists on the object or its prototype chain
+     * @private
+     *
+     * @example
+     * // Check for an own property
+     * const obj = { name: "John" };
+     * this._checkObjectHasProperty(obj, "name"); // Returns true
+     *
+     * @example
+     * // Check for an inherited property
+     * class Parent { get type() { return "parent"; } }
+     * const child = Object.create(new Parent());
+     * this._checkObjectHasProperty(child, "type"); // Returns true
+     *
+     * @example
+     * // Check for a non-existent property
+     * const obj = { name: "John" };
+     * this._checkObjectHasProperty(obj, "age"); // Returns false
+     */
+    _checkObjectHasProperty(StringKeyMap2, attribute) {
+      return Object.hasOwnProperty.call(StringKeyMap2, attribute) || Object.getOwnPropertyDescriptor(Object.getPrototypeOf(StringKeyMap2), attribute) != null || attribute in StringKeyMap2;
+    }
+    /**
+     * Handles exceptions that occur when accessing CMI values.
+     * This method delegates to the ErrorHandlingService to process exceptions
+     * that occur during CMI data operations, ensuring consistent error handling
+     * throughout the API.
+     *
+     * @param {string} CMIElement
+     * @param {any} e - The exception that was thrown
+     * @param {string} returnValue - The default return value to use if an error occurs
+     * @return {string} Either the original returnValue or SCORM_FALSE if an error occurred
+     * @private
+     *
+     * @example
+     * // Handle a validation error when getting a CMI value
+     * try {
+     *   return this.getCMIValue("cmi.core.score.raw");
+     * } catch (e) {
+     *   return this.handleValueAccessException(e, "");
+     * }
+     *
+     * @example
+     * // Handle a general error when setting a CMI value
+     * try {
+     *   this.setCMIValue("cmi.core.lesson_status", "completed");
+     *   return "true";
+     * } catch (e) {
+     *   return this.handleValueAccessException(e, "false");
+     * }
+     */
+    handleValueAccessException(CMIElement, e, returnValue) {
+      if (e instanceof ValidationError) {
+        this.lastErrorCode = String(e.errorCode);
+        returnValue = global_constants.SCORM_FALSE;
+        this.throwSCORMError(CMIElement, e.errorCode, e.errorMessage);
+      } else {
+        if (e instanceof Error && e.message) {
+          this.throwSCORMError(CMIElement, this._error_codes.GENERAL, e.message);
+        } else {
+          this.throwSCORMError(CMIElement, this._error_codes.GENERAL, "Unknown error");
+        }
+      }
+      return returnValue;
+    }
+    /**
+     * Builds the commit object to be sent to the LMS.
+     * This method delegates to the SerializationService to create a properly
+     * formatted object containing the CMI data that needs to be sent to the LMS.
+     * The format and content of the commit object depend on whether this is a
+     * regular commit or a termination commit.
+     *
+     * @param {boolean} terminateCommit - Whether this is a termination commit
+     * @return {CommitObject|StringKeyMap|Array} The formatted commit object
+     * @protected
+     *
+     * @example
+     * // Create a regular commit object
+     * const regularCommit = this.getCommitObject(false);
+     * // Result might be: { cmi: { core: { lesson_status: "incomplete" } } }
+     *
+     * @example
+     * // Create a termination commit object (includes total_time)
+     * const terminationCommit = this.getCommitObject(true);
+     * // Result might be: { cmi: { core: { lesson_status: "completed", total_time: "PT1H30M" } } }
+     */
+    getCommitObject(terminateCommit) {
+      return this._serializationService.getCommitObject(terminateCommit, this.settings.alwaysSendTotalTime, this.settings.renderCommonCommitFields, terminateCommit2 => this.renderCommitObject(terminateCommit2), terminateCommit2 => this.renderCommitCMI(terminateCommit2), this.apiLogLevel);
+    }
+  }
+
+  class Scorm12Impl extends BaseAPI {
+    /**
+     * Constructor for SCORM 1.2 API
+     * @param {object} settings
+     */
+    constructor(settings) {
+      if (settings) {
+        if (settings.mastery_override === void 0) {
+          settings.mastery_override = false;
+        }
+      }
+      super(scorm12_errors$1, settings);
+      this.statusSetByModule = false;
+      this.cmi = new CMI$2();
+      this.nav = new NAV();
+      this.LMSInitialize = this.lmsInitialize;
+      this.LMSFinish = this.lmsFinish;
+      this.LMSGetValue = this.lmsGetValue;
+      this.LMSSetValue = this.lmsSetValue;
+      this.LMSCommit = this.lmsCommit;
+      this.LMSGetLastError = this.lmsGetLastError;
+      this.LMSGetErrorString = this.lmsGetErrorString;
+      this.LMSGetDiagnostic = this.lmsGetDiagnostic;
+    }
+    /**
+     * Called when the API needs to be reset
+     */
+    reset(settings) {
+      this.commonReset(settings);
+      this.cmi?.reset();
+      this.nav?.reset();
+    }
+    /**
+     * lmsInitialize function from SCORM 1.2 Spec
+     *
+     * @return {string} bool
+     */
+    lmsInitialize() {
+      this.cmi.initialize();
+      if (this.cmi.core.lesson_status) {
+        this.statusSetByModule = true;
+      } else {
+        this.cmi.core.lesson_status = "not attempted";
+      }
+      return this.initialize("LMSInitialize", "LMS was already initialized!", "LMS is already finished!");
+    }
+    /**
+     * LMSFinish function from SCORM 1.2 Spec
+     *
+     * @return {string} bool
+     */
+    lmsFinish() {
+      (async () => {
+        await this.internalFinish();
+      })();
+      return global_constants.SCORM_TRUE;
+    }
+    async internalFinish() {
+      const result = await this.terminate("LMSFinish", true);
+      if (result === global_constants.SCORM_TRUE) {
+        if (this.nav.event !== "") {
+          if (this.nav.event === "continue") {
+            this.processListeners("SequenceNext");
+          } else {
+            this.processListeners("SequencePrevious");
+          }
+        } else if (this.settings.autoProgress) {
+          this.processListeners("SequenceNext");
+        }
+      }
+      return result;
+    }
+    /**
+     * LMSGetValue function from SCORM 1.2 Spec
+     *
+     * @param {string} CMIElement
+     * @return {string}
+     */
+    lmsGetValue(CMIElement) {
+      return this.getValue("LMSGetValue", false, CMIElement);
+    }
+    /**
+     * LMSSetValue function from SCORM 1.2 Spec
+     *
+     * @param {string} CMIElement
+     * @param {*} value
+     * @return {string}
+     */
+    lmsSetValue(CMIElement, value) {
+      if (CMIElement === "cmi.core.lesson_status") {
+        this.statusSetByModule = true;
+      }
+      return this.setValue("LMSSetValue", "LMSCommit", false, CMIElement, value);
+    }
+    /**
+     * LMSCommit function from SCORM 1.2 Spec
+     *
+     * @return {string} bool
+     */
+    lmsCommit() {
+      if (this.settings.asyncCommit) {
+        this.scheduleCommit(500, "LMSCommit");
+      } else {
+        (async () => {
+          await this.commit("LMSCommit", false);
+        })();
+      }
+      return global_constants.SCORM_TRUE;
+    }
+    /**
+     * LMSGetLastError function from SCORM 1.2 Spec
+     *
+     * @return {string}
+     */
+    lmsGetLastError() {
+      return this.getLastError("LMSGetLastError");
+    }
+    /**
+     * LMSGetErrorString function from SCORM 1.2 Spec
+     *
+     * @param {string} CMIErrorCode
+     * @return {string}
+     */
+    lmsGetErrorString(CMIErrorCode) {
+      return this.getErrorString("LMSGetErrorString", CMIErrorCode);
+    }
+    /**
+     * LMSGetDiagnostic function from SCORM 1.2 Spec
+     *
+     * @param {string} CMIErrorCode
+     * @return {string}
+     */
+    lmsGetDiagnostic(CMIErrorCode) {
+      return this.getDiagnostic("LMSGetDiagnostic", CMIErrorCode);
+    }
+    /**
+     * Sets a value on the CMI Object
+     *
+     * @param {string} CMIElement
+     * @param {*} value
+     * @return {string}
+     */
+    setCMIValue(CMIElement, value) {
+      return this._commonSetCMIValue("LMSSetValue", false, CMIElement, value);
+    }
+    /**
+     * Gets a value from the CMI Object
+     *
+     * @param {string} CMIElement
+     * @return {*}
+     */
+    getCMIValue(CMIElement) {
+      return this._commonGetCMIValue("getCMIValue", false, CMIElement);
+    }
+    /**
+     * Gets or builds a new child element to add to the array.
+     *
+     * @param {string} CMIElement
+     * @param {*} _value
+     * @param {boolean} foundFirstIndex
+     * @return {BaseCMI|null}
+     */
+    getChildElement(CMIElement, _value, foundFirstIndex) {
+      if (stringMatches(CMIElement, "cmi\\.objectives\\.\\d+")) {
+        return new CMIObjectivesObject$1();
+      } else if (foundFirstIndex && stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+")) {
+        return new CMIInteractionsCorrectResponsesObject$1();
+      } else if (foundFirstIndex && stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")) {
+        return new CMIInteractionsObjectivesObject$1();
+      } else if (!foundFirstIndex && stringMatches(CMIElement, "cmi\\.interactions\\.\\d+")) {
+        return new CMIInteractionsObject$1();
+      }
+      return null;
+    }
+    /**
+     * Validates Correct Response values
+     *
+     * @param {string} _CMIElement
+     * @param {*} _value
+     */
+    validateCorrectResponse(_CMIElement, _value) {}
+    /**
+     * Returns the message that corresponds to errorNumber.
+     *
+     * @param {number|string} errorNumber
+     * @param {boolean} detail
+     * @return {string}
+     */
+    getLmsErrorMessageDetails(errorNumber, detail) {
+      let basicMessage = "No Error";
+      let detailMessage = "No Error";
+      errorNumber = String(errorNumber);
+      if (scorm12_constants.error_descriptions[errorNumber]) {
+        basicMessage = scorm12_constants.error_descriptions[errorNumber].basicMessage;
+        detailMessage = scorm12_constants.error_descriptions[errorNumber].detailMessage;
+      }
+      return detail ? detailMessage : basicMessage;
+    }
+    /**
+     * Replace the whole API with another
+     *
+     * @param {Scorm12Impl} newAPI
+     */
+    replaceWithAnotherScormAPI(newAPI) {
+      this.cmi = newAPI.cmi;
+    }
+    /**
+     * Render the cmi object to the proper format for LMS commit
+     *
+     * @param {boolean} terminateCommit
+     * @return {object|Array}
+     */
+    renderCommitCMI(terminateCommit) {
+      const cmiExport = this.renderCMIToJSONObject();
+      if (terminateCommit) {
+        cmiExport.cmi.core.total_time = this.cmi.getCurrentTotalTime();
+      }
+      const result = [];
+      const flattened = flatten(cmiExport);
+      switch (this.settings.dataCommitFormat) {
+        case "flattened":
+          return flatten(cmiExport);
+        case "params":
+          for (const item in flattened) {
+            if ({}.hasOwnProperty.call(flattened, item)) {
+              result.push(`${item}=${flattened[item]}`);
+            }
+          }
+          return result;
+        case "json":
+        default:
+          return cmiExport;
+      }
+    }
+    /**
+     * Render the cmi object to the proper format for LMS commit
+     * @param {boolean} terminateCommit
+     * @return {CommitObject}
+     */
+    renderCommitObject(terminateCommit) {
+      const cmiExport = this.renderCommitCMI(terminateCommit);
+      const totalTimeHHMMSS = this.cmi.getCurrentTotalTime();
+      const totalTimeSeconds = getTimeAsSeconds(totalTimeHHMMSS, scorm12_regex.CMITimespan);
+      const lessonStatus = this.cmi.core.lesson_status;
+      let completionStatus = CompletionStatus.UNKNOWN;
+      let successStatus = SuccessStatus.UNKNOWN;
+      if (lessonStatus) {
+        completionStatus = lessonStatus === "completed" || lessonStatus === "passed" ? CompletionStatus.COMPLETED : CompletionStatus.INCOMPLETE;
+        if (lessonStatus === "passed") {
+          successStatus = SuccessStatus.PASSED;
+        } else if (lessonStatus === "failed") {
+          successStatus = SuccessStatus.FAILED;
+        }
+      }
+      const score = this.cmi.core.score;
+      let scoreObject = null;
+      if (score) {
+        scoreObject = {};
+        if (!Number.isNaN(Number.parseFloat(score.raw))) {
+          scoreObject.raw = Number.parseFloat(score.raw);
+        }
+        if (!Number.isNaN(Number.parseFloat(score.min))) {
+          scoreObject.min = Number.parseFloat(score.min);
+        }
+        if (!Number.isNaN(Number.parseFloat(score.max))) {
+          scoreObject.max = Number.parseFloat(score.max);
+        }
+      }
+      const commitObject = {
+        successStatus,
+        completionStatus,
+        runtimeData: cmiExport,
+        totalTimeSeconds
+      };
+      if (scoreObject) {
+        commitObject.score = scoreObject;
+      }
+      return commitObject;
+    }
+    /**
+     * Attempts to store the data to the LMS
+     *
+     * @param {boolean} terminateCommit
+     * @return {ResultObject}
+     */
+    async storeData(terminateCommit) {
+      if (terminateCommit) {
+        const originalStatus = this.cmi.core.lesson_status;
+        if (!this.cmi.core.lesson_status || !this.statusSetByModule && this.cmi.core.lesson_status === "not attempted") {
+          this.cmi.core.lesson_status = "completed";
+        }
+        if (this.cmi.core.lesson_mode === "normal") {
+          if (this.cmi.core.credit === "credit") {
+            if (this.settings.mastery_override && this.cmi.student_data.mastery_score !== "" && this.cmi.core.score.raw !== "") {
+              this.cmi.core.lesson_status = parseFloat(this.cmi.core.score.raw) >= parseFloat(this.cmi.student_data.mastery_score) ? "passed" : "failed";
+            }
+          }
+        } else if (this.cmi.core.lesson_mode === "browse") {
+          if ((this.startingData?.cmi?.core?.lesson_status || "") === "" && originalStatus === "not attempted") {
+            this.cmi.core.lesson_status = "browsed";
+          }
+        }
+      }
+      const commitObject = this.getCommitObject(terminateCommit);
+      if (typeof this.settings.lmsCommitUrl === "string") {
+        return await this.processHttpRequest(this.settings.lmsCommitUrl, commitObject, terminateCommit);
+      } else {
+        return {
+          result: global_constants.SCORM_TRUE,
+          errorCode: 0
+        };
+      }
+    }
+  }
+
+  const aicc_errors = aicc_constants.error_descriptions;
+  class AICCValidationError extends ValidationError {
+    /**
+     * Constructor to take in an error code
+     * @param {string} CMIElement
+     * @param {number} errorCode
+     */
+    constructor(CMIElement, errorCode) {
+      if ({}.hasOwnProperty.call(aicc_errors, String(errorCode))) {
+        super(CMIElement, errorCode, aicc_errors[String(errorCode)].basicMessage, aicc_errors[String(errorCode)].detailMessage);
+      } else {
+        super(CMIElement, 101, aicc_errors["101"].basicMessage, aicc_errors["101"].detailMessage);
+      }
+      Object.setPrototypeOf(this, AICCValidationError.prototype);
+    }
+  }
+
+  function checkAICCValidFormat(CMIElement, value, regexPattern, allowEmptyString) {
+    return checkValidFormat(CMIElement, value, regexPattern, scorm12_errors$1.TYPE_MISMATCH, AICCValidationError, allowEmptyString);
+  }
+
+  class CMIEvaluation extends BaseCMI {
+    /**
+     * Constructor for AICC Evaluation object
+     */
+    constructor() {
+      super("cmi.evaluation");
+      this.comments = new CMIEvaluationComments();
+    }
+    /**
+     * Called when the API has been initialized after the CMI has been created
+     */
+    initialize() {
+      super.initialize();
+      this.comments?.initialize();
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      this._initialized = false;
+      this.comments?.reset();
+    }
+    /**
+     * toJSON for cmi.evaluation object
+     * @return {{comments: CMIEvaluationComments}}
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        comments: this.comments
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+  class CMIEvaluationComments extends CMIArray {
+    /**
+     * Constructor for AICC Evaluation Comments object
+     */
+    constructor() {
+      super({
+        CMIElement: "cmi.evaluation.comments",
+        children: aicc_constants.comments_children,
+        errorCode: scorm12_errors$1.INVALID_SET_VALUE,
+        errorClass: AICCValidationError
+      });
+    }
+  }
+  class CMIEvaluationCommentsObject extends BaseCMI {
+    /**
+     * Constructor for Evaluation Comments
+     */
+    constructor() {
+      super("cmi.evaluation.comments.n");
+      this._content = "";
+      this._location = "";
+      this._time = "";
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      this._initialized = false;
+      this._content = "";
+      this._location = "";
+      this._time = "";
+    }
+    /**
+     * Getter for _content
+     * @return {string}
+     */
+    get content() {
+      return this._content;
+    }
+    /**
+     * Setter for _content
+     * @param {string} content
+     */
+    set content(content) {
+      if (checkAICCValidFormat(this._cmi_element + ".content", content, aicc_regex.CMIString256)) {
+        this._content = content;
+      }
+    }
+    /**
+     * Getter for _location
+     * @return {string}
+     */
+    get location() {
+      return this._location;
+    }
+    /**
+     * Setter for _location
+     * @param {string} location
+     */
+    set location(location) {
+      if (checkAICCValidFormat(this._cmi_element + ".location", location, aicc_regex.CMIString256)) {
+        this._location = location;
+      }
+    }
+    /**
+     * Getter for _time
+     * @return {string}
+     */
+    get time() {
+      return this._time;
+    }
+    /**
+     * Setting for _time
+     * @param {string} time
+     */
+    set time(time) {
+      if (checkAICCValidFormat(this._cmi_element + ".time", time, aicc_regex.CMITime)) {
+        this._time = time;
+      }
+    }
+    /**
+     * toJSON for cmi.evaluation.comments.n object
+     * @return {
+     *    {
+     *      content: string,
+     *      location: string,
+     *      time: string
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        content: this.content,
+        location: this.location,
+        time: this.time
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+
+  class AICCStudentPreferences extends CMIStudentPreference {
+    /**
+     * Constructor for AICC Student Preferences object
+     */
+    constructor() {
+      super(aicc_constants.student_preference_children);
+      this._lesson_type = "";
+      this._text_color = "";
+      this._text_location = "";
+      this._text_size = "";
+      this._video = "";
+      this.windows = new CMIArray({
+        CMIElement: "cmi.student_preference.windows",
+        errorCode: scorm12_errors$1.INVALID_SET_VALUE,
+        errorClass: AICCValidationError,
+        children: ""
+      });
+    }
+    /**
+     * Called when the API has been initialized after the CMI has been created
+     */
+    initialize() {
+      super.initialize();
+      this.windows?.initialize();
+    }
+    /**
+     * Getter for _lesson_type
+     * @return {string}
+     */
+    get lesson_type() {
+      return this._lesson_type;
+    }
+    /**
+     * Setter for _lesson_type
+     * @param {string} lesson_type
+     */
+    set lesson_type(lesson_type) {
+      if (checkAICCValidFormat(this._cmi_element + ".lesson_type", lesson_type, aicc_regex.CMIString256)) {
+        this._lesson_type = lesson_type;
+      }
+    }
+    /**
+     * Getter for _text_color
+     * @return {string}
+     */
+    get text_color() {
+      return this._text_color;
+    }
+    /**
+     * Setter for _text_color
+     * @param {string} text_color
+     */
+    set text_color(text_color) {
+      if (checkAICCValidFormat(this._cmi_element + ".text_color", text_color, aicc_regex.CMIString256)) {
+        this._text_color = text_color;
+      }
+    }
+    /**
+     * Getter for _text_location
+     * @return {string}
+     */
+    get text_location() {
+      return this._text_location;
+    }
+    /**
+     * Setter for _text_location
+     * @param {string} text_location
+     */
+    set text_location(text_location) {
+      if (checkAICCValidFormat(this._cmi_element + ".text_location", text_location, aicc_regex.CMIString256)) {
+        this._text_location = text_location;
+      }
+    }
+    /**
+     * Getter for _text_size
+     * @return {string}
+     */
+    get text_size() {
+      return this._text_size;
+    }
+    /**
+     * Setter for _text_size
+     * @param {string} text_size
+     */
+    set text_size(text_size) {
+      if (checkAICCValidFormat(this._cmi_element + ".text_size", text_size, aicc_regex.CMIString256)) {
+        this._text_size = text_size;
+      }
+    }
+    /**
+     * Getter for _video
+     * @return {string}
+     */
+    get video() {
+      return this._video;
+    }
+    /**
+     * Setter for _video
+     * @param {string} video
+     */
+    set video(video) {
+      if (checkAICCValidFormat(this._cmi_element + ".video", video, aicc_regex.CMIString256)) {
+        this._video = video;
+      }
+    }
+    /**
+     * toJSON for cmi.student_preference
+     *
+     * @return {
+     *    {
+     *      audio: string,
+     *      language: string,
+     *      speed: string,
+     *      text: string,
+     *      text_color: string,
+     *      text_location: string,
+     *      text_size: string,
+     *      video: string,
+     *      windows: CMIArray
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        audio: this.audio,
+        language: this.language,
+        lesson_type: this.lesson_type,
+        speed: this.speed,
+        text: this.text,
+        text_color: this.text_color,
+        text_location: this.text_location,
+        text_size: this.text_size,
+        video: this.video,
+        windows: this.windows
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+
+  class CMIStudentDemographics extends BaseCMI {
+    /**
+     * Constructor for AICC StudentDemographics object
+     */
+    constructor() {
+      super("cmi.student_demographics");
+      this.__children = aicc_constants.student_demographics_children;
+      this._city = "";
+      this._class = "";
+      this._company = "";
+      this._country = "";
+      this._experience = "";
+      this._familiar_name = "";
+      this._instructor_name = "";
+      this._title = "";
+      this._native_language = "";
+      this._state = "";
+      this._street_address = "";
+      this._telephone = "";
+      this._years_experience = "";
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      this._initialized = false;
+    }
+    /**
+     * Getter for _children
+     * @return {string}
+     */
+    get _children() {
+      return this.__children;
+    }
+    /**
+     * Getter for city
+     * @return {string}
+     */
+    get city() {
+      return this._city;
+    }
+    /**
+     * Setter for _city. Sets an error if trying to set after
+     *  initialization.
+     * @param {string} city
+     */
+    set city(city) {
+      if (this.initialized) {
+        throw new AICCValidationError("cmi.student_demographics.city", scorm12_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._city = city;
+      }
+    }
+    /**
+     * Getter for class
+     * @return {string}
+     */
+    get class() {
+      return this._class;
+    }
+    /**
+     * Setter for _class. Sets an error if trying to set after
+     *  initialization.
+     * @param {string} clazz
+     */
+    set class(clazz) {
+      if (this.initialized) {
+        throw new AICCValidationError("cmi.student_demographics.class", scorm12_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._class = clazz;
+      }
+    }
+    /**
+     * Getter for company
+     * @return {string}
+     */
+    get company() {
+      return this._company;
+    }
+    /**
+     * Setter for _company. Sets an error if trying to set after
+     *  initialization.
+     * @param {string} company
+     */
+    set company(company) {
+      if (this.initialized) {
+        throw new AICCValidationError("cmi.student_demographics.company", scorm12_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._company = company;
+      }
+    }
+    /**
+     * Getter for country
+     * @return {string}
+     */
+    get country() {
+      return this._country;
+    }
+    /**
+     * Setter for _country. Sets an error if trying to set after
+     *  initialization.
+     * @param {string} country
+     */
+    set country(country) {
+      if (this.initialized) {
+        throw new AICCValidationError("cmi.student_demographics.country", scorm12_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._country = country;
+      }
+    }
+    /**
+     * Getter for experience
+     * @return {string}
+     */
+    get experience() {
+      return this._experience;
+    }
+    /**
+     * Setter for _experience. Sets an error if trying to set after
+     *  initialization.
+     * @param {string} experience
+     */
+    set experience(experience) {
+      if (this.initialized) {
+        throw new AICCValidationError("cmi.student_demographics.experience", scorm12_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._experience = experience;
+      }
+    }
+    /**
+     * Getter for familiar_name
+     * @return {string}
+     */
+    get familiar_name() {
+      return this._familiar_name;
+    }
+    /**
+     * Setter for _familiar_name. Sets an error if trying to set after
+     *  initialization.
+     * @param {string} familiar_name
+     */
+    set familiar_name(familiar_name) {
+      if (this.initialized) {
+        throw new AICCValidationError("cmi.student_demographics.familiar_name", scorm12_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._familiar_name = familiar_name;
+      }
+    }
+    /**
+     * Getter for instructor_name
+     * @return {string}
+     */
+    get instructor_name() {
+      return this._instructor_name;
+    }
+    /**
+     * Setter for _instructor_name. Sets an error if trying to set after
+     *  initialization.
+     * @param {string} instructor_name
+     */
+    set instructor_name(instructor_name) {
+      if (this.initialized) {
+        throw new AICCValidationError("cmi.student_demographics.instructor_name", scorm12_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._instructor_name = instructor_name;
+      }
+    }
+    /**
+     * Getter for title
+     * @return {string}
+     */
+    get title() {
+      return this._title;
+    }
+    /**
+     * Setter for _title. Sets an error if trying to set after
+     *  initialization.
+     * @param {string} title
+     */
+    set title(title) {
+      if (this.initialized) {
+        throw new AICCValidationError("cmi.student_demographics.title", scorm12_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._title = title;
+      }
+    }
+    /**
+     * Getter for native_language
+     * @return {string}
+     */
+    get native_language() {
+      return this._native_language;
+    }
+    /**
+     * Setter for _native_language. Sets an error if trying to set after
+     *  initialization.
+     * @param {string} native_language
+     */
+    set native_language(native_language) {
+      if (this.initialized) {
+        throw new AICCValidationError("cmi.student_demographics.native_language", scorm12_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._native_language = native_language;
+      }
+    }
+    /**
+     * Getter for state
+     * @return {string}
+     */
+    get state() {
+      return this._state;
+    }
+    /**
+     * Setter for _state. Sets an error if trying to set after
+     *  initialization.
+     * @param {string} state
+     */
+    set state(state) {
+      if (this.initialized) {
+        throw new AICCValidationError("cmi.student_demographics.state", scorm12_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._state = state;
+      }
+    }
+    /**
+     * Getter for street_address
+     * @return {string}
+     */
+    get street_address() {
+      return this._street_address;
+    }
+    /**
+     * Setter for _street_address. Sets an error if trying to set after
+     *  initialization.
+     * @param {string} street_address
+     */
+    set street_address(street_address) {
+      if (this.initialized) {
+        throw new AICCValidationError("cmi.student_demographics.street_address", scorm12_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._street_address = street_address;
+      }
+    }
+    /**
+     * Getter for telephone
+     * @return {string}
+     */
+    get telephone() {
+      return this._telephone;
+    }
+    /**
+     * Setter for _telephone. Sets an error if trying to set after
+     *  initialization.
+     * @param {string} telephone
+     */
+    set telephone(telephone) {
+      if (this.initialized) {
+        throw new AICCValidationError("cmi.student_demographics.telephone", scorm12_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._telephone = telephone;
+      }
+    }
+    /**
+     * Getter for years_experience
+     * @return {string}
+     */
+    get years_experience() {
+      return this._years_experience;
+    }
+    /**
+     * Setter for _years_experience. Sets an error if trying to set after
+     *  initialization.
+     * @param {string} years_experience
+     */
+    set years_experience(years_experience) {
+      if (this.initialized) {
+        throw new AICCValidationError("cmi.student_demographics.years_experience", scorm12_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._years_experience = years_experience;
+      }
+    }
+    /**
+     * toJSON for cmi.student_demographics object
+     * @return {
+     *      {
+     *        city: string,
+     *        class: string,
+     *        company: string,
+     *        country: string,
+     *        experience: string,
+     *        familiar_name: string,
+     *        instructor_name: string,
+     *        title: string,
+     *        native_language: string,
+     *        state: string,
+     *        street_address: string,
+     *        telephone: string,
+     *        years_experience: string
+     *      }
+     *    }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        city: this.city,
+        class: this.class,
+        company: this.company,
+        country: this.country,
+        experience: this.experience,
+        familiar_name: this.familiar_name,
+        instructor_name: this.instructor_name,
+        title: this.title,
+        native_language: this.native_language,
+        state: this.state,
+        street_address: this.street_address,
+        telephone: this.telephone,
+        years_experience: this.years_experience
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+
+  class CMITries extends CMIArray {
+    /**
+     * Constructor for inline Tries Array class
+     */
+    constructor() {
+      super({
+        CMIElement: "cmi.student_data.tries",
+        children: aicc_constants.tries_children
+      });
+    }
+  }
+  class CMITriesObject extends BaseCMI {
+    /**
+     * Constructor for AICC Tries object
+     */
+    constructor() {
+      super("cmi.student_data.tries.n");
+      this._status = "";
+      this._time = "";
+      this.score = new CMIScore({
+        CMIElement: "cmi.student_data.tries.n.score",
+        score_children: aicc_constants.score_children,
+        score_range: aicc_regex.score_range,
+        invalidErrorCode: scorm12_errors$1.INVALID_SET_VALUE,
+        invalidTypeCode: scorm12_errors$1.TYPE_MISMATCH,
+        invalidRangeCode: scorm12_errors$1.VALUE_OUT_OF_RANGE,
+        errorClass: AICCValidationError
+      });
+    }
+    /**
+     * Called when the API has been initialized after the CMI has been created
+     */
+    initialize() {
+      super.initialize();
+      this.score?.initialize();
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      this._initialized = false;
+      this._status = "";
+      this._time = "";
+      this.score?.reset();
+    }
+    /**
+     * Getter for _status
+     * @return {string}
+     */
+    get status() {
+      return this._status;
+    }
+    /**
+     * Setter for _status
+     * @param {string} status
+     */
+    set status(status) {
+      if (checkAICCValidFormat(this._cmi_element + ".status", status, aicc_regex.CMIStatus2)) {
+        this._status = status;
+      }
+    }
+    /**
+     * Getter for _time
+     * @return {string}
+     */
+    get time() {
+      return this._time;
+    }
+    /**
+     * Setter for _time
+     * @param {string} time
+     */
+    set time(time) {
+      if (checkAICCValidFormat(this._cmi_element + ".time", time, aicc_regex.CMITime)) {
+        this._time = time;
+      }
+    }
+    /**
+     * toJSON for cmi.student_data.tries.n object
+     * @return {
+     *    {
+     *      status: string,
+     *      time: string,
+     *      score: CMIScore
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        status: this.status,
+        time: this.time,
+        score: this.score
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+
+  class CMIAttemptRecords extends CMIArray {
+    /**
+     * Constructor for inline Tries Array class
+     */
+    constructor() {
+      super({
+        CMIElement: "cmi.student_data.attempt_records",
+        children: aicc_constants.attempt_records_children
+      });
+    }
+  }
+  class CMIAttemptRecordsObject extends BaseCMI {
+    /**
+     * Constructor for AICC Attempt Records object
+     */
+    constructor() {
+      super("cmi.student_data.attempt_records.n");
+      this._lesson_status = "";
+      this.score = new CMIScore({
+        CMIElement: "cmi.student_data.attempt_records.n.score",
+        score_children: aicc_constants.score_children,
+        score_range: aicc_regex.score_range,
+        invalidErrorCode: scorm12_errors$1.INVALID_SET_VALUE,
+        invalidTypeCode: scorm12_errors$1.TYPE_MISMATCH,
+        invalidRangeCode: scorm12_errors$1.VALUE_OUT_OF_RANGE,
+        errorClass: AICCValidationError
+      });
+    }
+    /**
+     * Called when the API has been initialized after the CMI has been created
+     */
+    initialize() {
+      super.initialize();
+      this._lesson_status = "";
+      this.score?.initialize();
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      this._initialized = false;
+      this.score?.reset();
+    }
+    /**
+     * Getter for _lesson_status
+     * @return {string}
+     */
+    get lesson_status() {
+      return this._lesson_status;
+    }
+    /**
+     * Setter for _lesson_status
+     * @param {string} lesson_status
+     */
+    set lesson_status(lesson_status) {
+      if (checkAICCValidFormat(this._cmi_element + ".lesson_status", lesson_status, aicc_regex.CMIStatus2)) {
+        this._lesson_status = lesson_status;
+      }
+    }
+    /**
+     * toJSON for cmi.student_data.attempt_records.n object
+     * @return {
+     *    {
+     *         lesson_status: string,
+     *         score: CMIScore
+     *     }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        lesson_status: this.lesson_status,
+        score: this.score
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+
+  class AICCCMIStudentData extends CMIStudentData {
+    /**
+     * Constructor for AICC StudentData object
+     */
+    constructor() {
+      super(aicc_constants.student_data_children);
+      this._tries_during_lesson = "";
+      this.tries = new CMITries();
+      this.attempt_records = new CMIAttemptRecords();
+    }
+    /**
+     * Called when the API has been initialized after the CMI has been created
+     */
+    initialize() {
+      super.initialize();
+      this.tries?.initialize();
+      this.attempt_records?.initialize();
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      this._initialized = false;
+      this.tries?.reset(true);
+      this.attempt_records?.reset(true);
+    }
+    /**
+     * Getter for tries_during_lesson
+     * @return {string}
+     */
+    get tries_during_lesson() {
+      return this._tries_during_lesson;
+    }
+    /**
+     * Setter for _tries_during_lesson. Sets an error if trying to set after
+     *  initialization.
+     * @param {string} tries_during_lesson
+     */
+    set tries_during_lesson(tries_during_lesson) {
+      if (this.initialized) {
+        throw new AICCValidationError("cmi.student_data.tries_during_lesson", scorm12_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._tries_during_lesson = tries_during_lesson;
+      }
+    }
+    /**
+     * toJSON for cmi.student_data object
+     * @return {
+     *    {
+     *      mastery_score: string,
+     *      max_time_allowed: string,
+     *      time_limit_action: string,
+     *      tries: CMITries,
+     *      attempt_records: CMIAttemptRecords
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        mastery_score: this.mastery_score,
+        max_time_allowed: this.max_time_allowed,
+        time_limit_action: this.time_limit_action,
+        tries: this.tries,
+        attempt_records: this.attempt_records
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+
+  class CMIPaths extends CMIArray {
+    /**
+     * Constructor for inline Paths Array class
+     */
+    constructor() {
+      super({
+        CMIElement: "cmi.paths",
+        children: aicc_constants.paths_children
+      });
+    }
+  }
+  class CMIPathsObject extends BaseCMI {
+    /**
+     * Constructor for AICC Paths objects
+     */
+    constructor() {
+      super("cmi.paths.n");
+      this._location_id = "";
+      this._date = "";
+      this._time = "";
+      this._status = "";
+      this._why_left = "";
+      this._time_in_element = "";
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      this._initialized = false;
+      this._location_id = "";
+      this._date = "";
+      this._time = "";
+      this._status = "";
+      this._why_left = "";
+      this._time_in_element = "";
+    }
+    /**
+     * Getter for _location_id
+     * @return {string}
+     */
+    get location_id() {
+      return this._location_id;
+    }
+    /**
+     * Setter for _location_id
+     * @param {string} location_id
+     */
+    set location_id(location_id) {
+      if (checkAICCValidFormat(this._cmi_element + ".location_id", location_id, aicc_regex.CMIString256)) {
+        this._location_id = location_id;
+      }
+    }
+    /**
+     * Getter for _date
+     * @return {string}
+     */
+    get date() {
+      return this._date;
+    }
+    /**
+     * Setter for _date
+     * @param {string} date
+     */
+    set date(date) {
+      if (checkAICCValidFormat(this._cmi_element + ".date", date, aicc_regex.CMIString256)) {
+        this._date = date;
+      }
+    }
+    /**
+     * Getter for _time
+     * @return {string}
+     */
+    get time() {
+      return this._time;
+    }
+    /**
+     * Setter for _time
+     * @param {string} time
+     */
+    set time(time) {
+      if (checkAICCValidFormat(this._cmi_element + ".time", time, aicc_regex.CMITime)) {
+        this._time = time;
+      }
+    }
+    /**
+     * Getter for _status
+     * @return {string}
+     */
+    get status() {
+      return this._status;
+    }
+    /**
+     * Setter for _status
+     * @param {string} status
+     */
+    set status(status) {
+      if (checkAICCValidFormat(this._cmi_element + ".status", status, aicc_regex.CMIStatus2)) {
+        this._status = status;
+      }
+    }
+    /**
+     * Getter for _why_left
+     * @return {string}
+     */
+    get why_left() {
+      return this._why_left;
+    }
+    /**
+     * Setter for _why_left
+     * @param {string} why_left
+     */
+    set why_left(why_left) {
+      if (checkAICCValidFormat(this._cmi_element + ".why_left", why_left, aicc_regex.CMIString256)) {
+        this._why_left = why_left;
+      }
+    }
+    /**
+     * Getter for _time_in_element
+     * @return {string}
+     */
+    get time_in_element() {
+      return this._time_in_element;
+    }
+    /**
+     * Setter for _time_in_element
+     * @param {string} time_in_element
+     */
+    set time_in_element(time_in_element) {
+      if (checkAICCValidFormat(this._cmi_element + ".time_in_element", time_in_element, aicc_regex.CMITime)) {
+        this._time_in_element = time_in_element;
+      }
+    }
+    /**
+     * toJSON for cmi.paths.n object
+     * @return {
+     *    {
+     *      location_id: string,
+     *      date: string,
+     *      time: string,
+     *      status: string,
+     *      why_left: string,
+     *      time_in_element: string
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        location_id: this.location_id,
+        date: this.date,
+        time: this.time,
+        status: this.status,
+        why_left: this.why_left,
+        time_in_element: this.time_in_element
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+
+  let CMI$1 = class CMI extends CMI$2 {
+    /**
+     * Constructor for AICC CMI object
+     * @param {boolean} initialized
+     */
+    constructor() {
+      let initialized = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+      super(aicc_constants.cmi_children);
+      if (initialized) this.initialize();
+      this.student_preference = new AICCStudentPreferences();
+      this.student_data = new AICCCMIStudentData();
+      this.student_demographics = new CMIStudentDemographics();
+      this.evaluation = new CMIEvaluation();
+      this.paths = new CMIPaths();
+    }
+    /**
+     * Called when the API has been initialized after the CMI has been created
+     */
+    initialize() {
+      super.initialize();
+      this.student_preference?.initialize();
+      this.student_data?.initialize();
+      this.student_demographics?.initialize();
+      this.evaluation?.initialize();
+      this.paths?.initialize();
+    }
+    /**
+     * toJSON for cmi
+     *
+     * @return {
+     *    {
+     *      suspend_data: string,
+     *      launch_data: string,
+     *      comments: string,
+     *      comments_from_lms: string,
+     *      core: CMICore,
+     *      objectives: CMIObjectives,
+     *      student_data: CMIStudentData,
+     *      student_preference: CMIStudentPreference,
+     *      interactions: CMIInteractions,
+     *      paths: CMIPaths
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        suspend_data: this.suspend_data,
+        launch_data: this.launch_data,
+        comments: this.comments,
+        comments_from_lms: this.comments_from_lms,
+        core: this.core,
+        objectives: this.objectives,
+        student_data: this.student_data,
+        student_preference: this.student_preference,
+        student_demographics: this.student_demographics,
+        interactions: this.interactions,
+        evaluation: this.evaluation,
+        paths: this.paths
+      };
+      delete this.jsonString;
+      return result;
+    }
+  };
+
+  class AICCImpl extends Scorm12Impl {
+    /**
+     * Constructor to create AICC API object
+     * @param {Settings} settings
+     */
+    constructor(settings) {
+      super(settings);
+      this.cmi = new CMI$1();
+      this.nav = new NAV();
+    }
+    /**
+     * Gets or builds a new child element to add to the array.
+     *
+     * @param {string} CMIElement
+     * @param {any} value
+     * @param {boolean} foundFirstIndex
+     * @return {BaseCMI | null}
+     */
+    getChildElement(CMIElement, value, foundFirstIndex) {
+      let newChild = super.getChildElement(CMIElement, value, foundFirstIndex);
+      if (!newChild) {
+        if (stringMatches(CMIElement, "cmi\\.evaluation\\.comments\\.\\d+")) {
+          newChild = new CMIEvaluationCommentsObject();
+        } else if (stringMatches(CMIElement, "cmi\\.student_data\\.tries\\.\\d+")) {
+          newChild = new CMITriesObject();
+        } else if (stringMatches(CMIElement, "cmi\\.student_data\\.attempt_records\\.\\d+")) {
+          newChild = new CMIAttemptRecordsObject();
+        } else if (stringMatches(CMIElement, "cmi\\.paths\\.\\d+")) {
+          newChild = new CMIPathsObject();
+        }
+      }
+      return newChild;
+    }
+    /**
+     * Replace the whole API with another
+     *
+     * @param {AICCImpl} newAPI
+     */
+    replaceWithAnotherScormAPI(newAPI) {
+      this.cmi = newAPI.cmi;
+      this.nav = newAPI.nav;
+    }
+  }
+
+  const scorm2004_errors = scorm2004_constants.error_descriptions;
+  class Scorm2004ValidationError extends ValidationError {
+    /**
+     * Constructor to take in an error code
+     * @param {string} CMIElement
+     * @param {number} errorCode
+     */
+    constructor(CMIElement, errorCode) {
+      if ({}.hasOwnProperty.call(scorm2004_errors, String(errorCode))) {
+        super(CMIElement, errorCode, scorm2004_errors[String(errorCode)].basicMessage, scorm2004_errors[String(errorCode)].detailMessage);
+      } else {
+        super(CMIElement, 101, scorm2004_errors["101"].basicMessage, scorm2004_errors["101"].detailMessage);
+      }
+      Object.setPrototypeOf(this, Scorm2004ValidationError.prototype);
+    }
+  }
+
+  function check2004ValidFormat(CMIElement, value, regexPattern, allowEmptyString) {
+    return checkValidFormat(CMIElement, value, regexPattern, scorm2004_errors$1.TYPE_MISMATCH, Scorm2004ValidationError, allowEmptyString);
+  }
+  function check2004ValidRange(CMIElement, value, rangePattern) {
+    return checkValidRange(CMIElement, value, rangePattern, scorm2004_errors$1.VALUE_OUT_OF_RANGE, Scorm2004ValidationError);
+  }
+
+  class CMILearnerPreference extends BaseCMI {
+    /**
+     * Constructor for cmi.learner_preference
+     */
+    constructor() {
+      super("cmi.learner_preference");
+      this.__children = scorm2004_constants.student_preference_children;
+      this._audio_level = "1";
+      this._language = "";
+      this._delivery_speed = "1";
+      this._audio_captioning = "0";
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      this._initialized = false;
+    }
+    /**
+     * Getter for __children
+     * @return {string}
+     * @private
+     */
+    get _children() {
+      return this.__children;
+    }
+    /**
+     * Setter for __children. Just throws an error.
+     * @param {string} _children
+     * @private
+     */
+    set _children(_children) {
+      throw new Scorm2004ValidationError(this._cmi_element + "._children", scorm2004_errors$1.READ_ONLY_ELEMENT);
+    }
+    /**
+     * Getter for _audio_level
+     * @return {string}
+     */
+    get audio_level() {
+      return this._audio_level;
+    }
+    /**
+     * Setter for _audio_level
+     * @param {string} audio_level
+     */
+    set audio_level(audio_level) {
+      if (check2004ValidFormat(this._cmi_element + ".audio_level", audio_level, scorm2004_regex.CMIDecimal) && check2004ValidRange(this._cmi_element + ".audio_level", audio_level, scorm2004_regex.audio_range)) {
+        this._audio_level = audio_level;
+      }
+    }
+    /**
+     * Getter for _language
+     * @return {string}
+     */
+    get language() {
+      return this._language;
+    }
+    /**
+     * Setter for _language
+     * @param {string} language
+     */
+    set language(language) {
+      if (check2004ValidFormat(this._cmi_element + ".language", language, scorm2004_regex.CMILang)) {
+        this._language = language;
+      }
+    }
+    /**
+     * Getter for _delivery_speed
+     * @return {string}
+     */
+    get delivery_speed() {
+      return this._delivery_speed;
+    }
+    /**
+     * Setter for _delivery_speed
+     * @param {string} delivery_speed
+     */
+    set delivery_speed(delivery_speed) {
+      if (check2004ValidFormat(this._cmi_element + ".delivery_speed", delivery_speed, scorm2004_regex.CMIDecimal) && check2004ValidRange(this._cmi_element + ".delivery_speed", delivery_speed, scorm2004_regex.speed_range)) {
+        this._delivery_speed = delivery_speed;
+      }
+    }
+    /**
+     * Getter for _audio_captioning
+     * @return {string}
+     */
+    get audio_captioning() {
+      return this._audio_captioning;
+    }
+    /**
+     * Setter for _audio_captioning
+     * @param {string} audio_captioning
+     */
+    set audio_captioning(audio_captioning) {
+      if (check2004ValidFormat(this._cmi_element + ".audio_captioning", audio_captioning, scorm2004_regex.CMISInteger) && check2004ValidRange(this._cmi_element + ".audio_captioning", audio_captioning, scorm2004_regex.text_range)) {
+        this._audio_captioning = audio_captioning;
+      }
+    }
+    /**
+     * toJSON for cmi.learner_preference
+     *
+     * @return {
+     *    {
+     *      audio_level: string,
+     *      language: string,
+     *      delivery_speed: string,
+     *      audio_captioning: string
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        audio_level: this.audio_level,
+        language: this.language,
+        delivery_speed: this.delivery_speed,
+        audio_captioning: this.audio_captioning
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+
+  const LearnerResponses = {
+    "true-false": {
+      format: "^true$|^false$",
+      max: 1,
+      delimiter: "",
+      unique: false
+    },
+    choice: {
+      format: scorm2004_regex.CMILongIdentifier,
+      max: 36,
+      delimiter: "[,]",
+      unique: true
+    },
+    "fill-in": {
+      format: scorm2004_regex.CMILangString250,
+      max: 10,
+      delimiter: "[,]",
+      unique: false
+    },
+    "long-fill-in": {
+      format: scorm2004_regex.CMILangString4000,
+      max: 1,
+      delimiter: "",
+      unique: false
+    },
+    matching: {
+      format: scorm2004_regex.CMIShortIdentifier,
+      format2: scorm2004_regex.CMIShortIdentifier,
+      max: 36,
+      delimiter: "[,]",
+      delimiter2: "[.]",
+      unique: false
+    },
+    performance: {
+      format: "^$|" + scorm2004_regex.CMIShortIdentifier,
+      format2: scorm2004_regex.CMIDecimal + "|^$|" + scorm2004_regex.CMIShortIdentifier,
+      max: 250,
+      delimiter: "[,]",
+      delimiter2: "[.]",
+      unique: false
+    },
+    sequencing: {
+      format: scorm2004_regex.CMIShortIdentifier,
+      max: 36,
+      delimiter: "[,]",
+      unique: false
+    },
+    likert: {
+      format: scorm2004_regex.CMIShortIdentifier,
+      max: 1,
+      delimiter: "",
+      unique: false
+    },
+    numeric: {
+      format: scorm2004_regex.CMIDecimal,
+      max: 1,
+      delimiter: "",
+      unique: false
+    },
+    other: {
+      format: scorm2004_regex.CMIString4000,
+      max: 1,
+      delimiter: "",
+      unique: false
+    }
+  };
+  const CorrectResponses = {
+    "true-false": {
+      max: 1,
+      delimiter: "",
+      unique: false,
+      duplicate: false,
+      format: "^true$|^false$",
+      limit: 1
+    },
+    choice: {
+      max: 36,
+      delimiter: "[,]",
+      unique: true,
+      duplicate: false,
+      format: scorm2004_regex.CMILongIdentifier
+    },
+    "fill-in": {
+      max: 10,
+      delimiter: "[,]",
+      unique: false,
+      duplicate: false,
+      format: scorm2004_regex.CMILangString250cr
+    },
+    "long-fill-in": {
+      max: 1,
+      delimiter: "",
+      unique: false,
+      duplicate: true,
+      format: scorm2004_regex.CMILangString4000
+    },
+    matching: {
+      max: 36,
+      delimiter: "[,]",
+      delimiter2: "[.]",
+      unique: false,
+      duplicate: false,
+      format: scorm2004_regex.CMIShortIdentifier,
+      format2: scorm2004_regex.CMIShortIdentifier
+    },
+    performance: {
+      max: 250,
+      delimiter: "[,]",
+      delimiter2: "[.]",
+      delimiter3: "[:]",
+      unique: false,
+      duplicate: false,
+      format: "^$|" + scorm2004_regex.CMIShortIdentifier,
+      format2: scorm2004_regex.CMIDecimal + "|^$|" + scorm2004_regex.CMIShortIdentifier
+    },
+    sequencing: {
+      max: 36,
+      delimiter: "[,]",
+      unique: false,
+      duplicate: false,
+      format: scorm2004_regex.CMIShortIdentifier
+    },
+    likert: {
+      max: 1,
+      delimiter: "",
+      unique: false,
+      duplicate: false,
+      format: scorm2004_regex.CMIShortIdentifier,
+      limit: 1
+    },
+    numeric: {
+      max: 2,
+      delimiter: "[:]",
+      unique: false,
+      duplicate: false,
+      format: scorm2004_regex.CMIDecimal,
+      limit: 1
+    },
+    other: {
+      max: 1,
+      delimiter: "",
+      unique: false,
+      duplicate: false,
+      format: scorm2004_regex.CMIString4000,
+      limit: 1
+    }
+  };
+
+  class CMIInteractions extends CMIArray {
+    /**
+     * Constructor for `cmi.objectives` Array
+     */
+    constructor() {
+      super({
+        CMIElement: "cmi.interactions",
+        children: scorm2004_constants.interactions_children,
+        errorCode: scorm2004_errors$1.READ_ONLY_ELEMENT,
+        errorClass: Scorm2004ValidationError
+      });
+    }
+  }
+  class CMIInteractionsObject extends BaseCMI {
+    /**
+     * Constructor for cmi.interaction.n
+     */
+    constructor() {
+      super("cmi.interactions.n");
+      this._id = "";
+      this._type = "";
+      this._timestamp = "";
+      this._weighting = "";
+      this._learner_response = "";
+      this._result = "";
+      this._latency = "";
+      this._description = "";
+      this.objectives = new CMIArray({
+        CMIElement: "cmi.interactions.n.objectives",
+        errorCode: scorm2004_errors$1.READ_ONLY_ELEMENT,
+        errorClass: Scorm2004ValidationError,
+        children: scorm2004_constants.objectives_children
+      });
+      this.correct_responses = new CMIArray({
+        CMIElement: "cmi.interactions.n.correct_responses",
+        errorCode: scorm2004_errors$1.READ_ONLY_ELEMENT,
+        errorClass: Scorm2004ValidationError,
+        children: scorm2004_constants.correct_responses_children
+      });
+    }
+    /**
+     * Called when the API has been initialized after the CMI has been created
+     */
+    initialize() {
+      super.initialize();
+      this.objectives?.initialize();
+      this.correct_responses?.initialize();
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      this._initialized = false;
+      this._id = "";
+      this._type = "";
+      this._timestamp = "";
+      this._weighting = "";
+      this._learner_response = "";
+      this._result = "";
+      this._latency = "";
+      this._description = "";
+      this.objectives = new CMIArray({
+        CMIElement: "cmi.interactions.n.objectives",
+        errorCode: scorm2004_errors$1.READ_ONLY_ELEMENT,
+        errorClass: Scorm2004ValidationError,
+        children: scorm2004_constants.objectives_children
+      });
+      this.correct_responses = new CMIArray({
+        CMIElement: "cmi.interactions.n.correct_responses",
+        errorCode: scorm2004_errors$1.READ_ONLY_ELEMENT,
+        errorClass: Scorm2004ValidationError,
+        children: scorm2004_constants.correct_responses_children
+      });
+    }
+    /**
+     * Getter for _id
+     * @return {string}
+     */
+    get id() {
+      return this._id;
+    }
+    /**
+     * Setter for _id
+     * @param {string} id
+     */
+    set id(id) {
+      if (check2004ValidFormat(this._cmi_element + ".id", id, scorm2004_regex.CMILongIdentifier)) {
+        this._id = id;
+      }
+    }
+    /**
+     * Getter for _type
+     * @return {string}
+     */
+    get type() {
+      return this._type;
+    }
+    /**
+     * Setter for _type
+     * @param {string} type
+     */
+    set type(type) {
+      if (this.initialized && this._id === "") {
+        throw new Scorm2004ValidationError(this._cmi_element + ".type", scorm2004_errors$1.DEPENDENCY_NOT_ESTABLISHED);
+      } else {
+        if (check2004ValidFormat(this._cmi_element + ".type", type, scorm2004_regex.CMIType)) {
+          this._type = type;
+        }
+      }
+    }
+    /**
+     * Getter for _timestamp
+     * @return {string}
+     */
+    get timestamp() {
+      return this._timestamp;
+    }
+    /**
+     * Setter for _timestamp
+     * @param {string} timestamp
+     */
+    set timestamp(timestamp) {
+      if (this.initialized && this._id === "") {
+        throw new Scorm2004ValidationError(this._cmi_element + ".timestamp", scorm2004_errors$1.DEPENDENCY_NOT_ESTABLISHED);
+      } else {
+        if (check2004ValidFormat(this._cmi_element + ".timestamp", timestamp, scorm2004_regex.CMITime)) {
+          this._timestamp = timestamp;
+        }
+      }
+    }
+    /**
+     * Getter for _weighting
+     * @return {string}
+     */
+    get weighting() {
+      return this._weighting;
+    }
+    /**
+     * Setter for _weighting
+     * @param {string} weighting
+     */
+    set weighting(weighting) {
+      if (this.initialized && this._id === "") {
+        throw new Scorm2004ValidationError(this._cmi_element + ".weighting", scorm2004_errors$1.DEPENDENCY_NOT_ESTABLISHED);
+      } else {
+        if (check2004ValidFormat(this._cmi_element + ".weighting", weighting, scorm2004_regex.CMIDecimal)) {
+          this._weighting = weighting;
+        }
+      }
+    }
+    /**
+     * Getter for _learner_response
+     * @return {string}
+     */
+    get learner_response() {
+      return this._learner_response;
+    }
+    /**
+     * Setter for _learner_response. Does type validation to make sure response
+     * matches SCORM 2004's spec
+     * @param {string} learner_response
+     */
+    set learner_response(learner_response) {
+      if (this.initialized && (this._type === "" || this._id === "")) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", scorm2004_errors$1.DEPENDENCY_NOT_ESTABLISHED);
+      } else {
+        let nodes = [];
+        const response_type = LearnerResponses[this.type];
+        if (response_type) {
+          if (response_type?.delimiter) {
+            const delimiter = response_type.delimiter === "[,]" ? "," : response_type.delimiter;
+            nodes = learner_response.split(delimiter);
+          } else {
+            nodes[0] = learner_response;
+          }
+          if (nodes.length > 0 && nodes.length <= response_type.max) {
+            const formatRegex = new RegExp(response_type.format);
+            for (let i = 0; i < nodes.length; i++) {
+              if (response_type?.delimiter2) {
+                const delimiter2 = response_type.delimiter2 === "[.]" ? "." : response_type.delimiter2;
+                const values = nodes[i].split(delimiter2);
+                if (values.length === 2) {
+                  if (!values[0].match(formatRegex)) {
+                    throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", scorm2004_errors$1.TYPE_MISMATCH);
+                  } else {
+                    if (!response_type.format2 || !values[1].match(new RegExp(response_type.format2))) {
+                      throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", scorm2004_errors$1.TYPE_MISMATCH);
                     }
-                    else {
-                        this.throwSCORMError(CMIElement, this._error_codes.VALUE_NOT_INITIALIZED, uninitializedErrorMessage);
-                        break;
+                  }
+                } else {
+                  throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", scorm2004_errors$1.TYPE_MISMATCH);
+                }
+              } else {
+                if (!nodes[i].match(formatRegex)) {
+                  throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", scorm2004_errors$1.TYPE_MISMATCH);
+                } else {
+                  if (nodes[i] !== "" && response_type.unique) {
+                    for (let j = 0; j < i; j++) {
+                      if (nodes[i] === nodes[j]) {
+                        throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", scorm2004_errors$1.TYPE_MISMATCH);
+                      }
                     }
-                    idx++;
+                  }
                 }
+              }
             }
+          } else {
+            throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", scorm2004_errors$1.GENERAL_SET_FAILURE);
+          }
+          this._learner_response = learner_response;
+        } else {
+          throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", scorm2004_errors$1.TYPE_MISMATCH);
         }
-        if (refObject === null || refObject === undefined) {
-            if (!scorm2004) {
-                if (attribute === "_children") {
-                    this.throwSCORMError(CMIElement, this._error_codes.CHILDREN_ERROR, undefined);
-                }
-                else if (attribute === "_count") {
-                    this.throwSCORMError(CMIElement, this._error_codes.COUNT_ERROR, undefined);
-                }
+      }
+    }
+    /**
+     * Getter for _result
+     * @return {string}
+     */
+    get result() {
+      return this._result;
+    }
+    /**
+     * Setter for _result
+     * @param {string} result
+     */
+    set result(result) {
+      if (check2004ValidFormat(this._cmi_element + ".result", result, scorm2004_regex.CMIResult)) {
+        this._result = result;
+      }
+    }
+    /**
+     * Getter for _latency
+     * @return {string}
+     */
+    get latency() {
+      return this._latency;
+    }
+    /**
+     * Setter for _latency
+     * @param {string} latency
+     */
+    set latency(latency) {
+      if (this.initialized && this._id === "") {
+        throw new Scorm2004ValidationError(this._cmi_element + ".latency", scorm2004_errors$1.DEPENDENCY_NOT_ESTABLISHED);
+      } else {
+        if (check2004ValidFormat(this._cmi_element + ".latency", latency, scorm2004_regex.CMITimespan)) {
+          this._latency = latency;
+        }
+      }
+    }
+    /**
+     * Getter for _description
+     * @return {string}
+     */
+    get description() {
+      return this._description;
+    }
+    /**
+     * Setter for _description
+     * @param {string} description
+     */
+    set description(description) {
+      if (this.initialized && this._id === "") {
+        throw new Scorm2004ValidationError(this._cmi_element + ".description", scorm2004_errors$1.DEPENDENCY_NOT_ESTABLISHED);
+      } else {
+        if (check2004ValidFormat(this._cmi_element + ".description", description, scorm2004_regex.CMILangString250, true)) {
+          this._description = description;
+        }
+      }
+    }
+    /**
+     * toJSON for cmi.interactions.n
+     *
+     * @return {
+     *    {
+     *      id: string,
+     *      type: string,
+     *      objectives: CMIArray,
+     *      timestamp: string,
+     *      correct_responses: CMIArray,
+     *      weighting: string,
+     *      learner_response: string,
+     *      result: string,
+     *      latency: string,
+     *      description: string
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        id: this.id,
+        type: this.type,
+        objectives: this.objectives,
+        timestamp: this.timestamp,
+        weighting: this.weighting,
+        learner_response: this.learner_response,
+        result: this.result,
+        latency: this.latency,
+        description: this.description,
+        correct_responses: this.correct_responses
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+  class CMIInteractionsObjectivesObject extends BaseCMI {
+    /**
+     * Constructor for cmi.interactions.n.objectives.n
+     */
+    constructor() {
+      super("cmi.interactions.n.objectives.n");
+      this._id = "";
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      this._initialized = false;
+      this._id = "";
+    }
+    /**
+     * Getter for _id
+     * @return {string}
+     */
+    get id() {
+      return this._id;
+    }
+    /**
+     * Setter for _id
+     * @param {string} id
+     */
+    set id(id) {
+      if (check2004ValidFormat(this._cmi_element + ".id", id, scorm2004_regex.CMILongIdentifier)) {
+        this._id = id;
+      }
+    }
+    /**
+     * toJSON for cmi.interactions.n.objectives.n
+     * @return {
+     *    {
+     *      id: string
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        id: this.id
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+  class CMIInteractionsCorrectResponsesObject extends BaseCMI {
+    /**
+     * Constructor for cmi.interactions.n.correct_responses.n
+     * @param {CMIInteractionsObject} parent - The parent interaction object
+     */
+    constructor(parent) {
+      super("cmi.interactions.n.correct_responses.n");
+      this._pattern = "";
+      this._parent = parent;
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      this._initialized = false;
+      this._pattern = "";
+    }
+    /**
+     * Getter for _pattern
+     * @return {string}
+     */
+    get pattern() {
+      return this._pattern;
+    }
+    /**
+     * Setter for _pattern
+     * @param {string} pattern
+     */
+    set pattern(pattern) {
+      if (check2004ValidFormat(this._cmi_element + ".pattern", pattern, scorm2004_regex.CMIFeedback)) {
+        if (this._parent && this._parent.type) {
+          const interactionType = this._parent.type;
+          const response = CorrectResponses[interactionType];
+          if (response) {
+            let isValid = true;
+            let nodes = [];
+            if (response?.delimiter) {
+              nodes = String(pattern).split(response.delimiter);
+            } else {
+              nodes[0] = pattern;
             }
+            if (nodes.length > 0 && nodes.length <= response.max) {
+              const formatRegex = new RegExp(response.format);
+              for (let i = 0; i < nodes.length && isValid; i++) {
+                if (response?.delimiter2) {
+                  const values = nodes[i].split(response.delimiter2);
+                  if (values.length === 2) {
+                    const matches = values[0].match(formatRegex);
+                    if (!matches) {
+                      isValid = false;
+                    } else if (!response.format2 || !values[1].match(new RegExp(response.format2))) {
+                      isValid = false;
+                    }
+                  } else {
+                    isValid = false;
+                  }
+                } else {
+                  const matches = nodes[i].match(formatRegex);
+                  if (!matches && pattern !== "" || !matches && interactionType === "true-false") {
+                    isValid = false;
+                  }
+                }
+              }
+            } else if (nodes.length > response.max) {
+              isValid = false;
+            }
+            if (!isValid) {
+              throw new Scorm2004ValidationError(this._cmi_element + ".pattern", scorm2004_errors$1.TYPE_MISMATCH);
+            }
+          }
         }
-        else {
-            return refObject;
+        this._pattern = pattern;
+      }
+    }
+    /**
+     * toJSON cmi.interactions.n.correct_responses.n object
+     * @return {
+     *    {
+     *      pattern: string
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        pattern: this.pattern
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+
+  class Scorm2004CMIScore extends CMIScore {
+    /**
+     * Constructor for cmi *.score
+     */
+    constructor() {
+      super({
+        CMIElement: "cmi.score",
+        score_children: scorm2004_constants.score_children,
+        max: "",
+        invalidErrorCode: scorm2004_errors$1.READ_ONLY_ELEMENT,
+        invalidTypeCode: scorm2004_errors$1.TYPE_MISMATCH,
+        invalidRangeCode: scorm2004_errors$1.VALUE_OUT_OF_RANGE,
+        decimalRegex: scorm2004_regex.CMIDecimal,
+        errorClass: Scorm2004ValidationError
+      });
+      this._scaled = "";
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      this._initialized = false;
+      this._scaled = "";
+      this._raw = "";
+      this._min = "";
+      this._max = "";
+    }
+    /**
+     * Getter for _scaled
+     * @return {string}
+     */
+    get scaled() {
+      return this._scaled;
+    }
+    /**
+     * Setter for _scaled
+     * @param {string} scaled
+     */
+    set scaled(scaled) {
+      if (check2004ValidFormat(this._cmi_element + ".scaled", scaled, scorm2004_regex.CMIDecimal) && check2004ValidRange(this._cmi_element + ".scaled", scaled, scorm2004_regex.scaled_range)) {
+        this._scaled = scaled;
+      }
+    }
+    /**
+     * toJSON for cmi *.score
+     *
+     * @return {
+     *    {
+     *      scaled: string,
+     *      raw: string,
+     *      min: string,
+     *      max: string
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        scaled: this.scaled,
+        raw: this.raw,
+        min: this.min,
+        max: this.max
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+
+  class CMICommentsFromLMS extends CMIArray {
+    /**
+     * Constructor for cmi.comments_from_lms Array
+     */
+    constructor() {
+      super({
+        CMIElement: "cmi.comments_from_lms",
+        children: scorm2004_constants.comments_children,
+        errorCode: scorm2004_errors$1.READ_ONLY_ELEMENT,
+        errorClass: Scorm2004ValidationError
+      });
+    }
+  }
+  class CMICommentsFromLearner extends CMIArray {
+    /**
+     * Constructor for cmi.comments_from_learner Array
+     */
+    constructor() {
+      super({
+        CMIElement: "cmi.comments_from_learner",
+        children: scorm2004_constants.comments_children,
+        errorCode: scorm2004_errors$1.READ_ONLY_ELEMENT,
+        errorClass: Scorm2004ValidationError
+      });
+    }
+  }
+  class CMICommentsObject extends BaseCMI {
+    /**
+     * Constructor for cmi.comments_from_learner.n and cmi.comments_from_lms.n
+     * @param {boolean} readOnlyAfterInit
+     */
+    constructor() {
+      let readOnlyAfterInit = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+      super("cmi.comments_from_learner.n");
+      this._comment = "";
+      this._location = "";
+      this._timestamp = "";
+      this._comment = "";
+      this._location = "";
+      this._timestamp = "";
+      this._readOnlyAfterInit = readOnlyAfterInit;
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      this._initialized = false;
+    }
+    /**
+     * Getter for _comment
+     * @return {string}
+     */
+    get comment() {
+      return this._comment;
+    }
+    /**
+     * Setter for _comment
+     * @param {string} comment
+     */
+    set comment(comment) {
+      if (this.initialized && this._readOnlyAfterInit) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".comment", scorm2004_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        if (check2004ValidFormat(this._cmi_element + ".comment", comment, scorm2004_regex.CMILangString4000, true)) {
+          this._comment = comment;
         }
-    };
-    BaseAPI.prototype.isInitialized = function () {
-        return this.currentState === api_constants/* global_constants */._y.STATE_INITIALIZED;
-    };
-    BaseAPI.prototype.isNotInitialized = function () {
-        return this.currentState === api_constants/* global_constants */._y.STATE_NOT_INITIALIZED;
-    };
-    BaseAPI.prototype.isTerminated = function () {
-        return this.currentState === api_constants/* global_constants */._y.STATE_TERMINATED;
-    };
-    BaseAPI.prototype.on = function (listenerName, callback) {
-        this._eventService.on(listenerName, callback);
-    };
-    BaseAPI.prototype.off = function (listenerName, callback) {
-        this._eventService.off(listenerName, callback);
-    };
-    BaseAPI.prototype.clear = function (listenerName) {
-        this._eventService.clear(listenerName);
-    };
-    BaseAPI.prototype.processListeners = function (functionName, CMIElement, value) {
-        this._eventService.processListeners(functionName, CMIElement, value);
-    };
-    BaseAPI.prototype.throwSCORMError = function (CMIElement, errorNumber, message) {
-        this._errorHandlingService.throwSCORMError(CMIElement, errorNumber, message);
-    };
-    BaseAPI.prototype.clearSCORMError = function (success) {
-        this._errorHandlingService.clearSCORMError(success);
-    };
-    BaseAPI.prototype.loadFromFlattenedJSON = function (json, CMIElement) {
-        var _this = this;
-        if (!CMIElement) {
-            CMIElement = "";
+      }
+    }
+    /**
+     * Getter for _location
+     * @return {string}
+     */
+    get location() {
+      return this._location;
+    }
+    /**
+     * Setter for _location
+     * @param {string} location
+     */
+    set location(location) {
+      if (this.initialized && this._readOnlyAfterInit) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".location", scorm2004_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        if (check2004ValidFormat(this._cmi_element + ".location", location, scorm2004_regex.CMIString250)) {
+          this._location = location;
         }
-        this._serializationService.loadFromFlattenedJSON(json, CMIElement, function (CMIElement, value) { return _this.setCMIValue(CMIElement, value); }, function () { return _this.isNotInitialized(); }, function (data) {
-            _this.startingData = data;
-        });
-    };
-    BaseAPI.prototype.loadFromJSON = function (json, CMIElement) {
-        var _this = this;
-        if (CMIElement === void 0) { CMIElement = ""; }
-        this._serializationService.loadFromJSON(json, CMIElement, function (CMIElement, value) { return _this.setCMIValue(CMIElement, value); }, function () { return _this.isNotInitialized(); }, function (data) {
-            _this.startingData = data;
-        });
-    };
-    BaseAPI.prototype.renderCMIToJSONString = function () {
-        return this._serializationService.renderCMIToJSONString(this.cmi, this.settings.sendFullCommit);
-    };
-    BaseAPI.prototype.renderCMIToJSONObject = function () {
-        return this._serializationService.renderCMIToJSONObject(this.cmi, this.settings.sendFullCommit);
-    };
-    BaseAPI.prototype.processHttpRequest = function (url_1, params_1) {
-        return (0,tslib_es6/* __awaiter */.sH)(this, arguments, void 0, function (url, params, immediate) {
-            var _this = this;
-            if (immediate === void 0) { immediate = false; }
-            return (0,tslib_es6/* __generator */.YH)(this, function (_a) {
-                return [2, this._httpService.processHttpRequest(url, params, immediate, function (functionName, message, level, element) { return _this.apiLog(functionName, message, level, element); }, function (functionName, CMIElement, value) { return _this.processListeners(functionName, CMIElement, value); })];
+      }
+    }
+    /**
+     * Getter for _timestamp
+     * @return {string}
+     */
+    get timestamp() {
+      return this._timestamp;
+    }
+    /**
+     * Setter for _timestamp
+     * @param {string} timestamp
+     */
+    set timestamp(timestamp) {
+      if (this.initialized && this._readOnlyAfterInit) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".timestamp", scorm2004_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        if (check2004ValidFormat(this._cmi_element + ".timestamp", timestamp, scorm2004_regex.CMITime)) {
+          this._timestamp = timestamp;
+        }
+      }
+    }
+    /**
+     * toJSON for cmi.comments_from_learner.n object
+     * @return {
+     *    {
+     *      comment: string,
+     *      location: string,
+     *      timestamp: string
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        comment: this.comment,
+        location: this.location,
+        timestamp: this.timestamp
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+
+  class CMIObjectives extends CMIArray {
+    /**
+     * Constructor for `cmi.objectives` Array
+     */
+    constructor() {
+      super({
+        CMIElement: "cmi.objectives",
+        children: scorm2004_constants.objectives_children,
+        errorCode: scorm2004_errors$1.READ_ONLY_ELEMENT,
+        errorClass: Scorm2004ValidationError
+      });
+    }
+    /**
+     * Find an objective by its ID
+     */
+    findObjectiveById(id) {
+      return this.childArray.find(objective => objective.id === id);
+    }
+    /**
+     * Find objective by its index
+     */
+    findObjectiveByIndex(index) {
+      return this.childArray[index];
+    }
+    /**
+     * Set an objective at the given index
+     */
+    setObjectiveByIndex(index, objective) {
+      this.childArray[index] = objective;
+    }
+  }
+  class CMIObjectivesObject extends BaseCMI {
+    /**
+     * Constructor for cmi.objectives.n
+     */
+    constructor() {
+      super("cmi.objectives.n");
+      this._id = "";
+      this._success_status = "unknown";
+      this._completion_status = "unknown";
+      this._progress_measure = "";
+      this._description = "";
+      this.score = new Scorm2004CMIScore();
+    }
+    reset() {
+      this._initialized = false;
+    }
+    /**
+     * Called when the API has been initialized after the CMI has been created
+     */
+    initialize() {
+      super.initialize();
+      this.score?.initialize();
+    }
+    /**
+     * Getter for _id
+     * @return {string}
+     */
+    get id() {
+      return this._id;
+    }
+    /**
+     * Setter for _id
+     * @param {string} id
+     */
+    set id(id) {
+      if (check2004ValidFormat(this._cmi_element + ".id", id, scorm2004_regex.CMILongIdentifier)) {
+        this._id = id;
+      }
+    }
+    /**
+     * Getter for _success_status
+     * @return {string}
+     */
+    get success_status() {
+      return this._success_status;
+    }
+    /**
+     * Setter for _success_status
+     * @param {string} success_status
+     */
+    set success_status(success_status) {
+      if (this.initialized && this._id === "") {
+        throw new Scorm2004ValidationError(this._cmi_element + ".success_status", scorm2004_errors$1.DEPENDENCY_NOT_ESTABLISHED);
+      } else {
+        if (check2004ValidFormat(this._cmi_element + ".success_status", success_status, scorm2004_regex.CMISStatus)) {
+          this._success_status = success_status;
+        }
+      }
+    }
+    /**
+     * Getter for _completion_status
+     * @return {string}
+     */
+    get completion_status() {
+      return this._completion_status;
+    }
+    /**
+     * Setter for _completion_status
+     * @param {string} completion_status
+     */
+    set completion_status(completion_status) {
+      if (this.initialized && this._id === "") {
+        throw new Scorm2004ValidationError(this._cmi_element + ".completion_status", scorm2004_errors$1.DEPENDENCY_NOT_ESTABLISHED);
+      } else {
+        if (check2004ValidFormat(this._cmi_element + ".completion_status", completion_status, scorm2004_regex.CMICStatus)) {
+          this._completion_status = completion_status;
+        }
+      }
+    }
+    /**
+     * Getter for _progress_measure
+     * @return {string}
+     */
+    get progress_measure() {
+      return this._progress_measure;
+    }
+    /**
+     * Setter for _progress_measure
+     * @param {string} progress_measure
+     */
+    set progress_measure(progress_measure) {
+      if (this.initialized && this._id === "") {
+        throw new Scorm2004ValidationError(this._cmi_element + ".progress_measure", scorm2004_errors$1.DEPENDENCY_NOT_ESTABLISHED);
+      } else {
+        if (check2004ValidFormat(this._cmi_element + ".progress_measure", progress_measure, scorm2004_regex.CMIDecimal) && check2004ValidRange(this._cmi_element + ".progress_measure", progress_measure, scorm2004_regex.progress_range)) {
+          this._progress_measure = progress_measure;
+        }
+      }
+    }
+    /**
+     * Getter for _description
+     * @return {string}
+     */
+    get description() {
+      return this._description;
+    }
+    /**
+     * Setter for _description
+     * @param {string} description
+     */
+    set description(description) {
+      if (this.initialized && this._id === "") {
+        throw new Scorm2004ValidationError(this._cmi_element + ".description", scorm2004_errors$1.DEPENDENCY_NOT_ESTABLISHED);
+      } else {
+        if (check2004ValidFormat(this._cmi_element + ".description", description, scorm2004_regex.CMILangString250, true)) {
+          this._description = description;
+        }
+      }
+    }
+    /**
+     * toJSON for cmi.objectives.n
+     *
+     * @return {
+     *    {
+     *      id: string,
+     *      success_status: string,
+     *      completion_status: string,
+     *      progress_measure: string,
+     *      description: string,
+     *      score: Scorm2004CMIScore
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        id: this.id,
+        success_status: this.success_status,
+        completion_status: this.completion_status,
+        progress_measure: this.progress_measure,
+        description: this.description,
+        score: this.score
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+
+  class CMIMetadata extends BaseCMI {
+    /**
+     * Constructor for CMIMetadata
+     */
+    constructor() {
+      super("cmi");
+      this.__version = "1.0";
+      this.__children = scorm2004_constants.cmi_children;
+    }
+    /**
+     * Getter for __version
+     * @return {string}
+     */
+    get _version() {
+      return this.__version;
+    }
+    /**
+     * Setter for __version. Just throws an error.
+     * @param {string} _version
+     */
+    set _version(_version) {
+      throw new Scorm2004ValidationError(this._cmi_element + "._version", scorm2004_errors$1.READ_ONLY_ELEMENT);
+    }
+    /**
+     * Getter for __children
+     * @return {string}
+     */
+    get _children() {
+      return this.__children;
+    }
+    /**
+     * Setter for __children. Just throws an error.
+     * @param {number} _children
+     */
+    set _children(_children) {
+      throw new Scorm2004ValidationError(this._cmi_element + "._children", scorm2004_errors$1.READ_ONLY_ELEMENT);
+    }
+    /**
+     * Reset the metadata properties
+     */
+    reset() {
+      this._initialized = false;
+    }
+  }
+
+  class CMILearner extends BaseCMI {
+    /**
+     * Constructor for CMILearner
+     */
+    constructor() {
+      super("cmi");
+      this._learner_id = "";
+      this._learner_name = "";
+    }
+    /**
+     * Getter for _learner_id
+     * @return {string}
+     */
+    get learner_id() {
+      return this._learner_id;
+    }
+    /**
+     * Setter for _learner_id. Can only be called before initialization.
+     * @param {string} learner_id
+     */
+    set learner_id(learner_id) {
+      if (this.initialized) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".learner_id", scorm2004_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._learner_id = learner_id;
+      }
+    }
+    /**
+     * Getter for _learner_name
+     * @return {string}
+     */
+    get learner_name() {
+      return this._learner_name;
+    }
+    /**
+     * Setter for _learner_name. Can only be called before initialization.
+     * @param {string} learner_name
+     */
+    set learner_name(learner_name) {
+      if (this.initialized) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".learner_name", scorm2004_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._learner_name = learner_name;
+      }
+    }
+    /**
+     * Reset the learner properties
+     */
+    reset() {
+      this._initialized = false;
+    }
+  }
+
+  class CMIStatus extends BaseCMI {
+    /**
+     * Constructor for CMIStatus
+     */
+    constructor() {
+      super("cmi");
+      this._completion_status = "unknown";
+      this._success_status = "unknown";
+      this._progress_measure = "";
+    }
+    /**
+     * Getter for _completion_status
+     * @return {string}
+     */
+    get completion_status() {
+      return this._completion_status;
+    }
+    /**
+     * Setter for _completion_status
+     * @param {string} completion_status
+     */
+    set completion_status(completion_status) {
+      if (check2004ValidFormat(this._cmi_element + ".completion_status", completion_status, scorm2004_regex.CMICStatus)) {
+        this._completion_status = completion_status;
+      }
+    }
+    /**
+     * Getter for _success_status
+     * @return {string}
+     */
+    get success_status() {
+      return this._success_status;
+    }
+    /**
+     * Setter for _success_status
+     * @param {string} success_status
+     */
+    set success_status(success_status) {
+      if (check2004ValidFormat(this._cmi_element + ".success_status", success_status, scorm2004_regex.CMISStatus)) {
+        this._success_status = success_status;
+      }
+    }
+    /**
+     * Getter for _progress_measure
+     * @return {string}
+     */
+    get progress_measure() {
+      return this._progress_measure;
+    }
+    /**
+     * Setter for _progress_measure
+     * @param {string} progress_measure
+     */
+    set progress_measure(progress_measure) {
+      if (check2004ValidFormat(this._cmi_element + ".progress_measure", progress_measure, scorm2004_regex.CMIDecimal) && check2004ValidRange(this._cmi_element + ".progress_measure", progress_measure, scorm2004_regex.progress_range)) {
+        this._progress_measure = progress_measure;
+      }
+    }
+    /**
+     * Reset the status properties
+     */
+    reset() {
+      this._initialized = false;
+      this._completion_status = "unknown";
+      this._success_status = "unknown";
+      this._progress_measure = "";
+    }
+  }
+
+  class CMISession extends BaseCMI {
+    /**
+     * Constructor for CMISession
+     */
+    constructor() {
+      super("cmi");
+      this._entry = "";
+      this._exit = "";
+      this._session_time = "PT0H0M0S";
+      this._total_time = "";
+    }
+    /**
+     * Getter for _entry
+     * @return {string}
+     */
+    get entry() {
+      return this._entry;
+    }
+    /**
+     * Setter for _entry. Can only be called before initialization.
+     * @param {string} entry
+     */
+    set entry(entry) {
+      if (this.initialized) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".entry", scorm2004_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._entry = entry;
+      }
+    }
+    /**
+     * Getter for _exit. Should only be called during JSON export.
+     * @return {string}
+     */
+    get exit() {
+      if (!this.jsonString) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".exit", scorm2004_errors$1.WRITE_ONLY_ELEMENT);
+      }
+      return this._exit;
+    }
+    /**
+     * Setter for _exit
+     * @param {string} exit
+     */
+    set exit(exit) {
+      if (check2004ValidFormat(this._cmi_element + ".exit", exit, scorm2004_regex.CMIExit, true)) {
+        this._exit = exit;
+      }
+    }
+    /**
+     * Getter for _session_time. Should only be called during JSON export.
+     * @return {string}
+     */
+    get session_time() {
+      if (!this.jsonString) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".session_time", scorm2004_errors$1.WRITE_ONLY_ELEMENT);
+      }
+      return this._session_time;
+    }
+    /**
+     * Setter for _session_time
+     * @param {string} session_time
+     */
+    set session_time(session_time) {
+      if (check2004ValidFormat(this._cmi_element + ".session_time", session_time, scorm2004_regex.CMITimespan)) {
+        this._session_time = session_time;
+      }
+    }
+    /**
+     * Getter for _total_time
+     * @return {string}
+     */
+    get total_time() {
+      return this._total_time;
+    }
+    /**
+     * Setter for _total_time. Can only be called before initialization.
+     * @param {string} total_time
+     */
+    set total_time(total_time) {
+      if (this.initialized) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".total_time", scorm2004_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._total_time = total_time;
+      }
+    }
+    /**
+     * Adds the current session time to the existing total time.
+     *
+     * @return {string} ISO8601 Duration
+     */
+    getCurrentTotalTime() {
+      let sessionTime = this._session_time;
+      const startTime = this.start_time;
+      if (typeof startTime !== "undefined" && startTime !== null) {
+        const seconds = (/* @__PURE__ */new Date()).getTime() - startTime;
+        sessionTime = getSecondsAsISODuration(seconds / 1e3);
+      }
+      return addTwoDurations(this._total_time, sessionTime, scorm2004_regex.CMITimespan);
+    }
+    /**
+     * Reset the session properties
+     */
+    reset() {
+      this._initialized = false;
+      this._entry = "";
+      this._exit = "";
+      this._session_time = "PT0H0M0S";
+    }
+  }
+
+  class CMIContent extends BaseCMI {
+    /**
+     * Constructor for CMIContent
+     */
+    constructor() {
+      super("cmi");
+      this._location = "";
+      this._launch_data = "";
+      this._suspend_data = "";
+    }
+    /**
+     * Getter for _location
+     * @return {string}
+     */
+    get location() {
+      return this._location;
+    }
+    /**
+     * Setter for _location
+     * @param {string} location
+     */
+    set location(location) {
+      if (check2004ValidFormat(this._cmi_element + ".location", location, scorm2004_regex.CMIString1000)) {
+        this._location = location;
+      }
+    }
+    /**
+     * Getter for _launch_data
+     * @return {string}
+     */
+    get launch_data() {
+      return this._launch_data;
+    }
+    /**
+     * Setter for _launch_data. Can only be called before initialization.
+     * @param {string} launch_data
+     */
+    set launch_data(launch_data) {
+      if (this.initialized) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".launch_data", scorm2004_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._launch_data = launch_data;
+      }
+    }
+    /**
+     * Getter for _suspend_data
+     * @return {string}
+     */
+    get suspend_data() {
+      return this._suspend_data;
+    }
+    /**
+     * Setter for _suspend_data
+     * @param {string} suspend_data
+     */
+    set suspend_data(suspend_data) {
+      if (check2004ValidFormat(this._cmi_element + ".suspend_data", suspend_data, scorm2004_regex.CMIString64000, true)) {
+        this._suspend_data = suspend_data;
+      }
+    }
+    /**
+     * Reset the content properties
+     */
+    reset() {
+      this._initialized = false;
+      this._location = "";
+      this._suspend_data = "";
+    }
+  }
+
+  class CMISettings extends BaseCMI {
+    /**
+     * Constructor for CMISettings
+     */
+    constructor() {
+      super("cmi");
+      this._credit = "credit";
+      this._mode = "normal";
+      this._time_limit_action = "continue,no message";
+      this._max_time_allowed = "";
+    }
+    /**
+     * Getter for _credit
+     * @return {string}
+     */
+    get credit() {
+      return this._credit;
+    }
+    /**
+     * Setter for _credit. Can only be called before initialization.
+     * @param {string} credit
+     */
+    set credit(credit) {
+      if (this.initialized) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".credit", scorm2004_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._credit = credit;
+      }
+    }
+    /**
+     * Getter for _mode
+     * @return {string}
+     */
+    get mode() {
+      return this._mode;
+    }
+    /**
+     * Setter for _mode. Can only be called before initialization.
+     * @param {string} mode
+     */
+    set mode(mode) {
+      if (this.initialized) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".mode", scorm2004_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._mode = mode;
+      }
+    }
+    /**
+     * Getter for _time_limit_action
+     * @return {string}
+     */
+    get time_limit_action() {
+      return this._time_limit_action;
+    }
+    /**
+     * Setter for _time_limit_action. Can only be called before initialization.
+     * @param {string} time_limit_action
+     */
+    set time_limit_action(time_limit_action) {
+      if (this.initialized) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".time_limit_action", scorm2004_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._time_limit_action = time_limit_action;
+      }
+    }
+    /**
+     * Getter for _max_time_allowed
+     * @return {string}
+     */
+    get max_time_allowed() {
+      return this._max_time_allowed;
+    }
+    /**
+     * Setter for _max_time_allowed. Can only be called before initialization.
+     * @param {string} max_time_allowed
+     */
+    set max_time_allowed(max_time_allowed) {
+      if (this.initialized) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".max_time_allowed", scorm2004_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._max_time_allowed = max_time_allowed;
+      }
+    }
+    /**
+     * Reset the settings properties
+     */
+    reset() {
+      this._initialized = false;
+    }
+  }
+
+  class CMIThresholds extends BaseCMI {
+    /**
+     * Constructor for CMIThresholds
+     */
+    constructor() {
+      super("cmi");
+      this._scaled_passing_score = "";
+      this._completion_threshold = "";
+    }
+    /**
+     * Getter for _scaled_passing_score
+     * @return {string}
+     */
+    get scaled_passing_score() {
+      return this._scaled_passing_score;
+    }
+    /**
+     * Setter for _scaled_passing_score. Can only be called before initialization.
+     * @param {string} scaled_passing_score
+     */
+    set scaled_passing_score(scaled_passing_score) {
+      if (this.initialized) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".scaled_passing_score", scorm2004_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._scaled_passing_score = scaled_passing_score;
+      }
+    }
+    /**
+     * Getter for _completion_threshold
+     * @return {string}
+     */
+    get completion_threshold() {
+      return this._completion_threshold;
+    }
+    /**
+     * Setter for _completion_threshold. Can only be called before initialization.
+     * @param {string} completion_threshold
+     */
+    set completion_threshold(completion_threshold) {
+      if (this.initialized) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".completion_threshold", scorm2004_errors$1.READ_ONLY_ELEMENT);
+      } else {
+        this._completion_threshold = completion_threshold;
+      }
+    }
+    /**
+     * Reset the threshold properties
+     */
+    reset() {
+      this._initialized = false;
+    }
+  }
+
+  class CMI extends BaseRootCMI {
+    /**
+     * Constructor for the SCORM 2004 cmi object
+     * @param {boolean} initialized
+     */
+    constructor() {
+      let initialized = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+      super("cmi");
+      this.metadata = new CMIMetadata();
+      this.learner = new CMILearner();
+      this.status = new CMIStatus();
+      this.session = new CMISession();
+      this.content = new CMIContent();
+      this.settings = new CMISettings();
+      this.thresholds = new CMIThresholds();
+      this.learner_preference = new CMILearnerPreference();
+      this.score = new Scorm2004CMIScore();
+      this.comments_from_learner = new CMICommentsFromLearner();
+      this.comments_from_lms = new CMICommentsFromLMS();
+      this.interactions = new CMIInteractions();
+      this.objectives = new CMIObjectives();
+      if (initialized) this.initialize();
+    }
+    /**
+     * Called when the API has been initialized after the CMI has been created
+     */
+    initialize() {
+      super.initialize();
+      this.metadata?.initialize();
+      this.learner?.initialize();
+      this.status?.initialize();
+      this.session?.initialize();
+      this.content?.initialize();
+      this.settings?.initialize();
+      this.thresholds?.initialize();
+      this.learner_preference?.initialize();
+      this.score?.initialize();
+      this.comments_from_learner?.initialize();
+      this.comments_from_lms?.initialize();
+      this.interactions?.initialize();
+      this.objectives?.initialize();
+    }
+    /**
+     * Called when API is moving to another SCO
+     */
+    reset() {
+      this._initialized = false;
+      this.metadata?.reset();
+      this.learner?.reset();
+      this.status?.reset();
+      this.session?.reset();
+      this.content?.reset();
+      this.settings?.reset();
+      this.thresholds?.reset();
+      this.objectives?.reset(false);
+      this.interactions?.reset(true);
+      this.score?.reset();
+      this.comments_from_learner?.reset();
+      this.comments_from_lms?.reset();
+      this.learner_preference?.reset();
+    }
+    /**
+     * Getter for __version
+     * @return {string}
+     * @private
+     */
+    get _version() {
+      return this.metadata._version;
+    }
+    /**
+     * Setter for __version. Just throws an error.
+     * @param {string} _version
+     * @private
+     */
+    set _version(_version) {
+      this.metadata._version = _version;
+    }
+    /**
+     * Getter for __children
+     * @return {string}
+     * @private
+     */
+    get _children() {
+      return this.metadata._children;
+    }
+    /**
+     * Setter for __children. Just throws an error.
+     * @param {number} _children
+     * @private
+     */
+    set _children(_children) {
+      this.metadata._children = _children;
+    }
+    /**
+     * Getter for _completion_status
+     * @return {string}
+     */
+    get completion_status() {
+      return this.status.completion_status;
+    }
+    /**
+     * Setter for _completion_status
+     * @param {string} completion_status
+     */
+    set completion_status(completion_status) {
+      this.status.completion_status = completion_status;
+    }
+    /**
+     * Getter for _completion_threshold
+     * @return {string}
+     */
+    get completion_threshold() {
+      return this.thresholds.completion_threshold;
+    }
+    /**
+     * Setter for _completion_threshold. Can only be called before initialization.
+     * @param {string} completion_threshold
+     */
+    set completion_threshold(completion_threshold) {
+      this.thresholds.completion_threshold = completion_threshold;
+    }
+    /**
+     * Getter for _credit
+     * @return {string}
+     */
+    get credit() {
+      return this.settings.credit;
+    }
+    /**
+     * Setter for _credit. Can only be called before initialization.
+     * @param {string} credit
+     */
+    set credit(credit) {
+      this.settings.credit = credit;
+    }
+    /**
+     * Getter for _entry
+     * @return {string}
+     */
+    get entry() {
+      return this.session.entry;
+    }
+    /**
+     * Setter for _entry. Can only be called before initialization.
+     * @param {string} entry
+     */
+    set entry(entry) {
+      this.session.entry = entry;
+    }
+    /**
+     * Getter for _exit. Should only be called during JSON export.
+     * @return {string}
+     */
+    get exit() {
+      this.session.jsonString = this.jsonString;
+      return this.session.exit;
+    }
+    /**
+     * Setter for _exit
+     * @param {string} exit
+     */
+    set exit(exit) {
+      this.session.exit = exit;
+    }
+    /**
+     * Getter for _launch_data
+     * @return {string}
+     */
+    get launch_data() {
+      return this.content.launch_data;
+    }
+    /**
+     * Setter for _launch_data. Can only be called before initialization.
+     * @param {string} launch_data
+     */
+    set launch_data(launch_data) {
+      this.content.launch_data = launch_data;
+    }
+    /**
+     * Getter for _learner_id
+     * @return {string}
+     */
+    get learner_id() {
+      return this.learner.learner_id;
+    }
+    /**
+     * Setter for _learner_id. Can only be called before initialization.
+     * @param {string} learner_id
+     */
+    set learner_id(learner_id) {
+      this.learner.learner_id = learner_id;
+    }
+    /**
+     * Getter for _learner_name
+     * @return {string}
+     */
+    get learner_name() {
+      return this.learner.learner_name;
+    }
+    /**
+     * Setter for _learner_name. Can only be called before initialization.
+     * @param {string} learner_name
+     */
+    set learner_name(learner_name) {
+      this.learner.learner_name = learner_name;
+    }
+    /**
+     * Getter for _location
+     * @return {string}
+     */
+    get location() {
+      return this.content.location;
+    }
+    /**
+     * Setter for _location
+     * @param {string} location
+     */
+    set location(location) {
+      this.content.location = location;
+    }
+    /**
+     * Getter for _max_time_allowed
+     * @return {string}
+     */
+    get max_time_allowed() {
+      return this.settings.max_time_allowed;
+    }
+    /**
+     * Setter for _max_time_allowed. Can only be called before initialization.
+     * @param {string} max_time_allowed
+     */
+    set max_time_allowed(max_time_allowed) {
+      this.settings.max_time_allowed = max_time_allowed;
+    }
+    /**
+     * Getter for _mode
+     * @return {string}
+     */
+    get mode() {
+      return this.settings.mode;
+    }
+    /**
+     * Setter for _mode. Can only be called before initialization.
+     * @param {string} mode
+     */
+    set mode(mode) {
+      this.settings.mode = mode;
+    }
+    /**
+     * Getter for _progress_measure
+     * @return {string}
+     */
+    get progress_measure() {
+      return this.status.progress_measure;
+    }
+    /**
+     * Setter for _progress_measure
+     * @param {string} progress_measure
+     */
+    set progress_measure(progress_measure) {
+      this.status.progress_measure = progress_measure;
+    }
+    /**
+     * Getter for _scaled_passing_score
+     * @return {string}
+     */
+    get scaled_passing_score() {
+      return this.thresholds.scaled_passing_score;
+    }
+    /**
+     * Setter for _scaled_passing_score. Can only be called before initialization.
+     * @param {string} scaled_passing_score
+     */
+    set scaled_passing_score(scaled_passing_score) {
+      this.thresholds.scaled_passing_score = scaled_passing_score;
+    }
+    /**
+     * Getter for _session_time. Should only be called during JSON export.
+     * @return {string}
+     */
+    get session_time() {
+      this.session.jsonString = this.jsonString;
+      return this.session.session_time;
+    }
+    /**
+     * Setter for _session_time
+     * @param {string} session_time
+     */
+    set session_time(session_time) {
+      this.session.session_time = session_time;
+    }
+    /**
+     * Getter for _success_status
+     * @return {string}
+     */
+    get success_status() {
+      return this.status.success_status;
+    }
+    /**
+     * Setter for _success_status
+     * @param {string} success_status
+     */
+    set success_status(success_status) {
+      this.status.success_status = success_status;
+    }
+    /**
+     * Getter for _suspend_data
+     * @return {string}
+     */
+    get suspend_data() {
+      return this.content.suspend_data;
+    }
+    /**
+     * Setter for _suspend_data
+     * @param {string} suspend_data
+     */
+    set suspend_data(suspend_data) {
+      this.content.suspend_data = suspend_data;
+    }
+    /**
+     * Getter for _time_limit_action
+     * @return {string}
+     */
+    get time_limit_action() {
+      return this.settings.time_limit_action;
+    }
+    /**
+     * Setter for _time_limit_action. Can only be called before initialization.
+     * @param {string} time_limit_action
+     */
+    set time_limit_action(time_limit_action) {
+      this.settings.time_limit_action = time_limit_action;
+    }
+    /**
+     * Getter for _total_time
+     * @return {string}
+     */
+    get total_time() {
+      return this.session.total_time;
+    }
+    /**
+     * Setter for _total_time. Can only be called before initialization.
+     * @param {string} total_time
+     */
+    set total_time(total_time) {
+      this.session.total_time = total_time;
+    }
+    /**
+     * Adds the current session time to the existing total time.
+     *
+     * @return {string} ISO8601 Duration
+     */
+    getCurrentTotalTime() {
+      return this.session.getCurrentTotalTime();
+    }
+    /**
+     * toJSON for cmi
+     *
+     * @return {
+     *    {
+     *      comments_from_learner: CMICommentsFromLearner,
+     *      comments_from_lms: CMICommentsFromLMS,
+     *      completion_status: string,
+     *      completion_threshold: string,
+     *      credit: string,
+     *      entry: string,
+     *      exit: string,
+     *      interactions: CMIInteractions,
+     *      launch_data: string,
+     *      learner_id: string,
+     *      learner_name: string,
+     *      learner_preference: CMILearnerPreference,
+     *      location: string,
+     *      max_time_allowed: string,
+     *      mode: string,
+     *      objectives: CMIObjectives,
+     *      progress_measure: string,
+     *      scaled_passing_score: string,
+     *      score: Scorm2004CMIScore,
+     *      session_time: string,
+     *      success_status: string,
+     *      suspend_data: string,
+     *      time_limit_action: string
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      this.session.jsonString = true;
+      const result = {
+        comments_from_learner: this.comments_from_learner,
+        comments_from_lms: this.comments_from_lms,
+        completion_status: this.completion_status,
+        completion_threshold: this.completion_threshold,
+        credit: this.credit,
+        entry: this.entry,
+        exit: this.exit,
+        interactions: this.interactions,
+        launch_data: this.launch_data,
+        learner_id: this.learner_id,
+        learner_name: this.learner_name,
+        learner_preference: this.learner_preference,
+        location: this.location,
+        max_time_allowed: this.max_time_allowed,
+        mode: this.mode,
+        objectives: this.objectives,
+        progress_measure: this.progress_measure,
+        scaled_passing_score: this.scaled_passing_score,
+        score: this.score,
+        session_time: this.session_time,
+        success_status: this.success_status,
+        suspend_data: this.suspend_data,
+        time_limit_action: this.time_limit_action
+      };
+      delete this.jsonString;
+      delete this.session.jsonString;
+      return result;
+    }
+  }
+
+  class ADL extends BaseCMI {
+    /**
+     * Constructor for adl
+     */
+    constructor() {
+      super("adl");
+      this.data = new ADLData();
+      this._sequencing = null;
+      this.nav = new ADLNav();
+      this.data = new ADLData();
+    }
+    /**
+     * Called when the API has been initialized after the CMI has been created
+     */
+    initialize() {
+      super.initialize();
+      this.nav?.initialize();
+    }
+    /**
+     * Called when the API needs to be reset
+     */
+    reset() {
+      this._initialized = false;
+      this.nav?.reset();
+    }
+    /**
+     * Getter for sequencing
+     * @return {Sequencing | null}
+     */
+    get sequencing() {
+      return this._sequencing;
+    }
+    /**
+     * Setter for sequencing
+     * @param {Sequencing | null} sequencing
+     */
+    set sequencing(sequencing) {
+      this._sequencing = sequencing;
+      if (sequencing) {
+        sequencing.adlNav = this.nav;
+        this.nav.sequencing = sequencing;
+      }
+    }
+    /**
+     * toJSON for adl
+     * @return {
+     *    {
+     *      nav: ADLNav,
+     *      data: ADLData
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        nav: this.nav,
+        data: this.data
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+  class ADLNav extends BaseCMI {
+    /**
+     * Constructor for `adl.nav`
+     */
+    constructor() {
+      super("adl.nav");
+      this._request = "_none_";
+      this._sequencing = null;
+      this.request_valid = new ADLNavRequestValid();
+    }
+    /**
+     * Getter for sequencing
+     * @return {Sequencing | null}
+     */
+    get sequencing() {
+      return this._sequencing;
+    }
+    /**
+     * Setter for sequencing
+     * @param {Sequencing | null} sequencing
+     */
+    set sequencing(sequencing) {
+      this._sequencing = sequencing;
+    }
+    /**
+     * Called when the API has been initialized after the CMI has been created
+     */
+    initialize() {
+      super.initialize();
+      this.request_valid?.initialize();
+    }
+    /**
+     * Called when the API needs to be reset
+     */
+    reset() {
+      this._initialized = false;
+      this._request = "_none_";
+      this._sequencing = null;
+      this.request_valid?.reset();
+    }
+    /**
+     * Getter for _request
+     * @return {string}
+     */
+    get request() {
+      return this._request;
+    }
+    /**
+     * Setter for _request
+     * @param {string} request
+     */
+    set request(request) {
+      if (check2004ValidFormat(this._cmi_element + ".request", request, scorm2004_regex.NAVEvent)) {
+        if (this._request !== request) {
+          this._request = request;
+          if (this._sequencing) {
+            this._sequencing.processNavigationRequest(request);
+          }
+        }
+      }
+    }
+    /**
+     * toJSON for adl.nav
+     *
+     * @return {
+     *    {
+     *      request: string
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        request: this.request
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+  class ADLData extends CMIArray {
+    constructor() {
+      super({
+        CMIElement: "adl.data",
+        children: scorm2004_constants.adl_data_children,
+        errorCode: scorm2004_errors$1.READ_ONLY_ELEMENT,
+        errorClass: Scorm2004ValidationError
+      });
+    }
+  }
+  class ADLDataObject extends BaseCMI {
+    constructor() {
+      super("adl.data.n");
+      this._id = "";
+      this._store = "";
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      this._initialized = false;
+    }
+    /**
+     * Getter for _id
+     * @return {string}
+     */
+    get id() {
+      return this._id;
+    }
+    /**
+     * Setter for _id
+     * @param {string} id
+     */
+    set id(id) {
+      if (check2004ValidFormat(this._cmi_element + ".id", id, scorm2004_regex.CMILongIdentifier)) {
+        this._id = id;
+      }
+    }
+    /**
+     * Getter for _store
+     * @return {string}
+     */
+    get store() {
+      return this._store;
+    }
+    /**
+     * Setter for _store
+     * @param {string} store
+     */
+    set store(store) {
+      if (check2004ValidFormat(this._cmi_element + ".store", store, scorm2004_regex.CMILangString4000)) {
+        this._store = store;
+      }
+    }
+    /**
+     * toJSON for adl.data.n
+     *
+     * @return {
+     *    {
+     *      id: string,
+     *      store: string
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        id: this._id,
+        store: this._store
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+  class ADLNavRequestValid extends BaseCMI {
+    /**
+     * Constructor for adl.nav.request_valid
+     */
+    constructor() {
+      super("adl.nav.request_valid");
+      this._continue = "unknown";
+      this._previous = "unknown";
+      this._choice = {};
+      this._jump = {};
+    }
+    /**
+     * Called when the API has been reset
+     */
+    reset() {
+      this._initialized = false;
+      this._continue = "unknown";
+      this._previous = "unknown";
+    }
+    /**
+     * Getter for _continue
+     * @return {string}
+     */
+    get continue() {
+      return this._continue;
+    }
+    /**
+     * Setter for _continue. Just throws an error.
+     * @param {string} _continue
+     */
+    set continue(_continue) {
+      if (this.initialized) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".continue", scorm2004_errors$1.READ_ONLY_ELEMENT);
+      }
+      if (check2004ValidFormat(this._cmi_element + ".continue", _continue, scorm2004_regex.NAVBoolean)) {
+        this._continue = _continue;
+      }
+    }
+    /**
+     * Getter for _previous
+     * @return {string}
+     */
+    get previous() {
+      return this._previous;
+    }
+    /**
+     * Setter for _previous. Just throws an error.
+     * @param {string} _previous
+     */
+    set previous(_previous) {
+      if (this.initialized) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".previous", scorm2004_errors$1.READ_ONLY_ELEMENT);
+      }
+      if (check2004ValidFormat(this._cmi_element + ".previous", _previous, scorm2004_regex.NAVBoolean)) {
+        this._previous = _previous;
+      }
+    }
+    /**
+     * Getter for _choice
+     * @return {{ [key: string]: NAVBoolean }}
+     */
+    get choice() {
+      return this._choice;
+    }
+    /**
+     * Setter for _choice
+     * @param {{ [key: string]: string }} choice
+     */
+    set choice(choice) {
+      if (this.initialized) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".choice", scorm2004_errors$1.READ_ONLY_ELEMENT);
+      }
+      if (typeof choice !== "object") {
+        throw new Scorm2004ValidationError(this._cmi_element + ".choice", scorm2004_errors$1.TYPE_MISMATCH);
+      }
+      for (const key in choice) {
+        if ({}.hasOwnProperty.call(choice, key)) {
+          if (check2004ValidFormat(this._cmi_element + ".choice." + key, choice[key], scorm2004_regex.NAVBoolean) && check2004ValidFormat(this._cmi_element + ".choice." + key, key, scorm2004_regex.NAVTarget)) {
+            const value = choice[key];
+            if (value === "true") {
+              this._choice[key] = NAVBoolean.TRUE;
+            } else if (value === "false") {
+              this._choice[key] = NAVBoolean.FALSE;
+            } else if (value === "unknown") {
+              this._choice[key] = NAVBoolean.UNKNOWN;
+            }
+          }
+        }
+      }
+    }
+    /**
+     * Getter for _jump
+     * @return {{ [key: string]: NAVBoolean }}
+     */
+    get jump() {
+      return this._jump;
+    }
+    /**
+     * Setter for _jump
+     * @param {{ [key: string]: string }} jump
+     */
+    set jump(jump) {
+      if (this.initialized) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".jump", scorm2004_errors$1.READ_ONLY_ELEMENT);
+      }
+      if (typeof jump !== "object") {
+        throw new Scorm2004ValidationError(this._cmi_element + ".jump", scorm2004_errors$1.TYPE_MISMATCH);
+      }
+      for (const key in jump) {
+        if ({}.hasOwnProperty.call(jump, key)) {
+          if (check2004ValidFormat(this._cmi_element + ".jump." + key, jump[key], scorm2004_regex.NAVBoolean) && check2004ValidFormat(this._cmi_element + ".jump." + key, key, scorm2004_regex.NAVTarget)) {
+            const value = jump[key];
+            if (value === "true") {
+              this._jump[key] = NAVBoolean.TRUE;
+            } else if (value === "false") {
+              this._jump[key] = NAVBoolean.FALSE;
+            } else if (value === "unknown") {
+              this._jump[key] = NAVBoolean.UNKNOWN;
+            }
+          }
+        }
+      }
+    }
+    /**
+     * toJSON for adl.nav.request_valid
+     *
+     * @return {
+     *    {
+     *      previous: string,
+     *      continue: string
+     *    }
+     *  }
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        previous: this._previous,
+        continue: this._continue,
+        choice: this._choice,
+        jump: this._jump
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+
+  var RuleActionType = /* @__PURE__ */(RuleActionType2 => {
+    RuleActionType2["SKIP"] = "skip";
+    RuleActionType2["DISABLED"] = "disabled";
+    RuleActionType2["HIDE_FROM_CHOICE"] = "hideFromChoice";
+    RuleActionType2["STOP_FORWARD_TRAVERSAL"] = "stopForwardTraversal";
+    RuleActionType2["EXIT_PARENT"] = "exitParent";
+    RuleActionType2["EXIT_ALL"] = "exitAll";
+    RuleActionType2["RETRY"] = "retry";
+    RuleActionType2["RETRY_ALL"] = "retryAll";
+    RuleActionType2["CONTINUE"] = "continue";
+    RuleActionType2["PREVIOUS"] = "previous";
+    RuleActionType2["EXIT"] = "exit";
+    return RuleActionType2;
+  })(RuleActionType || {});
+  class RuleCondition extends BaseCMI {
+    /**
+     * Constructor for RuleCondition
+     * @param {RuleConditionType} condition - The condition type
+     * @param {RuleConditionOperator | null} operator - The operator (null for no operator)
+     * @param {Map<string, any>} parameters - Additional parameters for the condition
+     */
+    constructor() {
+      let condition = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "always";
+      let operator = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+      let parameters = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : /* @__PURE__ */new Map();
+      super("ruleCondition");
+      this._condition = "always" /* ALWAYS */;
+      this._operator = null;
+      this._parameters = /* @__PURE__ */new Map();
+      this._condition = condition;
+      this._operator = operator;
+      this._parameters = parameters;
+    }
+    /**
+     * Called when the API needs to be reset
+     */
+    reset() {
+      this._initialized = false;
+    }
+    /**
+     * Getter for condition
+     * @return {RuleConditionType}
+     */
+    get condition() {
+      return this._condition;
+    }
+    /**
+     * Setter for condition
+     * @param {RuleConditionType} condition
+     */
+    set condition(condition) {
+      this._condition = condition;
+    }
+    /**
+     * Getter for operator
+     * @return {RuleConditionOperator | null}
+     */
+    get operator() {
+      return this._operator;
+    }
+    /**
+     * Setter for operator
+     * @param {RuleConditionOperator | null} operator
+     */
+    set operator(operator) {
+      this._operator = operator;
+    }
+    /**
+     * Getter for parameters
+     * @return {Map<string, any>}
+     */
+    get parameters() {
+      return this._parameters;
+    }
+    /**
+     * Setter for parameters
+     * @param {Map<string, any>} parameters
+     */
+    set parameters(parameters) {
+      this._parameters = parameters;
+    }
+    /**
+     * Evaluate the condition for an activity
+     * @param {Activity} activity - The activity to evaluate the condition for
+     * @return {boolean} - True if the condition is met, false otherwise
+     */
+    evaluate(activity) {
+      switch (this._condition) {
+        case "satisfied" /* SATISFIED */:
+          return activity.successStatus === SuccessStatus.PASSED;
+        case "objectiveStatusKnown" /* OBJECTIVE_STATUS_KNOWN */:
+          return activity.objectiveMeasureStatus;
+        case "objectiveMeasureKnown" /* OBJECTIVE_MEASURE_KNOWN */:
+          return activity.objectiveMeasureStatus;
+        case "objectiveMeasureGreaterThan" /* OBJECTIVE_MEASURE_GREATER_THAN */:
+          {
+            const greaterThanValue = this._parameters.get("threshold") || 0;
+            return activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue;
+          }
+        case "objectiveMeasureLessThan" /* OBJECTIVE_MEASURE_LESS_THAN */:
+          {
+            const lessThanValue = this._parameters.get("threshold") || 0;
+            return activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue;
+          }
+        case "completed" /* COMPLETED */:
+          return activity.isCompleted;
+        case "progressKnown" /* PROGRESS_KNOWN */:
+          return activity.completionStatus !== "unknown";
+        case "attempted" /* ATTEMPTED */:
+          return activity.attemptCount > 0;
+        case "attemptLimitExceeded" /* ATTEMPT_LIMIT_EXCEEDED */:
+          {
+            const attemptLimit = this._parameters.get("attemptLimit") || 0;
+            return attemptLimit > 0 && activity.attemptCount >= attemptLimit;
+          }
+        case "timeLimitExceeded" /* TIME_LIMIT_EXCEEDED */:
+          return false;
+        case "outsideAvailableTimeRange" /* OUTSIDE_AVAILABLE_TIME_RANGE */:
+          return false;
+        case "always" /* ALWAYS */:
+          return true;
+        default:
+          return false;
+      }
+    }
+    /**
+     * toJSON for RuleCondition
+     * @return {object}
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        condition: this._condition,
+        operator: this._operator,
+        parameters: Object.fromEntries(this._parameters)
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+  class SequencingRule extends BaseCMI {
+    /**
+     * Constructor for SequencingRule
+     * @param {RuleActionType} action - The action to take when the rule conditions are met
+     * @param {RuleConditionOperator} conditionCombination - How to combine multiple conditions
+     */
+    constructor() {
+      let action = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "skip";
+      let conditionCombination = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "and";
+      super("sequencingRule");
+      this._conditions = [];
+      this._action = "skip" /* SKIP */;
+      this._conditionCombination = "and" /* AND */;
+      this._action = action;
+      this._conditionCombination = conditionCombination;
+    }
+    /**
+     * Called when the API needs to be reset
+     */
+    reset() {
+      this._initialized = false;
+      this._conditions = [];
+    }
+    /**
+     * Getter for conditions
+     * @return {RuleCondition[]}
+     */
+    get conditions() {
+      return this._conditions;
+    }
+    /**
+     * Add a condition to the rule
+     * @param {RuleCondition} condition - The condition to add
+     */
+    addCondition(condition) {
+      if (!(condition instanceof RuleCondition)) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".conditions", scorm2004_errors$1.TYPE_MISMATCH);
+      }
+      this._conditions.push(condition);
+    }
+    /**
+     * Remove a condition from the rule
+     * @param {RuleCondition} condition - The condition to remove
+     * @return {boolean} - True if the condition was removed, false otherwise
+     */
+    removeCondition(condition) {
+      const index = this._conditions.indexOf(condition);
+      if (index !== -1) {
+        this._conditions.splice(index, 1);
+        return true;
+      }
+      return false;
+    }
+    /**
+     * Getter for action
+     * @return {RuleActionType}
+     */
+    get action() {
+      return this._action;
+    }
+    /**
+     * Setter for action
+     * @param {RuleActionType} action
+     */
+    set action(action) {
+      this._action = action;
+    }
+    /**
+     * Getter for conditionCombination
+     * @return {RuleConditionOperator}
+     */
+    get conditionCombination() {
+      return this._conditionCombination;
+    }
+    /**
+     * Setter for conditionCombination
+     * @param {RuleConditionOperator} conditionCombination
+     */
+    set conditionCombination(conditionCombination) {
+      this._conditionCombination = conditionCombination;
+    }
+    /**
+     * Evaluate the rule for an activity
+     * @param {Activity} activity - The activity to evaluate the rule for
+     * @return {boolean} - True if the rule conditions are met, false otherwise
+     */
+    evaluate(activity) {
+      if (this._conditions.length === 0) {
+        return true;
+      }
+      if (this._conditionCombination === "and" /* AND */) {
+        return this._conditions.every(condition => condition.evaluate(activity));
+      } else if (this._conditionCombination === "or" /* OR */) {
+        return this._conditions.some(condition => condition.evaluate(activity));
+      }
+      return false;
+    }
+    /**
+     * toJSON for SequencingRule
+     * @return {object}
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        conditions: this._conditions,
+        action: this._action,
+        conditionCombination: this._conditionCombination
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+  class SequencingRules extends BaseCMI {
+    /**
+     * Constructor for SequencingRules
+     */
+    constructor() {
+      super("sequencingRules");
+      this._preConditionRules = [];
+      this._exitConditionRules = [];
+      this._postConditionRules = [];
+    }
+    /**
+     * Called when the API needs to be reset
+     */
+    reset() {
+      this._initialized = false;
+      this._preConditionRules = [];
+      this._exitConditionRules = [];
+      this._postConditionRules = [];
+    }
+    /**
+     * Getter for preConditionRules
+     * @return {SequencingRule[]}
+     */
+    get preConditionRules() {
+      return this._preConditionRules;
+    }
+    /**
+     * Add a pre-condition rule
+     * @param {SequencingRule} rule - The rule to add
+     */
+    addPreConditionRule(rule) {
+      if (!(rule instanceof SequencingRule)) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".preConditionRules", scorm2004_errors$1.TYPE_MISMATCH);
+      }
+      this._preConditionRules.push(rule);
+    }
+    /**
+     * Getter for exitConditionRules
+     * @return {SequencingRule[]}
+     */
+    get exitConditionRules() {
+      return this._exitConditionRules;
+    }
+    /**
+     * Add an exit condition rule
+     * @param {SequencingRule} rule - The rule to add
+     */
+    addExitConditionRule(rule) {
+      if (!(rule instanceof SequencingRule)) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".exitConditionRules", scorm2004_errors$1.TYPE_MISMATCH);
+      }
+      this._exitConditionRules.push(rule);
+    }
+    /**
+     * Getter for postConditionRules
+     * @return {SequencingRule[]}
+     */
+    get postConditionRules() {
+      return this._postConditionRules;
+    }
+    /**
+     * Add a post-condition rule
+     * @param {SequencingRule} rule - The rule to add
+     */
+    addPostConditionRule(rule) {
+      if (!(rule instanceof SequencingRule)) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".postConditionRules", scorm2004_errors$1.TYPE_MISMATCH);
+      }
+      this._postConditionRules.push(rule);
+    }
+    /**
+     * Evaluate pre-condition rules for an activity
+     * @param {Activity} activity - The activity to evaluate the rules for
+     * @return {RuleActionType | null} - The action to take, or null if no rules are met
+     */
+    evaluatePreConditionRules(activity) {
+      for (const rule of this._preConditionRules) {
+        if (rule.evaluate(activity)) {
+          return rule.action;
+        }
+      }
+      return null;
+    }
+    /**
+     * Evaluate exit condition rules for an activity
+     * @param {Activity} activity - The activity to evaluate the rules for
+     * @return {RuleActionType | null} - The action to take, or null if no rules are met
+     */
+    evaluateExitConditionRules(activity) {
+      for (const rule of this._exitConditionRules) {
+        if (rule.evaluate(activity)) {
+          return rule.action;
+        }
+      }
+      return null;
+    }
+    /**
+     * Evaluate post-condition rules for an activity
+     * @param {Activity} activity - The activity to evaluate the rules for
+     * @return {RuleActionType | null} - The action to take, or null if no rules are met
+     */
+    evaluatePostConditionRules(activity) {
+      for (const rule of this._postConditionRules) {
+        if (rule.evaluate(activity)) {
+          return rule.action;
+        }
+      }
+      return null;
+    }
+    /**
+     * toJSON for SequencingRules
+     * @return {object}
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        preConditionRules: this._preConditionRules,
+        exitConditionRules: this._exitConditionRules,
+        postConditionRules: this._postConditionRules
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+
+  class RollupCondition extends BaseCMI {
+    /**
+     * Constructor for RollupCondition
+     * @param {RollupConditionType} condition - The condition type
+     * @param {Map<string, any>} parameters - Additional parameters for the condition
+     */
+    constructor() {
+      let condition = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "always";
+      let parameters = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : /* @__PURE__ */new Map();
+      super("rollupCondition");
+      this._condition = "always" /* ALWAYS */;
+      this._parameters = /* @__PURE__ */new Map();
+      this._condition = condition;
+      this._parameters = parameters;
+    }
+    /**
+     * Called when the API needs to be reset
+     */
+    reset() {
+      this._initialized = false;
+    }
+    /**
+     * Getter for condition
+     * @return {RollupConditionType}
+     */
+    get condition() {
+      return this._condition;
+    }
+    /**
+     * Setter for condition
+     * @param {RollupConditionType} condition
+     */
+    set condition(condition) {
+      this._condition = condition;
+    }
+    /**
+     * Getter for parameters
+     * @return {Map<string, any>}
+     */
+    get parameters() {
+      return this._parameters;
+    }
+    /**
+     * Setter for parameters
+     * @param {Map<string, any>} parameters
+     */
+    set parameters(parameters) {
+      this._parameters = parameters;
+    }
+    /**
+     * Evaluate the condition for an activity
+     * @param {Activity} activity - The activity to evaluate the condition for
+     * @return {boolean} - True if the condition is met, false otherwise
+     */
+    evaluate(activity) {
+      switch (this._condition) {
+        case "satisfied" /* SATISFIED */:
+          return activity.successStatus === SuccessStatus.PASSED;
+        case "objectiveStatusKnown" /* OBJECTIVE_STATUS_KNOWN */:
+          return activity.objectiveMeasureStatus;
+        case "objectiveMeasureKnown" /* OBJECTIVE_MEASURE_KNOWN */:
+          return activity.objectiveMeasureStatus;
+        case "objectiveMeasureGreaterThan" /* OBJECTIVE_MEASURE_GREATER_THAN */:
+          {
+            const greaterThanValue = this._parameters.get("threshold") || 0;
+            return activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue;
+          }
+        case "objectiveMeasureLessThan" /* OBJECTIVE_MEASURE_LESS_THAN */:
+          {
+            const lessThanValue = this._parameters.get("threshold") || 0;
+            return activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue;
+          }
+        case "completed" /* COMPLETED */:
+          return activity.isCompleted;
+        case "progressKnown" /* PROGRESS_KNOWN */:
+          return activity.completionStatus !== CompletionStatus.UNKNOWN;
+        case "attempted" /* ATTEMPTED */:
+          return activity.attemptCount > 0;
+        case "notAttempted" /* NOT_ATTEMPTED */:
+          return activity.attemptCount === 0;
+        case "always" /* ALWAYS */:
+          return true;
+        default:
+          return false;
+      }
+    }
+    /**
+     * toJSON for RollupCondition
+     * @return {object}
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        condition: this._condition,
+        parameters: Object.fromEntries(this._parameters)
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+  class RollupRule extends BaseCMI {
+    /**
+     * Constructor for RollupRule
+     * @param {RollupActionType} action - The action to take when the rule conditions are met
+     * @param {RollupConsiderationType} consideration - How to consider child activities
+     * @param {number} minimumCount - The minimum count for AT_LEAST_COUNT consideration
+     * @param {number} minimumPercent - The minimum percent for AT_LEAST_PERCENT consideration
+     */
+    constructor() {
+      let action = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "satisfied";
+      let consideration = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "all";
+      let minimumCount = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+      let minimumPercent = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0;
+      super("rollupRule");
+      this._conditions = [];
+      this._action = "satisfied" /* SATISFIED */;
+      this._consideration = "all" /* ALL */;
+      this._minimumCount = 0;
+      this._minimumPercent = 0;
+      this._action = action;
+      this._consideration = consideration;
+      this._minimumCount = minimumCount;
+      this._minimumPercent = minimumPercent;
+    }
+    /**
+     * Called when the API needs to be reset
+     */
+    reset() {
+      this._initialized = false;
+      this._conditions = [];
+    }
+    /**
+     * Getter for conditions
+     * @return {RollupCondition[]}
+     */
+    get conditions() {
+      return this._conditions;
+    }
+    /**
+     * Add a condition to the rule
+     * @param {RollupCondition} condition - The condition to add
+     */
+    addCondition(condition) {
+      if (!(condition instanceof RollupCondition)) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".conditions", scorm2004_errors$1.TYPE_MISMATCH);
+      }
+      this._conditions.push(condition);
+    }
+    /**
+     * Remove a condition from the rule
+     * @param {RollupCondition} condition - The condition to remove
+     * @return {boolean} - True if the condition was removed, false otherwise
+     */
+    removeCondition(condition) {
+      const index = this._conditions.indexOf(condition);
+      if (index !== -1) {
+        this._conditions.splice(index, 1);
+        return true;
+      }
+      return false;
+    }
+    /**
+     * Getter for action
+     * @return {RollupActionType}
+     */
+    get action() {
+      return this._action;
+    }
+    /**
+     * Setter for action
+     * @param {RollupActionType} action
+     */
+    set action(action) {
+      this._action = action;
+    }
+    /**
+     * Getter for consideration
+     * @return {RollupConsiderationType}
+     */
+    get consideration() {
+      return this._consideration;
+    }
+    /**
+     * Setter for consideration
+     * @param {RollupConsiderationType} consideration
+     */
+    set consideration(consideration) {
+      this._consideration = consideration;
+    }
+    /**
+     * Getter for minimumCount
+     * @return {number}
+     */
+    get minimumCount() {
+      return this._minimumCount;
+    }
+    /**
+     * Setter for minimumCount
+     * @param {number} minimumCount
+     */
+    set minimumCount(minimumCount) {
+      if (minimumCount >= 0) {
+        this._minimumCount = minimumCount;
+      }
+    }
+    /**
+     * Getter for minimumPercent
+     * @return {number}
+     */
+    get minimumPercent() {
+      return this._minimumPercent;
+    }
+    /**
+     * Setter for minimumPercent
+     * @param {number} minimumPercent
+     */
+    set minimumPercent(minimumPercent) {
+      if (minimumPercent >= 0 && minimumPercent <= 100) {
+        this._minimumPercent = minimumPercent;
+      }
+    }
+    /**
+     * Evaluate the rule for a set of child activities
+     * @param {Activity[]} children - The child activities to evaluate the rule for
+     * @return {boolean} - True if the rule conditions are met, false otherwise
+     */
+    evaluate(children) {
+      if (children.length === 0) {
+        return false;
+      }
+      const matchingChildren = children.filter(child => {
+        return this._conditions.every(condition => condition.evaluate(child));
+      });
+      switch (this._consideration) {
+        case "all" /* ALL */:
+          return matchingChildren.length === children.length;
+        case "any" /* ANY */:
+          return matchingChildren.length > 0;
+        case "none" /* NONE */:
+          return matchingChildren.length === 0;
+        case "atLeastCount" /* AT_LEAST_COUNT */:
+          return matchingChildren.length >= this._minimumCount;
+        case "atLeastPercent" /* AT_LEAST_PERCENT */:
+          {
+            const percent = matchingChildren.length / children.length * 100;
+            return percent >= this._minimumPercent;
+          }
+        default:
+          return false;
+      }
+    }
+    /**
+     * toJSON for RollupRule
+     * @return {object}
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        conditions: this._conditions,
+        action: this._action,
+        consideration: this._consideration,
+        minimumCount: this._minimumCount,
+        minimumPercent: this._minimumPercent
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+  class RollupRules extends BaseCMI {
+    /**
+     * Constructor for RollupRules
+     */
+    constructor() {
+      super("rollupRules");
+      this._rules = [];
+    }
+    /**
+     * Called when the API needs to be reset
+     */
+    reset() {
+      this._initialized = false;
+      this._rules = [];
+    }
+    /**
+     * Getter for rules
+     * @return {RollupRule[]}
+     */
+    get rules() {
+      return this._rules;
+    }
+    /**
+     * Add a rule
+     * @param {RollupRule} rule - The rule to add
+     */
+    addRule(rule) {
+      if (!(rule instanceof RollupRule)) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".rules", scorm2004_errors$1.TYPE_MISMATCH);
+      }
+      this._rules.push(rule);
+    }
+    /**
+     * Remove a rule
+     * @param {RollupRule} rule - The rule to remove
+     * @return {boolean} - True if the rule was removed, false otherwise
+     */
+    removeRule(rule) {
+      const index = this._rules.indexOf(rule);
+      if (index !== -1) {
+        this._rules.splice(index, 1);
+        return true;
+      }
+      return false;
+    }
+    /**
+     * Process rollup for an activity
+     * @param {Activity} activity - The activity to process rollup for
+     */
+    processRollup(activity) {
+      if (!activity || activity.children.length === 0) {
+        return;
+      }
+      const children = activity.children;
+      let completionRollup = false;
+      let successRollup = false;
+      for (const rule of this._rules) {
+        if (rule.evaluate(children)) {
+          switch (rule.action) {
+            case "satisfied" /* SATISFIED */:
+              activity.successStatus = SuccessStatus.PASSED;
+              successRollup = true;
+              break;
+            case "notSatisfied" /* NOT_SATISFIED */:
+              activity.successStatus = SuccessStatus.FAILED;
+              successRollup = true;
+              break;
+            case "completed" /* COMPLETED */:
+              activity.completionStatus = CompletionStatus.COMPLETED;
+              activity.isCompleted = true;
+              completionRollup = true;
+              break;
+            case "incomplete" /* INCOMPLETE */:
+              activity.completionStatus = CompletionStatus.INCOMPLETE;
+              activity.isCompleted = false;
+              completionRollup = true;
+              break;
+          }
+        }
+      }
+      if (!completionRollup) {
+        this._defaultCompletionRollup(activity, children);
+      }
+      if (!successRollup) {
+        this._defaultSuccessRollup(activity, children);
+      }
+    }
+    /**
+     * Default completion rollup
+     * @param {Activity} activity - The activity to process rollup for
+     * @param {Activity[]} children - The child activities
+     * @private
+     */
+    _defaultCompletionRollup(activity, children) {
+      const allCompleted = children.every(child => child.isCompleted);
+      if (allCompleted) {
+        activity.completionStatus = CompletionStatus.COMPLETED;
+        activity.isCompleted = true;
+      } else {
+        const anyIncomplete = children.some(child => child.completionStatus === CompletionStatus.INCOMPLETE);
+        if (anyIncomplete) {
+          activity.completionStatus = CompletionStatus.INCOMPLETE;
+          activity.isCompleted = false;
+        }
+      }
+    }
+    /**
+     * Default success rollup
+     * @param {Activity} activity - The activity to process rollup for
+     * @param {Activity[]} children - The child activities
+     * @private
+     */
+    _defaultSuccessRollup(activity, children) {
+      const allSatisfied = children.every(child => child.successStatus === SuccessStatus.PASSED);
+      if (allSatisfied) {
+        activity.successStatus = SuccessStatus.PASSED;
+      } else {
+        const anyNotSatisfied = children.some(child => child.successStatus === SuccessStatus.FAILED);
+        if (anyNotSatisfied) {
+          activity.successStatus = SuccessStatus.FAILED;
+        }
+      }
+    }
+    /**
+     * toJSON for RollupRules
+     * @return {object}
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        rules: this._rules
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+
+  const ValidLanguages = ["aa", "ab", "ae", "af", "ak", "am", "an", "ar", "as", "av", "ay", "az", "ba", "be", "bg", "bh", "bi", "bm", "bn", "bo", "br", "bs", "ca", "ce", "ch", "co", "cr", "cs", "cu", "cv", "cy", "da", "de", "dv", "dz", "ee", "el", "en", "eo", "es", "et", "eu", "fa", "ff", "fi", "fj", "fo", "fr", "fy", "ga", "gd", "gl", "gn", "gu", "gv", "ha", "he", "hi", "ho", "hr", "ht", "hu", "hy", "hz", "ia", "id", "ie", "ig", "ii", "ik", "io", "is", "it", "iu", "ja", "jv", "ka", "kg", "ki", "kj", "kk", "kl", "km", "kn", "ko", "kr", "ks", "ku", "kv", "kw", "ky", "la", "lb", "lg", "li", "ln", "lo", "lt", "lu", "lv", "mg", "mh", "mi", "mk", "ml", "mn", "mo", "mr", "ms", "mt", "my", "na", "nb", "nd", "ne", "ng", "nl", "nn", "no", "nr", "nv", "ny", "oc", "oj", "om", "or", "os", "pa", "pi", "pl", "ps", "pt", "qu", "rm", "rn", "ro", "ru", "rw", "sa", "sc", "sd", "se", "sg", "sh", "si", "sk", "sl", "sm", "sn", "so", "sq", "sr", "ss", "st", "su", "sv", "sw", "ta", "te", "tg", "th", "ti", "tk", "tl", "tn", "to", "tr", "ts", "tt", "tw", "ty", "ug", "uk", "ur", "uz", "ve", "vi", "vo", "wa", "wo", "xh", "yi", "yo", "za", "zh", "zu", "aar", "abk", "ave", "afr", "aka", "amh", "arg", "ara", "asm", "ava", "aym", "aze", "bak", "bel", "bul", "bih", "bis", "bam", "ben", "tib", "bod", "bre", "bos", "cat", "che", "cha", "cos", "cre", "cze", "ces", "chu", "chv", "wel", "cym", "dan", "ger", "deu", "div", "dzo", "ewe", "gre", "ell", "eng", "epo", "spa", "est", "baq", "eus", "per", "fas", "ful", "fin", "fij", "fao", "fre", "fra", "fry", "gle", "gla", "glg", "grn", "guj", "glv", "hau", "heb", "hin", "hmo", "hrv", "hat", "hun", "arm", "hye", "her", "ina", "ind", "ile", "ibo", "iii", "ipk", "ido", "ice", "isl", "ita", "iku", "jpn", "jav", "geo", "kat", "kon", "kik", "kua", "kaz", "kal", "khm", "kan", "kor", "kau", "kas", "kur", "kom", "cor", "kir", "lat", "ltz", "lug", "lim", "lin", "lao", "lit", "lub", "lav", "mlg", "mah", "mao", "mri", "mac", "mkd", "mal", "mon", "mol", "mar", "may", "msa", "mlt", "bur", "mya", "nau", "nob", "nde", "nep", "ndo", "dut", "nld", "nno", "nor", "nbl", "nav", "nya", "oci", "oji", "orm", "ori", "oss", "pan", "pli", "pol", "pus", "por", "que", "roh", "run", "rum", "ron", "rus", "kin", "san", "srd", "snd", "sme", "sag", "slo", "sin", "slk", "slv", "smo", "sna", "som", "alb", "sqi", "srp", "ssw", "sot", "sun", "swe", "swa", "tam", "tel", "tgk", "tha", "tir", "tuk", "tgl", "tsn", "ton", "tur", "tso", "tat", "twi", "tah", "uig", "ukr", "urd", "uzb", "ven", "vie", "vol", "wln", "wol", "xho", "yid", "yor", "zha", "chi", "zho", "zul"];
+
+  class Activity extends BaseCMI {
+    /**
+     * Constructor for Activity
+     * @param {string} id - The unique identifier for this activity
+     * @param {string} title - The title of this activity
+     */
+    constructor() {
+      let id = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
+      let title = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "";
+      super("activity");
+      this._id = "";
+      this._title = "";
+      this._children = [];
+      this._parent = null;
+      this._isVisible = true;
+      this._isActive = false;
+      this._isSuspended = false;
+      this._isCompleted = false;
+      this._completionStatus = CompletionStatus.UNKNOWN;
+      this._successStatus = SuccessStatus.UNKNOWN;
+      this._attemptCount = 0;
+      this._attemptCompletionAmount = 0;
+      this._attemptAbsoluteDuration = "PT0H0M0S";
+      this._attemptExperiencedDuration = "PT0H0M0S";
+      this._activityAbsoluteDuration = "PT0H0M0S";
+      this._activityExperiencedDuration = "PT0H0M0S";
+      this._objectiveSatisfiedStatus = false;
+      this._objectiveMeasureStatus = false;
+      this._objectiveNormalizedMeasure = 0;
+      this._id = id;
+      this._title = title;
+    }
+    /**
+     * Called when the API has been initialized after the CMI has been created
+     */
+    initialize() {
+      super.initialize();
+      for (const child of this._children) {
+        child.initialize();
+      }
+    }
+    /**
+     * Called when the API needs to be reset
+     */
+    reset() {
+      this._initialized = false;
+      this._isActive = false;
+      this._isSuspended = false;
+      this._isCompleted = false;
+      this._completionStatus = CompletionStatus.UNKNOWN;
+      this._successStatus = SuccessStatus.UNKNOWN;
+      this._attemptCount = 0;
+      this._attemptCompletionAmount = 0;
+      this._attemptAbsoluteDuration = "PT0H0M0S";
+      this._attemptExperiencedDuration = "PT0H0M0S";
+      this._activityAbsoluteDuration = "PT0H0M0S";
+      this._activityExperiencedDuration = "PT0H0M0S";
+      this._objectiveSatisfiedStatus = false;
+      this._objectiveMeasureStatus = false;
+      this._objectiveNormalizedMeasure = 0;
+      for (const child of this._children) {
+        child.reset();
+      }
+    }
+    /**
+     * Getter for id
+     * @return {string}
+     */
+    get id() {
+      return this._id;
+    }
+    /**
+     * Setter for id
+     * @param {string} id
+     */
+    set id(id) {
+      if (check2004ValidFormat(this._cmi_element + ".id", id, scorm2004_regex.CMILongIdentifier)) {
+        this._id = id;
+      }
+    }
+    /**
+     * Getter for title
+     * @return {string}
+     */
+    get title() {
+      return this._title;
+    }
+    /**
+     * Setter for title
+     * @param {string} title
+     */
+    set title(title) {
+      if (check2004ValidFormat(this._cmi_element + ".title", title, scorm2004_regex.CMILangString250)) {
+        this._title = title;
+      }
+    }
+    /**
+     * Getter for children
+     * @return {Activity[]}
+     */
+    get children() {
+      return this._children;
+    }
+    /**
+     * Add a child activity to this activity
+     * @param {Activity} child - The child activity to add
+     */
+    addChild(child) {
+      if (!(child instanceof Activity)) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".children", scorm2004_errors$1.TYPE_MISMATCH);
+      }
+      child._parent = this;
+      this._children.push(child);
+    }
+    /**
+     * Remove a child activity from this activity
+     * @param {Activity} child - The child activity to remove
+     * @return {boolean} - True if the child was removed, false otherwise
+     */
+    removeChild(child) {
+      const index = this._children.indexOf(child);
+      if (index !== -1) {
+        this._children.splice(index, 1);
+        child._parent = null;
+        return true;
+      }
+      return false;
+    }
+    /**
+     * Getter for parent
+     * @return {Activity | null}
+     */
+    get parent() {
+      return this._parent;
+    }
+    /**
+     * Getter for isVisible
+     * @return {boolean}
+     */
+    get isVisible() {
+      return this._isVisible;
+    }
+    /**
+     * Setter for isVisible
+     * @param {boolean} isVisible
+     */
+    set isVisible(isVisible) {
+      this._isVisible = isVisible;
+    }
+    /**
+     * Getter for isActive
+     * @return {boolean}
+     */
+    get isActive() {
+      return this._isActive;
+    }
+    /**
+     * Setter for isActive
+     * @param {boolean} isActive
+     */
+    set isActive(isActive) {
+      this._isActive = isActive;
+    }
+    /**
+     * Getter for isSuspended
+     * @return {boolean}
+     */
+    get isSuspended() {
+      return this._isSuspended;
+    }
+    /**
+     * Setter for isSuspended
+     * @param {boolean} isSuspended
+     */
+    set isSuspended(isSuspended) {
+      this._isSuspended = isSuspended;
+    }
+    /**
+     * Getter for isCompleted
+     * @return {boolean}
+     */
+    get isCompleted() {
+      return this._isCompleted;
+    }
+    /**
+     * Setter for isCompleted
+     * @param {boolean} isCompleted
+     */
+    set isCompleted(isCompleted) {
+      this._isCompleted = isCompleted;
+    }
+    /**
+     * Getter for completionStatus
+     * @return {CompletionStatus}
+     */
+    get completionStatus() {
+      return this._completionStatus;
+    }
+    /**
+     * Setter for completionStatus
+     * @param {CompletionStatus} completionStatus
+     */
+    set completionStatus(completionStatus) {
+      this._completionStatus = completionStatus;
+      this._isCompleted = completionStatus === CompletionStatus.COMPLETED;
+    }
+    /**
+     * Getter for successStatus
+     * @return {SuccessStatus}
+     */
+    get successStatus() {
+      return this._successStatus;
+    }
+    /**
+     * Setter for successStatus
+     * @param {SuccessStatus} successStatus
+     */
+    set successStatus(successStatus) {
+      this._successStatus = successStatus;
+    }
+    /**
+     * Getter for attemptCount
+     * @return {number}
+     */
+    get attemptCount() {
+      return this._attemptCount;
+    }
+    /**
+     * Increment the attempt count
+     */
+    incrementAttemptCount() {
+      this._attemptCount++;
+    }
+    /**
+     * Getter for objectiveMeasureStatus
+     * @return {boolean}
+     */
+    get objectiveMeasureStatus() {
+      return this._objectiveMeasureStatus;
+    }
+    /**
+     * Setter for objectiveMeasureStatus
+     * @param {boolean} objectiveMeasureStatus
+     */
+    set objectiveMeasureStatus(objectiveMeasureStatus) {
+      this._objectiveMeasureStatus = objectiveMeasureStatus;
+    }
+    /**
+     * Getter for objectiveNormalizedMeasure
+     * @return {number}
+     */
+    get objectiveNormalizedMeasure() {
+      return this._objectiveNormalizedMeasure;
+    }
+    /**
+     * Setter for objectiveNormalizedMeasure
+     * @param {number} objectiveNormalizedMeasure
+     */
+    set objectiveNormalizedMeasure(objectiveNormalizedMeasure) {
+      this._objectiveNormalizedMeasure = objectiveNormalizedMeasure;
+    }
+    /**
+     * toJSON for Activity
+     * @return {object}
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        id: this._id,
+        title: this._title,
+        isVisible: this._isVisible,
+        isActive: this._isActive,
+        isSuspended: this._isSuspended,
+        isCompleted: this._isCompleted,
+        completionStatus: this._completionStatus,
+        successStatus: this._successStatus,
+        attemptCount: this._attemptCount,
+        attemptCompletionAmount: this._attemptCompletionAmount,
+        attemptAbsoluteDuration: this._attemptAbsoluteDuration,
+        attemptExperiencedDuration: this._attemptExperiencedDuration,
+        activityAbsoluteDuration: this._activityAbsoluteDuration,
+        activityExperiencedDuration: this._activityExperiencedDuration,
+        objectiveSatisfiedStatus: this._objectiveSatisfiedStatus,
+        objectiveMeasureStatus: this._objectiveMeasureStatus,
+        objectiveNormalizedMeasure: this._objectiveNormalizedMeasure,
+        children: this._children.map(child => child.toJSON())
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+
+  class ActivityTree extends BaseCMI {
+    /**
+     * Constructor for ActivityTree
+     */
+    constructor() {
+      super("activityTree");
+      this._root = null;
+      this._currentActivity = null;
+      this._suspendedActivity = null;
+      this._activities = /* @__PURE__ */new Map();
+    }
+    /**
+     * Called when the API has been initialized after the CMI has been created
+     */
+    initialize() {
+      super.initialize();
+      if (this._root) {
+        this._root.initialize();
+      }
+    }
+    /**
+     * Called when the API needs to be reset
+     */
+    reset() {
+      this._initialized = false;
+      this._currentActivity = null;
+      this._suspendedActivity = null;
+      if (this._root) {
+        this._root.reset();
+      }
+    }
+    /**
+     * Getter for root
+     * @return {Activity | null}
+     */
+    get root() {
+      return this._root;
+    }
+    /**
+     * Setter for root
+     * @param {Activity} root
+     */
+    set root(root) {
+      if (root !== null && !(root instanceof Activity)) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".root", scorm2004_errors$1.TYPE_MISMATCH);
+      }
+      this._root = root;
+      if (root) {
+        this._activities.set(root.id, root);
+        this._addActivitiesToMap(root);
+      }
+    }
+    /**
+     * Recursively add activities to the activities map
+     * @param {Activity} activity
+     * @private
+     */
+    _addActivitiesToMap(activity) {
+      for (const child of activity.children) {
+        this._activities.set(child.id, child);
+        this._addActivitiesToMap(child);
+      }
+    }
+    /**
+     * Getter for currentActivity
+     * @return {Activity | null}
+     */
+    get currentActivity() {
+      return this._currentActivity;
+    }
+    /**
+     * Setter for currentActivity
+     * @param {Activity | null} activity
+     */
+    set currentActivity(activity) {
+      if (activity !== null && !(activity instanceof Activity)) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".currentActivity", scorm2004_errors$1.TYPE_MISMATCH);
+      }
+      if (this._currentActivity) {
+        this._currentActivity.isActive = false;
+      }
+      this._currentActivity = activity;
+      if (activity) {
+        activity.isActive = true;
+      }
+    }
+    /**
+     * Getter for suspendedActivity
+     * @return {Activity | null}
+     */
+    get suspendedActivity() {
+      return this._suspendedActivity;
+    }
+    /**
+     * Setter for suspendedActivity
+     * @param {Activity | null} activity
+     */
+    set suspendedActivity(activity) {
+      if (activity !== null && !(activity instanceof Activity)) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".suspendedActivity", scorm2004_errors$1.TYPE_MISMATCH);
+      }
+      if (this._suspendedActivity) {
+        this._suspendedActivity.isSuspended = false;
+      }
+      this._suspendedActivity = activity;
+      if (activity) {
+        activity.isSuspended = true;
+      }
+    }
+    /**
+     * Get an activity by ID
+     * @param {string} id - The ID of the activity to get
+     * @return {Activity | undefined} - The activity with the given ID, or undefined if not found
+     */
+    getActivity(id) {
+      return this._activities.get(id);
+    }
+    /**
+     * Get all activities in the tree
+     * @return {Activity[]} - An array of all activities in the tree
+     */
+    getAllActivities() {
+      return Array.from(this._activities.values());
+    }
+    /**
+     * Get the parent of an activity
+     * @param {Activity} activity - The activity to get the parent of
+     * @return {Activity | null} - The parent of the activity, or null if it has no parent
+     */
+    getParent(activity) {
+      return activity.parent;
+    }
+    /**
+     * Get the children of an activity
+     * @param {Activity} activity - The activity to get the children of
+     * @return {Activity[]} - An array of the activity's children
+     */
+    getChildren(activity) {
+      return activity.children;
+    }
+    /**
+     * Get the siblings of an activity
+     * @param {Activity} activity - The activity to get the siblings of
+     * @return {Activity[]} - An array of the activity's siblings
+     */
+    getSiblings(activity) {
+      if (!activity.parent) {
+        return [];
+      }
+      return activity.parent.children.filter(child => child !== activity);
+    }
+    /**
+     * Get the next sibling of an activity
+     * @param {Activity} activity - The activity to get the next sibling of
+     * @return {Activity | null} - The next sibling of the activity, or null if it has no next sibling
+     */
+    getNextSibling(activity) {
+      if (!activity.parent) {
+        return null;
+      }
+      const siblings = activity.parent.children;
+      const index = siblings.indexOf(activity);
+      if (index === -1 || index === siblings.length - 1) {
+        return null;
+      }
+      return siblings[index + 1];
+    }
+    /**
+     * Get the previous sibling of an activity
+     * @param {Activity} activity - The activity to get the previous sibling of
+     * @return {Activity | null} - The previous sibling of the activity, or null if it has no previous sibling
+     */
+    getPreviousSibling(activity) {
+      if (!activity.parent) {
+        return null;
+      }
+      const siblings = activity.parent.children;
+      const index = siblings.indexOf(activity);
+      if (index <= 0) {
+        return null;
+      }
+      return siblings[index - 1];
+    }
+    /**
+     * Get the first child of an activity
+     * @param {Activity} activity - The activity to get the first child of
+     * @return {Activity | null} - The first child of the activity, or null if it has no children
+     */
+    getFirstChild(activity) {
+      if (activity.children.length === 0) {
+        return null;
+      }
+      return activity.children[0];
+    }
+    /**
+     * Get the last child of an activity
+     * @param {Activity} activity - The activity to get the last child of
+     * @return {Activity | null} - The last child of the activity, or null if it has no children
+     */
+    getLastChild(activity) {
+      if (activity.children.length === 0) {
+        return null;
+      }
+      return activity.children[activity.children.length - 1];
+    }
+    /**
+     * Get the common ancestor of two activities
+     * @param {Activity} activity1 - The first activity
+     * @param {Activity} activity2 - The second activity
+     * @return {Activity | null} - The common ancestor of the two activities, or null if they have no common ancestor
+     */
+    getCommonAncestor(activity1, activity2) {
+      const path1 = [];
+      let current = activity1;
+      while (current) {
+        path1.unshift(current);
+        current = current.parent;
+      }
+      current = activity2;
+      while (current) {
+        if (path1.includes(current)) {
+          return current;
+        }
+        current = current.parent;
+      }
+      return null;
+    }
+    /**
+     * toJSON for ActivityTree
+     * @return {object}
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        root: this._root,
+        currentActivity: this._currentActivity ? this._currentActivity.id : null,
+        suspendedActivity: this._suspendedActivity ? this._suspendedActivity.id : null
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+
+  class SequencingControls extends BaseCMI {
+    /**
+     * Constructor for SequencingControls
+     */
+    constructor() {
+      super("sequencingControls");
+      // Sequencing Control Modes
+      this._enabled = true;
+      this._choiceExit = true;
+      this._flow = false;
+      this._forwardOnly = false;
+      this._useCurrentAttemptObjectiveInfo = true;
+      this._useCurrentAttemptProgressInfo = true;
+      // Constrain Choice Controls
+      this._preventActivation = false;
+      this._constrainChoice = false;
+      // Rollup Controls
+      this._rollupObjectiveSatisfied = true;
+      this._rollupProgressCompletion = true;
+      this._objectiveMeasureWeight = 1;
+    }
+    /**
+     * Reset the sequencing controls to their default values
+     */
+    reset() {
+      this._initialized = false;
+      this._enabled = true;
+      this._choiceExit = true;
+      this._flow = false;
+      this._forwardOnly = false;
+      this._useCurrentAttemptObjectiveInfo = true;
+      this._useCurrentAttemptProgressInfo = true;
+      this._preventActivation = false;
+      this._constrainChoice = false;
+      this._rollupObjectiveSatisfied = true;
+      this._rollupProgressCompletion = true;
+      this._objectiveMeasureWeight = 1;
+    }
+    /**
+     * Getter for enabled
+     * @return {boolean}
+     */
+    get enabled() {
+      return this._enabled;
+    }
+    /**
+     * Setter for enabled
+     * @param {boolean} enabled
+     */
+    set enabled(enabled) {
+      this._enabled = enabled;
+    }
+    /**
+     * Getter for choiceExit
+     * @return {boolean}
+     */
+    get choiceExit() {
+      return this._choiceExit;
+    }
+    /**
+     * Setter for choiceExit
+     * @param {boolean} choiceExit
+     */
+    set choiceExit(choiceExit) {
+      this._choiceExit = choiceExit;
+    }
+    /**
+     * Getter for flow
+     * @return {boolean}
+     */
+    get flow() {
+      return this._flow;
+    }
+    /**
+     * Setter for flow
+     * @param {boolean} flow
+     */
+    set flow(flow) {
+      this._flow = flow;
+    }
+    /**
+     * Getter for forwardOnly
+     * @return {boolean}
+     */
+    get forwardOnly() {
+      return this._forwardOnly;
+    }
+    /**
+     * Setter for forwardOnly
+     * @param {boolean} forwardOnly
+     */
+    set forwardOnly(forwardOnly) {
+      this._forwardOnly = forwardOnly;
+    }
+    /**
+     * Getter for useCurrentAttemptObjectiveInfo
+     * @return {boolean}
+     */
+    get useCurrentAttemptObjectiveInfo() {
+      return this._useCurrentAttemptObjectiveInfo;
+    }
+    /**
+     * Setter for useCurrentAttemptObjectiveInfo
+     * @param {boolean} useCurrentAttemptObjectiveInfo
+     */
+    set useCurrentAttemptObjectiveInfo(useCurrentAttemptObjectiveInfo) {
+      this._useCurrentAttemptObjectiveInfo = useCurrentAttemptObjectiveInfo;
+    }
+    /**
+     * Getter for useCurrentAttemptProgressInfo
+     * @return {boolean}
+     */
+    get useCurrentAttemptProgressInfo() {
+      return this._useCurrentAttemptProgressInfo;
+    }
+    /**
+     * Setter for useCurrentAttemptProgressInfo
+     * @param {boolean} useCurrentAttemptProgressInfo
+     */
+    set useCurrentAttemptProgressInfo(useCurrentAttemptProgressInfo) {
+      this._useCurrentAttemptProgressInfo = useCurrentAttemptProgressInfo;
+    }
+    /**
+     * Getter for preventActivation
+     * @return {boolean}
+     */
+    get preventActivation() {
+      return this._preventActivation;
+    }
+    /**
+     * Setter for preventActivation
+     * @param {boolean} preventActivation
+     */
+    set preventActivation(preventActivation) {
+      this._preventActivation = preventActivation;
+    }
+    /**
+     * Getter for constrainChoice
+     * @return {boolean}
+     */
+    get constrainChoice() {
+      return this._constrainChoice;
+    }
+    /**
+     * Setter for constrainChoice
+     * @param {boolean} constrainChoice
+     */
+    set constrainChoice(constrainChoice) {
+      this._constrainChoice = constrainChoice;
+    }
+    /**
+     * Getter for rollupObjectiveSatisfied
+     * @return {boolean}
+     */
+    get rollupObjectiveSatisfied() {
+      return this._rollupObjectiveSatisfied;
+    }
+    /**
+     * Setter for rollupObjectiveSatisfied
+     * @param {boolean} rollupObjectiveSatisfied
+     */
+    set rollupObjectiveSatisfied(rollupObjectiveSatisfied) {
+      this._rollupObjectiveSatisfied = rollupObjectiveSatisfied;
+    }
+    /**
+     * Getter for rollupProgressCompletion
+     * @return {boolean}
+     */
+    get rollupProgressCompletion() {
+      return this._rollupProgressCompletion;
+    }
+    /**
+     * Setter for rollupProgressCompletion
+     * @param {boolean} rollupProgressCompletion
+     */
+    set rollupProgressCompletion(rollupProgressCompletion) {
+      this._rollupProgressCompletion = rollupProgressCompletion;
+    }
+    /**
+     * Getter for objectiveMeasureWeight
+     * @return {number}
+     */
+    get objectiveMeasureWeight() {
+      return this._objectiveMeasureWeight;
+    }
+    /**
+     * Setter for objectiveMeasureWeight
+     * @param {number} objectiveMeasureWeight
+     */
+    set objectiveMeasureWeight(objectiveMeasureWeight) {
+      if (objectiveMeasureWeight >= 0 && objectiveMeasureWeight <= 1) {
+        this._objectiveMeasureWeight = objectiveMeasureWeight;
+      }
+    }
+    /**
+     * Check if choice navigation is allowed
+     * @return {boolean} - True if choice navigation is allowed, false otherwise
+     */
+    isChoiceNavigationAllowed() {
+      return this._enabled && !this._constrainChoice;
+    }
+    /**
+     * Check if flow navigation is allowed
+     * @return {boolean} - True if flow navigation is allowed, false otherwise
+     */
+    isFlowNavigationAllowed() {
+      return this._enabled && this._flow;
+    }
+    /**
+     * Check if forward navigation is allowed
+     * @return {boolean} - True if forward navigation is allowed, false otherwise
+     */
+    isForwardNavigationAllowed() {
+      return this._enabled && (!this._forwardOnly || this._flow);
+    }
+    /**
+     * Check if backward navigation is allowed
+     * @return {boolean} - True if backward navigation is allowed, false otherwise
+     */
+    isBackwardNavigationAllowed() {
+      return this._enabled && !this._forwardOnly;
+    }
+    /**
+     * toJSON for SequencingControls
+     * @return {object}
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        enabled: this._enabled,
+        choiceExit: this._choiceExit,
+        flow: this._flow,
+        forwardOnly: this._forwardOnly,
+        useCurrentAttemptObjectiveInfo: this._useCurrentAttemptObjectiveInfo,
+        useCurrentAttemptProgressInfo: this._useCurrentAttemptProgressInfo,
+        preventActivation: this._preventActivation,
+        constrainChoice: this._constrainChoice,
+        rollupObjectiveSatisfied: this._rollupObjectiveSatisfied,
+        rollupProgressCompletion: this._rollupProgressCompletion,
+        objectiveMeasureWeight: this._objectiveMeasureWeight
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
+
+  class Sequencing extends BaseCMI {
+    /**
+     * Constructor for Sequencing
+     */
+    constructor() {
+      super("sequencing");
+      this._adlNav = null;
+      this._activityTree = new ActivityTree();
+      this._sequencingRules = new SequencingRules();
+      this._sequencingControls = new SequencingControls();
+      this._rollupRules = new RollupRules();
+    }
+    /**
+     * Called when the API has been initialized after the CMI has been created
+     */
+    initialize() {
+      super.initialize();
+      this._activityTree.initialize();
+      this._sequencingRules.initialize();
+      this._sequencingControls.initialize();
+      this._rollupRules.initialize();
+    }
+    /**
+     * Called when the API needs to be reset
+     */
+    reset() {
+      this._initialized = false;
+      this._activityTree.reset();
+      this._sequencingRules.reset();
+      this._sequencingControls.reset();
+      this._rollupRules.reset();
+    }
+    /**
+     * Getter for activityTree
+     * @return {ActivityTree}
+     */
+    get activityTree() {
+      return this._activityTree;
+    }
+    /**
+     * Setter for activityTree
+     * @param {ActivityTree} activityTree
+     */
+    set activityTree(activityTree) {
+      if (!(activityTree instanceof ActivityTree)) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".activityTree", scorm2004_errors$1.TYPE_MISMATCH);
+      }
+      this._activityTree = activityTree;
+    }
+    /**
+     * Getter for sequencingRules
+     * @return {SequencingRules}
+     */
+    get sequencingRules() {
+      return this._sequencingRules;
+    }
+    /**
+     * Setter for sequencingRules
+     * @param {SequencingRules} sequencingRules
+     */
+    set sequencingRules(sequencingRules) {
+      if (!(sequencingRules instanceof SequencingRules)) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".sequencingRules", scorm2004_errors$1.TYPE_MISMATCH);
+      }
+      this._sequencingRules = sequencingRules;
+    }
+    /**
+     * Getter for sequencingControls
+     * @return {SequencingControls}
+     */
+    get sequencingControls() {
+      return this._sequencingControls;
+    }
+    /**
+     * Setter for sequencingControls
+     * @param {SequencingControls} sequencingControls
+     */
+    set sequencingControls(sequencingControls) {
+      if (!(sequencingControls instanceof SequencingControls)) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".sequencingControls", scorm2004_errors$1.TYPE_MISMATCH);
+      }
+      this._sequencingControls = sequencingControls;
+    }
+    /**
+     * Getter for rollupRules
+     * @return {RollupRules}
+     */
+    get rollupRules() {
+      return this._rollupRules;
+    }
+    /**
+     * Setter for rollupRules
+     * @param {RollupRules} rollupRules
+     */
+    set rollupRules(rollupRules) {
+      if (!(rollupRules instanceof RollupRules)) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".rollupRules", scorm2004_errors$1.TYPE_MISMATCH);
+      }
+      this._rollupRules = rollupRules;
+    }
+    /**
+     * Getter for adlNav
+     * @return {ADLNav | null}
+     */
+    get adlNav() {
+      return this._adlNav;
+    }
+    /**
+     * Setter for adlNav
+     * @param {ADLNav | null} adlNav
+     */
+    set adlNav(adlNav) {
+      this._adlNav = adlNav;
+    }
+    /**
+     * Process navigation request
+     * @param {string} request - The navigation request
+     * @return {boolean} - True if the request is valid, false otherwise
+     */
+    processNavigationRequest(request) {
+      if (!this._adlNav) {
+        return false;
+      }
+      this._adlNav.request = request;
+      const currentActivity = this._activityTree.currentActivity;
+      if (!currentActivity) {
+        return false;
+      }
+      const preConditionAction = this._sequencingRules.evaluatePreConditionRules(currentActivity);
+      if (preConditionAction) {
+        switch (preConditionAction) {
+          case RuleActionType.SKIP:
+            return false;
+          case RuleActionType.DISABLED:
+            return false;
+          case RuleActionType.HIDE_FROM_CHOICE:
+            return false;
+          case RuleActionType.STOP_FORWARD_TRAVERSAL:
+            return false;
+        }
+      }
+      switch (request) {
+        case "continue":
+          return this.processContinueRequest(currentActivity);
+        case "previous":
+          return this.processPreviousRequest(currentActivity);
+        case "choice":
+          return false;
+        case "exit":
+          return this.processExitRequest(currentActivity);
+        case "exitAll":
+          return this.processExitAllRequest();
+        case "abandon":
+          return this.processAbandonRequest(currentActivity);
+        case "abandonAll":
+          return this.processAbandonAllRequest();
+        case "suspendAll":
+          return this.processSuspendAllRequest(currentActivity);
+        default:
+          return false;
+      }
+    }
+    /**
+     * Process continue request
+     * @param {Activity} currentActivity - The current activity
+     * @return {boolean} - True if the request is valid, false otherwise
+     */
+    processContinueRequest(currentActivity) {
+      if (!this._sequencingControls.isForwardNavigationAllowed()) {
+        return false;
+      }
+      const nextActivity = this._activityTree.getNextSibling(currentActivity);
+      if (!nextActivity) {
+        return false;
+      }
+      const exitConditionAction = this._sequencingRules.evaluateExitConditionRules(currentActivity);
+      if (exitConditionAction) {
+        switch (exitConditionAction) {
+          case RuleActionType.EXIT_PARENT:
+            {
+              const parent = currentActivity.parent;
+              if (parent) {
+                this._activityTree.currentActivity = parent;
+                return true;
+              }
+              return false;
+            }
+          case RuleActionType.EXIT_ALL:
+            this._activityTree.currentActivity = null;
+            return true;
+        }
+      }
+      this._activityTree.currentActivity = nextActivity;
+      const postConditionAction = this._sequencingRules.evaluatePostConditionRules(nextActivity);
+      if (postConditionAction) {
+        switch (postConditionAction) {
+          case RuleActionType.RETRY:
+            nextActivity.incrementAttemptCount();
+            return true;
+          case RuleActionType.RETRY_ALL:
+            this._activityTree.getAllActivities().forEach(activity => {
+              activity.incrementAttemptCount();
             });
-        });
-    };
-    BaseAPI.prototype.scheduleCommit = function (when, callback) {
-        if (!this._timeout) {
-            this._timeout = new ScheduledCommit(this, when, callback);
-            this.apiLog("scheduleCommit", "scheduled", enums/* LogLevelEnum */.Mb.DEBUG, "");
+            return true;
+          case RuleActionType.CONTINUE:
+            return this.processContinueRequest(nextActivity);
+          case RuleActionType.PREVIOUS:
+            return this.processPreviousRequest(nextActivity);
+          case RuleActionType.EXIT:
+            this._activityTree.currentActivity = currentActivity;
+            return true;
         }
-    };
-    BaseAPI.prototype.clearScheduledCommit = function () {
-        if (this._timeout) {
-            this._timeout.cancel();
-            this._timeout = undefined;
-            this.apiLog("clearScheduledCommit", "cleared", enums/* LogLevelEnum */.Mb.DEBUG, "");
-        }
-    };
-    BaseAPI.prototype._checkObjectHasProperty = function (StringKeyMap, attribute) {
-        return (Object.hasOwnProperty.call(StringKeyMap, attribute) ||
-            Object.getOwnPropertyDescriptor(Object.getPrototypeOf(StringKeyMap), attribute) != null ||
-            attribute in StringKeyMap);
-    };
-    BaseAPI.prototype.handleValueAccessException = function (CMIElement, e, returnValue) {
-        if (e instanceof exceptions/* ValidationError */.y) {
-            this.lastErrorCode = String(e.errorCode);
-            returnValue = api_constants/* global_constants */._y.SCORM_FALSE;
-            this.throwSCORMError(CMIElement, e.errorCode, e.errorMessage);
-        }
-        else {
-            if (e instanceof Error && e.message) {
-                console.error(e.message);
-                this.throwSCORMError(CMIElement, this._error_codes.GENERAL, e.message);
-            }
-            else {
-                console.error(e);
-                this.throwSCORMError(CMIElement, this._error_codes.GENERAL, "Unknown error");
-            }
-        }
-        return returnValue;
-    };
-    BaseAPI.prototype.getCommitObject = function (terminateCommit) {
-        var _this = this;
-        return this._serializationService.getCommitObject(terminateCommit, this.settings.alwaysSendTotalTime, this.settings.renderCommonCommitFields, function (terminateCommit) { return _this.renderCommitObject(terminateCommit); }, function (terminateCommit) { return _this.renderCommitCMI(terminateCommit); }, this.apiLogLevel);
-    };
-    return BaseAPI;
-}());
-/* harmony default export */ var src_BaseAPI = (BaseAPI);
-
-
-/***/ }),
-
-/***/ 878:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   t: function() { return /* binding */ Scorm12ValidationError; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(635);
-/* harmony import */ var _exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(519);
-/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(441);
-
-
-
-var scorm12_errors = _constants_api_constants__WEBPACK_IMPORTED_MODULE_0__/* .scorm12_constants */ .QP.error_descriptions;
-var Scorm12ValidationError = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_1__/* .__extends */ .C6)(Scorm12ValidationError, _super);
-    function Scorm12ValidationError(CMIElement, errorCode) {
-        var _this = this;
-        if ({}.hasOwnProperty.call(scorm12_errors, String(errorCode))) {
-            _this = _super.call(this, CMIElement, errorCode, scorm12_errors[String(errorCode)].basicMessage, scorm12_errors[String(errorCode)].detailMessage) || this;
-        }
-        else {
-            _this = _super.call(this, CMIElement, 101, scorm12_errors["101"].basicMessage, scorm12_errors["101"].detailMessage) || this;
-        }
-        Object.setPrototypeOf(_this, Scorm12ValidationError.prototype);
-        return _this;
+      }
+      return true;
     }
-    return Scorm12ValidationError;
-}(_exceptions__WEBPACK_IMPORTED_MODULE_2__/* .ValidationError */ .y));
-
-
-
-/***/ }),
-
-/***/ 888:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   v: function() { return /* binding */ validationService; }
-/* harmony export */ });
-/* unused harmony export ValidationService */
-/* harmony import */ var _cmi_common_validation__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(144);
-/* harmony import */ var _cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(392);
-/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(64);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(12);
-/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(878);
-
-
-
-
-
-var ValidationService = (function () {
-    function ValidationService() {
-    }
-    ValidationService.prototype.validateScore = function (CMIElement, value, decimalRegex, scoreRange, invalidTypeCode, invalidRangeCode, errorClass) {
-        return ((0,_cmi_common_validation__WEBPACK_IMPORTED_MODULE_0__/* .checkValidFormat */ .q)(CMIElement, value, decimalRegex, invalidTypeCode, errorClass) &&
-            (!scoreRange || (0,_cmi_common_validation__WEBPACK_IMPORTED_MODULE_0__/* .checkValidRange */ .W)(CMIElement, value, scoreRange, invalidRangeCode, errorClass)));
-    };
-    ValidationService.prototype.validateScorm12Audio = function (CMIElement, value) {
-        return ((0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidFormat */ .p)(CMIElement, value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.CMISInteger) &&
-            (0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidRange */ .h)(CMIElement, value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.audio_range));
-    };
-    ValidationService.prototype.validateScorm12Language = function (CMIElement, value) {
-        return (0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidFormat */ .p)(CMIElement, value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.CMIString256);
-    };
-    ValidationService.prototype.validateScorm12Speed = function (CMIElement, value) {
-        return ((0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidFormat */ .p)(CMIElement, value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.CMISInteger) &&
-            (0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidRange */ .h)(CMIElement, value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.speed_range));
-    };
-    ValidationService.prototype.validateScorm12Text = function (CMIElement, value) {
-        return ((0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidFormat */ .p)(CMIElement, value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.CMISInteger) &&
-            (0,_cmi_scorm12_validation__WEBPACK_IMPORTED_MODULE_1__/* .check12ValidRange */ .h)(CMIElement, value, _constants_regex__WEBPACK_IMPORTED_MODULE_2__/* .scorm12_regex */ .kS.text_range));
-    };
-    ValidationService.prototype.validateReadOnly = function (CMIElement, initialized) {
-        if (initialized) {
-            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__/* .Scorm12ValidationError */ .t(CMIElement, _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__/* .scorm12_errors */ .Se.READ_ONLY_ELEMENT);
+    /**
+     * Process previous request
+     * @param {Activity} currentActivity - The current activity
+     * @return {boolean} - True if the request is valid, false otherwise
+     */
+    processPreviousRequest(currentActivity) {
+      if (!this._sequencingControls.isBackwardNavigationAllowed()) {
+        return false;
+      }
+      const previousActivity = this._activityTree.getPreviousSibling(currentActivity);
+      if (!previousActivity) {
+        return false;
+      }
+      const exitConditionAction = this._sequencingRules.evaluateExitConditionRules(currentActivity);
+      if (exitConditionAction) {
+        switch (exitConditionAction) {
+          case RuleActionType.EXIT_PARENT:
+            {
+              const parent = currentActivity.parent;
+              if (parent) {
+                this._activityTree.currentActivity = parent;
+                return true;
+              }
+              return false;
+            }
+          case RuleActionType.EXIT_ALL:
+            this._activityTree.currentActivity = null;
+            return true;
         }
-    };
-    return ValidationService;
-}());
+      }
+      this._activityTree.currentActivity = previousActivity;
+      const postConditionAction = this._sequencingRules.evaluatePostConditionRules(previousActivity);
+      if (postConditionAction) {
+        switch (postConditionAction) {
+          case RuleActionType.RETRY:
+            previousActivity.incrementAttemptCount();
+            return true;
+          case RuleActionType.RETRY_ALL:
+            this._activityTree.getAllActivities().forEach(activity => {
+              activity.incrementAttemptCount();
+            });
+            return true;
+          case RuleActionType.CONTINUE:
+            return this.processContinueRequest(previousActivity);
+          case RuleActionType.PREVIOUS:
+            return this.processPreviousRequest(previousActivity);
+          case RuleActionType.EXIT:
+            this._activityTree.currentActivity = currentActivity;
+            return true;
+        }
+      }
+      return true;
+    }
+    /**
+     * Process exit request
+     * @param {Activity} currentActivity - The current activity
+     * @return {boolean} - True if the request is valid, false otherwise
+     */
+    processExitRequest(currentActivity) {
+      if (!this._sequencingControls.choiceExit) {
+        return false;
+      }
+      const parent = currentActivity.parent;
+      if (!parent) {
+        return false;
+      }
+      this._activityTree.currentActivity = parent;
+      return true;
+    }
+    /**
+     * Process exit all request
+     * @return {boolean} - True if the request is valid, false otherwise
+     */
+    processExitAllRequest() {
+      if (!this._sequencingControls.choiceExit) {
+        return false;
+      }
+      this._activityTree.currentActivity = null;
+      return true;
+    }
+    /**
+     * Process abandon request
+     * @param {Activity} currentActivity - The current activity
+     * @return {boolean} - True if the request is valid, false otherwise
+     */
+    processAbandonRequest(currentActivity) {
+      const parent = currentActivity.parent;
+      if (!parent) {
+        return false;
+      }
+      this._activityTree.currentActivity = parent;
+      return true;
+    }
+    /**
+     * Process abandon all request
+     * @return {boolean} - True if the request is valid, false otherwise
+     */
+    processAbandonAllRequest() {
+      this._activityTree.currentActivity = null;
+      return true;
+    }
+    /**
+     * Process suspend all request
+     * @param {Activity} currentActivity - The current activity
+     * @return {boolean} - True if the request is valid, false otherwise
+     */
+    processSuspendAllRequest(currentActivity) {
+      this._activityTree.suspendedActivity = currentActivity;
+      this._activityTree.currentActivity = null;
+      return true;
+    }
+    /**
+     * Process rollup for the entire activity tree
+     */
+    processRollup() {
+      const root = this._activityTree.root;
+      if (!root) {
+        return;
+      }
+      this._processRollupRecursive(root);
+    }
+    /**
+     * Process rollup recursively
+     * @param {Activity} activity - The activity to process rollup for
+     * @private
+     */
+    _processRollupRecursive(activity) {
+      for (const child of activity.children) {
+        this._processRollupRecursive(child);
+      }
+      this._rollupRules.processRollup(activity);
+    }
+    /**
+     * toJSON for Sequencing
+     * @return {object}
+     */
+    toJSON() {
+      this.jsonString = true;
+      const result = {
+        activityTree: this._activityTree,
+        sequencingRules: this._sequencingRules,
+        sequencingControls: this._sequencingControls,
+        rollupRules: this._rollupRules
+      };
+      delete this.jsonString;
+      return result;
+    }
+  }
 
-var validationService = new ValidationService();
+  class Scorm2004Impl extends BaseAPI {
+    /**
+     * Constructor for SCORM 2004 API
+     * @param {Settings} settings
+     */
+    constructor(settings) {
+      if (settings) {
+        if (settings.mastery_override === void 0) {
+          settings.mastery_override = false;
+        }
+      }
+      super(scorm2004_errors$1, settings);
+      this._version = "1.0";
+      this._globalObjectives = [];
+      this._extractedScoItemIds = [];
+      this.cmi = new CMI();
+      this.adl = new ADL();
+      this._sequencing = new Sequencing();
+      this.adl.sequencing = this._sequencing;
+      if (settings?.sequencing) {
+        this.configureSequencing(settings.sequencing);
+      }
+      this.Initialize = this.lmsInitialize;
+      this.Terminate = this.lmsFinish;
+      this.GetValue = this.lmsGetValue;
+      this.SetValue = this.lmsSetValue;
+      this.Commit = this.lmsCommit;
+      this.GetLastError = this.lmsGetLastError;
+      this.GetErrorString = this.lmsGetErrorString;
+      this.GetDiagnostic = this.lmsGetDiagnostic;
+    }
+    /**
+     * Called when the API needs to be reset
+     */
+    reset(settings) {
+      this.commonReset(settings);
+      this.cmi?.reset();
+      this.adl?.reset();
+      this._sequencing?.reset();
+    }
+    /**
+     * Getter for _version
+     * @return {string}
+     */
+    get version() {
+      return this._version;
+    }
+    /**
+     * Getter for _globalObjectives
+     */
+    get globalObjectives() {
+      return this._globalObjectives;
+    }
+    /**
+     * Initialize function from SCORM 2004 Spec
+     *
+     * @return {string} bool
+     */
+    lmsInitialize() {
+      this.cmi.initialize();
+      return this.initialize("Initialize", "LMS was already initialized!", "LMS is already finished!");
+    }
+    /**
+     * Terminate function from SCORM 2004 Spec
+     *
+     * @return {string} bool
+     */
+    lmsFinish() {
+      (async () => {
+        await this.internalFinish();
+      })();
+      return global_constants.SCORM_TRUE;
+    }
+    async internalFinish() {
+      const result = await this.terminate("Terminate", true);
+      if (result === global_constants.SCORM_TRUE) {
+        if (this.adl.nav.request !== "_none_") {
+          const navActions = {
+            continue: "SequenceNext",
+            previous: "SequencePrevious",
+            choice: "SequenceChoice",
+            jump: "SequenceJump",
+            exit: "SequenceExit",
+            exitAll: "SequenceExitAll",
+            abandon: "SequenceAbandon",
+            abandonAll: "SequenceAbandonAll"
+          };
+          let request = this.adl.nav.request;
+          const choiceJumpRegex = new RegExp(scorm2004_regex.NAVEvent);
+          const matches = request.match(choiceJumpRegex);
+          let target = "";
+          if (matches) {
+            if (matches.groups?.choice_target) {
+              target = matches.groups?.choice_target;
+              request = "choice";
+            } else if (matches.groups?.jump_target) {
+              target = matches.groups?.jump_target;
+              request = "jump";
+            }
+          }
+          const action = navActions[request];
+          if (action) {
+            this.processListeners(action, "adl.nav.request", target);
+          }
+        } else if (this.settings.autoProgress) {
+          this.processListeners("SequenceNext", null, "next");
+        }
+      }
+      return result;
+    }
+    /**
+     * GetValue function from SCORM 2004 Spec
+     *
+     * @param {string} CMIElement
+     * @return {string}
+     */
+    lmsGetValue(CMIElement) {
+      const adlNavRequestRegex = "^adl\\.nav\\.request_valid\\.(choice|jump)\\.{target=\\S{0,}([a-zA-Z0-9-_]+)}$";
+      if (stringMatches(CMIElement, adlNavRequestRegex)) {
+        const matches = CMIElement.match(adlNavRequestRegex);
+        const request = matches[1];
+        const target = matches[2].replace("{target=", "").replace("}", "");
+        if (request === "choice" || request === "jump") {
+          if (this.settings.scoItemIdValidator) {
+            return String(this.settings.scoItemIdValidator(target));
+          }
+          if (this._extractedScoItemIds.length > 0) {
+            return String(this._extractedScoItemIds.includes(target));
+          }
+          return String(this.settings.scoItemIds.includes(target));
+        }
+      }
+      return this.getValue("GetValue", true, CMIElement);
+    }
+    /**
+     * SetValue function from SCORM 2004 Spec
+     *
+     * @param {string} CMIElement
+     * @param {any} value
+     * @return {string}
+     */
+    lmsSetValue(CMIElement, value) {
+      return this.setValue("SetValue", "Commit", true, CMIElement, value);
+    }
+    /**
+     * Commit function from SCORM 2004 Spec
+     *
+     * @return {string} bool
+     */
+    lmsCommit() {
+      if (this.settings.asyncCommit) {
+        this.scheduleCommit(500, "Commit");
+      } else {
+        (async () => {
+          await this.commit("Commit", false);
+        })();
+      }
+      return global_constants.SCORM_TRUE;
+    }
+    /**
+     * GetLastError function from SCORM 2004 Spec
+     *
+     * @return {string}
+     */
+    lmsGetLastError() {
+      return this.getLastError("GetLastError");
+    }
+    /**
+     * GetErrorString function from SCORM 2004 Spec
+     *
+     * @param {(string|number)} CMIErrorCode
+     * @return {string}
+     */
+    lmsGetErrorString(CMIErrorCode) {
+      return this.getErrorString("GetErrorString", CMIErrorCode);
+    }
+    /**
+     * GetDiagnostic function from SCORM 2004 Spec
+     *
+     * @param {(string|number)} CMIErrorCode
+     * @return {string}
+     */
+    lmsGetDiagnostic(CMIErrorCode) {
+      return this.getDiagnostic("GetDiagnostic", CMIErrorCode);
+    }
+    /**
+     * Sets a value on the CMI Object - delegates to CMIValueHandlerModule
+     *
+     * @param {string} CMIElement
+     * @param {any} value
+     * @return {string}
+     */
+    setCMIValue(CMIElement, value) {
+      if (stringMatches(CMIElement, "cmi\\.objectives\\.\\d+")) {
+        const parts = CMIElement.split(".");
+        const index = Number(parts[2]);
+        const element_base = `cmi.objectives.${index}`;
+        let objective_id;
+        const setting_id = stringMatches(CMIElement, "cmi\\.objectives\\.\\d+\\.id");
+        if (setting_id) {
+          objective_id = value;
+        } else {
+          const objective = this.cmi.objectives.findObjectiveByIndex(index);
+          objective_id = objective ? objective.id : void 0;
+        }
+        const is_global = objective_id && this.settings.globalObjectiveIds.includes(objective_id);
+        if (is_global) {
+          let global_index = this._globalObjectives.findIndex(obj => obj.id === objective_id);
+          if (global_index === -1) {
+            global_index = this._globalObjectives.length;
+            const newGlobalObjective = new CMIObjectivesObject();
+            newGlobalObjective.id = objective_id;
+            this._globalObjectives.push(newGlobalObjective);
+          }
+          const global_element = CMIElement.replace(element_base, `_globalObjectives.${global_index}`);
+          this._commonSetCMIValue("SetGlobalObjectiveValue", true, global_element, value);
+        }
+      }
+      return this._commonSetCMIValue("SetValue", true, CMIElement, value);
+    }
+    /**
+     * Gets or builds a new child element to add to the array - delegates to CMIElementHandlerModule
+     *
+     * @param {string} CMIElement
+     * @param {any} value
+     * @param {boolean} foundFirstIndex
+     * @return {BaseCMI|null}
+     */
+    getChildElement(CMIElement, value, foundFirstIndex) {
+      if (stringMatches(CMIElement, "cmi\\.objectives\\.\\d+")) {
+        return new CMIObjectivesObject();
+      }
+      if (foundFirstIndex) {
+        if (stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+")) {
+          return this.createCorrectResponsesObject(CMIElement, value);
+        } else if (stringMatches(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")) {
+          return new CMIInteractionsObjectivesObject();
+        }
+      } else if (stringMatches(CMIElement, "cmi\\.interactions\\.\\d+")) {
+        return new CMIInteractionsObject();
+      }
+      if (stringMatches(CMIElement, "cmi\\.comments_from_learner\\.\\d+")) {
+        return new CMICommentsObject();
+      } else if (stringMatches(CMIElement, "cmi\\.comments_from_lms\\.\\d+")) {
+        return new CMICommentsObject(true);
+      }
+      if (stringMatches(CMIElement, "adl\\.data\\.\\d+")) {
+        return new ADLDataObject();
+      }
+      return null;
+    }
+    /**
+     * Creates a correct responses object for an interaction - delegates to CMIElementHandlerModule
+     *
+     * @param {string} CMIElement
+     * @param {any} value
+     * @return {BaseCMI|null}
+     */
+    createCorrectResponsesObject(CMIElement, value) {
+      const parts = CMIElement.split(".");
+      const index = Number(parts[2]);
+      const interaction = this.cmi.interactions.childArray[index];
+      if (this.isInitialized()) {
+        if (typeof interaction === "undefined" || !interaction.type) {
+          this.throwSCORMError(CMIElement, scorm2004_errors$1.DEPENDENCY_NOT_ESTABLISHED, CMIElement);
+          return null;
+        } else {
+          this.checkDuplicateChoiceResponse(CMIElement, interaction, value);
+          const response_type = CorrectResponses[interaction.type];
+          if (response_type) {
+            this.checkValidResponseType(CMIElement, response_type, value, interaction.type);
+          } else {
+            this.throwSCORMError(CMIElement, scorm2004_errors$1.GENERAL_SET_FAILURE, `Incorrect Response Type: ${interaction.type}`);
+            return null;
+          }
+        }
+      }
+      if (this.lastErrorCode === "0") {
+        return new CMIInteractionsCorrectResponsesObject(interaction);
+      }
+      return null;
+    }
+    /**
+     * Checks for valid response types - delegates to ValidationModule
+     * @param {string} CMIElement
+     * @param {ResponseType} response_type
+     * @param {any} value
+     * @param {string} interaction_type
+     */
+    checkValidResponseType(CMIElement, response_type, value, interaction_type) {
+      let nodes = [];
+      if (response_type?.delimiter) {
+        nodes = String(value).split(response_type.delimiter);
+      } else {
+        nodes[0] = value;
+      }
+      if (nodes.length > 0 && nodes.length <= response_type.max) {
+        this.checkCorrectResponseValue(CMIElement, interaction_type, nodes, value);
+      } else if (nodes.length > response_type.max) {
+        this.throwSCORMError(CMIElement, scorm2004_errors$1.GENERAL_SET_FAILURE, `Data Model Element Pattern Too Long: ${value}`);
+      }
+    }
+    /**
+     * Checks for duplicate 'choice' responses - delegates to ValidationModule
+     * @param {string} CMIElement
+     * @param {CMIInteractionsObject} interaction
+     * @param {any} value
+     */
+    checkDuplicateChoiceResponse(CMIElement, interaction, value) {
+      const interaction_count = interaction.correct_responses._count;
+      if (interaction.type === "choice") {
+        for (let i = 0; i < interaction_count && this.lastErrorCode === "0"; i++) {
+          const response = interaction.correct_responses.childArray[i];
+          if (response.pattern === value) {
+            this.throwSCORMError(CMIElement, scorm2004_errors$1.GENERAL_SET_FAILURE, `${value}`);
+          }
+        }
+      }
+    }
+    /**
+     * Validate correct response - delegates to ValidationModule
+     * @param {string} CMIElement
+     * @param {*} value
+     */
+    validateCorrectResponse(CMIElement, value) {
+      const parts = CMIElement.split(".");
+      const index = Number(parts[2]);
+      const pattern_index = Number(parts[4]);
+      const interaction = this.cmi.interactions.childArray[index];
+      const interaction_count = interaction.correct_responses._count;
+      this.checkDuplicateChoiceResponse(CMIElement, interaction, value);
+      const response_type = CorrectResponses[interaction.type];
+      if (typeof response_type.limit === "undefined" || interaction_count <= response_type.limit) {
+        this.checkValidResponseType(CMIElement, response_type, value, interaction.type);
+        if (this.lastErrorCode === "0" && (!response_type.duplicate || !this.checkDuplicatedPattern(interaction.correct_responses, pattern_index, value)) || this.lastErrorCode === "0" && value === "") ; else {
+          if (this.lastErrorCode === "0") {
+            this.throwSCORMError(CMIElement, scorm2004_errors$1.GENERAL_SET_FAILURE, `Data Model Element Pattern Already Exists: ${CMIElement} - ${value}`);
+          }
+        }
+      } else {
+        this.throwSCORMError(CMIElement, scorm2004_errors$1.GENERAL_SET_FAILURE, `Data Model Element Collection Limit Reached: ${CMIElement} - ${value}`);
+      }
+    }
+    /**
+     * Gets a value from the CMI Object - delegates to CMIValueHandlerModule
+     *
+     * @param {string} CMIElement
+     * @return {*}
+     */
+    getCMIValue(CMIElement) {
+      return this._commonGetCMIValue("GetValue", true, CMIElement);
+    }
+    /**
+     * Returns the message that corresponds to errorNumber.
+     *
+     * @param {(string|number)} errorNumber
+     * @param {boolean} detail
+     * @return {string}
+     */
+    getLmsErrorMessageDetails(errorNumber, detail) {
+      let basicMessage = "";
+      let detailMessage = "";
+      errorNumber = String(errorNumber);
+      if (scorm2004_constants.error_descriptions[errorNumber]) {
+        basicMessage = scorm2004_constants.error_descriptions[errorNumber].basicMessage;
+        detailMessage = scorm2004_constants.error_descriptions[errorNumber].detailMessage;
+      }
+      return detail ? detailMessage : basicMessage;
+    }
+    /**
+     * Check to see if a correct_response value has been duplicated - delegates to ValidationModule
+     * @param {CMIArray} correct_response
+     * @param {number} current_index
+     * @param {*} value
+     * @return {boolean}
+     */
+    checkDuplicatedPattern(correct_response, current_index, value) {
+      let found = false;
+      const count = correct_response._count;
+      for (let i = 0; i < count && !found; i++) {
+        if (i !== current_index && correct_response.childArray[i] === value) {
+          found = true;
+        }
+      }
+      return found;
+    }
+    /**
+     * Checks for a valid correct_response value - delegates to ValidationModule
+     * @param {string} CMIElement
+     * @param {string} interaction_type
+     * @param {Array} nodes
+     * @param {*} value
+     */
+    checkCorrectResponseValue(CMIElement, interaction_type, nodes, value) {
+      const response = CorrectResponses[interaction_type];
+      if (!response) {
+        this.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `Incorrect Response Type: ${interaction_type}`);
+        return;
+      }
+      const formatRegex = new RegExp(response.format);
+      for (let i = 0; i < nodes.length && this.lastErrorCode === "0"; i++) {
+        if (interaction_type.match("^(fill-in|long-fill-in|matching|performance|sequencing)$")) {
+          nodes[i] = this.removeCorrectResponsePrefixes(CMIElement, nodes[i]);
+        }
+        if (response?.delimiter2) {
+          const values = nodes[i].split(response.delimiter2);
+          if (values.length === 2) {
+            const matches = values[0].match(formatRegex);
+            if (!matches) {
+              this.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${interaction_type}: ${value}`);
+            } else {
+              if (!response.format2 || !values[1].match(new RegExp(response.format2))) {
+                this.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${interaction_type}: ${value}`);
+              }
+            }
+          } else {
+            this.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${interaction_type}: ${value}`);
+          }
+        } else {
+          const matches = nodes[i].match(formatRegex);
+          if (!matches && value !== "" || !matches && interaction_type === "true-false") {
+            this.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${interaction_type}: ${value}`);
+          } else {
+            if (interaction_type === "numeric" && nodes.length > 1) {
+              if (Number(nodes[0]) > Number(nodes[1])) {
+                this.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${interaction_type}: ${value}`);
+              }
+            } else {
+              if (nodes[i] !== "" && response.unique) {
+                for (let j = 0; j < i && this.lastErrorCode === "0"; j++) {
+                  if (nodes[i] === nodes[j]) {
+                    this.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${interaction_type}: ${value}`);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    /**
+     * Remove prefixes from correct_response - delegates to ValidationModule
+     * @param {string} CMIElement
+     * @param {string} node
+     * @return {*}
+     */
+    removeCorrectResponsePrefixes(CMIElement, node) {
+      let seenOrder = false;
+      let seenCase = false;
+      let seenLang = false;
+      const prefixRegex = new RegExp("^({(lang|case_matters|order_matters)=([^}]+)})");
+      let matches = node.match(prefixRegex);
+      let langMatches = null;
+      while (matches) {
+        switch (matches[2]) {
+          case "lang":
+            langMatches = node.match(scorm2004_regex.CMILangcr);
+            if (langMatches) {
+              const lang = langMatches[3];
+              if (lang !== void 0 && lang.length > 0) {
+                if (!ValidLanguages.includes(lang.toLowerCase())) {
+                  this.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${node}`);
+                }
+              }
+            }
+            seenLang = true;
+            break;
+          case "case_matters":
+            if (!seenLang && !seenOrder && !seenCase) {
+              if (matches[3] !== "true" && matches[3] !== "false") {
+                this.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${node}`);
+              }
+            }
+            seenCase = true;
+            break;
+          case "order_matters":
+            if (!seenCase && !seenLang && !seenOrder) {
+              if (matches[3] !== "true" && matches[3] !== "false") {
+                this.throwSCORMError(CMIElement, scorm2004_errors$1.TYPE_MISMATCH, `${node}`);
+              }
+            }
+            seenOrder = true;
+            break;
+        }
+        node = node.substring(matches[1].length);
+        matches = node.match(prefixRegex);
+      }
+      return node;
+    }
+    /**
+     * Replace the whole API with another
+     * @param {Scorm2004Impl} newAPI
+     */
+    replaceWithAnotherScormAPI(newAPI) {
+      this.cmi = newAPI.cmi;
+      this.adl = newAPI.adl;
+    }
+    /**
+     * Render the cmi object to the proper format for LMS commit - delegates to DataSerializationModule
+     *
+     * @param {boolean} terminateCommit
+     * @return {object|Array}
+     */
+    renderCommitCMI(terminateCommit) {
+      const cmiExport = this.renderCMIToJSONObject();
+      if (terminateCommit) {
+        cmiExport.cmi.total_time = this.cmi.getCurrentTotalTime();
+      }
+      const result = [];
+      const flattened = flatten(cmiExport);
+      switch (this.settings.dataCommitFormat) {
+        case "flattened":
+          return flatten(cmiExport);
+        case "params":
+          for (const item in flattened) {
+            if ({}.hasOwnProperty.call(flattened, item)) {
+              result.push(`${item}=${flattened[item]}`);
+            }
+          }
+          return result;
+        case "json":
+        default:
+          return cmiExport;
+      }
+    }
+    /**
+     * Render the cmi object to the proper format for LMS commit - delegates to DataSerializationModule
+     * @param {boolean} terminateCommit
+     * @return {CommitObject}
+     */
+    renderCommitObject(terminateCommit) {
+      const cmiExport = this.renderCommitCMI(terminateCommit);
+      const totalTimeDuration = this.cmi.getCurrentTotalTime();
+      const totalTimeSeconds = getDurationAsSeconds(totalTimeDuration, scorm2004_regex.CMITimespan);
+      let completionStatus = CompletionStatus.UNKNOWN;
+      let successStatus = SuccessStatus.UNKNOWN;
+      if (this.cmi.completion_status) {
+        if (this.cmi.completion_status === "completed") {
+          completionStatus = CompletionStatus.COMPLETED;
+        } else if (this.cmi.completion_status === "incomplete") {
+          completionStatus = CompletionStatus.INCOMPLETE;
+        }
+      }
+      if (this.cmi.success_status) {
+        if (this.cmi.success_status === "passed") {
+          successStatus = SuccessStatus.PASSED;
+        } else if (this.cmi.success_status === "failed") {
+          successStatus = SuccessStatus.FAILED;
+        }
+      }
+      const score = this.cmi.score;
+      let scoreObject = null;
+      if (score) {
+        scoreObject = {};
+        if (!Number.isNaN(Number.parseFloat(score.raw))) {
+          scoreObject.raw = Number.parseFloat(score.raw);
+        }
+        if (!Number.isNaN(Number.parseFloat(score.min))) {
+          scoreObject.min = Number.parseFloat(score.min);
+        }
+        if (!Number.isNaN(Number.parseFloat(score.max))) {
+          scoreObject.max = Number.parseFloat(score.max);
+        }
+        if (!Number.isNaN(Number.parseFloat(score.scaled))) {
+          scoreObject.scaled = Number.parseFloat(score.scaled);
+        }
+      }
+      const commitObject = {
+        completionStatus,
+        successStatus,
+        totalTimeSeconds,
+        runtimeData: cmiExport
+      };
+      if (scoreObject) {
+        commitObject.score = scoreObject;
+      }
+      return commitObject;
+    }
+    /**
+     * Attempts to store the data to the LMS - delegates to DataSerializationModule
+     *
+     * @param {boolean} terminateCommit
+     * @return {ResultObject}
+     */
+    async storeData(terminateCommit) {
+      if (terminateCommit) {
+        if (this.cmi.mode === "normal") {
+          if (this.cmi.credit === "credit") {
+            if (this.cmi.completion_threshold && this.cmi.progress_measure) {
+              if (this.cmi.progress_measure >= this.cmi.completion_threshold) {
+                this.cmi.completion_status = "completed";
+              } else {
+                this.cmi.completion_status = "incomplete";
+              }
+            }
+            if (this.cmi.scaled_passing_score && this.cmi.score.scaled) {
+              if (this.cmi.score.scaled >= this.cmi.scaled_passing_score) {
+                this.cmi.success_status = "passed";
+              } else {
+                this.cmi.success_status = "failed";
+              }
+            }
+          }
+        }
+      }
+      let navRequest = false;
+      if (this.adl.nav.request !== this.startingData?.adl?.nav?.request && this.adl.nav.request !== "_none_") {
+        navRequest = true;
+      }
+      const commitObject = this.getCommitObject(terminateCommit);
+      if (typeof this.settings.lmsCommitUrl === "string") {
+        const result = await this.processHttpRequest(this.settings.lmsCommitUrl, {
+          commitObject
+        }, terminateCommit);
+        if (navRequest && result.navRequest !== void 0 && result.navRequest !== "" && typeof result.navRequest === "string") {
+          Function(`"use strict";(() => { ${result.navRequest} })()`)();
+        } else if (result?.navRequest && !navRequest) {
+          if (typeof result.navRequest === "object" && Object.hasOwnProperty.call(result.navRequest, "name")) {
+            this.processListeners(result.navRequest.name, result.navRequest.data);
+          }
+        }
+        return result;
+      }
+      return {
+        result: "true",
+        errorCode: 0
+      };
+    }
+    /**
+     * Configure sequencing based on provided settings
+     * @param {SequencingSettings} sequencingSettings - The sequencing settings
+     */
+    configureSequencing(sequencingSettings) {
+      if (sequencingSettings.activityTree) {
+        this.configureActivityTree(sequencingSettings.activityTree);
+      }
+      if (sequencingSettings.sequencingRules) {
+        this.configureSequencingRules(sequencingSettings.sequencingRules);
+      }
+      if (sequencingSettings.sequencingControls) {
+        this.configureSequencingControls(sequencingSettings.sequencingControls);
+      }
+      if (sequencingSettings.rollupRules) {
+        this.configureRollupRules(sequencingSettings.rollupRules);
+      }
+    }
+    /**
+     * Configure activity tree based on provided settings
+     * @param {ActivitySettings} activityTreeSettings - The activity tree settings
+     */
+    configureActivityTree(activityTreeSettings) {
+      const rootActivity = this.createActivity(activityTreeSettings);
+      const activityTree = this._sequencing.activityTree;
+      activityTree.root = rootActivity;
+      this._extractedScoItemIds = this.extractActivityIds(rootActivity);
+    }
+    /**
+     * Extract all activity IDs from an activity and its children
+     * @param {Activity} activity - The activity to extract IDs from
+     * @return {string[]} - Array of activity IDs
+     */
+    extractActivityIds(activity) {
+      const ids = [activity.id];
+      for (const child of activity.children) {
+        ids.push(...this.extractActivityIds(child));
+      }
+      return ids;
+    }
+    /**
+     * Create an activity from settings
+     * @param {ActivitySettings} activitySettings - The activity settings
+     * @return {Activity} - The created activity
+     */
+    createActivity(activitySettings) {
+      const activity = new Activity(activitySettings.id, activitySettings.title);
+      if (activitySettings.isVisible !== void 0) {
+        activity.isVisible = activitySettings.isVisible;
+      }
+      if (activitySettings.isActive !== void 0) {
+        activity.isActive = activitySettings.isActive;
+      }
+      if (activitySettings.isSuspended !== void 0) {
+        activity.isSuspended = activitySettings.isSuspended;
+      }
+      if (activitySettings.isCompleted !== void 0) {
+        activity.isCompleted = activitySettings.isCompleted;
+      }
+      if (activitySettings.children) {
+        for (const childSettings of activitySettings.children) {
+          const childActivity = this.createActivity(childSettings);
+          activity.addChild(childActivity);
+        }
+      }
+      return activity;
+    }
+    /**
+     * Configure sequencing rules based on provided settings
+     * @param {SequencingRulesSettings} sequencingRulesSettings - The sequencing rules settings
+     */
+    configureSequencingRules(sequencingRulesSettings) {
+      const sequencingRules = this._sequencing.sequencingRules;
+      if (sequencingRulesSettings.preConditionRules) {
+        for (const ruleSettings of sequencingRulesSettings.preConditionRules) {
+          const rule = this.createSequencingRule(ruleSettings);
+          sequencingRules.addPreConditionRule(rule);
+        }
+      }
+      if (sequencingRulesSettings.exitConditionRules) {
+        for (const ruleSettings of sequencingRulesSettings.exitConditionRules) {
+          const rule = this.createSequencingRule(ruleSettings);
+          sequencingRules.addExitConditionRule(rule);
+        }
+      }
+      if (sequencingRulesSettings.postConditionRules) {
+        for (const ruleSettings of sequencingRulesSettings.postConditionRules) {
+          const rule = this.createSequencingRule(ruleSettings);
+          sequencingRules.addPostConditionRule(rule);
+        }
+      }
+    }
+    /**
+     * Create a sequencing rule from settings
+     * @param {SequencingRuleSettings} ruleSettings - The sequencing rule settings
+     * @return {SequencingRule} - The created sequencing rule
+     */
+    createSequencingRule(ruleSettings) {
+      const rule = new SequencingRule(ruleSettings.action, ruleSettings.conditionCombination);
+      for (const conditionSettings of ruleSettings.conditions) {
+        const condition = new RuleCondition(conditionSettings.condition, conditionSettings.operator, new Map(Object.entries(conditionSettings.parameters || {})));
+        rule.addCondition(condition);
+      }
+      return rule;
+    }
+    /**
+     * Configure sequencing controls based on provided settings
+     * @param {SequencingControlsSettings} sequencingControlsSettings - The sequencing controls settings
+     */
+    configureSequencingControls(sequencingControlsSettings) {
+      const sequencingControls = this._sequencing.sequencingControls;
+      if (sequencingControlsSettings.enabled !== void 0) {
+        sequencingControls.enabled = sequencingControlsSettings.enabled;
+      }
+      if (sequencingControlsSettings.choiceExit !== void 0) {
+        sequencingControls.choiceExit = sequencingControlsSettings.choiceExit;
+      }
+      if (sequencingControlsSettings.flow !== void 0) {
+        sequencingControls.flow = sequencingControlsSettings.flow;
+      }
+      if (sequencingControlsSettings.forwardOnly !== void 0) {
+        sequencingControls.forwardOnly = sequencingControlsSettings.forwardOnly;
+      }
+      if (sequencingControlsSettings.useCurrentAttemptObjectiveInfo !== void 0) {
+        sequencingControls.useCurrentAttemptObjectiveInfo = sequencingControlsSettings.useCurrentAttemptObjectiveInfo;
+      }
+      if (sequencingControlsSettings.useCurrentAttemptProgressInfo !== void 0) {
+        sequencingControls.useCurrentAttemptProgressInfo = sequencingControlsSettings.useCurrentAttemptProgressInfo;
+      }
+      if (sequencingControlsSettings.preventActivation !== void 0) {
+        sequencingControls.preventActivation = sequencingControlsSettings.preventActivation;
+      }
+      if (sequencingControlsSettings.constrainChoice !== void 0) {
+        sequencingControls.constrainChoice = sequencingControlsSettings.constrainChoice;
+      }
+      if (sequencingControlsSettings.rollupObjectiveSatisfied !== void 0) {
+        sequencingControls.rollupObjectiveSatisfied = sequencingControlsSettings.rollupObjectiveSatisfied;
+      }
+      if (sequencingControlsSettings.rollupProgressCompletion !== void 0) {
+        sequencingControls.rollupProgressCompletion = sequencingControlsSettings.rollupProgressCompletion;
+      }
+      if (sequencingControlsSettings.objectiveMeasureWeight !== void 0) {
+        sequencingControls.objectiveMeasureWeight = sequencingControlsSettings.objectiveMeasureWeight;
+      }
+    }
+    /**
+     * Configure rollup rules based on provided settings
+     * @param {RollupRulesSettings} rollupRulesSettings - The rollup rules settings
+     */
+    configureRollupRules(rollupRulesSettings) {
+      const rollupRules = this._sequencing.rollupRules;
+      if (rollupRulesSettings.rules) {
+        for (const ruleSettings of rollupRulesSettings.rules) {
+          const rule = this.createRollupRule(ruleSettings);
+          rollupRules.addRule(rule);
+        }
+      }
+    }
+    /**
+     * Create a rollup rule from settings
+     * @param {RollupRuleSettings} ruleSettings - The rollup rule settings
+     * @return {RollupRule} - The created rollup rule
+     */
+    createRollupRule(ruleSettings) {
+      const rule = new RollupRule(ruleSettings.action, ruleSettings.consideration, ruleSettings.minimumCount, ruleSettings.minimumPercent);
+      for (const conditionSettings of ruleSettings.conditions) {
+        const condition = new RollupCondition(conditionSettings.condition, new Map(Object.entries(conditionSettings.parameters || {})));
+        rule.addCondition(condition);
+      }
+      return rule;
+    }
+  }
 
+  const AICC = AICCImpl;
+  const Scorm12API = Scorm12Impl;
+  const Scorm2004API = Scorm2004Impl;
+  var ScormAgain = {
+    AICC: AICCImpl,
+    Scorm12API: Scorm12Impl,
+    Scorm2004API: Scorm2004Impl
+  };
 
-/***/ })
+  exports.AICC = AICC;
+  exports.Scorm12API = Scorm12API;
+  exports.Scorm2004API = Scorm2004API;
+  exports.default = ScormAgain;
 
-/******/ 	});
-/************************************************************************/
-/******/ 	// The module cache
-/******/ 	var __webpack_module_cache__ = {};
-/******/ 	
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-/******/ 		// Check if module is in cache
-/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
-/******/ 		if (cachedModule !== undefined) {
-/******/ 			return cachedModule.exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			// no module.id needed
-/******/ 			// no module.loaded needed
-/******/ 			exports: {}
-/******/ 		};
-/******/ 	
-/******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
-/******/ 	
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-/******/ 	
-/************************************************************************/
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	!function() {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__webpack_require__.d = function(exports, definition) {
-/******/ 			for(var key in definition) {
-/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	}();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	!function() {
-/******/ 		__webpack_require__.o = function(obj, prop) { return Object.prototype.hasOwnProperty.call(obj, prop); }
-/******/ 	}();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	!function() {
-/******/ 		// define __esModule on exports
-/******/ 		__webpack_require__.r = function(exports) {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	}();
-/******/ 	
-/************************************************************************/
-var __webpack_exports__ = {};
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   AICC: function() { return /* reexport safe */ _AICC__WEBPACK_IMPORTED_MODULE_2__.AICC; },
-/* harmony export */   Scorm12API: function() { return /* reexport safe */ _Scorm12API__WEBPACK_IMPORTED_MODULE_0__.Scorm12API; },
-/* harmony export */   Scorm2004API: function() { return /* reexport safe */ _Scorm2004API__WEBPACK_IMPORTED_MODULE_1__.Scorm2004API; }
-/* harmony export */ });
-/* harmony import */ var _AICC__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(831);
-/* harmony import */ var _Scorm12API__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(42);
-/* harmony import */ var _Scorm2004API__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(198);
+  Object.defineProperty(exports, '__esModule', { value: true });
 
-
-
-
-
-var __webpack_export_target__ = window;
-for(var __webpack_i__ in __webpack_exports__) __webpack_export_target__[__webpack_i__] = __webpack_exports__[__webpack_i__];
-if(__webpack_exports__.__esModule) Object.defineProperty(__webpack_export_target__, "__esModule", { value: true });
-/******/ })()
-;
+})(this["scorm-again"] = this["scorm-again"] || {});
+//# sourceMappingURL=scorm-again.js.map

@@ -1093,4 +1093,4 @@ class Scorm2004Impl extends BaseAPI {
   }
 }
 
-export { Scorm2004Impl as Scorm2004API };
+export default Scorm2004Impl;

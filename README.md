@@ -237,11 +237,11 @@ const {Scorm2004API} = require('scorm-again/scorm2004');
 TypeScript types are included with the package:
 
 ```typescript
-import { AICC, Scorm12API, Scorm2004API } from 'scorm-again';
-import { Settings } from 'scorm-again'; // Import types
+import {AICC, Scorm12API, Scorm2004API} from 'scorm-again';
+import {Settings} from 'scorm-again'; // Import types
 
 // With modern build
-import { Scorm2004API } from 'scorm-again/modern';
+import {Scorm2004API} from 'scorm-again/modern';
 
 // Create an instance with typed settings
 const settings: Settings = {
@@ -682,7 +682,8 @@ interfaces between components.
 
 ### Bundle Size Optimization
 
-scorm-again is optimized for minimal bundle size while maintaining compatibility with both legacy and modern browsers:
+scorm-again is optimized for minimal bundle size while maintaining compatibility with both legacy
+and modern browsers:
 
 - **Code Splitting**: Common code is extracted into shared chunks to reduce duplication
 - **Tree Shaking**: Unused code is eliminated from the final bundles
@@ -691,7 +692,8 @@ scorm-again is optimized for minimal bundle size while maintaining compatibility
 - **Separate Entry Points**: Import only what you need with granular entry points
 - **Modern Builds**: ES2015+ builds for modern browsers with smaller footprint
 
-These optimizations result in significantly smaller bundle sizes, especially when importing only the specific standard you need.
+These optimizations result in significantly smaller bundle sizes, especially when importing only the
+specific standard you need.
 
 ## Compatibility
 
@@ -791,9 +793,9 @@ You will need `node` installed on your local machine, and you'll have to run `np
 repo directory before
 starting development.
 
-To run a build, you need to just run the `yarn run compile` command in the root of the project.
+To run a build, you need to just run the `npm run build:all` command in the root of the project.
 
-Similarly, to run the tests, you just run the `yarn test` command.
+Similarly, to run the tests, you just run the `npm test` command.
 
 Before submitting pull requests, please also run `eslint ./src --fix` against your code first,
 otherwise your pull

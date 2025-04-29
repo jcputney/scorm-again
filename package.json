@@ -105,13 +105,17 @@
   },
   "devDependencies": {
     "@babel/cli": "7.27.0",
-    "@babel/core": "7.26.10",
+    "@babel/core": "^7.26.10",
     "@babel/eslint-parser": "7.27.0",
     "@babel/node": "7.26.0",
-    "@babel/preset-env": "7.26.9",
+    "@babel/preset-env": "^7.26.9",
     "@babel/preset-typescript": "7.27.0",
     "@eslint/js": "9.25.1",
+    "@mo36924/rollup-plugin-cache": "^1.6.11",
     "@playwright/test": "1.52.0",
+    "@rollup/plugin-babel": "^6.0.4",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.6",
     "@types/istanbul-lib-coverage": "^2.0.6",
     "@types/istanbul-lib-report": "^3.0.3",
     "@types/istanbul-reports": "^3.0.4",
@@ -122,6 +126,7 @@
     "babel-loader": "10.0.0",
     "babelify": "10.0.0",
     "browserify": "17.0.1",
+    "esbuild": "^0.25.3",
     "eslint": "9.25.1",
     "eslint-formatter-junit": "8.40.0",
     "eslint-plugin-import": "2.31.0",
@@ -141,37 +146,38 @@
     "miragejs": "0.2.0-alpha.3",
     "playwright": "1.52.0",
     "prettier": "3.5.3",
+    "rollup": "^4.9.6",
+    "rollup-plugin-dts": "^6.1.0",
+    "rollup-plugin-esbuild": "^6.2.1",
     "standard-version": "9.5.0",
+    "terser": "^5.27.2",
     "ts-loader": "9.5.2",
     "tslib": "^2.6.2",
     "tsx": "4.19.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.31.1",
     "vite": "6.3.3",
-    "vite-plugin-dts": "4.5.3",
-    "vite-plugin-eslint": "1.8.1",
     "vitest": "3.1.2"
   },
   "engines": {
-    "node": ">=16.0.0",
-    "yarn": ">=1.22.0"
+    "node": ">=20.0.0"
   },
   "sideEffects": false,
   "scripts": {
-    "build": "vite build",
+    "clean": "rm -rf dist",
+    "ensure-dirs": "node scripts/ensure-dirs.js",
+    "build": "npm run clean && npm run ensure-dirs && rollup -c",
     "build:types": "tsc --emitDeclarationOnly --declaration --outDir dist/types",
     "build:all": "npm run build && npm run build:types",
-    "compile:dev": "vite build --watch --mode development",
-    "compile:modern": "vite build --config vite.modern.config.ts",
+    "compile:dev": "npm run ensure-dirs && rollup -c -w",
+    "compile:modern": "npm run ensure-dirs && rollup -c",
     "test": "vitest run",
     "test:min": "vitest run --reporter=basic",
-    "test:all": "vitest run --config vitest.config.all.ts",
     "test:coverage": "vitest run --coverage",
-    "test:coverage:all": "vitest run --coverage --config vitest.config.all.ts",
     "test:integration:setup": "tsx test/integration/setup.ts",
     "test:integration:server": "tsx test/integration/server.ts",
     "test:integration": "npm run build && npx playwright test",
-    "test:integration:ci": "npm run build && npm run compile:modern && npx playwright test --reporter=list",
+    "test:integration:ci": "npm run build && npx playwright test --reporter=list",
     "test:performance": "tsx test/performance/benchmark.ts",
     "test:ui": "vitest --ui",
     "fix": "eslint ./src --fix",
@@ -182,7 +188,7 @@
     "release:alpha": "standard-version --prerelease alpha --no-verify",
     "release:beta": "standard-version --prerelease beta --no-verify",
     "release:publish": "git push --follow-tags origin master && npm publish",
-    "release": "npm run test:min && npm run test:integration:ci && npm run release:prepare && npm run compile && npm run compile:modern && npm run release:publish"
+    "release": "npm run test:min && npm run test:integration:ci && npm run release:prepare && npm run compile && npm run release:publish"
   },
   "repository": {
     "type": "git",
@@ -198,5 +204,8 @@
   "bugs": {
     "url": "https://github.com/jcputney/scorm-again/issues"
   },
-  "homepage": "https://github.com/jcputney/scorm-again"
+  "homepage": "https://github.com/jcputney/scorm-again",
+  "dependencies": {
+    "rollup-plugin-bundle-stats": "^4.19.1"
+  }
 }

@@ -224,6 +224,63 @@ describe("Sequencing", () => {
       spy.mockRestore();
     });
 
+    it("should return false if pre-condition rules return DISABLED", () => {
+      const sequencing = new Sequencing();
+      const adlNav = new ADLNav();
+      const activity = new Activity("activity", "Activity");
+
+      sequencing.adlNav = adlNav;
+      sequencing.activityTree.currentActivity = activity;
+
+      const spy = vi
+        .spyOn(sequencing.sequencingRules, "evaluatePreConditionRules")
+        .mockImplementation(() => {
+          return RuleActionType.DISABLED;
+        });
+
+      expect(sequencing.processNavigationRequest("continue")).toBe(false);
+
+      spy.mockRestore();
+    });
+
+    it("should return false if pre-condition rules return HIDE_FROM_CHOICE", () => {
+      const sequencing = new Sequencing();
+      const adlNav = new ADLNav();
+      const activity = new Activity("activity", "Activity");
+
+      sequencing.adlNav = adlNav;
+      sequencing.activityTree.currentActivity = activity;
+
+      const spy = vi
+        .spyOn(sequencing.sequencingRules, "evaluatePreConditionRules")
+        .mockImplementation(() => {
+          return RuleActionType.HIDE_FROM_CHOICE;
+        });
+
+      expect(sequencing.processNavigationRequest("continue")).toBe(false);
+
+      spy.mockRestore();
+    });
+
+    it("should return false if pre-condition rules return STOP_FORWARD_TRAVERSAL", () => {
+      const sequencing = new Sequencing();
+      const adlNav = new ADLNav();
+      const activity = new Activity("activity", "Activity");
+
+      sequencing.adlNav = adlNav;
+      sequencing.activityTree.currentActivity = activity;
+
+      const spy = vi
+        .spyOn(sequencing.sequencingRules, "evaluatePreConditionRules")
+        .mockImplementation(() => {
+          return RuleActionType.STOP_FORWARD_TRAVERSAL;
+        });
+
+      expect(sequencing.processNavigationRequest("continue")).toBe(false);
+
+      spy.mockRestore();
+    });
+
     it("should call processContinueRequest for continue request", () => {
       const sequencing = new Sequencing();
       const adlNav = new ADLNav();
@@ -256,6 +313,116 @@ describe("Sequencing", () => {
       expect(processPreviousRequestSpy).toHaveBeenCalledWith(activity);
 
       processPreviousRequestSpy.mockRestore();
+    });
+
+    it("should call processExitRequest for exit request", () => {
+      const sequencing = new Sequencing();
+      const adlNav = new ADLNav();
+      const activity = new Activity("activity", "Activity");
+
+      sequencing.adlNav = adlNav;
+      sequencing.activityTree.currentActivity = activity;
+
+      const processExitRequestSpy = vi.spyOn(sequencing, "processExitRequest");
+
+      sequencing.processNavigationRequest("exit");
+
+      expect(processExitRequestSpy).toHaveBeenCalledWith(activity);
+
+      processExitRequestSpy.mockRestore();
+    });
+
+    it("should call processExitAllRequest for exitAll request", () => {
+      const sequencing = new Sequencing();
+      const adlNav = new ADLNav();
+      const activity = new Activity("activity", "Activity");
+
+      sequencing.adlNav = adlNav;
+      sequencing.activityTree.currentActivity = activity;
+
+      const processExitAllRequestSpy = vi.spyOn(sequencing, "processExitAllRequest");
+
+      sequencing.processNavigationRequest("exitAll");
+
+      expect(processExitAllRequestSpy).toHaveBeenCalled();
+
+      processExitAllRequestSpy.mockRestore();
+    });
+
+    it("should call processAbandonRequest for abandon request", () => {
+      const sequencing = new Sequencing();
+      const adlNav = new ADLNav();
+      const activity = new Activity("activity", "Activity");
+
+      sequencing.adlNav = adlNav;
+      sequencing.activityTree.currentActivity = activity;
+
+      const processAbandonRequestSpy = vi.spyOn(sequencing, "processAbandonRequest");
+
+      sequencing.processNavigationRequest("abandon");
+
+      expect(processAbandonRequestSpy).toHaveBeenCalledWith(activity);
+
+      processAbandonRequestSpy.mockRestore();
+    });
+
+    it("should call processAbandonAllRequest for abandonAll request", () => {
+      const sequencing = new Sequencing();
+      const adlNav = new ADLNav();
+      const activity = new Activity("activity", "Activity");
+
+      sequencing.adlNav = adlNav;
+      sequencing.activityTree.currentActivity = activity;
+
+      const processAbandonAllRequestSpy = vi.spyOn(sequencing, "processAbandonAllRequest");
+
+      sequencing.processNavigationRequest("abandonAll");
+
+      expect(processAbandonAllRequestSpy).toHaveBeenCalled();
+
+      processAbandonAllRequestSpy.mockRestore();
+    });
+
+    it("should call processSuspendAllRequest for suspendAll request", () => {
+      const sequencing = new Sequencing();
+      const adlNav = new ADLNav();
+      const activity = new Activity("activity", "Activity");
+
+      sequencing.adlNav = adlNav;
+      sequencing.activityTree.currentActivity = activity;
+
+      const processSuspendAllRequestSpy = vi.spyOn(sequencing, "processSuspendAllRequest");
+
+      sequencing.processNavigationRequest("suspendAll");
+
+      expect(processSuspendAllRequestSpy).toHaveBeenCalledWith(activity);
+
+      processSuspendAllRequestSpy.mockRestore();
+    });
+
+    it("should return false for choice request without implementation", () => {
+      const sequencing = new Sequencing();
+      const adlNav = new ADLNav();
+      const activity = new Activity("activity", "Activity");
+
+      sequencing.adlNav = adlNav;
+      sequencing.activityTree.currentActivity = activity;
+
+      // The choice request currently returns false as it's not implemented
+      const result = sequencing.processNavigationRequest("choice");
+
+      expect(result).toBe(false);
+    });
+
+    it("should throw an error for unknown request", () => {
+      const sequencing = new Sequencing();
+      const adlNav = new ADLNav();
+      const activity = new Activity("activity", "Activity");
+
+      sequencing.adlNav = adlNav;
+      sequencing.activityTree.currentActivity = activity;
+
+      expect(() => sequencing.processNavigationRequest("unknownRequest")).toThrow();
     });
   });
 
@@ -339,6 +506,299 @@ describe("Sequencing", () => {
       controlsSpy.mockRestore();
       activitySpy.mockRestore();
     });
+
+    it("should handle EXIT_PARENT action from exit condition rules", () => {
+      const sequencing = new Sequencing();
+      const activity = new Activity("activity", "Activity");
+      const parentActivity = new Activity("parent", "Parent Activity");
+      const nextActivity = new Activity("next", "Next Activity");
+
+      activity._parent = parentActivity;
+
+      vi.spyOn(sequencing.sequencingControls, "isForwardNavigationAllowed").mockReturnValue(true);
+      vi.spyOn(sequencing.activityTree, "getNextSibling").mockReturnValue(nextActivity);
+      vi.spyOn(sequencing.sequencingRules, "evaluateExitConditionRules").mockReturnValue(
+        RuleActionType.EXIT_PARENT,
+      );
+
+      const currentActivitySpy = vi.spyOn(sequencing.activityTree, "currentActivity", "set");
+
+      const result = sequencing.processContinueRequest(activity);
+
+      expect(result).toBe(true);
+      expect(currentActivitySpy).toHaveBeenCalledWith(parentActivity);
+    });
+
+    it("should handle EXIT_ALL action from exit condition rules", () => {
+      const sequencing = new Sequencing();
+      const activity = new Activity("activity", "Activity");
+      const nextActivity = new Activity("next", "Next Activity");
+
+      vi.spyOn(sequencing.sequencingControls, "isForwardNavigationAllowed").mockReturnValue(true);
+      vi.spyOn(sequencing.activityTree, "getNextSibling").mockReturnValue(nextActivity);
+      vi.spyOn(sequencing.sequencingRules, "evaluateExitConditionRules").mockReturnValue(
+        RuleActionType.EXIT_ALL,
+      );
+
+      const currentActivitySpy = vi.spyOn(sequencing.activityTree, "currentActivity", "set");
+
+      const result = sequencing.processContinueRequest(activity);
+
+      expect(result).toBe(true);
+      expect(currentActivitySpy).toHaveBeenCalledWith(null);
+    });
+
+    it("should handle RETRY action from post condition rules", () => {
+      const sequencing = new Sequencing();
+      const activity = new Activity("activity", "Activity");
+      const nextActivity = new Activity("next", "Next Activity");
+
+      vi.spyOn(sequencing.sequencingControls, "isForwardNavigationAllowed").mockReturnValue(true);
+      vi.spyOn(sequencing.activityTree, "getNextSibling").mockReturnValue(nextActivity);
+      vi.spyOn(sequencing.sequencingRules, "evaluatePostConditionRules").mockReturnValue(
+        RuleActionType.RETRY,
+      );
+
+      const incrementAttemptCountSpy = vi.spyOn(nextActivity, "incrementAttemptCount");
+
+      const result = sequencing.processContinueRequest(activity);
+
+      expect(result).toBe(true);
+      expect(incrementAttemptCountSpy).toHaveBeenCalled();
+    });
+
+    it("should handle RETRY_ALL action from post condition rules", () => {
+      const sequencing = new Sequencing();
+      const activity = new Activity("activity", "Activity");
+      const nextActivity = new Activity("next", "Next Activity");
+      const allActivities = [activity, nextActivity];
+
+      vi.spyOn(sequencing.sequencingControls, "isForwardNavigationAllowed").mockReturnValue(true);
+      vi.spyOn(sequencing.activityTree, "getNextSibling").mockReturnValue(nextActivity);
+      vi.spyOn(sequencing.sequencingRules, "evaluatePostConditionRules").mockReturnValue(
+        RuleActionType.RETRY_ALL,
+      );
+      vi.spyOn(sequencing.activityTree, "getAllActivities").mockReturnValue(allActivities);
+
+      const incrementAttemptCountSpy1 = vi.spyOn(activity, "incrementAttemptCount");
+      const incrementAttemptCountSpy2 = vi.spyOn(nextActivity, "incrementAttemptCount");
+
+      const result = sequencing.processContinueRequest(activity);
+
+      expect(result).toBe(true);
+      expect(incrementAttemptCountSpy1).toHaveBeenCalled();
+      expect(incrementAttemptCountSpy2).toHaveBeenCalled();
+    });
+  });
+
+  describe("processPreviousRequest", () => {
+    it("should return false if backward navigation is not allowed", () => {
+      const sequencing = new Sequencing();
+      const activity = new Activity("activity", "Activity");
+
+      vi.spyOn(sequencing.sequencingControls, "isBackwardNavigationAllowed").mockReturnValue(false);
+
+      expect(sequencing.processPreviousRequest(activity)).toBe(false);
+    });
+
+    it("should return false if there is no previous activity", () => {
+      const sequencing = new Sequencing();
+      const activity = new Activity("activity", "Activity");
+
+      vi.spyOn(sequencing.sequencingControls, "isBackwardNavigationAllowed").mockReturnValue(true);
+      vi.spyOn(sequencing.activityTree, "getPreviousSibling").mockReturnValue(null);
+
+      expect(sequencing.processPreviousRequest(activity)).toBe(false);
+    });
+
+    it("should evaluate exit condition rules", () => {
+      const sequencing = new Sequencing();
+      const activity = new Activity("activity", "Activity");
+      const previousActivity = new Activity("previous", "Previous Activity");
+
+      vi.spyOn(sequencing.sequencingControls, "isBackwardNavigationAllowed").mockReturnValue(true);
+      vi.spyOn(sequencing.activityTree, "getPreviousSibling").mockReturnValue(previousActivity);
+
+      const evaluateExitConditionRulesSpy = vi.spyOn(
+        sequencing.sequencingRules,
+        "evaluateExitConditionRules",
+      );
+
+      sequencing.processPreviousRequest(activity);
+
+      expect(evaluateExitConditionRulesSpy).toHaveBeenCalledWith(activity);
+    });
+
+    it("should set previous activity as current activity", () => {
+      const sequencing = new Sequencing();
+      const activity = new Activity("activity", "Activity");
+      const previousActivity = new Activity("previous", "Previous Activity");
+
+      vi.spyOn(sequencing.sequencingControls, "isBackwardNavigationAllowed").mockReturnValue(true);
+      vi.spyOn(sequencing.activityTree, "getPreviousSibling").mockReturnValue(previousActivity);
+
+      const currentActivitySpy = vi.spyOn(sequencing.activityTree, "currentActivity", "set");
+
+      sequencing.processPreviousRequest(activity);
+
+      expect(currentActivitySpy).toHaveBeenCalledWith(previousActivity);
+    });
+
+    it("should evaluate post-condition rules", () => {
+      const sequencing = new Sequencing();
+      const activity = new Activity("activity", "Activity");
+      const previousActivity = new Activity("previous", "Previous Activity");
+
+      vi.spyOn(sequencing.sequencingControls, "isBackwardNavigationAllowed").mockReturnValue(true);
+      vi.spyOn(sequencing.activityTree, "getPreviousSibling").mockReturnValue(previousActivity);
+
+      const evaluatePostConditionRulesSpy = vi.spyOn(
+        sequencing.sequencingRules,
+        "evaluatePostConditionRules",
+      );
+
+      sequencing.processPreviousRequest(activity);
+
+      expect(evaluatePostConditionRulesSpy).toHaveBeenCalledWith(previousActivity);
+    });
+
+    it("should handle EXIT_PARENT action from exit condition rules", () => {
+      const sequencing = new Sequencing();
+      const activity = new Activity("activity", "Activity");
+      const parentActivity = new Activity("parent", "Parent Activity");
+      const previousActivity = new Activity("previous", "Previous Activity");
+
+      activity._parent = parentActivity;
+
+      vi.spyOn(sequencing.sequencingControls, "isBackwardNavigationAllowed").mockReturnValue(true);
+      vi.spyOn(sequencing.activityTree, "getPreviousSibling").mockReturnValue(previousActivity);
+      vi.spyOn(sequencing.sequencingRules, "evaluateExitConditionRules").mockReturnValue(
+        RuleActionType.EXIT_PARENT,
+      );
+
+      const currentActivitySpy = vi.spyOn(sequencing.activityTree, "currentActivity", "set");
+
+      const result = sequencing.processPreviousRequest(activity);
+
+      expect(result).toBe(true);
+      expect(currentActivitySpy).toHaveBeenCalledWith(parentActivity);
+    });
+  });
+
+  describe("processExitRequest", () => {
+    it("should return false if choice exit is not allowed", () => {
+      const sequencing = new Sequencing();
+      const activity = new Activity("activity", "Activity");
+
+      vi.spyOn(sequencing.sequencingControls, "choiceExit", "get").mockReturnValue(false);
+
+      expect(sequencing.processExitRequest(activity)).toBe(false);
+    });
+
+    it("should return false if activity has no parent", () => {
+      const sequencing = new Sequencing();
+      const activity = new Activity("activity", "Activity");
+
+      vi.spyOn(sequencing.sequencingControls, "choiceExit", "get").mockReturnValue(true);
+
+      expect(sequencing.processExitRequest(activity)).toBe(false);
+    });
+
+    it("should set parent as current activity", () => {
+      const sequencing = new Sequencing();
+      const activity = new Activity("activity", "Activity");
+      const parentActivity = new Activity("parent", "Parent Activity");
+
+      activity._parent = parentActivity;
+
+      vi.spyOn(sequencing.sequencingControls, "choiceExit", "get").mockReturnValue(true);
+      const currentActivitySpy = vi.spyOn(sequencing.activityTree, "currentActivity", "set");
+
+      const result = sequencing.processExitRequest(activity);
+
+      expect(result).toBe(true);
+      expect(currentActivitySpy).toHaveBeenCalledWith(parentActivity);
+    });
+  });
+
+  describe("processExitAllRequest", () => {
+    it("should return false if choice exit is not allowed", () => {
+      const sequencing = new Sequencing();
+
+      vi.spyOn(sequencing.sequencingControls, "choiceExit", "get").mockReturnValue(false);
+
+      expect(sequencing.processExitAllRequest()).toBe(false);
+    });
+
+    it("should set current activity to null", () => {
+      const sequencing = new Sequencing();
+
+      vi.spyOn(sequencing.sequencingControls, "choiceExit", "get").mockReturnValue(true);
+      const currentActivitySpy = vi.spyOn(sequencing.activityTree, "currentActivity", "set");
+
+      const result = sequencing.processExitAllRequest();
+
+      expect(result).toBe(true);
+      expect(currentActivitySpy).toHaveBeenCalledWith(null);
+    });
+  });
+
+  describe("processAbandonRequest", () => {
+    it("should return false if activity has no parent", () => {
+      const sequencing = new Sequencing();
+      const activity = new Activity("activity", "Activity");
+
+      expect(sequencing.processAbandonRequest(activity)).toBe(false);
+    });
+
+    it("should set parent as current activity without processing exit rules", () => {
+      const sequencing = new Sequencing();
+      const activity = new Activity("activity", "Activity");
+      const parentActivity = new Activity("parent", "Parent Activity");
+
+      activity._parent = parentActivity;
+
+      const currentActivitySpy = vi.spyOn(sequencing.activityTree, "currentActivity", "set");
+      const evaluateExitConditionRulesSpy = vi.spyOn(
+        sequencing.sequencingRules,
+        "evaluateExitConditionRules",
+      );
+
+      const result = sequencing.processAbandonRequest(activity);
+
+      expect(result).toBe(true);
+      expect(currentActivitySpy).toHaveBeenCalledWith(parentActivity);
+      expect(evaluateExitConditionRulesSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("processAbandonAllRequest", () => {
+    it("should set current activity to null without processing exit rules", () => {
+      const sequencing = new Sequencing();
+
+      const currentActivitySpy = vi.spyOn(sequencing.activityTree, "currentActivity", "set");
+
+      const result = sequencing.processAbandonAllRequest();
+
+      expect(result).toBe(true);
+      expect(currentActivitySpy).toHaveBeenCalledWith(null);
+    });
+  });
+
+  describe("processSuspendAllRequest", () => {
+    it("should set suspended activity and clear current activity", () => {
+      const sequencing = new Sequencing();
+      const activity = new Activity("activity", "Activity");
+
+      const suspendedActivitySpy = vi.spyOn(sequencing.activityTree, "suspendedActivity", "set");
+      const currentActivitySpy = vi.spyOn(sequencing.activityTree, "currentActivity", "set");
+
+      const result = sequencing.processSuspendAllRequest(activity);
+
+      expect(result).toBe(true);
+      expect(suspendedActivitySpy).toHaveBeenCalledWith(activity);
+      expect(currentActivitySpy).toHaveBeenCalledWith(null);
+    });
   });
 
   describe("processRollup", () => {
@@ -361,10 +821,36 @@ describe("Sequencing", () => {
       sequencing.activityTree.root = root;
 
       const processRollupSpy = vi.spyOn(sequencing.rollupRules, "processRollup");
+      const processRollupRecursiveSpy = vi.spyOn(sequencing as any, "_processRollupRecursive");
 
       sequencing.processRollup();
 
-      expect(processRollupSpy).toHaveBeenCalledWith(root);
+      expect(processRollupRecursiveSpy).toHaveBeenCalledWith(root);
+
+      processRollupSpy.mockRestore();
+      processRollupRecursiveSpy.mockRestore();
+    });
+  });
+
+  describe("_processRollupRecursive", () => {
+    it("should process rollup for children first, then for the activity", () => {
+      const sequencing = new Sequencing();
+      const root = new Activity("root", "Root Activity");
+      const child1 = new Activity("child1", "Child 1");
+      const child2 = new Activity("child2", "Child 2");
+
+      // Add children using the addChild method
+      root.addChild(child1);
+      root.addChild(child2);
+
+      const processRollupSpy = vi.spyOn(sequencing.rollupRules, "processRollup");
+
+      (sequencing as any)._processRollupRecursive(root);
+
+      // Should process children first, then root
+      expect(processRollupSpy).toHaveBeenNthCalledWith(1, child1);
+      expect(processRollupSpy).toHaveBeenNthCalledWith(2, child2);
+      expect(processRollupSpy).toHaveBeenNthCalledWith(3, root);
 
       processRollupSpy.mockRestore();
     });

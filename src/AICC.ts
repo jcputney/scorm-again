@@ -1,4 +1,4 @@
-import { Scorm12API } from "./Scorm12API";
+import Scorm12API from "./Scorm12API";
 import { CMI } from "./cmi/aicc/cmi";
 
 import { BaseCMI } from "./cmi/common/base_cmi";
@@ -70,4 +70,4 @@ class AICCImpl extends Scorm12API {
   }
 }
 
-export { AICCImpl as AICC };
+export default AICCImpl;

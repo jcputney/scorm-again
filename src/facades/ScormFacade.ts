@@ -5,9 +5,9 @@
  * It provides a simplified interface to the complex subsystem of SCORM APIs.
  */
 
-import { Scorm2004API } from "../Scorm2004API";
-import { Scorm12API } from "../Scorm12API";
-import { AICC } from "../AICC";
+import Scorm2004API from "../Scorm2004API";
+import Scorm12API from "../Scorm12API";
+import AICC from "../AICC";
 import { Settings } from "../types/api_types";
 import { CompletionStatus, SuccessStatus } from "../constants/enums";
 import BaseAPI from "../BaseAPI";

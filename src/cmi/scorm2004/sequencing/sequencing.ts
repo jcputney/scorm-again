@@ -215,8 +215,6 @@ export class Sequencing extends BaseCMI {
         return this.processAbandonAllRequest();
       case "suspendAll":
         return this.processSuspendAllRequest(currentActivity);
-      case "resumeAll":
-        return this.processResumeAllRequest();
       default:
         return false;
     }
@@ -451,24 +449,6 @@ export class Sequencing extends BaseCMI {
     // Set the current activity as suspended
     this._activityTree.suspendedActivity = currentActivity;
     this._activityTree.currentActivity = null;
-
-    return true;
-  }
-
-  /**
-   * Process resume all request
-   * @return {boolean} - True if the request is valid, false otherwise
-   */
-  processResumeAllRequest(): boolean {
-    // Get the suspended activity
-    const suspendedActivity = this._activityTree.suspendedActivity;
-    if (!suspendedActivity) {
-      return false;
-    }
-
-    // Set the suspended activity as current
-    this._activityTree.currentActivity = suspendedActivity;
-    this._activityTree.suspendedActivity = null;
 
     return true;
   }

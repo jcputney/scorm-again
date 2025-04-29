@@ -48,9 +48,9 @@ codebase.
 
 ```typescript
 // Good
-import { useState, useEffect } from "react";
-import { ErrorCode } from "./constants/error_codes";
-import { formatMessage } from "./utilities";
+import {useState, useEffect} from "react";
+import {ErrorCode} from "./constants/error_codes";
+import {formatMessage} from "./utilities";
 
 // Avoid
 import * as React from "react";
@@ -203,7 +203,7 @@ function processHttpRequest(url: string, params: any, immediate: boolean): Promi
 - Test edge cases and error conditions.
 - Keep tests independent of each other.
 - Use test coverage tools to identify untested code.
-- All codes changes should be verified by running `yarn run test:min`
+- All codes changes should be verified by running `npx vitest --coverage --run --reporter=dot`
 
 ```typescript
 describe('BaseAPI', () => {

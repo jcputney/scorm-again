@@ -418,4 +418,4 @@ class Scorm12Impl extends BaseAPI {
   }
 }
 
-export { Scorm12Impl as Scorm12API };
+export default Scorm12Impl;

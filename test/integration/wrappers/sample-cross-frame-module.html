@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sample Cross-Frame SCORM Module</title>
   <script type="module">
-    import {createCrossFrameClient} from "/dist/esm/facades/CrossFrameFacade.js";
+    import {createCrossFrameClient} from "/dist/esm/cross-frame-facade.js";
 
     // Create a cross-frame client that will communicate with the server
     const api = createCrossFrameClient();
@@ -216,30 +216,30 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Sample Cross-Frame SCORM Module</h1>
-    <p>Welcome, <span id="learnerName">Loading...</span>!</p>
-    <p>Detected API Version: <span id="apiVersion">Detecting...</span></p>
+<div class="container">
+  <h1>Sample Cross-Frame SCORM Module</h1>
+  <p>Welcome, <span id="learnerName">Loading...</span>!</p>
+  <p>Detected API Version: <span id="apiVersion">Detecting...</span></p>
 
-    <div class="controls">
-      <div class="control-group">
-        <button id="setCompleted">Set Completed</button>
-      </div>
-
-      <div class="control-group">
-        <label for="score">Score (0-100):</label>
-        <input type="number" id="score" min="0" max="100" value="80">
-        <button id="setScore">Set Score</button>
-      </div>
-
-      <div class="control-group">
-        <button id="terminate">Terminate Session</button>
-      </div>
+  <div class="controls">
+    <div class="control-group">
+      <button id="setCompleted">Set Completed</button>
     </div>
 
-    <div class="status">
-      <p>Status: <span id="status">Initializing...</span></p>
+    <div class="control-group">
+      <label for="score">Score (0-100):</label>
+      <input type="number" id="score" min="0" max="100" value="80">
+      <button id="setScore">Set Score</button>
+    </div>
+
+    <div class="control-group">
+      <button id="terminate">Terminate Session</button>
     </div>
   </div>
+
+  <div class="status">
+    <p>Status: <span id="status">Initializing...</span></p>
+  </div>
+</div>
 </body>
 </html>
