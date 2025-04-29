@@ -3,6 +3,7 @@ import terser from "@rollup/plugin-terser";
 import cache from "@mo36924/rollup-plugin-cache";
 import { bundleStats } from "rollup-plugin-bundle-stats";
 import { babel } from "@rollup/plugin-babel";
+import cleanup from "rollup-plugin-cleanup";
 
 // Entry points
 const entries = {
@@ -10,6 +11,13 @@ const entries = {
   scorm12: "src/Scorm12API.ts",
   scorm2004: "src/Scorm2004API.ts",
   "scorm-again": "src/ScormAgain.ts",
+  "cross-frame-facade": "src/facades/CrossFrameFacade.ts",
+};
+const esmEntries = {
+  aicc: "src/facades/AICC.esm.ts",
+  scorm12: "src/facades/Scorm12API.esm.ts",
+  scorm2004: "src/facades/Scorm2004API.esm.ts",
+  "scorm-again": "src/facades/ScormAgain.esm.ts",
   "cross-frame-facade": "src/facades/CrossFrameFacade.ts",
 };
 
@@ -58,12 +66,8 @@ Object.entries(entries).forEach(([name, input]) => {
         ],
         extensions: [".js", ".ts"],
       }),
-      terser({
-        compress: false,
-        output: {
-          comments: false,
-        },
-        mangle: false,
+      cleanup({
+        comments: "none",
       }),
     ],
   });
@@ -89,6 +93,7 @@ Object.entries(entries).forEach(([name, input]) => {
     external: ["window.API", "window.API_1484_11"],
     plugins: [
       cache(),
+      cleanup(),
       esbuild({
         tsconfig: "./tsconfig.json",
         sourceMap: true,
@@ -118,7 +123,7 @@ Object.entries(entries).forEach(([name, input]) => {
           unsafe_methods: true,
           unsafe_proto: true,
         },
-        output: {
+        format: {
           comments: false,
         },
         mangle: false,
@@ -147,6 +152,7 @@ Object.entries(entries).forEach(([name, input]) => {
     external: ["window.API", "window.API_1484_11"],
     plugins: [
       cache(),
+      cleanup(),
       esbuild({
         tsconfig: "./tsconfig.json",
         sourceMap: true,
@@ -176,6 +182,7 @@ Object.entries(entries).forEach(([name, input]) => {
     external: ["window.API", "window.API_1484_11"],
     plugins: [
       cache(),
+      cleanup(),
       esbuild({
         tsconfig: "./tsconfig.json",
         sourceMap: true,
@@ -192,14 +199,16 @@ Object.entries(entries).forEach(([name, input]) => {
           unsafe_methods: true,
           unsafe_proto: true,
         },
-        output: {
+        format: {
           comments: false,
         },
         mangle: false,
       }),
     ],
   });
+});
 
+Object.entries(esmEntries).forEach(([name, input]) => {
   // ESM copies
   configs.push({
     input,
@@ -207,35 +216,16 @@ Object.entries(entries).forEach(([name, input]) => {
       file: `dist/esm/${name}.js`,
       format: "es",
       sourcemap: true,
-      exports: "named",
+      exports: "auto",
     },
     external: ["window.API", "window.API_1484_11"],
     plugins: [
       cache(),
+      cleanup(),
       esbuild({
         tsconfig: "./tsconfig.json",
         sourceMap: true,
-      }),
-      babel({
-        babelHelpers: "bundled",
-        presets: [
-          [
-            "@babel/preset-env",
-            {
-              targets: {
-                browsers: ["ie 11", "> 0.25%, not dead"],
-              },
-            },
-          ],
-        ],
-        extensions: [".js", ".ts"],
-      }),
-      terser({
-        compress: false,
-        output: {
-          comments: false,
-        },
-        mangle: false,
+        target: "es2022",
       }),
     ],
   });
@@ -247,28 +237,16 @@ Object.entries(entries).forEach(([name, input]) => {
       file: `dist/esm/${name}.min.js`,
       format: "es",
       sourcemap: true,
-      exports: "named",
+      exports: "auto",
     },
     external: ["window.API", "window.API_1484_11"],
     plugins: [
       cache(),
+      cleanup(),
       esbuild({
         tsconfig: "./tsconfig.json",
         sourceMap: true,
-      }),
-      babel({
-        babelHelpers: "bundled",
-        presets: [
-          [
-            "@babel/preset-env",
-            {
-              targets: {
-                browsers: ["ie 11", "> 0.25%, not dead"],
-              },
-            },
-          ],
-        ],
-        extensions: [".js", ".ts"],
+        target: "es2022",
       }),
       terser({
         compress: {
@@ -281,7 +259,7 @@ Object.entries(entries).forEach(([name, input]) => {
           unsafe_methods: true,
           unsafe_proto: true,
         },
-        output: {
+        format: {
           comments: false,
         },
         mangle: false,

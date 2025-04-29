@@ -28,6 +28,10 @@ const wrappers = [
     name: "ESM",
     path: "/test/integration/wrappers/scorm2004-wrapper-esm.html",
   },
+  // {
+  //   name: "Cross-Frame",
+  //   path: "/test/integration/wrappers/scorm2004-wrapper-cross-frame.html",
+  // },
 ];
 
 // Run tests for each wrapper type

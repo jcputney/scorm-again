@@ -1,2 +1,7 @@
-(function(){"use strict"})();
+(function () {
+	'use strict';
+
+
+
+})();
 //# sourceMappingURL=scorm-again.js.map
