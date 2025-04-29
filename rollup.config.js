@@ -2,7 +2,7 @@ import esbuild from "rollup-plugin-esbuild";
 import terser from "@rollup/plugin-terser";
 import cache from "@mo36924/rollup-plugin-cache";
 import { bundleStats } from "rollup-plugin-bundle-stats";
-import { babel } from '@rollup/plugin-babel';
+import { babel } from "@rollup/plugin-babel";
 
 // Entry points
 const entries = {
@@ -45,15 +45,25 @@ Object.entries(entries).forEach(([name, input]) => {
         sourceMap: true,
       }),
       babel({
-        babelHelpers: 'bundled',
+        babelHelpers: "bundled",
         presets: [
-          ['@babel/preset-env', {
-            targets: {
-              browsers: ['ie 11', '> 0.25%, not dead'],
+          [
+            "@babel/preset-env",
+            {
+              targets: {
+                browsers: ["ie 11", "> 0.25%, not dead"],
+              },
             },
-          }]
+          ],
         ],
-        extensions: ['.js', '.ts'],
+        extensions: [".js", ".ts"],
+      }),
+      terser({
+        compress: false,
+        output: {
+          comments: false,
+        },
+        mangle: false,
       }),
     ],
   });
@@ -84,15 +94,18 @@ Object.entries(entries).forEach(([name, input]) => {
         sourceMap: true,
       }),
       babel({
-        babelHelpers: 'bundled',
+        babelHelpers: "bundled",
         presets: [
-          ['@babel/preset-env', {
-            targets: {
-              browsers: ['ie 11', '> 0.25%, not dead'],
+          [
+            "@babel/preset-env",
+            {
+              targets: {
+                browsers: ["ie 11", "> 0.25%, not dead"],
+              },
             },
-          }]
+          ],
         ],
-        extensions: ['.js', '.ts'],
+        extensions: [".js", ".ts"],
       }),
       terser({
         compress: {
@@ -108,7 +121,7 @@ Object.entries(entries).forEach(([name, input]) => {
         output: {
           comments: false,
         },
-        mangle: true,
+        mangle: false,
       }),
     ],
   });
@@ -118,9 +131,18 @@ Object.entries(entries).forEach(([name, input]) => {
     input,
     output: {
       file: `dist/modern/${name}.js`,
-      format: "es",
+      format: "iife",
       sourcemap: true,
       exports: "auto",
+      name:
+        name === "scorm2004"
+          ? "Scorm2004API"
+          : name === "scorm12"
+            ? "Scorm12API"
+            : name === "aicc"
+              ? "AICC"
+              : name,
+      extend: true,
     },
     external: ["window.API", "window.API_1484_11"],
     plugins: [
@@ -138,9 +160,18 @@ Object.entries(entries).forEach(([name, input]) => {
     input,
     output: {
       file: `dist/modern/${name}.min.js`,
-      format: "es",
+      format: "iife",
       sourcemap: true,
       exports: "auto",
+      name:
+        name === "scorm2004"
+          ? "Scorm2004API"
+          : name === "scorm12"
+            ? "Scorm12API"
+            : name === "aicc"
+              ? "AICC"
+              : name,
+      extend: true,
     },
     external: ["window.API", "window.API_1484_11"],
     plugins: [
@@ -164,7 +195,7 @@ Object.entries(entries).forEach(([name, input]) => {
         output: {
           comments: false,
         },
-        mangle: true,
+        mangle: false,
       }),
     ],
   });
@@ -174,18 +205,9 @@ Object.entries(entries).forEach(([name, input]) => {
     input,
     output: {
       file: `dist/esm/${name}.js`,
-      format: "iife",
+      format: "es",
       sourcemap: true,
-      exports: "auto",
-      name:
-        name === "scorm2004"
-          ? "Scorm2004API"
-          : name === "scorm12"
-            ? "Scorm12API"
-            : name === "aicc"
-              ? "AICC"
-              : name,
-      extend: true,
+      exports: "named",
     },
     external: ["window.API", "window.API_1484_11"],
     plugins: [
@@ -195,15 +217,25 @@ Object.entries(entries).forEach(([name, input]) => {
         sourceMap: true,
       }),
       babel({
-        babelHelpers: 'bundled',
+        babelHelpers: "bundled",
         presets: [
-          ['@babel/preset-env', {
-            targets: {
-              browsers: ['ie 11', '> 0.25%, not dead'],
+          [
+            "@babel/preset-env",
+            {
+              targets: {
+                browsers: ["ie 11", "> 0.25%, not dead"],
+              },
             },
-          }]
+          ],
         ],
-        extensions: ['.js', '.ts'],
+        extensions: [".js", ".ts"],
+      }),
+      terser({
+        compress: false,
+        output: {
+          comments: false,
+        },
+        mangle: false,
       }),
     ],
   });
@@ -213,18 +245,9 @@ Object.entries(entries).forEach(([name, input]) => {
     input,
     output: {
       file: `dist/esm/${name}.min.js`,
-      format: "iife",
+      format: "es",
       sourcemap: true,
-      exports: "auto",
-      name:
-        name === "scorm2004"
-          ? "Scorm2004API"
-          : name === "scorm12"
-            ? "Scorm12API"
-            : name === "aicc"
-              ? "AICC"
-              : name,
-      extend: true,
+      exports: "named",
     },
     external: ["window.API", "window.API_1484_11"],
     plugins: [
@@ -234,15 +257,18 @@ Object.entries(entries).forEach(([name, input]) => {
         sourceMap: true,
       }),
       babel({
-        babelHelpers: 'bundled',
+        babelHelpers: "bundled",
         presets: [
-          ['@babel/preset-env', {
-            targets: {
-              browsers: ['ie 11', '> 0.25%, not dead'],
+          [
+            "@babel/preset-env",
+            {
+              targets: {
+                browsers: ["ie 11", "> 0.25%, not dead"],
+              },
             },
-          }]
+          ],
         ],
-        extensions: ['.js', '.ts'],
+        extensions: [".js", ".ts"],
       }),
       terser({
         compress: {
@@ -258,7 +284,7 @@ Object.entries(entries).forEach(([name, input]) => {
         output: {
           comments: false,
         },
-        mangle: true,
+        mangle: false,
       }),
     ],
   });

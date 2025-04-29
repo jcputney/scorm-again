@@ -9,21 +9,21 @@ import { ADL, ADLDataObject } from "./cmi/scorm2004/adl";
 import { CommitObject, ResultObject, ScoreObject, Settings } from "./types/api_types";
 import {
   ActivitySettings,
-  SequencingSettings,
-  SequencingRulesSettings,
-  SequencingControlsSettings,
-  RollupRulesSettings,
-  SequencingRuleSettings,
   RollupRuleSettings,
+  RollupRulesSettings,
+  SequencingControlsSettings,
+  SequencingRuleSettings,
+  SequencingRulesSettings,
+  SequencingSettings
 } from "./types/sequencing_types";
-import { SequencingRule, RuleCondition } from "./cmi/scorm2004/sequencing/sequencing_rules";
-import { RollupRule, RollupCondition } from "./cmi/scorm2004/sequencing/rollup_rules";
+import { RuleCondition, SequencingRule } from "./cmi/scorm2004/sequencing/sequencing_rules";
+import { RollupCondition, RollupRule } from "./cmi/scorm2004/sequencing/rollup_rules";
 import { scorm2004_regex } from "./constants/regex"; // Import functions from extracted modules
 import { BaseCMI } from "./cmi/common/base_cmi";
 import {
   CMIInteractionsCorrectResponsesObject,
   CMIInteractionsObject,
-  CMIInteractionsObjectivesObject,
+  CMIInteractionsObjectivesObject
 } from "./cmi/scorm2004/interactions";
 import { CMIArray } from "./cmi/common/array";
 import { CorrectResponses, ResponseType } from "./constants/response_constants";
@@ -36,7 +36,7 @@ import { Activity } from "./cmi/scorm2004/sequencing/activity";
 /**
  * API class for SCORM 2004
  */
-class Scorm2004Impl extends BaseAPI {
+class Scorm2004API extends BaseAPI {
   private _version: string = "1.0";
   private _globalObjectives: CMIObjectivesObject[] = [];
   private _sequencing: Sequencing;
@@ -682,9 +682,9 @@ class Scorm2004Impl extends BaseAPI {
 
   /**
    * Replace the whole API with another
-   * @param {Scorm2004Impl} newAPI
+   * @param {Scorm2004API} newAPI
    */
-  replaceWithAnotherScormAPI(newAPI: Scorm2004Impl) {
+  replaceWithAnotherScormAPI(newAPI: Scorm2004API) {
     // Data Model
     this.cmi = newAPI.cmi;
     this.adl = newAPI.adl;
@@ -1093,4 +1093,4 @@ class Scorm2004Impl extends BaseAPI {
   }
 }
 
-export default Scorm2004Impl;
+export default Scorm2004API;

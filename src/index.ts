@@ -1,7 +1,7 @@
 // Main APIs
-export { Scorm12API } from "./Scorm12API";
-export { Scorm2004API } from "./Scorm2004API";
-export { AICC } from "./AICC";
+export * from "./Scorm12API";
+export * from "./Scorm2004API";
+export * from "./AICC";
 
 // Facades
 export { CrossFrameAPI, CrossFrameLMS } from "./facades/CrossFrameFacade";

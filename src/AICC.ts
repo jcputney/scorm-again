@@ -13,7 +13,7 @@ import { stringMatches } from "./utilities";
 /**
  * The AICC API class
  */
-class AICCImpl extends Scorm12API {
+class AICC extends Scorm12API {
   /**
    * Constructor to create AICC API object
    * @param {Settings} settings
@@ -61,13 +61,13 @@ class AICCImpl extends Scorm12API {
   /**
    * Replace the whole API with another
    *
-   * @param {AICCImpl} newAPI
+   * @param {AICC} newAPI
    */
-  override replaceWithAnotherScormAPI(newAPI: AICCImpl) {
+  override replaceWithAnotherScormAPI(newAPI: AICC) {
     // Data Model
     this.cmi = newAPI.cmi;
     this.nav = newAPI.nav;
   }
 }
 
-export default AICCImpl;
+export default AICC;

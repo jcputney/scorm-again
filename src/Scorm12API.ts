@@ -9,7 +9,7 @@ import { CMIObjectivesObject } from "./cmi/scorm12/objectives";
 import {
   CMIInteractionsCorrectResponsesObject,
   CMIInteractionsObject,
-  CMIInteractionsObjectivesObject,
+  CMIInteractionsObjectivesObject
 } from "./cmi/scorm12/interactions";
 import { NAV } from "./cmi/scorm12/nav";
 import { CommitObject, ResultObject, ScoreObject, Settings } from "./types/api_types";
@@ -20,7 +20,7 @@ import { scorm12_regex } from "./constants/regex";
 /**
  * API class for SCORM 1.2
  */
-class Scorm12Impl extends BaseAPI {
+class Scorm12API extends BaseAPI {
   /**
    * Constructor for SCORM 1.2 API
    * @param {object} settings
@@ -273,9 +273,9 @@ class Scorm12Impl extends BaseAPI {
   /**
    * Replace the whole API with another
    *
-   * @param {Scorm12Impl} newAPI
+   * @param {Scorm12API} newAPI
    */
-  replaceWithAnotherScormAPI(newAPI: Scorm12Impl) {
+  replaceWithAnotherScormAPI(newAPI: Scorm12API) {
     // Data Model
     this.cmi = newAPI.cmi;
   }
@@ -418,4 +418,4 @@ class Scorm12Impl extends BaseAPI {
   }
 }
 
-export default Scorm12Impl;
+export default Scorm12API;
