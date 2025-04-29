@@ -16,11 +16,67 @@ platform for running AICC, SCORM 1.2, and SCORM 2004 modules. This module is des
 agnostic, and is written to be able to be run without a backing LMS, logging all function calls and
 data instead of committing, if an LMS endpoint is not configured.
 
-## Potential Breaking Change!
+## Cross-Frame Communication
 
-Version 2.0.0 of scorm-again switched to using `fetch`, as well as async-only for reporting to the
-LMS. Since `fetch` is not supported by IE11, you will need to provide your own polyfill for this
-functionality if you need to support it.
+> **Note:** The Cross-Frame Communication feature is currently being developed for scorm-again
+> v3.0.0.
+
+### Purpose of CrossFrameLMS and CrossFrameAPI
+
+The Cross-Frame Communication feature allows SCORM content to be loaded in iframes while still
+communicating with the SCORM API in the parent frame. This is particularly useful when:
+
+- You need to load SCORM content in a sandboxed iframe for security reasons
+- Your application has a complex structure with content loaded in different frames
+- You want to isolate SCORM content from the rest of your application
+- You want to avoid cross-origin issues when loading SCORM content from different domains
+
+The feature consists of two main components:
+
+1. **CrossFrameLMS** - A server-side facade that runs in the parent frame where the SCORM API is
+   initialized. It listens for messages from the client-side facade and proxies them to the actual
+   API.
+
+2. **CrossFrameAPI** - A client-side facade that runs in the child frame where the SCORM content is
+   loaded. It provides the same interface as the actual API but sends messages to the server-side
+   facade to execute the operations.
+
+### How to Use Cross-Frame Communication
+
+#### In the Parent Frame (where the SCORM API is initialized):
+
+```javascript
+import {createCrossFrameServer} from 'scorm-again';
+import {Scorm12API} from 'scorm-again/scorm12';
+
+// Initialize the SCORM API
+const api = new Scorm12API({
+   autocommit: true,
+   logLevel: 1
+});
+
+// Create the server-side facade
+const server = createCrossFrameServer(api);
+
+// The API is now ready to receive messages from child frames
+```
+
+#### In the Child Frame (where the SCORM content is loaded):
+
+```javascript
+import {createCrossFrameClient} from 'scorm-again';
+
+// Create the client-side facade
+window.API = createCrossFrameClient();
+
+// Use the client as you would use the regular SCORM API
+window.API.LMSInitialize();
+window.API.LMSSetValue('cmi.core.lesson_status', 'completed');
+window.API.LMSCommit();
+```
+
+The CrossFrameAPI implements all the methods of the SCORM 1.2, SCORM 2004, and AICC APIs, so it can
+be used as a drop-in replacement for any of these APIs.
 
 ### What is this not and what doesn't it do?
 
