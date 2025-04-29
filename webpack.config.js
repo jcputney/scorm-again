@@ -26,6 +26,7 @@ export default (env, argv) => {
     scorm12: "./src/Scorm12API.ts",
     scorm2004: "./src/Scorm2004API.ts",
     "scorm-again": "./src/ScormAgain.ts",
+    "cross-frame-facade": "./src/facades/CrossFrameFacade.ts",
   };
 
   // Define entry points for minified files (only in production)
@@ -34,6 +35,7 @@ export default (env, argv) => {
     "scorm12.min": "./src/Scorm12API.ts",
     "scorm2004.min": "./src/Scorm2004API.ts",
     "scorm-again.min": "./src/ScormAgain.ts",
+    "cross-frame-facade.min": "./src/facades/CrossFrameFacade.ts",
   } : {};
 
   // TypeScript loader configuration

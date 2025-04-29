@@ -3382,7 +3382,7 @@ var ErrorHandlingService = (function () {
         if (!message) {
             message = this._getLmsErrorMessageDetails(errorNumber, true);
         }
-        var formattedMessage = "SCORM Error ".concat(errorNumber, ": ").concat(message).concat(CMIElement ? " [Element: ".concat(CMIElement, "]") : '');
+        var formattedMessage = "SCORM Error ".concat(errorNumber, ": ").concat(message).concat(CMIElement ? " [Element: ".concat(CMIElement, "]") : "");
         this._apiLog("throwSCORMError", errorNumber + ": " + message, enums/* LogLevelEnum */.Mb.ERROR, CMIElement);
         this._loggingService.error(formattedMessage);
         this._lastErrorCode = String(errorNumber);
@@ -3403,7 +3403,7 @@ var ErrorHandlingService = (function () {
         else if (e instanceof Error) {
             var errorType = e.constructor.name;
             var errorMessage = "".concat(errorType, ": ").concat(e.message, " [Element: ").concat(CMIElement, "]");
-            var stackTrace = e.stack || '';
+            var stackTrace = e.stack || "";
             console.error(e.message);
             this._loggingService.error("".concat(errorMessage, "\n").concat(stackTrace));
             this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, "".concat(errorType, ": ").concat(e.message));
@@ -3417,7 +3417,7 @@ var ErrorHandlingService = (function () {
                 this._loggingService.error("Error details: ".concat(errorDetails));
             }
             catch (jsonError) {
-                this._loggingService.error('Could not stringify error object for details');
+                this._loggingService.error("Could not stringify error object for details");
             }
             this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, "Unknown error");
         }

@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sample Cross-Frame SCORM Module</title>
+  <script type="module">
+    import {createCrossFrameClient} from "/dist/esm/facades/CrossFrameFacade.js";
+
+    // Create a cross-frame client that will communicate with the server
+    const api = createCrossFrameClient();
+
+    // Initialize the API when the page loads
+    window.onload = async function () {
+      try {
+        // Detect API version and initialize accordingly
+        const apiVersion = await detectApiVersion();
+        let initialized = false;
+
+        if (apiVersion === "2004") {
+          // Use SCORM 2004 methods
+          document.getElementById("apiVersion").textContent = "SCORM 2004";
+          initialized = await api.Initialize();
+        } else {
+          // Use SCORM 1.2 methods
+          document.getElementById("apiVersion").textContent = "SCORM 1.2";
+          initialized = await api.initialize();
+        }
+
+        if (initialized) {
+          console.log(`API initialized successfully (${apiVersion})`);
+
+          // Get the learner name
+          let learnerName;
+          if (apiVersion === "2004") {
+            learnerName = await api.GetValue("cmi.learner_name");
+          } else {
+            learnerName = await api.getValue("cmi.core.student_name");
+          }
+
+          // Display the learner name
+          document.getElementById("learnerName").textContent = learnerName || "Unknown Learner";
+
+          // Set up event listeners for the buttons
+          setupEventListeners(apiVersion);
+        } else {
+          console.error("Failed to initialize API");
+          document.getElementById("status").textContent = "Failed to initialize API";
+        }
+      } catch (e) {
+        console.error("Error initializing API:", e);
+        document.getElementById("status").textContent = `Error: ${e.message}`;
+      }
+    };
+
+    // Detect which API version is available
+    async function detectApiVersion() {
+      try {
+        // Try to get a SCORM 2004 specific value
+        const result = await api.GetValue("cmi.completion_status");
+        if (result !== undefined && result !== "") {
+          return "2004";
+        }
+      } catch (e) {
+        // If that fails, assume SCORM 1.2
+        return "1.2";
+      }
+      return "1.2";
+    }
+
+    // Set up event listeners for the buttons
+    function setupEventListeners(apiVersion) {
+      // Set Completed button
+      document.getElementById("setCompleted").addEventListener("click", async () => {
+        try {
+          let result;
+
+          if (apiVersion === "2004") {
+            // Use SCORM 2004 methods
+            result = await api.SetValue("cmi.completion_status", "completed");
+          } else {
+            // Use SCORM 1.2 methods
+            result = await api.setValue("cmi.core.lesson_status", "completed");
+          }
+
+          if (result) {
+            document.getElementById("status").textContent = "Status set to Completed";
+
+            // Commit the changes using the appropriate method
+            if (apiVersion === "2004") {
+              await api.Commit();
+            } else {
+              await api.commit();
+            }
+          } else {
+            document.getElementById("status").textContent = "Failed to set status";
+          }
+        } catch (e) {
+          console.error("Error setting completion status:", e);
+          document.getElementById("status").textContent = `Error: ${e.message}`;
+        }
+      });
+
+      // Set Score button
+      document.getElementById("setScore").addEventListener("click", async () => {
+        try {
+          const score = document.getElementById("score").value;
+          let result;
+
+          if (apiVersion === "2004") {
+            // Use SCORM 2004 methods
+            result = await api.SetValue("cmi.score.raw", score);
+            await api.SetValue("cmi.score.scaled", score / 100);
+          } else {
+            // Use SCORM 1.2 methods
+            result = await api.setValue("cmi.core.score.raw", score);
+          }
+
+          if (result) {
+            document.getElementById("status").textContent = `Score set to ${score}`;
+
+            // Commit the changes using the appropriate method
+            if (apiVersion === "2004") {
+              await api.Commit();
+            } else {
+              await api.commit();
+            }
+          } else {
+            document.getElementById("status").textContent = "Failed to set score";
+          }
+        } catch (e) {
+          console.error("Error setting score:", e);
+          document.getElementById("status").textContent = `Error: ${e.message}`;
+        }
+      });
+
+      // Terminate button
+      document.getElementById("terminate").addEventListener("click", async () => {
+        try {
+          let result;
+
+          if (apiVersion === "2004") {
+            // Use SCORM 2004 methods
+            result = await api.Terminate();
+          } else {
+            // Use SCORM 1.2 methods
+            result = await api.terminate();
+          }
+
+          if (result) {
+            document.getElementById("status").textContent = "API terminated successfully";
+          } else {
+            document.getElementById("status").textContent = "Failed to terminate API";
+          }
+        } catch (e) {
+          console.error("Error terminating API:", e);
+          document.getElementById("status").textContent = `Error: ${e.message}`;
+        }
+      });
+    }
+  </script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 0;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .controls {
+      margin-top: 20px;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+
+    .control-group {
+      margin-bottom: 15px;
+    }
+
+    button {
+      padding: 8px 15px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    input {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      width: 60px;
+    }
+
+    .status {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #f8f8f8;
+      border-left: 4px solid #4CAF50;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Sample Cross-Frame SCORM Module</h1>
+    <p>Welcome, <span id="learnerName">Loading...</span>!</p>
+    <p>Detected API Version: <span id="apiVersion">Detecting...</span></p>
+
+    <div class="controls">
+      <div class="control-group">
+        <button id="setCompleted">Set Completed</button>
+      </div>
+
+      <div class="control-group">
+        <label for="score">Score (0-100):</label>
+        <input type="number" id="score" min="0" max="100" value="80">
+        <button id="setScore">Set Score</button>
+      </div>
+
+      <div class="control-group">
+        <button id="terminate">Terminate Session</button>
+      </div>
+    </div>
+
+    <div class="status">
+      <p>Status: <span id="status">Initializing...</span></p>
+    </div>
+  </div>
+</body>
+</html>
