@@ -1,6 +1,4 @@
-import { afterEach, beforeEach, describe, it } from "mocha";
-import { expect } from "expect";
-import * as sinon from "sinon";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { HttpService } from "../../src/services/HttpService";
 import { LogLevelEnum } from "../../src/constants/enums";
 import { global_constants } from "../../src/constants/api_constants";
@@ -10,9 +8,9 @@ describe("HttpService", () => {
   let httpService: HttpService;
   let settings: Settings;
   let errorCodes: any;
-  let apiLogStub: sinon.SinonStub;
-  let processListenersStub: sinon.SinonStub;
-  let fetchStub: sinon.SinonStub;
+  const apiLogStub = vi.fn();
+  const processListenersStub = vi.fn();
+  let fetchStub: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     // Create mock settings
@@ -33,12 +31,8 @@ describe("HttpService", () => {
       GENERAL: 101,
     };
 
-    // Create stubs for dependencies
-    apiLogStub = sinon.stub();
-    processListenersStub = sinon.stub();
-
     // Stub the global fetch function
-    fetchStub = sinon.stub(global, "fetch");
+    fetchStub = vi.spyOn(global, "fetch");
 
     // Create a new instance for each test
     httpService = new HttpService(settings, errorCodes);
@@ -46,7 +40,7 @@ describe("HttpService", () => {
 
   afterEach(() => {
     // Restore stubs
-    fetchStub.restore();
+    // fetchStub.restore() - not needed with vi.restoreAllMocks()
   });
 
   describe("processHttpRequest", () => {
@@ -57,18 +51,18 @@ describe("HttpService", () => {
       const mockResponse = new Response(
         JSON.stringify({ result: global_constants.SCORM_TRUE, errorCode: 0 }),
       );
-      fetchStub.resolves(mockResponse);
+      fetchStub.mockImplementation(() => mockResponse);
 
       // Act
       await httpService.processHttpRequest(url, params, false, apiLogStub, processListenersStub);
 
       // Assert
-      expect(fetchStub.calledOnce).toBe(true);
-      expect(fetchStub.firstCall.args[0]).toBe(url);
-      expect(fetchStub.firstCall.args[1].method).toBe("POST");
-      expect(fetchStub.firstCall.args[1].mode).toBe("cors");
-      expect(fetchStub.firstCall.args[1].body).toBe(JSON.stringify(params));
-      expect(fetchStub.firstCall.args[1].headers["Content-Type"]).toBe("application/json");
+      expect(fetchStub).toHaveBeenCalledOnce();
+      expect(fetchStub.mock.calls[0][0]).toBe(url);
+      expect((fetchStub.mock.calls[0][1] as any).method).toBe("POST");
+      expect((fetchStub.mock.calls[0][1] as any).mode).toBe("cors");
+      expect((fetchStub.mock.calls[0][1] as any).body).toBe(JSON.stringify(params));
+      expect((fetchStub.mock.calls[0][1] as any).headers["Content-Type"]).toBe("application/json");
     });
 
     it("should handle immediate requests", async () => {
@@ -78,7 +72,7 @@ describe("HttpService", () => {
       const mockResponse = new Response(
         JSON.stringify({ result: global_constants.SCORM_TRUE, errorCode: 0 }),
       );
-      fetchStub.resolves(mockResponse);
+      fetchStub.mockImplementation(() => mockResponse);
 
       // Act
       const result = await httpService.processHttpRequest(
@@ -92,7 +86,7 @@ describe("HttpService", () => {
       // Assert
       expect(result.result).toBe(global_constants.SCORM_TRUE);
       expect(result.errorCode).toBe(0);
-      expect(fetchStub.calledOnce).toBe(true);
+      expect(fetchStub).toHaveBeenCalledOnce();
     });
 
     it("should call requestHandler with params", async () => {
@@ -102,17 +96,17 @@ describe("HttpService", () => {
       const mockResponse = new Response(
         JSON.stringify({ result: global_constants.SCORM_TRUE, errorCode: 0 }),
       );
-      fetchStub.resolves(mockResponse);
-      const requestHandlerSpy = sinon.spy(settings, "requestHandler");
+      fetchStub.mockImplementation(() => mockResponse);
+      const requestHandlerSpy = vi.spyOn(settings, "requestHandler");
 
       // Act
       await httpService.processHttpRequest(url, params, false, apiLogStub, processListenersStub);
 
       // Assert
-      expect(requestHandlerSpy.calledOnce).toBe(true);
-      expect(requestHandlerSpy.calledWith(params)).toBe(true);
+      expect(requestHandlerSpy).toHaveBeenCalledOnce();
+      expect(requestHandlerSpy).toHaveBeenCalledWith(params);
 
-      requestHandlerSpy.restore();
+      // requestHandlerSpy.restore() - not needed with vi.restoreAllMocks()
     });
 
     it("should call responseHandler with response", async () => {
@@ -122,17 +116,17 @@ describe("HttpService", () => {
       const mockResponse = new Response(
         JSON.stringify({ result: global_constants.SCORM_TRUE, errorCode: 0 }),
       );
-      fetchStub.resolves(mockResponse);
-      const responseHandlerSpy = sinon.spy(settings, "responseHandler");
+      fetchStub.mockImplementation(() => mockResponse);
+      const responseHandlerSpy = vi.spyOn(settings, "responseHandler");
 
       // Act
       await httpService.processHttpRequest(url, params, false, apiLogStub, processListenersStub);
 
       // Assert
-      expect(responseHandlerSpy.calledOnce).toBe(true);
-      expect(responseHandlerSpy.firstCall.args[0]).toBe(mockResponse);
+      expect(responseHandlerSpy).toHaveBeenCalledOnce();
+      expect(responseHandlerSpy.mock.calls[0][0]).toBe(mockResponse);
 
-      responseHandlerSpy.restore();
+      // responseHandlerSpy.restore() - not needed with vi.restoreAllMocks()
     });
 
     it("should call processListeners with CommitSuccess on successful response", async () => {
@@ -143,13 +137,13 @@ describe("HttpService", () => {
         JSON.stringify({ result: global_constants.SCORM_TRUE, errorCode: 0 }),
         { status: 200 },
       );
-      fetchStub.resolves(mockResponse);
+      fetchStub.mockImplementation(() => mockResponse);
 
       // Act
       await httpService.processHttpRequest(url, params, false, apiLogStub, processListenersStub);
 
       // Assert
-      expect(processListenersStub.calledWith("CommitSuccess")).toBe(true);
+      expect(processListenersStub).toHaveBeenCalledWith("CommitSuccess");
     });
 
     it("should call processListeners with CommitError on failed response", async () => {
@@ -163,20 +157,20 @@ describe("HttpService", () => {
         }),
         { status: 400 },
       );
-      fetchStub.resolves(mockResponse);
+      fetchStub.mockImplementation(() => mockResponse);
 
       // Act
       await httpService.processHttpRequest(url, params, false, apiLogStub, processListenersStub);
 
       // Assert
-      expect(processListenersStub.calledWith("CommitError")).toBe(true);
+      expect(processListenersStub).toHaveBeenCalledWith("CommitError", null, 101);
     });
 
     it("should handle fetch errors", async () => {
       // Arrange
       const url = "https://example.com/api";
       const params = { data: "test" };
-      fetchStub.rejects(new Error("Network error"));
+      fetchStub.mockRejectedValue(new Error("Network error"));
 
       // Act
       const result = await httpService.processHttpRequest(
@@ -190,14 +184,12 @@ describe("HttpService", () => {
       // Assert
       expect(result.result).toBe(global_constants.SCORM_FALSE);
       expect(result.errorCode).toBe(errorCodes.GENERAL);
-      expect(
-        apiLogStub.calledWith(
-          "processHttpRequest",
-          sinon.match.instanceOf(Error),
-          LogLevelEnum.ERROR,
-        ),
-      ).toBe(true);
-      expect(processListenersStub.calledWith("CommitError")).toBe(true);
+      expect(apiLogStub).toHaveBeenCalledWith(
+        "processHttpRequest",
+        expect.any(Error),
+        LogLevelEnum.ERROR,
+      );
+      expect(processListenersStub).toHaveBeenCalledWith("CommitError");
     });
 
     it("should handle array params", async () => {
@@ -207,14 +199,14 @@ describe("HttpService", () => {
       const mockResponse = new Response(
         JSON.stringify({ result: global_constants.SCORM_TRUE, errorCode: 0 }),
       );
-      fetchStub.resolves(mockResponse);
+      fetchStub.mockImplementation(() => mockResponse);
 
       // Act
       await httpService.processHttpRequest(url, params, false, apiLogStub, processListenersStub);
 
       // Assert
-      expect(fetchStub.calledOnce).toBe(true);
-      expect(fetchStub.firstCall.args[1].body).toBe("param1=value1&param2=value2");
+      expect(fetchStub).toHaveBeenCalledOnce();
+      expect((fetchStub.mock.calls[0][1] as any).body).toBe("param1=value1&param2=value2");
     });
   });
 
@@ -237,7 +229,7 @@ describe("HttpService", () => {
       const mockResponse = new Response(
         JSON.stringify({ result: global_constants.SCORM_TRUE, errorCode: 0 }),
       );
-      fetchStub.resolves(mockResponse);
+      fetchStub.mockImplementation(() => mockResponse);
 
       // Act
       httpService.updateSettings(newSettings);
@@ -246,12 +238,12 @@ describe("HttpService", () => {
       await httpService.processHttpRequest(url, params, false, apiLogStub, processListenersStub);
 
       // Assert
-      expect(fetchStub.called).toBe(true);
-      const fetchCall = fetchStub.getCall(0);
-      expect(fetchCall.args[1].mode).toBe("no-cors");
-      expect(fetchCall.args[1].headers["Content-Type"]).toBe("text/plain");
-      expect(fetchCall.args[1].headers["X-Custom-Header"]).toBe("value");
-      expect(fetchCall.args[1].credentials).toBe("include");
+      expect(fetchStub).toHaveBeenCalled();
+      const fetchCall = fetchStub.mock.calls[0] as any[];
+      expect(fetchCall[1].mode).toBe("no-cors");
+      expect(fetchCall[1].headers["Content-Type"]).toBe("text/plain");
+      expect(fetchCall[1].headers["X-Custom-Header"]).toBe("value");
+      expect(fetchCall[1].credentials).toBe("include");
     });
   });
 });

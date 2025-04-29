@@ -1,5 +1,5 @@
-import { describe, it } from "mocha";
-import { expect } from "expect";
+import { describe, it  , vi } from "vitest";
+;
 import { CMIStatus } from "../../src/cmi/scorm2004/status";
 import { scorm2004_regex } from "../../src/constants/regex";
 

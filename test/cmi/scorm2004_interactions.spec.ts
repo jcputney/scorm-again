@@ -1,5 +1,5 @@
-import { describe, it } from "mocha";
-import { expect } from "expect";
+import { describe, it  , vi } from "vitest";
+;
 import { CMIInteractionsObject } from "../../src/cmi/scorm2004/interactions";
 
 describe("SCORM 2004 Interactions Tests", () => {

@@ -1,6 +1,4 @@
-import { expect } from "expect";
-import { describe, it } from "mocha";
-import * as sinon from "sinon";
+import { beforeEach, afterEach, describe, it, vi, expect } from "vitest";
 import { SerializationService } from "../../src/services/SerializationService";
 import { HttpService } from "../../src/services/HttpService";
 import { EventService } from "../../src/services/EventService";
@@ -10,7 +8,6 @@ import { scorm2004_errors } from "../../src/constants/error_codes";
 import { LogLevelEnum } from "../../src/constants/enums";
 import { BaseCMI } from "../../src/cmi/common/base_cmi";
 import { Scorm2004API } from "../../src/Scorm2004API";
-import Pretender from "fetch-pretender";
 
 /**
  * Helper function to measure execution time of a function
@@ -95,22 +92,23 @@ describe("Performance Tests", () => {
 
   describe("HttpService Performance", () => {
     let httpService: HttpService;
-    let server: Pretender;
-    let apiLogSpy: sinon.SinonSpy;
-    let processListenersSpy: sinon.SinonSpy;
+    let apiLogSpy: ReturnType<typeof vi.fn>;
+    let processListenersSpy: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
-      server = new Pretender();
-      server.post("/scorm2004", () => {
-        return [
-          200,
-          { "Content-Type": "application/json" },
-          JSON.stringify({ result: "true", errorCode: 0 }),
-        ];
+      // Set up fetch mocks
+      vi.stubGlobal('fetch', vi.fn());
+      
+      (fetch as ReturnType<typeof vi.fn>).mockImplementation(() => {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ result: "true", errorCode: 0 }),
+        } as Response);
       });
 
-      apiLogSpy = sinon.spy();
-      processListenersSpy = sinon.spy();
+      apiLogSpy = vi.fn();
+      processListenersSpy = vi.fn();
 
       httpService = new HttpService(
         {
@@ -122,7 +120,7 @@ describe("Performance Tests", () => {
     });
 
     afterEach(() => {
-      server.shutdown();
+      vi.restoreAllMocks();
     });
 
     it("should measure HTTP request performance", async () => {
@@ -154,18 +152,18 @@ describe("Performance Tests", () => {
 
   describe("EventService Performance", () => {
     let eventService: EventService;
-    let callbacks: sinon.SinonSpy[];
+    let callbacks: ReturnType<typeof vi.fn>[];
 
     beforeEach(() => {
-      const apiLogSpy = sinon.spy();
+      const apiLogSpy = vi.fn();
       eventService = new EventService(apiLogSpy);
       callbacks = Array(100)
         .fill(0)
-        .map(() => sinon.spy());
+        .map(() => vi.fn());
     });
 
     afterEach(() => {
-      sinon.restore();
+      vi.restoreAllMocks();
     });
 
     it("should measure event registration performance", async () => {
@@ -258,29 +256,27 @@ describe("Performance Tests", () => {
 
   describe("API Performance", () => {
     let api: Scorm2004API;
-    let server: Pretender;
 
     beforeEach(() => {
-      server = new Pretender();
-      server.post("/scorm2004", () => {
-        return [
-          200,
-          { "Content-Type": "application/json" },
-          JSON.stringify({ result: "true", errorCode: 0 }),
-        ];
+      // Set up fetch mocks
+      vi.stubGlobal('fetch', vi.fn());
+      
+      (fetch as ReturnType<typeof vi.fn>).mockImplementation(() => {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ result: "true", errorCode: 0 }),
+        } as Response);
       });
 
       api = new Scorm2004API({
         logLevel: LogLevelEnum.NONE,
         lmsCommitUrl: "/scorm2004",
       });
-
-      api.Initialize("");
     });
 
     afterEach(() => {
-      api.Terminate("");
-      server.shutdown();
+      vi.restoreAllMocks();
     });
 
     it("should measure SetValue performance", async () => {

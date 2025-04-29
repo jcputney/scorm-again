@@ -1,7 +1,0 @@
-{
-  "ui": "bdd",
-  "extension": ["ts"],
-  "spec": "test/**/*.spec.ts",
-  "exclude": "test/integration/**/*.spec.ts",
-  "recursive": true
-}

@@ -1,11 +1,14 @@
-import { describe, it } from "mocha";
-import { expect } from "expect";
-import * as sinon from "sinon";
+import { afterAll, describe, expect, it, vi } from "vitest";
+
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { CompletionStatus, SuccessStatus } from "../../../../src/constants/enums";
 import { Scorm2004ValidationError } from "../../../../src/exceptions/scorm2004_exceptions";
 
 describe("Activity", () => {
+  afterAll(() => {
+    vi.restoreAllMocks();
+  });
+
   describe("constructor", () => {
     it("should initialize with default values", () => {
       const activity = new Activity();
@@ -46,16 +49,13 @@ describe("Activity", () => {
       activity.addChild(child1);
       activity.addChild(child2);
 
-      const child1InitializeSpy = sinon.spy(child1, "initialize");
-      const child2InitializeSpy = sinon.spy(child2, "initialize");
+      const child1InitializeSpy = vi.spyOn(child1, "initialize");
+      const child2InitializeSpy = vi.spyOn(child2, "initialize");
 
       activity.initialize();
 
-      expect(child1InitializeSpy.called).toBe(true);
-      expect(child2InitializeSpy.called).toBe(true);
-
-      child1InitializeSpy.restore();
-      child2InitializeSpy.restore();
+      expect(child1InitializeSpy).toHaveBeenCalled();
+      expect(child2InitializeSpy).toHaveBeenCalled();
     });
   });
 
@@ -93,16 +93,13 @@ describe("Activity", () => {
       activity.addChild(child1);
       activity.addChild(child2);
 
-      const child1ResetSpy = sinon.spy(child1, "reset");
-      const child2ResetSpy = sinon.spy(child2, "reset");
+      const child1ResetSpy = vi.spyOn(child1, "reset");
+      const child2ResetSpy = vi.spyOn(child2, "reset");
 
       activity.reset();
 
-      expect(child1ResetSpy.called).toBe(true);
-      expect(child2ResetSpy.called).toBe(true);
-
-      child1ResetSpy.restore();
-      child2ResetSpy.restore();
+      expect(child1ResetSpy).toHaveBeenCalled();
+      expect(child2ResetSpy).toHaveBeenCalled();
     });
   });
 
@@ -202,9 +199,9 @@ describe("Activity", () => {
       expect(result).toHaveProperty("objectiveMeasureStatus", true);
       expect(result).toHaveProperty("objectiveNormalizedMeasure", 0.8);
       expect(result).toHaveProperty("children");
-      expect(Array.isArray(result.children)).toBe(true);
-      expect(result.children.length).toBe(1);
-      expect(result.children[0]).toHaveProperty("id", "child1");
+      expect(Array.isArray((result as any).children)).toBe(true);
+      expect((result as any).children.length).toBe(1);
+      expect((result as any).children[0]).toHaveProperty("id", "child1");
     });
   });
 });

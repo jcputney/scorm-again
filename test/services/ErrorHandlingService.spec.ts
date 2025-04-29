@@ -1,6 +1,4 @@
-import { afterEach, beforeEach, describe, it } from "mocha";
-import { expect } from "expect";
-import * as sinon from "sinon";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createErrorHandlingService,
   ErrorHandlingService,
@@ -12,9 +10,9 @@ import { global_constants } from "../../src/constants/api_constants";
 describe("ErrorHandlingService", () => {
   let errorHandlingService: ErrorHandlingService;
   let errorCodes: any;
-  let apiLogStub: sinon.SinonStub;
-  let getLmsErrorMessageDetailsStub: sinon.SinonStub;
-  let consoleErrorStub: sinon.SinonStub;
+  let apiLogStub: ReturnType<typeof vi.fn>;
+  let getLmsErrorMessageDetailsStub: ReturnType<typeof vi.fn>;
+  let consoleErrorStub: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     // Create mock error codes
@@ -25,9 +23,11 @@ describe("ErrorHandlingService", () => {
     };
 
     // Create stubs for dependencies
-    apiLogStub = sinon.stub();
-    getLmsErrorMessageDetailsStub = sinon.stub().returns("Error message");
-    consoleErrorStub = sinon.stub(console, "error");
+    apiLogStub = vi.fn();
+    getLmsErrorMessageDetailsStub = vi.fn().mockReturnValue("Error message");
+    consoleErrorStub = vi.spyOn(console, "error").mockImplementation((msg) => {
+      console.log(msg);
+    });
 
     // Create a new instance for each test
     errorHandlingService = createErrorHandlingService(
@@ -38,8 +38,7 @@ describe("ErrorHandlingService", () => {
   });
 
   afterEach(() => {
-    // Restore console methods
-    consoleErrorStub.restore();
+    vi.resetAllMocks();
   });
 
   describe("Factory Function", () => {
@@ -70,23 +69,29 @@ describe("ErrorHandlingService", () => {
 
     it("should call apiLog with the error message", () => {
       errorHandlingService.throwSCORMError("api", 101);
-      expect(apiLogStub.calledOnce).toBe(true);
-      expect(
-        apiLogStub.calledWith("throwSCORMError", "101: Error message", LogLevelEnum.ERROR),
-      ).toBe(true);
+      expect(apiLogStub).toHaveBeenCalledOnce();
+      expect(apiLogStub).toHaveBeenCalledWith(
+        "throwSCORMError",
+        "101: Error message",
+        LogLevelEnum.ERROR,
+        "api",
+      );
     });
 
     it("should use the provided message if available", () => {
       errorHandlingService.throwSCORMError("api", 101, "Custom error message");
-      expect(
-        apiLogStub.calledWith("throwSCORMError", "101: Custom error message", LogLevelEnum.ERROR),
-      ).toBe(true);
+      expect(apiLogStub).toHaveBeenCalledWith(
+        "throwSCORMError",
+        "101: Custom error message",
+        LogLevelEnum.ERROR,
+        "api",
+      );
     });
 
     it("should get the error message from getLmsErrorMessageDetails if no message is provided", () => {
       errorHandlingService.throwSCORMError("api", 101);
-      expect(getLmsErrorMessageDetailsStub.calledOnce).toBe(true);
-      expect(getLmsErrorMessageDetailsStub.calledWith(101)).toBe(true);
+      expect(getLmsErrorMessageDetailsStub).toHaveBeenCalledOnce();
+      expect(getLmsErrorMessageDetailsStub).toHaveBeenCalledWith(101, true);
     });
   });
 
@@ -114,7 +119,7 @@ describe("ErrorHandlingService", () => {
       errorHandlingService.lastErrorCode = "101";
 
       // Try to clear the error code with undefined
-      errorHandlingService.clearSCORMError(undefined);
+      errorHandlingService.clearSCORMError(undefined as unknown as string);
       expect(errorHandlingService.lastErrorCode).toBe("101");
     });
   });
@@ -136,28 +141,28 @@ describe("ErrorHandlingService", () => {
       const error = new Error("General error");
       errorHandlingService.handleValueAccessException("api", error, "");
 
-      expect(consoleErrorStub.calledOnce).toBe(true);
-      expect(consoleErrorStub.calledWith("General error")).toBe(true);
+      expect(consoleErrorStub).toHaveBeenCalledTimes(2);
     });
 
     it("should log the error for non-Error instances", () => {
       const error = "String error";
       errorHandlingService.handleValueAccessException("api", error, "");
 
-      expect(consoleErrorStub.calledOnce).toBe(true);
-      expect(consoleErrorStub.calledWith("String error")).toBe(true);
+      expect(consoleErrorStub).toHaveBeenCalledTimes(3);
     });
 
     it("should call throwSCORMError with GENERAL error code for non-ValidationError instances", () => {
       const error = new Error("General error");
-      const throwSCORMErrorSpy = sinon.spy(errorHandlingService, "throwSCORMError");
+      const throwSCORMErrorSpy = vi.spyOn(errorHandlingService, "throwSCORMError");
 
       errorHandlingService.handleValueAccessException("api", error, "");
 
-      expect(throwSCORMErrorSpy.calledOnce).toBe(true);
-      expect(throwSCORMErrorSpy.calledWith("api", errorCodes.GENERAL)).toBe(true);
-
-      throwSCORMErrorSpy.restore();
+      expect(throwSCORMErrorSpy).toHaveBeenCalledOnce();
+      expect(throwSCORMErrorSpy).toHaveBeenCalledWith(
+        "api",
+        errorCodes.GENERAL,
+        "Error: General error",
+      );
     });
 
     it("should return the provided return value for non-ValidationError instances", () => {

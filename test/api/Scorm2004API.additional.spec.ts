@@ -1,8 +1,6 @@
 // noinspection JSConstantReassignment
 
-import { expect } from "expect";
-import { describe, it } from "mocha";
-import * as sinon from "sinon";
+import { describe, expect, it, vi } from "vitest";
 import { Scorm2004API } from "../../src/Scorm2004API";
 import { scorm2004_errors } from "../../src/constants/error_codes";
 import { global_constants } from "../../src/constants/api_constants";
@@ -79,7 +77,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
     });
 
     it("should use scoItemIdValidator if provided", (): void => {
-      const validator = sinon.stub<[string], boolean>().returns(true);
+      const validator = vi.fn().mockImplementation((scoItemId: string) => true);
       const scorm2004API = api({
         scoItemIdValidator: validator,
       });
@@ -93,7 +91,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       // The API is returning "true" because the validator is being called and returns true
       expect(result).toBe("true");
       // The validator is being called with the target
-      expect(validator.called).toBe(true);
+      expect(validator).toHaveBeenCalled();
     });
   });
 
@@ -159,11 +157,15 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       scorm2004API.startingData = { adl: { nav: { request: "_none_" } } };
 
       // Mock the processHttpRequest method to return a navRequest
-      const processHttpRequestStub = sinon.stub(scorm2004API, "processHttpRequest").resolves({
-        result: global_constants.SCORM_TRUE,
-        errorCode: 0,
-        navRequest: "window.testNavRequestExecuted = true;",
-      });
+      const processHttpRequestStub = vi
+        .spyOn(scorm2004API, "processHttpRequest")
+        .mockImplementation(async () => {
+          return {
+            result: global_constants.SCORM_TRUE,
+            errorCode: 0,
+            navRequest: "window.testNavRequestExecuted = true;",
+          };
+        });
 
       // Create a global variable to check if the navigation request is executed
       global.window =
@@ -172,11 +174,11 @@ describe("SCORM 2004 API Additional Tests", (): void => {
 
       await scorm2004API.storeData(true);
 
-      expect(processHttpRequestStub.calledOnce).toBe(true);
+      expect(processHttpRequestStub).toHaveBeenCalledOnce();
       expect(global.window.testNavRequestExecuted).toBe(true);
 
       // Clean up
-      processHttpRequestStub.restore();
+      // processHttpRequestStub.restore() - not needed with vi.restoreAllMocks()
       delete global.window.testNavRequestExecuted;
     });
 
@@ -190,11 +192,15 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       scorm2004API.startingData = { adl: { nav: { request: "_none_" } } };
 
       // Mock the processHttpRequest method to return a navRequest
-      const processHttpRequestStub = sinon.stub(scorm2004API, "processHttpRequest").resolves({
-        result: global_constants.SCORM_TRUE,
-        errorCode: 0,
-        navRequest: "window.testNavRequestExecuted = true;",
-      });
+      const processHttpRequestStub = vi
+        .spyOn(scorm2004API, "processHttpRequest")
+        .mockImplementation(async () => {
+          return {
+            result: global_constants.SCORM_TRUE,
+            errorCode: 0,
+            navRequest: "window.testNavRequestExecuted = true;",
+          };
+        });
 
       // Create a global variable to check if the navigation request is executed
       global.window =
@@ -203,11 +209,11 @@ describe("SCORM 2004 API Additional Tests", (): void => {
 
       await scorm2004API.storeData(true);
 
-      expect(processHttpRequestStub.calledOnce).toBe(true);
+      expect(processHttpRequestStub).toHaveBeenCalledOnce();
       expect(global.window.testNavRequestExecuted).toBe(false);
 
       // Clean up
-      processHttpRequestStub.restore();
+      // processHttpRequestStub.restore() - not needed with vi.restoreAllMocks()
       delete global.window.testNavRequestExecuted;
     });
 
@@ -221,11 +227,15 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       scorm2004API.startingData = { adl: { nav: { request: "_none_" } } };
 
       // Mock the processHttpRequest method to return an empty navRequest
-      const processHttpRequestStub = sinon.stub(scorm2004API, "processHttpRequest").resolves({
-        result: global_constants.SCORM_TRUE,
-        errorCode: 0,
-        navRequest: "",
-      });
+      const processHttpRequestStub = vi
+        .spyOn(scorm2004API, "processHttpRequest")
+        .mockImplementation(async () => {
+          return {
+            result: global_constants.SCORM_TRUE,
+            errorCode: 0,
+            navRequest: "",
+          };
+        });
 
       // Create a global variable to check if the navigation request is executed
       global.window =
@@ -234,11 +244,11 @@ describe("SCORM 2004 API Additional Tests", (): void => {
 
       await scorm2004API.storeData(true);
 
-      expect(processHttpRequestStub.calledOnce).toBe(true);
+      expect(processHttpRequestStub).toHaveBeenCalledOnce();
       expect(global.window.testNavRequestExecuted).toBe(false);
 
       // Clean up
-      processHttpRequestStub.restore();
+      // processHttpRequestStub.restore() - not needed with vi.restoreAllMocks()
       delete global.window.testNavRequestExecuted;
     });
   });
@@ -331,6 +341,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         max: 2,
         delimiter: ",",
         format: ".*",
+        unique: true,
       };
 
       // Create a value with more nodes than the maximum allowed
@@ -347,22 +358,26 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         max: 2,
         delimiter: ",",
         format: ".*",
+        unique: true,
       };
 
       // Create a value with a valid number of nodes
       const value = "value1,value2"; // 2 nodes, max is 2
 
       // Spy on checkCorrectResponseValue
-      const checkCorrectResponseValueSpy = sinon.spy(scorm2004API, "checkCorrectResponseValue");
+      const checkCorrectResponseValueSpy = vi.spyOn(scorm2004API, "checkCorrectResponseValue");
 
       scorm2004API.checkValidResponseType("api", response_type, value, "choice");
 
-      expect(checkCorrectResponseValueSpy.calledOnce).toBe(true);
+      expect(checkCorrectResponseValueSpy).toHaveBeenCalledOnce();
       expect(
-        checkCorrectResponseValueSpy.calledWith("api", "choice", ["value1", "value2"], value),
+        checkCorrectResponseValueSpy.mock.calls.some(
+          (call) =>
+            JSON.stringify(call) === JSON.stringify(["api", "choice", ["value1", "value2"], value]),
+        ),
       ).toBe(true);
 
-      checkCorrectResponseValueSpy.restore();
+      // checkCorrectResponseValueSpy.restore() - not needed with vi.restoreAllMocks()
     });
   });
 
@@ -371,28 +386,26 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       const scorm2004API = api();
 
       // Set up a spy on throwSCORMError
-      const throwSCORMErrorSpy = sinon.spy(scorm2004API, "throwSCORMError");
+      const throwSCORMErrorSpy = vi.spyOn(scorm2004API, "throwSCORMError");
 
       // Call with an invalid interaction type
       scorm2004API.checkCorrectResponseValue("api", "invalid-type", ["value"], "value");
 
       // Verify that throwSCORMError was called with the expected arguments
-      expect(
-        throwSCORMErrorSpy.calledWith(
-          "api",
-          scorm2004_errors.TYPE_MISMATCH,
-          "Incorrect Response Type: invalid-type",
-        ),
-      ).toBe(true);
+      expect(throwSCORMErrorSpy).toHaveBeenCalledWith(
+        "api",
+        scorm2004_errors.TYPE_MISMATCH,
+        "Incorrect Response Type: invalid-type",
+      );
 
-      throwSCORMErrorSpy.restore();
+      // throwSCORMErrorSpy.restore() - not needed with vi.restoreAllMocks()
     });
 
     it("should throw an error when using delimiter2 and the first value doesn't match the format regex", (): void => {
       const scorm2004API = api();
 
       // Set up a spy on throwSCORMError
-      const throwSCORMErrorSpy = sinon.spy(scorm2004API, "throwSCORMError");
+      const throwSCORMErrorSpy = vi.spyOn(scorm2004API, "throwSCORMError");
 
       // Call with a matching interaction type but invalid first value
       // Matching format should be a short identifier, but we're using an invalid character
@@ -404,22 +417,20 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       );
 
       // Verify that throwSCORMError was called with the expected arguments
-      expect(
-        throwSCORMErrorSpy.calledWith(
-          "api",
-          scorm2004_errors.TYPE_MISMATCH,
-          "matching: invalid@id.validId",
-        ),
-      ).toBe(true);
+      expect(throwSCORMErrorSpy).toHaveBeenCalledWith(
+        "api",
+        scorm2004_errors.TYPE_MISMATCH,
+        "matching: invalid@id.validId",
+      );
 
-      throwSCORMErrorSpy.restore();
+      // throwSCORMErrorSpy.restore() - not needed with vi.restoreAllMocks()
     });
 
     it("should throw an error when using delimiter2 and the second value doesn't match format2 regex", (): void => {
       const scorm2004API = api();
 
       // Set up a spy on throwSCORMError
-      const throwSCORMErrorSpy = sinon.spy(scorm2004API, "throwSCORMError");
+      const throwSCORMErrorSpy = vi.spyOn(scorm2004API, "throwSCORMError");
 
       // Call with a matching interaction type but invalid second value
       // First value is a valid short identifier, but second value is invalid
@@ -431,60 +442,60 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       );
 
       // Verify that throwSCORMError was called with the expected arguments
-      expect(
-        throwSCORMErrorSpy.calledWith(
-          "api",
-          scorm2004_errors.TYPE_MISMATCH,
-          "matching: validId.invalid@id",
-        ),
-      ).toBe(true);
+      expect(throwSCORMErrorSpy).toHaveBeenCalledWith(
+        "api",
+        scorm2004_errors.TYPE_MISMATCH,
+        "matching: validId.invalid@id",
+      );
 
-      throwSCORMErrorSpy.restore();
+      // throwSCORMErrorSpy.restore() - not needed with vi.restoreAllMocks()
     });
 
     it("should throw an error when using delimiter2 and the values array doesn't have exactly 2 elements", (): void => {
       const scorm2004API = api();
 
       // Set up a spy on throwSCORMError
-      const throwSCORMErrorSpy = sinon.spy(scorm2004API, "throwSCORMError");
+      const throwSCORMErrorSpy = vi.spyOn(scorm2004API, "throwSCORMError");
 
       // Call with a matching interaction type but with only one value (no delimiter)
       scorm2004API.checkCorrectResponseValue("api", "matching", ["singleValue"], "singleValue");
 
       // Verify that throwSCORMError was called with the expected arguments
-      expect(
-        throwSCORMErrorSpy.calledWith(
-          "api",
-          scorm2004_errors.TYPE_MISMATCH,
-          "matching: singleValue",
-        ),
-      ).toBe(true);
+      expect(throwSCORMErrorSpy).toHaveBeenCalledWith(
+        "api",
+        scorm2004_errors.TYPE_MISMATCH,
+        "matching: singleValue",
+      );
 
-      throwSCORMErrorSpy.restore();
+      // throwSCORMErrorSpy.restore() - not needed with vi.restoreAllMocks()
     });
 
     it("should throw an error when interaction_type is numeric and nodes.length > 1 and first value > second value", (): void => {
       const scorm2004API = api();
 
       // Set up a spy on throwSCORMError
-      const throwSCORMErrorSpy = sinon.spy(scorm2004API, "throwSCORMError");
+      const throwSCORMErrorSpy = vi.spyOn(scorm2004API, "throwSCORMError");
 
       // Call with a numeric interaction type where first value is greater than second value
       scorm2004API.checkCorrectResponseValue("api", "numeric", ["10", "5"], "10:5");
 
       // Verify that throwSCORMError was called with the expected arguments
       expect(
-        throwSCORMErrorSpy.calledWith("api", scorm2004_errors.TYPE_MISMATCH, "numeric: 10:5"),
+        throwSCORMErrorSpy.mock.calls.some(
+          (call) =>
+            JSON.stringify(call) ===
+            JSON.stringify(["api", scorm2004_errors.TYPE_MISMATCH, "numeric: 10:5"]),
+        ),
       ).toBe(true);
 
-      throwSCORMErrorSpy.restore();
+      // throwSCORMErrorSpy.restore() - not needed with vi.restoreAllMocks()
     });
 
     it("should throw an error when response.unique is true and a duplicate value is found", (): void => {
       const scorm2004API = api();
 
       // Set up a spy on throwSCORMError
-      const throwSCORMErrorSpy = sinon.spy(scorm2004API, "throwSCORMError");
+      const throwSCORMErrorSpy = vi.spyOn(scorm2004API, "throwSCORMError");
 
       // Call with a choice interaction type (which has unique=true) and duplicate values
       scorm2004API.checkCorrectResponseValue(
@@ -495,15 +506,13 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       );
 
       // Verify that throwSCORMError was called with the expected arguments
-      expect(
-        throwSCORMErrorSpy.calledWith(
-          "api",
-          scorm2004_errors.TYPE_MISMATCH,
-          "choice: value1,value2,value1",
-        ),
-      ).toBe(true);
+      expect(throwSCORMErrorSpy).toHaveBeenCalledWith(
+        "api",
+        scorm2004_errors.TYPE_MISMATCH,
+        "choice: value1,value2,value1",
+      );
 
-      throwSCORMErrorSpy.restore();
+      // throwSCORMErrorSpy.restore() - not needed with vi.restoreAllMocks()
     });
   });
 
@@ -515,7 +524,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       scorm2004API.lmsInitialize();
 
       // Set up a spy on throwSCORMError
-      const throwSCORMErrorSpy = sinon.spy(scorm2004API, "throwSCORMError");
+      const throwSCORMErrorSpy = vi.spyOn(scorm2004API, "throwSCORMError");
 
       // Call createCorrectResponsesObject with an index that doesn't exist
       scorm2004API["createCorrectResponsesObject"](
@@ -523,15 +532,13 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         "true",
       );
 
-      expect(
-        throwSCORMErrorSpy.calledWith(
-          "cmi.interactions.999.correct_responses.0.pattern",
-          scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
-          "cmi.interactions.999.correct_responses.0.pattern",
-        ),
-      ).toBe(true);
+      expect(throwSCORMErrorSpy).toHaveBeenCalledWith(
+        "cmi.interactions.999.correct_responses.0.pattern",
+        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
+        "cmi.interactions.999.correct_responses.0.pattern",
+      );
 
-      throwSCORMErrorSpy.restore();
+      // throwSCORMErrorSpy.restore() - not needed with vi.restoreAllMocks()
     });
 
     it("should throw an error when interaction doesn't have a type", (): void => {
@@ -544,7 +551,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       scorm2004API.setCMIValue("cmi.interactions.0.id", "test-interaction");
 
       // Set up a spy on throwSCORMError
-      const throwSCORMErrorSpy = sinon.spy(scorm2004API, "throwSCORMError");
+      const throwSCORMErrorSpy = vi.spyOn(scorm2004API, "throwSCORMError");
 
       // Call createCorrectResponsesObject
       scorm2004API["createCorrectResponsesObject"](
@@ -552,15 +559,13 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         "true",
       );
 
-      expect(
-        throwSCORMErrorSpy.calledWith(
-          "cmi.interactions.0.correct_responses.0.pattern",
-          scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
-          "cmi.interactions.0.correct_responses.0.pattern",
-        ),
-      ).toBe(true);
+      expect(throwSCORMErrorSpy).toHaveBeenCalledWith(
+        "cmi.interactions.0.correct_responses.0.pattern",
+        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
+        "cmi.interactions.0.correct_responses.0.pattern",
+      );
 
-      throwSCORMErrorSpy.restore();
+      // throwSCORMErrorSpy.restore() - not needed with vi.restoreAllMocks()
     });
 
     it("should throw an error when the response type is incorrect", (): void => {
@@ -580,7 +585,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       };
 
       // Set up a spy on throwSCORMError
-      const throwSCORMErrorSpy = sinon.spy(scorm2004API, "throwSCORMError");
+      const throwSCORMErrorSpy = vi.spyOn(scorm2004API, "throwSCORMError");
 
       // Call createCorrectResponsesObject
       scorm2004API["createCorrectResponsesObject"](
@@ -588,15 +593,13 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         "true",
       );
 
-      expect(
-        throwSCORMErrorSpy.calledWith(
-          "cmi.interactions.0.correct_responses.0.pattern",
-          scorm2004_errors.GENERAL_SET_FAILURE,
-          "Incorrect Response Type: invalid-type",
-        ),
-      ).toBe(true);
+      expect(throwSCORMErrorSpy).toHaveBeenCalledWith(
+        "cmi.interactions.0.correct_responses.0.pattern",
+        scorm2004_errors.GENERAL_SET_FAILURE,
+        "Incorrect Response Type: invalid-type",
+      );
 
-      throwSCORMErrorSpy.restore();
+      // throwSCORMErrorSpy.restore() - not needed with vi.restoreAllMocks()
     });
   });
 });

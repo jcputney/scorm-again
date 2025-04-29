@@ -1,6 +1,5 @@
-import { describe, it } from "mocha";
-import { expect } from "expect";
-import * as sinon from "sinon";
+import { describe, it, expect, vi } from "vitest";
+
 import { CMIAttemptRecords, CMIAttemptRecordsObject } from "../../../src/cmi/aicc/attempts";
 import { CMIScore } from "../../../src/cmi/common/score";
 
@@ -21,27 +20,23 @@ describe("AICC Attempts Classes", () => {
 
     it("should initialize child objects when initialize is called", () => {
       const attemptRecord = new CMIAttemptRecordsObject();
-      const scoreInitializeSpy = sinon.spy(attemptRecord.score, "initialize");
+      const scoreInitializeSpy = vi.spyOn(attemptRecord.score, "initialize");
 
       attemptRecord.initialize();
 
-      expect(scoreInitializeSpy.called).toBe(true);
+      expect(scoreInitializeSpy).toHaveBeenCalled();
       expect(attemptRecord.initialized).toBe(true);
       expect(attemptRecord.lesson_status).toBe("");
-
-      scoreInitializeSpy.restore();
     });
 
     it("should reset child objects when reset is called", () => {
       const attemptRecord = new CMIAttemptRecordsObject();
-      const scoreResetSpy = sinon.spy(attemptRecord.score, "reset");
+      const scoreResetSpy = vi.spyOn(attemptRecord.score, "reset");
 
       attemptRecord.reset();
 
-      expect(scoreResetSpy.called).toBe(true);
+      expect(scoreResetSpy).toHaveBeenCalled();
       expect(attemptRecord.initialized).toBe(false);
-
-      scoreResetSpy.restore();
     });
 
     it("should set lesson_status property when valid", () => {

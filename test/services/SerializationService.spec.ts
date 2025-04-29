@@ -1,6 +1,4 @@
-import { afterEach, beforeEach, describe, it } from "mocha";
-import { expect } from "expect";
-import * as sinon from "sinon";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SerializationService } from "../../src/services/SerializationService";
 import { LogLevelEnum } from "../../src/constants/enums";
 import { CommitObject } from "../../src/types/api_types";
@@ -8,22 +6,22 @@ import { StringKeyMap } from "../../src/utilities";
 
 describe("SerializationService", () => {
   let serializationService: SerializationService;
-  let consoleErrorStub: sinon.SinonStub;
-  let consoleDebugStub: sinon.SinonStub;
+  let consoleErrorStub: ReturnType<typeof vi.spyOn>;
+  let consoleDebugStub: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     // Create a new instance for each test
     serializationService = new SerializationService();
 
     // Stub console methods to prevent actual logging during tests
-    consoleErrorStub = sinon.stub(console, "error");
-    consoleDebugStub = sinon.stub(console, "debug");
+    consoleErrorStub = vi.spyOn(console, "error").mockImplementation(() => {});
+    consoleDebugStub = vi.spyOn(console, "debug").mockImplementation(() => {});
   });
 
   afterEach(() => {
     // Restore console methods
-    consoleErrorStub.restore();
-    consoleDebugStub.restore();
+    // consoleErrorStub.restore() - not needed with vi.restoreAllMocks()
+    // consoleDebugStub.restore() - not needed with vi.restoreAllMocks()
   });
 
   describe("loadFromFlattenedJSON", () => {
@@ -33,9 +31,9 @@ describe("SerializationService", () => {
         "cmi.core.student_id": "123",
         "cmi.core.student_name": "John Doe",
       };
-      const setCMIValueSpy = sinon.spy();
-      const isNotInitializedStub = sinon.stub().returns(true);
-      const setStartingDataSpy = sinon.spy();
+      const setCMIValueSpy = vi.fn();
+      const isNotInitializedStub = vi.fn().mockReturnValue(true);
+      const setStartingDataSpy = vi.fn();
 
       // Act
       serializationService.loadFromFlattenedJSON(
@@ -47,7 +45,7 @@ describe("SerializationService", () => {
       );
 
       // Assert
-      expect(isNotInitializedStub.called).toBe(true);
+      expect(isNotInitializedStub).toHaveBeenCalled();
     });
 
     it("should not proceed if not initialized", () => {
@@ -55,9 +53,9 @@ describe("SerializationService", () => {
       const json: StringKeyMap = {
         "cmi.core.student_id": "123",
       };
-      const setCMIValueSpy = sinon.spy();
-      const isNotInitializedStub = sinon.stub().returns(false);
-      const setStartingDataSpy = sinon.spy();
+      const setCMIValueSpy = vi.fn();
+      const isNotInitializedStub = vi.fn().mockReturnValue(false);
+      const setStartingDataSpy = vi.fn();
 
       // Act
       serializationService.loadFromFlattenedJSON(
@@ -69,12 +67,10 @@ describe("SerializationService", () => {
       );
 
       // Assert
-      expect(consoleErrorStub.calledOnce).toBe(true);
-      expect(
-        consoleErrorStub.calledWith(
-          "loadFromFlattenedJSON can only be called before the call to lmsInitialize.",
-        ),
-      ).toBe(true);
+      expect(consoleErrorStub).toHaveBeenCalledOnce();
+      expect(consoleErrorStub).toHaveBeenCalledWith(
+        "loadFromFlattenedJSON can only be called before the call to lmsInitialize.",
+      );
     });
   });
 
@@ -87,9 +83,9 @@ describe("SerializationService", () => {
           student_name: "John Doe",
         },
       };
-      const setCMIValueSpy = sinon.spy();
-      const isNotInitializedStub = sinon.stub().returns(true);
-      const setStartingDataSpy = sinon.spy();
+      const setCMIValueSpy = vi.fn();
+      const isNotInitializedStub = vi.fn().mockReturnValue(true);
+      const setStartingDataSpy = vi.fn();
 
       // Act
       serializationService.loadFromJSON(
@@ -101,8 +97,8 @@ describe("SerializationService", () => {
       );
 
       // Assert
-      expect(setStartingDataSpy.called).toBe(true);
-      expect(setCMIValueSpy.called).toBe(true);
+      expect(setStartingDataSpy).toHaveBeenCalled();
+      expect(setCMIValueSpy).toHaveBeenCalled();
       // The exact number of calls may vary based on implementation details
       // so we'll just check that it was called
     });
@@ -114,9 +110,9 @@ describe("SerializationService", () => {
           student_id: "123",
         },
       };
-      const setCMIValueSpy = sinon.spy();
-      const isNotInitializedStub = sinon.stub().returns(false);
-      const setStartingDataSpy = sinon.spy();
+      const setCMIValueSpy = vi.fn();
+      const isNotInitializedStub = vi.fn().mockReturnValue(false);
+      const setStartingDataSpy = vi.fn();
 
       // Act
       serializationService.loadFromJSON(
@@ -128,14 +124,12 @@ describe("SerializationService", () => {
       );
 
       // Assert
-      expect(setCMIValueSpy.called).toBe(false);
-      expect(setStartingDataSpy.called).toBe(false);
-      expect(consoleErrorStub.calledOnce).toBe(true);
-      expect(
-        consoleErrorStub.calledWith(
-          "loadFromJSON can only be called before the call to lmsInitialize.",
-        ),
-      ).toBe(true);
+      expect(setCMIValueSpy).not.toHaveBeenCalled();
+      expect(setStartingDataSpy).not.toHaveBeenCalled();
+      expect(consoleErrorStub).toHaveBeenCalledOnce();
+      expect(consoleErrorStub).toHaveBeenCalledWith(
+        "loadFromJSON can only be called before the call to lmsInitialize.",
+      );
     });
 
     it("should handle array values in JSON", () => {
@@ -146,9 +140,9 @@ describe("SerializationService", () => {
           { id: "obj2", score: { raw: 90 } },
         ],
       };
-      const setCMIValueSpy = sinon.spy();
-      const isNotInitializedStub = sinon.stub().returns(true);
-      const setStartingDataSpy = sinon.spy();
+      const setCMIValueSpy = vi.fn();
+      const isNotInitializedStub = vi.fn().mockReturnValue(true);
+      const setStartingDataSpy = vi.fn();
 
       // Act
       serializationService.loadFromJSON(
@@ -160,12 +154,12 @@ describe("SerializationService", () => {
       );
 
       // Assert
-      expect(setCMIValueSpy.called).toBe(true);
-      expect(setCMIValueSpy.callCount).toBe(4);
-      expect(setCMIValueSpy.calledWith("cmi.objectives.0.id", "obj1")).toBe(true);
-      expect(setCMIValueSpy.calledWith("cmi.objectives.0.score.raw", 80)).toBe(true);
-      expect(setCMIValueSpy.calledWith("cmi.objectives.1.id", "obj2")).toBe(true);
-      expect(setCMIValueSpy.calledWith("cmi.objectives.1.score.raw", 90)).toBe(true);
+      expect(setCMIValueSpy).toHaveBeenCalled();
+      expect(setCMIValueSpy).toHaveBeenCalledTimes(4);
+      expect(setCMIValueSpy).toHaveBeenCalledWith("cmi.objectives.0.id", "obj1");
+      expect(setCMIValueSpy).toHaveBeenCalledWith("cmi.objectives.0.score.raw", 80);
+      expect(setCMIValueSpy).toHaveBeenCalledWith("cmi.objectives.1.id", "obj2");
+      expect(setCMIValueSpy).toHaveBeenCalledWith("cmi.objectives.1.score.raw", 90);
     });
   });
 
@@ -217,17 +211,17 @@ describe("SerializationService", () => {
           student_name: "John Doe",
         },
       };
-      const renderCMIToJSONStringSpy = sinon.spy(serializationService, "renderCMIToJSONString");
+      const renderCMIToJSONStringSpy = vi.spyOn(serializationService, "renderCMIToJSONString");
 
       // Act
       const result = serializationService.renderCMIToJSONObject(cmi, true);
 
       // Assert
-      expect(renderCMIToJSONStringSpy.calledOnce).toBe(true);
-      expect(renderCMIToJSONStringSpy.calledWith(cmi, true)).toBe(true);
+      expect(renderCMIToJSONStringSpy).toHaveBeenCalledOnce();
+      expect(renderCMIToJSONStringSpy).toHaveBeenCalledWith(cmi, true);
       expect(result).toEqual({ cmi });
 
-      renderCMIToJSONStringSpy.restore();
+      // renderCMIToJSONStringSpy.restore() - not needed with vi.restoreAllMocks()
     });
   });
 
@@ -237,10 +231,10 @@ describe("SerializationService", () => {
       const terminateCommit = false;
       const alwaysSendTotalTime = false;
       const renderCommonCommitFields = true;
-      const renderCommitObjectStub = sinon
-        .stub()
-        .returns({ successStatus: "passed" } as CommitObject);
-      const renderCommitCMIStub = sinon.stub();
+      const renderCommitObjectStub = vi
+        .fn()
+        .mockReturnValue({ successStatus: "passed" } as CommitObject);
+      const renderCommitCMIStub = vi.fn();
       const apiLogLevel = LogLevelEnum.ERROR;
 
       // Act
@@ -254,9 +248,9 @@ describe("SerializationService", () => {
       );
 
       // Assert
-      expect(renderCommitObjectStub.calledOnce).toBe(true);
-      expect(renderCommitObjectStub.calledWith(false)).toBe(true);
-      expect(renderCommitCMIStub.called).toBe(false);
+      expect(renderCommitObjectStub).toHaveBeenCalledOnce();
+      expect(renderCommitObjectStub).toHaveBeenCalledWith(false);
+      expect(renderCommitCMIStub).not.toHaveBeenCalled();
       expect(result).toEqual({ successStatus: "passed" });
     });
 
@@ -265,8 +259,8 @@ describe("SerializationService", () => {
       const terminateCommit = false;
       const alwaysSendTotalTime = false;
       const renderCommonCommitFields = false;
-      const renderCommitObjectStub = sinon.stub();
-      const renderCommitCMIStub = sinon.stub().returns({ cmi: { core: { student_id: "123" } } });
+      const renderCommitObjectStub = vi.fn();
+      const renderCommitCMIStub = vi.fn().mockReturnValue({ cmi: { core: { student_id: "123" } } });
       const apiLogLevel = LogLevelEnum.ERROR;
 
       // Act
@@ -280,9 +274,9 @@ describe("SerializationService", () => {
       );
 
       // Assert
-      expect(renderCommitCMIStub.calledOnce).toBe(true);
-      expect(renderCommitCMIStub.calledWith(false)).toBe(true);
-      expect(renderCommitObjectStub.called).toBe(false);
+      expect(renderCommitCMIStub).toHaveBeenCalledOnce();
+      expect(renderCommitCMIStub).toHaveBeenCalledWith(false);
+      expect(renderCommitObjectStub).not.toHaveBeenCalled();
       expect(result).toEqual({ cmi: { core: { student_id: "123" } } });
     });
 
@@ -291,8 +285,8 @@ describe("SerializationService", () => {
       const terminateCommit = true;
       const alwaysSendTotalTime = false;
       const renderCommonCommitFields = false;
-      const renderCommitObjectStub = sinon.stub();
-      const renderCommitCMIStub = sinon.stub().returns({ cmi: { core: { student_id: "123" } } });
+      const renderCommitObjectStub = vi.fn();
+      const renderCommitCMIStub = vi.fn().mockReturnValue({ cmi: { core: { student_id: "123" } } });
       const apiLogLevel = LogLevelEnum.DEBUG;
 
       // Act
@@ -306,8 +300,8 @@ describe("SerializationService", () => {
       );
 
       // Assert
-      expect(consoleDebugStub.called).toBe(true);
-      expect(consoleDebugStub.callCount).toBe(2);
+      expect(consoleDebugStub).toHaveBeenCalled();
+      expect(consoleDebugStub).toHaveBeenCalledTimes(2);
     });
   });
 });

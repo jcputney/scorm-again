@@ -1,6 +1,5 @@
-import { afterEach, beforeEach, describe, it } from "mocha";
-import { expect } from "expect";
-import * as sinon from "sinon";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { DefaultSettings } from "../../src/constants/default_settings";
 import { global_constants } from "../../src/constants/api_constants";
 import { LogLevelEnum } from "../../src/constants/enums";
@@ -102,83 +101,69 @@ describe("DefaultSettings", () => {
   });
 
   describe("onLogMessage", () => {
-    let consoleErrorStub: sinon.SinonStub;
-    let consoleWarnStub: sinon.SinonStub;
-    let consoleInfoStub: sinon.SinonStub;
-    let consoleDebugStub: sinon.SinonStub;
-    let consoleLogStub: sinon.SinonStub;
+    let consoleErrorStub: ReturnType<typeof vi.spyOn>;
+    let consoleWarnStub: ReturnType<typeof vi.spyOn>;
+    let consoleInfoStub: ReturnType<typeof vi.spyOn>;
+    let consoleDebugStub: ReturnType<typeof vi.spyOn>;
+    let consoleLogStub: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
       // Stub console methods to prevent actual logging during tests
-      consoleErrorStub = sinon.stub(console, "error");
-      consoleWarnStub = sinon.stub(console, "warn");
-      consoleInfoStub = sinon.stub(console, "info");
-      consoleDebugStub = sinon.stub(console, "debug");
-      consoleLogStub = sinon.stub(console, "log");
-    });
-
-    afterEach(() => {
-      // Restore console methods
-      consoleErrorStub.restore();
-      consoleWarnStub.restore();
-      consoleInfoStub.restore();
-      consoleDebugStub.restore();
-      consoleLogStub.restore();
+      consoleErrorStub = vi.spyOn(console, "error").mockImplementation(() => {});
+      consoleWarnStub = vi.spyOn(console, "warn").mockImplementation(() => {});
+      consoleInfoStub = vi.spyOn(console, "info").mockImplementation(() => {});
+      consoleDebugStub = vi.spyOn(console, "debug").mockImplementation(() => {});
+      consoleLogStub = vi.spyOn(console, "log").mockImplementation(() => {});
     });
 
     it("should call console.error for ERROR level", () => {
       DefaultSettings.onLogMessage(LogLevelEnum.ERROR, "Error message");
-      expect(consoleErrorStub.calledOnce).toBe(true);
-      expect(consoleErrorStub.calledWith("Error message")).toBe(true);
+      expect(consoleErrorStub).toHaveBeenCalledOnce();
+      expect(consoleErrorStub).toHaveBeenCalledWith("Error message");
     });
 
     it("should call console.error for string '4' level", () => {
       DefaultSettings.onLogMessage("4", "Error message");
-      expect(consoleErrorStub.calledOnce).toBe(true);
-      expect(consoleErrorStub.calledWith("Error message")).toBe(true);
+      expect(consoleErrorStub).toHaveBeenCalledOnce();
+      expect(consoleErrorStub).toHaveBeenCalledWith("Error message");
     });
 
     it("should call console.error for numeric 4 level", () => {
       DefaultSettings.onLogMessage(4, "Error message");
-      expect(consoleErrorStub.calledOnce).toBe(true);
-      expect(consoleErrorStub.calledWith("Error message")).toBe(true);
+      expect(consoleErrorStub).toHaveBeenCalledOnce();
+      expect(consoleErrorStub).toHaveBeenCalledWith("Error message");
     });
 
     it("should call console.warn for WARN level", () => {
       DefaultSettings.onLogMessage(LogLevelEnum.WARN, "Warn message");
-      expect(consoleWarnStub.calledOnce).toBe(true);
-      expect(consoleWarnStub.calledWith("Warn message")).toBe(true);
+      expect(consoleWarnStub).toHaveBeenCalledOnce();
+      expect(consoleWarnStub).toHaveBeenCalledWith("Warn message");
     });
 
     it("should call console.info for INFO level", () => {
       DefaultSettings.onLogMessage(LogLevelEnum.INFO, "Info message");
-      expect(consoleInfoStub.calledOnce).toBe(true);
-      expect(consoleInfoStub.calledWith("Info message")).toBe(true);
+      expect(consoleInfoStub).toHaveBeenCalledOnce();
+      expect(consoleInfoStub).toHaveBeenCalledWith("Info message");
     });
 
     it("should call console.debug for DEBUG level when available", () => {
       DefaultSettings.onLogMessage(LogLevelEnum.DEBUG, "Debug message");
-      expect(consoleDebugStub.calledOnce).toBe(true);
-      expect(consoleDebugStub.calledWith("Debug message")).toBe(true);
+      expect(consoleDebugStub).toHaveBeenCalledOnce();
+      expect(consoleDebugStub).toHaveBeenCalledWith("Debug message");
     });
 
     it("should call console.log for DEBUG level when console.debug is not available", () => {
       // Temporarily remove console.debug
       const originalDebug = console.debug;
-      consoleDebugStub.restore();
-      delete console.debug;
-
-      // Reset the console.log stub to ensure it's clean
-      consoleLogStub.resetHistory();
+      console.debug = null as any;
 
       DefaultSettings.onLogMessage(LogLevelEnum.DEBUG, "Debug message");
 
-      expect(consoleLogStub.calledOnce).toBe(true);
-      expect(consoleLogStub.calledWith("Debug message")).toBe(true);
+      expect(consoleLogStub).toHaveBeenCalledOnce();
+      expect(consoleLogStub).toHaveBeenCalledWith("Debug message");
 
       // Restore console.debug
       console.debug = originalDebug;
-      // Don't re-stub console.debug here, it will be re-stubbed in the afterEach hook
     });
   });
 });

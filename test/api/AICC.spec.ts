@@ -1,9 +1,8 @@
-import { expect } from "expect";
-import { describe, it } from "mocha";
+;
+import { describe, it , vi } from "vitest";
 import * as h from "./api_helpers";
 import { AICC } from "../../src/AICC";
 import { DefaultSettings } from "../../src/constants/default_settings";
-import * as sinon from "sinon";
 import { CMITries } from "../../src/cmi/aicc/tries";
 import { CMIInteractions } from "../../src/cmi/scorm12/interactions";
 import { Settings } from "../../src/types/api_types";
@@ -323,23 +322,25 @@ describe("AICC API Tests", () => {
 
     it("should call commonReset from the superclass", () => {
       const aiccAPI = api();
-      const commonResetSpy = sinon.spy(aiccAPI, "commonReset");
+      const commonResetSpy = vi.spyOn(aiccAPI, "commonReset");
 
       aiccAPI.reset();
 
-      expect(commonResetSpy.calledOnce).toBe(true);
-      commonResetSpy.restore();
+      expect(commonResetSpy).toHaveBeenCalledOnce();
+      // commonResetSpy.restore() - not needed with vi.restoreAllMocks()
     });
   });
 
   describe("replaceWithAnotherScormAPI()", () => {
-    const firstAPI = api();
-    const secondAPI = api();
+    it("should replace the current API with another SCORM API", () => {
+      const firstAPI = api();
+      const secondAPI = api();
 
-    firstAPI.cmi.core.student_id = "student_1";
-    secondAPI.cmi.core.student_id = "student_2";
+      firstAPI.cmi.core.student_id = "student_1";
+      secondAPI.cmi.core.student_id = "student_2";
 
-    firstAPI.replaceWithAnotherScormAPI(secondAPI);
-    expect(firstAPI.cmi.core.student_id).toEqual("student_2");
+      firstAPI.replaceWithAnotherScormAPI(secondAPI);
+      expect(firstAPI.cmi.core.student_id).toEqual("student_2");
+    });
   });
 });

@@ -1,16 +1,14 @@
-import { describe, it } from "mocha";
-import { expect } from "expect";
-import * as sinon from "sinon";
+import { describe, it, vi } from "vitest";
 import {
+  RuleActionType,
   RuleCondition,
   RuleConditionOperator,
   RuleConditionType,
   SequencingRule,
-  RuleActionType,
   SequencingRules,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
-import { SuccessStatus, CompletionStatus } from "../../../../src/constants/enums";
+import { SuccessStatus } from "../../../../src/constants/enums";
 import { Scorm2004ValidationError } from "../../../../src/exceptions/scorm2004_exceptions";
 
 describe("SequencingRules", () => {

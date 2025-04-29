@@ -1,5 +1,5 @@
-import { describe, it } from "mocha";
-import { expect } from "expect";
+import { describe, it , vi } from "vitest";
+;
 import { ValidationError } from "../../src/exceptions";
 import {
   aicc_constants,

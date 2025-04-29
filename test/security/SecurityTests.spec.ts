@@ -1,6 +1,5 @@
-import { expect } from "expect";
-import { describe, it } from "mocha";
-import * as sinon from "sinon";
+;
+import { describe, it , vi } from "vitest";
 import { checkValidFormat, checkValidRange } from "../../src/cmi/common/validation";
 import { validationService } from "../../src/services/ValidationService";
 import { BaseScormValidationError } from "../../src/exceptions";
@@ -380,7 +379,7 @@ describe("Security Tests for Data Validation", () => {
       }
 
       // Create a spy to check if the validation is actually performed again
-      const spy = sinon.spy(RegExp.prototype, "test");
+      const spy = vi.spyOn(RegExp.prototype, "test");
 
       // Second call with the same value should use memoization
       try {
@@ -390,9 +389,9 @@ describe("Security Tests for Data Validation", () => {
       }
 
       // The regex test should not have been called again due to memoization
-      expect(spy.called).toBe(false);
+      expect(spy).not.toHaveBeenCalled();
 
-      spy.restore();
+      // spy.restore() - not needed with vi.restoreAllMocks()
     });
   });
 });

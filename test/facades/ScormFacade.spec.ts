@@ -4,9 +4,7 @@
  * Tests for the ScormFacade class
  */
 
-import { expect } from "expect";
-import { describe, it } from "mocha";
-import * as sinon from "sinon";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createScormFacade, IScormFacade } from "../../src/facades/ScormFacade";
 import { CompletionStatus, LogLevelEnum, SuccessStatus } from "../../src/constants/enums";
 
@@ -89,65 +87,68 @@ describe("ScormFacade", () => {
     });
 
     it("should set completion status", () => {
-      const spy = sinon.spy(facade, "setValue");
+      facade.setValue = vi.fn();
 
       facade.setStatus(CompletionStatus.COMPLETED);
 
-      expect(spy.calledWith("cmi.completion_status", CompletionStatus.COMPLETED)).toBe(true);
-      spy.restore();
+      expect(facade.setValue).toHaveBeenCalledWith(
+        "cmi.completion_status",
+        CompletionStatus.COMPLETED,
+      );
+      // spy.restore() - not needed with vi.restoreAllMocks()
     });
 
     it("should set success status", () => {
-      const spy = sinon.spy(facade, "setValue");
+      const spy = vi.spyOn(facade, "setValue");
 
       facade.setSuccessStatus(SuccessStatus.PASSED);
 
-      expect(spy.calledWith("cmi.success_status", SuccessStatus.PASSED)).toBe(true);
-      spy.restore();
+      expect(spy).toHaveBeenCalledWith("cmi.success_status", SuccessStatus.PASSED);
+      // spy.restore() - not needed with vi.restoreAllMocks()
     });
 
     it("should set score", () => {
-      const spy = sinon.spy(facade, "setValue");
+      const spy = vi.spyOn(facade, "setValue");
 
       facade.setScore(85);
 
       // Should set both raw and scaled scores
-      expect(spy.calledWith("cmi.score.raw", 85)).toBe(true);
-      expect(spy.calledWith("cmi.score.scaled", 0.85)).toBe(true);
-      spy.restore();
+      expect(spy).toHaveBeenCalledWith("cmi.score.raw", 85);
+      expect(spy).toHaveBeenCalledWith("cmi.score.scaled", 0.85);
+      // spy.restore() - not needed with vi.restoreAllMocks()
     });
 
     it("should handle scores outside the valid range", () => {
-      const spy = sinon.spy(facade, "setValue");
+      const spy = vi.spyOn(facade, "setValue");
 
       // Test with score > 100
       facade.setScore(120);
-      expect(spy.calledWith("cmi.score.raw", 120)).toBe(true);
-      expect(spy.calledWith("cmi.score.scaled", 1)).toBe(true);
+      expect(spy).toHaveBeenCalledWith("cmi.score.raw", 120);
+      expect(spy).toHaveBeenCalledWith("cmi.score.scaled", 1);
 
       // Test with score < 0
       facade.setScore(-10);
-      expect(spy.calledWith("cmi.score.raw", -10)).toBe(true);
-      expect(spy.calledWith("cmi.score.scaled", 0)).toBe(true);
+      expect(spy).toHaveBeenCalledWith("cmi.score.raw", -10);
+      expect(spy).toHaveBeenCalledWith("cmi.score.scaled", 0);
 
-      spy.restore();
+      // spy.restore() - not needed with vi.restoreAllMocks()
     });
   });
 
   describe("Event handling", () => {
     let facade: IScormFacade;
-    let callback: sinon.SinonSpy;
+    const callback = vi.fn();
 
     beforeEach(() => {
       facade = createScormFacade();
-      callback = sinon.spy();
+      callback.mockReset();
     });
 
     it("should register and trigger event listeners", () => {
       facade.on("Initialize", callback);
       facade.initialize();
 
-      expect(callback.called).toBe(true);
+      expect(callback).toHaveBeenCalled();
     });
 
     it("should remove event listeners", () => {
@@ -155,7 +156,7 @@ describe("ScormFacade", () => {
       facade.off("Initialize", callback);
       facade.initialize();
 
-      expect(callback.called).toBe(false);
+      expect(callback).not.toHaveBeenCalled();
     });
   });
 });

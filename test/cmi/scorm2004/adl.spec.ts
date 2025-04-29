@@ -1,6 +1,5 @@
-import { describe, it } from "mocha";
-import { expect } from "expect";
-import * as sinon from "sinon";
+import { describe, it, expect, vi } from "vitest";
+
 import {
   ADL,
   ADLData,
@@ -20,26 +19,22 @@ describe("ADL Classes", () => {
 
     it("should initialize child objects when initialize is called", () => {
       const adl = new ADL();
-      const navInitializeSpy = sinon.spy(adl.nav, "initialize");
+      const navInitializeSpy = vi.spyOn(adl.nav, "initialize");
 
       adl.initialize();
 
-      expect(navInitializeSpy.called).toBe(true);
+      expect(navInitializeSpy).toHaveBeenCalled();
       expect(adl.initialized).toBe(true);
-
-      navInitializeSpy.restore();
     });
 
     it("should reset child objects when reset is called", () => {
       const adl = new ADL();
-      const navResetSpy = sinon.spy(adl.nav, "reset");
+      const navResetSpy = vi.spyOn(adl.nav, "reset");
 
       adl.reset();
 
-      expect(navResetSpy.called).toBe(true);
+      expect(navResetSpy).toHaveBeenCalled();
       expect(adl.initialized).toBe(false);
-
-      navResetSpy.restore();
     });
 
     it("should return a JSON representation with toJSON", () => {
@@ -61,27 +56,23 @@ describe("ADL Classes", () => {
 
     it("should initialize child objects when initialize is called", () => {
       const adlNav = new ADLNav();
-      const requestValidInitializeSpy = sinon.spy(adlNav.request_valid, "initialize");
+      const requestValidInitializeSpy = vi.spyOn(adlNav.request_valid, "initialize");
 
       adlNav.initialize();
 
-      expect(requestValidInitializeSpy.called).toBe(true);
+      expect(requestValidInitializeSpy).toHaveBeenCalled();
       expect(adlNav.initialized).toBe(true);
-
-      requestValidInitializeSpy.restore();
     });
 
     it("should reset properties when reset is called", () => {
       const adlNav = new ADLNav();
-      const requestValidResetSpy = sinon.spy(adlNav.request_valid, "reset");
+      const requestValidResetSpy = vi.spyOn(adlNav.request_valid, "reset");
 
       adlNav.reset();
 
-      expect(requestValidResetSpy.called).toBe(true);
+      expect(requestValidResetSpy).toHaveBeenCalled();
       expect(adlNav.initialized).toBe(false);
       expect(adlNav.request).toBe("_none_");
-
-      requestValidResetSpy.restore();
     });
 
     it("should set request property when valid", () => {

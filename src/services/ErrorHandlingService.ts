@@ -158,9 +158,6 @@ export class ErrorHandlingService implements IErrorHandlingService {
       const errorMessage = `${errorType}: ${e.message} [Element: ${CMIElement}]`;
       const stackTrace = e.stack || "";
 
-      // Keep direct console.error call for backward compatibility with tests
-      console.error(e.message);
-
       // Log the detailed error with stack trace
       this._loggingService.error(`${errorMessage}\n${stackTrace}`);
 
@@ -168,9 +165,6 @@ export class ErrorHandlingService implements IErrorHandlingService {
     } else {
       // For unknown errors, provide as much context as possible
       const errorMessage = `Unknown error occurred while accessing [Element: ${CMIElement}]`;
-
-      // Keep direct console.error call for backward compatibility with tests
-      console.error(e);
 
       this._loggingService.error(errorMessage);
 

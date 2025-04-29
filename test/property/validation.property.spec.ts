@@ -1,5 +1,5 @@
-import { describe, it } from "mocha";
-import { expect } from "expect";
+import { describe, it , vi } from "vitest";
+;
 import * as fc from "fast-check";
 import { checkValidFormat, checkValidRange } from "../../src/cmi/common/validation";
 import { BaseScormValidationError } from "../../src/exceptions";

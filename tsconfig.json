@@ -10,7 +10,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "typeRoots": ["node_modules/@types", "src/types"],
-    "types": ["extract-zip", "mocha", "sinon", "node"],
+    "types": ["extract-zip", "node"],
     "skipLibCheck": true,
     "removeComments": true,
     "importHelpers": true,

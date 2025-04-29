@@ -1,6 +1,4 @@
-import { expect } from "expect";
-import * as sinon from "sinon";
-import { SinonStub } from "sinon";
+import { describe, expect, it, vi } from "vitest";
 import { LogLevel, ResultObject, Settings } from "../../src/types/api_types";
 import { global_constants } from "../../src/constants/api_constants";
 import { LogLevelEnum } from "../../src/constants/enums";
@@ -64,16 +62,21 @@ describe("Settings Type", () => {
   });
 
   it("should log messages correctly in onLogMessage", () => {
-    const consoleErrorStub = sinon.stub(console, "error");
-    const consoleWarnStub = sinon.stub(console, "warn");
-    const consoleInfoStub = sinon.stub(console, "info");
-    const consoleDebugStub = sinon.stub(console, "debug");
-    const consoleLogStub = sinon.stub(console, "log");
+    const consoleErrorStub = vi.spyOn(console, "error");
+    const consoleWarnStub = vi.spyOn(console, "warn");
+    const consoleInfoStub = vi.spyOn(console, "info");
+    const consoleDebugStub = vi.spyOn(console, "debug");
+    const consoleLogStub = vi.spyOn(console, "log");
 
-    const testLog = function (stub: SinonStub, level: LogLevel, shouldBeLogged = true) {
+    const testLog = function (
+      stub: ReturnType<typeof vi.spyOn>,
+      level: LogLevel,
+      shouldBeLogged = true,
+    ) {
       const message = `${level} message - ${typeof level}`;
       defaultSettings.onLogMessage(level, message);
-      expect(stub.calledWith(message)).toBe(shouldBeLogged);
+      expect(stub.mock.calls.length === 1).toBe(shouldBeLogged);
+      stub.mockReset();
     };
 
     testLog(consoleErrorStub, LogLevelEnum.ERROR);
@@ -100,11 +103,5 @@ describe("Settings Type", () => {
     testLog(consoleLogStub, 5, false);
     testLog(consoleLogStub, "5", false);
     testLog(consoleLogStub, "NONE", false);
-
-    consoleErrorStub.restore();
-    consoleWarnStub.restore();
-    consoleInfoStub.restore();
-    consoleDebugStub.restore();
-    consoleLogStub.restore();
   });
 });

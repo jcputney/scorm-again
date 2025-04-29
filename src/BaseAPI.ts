@@ -18,7 +18,7 @@ import {
   IEventService,
   IHttpService,
   ILoggingService,
-  ISerializationService,
+  ISerializationService
 } from "./interfaces/services";
 import { CMIArray } from "./cmi/common/array";
 import { ValidationError } from "./exceptions";
@@ -328,15 +328,6 @@ export default abstract class BaseAPI implements IBaseAPI {
     if (messageLevel >= this.apiLogLevel) {
       // Use the injected LoggingService
       this._loggingService.log(messageLevel, logMessage);
-
-      // For backward compatibility, also call the settings.onLogMessage if it exists
-      // and is different from the LoggingService's handler
-      if (
-        this.settings.onLogMessage &&
-        this.settings.onLogMessage !== (this._loggingService as any)["_logHandler"]
-      ) {
-        this.settings.onLogMessage(messageLevel, logMessage);
-      }
     }
   }
 
@@ -1242,10 +1233,8 @@ export default abstract class BaseAPI implements IBaseAPI {
       this.throwSCORMError(CMIElement, e.errorCode, e.errorMessage);
     } else {
       if (e instanceof Error && e.message) {
-        console.error(e.message);
         this.throwSCORMError(CMIElement, this._error_codes.GENERAL, e.message);
       } else {
-        console.error(e);
         this.throwSCORMError(CMIElement, this._error_codes.GENERAL, "Unknown error");
       }
     }

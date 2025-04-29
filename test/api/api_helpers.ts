@@ -1,5 +1,4 @@
-import { describe, it } from "mocha";
-import { expect } from "expect";
+import { describe, it, expect } from "vitest";
 import BaseAPI from "../../src/BaseAPI";
 
 class NoErrorThrownError extends Error {}

@@ -1,7 +1,6 @@
-import { describe, it } from "mocha";
-import { expect } from "expect";
 import { getError } from "../api/api_helpers";
 import { BaseCMI, BaseRootCMI } from "../../src/cmi/common/base_cmi";
+import { describe, expect, it } from "vitest";
 
 export type CheckFieldConstraintSize = {
   cmi: BaseCMI;

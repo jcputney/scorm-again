@@ -1,33 +1,27 @@
-import { afterEach, beforeEach, describe, it } from "mocha";
-import { expect } from "expect";
-import * as sinon from "sinon";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { getLoggingService, LoggingService } from "../../src/services/LoggingService";
 import { LogLevelEnum } from "../../src/constants/enums";
 import { LogLevel } from "../../src/types/api_types";
 
 describe("LoggingService", () => {
-  let consoleErrorStub: sinon.SinonStub;
-  let consoleWarnStub: sinon.SinonStub;
-  let consoleInfoStub: sinon.SinonStub;
-  let consoleDebugStub: sinon.SinonStub;
-  let consoleLogStub: sinon.SinonStub;
+  let consoleErrorStub: ReturnType<typeof vi.spyOn>;
+  let consoleWarnStub: ReturnType<typeof vi.spyOn>;
+  let consoleInfoStub: ReturnType<typeof vi.spyOn>;
+  let consoleDebugStub: ReturnType<typeof vi.spyOn>;
+  let consoleLogStub: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     // Stub console methods to prevent actual logging during tests
-    consoleErrorStub = sinon.stub(console, "error");
-    consoleWarnStub = sinon.stub(console, "warn");
-    consoleInfoStub = sinon.stub(console, "info");
-    consoleDebugStub = sinon.stub(console, "debug");
-    consoleLogStub = sinon.stub(console, "log");
+    consoleErrorStub = vi.spyOn(console, "error").mockImplementation(() => {});
+    consoleWarnStub = vi.spyOn(console, "warn").mockImplementation(() => {});
+    consoleInfoStub = vi.spyOn(console, "info").mockImplementation(() => {});
+    consoleDebugStub = vi.spyOn(console, "debug").mockImplementation(() => {});
+    consoleLogStub = vi.spyOn(console, "log").mockImplementation(() => {});
   });
 
   afterEach(() => {
-    // Restore console methods
-    consoleErrorStub.restore();
-    consoleWarnStub.restore();
-    consoleInfoStub.restore();
-    consoleDebugStub.restore();
-    consoleLogStub.restore();
+    // Restore all mocks
+    vi.restoreAllMocks();
 
     // Reset the log level to default
     getLoggingService().setLogLevel(LogLevelEnum.ERROR);
@@ -66,42 +60,40 @@ describe("LoggingService", () => {
       loggingService.setLogLevel(LogLevelEnum.DEBUG);
       loggingService.debug("Debug message");
 
-      expect(consoleDebugStub.calledOnce).toBe(true);
-      expect(consoleDebugStub.calledWith("Debug message")).toBe(true);
+      expect(consoleDebugStub).toHaveBeenCalledOnce();
+      expect(consoleDebugStub).toHaveBeenCalledWith("Debug message");
     });
 
     it("should use a custom log handler when set", () => {
       const loggingService = getLoggingService();
-      const customHandler = sinon.spy();
+      const customHandler = vi.fn();
 
       loggingService.setLogHandler(customHandler);
       loggingService.setLogLevel(LogLevelEnum.DEBUG);
       loggingService.debug("Debug message");
 
-      expect(customHandler.calledOnce).toBe(true);
-      expect(customHandler.calledWith(LogLevelEnum.DEBUG, "Debug message")).toBe(true);
-      expect(consoleDebugStub.called).toBe(false);
+      expect(customHandler).toHaveBeenCalledOnce();
+      expect(customHandler).toHaveBeenCalledWith(LogLevelEnum.DEBUG, "Debug message");
+      expect(consoleDebugStub).not.toHaveBeenCalled();
     });
   });
 
   describe("Logging Methods", () => {
     it("should call log method with correct parameters", () => {
       const loggingService = getLoggingService();
-      const logSpy = sinon.spy(loggingService, "log");
+      const logSpy = vi.spyOn(loggingService, "log");
 
       loggingService.error("Error message");
-      expect(logSpy.calledWith(LogLevelEnum.ERROR, "Error message")).toBe(true);
+      expect(logSpy).toHaveBeenCalledWith(LogLevelEnum.ERROR, "Error message");
 
       loggingService.warn("Warn message");
-      expect(logSpy.calledWith(LogLevelEnum.WARN, "Warn message")).toBe(true);
+      expect(logSpy).toHaveBeenCalledWith(LogLevelEnum.WARN, "Warn message");
 
       loggingService.info("Info message");
-      expect(logSpy.calledWith(LogLevelEnum.INFO, "Info message")).toBe(true);
+      expect(logSpy).toHaveBeenCalledWith(LogLevelEnum.INFO, "Info message");
 
       loggingService.debug("Debug message");
-      expect(logSpy.calledWith(LogLevelEnum.DEBUG, "Debug message")).toBe(true);
-
-      logSpy.restore();
+      expect(logSpy).toHaveBeenCalledWith(LogLevelEnum.DEBUG, "Debug message");
     });
 
     it("should call console.error when logging error messages", () => {
@@ -109,7 +101,7 @@ describe("LoggingService", () => {
       const loggingService = getLoggingService();
 
       // Reset stubs
-      consoleErrorStub.resetHistory();
+      vi.clearAllMocks();
 
       // Set log level to DEBUG to ensure all messages are logged
       loggingService.setLogLevel(LogLevelEnum.DEBUG);
@@ -128,13 +120,13 @@ describe("LoggingService", () => {
       loggingService.error("Direct error message");
 
       // Check if console.error was called
-      expect(consoleErrorStub.called).toBe(true);
-      expect(consoleErrorStub.calledWith("Direct error message")).toBe(true);
+      expect(consoleErrorStub).toHaveBeenCalled();
+      expect(consoleErrorStub).toHaveBeenCalledWith("Direct error message");
     });
 
     it("should not log messages below the current log level", () => {
       const loggingService = getLoggingService();
-      const customHandler = sinon.spy();
+      const customHandler = vi.fn();
 
       loggingService.setLogHandler(customHandler);
       loggingService.setLogLevel(LogLevelEnum.ERROR);
@@ -143,21 +135,21 @@ describe("LoggingService", () => {
       loggingService.info("Info message");
       loggingService.debug("Debug message");
 
-      expect(customHandler.called).toBe(false);
+      expect(customHandler).not.toHaveBeenCalled();
     });
 
     it("should log messages at or above the current log level", () => {
       const loggingService = getLoggingService();
-      const customHandler = sinon.spy();
+      const customHandler = vi.fn();
 
       loggingService.setLogHandler(customHandler);
       loggingService.setLogLevel(LogLevelEnum.WARN);
 
       loggingService.error("Error message");
-      expect(customHandler.calledWith(LogLevelEnum.ERROR, "Error message")).toBe(true);
+      expect(customHandler).toHaveBeenCalledWith(LogLevelEnum.ERROR, "Error message");
 
       loggingService.warn("Warn message");
-      expect(customHandler.calledWith(LogLevelEnum.WARN, "Warn message")).toBe(true);
+      expect(customHandler).toHaveBeenCalledWith(LogLevelEnum.WARN, "Warn message");
     });
   });
 
@@ -209,8 +201,8 @@ describe("LoggingService", () => {
       loggingService.setLogLevel(LogLevelEnum.DEBUG);
       loggingService.log(LogLevelEnum.ERROR, "Error message");
 
-      expect(consoleErrorStub.calledOnce).toBe(true);
-      expect(consoleErrorStub.calledWith("Error message")).toBe(true);
+      expect(consoleErrorStub).toHaveBeenCalledOnce();
+      expect(consoleErrorStub).toHaveBeenCalledWith("Error message");
     });
 
     it("should call console.warn for WARN level messages", () => {
@@ -222,8 +214,8 @@ describe("LoggingService", () => {
       loggingService.setLogLevel(LogLevelEnum.DEBUG);
       loggingService.log(LogLevelEnum.WARN, "Warn message");
 
-      expect(consoleWarnStub.calledOnce).toBe(true);
-      expect(consoleWarnStub.calledWith("Warn message")).toBe(true);
+      expect(consoleWarnStub).toHaveBeenCalledOnce();
+      expect(consoleWarnStub).toHaveBeenCalledWith("Warn message");
     });
 
     it("should call console.info for INFO level messages", () => {
@@ -235,8 +227,8 @@ describe("LoggingService", () => {
       loggingService.setLogLevel(LogLevelEnum.DEBUG);
       loggingService.log(LogLevelEnum.INFO, "Info message");
 
-      expect(consoleInfoStub.calledOnce).toBe(true);
-      expect(consoleInfoStub.calledWith("Info message")).toBe(true);
+      expect(consoleInfoStub).toHaveBeenCalledOnce();
+      expect(consoleInfoStub).toHaveBeenCalledWith("Info message");
     });
 
     it("should call console.debug for DEBUG level messages if available", () => {
@@ -248,8 +240,8 @@ describe("LoggingService", () => {
       loggingService.setLogLevel(LogLevelEnum.DEBUG);
       loggingService.log(LogLevelEnum.DEBUG, "Debug message");
 
-      expect(consoleDebugStub.calledOnce).toBe(true);
-      expect(consoleDebugStub.calledWith("Debug message")).toBe(true);
+      expect(consoleDebugStub).toHaveBeenCalledOnce();
+      expect(consoleDebugStub).toHaveBeenCalledWith("Debug message");
     });
 
     it("should call console.log for DEBUG level messages if console.debug is not available", () => {
@@ -258,20 +250,19 @@ describe("LoggingService", () => {
       // Reset the log handler to a new default one
       (loggingService as any)._logHandler = createDefaultLogHandler();
 
-      // Reset the console.log stub to ensure it's clean
-      consoleLogStub.resetHistory();
+      // Reset the stubs to ensure they're clean
+      vi.clearAllMocks();
 
       // Temporarily remove console.debug
       const originalDebug = console.debug;
-      consoleDebugStub.restore();
-      delete console.debug;
+      console.debug = undefined as any;
 
       loggingService.setLogLevel(LogLevelEnum.DEBUG);
       loggingService.log(LogLevelEnum.DEBUG, "Debug message");
 
       // Check if console.log was called
-      expect(consoleLogStub.calledOnce).toBe(true);
-      expect(consoleLogStub.calledWith("Debug message")).toBe(true);
+      expect(consoleLogStub).toHaveBeenCalledOnce();
+      expect(consoleLogStub).toHaveBeenCalledWith("Debug message");
 
       // Restore console.debug
       console.debug = originalDebug;
@@ -288,16 +279,16 @@ describe("LoggingService", () => {
 
       // Test string log levels
       loggingService.log("ERROR", "Error message");
-      expect(consoleErrorStub.calledWith("Error message")).toBe(true);
+      expect(consoleErrorStub).toHaveBeenCalledWith("Error message");
 
       loggingService.log("WARN", "Warn message");
-      expect(consoleWarnStub.calledWith("Warn message")).toBe(true);
+      expect(consoleWarnStub).toHaveBeenCalledWith("Warn message");
 
       loggingService.log("INFO", "Info message");
-      expect(consoleInfoStub.calledWith("Info message")).toBe(true);
+      expect(consoleInfoStub).toHaveBeenCalledWith("Info message");
 
       loggingService.log("DEBUG", "Debug message");
-      expect(consoleDebugStub.calledWith("Debug message")).toBe(true);
+      expect(consoleDebugStub).toHaveBeenCalledWith("Debug message");
     });
 
     it("should handle numeric string log levels in the default handler", () => {
@@ -310,16 +301,16 @@ describe("LoggingService", () => {
 
       // Test numeric string log levels
       loggingService.log("4", "Error message");
-      expect(consoleErrorStub.calledWith("Error message")).toBe(true);
+      expect(consoleErrorStub).toHaveBeenCalledWith("Error message");
 
       loggingService.log("3", "Warn message");
-      expect(consoleWarnStub.calledWith("Warn message")).toBe(true);
+      expect(consoleWarnStub).toHaveBeenCalledWith("Warn message");
 
       loggingService.log("2", "Info message");
-      expect(consoleInfoStub.calledWith("Info message")).toBe(true);
+      expect(consoleInfoStub).toHaveBeenCalledWith("Info message");
 
       loggingService.log("1", "Debug message");
-      expect(consoleDebugStub.calledWith("Debug message")).toBe(true);
+      expect(consoleDebugStub).toHaveBeenCalledWith("Debug message");
     });
   });
 

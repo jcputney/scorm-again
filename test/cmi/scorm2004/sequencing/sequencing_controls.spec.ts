@@ -1,5 +1,5 @@
-import { describe, it } from "mocha";
-import { expect } from "expect";
+import { describe, it, vi } from "vitest";
+
 import { SequencingControls } from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
 
 describe("SequencingControls", () => {

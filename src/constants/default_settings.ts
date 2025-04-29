@@ -24,11 +24,24 @@ export const DefaultSettings: Settings = {
   fetchMode: "cors",
   responseHandler: async function (response: Response): Promise<ResultObject> {
     if (typeof response !== "undefined") {
-      const responseText = await response.text();
       let httpResult = null;
-      if (responseText) {
-        httpResult = JSON.parse(responseText);
+
+      // Handle both text() and json() response methods
+      try {
+        if (typeof response.json === 'function') {
+          // Try to get JSON directly if the method exists
+          httpResult = await response.json();
+        } else if (typeof response.text === 'function') {
+          // Fall back to text() if json() is not available
+          const responseText = await response.text();
+          if (responseText) {
+            httpResult = JSON.parse(responseText);
+          }
+        }
+      } catch (e) {
+        // If parsing fails, continue with null httpResult
       }
+
       if (httpResult === null || !{}.hasOwnProperty.call(httpResult, "result")) {
         if (response.status === 200) {
           return {

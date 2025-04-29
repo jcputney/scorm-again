@@ -1,11 +1,14 @@
-import { describe, it } from "mocha";
-import { expect } from "expect";
-import * as sinon from "sinon";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { Scorm2004ValidationError } from "../../../../src/exceptions/scorm2004_exceptions";
 
 describe("ActivityTree", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   describe("constructor", () => {
     it("should initialize with default values", () => {
       const activityTree = new ActivityTree();
@@ -27,13 +30,11 @@ describe("ActivityTree", () => {
       const root = new Activity("root", "Root Activity");
       activityTree.root = root;
 
-      const rootInitializeSpy = sinon.spy(root, "initialize");
+      const rootInitializeSpy = vi.spyOn(root, "initialize");
 
       activityTree.initialize();
 
-      expect(rootInitializeSpy.called).toBe(true);
-
-      rootInitializeSpy.restore();
+      expect(rootInitializeSpy).toHaveBeenCalled();
     });
   });
 
@@ -59,13 +60,11 @@ describe("ActivityTree", () => {
       const root = new Activity("root", "Root Activity");
       activityTree.root = root;
 
-      const rootResetSpy = sinon.spy(root, "reset");
+      const rootResetSpy = vi.spyOn(root, "reset");
 
       activityTree.reset();
 
-      expect(rootResetSpy.called).toBe(true);
-
-      rootResetSpy.restore();
+      expect(rootResetSpy).toHaveBeenCalled();
     });
   });
 

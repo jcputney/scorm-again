@@ -1,16 +1,14 @@
-import { describe, it } from "mocha";
-import { expect } from "expect";
-import * as sinon from "sinon";
+import { describe, expect, it } from "vitest";
 import {
+  RollupActionType,
   RollupCondition,
   RollupConditionType,
-  RollupRule,
-  RollupActionType,
   RollupConsiderationType,
+  RollupRule,
   RollupRules,
 } from "../../../../src/cmi/scorm2004/sequencing/rollup_rules";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
-import { SuccessStatus, CompletionStatus } from "../../../../src/constants/enums";
+import { CompletionStatus, SuccessStatus } from "../../../../src/constants/enums";
 import { Scorm2004ValidationError } from "../../../../src/exceptions/scorm2004_exceptions";
 
 describe("RollupRules", () => {
@@ -137,7 +135,7 @@ describe("RollupRules", () => {
           RollupConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         );
         expect(result).toHaveProperty("parameters");
-        expect(result.parameters).toEqual({ threshold: 0.8 });
+        expect((result as any).parameters).toEqual({ threshold: 0.8 });
       });
     });
   });
@@ -425,9 +423,9 @@ describe("RollupRules", () => {
         expect(result).toHaveProperty("minimumCount", 2);
         expect(result).toHaveProperty("minimumPercent", 0);
         expect(result).toHaveProperty("conditions");
-        expect(Array.isArray(result.conditions)).toBe(true);
-        expect(result.conditions.length).toBe(1);
-        expect(result.conditions[0]).toBe(condition);
+        expect(Array.isArray((result as any).conditions)).toBe(true);
+        expect((result as any).conditions.length).toBe(1);
+        expect((result as any).conditions[0]).toBe(condition);
       });
     });
   });
@@ -594,9 +592,9 @@ describe("RollupRules", () => {
         const result = rules.toJSON();
 
         expect(result).toHaveProperty("rules");
-        expect(Array.isArray(result.rules)).toBe(true);
-        expect(result.rules.length).toBe(1);
-        expect(result.rules[0]).toBe(rule);
+        expect(Array.isArray((result as any).rules)).toBe(true);
+        expect((result as any).rules.length).toBe(1);
+        expect((result as any).rules[0]).toBe(rule);
       });
     });
   });

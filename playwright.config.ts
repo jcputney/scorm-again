@@ -43,7 +43,7 @@ export default defineConfig({
   ],
   /* Run local server before starting the tests */
   webServer: {
-    command: "yarn run test:integration:server",
+    command: "npm run test:integration:server",
     url: "http://localhost:3000",
     reuseExistingServer: true,
     stdout: "pipe",

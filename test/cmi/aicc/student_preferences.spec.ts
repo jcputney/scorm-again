@@ -1,6 +1,5 @@
-import { describe, it } from "mocha";
-import { expect } from "expect";
-import * as sinon from "sinon";
+import { describe, it, expect, vi } from "vitest";
+
 import { AICCStudentPreferences } from "../../../src/cmi/aicc/student_preferences";
 import { CMIArray } from "../../../src/cmi/common/array";
 
@@ -23,14 +22,12 @@ describe("AICCStudentPreferences", () => {
 
   it("should initialize child objects when initialize is called", () => {
     const studentPreferences = new AICCStudentPreferences();
-    const windowsInitializeSpy = sinon.spy(studentPreferences.windows, "initialize");
+    const windowsInitializeSpy = vi.spyOn(studentPreferences.windows, "initialize");
 
     studentPreferences.initialize();
 
-    expect(windowsInitializeSpy.called).toBe(true);
+    expect(windowsInitializeSpy).toHaveBeenCalled();
     expect(studentPreferences.initialized).toBe(true);
-
-    windowsInitializeSpy.restore();
   });
 
   describe("Getters and Setters", () => {

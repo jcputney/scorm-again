@@ -1,6 +1,0 @@
-{
-  "ui": "bdd",
-  "extension": ["ts"],
-  "spec": "test/**/*.spec.ts",
-  "recursive": true
-}

@@ -1,5 +1,5 @@
-import { describe, it } from "mocha";
-import { expect } from "expect";
+import { describe, it  , vi } from "vitest";
+;
 import { CMISettings } from "../../src/cmi/scorm2004/settings";
 import { scorm2004_errors } from "../../src/constants/error_codes";
 import { Scorm2004ValidationError } from "../../src/exceptions/scorm2004_exceptions";

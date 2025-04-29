@@ -1,12 +1,9 @@
-import { expect } from "expect";
-import { describe, it } from "mocha";
-import * as sinon from "sinon";
+import { beforeEach, afterEach, describe, it, vi, expect } from "vitest";
 import { HttpService } from "../../src/services/HttpService";
 import { EventService } from "../../src/services/EventService";
 import { scorm2004_errors } from "../../src/constants/error_codes";
 import { LogLevelEnum } from "../../src/constants/enums";
 import { Scorm2004API } from "../../src/Scorm2004API";
-import Pretender from "fetch-pretender";
 
 /**
  * Helper function to run multiple operations concurrently
@@ -50,27 +47,28 @@ async function measureConcurrentExecutionTime(
 describe("Stress Tests for Concurrent Operations", () => {
   describe("HttpService Concurrent Requests", () => {
     let httpService: HttpService;
-    let server: Pretender;
-    let apiLogSpy: sinon.SinonSpy;
-    let processListenersSpy: sinon.SinonSpy;
+    let apiLogSpy: ReturnType<typeof vi.fn>;
+    let processListenersSpy: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
-      server = new Pretender();
-      server.post("/scorm2004", () => {
+      // Set up fetch mocks
+      vi.stubGlobal('fetch', vi.fn());
+
+      (fetch as ReturnType<typeof vi.fn>).mockImplementation(() => {
         // Add a small delay to simulate network latency
         return new Promise((resolve) => {
           setTimeout(() => {
-            resolve([
-              200,
-              { "Content-Type": "application/json" },
-              JSON.stringify({ result: "true", errorCode: 0 }),
-            ]);
+            resolve({
+              ok: true,
+              status: 200,
+              json: () => Promise.resolve({ result: "true", errorCode: 0 }),
+            } as Response);
           }, 10);
         });
       });
 
-      apiLogSpy = sinon.spy();
-      processListenersSpy = sinon.spy();
+      apiLogSpy = vi.fn();
+      processListenersSpy = vi.fn();
 
       httpService = new HttpService(
         {
@@ -82,7 +80,7 @@ describe("Stress Tests for Concurrent Operations", () => {
     });
 
     afterEach(() => {
-      server.shutdown();
+      vi.restoreAllMocks();
     });
 
     it("should handle multiple concurrent HTTP requests", async () => {
@@ -127,14 +125,14 @@ describe("Stress Tests for Concurrent Operations", () => {
 
   describe("EventService Concurrent Events", () => {
     let eventService: EventService;
-    let callbacks: sinon.SinonSpy[];
+    let callbacks: ReturnType<typeof vi.fn>[];
 
     beforeEach(() => {
-      const apiLogSpy = sinon.spy();
+      const apiLogSpy = vi.fn();
       eventService = new EventService(apiLogSpy);
       callbacks = Array(100)
         .fill(0)
-        .map(() => sinon.spy());
+        .map(() => vi.fn());
 
       // Register event listeners
       for (let i = 0; i < 100; i++) {
@@ -143,7 +141,7 @@ describe("Stress Tests for Concurrent Operations", () => {
     });
 
     afterEach(() => {
-      sinon.restore();
+      vi.restoreAllMocks();
     });
 
     it("should handle multiple concurrent event triggers", async () => {
@@ -170,7 +168,7 @@ describe("Stress Tests for Concurrent Operations", () => {
         // Verify that all events were processed
         let callCount = 0;
         for (let i = 0; i < 100; i++) {
-          callCount += callbacks[i].callCount;
+          callCount += callbacks[i].mock.calls.length;
         }
 
         // Each event should trigger approximately concurrency/10 callbacks
@@ -183,16 +181,17 @@ describe("Stress Tests for Concurrent Operations", () => {
 
   describe("API Concurrent Operations", () => {
     let api: Scorm2004API;
-    let server: Pretender;
 
     beforeEach(() => {
-      server = new Pretender();
-      server.post("/scorm2004", () => {
-        return [
-          200,
-          { "Content-Type": "application/json" },
-          JSON.stringify({ result: "true", errorCode: 0 }),
-        ];
+      // Set up fetch mocks
+      vi.stubGlobal('fetch', vi.fn());
+
+      (fetch as ReturnType<typeof vi.fn>).mockImplementation(() => {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ result: "true", errorCode: 0 }),
+        } as Response);
       });
 
       api = new Scorm2004API({
@@ -200,12 +199,12 @@ describe("Stress Tests for Concurrent Operations", () => {
         lmsCommitUrl: "/scorm2004",
       });
 
-      api.Initialize("");
+      // Initialize the API before running tests
+      api.Initialize();
     });
 
     afterEach(() => {
-      api.Terminate("");
-      server.shutdown();
+      vi.restoreAllMocks();
     });
 
     it("should handle concurrent SetValue operations", async () => {
@@ -320,7 +319,7 @@ describe("Stress Tests for Concurrent Operations", () => {
           .fill(0)
           .map(() => {
             return async () => {
-              const result = api.Commit("");
+              const result = api.Commit();
               expect(result).toBe("true");
             };
           });

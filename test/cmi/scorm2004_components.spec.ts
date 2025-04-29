@@ -1,5 +1,5 @@
-import { describe, it } from "mocha";
-import { expect } from "expect";
+import { describe, it  , vi } from "vitest";
+;
 import { CMIContent } from "../../src/cmi/scorm2004/content";
 import { CMILearner } from "../../src/cmi/scorm2004/learner";
 import { CMIMetadata } from "../../src/cmi/scorm2004/metadata";

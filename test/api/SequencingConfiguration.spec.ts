@@ -1,5 +1,5 @@
-import { describe, it } from "mocha";
-import { expect } from "expect";
+import { describe, it , vi } from "vitest";
+;
 import { Scorm2004API } from "../../src/Scorm2004API";
 import { Activity } from "../../src/cmi/scorm2004/sequencing/activity";
 import {

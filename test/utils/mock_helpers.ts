@@ -9,7 +9,6 @@ import { BaseCMI } from "../../src/cmi/common/base_cmi";
 import { ErrorCodes } from "../../src/constants/error_codes";
 import { Settings } from "../../src/constants/settings";
 import { DefaultSettings } from "../../src/constants/default_settings";
-import * as sinon from "sinon";
 
 /**
  * Creates a mock HTTP response
@@ -173,7 +172,7 @@ export const createMockAPI = (
  * @param returnValue - The value to return
  * @returns A sinon stub
  */
-export const createStub = <T>(returnValue: T): sinon.SinonStub => {
+export const createStub = <T>(returnValue: T): ReturnType<typeof vi.spyOn> => {
   return sinon.stub().returns(returnValue);
 };
 
@@ -195,14 +194,14 @@ export const createSpy = <T extends object, K extends keyof T>(
  * Resets all stubs created with sinon
  */
 export const resetAllStubs = (): void => {
-  sinon.resetHistory();
+  vi.clearAllMocks();
 };
 
 /**
  * Restores all spies and stubs created with sinon
  */
 export const restoreAllStubs = (): void => {
-  sinon.restore();
+  vi.restoreAllMocks();
 };
 
 /**
