@@ -1,6 +1,22 @@
 this.AICC = (function () {
   'use strict';
 
+  var __defProp$5 = Object.defineProperty;
+  var __getOwnPropSymbols$5 = Object.getOwnPropertySymbols;
+  var __hasOwnProp$5 = Object.prototype.hasOwnProperty;
+  var __propIsEnum$5 = Object.prototype.propertyIsEnumerable;
+  var __defNormalProp$5 = (obj, key, value) => key in obj ? __defProp$5(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+  var __spreadValues$5 = (a, b) => {
+    for (var prop in b || (b = {}))
+      if (__hasOwnProp$5.call(b, prop))
+        __defNormalProp$5(a, prop, b[prop]);
+    if (__getOwnPropSymbols$5)
+      for (var prop of __getOwnPropSymbols$5(b)) {
+        if (__propIsEnum$5.call(b, prop))
+          __defNormalProp$5(a, prop, b[prop]);
+      }
+    return a;
+  };
   const global_constants = {
     SCORM_TRUE: "true",
     SCORM_FALSE: "false",
@@ -70,19 +86,35 @@ this.AICC = (function () {
       }
     }
   };
-  const aicc_constants = {
-    ...scorm12_constants,
-    ...{
-      cmi_children: "core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions,evaluation",
-      student_preference_children: "audio,language,lesson_type,speed,text,text_color,text_location,text_size,video,windows",
-      student_data_children: "attempt_number,tries,mastery_score,max_time_allowed,time_limit_action",
-      student_demographics_children: "city,class,company,country,experience,familiar_name,instructor_name,title,native_language,state,street_address,telephone,years_experience",
-      tries_children: "time,status,score",
-      attempt_records_children: "score,lesson_status",
-      paths_children: "location_id,date,time,status,why_left,time_in_element"
-    }
-  };
+  const aicc_constants = __spreadValues$5(__spreadValues$5({}, scorm12_constants), {
+    cmi_children: "core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions,evaluation",
+    student_preference_children: "audio,language,lesson_type,speed,text,text_color,text_location,text_size,video,windows",
+    student_data_children: "attempt_number,tries,mastery_score,max_time_allowed,time_limit_action",
+    student_demographics_children: "city,class,company,country,experience,familiar_name,instructor_name,title,native_language,state,street_address,telephone,years_experience",
+    tries_children: "time,status,score",
+    attempt_records_children: "score,lesson_status",
+    paths_children: "location_id,date,time,status,why_left,time_in_element"
+  });
 
+  var __defProp$4 = Object.defineProperty;
+  var __defProps$3 = Object.defineProperties;
+  var __getOwnPropDescs$3 = Object.getOwnPropertyDescriptors;
+  var __getOwnPropSymbols$4 = Object.getOwnPropertySymbols;
+  var __hasOwnProp$4 = Object.prototype.hasOwnProperty;
+  var __propIsEnum$4 = Object.prototype.propertyIsEnumerable;
+  var __defNormalProp$4 = (obj, key, value) => key in obj ? __defProp$4(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+  var __spreadValues$4 = (a, b) => {
+    for (var prop in b || (b = {}))
+      if (__hasOwnProp$4.call(b, prop))
+        __defNormalProp$4(a, prop, b[prop]);
+    if (__getOwnPropSymbols$4)
+      for (var prop of __getOwnPropSymbols$4(b)) {
+        if (__propIsEnum$4.call(b, prop))
+          __defNormalProp$4(a, prop, b[prop]);
+      }
+    return a;
+  };
+  var __spreadProps$3 = (a, b) => __defProps$3(a, __getOwnPropDescs$3(b));
   const global_errors = {
     GENERAL: 101,
     INITIALIZATION_FAILED: 101,
@@ -113,8 +145,7 @@ this.AICC = (function () {
     VALUE_OUT_OF_RANGE: 101,
     DEPENDENCY_NOT_ESTABLISHED: 101
   };
-  const scorm12_errors$1 = {
-    ...global_errors,
+  const scorm12_errors$1 = __spreadProps$3(__spreadValues$4({}, global_errors), {
     RETRIEVE_BEFORE_INIT: 301,
     STORE_BEFORE_INIT: 301,
     COMMIT_BEFORE_INIT: 301,
@@ -130,8 +161,50 @@ this.AICC = (function () {
     TYPE_MISMATCH: 405,
     VALUE_OUT_OF_RANGE: 407,
     DEPENDENCY_NOT_ESTABLISHED: 408
-  };
+  });
+  __spreadProps$3(__spreadValues$4({}, global_errors), {
+    INITIALIZATION_FAILED: 102,
+    INITIALIZED: 103,
+    TERMINATED: 104,
+    TERMINATION_FAILURE: 111,
+    TERMINATION_BEFORE_INIT: 112,
+    MULTIPLE_TERMINATIONS: 113,
+    RETRIEVE_BEFORE_INIT: 122,
+    RETRIEVE_AFTER_TERM: 123,
+    STORE_BEFORE_INIT: 132,
+    STORE_AFTER_TERM: 133,
+    COMMIT_BEFORE_INIT: 142,
+    COMMIT_AFTER_TERM: 143,
+    ARGUMENT_ERROR: 201,
+    GENERAL_GET_FAILURE: 301,
+    GENERAL_SET_FAILURE: 351,
+    GENERAL_COMMIT_FAILURE: 391,
+    UNDEFINED_DATA_MODEL: 401,
+    UNIMPLEMENTED_ELEMENT: 402,
+    VALUE_NOT_INITIALIZED: 403,
+    READ_ONLY_ELEMENT: 404,
+    WRITE_ONLY_ELEMENT: 405,
+    TYPE_MISMATCH: 406,
+    VALUE_OUT_OF_RANGE: 407,
+    DEPENDENCY_NOT_ESTABLISHED: 408
+  });
 
+  var __defProp$3 = Object.defineProperty;
+  var __getOwnPropSymbols$3 = Object.getOwnPropertySymbols;
+  var __hasOwnProp$3 = Object.prototype.hasOwnProperty;
+  var __propIsEnum$3 = Object.prototype.propertyIsEnumerable;
+  var __defNormalProp$3 = (obj, key, value) => key in obj ? __defProp$3(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+  var __spreadValues$3 = (a, b) => {
+    for (var prop in b || (b = {}))
+      if (__hasOwnProp$3.call(b, prop))
+        __defNormalProp$3(a, prop, b[prop]);
+    if (__getOwnPropSymbols$3)
+      for (var prop of __getOwnPropSymbols$3(b)) {
+        if (__propIsEnum$3.call(b, prop))
+          __defNormalProp$3(a, prop, b[prop]);
+      }
+    return a;
+  };
   const scorm12_regex = {
     CMIString256: "^.{0,255}$",
     CMIString4096: "^.{0,4096}$",
@@ -158,12 +231,9 @@ this.AICC = (function () {
     weighting_range: "-100#100",
     text_range: "-1#1"
   };
-  const aicc_regex = {
-    ...scorm12_regex,
-    ...{
-      CMIIdentifier: "^\\w{1,255}$"
-    }
-  };
+  const aicc_regex = __spreadValues$3(__spreadValues$3({}, scorm12_regex), {
+    CMIIdentifier: "^\\w{1,255}$"
+  });
 
   class BaseScormValidationError extends Error {
     constructor(CMIElement, errorCode) {
@@ -305,13 +375,14 @@ this.AICC = (function () {
   });
   const getTimeAsSeconds = memoize(
     (timeString, timeRegex) => {
+      var _a;
       if (typeof timeString === "number" || typeof timeString === "boolean") {
         timeString = String(timeString);
       }
       if (typeof timeRegex === "string") {
         timeRegex = new RegExp(timeRegex);
       }
-      if (!timeString || !timeString?.match?.(timeRegex)) {
+      if (!timeString || !((_a = timeString == null ? void 0 : timeString.match) == null ? void 0 : _a.call(timeString, timeRegex))) {
         return 0;
       }
       const parts = timeString.split(":");
@@ -322,8 +393,9 @@ this.AICC = (function () {
     },
     // Custom key function to handle RegExp objects which can't be stringified
     (timeString, timeRegex) => {
-      const timeStr = typeof timeString === "string" ? timeString : String(timeString ?? "");
-      const regexStr = typeof timeRegex === "string" ? timeRegex : timeRegex?.toString() ?? "";
+      var _a;
+      const timeStr = typeof timeString === "string" ? timeString : String(timeString != null ? timeString : "");
+      const regexStr = typeof timeRegex === "string" ? timeRegex : (_a = timeRegex == null ? void 0 : timeRegex.toString()) != null ? _a : "";
       return `${timeStr}:${regexStr}`;
     }
   );
@@ -358,30 +430,34 @@ this.AICC = (function () {
     return result;
   }
   function unflatten(data) {
+    var _a;
     if (Object(data) !== data || Array.isArray(data)) return data;
     const result = {};
     const pattern = /\.?([^.[\]]+)|\[(\d+)]/g;
     Object.keys(data).filter((p) => Object.prototype.hasOwnProperty.call(data, p)).forEach((p) => {
+      var _a2, _b;
       let cur = result;
       let prop = "";
       const regex = new RegExp(pattern);
       Array.from(
-        { length: p.match(new RegExp(pattern, "g"))?.length ?? 0 },
+        { length: (_b = (_a2 = p.match(new RegExp(pattern, "g"))) == null ? void 0 : _a2.length) != null ? _b : 0 },
         () => regex.exec(p)
       ).forEach((m) => {
+        var _a3;
         if (m) {
-          cur = cur[prop] ?? (cur[prop] = m[2] ? [] : {});
+          cur = (_a3 = cur[prop]) != null ? _a3 : cur[prop] = m[2] ? [] : {};
           prop = m[2] || m[1];
         }
       });
       cur[prop] = data[p];
     });
-    return result[""] ?? result;
+    return (_a = result[""]) != null ? _a : result;
   }
   function countDecimals(num) {
-    if (Math.floor(num) === num || String(num)?.indexOf?.(".") < 0) return 0;
-    const parts = num.toString().split(".")?.[1];
-    return parts?.length ?? 0;
+    var _a, _b, _c, _d;
+    if (Math.floor(num) === num || ((_b = (_a = String(num)) == null ? void 0 : _a.indexOf) == null ? void 0 : _b.call(_a, ".")) < 0) return 0;
+    const parts = (_c = num.toString().split(".")) == null ? void 0 : _c[1];
+    return (_d = parts == null ? void 0 : parts.length) != null ? _d : 0;
   }
   function formatMessage(functionName, message, CMIElement) {
     const baseLength = 20;
@@ -392,11 +468,11 @@ this.AICC = (function () {
       messageString += CMIElement;
       messageString = messageString.padEnd(CMIElementBaseLength);
     }
-    messageString += message ?? "";
+    messageString += message != null ? message : "";
     return messageString;
   }
   function stringMatches(str, tester) {
-    return str?.match(tester) !== null;
+    return (str == null ? void 0 : str.match(tester)) !== null;
   }
   function memoize(fn, keyFn) {
     const cache = /* @__PURE__ */ new Map();
@@ -718,18 +794,20 @@ this.AICC = (function () {
      * Called when the API has been initialized after the CMI has been created
      */
     initialize() {
+      var _a;
       super.initialize();
-      this.score?.initialize();
+      (_a = this.score) == null ? void 0 : _a.initialize();
     }
     /**
      * Called when the API has been reset
      */
     reset() {
+      var _a;
       this._initialized = false;
       this._exit = "";
       this._entry = "";
       this._session_time = "00:00:00";
-      this.score?.reset();
+      (_a = this.score) == null ? void 0 : _a.reset();
     }
     /**
      * Getter for __children
@@ -1154,10 +1232,11 @@ this.AICC = (function () {
      * Called when the API has been reset
      */
     reset() {
+      var _a;
       this._initialized = false;
       this._id = "";
       this._status = "";
-      this.score?.reset();
+      (_a = this.score) == null ? void 0 : _a.reset();
     }
     /**
      * Getter for _id
@@ -1488,14 +1567,16 @@ this.AICC = (function () {
      * Called when the API has been initialized after the CMI has been created
      */
     initialize() {
+      var _a, _b;
       super.initialize();
-      this.objectives?.initialize();
-      this.correct_responses?.initialize();
+      (_a = this.objectives) == null ? void 0 : _a.initialize();
+      (_b = this.correct_responses) == null ? void 0 : _b.initialize();
     }
     /**
      * Called when the API has been reset
      */
     reset() {
+      var _a, _b;
       this._initialized = false;
       this._id = "";
       this._time = "";
@@ -1504,8 +1585,8 @@ this.AICC = (function () {
       this._student_response = "";
       this._result = "";
       this._latency = "";
-      this.objectives?.reset();
-      this.correct_responses?.reset();
+      (_a = this.objectives) == null ? void 0 : _a.reset();
+      (_b = this.correct_responses) == null ? void 0 : _b.reset();
     }
     /**
      * Getter for _id. Should only be called during JSON export.
@@ -1829,25 +1910,27 @@ this.AICC = (function () {
      * Called when the API has been reset
      */
     reset() {
+      var _a, _b, _c;
       this._initialized = false;
       this._launch_data = "";
       this._comments = "";
-      this.core?.reset();
+      (_a = this.core) == null ? void 0 : _a.reset();
       this.objectives = new CMIObjectives();
       this.interactions = new CMIInteractions();
-      this.student_data?.reset();
-      this.student_preference?.reset();
+      (_b = this.student_data) == null ? void 0 : _b.reset();
+      (_c = this.student_preference) == null ? void 0 : _c.reset();
     }
     /**
      * Called when the API has been initialized after the CMI has been created
      */
     initialize() {
+      var _a, _b, _c, _d, _e;
       super.initialize();
-      this.core?.initialize();
-      this.objectives?.initialize();
-      this.student_data?.initialize();
-      this.student_preference?.initialize();
-      this.interactions?.initialize();
+      (_a = this.core) == null ? void 0 : _a.initialize();
+      (_b = this.objectives) == null ? void 0 : _b.initialize();
+      (_c = this.student_data) == null ? void 0 : _c.initialize();
+      (_d = this.student_preference) == null ? void 0 : _d.initialize();
+      (_e = this.interactions) == null ? void 0 : _e.initialize();
     }
     /**
      * toJSON for cmi
@@ -1921,7 +2004,8 @@ this.AICC = (function () {
      * @return {string}
      */
     get suspend_data() {
-      return this.core?.suspend_data;
+      var _a;
+      return (_a = this.core) == null ? void 0 : _a.suspend_data;
     }
     /**
      * Setter for _suspend_data
@@ -2065,6 +2149,7 @@ this.AICC = (function () {
     UNKNOWN: "unknown"
   };
   const LogLevelEnum = {
+    _: 0,
     DEBUG: 1,
     INFO: 2,
     WARN: 3,
@@ -2072,6 +2157,26 @@ this.AICC = (function () {
     NONE: 5
   };
 
+  var __async$5 = (__this, __arguments, generator) => {
+    return new Promise((resolve, reject) => {
+      var fulfilled = (value) => {
+        try {
+          step(generator.next(value));
+        } catch (e) {
+          reject(e);
+        }
+      };
+      var rejected = (value) => {
+        try {
+          step(generator.throw(value));
+        } catch (e) {
+          reject(e);
+        }
+      };
+      var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
+      step((generator = generator.apply(__this, __arguments)).next());
+    });
+  };
   const DefaultSettings = {
     autocommit: false,
     autocommitSeconds: 10,
@@ -2089,43 +2194,45 @@ this.AICC = (function () {
     xhrHeaders: {},
     xhrWithCredentials: false,
     fetchMode: "cors",
-    responseHandler: async function(response) {
-      if (typeof response !== "undefined") {
-        let httpResult = null;
-        try {
-          if (typeof response.json === "function") {
-            httpResult = await response.json();
-          } else if (typeof response.text === "function") {
-            const responseText = await response.text();
-            if (responseText) {
-              httpResult = JSON.parse(responseText);
+    responseHandler: function(response) {
+      return __async$5(this, null, function* () {
+        if (typeof response !== "undefined") {
+          let httpResult = null;
+          try {
+            if (typeof response.json === "function") {
+              httpResult = yield response.json();
+            } else if (typeof response.text === "function") {
+              const responseText = yield response.text();
+              if (responseText) {
+                httpResult = JSON.parse(responseText);
+              }
             }
+          } catch (e) {
           }
-        } catch (e) {
-        }
-        if (httpResult === null || !{}.hasOwnProperty.call(httpResult, "result")) {
-          if (response.status === 200) {
-            return {
-              result: global_constants.SCORM_TRUE,
-              errorCode: 0
-            };
+          if (httpResult === null || !{}.hasOwnProperty.call(httpResult, "result")) {
+            if (response.status === 200) {
+              return {
+                result: global_constants.SCORM_TRUE,
+                errorCode: 0
+              };
+            } else {
+              return {
+                result: global_constants.SCORM_FALSE,
+                errorCode: 101
+              };
+            }
           } else {
             return {
-              result: global_constants.SCORM_FALSE,
-              errorCode: 101
+              result: httpResult.result,
+              errorCode: httpResult.errorCode ? httpResult.errorCode : httpResult.result === global_constants.SCORM_TRUE ? 0 : 101
             };
           }
-        } else {
-          return {
-            result: httpResult.result,
-            errorCode: httpResult.errorCode ? httpResult.errorCode : httpResult.result === global_constants.SCORM_TRUE ? 0 : 101
-          };
         }
-      }
-      return {
-        result: global_constants.SCORM_FALSE,
-        errorCode: 101
-      };
+        return {
+          result: global_constants.SCORM_FALSE,
+          errorCode: 101
+        };
+      });
     },
     requestHandler: function(commitObject) {
       return commitObject;
@@ -2133,7 +2240,13 @@ this.AICC = (function () {
     onLogMessage: defaultLogHandler,
     scoItemIds: [],
     scoItemIdValidator: false,
-    globalObjectiveIds: []
+    globalObjectiveIds: [],
+    // Offline support settings
+    enableOfflineSupport: false,
+    courseId: "",
+    syncOnInitialize: true,
+    syncOnTerminate: true,
+    maxSyncAttempts: 5
   };
   function defaultLogHandler(messageLevel, logMessage) {
     switch (messageLevel) {
@@ -2168,6 +2281,26 @@ this.AICC = (function () {
     }
   }
 
+  var __async$4 = (__this, __arguments, generator) => {
+    return new Promise((resolve, reject) => {
+      var fulfilled = (value) => {
+        try {
+          step(generator.next(value));
+        } catch (e) {
+          reject(e);
+        }
+      };
+      var rejected = (value) => {
+        try {
+          step(generator.throw(value));
+        } catch (e) {
+          reject(e);
+        }
+      };
+      var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
+      step((generator = generator.apply(__this, __arguments)).next());
+    });
+  };
   class ScheduledCommit {
     /**
      * Constructor for ScheduledCommit
@@ -2195,11 +2328,52 @@ this.AICC = (function () {
      */
     wrapper() {
       if (!this._cancelled) {
-        (async () => await this._API.commit(this._callback))();
+        (() => __async$4(this, null, function* () {
+          return yield this._API.commit(this._callback);
+        }))();
       }
     }
   }
 
+  var __defProp$2 = Object.defineProperty;
+  var __defProps$2 = Object.defineProperties;
+  var __getOwnPropDescs$2 = Object.getOwnPropertyDescriptors;
+  var __getOwnPropSymbols$2 = Object.getOwnPropertySymbols;
+  var __hasOwnProp$2 = Object.prototype.hasOwnProperty;
+  var __propIsEnum$2 = Object.prototype.propertyIsEnumerable;
+  var __defNormalProp$2 = (obj, key, value) => key in obj ? __defProp$2(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+  var __spreadValues$2 = (a, b) => {
+    for (var prop in b || (b = {}))
+      if (__hasOwnProp$2.call(b, prop))
+        __defNormalProp$2(a, prop, b[prop]);
+    if (__getOwnPropSymbols$2)
+      for (var prop of __getOwnPropSymbols$2(b)) {
+        if (__propIsEnum$2.call(b, prop))
+          __defNormalProp$2(a, prop, b[prop]);
+      }
+    return a;
+  };
+  var __spreadProps$2 = (a, b) => __defProps$2(a, __getOwnPropDescs$2(b));
+  var __async$3 = (__this, __arguments, generator) => {
+    return new Promise((resolve, reject) => {
+      var fulfilled = (value) => {
+        try {
+          step(generator.next(value));
+        } catch (e) {
+          reject(e);
+        }
+      };
+      var rejected = (value) => {
+        try {
+          step(generator.throw(value));
+        } catch (e) {
+          reject(e);
+        }
+      };
+      var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
+      step((generator = generator.apply(__this, __arguments)).next());
+    });
+  };
   class HttpService {
     /**
      * Constructor for HttpService
@@ -2265,32 +2439,34 @@ this.AICC = (function () {
      * );
      * // result will be success immediately, regardless of actual HTTP result
      */
-    async processHttpRequest(url, params, immediate = false, apiLog, processListeners) {
-      const genericError = {
-        result: global_constants.SCORM_FALSE,
-        errorCode: this.error_codes.GENERAL
-      };
-      if (immediate) {
-        this.performFetch(url, params).then(async (response) => {
-          await this.transformResponse(response, processListeners);
-        });
-        return {
-          result: global_constants.SCORM_TRUE,
-          errorCode: 0
+    processHttpRequest(url, params, immediate = false, apiLog, processListeners) {
+      return __async$3(this, null, function* () {
+        const genericError = {
+          result: global_constants.SCORM_FALSE,
+          errorCode: this.error_codes.GENERAL
         };
-      }
-      const process = async (url2, params2, settings) => {
-        try {
-          params2 = settings.requestHandler(params2);
-          const response = await this.performFetch(url2, params2);
-          return this.transformResponse(response, processListeners);
-        } catch (e) {
-          apiLog("processHttpRequest", e, LogLevelEnum.ERROR);
-          processListeners("CommitError");
-          return genericError;
+        if (immediate) {
+          this.performFetch(url, params).then((response) => __async$3(this, null, function* () {
+            yield this.transformResponse(response, processListeners);
+          }));
+          return {
+            result: global_constants.SCORM_TRUE,
+            errorCode: 0
+          };
         }
-      };
-      return await process(url, params, this.settings);
+        const process = (url2, params2, settings) => __async$3(this, null, function* () {
+          try {
+            params2 = settings.requestHandler(params2);
+            const response = yield this.performFetch(url2, params2);
+            return this.transformResponse(response, processListeners);
+          } catch (e) {
+            apiLog("processHttpRequest", e, LogLevelEnum.ERROR);
+            processListeners("CommitError");
+            return genericError;
+          }
+        });
+        return yield process(url, params, this.settings);
+      });
     }
     /**
      * Perform the fetch request to the LMS
@@ -2299,17 +2475,18 @@ this.AICC = (function () {
      * @return {Promise<Response>} - The response from the LMS
      * @private
      */
-    async performFetch(url, params) {
-      return fetch(url, {
-        method: "POST",
-        mode: this.settings.fetchMode,
-        body: params instanceof Array ? params.join("&") : JSON.stringify(params),
-        headers: {
-          ...this.settings.xhrHeaders,
-          "Content-Type": this.settings.commitRequestDataType
-        },
-        credentials: this.settings.xhrWithCredentials ? "include" : void 0,
-        keepalive: true
+    performFetch(url, params) {
+      return __async$3(this, null, function* () {
+        return fetch(url, {
+          method: "POST",
+          mode: this.settings.fetchMode,
+          body: params instanceof Array ? params.join("&") : JSON.stringify(params),
+          headers: __spreadProps$2(__spreadValues$2({}, this.settings.xhrHeaders), {
+            "Content-Type": this.settings.commitRequestDataType
+          }),
+          credentials: this.settings.xhrWithCredentials ? "include" : void 0,
+          keepalive: true
+        });
       });
     }
     /**
@@ -2319,20 +2496,22 @@ this.AICC = (function () {
      * @return {Promise<ResultObject>} - The transformed response
      * @private
      */
-    async transformResponse(response, processListeners) {
-      const result = typeof this.settings.responseHandler === "function" ? await this.settings.responseHandler(response) : await response.json();
-      if (response.status >= 200 && response.status <= 299 && (result.result === true || result.result === global_constants.SCORM_TRUE)) {
-        processListeners("CommitSuccess");
-        if (!Object.hasOwnProperty.call(result, "errorCode")) {
-          result.errorCode = 0;
+    transformResponse(response, processListeners) {
+      return __async$3(this, null, function* () {
+        const result = typeof this.settings.responseHandler === "function" ? yield this.settings.responseHandler(response) : yield response.json();
+        if (response.status >= 200 && response.status <= 299 && (result.result === true || result.result === global_constants.SCORM_TRUE)) {
+          processListeners("CommitSuccess");
+          if (!Object.hasOwnProperty.call(result, "errorCode")) {
+            result.errorCode = 0;
+          }
+        } else {
+          if (!Object.hasOwnProperty.call(result, "errorCode")) {
+            result.errorCode = this.error_codes.GENERAL;
+          }
+          processListeners("CommitError", null, result.errorCode);
         }
-      } else {
-        if (!Object.hasOwnProperty.call(result, "errorCode")) {
-          result.errorCode = this.error_codes.GENERAL;
-        }
-        processListeners("CommitError", null, result.errorCode);
-      }
-      return result;
+        return result;
+      });
     }
     /**
      * Updates the service settings
@@ -2378,13 +2557,14 @@ this.AICC = (function () {
      * @param {Function} callback - The callback function to execute when the event occurs
      */
     on(listenerName, callback) {
+      var _a;
       if (!callback) return;
       const listenerFunctions = listenerName.split(" ");
       for (const listenerFunction of listenerFunctions) {
         const parsedListener = this.parseListenerName(listenerFunction);
         if (!parsedListener) continue;
         const { functionName, CMIElement } = parsedListener;
-        const listeners = this.listenerMap.get(functionName) ?? [];
+        const listeners = (_a = this.listenerMap.get(functionName)) != null ? _a : [];
         listeners.push({
           functionName,
           CMIElement,
@@ -3018,6 +3198,315 @@ ${stackTrace}`);
     return new ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService);
   }
 
+  var __defProp$1 = Object.defineProperty;
+  var __defProps$1 = Object.defineProperties;
+  var __getOwnPropDescs$1 = Object.getOwnPropertyDescriptors;
+  var __getOwnPropSymbols$1 = Object.getOwnPropertySymbols;
+  var __hasOwnProp$1 = Object.prototype.hasOwnProperty;
+  var __propIsEnum$1 = Object.prototype.propertyIsEnumerable;
+  var __defNormalProp$1 = (obj, key, value) => key in obj ? __defProp$1(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+  var __spreadValues$1 = (a, b) => {
+    for (var prop in b || (b = {}))
+      if (__hasOwnProp$1.call(b, prop))
+        __defNormalProp$1(a, prop, b[prop]);
+    if (__getOwnPropSymbols$1)
+      for (var prop of __getOwnPropSymbols$1(b)) {
+        if (__propIsEnum$1.call(b, prop))
+          __defNormalProp$1(a, prop, b[prop]);
+      }
+    return a;
+  };
+  var __spreadProps$1 = (a, b) => __defProps$1(a, __getOwnPropDescs$1(b));
+  var __async$2 = (__this, __arguments, generator) => {
+    return new Promise((resolve, reject) => {
+      var fulfilled = (value) => {
+        try {
+          step(generator.next(value));
+        } catch (e) {
+          reject(e);
+        }
+      };
+      var rejected = (value) => {
+        try {
+          step(generator.throw(value));
+        } catch (e) {
+          reject(e);
+        }
+      };
+      var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
+      step((generator = generator.apply(__this, __arguments)).next());
+    });
+  };
+  class OfflineStorageService {
+    /**
+     * Constructor for OfflineStorageService
+     * @param {Settings} settings - The settings object
+     * @param {ErrorCode} error_codes - The error codes object
+     * @param {Function} apiLog - The logging function
+     */
+    constructor(settings, error_codes, apiLog) {
+      this.apiLog = apiLog;
+      this.storeName = "scorm_again_offline_data";
+      this.syncQueue = "scorm_again_sync_queue";
+      this.isOnline = navigator.onLine;
+      this.syncInProgress = false;
+      this.settings = settings;
+      this.error_codes = error_codes;
+      window.addEventListener("online", this.handleOnlineStatusChange.bind(this));
+      window.addEventListener("offline", this.handleOnlineStatusChange.bind(this));
+    }
+    /**
+     * Handle changes in online status
+     */
+    handleOnlineStatusChange() {
+      const wasOnline = this.isOnline;
+      this.isOnline = navigator.onLine;
+      if (!wasOnline && this.isOnline) {
+        this.apiLog("OfflineStorageService", "Device is back online, attempting to sync...", LogLevelEnum.INFO);
+        this.syncOfflineData();
+      } else if (wasOnline && !this.isOnline) {
+        this.apiLog("OfflineStorageService", "Device is offline, data will be stored locally", LogLevelEnum.INFO);
+      }
+    }
+    /**
+     * Store commit data offline
+     * @param {string} courseId - Identifier for the course
+     * @param {CommitObject} commitData - The data to store offline
+     * @returns {Promise<ResultObject>} - Result of the storage operation
+     */
+    storeOffline(courseId, commitData) {
+      return __async$2(this, null, function* () {
+        try {
+          const queueItem = {
+            id: `${courseId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            courseId,
+            timestamp: Date.now(),
+            data: commitData,
+            syncAttempts: 0
+          };
+          const currentQueue = (yield this.getFromStorage(this.syncQueue)) || [];
+          currentQueue.push(queueItem);
+          yield this.saveToStorage(this.syncQueue, currentQueue);
+          yield this.saveToStorage(`${this.storeName}_${courseId}`, commitData);
+          this.apiLog("OfflineStorageService", `Stored data offline for course ${courseId}`, LogLevelEnum.INFO);
+          return {
+            result: global_constants.SCORM_TRUE,
+            errorCode: 0
+          };
+        } catch (error) {
+          this.apiLog("OfflineStorageService", `Error storing offline data: ${error}`, LogLevelEnum.ERROR);
+          return {
+            result: global_constants.SCORM_FALSE,
+            errorCode: this.error_codes.GENERAL
+          };
+        }
+      });
+    }
+    /**
+     * Get the stored offline data for a course
+     * @param {string} courseId - Identifier for the course
+     * @returns {Promise<CommitObject|null>} - The stored data or null if not found
+     */
+    getOfflineData(courseId) {
+      return __async$2(this, null, function* () {
+        try {
+          const data = yield this.getFromStorage(`${this.storeName}_${courseId}`);
+          return data || null;
+        } catch (error) {
+          this.apiLog("OfflineStorageService", `Error retrieving offline data: ${error}`, LogLevelEnum.ERROR);
+          return null;
+        }
+      });
+    }
+    /**
+     * Synchronize offline data with the LMS when connection is available
+     * @returns {Promise<boolean>} - Success status of synchronization
+     */
+    syncOfflineData() {
+      return __async$2(this, null, function* () {
+        if (this.syncInProgress || !this.isOnline) {
+          return false;
+        }
+        this.syncInProgress = true;
+        try {
+          const syncQueue = (yield this.getFromStorage(this.syncQueue)) || [];
+          if (syncQueue.length === 0) {
+            this.syncInProgress = false;
+            return true;
+          }
+          this.apiLog("OfflineStorageService", `Found ${syncQueue.length} items to sync`, LogLevelEnum.INFO);
+          const remainingQueue = [];
+          for (const item of syncQueue) {
+            if (item.syncAttempts >= 5) {
+              this.apiLog("OfflineStorageService", `Skipping item ${item.id} after 5 failed attempts`, LogLevelEnum.WARN);
+              continue;
+            }
+            try {
+              const syncResult = yield this.sendDataToLMS(item.data);
+              if (syncResult.result === global_constants.SCORM_TRUE) {
+                this.apiLog("OfflineStorageService", `Successfully synced item ${item.id}`, LogLevelEnum.INFO);
+              } else {
+                item.syncAttempts++;
+                remainingQueue.push(item);
+                this.apiLog("OfflineStorageService", `Failed to sync item ${item.id}, attempt #${item.syncAttempts}`, LogLevelEnum.WARN);
+              }
+            } catch (error) {
+              item.syncAttempts++;
+              remainingQueue.push(item);
+              this.apiLog("OfflineStorageService", `Error syncing item ${item.id}: ${error}`, LogLevelEnum.ERROR);
+            }
+          }
+          yield this.saveToStorage(this.syncQueue, remainingQueue);
+          this.apiLog("OfflineStorageService", `Sync completed. ${syncQueue.length - remainingQueue.length} items synced, ${remainingQueue.length} items remaining`, LogLevelEnum.INFO);
+          this.syncInProgress = false;
+          return true;
+        } catch (error) {
+          this.apiLog("OfflineStorageService", `Error during sync process: ${error}`, LogLevelEnum.ERROR);
+          this.syncInProgress = false;
+          return false;
+        }
+      });
+    }
+    /**
+     * Send data to the LMS when online
+     * @param {CommitObject} data - The data to send to the LMS
+     * @returns {Promise<ResultObject>} - Result of the sync operation
+     */
+    sendDataToLMS(data) {
+      return __async$2(this, null, function* () {
+        if (!this.settings.lmsCommitUrl) {
+          return {
+            result: global_constants.SCORM_FALSE,
+            errorCode: this.error_codes.GENERAL
+          };
+        }
+        try {
+          const processedData = this.settings.requestHandler(data);
+          const response = yield fetch(this.settings.lmsCommitUrl, {
+            method: "POST",
+            mode: this.settings.fetchMode,
+            body: JSON.stringify(processedData),
+            headers: __spreadProps$1(__spreadValues$1({}, this.settings.xhrHeaders), {
+              "Content-Type": this.settings.commitRequestDataType
+            }),
+            credentials: this.settings.xhrWithCredentials ? "include" : void 0
+          });
+          const result = typeof this.settings.responseHandler === "function" ? yield this.settings.responseHandler(response) : yield response.json();
+          if (response.status >= 200 && response.status <= 299 && (result.result === true || result.result === global_constants.SCORM_TRUE)) {
+            if (!Object.hasOwnProperty.call(result, "errorCode")) {
+              result.errorCode = 0;
+            }
+            return result;
+          } else {
+            if (!Object.hasOwnProperty.call(result, "errorCode")) {
+              result.errorCode = this.error_codes.GENERAL;
+            }
+            return result;
+          }
+        } catch (error) {
+          this.apiLog("OfflineStorageService", `Error sending data to LMS: ${error}`, LogLevelEnum.ERROR);
+          return {
+            result: global_constants.SCORM_FALSE,
+            errorCode: this.error_codes.GENERAL
+          };
+        }
+      });
+    }
+    /**
+     * Check if the device is currently online
+     * @returns {boolean} - Online status
+     */
+    isDeviceOnline() {
+      return this.isOnline;
+    }
+    /**
+     * Get item from localStorage
+     * @param {string} key - The key to retrieve
+     * @returns {Promise<T|null>} - The retrieved data
+     */
+    getFromStorage(key) {
+      return __async$2(this, null, function* () {
+        const storedData = localStorage.getItem(key);
+        if (storedData) {
+          try {
+            return JSON.parse(storedData);
+          } catch (e) {
+            return null;
+          }
+        }
+        return null;
+      });
+    }
+    /**
+     * Save item to localStorage
+     * @param {string} key - The key to store under
+     * @param {any} data - The data to store
+     * @returns {Promise<void>}
+     */
+    saveToStorage(key, data) {
+      return __async$2(this, null, function* () {
+        localStorage.setItem(key, JSON.stringify(data));
+      });
+    }
+    /**
+     * Check if there is pending offline data for a course
+     * @param {string} courseId - Identifier for the course
+     * @returns {Promise<boolean>} - Whether there is pending data
+     */
+    hasPendingOfflineData(courseId) {
+      return __async$2(this, null, function* () {
+        const queue = (yield this.getFromStorage(this.syncQueue)) || [];
+        return queue.some((item) => item.courseId === courseId);
+      });
+    }
+    /**
+     * Update the service settings
+     * @param {Settings} settings - The new settings
+     */
+    updateSettings(settings) {
+      this.settings = settings;
+    }
+  }
+
+  var __defProp = Object.defineProperty;
+  var __defProps = Object.defineProperties;
+  var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
+  var __getOwnPropSymbols = Object.getOwnPropertySymbols;
+  var __hasOwnProp = Object.prototype.hasOwnProperty;
+  var __propIsEnum = Object.prototype.propertyIsEnumerable;
+  var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+  var __spreadValues = (a, b) => {
+    for (var prop in b || (b = {}))
+      if (__hasOwnProp.call(b, prop))
+        __defNormalProp(a, prop, b[prop]);
+    if (__getOwnPropSymbols)
+      for (var prop of __getOwnPropSymbols(b)) {
+        if (__propIsEnum.call(b, prop))
+          __defNormalProp(a, prop, b[prop]);
+      }
+    return a;
+  };
+  var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
+  var __async$1 = (__this, __arguments, generator) => {
+    return new Promise((resolve, reject) => {
+      var fulfilled = (value) => {
+        try {
+          step(generator.next(value));
+        } catch (e) {
+          reject(e);
+        }
+      };
+      var rejected = (value) => {
+        try {
+          step(generator.throw(value));
+        } catch (e) {
+          reject(e);
+        }
+      };
+      var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
+      step((generator = generator.apply(__this, __arguments)).next());
+    });
+  };
   class BaseAPI {
     /**
      * Constructor for Base API class. Sets some shared API fields, as well as
@@ -3030,9 +3519,11 @@ ${stackTrace}`);
      * @param {ICMIDataService} cmiDataService - Optional CMI Data service instance
      * @param {IErrorHandlingService} errorHandlingService - Optional Error Handling service instance
      * @param {ILoggingService} loggingService - Optional Logging service instance
+     * @param {IOfflineStorageService} offlineStorageService - Optional Offline Storage service instance
      */
-    constructor(error_codes, settings, httpService, eventService, serializationService, cmiDataService, errorHandlingService, loggingService) {
+    constructor(error_codes, settings, httpService, eventService, serializationService, cmiDataService, errorHandlingService, loggingService, offlineStorageService) {
       this._settings = DefaultSettings;
+      this._courseId = "";
       if (new.target === BaseAPI) {
         throw new TypeError("Cannot construct BaseAPI instances directly");
       }
@@ -3061,13 +3552,38 @@ ${stackTrace}`);
         (functionName, message, level, element) => this.apiLog(functionName, message, level, element),
         (errorNumber, detail) => this.getLmsErrorMessageDetails(errorNumber, detail)
       );
+      if (this.settings.enableOfflineSupport) {
+        this._offlineStorageService = offlineStorageService || new OfflineStorageService(
+          this.settings,
+          this._error_codes,
+          (functionName, message, level, element) => this.apiLog(functionName, message, level, element)
+        );
+        if (this.settings.courseId) {
+          this._courseId = this.settings.courseId;
+        }
+        if (this._offlineStorageService && this._courseId) {
+          this._offlineStorageService.getOfflineData(this._courseId).then((offlineData) => {
+            if (offlineData) {
+              this.apiLog("constructor", "Found offline data to restore", LogLevelEnum.INFO);
+              this.loadFromJSON(offlineData.runtimeData);
+            }
+          }).catch((error) => {
+            this.apiLog(
+              "constructor",
+              `Error retrieving offline data: ${error}`,
+              LogLevelEnum.ERROR
+            );
+          });
+        }
+      }
     }
     /**
      * Get the last error code
      * @return {string}
      */
     get lastErrorCode() {
-      return this._errorHandlingService?.lastErrorCode ?? "0";
+      var _a, _b;
+      return (_b = (_a = this._errorHandlingService) == null ? void 0 : _a.lastErrorCode) != null ? _b : "0";
     }
     /**
      * Set the last error code
@@ -3085,12 +3601,18 @@ ${stackTrace}`);
      */
     commonReset(settings) {
       this.apiLog("reset", "Called", LogLevelEnum.INFO);
-      this.settings = { ...this.settings, ...settings };
+      this.settings = __spreadValues(__spreadValues({}, this.settings), settings);
       this.clearScheduledCommit();
       this.currentState = global_constants.STATE_NOT_INITIALIZED;
       this.lastErrorCode = "0";
       this._eventService.reset();
       this.startingData = void 0;
+      if (this._offlineStorageService) {
+        this._offlineStorageService.updateSettings(this.settings);
+        if (settings == null ? void 0 : settings.courseId) {
+          this._courseId = settings.courseId;
+        }
+      }
     }
     /**
      * Initialize the API
@@ -3113,6 +3635,24 @@ ${stackTrace}`);
         this.lastErrorCode = "0";
         returnValue = global_constants.SCORM_TRUE;
         this.processListeners(callbackName);
+        if (this.settings.enableOfflineSupport && this._offlineStorageService && this._courseId && this.settings.syncOnInitialize && this._offlineStorageService.isDeviceOnline()) {
+          this._offlineStorageService.hasPendingOfflineData(this._courseId).then((hasPendingData) => {
+            var _a;
+            if (hasPendingData) {
+              this.apiLog(
+                callbackName,
+                "Syncing pending offline data on initialization",
+                LogLevelEnum.INFO
+              );
+              (_a = this._offlineStorageService) == null ? void 0 : _a.syncOfflineData().then((syncSuccess) => {
+                if (syncSuccess) {
+                  this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
+                  this.processListeners("OfflineDataSynced");
+                }
+              });
+            }
+          });
+        }
       }
       this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
       this.clearSCORMError(returnValue);
@@ -3151,15 +3691,16 @@ ${stackTrace}`);
      * @param {Settings} settings
      */
     set settings(settings) {
+      var _a, _b, _c;
       const previousSettings = this._settings;
-      this._settings = { ...this._settings, ...settings };
-      this._httpService?.updateSettings(this._settings);
+      this._settings = __spreadValues(__spreadValues({}, this._settings), settings);
+      (_a = this._httpService) == null ? void 0 : _a.updateSettings(this._settings);
       if (settings.logLevel !== void 0 && settings.logLevel !== previousSettings.logLevel) {
         this.apiLogLevel = settings.logLevel;
-        this._loggingService?.setLogLevel(settings.logLevel);
+        (_b = this._loggingService) == null ? void 0 : _b.setLogLevel(settings.logLevel);
       }
       if (settings.onLogMessage !== void 0 && settings.onLogMessage !== previousSettings.onLogMessage) {
-        this._loggingService?.setLogHandler(settings.onLogMessage);
+        (_c = this._loggingService) == null ? void 0 : _c.setLogHandler(settings.onLogMessage);
       }
     }
     /**
@@ -3168,26 +3709,42 @@ ${stackTrace}`);
      * @param {boolean} checkTerminated
      * @return {string}
      */
-    async terminate(callbackName, checkTerminated) {
-      let returnValue = global_constants.SCORM_FALSE;
-      if (this.checkState(
-        checkTerminated,
-        this._error_codes.TERMINATION_BEFORE_INIT,
-        this._error_codes.MULTIPLE_TERMINATION
-      )) {
-        this.currentState = global_constants.STATE_TERMINATED;
-        const result = await this.storeData(true);
-        if ((result.errorCode ?? 0) > 0) {
-          this.throwSCORMError("api", result.errorCode);
+    terminate(callbackName, checkTerminated) {
+      return __async$1(this, null, function* () {
+        var _a, _b;
+        let returnValue = global_constants.SCORM_FALSE;
+        if (this.checkState(
+          checkTerminated,
+          this._error_codes.TERMINATION_BEFORE_INIT,
+          this._error_codes.MULTIPLE_TERMINATION
+        )) {
+          this.currentState = global_constants.STATE_TERMINATED;
+          if (this.settings.enableOfflineSupport && this._offlineStorageService && this._courseId && this.settings.syncOnTerminate && this._offlineStorageService.isDeviceOnline()) {
+            const hasPendingData = yield this._offlineStorageService.hasPendingOfflineData(
+              this._courseId
+            );
+            if (hasPendingData) {
+              this.apiLog(
+                callbackName,
+                "Syncing pending offline data before termination",
+                LogLevelEnum.INFO
+              );
+              yield this._offlineStorageService.syncOfflineData();
+            }
+          }
+          const result = yield this.storeData(true);
+          if (((_a = result.errorCode) != null ? _a : 0) > 0) {
+            this.throwSCORMError("api", result.errorCode);
+          }
+          returnValue = (_b = result == null ? void 0 : result.result) != null ? _b : global_constants.SCORM_FALSE;
+          if (checkTerminated) this.lastErrorCode = "0";
+          returnValue = global_constants.SCORM_TRUE;
+          this.processListeners(callbackName);
         }
-        returnValue = result?.result ?? global_constants.SCORM_FALSE;
-        if (checkTerminated) this.lastErrorCode = "0";
-        returnValue = global_constants.SCORM_TRUE;
-        this.processListeners(callbackName);
-      }
-      this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
-      this.clearSCORMError(returnValue);
-      return returnValue;
+        this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
+        this.clearSCORMError(returnValue);
+        return returnValue;
+      });
     }
     /**
      * Get the value of the CMIElement.
@@ -3272,28 +3829,47 @@ ${stackTrace}`);
      * @param {boolean} checkTerminated
      * @return {string}
      */
-    async commit(callbackName, checkTerminated = false) {
-      this.clearScheduledCommit();
-      let returnValue = global_constants.SCORM_FALSE;
-      if (this.checkState(
-        checkTerminated,
-        this._error_codes.COMMIT_BEFORE_INIT,
-        this._error_codes.COMMIT_AFTER_TERM
-      )) {
-        const result = await this.storeData(false);
-        if ((result.errorCode ?? 0) > 0) {
-          this.throwSCORMError("api", result.errorCode);
+    commit(callbackName, checkTerminated = false) {
+      return __async$1(this, null, function* () {
+        var _a, _b;
+        this.clearScheduledCommit();
+        let returnValue = global_constants.SCORM_FALSE;
+        if (this.checkState(
+          checkTerminated,
+          this._error_codes.COMMIT_BEFORE_INIT,
+          this._error_codes.COMMIT_AFTER_TERM
+        )) {
+          const result = yield this.storeData(false);
+          if (((_a = result.errorCode) != null ? _a : 0) > 0) {
+            this.throwSCORMError("api", result.errorCode);
+          }
+          returnValue = (_b = result == null ? void 0 : result.result) != null ? _b : global_constants.SCORM_FALSE;
+          this.apiLog(callbackName, " Result: " + returnValue, LogLevelEnum.DEBUG, "HttpRequest");
+          if (checkTerminated) this.lastErrorCode = "0";
+          this.processListeners(callbackName);
+          if (this.settings.enableOfflineSupport && this._offlineStorageService && this._offlineStorageService.isDeviceOnline() && this._courseId) {
+            this._offlineStorageService.hasPendingOfflineData(this._courseId).then((hasPendingData) => {
+              var _a2;
+              if (hasPendingData) {
+                this.apiLog(callbackName, "Syncing pending offline data", LogLevelEnum.INFO);
+                (_a2 = this._offlineStorageService) == null ? void 0 : _a2.syncOfflineData().then((syncSuccess) => {
+                  if (syncSuccess) {
+                    this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
+                    this.processListeners("OfflineDataSynced");
+                  } else {
+                    this.apiLog(callbackName, "Failed to sync some offline data", LogLevelEnum.WARN);
+                  }
+                });
+              }
+            });
+          }
         }
-        returnValue = result?.result ?? global_constants.SCORM_FALSE;
-        this.apiLog(callbackName, " Result: " + returnValue, LogLevelEnum.DEBUG, "HttpRequest");
-        if (checkTerminated) this.lastErrorCode = "0";
-        this.processListeners(callbackName);
-      }
-      this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
-      if (this.lastErrorCode === "0") {
-        this.clearSCORMError(returnValue);
-      }
-      return returnValue;
+        this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
+        if (this.lastErrorCode === "0") {
+          this.clearSCORMError(returnValue);
+        }
+        return returnValue;
+      });
     }
     /**
      * Returns last error code
@@ -3419,10 +3995,9 @@ ${stackTrace}`);
               this.throwSCORMError(CMIElement, this._error_codes.READ_ONLY_ELEMENT);
               break;
             } else {
-              refObject = {
-                ...refObject,
+              refObject = __spreadProps(__spreadValues({}, refObject), {
                 attribute: value
-              };
+              });
             }
           } else if (!this._checkObjectHasProperty(refObject, attribute)) {
             this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
@@ -3755,31 +4330,47 @@ ${stackTrace}`);
       return this._serializationService.renderCMIToJSONObject(this.cmi, this.settings.sendFullCommit);
     }
     /**
-     * Sends a request to the LMS with the specified parameters.
-     * This method handles communication with the LMS server, including
-     * formatting the request, handling the response, and triggering appropriate events.
+     * Process an HTTP request
      *
-     * @param {string} url - The URL endpoint to send the request to
-     * @param {CommitObject|StringKeyMap|Array} params - The data to send to the LMS
-     * @param {boolean} immediate - Whether to send the request immediately (true) or queue it (false)
-     * @return {Promise<ResultObject>} A promise that resolves with the result of the request
-     * @example
-     * // Send data to the LMS immediately
-     * const result = await api.processHttpRequest(
-     *   "https://lms.example.com/scorm/commit",
-     *   { method: "POST", params: { cmi: { core: { lesson_status: "completed" } } } },
-     *   true
-     * );
-     * console.log(result.errorCode === 0 ? "Success" : "Failed");
+     * @param {string} url - The URL to send the request to
+     * @param {CommitObject | StringKeyMap | Array<any>} params - The parameters to send
+     * @param {boolean} immediate - Whether to send the request immediately without waiting
+     * @returns {Promise<ResultObject>} - The result of the request
+     * @async
      */
-    async processHttpRequest(url, params, immediate = false) {
-      return this._httpService.processHttpRequest(
-        url,
-        params,
-        immediate,
-        (functionName, message, level, element) => this.apiLog(functionName, message, level, element),
-        (functionName, CMIElement, value) => this.processListeners(functionName, CMIElement, value)
-      );
+    processHttpRequest(url, params, immediate = false) {
+      return __async$1(this, null, function* () {
+        if (this.settings.enableOfflineSupport && this._offlineStorageService && !this._offlineStorageService.isDeviceOnline() && this._courseId) {
+          this.apiLog(
+            "processHttpRequest",
+            "Device is offline, storing data locally",
+            LogLevelEnum.INFO
+          );
+          if (params && typeof params === "object" && "cmi" in params) {
+            return yield this._offlineStorageService.storeOffline(
+              this._courseId,
+              params
+            );
+          } else {
+            this.apiLog(
+              "processHttpRequest",
+              "Invalid commit data format for offline storage",
+              LogLevelEnum.ERROR
+            );
+            return {
+              result: global_constants.SCORM_FALSE,
+              errorCode: this._error_codes.GENERAL
+            };
+          }
+        }
+        return yield this._httpService.processHttpRequest(
+          url,
+          params,
+          immediate,
+          (functionName, message, level, element) => this.apiLog(functionName, message, level, element),
+          (functionName, CMIElement, value) => this.processListeners(functionName, CMIElement, value)
+        );
+      });
     }
     /**
      * Schedules a commit operation to occur after a specified delay.
@@ -3921,6 +4512,26 @@ ${stackTrace}`);
     }
   }
 
+  var __async = (__this, __arguments, generator) => {
+    return new Promise((resolve, reject) => {
+      var fulfilled = (value) => {
+        try {
+          step(generator.next(value));
+        } catch (e) {
+          reject(e);
+        }
+      };
+      var rejected = (value) => {
+        try {
+          step(generator.throw(value));
+        } catch (e) {
+          reject(e);
+        }
+      };
+      var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
+      step((generator = generator.apply(__this, __arguments)).next());
+    });
+  };
   class Scorm12API extends BaseAPI {
     /**
      * Constructor for SCORM 1.2 API
@@ -3949,9 +4560,10 @@ ${stackTrace}`);
      * Called when the API needs to be reset
      */
     reset(settings) {
+      var _a, _b;
       this.commonReset(settings);
-      this.cmi?.reset();
-      this.nav?.reset();
+      (_a = this.cmi) == null ? void 0 : _a.reset();
+      (_b = this.nav) == null ? void 0 : _b.reset();
     }
     /**
      * lmsInitialize function from SCORM 1.2 Spec
@@ -3977,25 +4589,27 @@ ${stackTrace}`);
      * @return {string} bool
      */
     lmsFinish() {
-      (async () => {
-        await this.internalFinish();
-      })();
+      (() => __async(this, null, function* () {
+        yield this.internalFinish();
+      }))();
       return global_constants.SCORM_TRUE;
     }
-    async internalFinish() {
-      const result = await this.terminate("LMSFinish", true);
-      if (result === global_constants.SCORM_TRUE) {
-        if (this.nav.event !== "") {
-          if (this.nav.event === "continue") {
+    internalFinish() {
+      return __async(this, null, function* () {
+        const result = yield this.terminate("LMSFinish", true);
+        if (result === global_constants.SCORM_TRUE) {
+          if (this.nav.event !== "") {
+            if (this.nav.event === "continue") {
+              this.processListeners("SequenceNext");
+            } else {
+              this.processListeners("SequencePrevious");
+            }
+          } else if (this.settings.autoProgress) {
             this.processListeners("SequenceNext");
-          } else {
-            this.processListeners("SequencePrevious");
           }
-        } else if (this.settings.autoProgress) {
-          this.processListeners("SequenceNext");
         }
-      }
-      return result;
+        return result;
+      });
     }
     /**
      * LMSGetValue function from SCORM 1.2 Spec
@@ -4028,9 +4642,9 @@ ${stackTrace}`);
       if (this.settings.asyncCommit) {
         this.scheduleCommit(500, "LMSCommit");
       } else {
-        (async () => {
-          await this.commit("LMSCommit", false);
-        })();
+        (() => __async(this, null, function* () {
+          yield this.commit("LMSCommit", false);
+        }))();
       }
       return global_constants.SCORM_TRUE;
     }
@@ -4211,37 +4825,40 @@ ${stackTrace}`);
      * @param {boolean} terminateCommit
      * @return {ResultObject}
      */
-    async storeData(terminateCommit) {
-      if (terminateCommit) {
-        const originalStatus = this.cmi.core.lesson_status;
-        if (!this.cmi.core.lesson_status || !this.statusSetByModule && this.cmi.core.lesson_status === "not attempted") {
-          this.cmi.core.lesson_status = "completed";
-        }
-        if (this.cmi.core.lesson_mode === "normal") {
-          if (this.cmi.core.credit === "credit") {
-            if (this.settings.mastery_override && this.cmi.student_data.mastery_score !== "" && this.cmi.core.score.raw !== "") {
-              this.cmi.core.lesson_status = parseFloat(this.cmi.core.score.raw) >= parseFloat(this.cmi.student_data.mastery_score) ? "passed" : "failed";
+    storeData(terminateCommit) {
+      return __async(this, null, function* () {
+        var _a, _b, _c;
+        if (terminateCommit) {
+          const originalStatus = this.cmi.core.lesson_status;
+          if (!this.cmi.core.lesson_status || !this.statusSetByModule && this.cmi.core.lesson_status === "not attempted") {
+            this.cmi.core.lesson_status = "completed";
+          }
+          if (this.cmi.core.lesson_mode === "normal") {
+            if (this.cmi.core.credit === "credit") {
+              if (this.settings.mastery_override && this.cmi.student_data.mastery_score !== "" && this.cmi.core.score.raw !== "") {
+                this.cmi.core.lesson_status = parseFloat(this.cmi.core.score.raw) >= parseFloat(this.cmi.student_data.mastery_score) ? "passed" : "failed";
+              }
+            }
+          } else if (this.cmi.core.lesson_mode === "browse") {
+            if ((((_c = (_b = (_a = this.startingData) == null ? void 0 : _a.cmi) == null ? void 0 : _b.core) == null ? void 0 : _c.lesson_status) || "") === "" && originalStatus === "not attempted") {
+              this.cmi.core.lesson_status = "browsed";
             }
           }
-        } else if (this.cmi.core.lesson_mode === "browse") {
-          if ((this.startingData?.cmi?.core?.lesson_status || "") === "" && originalStatus === "not attempted") {
-            this.cmi.core.lesson_status = "browsed";
-          }
         }
-      }
-      const commitObject = this.getCommitObject(terminateCommit);
-      if (typeof this.settings.lmsCommitUrl === "string") {
-        return await this.processHttpRequest(
-          this.settings.lmsCommitUrl,
-          commitObject,
-          terminateCommit
-        );
-      } else {
-        return {
-          result: global_constants.SCORM_TRUE,
-          errorCode: 0
-        };
-      }
+        const commitObject = this.getCommitObject(terminateCommit);
+        if (typeof this.settings.lmsCommitUrl === "string") {
+          return yield this.processHttpRequest(
+            this.settings.lmsCommitUrl,
+            commitObject,
+            terminateCommit
+          );
+        } else {
+          return {
+            result: global_constants.SCORM_TRUE,
+            errorCode: 0
+          };
+        }
+      });
     }
   }
 
@@ -4290,15 +4907,17 @@ ${stackTrace}`);
      * Called when the API has been initialized after the CMI has been created
      */
     initialize() {
+      var _a;
       super.initialize();
-      this.comments?.initialize();
+      (_a = this.comments) == null ? void 0 : _a.initialize();
     }
     /**
      * Called when the API has been reset
      */
     reset() {
+      var _a;
       this._initialized = false;
-      this.comments?.reset();
+      (_a = this.comments) == null ? void 0 : _a.reset();
     }
     /**
      * toJSON for cmi.evaluation object
@@ -4437,8 +5056,9 @@ ${stackTrace}`);
      * Called when the API has been initialized after the CMI has been created
      */
     initialize() {
+      var _a;
       super.initialize();
-      this.windows?.initialize();
+      (_a = this.windows) == null ? void 0 : _a.initialize();
     }
     /**
      * Getter for _lesson_type
@@ -4955,17 +5575,19 @@ ${stackTrace}`);
      * Called when the API has been initialized after the CMI has been created
      */
     initialize() {
+      var _a;
       super.initialize();
-      this.score?.initialize();
+      (_a = this.score) == null ? void 0 : _a.initialize();
     }
     /**
      * Called when the API has been reset
      */
     reset() {
+      var _a;
       this._initialized = false;
       this._status = "";
       this._time = "";
-      this.score?.reset();
+      (_a = this.score) == null ? void 0 : _a.reset();
     }
     /**
      * Getter for _status
@@ -5053,16 +5675,18 @@ ${stackTrace}`);
      * Called when the API has been initialized after the CMI has been created
      */
     initialize() {
+      var _a;
       super.initialize();
       this._lesson_status = "";
-      this.score?.initialize();
+      (_a = this.score) == null ? void 0 : _a.initialize();
     }
     /**
      * Called when the API has been reset
      */
     reset() {
+      var _a;
       this._initialized = false;
-      this.score?.reset();
+      (_a = this.score) == null ? void 0 : _a.reset();
     }
     /**
      * Getter for _lesson_status
@@ -5118,17 +5742,19 @@ ${stackTrace}`);
      * Called when the API has been initialized after the CMI has been created
      */
     initialize() {
+      var _a, _b;
       super.initialize();
-      this.tries?.initialize();
-      this.attempt_records?.initialize();
+      (_a = this.tries) == null ? void 0 : _a.initialize();
+      (_b = this.attempt_records) == null ? void 0 : _b.initialize();
     }
     /**
      * Called when the API has been reset
      */
     reset() {
+      var _a, _b;
       this._initialized = false;
-      this.tries?.reset(true);
-      this.attempt_records?.reset(true);
+      (_a = this.tries) == null ? void 0 : _a.reset(true);
+      (_b = this.attempt_records) == null ? void 0 : _b.reset(true);
     }
     /**
      * Getter for tries_during_lesson
@@ -5360,12 +5986,13 @@ ${stackTrace}`);
      * Called when the API has been initialized after the CMI has been created
      */
     initialize() {
+      var _a, _b, _c, _d, _e;
       super.initialize();
-      this.student_preference?.initialize();
-      this.student_data?.initialize();
-      this.student_demographics?.initialize();
-      this.evaluation?.initialize();
-      this.paths?.initialize();
+      (_a = this.student_preference) == null ? void 0 : _a.initialize();
+      (_b = this.student_data) == null ? void 0 : _b.initialize();
+      (_c = this.student_demographics) == null ? void 0 : _c.initialize();
+      (_d = this.evaluation) == null ? void 0 : _d.initialize();
+      (_e = this.paths) == null ? void 0 : _e.initialize();
     }
     /**
      * toJSON for cmi

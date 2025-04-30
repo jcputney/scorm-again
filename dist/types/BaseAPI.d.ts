@@ -3,7 +3,7 @@ import { StringKeyMap } from "./utilities";
 import { BaseCMI } from "./cmi/common/base_cmi";
 import { CommitObject, LogLevel, ResultObject, Settings } from "./types/api_types";
 import { IBaseAPI } from "./interfaces/IBaseAPI";
-import { ICMIDataService, IErrorHandlingService, IEventService, IHttpService, ILoggingService, ISerializationService } from "./interfaces/services";
+import { ICMIDataService, IErrorHandlingService, IEventService, IHttpService, ILoggingService, IOfflineStorageService, ISerializationService } from "./interfaces/services";
 export default abstract class BaseAPI implements IBaseAPI {
     private _timeout?;
     private readonly _error_codes;
@@ -13,7 +13,9 @@ export default abstract class BaseAPI implements IBaseAPI {
     private _serializationService;
     private readonly _errorHandlingService;
     private readonly _loggingService;
-    protected constructor(error_codes: ErrorCode, settings?: Settings, httpService?: IHttpService, eventService?: IEventService, serializationService?: ISerializationService, cmiDataService?: ICMIDataService, errorHandlingService?: IErrorHandlingService, loggingService?: ILoggingService);
+    private _offlineStorageService?;
+    private _courseId;
+    protected constructor(error_codes: ErrorCode, settings?: Settings, httpService?: IHttpService, eventService?: IEventService, serializationService?: ISerializationService, cmiDataService?: ICMIDataService, errorHandlingService?: IErrorHandlingService, loggingService?: ILoggingService, offlineStorageService?: IOfflineStorageService);
     abstract cmi: BaseCMI;
     startingData?: StringKeyMap;
     currentState: number;

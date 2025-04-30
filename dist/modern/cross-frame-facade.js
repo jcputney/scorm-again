@@ -1,6 +1,26 @@
 (function (exports) {
   'use strict';
 
+  var __async = (__this, __arguments, generator) => {
+    return new Promise((resolve, reject) => {
+      var fulfilled = (value) => {
+        try {
+          step(generator.next(value));
+        } catch (e) {
+          reject(e);
+        }
+      };
+      var rejected = (value) => {
+        try {
+          step(generator.throw(value));
+        } catch (e) {
+          reject(e);
+        }
+      };
+      var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
+      step((generator = generator.apply(__this, __arguments)).next());
+    });
+  };
   class CrossFrameLMS {
     /**
      * Constructor
@@ -180,7 +200,7 @@
           if (this._pendingRequests.has(forwardedMessageId)) {
             const request = this._pendingRequests.get(forwardedMessageId);
             this._pendingRequests.delete(forwardedMessageId);
-            if (request?.source) {
+            if (request == null ? void 0 : request.source) {
               request.source.postMessage(
                 {
                   messageId,
@@ -306,10 +326,12 @@
      * Initialize the SCORM API (SCORM 1.2 style) - Asynchronous version
      * @returns Promise that resolves to true if initialization was successful
      */
-    async initialize() {
-      const result = await this._sendMessage("lmsInitialize");
-      this._isInitialized = result === "true";
-      return this._isInitialized;
+    initialize() {
+      return __async(this, null, function* () {
+        const result = yield this._sendMessage("lmsInitialize");
+        this._isInitialized = result === "true";
+        return this._isInitialized;
+      });
     }
     /**
      * Initialize the SCORM API (SCORM 1.2 style) - Synchronous version
@@ -327,8 +349,10 @@
      * Initialize the SCORM API (SCORM 2004 style) - Asynchronous version
      * @returns Promise that resolves to true if initialization was successful
      */
-    async Initialize() {
-      return this.initialize();
+    Initialize() {
+      return __async(this, null, function* () {
+        return this.initialize();
+      });
     }
     /**
      * Initialize the SCORM API (SCORM 2004 style) - Synchronous version
@@ -346,13 +370,15 @@
      * Terminate the SCORM API (SCORM 1.2 style) - Asynchronous version
      * @returns Promise that resolves to true if termination was successful
      */
-    async terminate() {
-      const result = await this._sendMessage("lmsFinish");
-      const success = result === "true";
-      if (success) {
-        this._isInitialized = false;
-      }
-      return success;
+    terminate() {
+      return __async(this, null, function* () {
+        const result = yield this._sendMessage("lmsFinish");
+        const success = result === "true";
+        if (success) {
+          this._isInitialized = false;
+        }
+        return success;
+      });
     }
     /**
      * Terminate the SCORM API (SCORM 1.2 style) - Synchronous version
@@ -370,8 +396,10 @@
      * Terminate the SCORM API (SCORM 2004 style) - Asynchronous version
      * @returns Promise that resolves to true if termination was successful
      */
-    async Terminate() {
-      return this.terminate();
+    Terminate() {
+      return __async(this, null, function* () {
+        return this.terminate();
+      });
     }
     /**
      * Terminate the SCORM API (SCORM 2004 style) - Synchronous version
@@ -390,17 +418,19 @@
      * @param element The CMI element to get
      * @returns Promise that resolves to the value of the CMI element
      */
-    async getValue(element) {
-      try {
-        const result = await this._sendMessage("lmsGetValue", [element]);
-        const value = String(result);
-        this._cache.set(element, value);
-        return value;
-      } catch (e) {
-        this._lastError = "101";
-        console.error(`Error in getValue(${element}):`, e);
-        return "";
-      }
+    getValue(element) {
+      return __async(this, null, function* () {
+        try {
+          const result = yield this._sendMessage("lmsGetValue", [element]);
+          const value = String(result);
+          this._cache.set(element, value);
+          return value;
+        } catch (e) {
+          this._lastError = "101";
+          console.error(`Error in getValue(${element}):`, e);
+          return "";
+        }
+      });
     }
     /**
      * Get a value from the SCORM API (SCORM 1.2 style) - Synchronous version
@@ -420,8 +450,10 @@
      * @param element The CMI element to get
      * @returns Promise that resolves to the value of the CMI element
      */
-    async GetValue(element) {
-      return this.getValue(element);
+    GetValue(element) {
+      return __async(this, null, function* () {
+        return this.getValue(element);
+      });
     }
     /**
      * Get a value from the SCORM API (SCORM 2004 style) - Synchronous version
@@ -442,19 +474,21 @@
      * @param value The value to set
      * @returns Promise that resolves to true if the value was set successfully
      */
-    async setValue(element, value) {
-      try {
-        const result = await this._sendMessage("lmsSetValue", [element, value]);
-        const success = result === "true";
-        if (success) {
-          this._cache.set(element, String(value));
+    setValue(element, value) {
+      return __async(this, null, function* () {
+        try {
+          const result = yield this._sendMessage("lmsSetValue", [element, value]);
+          const success = result === "true";
+          if (success) {
+            this._cache.set(element, String(value));
+          }
+          return success;
+        } catch (e) {
+          this._lastError = "101";
+          console.error(`Error in setValue(${element}, ${value}):`, e);
+          return false;
         }
-        return success;
-      } catch (e) {
-        this._lastError = "101";
-        console.error(`Error in setValue(${element}, ${value}):`, e);
-        return false;
-      }
+      });
     }
     /**
      * Set a value in the SCORM API (SCORM 1.2 style) - Synchronous version
@@ -476,8 +510,10 @@
      * @param value The value to set
      * @returns Promise that resolves to true if the value was set successfully
      */
-    async SetValue(element, value) {
-      return this.setValue(element, value);
+    SetValue(element, value) {
+      return __async(this, null, function* () {
+        return this.setValue(element, value);
+      });
     }
     /**
      * Set a value in the SCORM API (SCORM 2004 style) - Synchronous version
@@ -497,15 +533,17 @@
      * Commit changes to the LMS (SCORM 1.2 style) - Asynchronous version
      * @returns Promise that resolves to true if the commit was successful
      */
-    async commit() {
-      try {
-        const result = await this._sendMessage("lmsCommit");
-        return result === "true";
-      } catch (e) {
-        this._lastError = "101";
-        console.error("Error in commit:", e);
-        return false;
-      }
+    commit() {
+      return __async(this, null, function* () {
+        try {
+          const result = yield this._sendMessage("lmsCommit");
+          return result === "true";
+        } catch (e) {
+          this._lastError = "101";
+          console.error("Error in commit:", e);
+          return false;
+        }
+      });
     }
     /**
      * Commit changes to the LMS (SCORM 1.2 style) - Synchronous version
@@ -523,8 +561,10 @@
      * Commit changes to the LMS (SCORM 2004 style) - Asynchronous version
      * @returns Promise that resolves to true if the commit was successful
      */
-    async Commit() {
-      return this.commit();
+    Commit() {
+      return __async(this, null, function* () {
+        return this.commit();
+      });
     }
     /**
      * Commit changes to the LMS (SCORM 2004 style) - Synchronous version
@@ -542,15 +582,17 @@
      * Get the last error code (SCORM 1.2 style) - Asynchronous version
      * @returns Promise that resolves to the last error code as a string
      */
-    async getLastError() {
-      try {
-        const result = await this._sendMessage("lmsGetLastError");
-        this._lastError = String(result);
-        return this._lastError;
-      } catch (e) {
-        console.error("Error in getLastError:", e);
-        return "101";
-      }
+    getLastError() {
+      return __async(this, null, function* () {
+        try {
+          const result = yield this._sendMessage("lmsGetLastError");
+          this._lastError = String(result);
+          return this._lastError;
+        } catch (e) {
+          console.error("Error in getLastError:", e);
+          return "101";
+        }
+      });
     }
     /**
      * Get the last error code (SCORM 1.2 style) - Synchronous version
@@ -567,8 +609,10 @@
      * Get the last error code (SCORM 2004 style) - Asynchronous version
      * @returns Promise that resolves to the last error code as a string
      */
-    async GetLastError() {
-      return this.getLastError();
+    GetLastError() {
+      return __async(this, null, function* () {
+        return this.getLastError();
+      });
     }
     /**
      * Get the last error code (SCORM 2004 style) - Synchronous version
@@ -586,16 +630,18 @@
      * @param errorCode The error code
      * @returns Promise that resolves to the error string
      */
-    async getErrorString(errorCode) {
-      try {
-        const result = await this._sendMessage("lmsGetErrorString", [errorCode]);
-        const errorString = String(result);
-        this._cache.set(`error_${errorCode}`, errorString);
-        return errorString;
-      } catch (e) {
-        console.error(`Error in getErrorString(${errorCode}):`, e);
-        return "";
-      }
+    getErrorString(errorCode) {
+      return __async(this, null, function* () {
+        try {
+          const result = yield this._sendMessage("lmsGetErrorString", [errorCode]);
+          const errorString = String(result);
+          this._cache.set(`error_${errorCode}`, errorString);
+          return errorString;
+        } catch (e) {
+          console.error(`Error in getErrorString(${errorCode}):`, e);
+          return "";
+        }
+      });
     }
     /**
      * Get the error string for an error code (SCORM 1.2 style) - Synchronous version
@@ -614,8 +660,10 @@
      * @param errorCode The error code
      * @returns Promise that resolves to the error string
      */
-    async GetErrorString(errorCode) {
-      return this.getErrorString(errorCode);
+    GetErrorString(errorCode) {
+      return __async(this, null, function* () {
+        return this.getErrorString(errorCode);
+      });
     }
     /**
      * Get the error string for an error code (SCORM 2004 style) - Synchronous version
@@ -634,16 +682,18 @@
      * @param errorCode The error code
      * @returns Promise that resolves to the diagnostic information
      */
-    async getDiagnostic(errorCode) {
-      try {
-        const result = await this._sendMessage("lmsGetDiagnostic", [errorCode]);
-        const diagnostic = String(result);
-        this._cache.set(`diagnostic_${errorCode}`, diagnostic);
-        return diagnostic;
-      } catch (e) {
-        console.error(`Error in getDiagnostic(${errorCode}):`, e);
-        return "";
-      }
+    getDiagnostic(errorCode) {
+      return __async(this, null, function* () {
+        try {
+          const result = yield this._sendMessage("lmsGetDiagnostic", [errorCode]);
+          const diagnostic = String(result);
+          this._cache.set(`diagnostic_${errorCode}`, diagnostic);
+          return diagnostic;
+        } catch (e) {
+          console.error(`Error in getDiagnostic(${errorCode}):`, e);
+          return "";
+        }
+      });
     }
     /**
      * Get diagnostic information for an error code (SCORM 1.2 style) - Synchronous version
@@ -662,8 +712,10 @@
      * @param errorCode The error code
      * @returns Promise that resolves to the diagnostic information
      */
-    async GetDiagnostic(errorCode) {
-      return this.getDiagnostic(errorCode);
+    GetDiagnostic(errorCode) {
+      return __async(this, null, function* () {
+        return this.getDiagnostic(errorCode);
+      });
     }
     /**
      * Get diagnostic information for an error code (SCORM 2004 style) - Synchronous version
@@ -681,15 +733,17 @@
      * Check if the API is currently initialized - Asynchronous version
      * @returns Promise that resolves to true if the API is initialized
      */
-    async isInitialized() {
-      try {
-        const result = await this._sendMessage("isInitialized");
-        this._isInitialized = Boolean(result);
-        return this._isInitialized;
-      } catch (e) {
-        console.error("Error in isInitialized:", e);
-        return this._isInitialized;
-      }
+    isInitialized() {
+      return __async(this, null, function* () {
+        try {
+          const result = yield this._sendMessage("isInitialized");
+          this._isInitialized = Boolean(result);
+          return this._isInitialized;
+        } catch (e) {
+          console.error("Error in isInitialized:", e);
+          return this._isInitialized;
+        }
+      });
     }
     /**
      * Check if the API is currently initialized - Synchronous version

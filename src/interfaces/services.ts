@@ -360,7 +360,7 @@ export interface IOfflineStorageService {
    * @param {string} courseId - Identifier for the course
    * @returns {Promise<CommitObject|null>} - The stored data or null if not found
    */
-  getOfflineData(courseId: string): Promise<CommitObject|null>;
+  getOfflineData(courseId: string): Promise<CommitObject | null>;
 
   /**
    * Synchronize offline data with the LMS when connection is available
