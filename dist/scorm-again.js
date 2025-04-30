@@ -1,4 +1,4 @@
-(function (exports) {
+(function () {
   'use strict';
 
   const global_constants = {
@@ -10817,9 +10817,11 @@ ${stackTrace}`);
     }
   }
 
-  exports.AICC = AICC;
-  exports.Scorm12API = Scorm12API;
-  exports.Scorm2004API = Scorm2004API;
+  if (typeof window !== "undefined") {
+    window.AICC = AICC;
+    window.Scorm12API = Scorm12API;
+    window.Scorm2004API = Scorm2004API;
+  }
 
-})(this["scorm-again"] = this["scorm-again"] || {});
+})();
 //# sourceMappingURL=scorm-again.js.map
