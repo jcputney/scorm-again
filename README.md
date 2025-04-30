@@ -1,7 +1,4 @@
 [![Github Actions](https://img.shields.io/github/actions/workflow/status/jcputney/scorm-again/main.yml?style=for-the-badge "Build Status")](https://github.com/jcputney/scorm-again/actions)
-[![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability/jcputney/scorm-again?style=for-the-badge)](https://codeclimate.com/github/jcputney/scorm-again)
-[![Code Climate coverage](https://img.shields.io/codeclimate/coverage/jcputney/scorm-again?style=for-the-badge)](https://codeclimate.com/github/jcputney/scorm-again/trends/test_coverage_total)
-[![Code Climate technical debt](https://img.shields.io/codeclimate/tech-debt/jcputney/scorm-again?style=for-the-badge)](https://codeclimate.com/github/jcputney/scorm-again/trends/technical_debt)
 ![jsDelivr hits (npm)](https://img.shields.io/jsdelivr/npm/hy/scorm-again?style=for-the-badge&label=jsDeliver%20Downloads)
 ![NPM Downloads](https://img.shields.io/npm/dy/scorm-again?style=for-the-badge&label=npm%20Downloads)
 ![npm bundle size](https://img.shields.io/bundlephobia/min/scorm-again?style=for-the-badge)
@@ -114,7 +111,7 @@ const settings = {
   // Standard settings
   lmsCommitUrl: "https://your-lms.com/api/scorm/commit",
   autocommit: true,
-  
+
   // Offline support settings
   enableOfflineSupport: true,  // Enable offline support
   courseId: "COURSE-12345",    // Unique identifier for the course
