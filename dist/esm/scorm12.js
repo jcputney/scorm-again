@@ -727,6 +727,11 @@ var BaseAPI = (function () {
     };
     BaseAPI.prototype.loadFromJSON = function (json, CMIElement) {
         if (CMIElement === void 0) { CMIElement = ""; }
+        if ((!CMIElement || CMIElement === "") &&
+            !Object.hasOwnProperty.call(json, "cmi") &&
+            !Object.hasOwnProperty.call(json, "adl")) {
+            CMIElement = "cmi";
+        }
         if (!this.isNotInitialized()) {
             console.error("loadFromJSON can only be called before the call to lmsInitialize.");
             return;
@@ -3470,7 +3475,7 @@ function __disposeResources(env) {
 var __webpack_exports__ = {};
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Scorm12Impl: function() { return /* binding */ Scorm12Impl; }
+/* harmony export */   Scorm12API: function() { return /* binding */ Scorm12Impl; }
 /* harmony export */ });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(635);
 /* harmony import */ var _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(989);
@@ -3768,7 +3773,7 @@ var Scorm12Impl = (function (_super) {
 }(_BaseAPI__WEBPACK_IMPORTED_MODULE_8__["default"]));
 
 
-var __webpack_exports__Scorm12Impl = __webpack_exports__.Scorm12Impl;
-export { __webpack_exports__Scorm12Impl as Scorm12Impl };
+var __webpack_exports__Scorm12API = __webpack_exports__.Scorm12API;
+export { __webpack_exports__Scorm12API as Scorm12API };
 
 //# sourceMappingURL=scorm12.js.map

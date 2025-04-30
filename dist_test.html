@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCORM-Again Distribution Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .test-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .test-frame {
+            border: 1px solid #ccc;
+            padding: 15px;
+            width: 300px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .test-frame h3 {
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+<h1>SCORM-Again Distribution Test</h1>
+
+<div class="section">
+    <h2>Regular JavaScript Files</h2>
+    <div class="test-container" id="regular-container"></div>
+</div>
+
+<div class="section">
+    <h2>ESM Module Files</h2>
+    <div class="test-container" id="esm-container"></div>
+</div>
+
+<script>
+    const dists = [
+        {
+            file: 'aicc.js',
+            api: ['AICC']
+        },
+        {
+            file: 'aicc.min.js',
+            api: ['AICC']
+        },
+        {
+            file: 'scorm12.js',
+            api: ['Scorm12API']
+        },
+        {
+            file: 'scorm12.min.js',
+            api: ['Scorm12API']
+        },
+        {
+            file: 'scorm2004.js',
+            api: ['Scorm2004API']
+        },
+        {
+            file: 'scorm2004.min.js',
+            api: ['Scorm2004API']
+        },
+        {
+            file: 'scorm-again.js',
+            api: ['Scorm12API', 'Scorm2004API', 'AICC']
+        },
+        {
+            file: 'scorm-again.min.js',
+            api: ['Scorm12API', 'Scorm2004API', 'AICC']
+        }
+    ];
+
+    // Create test frames for regular JS files
+    const regularContainer = document.getElementById('regular-container');
+    dists.forEach(dist => {
+        const frame = document.createElement('div');
+        frame.className = 'test-frame';
+        frame.innerHTML = `
+                <h3>${dist.file}</h3>
+                <div id="dist-${dist.file.replace(/\//g, '-').replace(/\./g, '-')}-result"></div>
+            `;
+        regularContainer.appendChild(frame);
+
+        // Create iframe to load the script
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+
+        // Create HTML content for the iframe with script
+        const html = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <script src="dist/${dist.file}"><\/script>
+                    <script>
+                        try {
+                            window.parent.postMessage({
+                                file: "dist-${dist.file}",
+                                success: !!(${dist.api.map(api => `window.${api}`).join(' || ')})
+                            }, "*");
+                        } catch (error) {
+                            window.parent.postMessage({
+                                file: "dist-${dist.file}",
+                                success: false,
+                                error: error.message
+                            }, "*");
+                        }
+                    <\/script>
+                </head>
+                <body></body>
+                </html>
+            `;
+
+        iframe.srcdoc = html;
+    });
+
+    // Create test frames for ESM module files
+    const esmContainer = document.getElementById('esm-container');
+    dists.forEach(dist => {
+        const frame = document.createElement('div');
+        frame.className = 'test-frame';
+        frame.innerHTML = `
+                <h3>${dist.file}</h3>
+                <div id="dist-esm-${dist.file.replace(/\//g, '-').replace(/\./g, '-')}-result"></div>
+            `;
+        esmContainer.appendChild(frame);
+
+        // Create iframe to load the module
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+
+        // Create HTML content for the iframe with module import
+        const html = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <script type="module">
+                        try {
+                            const module = await import('/dist/esm/${dist.file}');
+                            window.parent.postMessage({
+                                file: "dist-esm-${dist.file}",
+                                success: !!(${dist.api.map(api => `module.${api}`).join(' || ')})
+                            }, "*");
+                        } catch (error) {
+                            window.parent.postMessage({
+                                file: "dist-esm-${dist.file}",
+                                success: false,
+                                error: error.message
+                            }, "*");
+                        }
+                    <\/script>
+                </head>
+                <body></body>
+                </html>
+            `;
+
+        iframe.srcdoc = html;
+    });
+
+    // Listen for messages from iframes
+    window.addEventListener('message', (event) => {
+        const {file, success, error} = event.data;
+        const resultElement = document.getElementById(`${file.replace(/\//g, '-').replace(/\./g, '-')}-result`);
+
+        if (success) {
+            resultElement.innerHTML = `<div class="success">Successfully loaded</div>`;
+        } else {
+            resultElement.innerHTML = `<div class="error">Failed to load: ${error || 'Library objects not found'}</div>`;
+        }
+    });
+</script>
+</body>
+</html>

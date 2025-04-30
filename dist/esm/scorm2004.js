@@ -727,6 +727,11 @@ var BaseAPI = (function () {
     };
     BaseAPI.prototype.loadFromJSON = function (json, CMIElement) {
         if (CMIElement === void 0) { CMIElement = ""; }
+        if ((!CMIElement || CMIElement === "") &&
+            !Object.hasOwnProperty.call(json, "cmi") &&
+            !Object.hasOwnProperty.call(json, "adl")) {
+            CMIElement = "cmi";
+        }
         if (!this.isNotInitialized()) {
             console.error("loadFromJSON can only be called before the call to lmsInitialize.");
             return;
@@ -2314,7 +2319,7 @@ __webpack_require__.r(__webpack_exports__);
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
-  Scorm2004Impl: function() { return /* binding */ Scorm2004Impl; }
+  Scorm2004API: function() { return /* binding */ Scorm2004Impl; }
 });
 
 // EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
@@ -4876,7 +4881,7 @@ var Scorm2004Impl = (function (_super) {
 }(BaseAPI["default"]));
 
 
-var __webpack_exports__Scorm2004Impl = __webpack_exports__.Scorm2004Impl;
-export { __webpack_exports__Scorm2004Impl as Scorm2004Impl };
+var __webpack_exports__Scorm2004API = __webpack_exports__.Scorm2004API;
+export { __webpack_exports__Scorm2004API as Scorm2004API };
 
 //# sourceMappingURL=scorm2004.js.map

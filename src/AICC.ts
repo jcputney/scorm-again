@@ -1,4 +1,4 @@
-import { Scorm12Impl } from "./Scorm12API";
+import { Scorm12API } from "./Scorm12API";
 import { CMI } from "./cmi/aicc/cmi";
 
 import { BaseCMI } from "./cmi/common/base_cmi";
@@ -13,7 +13,7 @@ import { stringMatches } from "./utilities";
 /**
  * The AICC API class
  */
-class AICCImpl extends Scorm12Impl {
+class AICCImpl extends Scorm12API {
   /**
    * Constructor to create AICC API object
    * @param {Settings} settings
@@ -74,4 +74,4 @@ class AICCImpl extends Scorm12Impl {
   }
 }
 
-export { AICCImpl };
+export { AICCImpl as AICC };

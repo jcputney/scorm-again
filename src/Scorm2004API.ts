@@ -2,10 +2,7 @@ import BaseAPI from "./BaseAPI";
 import { CMI } from "./cmi/scorm2004/cmi";
 import * as Utilities from "./utilities";
 import { stringMatches } from "./utilities";
-import {
-  global_constants,
-  scorm2004_constants,
-} from "./constants/api_constants";
+import { global_constants, scorm2004_constants } from "./constants/api_constants";
 import { scorm2004_errors } from "./constants/error_codes";
 import { CorrectResponses, ResponseType } from "./constants/response_constants";
 import ValidLanguages from "./constants/language_constants";
@@ -14,18 +11,12 @@ import { BaseCMI } from "./cmi/common/base_cmi";
 import {
   CMIInteractionsCorrectResponsesObject,
   CMIInteractionsObject,
-  CMIInteractionsObjectivesObject,
+  CMIInteractionsObjectivesObject
 } from "./cmi/scorm2004/interactions";
 import { CMICommentsObject } from "./cmi/scorm2004/comments";
 import { CMIObjectivesObject } from "./cmi/scorm2004/objectives";
 import { ADL, ADLDataObject } from "./cmi/scorm2004/adl";
-import {
-  CommitObject,
-  RefObject,
-  ResultObject,
-  ScoreObject,
-  Settings,
-} from "./types/api_types";
+import { CommitObject, RefObject, ResultObject, ScoreObject, Settings } from "./types/api_types";
 import { CompletionStatus, SuccessStatus } from "./constants/enums";
 import { scorm2004_regex } from "./constants/regex";
 
@@ -820,4 +811,4 @@ class Scorm2004Impl extends BaseAPI {
   }
 }
 
-export { Scorm2004Impl };
+export { Scorm2004Impl as Scorm2004API };

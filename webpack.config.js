@@ -67,7 +67,7 @@ const cjsConfig = {
   output: {
     path: path.resolve(__dirname, "dist"),
     filename: "[name].js",
-    libraryTarget: "this",
+    libraryTarget: "window",
     environment: {
       arrowFunction: false,
     },

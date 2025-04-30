@@ -727,6 +727,11 @@ var BaseAPI = (function () {
     };
     BaseAPI.prototype.loadFromJSON = function (json, CMIElement) {
         if (CMIElement === void 0) { CMIElement = ""; }
+        if ((!CMIElement || CMIElement === "") &&
+            !Object.hasOwnProperty.call(json, "cmi") &&
+            !Object.hasOwnProperty.call(json, "adl")) {
+            CMIElement = "cmi";
+        }
         if (!this.isNotInitialized()) {
             console.error("loadFromJSON can only be called before the call to lmsInitialize.");
             return;
@@ -917,7 +922,7 @@ var BaseAPI = (function () {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Scorm12Impl: function() { return /* binding */ Scorm12Impl; }
+/* harmony export */   Scorm12API: function() { return /* binding */ Scorm12Impl; }
 /* harmony export */ });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(635);
 /* harmony import */ var _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(989);
@@ -3779,7 +3784,7 @@ __webpack_require__.r(__webpack_exports__);
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
-  AICCImpl: function() { return /* binding */ AICCImpl; }
+  AICC: function() { return /* binding */ AICCImpl; }
 });
 
 // EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
@@ -4760,10 +4765,10 @@ var AICCImpl = (function (_super) {
         this.nav = newAPI.nav;
     };
     return AICCImpl;
-}(Scorm12API.Scorm12Impl));
+}(Scorm12API.Scorm12API));
 
 
-var __webpack_exports__AICCImpl = __webpack_exports__.AICCImpl;
-export { __webpack_exports__AICCImpl as AICCImpl };
+var __webpack_exports__AICC = __webpack_exports__.AICC;
+export { __webpack_exports__AICC as AICC };
 
 //# sourceMappingURL=aicc.js.map

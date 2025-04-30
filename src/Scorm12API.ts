@@ -9,16 +9,10 @@ import { CMIObjectivesObject } from "./cmi/scorm12/objectives";
 import {
   CMIInteractionsCorrectResponsesObject,
   CMIInteractionsObject,
-  CMIInteractionsObjectivesObject,
+  CMIInteractionsObjectivesObject
 } from "./cmi/scorm12/interactions";
 import { NAV } from "./cmi/scorm12/nav";
-import {
-  CommitObject,
-  RefObject,
-  ResultObject,
-  ScoreObject,
-  Settings,
-} from "./types/api_types";
+import { CommitObject, RefObject, ResultObject, ScoreObject, Settings } from "./types/api_types";
 import { CompletionStatus, SuccessStatus } from "./constants/enums";
 import BaseAPI from "./BaseAPI";
 import { scorm12_regex } from "./constants/regex";
@@ -444,4 +438,4 @@ class Scorm12Impl extends BaseAPI {
   }
 }
 
-export { Scorm12Impl };
+export { Scorm12Impl as Scorm12API };
