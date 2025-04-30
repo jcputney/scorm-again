@@ -24,7 +24,10 @@ export default defineConfig({
     /* Record video for failed tests */
     video: "on-first-retry",
     /* Take a screenshot for failed tests */
-    screenshot: "only-on-failure",
+    screenshot: {
+      mode: "only-on-failure",
+      fullPage: true,
+    },
   },
   /* Configure projects for major browsers */
   projects: [
