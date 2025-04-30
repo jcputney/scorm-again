@@ -30,7 +30,7 @@ test.describe("Module Loading Tests", () => {
       const results = {};
       document.querySelectorAll('[id$="-result"]').forEach((element) => {
         const id = element.id;
-        results[id] = element.classList.contains("success");
+        (results as any)[id] = element.classList.contains("success");
       });
       return results;
     });
