@@ -148,7 +148,7 @@ Object.entries(entries).forEach(([name, input]) => {
       esbuild({
         tsconfig: "./tsconfig.json",
         sourceMap: true,
-        target: "es2022",
+        target: "es2015",
       }),
     ],
   });
@@ -177,7 +177,7 @@ Object.entries(entries).forEach(([name, input]) => {
       esbuild({
         tsconfig: "./tsconfig.json",
         sourceMap: true,
-        target: "es2022",
+        target: "es2015",
       }),
       terser({
         compress: {

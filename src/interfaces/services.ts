@@ -342,3 +342,48 @@ export interface ILoggingService {
    */
   debug(logMessage: string): void;
 }
+
+/**
+ * Interface for a service that manages offline storage and synchronization
+ */
+export interface IOfflineStorageService {
+  /**
+   * Store data offline when LMS is not available
+   * @param {string} courseId - Identifier for the course
+   * @param {CommitObject} commitData - The data to store offline
+   * @returns {Promise<ResultObject>} - Result of the storage operation
+   */
+  storeOffline(courseId: string, commitData: CommitObject): Promise<ResultObject>;
+
+  /**
+   * Get stored offline data for a course
+   * @param {string} courseId - Identifier for the course
+   * @returns {Promise<CommitObject|null>} - The stored data or null if not found
+   */
+  getOfflineData(courseId: string): Promise<CommitObject|null>;
+
+  /**
+   * Synchronize offline data with the LMS when connection is available
+   * @returns {Promise<boolean>} - Success status of synchronization
+   */
+  syncOfflineData(): Promise<boolean>;
+
+  /**
+   * Check if there is pending offline data for a course
+   * @param {string} courseId - Identifier for the course
+   * @returns {Promise<boolean>} - Whether there is pending data
+   */
+  hasPendingOfflineData(courseId: string): Promise<boolean>;
+
+  /**
+   * Check if the device is currently online
+   * @returns {boolean} - Online status
+   */
+  isDeviceOnline(): boolean;
+
+  /**
+   * Update the service settings
+   * @param {Settings} settings - The new settings
+   */
+  updateSettings(settings: Settings): void;
+}

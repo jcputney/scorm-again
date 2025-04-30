@@ -12,12 +12,14 @@ import { EventService } from "./services/EventService";
 import { SerializationService } from "./services/SerializationService";
 import { createErrorHandlingService } from "./services/ErrorHandlingService";
 import { getLoggingService } from "./services/LoggingService";
+import { OfflineStorageService } from "./services/OfflineStorageService";
 import {
   ICMIDataService,
   IErrorHandlingService,
   IEventService,
   IHttpService,
   ILoggingService,
+  IOfflineStorageService,
   ISerializationService
 } from "./interfaces/services";
 import { CMIArray } from "./cmi/common/array";
@@ -36,6 +38,8 @@ export default abstract class BaseAPI implements IBaseAPI {
   private _serializationService: ISerializationService;
   private readonly _errorHandlingService: IErrorHandlingService;
   private readonly _loggingService: ILoggingService;
+  private _offlineStorageService?: IOfflineStorageService;
+  private _courseId: string = "";
 
   /**
    * Constructor for Base API class. Sets some shared API fields, as well as
@@ -48,6 +52,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {ICMIDataService} cmiDataService - Optional CMI Data service instance
    * @param {IErrorHandlingService} errorHandlingService - Optional Error Handling service instance
    * @param {ILoggingService} loggingService - Optional Logging service instance
+   * @param {IOfflineStorageService} offlineStorageService - Optional Offline Storage service instance
    */
   protected constructor(
     error_codes: ErrorCode,
@@ -58,6 +63,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     cmiDataService?: ICMIDataService,
     errorHandlingService?: IErrorHandlingService,
     loggingService?: ILoggingService,
+    offlineStorageService?: IOfflineStorageService,
   ) {
     if (new.target === BaseAPI) {
       throw new TypeError("Cannot construct BaseAPI instances directly");
@@ -107,6 +113,42 @@ export default abstract class BaseAPI implements IBaseAPI {
           this.apiLog(functionName, message, level, element),
         (errorNumber, detail) => this.getLmsErrorMessageDetails(errorNumber, detail),
       );
+
+    // Initialize Offline Storage service if enabled
+    if (this.settings.enableOfflineSupport) {
+      this._offlineStorageService =
+        offlineStorageService ||
+        new OfflineStorageService(
+          this.settings,
+          this._error_codes,
+          (functionName, message, level, element) =>
+            this.apiLog(functionName, message, level, element),
+        );
+
+      if (this.settings.courseId) {
+        this._courseId = this.settings.courseId;
+      }
+
+      // Check for offline data to restore on initialization
+      if (this._offlineStorageService && this._courseId) {
+        this._offlineStorageService
+          .getOfflineData(this._courseId)
+          .then((offlineData) => {
+            if (offlineData) {
+              this.apiLog("constructor", "Found offline data to restore", LogLevelEnum.INFO);
+              // Restore data from offline storage
+              this.loadFromJSON(offlineData.runtimeData);
+            }
+          })
+          .catch((error) => {
+            this.apiLog(
+              "constructor",
+              `Error retrieving offline data: ${error}`,
+              LogLevelEnum.ERROR,
+            );
+          });
+      }
+    }
   }
 
   public abstract cmi: BaseCMI;
@@ -158,6 +200,15 @@ export default abstract class BaseAPI implements IBaseAPI {
     this.lastErrorCode = "0";
     this._eventService.reset();
     this.startingData = undefined;
+
+    // Update offline storage service with new settings if it exists
+    if (this._offlineStorageService) {
+      this._offlineStorageService.updateSettings(this.settings);
+
+      if (settings?.courseId) {
+        this._courseId = settings.courseId;
+      }
+    }
   }
 
   /**
@@ -187,6 +238,31 @@ export default abstract class BaseAPI implements IBaseAPI {
       this.lastErrorCode = "0";
       returnValue = global_constants.SCORM_TRUE;
       this.processListeners(callbackName);
+
+      // If enabled, attempt to sync offline data on initialization
+      if (
+        this.settings.enableOfflineSupport &&
+        this._offlineStorageService &&
+        this._courseId &&
+        this.settings.syncOnInitialize &&
+        this._offlineStorageService.isDeviceOnline()
+      ) {
+        this._offlineStorageService.hasPendingOfflineData(this._courseId).then((hasPendingData) => {
+          if (hasPendingData) {
+            this.apiLog(
+              callbackName,
+              "Syncing pending offline data on initialization",
+              LogLevelEnum.INFO,
+            );
+            this._offlineStorageService?.syncOfflineData().then((syncSuccess) => {
+              if (syncSuccess) {
+                this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
+                this.processListeners("OfflineDataSynced");
+              }
+            });
+          }
+        });
+      }
     }
 
     this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
@@ -390,6 +466,26 @@ export default abstract class BaseAPI implements IBaseAPI {
       )
     ) {
       this.currentState = global_constants.STATE_TERMINATED;
+      // If enabled, attempt to sync offline data before termination
+      if (
+        this.settings.enableOfflineSupport &&
+        this._offlineStorageService &&
+        this._courseId &&
+        this.settings.syncOnTerminate &&
+        this._offlineStorageService.isDeviceOnline()
+      ) {
+        const hasPendingData = await this._offlineStorageService.hasPendingOfflineData(
+          this._courseId,
+        );
+        if (hasPendingData) {
+          this.apiLog(
+            callbackName,
+            "Syncing pending offline data before termination",
+            LogLevelEnum.INFO,
+          );
+          await this._offlineStorageService.syncOfflineData();
+        }
+      }
 
       const result: ResultObject = await this.storeData(true);
       if ((result.errorCode ?? 0) > 0) {
@@ -546,6 +642,28 @@ export default abstract class BaseAPI implements IBaseAPI {
       if (checkTerminated) this.lastErrorCode = "0";
 
       this.processListeners(callbackName);
+
+      // If online and there is offline data pending, attempt to sync it
+      if (
+        this.settings.enableOfflineSupport &&
+        this._offlineStorageService &&
+        this._offlineStorageService.isDeviceOnline() &&
+        this._courseId
+      ) {
+        this._offlineStorageService.hasPendingOfflineData(this._courseId).then((hasPendingData) => {
+          if (hasPendingData) {
+            this.apiLog(callbackName, "Syncing pending offline data", LogLevelEnum.INFO);
+            this._offlineStorageService?.syncOfflineData().then((syncSuccess) => {
+              if (syncSuccess) {
+                this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
+                this.processListeners("OfflineDataSynced");
+              } else {
+                this.apiLog(callbackName, "Failed to sync some offline data", LogLevelEnum.WARN);
+              }
+            });
+          }
+        });
+      }
     }
 
     this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
@@ -1095,29 +1213,52 @@ export default abstract class BaseAPI implements IBaseAPI {
   }
 
   /**
-   * Sends a request to the LMS with the specified parameters.
-   * This method handles communication with the LMS server, including
-   * formatting the request, handling the response, and triggering appropriate events.
+   * Process an HTTP request
    *
-   * @param {string} url - The URL endpoint to send the request to
-   * @param {CommitObject|StringKeyMap|Array} params - The data to send to the LMS
-   * @param {boolean} immediate - Whether to send the request immediately (true) or queue it (false)
-   * @return {Promise<ResultObject>} A promise that resolves with the result of the request
-   * @example
-   * // Send data to the LMS immediately
-   * const result = await api.processHttpRequest(
-   *   "https://lms.example.com/scorm/commit",
-   *   { method: "POST", params: { cmi: { core: { lesson_status: "completed" } } } },
-   *   true
-   * );
-   * console.log(result.errorCode === 0 ? "Success" : "Failed");
+   * @param {string} url - The URL to send the request to
+   * @param {CommitObject | StringKeyMap | Array<any>} params - The parameters to send
+   * @param {boolean} immediate - Whether to send the request immediately without waiting
+   * @returns {Promise<ResultObject>} - The result of the request
+   * @async
    */
   async processHttpRequest(
     url: string,
     params: CommitObject | StringKeyMap | Array<any>,
     immediate: boolean = false,
   ): Promise<ResultObject> {
-    return this._httpService.processHttpRequest(
+    // If offline support is enabled and device is offline, store data locally instead of sending
+    if (
+      this.settings.enableOfflineSupport &&
+      this._offlineStorageService &&
+      !this._offlineStorageService.isDeviceOnline() &&
+      this._courseId
+    ) {
+      this.apiLog(
+        "processHttpRequest",
+        "Device is offline, storing data locally",
+        LogLevelEnum.INFO,
+      );
+
+      if (params && typeof params === "object" && "cmi" in params) {
+        return await this._offlineStorageService.storeOffline(
+          this._courseId,
+          params as CommitObject,
+        );
+      } else {
+        this.apiLog(
+          "processHttpRequest",
+          "Invalid commit data format for offline storage",
+          LogLevelEnum.ERROR,
+        );
+        return {
+          result: global_constants.SCORM_FALSE,
+          errorCode: this._error_codes.GENERAL,
+        };
+      }
+    }
+
+    // Otherwise, proceed with normal HTTP request
+    return await this._httpService.processHttpRequest(
       url,
       params,
       immediate,

@@ -77,6 +77,13 @@ export const DefaultSettings: Settings = {
   scoItemIds: [],
   scoItemIdValidator: false,
   globalObjectiveIds: [],
+
+  // Offline support settings
+  enableOfflineSupport: false,
+  courseId: "",
+  syncOnInitialize: true,
+  syncOnTerminate: true,
+  maxSyncAttempts: 5,
 };
 
 export function defaultLogHandler(messageLevel: LogLevel, logMessage: string): void {

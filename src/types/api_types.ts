@@ -30,6 +30,13 @@ export type Settings = {
   scoItemIdValidator?: false | ((scoItemId: string) => boolean);
   globalObjectiveIds?: string[];
   sequencing?: SequencingSettings;
+
+  // Offline support settings
+  enableOfflineSupport?: boolean;
+  courseId?: string;
+  syncOnInitialize?: boolean;
+  syncOnTerminate?: boolean;
+  maxSyncAttempts?: number;
 };
 
 /**
@@ -95,6 +102,13 @@ export type CommitObject = {
   totalTimeSeconds: number;
   runtimeData: StringKeyMap;
   score?: ScoreObject;
+  commitId?: string;
+  courseId?: string;
+  learnerId?: string;
+  learnerName?: string;
+  sessionId?: string;
+  activityId?: string;
+  attempt?: number;
 };
 
 /**

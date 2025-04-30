@@ -16,10 +16,22 @@ platform for running AICC, SCORM 1.2, and SCORM 2004 modules. This module is des
 agnostic, and is written to be able to be run without a backing LMS, logging all function calls and
 data instead of committing, if an LMS endpoint is not configured.
 
+## What is this not and what doesn't it do?
+
+1. This is not an LMS
+1. This does not handle the uploading and verification of SCORM/AICC modules (if you need a way to
+   verify and parse modules, I have written a library in Java that can be used to
+   extract the manifest and other
+   metadata: [jcputney/elearning-module-parser](https://github.com/jcputney/elearning-module-parser))
+1. This library does not setup communication between an external AICC module and an LMS.
+1. This project is not complete! I'm still working on SCORM 2004 sequencing and testing
+
 ## Cross-Frame Communication
 
 > **Note:** The Cross-Frame Communication feature is currently being developed for scorm-again
 > v3.0.0.
+>
+> I may consider splitting it out as a plugin to keep browser package size down.
 
 ### Purpose of CrossFrameLMS and CrossFrameAPI
 
@@ -78,15 +90,55 @@ window.API.LMSCommit();
 The CrossFrameAPI implements all the methods of the SCORM 1.2, SCORM 2004, and AICC APIs, so it can
 be used as a drop-in replacement for any of these APIs.
 
-### What is this not and what doesn't it do?
+## Offline Support
 
-1. This is not an LMS
-1. This does not handle the uploading and verification of SCORM/AICC modules (if you need a way to
-   verify and parse modules, I have written a library in Java that can be used to
-   extract the manifest and other
-   metadata: [jcputney/elearning-module-parser](https://github.com/jcputney/elearning-module-parser))
-1. This library does not setup communication between an external AICC module and an LMS.
-1. This project is not complete! I'm still working on SCORM 2004 sequencing and testing
+scorm-again provides robust offline capabilities that allow SCORM content to function without an active internet connection. This is particularly valuable for mobile applications, remote areas with limited connectivity, or scenarios with unreliable network conditions.
+
+> **Note:** The Offline Support feature is currently being developed for scorm-again
+> v3.0.0.
+>
+> I may consider splitting it out as a plugin to keep browser package size down.
+
+### Key Features
+
+- Run SCORM modules locally without network connectivity
+- Automatically store SCORM data locally when offline
+- Synchronize data back to the LMS when connectivity is restored
+- Works seamlessly across multiple platforms and devices
+
+### How to Enable Offline Support
+
+```javascript
+// Example configuration with offline support
+const settings = {
+  // Standard settings
+  lmsCommitUrl: "https://your-lms.com/api/scorm/commit",
+  autocommit: true,
+  
+  // Offline support settings
+  enableOfflineSupport: true,  // Enable offline support
+  courseId: "COURSE-12345",    // Unique identifier for the course
+  syncOnInitialize: true,      // Attempt to sync data when initializing API
+  syncOnTerminate: true,       // Attempt to sync data when terminating API
+  maxSyncAttempts: 5           // Maximum number of attempts to sync an item
+};
+
+// Create the API with offline support
+const api = new Scorm12API(settings);
+```
+
+### Mobile Framework Integration
+
+scorm-again provides detailed implementation examples for various mobile frameworks:
+
+- React Native
+- Flutter
+- iOS (Native)
+- Android (Native)
+- Xamarin/MAUI
+- Kotlin Multiplatform
+
+For detailed implementation guides and examples, see our [offline support documentation](docs/offline_support.md).
 
 ## Documentation
 
@@ -116,7 +168,6 @@ To begin with, you include either the `scorm-again.js` or `scorm-again.min.js` f
 launching page:
 
 ```html
-
 <script type="text/javascript" src="/dist/scorm-again.js"></script>
 ```
 
@@ -125,7 +176,6 @@ Or, if you would like to only pull in one API, you include either the `aicc.js`,
 their minified versions on your launching page:
 
 ```html
-
 <script type="text/javascript" src="/dist/scorm2004.js"></script>
 ```
 
@@ -152,7 +202,6 @@ The legacy build targets ES5 and is compatible with older browsers including IE1
 polyfill). This is the default build located in the `dist` directory.
 
 ```html
-
 <script type="text/javascript" src="/dist/scorm-again.js"></script>
 ```
 
@@ -161,33 +210,16 @@ polyfill). This is the default build located in the `dist` directory.
 The modern build targets ES2015 (ES6) and newer browsers. This build is located in the `dist/modern`
 directory.
 
-The modern build uses ES modules, so you need to use the `type="module"` attribute when including
-it:
-
 ```html
-
-<script type="module" src="/dist/modern/scorm-again.js"></script>
+<script type="text/javascript" src="/dist/modern/scorm-again.js"></script>
 ```
 
 Or, if you would like to only pull in one API:
 
 ```html
-
-<script type="module" src="/dist/modern/scorm2004.min.js"></script>
-<script type="module" src="/dist/modern/scorm12.min.js"></script>
-<script type="module" src="/dist/modern/aicc.min.js"></script>
-```
-
-When using the modern build, you can also import the API directly in your JavaScript:
-
-```javascript
-import {Scorm2004API} from "/dist/modern/scorm2004.min.js";
-
-// Initialize the API
-window.API_1484_11 = new Scorm2004API({
-   autocommit: true,
-   logLevel: 1
-});
+<script type="text/javascript" src="/dist/modern/scorm2004.min.js"></script>
+<script type="text/javascript" src="/dist/modern/scorm12.min.js"></script>
+<script type="text/javascript" src="/dist/modern/aicc.min.js"></script>
 ```
 
 Key differences in the modern build:
@@ -250,23 +282,11 @@ npm install scorm-again
 yarn add scorm-again
 ```
 
-**Importing the legacy build (default):**
+**Importing the module build:**
 
 ```javascript
 // Full library
 import {AICC, Scorm12API, Scorm2004API} from 'scorm-again';
-
-// Individual APIs
-import {AICC} from 'scorm-again/aicc';
-import {Scorm12API} from 'scorm-again/scorm12';
-import {Scorm2004API} from 'scorm-again/scorm2004';
-```
-
-**Importing the modern build:**
-
-```javascript
-// Full library
-import {AICC, Scorm12API, Scorm2004API} from 'scorm-again/modern';
 
 // Individual APIs
 import {AICC} from 'scorm-again/aicc/modern';
@@ -332,7 +352,7 @@ window.API_1484_11 = new Scorm2004API(settings);
 **Module usage with ES imports:**
 
 ```javascript
-import {Scorm2004API} from 'scorm-again/modern';
+import {Scorm2004API} from 'scorm-again/esm/scorm2004';
 
 const settings = {
    autocommit: true,
@@ -694,12 +714,8 @@ Here's a basic example of configuring an activity tree:
 sequencing: {
    activityTree: {
       id: 'root',
-          title
-   :
-      'Course',
-          children
-   :
-      [
+      title: 'Course',
+      children: [
          {
             id: 'module1',
             title: 'Module 1',

@@ -7,7 +7,7 @@ Each task is logically ordered and covers both architectural and code-level impr
 
 - [ ] Add new capabilities
    - [ ] Create visualization tools for SCORM data
-   - [ ] Implement offline support with synchronization
+   - [x] Implement offline support with synchronization
    - [ ] Add analytics capabilities for learning data
 
 - [ ] Enhance existing functionality
