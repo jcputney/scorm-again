@@ -197,7 +197,7 @@ class Scorm2004API extends BaseAPI {
     if (stringMatches(CMIElement, adlNavRequestRegex)) {
       const matches = CMIElement.match(adlNavRequestRegex);
       const request = matches[1];
-      const target = matches[2].replace("{target=", "").replace("}", "");
+      const target = matches[2].replace(/{target=/g, "").replace(/}/g, "");
       if (request === "choice" || request === "jump") {
         if (this.settings.scoItemIdValidator) {
           return String(this.settings.scoItemIdValidator(target));
