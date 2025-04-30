@@ -1,9 +1,8 @@
-import { describe, it  , vi } from "vitest";
+import { describe, it, vi } from "vitest";
 import { aicc_constants } from "../../src/constants/api_constants";
 import { scorm12_errors } from "../../src/constants/error_codes";
 import { CMI } from "../../src/cmi/aicc/cmi";
 import * as h from "./cmi_helpers";
-;
 import { scorm12Values } from "../field_values";
 import { CMITriesObject } from "../../src/cmi/aicc/tries";
 import { CMIEvaluationCommentsObject } from "../../src/cmi/aicc/evaluation";

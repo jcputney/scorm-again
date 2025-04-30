@@ -1,0 +1,60 @@
+import { CompletionStatus, LogLevelEnum, SuccessStatus } from "../constants/enums";
+import { StringKeyMap } from "../utilities";
+import { SequencingSettings } from "./sequencing_types";
+export type Settings = {
+    autocommit?: boolean;
+    autocommitSeconds?: number;
+    asyncCommit?: boolean;
+    sendFullCommit?: boolean;
+    lmsCommitUrl?: boolean | string;
+    dataCommitFormat?: string;
+    commitRequestDataType?: string;
+    autoProgress?: boolean;
+    logLevel?: LogLevel;
+    selfReportSessionTime?: boolean;
+    alwaysSendTotalTime?: boolean;
+    strict_errors?: boolean;
+    xhrHeaders?: StringKeyMap;
+    xhrWithCredentials?: boolean;
+    fetchMode?: "cors" | "no-cors" | "same-origin" | "navigate";
+    responseHandler?: (response: Response) => Promise<ResultObject>;
+    requestHandler?: (commitObject: unknown) => unknown;
+    onLogMessage?: (messageLevel: LogLevel, logMessage: string) => void;
+    mastery_override?: boolean;
+    renderCommonCommitFields?: boolean;
+    scoItemIds?: string[];
+    scoItemIdValidator?: false | ((scoItemId: string) => boolean);
+    globalObjectiveIds?: string[];
+    sequencing?: SequencingSettings;
+};
+export type RequiredSettings = Required<Settings>;
+export type CoreSettings = Pick<Settings, "autocommit" | "asyncCommit" | "logLevel" | "strict_errors">;
+export type RefValue = string | number | boolean | null | undefined | RefArray;
+export type RefArray = ReadonlyArray<RefValue>;
+export type ResultObject = {
+    result: string;
+    errorCode: number;
+    navRequest?: string | StringKeyMap;
+};
+export type ReadonlyResultObject = Readonly<ResultObject>;
+export type ScoreObject = {
+    raw?: number;
+    min?: number;
+    max?: number;
+    scaled?: number;
+};
+export type CompleteScoreObject = Required<ScoreObject>;
+export type CommitObject = {
+    successStatus: SuccessStatus;
+    completionStatus: CompletionStatus;
+    totalTimeSeconds: number;
+    runtimeData: StringKeyMap;
+    score?: ScoreObject;
+};
+export type CommitObjectWithScore = CommitObject & {
+    score: ScoreObject;
+};
+export type NumericLogLevel = 1 | 2 | 3 | 4 | 5;
+export type StringNumericLogLevel = "1" | "2" | "3" | "4" | "5";
+export type NamedLogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR" | "NONE";
+export type LogLevel = NumericLogLevel | StringNumericLogLevel | NamedLogLevel | LogLevelEnum | undefined;

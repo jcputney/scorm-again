@@ -1,0 +1,29 @@
+import { BaseCMI } from "../../common/base_cmi";
+import { Activity } from "./activity";
+export declare class ActivityTree extends BaseCMI {
+    private _root;
+    private _currentActivity;
+    private _suspendedActivity;
+    private _activities;
+    constructor();
+    initialize(): void;
+    reset(): void;
+    get root(): Activity | null;
+    set root(root: Activity | null);
+    private _addActivitiesToMap;
+    get currentActivity(): Activity | null;
+    set currentActivity(activity: Activity | null);
+    get suspendedActivity(): Activity | null;
+    set suspendedActivity(activity: Activity | null);
+    getActivity(id: string): Activity | undefined;
+    getAllActivities(): Activity[];
+    getParent(activity: Activity): Activity | null;
+    getChildren(activity: Activity): Activity[];
+    getSiblings(activity: Activity): Activity[];
+    getNextSibling(activity: Activity): Activity | null;
+    getPreviousSibling(activity: Activity): Activity | null;
+    getFirstChild(activity: Activity): Activity | null;
+    getLastChild(activity: Activity): Activity | null;
+    getCommonAncestor(activity1: Activity, activity2: Activity): Activity | null;
+    toJSON(): object;
+}

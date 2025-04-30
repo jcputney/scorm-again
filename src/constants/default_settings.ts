@@ -28,10 +28,10 @@ export const DefaultSettings: Settings = {
 
       // Handle both text() and json() response methods
       try {
-        if (typeof response.json === 'function') {
+        if (typeof response.json === "function") {
           // Try to get JSON directly if the method exists
           httpResult = await response.json();
-        } else if (typeof response.text === 'function') {
+        } else if (typeof response.text === "function") {
           // Fall back to text() if json() is not available
           const responseText = await response.text();
           if (responseText) {

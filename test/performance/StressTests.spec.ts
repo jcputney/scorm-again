@@ -52,7 +52,7 @@ describe("Stress Tests for Concurrent Operations", () => {
 
     beforeEach(() => {
       // Set up fetch mocks
-      vi.stubGlobal('fetch', vi.fn());
+      vi.stubGlobal("fetch", vi.fn());
 
       (fetch as ReturnType<typeof vi.fn>).mockImplementation(() => {
         // Add a small delay to simulate network latency
@@ -184,7 +184,7 @@ describe("Stress Tests for Concurrent Operations", () => {
 
     beforeEach(() => {
       // Set up fetch mocks
-      vi.stubGlobal('fetch', vi.fn());
+      vi.stubGlobal("fetch", vi.fn());
 
       (fetch as ReturnType<typeof vi.fn>).mockImplementation(() => {
         return Promise.resolve({

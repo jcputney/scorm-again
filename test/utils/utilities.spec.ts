@@ -1,5 +1,4 @@
-;
-import { describe, it , vi } from "vitest";
+import { describe, it, vi } from "vitest";
 import * as Utilities from "../../src/utilities";
 import { scorm12_regex, scorm2004_regex } from "../../src/constants/regex";
 

@@ -1,5 +1,4 @@
-import { describe, it  , vi } from "vitest";
-;
+import { describe, it, vi } from "vitest";
 import { CMIMetadata } from "../../src/cmi/scorm2004/metadata";
 import { scorm2004_constants } from "../../src/constants/api_constants";
 import { scorm2004_errors } from "../../src/constants/error_codes";

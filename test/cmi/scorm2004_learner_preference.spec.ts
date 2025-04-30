@@ -1,5 +1,4 @@
-import { describe, it  , vi } from "vitest";
-;
+import { describe, it, vi } from "vitest";
 import { CMILearnerPreference } from "../../src/cmi/scorm2004/learner_preference";
 import { scorm2004_constants } from "../../src/constants/api_constants";
 

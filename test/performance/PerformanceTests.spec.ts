@@ -97,7 +97,7 @@ describe("Performance Tests", () => {
 
     beforeEach(() => {
       // Set up fetch mocks
-      vi.stubGlobal('fetch', vi.fn());
+      vi.stubGlobal("fetch", vi.fn());
 
       (fetch as ReturnType<typeof vi.fn>).mockImplementation(() => {
         return Promise.resolve({
@@ -260,7 +260,7 @@ describe("Performance Tests", () => {
 
     beforeEach(() => {
       // Set up fetch mocks
-      vi.stubGlobal('fetch', vi.fn());
+      vi.stubGlobal("fetch", vi.fn());
 
       (fetch as ReturnType<typeof vi.fn>).mockImplementation(() => {
         return Promise.resolve({

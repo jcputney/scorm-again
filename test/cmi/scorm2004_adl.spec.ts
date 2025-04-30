@@ -1,5 +1,4 @@
-import { describe, it  , vi } from "vitest";
-;
+import { describe, it, vi } from "vitest";
 import { ADL, ADLNav, ADLNavRequestValid } from "../../src/cmi/scorm2004/adl";
 import { NAVBoolean } from "../../src/constants/enums";
 
