@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: scorm-again Documentation
+    url: https://github.com/jcputney/scorm-again#readme
+    about: Please check the documentation before creating an issue
+  - name: GitHub Discussions
+    url: https://github.com/jcputney/scorm-again/discussions
+    about: Ask questions and discuss with other community members
+  - name: Security Policy
+    url: https://github.com/jcputney/scorm-again/security/policy
+    about: Please report security vulnerabilities according to our security policy
