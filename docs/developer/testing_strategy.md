@@ -131,12 +131,12 @@ To run the browser-based integration tests:
 1. Ensure you have the necessary dependencies installed:
 
    ```
-   yarn install
+   npm install
    ```
 
 2. Run the integration tests:
    ```
-   yarn test:integration
+   npm run test:integration
    ```
 
 This will:
@@ -311,8 +311,8 @@ Use mocks and stubs to isolate the code being tested:
 ```typescript
 // Mock HTTP requests
 const httpServiceStub = sinon
-   .stub(HttpService.prototype, "processHttpRequest")
-   .resolves({ result: true, errorCode: 0 });
+    .stub(HttpService.prototype, "processHttpRequest")
+    .resolves({result: true, errorCode: 0});
 
 // Test code that uses HttpService
 
@@ -330,13 +330,13 @@ To run only unit tests (excluding integration tests):
 
 ```bash
 # Run unit tests with list reporter
-yarn test
+npm run test
 
 # Run unit tests with minimal reporter
-yarn test:min
+npm run test:min
 
 # Run unit tests with coverage reporting
-yarn test:coverage
+npm run test:coverage
 ```
 
 ### Running Integration Tests Only
@@ -345,7 +345,7 @@ To run only integration tests:
 
 ```bash
 # Run integration tests using Playwright
-yarn test:integration
+npm run test:integration
 ```
 
 ### Running All Tests
@@ -354,10 +354,10 @@ To run both unit and integration tests together:
 
 ```bash
 # Run all tests with list reporter
-yarn test:all
+npm run test:all
 
 # Run all tests with coverage reporting
-yarn test:coverage:all
+npm run test:coverage:all
 ```
 
 ### Running Specific Tests
@@ -366,7 +366,7 @@ You can run specific test files by providing the file path:
 
 ```bash
 # Run a specific unit test file
-yarn test test/Scorm12API.spec.ts
+npm run test test/Scorm12API.spec.ts
 
 # Run a specific integration test file
 npx playwright test test/integration/RuntimeBasicCalls_SCORM12.spec.ts
@@ -384,7 +384,7 @@ scorm-again uses c8 to measure test coverage. The coverage report shows:
 To generate a coverage report:
 
 ```bash
-yarn test:coverage
+npm run test:coverage
 ```
 
 The coverage report is generated in the `coverage` directory.

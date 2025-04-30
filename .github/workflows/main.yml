@@ -33,28 +33,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "yarn"
+          cache: "npm"
 
       # Install dependencies
       - name: Install dependencies
-        run: yarn install
+        run: npm install
 
       # Create required directories
       - name: Create directories
         run: mkdir -p reports dist docs test-results
 
-      # Run Mocha tests
-      - name: Run unit tests with Mocha
-        run: |
-          export TS_NODE_COMPILER_OPTIONS="{\"module\":\"commonjs\"}"
-          yarn run test:coverage
+      # Run Vitest tests with coverage
+      - name: Run unit tests with Vitest
+        run: npm run test:coverage
 
       # Upload unit test results to GitHub
-      - uses: dorny/test-reporter@v2
-        with:
-          name: Unit Test Reporter
-          path: test-results.json
-          reporter: mocha-json
+      - name: 'Report Coverage'
+        if: always() 
+        uses:  davelosert/vitest-coverage-report-action@v2
 
       # Install Playwright browsers
       - name: Install Playwright browsers
@@ -62,7 +58,7 @@ jobs:
 
       # Run integration tests
       - name: Run integration tests
-        run: yarn test:integration:ci
+        run: npm run test:integration:ci
 
       # Upload Playwright report
       - name: Upload Playwright report
@@ -76,7 +72,7 @@ jobs:
       # Run performance regression tests
       - name: Run performance regression tests
         id: performance_test
-        run: yarn test:performance
+        run: npm run test:performance
         continue-on-error: true
 
       # Upload performance benchmark results
@@ -131,16 +127,16 @@ jobs:
 
       # Run TypeScript type checking
       - name: TypeScript type checking
-        run: yarn tsc --noEmit
+        run: npx tsc --noEmit
 
       # Run dependency vulnerability scanning
       - name: Dependency vulnerability scanning
-        run: yarn audit --level=moderate
+        run: npm audit --level=moderate
 
       # Analyze bundle size
       - name: Analyze bundle size
         run: |
-          yarn compile
+          npm run build:all
           ls -la dist/*.js | awk '{print $5, $9}' > bundle-size.txt
           cat bundle-size.txt
 
@@ -152,13 +148,7 @@ jobs:
 
       # Format code with Prettier
       - name: Format code with Prettier
-        run: yarn run prettier
-
-      # Build the project
-      - name: Build project
-        run: |
-          yarn run compile
-          yarn run compile:modern
+        run: npm run prettier
 
       - name: Commit and Push Dist Folder
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'

@@ -3,7 +3,7 @@ import { HttpService } from "../../src/services/HttpService";
 import { EventService } from "../../src/services/EventService";
 import { scorm2004_errors } from "../../src/constants/error_codes";
 import { LogLevelEnum } from "../../src/constants/enums";
-import { Scorm2004API } from "../../src/Scorm2004API";
+import Scorm2004API from "../../src/Scorm2004API";
 
 /**
  * Helper function to run multiple operations concurrently

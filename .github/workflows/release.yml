@@ -2,7 +2,7 @@ name: Release
 
 on:
   release:
-    types: [created]
+    types: [ created ]
 
 jobs:
   build-and-publish:
@@ -20,23 +20,22 @@ jobs:
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
-          cache: "yarn"
+          cache: "npm"
 
       # Install dependencies
       - name: Install dependencies
-        run: yarn install
+        run: npm install
 
       # Run tests
       - name: Run tests
         run: |
-          yarn test:min
-          yarn test:integration:ci
+          npm run test:min
+          npm run test:integration:ci
 
       # Build the project
       - name: Build project
         run: |
-          yarn compile
-          yarn compile:modern
+          npm run build:all
 
       # Publish to npm
       - name: Publish to npm
@@ -53,14 +52,14 @@ jobs:
             const fs = require('fs');
             const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
             const version = packageJson.version;
-            
+
             // Get the release
             const release = await github.rest.repos.getRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
               release_id: context.payload.release.id
             });
-            
+
             // Update release body with changelog if it exists
             let body = release.data.body || '';
             if (fs.existsSync('./CHANGELOG.md')) {
@@ -68,12 +67,12 @@ jobs:
               const versionHeader = `## [${version}]`;
               const versionRegex = new RegExp(`${versionHeader}[\\s\\S]*?(?=## \\[|$)`, 'm');
               const match = changelog.match(versionRegex);
-              
+
               if (match && match[0]) {
                 body += '\n\n' + match[0].trim();
               }
             }
-            
+
             // Update the release
             await github.rest.repos.updateRelease({
               owner: context.repo.owner,

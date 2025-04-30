@@ -1,9 +1,7 @@
 import esbuild from "rollup-plugin-esbuild";
 import terser from "@rollup/plugin-terser";
 import cache from "@mo36924/rollup-plugin-cache";
-import { bundleStats } from "rollup-plugin-bundle-stats";
 import { babel } from "@rollup/plugin-babel";
-import cleanup from "rollup-plugin-cleanup";
 
 // Entry points
 const entries = {
@@ -47,7 +45,6 @@ Object.entries(entries).forEach(([name, input]) => {
     external: ["window.API", "window.API_1484_11"],
     plugins: [
       cache(),
-      bundleStats(),
       esbuild({
         tsconfig: "./tsconfig.json",
         sourceMap: true,
@@ -65,9 +62,6 @@ Object.entries(entries).forEach(([name, input]) => {
           ],
         ],
         extensions: [".js", ".ts"],
-      }),
-      cleanup({
-        comments: "none",
       }),
     ],
   });
@@ -93,7 +87,6 @@ Object.entries(entries).forEach(([name, input]) => {
     external: ["window.API", "window.API_1484_11"],
     plugins: [
       cache(),
-      cleanup(),
       esbuild({
         tsconfig: "./tsconfig.json",
         sourceMap: true,
@@ -152,7 +145,6 @@ Object.entries(entries).forEach(([name, input]) => {
     external: ["window.API", "window.API_1484_11"],
     plugins: [
       cache(),
-      cleanup(),
       esbuild({
         tsconfig: "./tsconfig.json",
         sourceMap: true,
@@ -182,7 +174,6 @@ Object.entries(entries).forEach(([name, input]) => {
     external: ["window.API", "window.API_1484_11"],
     plugins: [
       cache(),
-      cleanup(),
       esbuild({
         tsconfig: "./tsconfig.json",
         sourceMap: true,
@@ -221,7 +212,6 @@ Object.entries(esmEntries).forEach(([name, input]) => {
     external: ["window.API", "window.API_1484_11"],
     plugins: [
       cache(),
-      cleanup(),
       esbuild({
         tsconfig: "./tsconfig.json",
         sourceMap: true,
@@ -242,7 +232,6 @@ Object.entries(esmEntries).forEach(([name, input]) => {
     external: ["window.API", "window.API_1484_11"],
     plugins: [
       cache(),
-      cleanup(),
       esbuild({
         tsconfig: "./tsconfig.json",
         sourceMap: true,

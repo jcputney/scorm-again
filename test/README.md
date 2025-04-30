@@ -23,13 +23,13 @@ To run only unit tests (excluding integration tests):
 
 ```bash
 # Run unit tests with list reporter
-yarn test
+npm run test
 
 # Run unit tests with minimal reporter
-yarn test:min
+npm run test:min
 
 # Run unit tests with coverage reporting
-yarn test:coverage
+npm run test:coverage
 ```
 
 ### Integration Tests Only
@@ -38,7 +38,7 @@ To run only integration tests:
 
 ```bash
 # Run integration tests using Playwright
-yarn test:integration
+npm run test:integration
 ```
 
 ### All Tests
@@ -47,10 +47,10 @@ To run both unit and integration tests together:
 
 ```bash
 # Run all tests with list reporter
-yarn test:all
+npm run test:all
 
 # Run all tests with coverage reporting
-yarn test:coverage:all
+npm run test:coverage:all
 ```
 
 ## Test Configuration

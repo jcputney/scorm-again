@@ -93,12 +93,12 @@
   },
   "browserslist": [
     "> 1%",
-    "edge >= 16",
-    "safari >= 9",
-    "firefox >= 57",
+    "edge >= 79",
+    "safari >= 15.2",
+    "firefox >= 79",
     "ie >= 11",
-    "ios >= 9",
-    "chrome >= 49"
+    "ios >= 15.2",
+    "chrome >= 68"
   ],
   "directories": {
     "test": "test"
@@ -125,7 +125,6 @@
     "@vitest/ui": "3.1.2",
     "babel-loader": "10.0.0",
     "babelify": "10.0.0",
-    "browserify": "17.0.1",
     "esbuild": "^0.25.3",
     "eslint": "9.25.1",
     "eslint-formatter-junit": "8.40.0",
@@ -142,17 +141,13 @@
     "jsdoc": "4.0.4",
     "jsdoc-babel": "0.5.0",
     "jsdom": "^26.1.0",
-    "minimist": "1.2.8",
-    "miragejs": "0.2.0-alpha.3",
     "playwright": "1.52.0",
     "prettier": "3.5.3",
     "rollup": "^4.9.6",
-    "rollup-plugin-cleanup": "^3.2.1",
     "rollup-plugin-dts": "^6.1.0",
     "rollup-plugin-esbuild": "^6.2.1",
     "standard-version": "9.5.0",
     "terser": "^5.27.2",
-    "ts-loader": "9.5.2",
     "tslib": "^2.6.2",
     "tsx": "4.19.3",
     "typescript": "^5.8.3",
@@ -165,13 +160,12 @@
   },
   "sideEffects": false,
   "scripts": {
-    "clean": "rm -rf dist",
-    "ensure-dirs": "node scripts/ensure-dirs.js",
-    "build": "npm run clean && npm run ensure-dirs && rollup -c",
+    "clean": "rm -rf dist && mkdir -p dist",
+    "build": "npm run clean && rollup -c",
     "build:types": "tsc --emitDeclarationOnly --declaration --outDir dist/types",
     "build:all": "npm run build && npm run build:types",
-    "compile:dev": "npm run ensure-dirs && rollup -c -w",
-    "compile:modern": "npm run ensure-dirs && rollup -c",
+    "compile:dev": "rollup -c -w",
+    "compile:modern": "rollup -c",
     "test": "vitest run",
     "test:min": "vitest run --reporter=basic",
     "test:coverage": "vitest run --coverage",
@@ -205,8 +199,5 @@
   "bugs": {
     "url": "https://github.com/jcputney/scorm-again/issues"
   },
-  "homepage": "https://github.com/jcputney/scorm-again",
-  "dependencies": {
-    "rollup-plugin-bundle-stats": "^4.19.1"
-  }
+  "homepage": "https://github.com/jcputney/scorm-again"
 }

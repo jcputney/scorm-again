@@ -17,8 +17,8 @@ setting up your development environment, making changes, testing, and submitting
 ### Prerequisites
 
 - Node.js (LTS version recommended)
-- Yarn package manager
-- Git
+- npm
+- git
 
 ### Initial Setup
 
@@ -34,7 +34,7 @@ setting up your development environment, making changes, testing, and submitting
    ```
 4. Install dependencies:
    ```bash
-   yarn install
+   npm install
    ```
 
 ### Keeping Your Fork Updated
@@ -70,15 +70,15 @@ Use a descriptive branch name that reflects the changes you're making. Common pr
 2. Write or update tests for your changes
 3. Run tests locally to ensure they pass:
    ```bash
-   yarn test:min
+   npm run test:min
    ```
 4. Format your code:
    ```bash
-   yarn prettier
+   npm run prettier
    ```
 5. Fix any linting issues:
    ```bash
-   yarn fix
+   npm run fix
    ```
 
 ### Committing Changes
@@ -113,11 +113,11 @@ scorm-again follows specific coding conventions to maintain consistency across t
 1. Use the TypeScript style guide in `.junie/guidelines.md`
 2. Run Prettier to automatically format your code:
    ```bash
-   yarn prettier
+   npm run prettier
    ```
 3. Run ESLint to check for and fix code style issues:
    ```bash
-   yarn fix
+   npm run fix
    ```
 
 Key style points:
@@ -134,7 +134,7 @@ Key style points:
 To build the project during development:
 
 ```bash
-yarn compile
+npm run build:all
 ```
 
 This will create the following files in the `dist` directory:
@@ -162,7 +162,7 @@ After building, you can test the library by:
 
 1. Ensure all tests pass:
    ```bash
-   yarn test:min
+   npm run test:min
    ```
 2. Push your changes to your fork if you haven't already:
    ```bash

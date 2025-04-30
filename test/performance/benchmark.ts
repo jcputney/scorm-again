@@ -1,8 +1,8 @@
 import { spawn } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
-import { fileURLToPath } from "url";
 import { dirname } from "path";
+import { fileURLToPath } from "url";
 
 // Get the directory name in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -15,18 +15,17 @@ const __dirname = dirname(__filename);
 async function runPerformanceTests(): Promise<Record<string, number>> {
   return new Promise((resolve, reject) => {
     const metrics: Record<string, number> = {};
-    const mochaProcess = spawn("yarn", [
+    const vitestProcess = spawn("yarn", [
       "run",
-      "mocha",
-      "--import=tsx",
-      "--bdd",
+      "vitest",
+      "run",
       "test/performance/PerformanceTests.spec.ts",
       "test/performance/StressTests.spec.ts",
       "--reporter",
-      "min",
+      "basic",
     ]);
 
-    mochaProcess.stdout.on("data", (data) => {
+    vitestProcess.stdout.on("data", (data) => {
       const output = data.toString();
       const lines = output.split("\n");
 
@@ -47,11 +46,11 @@ async function runPerformanceTests(): Promise<Record<string, number>> {
       }
     });
 
-    mochaProcess.stderr.on("data", (data) => {
+    vitestProcess.stderr.on("data", (data) => {
       console.error(`stderr: ${data}`);
     });
 
-    mochaProcess.on("close", (code) => {
+    vitestProcess.on("close", (code) => {
       if (code !== 0) {
         reject(new Error(`Performance tests exited with code ${code}`));
       } else {
@@ -111,7 +110,12 @@ function detectRegressions(
   regressions: Array<{ metric: string; previous: number; current: number; percentChange: number }>;
   hasSignificantRegression: boolean;
 } {
-  const regressions = [];
+  const regressions = [] as Array<{
+    metric: string;
+    previous: number;
+    current: number;
+    percentChange: number;
+  }>;
   let hasSignificantRegression = false;
 
   if (!previous) {

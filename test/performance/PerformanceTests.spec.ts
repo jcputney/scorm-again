@@ -7,7 +7,7 @@ import { memoize } from "../../src/utilities";
 import { scorm2004_errors } from "../../src/constants/error_codes";
 import { LogLevelEnum } from "../../src/constants/enums";
 import { BaseCMI } from "../../src/cmi/common/base_cmi";
-import { Scorm2004API } from "../../src/Scorm2004API";
+import Scorm2004API from "../../src/Scorm2004API";
 
 /**
  * Helper function to measure execution time of a function

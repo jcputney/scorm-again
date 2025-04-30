@@ -128,11 +128,11 @@ Testing is a critical part of maintaining scorm-again's quality:
 
 - Ensure all tests pass before submitting a pull request:
    ```bash
-   yarn test:min
+   npm run test:min
    ```
 - Check test coverage when adding new features:
    ```bash
-   yarn test:coverage
+   npm run test:coverage
    ```
 
 ### Test-Only Contributions

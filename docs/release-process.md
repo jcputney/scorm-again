@@ -21,17 +21,17 @@ There are several types of releases that can be created:
 
 The following commands are available for creating releases:
 
-- `yarn release`: Creates a regular release, runs tests, builds the project, and publishes to npm
-- `yarn release:prepare`: Bumps the version and generates a changelog without publishing
-- `yarn release:alpha`: Creates an alpha prerelease
-- `yarn release:beta`: Creates a beta prerelease
-- `yarn release:publish`: Pushes the release to GitHub and publishes to npm
+- `npm run release`: Creates a regular release, runs tests, builds the project, and publishes to npm
+- `npm run release:prepare`: Bumps the version and generates a changelog without publishing
+- `npm run release:alpha`: Creates an alpha prerelease
+- `npm run release:beta`: Creates a beta prerelease
+- `npm run release:publish`: Pushes the release to GitHub and publishes to npm
 
 ## Release Process Steps
 
 ### Automated Process
 
-1. Run `yarn release` to create a new release
+1. Run `npm run release` to create a new release
    - This will:
       - Run tests to ensure everything is working
       - Bump the version based on commit messages
@@ -46,14 +46,14 @@ The following commands are available for creating releases:
 If you need more control over the release process, you can follow these steps:
 
 1. Ensure all changes are committed and pushed to the master branch
-2. Run `yarn test:min` and `yarn test:integration:ci` to ensure all tests pass
+2. Run `npm run test:min` and `npm run test:integration:ci` to ensure all tests pass
 3. Run one of the following commands:
-   - `yarn release:prepare` for a regular release
-   - `yarn release:alpha` for an alpha release
-   - `yarn release:beta` for a beta release
+   - `npm run release:prepare` for a regular release
+   - `npm run release:alpha` for an alpha release
+   - `npm run release:beta` for a beta release
 4. Review the changes to package.json and CHANGELOG.md
-5. Run `yarn compile` and `yarn compile:modern` to build the project
-6. Run `yarn release:publish` to push the release to GitHub and publish to npm
+5. Run `npm run build:all`  to build the project
+6. Run `npm run release:publish` to push the release to GitHub and publish to npm
 
 ## GitHub Releases
 
