@@ -1886,6 +1886,7 @@ this.Scorm12API = (function () {
     UNKNOWN: "unknown"
   };
   const LogLevelEnum = {
+    _: 0,
     DEBUG: 1,
     INFO: 2,
     WARN: 3,
@@ -1953,7 +1954,13 @@ this.Scorm12API = (function () {
     onLogMessage: defaultLogHandler,
     scoItemIds: [],
     scoItemIdValidator: false,
-    globalObjectiveIds: []
+    globalObjectiveIds: [],
+    // Offline support settings
+    enableOfflineSupport: false,
+    courseId: "",
+    syncOnInitialize: true,
+    syncOnTerminate: true,
+    maxSyncAttempts: 5
   };
   function defaultLogHandler(messageLevel, logMessage) {
     switch (messageLevel) {
@@ -2833,6 +2840,224 @@ ${stackTrace}`);
     return new ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService);
   }
 
+  class OfflineStorageService {
+    /**
+     * Constructor for OfflineStorageService
+     * @param {Settings} settings - The settings object
+     * @param {ErrorCode} error_codes - The error codes object
+     * @param {Function} apiLog - The logging function
+     */
+    constructor(settings, error_codes, apiLog) {
+      this.apiLog = apiLog;
+      this.storeName = "scorm_again_offline_data";
+      this.syncQueue = "scorm_again_sync_queue";
+      this.isOnline = navigator.onLine;
+      this.syncInProgress = false;
+      this.settings = settings;
+      this.error_codes = error_codes;
+      window.addEventListener("online", this.handleOnlineStatusChange.bind(this));
+      window.addEventListener("offline", this.handleOnlineStatusChange.bind(this));
+    }
+    /**
+     * Handle changes in online status
+     */
+    handleOnlineStatusChange() {
+      const wasOnline = this.isOnline;
+      this.isOnline = navigator.onLine;
+      if (!wasOnline && this.isOnline) {
+        this.apiLog("OfflineStorageService", "Device is back online, attempting to sync...", LogLevelEnum.INFO);
+        this.syncOfflineData();
+      } else if (wasOnline && !this.isOnline) {
+        this.apiLog("OfflineStorageService", "Device is offline, data will be stored locally", LogLevelEnum.INFO);
+      }
+    }
+    /**
+     * Store commit data offline
+     * @param {string} courseId - Identifier for the course
+     * @param {CommitObject} commitData - The data to store offline
+     * @returns {Promise<ResultObject>} - Result of the storage operation
+     */
+    async storeOffline(courseId, commitData) {
+      try {
+        const queueItem = {
+          id: `${courseId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          courseId,
+          timestamp: Date.now(),
+          data: commitData,
+          syncAttempts: 0
+        };
+        const currentQueue = (await this.getFromStorage(this.syncQueue)) || [];
+        currentQueue.push(queueItem);
+        await this.saveToStorage(this.syncQueue, currentQueue);
+        await this.saveToStorage(`${this.storeName}_${courseId}`, commitData);
+        this.apiLog("OfflineStorageService", `Stored data offline for course ${courseId}`, LogLevelEnum.INFO);
+        return {
+          result: global_constants.SCORM_TRUE,
+          errorCode: 0
+        };
+      } catch (error) {
+        this.apiLog("OfflineStorageService", `Error storing offline data: ${error}`, LogLevelEnum.ERROR);
+        return {
+          result: global_constants.SCORM_FALSE,
+          errorCode: this.error_codes.GENERAL
+        };
+      }
+    }
+    /**
+     * Get the stored offline data for a course
+     * @param {string} courseId - Identifier for the course
+     * @returns {Promise<CommitObject|null>} - The stored data or null if not found
+     */
+    async getOfflineData(courseId) {
+      try {
+        const data = await this.getFromStorage(`${this.storeName}_${courseId}`);
+        return data || null;
+      } catch (error) {
+        this.apiLog("OfflineStorageService", `Error retrieving offline data: ${error}`, LogLevelEnum.ERROR);
+        return null;
+      }
+    }
+    /**
+     * Synchronize offline data with the LMS when connection is available
+     * @returns {Promise<boolean>} - Success status of synchronization
+     */
+    async syncOfflineData() {
+      if (this.syncInProgress || !this.isOnline) {
+        return false;
+      }
+      this.syncInProgress = true;
+      try {
+        const syncQueue = (await this.getFromStorage(this.syncQueue)) || [];
+        if (syncQueue.length === 0) {
+          this.syncInProgress = false;
+          return true;
+        }
+        this.apiLog("OfflineStorageService", `Found ${syncQueue.length} items to sync`, LogLevelEnum.INFO);
+        const remainingQueue = [];
+        for (const item of syncQueue) {
+          if (item.syncAttempts >= 5) {
+            this.apiLog("OfflineStorageService", `Skipping item ${item.id} after 5 failed attempts`, LogLevelEnum.WARN);
+            continue;
+          }
+          try {
+            const syncResult = await this.sendDataToLMS(item.data);
+            if (syncResult.result === global_constants.SCORM_TRUE) {
+              this.apiLog("OfflineStorageService", `Successfully synced item ${item.id}`, LogLevelEnum.INFO);
+            } else {
+              item.syncAttempts++;
+              remainingQueue.push(item);
+              this.apiLog("OfflineStorageService", `Failed to sync item ${item.id}, attempt #${item.syncAttempts}`, LogLevelEnum.WARN);
+            }
+          } catch (error) {
+            item.syncAttempts++;
+            remainingQueue.push(item);
+            this.apiLog("OfflineStorageService", `Error syncing item ${item.id}: ${error}`, LogLevelEnum.ERROR);
+          }
+        }
+        await this.saveToStorage(this.syncQueue, remainingQueue);
+        this.apiLog("OfflineStorageService", `Sync completed. ${syncQueue.length - remainingQueue.length} items synced, ${remainingQueue.length} items remaining`, LogLevelEnum.INFO);
+        this.syncInProgress = false;
+        return true;
+      } catch (error) {
+        this.apiLog("OfflineStorageService", `Error during sync process: ${error}`, LogLevelEnum.ERROR);
+        this.syncInProgress = false;
+        return false;
+      }
+    }
+    /**
+     * Send data to the LMS when online
+     * @param {CommitObject} data - The data to send to the LMS
+     * @returns {Promise<ResultObject>} - Result of the sync operation
+     */
+    async sendDataToLMS(data) {
+      if (!this.settings.lmsCommitUrl) {
+        return {
+          result: global_constants.SCORM_FALSE,
+          errorCode: this.error_codes.GENERAL
+        };
+      }
+      try {
+        const processedData = this.settings.requestHandler(data);
+        const response = await fetch(this.settings.lmsCommitUrl, {
+          method: "POST",
+          mode: this.settings.fetchMode,
+          body: JSON.stringify(processedData),
+          headers: {
+            ...this.settings.xhrHeaders,
+            "Content-Type": this.settings.commitRequestDataType
+          },
+          credentials: this.settings.xhrWithCredentials ? "include" : void 0
+        });
+        const result = typeof this.settings.responseHandler === "function" ? await this.settings.responseHandler(response) : await response.json();
+        if (response.status >= 200 && response.status <= 299 && (result.result === true || result.result === global_constants.SCORM_TRUE)) {
+          if (!Object.hasOwnProperty.call(result, "errorCode")) {
+            result.errorCode = 0;
+          }
+          return result;
+        } else {
+          if (!Object.hasOwnProperty.call(result, "errorCode")) {
+            result.errorCode = this.error_codes.GENERAL;
+          }
+          return result;
+        }
+      } catch (error) {
+        this.apiLog("OfflineStorageService", `Error sending data to LMS: ${error}`, LogLevelEnum.ERROR);
+        return {
+          result: global_constants.SCORM_FALSE,
+          errorCode: this.error_codes.GENERAL
+        };
+      }
+    }
+    /**
+     * Check if the device is currently online
+     * @returns {boolean} - Online status
+     */
+    isDeviceOnline() {
+      return this.isOnline;
+    }
+    /**
+     * Get item from localStorage
+     * @param {string} key - The key to retrieve
+     * @returns {Promise<T|null>} - The retrieved data
+     */
+    async getFromStorage(key) {
+      const storedData = localStorage.getItem(key);
+      if (storedData) {
+        try {
+          return JSON.parse(storedData);
+        } catch (e) {
+          return null;
+        }
+      }
+      return null;
+    }
+    /**
+     * Save item to localStorage
+     * @param {string} key - The key to store under
+     * @param {any} data - The data to store
+     * @returns {Promise<void>}
+     */
+    async saveToStorage(key, data) {
+      localStorage.setItem(key, JSON.stringify(data));
+    }
+    /**
+     * Check if there is pending offline data for a course
+     * @param {string} courseId - Identifier for the course
+     * @returns {Promise<boolean>} - Whether there is pending data
+     */
+    async hasPendingOfflineData(courseId) {
+      const queue = (await this.getFromStorage(this.syncQueue)) || [];
+      return queue.some(item => item.courseId === courseId);
+    }
+    /**
+     * Update the service settings
+     * @param {Settings} settings - The new settings
+     */
+    updateSettings(settings) {
+      this.settings = settings;
+    }
+  }
+
   class BaseAPI {
     /**
      * Constructor for Base API class. Sets some shared API fields, as well as
@@ -2845,9 +3070,11 @@ ${stackTrace}`);
      * @param {ICMIDataService} cmiDataService - Optional CMI Data service instance
      * @param {IErrorHandlingService} errorHandlingService - Optional Error Handling service instance
      * @param {ILoggingService} loggingService - Optional Logging service instance
+     * @param {IOfflineStorageService} offlineStorageService - Optional Offline Storage service instance
      */
-    constructor(error_codes, settings, httpService, eventService, serializationService, cmiDataService, errorHandlingService, loggingService) {
+    constructor(error_codes, settings, httpService, eventService, serializationService, cmiDataService, errorHandlingService, loggingService, offlineStorageService) {
       this._settings = DefaultSettings;
+      this._courseId = "";
       if (new.target === BaseAPI) {
         throw new TypeError("Cannot construct BaseAPI instances directly");
       }
@@ -2870,6 +3097,22 @@ ${stackTrace}`);
       this._eventService = eventService || new EventService((functionName, message, level, element) => this.apiLog(functionName, message, level, element));
       this._serializationService = serializationService || new SerializationService();
       this._errorHandlingService = errorHandlingService || createErrorHandlingService(this._error_codes, (functionName, message, level, element) => this.apiLog(functionName, message, level, element), (errorNumber, detail) => this.getLmsErrorMessageDetails(errorNumber, detail));
+      if (this.settings.enableOfflineSupport) {
+        this._offlineStorageService = offlineStorageService || new OfflineStorageService(this.settings, this._error_codes, (functionName, message, level, element) => this.apiLog(functionName, message, level, element));
+        if (this.settings.courseId) {
+          this._courseId = this.settings.courseId;
+        }
+        if (this._offlineStorageService && this._courseId) {
+          this._offlineStorageService.getOfflineData(this._courseId).then(offlineData => {
+            if (offlineData) {
+              this.apiLog("constructor", "Found offline data to restore", LogLevelEnum.INFO);
+              this.loadFromJSON(offlineData.runtimeData);
+            }
+          }).catch(error => {
+            this.apiLog("constructor", `Error retrieving offline data: ${error}`, LogLevelEnum.ERROR);
+          });
+        }
+      }
     }
     /**
      * Get the last error code
@@ -2903,6 +3146,12 @@ ${stackTrace}`);
       this.lastErrorCode = "0";
       this._eventService.reset();
       this.startingData = void 0;
+      if (this._offlineStorageService) {
+        this._offlineStorageService.updateSettings(this.settings);
+        if (settings?.courseId) {
+          this._courseId = settings.courseId;
+        }
+      }
     }
     /**
      * Initialize the API
@@ -2925,6 +3174,19 @@ ${stackTrace}`);
         this.lastErrorCode = "0";
         returnValue = global_constants.SCORM_TRUE;
         this.processListeners(callbackName);
+        if (this.settings.enableOfflineSupport && this._offlineStorageService && this._courseId && this.settings.syncOnInitialize && this._offlineStorageService.isDeviceOnline()) {
+          this._offlineStorageService.hasPendingOfflineData(this._courseId).then(hasPendingData => {
+            if (hasPendingData) {
+              this.apiLog(callbackName, "Syncing pending offline data on initialization", LogLevelEnum.INFO);
+              this._offlineStorageService?.syncOfflineData().then(syncSuccess => {
+                if (syncSuccess) {
+                  this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
+                  this.processListeners("OfflineDataSynced");
+                }
+              });
+            }
+          });
+        }
       }
       this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
       this.clearSCORMError(returnValue);
@@ -2987,6 +3249,13 @@ ${stackTrace}`);
       let returnValue = global_constants.SCORM_FALSE;
       if (this.checkState(checkTerminated, this._error_codes.TERMINATION_BEFORE_INIT, this._error_codes.MULTIPLE_TERMINATION)) {
         this.currentState = global_constants.STATE_TERMINATED;
+        if (this.settings.enableOfflineSupport && this._offlineStorageService && this._courseId && this.settings.syncOnTerminate && this._offlineStorageService.isDeviceOnline()) {
+          const hasPendingData = await this._offlineStorageService.hasPendingOfflineData(this._courseId);
+          if (hasPendingData) {
+            this.apiLog(callbackName, "Syncing pending offline data before termination", LogLevelEnum.INFO);
+            await this._offlineStorageService.syncOfflineData();
+          }
+        }
         const result = await this.storeData(true);
         if ((result.errorCode ?? 0) > 0) {
           this.throwSCORMError("api", result.errorCode);
@@ -3083,6 +3352,21 @@ ${stackTrace}`);
         this.apiLog(callbackName, " Result: " + returnValue, LogLevelEnum.DEBUG, "HttpRequest");
         if (checkTerminated) this.lastErrorCode = "0";
         this.processListeners(callbackName);
+        if (this.settings.enableOfflineSupport && this._offlineStorageService && this._offlineStorageService.isDeviceOnline() && this._courseId) {
+          this._offlineStorageService.hasPendingOfflineData(this._courseId).then(hasPendingData => {
+            if (hasPendingData) {
+              this.apiLog(callbackName, "Syncing pending offline data", LogLevelEnum.INFO);
+              this._offlineStorageService?.syncOfflineData().then(syncSuccess => {
+                if (syncSuccess) {
+                  this.apiLog(callbackName, "Successfully synced offline data", LogLevelEnum.INFO);
+                  this.processListeners("OfflineDataSynced");
+                } else {
+                  this.apiLog(callbackName, "Failed to sync some offline data", LogLevelEnum.WARN);
+                }
+              });
+            }
+          });
+        }
       }
       this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
       if (this.lastErrorCode === "0") {
@@ -3498,6 +3782,9 @@ ${stackTrace}`);
      */
     loadFromJSON(json) {
       let CMIElement = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "";
+      if ((!CMIElement || CMIElement === "") && !Object.hasOwnProperty.call(json, "cmi") && !Object.hasOwnProperty.call(json, "adl")) {
+        CMIElement = "cmi";
+      }
       this._serializationService.loadFromJSON(json, CMIElement, (CMIElement2, value) => this.setCMIValue(CMIElement2, value), () => this.isNotInitialized(), data => {
         this.startingData = data;
       });
@@ -3531,26 +3818,29 @@ ${stackTrace}`);
       return this._serializationService.renderCMIToJSONObject(this.cmi, this.settings.sendFullCommit);
     }
     /**
-     * Sends a request to the LMS with the specified parameters.
-     * This method handles communication with the LMS server, including
-     * formatting the request, handling the response, and triggering appropriate events.
+     * Process an HTTP request
      *
-     * @param {string} url - The URL endpoint to send the request to
-     * @param {CommitObject|StringKeyMap|Array} params - The data to send to the LMS
-     * @param {boolean} immediate - Whether to send the request immediately (true) or queue it (false)
-     * @return {Promise<ResultObject>} A promise that resolves with the result of the request
-     * @example
-     * // Send data to the LMS immediately
-     * const result = await api.processHttpRequest(
-     *   "https://lms.example.com/scorm/commit",
-     *   { method: "POST", params: { cmi: { core: { lesson_status: "completed" } } } },
-     *   true
-     * );
-     * console.log(result.errorCode === 0 ? "Success" : "Failed");
+     * @param {string} url - The URL to send the request to
+     * @param {CommitObject | StringKeyMap | Array<any>} params - The parameters to send
+     * @param {boolean} immediate - Whether to send the request immediately without waiting
+     * @returns {Promise<ResultObject>} - The result of the request
+     * @async
      */
     async processHttpRequest(url, params) {
       let immediate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-      return this._httpService.processHttpRequest(url, params, immediate, (functionName, message, level, element) => this.apiLog(functionName, message, level, element), (functionName, CMIElement, value) => this.processListeners(functionName, CMIElement, value));
+      if (this.settings.enableOfflineSupport && this._offlineStorageService && !this._offlineStorageService.isDeviceOnline() && this._courseId) {
+        this.apiLog("processHttpRequest", "Device is offline, storing data locally", LogLevelEnum.INFO);
+        if (params && typeof params === "object" && "cmi" in params) {
+          return await this._offlineStorageService.storeOffline(this._courseId, params);
+        } else {
+          this.apiLog("processHttpRequest", "Invalid commit data format for offline storage", LogLevelEnum.ERROR);
+          return {
+            result: global_constants.SCORM_FALSE,
+            errorCode: this._error_codes.GENERAL
+          };
+        }
+      }
+      return await this._httpService.processHttpRequest(url, params, immediate, (functionName, message, level, element) => this.apiLog(functionName, message, level, element), (functionName, CMIElement, value) => this.processListeners(functionName, CMIElement, value));
     }
     /**
      * Schedules a commit operation to occur after a specified delay.

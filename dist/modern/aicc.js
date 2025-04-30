@@ -4343,7 +4343,7 @@ ${stackTrace}`);
      * });
      */
     loadFromJSON(json, CMIElement = "") {
-      if ((!CMIElement || CMIElement === "") && !Object.hasOwnProperty.call(json, "cmi")) {
+      if ((!CMIElement || CMIElement === "") && !Object.hasOwnProperty.call(json, "cmi") && !Object.hasOwnProperty.call(json, "adl")) {
         CMIElement = "cmi";
       }
       this._serializationService.loadFromJSON(

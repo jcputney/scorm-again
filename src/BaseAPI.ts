@@ -20,7 +20,7 @@ import {
   IHttpService,
   ILoggingService,
   IOfflineStorageService,
-  ISerializationService,
+  ISerializationService
 } from "./interfaces/services";
 import { CMIArray } from "./cmi/common/array";
 import { ValidationError } from "./exceptions";
@@ -1171,7 +1171,11 @@ export default abstract class BaseAPI implements IBaseAPI {
    * });
    */
   loadFromJSON(json: StringKeyMap, CMIElement: string = "") {
-    if ((!CMIElement || CMIElement === "") && !Object.hasOwnProperty.call(json, "cmi")) {
+    if (
+      (!CMIElement || CMIElement === "") &&
+      !Object.hasOwnProperty.call(json, "cmi") &&
+      !Object.hasOwnProperty.call(json, "adl")
+    ) {
       // providing a backward compatibility for the old v1 API
       CMIElement = "cmi";
     }

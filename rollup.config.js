@@ -8,7 +8,7 @@ const entries = {
   aicc: "src/AICC.ts",
   scorm12: "src/Scorm12API.ts",
   scorm2004: "src/Scorm2004API.ts",
-  "scorm-again": "src/ScormAgain.ts",
+  "scorm-again": "src/facades/ScormAgain.iife.ts",
   "cross-frame-facade": "src/facades/CrossFrameFacade.ts",
 };
 const esmEntries = {
