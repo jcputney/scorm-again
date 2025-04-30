@@ -4,7 +4,6 @@ import { expect, test } from "@playwright/test";
  * Integration test to verify all SCORM modules can load without errors
  */
 test.describe("Module Loading Tests", () => {
-
   test("All modules should load without errors", async ({ page }) => {
     // Navigate to the dist_test.html page using the HTTP server instead of file:// protocol
     // This is necessary for ESM modules to load properly
