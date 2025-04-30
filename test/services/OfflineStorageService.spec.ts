@@ -622,10 +622,12 @@ describe("OfflineStorageService Tests", () => {
 
       it("should use response handler if configured", async () => {
         const service = createService();
-        const responseHandler = vi.fn((response: Response) => Promise.resolve({
-          result: global_constants.SCORM_TRUE,
-          errorCode: 0,
-        }));
+        const responseHandler = vi.fn((response: Response) =>
+          Promise.resolve({
+            result: global_constants.SCORM_TRUE,
+            errorCode: 0,
+          }),
+        );
 
         // Update settings with response handler
         service.updateSettings({

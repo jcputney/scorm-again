@@ -46,3 +46,11 @@ export interface ILoggingService {
     info(logMessage: string): void;
     debug(logMessage: string): void;
 }
+export interface IOfflineStorageService {
+    storeOffline(courseId: string, commitData: CommitObject): Promise<ResultObject>;
+    getOfflineData(courseId: string): Promise<CommitObject | null>;
+    syncOfflineData(): Promise<boolean>;
+    hasPendingOfflineData(courseId: string): Promise<boolean>;
+    isDeviceOnline(): boolean;
+    updateSettings(settings: Settings): void;
+}

@@ -26,6 +26,11 @@ export type Settings = {
     scoItemIdValidator?: false | ((scoItemId: string) => boolean);
     globalObjectiveIds?: string[];
     sequencing?: SequencingSettings;
+    enableOfflineSupport?: boolean;
+    courseId?: string;
+    syncOnInitialize?: boolean;
+    syncOnTerminate?: boolean;
+    maxSyncAttempts?: number;
 };
 export type RequiredSettings = Required<Settings>;
 export type CoreSettings = Pick<Settings, "autocommit" | "asyncCommit" | "logLevel" | "strict_errors">;
@@ -50,6 +55,13 @@ export type CommitObject = {
     totalTimeSeconds: number;
     runtimeData: StringKeyMap;
     score?: ScoreObject;
+    commitId?: string;
+    courseId?: string;
+    learnerId?: string;
+    learnerName?: string;
+    sessionId?: string;
+    activityId?: string;
+    attempt?: number;
 };
 export type CommitObjectWithScore = CommitObject & {
     score: ScoreObject;
