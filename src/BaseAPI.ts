@@ -851,6 +851,10 @@ export default abstract class BaseAPI implements IBaseAPI {
           }
 
           if (!scorm2004 || this._errorHandlingService.lastErrorCode === "0") {
+            if (attribute === "__proto__" || attribute === "constructor") {
+              this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+              break;
+            }
             (refObject as StringKeyMap)[attribute] = value;
             returnValue = global_constants.SCORM_TRUE;
           }
