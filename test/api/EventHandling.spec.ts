@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Scorm2004API } from "../../src/Scorm2004API";
+import Scorm2004API from "../../src/Scorm2004API";
 import { LogLevelEnum } from "../../src/constants/enums";
 
 describe("Event Handling", () => {
@@ -8,17 +8,17 @@ describe("Event Handling", () => {
 
   beforeEach(() => {
     // Set up fetch mocks for HTTP requests
-    vi.stubGlobal('fetch', vi.fn());
-    
+    vi.stubGlobal("fetch", vi.fn());
+
     (fetch as ReturnType<typeof vi.fn>).mockImplementation((url) => {
-      if (url.toString().includes('/scorm2004/error')) {
+      if (url.toString().includes("/scorm2004/error")) {
         return Promise.resolve({
           ok: false,
           status: 500,
           json: () => Promise.resolve({ result: "false", errorCode: 101 }),
         } as Response);
       }
-      
+
       return Promise.resolve({
         ok: true,
         status: 200,
@@ -127,24 +127,25 @@ describe("Event Handling", () => {
       api.Initialize();
 
       // Set up server response for navigation request
-      vi.stubGlobal('fetch', vi.fn());
-      
+      vi.stubGlobal("fetch", vi.fn());
+
       (fetch as ReturnType<typeof vi.fn>).mockImplementation((url) => {
-        if (url.toString().includes('/scorm2004')) {
+        if (url.toString().includes("/scorm2004")) {
           return Promise.resolve({
             ok: true,
             status: 200,
-            json: () => Promise.resolve({
-              result: "true",
-              errorCode: 0,
-              navRequest: {
-                name: "SequenceNext",
-                data: "next",
-              },
-            }),
+            json: () =>
+              Promise.resolve({
+                result: "true",
+                errorCode: 0,
+                navRequest: {
+                  name: "SequenceNext",
+                  data: "next",
+                },
+              }),
           } as Response);
         }
-        
+
         return Promise.resolve({
           ok: false,
           status: 500,
@@ -170,24 +171,25 @@ describe("Event Handling", () => {
       api.Initialize();
 
       // Set up server response for navigation request
-      vi.stubGlobal('fetch', vi.fn());
-      
+      vi.stubGlobal("fetch", vi.fn());
+
       (fetch as ReturnType<typeof vi.fn>).mockImplementation((url) => {
-        if (url.toString().includes('/scorm2004')) {
+        if (url.toString().includes("/scorm2004")) {
           return Promise.resolve({
             ok: true,
             status: 200,
-            json: () => Promise.resolve({
-              result: "true",
-              errorCode: 0,
-              navRequest: {
-                name: "SequenceChoice",
-                data: "activity_1",
-              },
-            }),
+            json: () =>
+              Promise.resolve({
+                result: "true",
+                errorCode: 0,
+                navRequest: {
+                  name: "SequenceChoice",
+                  data: "activity_1",
+                },
+              }),
           } as Response);
         }
-        
+
         return Promise.resolve({
           ok: false,
           status: 500,
@@ -224,26 +226,27 @@ describe("Event Handling", () => {
       api.Initialize();
 
       // Set up server response for successful commit
-      vi.stubGlobal('fetch', vi.fn());
-      
+      vi.stubGlobal("fetch", vi.fn());
+
       (fetch as ReturnType<typeof vi.fn>).mockImplementation((url) => {
-        if (url.toString().includes('/scorm2004')) {
+        if (url.toString().includes("/scorm2004")) {
           return Promise.resolve({
             ok: true,
             status: 200,
-            json: () => Promise.resolve({
-              result: "true",
-              errorCode: 0,
-              commitObject: {
-                completionStatus: "completed",
-                successStatus: "passed",
-                totalTimeSeconds: 0,
-                runtimeData: {},
-              },
-            }),
+            json: () =>
+              Promise.resolve({
+                result: "true",
+                errorCode: 0,
+                commitObject: {
+                  completionStatus: "completed",
+                  successStatus: "passed",
+                  totalTimeSeconds: 0,
+                  runtimeData: {},
+                },
+              }),
           } as Response);
         }
-        
+
         return Promise.resolve({
           ok: false,
           status: 500,
@@ -272,21 +275,22 @@ describe("Event Handling", () => {
       api.settings.lmsCommitUrl = "/scorm2004/error";
 
       // Set up server response for failed commit
-      vi.stubGlobal('fetch', vi.fn());
-      
+      vi.stubGlobal("fetch", vi.fn());
+
       (fetch as ReturnType<typeof vi.fn>).mockImplementation((url) => {
-        if (url.toString().includes('/scorm2004/error')) {
+        if (url.toString().includes("/scorm2004/error")) {
           return Promise.resolve({
             ok: false,
             status: 500,
-            json: () => Promise.resolve({
-              result: "false",
-              errorCode: 101,
-              errorMessage: "General error",
-            }),
+            json: () =>
+              Promise.resolve({
+                result: "false",
+                errorCode: 101,
+                errorMessage: "General error",
+              }),
           } as Response);
         }
-        
+
         return Promise.resolve({
           ok: false,
           status: 500,
@@ -315,31 +319,32 @@ describe("Event Handling", () => {
       api.Initialize();
 
       // Set up server response for successful commit
-      vi.stubGlobal('fetch', vi.fn());
-      
+      vi.stubGlobal("fetch", vi.fn());
+
       (fetch as ReturnType<typeof vi.fn>).mockImplementation((url) => {
-        if (url.toString().includes('/scorm2004')) {
+        if (url.toString().includes("/scorm2004")) {
           return Promise.resolve({
             ok: true,
             status: 200,
-            json: () => Promise.resolve({
-              result: "true",
-              errorCode: 0,
-              commitObject: {
-                completionStatus: "completed",
-                successStatus: "passed",
-                totalTimeSeconds: 0,
-                runtimeData: {
-                  "cmi.score.scaled": "0.8",
-                  "cmi.score.raw": "80",
-                  "cmi.score.min": "0",
-                  "cmi.score.max": "100",
+            json: () =>
+              Promise.resolve({
+                result: "true",
+                errorCode: 0,
+                commitObject: {
+                  completionStatus: "completed",
+                  successStatus: "passed",
+                  totalTimeSeconds: 0,
+                  runtimeData: {
+                    "cmi.score.scaled": "0.8",
+                    "cmi.score.raw": "80",
+                    "cmi.score.min": "0",
+                    "cmi.score.max": "100",
+                  },
                 },
-              },
-            }),
+              }),
           } as Response);
         }
-        
+
         return Promise.resolve({
           ok: false,
           status: 500,

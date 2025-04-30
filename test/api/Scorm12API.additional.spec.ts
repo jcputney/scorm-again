@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { Scorm12API } from "../../src/Scorm12API";
+import Scorm12API from "../../src/Scorm12API";
 import { global_constants, scorm12_constants } from "../../src/constants/api_constants";
 import { Settings } from "../../src/types/api_types";
 import { LogLevelEnum } from "../../src/constants/enums";

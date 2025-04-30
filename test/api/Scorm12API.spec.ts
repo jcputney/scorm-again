@@ -1,11 +1,11 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { Scorm12API } from "../../src/Scorm12API";
+import Scorm12API from "../../src/Scorm12API";
 import * as h from "./api_helpers";
 import { scorm12Values } from "../field_values";
 import { Settings } from "../../src/types/api_types";
 import { DefaultSettings } from "../../src/constants/default_settings";
 import { CompletionStatus, LogLevelEnum, SuccessStatus } from "../../src/constants/enums";
-import { StringKeyMap } from "../../src/utilities";
+import { StringKeyMap } from "../../src";
 import BaseAPI from "../../src/BaseAPI";
 
 const api = (settings?: Settings, startingData: StringKeyMap = {}): Scorm12API => {
@@ -23,19 +23,19 @@ const apiInitialized = (settings?: Settings, startingData: StringKeyMap = {}): S
 describe("SCORM 1.2 API Tests", () => {
   beforeAll((): void => {
     vi.useFakeTimers();
-    
+
     // Set up fetch mocks
-    vi.stubGlobal('fetch', vi.fn());
-    
+    vi.stubGlobal("fetch", vi.fn());
+
     (fetch as ReturnType<typeof vi.fn>).mockImplementation((url) => {
-      if (url.toString().includes('/scorm12/error')) {
+      if (url.toString().includes("/scorm12/error")) {
         return Promise.resolve({
           ok: false,
           status: 500,
           json: () => Promise.resolve({}),
         } as Response);
       }
-      
+
       return Promise.resolve({
         ok: true,
         status: 200,

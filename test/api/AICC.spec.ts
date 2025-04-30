@@ -1,13 +1,12 @@
-;
-import { describe, it , vi } from "vitest";
+import { describe, it, vi } from "vitest";
 import * as h from "./api_helpers";
-import { AICC } from "../../src/AICC";
+import AICC from "../../src/AICC";
 import { DefaultSettings } from "../../src/constants/default_settings";
 import { CMITries } from "../../src/cmi/aicc/tries";
 import { CMIInteractions } from "../../src/cmi/scorm12/interactions";
 import { Settings } from "../../src/types/api_types";
 import { LogLevelEnum } from "../../src/constants/enums";
-import { StringKeyMap } from "../../src/utilities";
+import { StringKeyMap } from "../../src";
 
 const api = (settings?: Settings, startingData: StringKeyMap = {}) => {
   const API = new AICC({ ...settings, logLevel: LogLevelEnum.NONE });

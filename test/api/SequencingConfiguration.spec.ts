@@ -1,17 +1,14 @@
-import { describe, it , vi } from "vitest";
-;
-import { Scorm2004API } from "../../src/Scorm2004API";
-import { Activity } from "../../src/cmi/scorm2004/sequencing/activity";
+import { describe, it } from "vitest";
+
+import Scorm2004API from "../../src/Scorm2004API";
 import {
-  SequencingRule,
-  RuleConditionType,
   RuleActionType,
   RuleConditionOperator,
+  RuleConditionType,
 } from "../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import {
-  RollupRule,
-  RollupConditionType,
   RollupActionType,
+  RollupConditionType,
   RollupConsiderationType,
 } from "../../src/cmi/scorm2004/sequencing/rollup_rules";
 

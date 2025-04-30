@@ -1,7 +1,7 @@
 // noinspection JSConstantReassignment
 
 import { describe, expect, it, vi } from "vitest";
-import { Scorm2004API } from "../../src/Scorm2004API";
+import Scorm2004API from "../../src/Scorm2004API";
 import { scorm2004_errors } from "../../src/constants/error_codes";
 import { global_constants } from "../../src/constants/api_constants";
 import { Settings } from "../../src/types/api_types";

@@ -1,14 +1,12 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import * as h from "./api_helpers";
-import { Scorm2004API } from "../../src/Scorm2004API";
+import Scorm2004API from "../../src/Scorm2004API";
 import { scorm2004Values } from "../field_values";
-import { global_constants, scorm2004_constants } from "../../src/constants/api_constants";
+import { ADLNav, global_constants, scorm2004_constants, StringKeyMap } from "../../src";
 import { Settings } from "../../src/types/api_types";
 import { DefaultSettings } from "../../src/constants/default_settings";
 import { CMIInteractions } from "../../src/cmi/scorm2004/interactions";
-import { ADLNav } from "../../src/cmi/scorm2004/adl";
 import { CompletionStatus, LogLevelEnum, SuccessStatus } from "../../src/constants/enums";
-import { StringKeyMap } from "../../src/utilities";
 
 const api = (settings?: Settings, startingData: StringKeyMap = {}): Scorm2004API => {
   const API = new Scorm2004API({ ...settings, logLevel: LogLevelEnum.NONE });
