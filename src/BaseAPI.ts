@@ -1171,6 +1171,10 @@ export default abstract class BaseAPI implements IBaseAPI {
    * });
    */
   loadFromJSON(json: StringKeyMap, CMIElement: string = "") {
+    if ((!CMIElement || CMIElement === "") && !Object.hasOwnProperty.call(json, "cmi")) {
+      // providing a backward compatibility for the old v1 API
+      CMIElement = "cmi";
+    }
     this._serializationService.loadFromJSON(
       json,
       CMIElement,

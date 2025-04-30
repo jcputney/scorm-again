@@ -95,6 +95,29 @@ describe("SCORM 1.2 API Tests", () => {
       expect(scorm12API.cmi.objectives.childArray[0].score.max).toEqual("100");
     });
 
+    it("should load nested JSON data into the CMI object in a backwards compatible way with v1", () => {
+      const scorm12API = api();
+      const jsonData = {
+        objectives: {
+          "0": {
+            id: "obj_1",
+            score: {
+              raw: "85",
+              min: "0",
+              max: "100",
+            },
+          },
+        },
+      };
+
+      scorm12API.loadFromJSON(jsonData);
+
+      expect(scorm12API.cmi.objectives.childArray[0].id).toEqual("obj_1");
+      expect(scorm12API.cmi.objectives.childArray[0].score.raw).toEqual("85");
+      expect(scorm12API.cmi.objectives.childArray[0].score.min).toEqual("0");
+      expect(scorm12API.cmi.objectives.childArray[0].score.max).toEqual("100");
+    });
+
     it("should load nested cmi JSON data into the CMI object", () => {
       const scorm12API = api();
       const jsonData = {
