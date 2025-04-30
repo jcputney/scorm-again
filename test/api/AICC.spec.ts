@@ -1,4 +1,4 @@
-import { describe, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import * as h from "./api_helpers";
 import AICC from "../../src/AICC";
 import { DefaultSettings } from "../../src/constants/default_settings";

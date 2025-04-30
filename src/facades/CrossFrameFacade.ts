@@ -432,6 +432,13 @@ export class CrossFrameAPI implements ICrossFrameFacade {
     } catch (e) {
       // If SharedArrayBuffer or Atomics are not available (e.g., in test environment)
       // or if there's any other error, rethrow it to be handled by the caller
+      if (e instanceof Error) {
+        console.error(`Error in synchronous call to ${method}:`, e);
+        this._lastError = "101"; // General exception
+      } else {
+        console.error(`Unknown error in synchronous call to ${method}:`, e);
+        this._lastError = "101"; // General exception
+      }
       throw e;
     }
   }
