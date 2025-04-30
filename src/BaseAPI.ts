@@ -4,13 +4,7 @@ import { ErrorCode } from "./constants/error_codes";
 import { global_constants } from "./constants/api_constants";
 import { formatMessage, stringMatches, unflatten } from "./utilities";
 import { BaseCMI } from "./cmi/common/base_cmi";
-import {
-  CommitObject,
-  LogLevel,
-  RefObject,
-  ResultObject,
-  Settings,
-} from "./types/api_types";
+import { CommitObject, LogLevel, RefObject, ResultObject, Settings } from "./types/api_types";
 import { DefaultSettings } from "./constants/default_settings";
 import { IBaseAPI } from "./interfaces/IBaseAPI";
 import { ScheduledCommit } from "./helpers/scheduled_commit";
@@ -1048,6 +1042,15 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {string} CMIElement
    */
   loadFromJSON(json: RefObject, CMIElement: string = "") {
+    if (
+      (!CMIElement || CMIElement === "") &&
+      !Object.hasOwnProperty.call(json, "cmi") &&
+      !Object.hasOwnProperty.call(json, "adl")
+    ) {
+      // providing a backward compatibility for the old v1 API
+      CMIElement = "cmi";
+    }
+
     if (!this.isNotInitialized()) {
       console.error(
         "loadFromJSON can only be called before the call to lmsInitialize.",
