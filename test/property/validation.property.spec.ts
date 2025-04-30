@@ -1,5 +1,4 @@
-import { describe, it , vi } from "vitest";
-;
+import { describe, it, vi } from "vitest";
 import * as fc from "fast-check";
 import { checkValidFormat, checkValidRange } from "../../src/cmi/common/validation";
 import { BaseScormValidationError } from "../../src/exceptions";

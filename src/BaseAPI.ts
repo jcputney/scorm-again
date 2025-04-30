@@ -18,7 +18,7 @@ import {
   IEventService,
   IHttpService,
   ILoggingService,
-  ISerializationService
+  ISerializationService,
 } from "./interfaces/services";
 import { CMIArray } from "./cmi/common/array";
 import { ValidationError } from "./exceptions";

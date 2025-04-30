@@ -1,5 +1,4 @@
-import { describe, it , vi } from "vitest";
-;
+import { describe, it, vi } from "vitest";
 import { ValidationService, validationService } from "../../src/services/ValidationService";
 import { BaseScormValidationError } from "../../src/exceptions";
 import { scorm12_errors } from "../../src/constants/error_codes";

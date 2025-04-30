@@ -1,5 +1,4 @@
-import { describe, it  , vi } from "vitest";
-;
+import { describe, it, vi } from "vitest";
 import {
   CMICommentsFromLearner,
   CMICommentsFromLMS,

@@ -1,4 +1,3 @@
-;
 import { afterEach, beforeEach, describe, it, vi, expect } from "vitest";
 import { LogLevelEnum } from "../../src/constants/enums";
 import { EventService } from "../../src/services/EventService";

@@ -1,5 +1,4 @@
-;
-import { describe, it , vi } from "vitest";
+import { describe, it, vi } from "vitest";
 import { checkValidFormat, checkValidRange } from "../../src/cmi/common/validation";
 import { validationService } from "../../src/services/ValidationService";
 import { BaseScormValidationError } from "../../src/exceptions";

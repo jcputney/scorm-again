@@ -122,6 +122,13 @@
         if (pending.error) throw pending.error;
         return pending.result;
       } catch (e) {
+        if (e instanceof Error) {
+          console.error(`Error in synchronous call to ${method}:`, e);
+          this._lastError = "101";
+        } else {
+          console.error(`Unknown error in synchronous call to ${method}:`, e);
+          this._lastError = "101";
+        }
         throw e;
       }
     }
