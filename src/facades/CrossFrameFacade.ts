@@ -586,7 +586,7 @@ export class CrossFrameAPI implements ICrossFrameFacade {
         try {
           listener(...args);
         } catch (e: unknown) {
-          console.error(`Error in event listener for ${event}:`, e);
+          console.error("Error in event listener for %s:", String(event), e);
         }
       });
     }
