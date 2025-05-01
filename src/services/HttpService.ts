@@ -1,9 +1,9 @@
-import {CommitObject, InternalSettings, ResultObject} from "../types/api_types";
-import {global_constants} from "../constants/api_constants";
-import {LogLevelEnum} from "../constants/enums";
-import {IHttpService} from "../interfaces/services";
-import {ErrorCode} from "../constants/error_codes";
-import {StringKeyMap} from "../utilities";
+import { CommitObject, InternalSettings, ResultObject } from "../types/api_types";
+import { global_constants } from "../constants/api_constants";
+import { LogLevelEnum } from "../constants/enums";
+import { IHttpService } from "../interfaces/services";
+import { ErrorCode } from "../constants/error_codes";
+import { StringKeyMap } from "../utilities";
 
 /**
  * Service for handling HTTP communication with the LMS
