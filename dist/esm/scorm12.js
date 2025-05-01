@@ -175,6 +175,7 @@ var ScheduledCommit = (function () {
 var BaseAPI = (function () {
     function BaseAPI(error_codes, settings) {
         var _newTarget = this.constructor;
+        var _a, _c;
         this._settings = DefaultSettings;
         if (_newTarget === BaseAPI) {
             throw new TypeError("Cannot construct BaseAPI instances directly");
@@ -184,13 +185,10 @@ var BaseAPI = (function () {
         this.listenerArray = [];
         this._error_codes = error_codes;
         if (settings) {
-            this.settings = settings;
+            this.settings = (0,tslib_es6.__assign)((0,tslib_es6.__assign)({}, DefaultSettings), settings);
         }
-        this.apiLogLevel = this.settings.logLevel;
-        this.selfReportSessionTime = this.settings.selfReportSessionTime;
-        if (this.apiLogLevel === undefined) {
-            this.apiLogLevel = enums.LogLevelEnum.NONE;
-        }
+        this.apiLogLevel = (_a = this.settings.logLevel) !== null && _a !== void 0 ? _a : enums.LogLevelEnum.ERROR;
+        this.selfReportSessionTime = (_c = this.settings.selfReportSessionTime) !== null && _c !== void 0 ? _c : false;
     }
     BaseAPI.prototype.commonReset = function (settings) {
         this.apiLog("reset", "Called", enums.LogLevelEnum.INFO);
@@ -199,7 +197,7 @@ var BaseAPI = (function () {
         this.currentState = api_constants.global_constants.STATE_NOT_INITIALIZED;
         this.lastErrorCode = "0";
         this.listenerArray = [];
-        this.startingData = undefined;
+        this.startingData = {};
     };
     BaseAPI.prototype.initialize = function (callbackName, initializeMessage, terminationMessage) {
         var returnValue = api_constants.global_constants.SCORM_FALSE;
@@ -868,15 +866,19 @@ var BaseAPI = (function () {
     };
     BaseAPI.prototype.performFetch = function (url, params) {
         return (0,tslib_es6.__awaiter)(this, void 0, void 0, function () {
+            var init;
             return (0,tslib_es6.__generator)(this, function (_a) {
-                return [2, fetch(url, {
-                        method: "POST",
-                        mode: this.settings.fetchMode,
-                        body: params instanceof Array ? params.join("&") : JSON.stringify(params),
-                        headers: (0,tslib_es6.__assign)((0,tslib_es6.__assign)({}, this.settings.xhrHeaders), { "Content-Type": this.settings.commitRequestDataType }),
-                        credentials: this.settings.xhrWithCredentials ? "include" : undefined,
-                        keepalive: true,
-                    })];
+                init = {
+                    method: "POST",
+                    mode: this.settings.fetchMode,
+                    body: params instanceof Array ? params.join("&") : JSON.stringify(params),
+                    headers: (0,tslib_es6.__assign)((0,tslib_es6.__assign)({}, this.settings.xhrHeaders), { "Content-Type": this.settings.commitRequestDataType }),
+                    keepalive: true,
+                };
+                if (this.settings.xhrWithCredentials) {
+                    init = (0,tslib_es6.__assign)((0,tslib_es6.__assign)({}, init), { credentials: "include" });
+                }
+                return [2, fetch(url, init)];
             });
         });
     };
@@ -924,21 +926,21 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   CMIArray: function() { return /* binding */ CMIArray; }
 /* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(635);
-/* harmony import */ var _base_cmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(319);
-/* harmony import */ var _exceptions__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(784);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(797);
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+/* harmony import */ var _base_cmi__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(319);
+/* harmony import */ var _exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(784);
+/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(797);
 
 
 
 
 var CMIArray = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_3__.__extends)(CMIArray, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIArray, _super);
     function CMIArray(params) {
         var _this = _super.call(this) || this;
         _this.__children = params.children;
-        _this._errorCode = params.errorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.GENERAL;
-        _this._errorClass = params.errorClass || _exceptions__WEBPACK_IMPORTED_MODULE_1__.BaseScormValidationError;
+        _this._errorCode = params.errorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__.scorm12_errors.GENERAL;
+        _this._errorClass = params.errorClass || _exceptions__WEBPACK_IMPORTED_MODULE_2__.BaseScormValidationError;
         _this.childArray = [];
         return _this;
     }
@@ -984,7 +986,7 @@ var CMIArray = (function (_super) {
         return result;
     };
     return CMIArray;
-}(_base_cmi__WEBPACK_IMPORTED_MODULE_0__.BaseCMI));
+}(_base_cmi__WEBPACK_IMPORTED_MODULE_3__.BaseCMI));
 
 
 
@@ -1047,11 +1049,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   CMIScore: function() { return /* binding */ CMIScore; }
 /* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(635);
-/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(340);
-/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(417);
-/* harmony import */ var _base_cmi__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(319);
-/* harmony import */ var _validation__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(449);
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(340);
+/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(417);
+/* harmony import */ var _base_cmi__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(319);
+/* harmony import */ var _validation__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(449);
 /* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(797);
 
 
@@ -1060,15 +1062,15 @@ __webpack_require__.r(__webpack_exports__);
 
 
 var CMIScore = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_4__.__extends)(CMIScore, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIScore, _super);
     function CMIScore(params) {
         var _this = _super.call(this) || this;
         _this._raw = "";
         _this._min = "";
-        _this.__children = params.score_children || _constants_api_constants__WEBPACK_IMPORTED_MODULE_0__.scorm12_constants.score_children;
+        _this.__children = params.score_children || _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__.scorm12_constants.score_children;
         _this.__score_range = !params.score_range
             ? false
-            : _constants_regex__WEBPACK_IMPORTED_MODULE_1__.scorm12_regex.score_range;
+            : _constants_regex__WEBPACK_IMPORTED_MODULE_2__.scorm12_regex.score_range;
         _this._max = params.max || params.max === "" ? params.max : "100";
         _this.__invalid_error_code =
             params.invalidErrorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.INVALID_SET_VALUE;
@@ -1076,7 +1078,7 @@ var CMIScore = (function (_super) {
             params.invalidTypeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.TYPE_MISMATCH;
         _this.__invalid_range_code =
             params.invalidRangeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.VALUE_OUT_OF_RANGE;
-        _this.__decimal_regex = params.decimalRegex || _constants_regex__WEBPACK_IMPORTED_MODULE_1__.scorm12_regex.CMIDecimal;
+        _this.__decimal_regex = params.decimalRegex || _constants_regex__WEBPACK_IMPORTED_MODULE_2__.scorm12_regex.CMIDecimal;
         _this.__error_class = params.errorClass;
         return _this;
     }
@@ -1098,9 +1100,9 @@ var CMIScore = (function (_super) {
             return this._raw;
         },
         set: function (raw) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__.checkValidFormat)(raw, this.__decimal_regex, this.__invalid_type_code, this.__error_class) &&
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_4__.checkValidFormat)(raw, this.__decimal_regex, this.__invalid_type_code, this.__error_class) &&
                 (!this.__score_range ||
-                    (0,_validation__WEBPACK_IMPORTED_MODULE_5__.checkValidRange)(raw, this.__score_range, this.__invalid_range_code, this.__error_class))) {
+                    (0,_validation__WEBPACK_IMPORTED_MODULE_4__.checkValidRange)(raw, this.__score_range, this.__invalid_range_code, this.__error_class))) {
                 this._raw = raw;
             }
         },
@@ -1112,9 +1114,9 @@ var CMIScore = (function (_super) {
             return this._min;
         },
         set: function (min) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__.checkValidFormat)(min, this.__decimal_regex, this.__invalid_type_code, this.__error_class) &&
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_4__.checkValidFormat)(min, this.__decimal_regex, this.__invalid_type_code, this.__error_class) &&
                 (!this.__score_range ||
-                    (0,_validation__WEBPACK_IMPORTED_MODULE_5__.checkValidRange)(min, this.__score_range, this.__invalid_range_code, this.__error_class))) {
+                    (0,_validation__WEBPACK_IMPORTED_MODULE_4__.checkValidRange)(min, this.__score_range, this.__invalid_range_code, this.__error_class))) {
                 this._min = min;
             }
         },
@@ -1126,9 +1128,9 @@ var CMIScore = (function (_super) {
             return this._max;
         },
         set: function (max) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__.checkValidFormat)(max, this.__decimal_regex, this.__invalid_type_code, this.__error_class) &&
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_4__.checkValidFormat)(max, this.__decimal_regex, this.__invalid_type_code, this.__error_class) &&
                 (!this.__score_range ||
-                    (0,_validation__WEBPACK_IMPORTED_MODULE_5__.checkValidRange)(max, this.__score_range, this.__invalid_range_code, this.__error_class))) {
+                    (0,_validation__WEBPACK_IMPORTED_MODULE_4__.checkValidRange)(max, this.__score_range, this.__invalid_range_code, this.__error_class))) {
                 this._max = max;
             }
         },
@@ -1146,7 +1148,7 @@ var CMIScore = (function (_super) {
         return result;
     };
     return CMIScore;
-}(_base_cmi__WEBPACK_IMPORTED_MODULE_2__.BaseCMI));
+}(_base_cmi__WEBPACK_IMPORTED_MODULE_5__.BaseCMI));
 
 
 
@@ -1647,12 +1649,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   CMIInteractionsObject: function() { return /* binding */ CMIInteractionsObject; },
 /* harmony export */   CMIInteractionsObjectivesObject: function() { return /* binding */ CMIInteractionsObjectivesObject; }
 /* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(635);
-/* harmony import */ var _common_array__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(589);
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+/* harmony import */ var _common_array__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(589);
 /* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(340);
 /* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(797);
 /* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(179);
-/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(319);
+/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(319);
 /* harmony import */ var _validation__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(915);
 /* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(417);
 
@@ -1664,7 +1666,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 var CMIInteractions = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_7__.__extends)(CMIInteractions, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIInteractions, _super);
     function CMIInteractions() {
         return _super.call(this, {
             children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__.scorm12_constants.interactions_children,
@@ -1673,10 +1675,10 @@ var CMIInteractions = (function (_super) {
         }) || this;
     }
     return CMIInteractions;
-}(_common_array__WEBPACK_IMPORTED_MODULE_0__.CMIArray));
+}(_common_array__WEBPACK_IMPORTED_MODULE_4__.CMIArray));
 
 var CMIInteractionsObject = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_7__.__extends)(CMIInteractionsObject, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIInteractionsObject, _super);
     function CMIInteractionsObject() {
         var _this = _super.call(this) || this;
         _this._id = "";
@@ -1686,12 +1688,12 @@ var CMIInteractionsObject = (function (_super) {
         _this._student_response = "";
         _this._result = "";
         _this._latency = "";
-        _this.objectives = new _common_array__WEBPACK_IMPORTED_MODULE_0__.CMIArray({
+        _this.objectives = new _common_array__WEBPACK_IMPORTED_MODULE_4__.CMIArray({
             errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.INVALID_SET_VALUE,
             errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError,
             children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__.scorm12_constants.objectives_children,
         });
-        _this.correct_responses = new _common_array__WEBPACK_IMPORTED_MODULE_0__.CMIArray({
+        _this.correct_responses = new _common_array__WEBPACK_IMPORTED_MODULE_4__.CMIArray({
             errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.INVALID_SET_VALUE,
             errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError,
             children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__.scorm12_constants.correct_responses_children,
@@ -1840,10 +1842,10 @@ var CMIInteractionsObject = (function (_super) {
         return result;
     };
     return CMIInteractionsObject;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_4__.BaseCMI));
+}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_7__.BaseCMI));
 
 var CMIInteractionsObjectivesObject = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_7__.__extends)(CMIInteractionsObjectivesObject, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIInteractionsObjectivesObject, _super);
     function CMIInteractionsObjectivesObject() {
         var _this = _super.call(this) || this;
         _this._id = "";
@@ -1874,10 +1876,10 @@ var CMIInteractionsObjectivesObject = (function (_super) {
         return result;
     };
     return CMIInteractionsObjectivesObject;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_4__.BaseCMI));
+}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_7__.BaseCMI));
 
 var CMIInteractionsCorrectResponsesObject = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_7__.__extends)(CMIInteractionsCorrectResponsesObject, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIInteractionsCorrectResponsesObject, _super);
     function CMIInteractionsCorrectResponsesObject() {
         var _this = _super.call(this) || this;
         _this._pattern = "";
@@ -1911,7 +1913,7 @@ var CMIInteractionsCorrectResponsesObject = (function (_super) {
         return result;
     };
     return CMIInteractionsCorrectResponsesObject;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_4__.BaseCMI));
+}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_7__.BaseCMI));
 
 
 
@@ -1924,8 +1926,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   NAV: function() { return /* binding */ NAV; }
 /* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(635);
-/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(319);
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(319);
 /* harmony import */ var _validation__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(915);
 /* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(417);
 
@@ -1933,7 +1935,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 var NAV = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_3__.__extends)(NAV, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(NAV, _super);
     function NAV() {
         var _this = _super.call(this) || this;
         _this._event = "";
@@ -1964,7 +1966,7 @@ var NAV = (function (_super) {
         return result;
     };
     return NAV;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_0__.BaseCMI));
+}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_3__.BaseCMI));
 
 
 
@@ -1978,15 +1980,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   CMIObjectives: function() { return /* binding */ CMIObjectives; },
 /* harmony export */   CMIObjectivesObject: function() { return /* binding */ CMIObjectivesObject; }
 /* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(635);
-/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(319);
-/* harmony import */ var _common_score__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(434);
-/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(340);
-/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(417);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(797);
-/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(179);
-/* harmony import */ var _validation__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(915);
-/* harmony import */ var _common_array__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(589);
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(319);
+/* harmony import */ var _common_score__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(434);
+/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(340);
+/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(417);
+/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(797);
+/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(179);
+/* harmony import */ var _validation__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(915);
+/* harmony import */ var _common_array__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(589);
 
 
 
@@ -1997,30 +1999,30 @@ __webpack_require__.r(__webpack_exports__);
 
 
 var CMIObjectives = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_8__.__extends)(CMIObjectives, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIObjectives, _super);
     function CMIObjectives() {
         return _super.call(this, {
-            children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__.scorm12_constants.objectives_children,
-            errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__.scorm12_errors.INVALID_SET_VALUE,
-            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_5__.Scorm12ValidationError,
+            children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__.scorm12_constants.objectives_children,
+            errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.INVALID_SET_VALUE,
+            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError,
         }) || this;
     }
     return CMIObjectives;
-}(_common_array__WEBPACK_IMPORTED_MODULE_7__.CMIArray));
+}(_common_array__WEBPACK_IMPORTED_MODULE_4__.CMIArray));
 
 var CMIObjectivesObject = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_8__.__extends)(CMIObjectivesObject, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIObjectivesObject, _super);
     function CMIObjectivesObject() {
         var _this = _super.call(this) || this;
         _this._id = "";
         _this._status = "";
-        _this.score = new _common_score__WEBPACK_IMPORTED_MODULE_1__.CMIScore({
-            score_children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__.scorm12_constants.score_children,
-            score_range: _constants_regex__WEBPACK_IMPORTED_MODULE_3__.scorm12_regex.score_range,
-            invalidErrorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__.scorm12_errors.INVALID_SET_VALUE,
-            invalidTypeCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__.scorm12_errors.TYPE_MISMATCH,
-            invalidRangeCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__.scorm12_errors.VALUE_OUT_OF_RANGE,
-            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_5__.Scorm12ValidationError,
+        _this.score = new _common_score__WEBPACK_IMPORTED_MODULE_5__.CMIScore({
+            score_children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__.scorm12_constants.score_children,
+            score_range: _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.score_range,
+            invalidErrorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.INVALID_SET_VALUE,
+            invalidTypeCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.TYPE_MISMATCH,
+            invalidRangeCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.VALUE_OUT_OF_RANGE,
+            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError,
         });
         return _this;
     }
@@ -2036,7 +2038,7 @@ var CMIObjectivesObject = (function (_super) {
             return this._id;
         },
         set: function (id) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_6__.check12ValidFormat)(id, _constants_regex__WEBPACK_IMPORTED_MODULE_3__.scorm12_regex.CMIIdentifier)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_7__.check12ValidFormat)(id, _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.CMIIdentifier)) {
                 this._id = id;
             }
         },
@@ -2048,7 +2050,7 @@ var CMIObjectivesObject = (function (_super) {
             return this._status;
         },
         set: function (status) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_6__.check12ValidFormat)(status, _constants_regex__WEBPACK_IMPORTED_MODULE_3__.scorm12_regex.CMIStatus2)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_7__.check12ValidFormat)(status, _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.CMIStatus2)) {
                 this._status = status;
             }
         },
@@ -2066,7 +2068,7 @@ var CMIObjectivesObject = (function (_super) {
         return result;
     };
     return CMIObjectivesObject;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_0__.BaseCMI));
+}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_8__.BaseCMI));
 
 
 
@@ -2079,8 +2081,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   CMIStudentData: function() { return /* binding */ CMIStudentData; }
 /* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(635);
-/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(319);
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(319);
 /* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(340);
 /* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(179);
 /* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(797);
@@ -2090,7 +2092,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 var CMIStudentData = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_4__.__extends)(CMIStudentData, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIStudentData, _super);
     function CMIStudentData(student_data_children) {
         var _this = _super.call(this) || this;
         _this._mastery_score = "";
@@ -2170,7 +2172,7 @@ var CMIStudentData = (function (_super) {
         return result;
     };
     return CMIStudentData;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_0__.BaseCMI));
+}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_4__.BaseCMI));
 
 
 
@@ -2183,13 +2185,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   CMIStudentPreference: function() { return /* binding */ CMIStudentPreference; }
 /* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(635);
-/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(319);
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(319);
 /* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(340);
 /* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(179);
-/* harmony import */ var _validation__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(915);
-/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(417);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(797);
+/* harmony import */ var _validation__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(915);
+/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(417);
+/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(797);
 
 
 
@@ -2198,7 +2200,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 var CMIStudentPreference = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_6__.__extends)(CMIStudentPreference, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIStudentPreference, _super);
     function CMIStudentPreference(student_preference_children) {
         var _this = _super.call(this) || this;
         _this._audio = "";
@@ -2218,7 +2220,7 @@ var CMIStudentPreference = (function (_super) {
             return this.__children;
         },
         set: function (_children) {
-            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_5__.scorm12_errors.INVALID_SET_VALUE);
+            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.INVALID_SET_VALUE);
         },
         enumerable: false,
         configurable: true
@@ -2228,8 +2230,8 @@ var CMIStudentPreference = (function (_super) {
             return this._audio;
         },
         set: function (audio) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_3__.check12ValidFormat)(audio, _constants_regex__WEBPACK_IMPORTED_MODULE_4__.scorm12_regex.CMISInteger) &&
-                (0,_validation__WEBPACK_IMPORTED_MODULE_3__.check12ValidRange)(audio, _constants_regex__WEBPACK_IMPORTED_MODULE_4__.scorm12_regex.audio_range)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_4__.check12ValidFormat)(audio, _constants_regex__WEBPACK_IMPORTED_MODULE_5__.scorm12_regex.CMISInteger) &&
+                (0,_validation__WEBPACK_IMPORTED_MODULE_4__.check12ValidRange)(audio, _constants_regex__WEBPACK_IMPORTED_MODULE_5__.scorm12_regex.audio_range)) {
                 this._audio = audio;
             }
         },
@@ -2241,7 +2243,7 @@ var CMIStudentPreference = (function (_super) {
             return this._language;
         },
         set: function (language) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_3__.check12ValidFormat)(language, _constants_regex__WEBPACK_IMPORTED_MODULE_4__.scorm12_regex.CMIString256)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_4__.check12ValidFormat)(language, _constants_regex__WEBPACK_IMPORTED_MODULE_5__.scorm12_regex.CMIString256)) {
                 this._language = language;
             }
         },
@@ -2253,8 +2255,8 @@ var CMIStudentPreference = (function (_super) {
             return this._speed;
         },
         set: function (speed) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_3__.check12ValidFormat)(speed, _constants_regex__WEBPACK_IMPORTED_MODULE_4__.scorm12_regex.CMISInteger) &&
-                (0,_validation__WEBPACK_IMPORTED_MODULE_3__.check12ValidRange)(speed, _constants_regex__WEBPACK_IMPORTED_MODULE_4__.scorm12_regex.speed_range)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_4__.check12ValidFormat)(speed, _constants_regex__WEBPACK_IMPORTED_MODULE_5__.scorm12_regex.CMISInteger) &&
+                (0,_validation__WEBPACK_IMPORTED_MODULE_4__.check12ValidRange)(speed, _constants_regex__WEBPACK_IMPORTED_MODULE_5__.scorm12_regex.speed_range)) {
                 this._speed = speed;
             }
         },
@@ -2266,8 +2268,8 @@ var CMIStudentPreference = (function (_super) {
             return this._text;
         },
         set: function (text) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_3__.check12ValidFormat)(text, _constants_regex__WEBPACK_IMPORTED_MODULE_4__.scorm12_regex.CMISInteger) &&
-                (0,_validation__WEBPACK_IMPORTED_MODULE_3__.check12ValidRange)(text, _constants_regex__WEBPACK_IMPORTED_MODULE_4__.scorm12_regex.text_range)) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_4__.check12ValidFormat)(text, _constants_regex__WEBPACK_IMPORTED_MODULE_5__.scorm12_regex.CMISInteger) &&
+                (0,_validation__WEBPACK_IMPORTED_MODULE_4__.check12ValidRange)(text, _constants_regex__WEBPACK_IMPORTED_MODULE_5__.scorm12_regex.text_range)) {
                 this._text = text;
             }
         },
@@ -2286,7 +2288,7 @@ var CMIStudentPreference = (function (_super) {
         return result;
     };
     return CMIStudentPreference;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_0__.BaseCMI));
+}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_6__.BaseCMI));
 
 
 
@@ -2300,20 +2302,20 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   check12ValidFormat: function() { return /* binding */ check12ValidFormat; },
 /* harmony export */   check12ValidRange: function() { return /* binding */ check12ValidRange; }
 /* harmony export */ });
-/* harmony import */ var _common_validation__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(449);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(797);
-/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(179);
+/* harmony import */ var _common_validation__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(449);
+/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(797);
+/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(179);
 
 
 
 function check12ValidFormat(value, regexPattern, allowEmptyString) {
-    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_2__.checkValidFormat)(value, regexPattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_0__.scorm12_errors.TYPE_MISMATCH, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_1__.Scorm12ValidationError, allowEmptyString);
+    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_0__.checkValidFormat)(value, regexPattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__.scorm12_errors.TYPE_MISMATCH, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError, allowEmptyString);
 }
 function check12ValidRange(value, rangePattern, allowEmptyString) {
     if (!allowEmptyString && value === "") {
-        throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_1__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_0__.scorm12_errors.VALUE_OUT_OF_RANGE);
+        throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_1__.scorm12_errors.VALUE_OUT_OF_RANGE);
     }
-    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_2__.checkValidRange)(value, rangePattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_0__.scorm12_errors.VALUE_OUT_OF_RANGE, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_1__.Scorm12ValidationError);
+    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_0__.checkValidRange)(value, rangePattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__.scorm12_errors.VALUE_OUT_OF_RANGE, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError);
 }
 
 
@@ -2762,15 +2764,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   Scorm12ValidationError: function() { return /* binding */ Scorm12ValidationError; }
 /* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(635);
-/* harmony import */ var _exceptions__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(784);
-/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(340);
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(635);
+/* harmony import */ var _exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(784);
+/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(340);
 
 
 
-var scorm12_errors = _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__.scorm12_constants.error_descriptions;
+var scorm12_errors = _constants_api_constants__WEBPACK_IMPORTED_MODULE_0__.scorm12_constants.error_descriptions;
 var Scorm12ValidationError = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_2__.__extends)(Scorm12ValidationError, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_1__.__extends)(Scorm12ValidationError, _super);
     function Scorm12ValidationError(errorCode) {
         var _this = this;
         if ({}.hasOwnProperty.call(scorm12_errors, String(errorCode))) {
@@ -2782,7 +2784,7 @@ var Scorm12ValidationError = (function (_super) {
         return _this;
     }
     return Scorm12ValidationError;
-}(_exceptions__WEBPACK_IMPORTED_MODULE_0__.ValidationError));
+}(_exceptions__WEBPACK_IMPORTED_MODULE_2__.ValidationError));
 
 
 
@@ -3477,17 +3479,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   Scorm12API: function() { return /* binding */ Scorm12Impl; }
 /* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(635);
-/* harmony import */ var _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(989);
-/* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(864);
-/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(340);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(797);
-/* harmony import */ var _cmi_scorm12_objectives__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(176);
-/* harmony import */ var _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(833);
-/* harmony import */ var _cmi_scorm12_nav__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(331);
-/* harmony import */ var _constants_enums__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(56);
-/* harmony import */ var _BaseAPI__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(429);
-/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(417);
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+/* harmony import */ var _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(989);
+/* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(864);
+/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(340);
+/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(797);
+/* harmony import */ var _cmi_scorm12_objectives__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(176);
+/* harmony import */ var _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(833);
+/* harmony import */ var _cmi_scorm12_nav__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(331);
+/* harmony import */ var _constants_enums__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(56);
+/* harmony import */ var _BaseAPI__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(429);
+/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(417);
 
 
 
@@ -3501,7 +3503,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 var Scorm12Impl = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_10__.__extends)(Scorm12Impl, _super);
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(Scorm12Impl, _super);
     function Scorm12Impl(settings) {
         var _this = this;
         if (settings) {
@@ -3509,10 +3511,10 @@ var Scorm12Impl = (function (_super) {
                 settings.mastery_override = false;
             }
         }
-        _this = _super.call(this, _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors, settings) || this;
+        _this = _super.call(this, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__.scorm12_errors, settings) || this;
         _this.statusSetByModule = false;
-        _this.cmi = new _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_0__.CMI();
-        _this.nav = new _cmi_scorm12_nav__WEBPACK_IMPORTED_MODULE_6__.NAV();
+        _this.cmi = new _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_2__.CMI();
+        _this.nav = new _cmi_scorm12_nav__WEBPACK_IMPORTED_MODULE_3__.NAV();
         _this.LMSInitialize = _this.lmsInitialize;
         _this.LMSFinish = _this.lmsFinish;
         _this.LMSGetValue = _this.lmsGetValue;
@@ -3541,8 +3543,8 @@ var Scorm12Impl = (function (_super) {
     };
     Scorm12Impl.prototype.lmsFinish = function () {
         var _this = this;
-        (function () { return (0,tslib__WEBPACK_IMPORTED_MODULE_10__.__awaiter)(_this, void 0, void 0, function () {
-            return (0,tslib__WEBPACK_IMPORTED_MODULE_10__.__generator)(this, function (_a) {
+        (function () { return (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__awaiter)(_this, void 0, void 0, function () {
+            return (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__generator)(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4, this.internalFinish()];
                     case 1:
@@ -3551,17 +3553,17 @@ var Scorm12Impl = (function (_super) {
                 }
             });
         }); })();
-        return _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__.global_constants.SCORM_TRUE;
+        return _constants_api_constants__WEBPACK_IMPORTED_MODULE_4__.global_constants.SCORM_TRUE;
     };
     Scorm12Impl.prototype.internalFinish = function () {
-        return (0,tslib__WEBPACK_IMPORTED_MODULE_10__.__awaiter)(this, void 0, void 0, function () {
+        return (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__awaiter)(this, void 0, void 0, function () {
             var result;
-            return (0,tslib__WEBPACK_IMPORTED_MODULE_10__.__generator)(this, function (_a) {
+            return (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__generator)(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4, this.terminate("LMSFinish", true)];
                     case 1:
                         result = _a.sent();
-                        if (result === _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__.global_constants.SCORM_TRUE) {
+                        if (result === _constants_api_constants__WEBPACK_IMPORTED_MODULE_4__.global_constants.SCORM_TRUE) {
                             if (this.nav.event !== "") {
                                 if (this.nav.event === "continue") {
                                     this.processListeners("SequenceNext");
@@ -3594,8 +3596,8 @@ var Scorm12Impl = (function (_super) {
             this.scheduleCommit(500, "LMSCommit");
         }
         else {
-            (function () { return (0,tslib__WEBPACK_IMPORTED_MODULE_10__.__awaiter)(_this, void 0, void 0, function () {
-                return (0,tslib__WEBPACK_IMPORTED_MODULE_10__.__generator)(this, function (_a) {
+            (function () { return (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__awaiter)(_this, void 0, void 0, function () {
+                return (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__generator)(this, function (_a) {
                     switch (_a.label) {
                         case 0: return [4, this.commit("LMSCommit", false)];
                         case 1:
@@ -3605,7 +3607,7 @@ var Scorm12Impl = (function (_super) {
                 });
             }); })();
         }
-        return _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__.global_constants.SCORM_TRUE;
+        return _constants_api_constants__WEBPACK_IMPORTED_MODULE_4__.global_constants.SCORM_TRUE;
     };
     Scorm12Impl.prototype.lmsGetLastError = function () {
         return this.getLastError("LMSGetLastError");
@@ -3623,20 +3625,20 @@ var Scorm12Impl = (function (_super) {
         return this._commonGetCMIValue("getCMIValue", false, CMIElement);
     };
     Scorm12Impl.prototype.getChildElement = function (CMIElement, _value, foundFirstIndex) {
-        if ((0,_utilities__WEBPACK_IMPORTED_MODULE_1__.stringMatches)(CMIElement, "cmi\\.objectives\\.\\d+")) {
-            return new _cmi_scorm12_objectives__WEBPACK_IMPORTED_MODULE_4__.CMIObjectivesObject();
+        if ((0,_utilities__WEBPACK_IMPORTED_MODULE_5__.stringMatches)(CMIElement, "cmi\\.objectives\\.\\d+")) {
+            return new _cmi_scorm12_objectives__WEBPACK_IMPORTED_MODULE_6__.CMIObjectivesObject();
         }
         else if (foundFirstIndex &&
-            (0,_utilities__WEBPACK_IMPORTED_MODULE_1__.stringMatches)(CMIElement, "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+")) {
-            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_5__.CMIInteractionsCorrectResponsesObject();
+            (0,_utilities__WEBPACK_IMPORTED_MODULE_5__.stringMatches)(CMIElement, "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+")) {
+            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_7__.CMIInteractionsCorrectResponsesObject();
         }
         else if (foundFirstIndex &&
-            (0,_utilities__WEBPACK_IMPORTED_MODULE_1__.stringMatches)(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")) {
-            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_5__.CMIInteractionsObjectivesObject();
+            (0,_utilities__WEBPACK_IMPORTED_MODULE_5__.stringMatches)(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")) {
+            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_7__.CMIInteractionsObjectivesObject();
         }
         else if (!foundFirstIndex &&
-            (0,_utilities__WEBPACK_IMPORTED_MODULE_1__.stringMatches)(CMIElement, "cmi\\.interactions\\.\\d+")) {
-            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_5__.CMIInteractionsObject();
+            (0,_utilities__WEBPACK_IMPORTED_MODULE_5__.stringMatches)(CMIElement, "cmi\\.interactions\\.\\d+")) {
+            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_7__.CMIInteractionsObject();
         }
         return null;
     };
@@ -3646,11 +3648,11 @@ var Scorm12Impl = (function (_super) {
         var basicMessage = "No Error";
         var detailMessage = "No Error";
         errorNumber = String(errorNumber);
-        if (_constants_api_constants__WEBPACK_IMPORTED_MODULE_2__.scorm12_constants.error_descriptions[errorNumber]) {
+        if (_constants_api_constants__WEBPACK_IMPORTED_MODULE_4__.scorm12_constants.error_descriptions[errorNumber]) {
             basicMessage =
-                _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__.scorm12_constants.error_descriptions[errorNumber].basicMessage;
+                _constants_api_constants__WEBPACK_IMPORTED_MODULE_4__.scorm12_constants.error_descriptions[errorNumber].basicMessage;
             detailMessage =
-                _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__.scorm12_constants.error_descriptions[errorNumber].detailMessage;
+                _constants_api_constants__WEBPACK_IMPORTED_MODULE_4__.scorm12_constants.error_descriptions[errorNumber].detailMessage;
         }
         return detail ? detailMessage : basicMessage;
     };
@@ -3663,10 +3665,10 @@ var Scorm12Impl = (function (_super) {
             cmiExport.cmi.core.total_time = this.cmi.getCurrentTotalTime();
         }
         var result = [];
-        var flattened = _utilities__WEBPACK_IMPORTED_MODULE_1__.flatten(cmiExport);
+        var flattened = _utilities__WEBPACK_IMPORTED_MODULE_5__.flatten(cmiExport);
         switch (this.settings.dataCommitFormat) {
             case "flattened":
-                return _utilities__WEBPACK_IMPORTED_MODULE_1__.flatten(cmiExport);
+                return _utilities__WEBPACK_IMPORTED_MODULE_5__.flatten(cmiExport);
             case "params":
                 for (var item in flattened) {
                     if ({}.hasOwnProperty.call(flattened, item)) {
@@ -3682,26 +3684,25 @@ var Scorm12Impl = (function (_super) {
     Scorm12Impl.prototype.renderCommitObject = function (terminateCommit) {
         var cmiExport = this.renderCommitCMI(terminateCommit);
         var totalTimeHHMMSS = this.cmi.getCurrentTotalTime();
-        var totalTimeSeconds = _utilities__WEBPACK_IMPORTED_MODULE_1__.getTimeAsSeconds(totalTimeHHMMSS, _constants_regex__WEBPACK_IMPORTED_MODULE_9__.scorm12_regex.CMITimespan);
+        var totalTimeSeconds = _utilities__WEBPACK_IMPORTED_MODULE_5__.getTimeAsSeconds(totalTimeHHMMSS, _constants_regex__WEBPACK_IMPORTED_MODULE_8__.scorm12_regex.CMITimespan);
         var lessonStatus = this.cmi.core.lesson_status;
-        var completionStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_7__.CompletionStatus.unknown;
-        var successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_7__.SuccessStatus.unknown;
+        var completionStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_9__.CompletionStatus.unknown;
+        var successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_9__.SuccessStatus.unknown;
         if (lessonStatus) {
             completionStatus =
                 lessonStatus === "completed" || lessonStatus === "passed"
-                    ? _constants_enums__WEBPACK_IMPORTED_MODULE_7__.CompletionStatus.completed
-                    : _constants_enums__WEBPACK_IMPORTED_MODULE_7__.CompletionStatus.incomplete;
+                    ? _constants_enums__WEBPACK_IMPORTED_MODULE_9__.CompletionStatus.completed
+                    : _constants_enums__WEBPACK_IMPORTED_MODULE_9__.CompletionStatus.incomplete;
             if (lessonStatus === "passed") {
-                successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_7__.SuccessStatus.passed;
+                successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_9__.SuccessStatus.passed;
             }
             else if (lessonStatus === "failed") {
-                successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_7__.SuccessStatus.failed;
+                successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_9__.SuccessStatus.failed;
             }
         }
         var score = this.cmi.core.score;
-        var scoreObject = null;
+        var scoreObject = {};
         if (score) {
-            scoreObject = {};
             if (!Number.isNaN(Number.parseFloat(score.raw))) {
                 scoreObject.raw = Number.parseFloat(score.raw);
             }
@@ -3724,10 +3725,10 @@ var Scorm12Impl = (function (_super) {
         return commitObject;
     };
     Scorm12Impl.prototype.storeData = function (terminateCommit) {
-        return (0,tslib__WEBPACK_IMPORTED_MODULE_10__.__awaiter)(this, void 0, void 0, function () {
+        return (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__awaiter)(this, void 0, void 0, function () {
             var originalStatus, commitObject;
             var _a, _b, _c;
-            return (0,tslib__WEBPACK_IMPORTED_MODULE_10__.__generator)(this, function (_d) {
+            return (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__generator)(this, function (_d) {
                 switch (_d.label) {
                     case 0:
                         if (terminateCommit) {
@@ -3762,7 +3763,7 @@ var Scorm12Impl = (function (_super) {
                         return [4, this.processHttpRequest(this.settings.lmsCommitUrl, commitObject, terminateCommit)];
                     case 1: return [2, _d.sent()];
                     case 2: return [2, {
-                            result: _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__.global_constants.SCORM_TRUE,
+                            result: _constants_api_constants__WEBPACK_IMPORTED_MODULE_4__.global_constants.SCORM_TRUE,
                             errorCode: 0,
                         }];
                 }
@@ -3770,7 +3771,7 @@ var Scorm12Impl = (function (_super) {
         });
     };
     return Scorm12Impl;
-}(_BaseAPI__WEBPACK_IMPORTED_MODULE_8__["default"]));
+}(_BaseAPI__WEBPACK_IMPORTED_MODULE_10__["default"]));
 
 
 var __webpack_exports__Scorm12API = __webpack_exports__.Scorm12API;

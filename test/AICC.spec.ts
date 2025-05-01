@@ -2,7 +2,7 @@ import { expect } from "expect";
 import { describe, it } from "mocha";
 import * as h from "./api_helpers";
 import { scorm12_errors } from "../src/constants/error_codes";
-import { AICCImpl } from "../src/AICC";
+import { AICC } from "../src/AICC";
 import { DefaultSettings } from "../src/constants/default_settings";
 import * as sinon from "sinon";
 import { CMITries } from "../src/cmi/aicc/tries";
@@ -10,7 +10,7 @@ import { CMIInteractions } from "../src/cmi/scorm12/interactions";
 import { RefObject, Settings } from "../src/types/api_types";
 
 const api = (settings?: Settings, startingData: RefObject = {}) => {
-  const API = new AICCImpl(settings);
+  const API = new AICC(settings);
   API.apiLogLevel = 1;
   if (startingData) {
     API.startingData = startingData;

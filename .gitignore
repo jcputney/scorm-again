@@ -76,3 +76,5 @@ public-key.asc
 test-results.json
 /test-results/
 scorm-again.zip
+/test/integration/modules/
+/playwright-report/

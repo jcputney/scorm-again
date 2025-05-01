@@ -4,7 +4,7 @@ import { ErrorCode } from "./constants/error_codes";
 import { global_constants } from "./constants/api_constants";
 import { formatMessage, stringMatches, unflatten } from "./utilities";
 import { BaseCMI } from "./cmi/common/base_cmi";
-import { CommitObject, LogLevel, RefObject, ResultObject, Settings } from "./types/api_types";
+import { CommitObject, InternalSettings, LogLevel, RefObject, ResultObject, Settings } from "./types/api_types";
 import { DefaultSettings } from "./constants/default_settings";
 import { IBaseAPI } from "./interfaces/IBaseAPI";
 import { ScheduledCommit } from "./helpers/scheduled_commit";
@@ -15,9 +15,9 @@ import { LogLevelEnum } from "./constants/enums";
  * abstract, and never initialized on its own.
  */
 export default abstract class BaseAPI implements IBaseAPI {
-  private _timeout?: ScheduledCommit;
+  private _timeout?: ScheduledCommit | undefined;
   private readonly _error_codes: ErrorCode;
-  private _settings: Settings = DefaultSettings;
+  private _settings: InternalSettings = DefaultSettings;
 
   /**
    * Constructor for Base API class. Sets some shared API fields, as well as
@@ -36,14 +36,13 @@ export default abstract class BaseAPI implements IBaseAPI {
     this._error_codes = error_codes;
 
     if (settings) {
-      this.settings = settings;
+      this.settings = {
+        ...DefaultSettings,
+        ...settings,
+      } as InternalSettings;
     }
-    this.apiLogLevel = this.settings.logLevel;
-    this.selfReportSessionTime = this.settings.selfReportSessionTime;
-
-    if (this.apiLogLevel === undefined) {
-      this.apiLogLevel = LogLevelEnum.NONE;
-    }
+    this.apiLogLevel = this.settings.logLevel ?? LogLevelEnum.ERROR;
+    this.selfReportSessionTime = this.settings.selfReportSessionTime ?? false;
   }
 
   public abstract cmi: BaseCMI;
@@ -71,7 +70,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     this.currentState = global_constants.STATE_NOT_INITIALIZED;
     this.lastErrorCode = "0";
     this.listenerArray = [];
-    this.startingData = undefined;
+    this.startingData = {};
   }
 
   /**
@@ -209,7 +208,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * Getter for _settings
    * @return {Settings}
    */
-  get settings(): Settings {
+  get settings(): InternalSettings {
     return this._settings;
   }
 
@@ -1139,7 +1138,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     const process = async (
       url: string,
       params: CommitObject | RefObject | Array<any>,
-      settings: Settings,
+      settings: InternalSettings,
     ): Promise<ResultObject> => {
       try {
         params = settings.requestHandler(params);
@@ -1258,7 +1257,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     url: string,
     params: RefObject | Array<any>,
   ): Promise<Response> {
-    return fetch(url, {
+    let init = {
       method: "POST",
       mode: this.settings.fetchMode,
       body: params instanceof Array ? params.join("&") : JSON.stringify(params),
@@ -1266,9 +1265,17 @@ export default abstract class BaseAPI implements IBaseAPI {
         ...this.settings.xhrHeaders,
         "Content-Type": this.settings.commitRequestDataType,
       },
-      credentials: this.settings.xhrWithCredentials ? "include" : undefined,
       keepalive: true,
-    });
+    } as RequestInit;
+
+    if (this.settings.xhrWithCredentials) {
+      init = {
+        ...init,
+        credentials: "include",
+      };
+    }
+
+    return fetch(url, init);
   }
 
   /**

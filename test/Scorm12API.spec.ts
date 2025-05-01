@@ -1,6 +1,6 @@
 import { expect } from "expect";
 import { after, before, describe, it } from "mocha";
-import { Scorm12Impl } from "../src/Scorm12API";
+import { Scorm12API } from "../src/Scorm12API";
 import * as h from "./api_helpers";
 import { scorm12_errors } from "../src/constants/error_codes";
 import { scorm12Values } from "./field_values";
@@ -11,7 +11,7 @@ import { DefaultSettings } from "../src/constants/default_settings";
 
 let clock: sinon.SinonFakeTimers;
 const api = (settings?: Settings, startingData: RefObject = {}) => {
-  const API = new Scorm12Impl(settings);
+  const API = new Scorm12API(settings);
   API.apiLogLevel = 5;
   API.startingData = startingData;
   return API;
@@ -538,7 +538,7 @@ describe("SCORM 1.2 API Tests", () => {
       expect(commitObject.totalTimeSeconds).toEqual(
         12 * 3600 + 34 * 60 + 56 + (23 * 3600 + 59 * 60 + 59),
       );
-      expect(commitObject.score.max).toEqual(100);
+      expect(commitObject?.score?.max).toEqual(100);
     });
 
     it("should render commit object with score data", () => {

@@ -159,13 +159,18 @@ class Scorm2004Impl extends BaseAPI {
       "^adl\\.nav\\.request_valid\\.(choice|jump)\\.{target=\\S{0,}([a-zA-Z0-9-_]+)}$";
     if (stringMatches(CMIElement, adlNavRequestRegex)) {
       const matches = CMIElement.match(adlNavRequestRegex);
-      const request = matches[1];
-      const target = matches[2].replace("{target=", "").replace("}", "");
-      if (request === "choice" || request === "jump") {
-        if (this.settings.scoItemIdValidator) {
-          return String(this.settings.scoItemIdValidator(target));
+      if (matches) {
+        const request = matches[1];
+        const target = matches[2].replace("{target=", "").replace("}", "");
+        if (request === "choice" || request === "jump") {
+          if (this.settings.scoItemIdValidator) {
+            return String(this.settings.scoItemIdValidator(target));
+          }
+          if (this.settings.scoItemIds) {
+            return String(this.settings.scoItemIds?.includes(target));
+          }
+          return String(request);
         }
-        return String(this.settings.scoItemIds.includes(target));
       }
     }
     return this.getValue("GetValue", true, CMIElement);
@@ -257,7 +262,8 @@ class Scorm2004Impl extends BaseAPI {
 
       // Check if the objective ID matches a global objective
       const is_global =
-        objective_id && this.settings.globalObjectiveIds.includes(objective_id);
+        objective_id &&
+        this.settings.globalObjectiveIds?.includes(objective_id);
 
       if (is_global) {
         // Locate or create an entry in _globalObjectives for the global objective
@@ -717,10 +723,8 @@ class Scorm2004Impl extends BaseAPI {
     }
 
     const score = this.cmi.score;
-    let scoreObject: ScoreObject = null;
+    const scoreObject: ScoreObject = {};
     if (score) {
-      scoreObject = {};
-
       if (!Number.isNaN(Number.parseFloat(score.raw))) {
         scoreObject.raw = Number.parseFloat(score.raw);
       }
