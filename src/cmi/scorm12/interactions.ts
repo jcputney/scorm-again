@@ -304,7 +304,7 @@ export class CMIInteractionsObject extends BaseCMI {
       objectives: this.objectives,
       correct_responses: this.correct_responses,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -364,7 +364,7 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
     const result = {
       id: this.id,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -432,7 +432,7 @@ export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
     const result = {
       pattern: this._pattern,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

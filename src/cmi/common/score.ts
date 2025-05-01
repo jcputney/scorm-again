@@ -184,7 +184,7 @@ export class CMIScore extends BaseCMI {
       min: this.min,
       max: this.max,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

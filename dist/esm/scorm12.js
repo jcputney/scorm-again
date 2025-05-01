@@ -656,7 +656,7 @@ class CMIScore extends BaseCMI {
       min: this.min,
       max: this.max
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -1021,7 +1021,7 @@ class CMICore extends BaseCMI {
       session_time: this.session_time,
       score: this.score
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -1089,7 +1089,7 @@ class CMIArray extends BaseCMI {
     for (let i = 0; i < this.childArray.length; i++) {
       result[i + ""] = this.childArray[i];
     }
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -1183,7 +1183,7 @@ class CMIObjectivesObject extends BaseCMI {
       status: this.status,
       score: this.score
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -1288,7 +1288,7 @@ class CMIStudentData extends BaseCMI {
       max_time_allowed: this.max_time_allowed,
       time_limit_action: this.time_limit_action
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -1415,7 +1415,7 @@ class CMIStudentPreference extends BaseCMI {
       speed: this.speed,
       text: this.text
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -1671,7 +1671,7 @@ class CMIInteractionsObject extends BaseCMI {
       objectives: this.objectives,
       correct_responses: this.correct_responses
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -1719,7 +1719,7 @@ class CMIInteractionsObjectivesObject extends BaseCMI {
     const result = {
       id: this.id
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -1773,7 +1773,7 @@ class CMIInteractionsCorrectResponsesObject extends BaseCMI {
     const result = {
       pattern: this._pattern
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -1854,7 +1854,7 @@ class CMI extends BaseRootCMI {
       student_preference: this.student_preference,
       interactions: this.interactions
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
   /**
@@ -2024,7 +2024,7 @@ class NAV extends BaseCMI {
     const result = {
       event: this.event
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -2282,7 +2282,7 @@ class HttpService {
    * @private
    */
   async performFetch(url, params) {
-    return fetch(url, {
+    const init = {
       method: "POST",
       mode: this.settings.fetchMode,
       body: params instanceof Array ? params.join("&") : JSON.stringify(params),
@@ -2290,9 +2290,12 @@ class HttpService {
         ...this.settings.xhrHeaders,
         "Content-Type": this.settings.commitRequestDataType
       },
-      credentials: this.settings.xhrWithCredentials ? "include" : void 0,
       keepalive: true
-    });
+    };
+    if (this.settings.xhrWithCredentials) {
+      init.credentials = "include";
+    }
+    return fetch(url, init);
   }
   /**
    * Transforms the response from the LMS to a ResultObject
@@ -2312,7 +2315,7 @@ class HttpService {
       if (!Object.hasOwnProperty.call(result, "errorCode")) {
         result.errorCode = this.error_codes.GENERAL;
       }
-      processListeners("CommitError", null, result.errorCode);
+      processListeners("CommitError", void 0, result.errorCode);
     }
     return result;
   }
@@ -3186,16 +3189,19 @@ class OfflineStorageService {
     }
     try {
       const processedData = this.settings.requestHandler(data);
-      const response = await fetch(this.settings.lmsCommitUrl, {
+      const init = {
         method: "POST",
         mode: this.settings.fetchMode,
         body: JSON.stringify(processedData),
         headers: {
           ...this.settings.xhrHeaders,
           "Content-Type": this.settings.commitRequestDataType
-        },
-        credentials: this.settings.xhrWithCredentials ? "include" : void 0
-      });
+        }
+      };
+      if (this.settings.xhrWithCredentials) {
+        init.credentials = "include";
+      }
+      const response = await fetch(this.settings.lmsCommitUrl, init);
       const result = typeof this.settings.responseHandler === "function" ? await this.settings.responseHandler(response) : await response.json();
       if (response.status >= 200 && response.status <= 299 && (result.result === true || result.result === global_constants.SCORM_TRUE)) {
         if (!Object.hasOwnProperty.call(result, "errorCode")) {
@@ -3293,12 +3299,10 @@ class BaseAPI {
     this.currentState = global_constants.STATE_NOT_INITIALIZED;
     this._error_codes = error_codes;
     if (settings) {
-      this.settings = settings;
-    }
-    this.apiLogLevel = this.settings.logLevel;
-    this.selfReportSessionTime = this.settings.selfReportSessionTime;
-    if (this.apiLogLevel === void 0) {
-      this.apiLogLevel = LogLevelEnum.NONE;
+      this.settings = {
+        ...DefaultSettings,
+        ...settings
+      };
     }
     this._loggingService = loggingService || getLoggingService();
     this._loggingService.setLogLevel(this.apiLogLevel);
@@ -3368,7 +3372,7 @@ class BaseAPI {
     this.currentState = global_constants.STATE_NOT_INITIALIZED;
     this.lastErrorCode = "0";
     this._eventService.reset();
-    this.startingData = void 0;
+    this.startingData = {};
     if (this._offlineStorageService) {
       this._offlineStorageService.updateSettings(this.settings);
       if (settings?.courseId) {
@@ -3765,6 +3769,10 @@ class BaseAPI {
             }
           }
           if (!scorm2004 || this._errorHandlingService.lastErrorCode === "0") {
+            if (attribute === "__proto__" || attribute === "constructor") {
+              this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+              break;
+            }
             refObject[attribute] = value;
             returnValue = global_constants.SCORM_TRUE;
           }
@@ -4527,9 +4535,8 @@ class Scorm12API extends BaseAPI {
       }
     }
     const score = this.cmi.core.score;
-    let scoreObject = null;
+    const scoreObject = {};
     if (score) {
-      scoreObject = {};
       if (!Number.isNaN(Number.parseFloat(score.raw))) {
         scoreObject.raw = Number.parseFloat(score.raw);
       }

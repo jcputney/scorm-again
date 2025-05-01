@@ -32,8 +32,40 @@ export type Settings = {
     syncOnTerminate?: boolean;
     maxSyncAttempts?: number;
 };
-export type RequiredSettings = Required<Settings>;
-export type CoreSettings = Pick<Settings, "autocommit" | "asyncCommit" | "logLevel" | "strict_errors">;
+export type InternalSettings = {
+    autocommit: boolean;
+    autocommitSeconds: number;
+    asyncCommit: boolean;
+    sendFullCommit: boolean;
+    lmsCommitUrl: string | boolean;
+    dataCommitFormat: string;
+    commitRequestDataType: string;
+    autoProgress: boolean;
+    logLevel: LogLevel;
+    selfReportSessionTime: boolean;
+    renderCommonCommitFields: boolean;
+    alwaysSendTotalTime: boolean;
+    strict_errors: boolean;
+    xhrHeaders: StringKeyMap;
+    xhrWithCredentials: boolean;
+    fetchMode: "cors" | "no-cors" | "same-origin" | "navigate";
+    responseHandler: (response: Response) => Promise<ResultObject>;
+    requestHandler: (commitObject: unknown) => unknown;
+    onLogMessage?: (messageLevel: LogLevel, logMessage: string) => void;
+    mastery_override?: boolean;
+    scoItemIds?: string[];
+    scoItemIdValidator?: false | ((scoItemId: string) => boolean);
+    globalObjectiveIds?: string[];
+    sequencing?: SequencingSettings;
+    enableOfflineSupport?: boolean;
+    courseId?: string;
+    syncOnInitialize?: boolean;
+    syncOnTerminate?: boolean;
+    maxSyncAttempts?: number;
+};
+export type RefObject = {
+    [key: string]: any;
+};
 export type RefValue = string | number | boolean | null | undefined | RefArray;
 export type RefArray = ReadonlyArray<RefValue>;
 export type ResultObject = {
@@ -69,4 +101,4 @@ export type CommitObjectWithScore = CommitObject & {
 export type NumericLogLevel = 1 | 2 | 3 | 4 | 5;
 export type StringNumericLogLevel = "1" | "2" | "3" | "4" | "5";
 export type NamedLogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR" | "NONE";
-export type LogLevel = NumericLogLevel | StringNumericLogLevel | NamedLogLevel | LogLevelEnum | undefined;
+export type LogLevel = NumericLogLevel | StringNumericLogLevel | NamedLogLevel | LogLevelEnum;

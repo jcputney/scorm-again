@@ -94,7 +94,7 @@ export class CMI extends Scorm12CMI.CMI {
       evaluation: this.evaluation,
       paths: this.paths,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

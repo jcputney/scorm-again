@@ -152,7 +152,7 @@ export class CMIStudentPreference extends BaseCMI {
       speed: this.speed,
       text: this.text,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

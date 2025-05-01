@@ -59,7 +59,7 @@ export class NAV extends BaseCMI {
     const result = {
       event: this.event,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

@@ -1,11 +1,11 @@
-import { LogLevel, ResultObject, Settings } from "../types/api_types";
+import { InternalSettings, LogLevel, ResultObject } from "../types/api_types";
 import { global_constants } from "./api_constants";
 import { LogLevelEnum } from "./enums";
 
 /**
  * Default settings for the SCORM API
  */
-export const DefaultSettings: Settings = {
+export const DefaultSettings: InternalSettings = {
   autocommit: false,
   autocommitSeconds: 10,
   asyncCommit: false,

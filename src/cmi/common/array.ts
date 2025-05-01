@@ -85,7 +85,7 @@ export class CMIArray extends BaseCMI {
     for (let i = 0; i < this.childArray.length; i++) {
       result[i + ""] = this.childArray[i];
     }
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

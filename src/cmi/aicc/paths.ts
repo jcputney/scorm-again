@@ -197,7 +197,7 @@ export class CMIPathsObject extends BaseCMI {
       why_left: this.why_left,
       time_in_element: this.time_in_element,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

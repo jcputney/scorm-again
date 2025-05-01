@@ -286,7 +286,7 @@ export class ActivityTree extends BaseCMI {
       currentActivity: this._currentActivity ? this._currentActivity.id : null,
       suspendedActivity: this._suspendedActivity ? this._suspendedActivity.id : null,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

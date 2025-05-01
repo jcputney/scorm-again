@@ -47,7 +47,7 @@ export class CMIEvaluation extends BaseCMI {
     const result = {
       comments: this.comments,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -171,7 +171,7 @@ export class CMIEvaluationCommentsObject extends BaseCMI {
       location: this.location,
       time: this.time,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

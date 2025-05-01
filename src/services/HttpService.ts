@@ -1,15 +1,15 @@
-import { CommitObject, ResultObject, Settings } from "../types/api_types";
-import { global_constants } from "../constants/api_constants";
-import { LogLevelEnum } from "../constants/enums";
-import { IHttpService } from "../interfaces/services";
-import { ErrorCode } from "../constants/error_codes";
-import { StringKeyMap } from "../utilities";
+import {CommitObject, InternalSettings, ResultObject} from "../types/api_types";
+import {global_constants} from "../constants/api_constants";
+import {LogLevelEnum} from "../constants/enums";
+import {IHttpService} from "../interfaces/services";
+import {ErrorCode} from "../constants/error_codes";
+import {StringKeyMap} from "../utilities";
 
 /**
  * Service for handling HTTP communication with the LMS
  */
 export class HttpService implements IHttpService {
-  private settings: Settings;
+  private settings: InternalSettings;
   private error_codes: ErrorCode;
 
   /**
@@ -17,7 +17,7 @@ export class HttpService implements IHttpService {
    * @param {Settings} settings - The settings object
    * @param {ErrorCode} error_codes - The error codes object
    */
-  constructor(settings: Settings, error_codes: ErrorCode) {
+  constructor(settings: InternalSettings, error_codes: ErrorCode) {
     this.settings = settings;
     this.error_codes = error_codes;
   }
@@ -109,7 +109,7 @@ export class HttpService implements IHttpService {
     const process = async (
       url: string,
       params: CommitObject | StringKeyMap | Array<any>,
-      settings: Settings,
+      settings: InternalSettings,
     ): Promise<ResultObject> => {
       try {
         params = settings.requestHandler(params) as CommitObject | StringKeyMap | Array<any>;
@@ -134,7 +134,7 @@ export class HttpService implements IHttpService {
    * @private
    */
   private async performFetch(url: string, params: StringKeyMap | Array<any>): Promise<Response> {
-    return fetch(url, {
+    const init = {
       method: "POST",
       mode: this.settings.fetchMode,
       body: params instanceof Array ? params.join("&") : JSON.stringify(params),
@@ -142,9 +142,14 @@ export class HttpService implements IHttpService {
         ...this.settings.xhrHeaders,
         "Content-Type": this.settings.commitRequestDataType,
       },
-      credentials: this.settings.xhrWithCredentials ? "include" : undefined,
       keepalive: true,
-    });
+    } as RequestInit;
+
+    if (this.settings.xhrWithCredentials) {
+      init.credentials = "include";
+    }
+
+    return fetch(url, init);
   }
 
   /**
@@ -176,7 +181,7 @@ export class HttpService implements IHttpService {
       if (!Object.hasOwnProperty.call(result, "errorCode")) {
         result.errorCode = this.error_codes.GENERAL;
       }
-      processListeners("CommitError", null, result.errorCode);
+      processListeners("CommitError", undefined, result.errorCode);
     }
     return result;
   }
@@ -185,7 +190,7 @@ export class HttpService implements IHttpService {
    * Updates the service settings
    * @param {Settings} settings - The new settings
    */
-  updateSettings(settings: Settings): void {
+  updateSettings(settings: InternalSettings): void {
     this.settings = settings;
   }
 }

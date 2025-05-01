@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { HttpService } from "../../src/services/HttpService";
 import { LogLevelEnum } from "../../src/constants/enums";
-import { global_constants } from "../../src/constants/api_constants";
-import { Settings } from "../../src/types/api_types";
+import { global_constants } from "../../src";
+import { InternalSettings } from "../../src/types/api_types";
 
 describe("HttpService", () => {
   let httpService: HttpService;
-  let settings: Settings;
+  let settings: InternalSettings;
   let errorCodes: any;
   const apiLogStub = vi.fn();
   const processListenersStub = vi.fn();
@@ -24,7 +24,7 @@ describe("HttpService", () => {
         const text = await response.text();
         return text ? JSON.parse(text) : { result: global_constants.SCORM_TRUE, errorCode: 0 };
       },
-    };
+    } as InternalSettings;
 
     // Create mock error codes
     errorCodes = {
@@ -117,7 +117,7 @@ describe("HttpService", () => {
         JSON.stringify({ result: global_constants.SCORM_TRUE, errorCode: 0 }),
       );
       fetchStub.mockImplementation(() => mockResponse);
-      const responseHandlerSpy = vi.spyOn(settings, "responseHandler");
+      const responseHandlerSpy = vi.spyOn(settings, "responseHandler") as any;
 
       // Act
       await httpService.processHttpRequest(url, params, false, apiLogStub, processListenersStub);
@@ -163,7 +163,7 @@ describe("HttpService", () => {
       await httpService.processHttpRequest(url, params, false, apiLogStub, processListenersStub);
 
       // Assert
-      expect(processListenersStub).toHaveBeenCalledWith("CommitError", null, 101);
+      expect(processListenersStub).toHaveBeenCalledWith("CommitError", undefined, 101);
     });
 
     it("should handle fetch errors", async () => {
@@ -213,17 +213,17 @@ describe("HttpService", () => {
   describe("updateSettings", () => {
     it("should update the settings", async () => {
       // Arrange
-      const newSettings: Settings = {
+      const newSettings = {
         fetchMode: "no-cors",
         commitRequestDataType: "text/plain",
         xhrHeaders: { "X-Custom-Header": "value" },
         xhrWithCredentials: true,
-        requestHandler: (params) => params,
-        responseHandler: async (response) => {
+        requestHandler: (params: any) => params,
+        responseHandler: async (response: { text: () => any }) => {
           const text = await response.text();
           return text ? JSON.parse(text) : { result: global_constants.SCORM_TRUE, errorCode: 0 };
         },
-      };
+      } as unknown as InternalSettings;
       const url = "https://example.com/api";
       const params = { data: "test" };
       const mockResponse = new Response(

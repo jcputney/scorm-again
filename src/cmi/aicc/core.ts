@@ -432,7 +432,7 @@ export class CMICore extends BaseCMI {
       session_time: this.session_time,
       score: this.score,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

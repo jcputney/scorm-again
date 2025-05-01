@@ -1,7 +1,7 @@
 import { ErrorCode } from "./constants/error_codes";
 import { StringKeyMap } from "./utilities";
 import { BaseCMI } from "./cmi/common/base_cmi";
-import { CommitObject, LogLevel, ResultObject, Settings } from "./types/api_types";
+import { CommitObject, InternalSettings, LogLevel, ResultObject, Settings } from "./types/api_types";
 import { IBaseAPI } from "./interfaces/IBaseAPI";
 import { ICMIDataService, IErrorHandlingService, IEventService, IHttpService, ILoggingService, IOfflineStorageService, ISerializationService } from "./interfaces/services";
 export default abstract class BaseAPI implements IBaseAPI {
@@ -41,7 +41,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     abstract renderCommitObject(_terminateCommit: boolean): CommitObject;
     apiLog(functionName: string, logMessage: string, messageLevel: LogLevel, CMIElement?: string): void;
     get error_codes(): ErrorCode;
-    get settings(): Settings;
+    get settings(): InternalSettings;
     set settings(settings: Settings);
     terminate(callbackName: string, checkTerminated: boolean): Promise<string>;
     getValue(callbackName: string, checkTerminated: boolean, CMIElement: string): string;

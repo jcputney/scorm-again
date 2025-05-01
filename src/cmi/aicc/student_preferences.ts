@@ -183,7 +183,7 @@ export class AICCStudentPreferences extends CMIStudentPreference {
       video: this.video,
       windows: this.windows,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

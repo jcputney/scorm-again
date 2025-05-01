@@ -84,7 +84,7 @@ export class Scorm2004CMIScore extends CMIScore {
       min: this.min,
       max: this.max,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

@@ -2,7 +2,7 @@ import { ErrorCode } from "./constants/error_codes";
 import { global_constants } from "./constants/api_constants";
 import { formatMessage, StringKeyMap, stringMatches } from "./utilities";
 import { BaseCMI } from "./cmi/common/base_cmi";
-import { CommitObject, LogLevel, ResultObject, Settings } from "./types/api_types";
+import { CommitObject, InternalSettings, LogLevel, ResultObject, Settings } from "./types/api_types";
 import { DefaultSettings } from "./constants/default_settings";
 import { IBaseAPI } from "./interfaces/IBaseAPI";
 import { ScheduledCommit } from "./helpers/scheduled_commit";
@@ -20,7 +20,7 @@ import {
   IHttpService,
   ILoggingService,
   IOfflineStorageService,
-  ISerializationService,
+  ISerializationService
 } from "./interfaces/services";
 import { CMIArray } from "./cmi/common/array";
 import { ValidationError } from "./exceptions";
@@ -30,9 +30,9 @@ import { ValidationError } from "./exceptions";
  * abstract, and never initialized on its own.
  */
 export default abstract class BaseAPI implements IBaseAPI {
-  private _timeout?: ScheduledCommit;
+  private _timeout?: ScheduledCommit | undefined;
   private readonly _error_codes: ErrorCode;
-  private _settings: Settings = DefaultSettings;
+  private _settings: InternalSettings = DefaultSettings;
   private readonly _httpService: IHttpService;
   private _eventService: IEventService;
   private _serializationService: ISerializationService;
@@ -73,13 +73,10 @@ export default abstract class BaseAPI implements IBaseAPI {
     this._error_codes = error_codes;
 
     if (settings) {
-      this.settings = settings;
-    }
-    this.apiLogLevel = this.settings.logLevel;
-    this.selfReportSessionTime = this.settings.selfReportSessionTime;
-
-    if (this.apiLogLevel === undefined) {
-      this.apiLogLevel = LogLevelEnum.NONE;
+      this.settings = {
+        ...DefaultSettings,
+        ...settings,
+      } as InternalSettings;
     }
 
     // Initialize and configure LoggingService
@@ -199,7 +196,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     this.currentState = global_constants.STATE_NOT_INITIALIZED;
     this.lastErrorCode = "0";
     this._eventService.reset();
-    this.startingData = undefined;
+    this.startingData = {};
 
     // Update offline storage service with new settings if it exists
     if (this._offlineStorageService) {
@@ -419,7 +416,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * Getter for _settings
    * @return {Settings}
    */
-  get settings(): Settings {
+  get settings(): InternalSettings {
     return this._settings;
   }
 

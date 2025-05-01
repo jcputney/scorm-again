@@ -187,7 +187,7 @@ export class RuleCondition extends BaseCMI {
       operator: this._operator,
       parameters: Object.fromEntries(this._parameters),
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -320,7 +320,7 @@ export class SequencingRule extends BaseCMI {
       action: this._action,
       conditionCombination: this._conditionCombination,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -469,7 +469,7 @@ export class SequencingRules extends BaseCMI {
       exitConditionRules: this._exitConditionRules,
       postConditionRules: this._postConditionRules,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

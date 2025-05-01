@@ -253,7 +253,7 @@
           try {
             listener(...args);
           } catch (e) {
-            console.error(`Error in event listener for ${event}:`, e);
+            console.error("Error in event listener for %s:", String(event), e);
           }
         });
       }
@@ -263,7 +263,7 @@
           try {
             listener(event, ...args);
           } catch (e) {
-            console.error(`Error in "*" event listener for ${event}:`, e);
+            console.error('Error in "*" event listener for %s:', event, e);
           }
         });
       }

@@ -688,7 +688,6 @@ describe("SCORM 2004 API Tests", () => {
       scorm2004API.reset();
 
       expect(commonResetSpy).toHaveBeenCalledOnce();
-      // commonResetSpy.restore() - not needed with vi.restoreAllMocks()
     });
   });
 

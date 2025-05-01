@@ -336,10 +336,8 @@ class Scorm12API extends BaseAPI {
     }
 
     const score = this.cmi.core.score;
-    let scoreObject: ScoreObject = null;
+    const scoreObject: ScoreObject = {};
     if (score) {
-      scoreObject = {};
-
       if (!Number.isNaN(Number.parseFloat(score.raw))) {
         scoreObject.raw = Number.parseFloat(score.raw);
       }

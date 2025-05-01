@@ -180,7 +180,7 @@ export class CMILearnerPreference extends BaseCMI {
       delivery_speed: this.delivery_speed,
       audio_captioning: this.audio_captioning,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

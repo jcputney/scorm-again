@@ -110,7 +110,7 @@ export class CMI extends BaseRootCMI {
       student_preference: this.student_preference,
       interactions: this.interactions,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 

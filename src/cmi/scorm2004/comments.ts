@@ -182,7 +182,7 @@ export class CMICommentsObject extends BaseCMI {
       location: this.location,
       timestamp: this.timestamp,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

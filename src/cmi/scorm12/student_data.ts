@@ -126,7 +126,7 @@ export class CMIStudentData extends BaseCMI {
       max_time_allowed: this.max_time_allowed,
       time_limit_action: this.time_limit_action,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

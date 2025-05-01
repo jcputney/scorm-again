@@ -1,8 +1,7 @@
-import { CommitObject, ResultObject, Settings } from "../types/api_types";
+import { CommitObject, InternalSettings, ResultObject } from "../types/api_types";
 import { global_constants } from "../constants/api_constants";
 import { LogLevelEnum } from "../constants/enums";
 import { ErrorCode } from "../constants/error_codes";
-import { StringKeyMap } from "../utilities";
 
 /**
  * Interface for sync queue item
@@ -19,7 +18,7 @@ interface SyncQueueItem {
  * Service for handling offline storage and synchronization of SCORM data
  */
 export class OfflineStorageService {
-  private settings: Settings;
+  private settings: InternalSettings;
   private error_codes: ErrorCode;
   private storeName: string = "scorm_again_offline_data";
   private syncQueue: string = "scorm_again_sync_queue";
@@ -33,7 +32,7 @@ export class OfflineStorageService {
    * @param {Function} apiLog - The logging function
    */
   constructor(
-    settings: Settings,
+    settings: InternalSettings,
     error_codes: ErrorCode,
     private apiLog: (
       functionName: string,
@@ -258,7 +257,7 @@ export class OfflineStorageService {
       const processedData = this.settings.requestHandler(data);
 
       // Send the data to the LMS
-      const response = await fetch(this.settings.lmsCommitUrl as string, {
+      const init = {
         method: "POST",
         mode: this.settings.fetchMode,
         body: JSON.stringify(processedData),
@@ -266,8 +265,13 @@ export class OfflineStorageService {
           ...this.settings.xhrHeaders,
           "Content-Type": this.settings.commitRequestDataType,
         },
-        credentials: this.settings.xhrWithCredentials ? "include" : undefined,
-      });
+      } as RequestInit;
+
+      if (this.settings.xhrWithCredentials) {
+        init.credentials = "include";
+      }
+
+      const response = await fetch(this.settings.lmsCommitUrl as string, init);
 
       // Process the response using the configured handler
       const result =
@@ -352,7 +356,7 @@ export class OfflineStorageService {
    * Update the service settings
    * @param {Settings} settings - The new settings
    */
-  updateSettings(settings: Settings): void {
+  updateSettings(settings: InternalSettings): void {
     this.settings = settings;
   }
 }

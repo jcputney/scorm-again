@@ -575,7 +575,7 @@ class HttpService {
    * @private
    */
   async performFetch(url, params) {
-    return fetch(url, {
+    const init = {
       method: "POST",
       mode: this.settings.fetchMode,
       body: params instanceof Array ? params.join("&") : JSON.stringify(params),
@@ -583,9 +583,12 @@ class HttpService {
         ...this.settings.xhrHeaders,
         "Content-Type": this.settings.commitRequestDataType
       },
-      credentials: this.settings.xhrWithCredentials ? "include" : void 0,
       keepalive: true
-    });
+    };
+    if (this.settings.xhrWithCredentials) {
+      init.credentials = "include";
+    }
+    return fetch(url, init);
   }
   /**
    * Transforms the response from the LMS to a ResultObject
@@ -605,7 +608,7 @@ class HttpService {
       if (!Object.hasOwnProperty.call(result, "errorCode")) {
         result.errorCode = this.error_codes.GENERAL;
       }
-      processListeners("CommitError", null, result.errorCode);
+      processListeners("CommitError", void 0, result.errorCode);
     }
     return result;
   }
@@ -1527,16 +1530,19 @@ class OfflineStorageService {
     }
     try {
       const processedData = this.settings.requestHandler(data);
-      const response = await fetch(this.settings.lmsCommitUrl, {
+      const init = {
         method: "POST",
         mode: this.settings.fetchMode,
         body: JSON.stringify(processedData),
         headers: {
           ...this.settings.xhrHeaders,
           "Content-Type": this.settings.commitRequestDataType
-        },
-        credentials: this.settings.xhrWithCredentials ? "include" : void 0
-      });
+        }
+      };
+      if (this.settings.xhrWithCredentials) {
+        init.credentials = "include";
+      }
+      const response = await fetch(this.settings.lmsCommitUrl, init);
       const result = typeof this.settings.responseHandler === "function" ? await this.settings.responseHandler(response) : await response.json();
       if (response.status >= 200 && response.status <= 299 && (result.result === true || result.result === global_constants.SCORM_TRUE)) {
         if (!Object.hasOwnProperty.call(result, "errorCode")) {
@@ -1779,7 +1785,7 @@ class CMIArray extends BaseCMI {
     for (let i = 0; i < this.childArray.length; i++) {
       result[i + ""] = this.childArray[i];
     }
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -1807,12 +1813,10 @@ class BaseAPI {
     this.currentState = global_constants.STATE_NOT_INITIALIZED;
     this._error_codes = error_codes;
     if (settings) {
-      this.settings = settings;
-    }
-    this.apiLogLevel = this.settings.logLevel;
-    this.selfReportSessionTime = this.settings.selfReportSessionTime;
-    if (this.apiLogLevel === void 0) {
-      this.apiLogLevel = LogLevelEnum.NONE;
+      this.settings = {
+        ...DefaultSettings,
+        ...settings
+      };
     }
     this._loggingService = loggingService || getLoggingService();
     this._loggingService.setLogLevel(this.apiLogLevel);
@@ -1882,7 +1886,7 @@ class BaseAPI {
     this.currentState = global_constants.STATE_NOT_INITIALIZED;
     this.lastErrorCode = "0";
     this._eventService.reset();
-    this.startingData = void 0;
+    this.startingData = {};
     if (this._offlineStorageService) {
       this._offlineStorageService.updateSettings(this.settings);
       if (settings?.courseId) {
@@ -2279,6 +2283,10 @@ class BaseAPI {
             }
           }
           if (!scorm2004 || this._errorHandlingService.lastErrorCode === "0") {
+            if (attribute === "__proto__" || attribute === "constructor") {
+              this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+              break;
+            }
             refObject[attribute] = value;
             returnValue = global_constants.SCORM_TRUE;
           }
@@ -3059,7 +3067,7 @@ class CMILearnerPreference extends BaseCMI {
       delivery_speed: this.delivery_speed,
       audio_captioning: this.audio_captioning
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -3563,7 +3571,7 @@ class CMIInteractionsObject extends BaseCMI {
       description: this.description,
       correct_responses: this.correct_responses
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -3611,7 +3619,7 @@ class CMIInteractionsObjectivesObject extends BaseCMI {
     const result = {
       id: this.id
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -3705,7 +3713,7 @@ class CMIInteractionsCorrectResponsesObject extends BaseCMI {
     const result = {
       pattern: this.pattern
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -3967,7 +3975,7 @@ class CMIScore extends BaseCMI {
       min: this.min,
       max: this.max
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -4035,7 +4043,7 @@ class Scorm2004CMIScore extends CMIScore {
       min: this.min,
       max: this.max
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -4182,7 +4190,7 @@ class CMICommentsObject extends BaseCMI {
       location: this.location,
       timestamp: this.timestamp
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -4394,7 +4402,7 @@ class CMIObjectivesObject extends BaseCMI {
       description: this.description,
       score: this.score
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -5373,8 +5381,8 @@ class CMI extends BaseRootCMI {
       suspend_data: this.suspend_data,
       time_limit_action: this.time_limit_action
     };
-    delete this.jsonString;
-    delete this.session.jsonString;
+    this.jsonString = false;
+    this.session.jsonString = false;
     return result;
   }
 }
@@ -5437,7 +5445,7 @@ class ADL extends BaseCMI {
       nav: this.nav,
       data: this.data
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -5516,7 +5524,7 @@ class ADLNav extends BaseCMI {
     const result = {
       request: this.request
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -5590,7 +5598,7 @@ class ADLDataObject extends BaseCMI {
       id: this._id,
       store: this._store
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -5761,7 +5769,7 @@ class ADLNavRequestValid extends BaseCMI {
       choice: this._choice,
       jump: this._jump
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -5896,7 +5904,7 @@ class RuleCondition extends BaseCMI {
       operator: this._operator,
       parameters: Object.fromEntries(this._parameters)
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -6009,7 +6017,7 @@ class SequencingRule extends BaseCMI {
       action: this._action,
       conditionCombination: this._conditionCombination
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -6142,7 +6150,7 @@ class SequencingRules extends BaseCMI {
       exitConditionRules: this._exitConditionRules,
       postConditionRules: this._postConditionRules
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -6239,7 +6247,7 @@ class RollupCondition extends BaseCMI {
       condition: this._condition,
       parameters: Object.fromEntries(this._parameters)
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -6405,7 +6413,7 @@ class RollupRule extends BaseCMI {
       minimumCount: this._minimumCount,
       minimumPercent: this._minimumPercent
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -6548,7 +6556,7 @@ class RollupRules extends BaseCMI {
     const result = {
       rules: this._rules
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -7235,7 +7243,7 @@ class Activity extends BaseCMI {
       objectiveNormalizedMeasure: this._objectiveNormalizedMeasure,
       children: this._children.map((child) => child.toJSON())
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -7487,7 +7495,7 @@ class ActivityTree extends BaseCMI {
       currentActivity: this._currentActivity ? this._currentActivity.id : null,
       suspendedActivity: this._suspendedActivity ? this._suspendedActivity.id : null
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -7733,7 +7741,7 @@ class SequencingControls extends BaseCMI {
       rollupProgressCompletion: this._rollupProgressCompletion,
       objectiveMeasureWeight: this._objectiveMeasureWeight
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -8107,7 +8115,7 @@ class Sequencing extends BaseCMI {
       sequencingControls: this._sequencingControls,
       rollupRules: this._rollupRules
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -8221,7 +8229,7 @@ class Scorm2004API extends BaseAPI {
           this.processListeners(action, "adl.nav.request", target);
         }
       } else if (this.settings.autoProgress) {
-        this.processListeners("SequenceNext", null, "next");
+        this.processListeners("SequenceNext", void 0, "next");
       }
     }
     return result;
@@ -8236,16 +8244,18 @@ class Scorm2004API extends BaseAPI {
     const adlNavRequestRegex = "^adl\\.nav\\.request_valid\\.(choice|jump)\\.{target=\\S{0,}([a-zA-Z0-9-_]+)}$";
     if (stringMatches(CMIElement, adlNavRequestRegex)) {
       const matches = CMIElement.match(adlNavRequestRegex);
-      const request = matches[1];
-      const target = matches[2].replace(/{target=/g, "").replace(/}/g, "");
-      if (request === "choice" || request === "jump") {
-        if (this.settings.scoItemIdValidator) {
-          return String(this.settings.scoItemIdValidator(target));
+      if (matches) {
+        const request = matches[1];
+        const target = matches[2].replace(/{target=/g, "").replace(/}/g, "");
+        if (request === "choice" || request === "jump") {
+          if (this.settings.scoItemIdValidator) {
+            return String(this.settings.scoItemIdValidator(target));
+          }
+          if (this._extractedScoItemIds.length > 0) {
+            return String(this._extractedScoItemIds.includes(target));
+          }
+          return String(this.settings?.scoItemIds?.includes(target));
         }
-        if (this._extractedScoItemIds.length > 0) {
-          return String(this._extractedScoItemIds.includes(target));
-        }
-        return String(this.settings.scoItemIds.includes(target));
       }
     }
     return this.getValue("GetValue", true, CMIElement);
@@ -8321,7 +8331,7 @@ class Scorm2004API extends BaseAPI {
         const objective = this.cmi.objectives.findObjectiveByIndex(index);
         objective_id = objective ? objective.id : void 0;
       }
-      const is_global = objective_id && this.settings.globalObjectiveIds.includes(objective_id);
+      const is_global = objective_id && this.settings.globalObjectiveIds?.includes(objective_id);
       if (is_global) {
         let global_index = this._globalObjectives.findIndex((obj) => obj.id === objective_id);
         if (global_index === -1) {
@@ -8717,9 +8727,8 @@ class Scorm2004API extends BaseAPI {
       }
     }
     const score = this.cmi.score;
-    let scoreObject = null;
+    const scoreObject = {};
     if (score) {
-      scoreObject = {};
       if (!Number.isNaN(Number.parseFloat(score.raw))) {
         scoreObject.raw = Number.parseFloat(score.raw);
       }

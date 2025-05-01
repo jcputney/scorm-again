@@ -1,5 +1,5 @@
 export declare abstract class BaseCMI {
-    jsonString?: boolean;
+    jsonString: boolean;
     protected readonly _cmi_element: string;
     protected _initialized: boolean;
     private _start_time;

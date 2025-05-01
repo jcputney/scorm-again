@@ -230,7 +230,7 @@ class CrossFrameAPI {
         try {
           listener(...args);
         } catch (e) {
-          console.error(`Error in event listener for ${event}:`, e);
+          console.error("Error in event listener for %s:", String(event), e);
         }
       });
     }
@@ -240,7 +240,7 @@ class CrossFrameAPI {
         try {
           listener(event, ...args);
         } catch (e) {
-          console.error(`Error in "*" event listener for ${event}:`, e);
+          console.error('Error in "*" event listener for %s:', event, e);
         }
       });
     }

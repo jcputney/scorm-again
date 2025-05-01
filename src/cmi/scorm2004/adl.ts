@@ -79,7 +79,7 @@ export class ADL extends BaseCMI {
       nav: this.nav,
       data: this.data,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -178,7 +178,7 @@ export class ADLNav extends BaseCMI {
     const result = {
       request: this.request,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -272,7 +272,7 @@ export class ADLDataObject extends BaseCMI {
       id: this._id,
       store: this._store,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -478,7 +478,7 @@ export class ADLNavRequestValid extends BaseCMI {
       choice: this._choice,
       jump: this._jump,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

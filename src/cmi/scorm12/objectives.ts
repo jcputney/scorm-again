@@ -118,7 +118,7 @@ export class CMIObjectivesObject extends BaseCMI {
       status: this.status,
       score: this.score,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

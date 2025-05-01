@@ -42,15 +42,43 @@ export type Settings = {
 /**
  * Settings type with all properties required
  */
-export type RequiredSettings = Required<Settings>;
+export type InternalSettings = {
+  autocommit: boolean;
+  autocommitSeconds: number;
+  asyncCommit: boolean;
+  sendFullCommit: boolean;
+  lmsCommitUrl: string | boolean;
+  dataCommitFormat: string;
+  commitRequestDataType: string;
+  autoProgress: boolean;
+  logLevel: LogLevel;
+  selfReportSessionTime: boolean;
+  renderCommonCommitFields: boolean;
+  alwaysSendTotalTime: boolean;
+  strict_errors: boolean;
+  xhrHeaders: StringKeyMap;
+  xhrWithCredentials: boolean;
+  fetchMode: "cors" | "no-cors" | "same-origin" | "navigate";
+  responseHandler: (response: Response) => Promise<ResultObject>;
+  requestHandler: (commitObject: unknown) => unknown;
+  onLogMessage?: (messageLevel: LogLevel, logMessage: string) => void;
+  mastery_override?: boolean;
+  scoItemIds?: string[];
+  scoItemIdValidator?: false | ((scoItemId: string) => boolean);
+  globalObjectiveIds?: string[];
+  sequencing?: SequencingSettings;
 
-/**
- * Settings type with specific properties required
- */
-export type CoreSettings = Pick<
-  Settings,
-  "autocommit" | "asyncCommit" | "logLevel" | "strict_errors"
->;
+  // Offline support settings
+  enableOfflineSupport?: boolean;
+  courseId?: string;
+  syncOnInitialize?: boolean;
+  syncOnTerminate?: boolean;
+  maxSyncAttempts?: number;
+};
+
+export type RefObject = {
+  [key: string]: any;
+};
 
 /**
  * Represents a value that can be stored in a reference.
@@ -134,9 +162,4 @@ export type NamedLogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR" | "NONE";
 /**
  * All possible log level values
  */
-export type LogLevel =
-  | NumericLogLevel
-  | StringNumericLogLevel
-  | NamedLogLevel
-  | LogLevelEnum
-  | undefined;
+export type LogLevel = NumericLogLevel | StringNumericLogLevel | NamedLogLevel | LogLevelEnum;

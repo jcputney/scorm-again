@@ -92,7 +92,7 @@ export class AICCCMIStudentData extends CMIStudentData {
       tries: this.tries,
       attempt_records: this.attempt_records,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

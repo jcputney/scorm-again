@@ -2,7 +2,7 @@
  * Base class for API cmi objects
  */
 export abstract class BaseCMI {
-  jsonString? = false;
+  jsonString = false;
   protected readonly _cmi_element: string;
   protected _initialized = false;
   private _start_time: number | undefined;

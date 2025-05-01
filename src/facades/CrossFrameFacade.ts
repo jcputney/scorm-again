@@ -349,12 +349,12 @@ export class CrossFrameLMS {
     }
 
     // Send the response back to the client-side facade
-    const response: MessageResponse = {
+    const response = {
       messageId,
       result,
       error,
       sab,
-    };
+    } as MessageResponse;
 
     source.postMessage(response, this._targetOrigin, sab ? [sab] : undefined);
   }

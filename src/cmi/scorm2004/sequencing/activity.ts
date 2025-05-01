@@ -331,7 +331,7 @@ export class Activity extends BaseCMI {
       objectiveNormalizedMeasure: this._objectiveNormalizedMeasure,
       children: this._children.map((child) => child.toJSON()),
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

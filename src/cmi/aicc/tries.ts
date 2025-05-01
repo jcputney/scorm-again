@@ -122,7 +122,7 @@ export class CMITriesObject extends BaseCMI {
       time: this.time,
       score: this.score,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

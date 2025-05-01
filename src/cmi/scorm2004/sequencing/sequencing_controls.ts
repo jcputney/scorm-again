@@ -275,7 +275,7 @@ export class SequencingControls extends BaseCMI {
       rollupProgressCompletion: this._rollupProgressCompletion,
       objectiveMeasureWeight: this._objectiveMeasureWeight,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

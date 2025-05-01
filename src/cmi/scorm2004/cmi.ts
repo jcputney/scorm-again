@@ -525,8 +525,8 @@ export class CMI extends BaseRootCMI {
     };
 
     // Clean up jsonString flags
-    delete this.jsonString;
-    delete this.session.jsonString;
+    this.jsonString = false;
+    this.session.jsonString = false;
 
     return result;
   }

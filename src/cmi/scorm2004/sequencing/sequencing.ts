@@ -494,7 +494,7 @@ export class Sequencing extends BaseCMI {
       sequencingControls: this._sequencingControls,
       rollupRules: this._rollupRules,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

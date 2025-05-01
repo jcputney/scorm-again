@@ -14,7 +14,7 @@ import {
   SequencingControlsSettings,
   SequencingRuleSettings,
   SequencingRulesSettings,
-  SequencingSettings,
+  SequencingSettings
 } from "./types/sequencing_types";
 import { RuleCondition, SequencingRule } from "./cmi/scorm2004/sequencing/sequencing_rules";
 import { RollupCondition, RollupRule } from "./cmi/scorm2004/sequencing/rollup_rules";
@@ -23,7 +23,7 @@ import { BaseCMI } from "./cmi/common/base_cmi";
 import {
   CMIInteractionsCorrectResponsesObject,
   CMIInteractionsObject,
-  CMIInteractionsObjectivesObject,
+  CMIInteractionsObjectivesObject
 } from "./cmi/scorm2004/interactions";
 import { CMIArray } from "./cmi/common/array";
 import { CorrectResponses, ResponseType } from "./constants/response_constants";
@@ -178,7 +178,7 @@ class Scorm2004API extends BaseAPI {
           this.processListeners(action, "adl.nav.request", target);
         }
       } else if (this.settings.autoProgress) {
-        this.processListeners("SequenceNext", null, "next");
+        this.processListeners("SequenceNext", undefined, "next");
       }
     }
 
@@ -196,18 +196,20 @@ class Scorm2004API extends BaseAPI {
       "^adl\\.nav\\.request_valid\\.(choice|jump)\\.{target=\\S{0,}([a-zA-Z0-9-_]+)}$";
     if (stringMatches(CMIElement, adlNavRequestRegex)) {
       const matches = CMIElement.match(adlNavRequestRegex);
-      const request = matches[1];
-      const target = matches[2].replace(/{target=/g, "").replace(/}/g, "");
-      if (request === "choice" || request === "jump") {
-        if (this.settings.scoItemIdValidator) {
-          return String(this.settings.scoItemIdValidator(target));
+      if (matches) {
+        const request = matches[1];
+        const target = matches[2].replace(/{target=/g, "").replace(/}/g, "");
+        if (request === "choice" || request === "jump") {
+          if (this.settings.scoItemIdValidator) {
+            return String(this.settings.scoItemIdValidator(target));
+          }
+          // If we have extracted IDs from sequencing, use those exclusively
+          if (this._extractedScoItemIds.length > 0) {
+            return String(this._extractedScoItemIds.includes(target));
+          }
+          // Otherwise use the scoItemIds from settings
+          return String(this.settings?.scoItemIds?.includes(target));
         }
-        // If we have extracted IDs from sequencing, use those exclusively
-        if (this._extractedScoItemIds.length > 0) {
-          return String(this._extractedScoItemIds.includes(target));
-        }
-        // Otherwise use the scoItemIds from settings
-        return String(this.settings.scoItemIds.includes(target));
       }
     }
     return this.getValue("GetValue", true, CMIElement);
@@ -297,7 +299,7 @@ class Scorm2004API extends BaseAPI {
       }
 
       // Check if the objective ID matches a global objective
-      const is_global = objective_id && this.settings.globalObjectiveIds.includes(objective_id);
+      const is_global = objective_id && this.settings.globalObjectiveIds?.includes(objective_id);
 
       if (is_global) {
         // Locate or create an entry in _globalObjectives for the global objective
@@ -752,10 +754,8 @@ class Scorm2004API extends BaseAPI {
     }
 
     const score = this.cmi.score;
-    let scoreObject: ScoreObject = null;
+    const scoreObject: ScoreObject = {};
     if (score) {
-      scoreObject = {};
-
       if (!Number.isNaN(Number.parseFloat(score.raw))) {
         scoreObject.raw = Number.parseFloat(score.raw);
       }

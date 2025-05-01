@@ -1,4 +1,4 @@
-import { CommitObject, ResultObject, Settings } from "../types/api_types";
+import { CommitObject, InternalSettings, ResultObject } from "../types/api_types";
 import { LogLevelEnum } from "../constants/enums";
 import { ErrorCode } from "../constants/error_codes";
 export declare class OfflineStorageService {
@@ -9,7 +9,7 @@ export declare class OfflineStorageService {
     private syncQueue;
     private isOnline;
     private syncInProgress;
-    constructor(settings: Settings, error_codes: ErrorCode, apiLog: (functionName: string, message: any, messageLevel: LogLevelEnum, CMIElement?: string) => void);
+    constructor(settings: InternalSettings, error_codes: ErrorCode, apiLog: (functionName: string, message: any, messageLevel: LogLevelEnum, CMIElement?: string) => void);
     private handleOnlineStatusChange;
     storeOffline(courseId: string, commitData: CommitObject): Promise<ResultObject>;
     getOfflineData(courseId: string): Promise<CommitObject | null>;
@@ -19,5 +19,5 @@ export declare class OfflineStorageService {
     private getFromStorage;
     private saveToStorage;
     hasPendingOfflineData(courseId: string): Promise<boolean>;
-    updateSettings(settings: Settings): void;
+    updateSettings(settings: InternalSettings): void;
 }

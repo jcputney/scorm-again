@@ -419,7 +419,7 @@ export class CMIInteractionsObject extends BaseCMI {
       description: this.description,
       correct_responses: this.correct_responses,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -478,7 +478,7 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
     const result = {
       id: this.id,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -488,7 +488,7 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
  */
 export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
   private _pattern = "";
-  private _parent?: CMIInteractionsObject;
+  private _parent?: CMIInteractionsObject | undefined;
 
   /**
    * Constructor for cmi.interactions.n.correct_responses.n
@@ -598,7 +598,7 @@ export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
     const result = {
       pattern: this.pattern,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

@@ -106,7 +106,7 @@ export class CMIAttemptRecordsObject extends BaseCMI {
       lesson_status: this.lesson_status,
       score: this.score,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

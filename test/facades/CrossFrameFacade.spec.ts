@@ -388,6 +388,8 @@ describe("CrossFrameAPI", () => {
   // Test _sendMessage in test environment
   it("should handle _sendMessage in test environment with undefined window", () => {
     const originalWindow = global.window;
+    // eslint-disable-next-line
+    // @ts-ignore
     // noinspection JSConstantReassignment
     global.window = undefined;
 
@@ -399,6 +401,8 @@ describe("CrossFrameAPI", () => {
 
   it("should handle _sendMessage in test environment with undefined window.parent", async () => {
     const originalParent = window.parent;
+    // eslint-disable-next-line
+    // @ts-ignore
     // noinspection JSConstantReassignment
     window.parent = undefined;
 
@@ -414,6 +418,9 @@ describe("CrossFrameAPI", () => {
 
   it("should handle _sendMessage in test environment with undefined window.parent.postMessage", async () => {
     const originalPostMessage = window.parent.postMessage;
+    // eslint-disable-next-line
+    // @ts-ignore
+    // noinspection JSConstantReassignment
     window.parent.postMessage = undefined;
 
     // Don't mock _sendMessage for this test

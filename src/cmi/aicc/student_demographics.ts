@@ -407,7 +407,7 @@ export class CMIStudentDemographics extends BaseCMI {
       telephone: this.telephone,
       years_experience: this.years_experience,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

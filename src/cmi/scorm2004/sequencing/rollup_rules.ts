@@ -151,7 +151,7 @@ export class RollupCondition extends BaseCMI {
       condition: this._condition,
       parameters: Object.fromEntries(this._parameters),
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -345,7 +345,7 @@ export class RollupRule extends BaseCMI {
       minimumCount: this._minimumCount,
       minimumPercent: this._minimumPercent,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }
@@ -512,7 +512,7 @@ export class RollupRules extends BaseCMI {
     const result = {
       rules: this._rules,
     };
-    delete this.jsonString;
+    this.jsonString = false;
     return result;
   }
 }

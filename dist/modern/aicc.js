@@ -757,7 +757,7 @@ this.AICC = (function () {
         min: this.min,
         max: this.max
       };
-      delete this.jsonString;
+      this.jsonString = false;
       return result;
     }
   }
@@ -1124,7 +1124,7 @@ this.AICC = (function () {
         session_time: this.session_time,
         score: this.score
       };
-      delete this.jsonString;
+      this.jsonString = false;
       return result;
     }
   }
@@ -1192,7 +1192,7 @@ this.AICC = (function () {
       for (let i = 0; i < this.childArray.length; i++) {
         result[i + ""] = this.childArray[i];
       }
-      delete this.jsonString;
+      this.jsonString = false;
       return result;
     }
   }
@@ -1287,7 +1287,7 @@ this.AICC = (function () {
         status: this.status,
         score: this.score
       };
-      delete this.jsonString;
+      this.jsonString = false;
       return result;
     }
   }
@@ -1392,7 +1392,7 @@ this.AICC = (function () {
         max_time_allowed: this.max_time_allowed,
         time_limit_action: this.time_limit_action
       };
-      delete this.jsonString;
+      this.jsonString = false;
       return result;
     }
   }
@@ -1519,7 +1519,7 @@ this.AICC = (function () {
         speed: this.speed,
         text: this.text
       };
-      delete this.jsonString;
+      this.jsonString = false;
       return result;
     }
   }
@@ -1777,7 +1777,7 @@ this.AICC = (function () {
         objectives: this.objectives,
         correct_responses: this.correct_responses
       };
-      delete this.jsonString;
+      this.jsonString = false;
       return result;
     }
   }
@@ -1825,7 +1825,7 @@ this.AICC = (function () {
       const result = {
         id: this.id
       };
-      delete this.jsonString;
+      this.jsonString = false;
       return result;
     }
   }
@@ -1879,7 +1879,7 @@ this.AICC = (function () {
       const result = {
         pattern: this._pattern
       };
-      delete this.jsonString;
+      this.jsonString = false;
       return result;
     }
   }
@@ -1962,7 +1962,7 @@ this.AICC = (function () {
         student_preference: this.student_preference,
         interactions: this.interactions
       };
-      delete this.jsonString;
+      this.jsonString = false;
       return result;
     }
     /**
@@ -2133,7 +2133,7 @@ this.AICC = (function () {
       const result = {
         event: this.event
       };
-      delete this.jsonString;
+      this.jsonString = false;
       return result;
     }
   }
@@ -2477,16 +2477,19 @@ this.AICC = (function () {
      */
     performFetch(url, params) {
       return __async$3(this, null, function* () {
-        return fetch(url, {
+        const init = {
           method: "POST",
           mode: this.settings.fetchMode,
           body: params instanceof Array ? params.join("&") : JSON.stringify(params),
           headers: __spreadProps$2(__spreadValues$2({}, this.settings.xhrHeaders), {
             "Content-Type": this.settings.commitRequestDataType
           }),
-          credentials: this.settings.xhrWithCredentials ? "include" : void 0,
           keepalive: true
-        });
+        };
+        if (this.settings.xhrWithCredentials) {
+          init.credentials = "include";
+        }
+        return fetch(url, init);
       });
     }
     /**
@@ -2508,7 +2511,7 @@ this.AICC = (function () {
           if (!Object.hasOwnProperty.call(result, "errorCode")) {
             result.errorCode = this.error_codes.GENERAL;
           }
-          processListeners("CommitError", null, result.errorCode);
+          processListeners("CommitError", void 0, result.errorCode);
         }
         return result;
       });
@@ -3430,15 +3433,18 @@ ${stackTrace}`);
         }
         try {
           const processedData = this.settings.requestHandler(data);
-          const response = yield fetch(this.settings.lmsCommitUrl, {
+          const init = {
             method: "POST",
             mode: this.settings.fetchMode,
             body: JSON.stringify(processedData),
             headers: __spreadProps$1(__spreadValues$1({}, this.settings.xhrHeaders), {
               "Content-Type": this.settings.commitRequestDataType
-            }),
-            credentials: this.settings.xhrWithCredentials ? "include" : void 0
-          });
+            })
+          };
+          if (this.settings.xhrWithCredentials) {
+            init.credentials = "include";
+          }
+          const response = yield fetch(this.settings.lmsCommitUrl, init);
           const result = typeof this.settings.responseHandler === "function" ? yield this.settings.responseHandler(response) : yield response.json();
           if (response.status >= 200 && response.status <= 299 && (result.result === true || result.result === global_constants.SCORM_TRUE)) {
             if (!Object.hasOwnProperty.call(result, "errorCode")) {
@@ -3582,12 +3588,7 @@ ${stackTrace}`);
       this.currentState = global_constants.STATE_NOT_INITIALIZED;
       this._error_codes = error_codes;
       if (settings) {
-        this.settings = settings;
-      }
-      this.apiLogLevel = this.settings.logLevel;
-      this.selfReportSessionTime = this.settings.selfReportSessionTime;
-      if (this.apiLogLevel === void 0) {
-        this.apiLogLevel = LogLevelEnum.NONE;
+        this.settings = __spreadValues(__spreadValues({}, DefaultSettings), settings);
       }
       this._loggingService = loggingService || getLoggingService();
       this._loggingService.setLogLevel(this.apiLogLevel);
@@ -3658,7 +3659,7 @@ ${stackTrace}`);
       this.currentState = global_constants.STATE_NOT_INITIALIZED;
       this.lastErrorCode = "0";
       this._eventService.reset();
-      this.startingData = void 0;
+      this.startingData = {};
       if (this._offlineStorageService) {
         this._offlineStorageService.updateSettings(this.settings);
         if (settings == null ? void 0 : settings.courseId) {
@@ -4063,6 +4064,10 @@ ${stackTrace}`);
               }
             }
             if (!scorm2004 || this._errorHandlingService.lastErrorCode === "0") {
+              if (attribute === "__proto__" || attribute === "constructor") {
+                this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+                break;
+              }
               refObject[attribute] = value;
               returnValue = global_constants.SCORM_TRUE;
             }
@@ -4850,9 +4855,8 @@ ${stackTrace}`);
         }
       }
       const score = this.cmi.core.score;
-      let scoreObject = null;
+      const scoreObject = {};
       if (score) {
-        scoreObject = {};
         if (!Number.isNaN(Number.parseFloat(score.raw))) {
           scoreObject.raw = Number.parseFloat(score.raw);
         }
@@ -4983,7 +4987,7 @@ ${stackTrace}`);
       const result = {
         comments: this.comments
       };
-      delete this.jsonString;
+      this.jsonString = false;
       return result;
     }
   }
@@ -5084,7 +5088,7 @@ ${stackTrace}`);
         location: this.location,
         time: this.time
       };
-      delete this.jsonString;
+      this.jsonString = false;
       return result;
     }
   }
@@ -5230,7 +5234,7 @@ ${stackTrace}`);
         video: this.video,
         windows: this.windows
       };
-      delete this.jsonString;
+      this.jsonString = false;
       return result;
     }
   }
@@ -5592,7 +5596,7 @@ ${stackTrace}`);
         telephone: this.telephone,
         years_experience: this.years_experience
       };
-      delete this.jsonString;
+      this.jsonString = false;
       return result;
     }
   }
@@ -5693,7 +5697,7 @@ ${stackTrace}`);
         time: this.time,
         score: this.score
       };
-      delete this.jsonString;
+      this.jsonString = false;
       return result;
     }
   }
@@ -5778,7 +5782,7 @@ ${stackTrace}`);
         lesson_status: this.lesson_status,
         score: this.score
       };
-      delete this.jsonString;
+      this.jsonString = false;
       return result;
     }
   }
@@ -5854,7 +5858,7 @@ ${stackTrace}`);
         tries: this.tries,
         attempt_records: this.attempt_records
       };
-      delete this.jsonString;
+      this.jsonString = false;
       return result;
     }
   }
@@ -6018,7 +6022,7 @@ ${stackTrace}`);
         why_left: this.why_left,
         time_in_element: this.time_in_element
       };
-      delete this.jsonString;
+      this.jsonString = false;
       return result;
     }
   }
@@ -6083,7 +6087,7 @@ ${stackTrace}`);
         evaluation: this.evaluation,
         paths: this.paths
       };
-      delete this.jsonString;
+      this.jsonString = false;
       return result;
     }
   }
