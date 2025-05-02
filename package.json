@@ -126,7 +126,7 @@
     "babel-loader": "10.0.0",
     "babelify": "10.0.0",
     "esbuild": "^0.25.3",
-    "eslint": "9.25.1",
+    "eslint": "9.26.0",
     "eslint-formatter-junit": "8.40.0",
     "eslint-plugin-import": "2.31.0",
     "eslint-plugin-jsdoc": "50.6.11",
