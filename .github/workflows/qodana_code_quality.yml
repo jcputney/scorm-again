@@ -18,6 +18,31 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}  # to check out the actual pull request commit, not the merge commit
           fetch-depth: 0  # a full history is required for pull request analysis
+
+      # Set up Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      # Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Create required directories
+      - name: Create directories
+        run: mkdir -p reports dist docs test-results
+
+      # Run Vitest tests with coverage
+      - name: Run unit tests with Vitest
+        run: npm run test:coverage
+
+      - name: 'Move lcov.info'
+        run: |
+          mv coverage/lcov.info .qodana/code-coverage/lcov.info
+          mv coverage/coverage-summary.json .qodana/code-coverage/coverage-summary.json
+
       - name: 'Qodana Scan'
         uses: JetBrains/qodana-action@v2024.3
         with:

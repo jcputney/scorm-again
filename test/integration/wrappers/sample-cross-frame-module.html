@@ -15,7 +15,7 @@
       try {
         // Detect API version and initialize accordingly
         const apiVersion = await detectApiVersion();
-        let initialized = false;
+        let initialized;
 
         if (apiVersion === "2004") {
           // Use SCORM 2004 methods

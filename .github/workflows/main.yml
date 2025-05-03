@@ -47,10 +47,15 @@ jobs:
       - name: Run unit tests with Vitest
         run: npm run test:coverage
 
+      - name: 'Copy lcov.info'
+        run: |
+          cp coverage/lcov.info .qodana/code-coverage/lcov.info
+          cp coverage/coverage-summary.json .qodana/code-coverage/coverage-summary.json
+
       # Upload unit test results to GitHub
       - name: 'Report Coverage'
-        if: always() 
-        uses:  davelosert/vitest-coverage-report-action@v2
+        if: always()
+        uses: davelosert/vitest-coverage-report-action@v2
 
       # Install Playwright browsers
       - name: Install Playwright browsers
@@ -150,10 +155,10 @@ jobs:
       - name: Format code with Prettier
         run: npm run prettier
 
-      - name: Commit and Push Dist Folder
+      - name: Commit and Push Changes
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "[skip ci] Add dist folder"
-          file_pattern: "dist/**/*.* src/**/*.* test/**/*.* src/*.* test/*.*"
+          commit_message: "[skip ci] Add changes during build"
+          file_pattern: "dist/**/*.* src/**/*.* test/**/*.* src/*.* test/*.* .qodana/*.*"
           skip_dirty_check: false
