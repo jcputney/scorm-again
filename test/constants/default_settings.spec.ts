@@ -1,7 +1,9 @@
+// noinspection DuplicatedCode
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DefaultSettings } from "../../src/constants/default_settings";
-import { global_constants } from "../../src/constants/api_constants";
+import { global_constants } from "../../src";
 import { LogLevelEnum } from "../../src/constants/enums";
 
 describe("DefaultSettings", () => {
@@ -117,36 +119,48 @@ describe("DefaultSettings", () => {
     });
 
     it("should call console.error for ERROR level", () => {
+      // eslint-disable-next-line
+      // @ts-ignore
       DefaultSettings.onLogMessage(LogLevelEnum.ERROR, "Error message");
       expect(consoleErrorStub).toHaveBeenCalledOnce();
       expect(consoleErrorStub).toHaveBeenCalledWith("Error message");
     });
 
     it("should call console.error for string '4' level", () => {
+      // eslint-disable-next-line
+      // @ts-ignore
       DefaultSettings.onLogMessage("4", "Error message");
       expect(consoleErrorStub).toHaveBeenCalledOnce();
       expect(consoleErrorStub).toHaveBeenCalledWith("Error message");
     });
 
     it("should call console.error for numeric 4 level", () => {
+      // eslint-disable-next-line
+      // @ts-ignore
       DefaultSettings.onLogMessage(4, "Error message");
       expect(consoleErrorStub).toHaveBeenCalledOnce();
       expect(consoleErrorStub).toHaveBeenCalledWith("Error message");
     });
 
     it("should call console.warn for WARN level", () => {
+      // eslint-disable-next-line
+      // @ts-ignore
       DefaultSettings.onLogMessage(LogLevelEnum.WARN, "Warn message");
       expect(consoleWarnStub).toHaveBeenCalledOnce();
       expect(consoleWarnStub).toHaveBeenCalledWith("Warn message");
     });
 
     it("should call console.info for INFO level", () => {
+      // eslint-disable-next-line
+      // @ts-ignore
       DefaultSettings.onLogMessage(LogLevelEnum.INFO, "Info message");
       expect(consoleInfoStub).toHaveBeenCalledOnce();
       expect(consoleInfoStub).toHaveBeenCalledWith("Info message");
     });
 
     it("should call console.debug for DEBUG level when available", () => {
+      // eslint-disable-next-line
+      // @ts-ignore
       DefaultSettings.onLogMessage(LogLevelEnum.DEBUG, "Debug message");
       expect(consoleDebugStub).toHaveBeenCalledOnce();
       expect(consoleDebugStub).toHaveBeenCalledWith("Debug message");
@@ -157,6 +171,8 @@ describe("DefaultSettings", () => {
       const originalDebug = console.debug;
       console.debug = null as any;
 
+      // eslint-disable-next-line
+      // @ts-ignore
       DefaultSettings.onLogMessage(LogLevelEnum.DEBUG, "Debug message");
 
       expect(consoleLogStub).toHaveBeenCalledOnce();

@@ -1,13 +1,15 @@
-import { beforeEach, afterEach, describe, it, vi, expect } from "vitest";
+// noinspection DuplicatedCode
+
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SerializationService } from "../../src/services/SerializationService";
 import { HttpService } from "../../src/services/HttpService";
 import { EventService } from "../../src/services/EventService";
 import { validationService } from "../../src/services/ValidationService";
-import { memoize } from "../../src/utilities";
-import { scorm2004_errors } from "../../src/constants/error_codes";
+import { memoize, scorm2004_errors } from "../../src";
 import { LogLevelEnum } from "../../src/constants/enums";
 import { BaseCMI } from "../../src/cmi/common/base_cmi";
 import Scorm2004API from "../../src/Scorm2004API";
+import { InternalSettings } from "../../src/types/api_types";
 
 /**
  * Helper function to measure execution time of a function
@@ -114,7 +116,7 @@ describe("Performance Tests", () => {
         {
           lmsCommitUrl: "/scorm2004",
           logLevel: LogLevelEnum.NONE,
-        },
+        } as InternalSettings,
         scorm2004_errors,
       );
     });
@@ -212,7 +214,11 @@ describe("Performance Tests", () => {
     it("should measure validation performance for scores", async () => {
       const averageTime = await measureExecutionTime(() => {
         for (let i = 0; i < 100; i++) {
+          // eslint-disable-next-line
+          // @ts-ignore
           validationService.validateScore("cmi.score.scaled", i / 100, 0, 1);
+          // eslint-disable-next-line
+          // @ts-ignore
           validationService.validateScore("cmi.score.raw", i, 0, 100);
         }
       }, 100);

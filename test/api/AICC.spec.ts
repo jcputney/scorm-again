@@ -1,3 +1,5 @@
+// noinspection DuplicatedCode
+
 import { describe, expect, it, vi } from "vitest";
 import * as h from "./api_helpers";
 import AICC from "../../src/AICC";

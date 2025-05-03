@@ -1,4 +1,4 @@
-import { describe, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { CMIContent } from "../../src/cmi/scorm2004/content";
 import { CMILearner } from "../../src/cmi/scorm2004/learner";
 import { CMIMetadata } from "../../src/cmi/scorm2004/metadata";
@@ -6,7 +6,7 @@ import { CMISession } from "../../src/cmi/scorm2004/session";
 import { CMISettings } from "../../src/cmi/scorm2004/settings";
 import { CMIStatus } from "../../src/cmi/scorm2004/status";
 import { CMIThresholds } from "../../src/cmi/scorm2004/thresholds";
-import { scorm2004_constants } from "../../src/constants/api_constants";
+import { scorm2004_constants } from "../../src";
 import { CompletionStatus, SuccessStatus } from "../../src/constants/enums";
 
 describe("SCORM 2004 Component Tests", () => {

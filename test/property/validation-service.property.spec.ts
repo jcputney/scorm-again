@@ -1,4 +1,4 @@
-import { describe, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import * as fc from "fast-check";
 import { validationService } from "../../src/services/ValidationService";
 import { BaseScormValidationError } from "../../src/exceptions"; // Custom error class for testing

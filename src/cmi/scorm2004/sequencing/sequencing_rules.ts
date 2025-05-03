@@ -235,6 +235,7 @@ export class SequencingRule extends BaseCMI {
    * @param {RuleCondition} condition - The condition to add
    */
   addCondition(condition: RuleCondition): void {
+    // noinspection SuspiciousTypeOfGuard
     if (!(condition instanceof RuleCondition)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".conditions",
@@ -363,6 +364,7 @@ export class SequencingRules extends BaseCMI {
    * @param {SequencingRule} rule - The rule to add
    */
   addPreConditionRule(rule: SequencingRule): void {
+    // noinspection SuspiciousTypeOfGuard
     if (!(rule instanceof SequencingRule)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".preConditionRules",
@@ -385,6 +387,7 @@ export class SequencingRules extends BaseCMI {
    * @param {SequencingRule} rule - The rule to add
    */
   addExitConditionRule(rule: SequencingRule): void {
+    // noinspection SuspiciousTypeOfGuard
     if (!(rule instanceof SequencingRule)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".exitConditionRules",
@@ -407,6 +410,7 @@ export class SequencingRules extends BaseCMI {
    * @param {SequencingRule} rule - The rule to add
    */
   addPostConditionRule(rule: SequencingRule): void {
+    // noinspection SuspiciousTypeOfGuard
     if (!(rule instanceof SequencingRule)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".postConditionRules",

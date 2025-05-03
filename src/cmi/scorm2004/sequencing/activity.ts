@@ -128,6 +128,7 @@ export class Activity extends BaseCMI {
    * @param {Activity} child - The child activity to add
    */
   addChild(child: Activity): void {
+    // noinspection SuspiciousTypeOfGuard
     if (!(child instanceof Activity)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".children",

@@ -1,6 +1,5 @@
-import { describe, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { CMIStatus } from "../../src/cmi/scorm2004/status";
-import { scorm2004_regex } from "../../src/constants/regex";
 
 describe("SCORM 2004 CMIStatus Tests", () => {
   describe("Initialization Tests", () => {

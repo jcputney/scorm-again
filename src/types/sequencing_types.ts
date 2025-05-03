@@ -2,16 +2,11 @@
  * Types for SCORM 2004 sequencing configuration
  */
 
-import { Activity } from "../cmi/scorm2004/sequencing/activity";
+import { RuleActionType, RuleConditionOperator, RuleConditionType } from "../cmi/scorm2004/sequencing/sequencing_rules";
 import {
-  RuleConditionType,
-  RuleActionType,
-  RuleConditionOperator,
-} from "../cmi/scorm2004/sequencing/sequencing_rules";
-import {
-  RollupConditionType,
   RollupActionType,
-  RollupConsiderationType,
+  RollupConditionType,
+  RollupConsiderationType
 } from "../cmi/scorm2004/sequencing/rollup_rules";
 
 /**

@@ -39,7 +39,7 @@ export default abstract class BaseAPI implements IBaseAPI {
   private _serializationService: ISerializationService;
   private readonly _errorHandlingService: IErrorHandlingService;
   private readonly _loggingService: ILoggingService;
-  private _offlineStorageService?: IOfflineStorageService;
+  private readonly _offlineStorageService?: IOfflineStorageService;
   private _courseId: string = "";
 
   /**
@@ -406,16 +406,8 @@ export default abstract class BaseAPI implements IBaseAPI {
   }
 
   /**
-   * Getter for _error_codes
-   * @return {ErrorCode}
-   */
-  get error_codes(): ErrorCode {
-    return this._error_codes;
-  }
-
-  /**
    * Getter for _settings
-   * @return {Settings}
+   * @return {InternalSettings}
    */
   get settings(): InternalSettings {
     return this._settings;
@@ -427,7 +419,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    */
   set settings(settings: Settings) {
     const previousSettings = this._settings;
-    this._settings = { ...this._settings, ...settings };
+    this._settings = { ...this._settings, ...settings } as InternalSettings;
 
     // Update HTTP service settings
     this._httpService?.updateSettings(this._settings);

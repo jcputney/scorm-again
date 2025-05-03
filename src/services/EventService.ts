@@ -1,6 +1,5 @@
 import { LogLevel } from "../types/api_types";
 import { LogLevelEnum } from "../constants/enums";
-import { stringMatches } from "../utilities";
 import { IEventService } from "../interfaces/services";
 
 /**

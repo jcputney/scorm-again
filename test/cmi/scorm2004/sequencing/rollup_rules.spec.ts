@@ -1,3 +1,5 @@
+// noinspection DuplicatedCode
+
 import { describe, expect, it } from "vitest";
 import {
   RollupActionType,

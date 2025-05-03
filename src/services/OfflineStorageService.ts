@@ -63,7 +63,18 @@ export class OfflineStorageService {
         "Device is back online, attempting to sync...",
         LogLevelEnum.INFO,
       );
-      this.syncOfflineData();
+      this.syncOfflineData().then(
+        (success) => {
+          if (success) {
+            this.apiLog("OfflineStorageService", "Sync completed successfully", LogLevelEnum.INFO);
+          } else {
+            this.apiLog("OfflineStorageService", "Sync failed", LogLevelEnum.ERROR);
+          }
+        },
+        (error) => {
+          this.apiLog("OfflineStorageService", `Error during sync: ${error}`, LogLevelEnum.ERROR);
+        },
+      );
     } else if (wasOnline && !this.isOnline) {
       this.apiLog(
         "OfflineStorageService",
@@ -83,7 +94,7 @@ export class OfflineStorageService {
     try {
       // Store the data in the sync queue with timestamp and unique ID
       const queueItem: SyncQueueItem = {
-        id: `${courseId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: `${courseId}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
         courseId,
         timestamp: Date.now(),
         data: commitData,
@@ -315,6 +326,7 @@ export class OfflineStorageService {
     return this.isOnline;
   }
 
+  // noinspection JSValidateJSDoc
   /**
    * Get item from localStorage
    * @param {string} key - The key to retrieve

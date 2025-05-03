@@ -1,9 +1,12 @@
-import { beforeEach, afterEach, describe, it, vi, expect } from "vitest";
+// noinspection DuplicatedCode
+
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { HttpService } from "../../src/services/HttpService";
 import { EventService } from "../../src/services/EventService";
-import { scorm2004_errors } from "../../src/constants/error_codes";
+import { scorm2004_errors } from "../../src";
 import { LogLevelEnum } from "../../src/constants/enums";
 import Scorm2004API from "../../src/Scorm2004API";
+import { InternalSettings } from "../../src/types/api_types";
 
 /**
  * Helper function to run multiple operations concurrently
@@ -74,7 +77,7 @@ describe("Stress Tests for Concurrent Operations", () => {
         {
           lmsCommitUrl: "/scorm2004",
           logLevel: LogLevelEnum.NONE,
-        },
+        } as InternalSettings,
         scorm2004_errors,
       );
     });

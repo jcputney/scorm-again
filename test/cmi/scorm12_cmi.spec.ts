@@ -1,6 +1,7 @@
-import { describe, it, vi } from "vitest";
-import { scorm12_constants } from "../../src/constants/api_constants";
-import { scorm12_errors } from "../../src/constants/error_codes";
+// noinspection DuplicatedCode
+
+import { describe, expect, it } from "vitest";
+import { scorm12_constants, scorm12_errors } from "../../src";
 import { CMI } from "../../src/cmi/scorm12/cmi";
 import * as h from "./cmi_helpers";
 import { scorm12Values } from "../field_values";
@@ -12,7 +13,6 @@ import {
 } from "../../src/cmi/scorm12/interactions";
 
 const scorm12 = scorm12_constants;
-const scorm12_error_codes = scorm12;
 
 const invalid_set = scorm12_errors.INVALID_SET_VALUE;
 const type_mismatch = scorm12_errors.TYPE_MISMATCH;

@@ -674,33 +674,51 @@ this.Scorm2004API = (function () {
           errorCode: this.error_codes.GENERAL
         };
         if (immediate) {
-          if (this.settings.useBeaconInsteadOfFetch !== "never") {
-            const body = params instanceof Array ? params.join("&") : JSON.stringify(params);
-            const contentType = params instanceof Array ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType;
-            navigator.sendBeacon(url, new Blob([body], { type: contentType }));
-          } else {
-            this.performFetch(url, params).then((response) => __async$3(this, null, function* () {
-              yield this.transformResponse(response, processListeners);
-            }));
-          }
-          return {
-            result: global_constants.SCORM_TRUE,
-            errorCode: 0
-          };
+          return this._handleImmediateRequest(url, params, processListeners);
         }
-        const process = (url2, params2, settings) => __async$3(this, null, function* () {
-          try {
-            params2 = settings.requestHandler(params2);
-            const response = yield this.performFetch(url2, params2);
-            return this.transformResponse(response, processListeners);
-          } catch (e) {
-            apiLog("processHttpRequest", e, LogLevelEnum.ERROR);
-            processListeners("CommitError");
-            return genericError;
-          }
-        });
-        return yield process(url, params, this.settings);
+        try {
+          const processedParams = this.settings.requestHandler(params);
+          const response = yield this.performFetch(url, processedParams);
+          return this.transformResponse(response, processListeners);
+        } catch (e) {
+          apiLog("processHttpRequest", e, LogLevelEnum.ERROR);
+          processListeners("CommitError");
+          return genericError;
+        }
       });
+    }
+    /**
+     * Handles an immediate request (used during termination)
+     * @param {string} url - The URL to send the request to
+     * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+     * @param {Function} processListeners - Function to process event listeners
+     * @return {ResultObject} - A success result object
+     * @private
+     */
+    _handleImmediateRequest(url, params, processListeners) {
+      if (this.settings.useBeaconInsteadOfFetch !== "never") {
+        const { body, contentType } = this._prepareRequestBody(params);
+        navigator.sendBeacon(url, new Blob([body], { type: contentType }));
+      } else {
+        this.performFetch(url, params).then((response) => __async$3(this, null, function* () {
+          yield this.transformResponse(response, processListeners);
+        }));
+      }
+      return {
+        result: global_constants.SCORM_TRUE,
+        errorCode: 0
+      };
+    }
+    /**
+     * Prepares the request body and content type based on params type
+     * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+     * @return {Object} - Object containing body and contentType
+     * @private
+     */
+    _prepareRequestBody(params) {
+      const body = params instanceof Array ? params.join("&") : JSON.stringify(params);
+      const contentType = params instanceof Array ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType;
+      return { body, contentType };
     }
     /**
      * Perform the fetch request to the LMS
@@ -714,12 +732,13 @@ this.Scorm2004API = (function () {
         if (this.settings.useBeaconInsteadOfFetch === "always") {
           return this.performBeacon(url, params);
         }
+        const { body, contentType } = this._prepareRequestBody(params);
         const init = {
           method: "POST",
           mode: this.settings.fetchMode,
-          body: params instanceof Array ? params.join("&") : JSON.stringify(params),
+          body,
           headers: __spreadProps$3(__spreadValues$4({}, this.settings.xhrHeaders), {
-            "Content-Type": this.settings.commitRequestDataType
+            "Content-Type": contentType
           }),
           keepalive: true
         };
@@ -738,8 +757,7 @@ this.Scorm2004API = (function () {
      */
     performBeacon(url, params) {
       return __async$3(this, null, function* () {
-        const body = params instanceof Array ? params.join("&") : JSON.stringify(params);
-        const contentType = params instanceof Array ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType;
+        const { body, contentType } = this._prepareRequestBody(params);
         const beaconSuccess = navigator.sendBeacon(url, new Blob([body], { type: contentType }));
         return Promise.resolve({
           status: beaconSuccess ? 200 : 0,
@@ -769,19 +787,26 @@ this.Scorm2004API = (function () {
     transformResponse(response, processListeners) {
       return __async$3(this, null, function* () {
         const result = typeof this.settings.responseHandler === "function" ? yield this.settings.responseHandler(response) : yield response.json();
-        if (response.status >= 200 && response.status <= 299 && (result.result === true || result.result === global_constants.SCORM_TRUE)) {
+        if (!Object.hasOwnProperty.call(result, "errorCode")) {
+          result.errorCode = this._isSuccessResponse(response, result) ? 0 : this.error_codes.GENERAL;
+        }
+        if (this._isSuccessResponse(response, result)) {
           processListeners("CommitSuccess");
-          if (!Object.hasOwnProperty.call(result, "errorCode")) {
-            result.errorCode = 0;
-          }
         } else {
-          if (!Object.hasOwnProperty.call(result, "errorCode")) {
-            result.errorCode = this.error_codes.GENERAL;
-          }
           processListeners("CommitError", void 0, result.errorCode);
         }
         return result;
       });
+    }
+    /**
+     * Determines if a response is successful based on status code and result
+     * @param {Response} response - The HTTP response
+     * @param {ResultObject} result - The parsed result object
+     * @return {boolean} - Whether the response is successful
+     * @private
+     */
+    _isSuccessResponse(response, result) {
+      return response.status >= 200 && response.status <= 299 && (result.result === "true" || result.result === global_constants.SCORM_TRUE);
     }
     /**
      * Updates the service settings
@@ -1187,8 +1212,8 @@ this.Scorm2004API = (function () {
      * @return {CommitObject|StringKeyMap|Array<any>}
      */
     getCommitObject(terminateCommit, alwaysSendTotalTime, renderCommonCommitFields, renderCommitObject, renderCommitCMI, apiLogLevel) {
-      const shouldTerminateCommit = terminateCommit || alwaysSendTotalTime;
-      const commitObject = renderCommonCommitFields ? renderCommitObject(shouldTerminateCommit) : renderCommitCMI(shouldTerminateCommit);
+      const includeTotalTime = alwaysSendTotalTime || terminateCommit;
+      const commitObject = renderCommonCommitFields ? renderCommitObject(terminateCommit, includeTotalTime) : renderCommitCMI(terminateCommit, includeTotalTime);
       if ([LogLevelEnum.DEBUG, "1", 1, "DEBUG"].includes(apiLogLevel)) {
         console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");
         console.debug(commitObject);
@@ -1585,7 +1610,18 @@ ${stackTrace}`);
           "Device is back online, attempting to sync...",
           LogLevelEnum.INFO
         );
-        this.syncOfflineData();
+        this.syncOfflineData().then(
+          (success) => {
+            if (success) {
+              this.apiLog("OfflineStorageService", "Sync completed successfully", LogLevelEnum.INFO);
+            } else {
+              this.apiLog("OfflineStorageService", "Sync failed", LogLevelEnum.ERROR);
+            }
+          },
+          (error) => {
+            this.apiLog("OfflineStorageService", `Error during sync: ${error}`, LogLevelEnum.ERROR);
+          }
+        );
       } else if (wasOnline && !this.isOnline) {
         this.apiLog(
           "OfflineStorageService",
@@ -1604,7 +1640,7 @@ ${stackTrace}`);
       return __async$2(this, null, function* () {
         try {
           const queueItem = {
-            id: `${courseId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            id: `${courseId}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
             courseId,
             timestamp: Date.now(),
             data: commitData,
@@ -1792,6 +1828,7 @@ ${stackTrace}`);
     isDeviceOnline() {
       return this.isOnline;
     }
+    // noinspection JSValidateJSDoc
     /**
      * Get item from localStorage
      * @param {string} key - The key to retrieve
@@ -2243,15 +2280,8 @@ ${stackTrace}`);
       }
     }
     /**
-     * Getter for _error_codes
-     * @return {ErrorCode}
-     */
-    get error_codes() {
-      return this._error_codes;
-    }
-    /**
      * Getter for _settings
-     * @return {Settings}
+     * @return {InternalSettings}
      */
     get settings() {
       return this._settings;
@@ -4301,6 +4331,23 @@ ${stackTrace}`);
       }
     }
     /**
+     * Getter for _score_range
+     * @return {string | false}
+     */
+    getScoreObject() {
+      const scoreObject = {};
+      if (!Number.isNaN(Number.parseFloat(this.raw))) {
+        scoreObject.raw = Number.parseFloat(this.raw);
+      }
+      if (!Number.isNaN(Number.parseFloat(this.min))) {
+        scoreObject.min = Number.parseFloat(this.min);
+      }
+      if (!Number.isNaN(Number.parseFloat(this.max))) {
+        scoreObject.max = Number.parseFloat(this.max);
+      }
+      return scoreObject;
+    }
+    /**
      * toJSON for *.score
      * @return {
      *    {
@@ -4364,6 +4411,13 @@ ${stackTrace}`);
       if (check2004ValidFormat(this._cmi_element + ".scaled", scaled, scorm2004_regex.CMIDecimal) && check2004ValidRange(this._cmi_element + ".scaled", scaled, scorm2004_regex.scaled_range)) {
         this._scaled = scaled;
       }
+    }
+    getScoreObject() {
+      const scoreObject = super.getScoreObject();
+      if (!Number.isNaN(Number.parseFloat(this.scaled))) {
+        scoreObject.scaled = Number.parseFloat(this.scaled);
+      }
+      return scoreObject;
     }
     /**
      * toJSON for cmi *.score
@@ -8282,21 +8336,8 @@ ${stackTrace}`);
       if (!nextActivity) {
         return false;
       }
-      const exitConditionAction = this._sequencingRules.evaluateExitConditionRules(currentActivity);
-      if (exitConditionAction) {
-        switch (exitConditionAction) {
-          case RuleActionType.EXIT_PARENT: {
-            const parent = currentActivity.parent;
-            if (parent) {
-              this._activityTree.currentActivity = parent;
-              return true;
-            }
-            return false;
-          }
-          case RuleActionType.EXIT_ALL:
-            this._activityTree.currentActivity = null;
-            return true;
-        }
+      if (this._handleExitConditionAction(currentActivity)) {
+        return true;
       }
       this._activityTree.currentActivity = nextActivity;
       const postConditionAction = this._sequencingRules.evaluatePostConditionRules(nextActivity);
@@ -8334,21 +8375,8 @@ ${stackTrace}`);
       if (!previousActivity) {
         return false;
       }
-      const exitConditionAction = this._sequencingRules.evaluateExitConditionRules(currentActivity);
-      if (exitConditionAction) {
-        switch (exitConditionAction) {
-          case RuleActionType.EXIT_PARENT: {
-            const parent = currentActivity.parent;
-            if (parent) {
-              this._activityTree.currentActivity = parent;
-              return true;
-            }
-            return false;
-          }
-          case RuleActionType.EXIT_ALL:
-            this._activityTree.currentActivity = null;
-            return true;
-        }
+      if (this._handleExitConditionAction(currentActivity)) {
+        return true;
       }
       this._activityTree.currentActivity = previousActivity;
       const postConditionAction = this._sequencingRules.evaluatePostConditionRules(previousActivity);
@@ -8440,6 +8468,31 @@ ${stackTrace}`);
         return;
       }
       this._processRollupRecursive(root);
+    }
+    /**
+     * Handle exit condition actions for an activity
+     * @param {Activity} activity - The activity to handle exit conditions for
+     * @return {boolean} - True if an exit action was handled, false otherwise
+     * @private
+     */
+    _handleExitConditionAction(activity) {
+      const exitConditionAction = this._sequencingRules.evaluateExitConditionRules(activity);
+      if (exitConditionAction) {
+        switch (exitConditionAction) {
+          case RuleActionType.EXIT_PARENT: {
+            const parent = activity.parent;
+            if (parent) {
+              this._activityTree.currentActivity = parent;
+              return true;
+            }
+            return false;
+          }
+          case RuleActionType.EXIT_ALL:
+            this._activityTree.currentActivity = null;
+            return true;
+        }
+      }
+      return false;
     }
     /**
      * Process rollup recursively
@@ -9048,12 +9101,13 @@ ${stackTrace}`);
     /**
      * Render the cmi object to the proper format for LMS commit - delegates to DataSerializationModule
      *
-     * @param {boolean} terminateCommit
+     * @param {boolean} terminateCommit - Whether this is a termination commit
+     * @param {boolean} includeTotalTime - Whether to include total time in the commit data
      * @return {object|Array}
      */
-    renderCommitCMI(terminateCommit) {
+    renderCommitCMI(terminateCommit, includeTotalTime = false) {
       const cmiExport = this.renderCMIToJSONObject();
-      if (terminateCommit) {
+      if (includeTotalTime) {
         cmiExport.cmi.total_time = this.cmi.getCurrentTotalTime();
       }
       const result = [];
@@ -9075,12 +9129,14 @@ ${stackTrace}`);
     }
     /**
      * Render the cmi object to the proper format for LMS commit - delegates to DataSerializationModule
-     * @param {boolean} terminateCommit
+     * @param {boolean} terminateCommit - Whether this is a termination commit
+     * @param {boolean} includeTotalTime - Whether to include total time in the commit data
      * @return {CommitObject}
      */
-    renderCommitObject(terminateCommit) {
-      const cmiExport = this.renderCommitCMI(terminateCommit);
-      const totalTimeDuration = this.cmi.getCurrentTotalTime();
+    renderCommitObject(terminateCommit, includeTotalTime = false) {
+      var _a, _b;
+      const cmiExport = this.renderCommitCMI(terminateCommit, includeTotalTime);
+      const totalTimeDuration = includeTotalTime ? this.cmi.getCurrentTotalTime() : "";
       const totalTimeSeconds = getDurationAsSeconds(
         totalTimeDuration,
         scorm2004_regex.CMITimespan
@@ -9101,22 +9157,7 @@ ${stackTrace}`);
           successStatus = SuccessStatus.FAILED;
         }
       }
-      const score = this.cmi.score;
-      const scoreObject = {};
-      if (score) {
-        if (!Number.isNaN(Number.parseFloat(score.raw))) {
-          scoreObject.raw = Number.parseFloat(score.raw);
-        }
-        if (!Number.isNaN(Number.parseFloat(score.min))) {
-          scoreObject.min = Number.parseFloat(score.min);
-        }
-        if (!Number.isNaN(Number.parseFloat(score.max))) {
-          scoreObject.max = Number.parseFloat(score.max);
-        }
-        if (!Number.isNaN(Number.parseFloat(score.scaled))) {
-          scoreObject.scaled = Number.parseFloat(score.scaled);
-        }
-      }
+      const scoreObject = ((_b = (_a = this.cmi) == null ? void 0 : _a.score) == null ? void 0 : _b.getScoreObject()) || {};
       const commitObject = {
         completionStatus,
         successStatus,

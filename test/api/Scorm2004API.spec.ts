@@ -699,7 +699,7 @@ describe("SCORM 2004 API Tests", () => {
       terminateStub = vi.spyOn(scorm2004API, "terminate").mockImplementation(async () => "");
       processListenersSpy = vi
         .spyOn(scorm2004API, "processListeners")
-        .mockImplementation((functionName: string, CMIElement?: string, value?: any) => {});
+        .mockImplementation((_functionName: string, _CMIElement?: string, _value?: any) => {});
     });
 
     describe("lmsFinish()", () => {

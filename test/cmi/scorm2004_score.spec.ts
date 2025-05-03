@@ -1,6 +1,6 @@
-import { describe, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { Scorm2004CMIScore } from "../../src/cmi/scorm2004/score";
-import { scorm2004_constants } from "../../src/constants/api_constants";
+import { scorm2004_constants } from "../../src";
 
 describe("SCORM 2004 CMIScore Tests", () => {
   describe("Initialization Tests", () => {
@@ -19,6 +19,7 @@ describe("SCORM 2004 CMIScore Tests", () => {
       expect(score["_children"]).toBe(scorm2004_constants.score_children);
 
       expect(() => {
+        // eslint-disable-next-line
         // @ts-ignore - Testing invalid assignment
         score["_children"] = "invalid";
       }).toThrow();

@@ -1,6 +1,5 @@
-import { describe, it, vi } from "vitest";
-import { scorm2004_errors } from "../../src/constants/error_codes";
-import { scorm2004_constants } from "../../src/constants/api_constants";
+import { describe, expect, it } from "vitest";
+import { ADL, scorm2004_constants, scorm2004_errors } from "../../src";
 import { CMI } from "../../src/cmi/scorm2004/cmi";
 import * as h from "./cmi_helpers";
 import { scorm2004Values } from "../field_values";
@@ -11,7 +10,6 @@ import {
 } from "../../src/cmi/scorm2004/interactions";
 import { CMICommentsObject } from "../../src/cmi/scorm2004/comments";
 import { CMIObjectivesObject } from "../../src/cmi/scorm2004/objectives";
-import { ADL } from "../../src/cmi/scorm2004/adl";
 
 const read_only = scorm2004_errors.READ_ONLY_ELEMENT;
 const write_only = scorm2004_errors.WRITE_ONLY_ELEMENT;

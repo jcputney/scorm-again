@@ -1,12 +1,6 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import {
-  ADL,
-  ADLData,
-  ADLDataObject,
-  ADLNav,
-  ADLNavRequestValid,
-} from "../../../src/cmi/scorm2004/adl";
+import { ADL, ADLData, ADLDataObject, ADLNav, ADLNavRequestValid } from "../../../src";
 import { Scorm2004ValidationError } from "../../../src/exceptions/scorm2004_exceptions";
 
 describe("ADL Classes", () => {

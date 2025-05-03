@@ -13,8 +13,13 @@ class CrossFrameLMS {
     let result, error;
     try {
       const fn = this._api[msg.method];
-      if (typeof fn !== "function") throw new Error(`Method ${msg.method} not found`);
-      result = fn.apply(this._api, msg.params);
+      if (typeof fn !== "function") {
+        error = {
+          message: `Method ${msg.method} not found`
+        };
+      } else {
+        result = fn.apply(this._api, msg.params);
+      }
     } catch (e) {
       error = { message: e.message, stack: e.stack };
     }

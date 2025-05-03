@@ -219,4 +219,12 @@ async function main() {
 }
 
 // Run the benchmark
-main();
+main().then(
+  () => {
+    console.log("Benchmark completed successfully.");
+  },
+  (error) => {
+    console.error("Error during benchmark:", error);
+    process.exit(1);
+  },
+);

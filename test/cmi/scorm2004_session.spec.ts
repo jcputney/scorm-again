@@ -1,8 +1,7 @@
-import { describe, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { CMISession } from "../../src/cmi/scorm2004/session";
-import { scorm2004_errors } from "../../src/constants/error_codes";
+import { scorm2004_errors } from "../../src";
 import { Scorm2004ValidationError } from "../../src/exceptions/scorm2004_exceptions";
-import * as Utilities from "../../src/utilities";
 
 describe("SCORM 2004 CMISession Tests", () => {
   describe("Initialization Tests", () => {
@@ -67,7 +66,8 @@ describe("SCORM 2004 CMISession Tests", () => {
         session.exit = "suspend";
 
         expect(() => {
-          const exit = session.exit;
+          // noinspection JSUnusedLocalSymbols
+          const _ = session.exit;
         }).toThrow(new Scorm2004ValidationError("cmi.exit", scorm2004_errors.WRITE_ONLY_ELEMENT));
       });
     });
@@ -98,7 +98,8 @@ describe("SCORM 2004 CMISession Tests", () => {
         session.session_time = "PT1H30M5S";
 
         expect(() => {
-          const sessionTime = session.session_time;
+          // noinspection JSUnusedLocalSymbols
+          const _sessionTime = session.session_time;
         }).toThrow(
           new Scorm2004ValidationError("cmi.session_time", scorm2004_errors.WRITE_ONLY_ELEMENT),
         );

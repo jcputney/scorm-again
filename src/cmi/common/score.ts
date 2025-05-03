@@ -4,6 +4,7 @@ import { BaseCMI } from "./base_cmi";
 import { scorm12_errors } from "../../constants/error_codes";
 import { BaseScormValidationError } from "../../exceptions";
 import { validationService } from "../../services/ValidationService";
+import { ScoreObject } from "../../types/api_types";
 
 /**
  * Base class for cmi *.score objects
@@ -161,6 +162,24 @@ export class CMIScore extends BaseCMI {
     ) {
       this._max = max;
     }
+  }
+
+  /**
+   * Getter for _score_range
+   * @return {string | false}
+   */
+  public getScoreObject(): ScoreObject {
+    const scoreObject: ScoreObject = {};
+    if (!Number.isNaN(Number.parseFloat(this.raw))) {
+      scoreObject.raw = Number.parseFloat(this.raw);
+    }
+    if (!Number.isNaN(Number.parseFloat(this.min))) {
+      scoreObject.min = Number.parseFloat(this.min);
+    }
+    if (!Number.isNaN(Number.parseFloat(this.max))) {
+      scoreObject.max = Number.parseFloat(this.max);
+    }
+    return scoreObject;
   }
 
   /**

@@ -5,7 +5,7 @@ import {
 } from "../../src/services/ErrorHandlingService";
 import { LogLevelEnum } from "../../src/constants/enums";
 import { ValidationError } from "../../src/exceptions";
-import { global_constants } from "../../src/constants/api_constants";
+import { global_constants } from "../../src";
 
 describe("ErrorHandlingService", () => {
   let errorHandlingService: ErrorHandlingService;

@@ -1,5 +1,5 @@
-import { describe, it, vi } from "vitest";
-import { ADL, ADLNav, ADLNavRequestValid } from "../../src/cmi/scorm2004/adl";
+import { describe, expect, it } from "vitest";
+import { ADL, ADLNav, ADLNavRequestValid } from "../../src";
 import { NAVBoolean } from "../../src/constants/enums";
 
 describe("SCORM 2004 ADL Tests", () => {

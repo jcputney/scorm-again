@@ -1,5 +1,6 @@
 import { BaseCMI } from "./base_cmi";
 import { BaseScormValidationError } from "../../exceptions";
+import { ScoreObject } from "../../types/api_types";
 export declare class CMIScore extends BaseCMI {
     private readonly __children;
     private readonly __score_range;
@@ -31,6 +32,7 @@ export declare class CMIScore extends BaseCMI {
     set min(min: string);
     get max(): string;
     set max(max: string);
+    getScoreObject(): ScoreObject;
     toJSON(): {
         min: string;
         max: string;

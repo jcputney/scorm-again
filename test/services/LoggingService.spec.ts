@@ -1,4 +1,6 @@
-import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
+// noinspection DuplicatedCode
+
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getLoggingService, LoggingService } from "../../src/services/LoggingService";
 import { LogLevelEnum } from "../../src/constants/enums";
 import { LogLevel } from "../../src/types/api_types";
@@ -179,7 +181,7 @@ describe("LoggingService", () => {
           case "1":
           case 1:
           case "DEBUG":
-          case LogLevelEnum.DEBUG:
+          case LogLevelEnum.DEBUG: {
             // Access console.debug directly to ensure we check at runtime
             const debug = console.debug;
             if (typeof debug === "function") {
@@ -188,6 +190,7 @@ describe("LoggingService", () => {
               console.log(logMessage);
             }
             break;
+          }
         }
       };
     };

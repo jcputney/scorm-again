@@ -1,3 +1,5 @@
+// noinspection JSUnusedLocalSymbols
+
 import { getError } from "../api/api_helpers";
 import { BaseCMI, BaseRootCMI } from "../../src/cmi/common/base_cmi";
 import { describe, expect, it } from "vitest";
@@ -60,6 +62,7 @@ export type CheckGetCurrentTotalTime = {
 };
 
 export const checkFieldConstraintSize = ({
+  // noinspection JSUnusedLocalSymbols
   cmi,
   fieldName,
   limit,

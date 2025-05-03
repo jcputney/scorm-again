@@ -7,6 +7,7 @@ import { scorm2004_errors } from "../../constants/error_codes";
 import { scorm2004_regex } from "../../constants/regex";
 import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
 import { check2004ValidFormat, check2004ValidRange } from "./validation";
+import { ScoreObject } from "../../types/api_types";
 
 export class Scorm2004CMIScore extends CMIScore {
   private _scaled = "";
@@ -57,6 +58,16 @@ export class Scorm2004CMIScore extends CMIScore {
     ) {
       this._scaled = scaled;
     }
+  }
+
+  override getScoreObject(): ScoreObject {
+    const scoreObject = super.getScoreObject();
+
+    if (!Number.isNaN(Number.parseFloat(this.scaled))) {
+      scoreObject.scaled = Number.parseFloat(this.scaled);
+    }
+
+    return scoreObject;
   }
 
   /**

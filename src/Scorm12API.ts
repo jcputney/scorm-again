@@ -9,7 +9,7 @@ import { CMIObjectivesObject } from "./cmi/scorm12/objectives";
 import {
   CMIInteractionsCorrectResponsesObject,
   CMIInteractionsObject,
-  CMIInteractionsObjectivesObject,
+  CMIInteractionsObjectivesObject
 } from "./cmi/scorm12/interactions";
 import { NAV } from "./cmi/scorm12/nav";
 import { CommitObject, ResultObject, ScoreObject, Settings } from "./types/api_types";
@@ -287,7 +287,10 @@ class Scorm12API extends BaseAPI {
    * @param {boolean} includeTotalTime - Whether to include total time in the commit data
    * @return {object|Array}
    */
-  renderCommitCMI(terminateCommit: boolean, includeTotalTime: boolean = false): StringKeyMap | Array<string> {
+  renderCommitCMI(
+    terminateCommit: boolean,
+    includeTotalTime: boolean = false,
+  ): StringKeyMap | Array<string> {
     const cmiExport: StringKeyMap = this.renderCMIToJSONObject();
 
     if (includeTotalTime) {
@@ -337,20 +340,7 @@ class Scorm12API extends BaseAPI {
       }
     }
 
-    const score = this.cmi.core.score;
-    const scoreObject: ScoreObject = {};
-    if (score) {
-      if (!Number.isNaN(Number.parseFloat(score.raw))) {
-        scoreObject.raw = Number.parseFloat(score.raw);
-      }
-      if (!Number.isNaN(Number.parseFloat(score.min))) {
-        scoreObject.min = Number.parseFloat(score.min);
-      }
-      if (!Number.isNaN(Number.parseFloat(score.max))) {
-        scoreObject.max = Number.parseFloat(score.max);
-      }
-    }
-
+    const scoreObject: ScoreObject = this.cmi?.core?.score?.getScoreObject() || {};
     const commitObject: CommitObject = {
       successStatus: successStatus,
       completionStatus: completionStatus,

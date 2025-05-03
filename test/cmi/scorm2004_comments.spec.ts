@@ -1,10 +1,10 @@
-import { describe, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   CMICommentsFromLearner,
   CMICommentsFromLMS,
   CMICommentsObject,
 } from "../../src/cmi/scorm2004/comments";
-import { scorm2004_constants } from "../../src/constants/api_constants";
+import { scorm2004_constants } from "../../src";
 
 describe("SCORM 2004 Comments Tests", () => {
   describe("CMICommentsFromLearner Tests", () => {
@@ -21,6 +21,7 @@ describe("SCORM 2004 Comments Tests", () => {
         expect(comments["_children"]).toBe(scorm2004_constants.comments_children);
 
         expect(() => {
+          // eslint-disable-next-line
           // @ts-ignore - Testing invalid assignment
           comments["_children"] = "invalid";
         }).toThrow();
@@ -83,6 +84,7 @@ describe("SCORM 2004 Comments Tests", () => {
         expect(comments["_children"]).toBe(scorm2004_constants.comments_children);
 
         expect(() => {
+          // eslint-disable-next-line
           // @ts-ignore - Testing invalid assignment
           comments["_children"] = "invalid";
         }).toThrow();

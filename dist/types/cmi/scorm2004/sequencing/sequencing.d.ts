@@ -33,6 +33,7 @@ export declare class Sequencing extends BaseCMI {
     processAbandonAllRequest(): boolean;
     processSuspendAllRequest(currentActivity: Activity): boolean;
     processRollup(): void;
+    private _handleExitConditionAction;
     private _processRollupRecursive;
     toJSON(): object;
 }

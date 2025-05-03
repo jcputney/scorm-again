@@ -1,3 +1,5 @@
+// noinspection DuplicatedCode
+
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import Scorm12API from "../../src/Scorm12API";
 import * as h from "./api_helpers";

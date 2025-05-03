@@ -540,13 +540,11 @@ describe("BaseAPI", () => {
       const params = ["invalid", "format"]; // Invalid format for offline storage
 
       // Mock the offline storage service
-      const offlineStorageService = {
-        isDeviceOnline: vi.fn().mockReturnValue(false),
-      };
-
       // eslint-disable-next-line
       // @ts-ignore - Assign the mock service
-      api["_offlineStorageService"] = offlineStorageService;
+      api["_offlineStorageService"] = {
+        isDeviceOnline: vi.fn().mockReturnValue(false),
+      };
       api["_courseId"] = "course123";
 
       const apiLogSpy = vi.spyOn(api, "apiLog");
@@ -1255,7 +1253,6 @@ describe("BaseAPI", () => {
 
     it("should initialize offline storage service when enableOfflineSupport is true", () => {
       const settings = { enableOfflineSupport: true };
-      const OfflineStorageServiceSpy = vi.spyOn(OfflineStorageService.prototype, "constructor");
 
       const testApi = new TestAPI(errorCodes, settings);
 
@@ -1295,7 +1292,9 @@ describe("BaseAPI", () => {
     it("should attempt to retrieve offline data when courseId is provided", async () => {
       // Mock the OfflineStorageService constructor
       const mockGetOfflineData = vi.fn().mockResolvedValue(null);
-      vi.spyOn(OfflineStorageService.prototype, 'getOfflineData').mockImplementation(mockGetOfflineData);
+      vi.spyOn(OfflineStorageService.prototype, "getOfflineData").mockImplementation(
+        mockGetOfflineData,
+      );
 
       const settings = {
         enableOfflineSupport: true,
@@ -1303,7 +1302,7 @@ describe("BaseAPI", () => {
       };
 
       // Create API with the settings
-      const testApi = new TestAPI(errorCodes, settings);
+      new TestAPI(errorCodes, settings);
 
       // Wait for any promises to resolve
       vi.runAllTimers();
@@ -1320,7 +1319,9 @@ describe("BaseAPI", () => {
 
       // Mock the OfflineStorageService.getOfflineData method
       const mockGetOfflineData = vi.fn().mockResolvedValue(offlineData);
-      vi.spyOn(OfflineStorageService.prototype, 'getOfflineData').mockImplementation(mockGetOfflineData);
+      vi.spyOn(OfflineStorageService.prototype, "getOfflineData").mockImplementation(
+        mockGetOfflineData,
+      );
 
       const settings = {
         enableOfflineSupport: true,
@@ -1345,7 +1346,9 @@ describe("BaseAPI", () => {
     it("should handle errors when retrieving offline data", async () => {
       // Mock the OfflineStorageService.getOfflineData method to throw an error
       const mockGetOfflineData = vi.fn().mockRejectedValue(new Error("Storage error"));
-      vi.spyOn(OfflineStorageService.prototype, 'getOfflineData').mockImplementation(mockGetOfflineData);
+      vi.spyOn(OfflineStorageService.prototype, "getOfflineData").mockImplementation(
+        mockGetOfflineData,
+      );
 
       const settings = {
         enableOfflineSupport: true,
@@ -1354,7 +1357,7 @@ describe("BaseAPI", () => {
       };
 
       // Create API with the settings
-      const testApi = new TestAPI(errorCodes, settings);
+      new TestAPI(errorCodes, settings);
 
       // Wait for any promises to resolve
       vi.runAllTimers();
@@ -1372,7 +1375,9 @@ describe("BaseAPI", () => {
     it("should not attempt to load data when no offline data is found", async () => {
       // Mock the OfflineStorageService.getOfflineData method to return null
       const mockGetOfflineData = vi.fn().mockResolvedValue(null);
-      vi.spyOn(OfflineStorageService.prototype, 'getOfflineData').mockImplementation(mockGetOfflineData);
+      vi.spyOn(OfflineStorageService.prototype, "getOfflineData").mockImplementation(
+        mockGetOfflineData,
+      );
 
       const settings = {
         enableOfflineSupport: true,

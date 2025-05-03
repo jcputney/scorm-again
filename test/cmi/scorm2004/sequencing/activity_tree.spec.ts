@@ -1,3 +1,5 @@
+// noinspection DuplicatedCode
+
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";

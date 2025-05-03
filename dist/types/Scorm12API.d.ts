@@ -33,8 +33,8 @@ declare class Scorm12API extends BaseAPI {
     validateCorrectResponse(_CMIElement: string, _value: any): void;
     getLmsErrorMessageDetails(errorNumber: number | string, detail: boolean): string;
     replaceWithAnotherScormAPI(newAPI: Scorm12API): void;
-    renderCommitCMI(terminateCommit: boolean): StringKeyMap | Array<string>;
-    renderCommitObject(terminateCommit: boolean): CommitObject;
+    renderCommitCMI(terminateCommit: boolean, includeTotalTime?: boolean): StringKeyMap | Array<string>;
+    renderCommitObject(terminateCommit: boolean, includeTotalTime?: boolean): CommitObject;
     storeData(terminateCommit: boolean): Promise<ResultObject>;
 }
 export default Scorm12API;

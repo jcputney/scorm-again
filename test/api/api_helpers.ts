@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import BaseAPI from "../../src/BaseAPI";
 
 class NoErrorThrownError extends Error {}
@@ -7,6 +7,7 @@ export const getError = async <TError>(call: () => unknown): Promise<TError> => 
   try {
     await call();
 
+    // noinspection ExceptionCaughtLocallyJS
     throw new NoErrorThrownError();
   } catch (error: unknown) {
     return error as TError;

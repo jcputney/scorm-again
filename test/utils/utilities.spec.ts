@@ -1,6 +1,6 @@
-import { describe, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import * as Utilities from "../../src/utilities";
-import { scorm12_regex, scorm2004_regex } from "../../src/constants";
+import { scorm12_regex, scorm2004_regex } from "../../src";
 
 describe("Utility Tests", () => {
   describe("getSecondsAsHHMMSS()", () => {

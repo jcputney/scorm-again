@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SerializationService } from "../../src/services/SerializationService";
 import { LogLevelEnum } from "../../src/constants/enums";
 import { CommitObject } from "../../src/types/api_types";
-import { StringKeyMap } from "../../src/utilities";
+import { StringKeyMap } from "../../src";
 
 describe("SerializationService", () => {
   let serializationService: SerializationService;

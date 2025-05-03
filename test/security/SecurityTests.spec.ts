@@ -1,8 +1,9 @@
-import { describe, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { checkValidFormat, checkValidRange } from "../../src/cmi/common/validation";
 import { validationService } from "../../src/services/ValidationService";
 import { BaseScormValidationError } from "../../src/exceptions";
-import { scorm12_regex } from "../../src/constants/regex";
+import { scorm12_regex } from "../../src";
+import { Scorm12ValidationError } from "../../src/exceptions/scorm12_exceptions";
 
 /**
  * Custom error class for testing
@@ -83,6 +84,7 @@ describe("Security Tests for Data Validation", () => {
 
       for (const value of nonStringValues) {
         expect(() => {
+          // eslint-disable-next-line
           // @ts-ignore - Intentionally passing invalid types for testing
           checkValidFormat("test", value, ".*", 101, TestValidationError);
         }).not.toThrow(); // Should not throw unexpected errors
@@ -133,12 +135,7 @@ describe("Security Tests for Data Validation", () => {
 
       // Test with empty string and allowEmptyString=true
       const executionTime2 = measureExecutionTime(() => {
-        try {
-          checkValidFormat("test", "", "^[a-z]+$", 101, TestValidationError, true);
-        } catch (e) {
-          // This should not throw an error
-          throw e;
-        }
+        checkValidFormat("test", "", "^[a-z]+$", 101, TestValidationError, true);
       });
 
       // Execution should be fast
@@ -359,6 +356,7 @@ describe("Security Tests for Data Validation", () => {
       for (const [element, value, pattern] of testInputs) {
         expect(() => {
           try {
+            // eslint-disable-next-line
             // @ts-ignore - Intentionally passing potentially problematic inputs
             checkValidFormat(element, value, pattern, 101, TestValidationError);
           } catch (e) {

@@ -64,6 +64,7 @@ export class Sequencing extends BaseCMI {
    * @param {ActivityTree} activityTree
    */
   set activityTree(activityTree: ActivityTree) {
+    // noinspection SuspiciousTypeOfGuard
     if (!(activityTree instanceof ActivityTree)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".activityTree",
@@ -86,6 +87,7 @@ export class Sequencing extends BaseCMI {
    * @param {SequencingRules} sequencingRules
    */
   set sequencingRules(sequencingRules: SequencingRules) {
+    // noinspection SuspiciousTypeOfGuard
     if (!(sequencingRules instanceof SequencingRules)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".sequencingRules",
@@ -108,6 +110,7 @@ export class Sequencing extends BaseCMI {
    * @param {SequencingControls} sequencingControls
    */
   set sequencingControls(sequencingControls: SequencingControls) {
+    // noinspection SuspiciousTypeOfGuard
     if (!(sequencingControls instanceof SequencingControls)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".sequencingControls",
@@ -130,6 +133,7 @@ export class Sequencing extends BaseCMI {
    * @param {RollupRules} rollupRules
    */
   set rollupRules(rollupRules: RollupRules) {
+    // noinspection SuspiciousTypeOfGuard
     if (!(rollupRules instanceof RollupRules)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".rollupRules",
@@ -237,27 +241,9 @@ export class Sequencing extends BaseCMI {
       return false;
     }
 
-    // Evaluate exit condition rules
-    const exitConditionAction = this._sequencingRules.evaluateExitConditionRules(currentActivity);
-    if (exitConditionAction) {
-      // Handle exit condition action
-      switch (exitConditionAction) {
-        case RuleActionType.EXIT_PARENT: {
-          // Exit to parent
-          const parent = currentActivity.parent;
-          if (parent) {
-            this._activityTree.currentActivity = parent;
-            return true;
-          }
-          return false;
-        }
-        case RuleActionType.EXIT_ALL:
-          // Exit all
-          this._activityTree.currentActivity = null;
-          return true;
-        default:
-          break;
-      }
+    // Handle exit condition actions
+    if (this._handleExitConditionAction(currentActivity)) {
+      return true;
     }
 
     // Set the next activity as current
@@ -313,27 +299,9 @@ export class Sequencing extends BaseCMI {
       return false;
     }
 
-    // Evaluate exit condition rules
-    const exitConditionAction = this._sequencingRules.evaluateExitConditionRules(currentActivity);
-    if (exitConditionAction) {
-      // Handle exit condition action
-      switch (exitConditionAction) {
-        case RuleActionType.EXIT_PARENT: {
-          // Exit to parent
-          const parent = currentActivity.parent;
-          if (parent) {
-            this._activityTree.currentActivity = parent;
-            return true;
-          }
-          return false;
-        }
-        case RuleActionType.EXIT_ALL:
-          // Exit all
-          this._activityTree.currentActivity = null;
-          return true;
-        default:
-          break;
-      }
+    // Handle exit condition actions
+    if (this._handleExitConditionAction(currentActivity)) {
+      return true;
     }
 
     // Set the previous activity as current
@@ -465,6 +433,37 @@ export class Sequencing extends BaseCMI {
 
     // Process rollup from the bottom up
     this._processRollupRecursive(root);
+  }
+
+  /**
+   * Handle exit condition actions for an activity
+   * @param {Activity} activity - The activity to handle exit conditions for
+   * @return {boolean} - True if an exit action was handled, false otherwise
+   * @private
+   */
+  private _handleExitConditionAction(activity: Activity): boolean {
+    const exitConditionAction = this._sequencingRules.evaluateExitConditionRules(activity);
+    if (exitConditionAction) {
+      // Handle exit condition action
+      switch (exitConditionAction) {
+        case RuleActionType.EXIT_PARENT: {
+          // Exit to parent
+          const parent = activity.parent;
+          if (parent) {
+            this._activityTree.currentActivity = parent;
+            return true;
+          }
+          return false;
+        }
+        case RuleActionType.EXIT_ALL:
+          // Exit all
+          this._activityTree.currentActivity = null;
+          return true;
+        default:
+          break;
+      }
+    }
+    return false;
   }
 
   /**

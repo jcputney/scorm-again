@@ -1,14 +1,13 @@
-import { describe, it, vi } from "vitest";
-import { aicc_constants } from "../../src/constants/api_constants";
-import { scorm12_errors } from "../../src/constants/error_codes";
-import { CMI } from "../../src/cmi/aicc/cmi";
+// noinspection DuplicatedCode
+
+import { describe, expect, it } from "vitest";
+import { aicc_constants, CMI, NAV, scorm12_errors } from "../../src";
 import * as h from "./cmi_helpers";
 import { scorm12Values } from "../field_values";
 import { CMITriesObject } from "../../src/cmi/aicc/tries";
 import { CMIEvaluationCommentsObject } from "../../src/cmi/aicc/evaluation";
 import { CMIObjectivesObject } from "../../src/cmi/scorm12/objectives";
 import { CMIInteractionsObject } from "../../src/cmi/scorm12/interactions";
-import { NAV } from "../../src/cmi/scorm12/nav";
 import { CMIPathsObject } from "../../src/cmi/aicc/paths";
 import { CMIStudentDemographics } from "../../src/cmi/aicc/student_demographics";
 

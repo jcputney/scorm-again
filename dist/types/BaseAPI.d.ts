@@ -13,7 +13,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     private _serializationService;
     private readonly _errorHandlingService;
     private readonly _loggingService;
-    private _offlineStorageService?;
+    private readonly _offlineStorageService?;
     private _courseId;
     protected constructor(error_codes: ErrorCode, settings?: Settings, httpService?: IHttpService, eventService?: IEventService, serializationService?: ISerializationService, cmiDataService?: ICMIDataService, errorHandlingService?: IErrorHandlingService, loggingService?: ILoggingService, offlineStorageService?: IOfflineStorageService);
     abstract cmi: BaseCMI;
@@ -40,7 +40,6 @@ export default abstract class BaseAPI implements IBaseAPI {
     abstract renderCommitCMI(_terminateCommit: boolean): StringKeyMap | Array<string>;
     abstract renderCommitObject(_terminateCommit: boolean): CommitObject;
     apiLog(functionName: string, logMessage: string, messageLevel: LogLevel, CMIElement?: string): void;
-    get error_codes(): ErrorCode;
     get settings(): InternalSettings;
     set settings(settings: Settings);
     terminate(callbackName: string, checkTerminated: boolean): Promise<string>;

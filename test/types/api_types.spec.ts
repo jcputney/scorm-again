@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { LogLevel, ResultObject, Settings } from "../../src/types/api_types";
-import { global_constants } from "../../src/constants/api_constants";
+import { global_constants } from "../../src";
 import { LogLevelEnum } from "../../src/constants/enums";
 import { DefaultSettings } from "../../src/constants/default_settings";
 
@@ -50,6 +50,8 @@ describe("Settings Type", () => {
 
   it("should handle response correctly in responseHandler", async () => {
     const response = new Response(JSON.stringify({ result: "true", errorCode: 0 }));
+    // eslint-disable-next-line
+    // @ts-ignore
     const result = await defaultSettings.responseHandler(response);
     expect(result.result).toEqual("true");
     expect(result.errorCode).toEqual(0);
@@ -57,6 +59,8 @@ describe("Settings Type", () => {
 
   it("should handle request correctly in requestHandler", () => {
     const commitObject = { data: "test" };
+    // eslint-disable-next-line
+    // @ts-ignore
     const result = defaultSettings.requestHandler(commitObject);
     expect(result).toEqual(commitObject);
   });
@@ -74,6 +78,8 @@ describe("Settings Type", () => {
       shouldBeLogged = true,
     ) {
       const message = `${level} message - ${typeof level}`;
+      // eslint-disable-next-line
+      // @ts-ignore
       defaultSettings.onLogMessage(level, message);
       expect(stub.mock.calls.length === 1).toBe(shouldBeLogged);
       stub.mockReset();

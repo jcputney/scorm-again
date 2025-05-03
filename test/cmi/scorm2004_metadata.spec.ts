@@ -1,7 +1,6 @@
-import { describe, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { CMIMetadata } from "../../src/cmi/scorm2004/metadata";
-import { scorm2004_constants } from "../../src/constants/api_constants";
-import { scorm2004_errors } from "../../src/constants/error_codes";
+import { scorm2004_constants, scorm2004_errors } from "../../src";
 import { Scorm2004ValidationError } from "../../src/exceptions/scorm2004_exceptions";
 
 describe("SCORM 2004 CMIMetadata Tests", () => {
@@ -44,6 +43,7 @@ describe("SCORM 2004 CMIMetadata Tests", () => {
         const metadata = new CMIMetadata();
 
         expect(() => {
+          // eslint-disable-next-line
           // @ts-ignore - Intentionally testing invalid assignment
           metadata._children = "modified_children";
         }).toThrow(

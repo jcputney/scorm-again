@@ -9,7 +9,7 @@ import {
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { SequencingControls } from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
 import { RollupRules } from "../../../../src/cmi/scorm2004/sequencing/rollup_rules";
-import { ADLNav } from "../../../../src/cmi/scorm2004/adl";
+import { ADLNav } from "../../../../src";
 import { Scorm2004ValidationError } from "../../../../src/exceptions/scorm2004_exceptions";
 
 describe("Sequencing", () => {
@@ -513,6 +513,8 @@ describe("Sequencing", () => {
       const parentActivity = new Activity("parent", "Parent Activity");
       const nextActivity = new Activity("next", "Next Activity");
 
+      // eslint-disable-next-line
+      // @ts-ignore
       activity._parent = parentActivity;
 
       vi.spyOn(sequencing.sequencingControls, "isForwardNavigationAllowed").mockReturnValue(true);
@@ -668,6 +670,8 @@ describe("Sequencing", () => {
       const parentActivity = new Activity("parent", "Parent Activity");
       const previousActivity = new Activity("previous", "Previous Activity");
 
+      // eslint-disable-next-line
+      // @ts-ignore
       activity._parent = parentActivity;
 
       vi.spyOn(sequencing.sequencingControls, "isBackwardNavigationAllowed").mockReturnValue(true);
@@ -709,6 +713,8 @@ describe("Sequencing", () => {
       const activity = new Activity("activity", "Activity");
       const parentActivity = new Activity("parent", "Parent Activity");
 
+      // eslint-disable-next-line
+      // @ts-ignore
       activity._parent = parentActivity;
 
       vi.spyOn(sequencing.sequencingControls, "choiceExit", "get").mockReturnValue(true);
@@ -756,6 +762,8 @@ describe("Sequencing", () => {
       const activity = new Activity("activity", "Activity");
       const parentActivity = new Activity("parent", "Parent Activity");
 
+      // eslint-disable-next-line
+      // @ts-ignore
       activity._parent = parentActivity;
 
       const currentActivitySpy = vi.spyOn(sequencing.activityTree, "currentActivity", "set");

@@ -1,6 +1,6 @@
-import { describe, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { CMIContent } from "../../src/cmi/scorm2004/content";
-import { scorm2004_errors } from "../../src/constants/error_codes";
+import { scorm2004_errors } from "../../src";
 import { Scorm2004ValidationError } from "../../src/exceptions/scorm2004_exceptions";
 
 describe("SCORM 2004 CMIContent Tests", () => {

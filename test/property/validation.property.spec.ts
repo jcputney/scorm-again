@@ -1,4 +1,4 @@
-import { describe, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import * as fc from "fast-check";
 import { checkValidFormat, checkValidRange } from "../../src/cmi/common/validation";
 import { BaseScormValidationError } from "../../src/exceptions";
@@ -84,6 +84,8 @@ describe("Validation Property-based Tests", () => {
             try {
               const result = checkValidFormat(
                 "api",
+                // eslint-disable-next-line
+                // @ts-ignore
                 nonStringValue,
                 "^[0-9]+$",
                 101,

@@ -1,4 +1,4 @@
-import { describe, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { CMIInteractionsObject } from "../../src/cmi/scorm2004/interactions";
 
 describe("SCORM 2004 Interactions Tests", () => {
@@ -198,7 +198,7 @@ describe("SCORM 2004 Interactions Tests", () => {
 
         // The format should include pairs of identifiers separated by periods,
         // with each pair separated by commas
-        expect(validFormat).toMatch(/^[\w\.\-\_]+\.[\w\.\-\_]+(,[\w\.\-\_]+\.[\w\.\-\_]+)*$/);
+        expect(validFormat).toMatch(/^[\w.\-_]+\.[\w.\-_]+(,[\w.\-_]+\.[\w.\-_]+)*$/);
       });
 
       it("should reject invalid matching responses", () => {

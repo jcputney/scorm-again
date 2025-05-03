@@ -1,4 +1,6 @@
-import { describe, it, vi } from "vitest";
+// noinspection DuplicatedCode
+
+import { describe, expect, it } from "vitest";
 
 import { SequencingControls } from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
 

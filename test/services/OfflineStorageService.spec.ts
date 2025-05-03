@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { OfflineStorageService } from "../../src/services/OfflineStorageService";
-import { CommitObject, Settings } from "../../src/types/api_types";
+import { CommitObject, InternalSettings } from "../../src/types/api_types";
 import { DefaultSettings } from "../../src/constants/default_settings";
 import { ErrorCode, global_constants } from "../../src";
 import { LogLevelEnum } from "../../src/constants/enums";
@@ -33,11 +33,11 @@ describe("OfflineStorageService Tests", () => {
   });
 
   // Mock settings and error codes
-  const settings: Settings = {
+  const settings = {
     ...DefaultSettings,
     lmsCommitUrl: "https://example.com/commit",
     enableOfflineSupport: true,
-  };
+  } as InternalSettings;
   const errorCodes: ErrorCode = {
     GENERAL: 101,
     INITIALIZATION_FAILED: 301,
@@ -497,10 +497,10 @@ describe("OfflineStorageService Tests", () => {
   describe("updateSettings", () => {
     it("should update the service settings", () => {
       const service = createService();
-      const newSettings: Settings = {
+      const newSettings = {
         ...settings,
         lmsCommitUrl: "https://example.com/new-commit-url",
-      };
+      } as InternalSettings;
 
       service.updateSettings(newSettings);
 
@@ -564,7 +564,10 @@ describe("OfflineStorageService Tests", () => {
         const service = createService();
 
         // Create service with no commit URL
-        const noUrlSettings = { ...settings, lmsCommitUrl: undefined };
+        const noUrlSettings = {
+          ...settings,
+          lmsCommitUrl: undefined,
+        } as unknown as InternalSettings;
         service.updateSettings(noUrlSettings);
 
         // eslint-disable-next-line
@@ -608,7 +611,7 @@ describe("OfflineStorageService Tests", () => {
         service.updateSettings({
           ...settings,
           requestHandler,
-        });
+        } as InternalSettings);
 
         const commitData = createSampleCommitObject();
 
@@ -622,7 +625,7 @@ describe("OfflineStorageService Tests", () => {
 
       it("should use response handler if configured", async () => {
         const service = createService();
-        const responseHandler = vi.fn((response: Response) =>
+        const responseHandler = vi.fn((_response: Response) =>
           Promise.resolve({
             result: global_constants.SCORM_TRUE,
             errorCode: 0,
@@ -633,7 +636,7 @@ describe("OfflineStorageService Tests", () => {
         service.updateSettings({
           ...settings,
           responseHandler: responseHandler,
-        });
+        } as InternalSettings);
 
         // eslint-disable-next-line
         // @ts-ignore - Accessing private method for testing

@@ -41,4 +41,12 @@ async function startServer() {
 }
 
 // Start the server
-startServer();
+startServer().then(
+  () => {
+    console.log("Server started successfully");
+  },
+  (err) => {
+    console.error("Error starting server:", err);
+    process.exit(1);
+  },
+);

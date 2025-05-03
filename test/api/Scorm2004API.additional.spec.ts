@@ -2,11 +2,9 @@
 
 import { describe, expect, it, vi } from "vitest";
 import Scorm2004API from "../../src/Scorm2004API";
-import { scorm2004_errors } from "../../src/constants/error_codes";
-import { global_constants } from "../../src/constants/api_constants";
+import { CorrectResponses, global_constants, scorm2004_errors } from "../../src";
 import { Settings } from "../../src/types/api_types";
 import { LogLevelEnum } from "../../src/constants/enums";
-import { CorrectResponses } from "../../src/constants/response_constants";
 import { CMIInteractionsObject } from "../../src/cmi/scorm2004/interactions";
 import { CMIArray } from "../../src/cmi/common/array";
 
@@ -72,12 +70,14 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       const result = scorm2004API.lmsGetValue("adl.nav.request_valid.choice.{target=invalid-sco}");
 
       // The API returns the string representation of a boolean
+      // eslint-disable-next-line
+      // @ts-ignore
       const expected = String(scorm2004API.settings.scoItemIds.includes("invalid-sco"));
       expect(result).toBe(expected);
     });
 
     it("should use scoItemIdValidator if provided", (): void => {
-      const validator = vi.fn().mockImplementation((scoItemId: string) => true);
+      const validator = vi.fn().mockImplementation((_scoItemId: string) => true);
       const scorm2004API = api({
         scoItemIdValidator: validator,
       });
@@ -179,6 +179,8 @@ describe("SCORM 2004 API Additional Tests", (): void => {
 
       // Clean up
       // processHttpRequestStub.restore() - not needed with vi.restoreAllMocks()
+      // eslint-disable-next-line
+      // @ts-ignore
       delete global.window.testNavRequestExecuted;
     });
 
@@ -214,6 +216,8 @@ describe("SCORM 2004 API Additional Tests", (): void => {
 
       // Clean up
       // processHttpRequestStub.restore() - not needed with vi.restoreAllMocks()
+      // eslint-disable-next-line
+      // @ts-ignore
       delete global.window.testNavRequestExecuted;
     });
 
@@ -249,6 +253,8 @@ describe("SCORM 2004 API Additional Tests", (): void => {
 
       // Clean up
       // processHttpRequestStub.restore() - not needed with vi.restoreAllMocks()
+      // eslint-disable-next-line
+      // @ts-ignore
       delete global.window.testNavRequestExecuted;
     });
   });
@@ -310,6 +316,8 @@ describe("SCORM 2004 API Additional Tests", (): void => {
 
         // If we're trying to add a second correct response to a true-false interaction,
         // throw the expected error
+        // eslint-disable-next-line
+        // @ts-ignore
         if (interaction.type === "true-false" && interaction_count >= response_type.limit) {
           this.throwSCORMError(
             CMIElement,

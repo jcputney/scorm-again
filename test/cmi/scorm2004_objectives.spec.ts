@@ -1,6 +1,8 @@
-import { describe, it, vi } from "vitest";
+// noinspection DuplicatedCode
+
+import { describe, expect, it } from "vitest";
 import { CMIObjectives, CMIObjectivesObject } from "../../src/cmi/scorm2004/objectives";
-import { scorm2004_constants } from "../../src/constants/api_constants";
+import { scorm2004_constants } from "../../src";
 
 describe("SCORM 2004 Objectives Tests", () => {
   describe("CMIObjectives Tests", () => {
@@ -17,6 +19,7 @@ describe("SCORM 2004 Objectives Tests", () => {
         expect(objectives["_children"]).toBe(scorm2004_constants.objectives_children);
 
         expect(() => {
+          // eslint-disable-next-line
           // @ts-ignore - Testing invalid assignment
           objectives["_children"] = "invalid";
         }).toThrow();

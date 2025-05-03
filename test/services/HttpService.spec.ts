@@ -1,3 +1,5 @@
+// noinspection DuplicatedCode
+
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { HttpService } from "../../src/services/HttpService";
 import { LogLevelEnum } from "../../src/constants/enums";
@@ -16,6 +18,7 @@ describe("HttpService", () => {
   // Mock navigator.sendBeacon if it doesn't exist (Node.js environment)
   beforeAll(() => {
     if (typeof navigator === "undefined") {
+      // noinspection JSConstantReassignment
       global.navigator = { sendBeacon: vi.fn(() => true) } as any;
     } else if (!navigator.sendBeacon) {
       navigator.sendBeacon = vi.fn(() => true);
@@ -124,14 +127,6 @@ describe("HttpService", () => {
       const params = { data: "test" };
       settings.useBeaconInsteadOfFetch = "always";
       httpService.updateSettings(settings);
-
-      // Mock the performBeacon method to return a mock response
-      const mockResponse = {
-        status: 200,
-        ok: true,
-        json: async () => ({ result: global_constants.SCORM_TRUE, errorCode: 0 }),
-        text: async () => JSON.stringify({ result: global_constants.SCORM_TRUE, errorCode: 0 }),
-      } as Response;
 
       const result = await httpService.processHttpRequest(
         url,

@@ -8,6 +8,7 @@ import { Scorm12API } from "../../index";
 
 // Extend the Window interface to include the SCORM API
 declare global {
+  // noinspection JSUnusedGlobalSymbols
   interface Window {
     API: Scorm12API;
   }
@@ -34,15 +35,6 @@ class ConsoleLogger {
   }
 
   /**
-   * Check if a message matching the exact text exists in the collected messages
-   * @param text The exact text to match
-   * @returns True if a matching message exists, false otherwise
-   */
-  hasMessage(text: string): boolean {
-    return this.messages.some((msg) => msg.text === text);
-  }
-
-  /**
    * Check if a message matching the pattern exists in the collected messages
    * @param pattern A regular expression pattern to match
    * @returns True if a matching message exists, false otherwise
@@ -58,14 +50,6 @@ class ConsoleLogger {
    */
   getMessagesMatching(pattern: RegExp): string[] {
     return this.messages.filter((msg) => pattern.test(msg.text)).map((msg) => msg.text);
-  }
-
-  /**
-   * Get all collected messages
-   * @returns An array of all collected messages
-   */
-  getAllMessages(): { text: string; type: string }[] {
-    return [...this.messages];
   }
 
   /**
@@ -225,7 +209,7 @@ wrappers.forEach((wrapper) => {
   test.describe(`SCORM Module Integration Tests (${wrapper.name})`, () => {
     test("should load a SCORM 1.2 golf module and initialize correctly", async ({
       page,
-    }, testInfo) => {
+    }, _testInfo) => {
       // Create a console logger to collect and check console messages
       const consoleLogger = new ConsoleLogger(page);
 
@@ -309,7 +293,7 @@ wrappers.forEach((wrapper) => {
       expect(finishResult).toBe("true");
     });
 
-    test("should handle errors gracefully", async ({ page }, testInfo) => {
+    test("should handle errors gracefully", async ({ page }, _testInfo) => {
       // Create a console logger to collect and check console messages
       const consoleLogger = new ConsoleLogger(page);
 

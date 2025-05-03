@@ -54,6 +54,7 @@ export class ActivityTree extends BaseCMI {
    * @param {Activity} root
    */
   set root(root: Activity | null) {
+    // noinspection SuspiciousTypeOfGuard
     if (root !== null && !(root instanceof Activity)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".root",
@@ -92,6 +93,7 @@ export class ActivityTree extends BaseCMI {
    * @param {Activity | null} activity
    */
   set currentActivity(activity: Activity | null) {
+    // noinspection SuspiciousTypeOfGuard
     if (activity !== null && !(activity instanceof Activity)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".currentActivity",
@@ -124,6 +126,7 @@ export class ActivityTree extends BaseCMI {
    * @param {Activity | null} activity
    */
   set suspendedActivity(activity: Activity | null) {
+    // noinspection SuspiciousTypeOfGuard
     if (activity !== null && !(activity instanceof Activity)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".suspendedActivity",

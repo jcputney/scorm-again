@@ -1,5 +1,5 @@
-import { RuleConditionType, RuleActionType, RuleConditionOperator } from "../cmi/scorm2004/sequencing/sequencing_rules";
-import { RollupConditionType, RollupActionType, RollupConsiderationType } from "../cmi/scorm2004/sequencing/rollup_rules";
+import { RuleActionType, RuleConditionOperator, RuleConditionType } from "../cmi/scorm2004/sequencing/sequencing_rules";
+import { RollupActionType, RollupConditionType, RollupConsiderationType } from "../cmi/scorm2004/sequencing/rollup_rules";
 export type ActivitySettings = {
     id: string;
     title: string;

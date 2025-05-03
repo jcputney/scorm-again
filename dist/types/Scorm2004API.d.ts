@@ -11,7 +11,7 @@ import { ResponseType } from "./constants/response_constants";
 declare class Scorm2004API extends BaseAPI {
     private _version;
     private _globalObjectives;
-    private _sequencing;
+    private readonly _sequencing;
     private _extractedScoItemIds;
     constructor(settings?: Settings);
     cmi: CMI;
@@ -48,8 +48,8 @@ declare class Scorm2004API extends BaseAPI {
     checkCorrectResponseValue(CMIElement: string, interaction_type: string, nodes: Array<any>, value: any): void;
     removeCorrectResponsePrefixes(CMIElement: string, node: string): any;
     replaceWithAnotherScormAPI(newAPI: Scorm2004API): void;
-    renderCommitCMI(terminateCommit: boolean): StringKeyMap | Array<any>;
-    renderCommitObject(terminateCommit: boolean): CommitObject;
+    renderCommitCMI(terminateCommit: boolean, includeTotalTime?: boolean): StringKeyMap | Array<any>;
+    renderCommitObject(terminateCommit: boolean, includeTotalTime?: boolean): CommitObject;
     storeData(terminateCommit: boolean): Promise<ResultObject>;
     private configureSequencing;
     private configureActivityTree;

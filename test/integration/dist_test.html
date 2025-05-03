@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!--suppress JSUnusedLocalSymbols -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -164,7 +165,7 @@
     document.body.appendChild(iframe);
 
     // Create HTML content for the iframe with script
-    const html = `
+    iframe.srcdoc = `
                 <!DOCTYPE html>
                 <html>
                 <head>
@@ -188,8 +189,6 @@
                 <body></body>
                 </html>
             `;
-
-    iframe.srcdoc = html;
   });
 
   // Create test frames for modern JS files
@@ -209,7 +208,7 @@
     document.body.appendChild(iframe);
 
     // Create HTML content for the iframe with script
-    const html = `
+    iframe.srcdoc = `
                 <!DOCTYPE html>
                 <html>
                 <head>
@@ -233,8 +232,6 @@
                 <body></body>
                 </html>
             `;
-
-    iframe.srcdoc = html;
   });
 
   // Create test frames for ESM module files
@@ -256,7 +253,7 @@
     const origin = window.location.origin || 'http://localhost:3000';
 
     // Create HTML content for the iframe with module import
-    const html = `
+    iframe.srcdoc = `
                 <!DOCTYPE html>
                 <html>
                 <head>
@@ -281,8 +278,6 @@
                 <body></body>
                 </html>
             `;
-
-    iframe.srcdoc = html;
   });
 
   // Listen for messages from iframes

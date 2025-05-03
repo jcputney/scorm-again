@@ -14,7 +14,7 @@ import {
   SequencingControlsSettings,
   SequencingRuleSettings,
   SequencingRulesSettings,
-  SequencingSettings,
+  SequencingSettings
 } from "./types/sequencing_types";
 import { RuleCondition, SequencingRule } from "./cmi/scorm2004/sequencing/sequencing_rules";
 import { RollupCondition, RollupRule } from "./cmi/scorm2004/sequencing/rollup_rules";
@@ -23,7 +23,7 @@ import { BaseCMI } from "./cmi/common/base_cmi";
 import {
   CMIInteractionsCorrectResponsesObject,
   CMIInteractionsObject,
-  CMIInteractionsObjectivesObject,
+  CMIInteractionsObjectivesObject
 } from "./cmi/scorm2004/interactions";
 import { CMIArray } from "./cmi/common/array";
 import { CorrectResponses, ResponseType } from "./constants/response_constants";
@@ -39,7 +39,7 @@ import { Activity } from "./cmi/scorm2004/sequencing/activity";
 class Scorm2004API extends BaseAPI {
   private _version: string = "1.0";
   private _globalObjectives: CMIObjectivesObject[] = [];
-  private _sequencing: Sequencing;
+  private readonly _sequencing: Sequencing;
   private _extractedScoItemIds: string[] = [];
 
   /**
@@ -699,7 +699,10 @@ class Scorm2004API extends BaseAPI {
    * @param {boolean} includeTotalTime - Whether to include total time in the commit data
    * @return {object|Array}
    */
-  renderCommitCMI(terminateCommit: boolean, includeTotalTime: boolean = false): StringKeyMap | Array<any> {
+  renderCommitCMI(
+    terminateCommit: boolean,
+    includeTotalTime: boolean = false,
+  ): StringKeyMap | Array<any> {
     const cmiExport: StringKeyMap = this.renderCMIToJSONObject();
 
     if (includeTotalTime) {
@@ -755,23 +758,7 @@ class Scorm2004API extends BaseAPI {
       }
     }
 
-    const score = this.cmi.score;
-    const scoreObject: ScoreObject = {};
-    if (score) {
-      if (!Number.isNaN(Number.parseFloat(score.raw))) {
-        scoreObject.raw = Number.parseFloat(score.raw);
-      }
-      if (!Number.isNaN(Number.parseFloat(score.min))) {
-        scoreObject.min = Number.parseFloat(score.min);
-      }
-      if (!Number.isNaN(Number.parseFloat(score.max))) {
-        scoreObject.max = Number.parseFloat(score.max);
-      }
-      if (!Number.isNaN(Number.parseFloat(score.scaled))) {
-        scoreObject.scaled = Number.parseFloat(score.scaled);
-      }
-    }
-
+    const scoreObject: ScoreObject = this.cmi?.score?.getScoreObject() || {};
     const commitObject: CommitObject = {
       completionStatus: completionStatus,
       successStatus: successStatus,

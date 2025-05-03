@@ -1,4 +1,6 @@
-import { describe, it, vi } from "vitest";
+// noinspection DuplicatedCode
+
+import { describe, expect, it } from "vitest";
 import {
   RuleActionType,
   RuleCondition,
@@ -113,7 +115,7 @@ describe("SequencingRules", () => {
           parameters,
         );
 
-        const result = condition.toJSON();
+        const result = condition.toJSON() as any;
 
         expect(result).toHaveProperty(
           "condition",
@@ -276,7 +278,7 @@ describe("SequencingRules", () => {
 
         rule.addCondition(condition);
 
-        const result = rule.toJSON();
+        const result = rule.toJSON() as any;
 
         expect(result).toHaveProperty("action", RuleActionType.DISABLED);
         expect(result).toHaveProperty("conditionCombination", RuleConditionOperator.OR);
@@ -502,7 +504,7 @@ describe("SequencingRules", () => {
         rules.addExitConditionRule(exitRule);
         rules.addPostConditionRule(postRule);
 
-        const result = rules.toJSON();
+        const result = rules.toJSON() as any;
 
         expect(result).toHaveProperty("preConditionRules");
         expect(result).toHaveProperty("exitConditionRules");

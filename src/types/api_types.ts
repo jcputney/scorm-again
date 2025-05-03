@@ -6,38 +6,38 @@ import { SequencingSettings } from "./sequencing_types";
  * Base settings type with all properties optional
  */
 export type Settings = {
-  autocommit?: boolean;
-  autocommitSeconds?: number;
-  asyncCommit?: boolean;
-  sendFullCommit?: boolean;
-  lmsCommitUrl?: boolean | string;
-  dataCommitFormat?: string;
-  commitRequestDataType?: string;
-  autoProgress?: boolean;
-  logLevel?: LogLevel;
-  selfReportSessionTime?: boolean;
-  alwaysSendTotalTime?: boolean;
-  strict_errors?: boolean;
-  xhrHeaders?: StringKeyMap;
-  xhrWithCredentials?: boolean;
-  fetchMode?: "cors" | "no-cors" | "same-origin" | "navigate";
-  responseHandler?: (response: Response) => Promise<ResultObject>;
-  requestHandler?: (commitObject: unknown) => unknown;
-  onLogMessage?: (messageLevel: LogLevel, logMessage: string) => void;
-  mastery_override?: boolean;
-  renderCommonCommitFields?: boolean;
-  scoItemIds?: string[];
-  scoItemIdValidator?: false | ((scoItemId: string) => boolean);
-  globalObjectiveIds?: string[];
-  sequencing?: SequencingSettings;
-  useBeaconInsteadOfFetch?: "always" | "on-terminate" | "never";
+  autocommit?: boolean | undefined;
+  autocommitSeconds?: number | undefined;
+  asyncCommit?: boolean | undefined;
+  sendFullCommit?: boolean | undefined;
+  lmsCommitUrl?: boolean | string | undefined;
+  dataCommitFormat?: string | undefined;
+  commitRequestDataType?: string | undefined;
+  autoProgress?: boolean | undefined;
+  logLevel?: LogLevel | undefined;
+  selfReportSessionTime?: boolean | undefined;
+  alwaysSendTotalTime?: boolean | undefined;
+  strict_errors?: boolean | undefined;
+  xhrHeaders?: StringKeyMap | undefined;
+  xhrWithCredentials?: boolean | undefined;
+  fetchMode?: "cors" | "no-cors" | "same-origin" | "navigate" | undefined;
+  responseHandler?: ((response: Response) => Promise<ResultObject>) | undefined;
+  requestHandler?: ((commitObject: unknown) => unknown) | undefined;
+  onLogMessage?: ((messageLevel: LogLevel, logMessage: string) => void) | undefined;
+  mastery_override?: boolean | undefined;
+  renderCommonCommitFields?: boolean | undefined;
+  scoItemIds?: string[] | undefined;
+  scoItemIdValidator?: false | ((scoItemId: string) => boolean) | undefined;
+  globalObjectiveIds?: string[] | undefined;
+  sequencing?: SequencingSettings | undefined;
+  useBeaconInsteadOfFetch?: "always" | "on-terminate" | "never" | undefined;
 
   // Offline support settings
-  enableOfflineSupport?: boolean;
-  courseId?: string;
-  syncOnInitialize?: boolean;
-  syncOnTerminate?: boolean;
-  maxSyncAttempts?: number;
+  enableOfflineSupport?: boolean | undefined;
+  courseId?: string | undefined;
+  syncOnInitialize?: boolean | undefined;
+  syncOnTerminate?: boolean | undefined;
+  maxSyncAttempts?: number | undefined;
 };
 
 /**
@@ -62,20 +62,20 @@ export type InternalSettings = {
   fetchMode: "cors" | "no-cors" | "same-origin" | "navigate";
   responseHandler: (response: Response) => Promise<ResultObject>;
   requestHandler: (commitObject: unknown) => unknown;
-  onLogMessage?: (messageLevel: LogLevel, logMessage: string) => void;
-  mastery_override?: boolean;
-  scoItemIds?: string[];
-  scoItemIdValidator?: false | ((scoItemId: string) => boolean);
-  globalObjectiveIds?: string[];
-  sequencing?: SequencingSettings;
+  onLogMessage?: ((messageLevel: LogLevel, logMessage: string) => void) | undefined;
+  mastery_override?: boolean | undefined;
+  scoItemIds?: string[] | undefined;
+  scoItemIdValidator?: false | ((scoItemId: string) => boolean) | undefined;
+  globalObjectiveIds?: string[] | undefined;
+  sequencing?: SequencingSettings | undefined;
   useBeaconInsteadOfFetch: "always" | "on-terminate" | "never";
 
   // Offline support settings
-  enableOfflineSupport?: boolean;
-  courseId?: string;
-  syncOnInitialize?: boolean;
-  syncOnTerminate?: boolean;
-  maxSyncAttempts?: number;
+  enableOfflineSupport?: boolean | undefined;
+  courseId?: string | undefined;
+  syncOnInitialize?: boolean | undefined;
+  syncOnTerminate?: boolean | undefined;
+  maxSyncAttempts?: number | undefined;
 };
 
 export type RefObject = {

@@ -488,7 +488,7 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
  */
 export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
   private _pattern = "";
-  private _parent?: CMIInteractionsObject | undefined;
+  private readonly _parent?: CMIInteractionsObject | undefined;
 
   /**
    * Constructor for cmi.interactions.n.correct_responses.n

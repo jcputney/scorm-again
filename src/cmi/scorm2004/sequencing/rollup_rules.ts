@@ -207,6 +207,7 @@ export class RollupRule extends BaseCMI {
    * @param {RollupCondition} condition - The condition to add
    */
   addCondition(condition: RollupCondition): void {
+    // noinspection SuspiciousTypeOfGuard
     if (!(condition instanceof RollupCondition)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".conditions",
@@ -384,6 +385,7 @@ export class RollupRules extends BaseCMI {
    * @param {RollupRule} rule - The rule to add
    */
   addRule(rule: RollupRule): void {
+    // noinspection SuspiciousTypeOfGuard
     if (!(rule instanceof RollupRule)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".rules",
