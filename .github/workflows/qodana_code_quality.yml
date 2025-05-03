@@ -32,7 +32,7 @@ jobs:
 
       # Create required directories
       - name: Create directories
-        run: mkdir -p reports dist docs test-results
+        run: mkdir -p reports dist docs test-results .qodana/code-coverage
 
       # Run Vitest tests with coverage
       - name: Run unit tests with Vitest
