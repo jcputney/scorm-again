@@ -2,7 +2,7 @@ import { describe, it, vi } from "vitest";
 import { CMISession } from "../../src/cmi/scorm2004/session";
 import { scorm2004_errors } from "../../src/constants/error_codes";
 import { Scorm2004ValidationError } from "../../src/exceptions/scorm2004_exceptions";
-import * as Util from "../../src/utilities";
+import * as Utilities from "../../src/utilities";
 
 describe("SCORM 2004 CMISession Tests", () => {
   describe("Initialization Tests", () => {

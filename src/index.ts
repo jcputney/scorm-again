@@ -4,7 +4,8 @@ export * from "./Scorm2004API";
 export * from "./AICC";
 
 // Facades
-export { CrossFrameAPI, CrossFrameLMS } from "./facades/CrossFrameFacade";
+export * from "./CrossFrameAPI";
+export * from "./CrossFrameLMS";
 
 // Export types
 export * from "./constants/api_constants";

@@ -94,36 +94,74 @@ export class HttpService implements IHttpService {
       errorCode: this.error_codes.GENERAL,
     };
 
-    // if we are terminating the module or closing the browser window/tab, we need to make this fetch ASAP.
-    // Some browsers, especially Chrome, do not like synchronous requests to be made when the window is closing.
+    // If immediate mode (for termination), handle differently
     if (immediate) {
+      return this._handleImmediateRequest(url, params, processListeners);
+    }
+
+    // Standard request processing
+    try {
+      const processedParams = this.settings.requestHandler(params) as
+        | CommitObject
+        | StringKeyMap
+        | Array<any>;
+      const response = await this.performFetch(url, processedParams);
+      return this.transformResponse(response, processListeners);
+    } catch (e) {
+      apiLog("processHttpRequest", e, LogLevelEnum.ERROR);
+      processListeners("CommitError");
+      return genericError;
+    }
+  }
+
+  /**
+   * Handles an immediate request (used during termination)
+   * @param {string} url - The URL to send the request to
+   * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+   * @param {Function} processListeners - Function to process event listeners
+   * @return {ResultObject} - A success result object
+   * @private
+   */
+  private _handleImmediateRequest(
+    url: string,
+    params: CommitObject | StringKeyMap | Array<any>,
+    processListeners: (functionName: string, CMIElement?: string, value?: any) => void,
+  ): ResultObject {
+    // Use Beacon API for final commit if specified in settings
+    if (this.settings.useBeaconInsteadOfFetch !== "never") {
+      const { body, contentType } = this._prepareRequestBody(params);
+      navigator.sendBeacon(url, new Blob([body], { type: contentType }));
+    } else {
+      // Use regular fetch with keepalive
       this.performFetch(url, params).then(async (response) => {
         await this.transformResponse(response, processListeners);
       });
-      return {
-        result: global_constants.SCORM_TRUE,
-        errorCode: 0,
-      };
     }
 
-    const process = async (
-      url: string,
-      params: CommitObject | StringKeyMap | Array<any>,
-      settings: InternalSettings,
-    ): Promise<ResultObject> => {
-      try {
-        params = settings.requestHandler(params) as CommitObject | StringKeyMap | Array<any>;
-        const response = await this.performFetch(url, params);
-
-        return this.transformResponse(response, processListeners);
-      } catch (e) {
-        apiLog("processHttpRequest", e, LogLevelEnum.ERROR);
-        processListeners("CommitError");
-        return genericError;
-      }
+    // Return success immediately without waiting for response
+    return {
+      result: global_constants.SCORM_TRUE,
+      errorCode: 0,
     };
+  }
 
-    return await process(url, params, this.settings);
+  /**
+   * Prepares the request body and content type based on params type
+   * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+   * @return {Object} - Object containing body and contentType
+   * @private
+   */
+  private _prepareRequestBody(params: CommitObject | StringKeyMap | Array<any>): {
+    body: string;
+    contentType: string;
+  } {
+    const body = params instanceof Array ? params.join("&") : JSON.stringify(params);
+    const contentType =
+      params instanceof Array
+        ? "application/x-www-form-urlencoded"
+        : this.settings.commitRequestDataType;
+
+    return { body, contentType };
   }
 
   /**
@@ -134,13 +172,19 @@ export class HttpService implements IHttpService {
    * @private
    */
   private async performFetch(url: string, params: StringKeyMap | Array<any>): Promise<Response> {
+    // Use Beacon API if specified in settings
+    if (this.settings.useBeaconInsteadOfFetch === "always") {
+      return this.performBeacon(url, params);
+    }
+
+    const { body, contentType } = this._prepareRequestBody(params);
     const init = {
       method: "POST",
       mode: this.settings.fetchMode,
-      body: params instanceof Array ? params.join("&") : JSON.stringify(params),
+      body,
       headers: {
         ...this.settings.xhrHeaders,
-        "Content-Type": this.settings.commitRequestDataType,
+        "Content-Type": contentType,
       },
       keepalive: true,
     } as RequestInit;
@@ -150,6 +194,35 @@ export class HttpService implements IHttpService {
     }
 
     return fetch(url, init);
+  }
+
+  /**
+   * Perform the beacon request to the LMS
+   * @param {string} url - The URL to send the request to
+   * @param {StringKeyMap|Array} params - The parameters to include in the request
+   * @return {Promise<Response>} - A promise that resolves with a mock Response object
+   * @private
+   */
+  private async performBeacon(url: string, params: StringKeyMap | Array<any>): Promise<Response> {
+    const { body, contentType } = this._prepareRequestBody(params);
+
+    // Send the beacon request
+    const beaconSuccess = navigator.sendBeacon(url, new Blob([body], { type: contentType }));
+
+    // Create a mock Response object since sendBeacon doesn't return a Response
+    return Promise.resolve({
+      status: beaconSuccess ? 200 : 0,
+      ok: beaconSuccess,
+      json: async () => ({
+        result: beaconSuccess ? "true" : "false",
+        errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL,
+      }),
+      text: async () =>
+        JSON.stringify({
+          result: beaconSuccess ? "true" : "false",
+          errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL,
+        }),
+    } as Response);
   }
 
   /**
@@ -163,27 +236,40 @@ export class HttpService implements IHttpService {
     response: Response,
     processListeners: (functionName: string, CMIElement?: string, value?: any) => void,
   ): Promise<ResultObject> {
+    // Parse the response using the configured handler or default to json
     const result =
       typeof this.settings.responseHandler === "function"
         ? await this.settings.responseHandler(response)
         : await response.json();
 
-    if (
-      response.status >= 200 &&
-      response.status <= 299 &&
-      (result.result === true || result.result === global_constants.SCORM_TRUE)
-    ) {
+    // Ensure result has an errorCode property
+    if (!Object.hasOwnProperty.call(result, "errorCode")) {
+      result.errorCode = this._isSuccessResponse(response, result) ? 0 : this.error_codes.GENERAL;
+    }
+
+    // Trigger appropriate event based on success/failure
+    if (this._isSuccessResponse(response, result)) {
       processListeners("CommitSuccess");
-      if (!Object.hasOwnProperty.call(result, "errorCode")) {
-        result.errorCode = 0;
-      }
     } else {
-      if (!Object.hasOwnProperty.call(result, "errorCode")) {
-        result.errorCode = this.error_codes.GENERAL;
-      }
       processListeners("CommitError", undefined, result.errorCode);
     }
+
     return result;
+  }
+
+  /**
+   * Determines if a response is successful based on status code and result
+   * @param {Response} response - The HTTP response
+   * @param {ResultObject} result - The parsed result object
+   * @return {boolean} - Whether the response is successful
+   * @private
+   */
+  private _isSuccessResponse(response: Response, result: ResultObject): boolean {
+    return (
+      response.status >= 200 &&
+      response.status <= 299 &&
+      (result.result === "true" || result.result === global_constants.SCORM_TRUE)
+    );
   }
 
   /**

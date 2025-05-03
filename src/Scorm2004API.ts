@@ -695,13 +695,14 @@ class Scorm2004API extends BaseAPI {
   /**
    * Render the cmi object to the proper format for LMS commit - delegates to DataSerializationModule
    *
-   * @param {boolean} terminateCommit
+   * @param {boolean} terminateCommit - Whether this is a termination commit
+   * @param {boolean} includeTotalTime - Whether to include total time in the commit data
    * @return {object|Array}
    */
-  renderCommitCMI(terminateCommit: boolean): StringKeyMap | Array<any> {
+  renderCommitCMI(terminateCommit: boolean, includeTotalTime: boolean = false): StringKeyMap | Array<any> {
     const cmiExport: StringKeyMap = this.renderCMIToJSONObject();
 
-    if (terminateCommit) {
+    if (includeTotalTime) {
       (cmiExport.cmi as any).total_time = (this.cmi as any).getCurrentTotalTime();
     }
 
@@ -725,12 +726,13 @@ class Scorm2004API extends BaseAPI {
 
   /**
    * Render the cmi object to the proper format for LMS commit - delegates to DataSerializationModule
-   * @param {boolean} terminateCommit
+   * @param {boolean} terminateCommit - Whether this is a termination commit
+   * @param {boolean} includeTotalTime - Whether to include total time in the commit data
    * @return {CommitObject}
    */
-  renderCommitObject(terminateCommit: boolean): CommitObject {
-    const cmiExport = this.renderCommitCMI(terminateCommit);
-    const totalTimeDuration = this.cmi.getCurrentTotalTime();
+  renderCommitObject(terminateCommit: boolean, includeTotalTime: boolean = false): CommitObject {
+    const cmiExport = this.renderCommitCMI(terminateCommit, includeTotalTime);
+    const totalTimeDuration = includeTotalTime ? this.cmi.getCurrentTotalTime() : "";
     const totalTimeSeconds = Utilities.getDurationAsSeconds(
       totalTimeDuration,
       scorm2004_regex.CMITimespan,

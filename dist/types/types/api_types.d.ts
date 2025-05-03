@@ -26,6 +26,7 @@ export type Settings = {
     scoItemIdValidator?: false | ((scoItemId: string) => boolean);
     globalObjectiveIds?: string[];
     sequencing?: SequencingSettings;
+    useBeaconInsteadOfFetch?: "always" | "on-terminate" | "never";
     enableOfflineSupport?: boolean;
     courseId?: string;
     syncOnInitialize?: boolean;
@@ -57,6 +58,7 @@ export type InternalSettings = {
     scoItemIdValidator?: false | ((scoItemId: string) => boolean);
     globalObjectiveIds?: string[];
     sequencing?: SequencingSettings;
+    useBeaconInsteadOfFetch: "always" | "on-terminate" | "never";
     enableOfflineSupport?: boolean;
     courseId?: string;
     syncOnInitialize?: boolean;

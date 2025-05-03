@@ -19,7 +19,7 @@ const scorm12_constants = {
   error_descriptions: {
     "101": {
       basicMessage: "General Exception",
-      detailMessage: "No specific error code exists to describe the error. Use LMSGetDiagnostic for more information"
+      detailMessage: "No specific error code exists to describe the error."
     },
     "201": {
       basicMessage: "Invalid argument error",
@@ -96,7 +96,7 @@ const scorm2004_constants = {
     },
     "101": {
       basicMessage: "General Exception",
-      detailMessage: "No specific error code exists to describe the error. Use GetDiagnostic for more information."
+      detailMessage: "No specific error code exists to describe the error."
     },
     "102": {
       basicMessage: "General Initialization Failure",
@@ -2334,6 +2334,7 @@ const DefaultSettings = {
   xhrHeaders: {},
   xhrWithCredentials: false,
   fetchMode: "cors",
+  useBeaconInsteadOfFetch: "never",
   responseHandler: async function(response) {
     if (typeof response !== "undefined") {
       let httpResult = null;
@@ -2522,9 +2523,15 @@ class HttpService {
       errorCode: this.error_codes.GENERAL
     };
     if (immediate) {
-      this.performFetch(url, params).then(async (response) => {
-        await this.transformResponse(response, processListeners);
-      });
+      if (this.settings.useBeaconInsteadOfFetch !== "never") {
+        const body = params instanceof Array ? params.join("&") : JSON.stringify(params);
+        const contentType = params instanceof Array ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType;
+        navigator.sendBeacon(url, new Blob([body], { type: contentType }));
+      } else {
+        this.performFetch(url, params).then(async (response) => {
+          await this.transformResponse(response, processListeners);
+        });
+      }
       return {
         result: global_constants.SCORM_TRUE,
         errorCode: 0
@@ -2551,6 +2558,9 @@ class HttpService {
    * @private
    */
   async performFetch(url, params) {
+    if (this.settings.useBeaconInsteadOfFetch === "always") {
+      return this.performBeacon(url, params);
+    }
     const init = {
       method: "POST",
       mode: this.settings.fetchMode,
@@ -2565,6 +2575,30 @@ class HttpService {
       init.credentials = "include";
     }
     return fetch(url, init);
+  }
+  /**
+   * Perform the beacon request to the LMS
+   * @param {string} url - The URL to send the request to
+   * @param {StringKeyMap|Array} params - The parameters to include in the request
+   * @return {Promise<Response>} - A promise that resolves with a mock Response object
+   * @private
+   */
+  async performBeacon(url, params) {
+    const body = params instanceof Array ? params.join("&") : JSON.stringify(params);
+    const contentType = params instanceof Array ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType;
+    const beaconSuccess = navigator.sendBeacon(url, new Blob([body], { type: contentType }));
+    return Promise.resolve({
+      status: beaconSuccess ? 200 : 0,
+      ok: beaconSuccess,
+      json: async () => ({
+        result: beaconSuccess ? "true" : "false",
+        errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL
+      }),
+      text: async () => JSON.stringify({
+        result: beaconSuccess ? "true" : "false",
+        errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL
+      })
+    });
   }
   /**
    * Transforms the response from the LMS to a ResultObject
@@ -4300,6 +4334,12 @@ class BaseAPI {
         this.startingData = data;
       }
     );
+  }
+  /**
+   * Returns a flattened JSON object representing the current CMI data.
+   */
+  getFlattenedCMI() {
+    return flatten(this.renderCMIToJSONObject());
   }
   /**
    * Loads CMI data from a hierarchical JSON object.
@@ -11927,5 +11967,131 @@ class Scorm2004API extends BaseAPI {
   }
 }
 
-export { AICC, Scorm12API, Scorm2004API };
+class CrossFrameAPI {
+  constructor(targetOrigin = "*") {
+    this._cache = /* @__PURE__ */ new Map();
+    this._lastError = "0";
+    this._pending = /* @__PURE__ */ new Map();
+    this._counter = 0;
+    this._handler = {
+      get: (target, prop, receiver) => {
+        if (typeof prop !== "string" || prop in target) {
+          const v = Reflect.get(target, prop, receiver);
+          return typeof v === "function" ? v.bind(target) : v;
+        }
+        const methodName = prop;
+        const isGet = methodName.endsWith("GetValue");
+        const isSet = methodName.startsWith("LMSSet") || methodName.endsWith("SetValue");
+        const isInit = methodName === "Initialize" || methodName === "LMSInitialize";
+        const isFinish = methodName === "Terminate" || methodName === "LMSFinish";
+        const isCommit = methodName === "Commit" || methodName === "LMSCommit";
+        return (...args) => {
+          if (isSet && args.length >= 2) {
+            target._cache.set(args[0], String(args[1]));
+            target._lastError = "0";
+          }
+          target._post(methodName, args).then((res) => {
+            if (isGet && args.length >= 1) {
+              target._cache.set(args[0], String(res));
+              target._lastError = "0";
+            }
+            if (methodName === "GetLastError" || methodName === "LMSGetLastError") {
+              target._lastError = String(res);
+            }
+          }).catch((err) => target._capture(methodName, err));
+          if (isGet && args.length >= 1) {
+            return target._cache.get(args[0]) ?? "";
+          }
+          if (isInit || isFinish || isCommit || isSet) {
+            const result = "true";
+            target._post("getFlattenedCMI", []).then((all) => {
+              Object.entries(all).forEach(([key, val]) => {
+                target._cache.set(key, val);
+              });
+              target._lastError = "0";
+            }).catch((err) => target._capture("getFlattenedCMI", err));
+            return result;
+          }
+          if (methodName === "GetLastError" || methodName === "LMSGetLastError") {
+            return target._lastError;
+          }
+          return "";
+        };
+      }
+    };
+    this._origin = targetOrigin;
+    window.addEventListener("message", this._onMessage.bind(this));
+    return new Proxy(this, this._handler);
+  }
+  /** Send a message to the LMS frame and return a promise for its response */
+  _post(method, params) {
+    const messageId = `cfapi-${Date.now()}-${this._counter++}`;
+    const safeParams = params.map((p) => {
+      if (typeof p === "function") {
+        console.warn("Dropping function param when posting SCORM call:", method);
+        return void 0;
+      }
+      return p;
+    });
+    return new Promise((resolve, reject) => {
+      this._pending.set(messageId, { resolve, reject });
+      const msg = { messageId, method, params: safeParams };
+      window.parent.postMessage(msg, this._origin);
+      setTimeout(() => {
+        if (this._pending.has(messageId)) {
+          this._pending.delete(messageId);
+          reject(new Error(`Timeout calling ${method}`));
+        }
+      }, 5e3);
+    });
+  }
+  /** Handle incoming postMessage responses from the LMS frame */
+  _onMessage(ev) {
+    const data = ev.data;
+    if (!data?.messageId) return;
+    const pending = this._pending.get(data.messageId);
+    if (!pending) return;
+    this._pending.delete(data.messageId);
+    if (data.error) pending.reject(data.error);
+    else pending.resolve(data.result);
+  }
+  /** Capture and cache SCORM errors */
+  _capture(method, err) {
+    console.error(`CrossFrameAPI ${method} error:`, err);
+    const code = (/(\d{3})/.exec(err.message) || [])[1] || global_errors.GENERAL;
+    this._lastError = String(code);
+    this._cache.set(`error_${code}`, err.message);
+  }
+}
+
+class CrossFrameLMS {
+  constructor(api, targetOrigin = "*") {
+    this._api = api;
+    this._origin = targetOrigin;
+    window.addEventListener("message", this._onMessage.bind(this));
+  }
+  _onMessage(ev) {
+    const msg = ev.data;
+    if (!msg?.messageId || !msg.method) return;
+    this._process(msg, ev.source);
+  }
+  _process(msg, source) {
+    let result, error;
+    try {
+      const fn = this._api[msg.method];
+      if (typeof fn !== "function") throw new Error(`Method ${msg.method} not found`);
+      result = fn.apply(this._api, msg.params);
+    } catch (e) {
+      error = { message: e.message, stack: e.stack };
+    }
+    const resp = {
+      messageId: msg.messageId,
+      result,
+      error
+    };
+    source.postMessage(resp, this._origin);
+  }
+}
+
+export { AICC, CrossFrameAPI, CrossFrameLMS, Scorm12API, Scorm2004API };
 //# sourceMappingURL=scorm-again.js.map

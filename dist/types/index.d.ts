@@ -1,7 +1,8 @@
 export * from "./Scorm12API";
 export * from "./Scorm2004API";
 export * from "./AICC";
-export { CrossFrameAPI, CrossFrameLMS } from "./facades/CrossFrameFacade";
+export * from "./CrossFrameAPI";
+export * from "./CrossFrameLMS";
 export * from "./constants/api_constants";
 export * from "./constants/error_codes";
 export * from "./constants/language_constants";

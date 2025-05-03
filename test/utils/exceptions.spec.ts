@@ -1,10 +1,6 @@
-import { describe, it, vi } from "vitest";
+import { describe, it } from "vitest";
 import { ValidationError } from "../../src/exceptions";
-import {
-  aicc_constants,
-  scorm12_constants,
-  scorm2004_constants,
-} from "../../src/constants/api_constants";
+import { aicc_constants, scorm12_constants, scorm2004_constants } from "../../src/";
 import { AICCValidationError } from "../../src/exceptions/aicc_exceptions";
 import { Scorm12ValidationError } from "../../src/exceptions/scorm12_exceptions";
 import { Scorm2004ValidationError } from "../../src/exceptions/scorm2004_exceptions";

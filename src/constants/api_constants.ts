@@ -73,8 +73,7 @@ export const scorm12_constants: ScormConstants = {
   error_descriptions: {
     "101": {
       basicMessage: "General Exception",
-      detailMessage:
-        "No specific error code exists to describe the error. Use LMSGetDiagnostic for more information",
+      detailMessage: "No specific error code exists to describe the error.",
     },
     "201": {
       basicMessage: "Invalid argument error",
@@ -166,8 +165,7 @@ export const scorm2004_constants: Scorm2004Constants = {
     },
     "101": {
       basicMessage: "General Exception",
-      detailMessage:
-        "No specific error code exists to describe the error. Use GetDiagnostic for more information.",
+      detailMessage: "No specific error code exists to describe the error.",
     },
     "102": {
       basicMessage: "General Initialization Failure",

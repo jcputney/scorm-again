@@ -1,7 +1,7 @@
-import { describe, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { ValidationService, validationService } from "../../src/services/ValidationService";
 import { BaseScormValidationError } from "../../src/exceptions";
-import { scorm12_errors } from "../../src/constants/error_codes";
+import { scorm12_errors } from "../../src";
 import { Scorm12ValidationError } from "../../src/exceptions/scorm12_exceptions";
 
 describe("ValidationService", () => {
@@ -123,14 +123,12 @@ describe("ValidationService", () => {
 
   describe("validateReadOnly", () => {
     it("should not throw an error when initialized is false", () => {
-      // Act & Assert
       expect(() => {
         validationService.validateReadOnly("api", false);
       }).not.toThrow();
     });
 
     it("should throw a Scorm12ValidationError when initialized is true", () => {
-      // Act & Assert
       expect(() => {
         validationService.validateReadOnly("api", true);
       }).toThrow(Scorm12ValidationError);
@@ -145,7 +143,6 @@ describe("ValidationService", () => {
 
   describe("Singleton Instance", () => {
     it("should export a singleton instance of ValidationService", () => {
-      // Assert
       expect(validationService).toBeInstanceOf(ValidationService);
     });
   });

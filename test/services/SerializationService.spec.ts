@@ -26,7 +26,6 @@ describe("SerializationService", () => {
 
   describe("loadFromFlattenedJSON", () => {
     it("should call loadFromJSON with unflatten for each key-value pair", () => {
-      // Arrange
       const json: StringKeyMap = {
         "cmi.core.student_id": "123",
         "cmi.core.student_name": "John Doe",
@@ -35,7 +34,6 @@ describe("SerializationService", () => {
       const isNotInitializedStub = vi.fn().mockReturnValue(true);
       const setStartingDataSpy = vi.fn();
 
-      // Act
       serializationService.loadFromFlattenedJSON(
         json,
         "",
@@ -44,12 +42,10 @@ describe("SerializationService", () => {
         setStartingDataSpy,
       );
 
-      // Assert
       expect(isNotInitializedStub).toHaveBeenCalled();
     });
 
     it("should not proceed if not initialized", () => {
-      // Arrange
       const json: StringKeyMap = {
         "cmi.core.student_id": "123",
       };
@@ -57,7 +53,6 @@ describe("SerializationService", () => {
       const isNotInitializedStub = vi.fn().mockReturnValue(false);
       const setStartingDataSpy = vi.fn();
 
-      // Act
       serializationService.loadFromFlattenedJSON(
         json,
         "",
@@ -66,7 +61,6 @@ describe("SerializationService", () => {
         setStartingDataSpy,
       );
 
-      // Assert
       expect(consoleErrorStub).toHaveBeenCalledOnce();
       expect(consoleErrorStub).toHaveBeenCalledWith(
         "loadFromFlattenedJSON can only be called before the call to lmsInitialize.",
@@ -76,7 +70,6 @@ describe("SerializationService", () => {
 
   describe("loadFromJSON", () => {
     it("should process JSON object", () => {
-      // Arrange
       const json: StringKeyMap = {
         core: {
           student_id: "123",
@@ -87,7 +80,6 @@ describe("SerializationService", () => {
       const isNotInitializedStub = vi.fn().mockReturnValue(true);
       const setStartingDataSpy = vi.fn();
 
-      // Act
       serializationService.loadFromJSON(
         json,
         "cmi",
@@ -96,7 +88,6 @@ describe("SerializationService", () => {
         setStartingDataSpy,
       );
 
-      // Assert
       expect(setStartingDataSpy).toHaveBeenCalled();
       expect(setCMIValueSpy).toHaveBeenCalled();
       // The exact number of calls may vary based on implementation details
@@ -104,7 +95,6 @@ describe("SerializationService", () => {
     });
 
     it("should not proceed if not initialized", () => {
-      // Arrange
       const json: StringKeyMap = {
         core: {
           student_id: "123",
@@ -114,7 +104,6 @@ describe("SerializationService", () => {
       const isNotInitializedStub = vi.fn().mockReturnValue(false);
       const setStartingDataSpy = vi.fn();
 
-      // Act
       serializationService.loadFromJSON(
         json,
         "cmi",
@@ -123,7 +112,6 @@ describe("SerializationService", () => {
         setStartingDataSpy,
       );
 
-      // Assert
       expect(setCMIValueSpy).not.toHaveBeenCalled();
       expect(setStartingDataSpy).not.toHaveBeenCalled();
       expect(consoleErrorStub).toHaveBeenCalledOnce();
@@ -133,7 +121,6 @@ describe("SerializationService", () => {
     });
 
     it("should handle array values in JSON", () => {
-      // Arrange
       const json: StringKeyMap = {
         objectives: [
           { id: "obj1", score: { raw: 80 } },
@@ -144,7 +131,6 @@ describe("SerializationService", () => {
       const isNotInitializedStub = vi.fn().mockReturnValue(true);
       const setStartingDataSpy = vi.fn();
 
-      // Act
       serializationService.loadFromJSON(
         json,
         "cmi",
@@ -153,7 +139,6 @@ describe("SerializationService", () => {
         setStartingDataSpy,
       );
 
-      // Assert
       expect(setCMIValueSpy).toHaveBeenCalled();
       expect(setCMIValueSpy).toHaveBeenCalledTimes(4);
       expect(setCMIValueSpy).toHaveBeenCalledWith("cmi.objectives.0.id", "obj1");
@@ -165,7 +150,6 @@ describe("SerializationService", () => {
 
   describe("renderCMIToJSONString", () => {
     it("should return full JSON string when sendFullCommit is true", () => {
-      // Arrange
       const cmi = {
         core: {
           student_id: "123",
@@ -173,15 +157,12 @@ describe("SerializationService", () => {
         },
       };
 
-      // Act
       const result = serializationService.renderCMIToJSONString(cmi, true);
 
-      // Assert
       expect(result).toBe(JSON.stringify({ cmi }));
     });
 
     it("should replace undefined values with null when sendFullCommit is false", () => {
-      // Arrange
       const cmi = {
         core: {
           student_id: "123",
@@ -189,10 +170,8 @@ describe("SerializationService", () => {
         },
       };
 
-      // Act
       const result = serializationService.renderCMIToJSONString(cmi, false);
 
-      // Assert
       const expected = JSON.stringify(
         { cmi: { core: { student_id: "123", student_name: null } } },
         (k, v) => (v === undefined ? null : v),
@@ -204,7 +183,6 @@ describe("SerializationService", () => {
 
   describe("renderCMIToJSONObject", () => {
     it("should return a JSON object representation of the CMI", () => {
-      // Arrange
       const cmi = {
         core: {
           student_id: "123",
@@ -213,10 +191,8 @@ describe("SerializationService", () => {
       };
       const renderCMIToJSONStringSpy = vi.spyOn(serializationService, "renderCMIToJSONString");
 
-      // Act
       const result = serializationService.renderCMIToJSONObject(cmi, true);
 
-      // Assert
       expect(renderCMIToJSONStringSpy).toHaveBeenCalledOnce();
       expect(renderCMIToJSONStringSpy).toHaveBeenCalledWith(cmi, true);
       expect(result).toEqual({ cmi });
@@ -227,7 +203,6 @@ describe("SerializationService", () => {
 
   describe("getCommitObject", () => {
     it("should call renderCommitObject when renderCommonCommitFields is true", () => {
-      // Arrange
       const terminateCommit = false;
       const alwaysSendTotalTime = false;
       const renderCommonCommitFields = true;
@@ -237,7 +212,6 @@ describe("SerializationService", () => {
       const renderCommitCMIStub = vi.fn();
       const apiLogLevel = LogLevelEnum.ERROR;
 
-      // Act
       const result = serializationService.getCommitObject(
         terminateCommit,
         alwaysSendTotalTime,
@@ -247,15 +221,13 @@ describe("SerializationService", () => {
         apiLogLevel,
       );
 
-      // Assert
       expect(renderCommitObjectStub).toHaveBeenCalledOnce();
-      expect(renderCommitObjectStub).toHaveBeenCalledWith(false);
+      expect(renderCommitObjectStub).toHaveBeenCalledWith(false, false);
       expect(renderCommitCMIStub).not.toHaveBeenCalled();
       expect(result).toEqual({ successStatus: "passed" });
     });
 
     it("should call renderCommitCMI when renderCommonCommitFields is false", () => {
-      // Arrange
       const terminateCommit = false;
       const alwaysSendTotalTime = false;
       const renderCommonCommitFields = false;
@@ -263,7 +235,6 @@ describe("SerializationService", () => {
       const renderCommitCMIStub = vi.fn().mockReturnValue({ cmi: { core: { student_id: "123" } } });
       const apiLogLevel = LogLevelEnum.ERROR;
 
-      // Act
       const result = serializationService.getCommitObject(
         terminateCommit,
         alwaysSendTotalTime,
@@ -273,15 +244,13 @@ describe("SerializationService", () => {
         apiLogLevel,
       );
 
-      // Assert
       expect(renderCommitCMIStub).toHaveBeenCalledOnce();
-      expect(renderCommitCMIStub).toHaveBeenCalledWith(false);
+      expect(renderCommitCMIStub).toHaveBeenCalledWith(false, false);
       expect(renderCommitObjectStub).not.toHaveBeenCalled();
       expect(result).toEqual({ cmi: { core: { student_id: "123" } } });
     });
 
     it("should log debug information when log level is DEBUG", () => {
-      // Arrange
       const terminateCommit = true;
       const alwaysSendTotalTime = false;
       const renderCommonCommitFields = false;
@@ -289,7 +258,6 @@ describe("SerializationService", () => {
       const renderCommitCMIStub = vi.fn().mockReturnValue({ cmi: { core: { student_id: "123" } } });
       const apiLogLevel = LogLevelEnum.DEBUG;
 
-      // Act
       serializationService.getCommitObject(
         terminateCommit,
         alwaysSendTotalTime,
@@ -299,7 +267,6 @@ describe("SerializationService", () => {
         apiLogLevel,
       );
 
-      // Assert
       expect(consoleDebugStub).toHaveBeenCalled();
       expect(consoleDebugStub).toHaveBeenCalledTimes(2);
     });

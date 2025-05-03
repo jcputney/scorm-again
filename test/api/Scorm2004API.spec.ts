@@ -812,7 +812,7 @@ describe("SCORM 2004 API Tests", () => {
       const scorm2004API = api();
       scorm2004API.cmi.total_time = "PT12H34M56S";
       scorm2004API.cmi.session_time = "PT23H59M59S";
-      const cmiExport = scorm2004API.renderCommitCMI(true) as StringKeyMap;
+      const cmiExport = scorm2004API.renderCommitCMI(true, true) as StringKeyMap;
       const exportCmi = cmiExport.cmi as StringKeyMap;
       expect(exportCmi).toHaveProperty("total_time");
       expect(exportCmi.total_time).toEqual("P1DT12H34M55S");
@@ -853,7 +853,7 @@ describe("SCORM 2004 API Tests", () => {
     it("should include total_time if terminateCommit is true", function (): void {
       const scorm2004API = api();
       const spy = vi.spyOn(scorm2004API.cmi, "getCurrentTotalTime");
-      const cmiExport = scorm2004API.renderCommitCMI(true) as StringKeyMap;
+      const cmiExport = scorm2004API.renderCommitCMI(true, true) as StringKeyMap;
       expect(spy).toHaveBeenCalledOnce();
       const exportCmi = cmiExport.cmi as StringKeyMap;
       expect(exportCmi).toHaveProperty("total_time");
@@ -877,7 +877,7 @@ describe("SCORM 2004 API Tests", () => {
       scorm2004API.cmi.completion_status = "incomplete";
       scorm2004API.cmi.total_time = "P12H34M56S";
       scorm2004API.cmi.session_time = "P23H59M59S";
-      const commitObject = scorm2004API.renderCommitObject(true);
+      const commitObject = scorm2004API.renderCommitObject(true, true);
       expect(commitObject.successStatus).toEqual("unknown");
       expect(commitObject.completionStatus).toEqual("incomplete");
       const runtimeCmi = commitObject.runtimeData.cmi as StringKeyMap;
@@ -937,7 +937,7 @@ describe("SCORM 2004 API Tests", () => {
       const scorm2004API = api();
       scorm2004API.cmi.total_time = "P12H34M56S";
       scorm2004API.cmi.session_time = "P23H59M59S";
-      const commitObject = scorm2004API.renderCommitObject(true);
+      const commitObject = scorm2004API.renderCommitObject(true, true);
       const runtimeCmi = commitObject.runtimeData.cmi as StringKeyMap;
       expect(runtimeCmi.total_time).toEqual("P1DT12H34M55S");
     });

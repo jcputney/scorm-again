@@ -7,7 +7,7 @@ import { ADL as Scorm2004ADL } from "./src/cmi/scorm2004/adl";
 import { Settings } from "./src/types/api_types";
 import { default as Scorm2004Impl } from "./src/Scorm2004API";
 import { default as AICCImpl } from "./src/AICC";
-import { CrossFrameAPI, CrossFrameLMS } from "./src";
+import { default as CrossFrameAPIImpl } from "./src/CrossFrameAPI";
 
 declare class Scorm12API extends Scorm12Impl {
   constructor(settings?: Settings);
@@ -67,6 +67,27 @@ declare class AICC extends AICCImpl {
    * Called when the API needs to be reset
    */
   reset(settings?: Settings): void;
+}
+
+declare class CrossFrameAPI extends CrossFrameAPIImpl {
+  constructor(settings?: Settings);
+
+  LMSInitialize: () => Promise<boolean>;
+  LMSFinish: () => Promise<boolean>;
+  LMSGetValue: (CMIElement: string) => Promise<string>;
+  LMSSetValue: (CMIElement: string, value: any) => Promise<boolean>;
+  LMSCommit: () => Promise<boolean>;
+  LMSGetLastError: () => Promise<string>;
+  LMSGetErrorString: (CMIErrorCode: string) => Promise<string>;
+  LMSGetDiagnostic: (CMIErrorCode: string) => Promise<string>;
+  Initialize: () => Promise<boolean>;
+  Terminate: () => Promise<boolean>;
+  GetValue: (CMIElement: string) => Promise<string>;
+  SetValue: (CMIElement: string, value: any) => Promise<boolean>;
+  Commit: () => Promise<boolean>;
+  GetLastError: () => Promise<string>;
+  GetErrorString: (CMIErrorCode: string | number) => Promise<string>;
+  GetDiagnostic: (CMIErrorCode: string | number) => Promise<string>;
 }
 
 export { Scorm12API, Scorm2004API, AICC, Settings, CrossFrameAPI, CrossFrameLMS };

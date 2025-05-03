@@ -22,7 +22,7 @@
     error_descriptions: {
       "101": {
         basicMessage: "General Exception",
-        detailMessage: "No specific error code exists to describe the error. Use LMSGetDiagnostic for more information"
+        detailMessage: "No specific error code exists to describe the error."
       },
       "201": {
         basicMessage: "Invalid argument error",
@@ -99,7 +99,7 @@
       },
       "101": {
         basicMessage: "General Exception",
-        detailMessage: "No specific error code exists to describe the error. Use GetDiagnostic for more information."
+        detailMessage: "No specific error code exists to describe the error."
       },
       "102": {
         basicMessage: "General Initialization Failure",
@@ -2177,6 +2177,7 @@
     xhrHeaders: {},
     xhrWithCredentials: false,
     fetchMode: "cors",
+    useBeaconInsteadOfFetch: "never",
     responseHandler: async function (response) {
       if (typeof response !== "undefined") {
         let httpResult = null;
@@ -2367,9 +2368,17 @@
         errorCode: this.error_codes.GENERAL
       };
       if (immediate) {
-        this.performFetch(url, params).then(async response => {
-          await this.transformResponse(response, processListeners);
-        });
+        if (this.settings.useBeaconInsteadOfFetch !== "never") {
+          const body = params instanceof Array ? params.join("&") : JSON.stringify(params);
+          const contentType = params instanceof Array ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType;
+          navigator.sendBeacon(url, new Blob([body], {
+            type: contentType
+          }));
+        } else {
+          this.performFetch(url, params).then(async response => {
+            await this.transformResponse(response, processListeners);
+          });
+        }
         return {
           result: global_constants.SCORM_TRUE,
           errorCode: 0
@@ -2396,6 +2405,9 @@
      * @private
      */
     async performFetch(url, params) {
+      if (this.settings.useBeaconInsteadOfFetch === "always") {
+        return this.performBeacon(url, params);
+      }
       const init = {
         method: "POST",
         mode: this.settings.fetchMode,
@@ -2410,6 +2422,32 @@
         init.credentials = "include";
       }
       return fetch(url, init);
+    }
+    /**
+     * Perform the beacon request to the LMS
+     * @param {string} url - The URL to send the request to
+     * @param {StringKeyMap|Array} params - The parameters to include in the request
+     * @return {Promise<Response>} - A promise that resolves with a mock Response object
+     * @private
+     */
+    async performBeacon(url, params) {
+      const body = params instanceof Array ? params.join("&") : JSON.stringify(params);
+      const contentType = params instanceof Array ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType;
+      const beaconSuccess = navigator.sendBeacon(url, new Blob([body], {
+        type: contentType
+      }));
+      return Promise.resolve({
+        status: beaconSuccess ? 200 : 0,
+        ok: beaconSuccess,
+        json: async () => ({
+          result: beaconSuccess ? "true" : "false",
+          errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL
+        }),
+        text: async () => JSON.stringify({
+          result: beaconSuccess ? "true" : "false",
+          errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL
+        })
+      });
     }
     /**
      * Transforms the response from the LMS to a ResultObject
@@ -4033,6 +4071,12 @@ ${stackTrace}`);
       this._serializationService.loadFromFlattenedJSON(json, CMIElement, (CMIElement2, value) => this.setCMIValue(CMIElement2, value), () => this.isNotInitialized(), data => {
         this.startingData = data;
       });
+    }
+    /**
+     * Returns a flattened JSON object representing the current CMI data.
+     */
+    getFlattenedCMI() {
+      return flatten(this.renderCMIToJSONObject());
     }
     /**
      * Loads CMI data from a hierarchical JSON object.

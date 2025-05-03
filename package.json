@@ -72,6 +72,34 @@
       "import": "./dist/modern/scorm2004.min.js",
       "default": "./dist/modern/scorm2004.min.js"
     },
+    "./cross-frame-api": {
+      "import": "./dist/esm/cross-frame-api.js",
+      "require": "./dist/cross-frame-api.js",
+      "default": "./dist/cross-frame-api.js"
+    },
+    "./cross-frame-api/modern": {
+      "import": "./dist/modern/cross-frame-api.js",
+      "default": "./dist/modern/cross-frame-api.js"
+    },
+    "./cross-frame-api/min": {
+      "import": "./dist/esm/cross-frame-api.min.js",
+      "require": "./dist/cross-frame-api.min.js",
+      "default": "./dist/cross-frame-api.min.js"
+    },
+    "./cross-frame-lms": {
+      "import": "./dist/esm/cross-frame-lms.js",
+      "require": "./dist/cross-frame-lms.js",
+      "default": "./dist/cross-frame-lms.js"
+    },
+    "./cross-frame-lms/modern": {
+      "import": "./dist/modern/cross-frame-lms.js",
+      "default": "./dist/modern/cross-frame-lms.js"
+    },
+    "./cross-frame-lms/min": {
+      "import": "./dist/esm/cross-frame-lms.min.js",
+      "require": "./dist/cross-frame-lms.min.js",
+      "default": "./dist/cross-frame-lms.min.js"
+    },
     "./min": {
       "import": "./dist/esm/scorm-again.min.js",
       "require": "./dist/scorm-again.min.js",

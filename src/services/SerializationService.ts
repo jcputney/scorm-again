@@ -296,14 +296,25 @@ export class SerializationService implements ISerializationService {
     terminateCommit: boolean,
     alwaysSendTotalTime: boolean,
     renderCommonCommitFields: boolean | ((commitObject: CommitObject) => boolean),
-    renderCommitObject: (terminateCommit: boolean) => CommitObject,
-    renderCommitCMI: (terminateCommit: boolean) => StringKeyMap | Array<any>,
+    renderCommitObject: (terminateCommit: boolean, includeTotalTime?: boolean) => CommitObject,
+    renderCommitCMI: (terminateCommit: boolean, includeTotalTime?: boolean) => StringKeyMap | Array<any>,
     apiLogLevel: LogLevel,
   ): CommitObject | StringKeyMap | Array<any> {
-    const shouldTerminateCommit = terminateCommit || alwaysSendTotalTime;
+    // Fix for issue: total time is being calculated incorrectly across multiple sessions
+    // when selfReportSessionTime and alwaysSendTotalTime are enabled.
+    //
+    // Previously, we were using a single variable (shouldTerminateCommit) that combined
+    // both concerns: whether this is a termination commit and whether to include total time.
+    // This caused the total time to be calculated as if every commit was a terminate commit
+    // when alwaysSendTotalTime was true, leading to incorrect time calculations.
+    //
+    // Now we pass the actual terminateCommit value and a separate parameter for whether
+    // to include total time, allowing the rendering functions to handle these concerns separately.
+    const includeTotalTime = alwaysSendTotalTime || terminateCommit;
+
     const commitObject = renderCommonCommitFields
-      ? renderCommitObject(shouldTerminateCommit)
-      : renderCommitCMI(shouldTerminateCommit);
+      ? renderCommitObject(terminateCommit, includeTotalTime)
+      : renderCommitCMI(terminateCommit, includeTotalTime);
 
     if ([LogLevelEnum.DEBUG, "1", 1, "DEBUG"].includes(apiLogLevel)) {
       console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");

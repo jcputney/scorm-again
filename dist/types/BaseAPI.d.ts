@@ -66,6 +66,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     throwSCORMError(CMIElement: string, errorNumber: number, message?: string): void;
     clearSCORMError(success: string): void;
     loadFromFlattenedJSON(json: StringKeyMap, CMIElement?: string): void;
+    getFlattenedCMI(): StringKeyMap;
     loadFromJSON(json: StringKeyMap, CMIElement?: string): void;
     renderCMIToJSONString(): string;
     renderCMIToJSONObject(): StringKeyMap;

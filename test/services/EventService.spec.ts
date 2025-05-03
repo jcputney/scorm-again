@@ -1,5 +1,4 @@
-import { afterEach, beforeEach, describe, it, vi, expect } from "vitest";
-import { LogLevelEnum } from "../../src/constants/enums";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { EventService } from "../../src/services/EventService";
 
 describe("EventService", () => {
@@ -17,44 +16,35 @@ describe("EventService", () => {
 
   describe("Basic Event Registration and Triggering", () => {
     it("should register and trigger a simple event listener", () => {
-      // Arrange
       const callback = vi.fn();
       eventService.on("TestEvent", callback);
 
-      // Act
       eventService.processListeners("TestEvent");
 
-      // Assert
       expect(callback).toHaveBeenCalledOnce();
     });
 
     it("should register and trigger multiple event listeners for the same event", () => {
-      // Arrange
       const callback1 = vi.fn();
       const callback2 = vi.fn();
       eventService.on("TestEvent", callback1);
       eventService.on("TestEvent", callback2);
 
-      // Act
       eventService.processListeners("TestEvent");
 
-      // Assert
       expect(callback1).toHaveBeenCalledOnce();
       expect(callback2).toHaveBeenCalledOnce();
     });
 
     it("should register and trigger event listeners with CMI element filtering", () => {
-      // Arrange
       const callback1 = vi.fn();
       const callback2 = vi.fn();
       eventService.on("SetValue.cmi.score.scaled", callback1);
       eventService.on("SetValue.cmi.score.raw", callback2);
 
-      // Act
       eventService.processListeners("SetValue", "cmi.score.scaled", "0.8");
       eventService.processListeners("SetValue", "cmi.score.raw", "80");
 
-      // Assert
       expect(callback1).toHaveBeenCalledOnce();
       expect(callback1).toHaveBeenCalledWith("cmi.score.scaled", "0.8");
       expect(callback2).toHaveBeenCalledOnce();
@@ -64,46 +54,37 @@ describe("EventService", () => {
 
   describe("Event Removal", () => {
     it("should remove a specific event listener", () => {
-      // Arrange
       const callback = vi.fn();
       eventService.on("TestEvent", callback);
       eventService.off("TestEvent", callback);
 
-      // Act
       eventService.processListeners("TestEvent");
 
-      // Assert
       expect(callback).not.toHaveBeenCalled();
     });
 
     it("should clear all listeners for a specific event", () => {
-      // Arrange
       const callback1 = vi.fn();
       const callback2 = vi.fn();
       eventService.on("TestEvent", callback1);
       eventService.on("TestEvent", callback2);
       eventService.clear("TestEvent");
 
-      // Act
       eventService.processListeners("TestEvent");
 
-      // Assert
       expect(callback1).not.toHaveBeenCalled();
       expect(callback2).not.toHaveBeenCalled();
     });
 
     it("should only remove the specified listener when multiple exist", () => {
-      // Arrange
       const callback1 = vi.fn();
       const callback2 = vi.fn();
       eventService.on("TestEvent", callback1);
       eventService.on("TestEvent", callback2);
       eventService.off("TestEvent", callback1);
 
-      // Act
       eventService.processListeners("TestEvent");
 
-      // Assert
       expect(callback1).not.toHaveBeenCalled();
       expect(callback2).toHaveBeenCalledOnce();
     });
@@ -111,17 +92,14 @@ describe("EventService", () => {
 
   describe("Wildcard Event Matching", () => {
     it("should match events with wildcard patterns", () => {
-      // Arrange
       const callback = vi.fn();
       eventService.on("SetValue.cmi.score.*", callback);
 
-      // Act
       eventService.processListeners("SetValue", "cmi.score.scaled", "0.8");
       eventService.processListeners("SetValue", "cmi.score.raw", "80");
       eventService.processListeners("SetValue", "cmi.score.min", "0");
       eventService.processListeners("SetValue", "cmi.score.max", "100");
 
-      // Assert
       expect(callback).toHaveBeenCalledTimes(4);
       expect(callback).toHaveBeenNthCalledWith(1, "cmi.score.scaled", "0.8");
       expect(callback).toHaveBeenNthCalledWith(2, "cmi.score.raw", "80");
@@ -130,29 +108,23 @@ describe("EventService", () => {
     });
 
     it("should not match events that don't match the wildcard pattern", () => {
-      // Arrange
       const callback = vi.fn();
       eventService.on("SetValue.cmi.score.*", callback);
 
-      // Act
       eventService.processListeners("SetValue", "cmi.completion_status", "completed");
 
-      // Assert
       expect(callback).not.toHaveBeenCalled();
     });
 
     it("should handle wildcard patterns at different positions", () => {
-      // Arrange
       const callback = vi.fn();
       // The EventService only supports wildcards at the end of the pattern
       eventService.on("SetValue.cmi.interactions.0.*", callback);
 
-      // Act
       eventService.processListeners("SetValue", "cmi.interactions.0.result", "correct");
       eventService.processListeners("SetValue", "cmi.interactions.0.type", "choice");
       eventService.processListeners("SetValue", "cmi.interactions.1.result", "incorrect");
 
-      // Assert
       expect(callback).toHaveBeenCalledTimes(2);
       expect(callback).toHaveBeenNthCalledWith(1, "cmi.interactions.0.result", "correct");
       expect(callback).toHaveBeenNthCalledWith(2, "cmi.interactions.0.type", "choice");
@@ -161,70 +133,55 @@ describe("EventService", () => {
 
   describe("Multiple Event Registration", () => {
     it("should register multiple events in a single call", () => {
-      // Arrange
       const callback = vi.fn();
       eventService.on("Initialize SetValue.cmi.score.scaled", callback);
 
-      // Act
       eventService.processListeners("Initialize");
       eventService.processListeners("SetValue", "cmi.score.scaled", "0.8");
 
-      // Assert
       expect(callback).toHaveBeenCalledTimes(2);
       expect(callback).toHaveBeenNthCalledWith(2, "cmi.score.scaled", "0.8");
     });
 
     it("should handle removal of multiple events registered in a single call", () => {
-      // Arrange
       const callback = vi.fn();
       eventService.on("Initialize SetValue.cmi.score.scaled", callback);
       eventService.off("Initialize SetValue.cmi.score.scaled", callback);
 
-      // Act
       eventService.processListeners("Initialize");
       eventService.processListeners("SetValue", "cmi.score.scaled", "0.8");
 
-      // Assert
       expect(callback).not.toHaveBeenCalled();
     });
   });
 
   describe("Special Event Types", () => {
     it("should handle Sequence events correctly", () => {
-      // Arrange
       const callback = vi.fn();
       eventService.on("SequenceNext", callback);
 
-      // Act
       eventService.processListeners("SequenceNext", undefined, "next");
 
-      // Assert
       expect(callback).toHaveBeenCalledOnce();
       expect(callback).toHaveBeenCalledWith("next");
     });
 
     it("should handle CommitError events correctly", () => {
-      // Arrange
       const callback = vi.fn();
       eventService.on("CommitError", callback);
 
-      // Act
       eventService.processListeners("CommitError", undefined, 101);
 
-      // Assert
       expect(callback).toHaveBeenCalledOnce();
       expect(callback).toHaveBeenCalledWith(101);
     });
 
     it("should handle CommitSuccess events correctly", () => {
-      // Arrange
       const callback = vi.fn();
       eventService.on("CommitSuccess", callback);
 
-      // Act
       eventService.processListeners("CommitSuccess");
 
-      // Assert
       expect(callback).toHaveBeenCalledOnce();
       expect(callback).toHaveBeenCalledWith();
     });
@@ -232,10 +189,8 @@ describe("EventService", () => {
 
   describe("Edge Cases", () => {
     it("should handle empty event names gracefully", () => {
-      // Arrange
       const callback = vi.fn();
 
-      // Act - This should not throw an error
       eventService.on("", callback);
 
       // The parseListenerName method returns null for empty strings,
@@ -246,7 +201,6 @@ describe("EventService", () => {
     });
 
     it("should handle null callbacks gracefully", () => {
-      // Act - This should not throw an error
       eventService.on("TestEvent", null as any);
       eventService.processListeners("TestEvent");
 
@@ -254,14 +208,11 @@ describe("EventService", () => {
     });
 
     it("should handle undefined CMI elements gracefully", () => {
-      // Arrange
       const callback = vi.fn();
       eventService.on("SetValue", callback);
 
-      // Act
       eventService.processListeners("SetValue", undefined, "value");
 
-      // Assert
       expect(callback).toHaveBeenCalledOnce();
       expect(callback).toHaveBeenCalledWith(undefined, "value");
     });
@@ -269,34 +220,28 @@ describe("EventService", () => {
 
   describe("Reset Functionality", () => {
     it("should clear all listeners when reset is called", () => {
-      // Arrange
       const callback1 = vi.fn();
       const callback2 = vi.fn();
       eventService.on("TestEvent1", callback1);
       eventService.on("TestEvent2", callback2);
 
-      // Act
       eventService.reset();
       eventService.processListeners("TestEvent1");
       eventService.processListeners("TestEvent2");
 
-      // Assert
       expect(callback1).not.toHaveBeenCalled();
       expect(callback2).not.toHaveBeenCalled();
     });
 
     it("should allow registering new listeners after reset", () => {
-      // Arrange
       const callback1 = vi.fn();
       const callback2 = vi.fn();
       eventService.on("TestEvent", callback1);
       eventService.reset();
       eventService.on("TestEvent", callback2);
 
-      // Act
       eventService.processListeners("TestEvent");
 
-      // Assert
       expect(callback1).not.toHaveBeenCalled();
       expect(callback2).toHaveBeenCalledOnce();
     });

@@ -9,14 +9,16 @@ const entries = {
   scorm12: "src/Scorm12API.ts",
   scorm2004: "src/Scorm2004API.ts",
   "scorm-again": "src/ScormAgain.ts",
-  "cross-frame-facade": "src/facades/CrossFrameFacade.ts",
+  "cross-frame-api": "src/CrossFrameAPI.ts",
+  "cross-frame-lms": "src/CrossFrameLMS.ts",
 };
 const esmEntries = {
-  aicc: "src/facades/AICC.esm.ts",
-  scorm12: "src/facades/Scorm12API.esm.ts",
-  scorm2004: "src/facades/Scorm2004API.esm.ts",
-  "scorm-again": "src/facades/ScormAgain.esm.ts",
-  "cross-frame-facade": "src/facades/CrossFrameFacade.ts",
+  aicc: "src/esm/AICC.esm.ts",
+  scorm12: "src/esm/Scorm12API.esm.ts",
+  scorm2004: "src/esm/Scorm2004API.esm.ts",
+  "scorm-again": "src/esm/ScormAgain.esm.ts",
+  "cross-frame-api": "src/esm/CrossFrameAPI.esm.ts",
+  "cross-frame-lms": "src/esm/CrossFrameLMS.esm.ts",
 };
 
 // Build configurations
@@ -24,6 +26,25 @@ const configs = [];
 
 // Generate standard builds (CJS format)
 Object.entries(entries).forEach(([name, input]) => {
+  let exportName = name;
+  switch (name) {
+    case "scorm2004":
+      exportName = "Scorm2004API";
+      break;
+    case "scorm12":
+      exportName = "Scorm12API";
+      break;
+    case "aicc":
+      exportName = "AICC";
+      break;
+    case "cross-frame-api":
+      exportName = "CrossFrameAPI";
+      break;
+    case "cross-frame-lms":
+      exportName = "CrossFrameLMS";
+      break;
+  }
+
   // Regular build
   configs.push({
     input,
@@ -32,14 +53,7 @@ Object.entries(entries).forEach(([name, input]) => {
       format: "iife",
       sourcemap: true,
       exports: "auto",
-      name:
-        name === "scorm2004"
-          ? "Scorm2004API"
-          : name === "scorm12"
-            ? "Scorm12API"
-            : name === "aicc"
-              ? "AICC"
-              : name,
+      name: exportName,
       extend: true,
     },
     external: ["window.API", "window.API_1484_11"],
@@ -74,14 +88,7 @@ Object.entries(entries).forEach(([name, input]) => {
       format: "iife",
       sourcemap: true,
       exports: "auto",
-      name:
-        name === "scorm2004"
-          ? "Scorm2004API"
-          : name === "scorm12"
-            ? "Scorm12API"
-            : name === "aicc"
-              ? "AICC"
-              : name,
+      name: exportName,
       extend: true,
     },
     external: ["window.API", "window.API_1484_11"],
@@ -132,14 +139,7 @@ Object.entries(entries).forEach(([name, input]) => {
       format: "iife",
       sourcemap: true,
       exports: "auto",
-      name:
-        name === "scorm2004"
-          ? "Scorm2004API"
-          : name === "scorm12"
-            ? "Scorm12API"
-            : name === "aicc"
-              ? "AICC"
-              : name,
+      name: exportName,
       extend: true,
     },
     external: ["window.API", "window.API_1484_11"],
@@ -161,14 +161,7 @@ Object.entries(entries).forEach(([name, input]) => {
       format: "iife",
       sourcemap: true,
       exports: "auto",
-      name:
-        name === "scorm2004"
-          ? "Scorm2004API"
-          : name === "scorm12"
-            ? "Scorm12API"
-            : name === "aicc"
-              ? "AICC"
-              : name,
+      name: exportName,
       extend: true,
     },
     external: ["window.API", "window.API_1484_11"],

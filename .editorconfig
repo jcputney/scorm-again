@@ -20,11 +20,11 @@ ij_wrap_on_typing = false
 indent_size = 3
 
 [*.ts,*.tsx]
-ij_ts_space_after_colon = true
-ij_ts_space_after_comma = true
-ij_ts_space_before_colon = false
-ij_ts_space_before_comma = false
-ij_ts_spaces_within_braces = true
+ij_typescript_space_after_colon = true
+ij_typescript_space_after_comma = true
+ij_typescript_space_before_colon = false
+ij_typescript_space_before_comma = false
+ij_typescript_spaces_within_object_type_braces = true
 
 [.editorconfig]
 ij_editorconfig_align_group_field_declarations = false

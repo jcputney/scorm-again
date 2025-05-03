@@ -487,7 +487,7 @@ describe("SCORM 1.2 API Tests", () => {
       const scorm12API = api();
       scorm12API.cmi.core.total_time = "12:34:56";
       scorm12API.cmi.core.session_time = "23:59:59";
-      const cmiExport: StringKeyMap = scorm12API.renderCommitCMI(true) as StringKeyMap;
+      const cmiExport: StringKeyMap = scorm12API.renderCommitCMI(true, true) as StringKeyMap;
       const exportCmi = cmiExport.cmi as StringKeyMap;
       const exportCore = exportCmi.core as StringKeyMap;
       expect(exportCore.total_time).toEqual("36:34:55");
@@ -501,7 +501,7 @@ describe("SCORM 1.2 API Tests", () => {
       scorm12API.cmi.core.lesson_status = "completed";
       scorm12API.cmi.core.total_time = "0000:00:00";
       scorm12API.cmi.core.session_time = "23:59:59";
-      const cmiExport: StringKeyMap = scorm12API.renderCommitCMI(true) as StringKeyMap;
+      const cmiExport: StringKeyMap = scorm12API.renderCommitCMI(true, true) as StringKeyMap;
       const exportCmi = cmiExport.cmi as StringKeyMap;
       const exportCore = exportCmi.core as StringKeyMap;
       expect(exportCore.total_time).toEqual("23:59:59");
@@ -556,7 +556,7 @@ describe("SCORM 1.2 API Tests", () => {
       scorm12API.cmi.core.lesson_status = "incomplete";
       scorm12API.cmi.core.total_time = "12:34:56";
       scorm12API.cmi.core.session_time = "23:59:59";
-      const commitObject = scorm12API.renderCommitObject(true);
+      const commitObject = scorm12API.renderCommitObject(true, true);
       expect(commitObject.successStatus).toEqual("unknown");
       expect(commitObject.completionStatus).toEqual("incomplete");
       const runtimeCmi = commitObject.runtimeData.cmi as StringKeyMap;
@@ -618,7 +618,7 @@ describe("SCORM 1.2 API Tests", () => {
       const scorm12API = api();
       scorm12API.cmi.core.total_time = "12:34:56";
       scorm12API.cmi.core.session_time = "23:59:59";
-      const commitObject = scorm12API.renderCommitObject(true);
+      const commitObject = scorm12API.renderCommitObject(true, true);
       const runtimeCmi = commitObject.runtimeData.cmi as StringKeyMap;
       const runtimeCore = runtimeCmi.core as StringKeyMap;
       expect(runtimeCore.total_time).toEqual("36:34:55");

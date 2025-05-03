@@ -25,67 +25,70 @@ data instead of committing, if an LMS endpoint is not configured.
 
 ## Cross-Frame Communication
 
-> **Note:** The Cross-Frame Communication feature is currently being developed for scorm-again
-> v3.0.0.
->
-> I may consider splitting it out as a plugin to keep browser package size down.
+> **Note:** The Cross-Frame Communication feature is available in scorm-again v3.0.0+
+> It’s implemented with a cache-first shim (no SharedArrayBuffer) and a Proxy-based façade.
 
 ### Purpose of CrossFrameLMS and CrossFrameAPI
 
-The Cross-Frame Communication feature allows SCORM content to be loaded in iframes while still
-communicating with the SCORM API in the parent frame. This is particularly useful when:
+The Cross-Frame Communication feature lets SCORM content run inside sandboxed or cross-origin iframes while still talking to the real SCORM API in the parent frame. It’s ideal when:
 
-- You need to load SCORM content in a sandboxed iframe for security reasons
-- Your application has a complex structure with content loaded in different frames
-- You want to isolate SCORM content from the rest of your application
-- You want to avoid cross-origin issues when loading SCORM content from different domains
+- Loading SCORM content in a sandboxed iframe for extra security
+- Your app has a multi-frame architecture (e.g. host frame + content frame)
+- You need to avoid cross-origin restrictions between content and the LMS
+- You want to isolate SCORM runtime calls from your main application logic
 
-The feature consists of two main components:
+There are two core pieces:
 
-1. **CrossFrameLMS** - A server-side facade that runs in the parent frame where the SCORM API is
-   initialized. It listens for messages from the client-side facade and proxies them to the actual
-   API.
+1. **CrossFrameLMS**
+   - Lives in the **parent** frame where the real SCORM API is initialized
+   - Listens for `postMessage` calls from child frames
+   - Invokes the actual SCORM methods (Initialize, GetValue, SetValue, Commit, Terminate, etc.)
+   - Posts back `{ messageId, result, error }`
 
-2. **CrossFrameAPI** - A client-side facade that runs in the child frame where the SCORM content is
-   loaded. It provides the same interface as the actual API but sends messages to the server-side
-   facade to execute the operations.
+2. **CrossFrameAPI**
+   - Lives in the **child** (content) frame and replaces the global `API` / `API_1484_11`
+   - Uses a JavaScript `Proxy` so you don’t need to predefine every SCORM method
+   - **Synchronously** returns cached values or defaults for `GetValue`, `Initialize`, `Commit`, `SetValue`, `Finish`, etc.
+   - **Asynchronously** sends a `postMessage` to refresh the cache and update `GetLastError` behind the scenes
+   - Caches the current state of the CMI object in the child frame, so that most calls are synchronous and accurate
+   - Handles the `LMSInitialize` and `LMSFinish` calls to the LMS in the parent frame
+   - Falls back gracefully in all browsers (including IE11) without blocking the main thread
 
 ### How to Use Cross-Frame Communication
 
-#### In the Parent Frame (where the SCORM API is initialized):
+#### In the Parent Frame (LMS host)
 
 ```javascript
-import {createCrossFrameServer} from 'scorm-again';
-import {Scorm12API} from 'scorm-again/scorm12';
+import CrossFrameLMS from 'scorm-again/cross-frame-lms';
+import { Scorm12API } from 'scorm-again/scorm12';
 
-// Initialize the SCORM API
 const api = new Scorm12API({
-   autocommit: true,
-   logLevel: 1
+autocommit: true,
+logLevel: 1
 });
 
 // Create the server-side facade
-const server = createCrossFrameServer(api);
-
-// The API is now ready to receive messages from child frames
+new CrossFrameLMS(api, window.location.origin);
 ```
 
-#### In the Child Frame (where the SCORM content is loaded):
+#### In the Child Frame (SCORM content)
 
 ```javascript
-import {createCrossFrameClient} from 'scorm-again';
+import CrossFrameAPI from 'scorm-again/cross-frame-api';
 
-// Create the client-side facade
-window.API = createCrossFrameClient();
+// Replace the global API with the cross-frame client
+window.API = window.API_1484_11 = new CrossFrameAPI(window.parent.origin);
 
-// Use the client as you would use the regular SCORM API
 window.API.LMSInitialize();
 window.API.LMSSetValue('cmi.core.lesson_status', 'completed');
 window.API.LMSCommit();
 ```
 
-The CrossFrameAPI implements all the methods of the SCORM 1.2, SCORM 2004, and AICC APIs, so it can
-be used as a drop-in replacement for any of these APIs.
+### Notes
+
+- No SharedArrayBuffer or Atomics; everything is async under the hood, but sync from the SCORM module’s perspective.
+- Works in modern browsers and IE11.
+- For guaranteed Finish/Terminate delivery on unload, consider using `navigator.sendBeacon`.
 
 ## Offline Support
 
@@ -397,6 +400,7 @@ The APIs include several settings to customize the functionality of each API:
 | `selfReportSessionTime`    |              false               |                                                    true/false                                                     | Should the API override the default `session_time` reported by the module? Useful when modules don't properly report time.                                                                                                                                                                                                                                                                                                                              |
 | `alwaysSendTotalTime`      |              false               |                                                    true/false                                                     | Should the API always send `total_time` when committing to the LMS                                                                                                                                                                                                                                                                                                                                                                                      |
 | `fetchMode`                |              'cors'              |                                   'cors', 'no-cors', 'same-origin', 'navigate'                                    | The fetch mode to use when sending requests to the LMS.                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `useBeaconInsteadOfFetch`  |              'never'             |                                   'always', 'on-terminate', 'never'                                               | Controls when to use the Beacon API instead of fetch for HTTP requests. 'always' uses Beacon for all requests, 'on-terminate' uses Beacon only for final commit during page unload, 'never' always uses fetch.                                                                                                                                                                                                                                           |
 | `xhrWithCredentials`       |              false               |                                                    true/false                                                     | Sets the withCredentials flag on the request to the LMS                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `xhrHeaders`               |                {}                |                                                      Object                                                       | This allows setting of additional headers on the request to the LMS where the key should be the header name and the value is the value of the header you want to send                                                                                                                                                                                                                                                                                   |
 | `responseHandler`          |             function             |                                                                                                                   | A function to properly transform the response from the LMS to the correct format. The APIs expect the result from the LMS to be in the following format (errorCode is optional): `{ "result": true, "errorCode": 0 }`                                                                                                                                                                                                                                   |

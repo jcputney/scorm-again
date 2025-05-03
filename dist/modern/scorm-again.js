@@ -38,7 +38,7 @@
     error_descriptions: {
       "101": {
         basicMessage: "General Exception",
-        detailMessage: "No specific error code exists to describe the error. Use LMSGetDiagnostic for more information"
+        detailMessage: "No specific error code exists to describe the error."
       },
       "201": {
         basicMessage: "Invalid argument error",
@@ -112,7 +112,7 @@
       },
       "101": {
         basicMessage: "General Exception",
-        detailMessage: "No specific error code exists to describe the error. Use GetDiagnostic for more information."
+        detailMessage: "No specific error code exists to describe the error."
       },
       "102": {
         basicMessage: "General Initialization Failure",
@@ -2416,6 +2416,7 @@
     xhrHeaders: {},
     xhrWithCredentials: false,
     fetchMode: "cors",
+    useBeaconInsteadOfFetch: "never",
     responseHandler: function(response) {
       return __async$6(this, null, function* () {
         if (typeof response !== "undefined") {
@@ -2668,9 +2669,15 @@
           errorCode: this.error_codes.GENERAL
         };
         if (immediate) {
-          this.performFetch(url, params).then((response) => __async$4(this, null, function* () {
-            yield this.transformResponse(response, processListeners);
-          }));
+          if (this.settings.useBeaconInsteadOfFetch !== "never") {
+            const body = params instanceof Array ? params.join("&") : JSON.stringify(params);
+            const contentType = params instanceof Array ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType;
+            navigator.sendBeacon(url, new Blob([body], { type: contentType }));
+          } else {
+            this.performFetch(url, params).then((response) => __async$4(this, null, function* () {
+              yield this.transformResponse(response, processListeners);
+            }));
+          }
           return {
             result: global_constants.SCORM_TRUE,
             errorCode: 0
@@ -2699,6 +2706,9 @@
      */
     performFetch(url, params) {
       return __async$4(this, null, function* () {
+        if (this.settings.useBeaconInsteadOfFetch === "always") {
+          return this.performBeacon(url, params);
+        }
         const init = {
           method: "POST",
           mode: this.settings.fetchMode,
@@ -2712,6 +2722,36 @@
           init.credentials = "include";
         }
         return fetch(url, init);
+      });
+    }
+    /**
+     * Perform the beacon request to the LMS
+     * @param {string} url - The URL to send the request to
+     * @param {StringKeyMap|Array} params - The parameters to include in the request
+     * @return {Promise<Response>} - A promise that resolves with a mock Response object
+     * @private
+     */
+    performBeacon(url, params) {
+      return __async$4(this, null, function* () {
+        const body = params instanceof Array ? params.join("&") : JSON.stringify(params);
+        const contentType = params instanceof Array ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType;
+        const beaconSuccess = navigator.sendBeacon(url, new Blob([body], { type: contentType }));
+        return Promise.resolve({
+          status: beaconSuccess ? 200 : 0,
+          ok: beaconSuccess,
+          json: () => __async$4(this, null, function* () {
+            return {
+              result: beaconSuccess ? "true" : "false",
+              errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL
+            };
+          }),
+          text: () => __async$4(this, null, function* () {
+            return JSON.stringify({
+              result: beaconSuccess ? "true" : "false",
+              errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL
+            });
+          })
+        });
       });
     }
     /**
@@ -4548,6 +4588,12 @@ ${stackTrace}`);
           this.startingData = data;
         }
       );
+    }
+    /**
+     * Returns a flattened JSON object representing the current CMI data.
+     */
+    getFlattenedCMI() {
+      return flatten(this.renderCMIToJSONObject());
     }
     /**
      * Loads CMI data from a hierarchical JSON object.

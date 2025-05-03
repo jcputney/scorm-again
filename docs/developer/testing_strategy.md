@@ -96,10 +96,8 @@ context:
 ```typescript
 describe("SCORM 1.2 API Integration", () => {
    it("should initialize, set values, and terminate correctly", () => {
-      // Arrange
       const api = new Scorm12API();
-
-      // Act & Assert
+ & Assert
       expect(api.LMSInitialize("")).toBe("true");
       expect(api.LMSSetValue("cmi.core.lesson_status", "completed")).toBe("true");
       expect(api.LMSCommit("")).toBe("true");
@@ -195,25 +193,20 @@ Functional tests verify that the API behaves correctly from an end-user perspect
 ```typescript
 describe("SCORM 1.2 Functional Tests", () => {
    it("should track completion status correctly", () => {
-      // Arrange
       const api = new Scorm12API();
       api.LMSInitialize("");
 
-      // Act
       api.LMSSetValue("cmi.core.lesson_status", "incomplete");
       api.LMSSetValue("cmi.core.score.raw", "80");
       api.LMSSetValue("cmi.core.score.min", "0");
       api.LMSSetValue("cmi.core.score.max", "100");
       api.LMSCommit("");
 
-      // Assert
       expect(api.LMSGetValue("cmi.core.lesson_status")).toBe("incomplete");
-
-      // Act again
+ again
       api.LMSSetValue("cmi.core.lesson_status", "completed");
       api.LMSCommit("");
-
-      // Assert again
+ again
       expect(api.LMSGetValue("cmi.core.lesson_status")).toBe("completed");
    });
 });
@@ -226,21 +219,17 @@ Edge case tests verify that the API handles unusual or boundary conditions corre
 ```typescript
 describe("Edge Cases", () => {
    it("should handle empty values correctly", () => {
-      // Arrange
       const api = new Scorm12API();
       api.LMSInitialize("");
-
-      // Act & Assert
+ & Assert
       expect(api.LMSSetValue("cmi.core.student_name", "")).toBe("true");
       expect(api.LMSGetValue("cmi.core.student_name")).toBe("");
    });
 
    it("should handle invalid CMI elements", () => {
-      // Arrange
       const api = new Scorm12API();
       api.LMSInitialize("");
-
-      // Act & Assert
+ & Assert
       expect(api.LMSSetValue("cmi.invalid.element", "value")).toBe("false");
       expect(api.LMSGetLastError()).not.toBe("0");
    });

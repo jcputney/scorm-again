@@ -30,6 +30,7 @@ export type Settings = {
   scoItemIdValidator?: false | ((scoItemId: string) => boolean);
   globalObjectiveIds?: string[];
   sequencing?: SequencingSettings;
+  useBeaconInsteadOfFetch?: "always" | "on-terminate" | "never";
 
   // Offline support settings
   enableOfflineSupport?: boolean;
@@ -67,6 +68,7 @@ export type InternalSettings = {
   scoItemIdValidator?: false | ((scoItemId: string) => boolean);
   globalObjectiveIds?: string[];
   sequencing?: SequencingSettings;
+  useBeaconInsteadOfFetch: "always" | "on-terminate" | "never";
 
   // Offline support settings
   enableOfflineSupport?: boolean;
