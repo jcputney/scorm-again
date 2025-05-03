@@ -297,7 +297,10 @@ export class SerializationService implements ISerializationService {
     alwaysSendTotalTime: boolean,
     renderCommonCommitFields: boolean | ((commitObject: CommitObject) => boolean),
     renderCommitObject: (terminateCommit: boolean, includeTotalTime?: boolean) => CommitObject,
-    renderCommitCMI: (terminateCommit: boolean, includeTotalTime?: boolean) => StringKeyMap | Array<any>,
+    renderCommitCMI: (
+      terminateCommit: boolean,
+      includeTotalTime?: boolean,
+    ) => StringKeyMap | Array<any>,
     apiLogLevel: LogLevel,
   ): CommitObject | StringKeyMap | Array<any> {
     // Fix for issue: total time is being calculated incorrectly across multiple sessions

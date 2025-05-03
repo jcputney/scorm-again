@@ -77,8 +77,8 @@ describe("CrossFrameAPI (cache-first)", () => {
       data: {
         messageId: messageId,
         result: "success-result",
-        error: undefined
-      }
+        error: undefined,
+      },
     };
 
     // Call _onMessage with the mock event
@@ -105,8 +105,8 @@ describe("CrossFrameAPI (cache-first)", () => {
       data: {
         messageId: messageId,
         result: undefined,
-        error: mockError
-      }
+        error: mockError,
+      },
     };
 
     // Call _onMessage with the mock event
@@ -132,8 +132,8 @@ describe("CrossFrameAPI (cache-first)", () => {
       data: {
         messageId: "unknown-id",
         result: "success-result",
-        error: undefined
-      }
+        error: undefined,
+      },
     };
 
     // Call _onMessage with the mock event
@@ -150,8 +150,8 @@ describe("CrossFrameAPI (cache-first)", () => {
     const invalidEvent = {
       data: {
         result: "success-result",
-        error: undefined
-      }
+        error: undefined,
+      },
     };
 
     // Call _onMessage with the invalid event
@@ -171,7 +171,7 @@ describe("CrossFrameAPI (cache-first)", () => {
     expect(initResult).toBe("true");
     expect(postSpy).toHaveBeenCalledWith(
       expect.objectContaining({ method: "Initialize", params: [] }),
-      "https://lms.example.com"
+      "https://lms.example.com",
     );
 
     // Test LMSInitialize
@@ -180,7 +180,7 @@ describe("CrossFrameAPI (cache-first)", () => {
     expect(lmsInitResult).toBe("true");
     expect(postSpy).toHaveBeenCalledWith(
       expect.objectContaining({ method: "LMSInitialize", params: [] }),
-      "https://lms.example.com"
+      "https://lms.example.com",
     );
   });
 
@@ -190,7 +190,7 @@ describe("CrossFrameAPI (cache-first)", () => {
     expect(terminateResult).toBe("true");
     expect(postSpy).toHaveBeenCalledWith(
       expect.objectContaining({ method: "Terminate", params: [] }),
-      "https://lms.example.com"
+      "https://lms.example.com",
     );
 
     // Test LMSFinish
@@ -199,7 +199,7 @@ describe("CrossFrameAPI (cache-first)", () => {
     expect(lmsFinishResult).toBe("true");
     expect(postSpy).toHaveBeenCalledWith(
       expect.objectContaining({ method: "LMSFinish", params: [] }),
-      "https://lms.example.com"
+      "https://lms.example.com",
     );
   });
 
@@ -209,7 +209,7 @@ describe("CrossFrameAPI (cache-first)", () => {
     expect(commitResult).toBe("true");
     expect(postSpy).toHaveBeenCalledWith(
       expect.objectContaining({ method: "Commit", params: [] }),
-      "https://lms.example.com"
+      "https://lms.example.com",
     );
 
     // Test LMSCommit
@@ -218,7 +218,7 @@ describe("CrossFrameAPI (cache-first)", () => {
     expect(lmsCommitResult).toBe("true");
     expect(postSpy).toHaveBeenCalledWith(
       expect.objectContaining({ method: "LMSCommit", params: [] }),
-      "https://lms.example.com"
+      "https://lms.example.com",
     );
   });
 
@@ -236,7 +236,7 @@ describe("CrossFrameAPI (cache-first)", () => {
   });
 
   it("handles function parameters in _post method", () => {
-    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     // Call a method with a function parameter
     client.LMSSetValue("cmi.interactions.0.id", () => {});
@@ -244,16 +244,16 @@ describe("CrossFrameAPI (cache-first)", () => {
     // Verify console.warn was called
     expect(consoleSpy).toHaveBeenCalledWith(
       "Dropping function param when posting SCORM call:",
-      "LMSSetValue"
+      "LMSSetValue",
     );
 
     // Verify the parameter was replaced with undefined
     expect(postSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         method: "LMSSetValue",
-        params: ["cmi.interactions.0.id", undefined]
+        params: ["cmi.interactions.0.id", undefined],
       }),
-      "https://lms.example.com"
+      "https://lms.example.com",
     );
 
     consoleSpy.mockRestore();
@@ -264,7 +264,7 @@ describe("CrossFrameAPI (cache-first)", () => {
     const flattenedCMI = {
       "cmi.core.lesson_status": "incomplete",
       "cmi.core.score.raw": "80",
-      "cmi.core.student_id": "12345"
+      "cmi.core.student_id": "12345",
     };
 
     vi.spyOn(client as any, "_post").mockResolvedValue(flattenedCMI);
@@ -273,7 +273,7 @@ describe("CrossFrameAPI (cache-first)", () => {
     client.Initialize();
 
     // Wait for the async call to complete
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     // Verify the cache was updated with the flattened CMI values
     expect(client._cache.get("cmi.core.lesson_status")).toBe("incomplete");
@@ -290,7 +290,7 @@ describe("CrossFrameAPI (cache-first)", () => {
     client.Initialize();
 
     // Wait for the async call to complete
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     // Verify the error was captured
     expect(client._lastError).toBe("500");
@@ -305,7 +305,7 @@ describe("CrossFrameAPI (cache-first)", () => {
     client.LMSGetValue("cmi.core.lesson_status");
 
     // Wait for the async call to complete
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     // Verify the cache was updated with the result
     expect(client._cache.get("cmi.core.lesson_status")).toBe("completed");
@@ -322,7 +322,7 @@ describe("CrossFrameAPI (cache-first)", () => {
     client.GetLastError();
 
     // Wait for the async call to complete
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     // Verify lastError was updated
     expect(client._lastError).toBe("301");
@@ -340,19 +340,21 @@ describe("CrossFrameAPI (cache-first)", () => {
     // Verify a postMessage was still sent
     expect(postSpy).toHaveBeenCalledWith(
       expect.objectContaining({ method: "UnknownMethod", params: [] }),
-      "https://lms.example.com"
+      "https://lms.example.com",
     );
   });
 
   it("handles errors without numeric codes using GENERAL error code", async () => {
     // Mock the _post method to throw an error without a numeric code
-    const postSpy = vi.spyOn(client as any, "_post").mockRejectedValue(new Error("Non-numeric error message"));
+    const postSpy = vi
+      .spyOn(client as any, "_post")
+      .mockRejectedValue(new Error("Non-numeric error message"));
 
     // Call a method that will trigger the error
     client.LMSGetValue("cmi.core.lesson_status");
 
     // Wait for the async call to complete
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     // Verify the error was captured with the GENERAL error code (101)
     expect(client._lastError).toBe("101");
@@ -434,9 +436,9 @@ describe("CrossFrameLMS", () => {
       data: {
         messageId: "42",
         method: "LMSGetValue",
-        params: ["cmi.core.lesson_status"]
+        params: ["cmi.core.lesson_status"],
       },
-      source: src
+      source: src,
     };
 
     // Call _onMessage with the mock event
@@ -458,17 +460,17 @@ describe("CrossFrameLMS", () => {
     const mockEventNoId = {
       data: {
         method: "LMSGetValue",
-        params: ["cmi.core.lesson_status"]
+        params: ["cmi.core.lesson_status"],
       },
-      source: src
+      source: src,
     };
 
     const mockEventNoMethod = {
       data: {
         messageId: "42",
-        params: ["cmi.core.lesson_status"]
+        params: ["cmi.core.lesson_status"],
       },
-      source: src
+      source: src,
     };
 
     // Call _onMessage with the mock events
