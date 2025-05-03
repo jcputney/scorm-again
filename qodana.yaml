@@ -2,6 +2,7 @@ version: "1.0"
 linter: jetbrains/qodana-js:2024.3
 profile:
   name: qodana.recommended
+bootstrap: npm install
 include:
   - name: CheckDependencyLicenses
   - name: Eslint
