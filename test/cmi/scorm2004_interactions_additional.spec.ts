@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   CMIInteractionsCorrectResponsesObject,
   CMIInteractionsObject,
+  CMIInteractionsObjectivesObject,
 } from "../../src/cmi/scorm2004/interactions";
 import { CorrectResponses } from "../../src";
 
@@ -588,7 +589,7 @@ describe("SCORM 2004 Additional Interactions Tests", () => {
       });
     });
 
-    describe("reset method", () => {
+    describe("reset method for CMIInteractionsCorrectResponsesObject", () => {
       it("should reset the pattern to an empty string", () => {
         const correctResponse = new CMIInteractionsCorrectResponsesObject("choice");
 
@@ -597,6 +598,66 @@ describe("SCORM 2004 Additional Interactions Tests", () => {
 
         correctResponse.reset();
         expect(correctResponse.pattern).toBe("");
+      });
+    });
+
+    describe("reset method for CMIInteractionsObject", () => {
+      it("should reset all properties to their default values", () => {
+        const interaction = new CMIInteractionsObject();
+
+        // Set some properties
+        interaction.id = "interaction-1";
+        interaction.type = "choice";
+        interaction.weighting = "1.0";
+        interaction.result = "correct";
+        interaction.description = "Test interaction";
+
+        // Add an objective
+        const objective = new CMIInteractionsObjectivesObject();
+        objective.id = "objective-1";
+        interaction.objectives.childArray.push(objective);
+
+        // Add a correct response
+        const correctResponse = new CMIInteractionsCorrectResponsesObject("choice");
+        correctResponse.pattern = "choice1";
+        interaction.correct_responses.childArray.push(correctResponse);
+
+        // Verify properties are set
+        expect(interaction.id).toBe("interaction-1");
+        expect(interaction.type).toBe("choice");
+        expect(interaction.weighting).toBe("1.0");
+        expect(interaction.result).toBe("correct");
+        expect(interaction.description).toBe("Test interaction");
+        expect(interaction.objectives._count).toBe(1);
+        expect(interaction.correct_responses._count).toBe(1);
+
+        // Reset the interaction
+        interaction.reset();
+
+        // Verify properties are reset
+        expect(interaction.id).toBe("");
+        expect(interaction.type).toBe("");
+        expect(interaction.weighting).toBe("");
+        expect(interaction.result).toBe("");
+        expect(interaction.description).toBe("");
+        expect(interaction.objectives._count).toBe(0);
+        expect(interaction.correct_responses._count).toBe(0);
+      });
+    });
+
+    describe("reset method for CMIInteractionsObjectivesObject", () => {
+      it("should reset the id to an empty string", () => {
+        const objective = new CMIInteractionsObjectivesObject();
+
+        // Set the id
+        objective.id = "objective-1";
+        expect(objective.id).toBe("objective-1");
+
+        // Reset the objective
+        objective.reset();
+
+        // Verify id is reset
+        expect(objective.id).toBe("");
       });
     });
 

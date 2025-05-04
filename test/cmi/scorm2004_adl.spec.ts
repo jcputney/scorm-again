@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
-import { ADL, ADLNav, ADLNavRequestValid } from "../../src";
+import { describe, expect, it, vi } from "vitest";
+import { ADL, ADLData, ADLDataObject, ADLNav, ADLNavRequestValid } from "../../src";
 import { NAVBoolean } from "../../src/constants/enums";
+import { Sequencing } from "../../src/cmi/scorm2004/sequencing/sequencing";
 
 describe("SCORM 2004 ADL Tests", () => {
   describe("ADL Class Tests", () => {
@@ -228,11 +229,70 @@ describe("SCORM 2004 ADL Tests", () => {
       });
     });
 
+    it("should accept valid jump values", () => {
+      const requestValid = new ADLNavRequestValid();
+
+      expect(() => {
+        requestValid.jump = { "{target=target1}": "true" };
+      }).not.toThrow();
+
+      expect(requestValid.jump).toEqual({
+        "{target=target1}": NAVBoolean.TRUE,
+      });
+
+      expect(() => {
+        requestValid.jump = { "{target=target1}": "false" };
+      }).not.toThrow();
+
+      expect(requestValid.jump).toEqual({
+        "{target=target1}": NAVBoolean.FALSE,
+      });
+
+      expect(() => {
+        requestValid.jump = { "{target=target1}": "unknown" };
+      }).not.toThrow();
+
+      expect(requestValid.jump).toEqual({
+        "{target=target1}": NAVBoolean.UNKNOWN,
+      });
+    });
+
+    it("should reject invalid jump values", () => {
+      const requestValid = new ADLNavRequestValid();
+
+      expect(() => {
+        requestValid.jump = "not an object" as any;
+      }).toThrow();
+
+      expect(() => {
+        requestValid.jump = { "invalid-key": "true" };
+      }).toThrow();
+    });
+
+    it("should reject setting choice after initialization", () => {
+      const requestValid = new ADLNavRequestValid();
+      requestValid.initialize();
+
+      expect(() => {
+        requestValid.choice = { "{target=target1}": "true" };
+      }).toThrow();
+    });
+
+    it("should reject setting jump after initialization", () => {
+      const requestValid = new ADLNavRequestValid();
+      requestValid.initialize();
+
+      expect(() => {
+        requestValid.jump = { "{target=target1}": "true" };
+      }).toThrow();
+    });
+
     it("should export to JSON correctly", () => {
       const requestValid = new ADLNavRequestValid();
       requestValid.continue = NAVBoolean.TRUE;
       requestValid.previous = NAVBoolean.FALSE;
       requestValid.choice = { "{target=target1}": "true" };
+      requestValid.jump = { "{target=target2}": "false" };
 
       const json = JSON.stringify(requestValid);
       const parsed = JSON.parse(json);
@@ -240,6 +300,118 @@ describe("SCORM 2004 ADL Tests", () => {
       expect(parsed.continue).toBe("true");
       expect(parsed.previous).toBe("false");
       expect(parsed.choice["{target=target1}"]).toBe("true");
+      expect(parsed.jump["{target=target2}"]).toBe("false");
+    });
+  });
+
+  describe("ADLData Class Tests", () => {
+    it("should initialize with default values", () => {
+      const data = new ADLData();
+      expect(data).toBeDefined();
+      expect(data._children).toBeDefined();
+    });
+  });
+
+  describe("ADLDataObject Class Tests", () => {
+    it("should initialize with default values", () => {
+      const dataObj = new ADLDataObject();
+      expect(dataObj.id).toBe("");
+      expect(dataObj.store).toBe("");
+    });
+
+    it("should set and get id correctly", () => {
+      const dataObj = new ADLDataObject();
+      dataObj.id = "test-id";
+      expect(dataObj.id).toBe("test-id");
+    });
+
+    it("should set and get store correctly", () => {
+      const dataObj = new ADLDataObject();
+      dataObj.store = "test-store";
+      expect(dataObj.store).toBe("test-store");
+    });
+
+    it("should reset correctly", () => {
+      const dataObj = new ADLDataObject();
+      dataObj.id = "test-id";
+      dataObj.store = "test-store";
+
+      dataObj.reset();
+
+      // Values should remain after reset, only initialized flag is changed
+      expect(dataObj.id).toBe("test-id");
+      expect(dataObj.store).toBe("test-store");
+    });
+
+    it("should handle toJSON correctly", () => {
+      const dataObj = new ADLDataObject();
+      dataObj.id = "test-id";
+      dataObj.store = "test-store";
+
+      const json = JSON.stringify(dataObj);
+      const parsed = JSON.parse(json);
+
+      expect(parsed.id).toBe("test-id");
+      expect(parsed.store).toBe("test-store");
+    });
+  });
+
+  describe("ADL Initialize and Sequencing Tests", () => {
+    it("should initialize ADL and its children", () => {
+      const adl = new ADL();
+      adl.initialize();
+
+      expect(adl.initialized).toBe(true);
+      expect(adl.nav.initialized).toBe(true);
+      expect(adl.nav.request_valid.initialized).toBe(true);
+    });
+
+    it("should handle sequencing assignment", () => {
+      const adl = new ADL();
+      const sequencing = new Sequencing();
+
+      adl.sequencing = sequencing;
+
+      expect(adl.sequencing).toBe(sequencing);
+      expect(adl.nav.sequencing).toBe(sequencing);
+      expect(sequencing.adlNav).toBe(adl.nav);
+    });
+
+    it("should handle null sequencing assignment", () => {
+      const adl = new ADL();
+      const sequencing = new Sequencing();
+
+      adl.sequencing = sequencing;
+      expect(adl.sequencing).toBe(sequencing);
+
+      adl.sequencing = null;
+      expect(adl.sequencing).toBe(null);
+    });
+
+    it("should reset ADLNav and clear sequencing", () => {
+      const adl = new ADL();
+      const nav = adl.nav;
+      const sequencing = new Sequencing();
+
+      nav.sequencing = sequencing;
+      expect(nav.sequencing).toBe(sequencing);
+
+      nav.reset();
+      expect(nav.sequencing).toBe(null);
+      expect(nav.request).toBe("_none_");
+    });
+
+    it("should process navigation request when sequencing is set", () => {
+      const adl = new ADL();
+      const mockSequencing = {
+        adlNav: null,
+        processNavigationRequest: vi.fn(),
+      };
+
+      adl.nav.sequencing = mockSequencing as any;
+      adl.nav.request = "continue";
+
+      expect(mockSequencing.processNavigationRequest).toHaveBeenCalledWith("continue");
     });
   });
 });
