@@ -3254,8 +3254,10 @@ const CorrectResponses = {
     delimiter3: "[:]",
     unique: false,
     duplicate: false,
-    format: "^$|" + scorm2004_regex.CMIShortIdentifier,
-    format2: scorm2004_regex.CMIDecimal + "|^$|" + scorm2004_regex.CMIShortIdentifier
+    // step_name must be a non-empty short identifier
+    format: scorm2004_regex.CMIShortIdentifier,
+    // step_answer may be short identifier or numeric range (<decimal>[:<decimal>])
+    format2: `^(${scorm2004_regex.CMIShortIdentifier})$|^(?:\\d+(?:\\.\\d+)?(?::\\d+(?:\\.\\d+)?)?)$`
   },
   sequencing: {
     max: 36,
@@ -3488,6 +3490,12 @@ class CMIInteractionsObject extends BaseCMI {
               const delimiter2 = response_type.delimiter2 === "[.]" ? "." : response_type.delimiter2;
               const values = nodes[i].split(delimiter2);
               if (values.length === 2) {
+                if (this.type === "performance" && (values[0] === "" || values[1] === "")) {
+                  throw new Scorm2004ValidationError(
+                    this._cmi_element + ".learner_response",
+                    scorm2004_errors$1.TYPE_MISMATCH
+                  );
+                }
                 if (!values[0].match(formatRegex)) {
                   throw new Scorm2004ValidationError(
                     this._cmi_element + ".learner_response",
@@ -3609,6 +3617,7 @@ class CMIInteractionsObject extends BaseCMI {
       }
     }
   }
+  // noinspection JSUnusedGlobalSymbols
   /**
    * toJSON for cmi.interactions.n
    *
@@ -3693,96 +3702,196 @@ class CMIInteractionsObjectivesObject extends BaseCMI {
     return result;
   }
 }
+function stripBrackets(delim) {
+  return delim.replace(/[[\]]/g, "");
+}
+function escapeRegex(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+function splitUnescaped(text, delim) {
+  const reDelim = escapeRegex(delim);
+  const splitRe = new RegExp(`(?<!\\\\)${reDelim}`, "g");
+  const unescapeRe = new RegExp(`\\\\${reDelim}`, "g");
+  return text.split(splitRe).map((part) => part.replace(unescapeRe, delim));
+}
+function validatePattern(type, pattern, responseDef) {
+  if (pattern.trim() !== pattern) {
+    throw new Scorm2004ValidationError(
+      "cmi.interactions.n.correct_responses.n.pattern",
+      scorm2004_errors$1.TYPE_MISMATCH
+    );
+  }
+  const subDelim1 = responseDef.delimiter ? stripBrackets(responseDef.delimiter) : null;
+  const rawNodes = subDelim1 ? splitUnescaped(pattern, subDelim1) : [pattern];
+  for (const raw of rawNodes) {
+    if (raw.trim() !== raw) {
+      throw new Scorm2004ValidationError(
+        "cmi.interactions.n.correct_responses.n.pattern",
+        scorm2004_errors$1.TYPE_MISMATCH
+      );
+    }
+  }
+  if (type === "fill-in" && pattern === "") {
+    return;
+  }
+  const delim1 = responseDef.delimiter ? stripBrackets(responseDef.delimiter) : null;
+  let nodes;
+  if (delim1) {
+    nodes = splitUnescaped(pattern, delim1);
+  } else {
+    nodes = [pattern];
+  }
+  if (!responseDef.delimiter && pattern.includes(",")) {
+    throw new Scorm2004ValidationError(
+      "cmi.interactions.n.correct_responses.n.pattern",
+      scorm2004_errors$1.TYPE_MISMATCH
+    );
+  }
+  if (responseDef.unique || responseDef.duplicate === false) {
+    const seen = new Set(nodes);
+    if (seen.size !== nodes.length) {
+      throw new Scorm2004ValidationError(
+        "cmi.interactions.n.correct_responses.n.pattern",
+        scorm2004_errors$1.TYPE_MISMATCH
+      );
+    }
+  }
+  if (nodes.length === 0 || nodes.length > responseDef.max) {
+    throw new Scorm2004ValidationError(
+      "cmi.interactions.n.correct_responses.n.pattern",
+      scorm2004_errors$1.GENERAL_SET_FAILURE
+    );
+  }
+  const fmt1 = new RegExp(responseDef.format);
+  const fmt2 = responseDef.format2 ? new RegExp(responseDef.format2) : null;
+  const checkSingle = (value) => {
+    if (!fmt1.test(value)) {
+      throw new Scorm2004ValidationError(
+        "cmi.interactions.n.correct_responses.n.pattern",
+        scorm2004_errors$1.TYPE_MISMATCH
+      );
+    }
+  };
+  const checkPair = (value, delimBracketed) => {
+    if (!delimBracketed) {
+      throw new Scorm2004ValidationError(
+        "cmi.interactions.n.correct_responses.n.pattern",
+        scorm2004_errors$1.TYPE_MISMATCH
+      );
+    }
+    const delim = stripBrackets(delimBracketed);
+    const parts = value.split(new RegExp(`(?<!\\\\)${escapeRegex(delim)}`, "g")).map((n) => n.replace(new RegExp(`\\\\${escapeRegex(delim)}`, "g"), delim));
+    if (parts.length !== 2 || parts[0] === "" || parts[1] === "") {
+      throw new Scorm2004ValidationError(
+        "cmi.interactions.n.correct_responses.n.pattern",
+        scorm2004_errors$1.TYPE_MISMATCH
+      );
+    }
+    if (!fmt1.test(parts[0]) || fmt2 && !fmt2.test(parts[1])) {
+      throw new Scorm2004ValidationError(
+        "cmi.interactions.n.correct_responses.n.pattern",
+        scorm2004_errors$1.TYPE_MISMATCH
+      );
+    }
+  };
+  for (const node of nodes) {
+    switch (type) {
+      case "numeric": {
+        const numDelim = responseDef.delimiter ? stripBrackets(responseDef.delimiter) : ":";
+        const nums = node.split(numDelim);
+        if (nums.length < 1 || nums.length > 2) {
+          throw new Scorm2004ValidationError(
+            "cmi.interactions.n.correct_responses.n.pattern",
+            scorm2004_errors$1.TYPE_MISMATCH
+          );
+        }
+        nums.forEach(checkSingle);
+        break;
+      }
+      case "performance": {
+        const delimBracketed = responseDef.delimiter2;
+        if (!delimBracketed) {
+          throw new Scorm2004ValidationError(
+            "cmi.interactions.n.correct_responses.n.pattern",
+            scorm2004_errors$1.TYPE_MISMATCH
+          );
+        }
+        const delim = stripBrackets(delimBracketed);
+        const allParts = splitUnescaped(node, delim);
+        if (!node.includes(":") && allParts.length !== 2) {
+          throw new Scorm2004ValidationError(
+            "cmi.interactions.n.correct_responses.n.pattern",
+            scorm2004_errors$1.TYPE_MISMATCH
+          );
+        }
+        const [part1, part2] = splitUnescaped(node, delim);
+        if (part1 === "" || part2 === "" || part1 === part2) {
+          throw new Scorm2004ValidationError(
+            "cmi.interactions.n.correct_responses.n.pattern",
+            scorm2004_errors$1.TYPE_MISMATCH
+          );
+        }
+        if (!fmt1.test(part1)) {
+          throw new Scorm2004ValidationError(
+            "cmi.interactions.n.correct_responses.n.pattern",
+            scorm2004_errors$1.TYPE_MISMATCH
+          );
+        }
+        if (fmt2 && !fmt2.test(part2)) {
+          throw new Scorm2004ValidationError(
+            "cmi.interactions.n.correct_responses.n.pattern",
+            scorm2004_errors$1.TYPE_MISMATCH
+          );
+        }
+        break;
+      }
+      default:
+        if (responseDef.delimiter2) {
+          checkPair(node, responseDef.delimiter2);
+        } else {
+          checkSingle(node);
+        }
+    }
+  }
+}
 class CMIInteractionsCorrectResponsesObject extends BaseCMI {
   /**
    * Constructor for cmi.interactions.n.correct_responses.n
-   * @param {CMIInteractionsObject} parent - The parent interaction object
+   * @param interactionType The type of interaction (e.g. "numeric", "choice", etc.)
    */
-  constructor(parent) {
+  constructor(interactionType) {
     super("cmi.interactions.n.correct_responses.n");
     this._pattern = "";
-    this._parent = parent;
+    this._interactionType = interactionType;
   }
-  /**
-   * Called when the API has been reset
-   */
   reset() {
     this._initialized = false;
     this._pattern = "";
   }
-  /**
-   * Getter for _pattern
-   * @return {string}
-   */
   get pattern() {
     return this._pattern;
   }
-  /**
-   * Setter for _pattern
-   * @param {string} pattern
-   */
   set pattern(pattern) {
-    if (check2004ValidFormat(this._cmi_element + ".pattern", pattern, scorm2004_regex.CMIFeedback)) {
-      if (this._parent && this._parent.type) {
-        const interactionType = this._parent.type;
-        const response = CorrectResponses[interactionType];
-        if (response) {
-          let isValid = true;
-          let nodes = [];
-          if (response?.delimiter) {
-            nodes = String(pattern).split(response.delimiter);
-          } else {
-            nodes[0] = pattern;
-          }
-          if (nodes.length > 0 && nodes.length <= response.max) {
-            const formatRegex = new RegExp(response.format);
-            for (let i = 0; i < nodes.length && isValid; i++) {
-              if (response?.delimiter2) {
-                const values = nodes[i].split(response.delimiter2);
-                if (values.length === 2) {
-                  const matches = values[0].match(formatRegex);
-                  if (!matches) {
-                    isValid = false;
-                  } else if (!response.format2 || !values[1].match(new RegExp(response.format2))) {
-                    isValid = false;
-                  }
-                } else {
-                  isValid = false;
-                }
-              } else {
-                const matches = nodes[i].match(formatRegex);
-                if (!matches && pattern !== "" || !matches && interactionType === "true-false") {
-                  isValid = false;
-                }
-              }
-            }
-          } else if (nodes.length > response.max) {
-            isValid = false;
-          }
-          if (!isValid) {
-            throw new Scorm2004ValidationError(
-              this._cmi_element + ".pattern",
-              scorm2004_errors$1.TYPE_MISMATCH
-            );
-          }
+    if (this._interactionType === "fill-in" && pattern === "") {
+      this._pattern = "";
+      return;
+    }
+    if (!check2004ValidFormat(this._cmi_element + ".pattern", pattern, scorm2004_regex.CMIFeedback)) {
+      return;
+    }
+    if (this._interactionType) {
+      const responseDef = CorrectResponses[this._interactionType];
+      if (responseDef) {
+        if (this._interactionType === "matching" && /\\[.,]/.test(pattern)) ; else {
+          validatePattern(this._interactionType, pattern, responseDef);
         }
       }
-      this._pattern = pattern;
     }
+    this._pattern = pattern;
   }
-  /**
-   * toJSON cmi.interactions.n.correct_responses.n object
-   * @return {
-   *    {
-   *      pattern: string
-   *    }
-   *  }
-   */
   toJSON() {
     this.jsonString = true;
-    const result = {
-      pattern: this.pattern
-    };
+    const result = { pattern: this.pattern };
     this.jsonString = false;
     return result;
   }
@@ -5952,40 +6061,58 @@ class RuleCondition extends BaseCMI {
    * @return {boolean} - True if the condition is met, false otherwise
    */
   evaluate(activity) {
+    let result = false;
     switch (this._condition) {
       case "satisfied" /* SATISFIED */:
-        return activity.successStatus === SuccessStatus.PASSED;
+        result = activity.successStatus === SuccessStatus.PASSED;
+        break;
       case "objectiveStatusKnown" /* OBJECTIVE_STATUS_KNOWN */:
-        return activity.objectiveMeasureStatus;
+        result = activity.objectiveMeasureStatus;
+        break;
       case "objectiveMeasureKnown" /* OBJECTIVE_MEASURE_KNOWN */:
-        return activity.objectiveMeasureStatus;
+        result = activity.objectiveMeasureStatus;
+        break;
       case "objectiveMeasureGreaterThan" /* OBJECTIVE_MEASURE_GREATER_THAN */: {
         const greaterThanValue = this._parameters.get("threshold") || 0;
-        return activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue;
+        result = activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue;
+        break;
       }
       case "objectiveMeasureLessThan" /* OBJECTIVE_MEASURE_LESS_THAN */: {
         const lessThanValue = this._parameters.get("threshold") || 0;
-        return activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue;
+        result = activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue;
+        break;
       }
       case "completed" /* COMPLETED */:
-        return activity.isCompleted;
+        result = activity.isCompleted;
+        break;
       case "progressKnown" /* PROGRESS_KNOWN */:
-        return activity.completionStatus !== "unknown";
+        result = activity.completionStatus !== "unknown";
+        break;
       case "attempted" /* ATTEMPTED */:
-        return activity.attemptCount > 0;
+        result = activity.attemptCount > 0;
+        break;
       case "attemptLimitExceeded" /* ATTEMPT_LIMIT_EXCEEDED */: {
         const attemptLimit = this._parameters.get("attemptLimit") || 0;
-        return attemptLimit > 0 && activity.attemptCount >= attemptLimit;
+        result = attemptLimit > 0 && activity.attemptCount >= attemptLimit;
+        break;
       }
       case "timeLimitExceeded" /* TIME_LIMIT_EXCEEDED */:
-        return false;
+        result = false;
+        break;
       case "outsideAvailableTimeRange" /* OUTSIDE_AVAILABLE_TIME_RANGE */:
-        return false;
+        result = false;
+        break;
       case "always" /* ALWAYS */:
-        return true;
+        result = true;
+        break;
       default:
-        return false;
+        result = false;
+        break;
     }
+    if (this._operator === "not" /* NOT */) {
+      result = !result;
+    }
+    return result;
   }
   /**
    * toJSON for RuleCondition

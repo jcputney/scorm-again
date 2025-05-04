@@ -3,6 +3,7 @@ import {
   CMIInteractionsCorrectResponsesObject,
   CMIInteractionsObject,
 } from "../../src/cmi/scorm2004/interactions";
+import { CorrectResponses } from "../../src";
 
 describe("SCORM 2004 Additional Interactions Tests", () => {
   describe("Learner Response Tests", () => {
@@ -331,6 +332,11 @@ describe("SCORM 2004 Additional Interactions Tests", () => {
           correctResponse.pattern = "yes"; // Not a valid value
         }).toThrow();
       });
+
+      it("should surface the 'limit' property for single-item types", () => {
+        const def = CorrectResponses["true-false"];
+        expect(def.limit).toBe(1);
+      });
     });
 
     describe("choice correct response", () => {
@@ -383,6 +389,16 @@ describe("SCORM 2004 Additional Interactions Tests", () => {
           cr.pattern = ":10";
         }).toThrow();
       });
+
+      it("should reject patterns with untrimmed whitespace", () => {
+        const cr = new CMIInteractionsCorrectResponsesObject("choice");
+        expect(() => {
+          cr.pattern = " choice1";
+        }).toThrow();
+        expect(() => {
+          cr.pattern = "choice1 ,choice2";
+        }).toThrow();
+      });
     });
 
     describe("fill-in correct response", () => {
@@ -402,6 +418,14 @@ describe("SCORM 2004 Additional Interactions Tests", () => {
           correctResponse.pattern = "answer1,answer2,answer3";
         }).not.toThrow();
         expect(correctResponse.pattern).toBe("answer1,answer2,answer3");
+      });
+
+      it("should accept an empty fill-in pattern", () => {
+        const cr = new CMIInteractionsCorrectResponsesObject("fill-in");
+        expect(() => {
+          cr.pattern = "";
+        }).not.toThrow();
+        expect(cr.pattern).toBe("");
       });
     });
 
@@ -485,6 +509,15 @@ describe("SCORM 2004 Additional Interactions Tests", () => {
         expect(() => {
           cr.pattern = "a.b,a.b";
         }).toThrow();
+      });
+
+      it("should accept escaped commas or dots within identifiers", () => {
+        const cr = new CMIInteractionsCorrectResponsesObject("matching");
+        // the "\," here should not split into two pairs
+        expect(() => {
+          cr.pattern = "one\\,uno.dos";
+        }).not.toThrow();
+        expect(cr.pattern).toBe("one\\,uno.dos");
       });
     });
 

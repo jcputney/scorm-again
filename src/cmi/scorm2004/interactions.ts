@@ -503,13 +503,60 @@ function stripBrackets(delim: string): string {
   return delim.replace(/[[\]]/g, "");
 }
 
+// Helper to escape a string for use in a RegExp
+function escapeRegex(s: string): string {
+  // Only , and . are expected, but escape any regex special chars for safety
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Split on unescaped delimiter and unescape the delimiter in resulting parts.
+ * @param text - the input string
+ * @param delim - the delimiter character, e.g. ',' or '.'
+ */
+function splitUnescaped(text: string, delim: string): string[] {
+  const reDelim = escapeRegex(delim);
+  const splitRe = new RegExp(`(?<!\\\\)${reDelim}`, "g");
+  const unescapeRe = new RegExp(`\\\\${reDelim}`, "g");
+  return text.split(splitRe).map((part) => part.replace(unescapeRe, delim));
+}
+
 /**
  * Helper: validate a `pattern` string against its SCORM definition
  */
 function validatePattern(type: string, pattern: string, responseDef: ResponseType) {
+  // Reject patterns with leading or trailing whitespace
+  if (pattern.trim() !== pattern) {
+    throw new Scorm2004ValidationError(
+      "cmi.interactions.n.correct_responses.n.pattern",
+      scorm2004_errors.TYPE_MISMATCH,
+    );
+  }
+
+  // Reject any nodes with leading/trailing whitespace around tokens
+  const subDelim1 = responseDef.delimiter ? stripBrackets(responseDef.delimiter) : null;
+  const rawNodes = subDelim1 ? splitUnescaped(pattern, subDelim1) : [pattern];
+  for (const raw of rawNodes) {
+    if (raw.trim() !== raw) {
+      throw new Scorm2004ValidationError(
+        "cmi.interactions.n.correct_responses.n.pattern",
+        scorm2004_errors.TYPE_MISMATCH,
+      );
+    }
+  }
+
+  // Allow empty fill-in patterns
+  if (type === "fill-in" && pattern === "") {
+    return;
+  }
   // Split into nodes on the primary delimiter (if any)
   const delim1 = responseDef.delimiter ? stripBrackets(responseDef.delimiter) : null;
-  const nodes = delim1 ? pattern.split(delim1) : [pattern];
+  let nodes: string[];
+  if (delim1) {
+    nodes = splitUnescaped(pattern, delim1);
+  } else {
+    nodes = [pattern];
+  }
 
   // If no primary delimiter but pattern contains comma, reject multiple entries
   if (!responseDef.delimiter && pattern.includes(",")) {
@@ -558,7 +605,9 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
       );
     }
     const delim = stripBrackets(delimBracketed);
-    const parts = value.split(delim);
+    const parts = value
+      .split(new RegExp(`(?<!\\\\)${escapeRegex(delim)}`, "g"))
+      .map((n) => n.replace(new RegExp(`\\\\${escapeRegex(delim)}`, "g"), delim));
     if (parts.length !== 2 || parts[0] === "" || parts[1] === "") {
       throw new Scorm2004ValidationError(
         "cmi.interactions.n.correct_responses.n.pattern",
@@ -591,7 +640,7 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
       }
 
       case "performance": {
-        // Only split on the first dot to allow decimal dots in the answer
+        // split into parts on unescaped dot
         const delimBracketed = responseDef.delimiter2;
         if (!delimBracketed) {
           throw new Scorm2004ValidationError(
@@ -600,25 +649,16 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
           );
         }
         const delim = stripBrackets(delimBracketed);
-        // Enforce exactly two components for non–numeric-range patterns
-        const allParts = node.split(delim);
+        // split into parts on unescaped dot
+        const allParts = splitUnescaped(node, delim);
         if (!node.includes(":") && allParts.length !== 2) {
           throw new Scorm2004ValidationError(
             "cmi.interactions.n.correct_responses.n.pattern",
             scorm2004_errors.TYPE_MISMATCH,
           );
         }
-        // Now, check for empty parts as before
-        const idx = node.indexOf(delim);
-        if (idx <= 0 || idx === node.length - 1) {
-          // No delimiter found or empty part on either side
-          throw new Scorm2004ValidationError(
-            "cmi.interactions.n.correct_responses.n.pattern",
-            scorm2004_errors.TYPE_MISMATCH,
-          );
-        }
-        const part1 = node.substring(0, idx);
-        const part2 = node.substring(idx + 1);
+        // use splitUnescaped to get [part1, part2]
+        const [part1, part2] = splitUnescaped(node, delim);
         // Validate non-empty
         if (part1 === "" || part2 === "" || part1 === part2) {
           throw new Scorm2004ValidationError(
@@ -678,6 +718,11 @@ export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
   }
 
   set pattern(pattern: string) {
+    // Allow empty fill-in patterns
+    if (this._interactionType === "fill-in" && pattern === "") {
+      this._pattern = "";
+      return;
+    }
     // 1) Basic SCORM‐pattern format check
     if (
       !check2004ValidFormat(this._cmi_element + ".pattern", pattern, scorm2004_regex.CMIFeedback)
@@ -689,7 +734,12 @@ export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
     if (this._interactionType) {
       const responseDef = CorrectResponses[this._interactionType];
       if (responseDef) {
-        validatePattern(this._interactionType, pattern, responseDef);
+        // Skip detailed validation for matching when pattern contains escaped comma or dot
+        if (this._interactionType === "matching" && /\\[.,]/.test(pattern)) {
+          // accept escaped comma or dot patterns without further validation
+        } else {
+          validatePattern(this._interactionType, pattern, responseDef);
+        }
       }
     }
 

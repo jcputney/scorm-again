@@ -58,8 +58,8 @@ export declare class CMIInteractionsObjectivesObject extends BaseCMI {
 }
 export declare class CMIInteractionsCorrectResponsesObject extends BaseCMI {
     private _pattern;
-    private readonly _parent?;
-    constructor(parent?: CMIInteractionsObject);
+    private readonly _interactionType?;
+    constructor(interactionType?: string);
     reset(): void;
     get pattern(): string;
     set pattern(pattern: string);
