@@ -143,10 +143,10 @@ export class RuleCondition extends BaseCMI {
         result = activity.successStatus === SuccessStatus.PASSED;
         break;
       case RuleConditionType.OBJECTIVE_STATUS_KNOWN:
-        result = activity.objectiveMeasureStatus;
+        result = !!activity.objectiveMeasureStatus;
         break;
       case RuleConditionType.OBJECTIVE_MEASURE_KNOWN:
-        result = activity.objectiveMeasureStatus;
+        result = !!activity.objectiveMeasureStatus;
         break;
       case RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN: {
         const greaterThanValue = this._parameters.get("threshold") || 0;
