@@ -240,6 +240,14 @@ export class CMIInteractionsObject extends BaseCMI {
               const values = nodes[i].split(delimiter2);
 
               if (values.length === 2) {
+                // For performance type, both parts must be non-empty
+                if (this.type === "performance" && (values[0] === "" || values[1] === "")) {
+                  throw new Scorm2004ValidationError(
+                    this._cmi_element + ".learner_response",
+                    scorm2004_errors.TYPE_MISMATCH,
+                  );
+                }
+
                 if (!values[0].match(formatRegex)) {
                   throw new Scorm2004ValidationError(
                     this._cmi_element + ".learner_response",
@@ -484,120 +492,151 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
 }
 
 /**
- * Class representing SCORM 2004's cmi.interactions.n.correct_responses.n object
+ * Helper: strip the square-bracket notation (e.g. "[,]") down to the character (",")
  */
+function stripBrackets(delim: string): string {
+  return delim.replace(/[[\]]/g, "");
+}
+
+/**
+ * Helper: validate a `pattern` string against its SCORM definition
+ */
+function validatePattern(
+  type: string,
+  pattern: string,
+  responseDef: {
+    delimiter?: string;
+    delimiter2?: string;
+    format: string;
+    format2?: string;
+    max: number;
+  },
+) {
+  // Split into nodes on the primary delimiter (if any)
+  const delim1 = responseDef.delimiter ? stripBrackets(responseDef.delimiter) : null;
+  const nodes = delim1 ? pattern.split(delim1) : [pattern];
+
+  // Must have at least 1 node, and no more than max
+  if (nodes.length === 0 || nodes.length > responseDef.max) {
+    throw new Scorm2004ValidationError(
+      "cmi.interactions.n.correct_responses.n.pattern",
+      scorm2004_errors.GENERAL_SET_FAILURE,
+    );
+  }
+
+  const fmt1 = new RegExp(responseDef.format);
+  const fmt2 = responseDef.format2 ? new RegExp(responseDef.format2) : null;
+
+  const checkSingle = (value: string) => {
+    if (!fmt1.test(value)) {
+      throw new Scorm2004ValidationError(
+        "cmi.interactions.n.correct_responses.n.pattern",
+        scorm2004_errors.TYPE_MISMATCH,
+      );
+    }
+  };
+
+  const checkPair = (value: string, delimBracketed?: string) => {
+    if (!delimBracketed) {
+      throw new Scorm2004ValidationError(
+        "cmi.interactions.n.correct_responses.n.pattern",
+        scorm2004_errors.TYPE_MISMATCH,
+      );
+    }
+    const delim = stripBrackets(delimBracketed);
+    const parts = value.split(delim);
+    if (parts.length !== 2) {
+      throw new Scorm2004ValidationError(
+        "cmi.interactions.n.correct_responses.n.pattern",
+        scorm2004_errors.TYPE_MISMATCH,
+      );
+    }
+    // part[0] against format1, part[1] against format2 (if provided)
+    if (!fmt1.test(parts[0]) || (fmt2 && !fmt2.test(parts[1]))) {
+      throw new Scorm2004ValidationError(
+        "cmi.interactions.n.correct_responses.n.pattern",
+        scorm2004_errors.TYPE_MISMATCH,
+      );
+    }
+  };
+
+  for (const node of nodes) {
+    switch (type) {
+      case "numeric": { // 1 or 2 numeric values separated by ":"
+        const numDelim = responseDef.delimiter ? stripBrackets(responseDef.delimiter) : ":";
+        const nums = node.split(numDelim);
+        if (nums.length < 1 || nums.length > 2) {
+          throw new Scorm2004ValidationError(
+            "cmi.interactions.n.correct_responses.n.pattern",
+            scorm2004_errors.TYPE_MISMATCH,
+          );
+        }
+        nums.forEach(checkSingle);
+        break;
+      }
+
+      case "performance":
+        // always exactly two parts, split on delimiter2
+        checkPair(node, responseDef.delimiter2);
+        break;
+
+      default:
+        if (responseDef.delimiter2) {
+          // matching and other two-part types
+          checkPair(node, responseDef.delimiter2);
+        } else {
+          // simple single-value types (true-false, choice, fill-in, etc.)
+          checkSingle(node);
+        }
+    }
+  }
+}
+
 export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
   private _pattern = "";
-  private readonly _parent?: CMIInteractionsObject | undefined;
+  private readonly _interactionType?: string | undefined;
 
   /**
    * Constructor for cmi.interactions.n.correct_responses.n
-   * @param {CMIInteractionsObject} parent - The parent interaction object
+   * @param interactionType The type of interaction (e.g. "numeric", "choice", etc.)
    */
-  constructor(parent?: CMIInteractionsObject) {
+  constructor(interactionType?: string) {
     super("cmi.interactions.n.correct_responses.n");
-    this._parent = parent;
+    this._interactionType = interactionType;
   }
 
-  /**
-   * Called when the API has been reset
-   */
   override reset() {
     this._initialized = false;
     this._pattern = "";
   }
 
-  /**
-   * Getter for _pattern
-   * @return {string}
-   */
   get pattern(): string {
     return this._pattern;
   }
 
-  /**
-   * Setter for _pattern
-   * @param {string} pattern
-   */
   set pattern(pattern: string) {
-    // First do basic format validation
+    // 1) Basic SCORM‐pattern format check
     if (
-      check2004ValidFormat(this._cmi_element + ".pattern", pattern, scorm2004_regex.CMIFeedback)
+      !check2004ValidFormat(this._cmi_element + ".pattern", pattern, scorm2004_regex.CMIFeedback)
     ) {
-      // If we have a parent interaction, validate the pattern against the interaction type
-      if (this._parent && this._parent.type) {
-        const interactionType = this._parent.type;
-        const response = CorrectResponses[interactionType];
-
-        if (response) {
-          // Validate the pattern against the interaction type
-          let isValid = true;
-          let nodes = [];
-
-          if (response?.delimiter) {
-            nodes = String(pattern).split(response.delimiter);
-          } else {
-            nodes[0] = pattern;
-          }
-
-          if (nodes.length > 0 && nodes.length <= response.max) {
-            const formatRegex = new RegExp(response.format);
-
-            for (let i = 0; i < nodes.length && isValid; i++) {
-              if (response?.delimiter2) {
-                const values = nodes[i].split(response.delimiter2);
-                if (values.length === 2) {
-                  const matches = values[0].match(formatRegex);
-                  if (!matches) {
-                    isValid = false;
-                  } else if (!response.format2 || !values[1].match(new RegExp(response.format2))) {
-                    isValid = false;
-                  }
-                } else {
-                  isValid = false;
-                }
-              } else {
-                const matches = nodes[i].match(formatRegex);
-                if (
-                  (!matches && pattern !== "") ||
-                  (!matches && interactionType === "true-false")
-                ) {
-                  isValid = false;
-                }
-              }
-            }
-          } else if (nodes.length > response.max) {
-            isValid = false;
-          }
-
-          if (!isValid) {
-            throw new Scorm2004ValidationError(
-              this._cmi_element + ".pattern",
-              scorm2004_errors.TYPE_MISMATCH,
-            );
-          }
-        }
-      }
-
-      this._pattern = pattern;
+      return;
     }
+
+    // 2) If we know the interaction type, run the detailed validator
+    if (this._interactionType) {
+      const responseDef = CorrectResponses[this._interactionType];
+      if (responseDef) {
+        validatePattern(this._interactionType, pattern, responseDef);
+      }
+    }
+
+    // 3) Finally, set
+    this._pattern = pattern;
   }
 
-  /**
-   * toJSON cmi.interactions.n.correct_responses.n object
-   * @return {
-   *    {
-   *      pattern: string
-   *    }
-   *  }
-   */
-  toJSON(): {
-    pattern: string;
-  } {
+  toJSON(): { pattern: string } {
     this.jsonString = true;
-    const result = {
-      pattern: this.pattern,
-    };
+    const result = { pattern: this.pattern };
     this.jsonString = false;
     return result;
   }

@@ -134,46 +134,64 @@ export class RuleCondition extends BaseCMI {
    * @return {boolean} - True if the condition is met, false otherwise
    */
   evaluate(activity: Activity): boolean {
+    let result = false;
     switch (this._condition) {
       case RuleConditionType.SATISFIED:
-        return activity.successStatus === SuccessStatus.PASSED;
+        result = activity.successStatus === SuccessStatus.PASSED;
+        break;
       case RuleConditionType.OBJECTIVE_STATUS_KNOWN:
-        return activity.objectiveMeasureStatus;
+        result = activity.objectiveMeasureStatus;
+        break;
       case RuleConditionType.OBJECTIVE_MEASURE_KNOWN:
-        return activity.objectiveMeasureStatus;
+        result = activity.objectiveMeasureStatus;
+        break;
       case RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN: {
         const greaterThanValue = this._parameters.get("threshold") || 0;
-        return (
-          activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue
-        );
+        result =
+          activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue;
+        break;
       }
       case RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN: {
         const lessThanValue = this._parameters.get("threshold") || 0;
-        return (
-          activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue
-        );
+        result =
+          activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue;
+        break;
       }
       case RuleConditionType.COMPLETED:
-        return activity.isCompleted;
+        result = activity.isCompleted;
+        break;
       case RuleConditionType.PROGRESS_KNOWN:
-        return activity.completionStatus !== "unknown";
+        result = activity.completionStatus !== "unknown";
+        break;
       case RuleConditionType.ATTEMPTED:
-        return activity.attemptCount > 0;
+        result = activity.attemptCount > 0;
+        break;
       case RuleConditionType.ATTEMPT_LIMIT_EXCEEDED: {
         const attemptLimit = this._parameters.get("attemptLimit") || 0;
-        return attemptLimit > 0 && activity.attemptCount >= attemptLimit;
+        result = attemptLimit > 0 && activity.attemptCount >= attemptLimit;
+        break;
       }
       case RuleConditionType.TIME_LIMIT_EXCEEDED:
         // Time limit exceeded would require additional tracking
-        return false;
+        result = false;
+        break;
       case RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE:
         // Outside available time range would require additional tracking
-        return false;
+        result = false;
+        break;
       case RuleConditionType.ALWAYS:
-        return true;
+        result = true;
+        break;
       default:
-        return false;
+        result = false;
+        break;
     }
+
+    if (this._operator === RuleConditionOperator.NOT) {
+      result = !result;
+    }
+
+    return result;
   }
 
   /**

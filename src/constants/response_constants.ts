@@ -112,8 +112,10 @@ export const CorrectResponses: Responses = {
     delimiter3: "[:]",
     unique: false,
     duplicate: false,
-    format: "^$|" + scorm2004_regex.CMIShortIdentifier,
-    format2: scorm2004_regex.CMIDecimal + "|^$|" + scorm2004_regex.CMIShortIdentifier,
+    // step_name must be a non-empty short identifier
+    format: scorm2004_regex.CMIShortIdentifier,
+    // step_answer may be short identifier or numeric range (<decimal>[:<decimal>])
+    format2: `^(${scorm2004_regex.CMIShortIdentifier})$|^(?:\\d+(?:\\.\\d+)?(?::\\d+(?:\\.\\d+)?)?)$`,
   },
   sequencing: {
     max: 36,
