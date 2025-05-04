@@ -8,7 +8,11 @@ import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions"
 import { scorm2004_constants } from "../../constants/api_constants";
 import { check2004ValidFormat } from "./validation";
 import { scorm2004_regex } from "../../constants/regex";
-import { CorrectResponses, LearnerResponses } from "../../constants/response_constants";
+import {
+  CorrectResponses,
+  LearnerResponses,
+  ResponseType,
+} from "../../constants/response_constants";
 
 export class CMIInteractions extends CMIArray {
   /**
@@ -384,6 +388,7 @@ export class CMIInteractionsObject extends BaseCMI {
     }
   }
 
+  // noinspection JSUnusedGlobalSymbols
   /**
    * toJSON for cmi.interactions.n
    *
@@ -501,20 +506,29 @@ function stripBrackets(delim: string): string {
 /**
  * Helper: validate a `pattern` string against its SCORM definition
  */
-function validatePattern(
-  type: string,
-  pattern: string,
-  responseDef: {
-    delimiter?: string;
-    delimiter2?: string;
-    format: string;
-    format2?: string;
-    max: number;
-  },
-) {
+function validatePattern(type: string, pattern: string, responseDef: ResponseType) {
   // Split into nodes on the primary delimiter (if any)
   const delim1 = responseDef.delimiter ? stripBrackets(responseDef.delimiter) : null;
   const nodes = delim1 ? pattern.split(delim1) : [pattern];
+
+  // If no primary delimiter but pattern contains comma, reject multiple entries
+  if (!responseDef.delimiter && pattern.includes(",")) {
+    throw new Scorm2004ValidationError(
+      "cmi.interactions.n.correct_responses.n.pattern",
+      scorm2004_errors.TYPE_MISMATCH,
+    );
+  }
+
+  // Enforce uniqueness or disallow duplicates if required
+  if (responseDef.unique || responseDef.duplicate === false) {
+    const seen = new Set(nodes);
+    if (seen.size !== nodes.length) {
+      throw new Scorm2004ValidationError(
+        "cmi.interactions.n.correct_responses.n.pattern",
+        scorm2004_errors.TYPE_MISMATCH,
+      );
+    }
+  }
 
   // Must have at least 1 node, and no more than max
   if (nodes.length === 0 || nodes.length > responseDef.max) {
@@ -545,13 +559,13 @@ function validatePattern(
     }
     const delim = stripBrackets(delimBracketed);
     const parts = value.split(delim);
-    if (parts.length !== 2) {
+    if (parts.length !== 2 || parts[0] === "" || parts[1] === "") {
       throw new Scorm2004ValidationError(
         "cmi.interactions.n.correct_responses.n.pattern",
         scorm2004_errors.TYPE_MISMATCH,
       );
     }
-    // part[0] against format1, part[1] against format2 (if provided)
+    // test both parts
     if (!fmt1.test(parts[0]) || (fmt2 && !fmt2.test(parts[1]))) {
       throw new Scorm2004ValidationError(
         "cmi.interactions.n.correct_responses.n.pattern",
@@ -562,7 +576,8 @@ function validatePattern(
 
   for (const node of nodes) {
     switch (type) {
-      case "numeric": { // 1 or 2 numeric values separated by ":"
+      case "numeric": {
+        // 1 or 2 numeric values separated by ":"
         const numDelim = responseDef.delimiter ? stripBrackets(responseDef.delimiter) : ":";
         const nums = node.split(numDelim);
         if (nums.length < 1 || nums.length > 2) {
@@ -575,10 +590,58 @@ function validatePattern(
         break;
       }
 
-      case "performance":
-        // always exactly two parts, split on delimiter2
-        checkPair(node, responseDef.delimiter2);
+      case "performance": {
+        // Only split on the first dot to allow decimal dots in the answer
+        const delimBracketed = responseDef.delimiter2;
+        if (!delimBracketed) {
+          throw new Scorm2004ValidationError(
+            "cmi.interactions.n.correct_responses.n.pattern",
+            scorm2004_errors.TYPE_MISMATCH,
+          );
+        }
+        const delim = stripBrackets(delimBracketed);
+        // Enforce exactly two components for non–numeric-range patterns
+        const allParts = node.split(delim);
+        if (!node.includes(":") && allParts.length !== 2) {
+          throw new Scorm2004ValidationError(
+            "cmi.interactions.n.correct_responses.n.pattern",
+            scorm2004_errors.TYPE_MISMATCH,
+          );
+        }
+        // Now, check for empty parts as before
+        const idx = node.indexOf(delim);
+        if (idx <= 0 || idx === node.length - 1) {
+          // No delimiter found or empty part on either side
+          throw new Scorm2004ValidationError(
+            "cmi.interactions.n.correct_responses.n.pattern",
+            scorm2004_errors.TYPE_MISMATCH,
+          );
+        }
+        const part1 = node.substring(0, idx);
+        const part2 = node.substring(idx + 1);
+        // Validate non-empty
+        if (part1 === "" || part2 === "" || part1 === part2) {
+          throw new Scorm2004ValidationError(
+            "cmi.interactions.n.correct_responses.n.pattern",
+            scorm2004_errors.TYPE_MISMATCH,
+          );
+        }
+        // part1 against format1
+        if (!fmt1.test(part1)) {
+          throw new Scorm2004ValidationError(
+            "cmi.interactions.n.correct_responses.n.pattern",
+            scorm2004_errors.TYPE_MISMATCH,
+          );
+        }
+        // part2 against format2
+        if (fmt2 && !fmt2.test(part2)) {
+          throw new Scorm2004ValidationError(
+            "cmi.interactions.n.correct_responses.n.pattern",
+            scorm2004_errors.TYPE_MISMATCH,
+          );
+        }
         break;
+      }
 
       default:
         if (responseDef.delimiter2) {

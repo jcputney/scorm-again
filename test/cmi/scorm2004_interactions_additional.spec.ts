@@ -253,6 +253,13 @@ describe("SCORM 2004 Additional Interactions Tests", () => {
           cr.pattern = "a.b.c";
         }).toThrow();
       });
+
+      it("should reject duplicate performance patterns", () => {
+        const cr = new CMIInteractionsCorrectResponsesObject("performance");
+        expect(() => {
+          cr.pattern = "step1.x,step1.x";
+        }).toThrow();
+      });
     });
 
     describe("numeric correct response", () => {
@@ -355,6 +362,27 @@ describe("SCORM 2004 Additional Interactions Tests", () => {
           correctResponse.pattern = tooManyChoices;
         }).toThrow();
       });
+
+      it("should reject duplicate choice patterns", () => {
+        const cr = new CMIInteractionsCorrectResponsesObject("choice");
+        expect(() => {
+          cr.pattern = "choice1,choice1";
+        }).toThrow(); // duplicate not allowed
+      });
+
+      it("should reject open-ended lower bound '5:'", () => {
+        const cr = new CMIInteractionsCorrectResponsesObject("numeric");
+        expect(() => {
+          cr.pattern = "5:";
+        }).toThrow();
+      });
+
+      it("should accept open-ended upper bound ':10'", () => {
+        const cr = new CMIInteractionsCorrectResponsesObject("numeric");
+        expect(() => {
+          cr.pattern = ":10";
+        }).toThrow();
+      });
     });
 
     describe("fill-in correct response", () => {
@@ -387,6 +415,14 @@ describe("SCORM 2004 Additional Interactions Tests", () => {
         expect(correctResponse.pattern).toBe(
           "This is a long answer that could be up to 4000 characters.",
         );
+      });
+
+      // Long-fill-in multiple
+      it("should reject multiple long-fill-in patterns", () => {
+        const cr = new CMIInteractionsCorrectResponsesObject("long-fill-in");
+        expect(() => {
+          cr.pattern = "a,b";
+        }).toThrow();
       });
 
       it("should reject a pattern that's too long", () => {
@@ -435,6 +471,21 @@ describe("SCORM 2004 Additional Interactions Tests", () => {
           correctResponse.pattern = ".target1"; // Missing source
         }).toThrow();
       });
+
+      it("should reject too many matching patterns", () => {
+        const cr = new CMIInteractionsCorrectResponsesObject("matching");
+        const tooMany = Array.from({ length: 37 }, (_, i) => `src${i}.tgt${i}`).join(",");
+        expect(() => {
+          cr.pattern = tooMany;
+        }).toThrow();
+      });
+
+      it("should reject duplicate matching patterns", () => {
+        const cr = new CMIInteractionsCorrectResponsesObject("matching");
+        expect(() => {
+          cr.pattern = "a.b,a.b";
+        }).toThrow();
+      });
     });
 
     describe("sequencing correct response", () => {
@@ -455,6 +506,15 @@ describe("SCORM 2004 Additional Interactions Tests", () => {
         }).not.toThrow();
         expect(correctResponse.pattern).toBe("item1,item2,item3");
       });
+
+      // Sequencing too many
+      it("should reject too many sequencing patterns", () => {
+        const cr = new CMIInteractionsCorrectResponsesObject("sequencing");
+        const tooMany = Array.from({ length: 37 }, (_, i) => `item${i + 1}`).join(",");
+        expect(() => {
+          cr.pattern = tooMany;
+        }).toThrow();
+      });
     });
 
     describe("likert correct response", () => {
@@ -466,6 +526,14 @@ describe("SCORM 2004 Additional Interactions Tests", () => {
         }).not.toThrow();
         expect(correctResponse.pattern).toBe("likert_1");
       });
+
+      // Likert multiple
+      it("should reject multiple likert patterns", () => {
+        const cr = new CMIInteractionsCorrectResponsesObject("likert");
+        expect(() => {
+          cr.pattern = "l1,l2";
+        }).toThrow();
+      });
     });
 
     describe("other correct response", () => {
@@ -476,6 +544,14 @@ describe("SCORM 2004 Additional Interactions Tests", () => {
           correctResponse.pattern = "Any string up to 4000 characters";
         }).not.toThrow();
         expect(correctResponse.pattern).toBe("Any string up to 4000 characters");
+      });
+
+      // Other multiple
+      it("should reject multiple other patterns", () => {
+        const cr = new CMIInteractionsCorrectResponsesObject("other");
+        expect(() => {
+          cr.pattern = "foo,bar";
+        }).toThrow();
       });
     });
 
