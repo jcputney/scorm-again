@@ -51,15 +51,15 @@ export declare class SequencingRule extends BaseCMI {
     private _conditions;
     private _action;
     private _conditionCombination;
-    constructor(action?: RuleActionType, conditionCombination?: RuleConditionOperator);
+    constructor(action?: RuleActionType, conditionCombination?: string | RuleConditionOperator);
     reset(): void;
     get conditions(): RuleCondition[];
     addCondition(condition: RuleCondition): void;
     removeCondition(condition: RuleCondition): boolean;
     get action(): RuleActionType;
     set action(action: RuleActionType);
-    get conditionCombination(): RuleConditionOperator;
-    set conditionCombination(conditionCombination: RuleConditionOperator);
+    get conditionCombination(): string | RuleConditionOperator;
+    set conditionCombination(conditionCombination: string | RuleConditionOperator);
     evaluate(activity: Activity): boolean;
     toJSON(): object;
 }
