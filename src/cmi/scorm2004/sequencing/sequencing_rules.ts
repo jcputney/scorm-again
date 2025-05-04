@@ -137,15 +137,17 @@ export class RuleCondition extends BaseCMI {
    * @return {boolean} - True if the condition is met, false otherwise
    */
   evaluate(activity: Activity): boolean {
-    let result = false;
+    let result;
     switch (this._condition) {
       case RuleConditionType.SATISFIED:
         result = activity.successStatus === SuccessStatus.PASSED;
         break;
       case RuleConditionType.OBJECTIVE_STATUS_KNOWN:
+        // noinspection PointlessBooleanExpressionJS
         result = !!activity.objectiveMeasureStatus;
         break;
       case RuleConditionType.OBJECTIVE_MEASURE_KNOWN:
+        // noinspection PointlessBooleanExpressionJS
         result = !!activity.objectiveMeasureStatus;
         break;
       case RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN: {
