@@ -9290,7 +9290,7 @@ ${stackTrace}`);
      * @return {boolean} - True if the condition is met, false otherwise
      */
     evaluate(activity) {
-      let result = false;
+      let result;
       switch (this._condition) {
         case "satisfied" /* SATISFIED */:
           result = activity.successStatus === SuccessStatus.PASSED;
