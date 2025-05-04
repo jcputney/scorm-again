@@ -78,6 +78,9 @@ export class RuleCondition extends BaseCMI {
    */
   reset() {
     this._initialized = false;
+    this._condition = RuleConditionType.ALWAYS;
+    this._operator = null;
+    this._parameters = new Map();
   }
 
   /**
@@ -168,7 +171,7 @@ export class RuleCondition extends BaseCMI {
         break;
       case RuleConditionType.ATTEMPT_LIMIT_EXCEEDED: {
         const attemptLimit = this._parameters.get("attemptLimit") || 0;
-        result = attemptLimit > 0 && activity.attemptCount >= attemptLimit;
+        result = activity.attemptCount >= attemptLimit;
         break;
       }
       case RuleConditionType.TIME_LIMIT_EXCEEDED:
@@ -216,16 +219,16 @@ export class RuleCondition extends BaseCMI {
 export class SequencingRule extends BaseCMI {
   private _conditions: RuleCondition[] = [];
   private _action: RuleActionType = RuleActionType.SKIP;
-  private _conditionCombination: RuleConditionOperator = RuleConditionOperator.AND;
+  private _conditionCombination: string | RuleConditionOperator = RuleConditionOperator.AND;
 
   /**
    * Constructor for SequencingRule
    * @param {RuleActionType} action - The action to take when the rule conditions are met
-   * @param {RuleConditionOperator} conditionCombination - How to combine multiple conditions
+   * @param {string | RuleConditionOperator} conditionCombination - How to combine multiple conditions ("all"/"and" or "any"/"or")
    */
   constructor(
     action: RuleActionType = RuleActionType.SKIP,
-    conditionCombination: RuleConditionOperator = RuleConditionOperator.AND,
+    conditionCombination: string | RuleConditionOperator = RuleConditionOperator.AND,
   ) {
     super("sequencingRule");
     this._action = action;
@@ -238,6 +241,8 @@ export class SequencingRule extends BaseCMI {
   reset() {
     this._initialized = false;
     this._conditions = [];
+    this._action = RuleActionType.SKIP;
+    this._conditionCombination = RuleConditionOperator.AND;
   }
 
   /**
@@ -260,7 +265,10 @@ export class SequencingRule extends BaseCMI {
         scorm2004_errors.TYPE_MISMATCH,
       );
     }
-    this._conditions.push(condition);
+    // Check if the condition is already in the array
+    if (!this._conditions.includes(condition)) {
+      this._conditions.push(condition);
+    }
   }
 
   /**
@@ -269,6 +277,13 @@ export class SequencingRule extends BaseCMI {
    * @return {boolean} - True if the condition was removed, false otherwise
    */
   removeCondition(condition: RuleCondition): boolean {
+    // noinspection SuspiciousTypeOfGuard
+    if (!(condition instanceof RuleCondition)) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".conditions",
+        scorm2004_errors.TYPE_MISMATCH,
+      );
+    }
     const index = this._conditions.indexOf(condition);
     if (index !== -1) {
       this._conditions.splice(index, 1);
@@ -295,17 +310,17 @@ export class SequencingRule extends BaseCMI {
 
   /**
    * Getter for conditionCombination
-   * @return {RuleConditionOperator}
+   * @return {string | RuleConditionOperator}
    */
-  get conditionCombination(): RuleConditionOperator {
+  get conditionCombination(): string | RuleConditionOperator {
     return this._conditionCombination;
   }
 
   /**
    * Setter for conditionCombination
-   * @param {RuleConditionOperator} conditionCombination
+   * @param {string | RuleConditionOperator} conditionCombination
    */
-  set conditionCombination(conditionCombination: RuleConditionOperator) {
+  set conditionCombination(conditionCombination: string | RuleConditionOperator) {
     this._conditionCombination = conditionCombination;
   }
 
@@ -319,9 +334,15 @@ export class SequencingRule extends BaseCMI {
       return true;
     }
 
-    if (this._conditionCombination === RuleConditionOperator.AND) {
+    if (
+      this._conditionCombination === "all" ||
+      this._conditionCombination === RuleConditionOperator.AND
+    ) {
       return this._conditions.every((condition) => condition.evaluate(activity));
-    } else if (this._conditionCombination === RuleConditionOperator.OR) {
+    } else if (
+      this._conditionCombination === "any" ||
+      this._conditionCombination === RuleConditionOperator.OR
+    ) {
       return this._conditions.some((condition) => condition.evaluate(activity));
     }
 
