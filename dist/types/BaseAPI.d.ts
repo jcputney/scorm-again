@@ -19,8 +19,6 @@ export default abstract class BaseAPI implements IBaseAPI {
     abstract cmi: BaseCMI;
     startingData?: StringKeyMap;
     currentState: number;
-    apiLogLevel: LogLevel;
-    selfReportSessionTime: boolean;
     get lastErrorCode(): string;
     set lastErrorCode(errorCode: string);
     abstract reset(settings?: Settings): void;
@@ -37,8 +35,8 @@ export default abstract class BaseAPI implements IBaseAPI {
     abstract validateCorrectResponse(_CMIElement: string, _value: any): void;
     abstract getChildElement(_CMIElement: string, _value: any, _foundFirstIndex: boolean): BaseCMI | null;
     abstract storeData(_calculateTotalTime: boolean): Promise<ResultObject>;
-    abstract renderCommitCMI(_terminateCommit: boolean): StringKeyMap | Array<string>;
-    abstract renderCommitObject(_terminateCommit: boolean): CommitObject;
+    abstract renderCommitCMI(_terminateCommit: boolean, _includeTotalTime?: boolean): StringKeyMap | Array<string>;
+    abstract renderCommitObject(_terminateCommit: boolean, _includeTotalTime?: boolean): CommitObject;
     apiLog(functionName: string, logMessage: string, messageLevel: LogLevel, CMIElement?: string): void;
     get settings(): InternalSettings;
     set settings(settings: Settings);

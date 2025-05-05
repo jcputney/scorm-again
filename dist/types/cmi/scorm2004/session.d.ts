@@ -13,6 +13,6 @@ export declare class CMISession extends BaseCMI {
     set session_time(session_time: string);
     get total_time(): string;
     set total_time(total_time: string);
-    getCurrentTotalTime(): string;
+    getCurrentTotalTime(start_time: number | undefined): string;
     reset(): void;
 }

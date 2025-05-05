@@ -14,7 +14,7 @@ import {
   SequencingControlsSettings,
   SequencingRuleSettings,
   SequencingRulesSettings,
-  SequencingSettings
+  SequencingSettings,
 } from "./types/sequencing_types";
 import { RuleCondition, SequencingRule } from "./cmi/scorm2004/sequencing/sequencing_rules";
 import { RollupCondition, RollupRule } from "./cmi/scorm2004/sequencing/rollup_rules";
@@ -23,7 +23,7 @@ import { BaseCMI } from "./cmi/common/base_cmi";
 import {
   CMIInteractionsCorrectResponsesObject,
   CMIInteractionsObject,
-  CMIInteractionsObjectivesObject
+  CMIInteractionsObjectivesObject,
 } from "./cmi/scorm2004/interactions";
 import { CMIArray } from "./cmi/common/array";
 import { CorrectResponses, ResponseType } from "./constants/response_constants";
