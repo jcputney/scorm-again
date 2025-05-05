@@ -254,7 +254,7 @@ window.API_1484_11 = new Scorm2004API(settings);
 **Module usage with ES imports:**
 
 ```javascript
-import {Scorm2004API} from 'scorm-again/esm/scorm2004';
+import {Scorm2004API} from 'scorm-again/scorm2004';
 
 const settings = {
    autocommit: true,
@@ -324,8 +324,8 @@ result from the LMS to be in the following format (errorCode is optional):
 
 ```javascript
 var settings = {
-   responseHandler: function (response: Response): ResultObject {
-      const responseObj = JSON.parse(response.text());
+   responseHandler: async function (response: Response): Promise<ResultObject> {
+      const responseObj = await response.json();
       return {
          result: responseObj.success,
          errorCode: responseObj.error
@@ -355,8 +355,8 @@ The onLogMessage function is used to log messages. By default, it logs messages 
 
 ```javascript
 var settings = {
-   onLogMessage: function (level: LogLevel, message: string): void {
-      console.log(`[${level}] ${message}`);
+   onLogMessage: function (messageLevel: LogLevel, logMessage: string): void {
+      console.log(`[${messageLevel}] ${logMessage}`);
    }
 };
 ```
@@ -439,7 +439,7 @@ var json = {
    "cmi.interactions.0.learner_response": "HTH",
    "cmi.interactions.0.result": "wrong",
    "cmi.interactions.0.latency": "PT2M30S",
-   "cmi.interactions.0.objectives.0.id": "Question14_1"
+   "cmi.interactions.0.objectives.0.id": "Question14_1",
    "cmi.interactions.0.objectives.0.correct_responses.0.pattern": "CPR"
 };
 ```
@@ -617,12 +617,8 @@ Here's a basic example of configuring an activity tree:
 sequencing: {
    activityTree: {
       id: 'root',
-          title
-   :
-      'Course',
-          children
-   :
-      [
+      title: 'Course',
+      children: [
          {
             id: 'module1',
             title: 'Module 1',
