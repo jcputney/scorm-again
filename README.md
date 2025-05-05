@@ -167,6 +167,37 @@ our [offline support documentation](docs/offline_support.md).
 - [Testing Strategy](docs/developer/testing_strategy.md)
 - [Method Standards](docs/method_standards.md)
 
+### Bundle Size Optimization
+
+To reduce the bundle size for production deployments:
+
+1. **Use Production Builds**:
+   ```bash
+   npm run build:prod
+   # or
+   npm run build:all:prod
+   ```
+   This disables source maps unless NODE_ENV is set to 'production'.
+
+2. **Use Minified Versions**:
+   Always use the `.min.js` versions in production for smaller file sizes.
+
+3. **Import Specific APIs**:
+   Import only the specific API you need rather than the entire library:
+   ```javascript
+   // Instead of
+   import {Scorm2004API} from 'scorm-again';
+
+   // Use
+   import {Scorm2004API} from 'scorm-again/scorm2004/min';
+   ```
+
+4. **Modern Browsers**:
+   If you don't need IE11 support, consider using the ESM versions for modern browsers:
+   ```javascript
+   import {Scorm2004API} from 'scorm-again/scorm2004/min';
+   ```
+
 ### Style Guide
 
 - [TypeScript Style Guide](.junie/guidelines.md)
@@ -474,7 +505,7 @@ You can add your hook into these by adding a listener to the `window.API` object
 
 ```javascript
 window.API.on("LMSInitialize", function () {
-   [...]
+   // callback function body
 });
 ```
 
@@ -482,7 +513,7 @@ You can also listen for events on specific SCORM CMI elements:
 
 ```javascript
 window.API.on("LMSSetValue.cmi.core.student_id", function (CMIElement, value) {
-   [...]
+   // callback function body
 });
 ```
 
@@ -490,7 +521,7 @@ Finally, you can listen for events using a wildcard:
 
 ```javascript
 window.API.on("LMSSetValue.cmi.*", function (CMIElement, value) {
-   [...]
+   // callback function body
 });
 ```
 
@@ -529,7 +560,7 @@ You can add your hook into these by adding a listener to the `window.API_1484_11
 
 ```javascript
 window.API_1484_11.on("Initialize", function () {
-   [...]
+   // callback function body
 });
 ```
 
@@ -537,7 +568,7 @@ You can also listen for events on specific SCORM CMI elements:
 
 ```javascript
 window.API_1484_11.on("SetValue.cmi.learner_id ", function (CMIElement, value) {
-   [...]
+   // callback function body
 });
 ```
 
@@ -545,7 +576,7 @@ Finally, you can listen for events using a wildcard:
 
 ```javascript
 window.API_1484_11.on("SetValue.cmi.* ", function (CMIElement, value) {
-   [...]
+   // callback function body
 });
 ```
 
@@ -614,7 +645,7 @@ The `sequencing` object can contain the following properties:
 Here's a basic example of configuring an activity tree:
 
 ```javascript
-sequencing: {
+sequencing = {
    activityTree: {
       id: 'root',
       title: 'Course',

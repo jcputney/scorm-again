@@ -8,6 +8,8 @@ import { Settings } from "./src/types/api_types";
 import { default as Scorm2004Impl } from "./src/Scorm2004API";
 import { default as AICCImpl } from "./src/AICC";
 import { default as CrossFrameAPIImpl } from "./src/CrossFrameAPI";
+import { default as CrossFrameLMSImpl } from "./src/CrossFrameLMS";
+import { IBaseAPI } from "./src/interfaces/IBaseAPI";
 
 declare class Scorm12API extends Scorm12Impl {
   constructor(settings?: Settings);
@@ -88,6 +90,10 @@ declare class CrossFrameAPI extends CrossFrameAPIImpl {
   GetLastError: () => Promise<string>;
   GetErrorString: (CMIErrorCode: string | number) => Promise<string>;
   GetDiagnostic: (CMIErrorCode: string | number) => Promise<string>;
+}
+
+declare class CrossFrameLMS extends CrossFrameLMSImpl {
+  constructor(api: IBaseAPI, targetOrigin?: string);
 }
 
 export { Scorm12API, Scorm2004API, AICC, Settings, CrossFrameAPI, CrossFrameLMS };

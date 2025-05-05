@@ -144,8 +144,10 @@
   "scripts": {
     "clean": "rm -rf dist && mkdir -p dist",
     "build": "npm run clean && rollup -c",
+    "build:prod": "npm run clean && NODE_ENV=production rollup -c",
     "build:types": "tsc --emitDeclarationOnly --declaration --outDir dist/types",
     "build:all": "npm run build && npm run build:types",
+    "build:all:prod": "npm run build:prod && npm run build:types",
     "compile:dev": "rollup -c -w",
     "test": "vitest run",
     "test:min": "vitest run --reporter=basic",

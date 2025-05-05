@@ -3,6 +3,113 @@ import terser from "@rollup/plugin-terser";
 import cache from "@mo36924/rollup-plugin-cache";
 import { babel } from "@rollup/plugin-babel";
 
+/**
+ * Bundle Size Optimization Notes:
+ *
+ * 1. Source Maps: Source maps are now only generated in production mode.
+ *    Set NODE_ENV=production when building for production.
+ *
+ * 2. Minification: Mangling is now enabled in terser for better minification.
+ *
+ * 3. Modern Directory: The dist/modern directory appears to be generated outside
+ *    this configuration and is not referenced in package.json exports.
+ *    Consider removing it if not needed to reduce package size.
+ *
+ * 4. For production builds, consider setting NODE_ENV=production to:
+ *    - Generate source maps only when needed
+ *    - Enable additional optimizations
+ */
+const reservedWords = [
+  "Scorm12API",
+  "Scorm2004API",
+  "AICC", // public classes
+  "LMSInitialize",
+  "LMSFinish",
+  "LMSGetValue",
+  "LMSSetValue",
+  "LMSCommit",
+  "LMSGetLastError",
+  "LMSGetErrorString",
+  "LMSGetDiagnostic", // SCORM 1.2 API methods
+  "Initialize",
+  "Terminate",
+  "GetValue",
+  "SetValue",
+  "Commit",
+  "GetLastError",
+  "GetErrorString",
+  "GetDiagnostic", // SCORM 2004 API methods
+  "on",
+  "off",
+  "clear",
+  "loadFromJSON",
+  "reset",
+  "getCurrentTotalTime", // event/utility methods
+  "cmi",
+  "core",
+  "student_id",
+  "student_name",
+  "lesson_location",
+  "credit",
+  "lesson_status",
+  "entry",
+  "exit",
+  "score",
+  "total_time",
+  "lesson_mode",
+  "session_time", // SCORM 1.2 cmi.core
+  "suspend_data",
+  "launch_data",
+  "comments",
+  "comments_from_lms", // other SCORM 1.2 cmi fields
+  "student_data",
+  "mastery_score",
+  "max_time_allowed",
+  "time_limit_action", // SCORM 1.2 student_data
+  "student_preference",
+  "audio",
+  "language",
+  "speed",
+  "text", // SCORM 1.2 student_preference
+  "objectives",
+  "status",
+  "interactions",
+  "id",
+  "type",
+  "time",
+  "timestamp",
+  "weighting",
+  "student_response",
+  "learner_response",
+  "result",
+  "latency",
+  "description", // interactions fields
+  "correct_responses",
+  "pattern", // interaction sub-fields
+  "completion_status",
+  "success_status",
+  "progress_measure",
+  "scaled_passing_score", // SCORM 2004 status/metrics
+  "learner_id",
+  "learner_name",
+  "location",
+  "mode", // SCORM 2004 renamed fields
+  "comments_from_learner",
+  "comment",
+  "content", // SCORM 2004 comments (comment/content)
+  "audio_level",
+  "audio_captioning",
+  "delivery_speed",
+  "learner_preference", // SCORM 2004 learner_preference
+  "adl",
+  "nav",
+  "request",
+  "request_valid", // SCORM 2004 navigation API
+  "_children",
+  "_count",
+  "_version", // special meta-properties
+];
+
 // Entry points
 const entries = {
   aicc: "src/AICC.ts",
@@ -20,6 +127,12 @@ const esmEntries = {
   "cross-frame-api": "src/esm/CrossFrameAPI.esm.ts",
   "cross-frame-lms": "src/esm/CrossFrameLMS.esm.ts",
 };
+
+// Determine if we're in production mode
+const isProduction = process.env.NODE_ENV === "production";
+
+// Source map configuration - only generate source maps in production
+const generateSourceMap = isProduction;
 
 // Build configurations
 const configs = [];
@@ -51,7 +164,7 @@ Object.entries(entries).forEach(([name, input]) => {
     output: {
       file: `dist/${name}.js`,
       format: "iife",
-      sourcemap: true,
+      sourcemap: generateSourceMap,
       exports: "auto",
       name: exportName,
       extend: true,
@@ -61,7 +174,7 @@ Object.entries(entries).forEach(([name, input]) => {
       cache(),
       esbuild({
         tsconfig: "./tsconfig.json",
-        sourceMap: true,
+        sourceMap: generateSourceMap,
       }),
       babel({
         babelHelpers: "bundled",
@@ -86,7 +199,7 @@ Object.entries(entries).forEach(([name, input]) => {
     output: {
       file: `dist/${name}.min.js`,
       format: "iife",
-      sourcemap: true,
+      sourcemap: generateSourceMap,
       exports: "auto",
       name: exportName,
       extend: true,
@@ -96,7 +209,7 @@ Object.entries(entries).forEach(([name, input]) => {
       cache(),
       esbuild({
         tsconfig: "./tsconfig.json",
-        sourceMap: true,
+        sourceMap: generateSourceMap,
       }),
       babel({
         babelHelpers: "bundled",
@@ -126,7 +239,9 @@ Object.entries(entries).forEach(([name, input]) => {
         format: {
           comments: false,
         },
-        mangle: false,
+        mangle: {
+          reserved: reservedWords,
+        },
       }),
     ],
   });
@@ -139,7 +254,7 @@ Object.entries(esmEntries).forEach(([name, input]) => {
     output: {
       file: `dist/esm/${name}.js`,
       format: "es",
-      sourcemap: true,
+      sourcemap: generateSourceMap,
       exports: "auto",
     },
     external: ["window.API", "window.API_1484_11"],
@@ -147,7 +262,7 @@ Object.entries(esmEntries).forEach(([name, input]) => {
       cache(),
       esbuild({
         tsconfig: "./tsconfig.json",
-        sourceMap: true,
+        sourceMap: generateSourceMap,
         target: "es2022",
       }),
     ],
@@ -159,7 +274,7 @@ Object.entries(esmEntries).forEach(([name, input]) => {
     output: {
       file: `dist/esm/${name}.min.js`,
       format: "es",
-      sourcemap: true,
+      sourcemap: generateSourceMap,
       exports: "auto",
     },
     external: ["window.API", "window.API_1484_11"],
@@ -167,7 +282,7 @@ Object.entries(esmEntries).forEach(([name, input]) => {
       cache(),
       esbuild({
         tsconfig: "./tsconfig.json",
-        sourceMap: true,
+        sourceMap: generateSourceMap,
         target: "es2022",
       }),
       terser({
@@ -184,7 +299,9 @@ Object.entries(esmEntries).forEach(([name, input]) => {
         format: {
           comments: false,
         },
-        mangle: false,
+        mangle: {
+          reserved: reservedWords,
+        },
       }),
     ],
   });

@@ -150,7 +150,7 @@ jobs:
       # Analyze bundle size
       - name: Analyze bundle size
         run: |
-          npm run build:all
+          npm run build:all:prod
           ls -la dist/*.js | awk '{print $5, $9}' > bundle-size.txt
           cat bundle-size.txt
 
