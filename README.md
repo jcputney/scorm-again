@@ -1,4 +1,5 @@
 [![Github Actions](https://img.shields.io/github/actions/workflow/status/jcputney/scorm-again/main.yml?style=for-the-badge "Build Status")](https://github.com/jcputney/scorm-again/actions)
+[![Codecov](https://img.shields.io/codecov/c/github/jcputney/scorm-again?style=for-the-badge "Code Coverage")](https://codecov.io/gh/jcputney/scorm-again)
 ![jsDelivr hits (npm)](https://img.shields.io/jsdelivr/npm/hy/scorm-again?style=for-the-badge&label=jsDeliver%20Downloads)
 ![NPM Downloads](https://img.shields.io/npm/dy/scorm-again?style=for-the-badge&label=npm%20Downloads)
 ![npm bundle size](https://img.shields.io/bundlephobia/min/scorm-again?style=for-the-badge)
