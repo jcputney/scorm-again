@@ -375,10 +375,8 @@ export class CMICore extends BaseCMI {
    */
   getCurrentTotalTime(start_time: number | undefined): string {
     let sessionTime = this._session_time;
-    const startTime = start_time;
-
-    if (typeof startTime !== "undefined" && startTime !== null) {
-      const seconds = new Date().getTime() - startTime;
+    if (typeof start_time !== "undefined" && start_time !== null) {
+      const seconds = new Date().getTime() - start_time;
       sessionTime = Util.getSecondsAsHHMMSS(seconds / 1000);
     }
 

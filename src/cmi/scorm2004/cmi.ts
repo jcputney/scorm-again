@@ -434,7 +434,7 @@ export class CMI extends BaseRootCMI {
    * @return {string} ISO8601 Duration
    */
   getCurrentTotalTime(): string {
-    return this.session.getCurrentTotalTime();
+    return this.session.getCurrentTotalTime(this.start_time);
   }
 
   /**

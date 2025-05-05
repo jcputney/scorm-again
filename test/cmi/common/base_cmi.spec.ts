@@ -1,12 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BaseCMI, BaseRootCMI } from "../../../src/cmi/common/base_cmi";
-
-// Create a concrete implementation of BaseCMI for testing
-class TestCMI extends BaseCMI {
-  reset(): void {
-    this._initialized = false;
-  }
-}
 
 // Create a concrete implementation of BaseRootCMI for testing
 class TestRootCMI extends BaseRootCMI {
@@ -20,10 +13,10 @@ class TestRootCMI extends BaseRootCMI {
 }
 
 describe("BaseCMI", () => {
-  let cmi: TestCMI;
+  let cmi: TestRootCMI;
 
   beforeEach(() => {
-    cmi = new TestCMI("cmi.test");
+    cmi = new TestRootCMI("cmi.test");
   });
 
   it("should initialize correctly", () => {
@@ -81,4 +74,4 @@ describe("BaseRootCMI", () => {
   it("should implement getCurrentTotalTime", () => {
     expect(rootCMI.getCurrentTotalTime()).toBe("PT1H30M5S");
   });
-}); 
+});

@@ -323,8 +323,8 @@ class Scorm12API extends BaseAPI {
    */
   renderCommitObject(terminateCommit: boolean, includeTotalTime: boolean = false): CommitObject {
     const cmiExport = this.renderCommitCMI(terminateCommit, includeTotalTime);
-    const totalTimeHHMMSS =
-      terminateCommit || includeTotalTime ? this.cmi.getCurrentTotalTime() : "";
+    const calculateTotalTime = terminateCommit || includeTotalTime;
+    const totalTimeHHMMSS = calculateTotalTime ? this.cmi.getCurrentTotalTime() : "";
     const totalTimeSeconds = Utilities.getTimeAsSeconds(totalTimeHHMMSS, scorm12_regex.CMITimespan);
     const lessonStatus = this.cmi.core.lesson_status;
     let completionStatus = CompletionStatus.UNKNOWN;

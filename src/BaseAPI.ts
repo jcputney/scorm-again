@@ -2,14 +2,8 @@ import { ErrorCode } from "./constants/error_codes";
 import { global_constants } from "./constants/api_constants";
 import * as Utilities from "./utilities";
 import { formatMessage, StringKeyMap, stringMatches } from "./utilities";
-import { BaseCMI } from "./cmi/common/base_cmi";
-import {
-  CommitObject,
-  InternalSettings,
-  LogLevel,
-  ResultObject,
-  Settings,
-} from "./types/api_types";
+import { BaseCMI, BaseRootCMI } from "./cmi/common/base_cmi";
+import { CommitObject, InternalSettings, LogLevel, ResultObject, Settings } from "./types/api_types";
 import { DefaultSettings } from "./constants/default_settings";
 import { IBaseAPI } from "./interfaces/IBaseAPI";
 import { ScheduledCommit } from "./types/scheduled_commit";
@@ -27,7 +21,7 @@ import {
   IHttpService,
   ILoggingService,
   IOfflineStorageService,
-  ISerializationService,
+  ISerializationService
 } from "./interfaces/services";
 import { CMIArray } from "./cmi/common/array";
 import { ValidationError } from "./exceptions";
@@ -88,7 +82,7 @@ export default abstract class BaseAPI implements IBaseAPI {
 
     // Initialize and configure LoggingService
     this._loggingService = loggingService || getLoggingService();
-    this._loggingService.setLogLevel(this.apiLogLevel);
+    this._loggingService.setLogLevel(this.settings.logLevel);
 
     // If settings include a custom onLogMessage function, use it as the log handler
     if (this.settings.onLogMessage) {
@@ -159,8 +153,6 @@ export default abstract class BaseAPI implements IBaseAPI {
   public startingData?: StringKeyMap;
 
   public currentState: number;
-  public apiLogLevel: LogLevel;
-  public selfReportSessionTime: boolean;
 
   /**
    * Get the last error code
@@ -234,8 +226,8 @@ export default abstract class BaseAPI implements IBaseAPI {
     } else if (this.isTerminated()) {
       this.throwSCORMError("api", this._error_codes.TERMINATED, terminationMessage);
     } else {
-      if (this.selfReportSessionTime) {
-        this.cmi.setStartTime();
+      if (this.settings.selfReportSessionTime) {
+        (this.cmi as BaseRootCMI).setStartTime();
       }
 
       this.currentState = global_constants.STATE_INITIALIZED;
@@ -367,13 +359,16 @@ export default abstract class BaseAPI implements IBaseAPI {
 
   /**
    * Render the cmi object to the proper format for LMS commit
-   * APIs that inherit BaseAPI should override this function
    *
-   * @param {boolean} _terminateCommit
+   * @param {boolean} _terminateCommit - Whether this commit is part of the termination process
+   * @param {boolean} [_includeTotalTime] - Whether to include total time in the commit data
    * @return {StringKeyMap|Array}
    * @abstract
    */
-  abstract renderCommitCMI(_terminateCommit: boolean): StringKeyMap | Array<string>;
+  abstract renderCommitCMI(
+    _terminateCommit: boolean,
+    _includeTotalTime?: boolean,
+  ): StringKeyMap | Array<string>;
 
   /**
    * Render the commit object to the shortened format for LMS commit.
@@ -381,6 +376,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * It is called during the commit process to prepare the data for transmission.
    *
    * @param {boolean} _terminateCommit - Whether this commit is part of the termination process
+   * @param {boolean} [_includeTotalTime] - Whether to include total time in the commit data
    * @return {CommitObject} A formatted object containing the data to be sent to the LMS
    * @example
    * // Example of a commit object structure
@@ -392,7 +388,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    *   }
    * }
    */
-  abstract renderCommitObject(_terminateCommit: boolean): CommitObject;
+  abstract renderCommitObject(_terminateCommit: boolean, _includeTotalTime?: boolean): CommitObject;
 
   /**
    * Logging for all SCORM actions
@@ -405,7 +401,7 @@ export default abstract class BaseAPI implements IBaseAPI {
   apiLog(functionName: string, logMessage: string, messageLevel: LogLevel, CMIElement?: string) {
     logMessage = formatMessage(functionName, logMessage, CMIElement);
 
-    if (messageLevel >= this.apiLogLevel) {
+    if (messageLevel >= this.settings.logLevel) {
       // Use the injected LoggingService
       this._loggingService.log(messageLevel, logMessage);
     }
@@ -425,14 +421,18 @@ export default abstract class BaseAPI implements IBaseAPI {
    */
   set settings(settings: Settings) {
     const previousSettings = this._settings;
+    // Merge the incoming settings with the existing settings
     this._settings = { ...this._settings, ...settings } as InternalSettings;
 
     // Update HTTP service settings
     this._httpService?.updateSettings(this._settings);
 
+    // The following properties are duplicated as class properties for easier access
+    // and need to be manually updated to stay in sync with the settings object
+
     // Update log level if it changed
     if (settings.logLevel !== undefined && settings.logLevel !== previousSettings.logLevel) {
-      this.apiLogLevel = settings.logLevel;
+      this.settings.logLevel = settings.logLevel;
       this._loggingService?.setLogLevel(settings.logLevel);
     }
 
@@ -1423,9 +1423,11 @@ export default abstract class BaseAPI implements IBaseAPI {
       terminateCommit,
       this.settings.alwaysSendTotalTime,
       this.settings.renderCommonCommitFields,
-      (terminateCommit) => this.renderCommitObject(terminateCommit),
-      (terminateCommit) => this.renderCommitCMI(terminateCommit),
-      this.apiLogLevel,
+      (terminateCommit: boolean, includeTotalTime?: boolean) =>
+        this.renderCommitObject(terminateCommit, includeTotalTime),
+      (terminateCommit: boolean, includeTotalTime?: boolean) =>
+        this.renderCommitCMI(terminateCommit, includeTotalTime),
+      this.settings.logLevel,
     );
   }
 }

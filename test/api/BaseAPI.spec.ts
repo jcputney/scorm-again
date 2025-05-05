@@ -226,7 +226,7 @@ describe("BaseAPI", () => {
 
     it("should return SCORM_TRUE when initialization is successful", () => {
       api.currentState = global_constants.STATE_NOT_INITIALIZED;
-      api.selfReportSessionTime = true;
+      api.settings.selfReportSessionTime = true;
       const processListenersSpy = vi.spyOn(api, "processListeners");
 
       const result = api.initialize("initialize");
@@ -237,13 +237,37 @@ describe("BaseAPI", () => {
       expect(startTime).toHaveBeenCalledOnce();
       expect(processListenersSpy).toHaveBeenCalledWith("initialize");
     });
+
+    it("should call setStartTime when selfReportSessionTime is set through settings", () => {
+      api.currentState = global_constants.STATE_NOT_INITIALIZED;
+      api.settings = { selfReportSessionTime: true };
+
+      const result = api.initialize("initialize");
+
+      expect(result).toBe(global_constants.SCORM_TRUE);
+      expect(api.currentState).toBe(global_constants.STATE_INITIALIZED);
+      const startTime = api.cmi.setStartTime as ReturnType<typeof vi.fn>;
+      expect(startTime).toHaveBeenCalledOnce();
+    });
+
+    it("should not call setStartTime when selfReportSessionTime is false", () => {
+      api.currentState = global_constants.STATE_NOT_INITIALIZED;
+      api.settings = { selfReportSessionTime: false };
+
+      const result = api.initialize("initialize");
+
+      expect(result).toBe(global_constants.SCORM_TRUE);
+      expect(api.currentState).toBe(global_constants.STATE_INITIALIZED);
+      const startTime = api.cmi.setStartTime as ReturnType<typeof vi.fn>;
+      expect(startTime).not.toHaveBeenCalled();
+    });
   });
 
   describe("apiLog", () => {
     it("should call loggingService.log when message level is higher than apiLogLevel", () => {
       const loggingService = getLoggingService();
       const logSpy = vi.spyOn(loggingService, "log");
-      api.apiLogLevel = LogLevelEnum.ERROR;
+      api.settings.logLevel = LogLevelEnum.ERROR;
 
       api.apiLog("test", "Test message", LogLevelEnum.WARN);
 
@@ -253,7 +277,7 @@ describe("BaseAPI", () => {
     it("should not call loggingService.log when message level is lower than apiLogLevel", () => {
       const loggingService = getLoggingService();
       const logSpy = vi.spyOn(loggingService, "log");
-      api.apiLogLevel = LogLevelEnum.ERROR;
+      api.settings.logLevel = LogLevelEnum.ERROR;
 
       api.apiLog("test", "Test message", LogLevelEnum.DEBUG);
 
@@ -268,7 +292,7 @@ describe("BaseAPI", () => {
 
       api.settings = { logLevel: LogLevelEnum.DEBUG };
 
-      expect(api.apiLogLevel).toBe(LogLevelEnum.DEBUG);
+      expect(api.settings.logLevel).toBe(LogLevelEnum.DEBUG);
       expect(setLogLevelSpy).toHaveBeenCalledWith(LogLevelEnum.DEBUG);
     });
 
@@ -280,6 +304,18 @@ describe("BaseAPI", () => {
       api.settings = { onLogMessage: customHandler };
 
       expect(setLogHandlerSpy).toHaveBeenCalledWith(customHandler);
+    });
+
+    it("should update selfReportSessionTime when settings.selfReportSessionTime changes", () => {
+      api.settings.selfReportSessionTime = false;
+
+      api.settings = { selfReportSessionTime: true };
+
+      expect(api.settings.selfReportSessionTime).toBe(true);
+
+      api.settings = { selfReportSessionTime: false };
+
+      expect(api.settings.selfReportSessionTime).toBe(false);
     });
   });
 
@@ -434,7 +470,7 @@ describe("BaseAPI", () => {
         api.settings.renderCommonCommitFields,
         expect.any(Function),
         expect.any(Function),
-        api.apiLogLevel,
+        api.settings.logLevel,
       );
     });
 
@@ -457,7 +493,7 @@ describe("BaseAPI", () => {
         api.settings.renderCommonCommitFields,
         expect.any(Function),
         expect.any(Function),
-        api.apiLogLevel,
+        api.settings.logLevel,
       );
     });
   });
@@ -1232,6 +1268,24 @@ describe("BaseAPI", () => {
       expect(api.isTerminated()).toBe(true);
     });
   });
+  describe("constructor with logLevel settings", () => {
+    it("should initialize apiLogLevel from settings", () => {
+      // Create API with DEBUG log level
+      const settings = { logLevel: LogLevelEnum.DEBUG };
+      const testApi = new TestAPI(errorCodes, settings);
+
+      // Verify apiLogLevel is set to DEBUG
+      expect(testApi.settings.logLevel).toBe(LogLevelEnum.DEBUG);
+
+      // Create API with INFO log level
+      const settings2 = { logLevel: LogLevelEnum.INFO };
+      const testApi2 = new TestAPI(errorCodes, settings2);
+
+      // Verify apiLogLevel is set to INFO
+      expect(testApi2.settings.logLevel).toBe(LogLevelEnum.INFO);
+    });
+  });
+
   describe("constructor with offline storage", () => {
     beforeEach(() => {
       vi.restoreAllMocks();

@@ -735,8 +735,8 @@ class Scorm2004API extends BaseAPI {
    */
   renderCommitObject(terminateCommit: boolean, includeTotalTime: boolean = false): CommitObject {
     const cmiExport = this.renderCommitCMI(terminateCommit, includeTotalTime);
-    const totalTimeDuration =
-      terminateCommit || includeTotalTime ? this.cmi.getCurrentTotalTime() : "";
+    const calculateTotalTime = terminateCommit || includeTotalTime;
+    const totalTimeDuration = calculateTotalTime ? this.cmi.getCurrentTotalTime() : "";
     const totalTimeSeconds = Utilities.getDurationAsSeconds(
       totalTimeDuration,
       scorm2004_regex.CMITimespan,
@@ -813,9 +813,7 @@ class Scorm2004API extends BaseAPI {
     if (typeof this.settings.lmsCommitUrl === "string") {
       const result = await this.processHttpRequest(
         this.settings.lmsCommitUrl,
-        {
-          commitObject: commitObject,
-        },
+        commitObject,
         terminateCommit,
       );
 
@@ -840,7 +838,7 @@ class Scorm2004API extends BaseAPI {
     }
 
     return {
-      result: "true",
+      result: global_constants.SCORM_TRUE,
       errorCode: 0,
     };
   }

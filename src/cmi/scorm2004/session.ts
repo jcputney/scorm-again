@@ -129,12 +129,10 @@ export class CMISession extends BaseCMI {
    *
    * @return {string} ISO8601 Duration
    */
-  getCurrentTotalTime(): string {
+  getCurrentTotalTime(start_time: number | undefined): string {
     let sessionTime = this._session_time;
-    const startTime = this.start_time;
-
-    if (typeof startTime !== "undefined" && startTime !== null) {
-      const seconds = new Date().getTime() - startTime;
+    if (typeof start_time !== "undefined" && start_time !== null) {
+      const seconds = new Date().getTime() - start_time;
       sessionTime = Util.getSecondsAsISODuration(seconds / 1000);
     }
 

@@ -5,7 +5,6 @@ export abstract class BaseCMI {
   jsonString = false;
   protected readonly _cmi_element: string;
   protected _initialized = false;
-  private _start_time: number | undefined;
 
   /**
    * Constructor for BaseCMI
@@ -24,26 +23,10 @@ export abstract class BaseCMI {
   }
 
   /**
-   * Getter for _start_time
-   * @return {number | undefined}
-   */
-  get start_time(): number | undefined {
-    return this._start_time;
-  }
-
-  /**
    * Called when the API has been initialized after the CMI has been created
    */
   initialize(): void {
     this._initialized = true;
-  }
-
-  /**
-   * Called when the player should override the 'session_time' provided by
-   * the module
-   */
-  setStartTime(): void {
-    this._start_time = new Date().getTime();
   }
 
   abstract reset(): void;
@@ -53,5 +36,27 @@ export abstract class BaseCMI {
  * Base class for cmi root objects
  */
 export abstract class BaseRootCMI extends BaseCMI {
+  protected _start_time: number | undefined;
+
+  /**
+   * Start time of the course
+   * @type {number | undefined}
+   * @protected
+   */
+  get start_time(): number | undefined {
+    return this._start_time;
+  }
+
+  /**
+   * Setter for start_time. Can only be called once.
+   */
+  setStartTime(): void {
+    if (this._start_time === undefined) {
+      this._start_time = new Date().getTime();
+    } else {
+      throw new Error("Start time has already been set.");
+    }
+  }
+
   abstract getCurrentTotalTime(): string;
 }
