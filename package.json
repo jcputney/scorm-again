@@ -192,6 +192,7 @@
     "test": "vitest run",
     "test:min": "vitest run --reporter=basic",
     "test:coverage": "vitest run --coverage",
+    "test:codecov": "vitest run --reporter=junit --outputFile=test-report.junit.xml",
     "test:integration:setup": "tsx test/integration/setup.ts",
     "test:integration:server": "tsx test/integration/server.ts",
     "test:integration": "npm run build && npx playwright test",

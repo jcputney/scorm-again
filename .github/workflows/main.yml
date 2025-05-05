@@ -53,7 +53,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Running tests for codecov
-        run: vitest run --reporter=junit --outputFile=test-report.junit.xml
+        run: npm run test:codecov
 
       - name: Upload test results to Codecov
         if: ${{ !cancelled() }}
