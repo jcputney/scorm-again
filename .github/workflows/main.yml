@@ -167,5 +167,5 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "[skip ci] Add changes during build"
-          file_pattern: "dist/**/*.* src/**/*.* test/**/*.* src/*.* test/*.* reports/*.*"
+          file_pattern: "dist/**/*.* src/**/*.* reports/**/*.* test/**/*.* src/*.* test/*.*"
           skip_dirty_check: false
