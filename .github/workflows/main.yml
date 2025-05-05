@@ -52,6 +52,15 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
+      - name: Running tests for codecov
+        run: vitest run --reporter=junit --outputFile=test-report.junit.xml
+
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
       - name: 'Copy lcov.info'
         run: |
           cp coverage/lcov.info .qodana/code-coverage/lcov.info
