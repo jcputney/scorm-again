@@ -9,7 +9,7 @@ import { CMIObjectivesObject } from "./cmi/scorm12/objectives";
 import {
   CMIInteractionsCorrectResponsesObject,
   CMIInteractionsObject,
-  CMIInteractionsObjectivesObject,
+  CMIInteractionsObjectivesObject
 } from "./cmi/scorm12/interactions";
 import { NAV } from "./cmi/scorm12/nav";
 import { CommitObject, ResultObject, ScoreObject, Settings } from "./types/api_types";
@@ -293,7 +293,7 @@ class Scorm12API extends BaseAPI {
   ): StringKeyMap | Array<string> {
     const cmiExport: StringKeyMap = this.renderCMIToJSONObject();
 
-    if (includeTotalTime) {
+    if (terminateCommit || includeTotalTime) {
       (cmiExport.cmi as any).core.total_time = this.cmi.getCurrentTotalTime();
     }
 
@@ -323,7 +323,8 @@ class Scorm12API extends BaseAPI {
    */
   renderCommitObject(terminateCommit: boolean, includeTotalTime: boolean = false): CommitObject {
     const cmiExport = this.renderCommitCMI(terminateCommit, includeTotalTime);
-    const totalTimeHHMMSS = includeTotalTime ? this.cmi.getCurrentTotalTime() : "";
+    const totalTimeHHMMSS =
+      terminateCommit || includeTotalTime ? this.cmi.getCurrentTotalTime() : "";
     const totalTimeSeconds = Utilities.getTimeAsSeconds(totalTimeHHMMSS, scorm12_regex.CMITimespan);
     const lessonStatus = this.cmi.core.lesson_status;
     let completionStatus = CompletionStatus.UNKNOWN;

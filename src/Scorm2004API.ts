@@ -14,7 +14,7 @@ import {
   SequencingControlsSettings,
   SequencingRuleSettings,
   SequencingRulesSettings,
-  SequencingSettings,
+  SequencingSettings
 } from "./types/sequencing_types";
 import { RuleCondition, SequencingRule } from "./cmi/scorm2004/sequencing/sequencing_rules";
 import { RollupCondition, RollupRule } from "./cmi/scorm2004/sequencing/rollup_rules";
@@ -23,7 +23,7 @@ import { BaseCMI } from "./cmi/common/base_cmi";
 import {
   CMIInteractionsCorrectResponsesObject,
   CMIInteractionsObject,
-  CMIInteractionsObjectivesObject,
+  CMIInteractionsObjectivesObject
 } from "./cmi/scorm2004/interactions";
 import { CMIArray } from "./cmi/common/array";
 import { CorrectResponses, ResponseType } from "./constants/response_constants";
@@ -705,7 +705,7 @@ class Scorm2004API extends BaseAPI {
   ): StringKeyMap | Array<any> {
     const cmiExport: StringKeyMap = this.renderCMIToJSONObject();
 
-    if (includeTotalTime) {
+    if (terminateCommit || includeTotalTime) {
       (cmiExport.cmi as any).total_time = (this.cmi as any).getCurrentTotalTime();
     }
 
@@ -735,7 +735,8 @@ class Scorm2004API extends BaseAPI {
    */
   renderCommitObject(terminateCommit: boolean, includeTotalTime: boolean = false): CommitObject {
     const cmiExport = this.renderCommitCMI(terminateCommit, includeTotalTime);
-    const totalTimeDuration = includeTotalTime ? this.cmi.getCurrentTotalTime() : "";
+    const totalTimeDuration =
+      terminateCommit || includeTotalTime ? this.cmi.getCurrentTotalTime() : "";
     const totalTimeSeconds = Utilities.getDurationAsSeconds(
       totalTimeDuration,
       scorm2004_regex.CMITimespan,
