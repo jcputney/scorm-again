@@ -1,3 +1,5 @@
+// noinspection DuplicatedCode
+
 import { describe, expect, it } from "vitest";
 import {
   RollupActionType,
@@ -39,7 +41,7 @@ describe("Additional RollupRules Tests", () => {
         const parameters = new Map([["threshold", 0.5]]);
         const condition = new RollupCondition(
           RollupConditionType.OBJECTIVE_MEASURE_LESS_THAN,
-          parameters
+          parameters,
         );
         const activity = new Activity();
 
@@ -221,6 +223,58 @@ describe("Additional RollupRules Tests", () => {
         // Activity status should remain unchanged
         expect(activity.completionStatus).toBe(CompletionStatus.UNKNOWN);
         expect(activity.successStatus).toBe(SuccessStatus.UNKNOWN);
+      });
+
+      it("should mark activity as completed when all children are completed", () => {
+        const rules = new RollupRules();
+        const activity = new Activity("activity", "Activity");
+        const child1 = new Activity("child1", "Child 1");
+        const child2 = new Activity("child2", "Child 2");
+        const child3 = new Activity("child3", "Child 3");
+
+        activity.addChild(child1);
+        activity.addChild(child2);
+        activity.addChild(child3);
+
+        // Set all children as completed
+        child1.isCompleted = true;
+        child1.completionStatus = CompletionStatus.COMPLETED;
+
+        child2.isCompleted = true;
+        child2.completionStatus = CompletionStatus.COMPLETED;
+
+        child3.isCompleted = true;
+        child3.completionStatus = CompletionStatus.COMPLETED;
+
+        // Process rollup
+        rules.processRollup(activity);
+
+        // Activity should be marked as completed because all children are completed
+        expect(activity.isCompleted).toBe(true);
+        expect(activity.completionStatus).toBe(CompletionStatus.COMPLETED);
+      });
+
+      it("should mark activity as passed when all children are passed", () => {
+        const rules = new RollupRules();
+        const activity = new Activity("activity", "Activity");
+        const child1 = new Activity("child1", "Child 1");
+        const child2 = new Activity("child2", "Child 2");
+        const child3 = new Activity("child3", "Child 3");
+
+        activity.addChild(child1);
+        activity.addChild(child2);
+        activity.addChild(child3);
+
+        // Set all children as passed
+        child1.successStatus = SuccessStatus.PASSED;
+        child2.successStatus = SuccessStatus.PASSED;
+        child3.successStatus = SuccessStatus.PASSED;
+
+        // Process rollup
+        rules.processRollup(activity);
+
+        // Activity should be marked as passed because all children are passed
+        expect(activity.successStatus).toBe(SuccessStatus.PASSED);
       });
     });
   });

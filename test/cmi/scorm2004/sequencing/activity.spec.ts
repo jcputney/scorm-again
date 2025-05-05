@@ -36,6 +36,46 @@ describe("Activity", () => {
     });
   });
 
+  describe("id setter", () => {
+    it("should set id when valid format is provided", () => {
+      const activity = new Activity();
+      activity.id = "valid_id";
+      expect(activity.id).toBe("valid_id");
+    });
+
+    it("should throw error when invalid format is provided", () => {
+      const activity = new Activity("initial_id", "Title");
+
+      // Attempt to set an invalid id should throw an error
+      expect(() => {
+        activity.id = "".padEnd(4001, "a"); // Too long id
+      }).toThrow(Scorm2004ValidationError);
+
+      // Id should remain unchanged after error
+      expect(activity.id).toBe("initial_id");
+    });
+  });
+
+  describe("title setter", () => {
+    it("should set title when valid format is provided", () => {
+      const activity = new Activity();
+      activity.title = "Valid Title";
+      expect(activity.title).toBe("Valid Title");
+    });
+
+    it("should throw error when invalid format is provided", () => {
+      const activity = new Activity("id", "Initial Title");
+
+      // Attempt to set an invalid title should throw an error
+      expect(() => {
+        activity.title = "".padEnd(251, "a"); // Too long title
+      }).toThrow(Scorm2004ValidationError);
+
+      // Title should remain unchanged after error
+      expect(activity.title).toBe("Initial Title");
+    });
+  });
+
   describe("initialize", () => {
     it("should set initialized flag", () => {
       const activity = new Activity();
@@ -173,6 +213,115 @@ describe("Activity", () => {
 
       activity.completionStatus = CompletionStatus.UNKNOWN;
       expect(activity.isCompleted).toBe(false);
+    });
+  });
+
+  describe("isVisible", () => {
+    it("should get and set isVisible property", () => {
+      const activity = new Activity();
+      expect(activity.isVisible).toBe(true); // Default value
+
+      activity.isVisible = false;
+      expect(activity.isVisible).toBe(false);
+
+      activity.isVisible = true;
+      expect(activity.isVisible).toBe(true);
+    });
+  });
+
+  describe("isActive", () => {
+    it("should set isActive property", () => {
+      const activity = new Activity();
+      expect(activity.isActive).toBe(false); // Default value
+
+      activity.isActive = true;
+      expect(activity.isActive).toBe(true);
+
+      activity.isActive = false;
+      expect(activity.isActive).toBe(false);
+    });
+  });
+
+  describe("isSuspended", () => {
+    it("should get and set isSuspended property", () => {
+      const activity = new Activity();
+      expect(activity.isSuspended).toBe(false); // Default value
+
+      activity.isSuspended = true;
+      expect(activity.isSuspended).toBe(true);
+
+      activity.isSuspended = false;
+      expect(activity.isSuspended).toBe(false);
+    });
+  });
+
+  describe("isCompleted", () => {
+    it("should get and set isCompleted property", () => {
+      const activity = new Activity();
+      expect(activity.isCompleted).toBe(false); // Default value
+
+      activity.isCompleted = true;
+      expect(activity.isCompleted).toBe(true);
+
+      activity.isCompleted = false;
+      expect(activity.isCompleted).toBe(false);
+    });
+  });
+
+  describe("successStatus", () => {
+    it("should get and set successStatus property", () => {
+      const activity = new Activity();
+      expect(activity.successStatus).toBe(SuccessStatus.UNKNOWN); // Default value
+
+      activity.successStatus = SuccessStatus.PASSED;
+      expect(activity.successStatus).toBe(SuccessStatus.PASSED);
+
+      activity.successStatus = SuccessStatus.FAILED;
+      expect(activity.successStatus).toBe(SuccessStatus.FAILED);
+
+      activity.successStatus = SuccessStatus.UNKNOWN;
+      expect(activity.successStatus).toBe(SuccessStatus.UNKNOWN);
+    });
+  });
+
+  describe("objectiveMeasureStatus", () => {
+    it("should get and set objectiveMeasureStatus property", () => {
+      const activity = new Activity();
+      expect(activity.objectiveMeasureStatus).toBe(false); // Default value
+
+      activity.objectiveMeasureStatus = true;
+      expect(activity.objectiveMeasureStatus).toBe(true);
+
+      activity.objectiveMeasureStatus = false;
+      expect(activity.objectiveMeasureStatus).toBe(false);
+    });
+  });
+
+  describe("objectiveNormalizedMeasure", () => {
+    it("should get and set objectiveNormalizedMeasure property", () => {
+      const activity = new Activity();
+      expect(activity.objectiveNormalizedMeasure).toBe(0); // Default value
+
+      activity.objectiveNormalizedMeasure = 0.5;
+      expect(activity.objectiveNormalizedMeasure).toBe(0.5);
+
+      activity.objectiveNormalizedMeasure = 1;
+      expect(activity.objectiveNormalizedMeasure).toBe(1);
+    });
+  });
+
+  describe("parent", () => {
+    it("should get parent property", () => {
+      const parent = new Activity("parent", "Parent");
+      const child = new Activity("child", "Child");
+
+      expect(child.parent).toBe(null); // Default value
+
+      parent.addChild(child);
+      expect(child.parent).toBe(parent);
+
+      parent.removeChild(child);
+      expect(child.parent).toBe(null);
     });
   });
 

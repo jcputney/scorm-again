@@ -1,3 +1,5 @@
+// noinspection DuplicatedCode
+
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { Sequencing } from "../../../../src/cmi/scorm2004/sequencing/sequencing";

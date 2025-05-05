@@ -1,3 +1,5 @@
+// noinspection DuplicatedCode
+
 import { describe, expect, it } from "vitest";
 import { CMI } from "../../src/cmi/scorm2004/cmi";
 

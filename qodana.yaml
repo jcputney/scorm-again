@@ -6,3 +6,7 @@ bootstrap: npm install
 include:
   - name: CheckDependencyLicenses
   - name: Eslint
+exclude:
+  - name: All
+    paths:
+      - test

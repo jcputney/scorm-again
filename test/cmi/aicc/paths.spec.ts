@@ -61,6 +61,7 @@ describe("CMIPathsObject", () => {
   });
 
   it("should initialize with empty values", () => {
+    // noinspection DuplicatedCode
     expect(pathsObject.location_id).toBe("");
     expect(pathsObject.date).toBe("");
     expect(pathsObject.time).toBe("");
@@ -77,8 +78,7 @@ describe("CMIPathsObject", () => {
   it("should reject invalid location_id format", () => {
     expect(() => {
       // Create a very long string (> 256 chars)
-      const longLocation = "a".repeat(257);
-      pathsObject.location_id = longLocation;
+      pathsObject.location_id = "a".repeat(257);
     }).toThrow();
   });
 
@@ -90,8 +90,7 @@ describe("CMIPathsObject", () => {
   it("should reject invalid date format", () => {
     expect(() => {
       // Create a very long string (> 256 chars)
-      const longDate = "a".repeat(257);
-      pathsObject.date = longDate;
+      pathsObject.date = "a".repeat(257);
     }).toThrow();
   });
 
@@ -128,8 +127,7 @@ describe("CMIPathsObject", () => {
   it("should reject invalid why_left format", () => {
     expect(() => {
       // Create a very long string (> 256 chars)
-      const longReason = "a".repeat(257);
-      pathsObject.why_left = longReason;
+      pathsObject.why_left = "a".repeat(257);
     }).toThrow();
   });
 
@@ -154,6 +152,7 @@ describe("CMIPathsObject", () => {
 
     pathsObject.reset();
 
+    // noinspection DuplicatedCode
     expect(pathsObject.location_id).toBe("");
     expect(pathsObject.date).toBe("");
     expect(pathsObject.time).toBe("");

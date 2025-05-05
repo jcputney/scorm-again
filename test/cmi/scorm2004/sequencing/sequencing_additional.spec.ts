@@ -1,3 +1,5 @@
+// noinspection DuplicatedCode
+
 import { describe, expect, it, vi } from "vitest";
 import { Sequencing } from "../../../../src/cmi/scorm2004/sequencing/sequencing";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
@@ -75,8 +77,9 @@ describe("Additional Sequencing Tests", () => {
       vi.spyOn(sequencing.sequencingControls, "isForwardNavigationAllowed").mockReturnValue(true);
       vi.spyOn(sequencing.activityTree, "getNextSibling").mockReturnValue(nextActivity);
 
-      vi.spyOn(sequencing.sequencingRules, "evaluatePostConditionRules")
-        .mockReturnValue(RuleActionType.EXIT);
+      vi.spyOn(sequencing.sequencingRules, "evaluatePostConditionRules").mockReturnValue(
+        RuleActionType.EXIT,
+      );
 
       const currentActivitySpy = vi.spyOn(sequencing.activityTree, "currentActivity", "set");
 
@@ -117,7 +120,10 @@ describe("Additional Sequencing Tests", () => {
       const sequencing = new Sequencing();
       const activity = new Activity("activity", "Activity");
       const previousActivity = new Activity("previous", "Previous Activity");
-      const previousPreviousActivity = new Activity("previousPrevious", "Previous Previous Activity");
+      const previousPreviousActivity = new Activity(
+        "previousPrevious",
+        "Previous Previous Activity",
+      );
 
       vi.spyOn(sequencing.sequencingControls, "isBackwardNavigationAllowed").mockReturnValue(true);
       vi.spyOn(sequencing.activityTree, "getPreviousSibling")
@@ -145,8 +151,9 @@ describe("Additional Sequencing Tests", () => {
       vi.spyOn(sequencing.sequencingControls, "isBackwardNavigationAllowed").mockReturnValue(true);
       vi.spyOn(sequencing.activityTree, "getPreviousSibling").mockReturnValue(previousActivity);
 
-      vi.spyOn(sequencing.sequencingRules, "evaluatePostConditionRules")
-        .mockReturnValue(RuleActionType.EXIT);
+      vi.spyOn(sequencing.sequencingRules, "evaluatePostConditionRules").mockReturnValue(
+        RuleActionType.EXIT,
+      );
 
       const currentActivitySpy = vi.spyOn(sequencing.activityTree, "currentActivity", "set");
 
@@ -163,8 +170,9 @@ describe("Additional Sequencing Tests", () => {
       const sequencing = new Sequencing();
       const activity = new Activity("activity", "Activity");
 
-      vi.spyOn(sequencing.sequencingRules, "evaluateExitConditionRules")
-        .mockReturnValue(RuleActionType.EXIT_PARENT);
+      vi.spyOn(sequencing.sequencingRules, "evaluateExitConditionRules").mockReturnValue(
+        RuleActionType.EXIT_PARENT,
+      );
 
       // Call the private method using type assertion
       const result = (sequencing as any)._handleExitConditionAction(activity);

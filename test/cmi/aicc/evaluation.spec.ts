@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CMIEvaluation, CMIEvaluationCommentsObject } from "../../../src/cmi/aicc/evaluation";
 
 describe("CMIEvaluation", () => {
@@ -14,39 +14,43 @@ describe("CMIEvaluation", () => {
   });
 
   it("should have initialized property set to false by default", () => {
+    // eslint-disable-next-line
     // @ts-ignore - accessing private property for testing
     expect(evaluation._initialized).toBe(false);
   });
 
   it("should call initialize on comments when initialized", () => {
     const spy = vi.spyOn(evaluation.comments, "initialize");
-    
+
     evaluation.initialize();
-    
+
     expect(spy).toHaveBeenCalled();
+    // eslint-disable-next-line
     // @ts-ignore - accessing private property for testing
     expect(evaluation._initialized).toBe(true);
   });
 
   it("should reset properly", () => {
     evaluation.initialize();
+    // eslint-disable-next-line
     // @ts-ignore - accessing private property for testing
     expect(evaluation._initialized).toBe(true);
-    
+
     const spy = vi.spyOn(evaluation.comments, "reset");
-    
+
     evaluation.reset();
-    
+
     expect(spy).toHaveBeenCalled();
+    // eslint-disable-next-line
     // @ts-ignore - accessing private property for testing
     expect(evaluation._initialized).toBe(false);
   });
 
   it("should convert to JSON correctly", () => {
     const json = evaluation.toJSON();
-    
+
     expect(json).toEqual({
-      comments: evaluation.comments
+      comments: evaluation.comments,
     });
   });
 });
@@ -82,16 +86,14 @@ describe("CMIEvaluationCommentsObject", () => {
   it("should reject invalid content format", () => {
     expect(() => {
       // Create a very long string (> 256 chars)
-      const longContent = "a".repeat(257);
-      commentsObject.content = longContent;
+      commentsObject.content = "a".repeat(257);
     }).toThrow();
   });
 
   it("should reject invalid location format", () => {
     expect(() => {
       // Create a very long string (> 256 chars)
-      const longLocation = "a".repeat(257);
-      commentsObject.location = longLocation;
+      commentsObject.location = "a".repeat(257);
     }).toThrow();
   });
 
@@ -105,9 +107,9 @@ describe("CMIEvaluationCommentsObject", () => {
     commentsObject.content = "Test content";
     commentsObject.location = "Test location";
     commentsObject.time = "12:30:45";
-    
+
     commentsObject.reset();
-    
+
     expect(commentsObject.content).toBe("");
     expect(commentsObject.location).toBe("");
     expect(commentsObject.time).toBe("");
@@ -117,13 +119,13 @@ describe("CMIEvaluationCommentsObject", () => {
     commentsObject.content = "Test content";
     commentsObject.location = "Test location";
     commentsObject.time = "12:30:45";
-    
+
     const json = commentsObject.toJSON();
-    
+
     expect(json).toEqual({
       content: "Test content",
       location: "Test location",
-      time: "12:30:45"
+      time: "12:30:45",
     });
   });
-}); 
+});
