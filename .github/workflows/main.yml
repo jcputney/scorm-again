@@ -41,7 +41,7 @@ jobs:
 
       # Create required directories
       - name: Create directories
-        run: mkdir -p reports dist docs test-results .qodana/code-coverage
+        run: mkdir -p reports dist docs test-results
 
       # Run Vitest tests with coverage
       - name: Run unit tests with Vitest
@@ -60,11 +60,6 @@ jobs:
         uses: codecov/test-results-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: 'Copy lcov.info'
-        run: |
-          cp coverage/lcov.info .qodana/code-coverage/lcov.info
-          cp coverage/coverage-summary.json .qodana/code-coverage/coverage-summary.json
 
       # Upload unit test results to GitHub
       - name: 'Report Coverage'
@@ -159,11 +154,9 @@ jobs:
           ls -la dist/*.js | awk '{print $5, $9}' > bundle-size.txt
           cat bundle-size.txt
 
-      # Generate code coverage report and upload to Qlty
-      - uses: qltysh/qlty-action/coverage@main
-        with:
-          coverage-token: ${{secrets.QLTY_COVERAGE_TOKEN}}
-          files: ${{github.workspace}}/coverage/lcov.info
+      - name: Bundle analysis
+        run: npx @codecov/bundle-analyzer ./dist --bundle-name=scorm-again --upload-token=${{ secrets.CODECOV_TOKEN }}
+        working-directory: ./
 
       # Format code with Prettier
       - name: Format code with Prettier
@@ -174,5 +167,5 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "[skip ci] Add changes during build"
-          file_pattern: "dist/**/*.* src/**/*.* test/**/*.* src/*.* test/*.* .qodana/*.*"
+          file_pattern: "dist/**/*.* src/**/*.* test/**/*.* src/*.* test/*.* reports/*.*"
           skip_dirty_check: false

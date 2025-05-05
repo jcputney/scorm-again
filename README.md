@@ -156,7 +156,7 @@ For detailed implementation guides and examples, see our [offline support docume
 - [Development Workflow](docs/developer/development_workflow.md)
 - [Contribution Guidelines](docs/developer/contribution_guidelines.md)
 - [Testing Strategy](docs/developer/testing_strategy.md)
-- [Method Standards](src/docs/method_standards.md)
+- [Method Standards](docs/method_standards.md)
 
 ### Style Guide
 

@@ -3,16 +3,10 @@ import { global_constants } from "./constants/api_constants";
 import * as Utilities from "./utilities";
 import { formatMessage, StringKeyMap, stringMatches } from "./utilities";
 import { BaseCMI } from "./cmi/common/base_cmi";
-import {
-  CommitObject,
-  InternalSettings,
-  LogLevel,
-  ResultObject,
-  Settings,
-} from "./types/api_types";
+import { CommitObject, InternalSettings, LogLevel, ResultObject, Settings } from "./types/api_types";
 import { DefaultSettings } from "./constants/default_settings";
 import { IBaseAPI } from "./interfaces/IBaseAPI";
-import { ScheduledCommit } from "./helpers/scheduled_commit";
+import { ScheduledCommit } from "./types/scheduled_commit";
 import { LogLevelEnum } from "./constants/enums";
 import { HttpService } from "./services/HttpService";
 import { EventService } from "./services/EventService";
@@ -27,7 +21,7 @@ import {
   IHttpService,
   ILoggingService,
   IOfflineStorageService,
-  ISerializationService,
+  ISerializationService
 } from "./interfaces/services";
 import { CMIArray } from "./cmi/common/array";
 import { ValidationError } from "./exceptions";

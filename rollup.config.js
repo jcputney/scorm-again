@@ -2,7 +2,6 @@ import esbuild from "rollup-plugin-esbuild";
 import terser from "@rollup/plugin-terser";
 import cache from "@mo36924/rollup-plugin-cache";
 import { babel } from "@rollup/plugin-babel";
-import { codecovRollupPlugin } from "@codecov/rollup-plugin";
 
 // Entry points
 const entries = {
@@ -210,11 +209,6 @@ Object.entries(esmEntries).forEach(([name, input]) => {
         tsconfig: "./tsconfig.json",
         sourceMap: true,
         target: "es2022",
-      }),
-      codecovRollupPlugin({
-        enableBundleAnalysis: process.env.CODECOV_TOKEN !== undefined && name === "scorm-again",
-        bundleName: "scorm-again",
-        uploadToken: process.env.CODECOV_TOKEN,
       }),
     ],
   });

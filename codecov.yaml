@@ -1,0 +1,54 @@
+comment:
+  layout: "header, diff, flags, components"  # show component info in the PR comment
+
+component_management:
+  default_rules:
+    statuses:
+      - type: project
+        target: auto
+        branches:
+          - "!master"
+  individual_components:
+    - component_id: core
+      name: core
+      paths:
+        - src/**
+      statuses: # the core component has its own statuses
+        - type: project
+          target: auto
+        - type: patch
+    - component_id: cmi_common
+      name: cmi_common
+      paths:
+        - src/cmi/common/**
+    - component_id: cmi_aicc
+      name: cmi_aicc
+      paths:
+        - src/cmi/aicc/**
+    - component_id: cmi_scorm12
+      name: cmi_scorm12
+      paths:
+        - src/cmi/scorm12/**
+    - component_id: cmi_scorm2004
+      name: cmi_scorm2004
+      paths:
+        - src/cmi/scorm2004/**
+    - component_id: services
+      name: services
+      paths:
+        - src/services/**
+    - component_id: aicc
+      paths:
+        - src/AICC.ts
+    - component_id: scorm12
+      paths:
+        - src/Scorm12API.ts
+    - component_id: scorm2004
+      paths:
+        - src/Scorm2004API.ts
+    - component_id: cross_frame_lms
+      paths:
+        - src/CrossFrameLMS.ts
+    - component_id: cross_frame_api
+      paths:
+        - src/CrossFrameAPI.ts

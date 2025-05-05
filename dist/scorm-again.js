@@ -8299,6 +8299,9 @@ ${stackTrace}`);
      */
     reset() {
       this._initialized = false;
+      this._condition = "always" /* ALWAYS */;
+      this._operator = null;
+      this._parameters = /* @__PURE__ */new Map();
     }
     /**
      * Getter for condition
@@ -8348,16 +8351,16 @@ ${stackTrace}`);
      * @return {boolean} - True if the condition is met, false otherwise
      */
     evaluate(activity) {
-      let result = false;
+      let result;
       switch (this._condition) {
         case "satisfied" /* SATISFIED */:
           result = activity.successStatus === SuccessStatus.PASSED;
           break;
         case "objectiveStatusKnown" /* OBJECTIVE_STATUS_KNOWN */:
-          result = activity.objectiveMeasureStatus;
+          result = !!activity.objectiveMeasureStatus;
           break;
         case "objectiveMeasureKnown" /* OBJECTIVE_MEASURE_KNOWN */:
-          result = activity.objectiveMeasureStatus;
+          result = !!activity.objectiveMeasureStatus;
           break;
         case "objectiveMeasureGreaterThan" /* OBJECTIVE_MEASURE_GREATER_THAN */:
           {
@@ -8383,7 +8386,7 @@ ${stackTrace}`);
         case "attemptLimitExceeded" /* ATTEMPT_LIMIT_EXCEEDED */:
           {
             const attemptLimit = this._parameters.get("attemptLimit") || 0;
-            result = attemptLimit > 0 && activity.attemptCount >= attemptLimit;
+            result = activity.attemptCount >= attemptLimit;
             break;
           }
         case "timeLimitExceeded" /* TIME_LIMIT_EXCEEDED */:
@@ -8423,7 +8426,7 @@ ${stackTrace}`);
     /**
      * Constructor for SequencingRule
      * @param {RuleActionType} action - The action to take when the rule conditions are met
-     * @param {RuleConditionOperator} conditionCombination - How to combine multiple conditions
+     * @param {string | RuleConditionOperator} conditionCombination - How to combine multiple conditions ("all"/"and" or "any"/"or")
      */
     constructor() {
       let action = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "skip";
@@ -8441,6 +8444,8 @@ ${stackTrace}`);
     reset() {
       this._initialized = false;
       this._conditions = [];
+      this._action = "skip" /* SKIP */;
+      this._conditionCombination = "and" /* AND */;
     }
     /**
      * Getter for conditions
@@ -8457,7 +8462,9 @@ ${stackTrace}`);
       if (!(condition instanceof RuleCondition)) {
         throw new Scorm2004ValidationError(this._cmi_element + ".conditions", scorm2004_errors$1.TYPE_MISMATCH);
       }
-      this._conditions.push(condition);
+      if (!this._conditions.includes(condition)) {
+        this._conditions.push(condition);
+      }
     }
     /**
      * Remove a condition from the rule
@@ -8465,6 +8472,9 @@ ${stackTrace}`);
      * @return {boolean} - True if the condition was removed, false otherwise
      */
     removeCondition(condition) {
+      if (!(condition instanceof RuleCondition)) {
+        throw new Scorm2004ValidationError(this._cmi_element + ".conditions", scorm2004_errors$1.TYPE_MISMATCH);
+      }
       const index = this._conditions.indexOf(condition);
       if (index !== -1) {
         this._conditions.splice(index, 1);
@@ -8488,14 +8498,14 @@ ${stackTrace}`);
     }
     /**
      * Getter for conditionCombination
-     * @return {RuleConditionOperator}
+     * @return {string | RuleConditionOperator}
      */
     get conditionCombination() {
       return this._conditionCombination;
     }
     /**
      * Setter for conditionCombination
-     * @param {RuleConditionOperator} conditionCombination
+     * @param {string | RuleConditionOperator} conditionCombination
      */
     set conditionCombination(conditionCombination) {
       this._conditionCombination = conditionCombination;
@@ -8509,9 +8519,9 @@ ${stackTrace}`);
       if (this._conditions.length === 0) {
         return true;
       }
-      if (this._conditionCombination === "and" /* AND */) {
+      if (this._conditionCombination === "all" || this._conditionCombination === "and" /* AND */) {
         return this._conditions.every(condition => condition.evaluate(activity));
-      } else if (this._conditionCombination === "or" /* OR */) {
+      } else if (this._conditionCombination === "any" || this._conditionCombination === "or" /* OR */) {
         return this._conditions.some(condition => condition.evaluate(activity));
       }
       return false;

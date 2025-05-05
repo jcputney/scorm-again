@@ -138,6 +138,7 @@
     "@babel/node": "7.27.1",
     "@babel/preset-env": "^7.27.1",
     "@babel/preset-typescript": "7.27.1",
+    "@codecov/bundle-analyzer": "^1.9.0",
     "@codecov/rollup-plugin": "^1.9.0",
     "@eslint/js": "9.26.0",
     "@mo36924/rollup-plugin-cache": "^1.6.11",
