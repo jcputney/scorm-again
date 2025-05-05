@@ -10,3 +10,4 @@ exclude:
   - name: All
     paths:
       - test
+      - src/esm
