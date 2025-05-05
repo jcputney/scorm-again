@@ -21,10 +21,6 @@ const wrappers = [
     path: "/test/integration/wrappers/scorm2004-wrapper.html",
   },
   {
-    name: "Modern",
-    path: "/test/integration/wrappers/scorm2004-wrapper-modern.html",
-  },
-  {
     name: "ESM",
     path: "/test/integration/wrappers/scorm2004-wrapper-esm.html",
   },

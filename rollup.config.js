@@ -130,66 +130,6 @@ Object.entries(entries).forEach(([name, input]) => {
       }),
     ],
   });
-
-  // Modern build (ES modules)
-  configs.push({
-    input,
-    output: {
-      file: `dist/modern/${name}.js`,
-      format: "iife",
-      sourcemap: true,
-      exports: "auto",
-      name: exportName,
-      extend: true,
-    },
-    external: ["window.API", "window.API_1484_11"],
-    plugins: [
-      cache(),
-      esbuild({
-        tsconfig: "./tsconfig.json",
-        sourceMap: true,
-        target: "es2015",
-      }),
-    ],
-  });
-
-  // Modern minified build
-  configs.push({
-    input,
-    output: {
-      file: `dist/modern/${name}.min.js`,
-      format: "iife",
-      sourcemap: true,
-      exports: "auto",
-      name: exportName,
-      extend: true,
-    },
-    external: ["window.API", "window.API_1484_11"],
-    plugins: [
-      cache(),
-      esbuild({
-        tsconfig: "./tsconfig.json",
-        sourceMap: true,
-        target: "es2015",
-      }),
-      terser({
-        compress: {
-          passes: 3,
-          drop_console: false,
-          pure_getters: true,
-          unsafe: true,
-          unsafe_comps: true,
-          unsafe_math: true,
-          unsafe_methods: true,
-          unsafe_proto: true,
-        },
-        format: {
-          comments: false,
-        },
-        mangle: false,
-      }),
-    ],
-  });
 });
 
 Object.entries(esmEntries).forEach(([name, input]) => {

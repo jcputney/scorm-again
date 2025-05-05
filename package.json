@@ -13,73 +13,40 @@
       "require": "./dist/scorm-again.js",
       "default": "./dist/scorm-again.js"
     },
-    "./modern": {
-      "import": "./dist/modern/scorm-again.js",
-      "types": "./index.d.ts",
-      "default": "./dist/modern/scorm-again.js"
-    },
     "./aicc": {
       "import": "./dist/esm/aicc.js",
       "require": "./dist/aicc.js",
       "default": "./dist/aicc.js"
-    },
-    "./aicc/modern": {
-      "import": "./dist/modern/aicc.js",
-      "default": "./dist/modern/aicc.js"
     },
     "./aicc/min": {
       "import": "./dist/esm/aicc.min.js",
       "require": "./dist/aicc.min.js",
       "default": "./dist/aicc.min.js"
     },
-    "./aicc/modern/min": {
-      "import": "./dist/modern/aicc.min.js",
-      "default": "./dist/modern/aicc.min.js"
-    },
     "./scorm12": {
       "import": "./dist/esm/scorm12.js",
       "require": "./dist/scorm12.js",
       "default": "./dist/scorm12.js"
-    },
-    "./scorm12/modern": {
-      "import": "./dist/modern/scorm12.js",
-      "default": "./dist/modern/scorm12.js"
     },
     "./scorm12/min": {
       "import": "./dist/esm/scorm12.min.js",
       "require": "./dist/scorm12.min.js",
       "default": "./dist/scorm12.min.js"
     },
-    "./scorm12/modern/min": {
-      "import": "./dist/modern/scorm12.min.js",
-      "default": "./dist/modern/scorm12.min.js"
-    },
     "./scorm2004": {
       "import": "./dist/esm/scorm2004.js",
       "require": "./dist/scorm2004.js",
       "default": "./dist/scorm2004.js"
-    },
-    "./scorm2004/modern": {
-      "import": "./dist/modern/scorm2004.js",
-      "default": "./dist/modern/scorm2004.js"
     },
     "./scorm2004/min": {
       "import": "./dist/esm/scorm2004.min.js",
       "require": "./dist/scorm2004.min.js",
       "default": "./dist/scorm2004.min.js"
     },
-    "./scorm2004/modern/min": {
-      "import": "./dist/modern/scorm2004.min.js",
-      "default": "./dist/modern/scorm2004.min.js"
-    },
     "./cross-frame-api": {
       "import": "./dist/esm/cross-frame-api.js",
       "require": "./dist/cross-frame-api.js",
       "default": "./dist/cross-frame-api.js"
-    },
-    "./cross-frame-api/modern": {
-      "import": "./dist/modern/cross-frame-api.js",
-      "default": "./dist/modern/cross-frame-api.js"
     },
     "./cross-frame-api/min": {
       "import": "./dist/esm/cross-frame-api.min.js",
@@ -91,10 +58,6 @@
       "require": "./dist/cross-frame-lms.js",
       "default": "./dist/cross-frame-lms.js"
     },
-    "./cross-frame-lms/modern": {
-      "import": "./dist/modern/cross-frame-lms.js",
-      "default": "./dist/modern/cross-frame-lms.js"
-    },
     "./cross-frame-lms/min": {
       "import": "./dist/esm/cross-frame-lms.min.js",
       "require": "./dist/cross-frame-lms.min.js",
@@ -104,16 +67,11 @@
       "import": "./dist/esm/scorm-again.min.js",
       "require": "./dist/scorm-again.min.js",
       "default": "./dist/scorm-again.min.js"
-    },
-    "./modern/min": {
-      "import": "./dist/modern/scorm-again.min.js",
-      "default": "./dist/modern/scorm-again.min.js"
     }
   },
   "files": [
     "dist/",
     "dist/esm/",
-    "dist/modern/",
     "index.d.ts"
   ],
   "browser": {
@@ -189,7 +147,6 @@
     "build:types": "tsc --emitDeclarationOnly --declaration --outDir dist/types",
     "build:all": "npm run build && npm run build:types",
     "compile:dev": "rollup -c -w",
-    "compile:modern": "rollup -c",
     "test": "vitest run",
     "test:min": "vitest run --reporter=basic",
     "test:coverage": "vitest run --coverage",

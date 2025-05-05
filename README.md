@@ -31,7 +31,8 @@ data instead of committing, if an LMS endpoint is not configured.
 
 ### Purpose of CrossFrameLMS and CrossFrameAPI
 
-The Cross-Frame Communication feature lets SCORM content run inside sandboxed or cross-origin iframes while still talking to the real SCORM API in the parent frame. It’s ideal when:
+The Cross-Frame Communication feature lets SCORM content run inside sandboxed or cross-origin
+iframes while still talking to the real SCORM API in the parent frame. It’s ideal when:
 
 - Loading SCORM content in a sandboxed iframe for extra security
 - Your app has a multi-frame architecture (e.g. host frame + content frame)
@@ -49,9 +50,12 @@ There are two core pieces:
 2. **CrossFrameAPI**
    - Lives in the **child** (content) frame and replaces the global `API` / `API_1484_11`
    - Uses a JavaScript `Proxy` so you don’t need to predefine every SCORM method
-   - **Synchronously** returns cached values or defaults for `GetValue`, `Initialize`, `Commit`, `SetValue`, `Finish`, etc.
-   - **Asynchronously** sends a `postMessage` to refresh the cache and update `GetLastError` behind the scenes
-   - Caches the current state of the CMI object in the child frame, so that most calls are synchronous and accurate
+   - **Synchronously** returns cached values or defaults for `GetValue`, `Initialize`, `Commit`,
+     `SetValue`, `Finish`, etc.
+   - **Asynchronously** sends a `postMessage` to refresh the cache and update `GetLastError` behind
+     the scenes
+   - Caches the current state of the CMI object in the child frame, so that most calls are
+     synchronous and accurate
    - Handles the `LMSInitialize` and `LMSFinish` calls to the LMS in the parent frame
    - Falls back gracefully in all browsers (including IE11) without blocking the main thread
 
@@ -61,11 +65,11 @@ There are two core pieces:
 
 ```javascript
 import CrossFrameLMS from 'scorm-again/cross-frame-lms';
-import { Scorm12API } from 'scorm-again/scorm12';
+import {Scorm12API} from 'scorm-again/scorm12';
 
 const api = new Scorm12API({
-autocommit: true,
-logLevel: 1
+   autocommit: true,
+   logLevel: 1
 });
 
 // Create the server-side facade
@@ -87,13 +91,16 @@ window.API.LMSCommit();
 
 ### Notes
 
-- No SharedArrayBuffer or Atomics; everything is async under the hood, but sync from the SCORM module’s perspective.
+- No SharedArrayBuffer or Atomics; everything is async under the hood, but sync from the SCORM
+  module’s perspective.
 - Works in modern browsers and IE11.
 - For guaranteed Finish/Terminate delivery on unload, consider using `navigator.sendBeacon`.
 
 ## Offline Support
 
-scorm-again provides robust offline capabilities that allow SCORM content to function without an active internet connection. This is particularly valuable for mobile applications, remote areas with limited connectivity, or scenarios with unreliable network conditions.
+scorm-again provides robust offline capabilities that allow SCORM content to function without an
+active internet connection. This is particularly valuable for mobile applications, remote areas with
+limited connectivity, or scenarios with unreliable network conditions.
 
 > **Note:** The Offline Support feature is currently being developed for scorm-again
 > v3.0.0.
@@ -112,16 +119,16 @@ scorm-again provides robust offline capabilities that allow SCORM content to fun
 ```javascript
 // Example configuration with offline support
 const settings = {
-  // Standard settings
-  lmsCommitUrl: "https://your-lms.com/api/scorm/commit",
-  autocommit: true,
+   // Standard settings
+   lmsCommitUrl: "https://your-lms.com/api/scorm/commit",
+   autocommit: true,
 
-  // Offline support settings
-  enableOfflineSupport: true,  // Enable offline support
-  courseId: "COURSE-12345",    // Unique identifier for the course
-  syncOnInitialize: true,      // Attempt to sync data when initializing API
-  syncOnTerminate: true,       // Attempt to sync data when terminating API
-  maxSyncAttempts: 5           // Maximum number of attempts to sync an item
+   // Offline support settings
+   enableOfflineSupport: true,  // Enable offline support
+   courseId: "COURSE-12345",    // Unique identifier for the course
+   syncOnInitialize: true,      // Attempt to sync data when initializing API
+   syncOnTerminate: true,       // Attempt to sync data when terminating API
+   maxSyncAttempts: 5           // Maximum number of attempts to sync an item
 };
 
 // Create the API with offline support
@@ -139,7 +146,8 @@ scorm-again provides detailed implementation examples for various mobile framewo
 - Xamarin/MAUI
 - Kotlin Multiplatform
 
-For detailed implementation guides and examples, see our [offline support documentation](docs/offline_support.md).
+For detailed implementation guides and examples, see
+our [offline support documentation](docs/offline_support.md).
 
 ## Documentation
 
@@ -169,108 +177,16 @@ To begin with, you include either the `scorm-again.js` or `scorm-again.min.js` f
 launching page:
 
 ```html
+
 <script type="text/javascript" src="/dist/scorm-again.js"></script>
 ```
 
 Or, if you would like to only pull in one API, you include either the `aicc.js`, `scorm12.js` or
-`scorm2004.js` files or
-their minified versions on your launching page:
+`scorm2004.js` files or their minified versions on your launching page:
 
 ```html
+
 <script type="text/javascript" src="/dist/scorm2004.js"></script>
-```
-
-Or, if you would like to install the library using your package manager, you can do the following:
-
-```sh
-npm install scorm-again
-```
-
-or
-
-```sh
-yarn add scorm-again
-```
-
-### Legacy vs Modern Builds
-
-scorm-again provides two different build options to accommodate different browser support
-requirements:
-
-#### Legacy Build (Default)
-
-The legacy build targets ES5 and is compatible with older browsers including IE11 (with a fetch
-polyfill). This is the default build located in the `dist` directory.
-
-```html
-<script type="text/javascript" src="/dist/scorm-again.js"></script>
-```
-
-#### Modern Build
-
-The modern build targets ES2015 (ES6) and newer browsers. This build is located in the `dist/modern`
-directory.
-
-```html
-<script type="text/javascript" src="/dist/modern/scorm-again.js"></script>
-```
-
-Or, if you would like to only pull in one API:
-
-```html
-<script type="text/javascript" src="/dist/modern/scorm2004.min.js"></script>
-<script type="text/javascript" src="/dist/modern/scorm12.min.js"></script>
-<script type="text/javascript" src="/dist/modern/aicc.min.js"></script>
-```
-
-Key differences in the modern build:
-
-- Smaller bundle size due to less transpilation
-- Preserves ES2015+ features like arrow functions
-- Uses ES modules format
-- Better tree shaking capabilities
-- Requires modern browsers that support ES2015+
-
-Choose the appropriate build based on your browser support requirements:
-
-- Use the legacy build if you need to support older browsers like IE11
-- Use the modern build if you only need to support modern browsers and want better performance
-
-### Importing and Using the Package
-
-scorm-again can be imported and used in various ways depending on your environment and module
-system. Here are examples for different scenarios:
-
-#### Browser Usage with Script Tags
-
-**Legacy Build (ES5, supports IE11 with fetch polyfill):**
-
-```html
-<!-- Full library -->
-<script type="text/javascript" src="/dist/scorm-again.js"></script>
-
-<!-- Individual APIs -->
-<script type="text/javascript" src="/dist/aicc.js"></script>
-<script type="text/javascript" src="/dist/scorm12.js"></script>
-<script type="text/javascript" src="/dist/scorm2004.js"></script>
-
-<!-- Minified versions -->
-<script type="text/javascript" src="/dist/scorm-again.min.js"></script>
-```
-
-**Modern Build (ES2015+, smaller bundle size):**
-
-```html
-<!-- Full library -->
-<script type="text/javascript" src="/dist/modern/scorm-again.js"></script>
-
-<!-- Individual APIs -->
-<script type="text/javascript" src="/dist/modern/aicc.js"></script>
-<script type="text/javascript" src="/dist/modern/scorm12.js"></script>
-<script type="text/javascript" src="/dist/modern/scorm2004.js"></script>
-
-<!-- Minified versions -->
-<script type="text/javascript" src="/dist/modern/scorm-again.min.js"></script>
 ```
 
 #### NPM/Yarn with ES Modules (ESM)
@@ -281,18 +197,6 @@ system. Here are examples for different scenarios:
 npm install scorm-again
 # or
 yarn add scorm-again
-```
-
-**Importing the module build:**
-
-```javascript
-// Full library
-import {AICC, Scorm12API, Scorm2004API} from 'scorm-again';
-
-// Individual APIs
-import {AICC} from 'scorm-again/aicc/modern';
-import {Scorm12API} from 'scorm-again/scorm12/modern';
-import {Scorm2004API} from 'scorm-again/scorm2004/modern';
 ```
 
 #### CommonJS (Node.js or bundlers with CommonJS support)
@@ -316,9 +220,6 @@ TypeScript types are included with the package:
 ```typescript
 import {AICC, Scorm12API, Scorm2004API} from 'scorm-again';
 import {Settings} from 'scorm-again'; // Import types
-
-// With modern build
-import {Scorm2004API} from 'scorm-again/modern';
 
 // Create an instance with typed settings
 const settings: Settings = {
@@ -401,7 +302,7 @@ The APIs include several settings to customize the functionality of each API:
 | `selfReportSessionTime`    |              false               |                                                    true/false                                                     | Should the API override the default `session_time` reported by the module? Useful when modules don't properly report time.                                                                                                                                                                                                                                                                                                                              |
 | `alwaysSendTotalTime`      |              false               |                                                    true/false                                                     | Should the API always send `total_time` when committing to the LMS                                                                                                                                                                                                                                                                                                                                                                                      |
 | `fetchMode`                |              'cors'              |                                   'cors', 'no-cors', 'same-origin', 'navigate'                                    | The fetch mode to use when sending requests to the LMS.                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `useBeaconInsteadOfFetch`  |              'never'             |                                   'always', 'on-terminate', 'never'                                               | Controls when to use the Beacon API instead of fetch for HTTP requests. 'always' uses Beacon for all requests, 'on-terminate' uses Beacon only for final commit during page unload, 'never' always uses fetch.                                                                                                                                                                                                                                           |
+| `useBeaconInsteadOfFetch`  |             'never'              |                                         'always', 'on-terminate', 'never'                                         | Controls when to use the Beacon API instead of fetch for HTTP requests. 'always' uses Beacon for all requests, 'on-terminate' uses Beacon only for final commit during page unload, 'never' always uses fetch.                                                                                                                                                                                                                                          |
 | `xhrWithCredentials`       |              false               |                                                    true/false                                                     | Sets the withCredentials flag on the request to the LMS                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `xhrHeaders`               |                {}                |                                                      Object                                                       | This allows setting of additional headers on the request to the LMS where the key should be the header name and the value is the value of the header you want to send                                                                                                                                                                                                                                                                                   |
 | `responseHandler`          |             function             |                                                                                                                   | A function to properly transform the response from the LMS to the correct format. The APIs expect the result from the LMS to be in the following format (errorCode is optional): `{ "result": true, "errorCode": 0 }`                                                                                                                                                                                                                                   |
@@ -716,8 +617,12 @@ Here's a basic example of configuring an activity tree:
 sequencing: {
    activityTree: {
       id: 'root',
-      title: 'Course',
-      children: [
+          title
+   :
+      'Course',
+          children
+   :
+      [
          {
             id: 'module1',
             title: 'Module 1',
@@ -764,7 +669,6 @@ and modern browsers:
 - **Minification**: All production builds are minified to reduce size
 - **ES Module Support**: ES modules enable better tree shaking by modern bundlers
 - **Separate Entry Points**: Import only what you need with granular entry points
-- **Modern Builds**: ES2015+ builds for modern browsers with smaller footprint
 
 These optimizations result in significantly smaller bundle sizes, especially when importing only the
 specific standard you need.
@@ -804,12 +708,6 @@ For optimal performance:
 
   // Or use the minified version for even smaller bundle size
   import { Scorm12API } from 'scorm-again/scorm12/min';
-  ```
-- For modern browsers, use the ES2015 builds which are smaller and more efficient:
-  ```javascript
-  import { Scorm12API } from 'scorm-again/scorm12/modern';
-  // Or minified
-  import { Scorm12API } from 'scorm-again/scorm12/modern/min';
   ```
 - Consider setting `autocommit` to `true` with a reasonable `autocommitSeconds` value to balance
   network traffic
