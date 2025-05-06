@@ -90,7 +90,7 @@
     "test": "test"
   },
   "devDependencies": {
-    "@babel/cli": "7.27.1",
+    "@babel/cli": "7.27.2",
     "@babel/core": "^7.27.1",
     "@babel/eslint-parser": "7.27.1",
     "@babel/node": "7.27.1",
