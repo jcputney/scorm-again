@@ -99,3 +99,4 @@ class CrossFrameAPI {
 }
 
 export { CrossFrameAPI };
+//# sourceMappingURL=cross-frame-api.js.map
