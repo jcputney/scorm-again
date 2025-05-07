@@ -426,27 +426,32 @@
       return this._initialized;
     }
     /**
-     * Getter for _start_time
-     * @return {number | undefined}
-     */
-    get start_time() {
-      return this._start_time;
-    }
-    /**
      * Called when the API has been initialized after the CMI has been created
      */
     initialize() {
       this._initialized = true;
     }
+  }
+  class BaseRootCMI extends BaseCMI {
     /**
-     * Called when the player should override the 'session_time' provided by
-     * the module
+     * Start time of the course
+     * @type {number | undefined}
+     * @protected
+     */
+    get start_time() {
+      return this._start_time;
+    }
+    /**
+     * Setter for start_time. Can only be called once.
      */
     setStartTime() {
-      this._start_time = (/* @__PURE__ */new Date()).getTime();
+      if (this._start_time === void 0) {
+        this._start_time = (/* @__PURE__ */new Date()).getTime();
+      } else {
+        throw new Error("Start time has already been set.");
+      }
     }
   }
-  class BaseRootCMI extends BaseCMI {}
 
   const SECONDS_PER_SECOND = 1;
   const SECONDS_PER_MINUTE = 60;
@@ -1157,9 +1162,8 @@
      */
     getCurrentTotalTime(start_time) {
       let sessionTime = this._session_time;
-      const startTime = start_time;
-      if (typeof startTime !== "undefined" && startTime !== null) {
-        const seconds = (/* @__PURE__ */new Date()).getTime() - startTime;
+      if (typeof start_time !== "undefined" && start_time !== null) {
+        const seconds = (/* @__PURE__ */new Date()).getTime() - start_time;
         sessionTime = getSecondsAsHHMMSS(seconds / 1e3);
       }
       return addHHMMSSTimeStrings(this._total_time, sessionTime, new RegExp(scorm12_regex.CMITimespan));
@@ -3460,7 +3464,7 @@ ${stackTrace}`);
         };
       }
       this._loggingService = loggingService || getLoggingService();
-      this._loggingService.setLogLevel(this.apiLogLevel);
+      this._loggingService.setLogLevel(this.settings.logLevel);
       if (this.settings.onLogMessage) {
         this._loggingService.setLogHandler(this.settings.onLogMessage);
       }
@@ -3538,7 +3542,7 @@ ${stackTrace}`);
       } else if (this.isTerminated()) {
         this.throwSCORMError("api", this._error_codes.TERMINATED, terminationMessage);
       } else {
-        if (this.selfReportSessionTime) {
+        if (this.settings.selfReportSessionTime) {
           this.cmi.setStartTime();
         }
         this.currentState = global_constants.STATE_INITIALIZED;
@@ -3573,7 +3577,7 @@ ${stackTrace}`);
      */
     apiLog(functionName, logMessage, messageLevel, CMIElement) {
       logMessage = formatMessage(functionName, logMessage, CMIElement);
-      if (messageLevel >= this.apiLogLevel) {
+      if (messageLevel >= this.settings.logLevel) {
         this._loggingService.log(messageLevel, logMessage);
       }
     }
@@ -3596,7 +3600,7 @@ ${stackTrace}`);
       };
       this._httpService?.updateSettings(this._settings);
       if (settings.logLevel !== void 0 && settings.logLevel !== previousSettings.logLevel) {
-        this.apiLogLevel = settings.logLevel;
+        this.settings.logLevel = settings.logLevel;
         this._loggingService?.setLogLevel(settings.logLevel);
       }
       if (settings.onLogMessage !== void 0 && settings.onLogMessage !== previousSettings.onLogMessage) {
@@ -4345,7 +4349,7 @@ ${stackTrace}`);
      * // Result might be: { cmi: { core: { lesson_status: "completed", total_time: "PT1H30M" } } }
      */
     getCommitObject(terminateCommit) {
-      return this._serializationService.getCommitObject(terminateCommit, this.settings.alwaysSendTotalTime, this.settings.renderCommonCommitFields, terminateCommit2 => this.renderCommitObject(terminateCommit2), terminateCommit2 => this.renderCommitCMI(terminateCommit2), this.apiLogLevel);
+      return this._serializationService.getCommitObject(terminateCommit, this.settings.alwaysSendTotalTime, this.settings.renderCommonCommitFields, (terminateCommit2, includeTotalTime) => this.renderCommitObject(terminateCommit2, includeTotalTime), (terminateCommit2, includeTotalTime) => this.renderCommitCMI(terminateCommit2, includeTotalTime), this.settings.logLevel);
     }
   }
 
@@ -4565,7 +4569,7 @@ ${stackTrace}`);
     renderCommitCMI(terminateCommit) {
       let includeTotalTime = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
       const cmiExport = this.renderCMIToJSONObject();
-      if (includeTotalTime) {
+      if (terminateCommit || includeTotalTime) {
         cmiExport.cmi.core.total_time = this.cmi.getCurrentTotalTime();
       }
       const result = [];
@@ -4594,7 +4598,8 @@ ${stackTrace}`);
     renderCommitObject(terminateCommit) {
       let includeTotalTime = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
       const cmiExport = this.renderCommitCMI(terminateCommit, includeTotalTime);
-      const totalTimeHHMMSS = includeTotalTime ? this.cmi.getCurrentTotalTime() : "";
+      const calculateTotalTime = terminateCommit || includeTotalTime;
+      const totalTimeHHMMSS = calculateTotalTime ? this.cmi.getCurrentTotalTime() : "";
       const totalTimeSeconds = getTimeAsSeconds(totalTimeHHMMSS, scorm12_regex.CMITimespan);
       const lessonStatus = this.cmi.core.lesson_status;
       let completionStatus = CompletionStatus.UNKNOWN;
@@ -7246,11 +7251,10 @@ ${stackTrace}`);
      *
      * @return {string} ISO8601 Duration
      */
-    getCurrentTotalTime() {
+    getCurrentTotalTime(start_time) {
       let sessionTime = this._session_time;
-      const startTime = this.start_time;
-      if (typeof startTime !== "undefined" && startTime !== null) {
-        const seconds = (/* @__PURE__ */new Date()).getTime() - startTime;
+      if (typeof start_time !== "undefined" && start_time !== null) {
+        const seconds = (/* @__PURE__ */new Date()).getTime() - start_time;
         sessionTime = getSecondsAsISODuration(seconds / 1e3);
       }
       return addTwoDurations(this._total_time, sessionTime, scorm2004_regex.CMITimespan);
@@ -7833,7 +7837,7 @@ ${stackTrace}`);
      * @return {string} ISO8601 Duration
      */
     getCurrentTotalTime() {
-      return this.session.getCurrentTotalTime();
+      return this.session.getCurrentTotalTime(this.start_time);
     }
     /**
      * toJSON for cmi
@@ -10725,7 +10729,7 @@ ${stackTrace}`);
     renderCommitCMI(terminateCommit) {
       let includeTotalTime = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
       const cmiExport = this.renderCMIToJSONObject();
-      if (includeTotalTime) {
+      if (terminateCommit || includeTotalTime) {
         cmiExport.cmi.total_time = this.cmi.getCurrentTotalTime();
       }
       const result = [];
@@ -10754,7 +10758,8 @@ ${stackTrace}`);
     renderCommitObject(terminateCommit) {
       let includeTotalTime = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
       const cmiExport = this.renderCommitCMI(terminateCommit, includeTotalTime);
-      const totalTimeDuration = includeTotalTime ? this.cmi.getCurrentTotalTime() : "";
+      const calculateTotalTime = terminateCommit || includeTotalTime;
+      const totalTimeDuration = calculateTotalTime ? this.cmi.getCurrentTotalTime() : "";
       const totalTimeSeconds = getDurationAsSeconds(totalTimeDuration, scorm2004_regex.CMITimespan);
       let completionStatus = CompletionStatus.UNKNOWN;
       let successStatus = SuccessStatus.UNKNOWN;
@@ -10817,9 +10822,7 @@ ${stackTrace}`);
       }
       const commitObject = this.getCommitObject(terminateCommit);
       if (typeof this.settings.lmsCommitUrl === "string") {
-        const result = await this.processHttpRequest(this.settings.lmsCommitUrl, {
-          commitObject
-        }, terminateCommit);
+        const result = await this.processHttpRequest(this.settings.lmsCommitUrl, commitObject, terminateCommit);
         if (navRequest && result.navRequest !== void 0 && result.navRequest !== "" && typeof result.navRequest === "string") {
           Function(`"use strict";(() => { ${result.navRequest} })()`)();
         } else if (result?.navRequest && !navRequest) {
@@ -10830,7 +10833,7 @@ ${stackTrace}`);
         return result;
       }
       return {
-        result: "true",
+        result: global_constants.SCORM_TRUE,
         errorCode: 0
       };
     }
@@ -11014,4 +11017,3 @@ ${stackTrace}`);
   }
 
 })();
-//# sourceMappingURL=scorm-again.js.map

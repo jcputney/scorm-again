@@ -115,4 +115,3 @@ this.CrossFrameAPI = (function () {
   return CrossFrameAPI;
 
 })();
-//# sourceMappingURL=cross-frame-api.js.map

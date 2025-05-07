@@ -12271,4 +12271,3 @@ class CrossFrameLMS {
 }
 
 export { AICC, CrossFrameAPI, CrossFrameLMS, Scorm12API, Scorm2004API };
-//# sourceMappingURL=scorm-again.js.map

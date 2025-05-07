@@ -48,15 +48,17 @@ jobs:
         run: npm run test:coverage
 
       - name: Upload coverage reports to Codecov
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Running tests for codecov
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: npm run test:codecov
 
       - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
         uses: codecov/test-results-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -76,7 +78,7 @@ jobs:
 
       # Upload Playwright report
       - name: Upload Playwright report
-        if: always()
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
@@ -91,7 +93,7 @@ jobs:
 
       # Upload performance benchmark results
       - name: Upload performance benchmark results
-        if: always()
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: actions/upload-artifact@v4
         with:
           name: performance-benchmark
@@ -149,17 +151,20 @@ jobs:
 
       # Analyze bundle size
       - name: Analyze bundle size
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: |
           npm run build:all:prod
           ls -la dist/*.js | awk '{print $5, $9}' > bundle-size.txt
           cat bundle-size.txt
 
       - name: Bundle analysis
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: npx @codecov/bundle-analyzer ./dist --bundle-name=scorm-again --upload-token=${{ secrets.CODECOV_TOKEN }}
         working-directory: ./
 
       # Format code with Prettier
       - name: Format code with Prettier
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: npm run prettier
 
       - name: Commit and Push Changes
