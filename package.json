@@ -118,7 +118,7 @@
     "extract-zip": "2.0.1",
     "fast-check": "4.1.1",
     "glob": "^11.0.2",
-    "globals": "16.0.0",
+    "globals": "16.1.0",
     "http-server": "14.1.1",
     "jsdoc": "4.0.4",
     "jsdoc-babel": "0.5.0",
