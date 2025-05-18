@@ -330,7 +330,7 @@ const scorm2004_regex = {
   CMIType: "^(true-false|choice|fill-in|long-fill-in|matching|performance|sequencing|likert|numeric|other)$",
   CMIResult: "^(correct|incorrect|unanticipated|neutral|-?([0-9]{1,4})(\\.[0-9]{1,18})?)$",
   NAVEvent: "^(previous|continue|exit|exitAll|abandon|abandonAll|suspendAll|_none_|(\\{target=(?<choice_target>\\S{0,}[a-zA-Z0-9-_]+)})?choice|(\\{target=(?<jump_target>\\S{0,}[a-zA-Z0-9-_]+)})?jump)$",
-  NAVBoolean: "^(unknown|true|false$)",
+  NAVBoolean: "^(unknown|true|false)$",
   NAVTarget: "^{target=\\S{0,}[a-zA-Z0-9-_]+}$",
   // Data ranges
   scaled_range: "-1#1",
