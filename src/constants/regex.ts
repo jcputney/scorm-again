@@ -73,7 +73,7 @@ export const scorm2004_regex = {
   NAVEvent:
     "^(previous|continue|exit|exitAll|abandon|abandonAll|suspendAll|_none_|(\\{target=(?<choice_target>\\S{0,}[a-zA-Z0-9-_]+)})?choice|(\\{target=(?<jump_target>\\S{0,}[a-zA-Z0-9-_]+)})?jump)$",
 
-  NAVBoolean: "^(unknown|true|false$)",
+  NAVBoolean: "^(unknown|true|false)$",
   NAVTarget: "^{target=\\S{0,}[a-zA-Z0-9-_]+}$",
   // Data ranges
   scaled_range: "-1#1",
