@@ -1145,8 +1145,9 @@ export default abstract class BaseAPI implements IBaseAPI {
         const response = await this.performFetch(url, params);
 
         return this.transformResponse(response);
-      } catch (e) {
-        this.apiLog("processHttpRequest", e, LogLevelEnum.ERROR);
+      } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : String(e);
+        this.apiLog("processHttpRequest", message, LogLevelEnum.ERROR);
         api.processListeners("CommitError");
         return genericError;
       }

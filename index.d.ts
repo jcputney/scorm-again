@@ -21,6 +21,13 @@ declare class Scorm12API extends Scorm12Impl {
   LMSGetErrorString: (CMIErrorCode: string) => string;
   LMSGetDiagnostic: (CMIErrorCode: string) => string;
 
+  loadFromJSON: (json: any, CMIElement?: string) => void;
+  loadFromFlattenedJSON: (json: any, CMIElement?: string) => void;
+  on: (listenerName: string, callback: Function) => void;
+  off: (listenerName: string, callback: Function) => void;
+  clear: (listenerName: string) => void;
+
+
   /**
    * Called when the API needs to be reset
    */
@@ -41,6 +48,13 @@ declare class Scorm2004API extends Scorm2004Impl {
   GetErrorString: (CMIErrorCode: string) => string;
   GetDiagnostic: (CMIErrorCode: string) => string;
 
+  loadFromJSON: (json: any, CMIElement?: string) => void;
+  loadFromFlattenedJSON: (json: any, CMIElement?: string) => void;
+  on: (listenerName: string, callback: Function) => void;
+  off: (listenerName: string, callback: Function) => void;
+  clear: (listenerName: string) => void;
+
+
   /**
    * Called when the API needs to be reset
    */
@@ -60,6 +74,13 @@ declare class AICC extends AICCImpl {
   LMSGetLastError: () => string;
   LMSGetErrorString: (CMIErrorCode: string) => string;
   LMSGetDiagnostic: (CMIErrorCode: string) => string;
+
+  loadFromJSON: (json: any, CMIElement?: string) => void;
+  loadFromFlattenedJSON: (json: any, CMIElement?: string) => void;
+  on: (listenerName: string, callback: Function) => void;
+  off: (listenerName: string, callback: Function) => void;
+  clear: (listenerName: string) => void;
+
 
   /**
    * Called when the API needs to be reset
