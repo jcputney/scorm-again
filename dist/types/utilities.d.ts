@@ -13,5 +13,5 @@ export declare function flatten(data: StringKeyMap): StringKeyMap;
 export declare function unflatten(data: StringKeyMap): object;
 export declare function countDecimals(num: number): number;
 export declare function formatMessage(functionName: string, message: string, CMIElement?: string): string;
-export declare function stringMatches(str: string, tester: string): boolean;
+export declare function stringMatches(str: string | null | undefined, tester: string): boolean;
 export declare function memoize<T extends (...args: any[]) => any>(fn: T, keyFn?: (...args: Parameters<T>) => string): T;

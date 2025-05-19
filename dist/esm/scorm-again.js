@@ -639,7 +639,10 @@ function formatMessage(functionName, message, CMIElement) {
   return messageString;
 }
 function stringMatches(str, tester) {
-  return str?.match(tester) !== null;
+  if (typeof str !== "string") {
+    return false;
+  }
+  return new RegExp(tester).test(str);
 }
 function memoize(fn, keyFn) {
   const cache = /* @__PURE__ */ new Map();
