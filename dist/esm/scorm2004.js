@@ -2954,7 +2954,7 @@ function check2004ValidRange(CMIElement, value, rangePattern) {
 const scorm12_regex = {
   CMIString256: "^.{0,255}$",
   CMISInteger: "^-?([0-9]+)$",
-  CMIDecimal: "^-?([0-9]{0,3})(.[0-9]*)?$",
+  CMIDecimal: "^-?([0-9]{0,3})(\\.[0-9]*)?$",
   // Data ranges
   score_range: "0#100",
   audio_range: "-1#100",

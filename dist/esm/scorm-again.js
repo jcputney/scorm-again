@@ -280,7 +280,7 @@ const scorm12_regex = {
   CMITimespan: "^([0-9]{2,}):([0-9]{2}):([0-9]{2})(.[0-9]{1,2})?$",
   CMIInteger: "^\\d+$",
   CMISInteger: "^-?([0-9]+)$",
-  CMIDecimal: "^-?([0-9]{0,3})(.[0-9]*)?$",
+  CMIDecimal: "^-?([0-9]{0,3})(\\.[0-9]*)?$",
   CMIIdentifier: "^[\\u0021-\\u007E\\s]{0,255}$",
   CMIFeedback: "^.{0,255}$",
   // This must be redefined

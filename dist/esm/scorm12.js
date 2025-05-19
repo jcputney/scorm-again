@@ -122,7 +122,7 @@ const scorm12_regex = {
   CMITime: "^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)$",
   CMITimespan: "^([0-9]{2,}):([0-9]{2}):([0-9]{2})(.[0-9]{1,2})?$",
   CMISInteger: "^-?([0-9]+)$",
-  CMIDecimal: "^-?([0-9]{0,3})(.[0-9]*)?$",
+  CMIDecimal: "^-?([0-9]{0,3})(\\.[0-9]*)?$",
   CMIIdentifier: "^[\\u0021-\\u007E\\s]{0,255}$",
   CMIFeedback: "^.{0,255}$",
   // Vocabulary Data Type Definition
