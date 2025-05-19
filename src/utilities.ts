@@ -534,8 +534,11 @@ export function formatMessage(functionName: string, message: string, CMIElement?
  * // Returns false (handles null gracefully)
  * stringMatches(null, "test");
  */
-export function stringMatches(str: string, tester: string): boolean {
-  return str?.match(tester) !== null;
+export function stringMatches(str: string | null | undefined, tester: string): boolean {
+  if (typeof str !== "string") {
+    return false;
+  }
+  return new RegExp(tester).test(str);
 }
 
 /**

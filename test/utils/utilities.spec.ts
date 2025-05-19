@@ -266,4 +266,18 @@ describe("Utility Tests", () => {
       });
     });
   });
+
+  describe("stringMatches()", () => {
+    it("returns true when regex matches", () => {
+      expect(Utilities.stringMatches("hello", "^he")).toBe(true);
+    });
+
+    it("returns false when regex does not match", () => {
+      expect(Utilities.stringMatches("hello", "world")).toBe(false);
+    });
+
+    it("returns false when provided value is null", () => {
+      expect(Utilities.stringMatches(null, "test")).toBe(false);
+    });
+  });
 });
