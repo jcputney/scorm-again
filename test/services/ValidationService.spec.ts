@@ -3,6 +3,7 @@ import { ValidationService, validationService } from "../../src/services/Validat
 import { BaseScormValidationError } from "../../src/exceptions";
 import { scorm12_errors } from "../../src";
 import { Scorm12ValidationError } from "../../src/exceptions/scorm12_exceptions";
+import { scorm12_regex } from "../../src/constants/regex";
 
 describe("ValidationService", () => {
   // Since we can't stub ES modules directly, we'll test the actual implementation
@@ -13,6 +14,7 @@ describe("ValidationService", () => {
     class TestValidationError extends BaseScormValidationError {
       constructor(CMIElement: string, errorCode: number) {
         super(CMIElement, errorCode);
+        Object.setPrototypeOf(this, TestValidationError.prototype);
       }
     }
 
@@ -42,6 +44,20 @@ describe("ValidationService", () => {
           TestValidationError,
         );
       }).toThrow();
+    });
+
+    it("should reject values that match scorm12_regex.CMIDecimal incorrectly", () => {
+      expect(() => {
+        validationService.validateScore(
+          "api",
+          "10a3",
+          scorm12_regex.CMIDecimal,
+          scorm12_regex.score_range,
+          101,
+          102,
+          TestValidationError,
+        );
+      }).toThrow(TestValidationError);
     });
   });
 
