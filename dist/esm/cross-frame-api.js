@@ -19,6 +19,8 @@ class CrossFrameAPI {
         const isInit = methodName === "Initialize" || methodName === "LMSInitialize";
         const isFinish = methodName === "Terminate" || methodName === "LMSFinish";
         const isCommit = methodName === "Commit" || methodName === "LMSCommit";
+        const isErrorString = methodName === "GetErrorString" || methodName === "LMSGetErrorString";
+        const isDiagnostic = methodName === "GetDiagnostic" || methodName === "LMSGetDiagnostic";
         return (...args) => {
           if (isSet && args.length >= 2) {
             target._cache.set(args[0], String(args[1]));
@@ -29,12 +31,28 @@ class CrossFrameAPI {
               target._cache.set(args[0], String(res));
               target._lastError = "0";
             }
+            if (isErrorString && args.length >= 1) {
+              const code = String(args[0]);
+              target._cache.set(`error_${code}`, String(res));
+            }
+            if (isDiagnostic && args.length >= 1) {
+              const code = String(args[0]);
+              target._cache.set(`diag_${code}`, String(res));
+            }
             if (methodName === "GetLastError" || methodName === "LMSGetLastError") {
               target._lastError = String(res);
             }
           }).catch((err) => target._capture(methodName, err));
           if (isGet && args.length >= 1) {
             return target._cache.get(args[0]) ?? "";
+          }
+          if (isErrorString && args.length >= 1) {
+            const code = String(args[0]);
+            return target._cache.get(`error_${code}`) ?? "";
+          }
+          if (isDiagnostic && args.length >= 1) {
+            const code = String(args[0]);
+            return target._cache.get(`diag_${code}`) ?? "";
           }
           if (isInit || isFinish || isCommit || isSet) {
             const result = "true";
