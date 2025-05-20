@@ -796,7 +796,7 @@ var BaseAPI = (function () {
                                 }];
                         }
                         process = function (url, params, settings) { return (0,tslib_es6.__awaiter)(_this, void 0, void 0, function () {
-                            var response, e_1;
+                            var response, e_1, message;
                             return (0,tslib_es6.__generator)(this, function (_a) {
                                 switch (_a.label) {
                                     case 0:
@@ -808,7 +808,8 @@ var BaseAPI = (function () {
                                         return [2, this.transformResponse(response)];
                                     case 2:
                                         e_1 = _a.sent();
-                                        this.apiLog("processHttpRequest", e_1, enums.LogLevelEnum.ERROR);
+                                        message = e_1 instanceof Error ? e_1.message : String(e_1);
+                                        this.apiLog("processHttpRequest", message, enums.LogLevelEnum.ERROR);
                                         api.processListeners("CommitError");
                                         return [2, genericError];
                                     case 3: return [2];
@@ -1515,7 +1516,7 @@ var scorm12_regex = {
     CMISInteger: "^-?([0-9]+)$",
     CMIDecimal: "^-?([0-9]{0,3})(.[0-9]*)?$",
     CMIIdentifier: "^[\\u0021-\\u007E\\s]{0,255}$",
-    CMIFeedback: "^.{0,255}$",
+    CMIFeedback: "^.*$",
     CMIIndex: "[._](\\d+).",
     CMIStatus: "^(passed|completed|failed|incomplete|browsed)$",
     CMIStatus2: "^(passed|completed|failed|incomplete|browsed|not attempted)$",
