@@ -150,7 +150,7 @@
     "build:all:prod": "npm run build:prod && npm run build:types",
     "compile:dev": "rollup -c -w",
     "test": "vitest run",
-    "test:min": "vitest run --reporter=basic",
+    "test:min": "vitest run --reporter=default",
     "test:coverage": "vitest run --coverage",
     "test:codecov": "vitest run --reporter=junit --outputFile=test-report.junit.xml",
     "test:integration:setup": "tsx test/integration/setup.ts",
