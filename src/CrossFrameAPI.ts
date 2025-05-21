@@ -144,8 +144,9 @@ export default class CrossFrameAPI {
   /** Capture and cache SCORM errors */
   private _capture(method: string, err: any) {
     console.error(`CrossFrameAPI ${method} error:`, err);
-    const code = (/(\d{3})/.exec(err.message) || [])[1] || global_errors.GENERAL;
-    this._lastError = String(code);
+    const match = /\b(\d{3})\b/.exec(err.message);
+    const code = match ? match[1] : String(global_errors.GENERAL);
+    this._lastError = code;
     this._cache.set(`error_${code}`, err.message);
   }
 }
