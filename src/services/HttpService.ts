@@ -107,9 +107,9 @@ export class HttpService implements IHttpService {
         | Array<any>;
       const response = await this.performFetch(url, processedParams);
       return this.transformResponse(response, processListeners);
-    } catch (e) {
-      apiLog("processHttpRequest", e, LogLevelEnum.ERROR);
-      processListeners("CommitError");
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      this.apiLog("processHttpRequest", message, LogLevelEnum.ERROR);
       return genericError;
     }
   }
