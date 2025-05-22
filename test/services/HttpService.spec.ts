@@ -483,7 +483,7 @@ describe("HttpService", () => {
       expect(result.errorCode).toBe(errorCodes.GENERAL);
       expect(apiLogStub).toHaveBeenCalledWith(
         "processHttpRequest",
-        expect.any(Error),
+        "Network error",
         LogLevelEnum.ERROR,
       );
       expect(processListenersStub).toHaveBeenCalledWith("CommitError");
@@ -527,7 +527,7 @@ describe("HttpService", () => {
       expect(result.errorCode).toBe(errorCodes.GENERAL);
       expect(apiLogStub).toHaveBeenCalledWith(
         "processHttpRequest",
-        expect.any(Error),
+        "JSON parse error",
         LogLevelEnum.ERROR,
       );
       expect(processListenersStub).toHaveBeenCalledWith("CommitError");

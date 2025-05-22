@@ -109,7 +109,8 @@ export class HttpService implements IHttpService {
       return this.transformResponse(response, processListeners);
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
-      this.apiLog("processHttpRequest", message, LogLevelEnum.ERROR);
+      apiLog("processHttpRequest", message, LogLevelEnum.ERROR);
+      processListeners("CommitError");
       return genericError;
     }
   }
