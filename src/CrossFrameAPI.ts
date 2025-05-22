@@ -134,6 +134,13 @@ export default class CrossFrameAPI {
 
   /** Handle incoming postMessage responses from the LMS frame */
   private _onMessage(ev: MessageEvent) {
+    // Validate the message origin and source unless all origins are allowed
+    if (this._origin !== "*" && ev.origin !== this._origin) {
+      return;
+    }
+    if (ev.source && ev.source !== this._targetWindow) {
+      return;
+    }
     const data = ev.data as MessageResponse;
     if (!data?.messageId) return;
     const pending = this._pending.get(data.messageId);

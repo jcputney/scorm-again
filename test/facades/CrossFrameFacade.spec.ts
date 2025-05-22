@@ -79,6 +79,8 @@ describe("CrossFrameAPI (cache-first)", () => {
         result: "success-result",
         error: undefined,
       },
+      origin: "https://lms.example.com",
+      source: window.parent,
     };
 
     // Call _onMessage with the mock event
@@ -107,6 +109,8 @@ describe("CrossFrameAPI (cache-first)", () => {
         result: undefined,
         error: mockError,
       },
+      origin: "https://lms.example.com",
+      source: window.parent,
     };
 
     // Call _onMessage with the mock event
@@ -134,6 +138,8 @@ describe("CrossFrameAPI (cache-first)", () => {
         result: "success-result",
         error: undefined,
       },
+      origin: "https://lms.example.com",
+      source: window.parent,
     };
 
     // Call _onMessage with the mock event
@@ -152,6 +158,8 @@ describe("CrossFrameAPI (cache-first)", () => {
         result: "success-result",
         error: undefined,
       },
+      origin: "https://lms.example.com",
+      source: window.parent,
     };
 
     // Call _onMessage with the invalid event
@@ -162,6 +170,40 @@ describe("CrossFrameAPI (cache-first)", () => {
     expect(rejectSpy).not.toHaveBeenCalled();
 
     // Verify the pending request is still there
+    expect((client as any)._pending.has(messageId)).toBe(true);
+
+    // Test with a message from the wrong origin
+    const wrongOriginEvent = {
+      data: {
+        messageId,
+        result: "success-result",
+        error: undefined,
+      },
+      origin: "https://evil.example.com",
+      source: window.parent,
+    };
+
+    (client as any)._onMessage(wrongOriginEvent);
+
+    expect(resolveSpy).not.toHaveBeenCalled();
+    expect(rejectSpy).not.toHaveBeenCalled();
+    expect((client as any)._pending.has(messageId)).toBe(true);
+
+    // Test with a message from the wrong source window
+    const wrongSourceEvent = {
+      data: {
+        messageId,
+        result: "success-result",
+        error: undefined,
+      },
+      origin: "https://lms.example.com",
+      source: {} as Window,
+    };
+
+    (client as any)._onMessage(wrongSourceEvent);
+
+    expect(resolveSpy).not.toHaveBeenCalled();
+    expect(rejectSpy).not.toHaveBeenCalled();
     expect((client as any)._pending.has(messageId)).toBe(true);
   });
 
