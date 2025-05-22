@@ -72,24 +72,24 @@ declare class AICC extends AICCImpl {
 }
 
 declare class CrossFrameAPI extends CrossFrameAPIImpl {
-  constructor(settings?: Settings);
+  constructor(targetOrigin?: string, targetWindow?: Window);
 
-  LMSInitialize: () => Promise<boolean>;
-  LMSFinish: () => Promise<boolean>;
-  LMSGetValue: (CMIElement: string) => Promise<string>;
-  LMSSetValue: (CMIElement: string, value: any) => Promise<boolean>;
-  LMSCommit: () => Promise<boolean>;
-  LMSGetLastError: () => Promise<string>;
-  LMSGetErrorString: (CMIErrorCode: string) => Promise<string>;
-  LMSGetDiagnostic: (CMIErrorCode: string) => Promise<string>;
-  Initialize: () => Promise<boolean>;
-  Terminate: () => Promise<boolean>;
-  GetValue: (CMIElement: string) => Promise<string>;
-  SetValue: (CMIElement: string, value: any) => Promise<boolean>;
-  Commit: () => Promise<boolean>;
-  GetLastError: () => Promise<string>;
-  GetErrorString: (CMIErrorCode: string | number) => Promise<string>;
-  GetDiagnostic: (CMIErrorCode: string | number) => Promise<string>;
+  LMSInitialize: () => string;
+  LMSFinish: () => string;
+  LMSGetValue: (CMIElement: string) => string;
+  LMSSetValue: (CMIElement: string, value: any) => string;
+  LMSCommit: () => string;
+  LMSGetLastError: () => string;
+  LMSGetErrorString: (CMIErrorCode: string) => string;
+  LMSGetDiagnostic: (CMIErrorCode: string) => string;
+  Initialize: () => string;
+  Terminate: () => string;
+  GetValue: (CMIElement: string) => string;
+  SetValue: (CMIElement: string, value: any) => string;
+  Commit: () => string;
+  GetLastError: () => string;
+  GetErrorString: (CMIErrorCode: string | number) => string;
+  GetDiagnostic: (CMIErrorCode: string | number) => string;
 }
 
 declare class CrossFrameLMS extends CrossFrameLMSImpl {

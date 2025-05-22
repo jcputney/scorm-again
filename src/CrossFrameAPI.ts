@@ -13,6 +13,7 @@ export default class CrossFrameAPI {
   private _pending = new Map<string, { resolve: (v: any) => void; reject: (e: any) => void }>();
   private _counter = 0;
   private readonly _origin: string;
+  private readonly _targetWindow: Window;
 
   private _handler: ProxyHandler<CrossFrameAPI> = {
     get: (target, prop, receiver) => {
@@ -39,7 +40,7 @@ export default class CrossFrameAPI {
           target._lastError = "0";
         }
 
-        // Fire off async postMessage to refresh cache & error
+        // Fire off async postMessage to refresh cache and error
         target
           ._post(methodName, args)
           .then((res) => {
@@ -97,8 +98,9 @@ export default class CrossFrameAPI {
     },
   };
 
-  constructor(targetOrigin: string = "*") {
+  constructor(targetOrigin: string = "*", targetWindow: Window = window.parent) {
     this._origin = targetOrigin;
+    this._targetWindow = targetWindow;
     window.addEventListener("message", this._onMessage.bind(this));
     return new Proxy(this, this._handler);
   }
@@ -119,7 +121,7 @@ export default class CrossFrameAPI {
     return new Promise((resolve, reject) => {
       this._pending.set(messageId, { resolve, reject });
       const msg: MessageData = { messageId, method, params: safeParams };
-      window.parent.postMessage(msg, this._origin);
+      this._targetWindow.postMessage(msg, this._origin);
       // Optional timeout
       setTimeout(() => {
         if (this._pending.has(messageId)) {
