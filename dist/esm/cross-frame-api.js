@@ -100,6 +100,12 @@ class CrossFrameAPI {
   }
   /** Handle incoming postMessage responses from the LMS frame */
   _onMessage(ev) {
+    if (this._origin !== "*" && ev.origin !== this._origin) {
+      return;
+    }
+    if (ev.source && ev.source !== this._targetWindow) {
+      return;
+    }
     const data = ev.data;
     if (!data?.messageId) return;
     const pending = this._pending.get(data.messageId);
