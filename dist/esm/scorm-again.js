@@ -12265,8 +12265,11 @@ class CrossFrameLMS {
     window.addEventListener("message", this._onMessage.bind(this));
   }
   _onMessage(ev) {
+    if (this._origin !== "*" && ev.origin !== this._origin) {
+      return;
+    }
     const msg = ev.data;
-    if (!msg?.messageId || !msg.method) return;
+    if (!msg?.messageId || !msg.method || !ev.source) return;
     this._process(msg, ev.source);
   }
   _process(msg, source) {
