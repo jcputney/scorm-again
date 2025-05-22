@@ -18,8 +18,14 @@ export default class CrossFrameLMS {
   }
 
   private _onMessage(ev: MessageEvent) {
+    // Validate the message origin unless all origins are allowed
+    if (this._origin !== "*" && ev.origin !== this._origin) {
+      return;
+    }
+
     const msg = ev.data as MessageData;
-    if (!msg?.messageId || !msg.method) return;
+    if (!msg?.messageId || !msg.method || !ev.source) return;
+
     this._process(msg, ev.source as Window);
   }
 

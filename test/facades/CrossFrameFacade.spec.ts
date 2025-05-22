@@ -438,6 +438,7 @@ describe("CrossFrameLMS", () => {
         method: "LMSGetValue",
         params: ["cmi.core.lesson_status"],
       },
+      origin: "http://parent",
       source: src,
     };
 
@@ -462,6 +463,7 @@ describe("CrossFrameLMS", () => {
         method: "LMSGetValue",
         params: ["cmi.core.lesson_status"],
       },
+      origin: "http://parent",
       source: src,
     };
 
@@ -470,6 +472,7 @@ describe("CrossFrameLMS", () => {
         messageId: "42",
         params: ["cmi.core.lesson_status"],
       },
+      origin: "http://parent",
       source: src,
     };
 
