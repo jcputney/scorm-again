@@ -10,7 +10,14 @@ import { global_errors } from "./constants/error_codes";
 export default class CrossFrameAPI {
   private _cache = new Map<string, string>();
   private _lastError = "0";
-  private _pending = new Map<string, { resolve: (v: any) => void; reject: (e: any) => void }>();
+  private _pending = new Map<
+    string,
+    {
+      resolve: (v: any) => void;
+      reject: (e: any) => void;
+      timer: ReturnType<typeof setTimeout>;
+    }
+  >();
   private _counter = 0;
   private readonly _origin: string;
   private readonly _targetWindow: Window;
@@ -119,16 +126,16 @@ export default class CrossFrameAPI {
     });
 
     return new Promise((resolve, reject) => {
-      this._pending.set(messageId, { resolve, reject });
-      const msg: MessageData = { messageId, method, params: safeParams };
-      this._targetWindow.postMessage(msg, this._origin);
-      // Optional timeout
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         if (this._pending.has(messageId)) {
           this._pending.delete(messageId);
           reject(new Error(`Timeout calling ${method}`));
         }
       }, 5000);
+
+      this._pending.set(messageId, { resolve, reject, timer });
+      const msg: MessageData = { messageId, method, params: safeParams };
+      this._targetWindow.postMessage(msg, this._origin);
     });
   }
 
@@ -145,6 +152,7 @@ export default class CrossFrameAPI {
     if (!data?.messageId) return;
     const pending = this._pending.get(data.messageId);
     if (!pending) return;
+    clearTimeout(pending.timer);
     this._pending.delete(data.messageId);
     if (data.error) pending.reject(data.error);
     else pending.resolve(data.result);
