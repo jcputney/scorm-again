@@ -2,7 +2,7 @@ const global_errors = {
   GENERAL: 101};
 
 class CrossFrameAPI {
-  constructor(targetOrigin = "*") {
+  constructor(targetOrigin = "*", targetWindow = window.parent) {
     this._cache = /* @__PURE__ */ new Map();
     this._lastError = "0";
     this._pending = /* @__PURE__ */ new Map();
@@ -72,6 +72,7 @@ class CrossFrameAPI {
       }
     };
     this._origin = targetOrigin;
+    this._targetWindow = targetWindow;
     window.addEventListener("message", this._onMessage.bind(this));
     return new Proxy(this, this._handler);
   }
@@ -88,7 +89,7 @@ class CrossFrameAPI {
     return new Promise((resolve, reject) => {
       this._pending.set(messageId, { resolve, reject });
       const msg = { messageId, method, params: safeParams };
-      window.parent.postMessage(msg, this._origin);
+      this._targetWindow.postMessage(msg, this._origin);
       setTimeout(() => {
         if (this._pending.has(messageId)) {
           this._pending.delete(messageId);
