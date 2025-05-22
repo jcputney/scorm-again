@@ -57,7 +57,12 @@ There are two core pieces:
    - Caches the current state of the CMI object in the child frame, so that most calls are
      synchronous and accurate
    - Handles the `LMSInitialize` and `LMSFinish` calls to the LMS in the parent frame
-   - Falls back gracefully in all browsers (including IE11) without blocking the main thread
+  - Falls back gracefully in all browsers (including IE11) without blocking the main thread
+
+Both constructors accept an optional **origin** parameter.
+`CrossFrameLMS(api, origin)` validates incoming messages against the child's
+origin (default `"*"`), while `CrossFrameAPI(origin, targetWindow)` uses the
+origin when posting messages to the parent (also default `"*"`).
 
 ### How to Use Cross-Frame Communication
 
@@ -73,7 +78,8 @@ const api = new Scorm12API({
 });
 
 // Create the server-side facade
-new CrossFrameLMS(api, window.location.origin);
+// Allow messages from the child frame's origin
+new CrossFrameLMS(api, 'https://child.example.com');
 ```
 
 #### In the Child Frame (SCORM content)
@@ -82,7 +88,8 @@ new CrossFrameLMS(api, window.location.origin);
 import CrossFrameAPI from 'scorm-again/cross-frame-api';
 
 // Replace the global API with the cross-frame client
-window.API = window.API_1484_11 = new CrossFrameAPI(window.parent.origin);
+// Send messages to the parent LMS frame
+window.API = window.API_1484_11 = new CrossFrameAPI('https://parent.example.com');
 
 window.API.LMSInitialize();
 window.API.LMSSetValue('cmi.core.lesson_status', 'completed');
