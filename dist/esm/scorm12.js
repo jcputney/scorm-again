@@ -124,7 +124,14 @@ const scorm12_regex = {
   CMISInteger: "^-?([0-9]+)$",
   CMIDecimal: "^-?([0-9]{0,3})(\\.[0-9]*)?$",
   CMIIdentifier: "^[\\u0021-\\u007E\\s]{0,255}$",
-  CMIFeedback: "^.{0,255}$",
+  // Allow storing larger responses for interactions
+  // Some content packages may exceed the 255 character limit
+  // defined in the SCORM 1.2 specification.  The previous
+  // expression truncated these values which resulted in
+  // a "101: General Exception" being thrown when long
+  // answers were supplied.  To support these packages we
+  // relax the limitation and accept any length string.
+  CMIFeedback: "^.*$",
   // Vocabulary Data Type Definition
   CMIStatus: "^(passed|completed|failed|incomplete|browsed)$",
   CMIStatus2: "^(passed|completed|failed|incomplete|browsed|not attempted)$",
@@ -2284,7 +2291,8 @@ class HttpService {
       const response = await this.performFetch(url, processedParams);
       return this.transformResponse(response, processListeners);
     } catch (e) {
-      apiLog("processHttpRequest", e, LogLevelEnum.ERROR);
+      const message = e instanceof Error ? e.message : String(e);
+      apiLog("processHttpRequest", message, LogLevelEnum.ERROR);
       processListeners("CommitError");
       return genericError;
     }
