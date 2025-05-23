@@ -4,7 +4,7 @@ export declare class CMICore extends BaseCMI {
     constructor();
     readonly score: CMIScore;
     initialize(): void;
-    private __children;
+    private readonly __children;
     private _student_id;
     private _student_name;
     private _lesson_location;
