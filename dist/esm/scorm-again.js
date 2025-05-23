@@ -282,7 +282,14 @@ const scorm12_regex = {
   CMISInteger: "^-?([0-9]+)$",
   CMIDecimal: "^-?([0-9]{0,3})(\\.[0-9]*)?$",
   CMIIdentifier: "^[\\u0021-\\u007E\\s]{0,255}$",
-  CMIFeedback: "^.{0,255}$",
+  // Allow storing larger responses for interactions
+  // Some content packages may exceed the 255 character limit
+  // defined in the SCORM 1.2 specification.  The previous
+  // expression truncated these values which resulted in
+  // a "101: General Exception" being thrown when long
+  // answers were supplied.  To support these packages we
+  // relax the limitation and accept any length string.
+  CMIFeedback: "^.*$",
   // This must be redefined
   CMIIndex: "[._](\\d+).",
   // Vocabulary Data Type Definition
@@ -2553,7 +2560,8 @@ class HttpService {
       const response = await this.performFetch(url, processedParams);
       return this.transformResponse(response, processListeners);
     } catch (e) {
-      apiLog("processHttpRequest", e, LogLevelEnum.ERROR);
+      const message = e instanceof Error ? e.message : String(e);
+      apiLog("processHttpRequest", message, LogLevelEnum.ERROR);
       processListeners("CommitError");
       return genericError;
     }
@@ -12228,15 +12236,15 @@ class CrossFrameAPI {
       return p;
     });
     return new Promise((resolve, reject) => {
-      this._pending.set(messageId, { resolve, reject });
-      const msg = { messageId, method, params: safeParams };
-      this._targetWindow.postMessage(msg, this._origin);
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         if (this._pending.has(messageId)) {
           this._pending.delete(messageId);
           reject(new Error(`Timeout calling ${method}`));
         }
       }, 5e3);
+      this._pending.set(messageId, { resolve, reject, timer });
+      const msg = { messageId, method, params: safeParams };
+      this._targetWindow.postMessage(msg, this._origin);
     });
   }
   /** Handle incoming postMessage responses from the LMS frame */
@@ -12251,6 +12259,7 @@ class CrossFrameAPI {
     if (!data?.messageId) return;
     const pending = this._pending.get(data.messageId);
     if (!pending) return;
+    clearTimeout(pending.timer);
     this._pending.delete(data.messageId);
     if (data.error) pending.reject(data.error);
     else pending.resolve(data.result);
@@ -12280,25 +12289,27 @@ class CrossFrameLMS {
     this._process(msg, ev.source);
   }
   _process(msg, source) {
-    let result, error;
+    const sendResponse = (result, error) => {
+      const resp = { messageId: msg.messageId };
+      if (result !== void 0) resp.result = result;
+      if (error !== void 0) resp.error = error;
+      source.postMessage(resp, this._origin);
+    };
     try {
       const fn = this._api[msg.method];
       if (typeof fn !== "function") {
-        error = {
-          message: `Method ${msg.method} not found`
-        };
+        sendResponse(void 0, { message: `Method ${msg.method} not found` });
+        return;
+      }
+      const result = fn.apply(this._api, msg.params);
+      if (result && typeof result.then === "function") {
+        result.then((r) => sendResponse(r)).catch((e) => sendResponse(void 0, { message: e.message, stack: e.stack }));
       } else {
-        result = fn.apply(this._api, msg.params);
+        sendResponse(result);
       }
     } catch (e) {
-      error = { message: e.message, stack: e.stack };
+      sendResponse(void 0, { message: e.message, stack: e.stack });
     }
-    const resp = {
-      messageId: msg.messageId,
-      result,
-      error
-    };
-    source.postMessage(resp, this._origin);
   }
 }
 

@@ -557,7 +557,8 @@ class HttpService {
       const response = await this.performFetch(url, processedParams);
       return this.transformResponse(response, processListeners);
     } catch (e) {
-      apiLog("processHttpRequest", e, LogLevelEnum.ERROR);
+      const message = e instanceof Error ? e.message : String(e);
+      apiLog("processHttpRequest", message, LogLevelEnum.ERROR);
       processListeners("CommitError");
       return genericError;
     }
