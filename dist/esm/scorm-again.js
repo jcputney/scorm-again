@@ -12289,25 +12289,27 @@ class CrossFrameLMS {
     this._process(msg, ev.source);
   }
   _process(msg, source) {
-    let result, error;
+    const sendResponse = (result, error) => {
+      const resp = { messageId: msg.messageId };
+      if (result !== void 0) resp.result = result;
+      if (error !== void 0) resp.error = error;
+      source.postMessage(resp, this._origin);
+    };
     try {
       const fn = this._api[msg.method];
       if (typeof fn !== "function") {
-        error = {
-          message: `Method ${msg.method} not found`
-        };
+        sendResponse(void 0, { message: `Method ${msg.method} not found` });
+        return;
+      }
+      const result = fn.apply(this._api, msg.params);
+      if (result && typeof result.then === "function") {
+        result.then((r) => sendResponse(r)).catch((e) => sendResponse(void 0, { message: e.message, stack: e.stack }));
       } else {
-        result = fn.apply(this._api, msg.params);
+        sendResponse(result);
       }
     } catch (e) {
-      error = { message: e.message, stack: e.stack };
+      sendResponse(void 0, { message: e.message, stack: e.stack });
     }
-    const resp = {
-      messageId: msg.messageId,
-      result,
-      error
-    };
-    source.postMessage(resp, this._origin);
   }
 }
 
