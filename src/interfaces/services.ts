@@ -156,8 +156,14 @@ export interface ISerializationService {
     terminateCommit: boolean,
     alwaysSendTotalTime: boolean,
     renderCommonCommitFields: boolean | ((commitObject: CommitObject) => boolean),
-    renderCommitObject: (terminateCommit: boolean) => CommitObject,
-    renderCommitCMI: (terminateCommit: boolean) => StringKeyMap | Array<any>,
+    renderCommitObject: (
+      terminateCommit: boolean,
+      includeTotalTime?: boolean,
+    ) => CommitObject,
+    renderCommitCMI: (
+      terminateCommit: boolean,
+      includeTotalTime?: boolean,
+    ) => StringKeyMap | Array<any>,
     apiLogLevel: LogLevel,
   ): CommitObject | StringKeyMap | Array<any>;
 }
