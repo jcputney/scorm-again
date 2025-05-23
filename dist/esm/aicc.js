@@ -2306,7 +2306,7 @@ class HttpService {
       errorCode: this.error_codes.GENERAL
     };
     if (immediate) {
-      return this._handleImmediateRequest(url, params, processListeners);
+      return this._handleImmediateRequest(url, params, apiLog, processListeners);
     }
     try {
       const processedParams = this.settings.requestHandler(params);
@@ -2327,13 +2327,17 @@ class HttpService {
    * @return {ResultObject} - A success result object
    * @private
    */
-  _handleImmediateRequest(url, params, processListeners) {
+  _handleImmediateRequest(url, params, apiLog, processListeners) {
     if (this.settings.useBeaconInsteadOfFetch !== "never") {
       const { body, contentType } = this._prepareRequestBody(params);
       navigator.sendBeacon(url, new Blob([body], { type: contentType }));
     } else {
       this.performFetch(url, params).then(async (response) => {
         await this.transformResponse(response, processListeners);
+      }).catch((e) => {
+        const message = e instanceof Error ? e.message : String(e);
+        apiLog("processHttpRequest", message, LogLevelEnum.ERROR);
+        processListeners("CommitError");
       });
     }
     return {
