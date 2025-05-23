@@ -156,10 +156,7 @@ export interface ISerializationService {
     terminateCommit: boolean,
     alwaysSendTotalTime: boolean,
     renderCommonCommitFields: boolean | ((commitObject: CommitObject) => boolean),
-    renderCommitObject: (
-      terminateCommit: boolean,
-      includeTotalTime?: boolean,
-    ) => CommitObject,
+    renderCommitObject: (terminateCommit: boolean, includeTotalTime?: boolean) => CommitObject,
     renderCommitCMI: (
       terminateCommit: boolean,
       includeTotalTime?: boolean,
