@@ -489,6 +489,32 @@ describe("HttpService", () => {
       expect(processListenersStub).toHaveBeenCalledWith("CommitError");
     });
 
+    it("should handle fetch errors for immediate requests", async () => {
+      const url = "https://example.com/api";
+      const params = { data: "test" };
+      fetchStub.mockRejectedValue(new Error("Network down"));
+
+      const result = await httpService.processHttpRequest(
+        url,
+        params,
+        true,
+        apiLogStub,
+        processListenersStub,
+      );
+
+      expect(result.result).toBe(global_constants.SCORM_TRUE);
+      expect(result.errorCode).toBe(0);
+
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(apiLogStub).toHaveBeenCalledWith(
+        "processHttpRequest",
+        "Network down",
+        LogLevelEnum.ERROR,
+      );
+      expect(processListenersStub).toHaveBeenCalledWith("CommitError");
+    });
+
     it("should handle array params", async () => {
       const url = "https://example.com/api";
       const params = ["param1=value1", "param2=value2"];

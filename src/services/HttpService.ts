@@ -96,7 +96,7 @@ export class HttpService implements IHttpService {
 
     // If immediate mode (for termination), handle differently
     if (immediate) {
-      return this._handleImmediateRequest(url, params, processListeners);
+      return this._handleImmediateRequest(url, params, apiLog, processListeners);
     }
 
     // Standard request processing
@@ -126,6 +126,12 @@ export class HttpService implements IHttpService {
   private _handleImmediateRequest(
     url: string,
     params: CommitObject | StringKeyMap | Array<any>,
+    apiLog: (
+      functionName: string,
+      message: any,
+      messageLevel: LogLevelEnum,
+      CMIElement?: string,
+    ) => void,
     processListeners: (functionName: string, CMIElement?: string, value?: any) => void,
   ): ResultObject {
     // Use Beacon API for final commit if specified in settings
@@ -134,9 +140,15 @@ export class HttpService implements IHttpService {
       navigator.sendBeacon(url, new Blob([body], { type: contentType }));
     } else {
       // Use regular fetch with keepalive
-      this.performFetch(url, params).then(async (response) => {
-        await this.transformResponse(response, processListeners);
-      });
+      this.performFetch(url, params)
+        .then(async (response) => {
+          await this.transformResponse(response, processListeners);
+        })
+        .catch((e: unknown) => {
+          const message = e instanceof Error ? e.message : String(e);
+          apiLog("processHttpRequest", message, LogLevelEnum.ERROR);
+          processListeners("CommitError");
+        });
     }
 
     // Return success immediately without waiting for response
