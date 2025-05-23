@@ -793,7 +793,7 @@ export default abstract class BaseAPI implements IBaseAPI {
 
       let CMIElement = null;
       if (listenerSplit.length > 1) {
-        CMIElement = listenerName.replace(functionName + ".", "");
+        CMIElement = listenerFunctions[i].replace(functionName + ".", "");
       }
 
       this.listenerArray.push({
@@ -829,7 +829,7 @@ export default abstract class BaseAPI implements IBaseAPI {
 
       let CMIElement = null;
       if (listenerSplit.length > 1) {
-        CMIElement = listenerName.replace(functionName + ".", "");
+        CMIElement = listenerFunctions[i].replace(functionName + ".", "");
       }
 
       const removeIndex = this.listenerArray.findIndex(
@@ -865,7 +865,7 @@ export default abstract class BaseAPI implements IBaseAPI {
 
       let CMIElement = null;
       if (listenerSplit.length > 1) {
-        CMIElement = listenerName.replace(functionName + ".", "");
+        CMIElement = listenerFunctions[i].replace(functionName + ".", "");
       }
 
       this.listenerArray = this.listenerArray.filter(

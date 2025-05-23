@@ -841,6 +841,51 @@ describe("SCORM 1.2 API Tests", () => {
       expect(callback3.calledTwice).toBe(true);
       expect(callback4.calledTwice).toBe(true);
     });
+
+    it("Should handle multiple events in one listener string", async () => {
+      const scorm12API = api({
+        ...DefaultSettings,
+        ...{
+          lmsCommitUrl: "/scorm12",
+          autocommit: true,
+          autocommitSeconds: 1,
+        },
+      });
+      scorm12API.lmsInitialize();
+
+      const callback = sinon.spy();
+      scorm12API.on("LMSSetValue.cmi.core.session_time CommitSuccess", callback);
+
+      scorm12API.lmsSetValue("cmi.core.session_time", "00:01:00");
+      clock.tick(2000);
+
+      await clock.runAllAsync();
+
+      expect(callback.calledTwice).toBe(true);
+    });
+
+    it("Should detach multiple events using off()", async () => {
+      const scorm12API = api({
+        ...DefaultSettings,
+        ...{
+          lmsCommitUrl: "/scorm12",
+          autocommit: true,
+          autocommitSeconds: 1,
+        },
+      });
+      scorm12API.lmsInitialize();
+
+      const callback = sinon.spy();
+      scorm12API.on("LMSSetValue.cmi.core.session_time CommitSuccess", callback);
+      scorm12API.off("LMSSetValue.cmi.core.session_time CommitSuccess", callback);
+
+      scorm12API.lmsSetValue("cmi.core.session_time", "00:01:00");
+      clock.tick(2000);
+
+      await clock.runAllAsync();
+
+      expect(callback.called).toBe(false);
+    });
     it("Should handle CommitError event", async () => {
       const scorm12API = api({
         ...DefaultSettings,

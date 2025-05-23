@@ -1356,6 +1356,49 @@ describe("SCORM 2004 API Tests", () => {
       expect(callback3.calledTwice).toBe(true);
       expect(callback4.calledTwice).toBe(true);
     });
+
+    it("Should handle multiple events in one listener string", async () => {
+      const scorm2004API = api({
+        ...DefaultSettings,
+        ...{
+          lmsCommitUrl: "/scorm2004",
+          autocommit: true,
+          autocommitSeconds: 1,
+        },
+      });
+      scorm2004API.lmsInitialize();
+
+      const callback = sinon.spy();
+      scorm2004API.on("SetValue.cmi.learner_id CommitSuccess", callback);
+
+      scorm2004API.lmsSetValue("cmi.learner_id", "@jcputney");
+      scorm2004API.lmsCommit();
+      await clock.runAllAsync();
+
+      expect(callback.calledTwice).toBe(true);
+    });
+
+    it("Should detach multiple events using off()", async () => {
+      const scorm2004API = api({
+        ...DefaultSettings,
+        ...{
+          lmsCommitUrl: "/scorm2004",
+          autocommit: true,
+          autocommitSeconds: 1,
+        },
+      });
+      scorm2004API.lmsInitialize();
+
+      const callback = sinon.spy();
+      scorm2004API.on("SetValue.cmi.learner_id CommitSuccess", callback);
+      scorm2004API.off("SetValue.cmi.learner_id CommitSuccess", callback);
+
+      scorm2004API.lmsSetValue("cmi.learner_id", "@jcputney");
+      scorm2004API.lmsCommit();
+      await clock.runAllAsync();
+
+      expect(callback.called).toBe(false);
+    });
     it("Should handle CommitError event", async () => {
       const scorm2004API = api({
         ...DefaultSettings,
