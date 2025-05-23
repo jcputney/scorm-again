@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { CMIAttemptRecords, CMIAttemptRecordsObject } from "../../../src/cmi/aicc/attempts";
 import { CMIScore } from "../../../src/cmi/common/score";

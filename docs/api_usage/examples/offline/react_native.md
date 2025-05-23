@@ -1,6 +1,7 @@
 # Using scorm-again with React Native for Offline Learning
 
-This guide demonstrates how to implement SCORM content in a React Native application with offline support using scorm-again.
+This guide demonstrates how to implement SCORM content in a React Native application with offline
+support using scorm-again.
 
 ## Prerequisites
 
@@ -41,7 +42,8 @@ Create a directory structure for storing SCORM content:
 
 ### 3. Loading From External Storage (Recommended)
 
-For production applications, it's recommended to load SCORM modules from external/shared storage rather than bundling them with your app. This approach offers several advantages:
+For production applications, it's recommended to load SCORM modules from external/shared storage
+rather than bundling them with your app. This approach offers several advantages:
 
 - Allows for larger course content beyond app size limitations
 - Enables sharing courses between applications
@@ -59,17 +61,17 @@ First, set up the necessary permissions:
     <!-- For all Android versions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    
+
     <!-- For Android 10 (API 29) and below -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    
+
     <!-- For Android 11+ specific directories -->
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" 
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
                      tools:ignore="ScopedStorage" />
-    
+
     <application
-        android:requestLegacyExternalStorage="true" 
+        android:requestLegacyExternalStorage="true"
         ...>
         ...
     </application>
@@ -105,11 +107,11 @@ class ExternalStorageService {
 
   async initialize() {
     if (this.initialized) return true;
-    
+
     try {
       // Request permissions first
       await this.requestStoragePermission();
-      
+
       // Set up base directory path based on platform
       if (Platform.OS === 'android') {
         // Use Download directory on Android
@@ -120,13 +122,13 @@ class ExternalStorageService {
       } else {
         throw new Error('Unsupported platform');
       }
-      
+
       // Create base directory if it doesn't exist
       const exists = await RNFS.exists(this.baseStoragePath);
       if (!exists) {
         await RNFS.mkdir(this.baseStoragePath);
       }
-      
+
       this.initialized = true;
       return true;
     } catch (error) {
@@ -134,11 +136,11 @@ class ExternalStorageService {
       return false;
     }
   }
-  
+
   async requestStoragePermission() {
     if (Platform.OS === 'android') {
       const apiLevel = parseInt(Platform.Version, 10);
-      
+
       if (apiLevel >= 30) { // Android 11+
         // For Android 11+, we need to request MANAGE_EXTERNAL_STORAGE
         // Note: This requires special handling - the user needs to
@@ -152,7 +154,7 @@ class ExternalStorageService {
         // For Android 10 and below, request READ/WRITE_EXTERNAL_STORAGE
         const readResult = await request(PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE);
         const writeResult = await request(PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE);
-        
+
         if (readResult !== RESULTS.GRANTED || writeResult !== RESULTS.GRANTED) {
           throw new Error('Storage permissions required');
         }
@@ -161,84 +163,84 @@ class ExternalStorageService {
       // iOS doesn't need explicit permissions for app Documents directory
       return true;
     }
-    
+
     return true;
   }
-  
+
   async getCourseDirectory(courseId) {
     await this.initialize();
-    
+
     const courseDir = `${this.baseStoragePath}/${courseId}`;
     const exists = await RNFS.exists(courseDir);
-    
+
     if (!exists) {
       await RNFS.mkdir(courseDir);
     }
-    
+
     return courseDir;
   }
-  
+
   async extractCourse(zipFilePath, courseId) {
     try {
       const courseDir = await this.getCourseDirectory(courseId);
-      
+
       // Extract the course zip file
       await unzip(zipFilePath, courseDir);
-      
+
       // Verify that the extracted content is valid
       const indexPath = `${courseDir}/index.html`;
       const indexExists = await RNFS.exists(indexPath);
-      
+
       if (!indexExists) {
         throw new Error('Invalid SCORM package: No index.html found');
       }
-      
+
       return courseDir;
     } catch (error) {
       console.error('Failed to extract course:', error);
       throw error;
     }
   }
-  
+
   async downloadAndExtractCourse(courseId, downloadUrl) {
     try {
       await this.initialize();
-      
+
       // Create a temporary download path
       const tempZipPath = `${RNFS.CachesDirectoryPath}/${courseId}.zip`;
-      
+
       // Download the file
       const response = await RNBlobUtil.config({
         fileCache: true,
         path: tempZipPath,
       }).fetch('GET', downloadUrl);
-      
+
       // Extract the course
       const courseDir = await this.extractCourse(tempZipPath, courseId);
-      
+
       // Clean up the zip file
       await RNFS.unlink(tempZipPath);
-      
+
       return courseDir;
     } catch (error) {
       console.error('Failed to download and extract course:', error);
       throw error;
     }
   }
-  
+
   async listAvailableCourses() {
     try {
       await this.initialize();
-      
+
       const courses = [];
       const items = await RNFS.readDir(this.baseStoragePath);
-      
+
       for (const item of items) {
         if (item.isDirectory()) {
           // Check if it contains an index.html file
           const indexPath = `${item.path}/index.html`;
           const indexExists = await RNFS.exists(indexPath);
-          
+
           if (indexExists) {
             courses.push({
               id: item.name,
@@ -248,18 +250,18 @@ class ExternalStorageService {
           }
         }
       }
-      
+
       return courses;
     } catch (error) {
       console.error('Failed to list courses:', error);
       return [];
     }
   }
-  
+
   getCourseUrl(coursePath) {
     return `file://${coursePath}/index.html`;
   }
-  
+
   async deleteCourse(courseId) {
     try {
       const courseDir = await this.getCourseDirectory(courseId);
@@ -302,7 +304,7 @@ const ScormPlayerScreen = ({ route }) => {
     // Setup network connectivity listener
     const unsubscribe = NetInfo.addEventListener(state => {
       setIsOnline(state.isConnected);
-      
+
       // If we just came back online, try to sync data
       if (state.isConnected && webViewRef.current) {
         syncOfflineData();
@@ -323,40 +325,40 @@ const ScormPlayerScreen = ({ route }) => {
       // Step 1: Copy scorm-again.js API to app documents directory if needed
       const documentsDir = RNFS.DocumentDirectoryPath;
       const apiDir = `${documentsDir}/scorm-again/api`;
-      
+
       const apiDirExists = await RNFS.exists(apiDir);
       if (!apiDirExists) {
         await RNFS.mkdir(apiDir, { NSURLIsExcludedFromBackupKey: true });
       }
-      
+
       const apiJsPath = `${apiDir}/scorm-again.js`;
       const apiJsExists = await RNFS.exists(apiJsPath);
-      
+
       if (!apiJsExists) {
         // Copy the API from the app bundle
         await RNFS.copyFileAssets('scorm-again/api/scorm-again.js', apiJsPath);
       }
-      
+
       setApiPath(`file://${apiJsPath}`);
-      
+
       // Step 2: Initialize external storage and get course path
       await ExternalStorageService.initialize();
-      
+
       // Get the course directory (will create if it doesn't exist)
       const courseDir = await ExternalStorageService.getCourseDirectory(courseId);
-      
+
       // Check if the course exists (has an index.html file)
       const indexPath = `${courseDir}/index.html`;
       const indexExists = await RNFS.exists(indexPath);
-      
+
       if (!indexExists) {
         // Course doesn't exist in external storage yet
         // In a real app, you might want to download it or extract from assets
-        
+
         // For this example, we'll copy from app assets
         await copyExampleCourseFromAssets(courseDir);
       }
-      
+
       // Get the URL for loading in the WebView
       const url = ExternalStorageService.getCourseUrl(courseDir);
       setCourseUrl(url);
@@ -367,22 +369,22 @@ const ScormPlayerScreen = ({ route }) => {
       setIsLoading(false);
     }
   };
-  
+
   const copyExampleCourseFromAssets = async (targetDir) => {
     try {
       // This is a simplified example - in a real app this would be more robust
       // Get a list of all course files from assets
       const courseFiles = await RNFS.readDirAssets(`courses/${courseId}`);
-      
+
       // Copy each file to the external storage
       for (const file of courseFiles) {
         const relativePath = file.path.split(`courses/${courseId}/`)[1];
         const targetPath = `${targetDir}/${relativePath}`;
-        
+
         // Create parent directories if needed
         const targetParentDir = targetPath.substring(0, targetPath.lastIndexOf('/'));
         await RNFS.mkdir(targetParentDir, { NSURLIsExcludedFromBackupKey: true });
-        
+
         // Copy the file
         await RNFS.copyFileAssets(file.path, targetPath);
       }
@@ -394,7 +396,7 @@ const ScormPlayerScreen = ({ route }) => {
 
   const injectScormAgain = () => {
     if (!webViewRef.current) return;
-    
+
     const jsCode = `
       var scormAgainScript = document.createElement('script');
       scormAgainScript.src = '${apiPath}';
@@ -416,7 +418,7 @@ const ScormPlayerScreen = ({ route }) => {
             }));
           }
         });
-        
+
         // Notify when offline data is synced
         window.API.on('OfflineDataSynced', function() {
           window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -424,7 +426,7 @@ const ScormPlayerScreen = ({ route }) => {
             status: 'success'
           }));
         });
-        
+
         // Override the isDeviceOnline method to use our React state
         window.API._offlineStorageService.isDeviceOnline = function() {
           return ${isOnline};
@@ -433,13 +435,13 @@ const ScormPlayerScreen = ({ route }) => {
       document.head.appendChild(scormAgainScript);
       true;
     `;
-    
+
     webViewRef.current.injectJavaScript(jsCode);
   };
 
   const syncOfflineData = () => {
     if (!isOnline || !webViewRef.current) return;
-    
+
     const jsCode = `
       if (window.API && window.API._offlineStorageService) {
         window.API._offlineStorageService.syncOfflineData().then(function(success) {
@@ -451,14 +453,14 @@ const ScormPlayerScreen = ({ route }) => {
       }
       true;
     `;
-    
+
     webViewRef.current.injectJavaScript(jsCode);
   };
 
   const handleWebViewMessage = (event) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
-      
+
       if (data.type === 'log') {
         console.log('SCORM Log:', data.message);
       } else if (data.type === 'sync') {
@@ -496,14 +498,14 @@ const ScormPlayerScreen = ({ route }) => {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>SCORM Course Player</Text>
         <View style={styles.headerActions}>
-          <Icon 
-            name={isOnline ? 'wifi' : 'wifi-off'} 
-            size={24} 
-            color="#fff" 
+          <Icon
+            name={isOnline ? 'wifi' : 'wifi-off'}
+            size={24}
+            color="#fff"
             style={styles.headerIcon}
           />
-          <TouchableOpacity 
-            onPress={syncOfflineData} 
+          <TouchableOpacity
+            onPress={syncOfflineData}
             disabled={!isOnline}
             style={[styles.syncButton, !isOnline && styles.syncButtonDisabled]}
           >
@@ -511,7 +513,7 @@ const ScormPlayerScreen = ({ route }) => {
           </TouchableOpacity>
         </View>
       </View>
-      
+
       <WebView
         ref={webViewRef}
         source={{ uri: courseUrl }}
@@ -613,14 +615,14 @@ Implement a screen to browse and manage locally stored SCORM courses:
 ```jsx
 // src/screens/CourseLibraryScreen.js
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  TouchableOpacity, 
-  StyleSheet, 
-  Alert, 
-  ActivityIndicator 
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import ExternalStorageService from '../services/ExternalStorageService';
@@ -637,15 +639,15 @@ const CourseLibraryScreen = ({ navigation }) => {
     NetInfo.fetch().then(state => {
       setIsOnline(state.isConnected);
     });
-    
+
     // Subscribe to network changes
     const unsubscribe = NetInfo.addEventListener(state => {
       setIsOnline(state.isConnected);
     });
-    
+
     // Load available courses
     loadCourses();
-    
+
     return () => {
       unsubscribe();
     };
@@ -654,10 +656,10 @@ const CourseLibraryScreen = ({ navigation }) => {
   const loadCourses = async () => {
     try {
       setIsLoading(true);
-      
+
       // Initialize external storage
       await ExternalStorageService.initialize();
-      
+
       // Get list of available courses
       const availableCourses = await ExternalStorageService.listAvailableCourses();
       setCourses(availableCourses);
@@ -696,16 +698,16 @@ const CourseLibraryScreen = ({ navigation }) => {
   const downloadExampleCourse = async (courseId, url) => {
     try {
       setIsLoading(true);
-      
+
       // Show download progress (in a real app, use a progress indicator)
       Alert.alert('Downloading', 'Downloading course package...');
-      
+
       // Download and extract the course
       await ExternalStorageService.downloadAndExtractCourse(courseId, url);
-      
+
       // Refresh the course list
       await loadCourses();
-      
+
       Alert.alert('Success', 'Course downloaded successfully!');
     } catch (error) {
       console.error('Error downloading course:', error);
@@ -751,7 +753,7 @@ const CourseLibraryScreen = ({ navigation }) => {
           <Text style={styles.coursePath}>{item.path}</Text>
         </View>
       </TouchableOpacity>
-      
+
       <TouchableOpacity
         style={styles.deleteButton}
         onPress={() => handleDeleteCourse(item.id)}
@@ -789,7 +791,7 @@ const CourseLibraryScreen = ({ navigation }) => {
           </View>
         }
       />
-      
+
       <TouchableOpacity
         style={[styles.fab, !isOnline && styles.fabDisabled]}
         onPress={handleDownloadCourse}
@@ -967,7 +969,7 @@ const ScormPlayerScreen = () => {
     // Setup network connectivity listener
     const unsubscribe = NetInfo.addEventListener(state => {
       setIsOnline(state.isConnected);
-      
+
       // If we just came back online, try to sync data
       if (state.isConnected && webViewRef.current) {
         syncOfflineData();
@@ -986,33 +988,33 @@ const ScormPlayerScreen = () => {
   const prepareLocalFiles = async () => {
     try {
       const documentsDir = RNFS.DocumentDirectoryPath;
-      
+
       // Create and copy API files
       const apiDir = `${documentsDir}/scorm-again/api`;
       const apiExists = await RNFS.exists(apiDir);
-      
+
       if (!apiExists) {
         await RNFS.mkdir(apiDir, { NSURLIsExcludedFromBackupKey: true });
-        
+
         // Copy scorm-again API from assets to documents directory
         await RNFS.copyFileAssets(
           'scorm-again/api/scorm-again.js',
           `${apiDir}/scorm-again.js`
         );
       }
-      
+
       setApiPath(`file://${apiDir}`);
-      
+
       // Setup course directory
       const courseDir = `${documentsDir}/courses/${COURSE_ID}`;
       const courseExists = await RNFS.exists(courseDir);
-      
+
       if (!courseExists) {
         await RNFS.mkdir(courseDir, { NSURLIsExcludedFromBackupKey: true });
-        
+
         // Check if we need to extract a zip file
         const zipExists = await RNFS.exists(`${RNFS.MainBundlePath}/courses/${COURSE_ID}.zip`);
-        
+
         if (zipExists) {
           // Extract the course zip file to the course directory
           await unzip(
@@ -1029,7 +1031,7 @@ const ScormPlayerScreen = () => {
           // Copy other course files as needed
         }
       }
-      
+
       setCoursePath(`file://${courseDir}`);
       setIsLoading(false);
     } catch (error) {
@@ -1060,7 +1062,7 @@ const ScormPlayerScreen = () => {
             }));
           }
         });
-        
+
         // Notify when offline data is synced
         window.API.on('OfflineDataSynced', function() {
           window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -1068,7 +1070,7 @@ const ScormPlayerScreen = () => {
             status: 'success'
           }));
         });
-        
+
         // Override the isDeviceOnline method to use our React state
         window.API._offlineStorageService.isDeviceOnline = function() {
           return ${isOnline};
@@ -1077,7 +1079,7 @@ const ScormPlayerScreen = () => {
       document.head.appendChild(scormAgainScript);
       true;
     `;
-    
+
     webViewRef.current?.injectJavaScript(jsCode);
   };
 
@@ -1101,7 +1103,7 @@ const ScormPlayerScreen = () => {
   const handleWebViewMessage = (event) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
-      
+
       if (data.type === 'log') {
         console.log('SCORM Log:', data.message);
       } else if (data.type === 'sync') {
@@ -1134,14 +1136,14 @@ const ScormPlayerScreen = () => {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>SCORM Course Player</Text>
         <View style={styles.headerActions}>
-          <Icon 
-            name={isOnline ? 'wifi' : 'wifi-off'} 
-            size={24} 
-            color="#fff" 
+          <Icon
+            name={isOnline ? 'wifi' : 'wifi-off'}
+            size={24}
+            color="#fff"
             style={styles.headerIcon}
           />
-          <TouchableOpacity 
-            onPress={syncOfflineData} 
+          <TouchableOpacity
+            onPress={syncOfflineData}
             disabled={!isOnline}
             style={[styles.syncButton, !isOnline && styles.syncButtonDisabled]}
           >
@@ -1149,7 +1151,7 @@ const ScormPlayerScreen = () => {
           </TouchableOpacity>
         </View>
       </View>
-      
+
       <WebView
         ref={webViewRef}
         source={{ uri: `${coursePath}/index.html` }}
@@ -1244,14 +1246,14 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Home">
-        <Stack.Screen 
-          name="Home" 
-          component={HomeScreen} 
+        <Stack.Screen
+          name="Home"
+          component={HomeScreen}
           options={{ title: 'Course Library' }}
         />
-        <Stack.Screen 
-          name="ScormPlayer" 
-          component={ScormPlayerScreen} 
+        <Stack.Screen
+          name="ScormPlayer"
+          component={ScormPlayerScreen}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
@@ -1326,28 +1328,29 @@ The scorm-again API is initialized with these key settings:
 
 ### 1. Managing Multiple Courses
 
-For applications with multiple courses, consider implementing a course selection screen and managing multiple course directories:
+For applications with multiple courses, consider implementing a course selection screen and managing
+multiple course directories:
 
 ```jsx
 // Example Course Selection Component
 const CourseLibraryScreen = ({ navigation }) => {
   const [courses, setCourses] = useState([]);
-  
+
   useEffect(() => {
     // Load available courses
     loadAvailableCourses();
   }, []);
-  
+
   const loadAvailableCourses = async () => {
     // Read courses from directory or API
     const availableCourses = [
       { id: 'course1', title: 'Introduction to SCORM', description: 'Learn the basics of SCORM' },
       { id: 'course2', title: 'Advanced Training', description: 'In-depth training module' },
     ];
-    
+
     setCourses(availableCourses);
   };
-  
+
   return (
     <FlatList
       data={courses}
@@ -1375,11 +1378,11 @@ const downloadCourse = async (courseId, courseUrl) => {
   const documentsDir = RNFS.DocumentDirectoryPath;
   const courseZipPath = `${documentsDir}/downloads/${courseId}.zip`;
   const courseDir = `${documentsDir}/courses/${courseId}`;
-  
+
   try {
     // Create directories if needed
     await RNFS.mkdir(`${documentsDir}/downloads`, { NSURLIsExcludedFromBackupKey: true });
-    
+
     // Download the zip file
     const downloadResult = await RNFS.downloadFile({
       fromUrl: courseUrl,
@@ -1389,20 +1392,20 @@ const downloadCourse = async (courseId, courseUrl) => {
         console.log(`Download progress: ${progress.toFixed(2)}%`);
       },
     }).promise;
-    
+
     if (downloadResult.statusCode === 200) {
       // Create course directory
       await RNFS.mkdir(courseDir, { NSURLIsExcludedFromBackupKey: true });
-      
+
       // Extract the zip file
       await unzip(courseZipPath, courseDir);
-      
+
       // Remove the zip file to save space
       await RNFS.unlink(courseZipPath);
-      
+
       return true;
     }
-    
+
     return false;
   } catch (error) {
     console.error('Error downloading course:', error);
@@ -1455,14 +1458,14 @@ const validateScormPackage = async (courseDir) => {
   // Check for required files
   const hasIndexFile = await RNFS.exists(`${courseDir}/index.html`);
   const hasImsManifest = await RNFS.exists(`${courseDir}/imsmanifest.xml`);
-  
+
   if (!hasIndexFile || !hasImsManifest) {
     throw new Error('Invalid SCORM package: Missing required files');
   }
-  
+
   // Additional validation can be performed here
   // e.g., content security checks, manifest validation, etc.
-  
+
   return true;
 };
 ```
@@ -1525,4 +1528,7 @@ const retrieveSecureScormData = async (courseId) => {
 
 ## Conclusion
 
-This React Native implementation provides a robust foundation for integrating SCORM content with offline support in your mobile applications. By leveraging scorm-again's offline capabilities and React Native's WebView and file management features, you can deliver effective mobile learning experiences even in disconnected environments. 
+This React Native implementation provides a robust foundation for integrating SCORM content with
+offline support in your mobile applications. By leveraging scorm-again's offline capabilities and
+React Native's WebView and file management features, you can deliver effective mobile learning
+experiences even in disconnected environments.

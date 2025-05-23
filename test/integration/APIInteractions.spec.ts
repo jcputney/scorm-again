@@ -107,10 +107,6 @@ const wrappers = [
     name: "ESM",
     path: "/test/integration/wrappers/scorm12-wrapper-esm.html",
   },
-  // {
-  //   name: "Cross-Frame",
-  //   path: "/test/integration/wrappers/scorm12-wrapper-cross-frame.html",
-  // },
 ];
 
 wrappers.forEach((wrapper) => {

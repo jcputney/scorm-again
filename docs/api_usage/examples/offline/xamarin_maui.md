@@ -1,6 +1,7 @@
 # Using scorm-again with Xamarin.MAUI for Offline Learning
 
-This guide demonstrates how to implement SCORM content in a .NET MAUI application with offline support using scorm-again.
+This guide demonstrates how to implement SCORM content in a .NET MAUI application with offline
+support using scorm-again.
 
 ## Prerequisites
 
@@ -26,13 +27,13 @@ Add the necessary NuGet packages to your project:
 <ItemGroup>
     <!-- For file operations -->
     <PackageReference Include="System.IO.Compression" Version="4.3.0" />
-    
+
     <!-- For storing preferences -->
     <PackageReference Include="Xamarin.Essentials" Version="1.7.5" />
-    
+
     <!-- For advanced WebView features -->
     <PackageReference Include="Microsoft.Maui.Controls.WebView" Version="7.0.92" />
-    
+
     <!-- For JSON serialization -->
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 </ItemGroup>
@@ -76,7 +77,7 @@ namespace ScormMauiApp.Services
     public class ConnectivityService : IConnectivityService
     {
         public bool IsConnected => Connectivity.NetworkAccess == NetworkAccess.Internet;
-        
+
         public event EventHandler<bool> ConnectivityChanged;
 
         public void StartMonitoring()
@@ -124,31 +125,31 @@ namespace ScormMauiApp.Services
         private readonly string _baseScormPath;
         private readonly string _apiPath;
         private readonly string _coursesPath;
-        
+
         public ScormFileService()
         {
             _baseScormPath = Path.Combine(FileSystem.AppDataDirectory, "ScormContent");
             _apiPath = Path.Combine(_baseScormPath, "api");
             _coursesPath = Path.Combine(_baseScormPath, "courses");
-            
+
             Directory.CreateDirectory(_baseScormPath);
             Directory.CreateDirectory(_apiPath);
             Directory.CreateDirectory(_coursesPath);
         }
-        
+
         public async Task<bool> CopyScormApiToLocalAsync()
         {
             try
             {
                 var apiJsPath = Path.Combine(_apiPath, "scorm-again.js");
-                
+
                 if (!File.Exists(apiJsPath))
                 {
                     using var stream = await FileSystem.OpenAppPackageFileAsync("Resources/Raw/scorm-again/api/scorm-again.js");
                     using var fileStream = File.Create(apiJsPath);
                     await stream.CopyToAsync(fileStream);
                 }
-                
+
                 return true;
             }
             catch (Exception ex)
@@ -157,25 +158,25 @@ namespace ScormMauiApp.Services
                 return false;
             }
         }
-        
+
         public async Task<bool> ExtractScormPackageAsync(string courseId, Stream packageStream)
         {
             try
             {
                 var courseDir = Path.Combine(_coursesPath, courseId);
-                
+
                 if (Directory.Exists(courseDir))
                 {
                     Directory.Delete(courseDir, true);
                 }
-                
+
                 Directory.CreateDirectory(courseDir);
-                
+
                 using (var archive = new ZipArchive(packageStream, ZipArchiveMode.Read))
                 {
                     archive.ExtractToDirectory(courseDir);
                 }
-                
+
                 return true;
             }
             catch (Exception ex)
@@ -184,28 +185,28 @@ namespace ScormMauiApp.Services
                 return false;
             }
         }
-        
+
         public string GetScormApiPath()
         {
             return $"file://{Path.Combine(_apiPath, "scorm-again.js")}";
         }
-        
+
         public string GetCoursePath(string courseId)
         {
             return $"file://{Path.Combine(_coursesPath, courseId)}";
         }
-        
+
         public Task<bool> FileExistsAsync(string path)
         {
             return Task.FromResult(File.Exists(path));
         }
-        
+
         public Task<IEnumerable<string>> ListCoursesAsync()
         {
             var courses = Directory.GetDirectories(_coursesPath)
                 .Select(Path.GetFileName)
                 .Where(name => !string.IsNullOrEmpty(name));
-                
+
             return Task.FromResult(courses);
         }
     }
@@ -245,7 +246,7 @@ namespace ScormMauiApp.Handlers
         protected override Android.Webkit.WebView CreatePlatformView()
         {
             var webView = base.CreatePlatformView();
-            
+
             // Enable JavaScript
             webView.Settings.JavaScriptEnabled = true;
             webView.Settings.DomStorageEnabled = true;
@@ -253,29 +254,29 @@ namespace ScormMauiApp.Handlers
             webView.Settings.AllowContentAccess = true;
             webView.Settings.AllowFileAccessFromFileURLs = true;
             webView.Settings.AllowUniversalAccessFromFileURLs = true;
-            
+
             // Set up JavaScript interface
             if (VirtualView is ScormWebView scormWebView)
             {
                 webView.AddJavascriptInterface(
-                    new ScormJavascriptInterface(scormWebView), 
+                    new ScormJavascriptInterface(scormWebView),
                     "CSharpBridge"
                 );
             }
-            
+
             return webView;
         }
     }
-    
+
     public class ScormJavascriptInterface : Java.Lang.Object
     {
         private readonly ScormWebView _scormWebView;
-        
+
         public ScormJavascriptInterface(ScormWebView scormWebView)
         {
             _scormWebView = scormWebView;
         }
-        
+
         [Android.Webkit.JavascriptInterface]
         public void PostMessage(string message)
         {
@@ -311,30 +312,30 @@ namespace ScormMauiApp.Handlers
             {
                 JavaScriptEnabled = true
             };
-            
+
             config.Preferences = preferences;
-            
+
             if (VirtualView is ScormWebView scormWebView)
             {
                 var userController = config.UserContentController;
                 var scriptMessageHandler = new ScormScriptMessageHandler(scormWebView);
                 userController.AddScriptMessageHandler(scriptMessageHandler, "csharpBridge");
             }
-            
+
             var webView = new WKWebView(CoreGraphics.CGRect.Empty, config);
             return webView;
         }
     }
-    
+
     public class ScormScriptMessageHandler : NSObject, IWKScriptMessageHandler
     {
         private readonly ScormWebView _scormWebView;
-        
+
         public ScormScriptMessageHandler(ScormWebView scormWebView)
         {
             _scormWebView = scormWebView;
         }
-        
+
         public void DidReceiveScriptMessage(WKUserContentController userContentController, WKScriptMessage message)
         {
             if (message.Body is NSString nsString)
@@ -363,42 +364,42 @@ namespace ScormMauiApp.Controls
 {
     public class ScormWebView : WebView
     {
-        public static readonly BindableProperty ApiPathProperty = 
+        public static readonly BindableProperty ApiPathProperty =
             BindableProperty.Create(nameof(ApiPath), typeof(string), typeof(ScormWebView), null);
-            
-        public static readonly BindableProperty CourseIdProperty = 
+
+        public static readonly BindableProperty CourseIdProperty =
             BindableProperty.Create(nameof(CourseId), typeof(string), typeof(ScormWebView), null);
-            
-        public static readonly BindableProperty IsOnlineProperty = 
+
+        public static readonly BindableProperty IsOnlineProperty =
             BindableProperty.Create(nameof(IsOnline), typeof(bool), typeof(ScormWebView), true);
-            
-        public static readonly BindableProperty MessageReceivedCommandProperty = 
+
+        public static readonly BindableProperty MessageReceivedCommandProperty =
             BindableProperty.Create(nameof(MessageReceivedCommand), typeof(ICommand), typeof(ScormWebView), null);
-            
+
         public string ApiPath
         {
             get => (string)GetValue(ApiPathProperty);
             set => SetValue(ApiPathProperty, value);
         }
-        
+
         public string CourseId
         {
             get => (string)GetValue(CourseIdProperty);
             set => SetValue(CourseIdProperty, value);
         }
-        
+
         public bool IsOnline
         {
             get => (bool)GetValue(IsOnlineProperty);
             set => SetValue(IsOnlineProperty, value);
         }
-        
+
         public ICommand MessageReceivedCommand
         {
             get => (ICommand)GetValue(MessageReceivedCommandProperty);
             set => SetValue(MessageReceivedCommandProperty, value);
         }
-        
+
         public async void OnMessageReceived(string message)
         {
             try
@@ -411,12 +412,12 @@ namespace ScormMauiApp.Controls
                 Console.WriteLine($"Error parsing message: {ex.Message}");
             }
         }
-        
+
         public void InjectScormAgain()
         {
             if (string.IsNullOrEmpty(ApiPath) || string.IsNullOrEmpty(CourseId))
                 return;
-                
+
             var js = @$"
                 var scormAgainScript = document.createElement('script');
                 scormAgainScript.src = '{ApiPath}';
@@ -441,7 +442,7 @@ namespace ScormMauiApp.Controls
                             }}));
                         }}
                     }});
-                    
+
                     window.API.on('OfflineDataSynced', function() {{
                         #if IOS
                         window.webkit.messageHandlers.csharpBridge.postMessage(JSON.stringify({{
@@ -452,22 +453,22 @@ namespace ScormMauiApp.Controls
                             status: 'success'
                         }}));
                     }});
-                    
+
                     window.API._offlineStorageService.isDeviceOnline = function() {{
                         return {IsOnline.ToString().ToLower()};
                     }};
                 }};
                 document.head.appendChild(scormAgainScript);
             ";
-            
+
             EvaluateJavaScriptAsync(js);
         }
-        
+
         public void SyncOfflineData()
         {
             if (!IsOnline)
                 return;
-                
+
             var js = @"
                 if (window.API && window.API._offlineStorageService) {
                     window.API._offlineStorageService.syncOfflineData().then(function(success) {
@@ -482,7 +483,7 @@ namespace ScormMauiApp.Controls
                     });
                 }
             ";
-            
+
             EvaluateJavaScriptAsync(js);
         }
     }
@@ -505,30 +506,30 @@ namespace ScormMauiApp.ViewModels
     {
         private readonly IScormFileService _fileService;
         private readonly IConnectivityService _connectivityService;
-        
+
         private bool _isLoading;
         private bool _isOnline;
         private string _coursePath;
         private string _apiPath;
         private string _errorMessage;
         private ObservableCollection<string> _logMessages = new();
-        
+
         public ScormPlayerViewModel(
             IScormFileService fileService,
             IConnectivityService connectivityService)
         {
             _fileService = fileService;
             _connectivityService = connectivityService;
-            
+
             IsOnline = _connectivityService.IsConnected;
             _connectivityService.ConnectivityChanged += OnConnectivityChanged;
-            
+
             MessageReceivedCommand = new Command<JObject>(HandleMessage);
             SyncCommand = new Command(SyncOfflineData, () => IsOnline);
-            
+
             InitializeAsync();
         }
-        
+
         public bool IsLoading
         {
             get => _isLoading;
@@ -541,7 +542,7 @@ namespace ScormMauiApp.ViewModels
                 }
             }
         }
-        
+
         public bool IsOnline
         {
             get => _isOnline;
@@ -555,7 +556,7 @@ namespace ScormMauiApp.ViewModels
                 }
             }
         }
-        
+
         public string CoursePath
         {
             get => _coursePath;
@@ -568,7 +569,7 @@ namespace ScormMauiApp.ViewModels
                 }
             }
         }
-        
+
         public string ApiPath
         {
             get => _apiPath;
@@ -581,7 +582,7 @@ namespace ScormMauiApp.ViewModels
                 }
             }
         }
-        
+
         public string ErrorMessage
         {
             get => _errorMessage;
@@ -594,22 +595,22 @@ namespace ScormMauiApp.ViewModels
                 }
             }
         }
-        
+
         public string CourseId { get; set; } = "course1";
-        
+
         public ObservableCollection<string> LogMessages => _logMessages;
-        
+
         public ICommand MessageReceivedCommand { get; }
         public ICommand SyncCommand { get; }
-        
+
         public ScormWebView ScormWebViewControl { get; set; }
-        
+
         private async void InitializeAsync()
         {
             try
             {
                 IsLoading = true;
-                
+
                 // Copy SCORM API to local storage
                 var apiCopied = await _fileService.CopyScormApiToLocalAsync();
                 if (!apiCopied)
@@ -617,14 +618,14 @@ namespace ScormMauiApp.ViewModels
                     ErrorMessage = "Failed to copy SCORM API";
                     return;
                 }
-                
+
                 // Get paths
                 ApiPath = _fileService.GetScormApiPath();
                 CoursePath = _fileService.GetCoursePath(CourseId);
-                
+
                 var indexPath = CoursePath.Replace("file://", "") + "/index.html";
                 indexPath = indexPath.Replace("//", "/");
-                
+
                 if (!await _fileService.FileExistsAsync(indexPath))
                 {
                     ErrorMessage = "Course files not found. Please download the course first.";
@@ -640,52 +641,52 @@ namespace ScormMauiApp.ViewModels
                 IsLoading = false;
             }
         }
-        
+
         private void OnConnectivityChanged(object sender, bool isConnected)
         {
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 IsOnline = isConnected;
-                
+
                 if (isConnected && ScormWebViewControl != null)
                 {
                     SyncOfflineData();
                 }
             });
         }
-        
+
         private void HandleMessage(JObject message)
         {
             try
             {
                 var type = message["type"]?.ToString();
-                
+
                 switch (type)
                 {
                     case "log":
                         var logMessage = message["message"]?.ToString();
                         var level = message["level"]?.ToObject<int>() ?? 0;
-                        
+
                         if (!string.IsNullOrEmpty(logMessage))
                         {
                             LogMessages.Add($"[{level}] {logMessage}");
                             Console.WriteLine($"SCORM Log: [{level}] {logMessage}");
                         }
                         break;
-                        
+
                     case "sync":
                         var status = message["status"]?.ToString();
                         var success = status == "success";
-                        
+
                         MainThread.BeginInvokeOnMainThread(() =>
                         {
-                            var messageText = success ? 
-                                "SCORM data synchronized successfully" : 
+                            var messageText = success ?
+                                "SCORM data synchronized successfully" :
                                 "Failed to synchronize SCORM data";
-                                
+
                             Application.Current.MainPage.DisplayAlert(
-                                "Synchronization", 
-                                messageText, 
+                                "Synchronization",
+                                messageText,
                                 "OK"
                             );
                         });
@@ -697,7 +698,7 @@ namespace ScormMauiApp.ViewModels
                 Console.WriteLine($"Error handling message: {ex.Message}");
             }
         }
-        
+
         private void SyncOfflineData()
         {
             ScormWebViewControl?.SyncOfflineData();
@@ -719,7 +720,7 @@ namespace ScormMauiApp.ViewModels
              Title="SCORM Course Player">
 
     <ContentPage.ToolbarItems>
-        <ToolbarItem Text="Sync" 
+        <ToolbarItem Text="Sync"
                      Command="{Binding SyncCommand}"
                      IsEnabled="{Binding IsOnline}" />
     </ContentPage.ToolbarItems>
@@ -770,26 +771,26 @@ namespace ScormMauiApp.Pages
     public partial class ScormPlayerPage : ContentPage
     {
         private readonly ScormPlayerViewModel _viewModel;
-        
+
         public ScormPlayerPage(ScormPlayerViewModel viewModel)
         {
             InitializeComponent();
             _viewModel = viewModel;
             BindingContext = _viewModel;
         }
-        
+
         protected override void OnAppearing()
         {
             base.OnAppearing();
             _viewModel.ScormWebViewControl = ScormWebView;
         }
-        
+
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
             _viewModel.ScormWebViewControl = null;
         }
-        
+
         private void ScormWebView_Navigated(object sender, WebNavigatedEventArgs e)
         {
             if (e.Result == WebNavigationResult.Success)
@@ -836,10 +837,10 @@ namespace ScormMauiApp
             // Register services
             builder.Services.AddSingleton<IScormFileService, ScormFileService>();
             builder.Services.AddSingleton<IConnectivityService, ConnectivityService>();
-            
+
             // Register view models
             builder.Services.AddTransient<ScormPlayerViewModel>();
-            
+
             // Register pages
             builder.Services.AddTransient<ScormPlayerPage>();
 
@@ -874,21 +875,21 @@ namespace ScormMauiApp.Services
                 {
                     throw new UnauthorizedAccessException("Storage permission not granted");
                 }
-                
+
                 var externalDir = Android.OS.Environment.GetExternalStoragePublicDirectory(
                     Android.OS.Environment.DirectoryDocuments).AbsolutePath;
                 var scormDir = Path.Combine(externalDir, "ScormContent");
-                
+
                 #else
                 // For iOS we use app's documents directory
                 var scormDir = Path.Combine(FileSystem.AppDataDirectory, "ScormContent");
                 #endif
-                
+
                 if (!Directory.Exists(scormDir))
                 {
                     Directory.CreateDirectory(scormDir);
                 }
-                
+
                 return scormDir;
             }
             catch (Exception ex)
@@ -898,17 +899,17 @@ namespace ScormMauiApp.Services
                 return Path.Combine(FileSystem.AppDataDirectory, "ScormContent");
             }
         }
-        
+
         public static async Task<string> GetCoursePath(string courseId)
         {
             var baseDir = await GetExternalScormDirectoryAsync();
             var coursePath = Path.Combine(baseDir, "Courses", courseId);
-            
+
             if (!Directory.Exists(coursePath))
             {
                 Directory.CreateDirectory(coursePath);
             }
-            
+
             return coursePath;
         }
     }
@@ -924,19 +925,19 @@ public async Task<bool> ExtractScormPackageToExternalAsync(string courseId, Stre
     try
     {
         var courseDir = await ExternalStorageService.GetCoursePath(courseId);
-        
+
         if (Directory.Exists(courseDir))
         {
             Directory.Delete(courseDir, true);
         }
-        
+
         Directory.CreateDirectory(courseDir);
-        
+
         using (var archive = new ZipArchive(packageStream, ZipArchiveMode.Read))
         {
             archive.ExtractToDirectory(courseDir);
         }
-        
+
         return true;
     }
     catch (Exception ex)
@@ -975,13 +976,13 @@ namespace ScormMauiApp.Services
     {
         private readonly IScormFileService _fileService;
         private readonly HttpClient _httpClient;
-        
+
         public CourseDownloaderService(IScormFileService fileService)
         {
             _fileService = fileService;
             _httpClient = new HttpClient();
         }
-        
+
         public async Task<bool> DownloadCourse(string courseId, string downloadUrl, IProgress<double> progress = null)
         {
             try
@@ -989,11 +990,11 @@ namespace ScormMauiApp.Services
                 // Download the zip file
                 var response = await _httpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead);
                 response.EnsureSuccessStatusCode();
-                
+
                 var totalBytes = response.Content.Headers.ContentLength ?? -1L;
                 var buffer = new byte[8192];
                 var bytesCopied = 0L;
-                
+
                 using (var contentStream = await response.Content.ReadAsStreamAsync())
                 using (var memoryStream = new MemoryStream())
                 {
@@ -1001,21 +1002,21 @@ namespace ScormMauiApp.Services
                     {
                         var bytesRead = await contentStream.ReadAsync(buffer);
                         if (bytesRead == 0) break;
-                        
+
                         await memoryStream.WriteAsync(buffer, 0, bytesRead);
-                        
+
                         bytesCopied += bytesRead;
-                        
+
                         if (totalBytes != -1L && progress != null)
                         {
                             var progressValue = (double)bytesCopied / totalBytes;
                             progress.Report(progressValue);
                         }
                     }
-                    
+
                     // Reset the memory stream position
                     memoryStream.Position = 0;
-                    
+
                     // Extract package to external storage
                     return await _fileService.ExtractScormPackageToExternalAsync(courseId, memoryStream);
                 }
@@ -1026,7 +1027,7 @@ namespace ScormMauiApp.Services
                 return false;
             }
         }
-        
+
         public async Task<IEnumerable<string>> ListAvailableCoursesAsync()
         {
             try
@@ -1034,7 +1035,7 @@ namespace ScormMauiApp.Services
                 // In a real application, this would call an API to get a list of available courses
                 // For this example, we'll return a hardcoded list
                 await Task.Delay(500); // Simulate network delay
-                
+
                 return new List<string>
                 {
                     "course1",
@@ -1123,7 +1124,7 @@ private async Task<bool> ValidateScormPackage(string coursePath)
 {
     var indexHtmlExists = File.Exists(Path.Combine(coursePath, "index.html"));
     var manifestExists = File.Exists(Path.Combine(coursePath, "imsmanifest.xml"));
-    
+
     return indexHtmlExists && manifestExists;
 }
 ```
@@ -1144,7 +1145,7 @@ namespace ScormMauiApp.Services
         {
             await SecureStorage.Default.SetAsync(key, value);
         }
-        
+
         public static async Task<string> RetrieveSecurely(string key)
         {
             return await SecureStorage.Default.GetAsync(key);
@@ -1174,4 +1175,7 @@ namespace ScormMauiApp.Services
 
 ## Conclusion
 
-This .NET MAUI implementation provides a robust cross-platform solution for implementing SCORM content with offline support. By leveraging .NET MAUI's capabilities for WebView and file operations while implementing scorm-again's offline features, you can deliver a consistent learning experience across both Android and iOS platforms. 
+This .NET MAUI implementation provides a robust cross-platform solution for implementing SCORM
+content with offline support. By leveraging .NET MAUI's capabilities for WebView and file operations
+while implementing scorm-again's offline features, you can deliver a consistent learning experience
+across both Android and iOS platforms.

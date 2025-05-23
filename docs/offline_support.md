@@ -1,6 +1,8 @@
 # Offline Support for scorm-again
 
-This document explains how to use the offline support feature in scorm-again, which allows SCORM modules to function without an active internet connection and sync data back to the LMS when connectivity is restored.
+This document explains how to use the offline support feature in scorm-again, which allows SCORM
+modules to function without an active internet connection and sync data back to the LMS when
+connectivity is restored.
 
 ## Overview
 
@@ -21,7 +23,7 @@ const settings = {
   // Standard settings
   lmsCommitUrl: "https://your-lms.com/api/scorm/commit",
   autocommit: true,
-  
+
   // Offline support settings
   enableOfflineSupport: true,  // Enable offline support
   courseId: "COURSE-12345",    // Unique identifier for the course
@@ -36,19 +38,20 @@ const api = new Scorm12API(settings);
 
 ### Offline Support Settings
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `enableOfflineSupport` | `false` | Master switch to enable/disable offline functionality |
-| `courseId` | `""` | Unique identifier for the course or content module |
-| `syncOnInitialize` | `true` | Whether to try syncing offline data when the API initializes |
-| `syncOnTerminate` | `true` | Whether to try syncing offline data when the API terminates |
-| `maxSyncAttempts` | `5` | Maximum number of sync attempts for each data item |
+| Setting                | Default | Description                                                  |
+|------------------------|---------|--------------------------------------------------------------|
+| `enableOfflineSupport` | `false` | Master switch to enable/disable offline functionality        |
+| `courseId`             | `""`    | Unique identifier for the course or content module           |
+| `syncOnInitialize`     | `true`  | Whether to try syncing offline data when the API initializes |
+| `syncOnTerminate`      | `true`  | Whether to try syncing offline data when the API terminates  |
+| `maxSyncAttempts`      | `5`     | Maximum number of sync attempts for each data item           |
 
 ## How It Works
 
 ### Automatic Mode Switching
 
-The API automatically detects network connectivity status and switches between online and offline modes:
+The API automatically detects network connectivity status and switches between online and offline
+modes:
 
 - When online, data is sent directly to the LMS as usual
 - When offline, data is stored locally in the browser's localStorage
@@ -102,18 +105,18 @@ const ScormPlayer = () => {
       webviewRef.current.injectJavaScript(script);
     }
   };
-  
+
   // Listen for network changes
   React.useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
       injectNetworkStatus(state.isConnected);
     });
-    
+
     return () => unsubscribe();
   }, []);
-  
+
   const webviewRef = React.useRef(null);
-  
+
   return (
     <WebView
       ref={webviewRef}
@@ -134,7 +137,8 @@ export default ScormPlayer;
 
 ## Detailed Mobile Framework Examples
 
-For more comprehensive examples of implementing offline support in various mobile frameworks, please refer to these detailed guides:
+For more comprehensive examples of implementing offline support in various mobile frameworks, please
+refer to these detailed guides:
 
 - [React Native Implementation](api_usage/examples/offline/react_native.md)
 - [Flutter Implementation](api_usage/examples/offline/flutter.md)
@@ -166,4 +170,4 @@ If you encounter issues with offline support:
 1. **Data Not Syncing**: Verify network connectivity and check browser console for errors
 2. **Storage Errors**: Check localStorage limits and browser permissions
 3. **Course Not Loading Offline**: Ensure all resources are locally available
-4. **Mobile Integration Issues**: Verify WebView configuration and JavaScript bridging 
+4. **Mobile Integration Issues**: Verify WebView configuration and JavaScript bridging

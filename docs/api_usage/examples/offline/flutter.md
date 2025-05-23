@@ -44,7 +44,8 @@ Create a directory structure for storing SCORM content:
 
 ### 3. Using External Storage (Recommended)
 
-For production applications, it's best to load SCORM content from the device's external storage rather than app-specific directories. This approach:
+For production applications, it's best to load SCORM content from the device's external storage
+rather than app-specific directories. This approach:
 
 - Allows larger courses to be stored without impacting app storage limits
 - Enables sharing courses between apps
@@ -63,7 +64,7 @@ First, add the necessary permissions to your app:
     <!-- Required for API level 28 and below -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    
+
     <!-- For API 29+ and scoped storage -->
     <application
         android:requestLegacyExternalStorage="true"
@@ -94,7 +95,7 @@ class ScormStorageService {
    /// Get the base external storage directory for SCORM content
    Future<Directory> getScormExternalDirectory() async {
       String? basePath;
-      
+
       // Handle platform differences
       if (Platform.isAndroid) {
          // Request storage permission
@@ -102,7 +103,7 @@ class ScormStorageService {
          if (await Permission.storage.isDenied) {
             throw Exception('Storage permission is required');
          }
-         
+
          // Get the Downloads directory on Android
          basePath = await ExternalPath.getExternalStoragePublicDirectory(
             ExternalPath.DIRECTORY_DOWNLOADS
@@ -114,37 +115,37 @@ class ScormStorageService {
       } else {
          throw Exception('Unsupported platform');
       }
-      
+
       // Create SCORM content directory
       final scormDir = Directory('$basePath/ScormContent');
       if (!await scormDir.exists()) {
          await scormDir.create(recursive: true);
       }
-      
+
       return scormDir;
    }
-   
+
    /// Get directory for a specific course
    Future<Directory> getCourseDirectory(String courseId) async {
       final baseDir = await getScormExternalDirectory();
       final courseDir = Directory('${baseDir.path}/$courseId');
-      
+
       if (!await courseDir.exists()) {
          await courseDir.create(recursive: true);
       }
-      
+
       return courseDir;
    }
-   
+
    /// Extract a SCORM package to external storage
    Future<bool> extractScormPackage(File zipFile, String courseId) async {
       try {
          final courseDir = await getCourseDirectory(courseId);
-         
+
          // Read the zip file
          final bytes = await zipFile.readAsBytes();
          final archive = ZipDecoder().decodeBytes(bytes);
-         
+
          // Extract all files
          for (final file in archive) {
             final filename = file.name;
@@ -157,20 +158,20 @@ class ScormStorageService {
                await Directory('${courseDir.path}/$filename').create(recursive: true);
             }
          }
-         
+
          return true;
       } catch (e) {
          print('Error extracting SCORM package: $e');
          return false;
       }
    }
-   
+
    /// List available courses in external storage
    Future<List<String>> listCourses() async {
       try {
          final baseDir = await getScormExternalDirectory();
          final courses = <String>[];
-         
+
          await for (final entity in baseDir.list()) {
             if (entity is Directory) {
                // Check if it's a valid SCORM course
@@ -180,14 +181,14 @@ class ScormStorageService {
                }
             }
          }
-         
+
          return courses;
       } catch (e) {
          print('Error listing courses: $e');
          return [];
       }
    }
-   
+
    /// Get the URL for loading a course in a WebView
    String getCourseUrl(Directory courseDir) {
       return 'file://${courseDir.path}/index.html';
@@ -206,14 +207,14 @@ class _ScormPlayerScreenState extends State<ScormPlayerScreen> {
    bool _isOnline = true;
    final String _courseId = 'course1';
    final ScormStorageService _storageService = ScormStorageService();
-   
+
    @override
    void initState() {
       super.initState();
       _checkConnectivity();
       _setupWebView();
    }
-   
+
    Future<void> _checkConnectivity() async {
       var connectivityResult = await Connectivity().checkConnectivity();
       setState(() {
@@ -236,10 +237,10 @@ class _ScormPlayerScreenState extends State<ScormPlayerScreen> {
       try {
          // Get the API directory from the app's documents directory
          final apiDir = await _prepareApiFiles();
-         
+
          // Get the course directory from external storage
          final courseDir = await _storageService.getCourseDirectory(_courseId);
-         
+
          // Create WebView controller
          _controller = WebViewController()
             ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -260,7 +261,7 @@ class _ScormPlayerScreenState extends State<ScormPlayerScreen> {
                   _handleScormMessage(message.message);
                },
             );
-         
+
          // Load the course from external storage
          final courseUrl = _storageService.getCourseUrl(courseDir);
          _controller.loadFile(courseUrl);
@@ -271,12 +272,12 @@ class _ScormPlayerScreenState extends State<ScormPlayerScreen> {
          });
       }
    }
-   
+
    Future<String> _prepareApiFiles() async {
       final documentsDir = await getApplicationDocumentsDirectory();
       final apiDir = '${documentsDir.path}/scorm-again/api';
       final apiDirObj = Directory(apiDir);
-      
+
       if (!await apiDirObj.exists()) {
          await apiDirObj.create(recursive: true);
          await _copyAssetToFile(
@@ -284,7 +285,7 @@ class _ScormPlayerScreenState extends State<ScormPlayerScreen> {
             '$apiDir/scorm-again.js'
          );
       }
-      
+
       return apiDir;
    }
 

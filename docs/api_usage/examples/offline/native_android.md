@@ -1,6 +1,7 @@
 # Using scorm-again with Native Android for Offline Learning
 
-This guide demonstrates how to implement SCORM content in a native Android application with offline support using scorm-again.
+This guide demonstrates how to implement SCORM content in a native Android application with offline
+support using scorm-again.
 
 ## Prerequisites
 
@@ -12,20 +13,21 @@ This guide demonstrates how to implement SCORM content in a native Android appli
 
 ### 1. Configure Your Android Project
 
-Create a new Android project or use an existing one. Make sure your `build.gradle` file includes the necessary dependencies:
+Create a new Android project or use an existing one. Make sure your `build.gradle` file includes the
+necessary dependencies:
 
 ```gradle
 // app/build.gradle
 dependencies {
     // WebView dependencies
     implementation 'androidx.webkit:webkit:1.8.0'
-    
+
     // For network connectivity monitoring
     implementation 'androidx.core:core-ktx:1.12.0'
-    
+
     // Zip handling (for extracting SCORM packages)
     implementation 'net.lingala.zip4j:zip4j:2.11.5'
-    
+
     // Lifecycle components
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.2'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2'
@@ -40,11 +42,11 @@ Modify your `AndroidManifest.xml` to include permissions for internet access and
 <manifest ...>
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    
+
     <!-- For API level 28 and below -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    
+
     <application
         ...
         android:requestLegacyExternalStorage="true">
@@ -81,9 +83,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
 class NetworkConnectivityMonitor(private val context: Context) {
-    private val connectivityManager = 
+    private val connectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-    
+
     fun isNetworkAvailable(): Boolean {
         val network = connectivityManager.activeNetwork
         val capabilities = connectivityManager.getNetworkCapabilities(network)
@@ -92,27 +94,27 @@ class NetworkConnectivityMonitor(private val context: Context) {
             capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
         )
     }
-    
+
     fun observeNetworkConnectivity(): Flow<Boolean> = callbackFlow {
         val callback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
                 trySend(true)
             }
-            
+
             override fun onLost(network: Network) {
                 trySend(false)
             }
         }
-        
+
         val request = NetworkRequest.Builder()
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .build()
-            
+
         connectivityManager.registerNetworkCallback(request, callback)
-        
+
         // Initial value
         trySend(isNetworkAvailable())
-        
+
         awaitClose {
             connectivityManager.unregisterNetworkCallback(callback)
         }
@@ -138,7 +140,7 @@ class ScormFileManager(private val context: Context) {
         private const val SCORM_API_ASSET_PATH = "scorm-again/api/scorm-again.js"
         private const val EXTERNAL_SCORM_DIR = "ScormContent"
     }
-    
+
     // Base directory for storing SCORM content
     fun getScormBaseDirectory(): File {
         val baseDir = File(
@@ -150,7 +152,7 @@ class ScormFileManager(private val context: Context) {
         }
         return baseDir
     }
-    
+
     // Directory for a specific course
     fun getCourseDirectory(courseId: String): File {
         val courseDir = File(getScormBaseDirectory(), courseId)
@@ -159,25 +161,25 @@ class ScormFileManager(private val context: Context) {
         }
         return courseDir
     }
-    
+
     // Get the API path
     fun getScormApiPath(): String {
         val apiFile = copyScormApiToExternal()
         return "file://${apiFile.absolutePath}"
     }
-    
+
     // Get the course URL for WebView loading
     fun getCourseUrl(courseId: String): String {
         return "file://${getCourseDirectory(courseId).absolutePath}/index.html"
     }
-    
+
     // Copy the SCORM API from assets to external storage
     private fun copyScormApiToExternal(): File {
         val apiDir = File(getScormBaseDirectory(), "api")
         if (!apiDir.exists()) {
             apiDir.mkdirs()
         }
-        
+
         val apiFile = File(apiDir, "scorm-again.js")
         if (!apiFile.exists()) {
             context.assets.open(SCORM_API_ASSET_PATH).use { input ->
@@ -186,10 +188,10 @@ class ScormFileManager(private val context: Context) {
                 }
             }
         }
-        
+
         return apiFile
     }
-    
+
     // Extract a SCORM package to the course directory
     suspend fun extractScormPackage(courseId: String, zipFilePath: String): Boolean = withContext(Dispatchers.IO) {
         try {
@@ -199,10 +201,10 @@ class ScormFileManager(private val context: Context) {
                 courseDir.deleteRecursively()
                 courseDir.mkdirs()
             }
-            
+
             // Extract the zip file
             ZipFile(zipFilePath).extractAll(courseDir.absolutePath)
-            
+
             // Verify extraction worked (check for index.html)
             return@withContext File(courseDir, "index.html").exists()
         } catch (e: Exception) {
@@ -210,11 +212,11 @@ class ScormFileManager(private val context: Context) {
             return@withContext false
         }
     }
-    
+
     // Check if a course is already extracted
     fun isCourseExtracted(courseId: String): Boolean {
         val courseDir = getCourseDirectory(courseId)
-        return courseDir.exists() && 
+        return courseDir.exists() &&
                File(courseDir, "index.html").exists()
     }
 }
@@ -244,12 +246,12 @@ class ScormWebViewWrapper(
     private val webView: WebView,
     private val lifecycle: Lifecycle
 ) : LifecycleObserver {
-    
+
     init {
         lifecycle.addObserver(this)
         setupWebView()
     }
-    
+
     private val messageFlow = callbackFlow<ScormMessage> {
         val jsInterface = object {
             @JavascriptInterface
@@ -279,14 +281,14 @@ class ScormWebViewWrapper(
                 }
             }
         }
-        
+
         webView.addJavascriptInterface(jsInterface, "AndroidBridge")
-        
+
         awaitClose {
             webView.removeJavascriptInterface("AndroidBridge")
         }
     }
-    
+
     @SuppressLint("SetJavaScriptEnabled")
     private fun setupWebView() {
         webView.settings.apply {
@@ -296,7 +298,7 @@ class ScormWebViewWrapper(
             allowFileAccessFromFileURLs = true
             allowUniversalAccessFromFileURLs = true
         }
-        
+
         webView.webChromeClient = WebChromeClient()
         webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
@@ -305,11 +307,11 @@ class ScormWebViewWrapper(
             }
         }
     }
-    
+
     fun loadCourse(courseUrl: String) {
         webView.loadUrl(courseUrl)
     }
-    
+
     fun injectScormAgain(apiPath: String, courseId: String, isOnline: Boolean) {
         val js = """
             var scormAgainScript = document.createElement('script');
@@ -331,24 +333,24 @@ class ScormWebViewWrapper(
                         }));
                     }
                 });
-                
+
                 window.API.on('OfflineDataSynced', function() {
                     window.AndroidBridge.postMessage(JSON.stringify({
                         type: 'sync',
                         status: 'success'
                     }));
                 });
-                
+
                 window.API._offlineStorageService.isDeviceOnline = function() {
                     return $isOnline;
                 };
             };
             document.head.appendChild(scormAgainScript);
         """.trimIndent()
-        
+
         webView.evaluateJavascript(js, null)
     }
-    
+
     fun syncOfflineData() {
         val js = """
             if (window.API && window.API._offlineStorageService) {
@@ -360,12 +362,12 @@ class ScormWebViewWrapper(
                 });
             }
         """.trimIndent()
-        
+
         webView.evaluateJavascript(js, null)
     }
-    
+
     fun getMessages(): Flow<ScormMessage> = messageFlow
-    
+
     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     fun cleanup() {
         webView.loadUrl("about:blank")
@@ -394,16 +396,16 @@ class ScormPlayerViewModel(
     application: Application,
     private val courseId: String
 ) : AndroidViewModel(application) {
-    
+
     private val fileManager = ScormFileManager(application)
     private val networkMonitor = NetworkConnectivityMonitor(application)
-    
+
     private val _state = MutableStateFlow<ScormPlayerState>(ScormPlayerState.Loading)
     val state: StateFlow<ScormPlayerState> = _state
-    
+
     private val _isOnline = MutableStateFlow(true)
     val isOnline: StateFlow<Boolean> = _isOnline
-    
+
     init {
         viewModelScope.launch {
             // Monitor network connectivity
@@ -411,22 +413,22 @@ class ScormPlayerViewModel(
                 _isOnline.value = isConnected
             }
         }
-        
+
         // Initialize the course
         viewModelScope.launch {
             initializeScormContent()
         }
     }
-    
+
     private suspend fun initializeScormContent() {
         _state.value = ScormPlayerState.Loading
-        
+
         try {
             // Check if course is already extracted
             if (fileManager.isCourseExtracted(courseId)) {
                 val apiPath = fileManager.getScormApiPath()
                 val coursePath = fileManager.getCourseUrl(courseId)
-                
+
                 _state.value = ScormPlayerState.Ready(
                     apiPath = apiPath,
                     coursePath = coursePath
@@ -438,17 +440,17 @@ class ScormPlayerViewModel(
             _state.value = ScormPlayerState.Error(e.message ?: "Unknown error")
         }
     }
-    
+
     fun extractCourse(zipFilePath: String) {
         viewModelScope.launch {
             _state.value = ScormPlayerState.Loading
-            
+
             val extractResult = fileManager.extractScormPackage(courseId, zipFilePath)
-            
+
             if (extractResult) {
                 val apiPath = fileManager.getScormApiPath()
                 val coursePath = fileManager.getCourseUrl(courseId)
-                
+
                 _state.value = ScormPlayerState.Ready(
                     apiPath = apiPath,
                     coursePath = coursePath
@@ -458,7 +460,7 @@ class ScormPlayerViewModel(
             }
         }
     }
-    
+
     fun syncOfflineData(webView: ScormWebViewWrapper) {
         if (_isOnline.value) {
             webView.syncOfflineData()
@@ -493,42 +495,42 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class ScormPlayerActivity : AppCompatActivity() {
-    
+
     companion object {
         private const val PERMISSIONS_REQUEST_CODE = 100
         private const val COURSE_ID_EXTRA = "course_id"
         private const val ZIP_PATH_EXTRA = "zip_path"
     }
-    
+
     private lateinit var webView: WebView
     private lateinit var scormWebViewWrapper: ScormWebViewWrapper
-    
+
     private val viewModel: ScormPlayerViewModel by viewModels {
         val courseId = intent.getStringExtra(COURSE_ID_EXTRA) ?: "default_course"
         ScormPlayerViewModelFactory(application, courseId)
     }
-    
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         // Set the layout
         setContentView(R.layout.activity_scorm_player)
-        
+
         // Request permissions if needed
         requestPermissionsIfNeeded()
-        
+
         // Initialize WebView
         webView = findViewById(R.id.webView)
         scormWebViewWrapper = ScormWebViewWrapper(this, webView, lifecycle)
-        
+
         // Observe ViewModel states
         observeViewModelState()
-        
+
         // Extract the course if zip path was provided
         intent.getStringExtra(ZIP_PATH_EXTRA)?.let { zipPath ->
             viewModel.extractCourse(zipPath)
         }
-        
+
         // Observe WebView messages
         lifecycleScope.launch {
             scormWebViewWrapper.getMessages().collect { message ->
@@ -536,7 +538,7 @@ class ScormPlayerActivity : AppCompatActivity() {
             }
         }
     }
-    
+
     private fun handleScormMessage(message: ScormMessage) {
         when (message) {
             is ScormMessage.Log -> {
@@ -558,7 +560,7 @@ class ScormPlayerActivity : AppCompatActivity() {
             }
         }
     }
-    
+
     private fun observeViewModelState() {
         lifecycleScope.launch {
             viewModel.state.collect { state ->
@@ -573,12 +575,12 @@ class ScormPlayerActivity : AppCompatActivity() {
                     is ScormPlayerState.Ready -> {
                         // Load the course
                         scormWebViewWrapper.loadCourse(state.coursePath)
-                        
+
                         // Wait for page to load, then inject scorm-again
                         webView.webViewClient = object : android.webkit.WebViewClient() {
                             override fun onPageFinished(view: WebView?, url: String?) {
                                 super.onPageFinished(view, url)
-                                
+
                                 viewLifecycleScope.launch {
                                     viewModel.isOnline.collect { isOnline ->
                                         // Inject scorm-again with current online status
@@ -587,7 +589,7 @@ class ScormPlayerActivity : AppCompatActivity() {
                                             courseId = viewModel.courseId,
                                             isOnline = isOnline
                                         )
-                                        
+
                                         // Try to sync when back online
                                         if (isOnline) {
                                             scormWebViewWrapper.syncOfflineData()
@@ -604,7 +606,7 @@ class ScormPlayerActivity : AppCompatActivity() {
             }
         }
     }
-    
+
     private fun requestPermissionsIfNeeded() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(
@@ -623,7 +625,7 @@ class ScormPlayerActivity : AppCompatActivity() {
             }
         }
     }
-    
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -664,7 +666,7 @@ class ScormPlayerViewModelFactory(
 ```xml
 <!-- res/layout/activity_scorm_player.xml -->
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout 
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -712,13 +714,13 @@ import java.io.File
 
 class ScormDownloadManager(private val context: Context) {
     private val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-    
+
     private val _downloadState = MutableStateFlow<DownloadState>(DownloadState.Idle)
     val downloadState: StateFlow<DownloadState> = _downloadState
-    
+
     private var downloadId: Long = -1
     private var courseId: String = ""
-    
+
     // Broadcast receiver to listen for download completion
     private val downloadReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -726,17 +728,17 @@ class ScormDownloadManager(private val context: Context) {
             if (id == downloadId) {
                 val query = DownloadManager.Query().setFilterById(downloadId)
                 val cursor = downloadManager.query(query)
-                
+
                 if (cursor.moveToFirst()) {
                     val statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
                     val status = cursor.getInt(statusIndex)
-                    
+
                     when (status) {
                         DownloadManager.STATUS_SUCCESSFUL -> {
                             val uriIndex = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI)
                             val downloadedFileUri = cursor.getString(uriIndex)
                             val file = File(Uri.parse(downloadedFileUri).path!!)
-                            
+
                             _downloadState.value = DownloadState.Completed(
                                 courseId = courseId,
                                 filePath = file.absolutePath
@@ -750,22 +752,22 @@ class ScormDownloadManager(private val context: Context) {
                     }
                 }
                 cursor.close()
-                
+
                 // Unregister after handling
                 context?.unregisterReceiver(this)
             }
         }
     }
-    
+
     fun downloadScormPackage(courseId: String, downloadUrl: String) {
         this.courseId = courseId
-        
+
         // Register receiver for download completion
         context.registerReceiver(
             downloadReceiver,
             IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
         )
-        
+
         // Create download request
         val request = DownloadManager.Request(Uri.parse(downloadUrl)).apply {
             setTitle("Downloading SCORM Course: $courseId")
@@ -776,12 +778,12 @@ class ScormDownloadManager(private val context: Context) {
             )
             setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
         }
-        
+
         // Start download
         downloadId = downloadManager.enqueue(request)
         _downloadState.value = DownloadState.InProgress(downloadId)
     }
-    
+
     // Cancel ongoing download
     fun cancelDownload() {
         if (downloadId != -1L) {
@@ -817,7 +819,7 @@ fun createScormDirectoryWithScopedStorage(context: Context, courseId: String): U
         put(MediaStore.MediaColumns.MIME_TYPE, "application/zip")
         put(MediaStore.MediaColumns.RELATIVE_PATH, "Documents/ScormContent")
     }
-    
+
     return context.contentResolver.insert(
         MediaStore.Files.getContentUri("external"),
         contentValues
@@ -846,7 +848,7 @@ private val createDocumentLauncher = registerForActivityResult(
                 uri,
                 Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
             )
-            
+
             // Use the URI for file operations
             extractScormPackageToUri(uri, zipFilePath)
         }
@@ -902,14 +904,14 @@ For better performance, consider these additional WebView settings:
 webView.settings.apply {
     // Cache optimization
     cacheMode = WebSettings.LOAD_DEFAULT
-    
+
     // Limit DOM storage size for large courses
     setDomStorageEnabled(true)
-    
+
     // Disable features not needed
     blockNetworkImage = false
     loadsImagesAutomatically = true
-    
+
     // Hardware acceleration
     setRenderPriority(WebSettings.RenderPriority.HIGH)
 }
@@ -922,16 +924,16 @@ For large SCORM packages, use chunked file operations:
 ```kotlin
 private suspend fun unzipLargeFile(zipFilePath: String, destinationPath: String) = withContext(Dispatchers.IO) {
     val buffer = ByteArray(1024 * 8) // 8KB buffer
-    
+
     ZipFile(zipFilePath).use { zipFile ->
         val entries = zipFile.entries
         while (entries.hasMoreElements()) {
             val entry = entries.nextElement()
             val entryPath = File(destinationPath, entry.name)
-            
+
             // Create parent directories if needed
             entryPath.parentFile?.mkdirs()
-            
+
             if (!entry.isDirectory) {
                 zipFile.getInputStream(entry).use { input ->
                     FileOutputStream(entryPath).use { output ->
@@ -959,15 +961,15 @@ Always validate SCORM packages before loading them:
 fun validateScormPackage(courseDir: File): Boolean {
     val manifestFile = File(courseDir, "imsmanifest.xml")
     val indexFile = File(courseDir, "index.html")
-    
+
     if (!manifestFile.exists() || !indexFile.exists()) {
         return false
     }
-    
+
     try {
         // Parse the manifest to validate SCORM version and structure
         val manifestContent = manifestFile.readText()
-        return manifestContent.contains("adlcp:scormType") || 
+        return manifestContent.contains("adlcp:scormType") ||
                manifestContent.contains("imsss:sequencing")
     } catch (e: Exception) {
         return false
@@ -984,7 +986,7 @@ Implement additional security measures for WebView:
 webView.webViewClient = object : WebViewClient() {
     override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
         url?.let {
-            if (!it.startsWith("file:///") || 
+            if (!it.startsWith("file:///") ||
                 !it.contains(courseId)) {
                 // Block navigation to external resources
                 return true
@@ -1021,4 +1023,8 @@ webView.webViewClient = object : WebViewClient() {
 
 ## Conclusion
 
-This native Android implementation provides a robust solution for implementing SCORM content with offline support. By utilizing the Android WebView with the scorm-again library and implementing proper file and network management, you can deliver a seamless learning experience even when users are offline. The implementation handles course downloading, storage, and synchronization in a way that works across different Android versions and respects modern storage requirements. 
+This native Android implementation provides a robust solution for implementing SCORM content with
+offline support. By utilizing the Android WebView with the scorm-again library and implementing
+proper file and network management, you can deliver a seamless learning experience even when users
+are offline. The implementation handles course downloading, storage, and synchronization in a way
+that works across different Android versions and respects modern storage requirements.

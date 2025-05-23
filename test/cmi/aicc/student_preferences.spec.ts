@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { AICCStudentPreferences } from "../../../src/cmi/aicc/student_preferences";
 import { CMIArray } from "../../../src/cmi/common/array";

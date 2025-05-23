@@ -42,7 +42,7 @@ describe("SCORM 2004 Interactions Pattern Validation", () => {
       expect(() => {
         correctResponse.pattern = "step@1[.]value1";
       }).toThrow(Scorm2004ValidationError);
-      
+
       expect(() => {
         correctResponse.pattern = "step1[.]value@1";
       }).toThrow(Scorm2004ValidationError);
@@ -60,7 +60,7 @@ describe("SCORM 2004 Interactions Pattern Validation", () => {
       // Single value
       correctResponse.pattern = "100";
       expect(correctResponse.pattern).toBe("100");
-      
+
       // Range with default delimiter
       correctResponse.pattern = "10:20";
       expect(correctResponse.pattern).toBe("10:20");
@@ -76,7 +76,7 @@ describe("SCORM 2004 Interactions Pattern Validation", () => {
       expect(() => {
         correctResponse.pattern = "10a";
       }).toThrow(Scorm2004ValidationError);
-      
+
       expect(() => {
         correctResponse.pattern = "10:a20";
       }).toThrow(Scorm2004ValidationError);
@@ -129,11 +129,11 @@ describe("SCORM 2004 Interactions Pattern Validation", () => {
       expect(() => {
         correctResponse.pattern = "sourcetarget";
       }).toThrow(Scorm2004ValidationError);
-      
+
       expect(() => {
         correctResponse.pattern = "[.]target1";
       }).toThrow(Scorm2004ValidationError);
-      
+
       expect(() => {
         correctResponse.pattern = "source1[.]";
       }).toThrow(Scorm2004ValidationError);
@@ -150,7 +150,7 @@ describe("SCORM 2004 Interactions Pattern Validation", () => {
     it("should accept valid fill-in patterns", () => {
       correctResponse.pattern = "answer";
       expect(correctResponse.pattern).toBe("answer");
-      
+
       // Empty pattern should be allowed for fill-in
       correctResponse.pattern = "";
       expect(correctResponse.pattern).toBe("");

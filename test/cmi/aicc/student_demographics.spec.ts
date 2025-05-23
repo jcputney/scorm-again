@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { CMIStudentDemographics } from "../../../src/cmi/aicc/student_demographics";
 import { AICCValidationError } from "../../../src/exceptions/aicc_exceptions";
 
@@ -76,30 +76,58 @@ describe("AICC CMIStudentDemographics", () => {
 
   it("should not allow setting properties after initialization", () => {
     demographics.initialize();
-    
-    expect(() => { demographics.city = "Denver"; }).toThrow(AICCValidationError);
-    expect(() => { demographics.class = "Science 101"; }).toThrow(AICCValidationError);
-    expect(() => { demographics.company = "Umbrella Corp"; }).toThrow(AICCValidationError);
-    expect(() => { demographics.country = "Canada"; }).toThrow(AICCValidationError);
-    expect(() => { demographics.experience = "Advanced"; }).toThrow(AICCValidationError);
-    expect(() => { demographics.familiar_name = "Johnny"; }).toThrow(AICCValidationError);
-    expect(() => { demographics.instructor_name = "Dr. Jones"; }).toThrow(AICCValidationError);
-    expect(() => { demographics.title = "Graduate"; }).toThrow(AICCValidationError);
-    expect(() => { demographics.native_language = "Spanish"; }).toThrow(AICCValidationError);
-    expect(() => { demographics.state = "Utah"; }).toThrow(AICCValidationError);
-    expect(() => { demographics.street_address = "456 Oak St"; }).toThrow(AICCValidationError);
-    expect(() => { demographics.telephone = "555-5678"; }).toThrow(AICCValidationError);
-    expect(() => { demographics.years_experience = "10"; }).toThrow(AICCValidationError);
+
+    expect(() => {
+      demographics.city = "Denver";
+    }).toThrow(AICCValidationError);
+    expect(() => {
+      demographics.class = "Science 101";
+    }).toThrow(AICCValidationError);
+    expect(() => {
+      demographics.company = "Umbrella Corp";
+    }).toThrow(AICCValidationError);
+    expect(() => {
+      demographics.country = "Canada";
+    }).toThrow(AICCValidationError);
+    expect(() => {
+      demographics.experience = "Advanced";
+    }).toThrow(AICCValidationError);
+    expect(() => {
+      demographics.familiar_name = "Johnny";
+    }).toThrow(AICCValidationError);
+    expect(() => {
+      demographics.instructor_name = "Dr. Jones";
+    }).toThrow(AICCValidationError);
+    expect(() => {
+      demographics.title = "Graduate";
+    }).toThrow(AICCValidationError);
+    expect(() => {
+      demographics.native_language = "Spanish";
+    }).toThrow(AICCValidationError);
+    expect(() => {
+      demographics.state = "Utah";
+    }).toThrow(AICCValidationError);
+    expect(() => {
+      demographics.street_address = "456 Oak St";
+    }).toThrow(AICCValidationError);
+    expect(() => {
+      demographics.telephone = "555-5678";
+    }).toThrow(AICCValidationError);
+    expect(() => {
+      demographics.years_experience = "10";
+    }).toThrow(AICCValidationError);
   });
 
   it("should return _children property", () => {
-    expect(demographics._children).toBe("city,class,company,country,experience,familiar_name,instructor_name,title,native_language,state,street_address,telephone,years_experience");
+    expect(demographics._children).toBe(
+      "city,class,company,country,experience,familiar_name,instructor_name,title,native_language,state,street_address,telephone,years_experience",
+    );
   });
 
   it("should reset properly", () => {
     demographics.initialize();
     expect(demographics.initialized).toBe(true);
-    
+
     demographics.reset();
     expect(demographics.initialized).toBe(false);
   });
@@ -120,7 +148,7 @@ describe("AICC CMIStudentDemographics", () => {
     demographics.years_experience = "5";
 
     const json = demographics.toJSON();
-    
+
     expect(json.city).toBe("Boulder");
     expect(json.class).toBe("Math 101");
     expect(json.company).toBe("ACME Corp");
@@ -135,4 +163,4 @@ describe("AICC CMIStudentDemographics", () => {
     expect(json.telephone).toBe("555-1234");
     expect(json.years_experience).toBe("5");
   });
-}); 
+});

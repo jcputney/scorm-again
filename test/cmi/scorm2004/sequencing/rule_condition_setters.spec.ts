@@ -110,7 +110,7 @@ describe("RuleCondition Setters", () => {
       const condition = new RuleCondition(
         RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN,
         null,
-        new Map([["threshold", 0.5]])
+        new Map([["threshold", 0.5]]),
       );
       const activity = {
         objectiveMeasureStatus: true,

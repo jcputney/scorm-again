@@ -38,7 +38,7 @@ export class CMICore extends BaseCMI {
     this.score?.initialize();
   }
 
-  private __children = scorm12_constants.core_children;
+  private readonly __children = scorm12_constants.core_children;
   private _student_id = "";
   private _student_name = "";
   private _lesson_location = "";
@@ -61,8 +61,8 @@ export class CMICore extends BaseCMI {
     this._entry = "";
 
     /**
-     * Resetting ensures we accurately track the time spent on each individual SCO session independently. Each new
-     * session should start from zero, so we can reset cmi.core.session_time at the beginning of each session.
+     * Resetting ensures we accurately track the time spent on each SCO session independently.
+     * Each new session should start from zero, so we can reset cmi.core.session_time at the beginning of each session.
      */
     this._session_time = "00:00:00";
 
