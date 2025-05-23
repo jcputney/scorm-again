@@ -428,7 +428,7 @@ describe("CrossFrameLMS", () => {
     server["_process"](msg, src);
     expect(apiMock.LMSGetValue).toHaveBeenCalledWith("cmi.core.lesson_status");
     expect(src.postMessage).toHaveBeenCalledWith(
-      { messageId: "42", result: "completed", error: undefined },
+      { messageId: "42", result: "completed" },
       "http://parent",
     );
   });
@@ -465,6 +465,39 @@ describe("CrossFrameLMS", () => {
     expect(resp.error).toBeDefined();
     expect(resp.error!.message).toBe(errorMessage);
     expect(resp.error!.stack).toBeDefined();
+  });
+
+  it("handles async API method resolving", async () => {
+    apiMock.LMSGetValue = vi.fn().mockResolvedValue("asyncValue");
+    const msg: MessageData = {
+      messageId: "50",
+      method: "LMSGetValue",
+      params: ["cmi.core.lesson_status"],
+    };
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_process"](msg, src);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(src.postMessage).toHaveBeenCalledWith(
+      { messageId: "50", result: "asyncValue" },
+      "http://parent",
+    );
+  });
+
+  it("handles async API method rejecting", async () => {
+    apiMock.LMSGetValue = vi.fn().mockRejectedValue(new Error("boom"));
+    const msg: MessageData = {
+      messageId: "51",
+      method: "LMSGetValue",
+      params: ["cmi.core.lesson_status"],
+    };
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_process"](msg, src);
+    await new Promise((r) => setTimeout(r, 0));
+    const resp = (src.postMessage as any).mock.calls[0][0] as MessageResponse;
+    expect(resp.error).toBeDefined();
+    expect(resp.error!.message).toBe("boom");
   });
 
   it("handles message events correctly", () => {
