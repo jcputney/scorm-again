@@ -30,24 +30,29 @@ export default class CrossFrameLMS {
   }
 
   private _process(msg: MessageData, source: Window) {
-    let result: any, error: any;
+    const sendResponse = (result?: any, error?: { message: string; stack?: string }) => {
+      const resp: MessageResponse = { messageId: msg.messageId, result, error };
+      source.postMessage(resp, this._origin);
+    };
+
     try {
       const fn = (this._api as any)[msg.method];
       if (typeof fn !== "function") {
-        error = {
-          message: `Method ${msg.method} not found`,
-        };
+        sendResponse(undefined, { message: `Method ${msg.method} not found` });
+        return;
+      }
+
+      const result = fn.apply(this._api, msg.params);
+
+      if (result && typeof (result as Promise<any>).then === "function") {
+        (result as Promise<any>)
+          .then((r) => sendResponse(r))
+          .catch((e: any) => sendResponse(undefined, { message: e.message, stack: e.stack }));
       } else {
-        result = fn.apply(this._api, msg.params);
+        sendResponse(result);
       }
     } catch (e: any) {
-      error = { message: e.message, stack: e.stack };
+      sendResponse(undefined, { message: e.message, stack: e.stack });
     }
-    const resp: MessageResponse = {
-      messageId: msg.messageId,
-      result,
-      error,
-    };
-    source.postMessage(resp, this._origin);
   }
 }

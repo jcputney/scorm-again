@@ -467,6 +467,48 @@ describe("CrossFrameLMS", () => {
     expect(resp.error!.stack).toBeDefined();
   });
 
+  it("handles async API method resolving", async () => {
+    apiMock.LMSGetValue = vi.fn().mockResolvedValue("incomplete");
+
+    const msg: MessageData = {
+      messageId: "42",
+      method: "LMSGetValue",
+      params: ["cmi.core.lesson_status"],
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_process"](msg, src);
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(src.postMessage).toHaveBeenCalledWith(
+      { messageId: "42", result: "incomplete", error: undefined },
+      "http://parent",
+    );
+  });
+
+  it("handles async API method rejecting", async () => {
+    apiMock.LMSGetValue = vi.fn().mockRejectedValue(new Error("async fail"));
+
+    const msg: MessageData = {
+      messageId: "42",
+      method: "LMSGetValue",
+      params: ["cmi.core.lesson_status"],
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_process"](msg, src);
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const resp = (src.postMessage as any).mock.calls[0][0] as MessageResponse;
+    expect(resp.error).toBeDefined();
+    expect(resp.error!.message).toBe("async fail");
+    expect(resp.result).toBeUndefined();
+  });
+
   it("handles message events correctly", () => {
     // Create a spy on the _process method
     // eslint-disable-next-line
