@@ -531,7 +531,13 @@ const getTimeAsSeconds = memoize(
     if (typeof timeRegex === "string") {
       timeRegex = new RegExp(timeRegex);
     }
-    if (!timeString || !timeString?.match?.(timeRegex)) {
+    if (!timeString) {
+      return 0;
+    }
+    if (!timeString.match(timeRegex)) {
+      if (/^\d+(?:\.\d+)?$/.test(timeString)) {
+        return Number(timeString);
+      }
       return 0;
     }
     const parts = timeString.split(":");
