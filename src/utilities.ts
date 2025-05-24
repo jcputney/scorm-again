@@ -170,7 +170,15 @@ export const getTimeAsSeconds = memoize(
     if (typeof timeRegex === "string") {
       timeRegex = new RegExp(timeRegex);
     }
-    if (!timeString || !timeString?.match?.(timeRegex)) {
+    if (!timeString) {
+      return 0;
+    }
+
+    if (!timeString.match(timeRegex)) {
+      // If the string represents a simple number, treat it as seconds
+      if (/^\d+(?:\.\d+)?$/.test(timeString)) {
+        return Number(timeString);
+      }
       return 0;
     }
 
