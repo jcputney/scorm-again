@@ -592,6 +592,7 @@ describe("HttpService", () => {
         [199, global_constants.SCORM_TRUE, false], // Outside success range
         [200, global_constants.SCORM_FALSE, false], // Success status but failed result
         [200, "true", true], // String "true" should work too
+        [200, true, true], // Boolean true should also be treated as success
         [200, undefined, false], // Undefined result
       ];
 

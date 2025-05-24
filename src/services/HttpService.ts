@@ -278,10 +278,13 @@ export class HttpService implements IHttpService {
    * @private
    */
   private _isSuccessResponse(response: Response, result: ResultObject): boolean {
+    const value = (result as any).result;
     return (
       response.status >= 200 &&
       response.status <= 299 &&
-      (result.result === "true" || result.result === global_constants.SCORM_TRUE)
+      (value === true ||
+        value === "true" ||
+        value === global_constants.SCORM_TRUE)
     );
   }
 
