@@ -100,8 +100,8 @@ describe("Utility Tests", () => {
       expect(Utilities.getTimeAsSeconds("-01:00:00", scorm12_regex.CMITimespan)).toEqual(0);
     });
 
-    it("Number value returns 0", () => {
-      expect(Utilities.getTimeAsSeconds(999, scorm12_regex.CMITimespan)).toEqual(0);
+    it("Number value is treated as seconds", () => {
+      expect(Utilities.getTimeAsSeconds(999, scorm12_regex.CMITimespan)).toEqual(999);
     });
 
     it("boolean value returns 0", () => {
