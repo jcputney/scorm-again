@@ -10460,8 +10460,11 @@ class ActivityTree extends BaseCMI {
     this._initialized = false;
     this._currentActivity = null;
     this._suspendedActivity = null;
+    this._activities.clear();
     if (this._root) {
       this._root.reset();
+      this._activities.set(this._root.id, this._root);
+      this._addActivitiesToMap(this._root);
     }
   }
   /**
