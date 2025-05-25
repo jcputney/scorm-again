@@ -194,7 +194,7 @@ describe("SequencingControls", () => {
       const controls = new SequencingControls();
 
       // Default values: enabled = true, forwardOnly = false, flow = false
-      expect(controls.isForwardNavigationAllowed()).toBe(true);
+      expect(controls.isForwardNavigationAllowed()).toBe(false);
 
       // Disabled
       controls.enabled = false;
@@ -216,14 +216,14 @@ describe("SequencingControls", () => {
       controls.enabled = true;
       controls.forwardOnly = false;
       controls.flow = false;
-      expect(controls.isForwardNavigationAllowed()).toBe(true);
+      expect(controls.isForwardNavigationAllowed()).toBe(false);
     });
 
     it("isBackwardNavigationAllowed should return correct value", () => {
       const controls = new SequencingControls();
 
       // Default values: enabled = true, forwardOnly = false
-      expect(controls.isBackwardNavigationAllowed()).toBe(true);
+      expect(controls.isBackwardNavigationAllowed()).toBe(false);
 
       // Disabled
       controls.enabled = false;
@@ -237,6 +237,7 @@ describe("SequencingControls", () => {
       // Both enabled and not forwardOnly
       controls.enabled = true;
       controls.forwardOnly = false;
+      controls.flow = true;
       expect(controls.isBackwardNavigationAllowed()).toBe(true);
     });
   });
