@@ -73,6 +73,12 @@ describe("AICC CMI Tests", () => {
         cmi: cmi(),
         fieldName: "cmi.core.student_id",
       });
+      it("should allow hyphens and periods in student_id", () => {
+        const instance = cmi();
+        expect(() => {
+          instance.core.student_id = "student-1.id";
+        }).not.toThrow();
+      });
       h.checkReadAndWrite({
         cmi: cmi(),
         fieldName: "cmi.core.student_name",
