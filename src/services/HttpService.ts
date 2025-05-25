@@ -282,9 +282,7 @@ export class HttpService implements IHttpService {
     return (
       response.status >= 200 &&
       response.status <= 299 &&
-      (value === true ||
-        value === "true" ||
-        value === global_constants.SCORM_TRUE)
+      (value === true || value === "true" || value === global_constants.SCORM_TRUE)
     );
   }
 

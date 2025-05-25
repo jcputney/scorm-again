@@ -2686,7 +2686,8 @@ class HttpService {
    * @private
    */
   _isSuccessResponse(response, result) {
-    return response.status >= 200 && response.status <= 299 && (result.result === "true" || result.result === global_constants.SCORM_TRUE);
+    const value = result.result;
+    return response.status >= 200 && response.status <= 299 && (value === true || value === "true" || value === global_constants.SCORM_TRUE);
   }
   /**
    * Updates the service settings
