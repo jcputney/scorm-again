@@ -68,6 +68,22 @@ describe("ActivityTree", () => {
 
       expect(rootResetSpy).toHaveBeenCalled();
     });
+
+    it("should rebuild activities map after reset", () => {
+      const activityTree = new ActivityTree();
+      const root = new Activity("root", "Root Activity");
+      const child = new Activity("child1", "Child 1");
+      root.addChild(child);
+
+      activityTree.root = root;
+      expect(activityTree.getAllActivities().length).toBe(2);
+
+      activityTree.reset();
+
+      // Activities map should still contain root and child after reset
+      expect(activityTree.getAllActivities().length).toBe(2);
+      expect(activityTree.getActivity("child1")).toBe(child);
+    });
   });
 
   describe("root", () => {
