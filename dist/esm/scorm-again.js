@@ -8640,6 +8640,9 @@ class ADLNav extends BaseCMI {
   reset() {
     this._initialized = false;
     this._request = "_none_";
+    if (this._sequencing) {
+      this._sequencing.adlNav = null;
+    }
     this._sequencing = null;
     this.request_valid?.reset();
   }
