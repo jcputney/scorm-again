@@ -398,6 +398,7 @@ describe("SCORM 2004 ADL Tests", () => {
 
       nav.reset();
       expect(nav.sequencing).toBe(null);
+      expect(sequencing.adlNav).toBe(null);
       expect(nav.request).toBe("_none_");
     });
 
