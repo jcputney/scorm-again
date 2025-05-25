@@ -10485,6 +10485,7 @@ class ActivityTree extends BaseCMI {
         scorm2004_errors$1.TYPE_MISMATCH
       );
     }
+    this._activities.clear();
     this._root = root;
     if (root) {
       this._activities.set(root.id, root);
