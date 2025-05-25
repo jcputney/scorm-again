@@ -36,8 +36,13 @@ export class ActivityTree extends BaseCMI {
     this._initialized = false;
     this._currentActivity = null;
     this._suspendedActivity = null;
+    // Clear the activities map so it can be rebuilt
+    this._activities.clear();
     if (this._root) {
       this._root.reset();
+      // Re-populate the activities map with the root and its children
+      this._activities.set(this._root.id, this._root);
+      this._addActivitiesToMap(this._root);
     }
   }
 
