@@ -66,6 +66,8 @@ export class ActivityTree extends BaseCMI {
         scorm2004_errors.TYPE_MISMATCH,
       );
     }
+    // Clear existing map when assigning a new root to avoid stale activities
+    this._activities.clear();
     this._root = root;
     if (root) {
       this._activities.set(root.id, root);

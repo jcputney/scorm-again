@@ -119,6 +119,27 @@ describe("ActivityTree", () => {
       expect(activityTree.getActivity("child1")).toBe(child1);
       expect(activityTree.getActivity("child2")).toBe(child2);
     });
+
+    it("should replace activities map when setting new root", () => {
+      const activityTree = new ActivityTree();
+
+      const root1 = new Activity("root1", "Root 1");
+      const child1 = new Activity("child1", "Child 1");
+      root1.addChild(child1);
+      activityTree.root = root1;
+
+      expect(activityTree.getActivity("child1")).toBe(child1);
+
+      const root2 = new Activity("root2", "Root 2");
+      const child2 = new Activity("child2", "Child 2");
+      root2.addChild(child2);
+      activityTree.root = root2;
+
+      expect(activityTree.getActivity("child1")).toBeUndefined();
+      expect(activityTree.getActivity("child2")).toBe(child2);
+      expect(activityTree.root).toBe(root2);
+      expect(activityTree.getAllActivities().length).toBe(2);
+    });
   });
 
   describe("currentActivity", () => {
