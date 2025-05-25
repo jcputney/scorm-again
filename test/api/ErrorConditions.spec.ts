@@ -66,9 +66,7 @@ describe("Error Conditions Tests", () => {
 
         // Second termination should fail with MULTIPLE_TERMINATION error
         expect(api.lmsFinish()).toEqual("true");
-        expect(api.lmsGetLastError()).toEqual(
-          String(scorm2004_errors.MULTIPLE_TERMINATION),
-        );
+        expect(api.lmsGetLastError()).toEqual(String(scorm2004_errors.MULTIPLE_TERMINATION));
       });
     });
 

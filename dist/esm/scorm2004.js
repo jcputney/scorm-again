@@ -1785,6 +1785,7 @@ const scorm2004_errors$1 = {
   TERMINATED: 104,
   TERMINATION_FAILURE: 111,
   TERMINATION_BEFORE_INIT: 112,
+  MULTIPLE_TERMINATION: 113,
   MULTIPLE_TERMINATIONS: 113,
   RETRIEVE_BEFORE_INIT: 122,
   RETRIEVE_AFTER_TERM: 123,
@@ -7959,14 +7960,14 @@ class SequencingControls extends BaseCMI {
    * @return {boolean} - True if forward navigation is allowed, false otherwise
    */
   isForwardNavigationAllowed() {
-    return this._enabled && (!this._forwardOnly || this._flow);
+    return this._enabled && this._flow;
   }
   /**
    * Check if backward navigation is allowed
    * @return {boolean} - True if backward navigation is allowed, false otherwise
    */
   isBackwardNavigationAllowed() {
-    return this._enabled && !this._forwardOnly;
+    return this._enabled && this._flow && !this._forwardOnly;
   }
   /**
    * toJSON for SequencingControls
