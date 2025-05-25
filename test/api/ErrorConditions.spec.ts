@@ -56,7 +56,7 @@ describe("Error Conditions Tests", () => {
         expect(api.lmsGetLastError()).toEqual(String(scorm2004_errors.TERMINATION_BEFORE_INIT));
       });
 
-      it("should set MULTIPLE_TERMINATIONS (113) error when attempting to terminate an already terminated API", () => {
+      it("should set MULTIPLE_TERMINATION (113) error when attempting to terminate an already terminated API", () => {
         const api = scorm2004Api();
 
         // Initialize and terminate
@@ -64,9 +64,11 @@ describe("Error Conditions Tests", () => {
         expect(api.lmsFinish()).toEqual("true");
         expect(api.lmsGetLastError()).toEqual("0");
 
-        // Second termination should fail with MULTIPLE_TERMINATIONS error
+        // Second termination should fail with MULTIPLE_TERMINATION error
         expect(api.lmsFinish()).toEqual("true");
-        expect(api.lmsGetLastError()).toEqual("101");
+        expect(api.lmsGetLastError()).toEqual(
+          String(scorm2004_errors.MULTIPLE_TERMINATION),
+        );
       });
     });
 
