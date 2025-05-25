@@ -245,7 +245,10 @@ export class SequencingControls extends BaseCMI {
    * @return {boolean} - True if forward navigation is allowed, false otherwise
    */
   isForwardNavigationAllowed(): boolean {
-    return this._enabled && (!this._forwardOnly || this._flow);
+    // Forward navigation (Continue request) is only valid when flow mode is
+    // enabled. The forwardOnly flag simply restricts backward navigation and
+    // does not affect the ability to move forward when flow is disabled.
+    return this._enabled && this._flow;
   }
 
   /**
@@ -253,7 +256,10 @@ export class SequencingControls extends BaseCMI {
    * @return {boolean} - True if backward navigation is allowed, false otherwise
    */
   isBackwardNavigationAllowed(): boolean {
-    return this._enabled && !this._forwardOnly;
+    // Previous navigation is also part of flow based navigation and should only
+    // be permitted when flow mode is enabled and forwardOnly does not restrict
+    // going backwards.
+    return this._enabled && this._flow && !this._forwardOnly;
   }
 
   /**
