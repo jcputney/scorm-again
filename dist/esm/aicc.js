@@ -165,7 +165,11 @@ const scorm12_regex = {
 const aicc_regex = {
   ...scorm12_regex,
   ...{
-    CMIIdentifier: "^\\w{1,255}$"
+    // AICC identifiers may contain letters, numbers, underscores,
+    // periods, and hyphens up to 255 characters in length.
+    // The previous expression only allowed "\w" characters which
+    // excluded periods and hyphens.
+    CMIIdentifier: "^[A-Za-z0-9._-]{1,255}$"
   }
 };
 
