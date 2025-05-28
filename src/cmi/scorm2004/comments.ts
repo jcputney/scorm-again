@@ -17,7 +17,7 @@ export class CMICommentsFromLMS extends CMIArray {
   constructor() {
     super({
       children: scorm2004_constants.comments_children,
-      errorCode: scorm2004_errors.READ_ONLY_ELEMENT,
+      errorCode: scorm2004_errors.READ_ONLY_ELEMENT as number,
       errorClass: Scorm2004ValidationError,
     });
   }
@@ -34,7 +34,7 @@ export class CMICommentsFromLearner extends CMIArray {
   constructor() {
     super({
       children: scorm2004_constants.comments_children,
-      errorCode: scorm2004_errors.READ_ONLY_ELEMENT,
+      errorCode: scorm2004_errors.READ_ONLY_ELEMENT as number,
       errorClass: Scorm2004ValidationError,
     });
   }
@@ -83,7 +83,9 @@ export class CMICommentsObject extends BaseCMI {
    */
   set comment(comment: string) {
     if (this.initialized && this._readOnlyAfterInit) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
+      );
     } else {
       if (
         check2004ValidFormat(comment, scorm2004_regex.CMILangString4000, true)
@@ -107,7 +109,9 @@ export class CMICommentsObject extends BaseCMI {
    */
   set location(location: string) {
     if (this.initialized && this._readOnlyAfterInit) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
+      );
     } else {
       if (check2004ValidFormat(location, scorm2004_regex.CMIString250)) {
         this._location = location;
@@ -129,7 +133,9 @@ export class CMICommentsObject extends BaseCMI {
    */
   set timestamp(timestamp: string) {
     if (this.initialized && this._readOnlyAfterInit) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
+      );
     } else {
       if (check2004ValidFormat(timestamp, scorm2004_regex.CMITime)) {
         this._timestamp = timestamp;

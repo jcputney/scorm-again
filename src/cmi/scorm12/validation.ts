@@ -17,7 +17,7 @@ export function check12ValidFormat(
   return checkValidFormat(
     value,
     regexPattern,
-    scorm12_errors.TYPE_MISMATCH,
+    scorm12_errors.TYPE_MISMATCH as number,
     Scorm12ValidationError,
     allowEmptyString,
   );
@@ -36,13 +36,15 @@ export function check12ValidRange(
   allowEmptyString?: boolean,
 ): boolean {
   if (!allowEmptyString && value === "") {
-    throw new Scorm12ValidationError(scorm12_errors.VALUE_OUT_OF_RANGE);
+    throw new Scorm12ValidationError(
+      scorm12_errors.VALUE_OUT_OF_RANGE as number,
+    );
   }
 
   return checkValidRange(
     value,
     rangePattern,
-    scorm12_errors.VALUE_OUT_OF_RANGE,
+    scorm12_errors.VALUE_OUT_OF_RANGE as number,
     Scorm12ValidationError,
   );
 }

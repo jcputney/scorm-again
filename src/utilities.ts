@@ -68,7 +68,7 @@ export function getSecondsAsISODuration(seconds: number | null): string {
   let duration = "P";
   let remainder = seconds;
   for (const designationsKey in designations) {
-    const current_seconds = designations[designationsKey];
+    const current_seconds = designations[designationsKey] || 1;
     let value = Math.floor(remainder / current_seconds);
     remainder = remainder % current_seconds;
 
@@ -259,7 +259,7 @@ export function unflatten(data: StringKeyMap): object {
 
       while (m) {
         cur = cur[prop] || (cur[prop] = m[2] ? [] : {});
-        prop = m[2] || m[1];
+        prop = m[2] || m[1] || "";
         m = regex.exec(p);
       }
 
@@ -278,7 +278,7 @@ export function unflatten(data: StringKeyMap): object {
 export function countDecimals(num: number): number {
   if (Math.floor(num) === num || String(num).indexOf(".") < 0) return 0;
   const parts = num.toString().split(".")[1];
-  return parts.length || 0;
+  return parts?.length || 0;
 }
 
 /**

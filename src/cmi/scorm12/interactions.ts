@@ -17,7 +17,7 @@ export class CMIInteractions extends CMIArray {
   constructor() {
     super({
       children: scorm12_constants.interactions_children,
-      errorCode: scorm12_errors.INVALID_SET_VALUE,
+      errorCode: scorm12_errors.INVALID_SET_VALUE as number,
       errorClass: Scorm12ValidationError,
     });
   }
@@ -34,12 +34,12 @@ export class CMIInteractionsObject extends BaseCMI {
   constructor() {
     super();
     this.objectives = new CMIArray({
-      errorCode: scorm12_errors.INVALID_SET_VALUE,
+      errorCode: scorm12_errors.INVALID_SET_VALUE as number,
       errorClass: Scorm12ValidationError,
       children: scorm12_constants.objectives_children,
     });
     this.correct_responses = new CMIArray({
-      errorCode: scorm12_errors.INVALID_SET_VALUE,
+      errorCode: scorm12_errors.INVALID_SET_VALUE as number,
       errorClass: Scorm12ValidationError,
       children: scorm12_constants.correct_responses_children,
     });
@@ -89,7 +89,9 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   get id(): string {
     if (!this.jsonString) {
-      throw new Scorm12ValidationError(scorm12_errors.WRITE_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        scorm12_errors.WRITE_ONLY_ELEMENT as number,
+      );
     }
     return this._id;
   }
@@ -110,7 +112,9 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   get time(): string {
     if (!this.jsonString) {
-      throw new Scorm12ValidationError(scorm12_errors.WRITE_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        scorm12_errors.WRITE_ONLY_ELEMENT as number,
+      );
     }
     return this._time;
   }
@@ -131,7 +135,9 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   get type(): string {
     if (!this.jsonString) {
-      throw new Scorm12ValidationError(scorm12_errors.WRITE_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        scorm12_errors.WRITE_ONLY_ELEMENT as number,
+      );
     }
     return this._type;
   }
@@ -152,7 +158,9 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   get weighting(): string {
     if (!this.jsonString) {
-      throw new Scorm12ValidationError(scorm12_errors.WRITE_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        scorm12_errors.WRITE_ONLY_ELEMENT as number,
+      );
     }
     return this._weighting;
   }
@@ -176,7 +184,9 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   get student_response(): string {
     if (!this.jsonString) {
-      throw new Scorm12ValidationError(scorm12_errors.WRITE_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        scorm12_errors.WRITE_ONLY_ELEMENT as number,
+      );
     }
     return this._student_response;
   }
@@ -197,7 +207,9 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   get result(): string {
     if (!this.jsonString) {
-      throw new Scorm12ValidationError(scorm12_errors.WRITE_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        scorm12_errors.WRITE_ONLY_ELEMENT as number,
+      );
     }
     return this._result;
   }
@@ -218,7 +230,9 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   get latency(): string {
     if (!this.jsonString) {
-      throw new Scorm12ValidationError(scorm12_errors.WRITE_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        scorm12_errors.WRITE_ONLY_ELEMENT as number,
+      );
     }
     return this._latency;
   }
@@ -366,7 +380,9 @@ export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
    */
   get pattern(): string {
     if (!this.jsonString) {
-      throw new Scorm12ValidationError(scorm12_errors.WRITE_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        scorm12_errors.WRITE_ONLY_ELEMENT as number,
+      );
     }
     return this._pattern;
   }

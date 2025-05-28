@@ -44,7 +44,9 @@ export class CMILearnerPreference extends BaseCMI {
    * @private
    */
   set _children(_children: string) {
-    throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+    throw new Scorm2004ValidationError(
+      scorm2004_errors.READ_ONLY_ELEMENT as number,
+    );
   }
 
   /**

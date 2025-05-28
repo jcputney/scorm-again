@@ -46,7 +46,9 @@ export class CMIStudentData extends BaseCMI {
    * @private
    */
   set _children(_children: string) {
-    throw new Scorm12ValidationError(scorm12_errors.INVALID_SET_VALUE);
+    throw new Scorm12ValidationError(
+      scorm12_errors.INVALID_SET_VALUE as number,
+    );
   }
 
   /**
@@ -63,7 +65,9 @@ export class CMIStudentData extends BaseCMI {
    */
   set mastery_score(mastery_score: string) {
     if (this.initialized) {
-      throw new Scorm12ValidationError(scorm12_errors.READ_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        scorm12_errors.READ_ONLY_ELEMENT as number,
+      );
     } else {
       this._mastery_score = mastery_score;
     }
@@ -83,7 +87,9 @@ export class CMIStudentData extends BaseCMI {
    */
   set max_time_allowed(max_time_allowed: string) {
     if (this.initialized) {
-      throw new Scorm12ValidationError(scorm12_errors.READ_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        scorm12_errors.READ_ONLY_ELEMENT as number,
+      );
     } else {
       this._max_time_allowed = max_time_allowed;
     }
@@ -103,7 +109,9 @@ export class CMIStudentData extends BaseCMI {
    */
   set time_limit_action(time_limit_action: string) {
     if (this.initialized) {
-      throw new Scorm12ValidationError(scorm12_errors.READ_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(
+        scorm12_errors.READ_ONLY_ELEMENT as number,
+      );
     } else {
       this._time_limit_action = time_limit_action;
     }

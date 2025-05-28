@@ -16,7 +16,7 @@ export class AICCStudentPreferences extends CMIStudentPreference {
   constructor() {
     super(aicc_constants.student_preference_children);
     this.windows = new CMIArray({
-      errorCode: scorm12_errors.INVALID_SET_VALUE,
+      errorCode: scorm12_errors.INVALID_SET_VALUE as number,
       errorClass: AICCValidationError,
       children: "",
     });

@@ -417,6 +417,10 @@ var BaseAPI = (function () {
             : this._error_codes.GENERAL;
         for (var idx = 0; idx < structure.length; idx++) {
             var attribute = structure[idx];
+            if (!attribute) {
+                this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
+                return api_constants.global_constants.SCORM_FALSE;
+            }
             if (idx === structure.length - 1) {
                 if (scorm2004 && attribute.substring(0, 8) === "{target=") {
                     if (this.isInitialized()) {
@@ -447,7 +451,7 @@ var BaseAPI = (function () {
                     break;
                 }
                 if (refObject instanceof array.CMIArray) {
-                    var index = parseInt(structure[idx + 1], 10);
+                    var index = parseInt(structure[idx + 1] || "0", 10);
                     if (!isNaN(index)) {
                         var item = refObject.childArray[index];
                         if (item) {
@@ -491,6 +495,10 @@ var BaseAPI = (function () {
             : this._error_codes.GENERAL;
         for (var idx = 0; idx < structure.length; idx++) {
             attribute = structure[idx];
+            if (!attribute) {
+                this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
+                return;
+            }
             if (!scorm2004) {
                 if (idx === structure.length - 1) {
                     if (!this._checkObjectHasProperty(refObject, attribute)) {
@@ -516,7 +524,7 @@ var BaseAPI = (function () {
                 break;
             }
             if (refObject instanceof array.CMIArray) {
-                var index = parseInt(structure[idx + 1], 10);
+                var index = parseInt(structure[idx + 1] || "", 10);
                 if (!isNaN(index)) {
                     var item = refObject.childArray[index];
                     if (item) {
@@ -554,17 +562,18 @@ var BaseAPI = (function () {
         return this.currentState === api_constants.global_constants.STATE_TERMINATED;
     };
     BaseAPI.prototype.on = function (listenerName, callback) {
+        var _a, _c;
         if (!callback)
             return;
         var listenerFunctions = listenerName.split(" ");
         for (var i = 0; i < listenerFunctions.length; i++) {
-            var listenerSplit = listenerFunctions[i].split(".");
-            if (listenerSplit.length === 0)
+            var listenerSplit = (_a = listenerFunctions[i]) === null || _a === void 0 ? void 0 : _a.split(".");
+            if (!listenerSplit || listenerSplit.length === 0)
                 return;
             var functionName = listenerSplit[0];
             var CMIElement = null;
             if (listenerSplit.length > 1) {
-                CMIElement = listenerName.replace(functionName + ".", "");
+                CMIElement = (_c = listenerFunctions[i]) === null || _c === void 0 ? void 0 : _c.replace(functionName + ".", "");
             }
             this.listenerArray.push({
                 functionName: functionName,
@@ -575,17 +584,18 @@ var BaseAPI = (function () {
         }
     };
     BaseAPI.prototype.off = function (listenerName, callback) {
+        var _a, _c;
         if (!callback)
             return;
         var listenerFunctions = listenerName.split(" ");
         var _loop_1 = function (i) {
-            var listenerSplit = listenerFunctions[i].split(".");
-            if (listenerSplit.length === 0)
+            var listenerSplit = (_a = listenerFunctions[i]) === null || _a === void 0 ? void 0 : _a.split(".");
+            if (!listenerSplit || listenerSplit.length === 0)
                 return { value: void 0 };
             var functionName = listenerSplit[0];
             var CMIElement = null;
             if (listenerSplit.length > 1) {
-                CMIElement = listenerName.replace(functionName + ".", "");
+                CMIElement = (_c = listenerFunctions[i]) === null || _c === void 0 ? void 0 : _c.replace(functionName + ".", "");
             }
             var removeIndex = this_1.listenerArray.findIndex(function (obj) {
                 return obj.functionName === functionName &&
@@ -605,15 +615,16 @@ var BaseAPI = (function () {
         }
     };
     BaseAPI.prototype.clear = function (listenerName) {
+        var _a, _c;
         var listenerFunctions = listenerName.split(" ");
         var _loop_2 = function (i) {
-            var listenerSplit = listenerFunctions[i].split(".");
-            if (listenerSplit.length === 0)
+            var listenerSplit = (_a = listenerFunctions[i]) === null || _a === void 0 ? void 0 : _a.split(".");
+            if (!listenerSplit || (listenerSplit === null || listenerSplit === void 0 ? void 0 : listenerSplit.length) === 0)
                 return { value: void 0 };
             var functionName = listenerSplit[0];
             var CMIElement = null;
             if (listenerSplit.length > 1) {
-                CMIElement = listenerName.replace(functionName + ".", "");
+                CMIElement = (_c = listenerFunctions[i]) === null || _c === void 0 ? void 0 : _c.replace(functionName + ".", "");
             }
             this_2.listenerArray = this_2.listenerArray.filter(function (obj) {
                 return obj.functionName !== functionName && obj.CMIElement !== CMIElement;
@@ -1182,8 +1193,8 @@ function checkValidFormat(value, regexPattern, errorCode, errorClass, allowEmpty
 function checkValidRange(value, rangePattern, errorCode, errorClass) {
     var ranges = rangePattern.split("#");
     value = value * 1.0;
-    if (value >= ranges[0]) {
-        if (ranges[1] === "*" || value <= ranges[1]) {
+    if (ranges[0] && value >= ranges[0]) {
+        if (ranges[1] && (ranges[1] === "*" || value <= ranges[1])) {
             return true;
         }
         else {
@@ -2778,11 +2789,12 @@ var Scorm12ValidationError = (function (_super) {
     (0,tslib__WEBPACK_IMPORTED_MODULE_1__.__extends)(Scorm12ValidationError, _super);
     function Scorm12ValidationError(errorCode) {
         var _this = this;
+        var _a, _b, _c, _d, _e;
         if ({}.hasOwnProperty.call(scorm12_errors, String(errorCode))) {
-            _this = _super.call(this, errorCode, scorm12_errors[String(errorCode)].basicMessage, scorm12_errors[String(errorCode)].detailMessage) || this;
+            _this = _super.call(this, errorCode, ((_a = scorm12_errors[String(errorCode)]) === null || _a === void 0 ? void 0 : _a.basicMessage) || "Unknown error", (_b = scorm12_errors[String(errorCode)]) === null || _b === void 0 ? void 0 : _b.detailMessage) || this;
         }
         else {
-            _this = _super.call(this, 101, scorm12_errors["101"].basicMessage, scorm12_errors["101"].detailMessage) || this;
+            _this = _super.call(this, 101, (_d = (_c = scorm12_errors["101"]) === null || _c === void 0 ? void 0 : _c.basicMessage) !== null && _d !== void 0 ? _d : "General error", (_e = scorm12_errors["101"]) === null || _e === void 0 ? void 0 : _e.detailMessage) || this;
         }
         return _this;
     }
@@ -2852,7 +2864,7 @@ function getSecondsAsISODuration(seconds) {
     var duration = "P";
     var remainder = seconds;
     for (var designationsKey in designations) {
-        var current_seconds = designations[designationsKey];
+        var current_seconds = designations[designationsKey] || 1;
         var value = Math.floor(remainder / current_seconds);
         remainder = remainder % current_seconds;
         if (countDecimals(remainder) > 2) {
@@ -2959,7 +2971,7 @@ function unflatten(data) {
             var m = regex.exec(p);
             while (m) {
                 cur = cur[prop] || (cur[prop] = m[2] ? [] : {});
-                prop = m[2] || m[1];
+                prop = m[2] || m[1] || "";
                 m = regex.exec(p);
             }
             cur[prop] = data[p];
@@ -2971,7 +2983,7 @@ function countDecimals(num) {
     if (Math.floor(num) === num || String(num).indexOf(".") < 0)
         return 0;
     var parts = num.toString().split(".")[1];
-    return parts.length || 0;
+    return (parts === null || parts === void 0 ? void 0 : parts.length) || 0;
 }
 function formatMessage(functionName, message, CMIElement) {
     var baseLength = 20;
@@ -3648,14 +3660,16 @@ var Scorm12Impl = (function (_super) {
     Scorm12Impl.prototype.validateCorrectResponse = function (_CMIElement, _value) {
     };
     Scorm12Impl.prototype.getLmsErrorMessageDetails = function (errorNumber, detail) {
+        var _a, _b;
         var basicMessage = "No Error";
         var detailMessage = "No Error";
         errorNumber = String(errorNumber);
         if (_constants_api_constants__WEBPACK_IMPORTED_MODULE_4__.scorm12_constants.error_descriptions[errorNumber]) {
             basicMessage =
-                _constants_api_constants__WEBPACK_IMPORTED_MODULE_4__.scorm12_constants.error_descriptions[errorNumber].basicMessage;
+                ((_a = _constants_api_constants__WEBPACK_IMPORTED_MODULE_4__.scorm12_constants.error_descriptions[errorNumber]) === null || _a === void 0 ? void 0 : _a.basicMessage) ||
+                    "General Error";
             detailMessage =
-                _constants_api_constants__WEBPACK_IMPORTED_MODULE_4__.scorm12_constants.error_descriptions[errorNumber].detailMessage;
+                ((_b = _constants_api_constants__WEBPACK_IMPORTED_MODULE_4__.scorm12_constants.error_descriptions[errorNumber]) === null || _b === void 0 ? void 0 : _b.detailMessage) || "";
         }
         return detail ? detailMessage : basicMessage;
     };

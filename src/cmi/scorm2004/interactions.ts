@@ -17,7 +17,7 @@ export class CMIInteractions extends CMIArray {
   constructor() {
     super({
       children: scorm2004_constants.interactions_children,
-      errorCode: scorm2004_errors.READ_ONLY_ELEMENT,
+      errorCode: scorm2004_errors.READ_ONLY_ELEMENT as number,
       errorClass: Scorm2004ValidationError,
     });
   }
@@ -43,12 +43,12 @@ export class CMIInteractionsObject extends BaseCMI {
   constructor() {
     super();
     this.objectives = new CMIArray({
-      errorCode: scorm2004_errors.READ_ONLY_ELEMENT,
+      errorCode: scorm2004_errors.READ_ONLY_ELEMENT as number,
       errorClass: Scorm2004ValidationError,
       children: scorm2004_constants.objectives_children,
     });
     this.correct_responses = new CMIArray({
-      errorCode: scorm2004_errors.READ_ONLY_ELEMENT,
+      errorCode: scorm2004_errors.READ_ONLY_ELEMENT as number,
       errorClass: Scorm2004ValidationError,
       children: scorm2004_constants.correct_responses_children,
     });
@@ -80,12 +80,12 @@ export class CMIInteractionsObject extends BaseCMI {
     this._latency = "";
     this._description = "";
     this.objectives = new CMIArray({
-      errorCode: scorm2004_errors.READ_ONLY_ELEMENT,
+      errorCode: scorm2004_errors.READ_ONLY_ELEMENT as number,
       errorClass: Scorm2004ValidationError,
       children: scorm2004_constants.objectives_children,
     });
     this.correct_responses = new CMIArray({
-      errorCode: scorm2004_errors.READ_ONLY_ELEMENT,
+      errorCode: scorm2004_errors.READ_ONLY_ELEMENT as number,
       errorClass: Scorm2004ValidationError,
       children: scorm2004_constants.correct_responses_children,
     });
@@ -124,7 +124,7 @@ export class CMIInteractionsObject extends BaseCMI {
   set type(type: string) {
     if (this.initialized && this._id === "") {
       throw new Scorm2004ValidationError(
-        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
+        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED as number,
       );
     } else {
       if (check2004ValidFormat(type, scorm2004_regex.CMIType)) {
@@ -148,7 +148,7 @@ export class CMIInteractionsObject extends BaseCMI {
   set timestamp(timestamp: string) {
     if (this.initialized && this._id === "") {
       throw new Scorm2004ValidationError(
-        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
+        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED as number,
       );
     } else {
       if (check2004ValidFormat(timestamp, scorm2004_regex.CMITime)) {
@@ -172,7 +172,7 @@ export class CMIInteractionsObject extends BaseCMI {
   set weighting(weighting: string) {
     if (this.initialized && this._id === "") {
       throw new Scorm2004ValidationError(
-        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
+        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED as number,
       );
     } else {
       if (check2004ValidFormat(weighting, scorm2004_regex.CMIDecimal)) {
@@ -197,7 +197,7 @@ export class CMIInteractionsObject extends BaseCMI {
   set learner_response(learner_response: string) {
     if (this.initialized && (this._type === "" || this._id === "")) {
       throw new Scorm2004ValidationError(
-        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
+        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED as number,
       );
     } else {
       let nodes = [];
@@ -215,39 +215,39 @@ export class CMIInteractionsObject extends BaseCMI {
 
           for (let i = 0; i < nodes.length; i++) {
             if (response_type?.delimiter2) {
-              const values = nodes[i].split(response_type.delimiter2);
+              const values = nodes[i]?.split(response_type.delimiter2);
 
-              if (values.length === 2) {
-                if (!values[0].match(formatRegex)) {
+              if (values?.length === 2) {
+                if (!values[0]?.match(formatRegex)) {
                   throw new Scorm2004ValidationError(
-                    scorm2004_errors.TYPE_MISMATCH,
+                    scorm2004_errors.TYPE_MISMATCH as number,
                   );
                 } else {
                   if (
                     !response_type.format2 ||
-                    !values[1].match(new RegExp(response_type.format2))
+                    !values[1]?.match(new RegExp(response_type.format2))
                   ) {
                     throw new Scorm2004ValidationError(
-                      scorm2004_errors.TYPE_MISMATCH,
+                      scorm2004_errors.TYPE_MISMATCH as number,
                     );
                   }
                 }
               } else {
                 throw new Scorm2004ValidationError(
-                  scorm2004_errors.TYPE_MISMATCH,
+                  scorm2004_errors.TYPE_MISMATCH as number,
                 );
               }
             } else {
-              if (!nodes[i].match(formatRegex)) {
+              if (!nodes[i]?.match(formatRegex)) {
                 throw new Scorm2004ValidationError(
-                  scorm2004_errors.TYPE_MISMATCH,
+                  scorm2004_errors.TYPE_MISMATCH as number,
                 );
               } else {
                 if (nodes[i] !== "" && response_type.unique) {
                   for (let j = 0; j < i; j++) {
                     if (nodes[i] === nodes[j]) {
                       throw new Scorm2004ValidationError(
-                        scorm2004_errors.TYPE_MISMATCH,
+                        scorm2004_errors.TYPE_MISMATCH as number,
                       );
                     }
                   }
@@ -257,13 +257,15 @@ export class CMIInteractionsObject extends BaseCMI {
           }
         } else {
           throw new Scorm2004ValidationError(
-            scorm2004_errors.GENERAL_SET_FAILURE,
+            scorm2004_errors.GENERAL_SET_FAILURE as number,
           );
         }
 
         this._learner_response = learner_response;
       } else {
-        throw new Scorm2004ValidationError(scorm2004_errors.TYPE_MISMATCH);
+        throw new Scorm2004ValidationError(
+          scorm2004_errors.TYPE_MISMATCH as number,
+        );
       }
     }
   }
@@ -301,7 +303,7 @@ export class CMIInteractionsObject extends BaseCMI {
   set latency(latency: string) {
     if (this.initialized && this._id === "") {
       throw new Scorm2004ValidationError(
-        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
+        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED as number,
       );
     } else {
       if (check2004ValidFormat(latency, scorm2004_regex.CMITimespan)) {
@@ -325,7 +327,7 @@ export class CMIInteractionsObject extends BaseCMI {
   set description(description: string) {
     if (this.initialized && this._id === "") {
       throw new Scorm2004ValidationError(
-        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
+        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED as number,
       );
     } else {
       if (

@@ -107,7 +107,9 @@ export class CMI extends BaseRootCMI {
    * @private
    */
   set _version(_version: string) {
-    throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+    throw new Scorm2004ValidationError(
+      scorm2004_errors.READ_ONLY_ELEMENT as number,
+    );
   }
 
   /**
@@ -125,7 +127,9 @@ export class CMI extends BaseRootCMI {
    * @private
    */
   set _children(_children: number) {
-    throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+    throw new Scorm2004ValidationError(
+      scorm2004_errors.READ_ONLY_ELEMENT as number,
+    );
   }
 
   /**
@@ -160,7 +164,9 @@ export class CMI extends BaseRootCMI {
    */
   set completion_threshold(completion_threshold: string) {
     if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
+      );
     } else {
       this._completion_threshold = completion_threshold;
     }
@@ -180,7 +186,9 @@ export class CMI extends BaseRootCMI {
    */
   set credit(credit: string) {
     if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
+      );
     } else {
       this._credit = credit;
     }
@@ -200,7 +208,9 @@ export class CMI extends BaseRootCMI {
    */
   set entry(entry: string) {
     if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
+      );
     } else {
       this._entry = entry;
     }
@@ -212,7 +222,9 @@ export class CMI extends BaseRootCMI {
    */
   get exit(): string {
     if (!this.jsonString) {
-      throw new Scorm2004ValidationError(scorm2004_errors.WRITE_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        scorm2004_errors.WRITE_ONLY_ELEMENT as number,
+      );
     }
     return this._exit;
   }
@@ -241,7 +253,9 @@ export class CMI extends BaseRootCMI {
    */
   set launch_data(launch_data: string) {
     if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
+      );
     } else {
       this._launch_data = launch_data;
     }
@@ -261,7 +275,9 @@ export class CMI extends BaseRootCMI {
    */
   set learner_id(learner_id: string) {
     if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
+      );
     } else {
       this._learner_id = learner_id;
     }
@@ -281,7 +297,9 @@ export class CMI extends BaseRootCMI {
    */
   set learner_name(learner_name: string) {
     if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
+      );
     } else {
       this._learner_name = learner_name;
     }
@@ -319,7 +337,9 @@ export class CMI extends BaseRootCMI {
    */
   set max_time_allowed(max_time_allowed: string) {
     if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
+      );
     } else {
       this._max_time_allowed = max_time_allowed;
     }
@@ -339,7 +359,9 @@ export class CMI extends BaseRootCMI {
    */
   set mode(mode: string) {
     if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
+      );
     } else {
       this._mode = mode;
     }
@@ -380,7 +402,9 @@ export class CMI extends BaseRootCMI {
    */
   set scaled_passing_score(scaled_passing_score: string) {
     if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
+      );
     } else {
       this._scaled_passing_score = scaled_passing_score;
     }
@@ -392,7 +416,9 @@ export class CMI extends BaseRootCMI {
    */
   get session_time(): string {
     if (!this.jsonString) {
-      throw new Scorm2004ValidationError(scorm2004_errors.WRITE_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        scorm2004_errors.WRITE_ONLY_ELEMENT as number,
+      );
     }
     return this._session_time;
   }
@@ -459,7 +485,9 @@ export class CMI extends BaseRootCMI {
    */
   set time_limit_action(time_limit_action: string) {
     if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
+      );
     } else {
       this._time_limit_action = time_limit_action;
     }
@@ -479,7 +507,9 @@ export class CMI extends BaseRootCMI {
    */
   set total_time(total_time: string) {
     if (this.initialized) {
-      throw new Scorm2004ValidationError(scorm2004_errors.READ_ONLY_ELEMENT);
+      throw new Scorm2004ValidationError(
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
+      );
     } else {
       this._total_time = total_time;
     }

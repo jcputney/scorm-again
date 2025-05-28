@@ -88,9 +88,15 @@ export default abstract class BaseAPI implements IBaseAPI {
     let returnValue = global_constants.SCORM_FALSE;
 
     if (this.isInitialized()) {
-      this.throwSCORMError(this._error_codes.INITIALIZED, initializeMessage);
+      this.throwSCORMError(
+        this._error_codes.INITIALIZED as number,
+        initializeMessage,
+      );
     } else if (this.isTerminated()) {
-      this.throwSCORMError(this._error_codes.TERMINATED, terminationMessage);
+      this.throwSCORMError(
+        this._error_codes.TERMINATED as number,
+        terminationMessage,
+      );
     } else {
       if (this.selfReportSessionTime) {
         this.cmi.setStartTime();
@@ -235,8 +241,8 @@ export default abstract class BaseAPI implements IBaseAPI {
     if (
       this.checkState(
         checkTerminated,
-        this._error_codes.TERMINATION_BEFORE_INIT,
-        this._error_codes.MULTIPLE_TERMINATION,
+        this._error_codes.TERMINATION_BEFORE_INIT as number,
+        this._error_codes.MULTIPLE_TERMINATION as number,
       )
     ) {
       this.currentState = global_constants.STATE_TERMINATED;
@@ -280,8 +286,8 @@ export default abstract class BaseAPI implements IBaseAPI {
     if (
       this.checkState(
         checkTerminated,
-        this._error_codes.RETRIEVE_BEFORE_INIT,
-        this._error_codes.RETRIEVE_AFTER_TERM,
+        this._error_codes.RETRIEVE_BEFORE_INIT as number,
+        this._error_codes.RETRIEVE_AFTER_TERM as number,
       )
     ) {
       if (checkTerminated) this.lastErrorCode = "0";
@@ -334,8 +340,8 @@ export default abstract class BaseAPI implements IBaseAPI {
     if (
       this.checkState(
         checkTerminated,
-        this._error_codes.STORE_BEFORE_INIT,
-        this._error_codes.STORE_AFTER_TERM,
+        this._error_codes.STORE_BEFORE_INIT as number,
+        this._error_codes.STORE_AFTER_TERM as number,
       )
     ) {
       if (checkTerminated) this.lastErrorCode = "0";
@@ -390,8 +396,8 @@ export default abstract class BaseAPI implements IBaseAPI {
     if (
       this.checkState(
         checkTerminated,
-        this._error_codes.COMMIT_BEFORE_INIT,
-        this._error_codes.COMMIT_AFTER_TERM,
+        this._error_codes.COMMIT_BEFORE_INIT as number,
+        this._error_codes.COMMIT_AFTER_TERM as number,
       )
     ) {
       const result = await this.storeData(false);
@@ -574,11 +580,15 @@ export default abstract class BaseAPI implements IBaseAPI {
 
     for (let idx = 0; idx < structure.length; idx++) {
       const attribute = structure[idx];
+      if (!attribute) {
+        this.throwSCORMError(invalidErrorCode as number, invalidErrorMessage);
+        return global_constants.SCORM_FALSE;
+      }
 
       if (idx === structure.length - 1) {
         if (scorm2004 && attribute.substring(0, 8) === "{target=") {
           if (this.isInitialized()) {
-            this.throwSCORMError(this._error_codes.READ_ONLY_ELEMENT);
+            this.throwSCORMError(this._error_codes.READ_ONLY_ELEMENT as number);
           } else {
             refObject = {
               ...refObject,
@@ -586,7 +596,7 @@ export default abstract class BaseAPI implements IBaseAPI {
             };
           }
         } else if (!this._checkObjectHasProperty(refObject, attribute)) {
-          this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
+          this.throwSCORMError(invalidErrorCode as number, invalidErrorMessage);
         } else {
           if (
             stringMatches(CMIElement, "\\.correct_responses\\.\\d+") &&
@@ -603,12 +613,12 @@ export default abstract class BaseAPI implements IBaseAPI {
       } else {
         refObject = refObject[attribute];
         if (!refObject) {
-          this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
+          this.throwSCORMError(invalidErrorCode as number, invalidErrorMessage);
           break;
         }
 
         if (refObject instanceof CMIArray) {
-          const index = parseInt(structure[idx + 1], 10);
+          const index = parseInt(structure[idx + 1] || "0", 10);
 
           // SCO is trying to set an item on an array
           if (!isNaN(index)) {
@@ -626,7 +636,10 @@ export default abstract class BaseAPI implements IBaseAPI {
               foundFirstIndex = true;
 
               if (!newChild) {
-                this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
+                this.throwSCORMError(
+                  invalidErrorCode as number,
+                  invalidErrorMessage,
+                );
               } else {
                 if (refObject.initialized) newChild.initialize();
 
@@ -683,10 +696,18 @@ export default abstract class BaseAPI implements IBaseAPI {
     for (let idx = 0; idx < structure.length; idx++) {
       attribute = structure[idx];
 
+      if (!attribute) {
+        this.throwSCORMError(invalidErrorCode as number, invalidErrorMessage);
+        return;
+      }
+
       if (!scorm2004) {
         if (idx === structure.length - 1) {
           if (!this._checkObjectHasProperty(refObject, attribute)) {
-            this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
+            this.throwSCORMError(
+              invalidErrorCode as number,
+              invalidErrorMessage,
+            );
             return;
           }
         }
@@ -701,19 +722,19 @@ export default abstract class BaseAPI implements IBaseAPI {
           );
           return refObject._isTargetValid(target);
         } else if (!this._checkObjectHasProperty(refObject, attribute)) {
-          this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
+          this.throwSCORMError(invalidErrorCode as number, invalidErrorMessage);
           return;
         }
       }
 
       refObject = refObject[attribute];
       if (refObject === undefined) {
-        this.throwSCORMError(invalidErrorCode, invalidErrorMessage);
+        this.throwSCORMError(invalidErrorCode as number, invalidErrorMessage);
         break;
       }
 
       if (refObject instanceof CMIArray) {
-        const index = parseInt(structure[idx + 1], 10);
+        const index = parseInt(structure[idx + 1] || "", 10);
 
         // SCO is trying to set an item on an array
         if (!isNaN(index)) {
@@ -723,7 +744,7 @@ export default abstract class BaseAPI implements IBaseAPI {
             refObject = item;
           } else {
             this.throwSCORMError(
-              this._error_codes.VALUE_NOT_INITIALIZED,
+              this._error_codes.VALUE_NOT_INITIALIZED as number,
               uninitializedErrorMessage,
             );
             break;
@@ -738,9 +759,9 @@ export default abstract class BaseAPI implements IBaseAPI {
     if (refObject === null || refObject === undefined) {
       if (!scorm2004) {
         if (attribute === "_children") {
-          this.throwSCORMError(this._error_codes.CHILDREN_ERROR);
+          this.throwSCORMError(this._error_codes.CHILDREN_ERROR as number);
         } else if (attribute === "_count") {
-          this.throwSCORMError(this._error_codes.COUNT_ERROR);
+          this.throwSCORMError(this._error_codes.COUNT_ERROR as number);
         }
       }
     } else {
@@ -786,14 +807,14 @@ export default abstract class BaseAPI implements IBaseAPI {
 
     const listenerFunctions = listenerName.split(" ");
     for (let i = 0; i < listenerFunctions.length; i++) {
-      const listenerSplit = listenerFunctions[i].split(".");
-      if (listenerSplit.length === 0) return;
+      const listenerSplit = listenerFunctions[i]?.split(".");
+      if (!listenerSplit || listenerSplit.length === 0) return;
 
       const functionName = listenerSplit[0];
 
       let CMIElement = null;
       if (listenerSplit.length > 1) {
-        CMIElement = listenerFunctions[i].replace(functionName + ".", "");
+        CMIElement = listenerFunctions[i]?.replace(functionName + ".", "");
       }
 
       this.listenerArray.push({
@@ -822,14 +843,14 @@ export default abstract class BaseAPI implements IBaseAPI {
 
     const listenerFunctions = listenerName.split(" ");
     for (let i = 0; i < listenerFunctions.length; i++) {
-      const listenerSplit = listenerFunctions[i].split(".");
-      if (listenerSplit.length === 0) return;
+      const listenerSplit = listenerFunctions[i]?.split(".");
+      if (!listenerSplit || listenerSplit.length === 0) return;
 
       const functionName = listenerSplit[0];
 
       let CMIElement = null;
       if (listenerSplit.length > 1) {
-        CMIElement = listenerFunctions[i].replace(functionName + ".", "");
+        CMIElement = listenerFunctions[i]?.replace(functionName + ".", "");
       }
 
       const removeIndex = this.listenerArray.findIndex(
@@ -858,14 +879,14 @@ export default abstract class BaseAPI implements IBaseAPI {
   clear(listenerName: string) {
     const listenerFunctions = listenerName.split(" ");
     for (let i = 0; i < listenerFunctions.length; i++) {
-      const listenerSplit = listenerFunctions[i].split(".");
-      if (listenerSplit.length === 0) return;
+      const listenerSplit = listenerFunctions[i]?.split(".");
+      if (!listenerSplit || listenerSplit?.length === 0) return;
 
       const functionName = listenerSplit[0];
 
       let CMIElement = null;
       if (listenerSplit.length > 1) {
-        CMIElement = listenerFunctions[i].replace(functionName + ".", "");
+        CMIElement = listenerFunctions[i]?.replace(functionName + ".", "");
       }
 
       this.listenerArray = this.listenerArray.filter(
@@ -1120,7 +1141,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     const api = this;
     const genericError: ResultObject = {
       result: global_constants.SCORM_FALSE,
-      errorCode: this.error_codes.GENERAL,
+      errorCode: this.error_codes.GENERAL as number,
     };
 
     // if we are terminating the module or closing the browser window/tab, we need to make this fetch ASAP.
@@ -1218,7 +1239,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       } else {
         console.error(e);
       }
-      this.throwSCORMError(this._error_codes.GENERAL);
+      this.throwSCORMError(this._error_codes.GENERAL as number);
     }
     return returnValue;
   }

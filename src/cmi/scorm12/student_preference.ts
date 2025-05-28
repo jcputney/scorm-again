@@ -50,7 +50,9 @@ export class CMIStudentPreference extends BaseCMI {
    * @private
    */
   set _children(_children: string) {
-    throw new Scorm12ValidationError(scorm12_errors.INVALID_SET_VALUE);
+    throw new Scorm12ValidationError(
+      scorm12_errors.INVALID_SET_VALUE as number,
+    );
   }
 
   /**

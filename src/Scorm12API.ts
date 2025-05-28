@@ -277,9 +277,10 @@ class Scorm12Impl extends BaseAPI {
     errorNumber = String(errorNumber);
     if (scorm12_constants.error_descriptions[errorNumber]) {
       basicMessage =
-        scorm12_constants.error_descriptions[errorNumber].basicMessage;
+        scorm12_constants.error_descriptions[errorNumber]?.basicMessage ||
+        "General Error";
       detailMessage =
-        scorm12_constants.error_descriptions[errorNumber].detailMessage;
+        scorm12_constants.error_descriptions[errorNumber]?.detailMessage || "";
     }
 
     return detail ? detailMessage : basicMessage;

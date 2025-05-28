@@ -15,14 +15,14 @@ export class AICCValidationError extends ValidationError {
     if ({}.hasOwnProperty.call(aicc_errors, String(errorCode))) {
       super(
         errorCode,
-        aicc_errors[String(errorCode)].basicMessage,
-        aicc_errors[String(errorCode)].detailMessage,
+        aicc_errors[String(errorCode)]?.basicMessage || "Unknown rror",
+        aicc_errors[String(errorCode)]?.detailMessage,
       );
     } else {
       super(
         101,
-        aicc_errors["101"].basicMessage,
-        aicc_errors["101"].detailMessage,
+        aicc_errors["101"]?.basicMessage || "General error",
+        aicc_errors["101"]?.detailMessage,
       );
     }
   }
