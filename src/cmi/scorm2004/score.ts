@@ -18,9 +18,9 @@ export class Scorm2004CMIScore extends CMIScore {
     super({
       score_children: scorm2004_constants.score_children,
       max: "",
-      invalidErrorCode: scorm2004_errors.READ_ONLY_ELEMENT,
-      invalidTypeCode: scorm2004_errors.TYPE_MISMATCH,
-      invalidRangeCode: scorm2004_errors.VALUE_OUT_OF_RANGE,
+      invalidErrorCode: scorm2004_errors.READ_ONLY_ELEMENT as number,
+      invalidTypeCode: scorm2004_errors.TYPE_MISMATCH as number,
+      invalidRangeCode: scorm2004_errors.VALUE_OUT_OF_RANGE as number,
       decimalRegex: scorm2004_regex.CMIDecimal,
       errorClass: Scorm2004ValidationError,
     });

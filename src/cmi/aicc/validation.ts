@@ -17,7 +17,7 @@ export function checkAICCValidFormat(
   return checkValidFormat(
     value,
     regexPattern,
-    scorm12_errors.TYPE_MISMATCH,
+    scorm12_errors.TYPE_MISMATCH as number,
     AICCValidationError,
     allowEmptyString,
   );

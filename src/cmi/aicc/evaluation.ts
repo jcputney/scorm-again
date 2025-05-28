@@ -63,7 +63,7 @@ class CMIEvaluationComments extends CMIArray {
   constructor() {
     super({
       children: aicc_constants.comments_children,
-      errorCode: scorm12_errors.INVALID_SET_VALUE,
+      errorCode: scorm12_errors.INVALID_SET_VALUE as number,
       errorClass: AICCValidationError,
     });
   }

@@ -18,7 +18,7 @@ export class CMIObjectives extends CMIArray {
   constructor() {
     super({
       children: scorm12_constants.objectives_children,
-      errorCode: scorm12_errors.INVALID_SET_VALUE,
+      errorCode: scorm12_errors.INVALID_SET_VALUE as number,
       errorClass: Scorm12ValidationError,
     });
   }
@@ -37,9 +37,9 @@ export class CMIObjectivesObject extends BaseCMI {
     this.score = new CMIScore({
       score_children: scorm12_constants.score_children,
       score_range: scorm12_regex.score_range,
-      invalidErrorCode: scorm12_errors.INVALID_SET_VALUE,
-      invalidTypeCode: scorm12_errors.TYPE_MISMATCH,
-      invalidRangeCode: scorm12_errors.VALUE_OUT_OF_RANGE,
+      invalidErrorCode: scorm12_errors.INVALID_SET_VALUE as number,
+      invalidTypeCode: scorm12_errors.TYPE_MISMATCH as number,
+      invalidRangeCode: scorm12_errors.VALUE_OUT_OF_RANGE as number,
       errorClass: Scorm12ValidationError,
     });
   }

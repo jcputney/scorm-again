@@ -3,6 +3,7 @@
     "sourceMap": true,
     "noImplicitAny": true,
     "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
     "declaration": false,
     "module": "es2020",
     "moduleResolution": "Node",

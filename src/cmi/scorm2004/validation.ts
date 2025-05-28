@@ -17,7 +17,7 @@ export function check2004ValidFormat(
   return checkValidFormat(
     value,
     regexPattern,
-    scorm2004_errors.TYPE_MISMATCH,
+    scorm2004_errors.TYPE_MISMATCH as number,
     Scorm2004ValidationError,
     allowEmptyString,
   );
@@ -36,7 +36,7 @@ export function check2004ValidRange(
   return checkValidRange(
     value,
     rangePattern,
-    scorm2004_errors.VALUE_OUT_OF_RANGE,
+    scorm2004_errors.VALUE_OUT_OF_RANGE as number,
     Scorm2004ValidationError,
   );
 }
