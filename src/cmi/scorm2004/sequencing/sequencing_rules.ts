@@ -264,7 +264,7 @@ export class SequencingRule extends BaseCMI {
     if (!(condition instanceof RuleCondition)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".conditions",
-        scorm2004_errors.TYPE_MISMATCH,
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
     // Check if the condition is already in the array
@@ -283,7 +283,7 @@ export class SequencingRule extends BaseCMI {
     if (!(condition instanceof RuleCondition)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".conditions",
-        scorm2004_errors.TYPE_MISMATCH,
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
     const index = this._conditions.indexOf(condition);
@@ -409,7 +409,7 @@ export class SequencingRules extends BaseCMI {
     if (!(rule instanceof SequencingRule)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".preConditionRules",
-        scorm2004_errors.TYPE_MISMATCH,
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
     this._preConditionRules.push(rule);
@@ -432,7 +432,7 @@ export class SequencingRules extends BaseCMI {
     if (!(rule instanceof SequencingRule)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".exitConditionRules",
-        scorm2004_errors.TYPE_MISMATCH,
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
     this._exitConditionRules.push(rule);
@@ -455,7 +455,7 @@ export class SequencingRules extends BaseCMI {
     if (!(rule instanceof SequencingRule)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".postConditionRules",
-        scorm2004_errors.TYPE_MISMATCH,
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
     this._postConditionRules.push(rule);

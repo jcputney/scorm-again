@@ -50,9 +50,11 @@ export class CMIScore extends BaseCMI {
     this.__children = params.score_children || scorm12_constants.score_children;
     this.__score_range = !params.score_range ? false : scorm12_regex.score_range;
     this._max = params.max || params.max === "" ? params.max : "100";
-    this.__invalid_error_code = params.invalidErrorCode || scorm12_errors.INVALID_SET_VALUE;
-    this.__invalid_type_code = params.invalidTypeCode || scorm12_errors.TYPE_MISMATCH;
-    this.__invalid_range_code = params.invalidRangeCode || scorm12_errors.VALUE_OUT_OF_RANGE;
+    this.__invalid_error_code =
+      params.invalidErrorCode || (scorm12_errors.INVALID_SET_VALUE as number);
+    this.__invalid_type_code = params.invalidTypeCode || (scorm12_errors.TYPE_MISMATCH as number);
+    this.__invalid_range_code =
+      params.invalidRangeCode || (scorm12_errors.VALUE_OUT_OF_RANGE as number);
     this.__decimal_regex = params.decimalRegex || scorm12_regex.CMIDecimal;
     this.__error_class = params.errorClass;
   }

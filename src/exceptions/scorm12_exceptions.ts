@@ -17,15 +17,15 @@ export class Scorm12ValidationError extends ValidationError {
       super(
         CMIElement,
         errorCode,
-        scorm12_errors[String(errorCode)].basicMessage,
-        scorm12_errors[String(errorCode)].detailMessage,
+        scorm12_errors[String(errorCode)]?.basicMessage || "Unknown error",
+        scorm12_errors[String(errorCode)]?.detailMessage,
       );
     } else {
       super(
         CMIElement,
         101,
-        scorm12_errors["101"].basicMessage,
-        scorm12_errors["101"].detailMessage,
+        scorm12_errors["101"]?.basicMessage ?? "General error",
+        scorm12_errors["101"]?.detailMessage,
       );
     }
 

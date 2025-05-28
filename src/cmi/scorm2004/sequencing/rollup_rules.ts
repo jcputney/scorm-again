@@ -211,7 +211,7 @@ export class RollupRule extends BaseCMI {
     if (!(condition instanceof RollupCondition)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".conditions",
-        scorm2004_errors.TYPE_MISMATCH,
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
     this._conditions.push(condition);
@@ -389,7 +389,7 @@ export class RollupRules extends BaseCMI {
     if (!(rule instanceof RollupRule)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".rules",
-        scorm2004_errors.TYPE_MISMATCH,
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
     this._rules.push(rule);

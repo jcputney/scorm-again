@@ -91,7 +91,7 @@ export class HttpService implements IHttpService {
   ): Promise<ResultObject> {
     const genericError: ResultObject = {
       result: global_constants.SCORM_FALSE,
-      errorCode: this.error_codes.GENERAL,
+      errorCode: this.error_codes.GENERAL || 101,
     };
 
     // If immediate mode (for termination), handle differently

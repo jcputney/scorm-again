@@ -58,7 +58,7 @@ export class AICCCMIStudentData extends CMIStudentData {
     if (this.initialized) {
       throw new AICCValidationError(
         "cmi.student_data.tries_during_lesson",
-        scorm12_errors.READ_ONLY_ELEMENT,
+        scorm12_errors.READ_ONLY_ELEMENT as number,
       );
     } else {
       this._tries_during_lesson = tries_during_lesson;

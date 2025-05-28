@@ -3,13 +3,7 @@ import { global_constants } from "./constants/api_constants";
 import * as Utilities from "./utilities";
 import { formatMessage, StringKeyMap, stringMatches } from "./utilities";
 import { BaseCMI, BaseRootCMI } from "./cmi/common/base_cmi";
-import {
-  CommitObject,
-  InternalSettings,
-  LogLevel,
-  ResultObject,
-  Settings,
-} from "./types/api_types";
+import { CommitObject, InternalSettings, LogLevel, ResultObject, Settings } from "./types/api_types";
 import { DefaultSettings } from "./constants/default_settings";
 import { IBaseAPI } from "./interfaces/IBaseAPI";
 import { ScheduledCommit } from "./types/scheduled_commit";
@@ -27,7 +21,7 @@ import {
   IHttpService,
   ILoggingService,
   IOfflineStorageService,
-  ISerializationService,
+  ISerializationService
 } from "./interfaces/services";
 import { CMIArray } from "./cmi/common/array";
 import { ValidationError } from "./exceptions";
@@ -463,8 +457,8 @@ export default abstract class BaseAPI implements IBaseAPI {
     if (
       this.checkState(
         checkTerminated,
-        this._error_codes.TERMINATION_BEFORE_INIT,
-        this._error_codes.MULTIPLE_TERMINATION,
+        this._error_codes.TERMINATION_BEFORE_INIT ?? 0,
+        this._error_codes.MULTIPLE_TERMINATION ?? 0,
       )
     ) {
       this.currentState = global_constants.STATE_TERMINATED;
@@ -491,7 +485,7 @@ export default abstract class BaseAPI implements IBaseAPI {
 
       const result: ResultObject = await this.storeData(true);
       if ((result.errorCode ?? 0) > 0) {
-        this.throwSCORMError("api", result.errorCode);
+        this.throwSCORMError("api", result.errorCode ?? 0);
       }
       returnValue = result?.result ?? global_constants.SCORM_FALSE;
 
@@ -521,8 +515,8 @@ export default abstract class BaseAPI implements IBaseAPI {
     if (
       this.checkState(
         checkTerminated,
-        this._error_codes.RETRIEVE_BEFORE_INIT,
-        this._error_codes.RETRIEVE_AFTER_TERM,
+        this._error_codes.RETRIEVE_BEFORE_INIT ?? 0,
+        this._error_codes.RETRIEVE_AFTER_TERM ?? 0,
       )
     ) {
       // Only reset the error code if there's no error and checkTerminated is true
@@ -574,8 +568,8 @@ export default abstract class BaseAPI implements IBaseAPI {
     if (
       this.checkState(
         checkTerminated,
-        this._error_codes.STORE_BEFORE_INIT,
-        this._error_codes.STORE_AFTER_TERM,
+        this._error_codes.STORE_BEFORE_INIT ?? 0,
+        this._error_codes.STORE_AFTER_TERM ?? 0,
       )
     ) {
       // Only reset the error code if there's no error and checkTerminated is true
@@ -629,8 +623,8 @@ export default abstract class BaseAPI implements IBaseAPI {
     if (
       this.checkState(
         checkTerminated,
-        this._error_codes.COMMIT_BEFORE_INIT,
-        this._error_codes.COMMIT_AFTER_TERM,
+        this._error_codes.COMMIT_BEFORE_INIT ?? 0,
+        this._error_codes.COMMIT_AFTER_TERM ?? 0,
       )
     ) {
       const result = await this.storeData(false);
@@ -826,7 +820,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       const attribute = structure[idx];
 
       if (idx === structure.length - 1) {
-        if (scorm2004 && attribute.substring(0, 8) === "{target=") {
+        if (scorm2004 && attribute && attribute.substring(0, 8) === "{target=") {
           if (this.isInitialized()) {
             this.throwSCORMError(CMIElement, this._error_codes.READ_ONLY_ELEMENT);
             break;
@@ -836,7 +830,10 @@ export default abstract class BaseAPI implements IBaseAPI {
               attribute: value,
             };
           }
-        } else if (!this._checkObjectHasProperty(refObject as StringKeyMap, attribute)) {
+        } else if (
+          typeof attribute === "undefined" ||
+          !this._checkObjectHasProperty(refObject as StringKeyMap, attribute)
+        ) {
           this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
           break;
         } else {
@@ -853,7 +850,11 @@ export default abstract class BaseAPI implements IBaseAPI {
           }
 
           if (!scorm2004 || this._errorHandlingService.lastErrorCode === "0") {
-            if (attribute === "__proto__" || attribute === "constructor") {
+            if (
+              typeof attribute === "undefined" ||
+              attribute === "__proto__" ||
+              attribute === "constructor"
+            ) {
               this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
               break;
             }
@@ -862,6 +863,13 @@ export default abstract class BaseAPI implements IBaseAPI {
           }
         }
       } else {
+        if (
+          typeof attribute === "undefined" ||
+          !this._checkObjectHasProperty(refObject as StringKeyMap, attribute)
+        ) {
+          this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+          break;
+        }
         refObject = (refObject as StringKeyMap)[attribute] as StringKeyMap;
         if (!refObject) {
           this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
@@ -869,7 +877,7 @@ export default abstract class BaseAPI implements IBaseAPI {
         }
 
         if (refObject instanceof CMIArray) {
-          const index = parseInt(structure[idx + 1], 10);
+          const index = parseInt(structure[idx + 1] || "0", 10);
 
           // SCO is trying to set an item on an array
           if (!isNaN(index)) {
@@ -940,7 +948,10 @@ export default abstract class BaseAPI implements IBaseAPI {
 
       if (!scorm2004) {
         if (idx === structure.length - 1) {
-          if (!this._checkObjectHasProperty(refObject, attribute)) {
+          if (
+            typeof attribute === "undefined" ||
+            !this._checkObjectHasProperty(refObject, attribute)
+          ) {
             this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
             return;
           }
@@ -952,20 +963,28 @@ export default abstract class BaseAPI implements IBaseAPI {
         ) {
           const target = String(attribute).substring(8, String(attribute).length - 9);
           return refObject._isTargetValid(target);
-        } else if (!this._checkObjectHasProperty(refObject, attribute)) {
+        } else if (
+          typeof attribute === "undefined" ||
+          !this._checkObjectHasProperty(refObject, attribute)
+        ) {
           this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
           return;
         }
       }
 
-      refObject = refObject[attribute] as StringKeyMap;
-      if (refObject === undefined) {
+      if (attribute !== undefined && attribute !== null) {
+        refObject = refObject[attribute] as StringKeyMap;
+        if (refObject === undefined) {
+          this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+          break;
+        }
+      } else {
         this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
         break;
       }
 
       if (refObject instanceof CMIArray) {
-        const index = parseInt(structure[idx + 1], 10);
+        const index = parseInt(structure[idx + 1] || "", 10);
 
         // SCO is trying to set an item on an array
         if (!isNaN(index)) {
@@ -1106,8 +1125,12 @@ export default abstract class BaseAPI implements IBaseAPI {
    * // Throw a "not initialized" error
    * this.throwSCORMError(301, "The API must be initialized before calling GetValue");
    */
-  throwSCORMError(CMIElement: string, errorNumber: number, message?: string) {
-    this._errorHandlingService.throwSCORMError(CMIElement, errorNumber, message);
+  throwSCORMError(
+    CMIElement: string | undefined,
+    errorNumber: number | undefined,
+    message?: string,
+  ) {
+    this._errorHandlingService.throwSCORMError(CMIElement, errorNumber ?? 0, message);
   }
 
   /**
@@ -1273,7 +1296,7 @@ export default abstract class BaseAPI implements IBaseAPI {
         );
         return {
           result: global_constants.SCORM_FALSE,
-          errorCode: this._error_codes.GENERAL,
+          errorCode: this._error_codes.GENERAL ?? 101, // Fallback to a default error code if GENERAL is undefined
         };
       }
     }

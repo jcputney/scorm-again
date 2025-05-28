@@ -38,9 +38,9 @@ export class CMITriesObject extends BaseCMI {
       CMIElement: "cmi.student_data.tries.n.score",
       score_children: aicc_constants.score_children,
       score_range: aicc_regex.score_range,
-      invalidErrorCode: scorm12_errors.INVALID_SET_VALUE,
-      invalidTypeCode: scorm12_errors.TYPE_MISMATCH,
-      invalidRangeCode: scorm12_errors.VALUE_OUT_OF_RANGE,
+      invalidErrorCode: scorm12_errors.INVALID_SET_VALUE as number,
+      invalidTypeCode: scorm12_errors.TYPE_MISMATCH as number,
+      invalidRangeCode: scorm12_errors.VALUE_OUT_OF_RANGE as number,
       errorClass: AICCValidationError,
     });
   }

@@ -18,7 +18,7 @@ export class CMICommentsFromLMS extends CMIArray {
     super({
       CMIElement: "cmi.comments_from_lms",
       children: scorm2004_constants.comments_children,
-      errorCode: scorm2004_errors.READ_ONLY_ELEMENT,
+      errorCode: scorm2004_errors.READ_ONLY_ELEMENT as number,
       errorClass: Scorm2004ValidationError,
     });
   }
@@ -36,7 +36,7 @@ export class CMICommentsFromLearner extends CMIArray {
     super({
       CMIElement: "cmi.comments_from_learner",
       children: scorm2004_constants.comments_children,
-      errorCode: scorm2004_errors.READ_ONLY_ELEMENT,
+      errorCode: scorm2004_errors.READ_ONLY_ELEMENT as number,
       errorClass: Scorm2004ValidationError,
     });
   }
@@ -87,7 +87,7 @@ export class CMICommentsObject extends BaseCMI {
     if (this.initialized && this._readOnlyAfterInit) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".comment",
-        scorm2004_errors.READ_ONLY_ELEMENT,
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
       );
     } else {
       if (
@@ -119,7 +119,7 @@ export class CMICommentsObject extends BaseCMI {
     if (this.initialized && this._readOnlyAfterInit) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".location",
-        scorm2004_errors.READ_ONLY_ELEMENT,
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
       );
     } else {
       if (
@@ -150,7 +150,7 @@ export class CMICommentsObject extends BaseCMI {
     if (this.initialized && this._readOnlyAfterInit) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".timestamp",
-        scorm2004_errors.READ_ONLY_ELEMENT,
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
       );
     } else {
       if (

@@ -35,7 +35,7 @@ export class CMIThresholds extends BaseCMI {
     if (this.initialized) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".scaled_passing_score",
-        scorm2004_errors.READ_ONLY_ELEMENT,
+        scorm2004_errors.READ_ONLY_ELEMENT ?? 404,
       );
     } else {
       this._scaled_passing_score = scaled_passing_score;
@@ -58,7 +58,7 @@ export class CMIThresholds extends BaseCMI {
     if (this.initialized) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".completion_threshold",
-        scorm2004_errors.READ_ONLY_ELEMENT,
+        scorm2004_errors.READ_ONLY_ELEMENT ?? 404,
       );
     } else {
       this._completion_threshold = completion_threshold;

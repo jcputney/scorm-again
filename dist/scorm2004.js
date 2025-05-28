@@ -278,7 +278,7 @@ this.Scorm2004API = (function () {
       }, () => regex.exec(p)).forEach(m => {
         if (m) {
           cur = cur[prop] ?? (cur[prop] = m[2] ? [] : {});
-          prop = m[2] || m[1];
+          prop = m[2] || m[1] || "";
         }
       });
       cur[prop] = data[p];
@@ -303,7 +303,10 @@ this.Scorm2004API = (function () {
     return messageString;
   }
   function stringMatches(str, tester) {
-    return str?.match(tester) !== null;
+    if (typeof str !== "string") {
+      return false;
+    }
+    return new RegExp(tester).test(str);
   }
   function memoize(fn, keyFn) {
     const cache = /* @__PURE__ */new Map();
@@ -549,17 +552,18 @@ this.Scorm2004API = (function () {
       let processListeners = arguments.length > 4 ? arguments[4] : undefined;
       const genericError = {
         result: global_constants.SCORM_FALSE,
-        errorCode: this.error_codes.GENERAL
+        errorCode: this.error_codes.GENERAL || 101
       };
       if (immediate) {
-        return this._handleImmediateRequest(url, params, processListeners);
+        return this._handleImmediateRequest(url, params, apiLog, processListeners);
       }
       try {
         const processedParams = this.settings.requestHandler(params);
         const response = await this.performFetch(url, processedParams);
         return this.transformResponse(response, processListeners);
       } catch (e) {
-        apiLog("processHttpRequest", e, LogLevelEnum.ERROR);
+        const message = e instanceof Error ? e.message : String(e);
+        apiLog("processHttpRequest", message, LogLevelEnum.ERROR);
         processListeners("CommitError");
         return genericError;
       }
@@ -572,7 +576,7 @@ this.Scorm2004API = (function () {
      * @return {ResultObject} - A success result object
      * @private
      */
-    _handleImmediateRequest(url, params, processListeners) {
+    _handleImmediateRequest(url, params, apiLog, processListeners) {
       if (this.settings.useBeaconInsteadOfFetch !== "never") {
         const {
           body,
@@ -584,6 +588,10 @@ this.Scorm2004API = (function () {
       } else {
         this.performFetch(url, params).then(async response => {
           await this.transformResponse(response, processListeners);
+        }).catch(e => {
+          const message = e instanceof Error ? e.message : String(e);
+          apiLog("processHttpRequest", message, LogLevelEnum.ERROR);
+          processListeners("CommitError");
         });
       }
       return {
@@ -690,7 +698,8 @@ this.Scorm2004API = (function () {
      * @private
      */
     _isSuccessResponse(response, result) {
-      return response.status >= 200 && response.status <= 299 && (result.result === "true" || result.result === global_constants.SCORM_TRUE);
+      const value = result.result;
+      return response.status >= 200 && response.status <= 299 && (value === true || value === "true" || value === global_constants.SCORM_TRUE);
     }
     /**
      * Updates the service settings
@@ -728,7 +737,7 @@ this.Scorm2004API = (function () {
         CMIElement = listenerName.replace(`${functionName}.`, "");
       }
       return {
-        functionName,
+        functionName: functionName ?? listenerName,
         CMIElement
       };
     }
@@ -921,7 +930,7 @@ this.Scorm2004API = (function () {
               key,
               value: json[key],
               index: Number(intMatch[2]),
-              field: intMatch[3]
+              field: intMatch[3] || ""
             });
             continue;
           }
@@ -931,7 +940,7 @@ this.Scorm2004API = (function () {
               key,
               value: json[key],
               index: Number(objMatch[2]),
-              field: objMatch[3]
+              field: objMatch[3] || ""
             });
             continue;
           }
@@ -1483,7 +1492,7 @@ ${stackTrace}`);
         this.apiLog("OfflineStorageService", `Error storing offline data: ${error}`, LogLevelEnum.ERROR);
         return {
           result: global_constants.SCORM_FALSE,
-          errorCode: this.error_codes.GENERAL
+          errorCode: this.error_codes.GENERAL ?? 0
         };
       }
     }
@@ -1557,7 +1566,7 @@ ${stackTrace}`);
       if (!this.settings.lmsCommitUrl) {
         return {
           result: global_constants.SCORM_FALSE,
-          errorCode: this.error_codes.GENERAL
+          errorCode: this.error_codes.GENERAL || 101
         };
       }
       try {
@@ -1591,7 +1600,7 @@ ${stackTrace}`);
         this.apiLog("OfflineStorageService", `Error sending data to LMS: ${error}`, LogLevelEnum.ERROR);
         return {
           result: global_constants.SCORM_FALSE,
-          errorCode: this.error_codes.GENERAL
+          errorCode: this.error_codes.GENERAL || 101
         };
       }
     }
@@ -1734,6 +1743,7 @@ ${stackTrace}`);
     TERMINATED: 104,
     TERMINATION_FAILURE: 111,
     TERMINATION_BEFORE_INIT: 112,
+    MULTIPLE_TERMINATION: 113,
     MULTIPLE_TERMINATIONS: 113,
     RETRIEVE_BEFORE_INIT: 122,
     RETRIEVE_AFTER_TERM: 123,
@@ -2004,7 +2014,7 @@ ${stackTrace}`);
      */
     async terminate(callbackName, checkTerminated) {
       let returnValue = global_constants.SCORM_FALSE;
-      if (this.checkState(checkTerminated, this._error_codes.TERMINATION_BEFORE_INIT, this._error_codes.MULTIPLE_TERMINATION)) {
+      if (this.checkState(checkTerminated, this._error_codes.TERMINATION_BEFORE_INIT ?? 0, this._error_codes.MULTIPLE_TERMINATION ?? 0)) {
         this.currentState = global_constants.STATE_TERMINATED;
         if (this.settings.enableOfflineSupport && this._offlineStorageService && this._courseId && this.settings.syncOnTerminate && this._offlineStorageService.isDeviceOnline()) {
           const hasPendingData = await this._offlineStorageService.hasPendingOfflineData(this._courseId);
@@ -2015,7 +2025,7 @@ ${stackTrace}`);
         }
         const result = await this.storeData(true);
         if ((result.errorCode ?? 0) > 0) {
-          this.throwSCORMError("api", result.errorCode);
+          this.throwSCORMError("api", result.errorCode ?? 0);
         }
         returnValue = result?.result ?? global_constants.SCORM_FALSE;
         if (checkTerminated) this.lastErrorCode = "0";
@@ -2036,7 +2046,7 @@ ${stackTrace}`);
      */
     getValue(callbackName, checkTerminated, CMIElement) {
       let returnValue = "";
-      if (this.checkState(checkTerminated, this._error_codes.RETRIEVE_BEFORE_INIT, this._error_codes.RETRIEVE_AFTER_TERM)) {
+      if (this.checkState(checkTerminated, this._error_codes.RETRIEVE_BEFORE_INIT ?? 0, this._error_codes.RETRIEVE_AFTER_TERM ?? 0)) {
         try {
           returnValue = this.getCMIValue(CMIElement);
         } catch (e) {
@@ -2068,7 +2078,7 @@ ${stackTrace}`);
         value = String(value);
       }
       let returnValue = global_constants.SCORM_FALSE;
-      if (this.checkState(checkTerminated, this._error_codes.STORE_BEFORE_INIT, this._error_codes.STORE_AFTER_TERM)) {
+      if (this.checkState(checkTerminated, this._error_codes.STORE_BEFORE_INIT ?? 0, this._error_codes.STORE_AFTER_TERM ?? 0)) {
         try {
           returnValue = this.setCMIValue(CMIElement, value);
         } catch (e) {
@@ -2100,7 +2110,7 @@ ${stackTrace}`);
       let checkTerminated = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
       this.clearScheduledCommit();
       let returnValue = global_constants.SCORM_FALSE;
-      if (this.checkState(checkTerminated, this._error_codes.COMMIT_BEFORE_INIT, this._error_codes.COMMIT_AFTER_TERM)) {
+      if (this.checkState(checkTerminated, this._error_codes.COMMIT_BEFORE_INIT ?? 0, this._error_codes.COMMIT_AFTER_TERM ?? 0)) {
         const result = await this.storeData(false);
         if ((result.errorCode ?? 0) > 0) {
           this.throwSCORMError("api", result.errorCode);
@@ -2250,7 +2260,7 @@ ${stackTrace}`);
       for (let idx = 0; idx < structure.length; idx++) {
         const attribute = structure[idx];
         if (idx === structure.length - 1) {
-          if (scorm2004 && attribute.substring(0, 8) === "{target=") {
+          if (scorm2004 && attribute && attribute.substring(0, 8) === "{target=") {
             if (this.isInitialized()) {
               this.throwSCORMError(CMIElement, this._error_codes.READ_ONLY_ELEMENT);
               break;
@@ -2260,7 +2270,7 @@ ${stackTrace}`);
                 attribute: value
               };
             }
-          } else if (!this._checkObjectHasProperty(refObject, attribute)) {
+          } else if (typeof attribute === "undefined" || !this._checkObjectHasProperty(refObject, attribute)) {
             this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
             break;
           } else {
@@ -2272,7 +2282,7 @@ ${stackTrace}`);
               }
             }
             if (!scorm2004 || this._errorHandlingService.lastErrorCode === "0") {
-              if (attribute === "__proto__" || attribute === "constructor") {
+              if (typeof attribute === "undefined" || attribute === "__proto__" || attribute === "constructor") {
                 this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
                 break;
               }
@@ -2281,13 +2291,17 @@ ${stackTrace}`);
             }
           }
         } else {
+          if (typeof attribute === "undefined" || !this._checkObjectHasProperty(refObject, attribute)) {
+            this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+            break;
+          }
           refObject = refObject[attribute];
           if (!refObject) {
             this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
             break;
           }
           if (refObject instanceof CMIArray) {
-            const index = parseInt(structure[idx + 1], 10);
+            const index = parseInt(structure[idx + 1] || "0", 10);
             if (!isNaN(index)) {
               const item = refObject.childArray[index];
               if (item) {
@@ -2339,7 +2353,7 @@ ${stackTrace}`);
         attribute = structure[idx];
         if (!scorm2004) {
           if (idx === structure.length - 1) {
-            if (!this._checkObjectHasProperty(refObject, attribute)) {
+            if (typeof attribute === "undefined" || !this._checkObjectHasProperty(refObject, attribute)) {
               this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
               return;
             }
@@ -2348,18 +2362,23 @@ ${stackTrace}`);
           if (String(attribute).substring(0, 8) === "{target=" && typeof refObject._isTargetValid == "function") {
             const target = String(attribute).substring(8, String(attribute).length - 9);
             return refObject._isTargetValid(target);
-          } else if (!this._checkObjectHasProperty(refObject, attribute)) {
+          } else if (typeof attribute === "undefined" || !this._checkObjectHasProperty(refObject, attribute)) {
             this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
             return;
           }
         }
-        refObject = refObject[attribute];
-        if (refObject === void 0) {
+        if (attribute !== void 0 && attribute !== null) {
+          refObject = refObject[attribute];
+          if (refObject === void 0) {
+            this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+            break;
+          }
+        } else {
           this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
           break;
         }
         if (refObject instanceof CMIArray) {
-          const index = parseInt(structure[idx + 1], 10);
+          const index = parseInt(structure[idx + 1] || "", 10);
           if (!isNaN(index)) {
             const item = refObject.childArray[index];
             if (item) {
@@ -2483,7 +2502,7 @@ ${stackTrace}`);
      * this.throwSCORMError(301, "The API must be initialized before calling GetValue");
      */
     throwSCORMError(CMIElement, errorNumber, message) {
-      this._errorHandlingService.throwSCORMError(CMIElement, errorNumber, message);
+      this._errorHandlingService.throwSCORMError(CMIElement, errorNumber ?? 0, message);
     }
     /**
      * Clears the last SCORM error code when an operation succeeds.
@@ -2603,7 +2622,8 @@ ${stackTrace}`);
           this.apiLog("processHttpRequest", "Invalid commit data format for offline storage", LogLevelEnum.ERROR);
           return {
             result: global_constants.SCORM_FALSE,
-            errorCode: this._error_codes.GENERAL
+            errorCode: this._error_codes.GENERAL ?? 101
+            // Fallback to a default error code if GENERAL is undefined
           };
         }
       }
@@ -2751,9 +2771,9 @@ ${stackTrace}`);
      */
     constructor(CMIElement, errorCode) {
       if ({}.hasOwnProperty.call(scorm2004_errors, String(errorCode))) {
-        super(CMIElement, errorCode, scorm2004_errors[String(errorCode)].basicMessage, scorm2004_errors[String(errorCode)].detailMessage);
+        super(CMIElement, errorCode, scorm2004_errors[String(errorCode)]?.basicMessage || "Unknown error", scorm2004_errors[String(errorCode)]?.detailMessage);
       } else {
-        super(CMIElement, 101, scorm2004_errors["101"].basicMessage, scorm2004_errors["101"].detailMessage);
+        super(CMIElement, 101, scorm2004_errors["101"]?.basicMessage, scorm2004_errors["101"]?.detailMessage);
       }
       Object.setPrototypeOf(this, Scorm2004ValidationError.prototype);
     }
@@ -2782,8 +2802,8 @@ ${stackTrace}`);
   const checkValidRange = memoize((CMIElement, value, rangePattern, errorCode, errorClass) => {
     const ranges = rangePattern.split("#");
     value = value * 1;
-    if (value >= ranges[0]) {
-      if (ranges[1] === "*" || value <= ranges[1]) {
+    if (ranges[0] && value >= ranges[0]) {
+      if (ranges[1] && (ranges[1] === "*" || value <= ranges[1])) {
         return true;
       } else {
         throw new errorClass(CMIElement, errorCode);
@@ -2806,7 +2826,7 @@ ${stackTrace}`);
   const scorm12_regex = {
     CMIString256: "^.{0,255}$",
     CMISInteger: "^-?([0-9]+)$",
-    CMIDecimal: "^-?([0-9]{0,3})(.[0-9]*)?$",
+    CMIDecimal: "^-?([0-9]{0,3})(\\.[0-9]*)?$",
     // Data ranges
     score_range: "0#100",
     audio_range: "-1#100",
@@ -2838,7 +2858,7 @@ ${stackTrace}`);
     CMIType: "^(true-false|choice|fill-in|long-fill-in|matching|performance|sequencing|likert|numeric|other)$",
     CMIResult: "^(correct|incorrect|unanticipated|neutral|-?([0-9]{1,4})(\\.[0-9]{1,18})?)$",
     NAVEvent: "^(previous|continue|exit|exitAll|abandon|abandonAll|suspendAll|_none_|(\\{target=(?<choice_target>\\S{0,}[a-zA-Z0-9-_]+)})?choice|(\\{target=(?<jump_target>\\S{0,}[a-zA-Z0-9-_]+)})?jump)$",
-    NAVBoolean: "^(unknown|true|false$)",
+    NAVBoolean: "^(unknown|true|false)$",
     NAVTarget: "^{target=\\S{0,}[a-zA-Z0-9-_]+}$",
     // Data ranges
     scaled_range: "-1#1",
@@ -3301,15 +3321,15 @@ ${stackTrace}`);
             for (let i = 0; i < nodes.length; i++) {
               if (response_type?.delimiter2) {
                 const delimiter2 = response_type.delimiter2 === "[.]" ? "." : response_type.delimiter2;
-                const values = nodes[i].split(delimiter2);
-                if (values.length === 2) {
+                const values = nodes[i]?.split(delimiter2);
+                if (values?.length === 2) {
                   if (this.type === "performance" && (values[0] === "" || values[1] === "")) {
                     throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", scorm2004_errors$1.TYPE_MISMATCH);
                   }
-                  if (!values[0].match(formatRegex)) {
+                  if (!values[0]?.match(formatRegex)) {
                     throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", scorm2004_errors$1.TYPE_MISMATCH);
                   } else {
-                    if (!response_type.format2 || !values[1].match(new RegExp(response_type.format2))) {
+                    if (!response_type.format2 || !values[1]?.match(new RegExp(response_type.format2))) {
                       throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", scorm2004_errors$1.TYPE_MISMATCH);
                     }
                   }
@@ -3317,7 +3337,7 @@ ${stackTrace}`);
                   throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", scorm2004_errors$1.TYPE_MISMATCH);
                 }
               } else {
-                if (!nodes[i].match(formatRegex)) {
+                if (!nodes[i]?.match(formatRegex)) {
                   throw new Scorm2004ValidationError(this._cmi_element + ".learner_response", scorm2004_errors$1.TYPE_MISMATCH);
                 } else {
                   if (nodes[i] !== "" && response_type.unique) {
@@ -3541,7 +3561,7 @@ ${stackTrace}`);
       if (parts.length !== 2 || parts[0] === "" || parts[1] === "") {
         throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors$1.TYPE_MISMATCH);
       }
-      if (!fmt1.test(parts[0]) || fmt2 && !fmt2.test(parts[1])) {
+      if (parts[0] !== void 0 && !fmt1.test(parts[0]) || fmt2 && parts[1] !== void 0 && !fmt2.test(parts[1])) {
         throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors$1.TYPE_MISMATCH);
       }
     };
@@ -3572,10 +3592,10 @@ ${stackTrace}`);
             if (part1 === "" || part2 === "" || part1 === part2) {
               throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors$1.TYPE_MISMATCH);
             }
-            if (!fmt1.test(part1)) {
+            if (part1 === void 0 || !fmt1.test(part1)) {
               throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors$1.TYPE_MISMATCH);
             }
-            if (fmt2 && !fmt2.test(part2)) {
+            if (fmt2 && part2 !== void 0 && !fmt2.test(part2)) {
               throw new Scorm2004ValidationError("cmi.interactions.n.correct_responses.n.pattern", scorm2004_errors$1.TYPE_MISMATCH);
             }
             break;
@@ -3643,9 +3663,9 @@ ${stackTrace}`);
      */
     constructor(CMIElement, errorCode) {
       if ({}.hasOwnProperty.call(scorm12_errors, String(errorCode))) {
-        super(CMIElement, errorCode, scorm12_errors[String(errorCode)].basicMessage, scorm12_errors[String(errorCode)].detailMessage);
+        super(CMIElement, errorCode, scorm12_errors[String(errorCode)]?.basicMessage || "Unknown error", scorm12_errors[String(errorCode)]?.detailMessage);
       } else {
-        super(CMIElement, 101, scorm12_errors["101"].basicMessage, scorm12_errors["101"].detailMessage);
+        super(CMIElement, 101, scorm12_errors["101"]?.basicMessage ?? "General error", scorm12_errors["101"]?.detailMessage);
       }
       Object.setPrototypeOf(this, Scorm12ValidationError.prototype);
     }
@@ -4709,7 +4729,7 @@ ${stackTrace}`);
      */
     set scaled_passing_score(scaled_passing_score) {
       if (this.initialized) {
-        throw new Scorm2004ValidationError(this._cmi_element + ".scaled_passing_score", scorm2004_errors$1.READ_ONLY_ELEMENT);
+        throw new Scorm2004ValidationError(this._cmi_element + ".scaled_passing_score", scorm2004_errors$1.READ_ONLY_ELEMENT ?? 404);
       } else {
         this._scaled_passing_score = scaled_passing_score;
       }
@@ -4727,7 +4747,7 @@ ${stackTrace}`);
      */
     set completion_threshold(completion_threshold) {
       if (this.initialized) {
-        throw new Scorm2004ValidationError(this._cmi_element + ".completion_threshold", scorm2004_errors$1.READ_ONLY_ELEMENT);
+        throw new Scorm2004ValidationError(this._cmi_element + ".completion_threshold", scorm2004_errors$1.READ_ONLY_ELEMENT ?? 404);
       } else {
         this._completion_threshold = completion_threshold;
       }
@@ -5259,6 +5279,9 @@ ${stackTrace}`);
     reset() {
       this._initialized = false;
       this._request = "_none_";
+      if (this._sequencing) {
+        this._sequencing.adlNav = null;
+      }
       this._sequencing = null;
       this.request_valid?.reset();
     }
@@ -5452,7 +5475,7 @@ ${stackTrace}`);
       }
       for (const key in choice) {
         if ({}.hasOwnProperty.call(choice, key)) {
-          if (check2004ValidFormat(this._cmi_element + ".choice." + key, choice[key], scorm2004_regex.NAVBoolean) && check2004ValidFormat(this._cmi_element + ".choice." + key, key, scorm2004_regex.NAVTarget)) {
+          if (check2004ValidFormat(this._cmi_element + ".choice." + key, choice[key] || "", scorm2004_regex.NAVBoolean) && check2004ValidFormat(this._cmi_element + ".choice." + key, key, scorm2004_regex.NAVTarget)) {
             const value = choice[key];
             if (value === "true") {
               this._choice[key] = NAVBoolean.TRUE;
@@ -5485,7 +5508,7 @@ ${stackTrace}`);
       }
       for (const key in jump) {
         if ({}.hasOwnProperty.call(jump, key)) {
-          if (check2004ValidFormat(this._cmi_element + ".jump." + key, jump[key], scorm2004_regex.NAVBoolean) && check2004ValidFormat(this._cmi_element + ".jump." + key, key, scorm2004_regex.NAVTarget)) {
+          if (check2004ValidFormat(this._cmi_element + ".jump." + key, jump[key] || "", scorm2004_regex.NAVBoolean) && check2004ValidFormat(this._cmi_element + ".jump." + key, key, scorm2004_regex.NAVTarget)) {
             const value = jump[key];
             if (value === "true") {
               this._jump[key] = NAVBoolean.TRUE;
@@ -6652,8 +6675,11 @@ ${stackTrace}`);
       this._initialized = false;
       this._currentActivity = null;
       this._suspendedActivity = null;
+      this._activities.clear();
       if (this._root) {
         this._root.reset();
+        this._activities.set(this._root.id, this._root);
+        this._addActivitiesToMap(this._root);
       }
     }
     /**
@@ -6671,6 +6697,7 @@ ${stackTrace}`);
       if (root !== null && !(root instanceof Activity)) {
         throw new Scorm2004ValidationError(this._cmi_element + ".root", scorm2004_errors$1.TYPE_MISMATCH);
       }
+      this._activities.clear();
       this._root = root;
       if (root) {
         this._activities.set(root.id, root);
@@ -6737,10 +6764,10 @@ ${stackTrace}`);
     /**
      * Get an activity by ID
      * @param {string} id - The ID of the activity to get
-     * @return {Activity | undefined} - The activity with the given ID, or undefined if not found
+     * @return {Activity | null} - The activity with the given ID, or null if not found
      */
     getActivity(id) {
-      return this._activities.get(id);
+      return this._activities.get(id) || null;
     }
     /**
      * Get all activities in the tree
@@ -6790,7 +6817,7 @@ ${stackTrace}`);
       if (index === -1 || index === siblings.length - 1) {
         return null;
       }
-      return siblings[index + 1];
+      return siblings[index + 1] ?? null;
     }
     /**
      * Get the previous sibling of an activity
@@ -6806,7 +6833,7 @@ ${stackTrace}`);
       if (index <= 0) {
         return null;
       }
-      return siblings[index - 1];
+      return siblings[index - 1] ?? null;
     }
     /**
      * Get the first child of an activity
@@ -6817,7 +6844,7 @@ ${stackTrace}`);
       if (activity.children.length === 0) {
         return null;
       }
-      return activity.children[0];
+      return activity.children[0] ?? null;
     }
     /**
      * Get the last child of an activity
@@ -6828,7 +6855,7 @@ ${stackTrace}`);
       if (activity.children.length === 0) {
         return null;
       }
-      return activity.children[activity.children.length - 1];
+      return activity.children[activity.children.length - 1] ?? null;
     }
     /**
      * Get the common ancestor of two activities
@@ -7081,14 +7108,14 @@ ${stackTrace}`);
      * @return {boolean} - True if forward navigation is allowed, false otherwise
      */
     isForwardNavigationAllowed() {
-      return this._enabled && (!this._forwardOnly || this._flow);
+      return this._enabled && this._flow;
     }
     /**
      * Check if backward navigation is allowed
      * @return {boolean} - True if backward navigation is allowed, false otherwise
      */
     isBackwardNavigationAllowed() {
-      return this._enabled && !this._forwardOnly;
+      return this._enabled && this._flow && !this._forwardOnly;
     }
     /**
      * toJSON for SequencingControls
@@ -7598,7 +7625,7 @@ ${stackTrace}`);
         const matches = CMIElement.match(adlNavRequestRegex);
         if (matches) {
           const request = matches[1];
-          const target = matches[2].replace(/{target=/g, "").replace(/}/g, "");
+          const target = matches[2]?.replace(/{target=/g, "").replace(/}/g, "") || "";
           if (request === "choice" || request === "jump") {
             if (this.settings.scoItemIdValidator) {
               return String(this.settings.scoItemIdValidator(target));
@@ -7810,7 +7837,7 @@ ${stackTrace}`);
       const interaction_count = interaction.correct_responses._count;
       this.checkDuplicateChoiceResponse(CMIElement, interaction, value);
       const response_type = CorrectResponses[interaction.type];
-      if (typeof response_type.limit === "undefined" || interaction_count <= response_type.limit) {
+      if (response_type && (typeof response_type.limit === "undefined" || interaction_count <= response_type.limit)) {
         this.checkValidResponseType(CMIElement, response_type, value, interaction.type);
         if (this.lastErrorCode === "0" && (!response_type.duplicate || !this.checkDuplicatedPattern(interaction.correct_responses, pattern_index, value)) || this.lastErrorCode === "0" && value === "") ; else {
           if (this.lastErrorCode === "0") {
@@ -7841,9 +7868,10 @@ ${stackTrace}`);
       let basicMessage = "";
       let detailMessage = "";
       errorNumber = String(errorNumber);
-      if (scorm2004_constants.error_descriptions[errorNumber]) {
-        basicMessage = scorm2004_constants.error_descriptions[errorNumber].basicMessage;
-        detailMessage = scorm2004_constants.error_descriptions[errorNumber].detailMessage;
+      const errorDescription = scorm2004_constants.error_descriptions[errorNumber];
+      if (errorDescription) {
+        basicMessage = errorDescription.basicMessage;
+        detailMessage = errorDescription.detailMessage;
       }
       return detail ? detailMessage : basicMessage;
     }
@@ -7962,7 +7990,7 @@ ${stackTrace}`);
             seenOrder = true;
             break;
         }
-        node = node.substring(matches[1].length);
+        node = node.substring(matches[1]?.length || 0);
         matches = node.match(prefixRegex);
       }
       return node;

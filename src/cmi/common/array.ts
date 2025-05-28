@@ -23,7 +23,7 @@ export class CMIArray extends BaseCMI {
   }) {
     super(params.CMIElement);
     this.__children = params.children;
-    this._errorCode = params.errorCode || scorm12_errors.GENERAL;
+    this._errorCode = params.errorCode || (scorm12_errors.GENERAL as number);
     this._errorClass = params.errorClass || BaseScormValidationError;
     this.childArray = [];
   }

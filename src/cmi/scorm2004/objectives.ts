@@ -19,7 +19,7 @@ export class CMIObjectives extends CMIArray {
     super({
       CMIElement: "cmi.objectives",
       children: scorm2004_constants.objectives_children,
-      errorCode: scorm2004_errors.READ_ONLY_ELEMENT,
+      errorCode: scorm2004_errors.READ_ONLY_ELEMENT as number,
       errorClass: Scorm2004ValidationError,
     });
   }
@@ -112,7 +112,7 @@ export class CMIObjectivesObject extends BaseCMI {
     if (this.initialized && this._id === "") {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".success_status",
-        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
+        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED as number,
       );
     } else {
       if (
@@ -143,7 +143,7 @@ export class CMIObjectivesObject extends BaseCMI {
     if (this.initialized && this._id === "") {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".completion_status",
-        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
+        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED as number,
       );
     } else {
       if (
@@ -174,7 +174,7 @@ export class CMIObjectivesObject extends BaseCMI {
     if (this.initialized && this._id === "") {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".progress_measure",
-        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
+        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED as number,
       );
     } else {
       if (
@@ -210,7 +210,7 @@ export class CMIObjectivesObject extends BaseCMI {
     if (this.initialized && this._id === "") {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".description",
-        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
+        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED as number,
       );
     } else {
       if (

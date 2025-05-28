@@ -58,7 +58,7 @@ export class CMIContent extends BaseCMI {
     if (this.initialized) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".launch_data",
-        scorm2004_errors.READ_ONLY_ELEMENT,
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
       );
     } else {
       this._launch_data = launch_data;

@@ -253,7 +253,7 @@ export interface IErrorHandlingService {
    * @param {number} errorNumber - The error number
    * @param {string} message - The error message
    */
-  throwSCORMError(CMIElement: string, errorNumber: number, message?: string): void;
+  throwSCORMError(CMIElement: string | undefined, errorNumber: number, message?: string): void;
 
   /**
    * Clears the last SCORM error code on success.

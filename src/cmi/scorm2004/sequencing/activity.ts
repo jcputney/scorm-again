@@ -132,7 +132,7 @@ export class Activity extends BaseCMI {
     if (!(child instanceof Activity)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".children",
-        scorm2004_errors.TYPE_MISMATCH,
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
     child._parent = this;

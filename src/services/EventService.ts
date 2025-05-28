@@ -61,13 +61,13 @@ export class EventService implements IEventService {
     if (listenerSplit.length === 0) return null;
 
     const functionName = listenerSplit[0];
-    let CMIElement = null;
+    let CMIElement: string | null = null;
 
     if (listenerSplit.length > 1) {
       CMIElement = listenerName.replace(`${functionName}.`, "");
     }
 
-    return { functionName, CMIElement };
+    return { functionName: functionName ?? listenerName, CMIElement };
   }
 
   /**

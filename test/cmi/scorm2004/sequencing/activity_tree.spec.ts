@@ -135,7 +135,7 @@ describe("ActivityTree", () => {
       root2.addChild(child2);
       activityTree.root = root2;
 
-      expect(activityTree.getActivity("child1")).toBeUndefined();
+      expect(activityTree.getActivity("child1")).toBeNull();
       expect(activityTree.getActivity("child2")).toBe(child2);
       expect(activityTree.root).toBe(root2);
       expect(activityTree.getAllActivities().length).toBe(2);
@@ -223,7 +223,7 @@ describe("ActivityTree", () => {
       expect(activityTree.getActivity("root")).toBe(root);
       expect(activityTree.getActivity("child1")).toBe(child1);
       expect(activityTree.getActivity("child2")).toBe(child2);
-      expect(activityTree.getActivity("nonexistent")).toBeUndefined();
+      expect(activityTree.getActivity("nonexistent")).toBeNull();
     });
   });
 

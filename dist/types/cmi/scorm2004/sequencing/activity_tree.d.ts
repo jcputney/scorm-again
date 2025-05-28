@@ -15,7 +15,7 @@ export declare class ActivityTree extends BaseCMI {
     set currentActivity(activity: Activity | null);
     get suspendedActivity(): Activity | null;
     set suspendedActivity(activity: Activity | null);
-    getActivity(id: string): Activity | undefined;
+    getActivity(id: string): Activity | null;
     getAllActivities(): Activity[];
     getParent(activity: Activity): Activity | null;
     getChildren(activity: Activity): Activity[];

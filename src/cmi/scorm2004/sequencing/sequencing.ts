@@ -68,7 +68,7 @@ export class Sequencing extends BaseCMI {
     if (!(activityTree instanceof ActivityTree)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".activityTree",
-        scorm2004_errors.TYPE_MISMATCH,
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
     this._activityTree = activityTree;
@@ -91,7 +91,7 @@ export class Sequencing extends BaseCMI {
     if (!(sequencingRules instanceof SequencingRules)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".sequencingRules",
-        scorm2004_errors.TYPE_MISMATCH,
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
     this._sequencingRules = sequencingRules;
@@ -114,7 +114,7 @@ export class Sequencing extends BaseCMI {
     if (!(sequencingControls instanceof SequencingControls)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".sequencingControls",
-        scorm2004_errors.TYPE_MISMATCH,
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
     this._sequencingControls = sequencingControls;
@@ -137,7 +137,7 @@ export class Sequencing extends BaseCMI {
     if (!(rollupRules instanceof RollupRules)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".rollupRules",
-        scorm2004_errors.TYPE_MISMATCH,
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
     this._rollupRules = rollupRules;

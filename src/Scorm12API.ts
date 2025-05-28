@@ -9,7 +9,7 @@ import { CMIObjectivesObject } from "./cmi/scorm12/objectives";
 import {
   CMIInteractionsCorrectResponsesObject,
   CMIInteractionsObject,
-  CMIInteractionsObjectivesObject,
+  CMIInteractionsObjectivesObject
 } from "./cmi/scorm12/interactions";
 import { NAV } from "./cmi/scorm12/nav";
 import { CommitObject, ResultObject, ScoreObject, Settings } from "./types/api_types";
@@ -263,8 +263,10 @@ class Scorm12API extends BaseAPI {
     // Set error number to string since inconsistent from modules if string or number
     errorNumber = String(errorNumber);
     if (scorm12_constants.error_descriptions[errorNumber]) {
-      basicMessage = scorm12_constants.error_descriptions[errorNumber].basicMessage;
-      detailMessage = scorm12_constants.error_descriptions[errorNumber].detailMessage;
+      basicMessage =
+        scorm12_constants.error_descriptions[errorNumber]?.basicMessage || basicMessage;
+      detailMessage =
+        scorm12_constants.error_descriptions[errorNumber]?.detailMessage || detailMessage;
     }
 
     return detail ? detailMessage : basicMessage;

@@ -99,7 +99,7 @@ export class ValidationService {
    */
   validateReadOnly(CMIElement: string, initialized: boolean): void {
     if (initialized) {
-      throw new Scorm12ValidationError(CMIElement, scorm12_errors.READ_ONLY_ELEMENT);
+      throw new Scorm12ValidationError(CMIElement, scorm12_errors.READ_ONLY_ELEMENT as number);
     }
   }
 }

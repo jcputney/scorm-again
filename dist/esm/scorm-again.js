@@ -412,15 +412,15 @@ class Scorm12ValidationError extends ValidationError {
       super(
         CMIElement,
         errorCode,
-        scorm12_errors[String(errorCode)].basicMessage,
-        scorm12_errors[String(errorCode)].detailMessage
+        scorm12_errors[String(errorCode)]?.basicMessage || "Unknown error",
+        scorm12_errors[String(errorCode)]?.detailMessage
       );
     } else {
       super(
         CMIElement,
         101,
-        scorm12_errors["101"].basicMessage,
-        scorm12_errors["101"].detailMessage
+        scorm12_errors["101"]?.basicMessage ?? "General error",
+        scorm12_errors["101"]?.detailMessage
       );
     }
     Object.setPrototypeOf(this, Scorm12ValidationError.prototype);
@@ -632,7 +632,7 @@ function unflatten(data) {
     ).forEach((m) => {
       if (m) {
         cur = cur[prop] ?? (cur[prop] = m[2] ? [] : {});
-        prop = m[2] || m[1];
+        prop = m[2] || m[1] || "";
       }
     });
     cur[prop] = data[p];
@@ -700,8 +700,8 @@ const checkValidRange = memoize(
   (CMIElement, value, rangePattern, errorCode, errorClass) => {
     const ranges = rangePattern.split("#");
     value = value * 1;
-    if (value >= ranges[0]) {
-      if (ranges[1] === "*" || value <= ranges[1]) {
+    if (ranges[0] && value >= ranges[0]) {
+      if (ranges[1] && (ranges[1] === "*" || value <= ranges[1])) {
         return true;
       } else {
         throw new errorClass(CMIElement, errorCode);
@@ -2561,7 +2561,7 @@ class HttpService {
   async processHttpRequest(url, params, immediate = false, apiLog, processListeners) {
     const genericError = {
       result: global_constants.SCORM_FALSE,
-      errorCode: this.error_codes.GENERAL
+      errorCode: this.error_codes.GENERAL || 101
     };
     if (immediate) {
       return this._handleImmediateRequest(url, params, apiLog, processListeners);
@@ -2729,7 +2729,7 @@ class EventService {
     if (listenerSplit.length > 1) {
       CMIElement = listenerName.replace(`${functionName}.`, "");
     }
-    return { functionName, CMIElement };
+    return { functionName: functionName ?? listenerName, CMIElement };
   }
   /**
    * Provides a mechanism for attaching to a specific SCORM event
@@ -2924,7 +2924,7 @@ class SerializationService {
             key,
             value: json[key],
             index: Number(intMatch[2]),
-            field: intMatch[3]
+            field: intMatch[3] || ""
           });
           continue;
         }
@@ -2934,7 +2934,7 @@ class SerializationService {
             key,
             value: json[key],
             index: Number(objMatch[2]),
-            field: objMatch[3]
+            field: objMatch[3] || ""
           });
           continue;
         }
@@ -3351,7 +3351,11 @@ class ErrorHandlingService {
       const stackTrace = e.stack || "";
       this._loggingService.error(`${errorMessage}
 ${stackTrace}`);
-      this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, `${errorType}: ${e.message}`);
+      this.throwSCORMError(
+        CMIElement,
+        this._errorCodes.GENERAL,
+        `${errorType}: ${e.message}`
+      );
     } else {
       const errorMessage = `Unknown error occurred while accessing [Element: ${CMIElement}]`;
       this._loggingService.error(errorMessage);
@@ -3464,7 +3468,7 @@ class OfflineStorageService {
       );
       return {
         result: global_constants.SCORM_FALSE,
-        errorCode: this.error_codes.GENERAL
+        errorCode: this.error_codes.GENERAL ?? 0
       };
     }
   }
@@ -3570,7 +3574,7 @@ class OfflineStorageService {
     if (!this.settings.lmsCommitUrl) {
       return {
         result: global_constants.SCORM_FALSE,
-        errorCode: this.error_codes.GENERAL
+        errorCode: this.error_codes.GENERAL || 101
       };
     }
     try {
@@ -3608,7 +3612,7 @@ class OfflineStorageService {
       );
       return {
         result: global_constants.SCORM_FALSE,
-        errorCode: this.error_codes.GENERAL
+        errorCode: this.error_codes.GENERAL || 101
       };
     }
   }
@@ -3857,8 +3861,8 @@ class BaseAPI {
     let returnValue = global_constants.SCORM_FALSE;
     if (this.checkState(
       checkTerminated,
-      this._error_codes.TERMINATION_BEFORE_INIT,
-      this._error_codes.MULTIPLE_TERMINATION
+      this._error_codes.TERMINATION_BEFORE_INIT ?? 0,
+      this._error_codes.MULTIPLE_TERMINATION ?? 0
     )) {
       this.currentState = global_constants.STATE_TERMINATED;
       if (this.settings.enableOfflineSupport && this._offlineStorageService && this._courseId && this.settings.syncOnTerminate && this._offlineStorageService.isDeviceOnline()) {
@@ -3876,7 +3880,7 @@ class BaseAPI {
       }
       const result = await this.storeData(true);
       if ((result.errorCode ?? 0) > 0) {
-        this.throwSCORMError("api", result.errorCode);
+        this.throwSCORMError("api", result.errorCode ?? 0);
       }
       returnValue = result?.result ?? global_constants.SCORM_FALSE;
       if (checkTerminated) this.lastErrorCode = "0";
@@ -3899,8 +3903,8 @@ class BaseAPI {
     let returnValue = "";
     if (this.checkState(
       checkTerminated,
-      this._error_codes.RETRIEVE_BEFORE_INIT,
-      this._error_codes.RETRIEVE_AFTER_TERM
+      this._error_codes.RETRIEVE_BEFORE_INIT ?? 0,
+      this._error_codes.RETRIEVE_AFTER_TERM ?? 0
     )) {
       try {
         returnValue = this.getCMIValue(CMIElement);
@@ -3935,8 +3939,8 @@ class BaseAPI {
     let returnValue = global_constants.SCORM_FALSE;
     if (this.checkState(
       checkTerminated,
-      this._error_codes.STORE_BEFORE_INIT,
-      this._error_codes.STORE_AFTER_TERM
+      this._error_codes.STORE_BEFORE_INIT ?? 0,
+      this._error_codes.STORE_AFTER_TERM ?? 0
     )) {
       try {
         returnValue = this.setCMIValue(CMIElement, value);
@@ -3975,8 +3979,8 @@ class BaseAPI {
     let returnValue = global_constants.SCORM_FALSE;
     if (this.checkState(
       checkTerminated,
-      this._error_codes.COMMIT_BEFORE_INIT,
-      this._error_codes.COMMIT_AFTER_TERM
+      this._error_codes.COMMIT_BEFORE_INIT ?? 0,
+      this._error_codes.COMMIT_AFTER_TERM ?? 0
     )) {
       const result = await this.storeData(false);
       if ((result.errorCode ?? 0) > 0) {
@@ -4127,7 +4131,7 @@ class BaseAPI {
     for (let idx = 0; idx < structure.length; idx++) {
       const attribute = structure[idx];
       if (idx === structure.length - 1) {
-        if (scorm2004 && attribute.substring(0, 8) === "{target=") {
+        if (scorm2004 && attribute && attribute.substring(0, 8) === "{target=") {
           if (this.isInitialized()) {
             this.throwSCORMError(CMIElement, this._error_codes.READ_ONLY_ELEMENT);
             break;
@@ -4137,7 +4141,7 @@ class BaseAPI {
               attribute: value
             };
           }
-        } else if (!this._checkObjectHasProperty(refObject, attribute)) {
+        } else if (typeof attribute === "undefined" || !this._checkObjectHasProperty(refObject, attribute)) {
           this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
           break;
         } else {
@@ -4149,7 +4153,7 @@ class BaseAPI {
             }
           }
           if (!scorm2004 || this._errorHandlingService.lastErrorCode === "0") {
-            if (attribute === "__proto__" || attribute === "constructor") {
+            if (typeof attribute === "undefined" || attribute === "__proto__" || attribute === "constructor") {
               this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
               break;
             }
@@ -4158,13 +4162,17 @@ class BaseAPI {
           }
         }
       } else {
+        if (typeof attribute === "undefined" || !this._checkObjectHasProperty(refObject, attribute)) {
+          this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+          break;
+        }
         refObject = refObject[attribute];
         if (!refObject) {
           this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
           break;
         }
         if (refObject instanceof CMIArray) {
-          const index = parseInt(structure[idx + 1], 10);
+          const index = parseInt(structure[idx + 1] || "0", 10);
           if (!isNaN(index)) {
             const item = refObject.childArray[index];
             if (item) {
@@ -4220,7 +4228,7 @@ class BaseAPI {
       attribute = structure[idx];
       if (!scorm2004) {
         if (idx === structure.length - 1) {
-          if (!this._checkObjectHasProperty(refObject, attribute)) {
+          if (typeof attribute === "undefined" || !this._checkObjectHasProperty(refObject, attribute)) {
             this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
             return;
           }
@@ -4229,18 +4237,23 @@ class BaseAPI {
         if (String(attribute).substring(0, 8) === "{target=" && typeof refObject._isTargetValid == "function") {
           const target = String(attribute).substring(8, String(attribute).length - 9);
           return refObject._isTargetValid(target);
-        } else if (!this._checkObjectHasProperty(refObject, attribute)) {
+        } else if (typeof attribute === "undefined" || !this._checkObjectHasProperty(refObject, attribute)) {
           this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
           return;
         }
       }
-      refObject = refObject[attribute];
-      if (refObject === void 0) {
+      if (attribute !== void 0 && attribute !== null) {
+        refObject = refObject[attribute];
+        if (refObject === void 0) {
+          this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+          break;
+        }
+      } else {
         this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
         break;
       }
       if (refObject instanceof CMIArray) {
-        const index = parseInt(structure[idx + 1], 10);
+        const index = parseInt(structure[idx + 1] || "", 10);
         if (!isNaN(index)) {
           const item = refObject.childArray[index];
           if (item) {
@@ -4368,7 +4381,7 @@ class BaseAPI {
    * this.throwSCORMError(301, "The API must be initialized before calling GetValue");
    */
   throwSCORMError(CMIElement, errorNumber, message) {
-    this._errorHandlingService.throwSCORMError(CMIElement, errorNumber, message);
+    this._errorHandlingService.throwSCORMError(CMIElement, errorNumber ?? 0, message);
   }
   /**
    * Clears the last SCORM error code when an operation succeeds.
@@ -4509,7 +4522,8 @@ class BaseAPI {
         );
         return {
           result: global_constants.SCORM_FALSE,
-          errorCode: this._error_codes.GENERAL
+          errorCode: this._error_codes.GENERAL ?? 101
+          // Fallback to a default error code if GENERAL is undefined
         };
       }
     }
@@ -4859,8 +4873,8 @@ class Scorm12API extends BaseAPI {
     let detailMessage = "No Error";
     errorNumber = String(errorNumber);
     if (scorm12_constants.error_descriptions[errorNumber]) {
-      basicMessage = scorm12_constants.error_descriptions[errorNumber].basicMessage;
-      detailMessage = scorm12_constants.error_descriptions[errorNumber].detailMessage;
+      basicMessage = scorm12_constants.error_descriptions[errorNumber]?.basicMessage || basicMessage;
+      detailMessage = scorm12_constants.error_descriptions[errorNumber]?.detailMessage || detailMessage;
     }
     return detail ? detailMessage : basicMessage;
   }
@@ -4987,11 +5001,16 @@ class AICCValidationError extends ValidationError {
       super(
         CMIElement,
         errorCode,
-        aicc_errors[String(errorCode)].basicMessage,
-        aicc_errors[String(errorCode)].detailMessage
+        aicc_errors[String(errorCode)]?.basicMessage || "Unknown error",
+        aicc_errors[String(errorCode)]?.detailMessage
       );
     } else {
-      super(CMIElement, 101, aicc_errors["101"].basicMessage, aicc_errors["101"].detailMessage);
+      super(
+        CMIElement,
+        101,
+        aicc_errors["101"]?.basicMessage || "General error",
+        aicc_errors["101"]?.detailMessage
+      );
     }
     Object.setPrototypeOf(this, AICCValidationError.prototype);
   }
@@ -6192,15 +6211,15 @@ class Scorm2004ValidationError extends ValidationError {
       super(
         CMIElement,
         errorCode,
-        scorm2004_errors[String(errorCode)].basicMessage,
-        scorm2004_errors[String(errorCode)].detailMessage
+        scorm2004_errors[String(errorCode)]?.basicMessage || "Unknown error",
+        scorm2004_errors[String(errorCode)]?.detailMessage
       );
     } else {
       super(
         CMIElement,
         101,
-        scorm2004_errors["101"].basicMessage,
-        scorm2004_errors["101"].detailMessage
+        scorm2004_errors["101"]?.basicMessage,
+        scorm2004_errors["101"]?.detailMessage
       );
     }
     Object.setPrototypeOf(this, Scorm2004ValidationError.prototype);
@@ -6723,21 +6742,21 @@ class CMIInteractionsObject extends BaseCMI {
           for (let i = 0; i < nodes.length; i++) {
             if (response_type?.delimiter2) {
               const delimiter2 = response_type.delimiter2 === "[.]" ? "." : response_type.delimiter2;
-              const values = nodes[i].split(delimiter2);
-              if (values.length === 2) {
+              const values = nodes[i]?.split(delimiter2);
+              if (values?.length === 2) {
                 if (this.type === "performance" && (values[0] === "" || values[1] === "")) {
                   throw new Scorm2004ValidationError(
                     this._cmi_element + ".learner_response",
                     scorm2004_errors$1.TYPE_MISMATCH
                   );
                 }
-                if (!values[0].match(formatRegex)) {
+                if (!values[0]?.match(formatRegex)) {
                   throw new Scorm2004ValidationError(
                     this._cmi_element + ".learner_response",
                     scorm2004_errors$1.TYPE_MISMATCH
                   );
                 } else {
-                  if (!response_type.format2 || !values[1].match(new RegExp(response_type.format2))) {
+                  if (!response_type.format2 || !values[1]?.match(new RegExp(response_type.format2))) {
                     throw new Scorm2004ValidationError(
                       this._cmi_element + ".learner_response",
                       scorm2004_errors$1.TYPE_MISMATCH
@@ -6751,7 +6770,7 @@ class CMIInteractionsObject extends BaseCMI {
                 );
               }
             } else {
-              if (!nodes[i].match(formatRegex)) {
+              if (!nodes[i]?.match(formatRegex)) {
                 throw new Scorm2004ValidationError(
                   this._cmi_element + ".learner_response",
                   scorm2004_errors$1.TYPE_MISMATCH
@@ -7022,7 +7041,7 @@ function validatePattern(type, pattern, responseDef) {
         scorm2004_errors$1.TYPE_MISMATCH
       );
     }
-    if (!fmt1.test(parts[0]) || fmt2 && !fmt2.test(parts[1])) {
+    if (parts[0] !== void 0 && !fmt1.test(parts[0]) || fmt2 && parts[1] !== void 0 && !fmt2.test(parts[1])) {
       throw new Scorm2004ValidationError(
         "cmi.interactions.n.correct_responses.n.pattern",
         scorm2004_errors$1.TYPE_MISMATCH
@@ -7066,13 +7085,13 @@ function validatePattern(type, pattern, responseDef) {
             scorm2004_errors$1.TYPE_MISMATCH
           );
         }
-        if (!fmt1.test(part1)) {
+        if (part1 === void 0 || !fmt1.test(part1)) {
           throw new Scorm2004ValidationError(
             "cmi.interactions.n.correct_responses.n.pattern",
             scorm2004_errors$1.TYPE_MISMATCH
           );
         }
-        if (fmt2 && !fmt2.test(part2)) {
+        if (fmt2 && part2 !== void 0 && !fmt2.test(part2)) {
           throw new Scorm2004ValidationError(
             "cmi.interactions.n.correct_responses.n.pattern",
             scorm2004_errors$1.TYPE_MISMATCH
@@ -8091,7 +8110,7 @@ class CMIThresholds extends BaseCMI {
     if (this.initialized) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".scaled_passing_score",
-        scorm2004_errors$1.READ_ONLY_ELEMENT
+        scorm2004_errors$1.READ_ONLY_ELEMENT ?? 404
       );
     } else {
       this._scaled_passing_score = scaled_passing_score;
@@ -8112,7 +8131,7 @@ class CMIThresholds extends BaseCMI {
     if (this.initialized) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".completion_threshold",
-        scorm2004_errors$1.READ_ONLY_ELEMENT
+        scorm2004_errors$1.READ_ONLY_ELEMENT ?? 404
       );
     } else {
       this._completion_threshold = completion_threshold;
@@ -8854,7 +8873,7 @@ class ADLNavRequestValid extends BaseCMI {
       if ({}.hasOwnProperty.call(choice, key)) {
         if (check2004ValidFormat(
           this._cmi_element + ".choice." + key,
-          choice[key],
+          choice[key] || "",
           scorm2004_regex.NAVBoolean
         ) && check2004ValidFormat(this._cmi_element + ".choice." + key, key, scorm2004_regex.NAVTarget)) {
           const value = choice[key];
@@ -8897,7 +8916,7 @@ class ADLNavRequestValid extends BaseCMI {
       if ({}.hasOwnProperty.call(jump, key)) {
         if (check2004ValidFormat(
           this._cmi_element + ".jump." + key,
-          jump[key],
+          jump[key] || "",
           scorm2004_regex.NAVBoolean
         ) && check2004ValidFormat(this._cmi_element + ".jump." + key, key, scorm2004_regex.NAVTarget)) {
           const value = jump[key];
@@ -10565,10 +10584,10 @@ class ActivityTree extends BaseCMI {
   /**
    * Get an activity by ID
    * @param {string} id - The ID of the activity to get
-   * @return {Activity | undefined} - The activity with the given ID, or undefined if not found
+   * @return {Activity | null} - The activity with the given ID, or null if not found
    */
   getActivity(id) {
-    return this._activities.get(id);
+    return this._activities.get(id) || null;
   }
   /**
    * Get all activities in the tree
@@ -10618,7 +10637,7 @@ class ActivityTree extends BaseCMI {
     if (index === -1 || index === siblings.length - 1) {
       return null;
     }
-    return siblings[index + 1];
+    return siblings[index + 1] ?? null;
   }
   /**
    * Get the previous sibling of an activity
@@ -10634,7 +10653,7 @@ class ActivityTree extends BaseCMI {
     if (index <= 0) {
       return null;
     }
-    return siblings[index - 1];
+    return siblings[index - 1] ?? null;
   }
   /**
    * Get the first child of an activity
@@ -10645,7 +10664,7 @@ class ActivityTree extends BaseCMI {
     if (activity.children.length === 0) {
       return null;
     }
-    return activity.children[0];
+    return activity.children[0] ?? null;
   }
   /**
    * Get the last child of an activity
@@ -10656,7 +10675,7 @@ class ActivityTree extends BaseCMI {
     if (activity.children.length === 0) {
       return null;
     }
-    return activity.children[activity.children.length - 1];
+    return activity.children[activity.children.length - 1] ?? null;
   }
   /**
    * Get the common ancestor of two activities
@@ -11441,7 +11460,7 @@ class Scorm2004API extends BaseAPI {
       const matches = CMIElement.match(adlNavRequestRegex);
       if (matches) {
         const request = matches[1];
-        const target = matches[2].replace(/{target=/g, "").replace(/}/g, "");
+        const target = matches[2]?.replace(/{target=/g, "").replace(/}/g, "") || "";
         if (request === "choice" || request === "jump") {
           if (this.settings.scoItemIdValidator) {
             return String(this.settings.scoItemIdValidator(target));
@@ -11664,7 +11683,7 @@ class Scorm2004API extends BaseAPI {
     const interaction_count = interaction.correct_responses._count;
     this.checkDuplicateChoiceResponse(CMIElement, interaction, value);
     const response_type = CorrectResponses[interaction.type];
-    if (typeof response_type.limit === "undefined" || interaction_count <= response_type.limit) {
+    if (response_type && (typeof response_type.limit === "undefined" || interaction_count <= response_type.limit)) {
       this.checkValidResponseType(CMIElement, response_type, value, interaction.type);
       if (this.lastErrorCode === "0" && (!response_type.duplicate || !this.checkDuplicatedPattern(interaction.correct_responses, pattern_index, value)) || this.lastErrorCode === "0" && value === "") ; else {
         if (this.lastErrorCode === "0") {
@@ -11703,9 +11722,10 @@ class Scorm2004API extends BaseAPI {
     let basicMessage = "";
     let detailMessage = "";
     errorNumber = String(errorNumber);
-    if (scorm2004_constants.error_descriptions[errorNumber]) {
-      basicMessage = scorm2004_constants.error_descriptions[errorNumber].basicMessage;
-      detailMessage = scorm2004_constants.error_descriptions[errorNumber].detailMessage;
+    const errorDescription = scorm2004_constants.error_descriptions[errorNumber];
+    if (errorDescription) {
+      basicMessage = errorDescription.basicMessage;
+      detailMessage = errorDescription.detailMessage;
     }
     return detail ? detailMessage : basicMessage;
   }
@@ -11852,7 +11872,7 @@ class Scorm2004API extends BaseAPI {
           seenOrder = true;
           break;
       }
-      node = node.substring(matches[1].length);
+      node = node.substring(matches[1]?.length || 0);
       matches = node.match(prefixRegex);
     }
     return node;
@@ -12337,4 +12357,3 @@ class CrossFrameLMS {
 }
 
 export { AICC, CrossFrameAPI, CrossFrameLMS, Scorm12API, Scorm2004API };
-//# sourceMappingURL=scorm-again.js.map

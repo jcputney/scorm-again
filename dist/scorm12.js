@@ -125,9 +125,16 @@ this.Scorm12API = (function () {
     CMITime: "^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)$",
     CMITimespan: "^([0-9]{2,}):([0-9]{2}):([0-9]{2})(.[0-9]{1,2})?$",
     CMISInteger: "^-?([0-9]+)$",
-    CMIDecimal: "^-?([0-9]{0,3})(.[0-9]*)?$",
+    CMIDecimal: "^-?([0-9]{0,3})(\\.[0-9]*)?$",
     CMIIdentifier: "^[\\u0021-\\u007E\\s]{0,255}$",
-    CMIFeedback: "^.{0,255}$",
+    // Allow storing larger responses for interactions
+    // Some content packages may exceed the 255 character limit
+    // defined in the SCORM 1.2 specification.  The previous
+    // expression truncated these values which resulted in
+    // a "101: General Exception" being thrown when long
+    // answers were supplied.  To support these packages we
+    // relax the limitation and accept any length string.
+    CMIFeedback: "^.*$",
     // Vocabulary Data Type Definition
     CMIStatus: "^(passed|completed|failed|incomplete|browsed)$",
     CMIStatus2: "^(passed|completed|failed|incomplete|browsed|not attempted)$",
@@ -200,9 +207,9 @@ this.Scorm12API = (function () {
      */
     constructor(CMIElement, errorCode) {
       if ({}.hasOwnProperty.call(scorm12_errors, String(errorCode))) {
-        super(CMIElement, errorCode, scorm12_errors[String(errorCode)].basicMessage, scorm12_errors[String(errorCode)].detailMessage);
+        super(CMIElement, errorCode, scorm12_errors[String(errorCode)]?.basicMessage || "Unknown error", scorm12_errors[String(errorCode)]?.detailMessage);
       } else {
-        super(CMIElement, 101, scorm12_errors["101"].basicMessage, scorm12_errors["101"].detailMessage);
+        super(CMIElement, 101, scorm12_errors["101"]?.basicMessage ?? "General error", scorm12_errors["101"]?.detailMessage);
       }
       Object.setPrototypeOf(this, Scorm12ValidationError.prototype);
     }
@@ -282,7 +289,13 @@ this.Scorm12API = (function () {
     if (typeof timeRegex === "string") {
       timeRegex = new RegExp(timeRegex);
     }
-    if (!timeString || !timeString?.match?.(timeRegex)) {
+    if (!timeString) {
+      return 0;
+    }
+    if (!timeString.match(timeRegex)) {
+      if (/^\d+(?:\.\d+)?$/.test(timeString)) {
+        return Number(timeString);
+      }
       return 0;
     }
     const parts = timeString.split(":");
@@ -339,7 +352,7 @@ this.Scorm12API = (function () {
       }, () => regex.exec(p)).forEach(m => {
         if (m) {
           cur = cur[prop] ?? (cur[prop] = m[2] ? [] : {});
-          prop = m[2] || m[1];
+          prop = m[2] || m[1] || "";
         }
       });
       cur[prop] = data[p];
@@ -364,7 +377,10 @@ this.Scorm12API = (function () {
     return messageString;
   }
   function stringMatches(str, tester) {
-    return str?.match(tester) !== null;
+    if (typeof str !== "string") {
+      return false;
+    }
+    return new RegExp(tester).test(str);
   }
   function memoize(fn, keyFn) {
     const cache = /* @__PURE__ */new Map();
@@ -404,8 +420,8 @@ this.Scorm12API = (function () {
   const checkValidRange = memoize((CMIElement, value, rangePattern, errorCode, errorClass) => {
     const ranges = rangePattern.split("#");
     value = value * 1;
-    if (value >= ranges[0]) {
-      if (ranges[1] === "*" || value <= ranges[1]) {
+    if (ranges[0] && value >= ranges[0]) {
+      if (ranges[1] && (ranges[1] === "*" || value <= ranges[1])) {
         return true;
       } else {
         throw new errorClass(CMIElement, errorCode);
@@ -2120,17 +2136,18 @@ this.Scorm12API = (function () {
       let processListeners = arguments.length > 4 ? arguments[4] : undefined;
       const genericError = {
         result: global_constants.SCORM_FALSE,
-        errorCode: this.error_codes.GENERAL
+        errorCode: this.error_codes.GENERAL || 101
       };
       if (immediate) {
-        return this._handleImmediateRequest(url, params, processListeners);
+        return this._handleImmediateRequest(url, params, apiLog, processListeners);
       }
       try {
         const processedParams = this.settings.requestHandler(params);
         const response = await this.performFetch(url, processedParams);
         return this.transformResponse(response, processListeners);
       } catch (e) {
-        apiLog("processHttpRequest", e, LogLevelEnum.ERROR);
+        const message = e instanceof Error ? e.message : String(e);
+        apiLog("processHttpRequest", message, LogLevelEnum.ERROR);
         processListeners("CommitError");
         return genericError;
       }
@@ -2143,7 +2160,7 @@ this.Scorm12API = (function () {
      * @return {ResultObject} - A success result object
      * @private
      */
-    _handleImmediateRequest(url, params, processListeners) {
+    _handleImmediateRequest(url, params, apiLog, processListeners) {
       if (this.settings.useBeaconInsteadOfFetch !== "never") {
         const {
           body,
@@ -2155,6 +2172,10 @@ this.Scorm12API = (function () {
       } else {
         this.performFetch(url, params).then(async response => {
           await this.transformResponse(response, processListeners);
+        }).catch(e => {
+          const message = e instanceof Error ? e.message : String(e);
+          apiLog("processHttpRequest", message, LogLevelEnum.ERROR);
+          processListeners("CommitError");
         });
       }
       return {
@@ -2261,7 +2282,8 @@ this.Scorm12API = (function () {
      * @private
      */
     _isSuccessResponse(response, result) {
-      return response.status >= 200 && response.status <= 299 && (result.result === "true" || result.result === global_constants.SCORM_TRUE);
+      const value = result.result;
+      return response.status >= 200 && response.status <= 299 && (value === true || value === "true" || value === global_constants.SCORM_TRUE);
     }
     /**
      * Updates the service settings
@@ -2299,7 +2321,7 @@ this.Scorm12API = (function () {
         CMIElement = listenerName.replace(`${functionName}.`, "");
       }
       return {
-        functionName,
+        functionName: functionName ?? listenerName,
         CMIElement
       };
     }
@@ -2492,7 +2514,7 @@ this.Scorm12API = (function () {
               key,
               value: json[key],
               index: Number(intMatch[2]),
-              field: intMatch[3]
+              field: intMatch[3] || ""
             });
             continue;
           }
@@ -2502,7 +2524,7 @@ this.Scorm12API = (function () {
               key,
               value: json[key],
               index: Number(objMatch[2]),
-              field: objMatch[3]
+              field: objMatch[3] || ""
             });
             continue;
           }
@@ -3006,7 +3028,7 @@ ${stackTrace}`);
         this.apiLog("OfflineStorageService", `Error storing offline data: ${error}`, LogLevelEnum.ERROR);
         return {
           result: global_constants.SCORM_FALSE,
-          errorCode: this.error_codes.GENERAL
+          errorCode: this.error_codes.GENERAL ?? 0
         };
       }
     }
@@ -3080,7 +3102,7 @@ ${stackTrace}`);
       if (!this.settings.lmsCommitUrl) {
         return {
           result: global_constants.SCORM_FALSE,
-          errorCode: this.error_codes.GENERAL
+          errorCode: this.error_codes.GENERAL || 101
         };
       }
       try {
@@ -3114,7 +3136,7 @@ ${stackTrace}`);
         this.apiLog("OfflineStorageService", `Error sending data to LMS: ${error}`, LogLevelEnum.ERROR);
         return {
           result: global_constants.SCORM_FALSE,
-          errorCode: this.error_codes.GENERAL
+          errorCode: this.error_codes.GENERAL || 101
         };
       }
     }
@@ -3349,7 +3371,7 @@ ${stackTrace}`);
      */
     async terminate(callbackName, checkTerminated) {
       let returnValue = global_constants.SCORM_FALSE;
-      if (this.checkState(checkTerminated, this._error_codes.TERMINATION_BEFORE_INIT, this._error_codes.MULTIPLE_TERMINATION)) {
+      if (this.checkState(checkTerminated, this._error_codes.TERMINATION_BEFORE_INIT ?? 0, this._error_codes.MULTIPLE_TERMINATION ?? 0)) {
         this.currentState = global_constants.STATE_TERMINATED;
         if (this.settings.enableOfflineSupport && this._offlineStorageService && this._courseId && this.settings.syncOnTerminate && this._offlineStorageService.isDeviceOnline()) {
           const hasPendingData = await this._offlineStorageService.hasPendingOfflineData(this._courseId);
@@ -3360,7 +3382,7 @@ ${stackTrace}`);
         }
         const result = await this.storeData(true);
         if ((result.errorCode ?? 0) > 0) {
-          this.throwSCORMError("api", result.errorCode);
+          this.throwSCORMError("api", result.errorCode ?? 0);
         }
         returnValue = result?.result ?? global_constants.SCORM_FALSE;
         if (checkTerminated) this.lastErrorCode = "0";
@@ -3381,7 +3403,7 @@ ${stackTrace}`);
      */
     getValue(callbackName, checkTerminated, CMIElement) {
       let returnValue = "";
-      if (this.checkState(checkTerminated, this._error_codes.RETRIEVE_BEFORE_INIT, this._error_codes.RETRIEVE_AFTER_TERM)) {
+      if (this.checkState(checkTerminated, this._error_codes.RETRIEVE_BEFORE_INIT ?? 0, this._error_codes.RETRIEVE_AFTER_TERM ?? 0)) {
         try {
           returnValue = this.getCMIValue(CMIElement);
         } catch (e) {
@@ -3413,7 +3435,7 @@ ${stackTrace}`);
         value = String(value);
       }
       let returnValue = global_constants.SCORM_FALSE;
-      if (this.checkState(checkTerminated, this._error_codes.STORE_BEFORE_INIT, this._error_codes.STORE_AFTER_TERM)) {
+      if (this.checkState(checkTerminated, this._error_codes.STORE_BEFORE_INIT ?? 0, this._error_codes.STORE_AFTER_TERM ?? 0)) {
         try {
           returnValue = this.setCMIValue(CMIElement, value);
         } catch (e) {
@@ -3445,7 +3467,7 @@ ${stackTrace}`);
       let checkTerminated = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
       this.clearScheduledCommit();
       let returnValue = global_constants.SCORM_FALSE;
-      if (this.checkState(checkTerminated, this._error_codes.COMMIT_BEFORE_INIT, this._error_codes.COMMIT_AFTER_TERM)) {
+      if (this.checkState(checkTerminated, this._error_codes.COMMIT_BEFORE_INIT ?? 0, this._error_codes.COMMIT_AFTER_TERM ?? 0)) {
         const result = await this.storeData(false);
         if ((result.errorCode ?? 0) > 0) {
           this.throwSCORMError("api", result.errorCode);
@@ -3595,7 +3617,7 @@ ${stackTrace}`);
       for (let idx = 0; idx < structure.length; idx++) {
         const attribute = structure[idx];
         if (idx === structure.length - 1) {
-          if (scorm2004 && attribute.substring(0, 8) === "{target=") {
+          if (scorm2004 && attribute && attribute.substring(0, 8) === "{target=") {
             if (this.isInitialized()) {
               this.throwSCORMError(CMIElement, this._error_codes.READ_ONLY_ELEMENT);
               break;
@@ -3605,7 +3627,7 @@ ${stackTrace}`);
                 attribute: value
               };
             }
-          } else if (!this._checkObjectHasProperty(refObject, attribute)) {
+          } else if (typeof attribute === "undefined" || !this._checkObjectHasProperty(refObject, attribute)) {
             this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
             break;
           } else {
@@ -3617,7 +3639,7 @@ ${stackTrace}`);
               }
             }
             if (!scorm2004 || this._errorHandlingService.lastErrorCode === "0") {
-              if (attribute === "__proto__" || attribute === "constructor") {
+              if (typeof attribute === "undefined" || attribute === "__proto__" || attribute === "constructor") {
                 this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
                 break;
               }
@@ -3626,13 +3648,17 @@ ${stackTrace}`);
             }
           }
         } else {
+          if (typeof attribute === "undefined" || !this._checkObjectHasProperty(refObject, attribute)) {
+            this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+            break;
+          }
           refObject = refObject[attribute];
           if (!refObject) {
             this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
             break;
           }
           if (refObject instanceof CMIArray) {
-            const index = parseInt(structure[idx + 1], 10);
+            const index = parseInt(structure[idx + 1] || "0", 10);
             if (!isNaN(index)) {
               const item = refObject.childArray[index];
               if (item) {
@@ -3684,7 +3710,7 @@ ${stackTrace}`);
         attribute = structure[idx];
         if (!scorm2004) {
           if (idx === structure.length - 1) {
-            if (!this._checkObjectHasProperty(refObject, attribute)) {
+            if (typeof attribute === "undefined" || !this._checkObjectHasProperty(refObject, attribute)) {
               this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
               return;
             }
@@ -3693,18 +3719,23 @@ ${stackTrace}`);
           if (String(attribute).substring(0, 8) === "{target=" && typeof refObject._isTargetValid == "function") {
             const target = String(attribute).substring(8, String(attribute).length - 9);
             return refObject._isTargetValid(target);
-          } else if (!this._checkObjectHasProperty(refObject, attribute)) {
+          } else if (typeof attribute === "undefined" || !this._checkObjectHasProperty(refObject, attribute)) {
             this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
             return;
           }
         }
-        refObject = refObject[attribute];
-        if (refObject === void 0) {
+        if (attribute !== void 0 && attribute !== null) {
+          refObject = refObject[attribute];
+          if (refObject === void 0) {
+            this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+            break;
+          }
+        } else {
           this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
           break;
         }
         if (refObject instanceof CMIArray) {
-          const index = parseInt(structure[idx + 1], 10);
+          const index = parseInt(structure[idx + 1] || "", 10);
           if (!isNaN(index)) {
             const item = refObject.childArray[index];
             if (item) {
@@ -3828,7 +3859,7 @@ ${stackTrace}`);
      * this.throwSCORMError(301, "The API must be initialized before calling GetValue");
      */
     throwSCORMError(CMIElement, errorNumber, message) {
-      this._errorHandlingService.throwSCORMError(CMIElement, errorNumber, message);
+      this._errorHandlingService.throwSCORMError(CMIElement, errorNumber ?? 0, message);
     }
     /**
      * Clears the last SCORM error code when an operation succeeds.
@@ -3948,7 +3979,8 @@ ${stackTrace}`);
           this.apiLog("processHttpRequest", "Invalid commit data format for offline storage", LogLevelEnum.ERROR);
           return {
             result: global_constants.SCORM_FALSE,
-            errorCode: this._error_codes.GENERAL
+            errorCode: this._error_codes.GENERAL ?? 101
+            // Fallback to a default error code if GENERAL is undefined
           };
         }
       }
@@ -4280,8 +4312,8 @@ ${stackTrace}`);
       let detailMessage = "No Error";
       errorNumber = String(errorNumber);
       if (scorm12_constants.error_descriptions[errorNumber]) {
-        basicMessage = scorm12_constants.error_descriptions[errorNumber].basicMessage;
-        detailMessage = scorm12_constants.error_descriptions[errorNumber].detailMessage;
+        basicMessage = scorm12_constants.error_descriptions[errorNumber]?.basicMessage || basicMessage;
+        detailMessage = scorm12_constants.error_descriptions[errorNumber]?.detailMessage || detailMessage;
       }
       return detail ? detailMessage : basicMessage;
     }

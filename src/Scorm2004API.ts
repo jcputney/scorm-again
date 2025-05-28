@@ -14,7 +14,7 @@ import {
   SequencingControlsSettings,
   SequencingRuleSettings,
   SequencingRulesSettings,
-  SequencingSettings,
+  SequencingSettings
 } from "./types/sequencing_types";
 import { RuleCondition, SequencingRule } from "./cmi/scorm2004/sequencing/sequencing_rules";
 import { RollupCondition, RollupRule } from "./cmi/scorm2004/sequencing/rollup_rules";
@@ -23,7 +23,7 @@ import { BaseCMI } from "./cmi/common/base_cmi";
 import {
   CMIInteractionsCorrectResponsesObject,
   CMIInteractionsObject,
-  CMIInteractionsObjectivesObject,
+  CMIInteractionsObjectivesObject
 } from "./cmi/scorm2004/interactions";
 import { CMIArray } from "./cmi/common/array";
 import { CorrectResponses, ResponseType } from "./constants/response_constants";
@@ -198,7 +198,7 @@ class Scorm2004API extends BaseAPI {
       const matches = CMIElement.match(adlNavRequestRegex);
       if (matches) {
         const request = matches[1];
-        const target = matches[2].replace(/{target=/g, "").replace(/}/g, "");
+        const target = matches[2]?.replace(/{target=/g, "").replace(/}/g, "") || "";
         if (request === "choice" || request === "jump") {
           if (this.settings.scoItemIdValidator) {
             return String(this.settings.scoItemIdValidator(target));
@@ -462,7 +462,10 @@ class Scorm2004API extends BaseAPI {
     this.checkDuplicateChoiceResponse(CMIElement, interaction, value);
 
     const response_type = CorrectResponses[interaction.type];
-    if (typeof response_type.limit === "undefined" || interaction_count <= response_type.limit) {
+    if (
+      response_type &&
+      (typeof response_type.limit === "undefined" || interaction_count <= response_type.limit)
+    ) {
       this.checkValidResponseType(CMIElement, response_type, value, interaction.type);
 
       if (
@@ -513,9 +516,10 @@ class Scorm2004API extends BaseAPI {
 
     // Set error number to string since inconsistent from modules if string or number
     errorNumber = String(errorNumber);
-    if (scorm2004_constants.error_descriptions[errorNumber]) {
-      basicMessage = scorm2004_constants.error_descriptions[errorNumber].basicMessage;
-      detailMessage = scorm2004_constants.error_descriptions[errorNumber].detailMessage;
+    const errorDescription = scorm2004_constants.error_descriptions[errorNumber];
+    if (errorDescription) {
+      basicMessage = errorDescription.basicMessage;
+      detailMessage = errorDescription.detailMessage;
     }
 
     return detail ? detailMessage : basicMessage;
@@ -675,7 +679,7 @@ class Scorm2004API extends BaseAPI {
           seenOrder = true;
           break;
       }
-      node = node.substring(matches[1].length);
+      node = node.substring(matches[1]?.length || 0);
       matches = node.match(prefixRegex);
     }
 

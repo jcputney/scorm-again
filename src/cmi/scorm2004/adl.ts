@@ -194,7 +194,7 @@ export class ADLData extends CMIArray {
     super({
       CMIElement: "adl.data",
       children: scorm2004_constants.adl_data_children,
-      errorCode: scorm2004_errors.READ_ONLY_ELEMENT,
+      errorCode: scorm2004_errors.READ_ONLY_ELEMENT as number,
       errorClass: Scorm2004ValidationError,
     });
   }
@@ -326,7 +326,7 @@ export class ADLNavRequestValid extends BaseCMI {
     if (this.initialized) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".continue",
-        scorm2004_errors.READ_ONLY_ELEMENT,
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
       );
     }
     if (
@@ -352,7 +352,7 @@ export class ADLNavRequestValid extends BaseCMI {
     if (this.initialized) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".previous",
-        scorm2004_errors.READ_ONLY_ELEMENT,
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
       );
     }
     if (
@@ -378,13 +378,13 @@ export class ADLNavRequestValid extends BaseCMI {
     if (this.initialized) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".choice",
-        scorm2004_errors.READ_ONLY_ELEMENT,
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
       );
     }
     if (typeof choice !== "object") {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".choice",
-        scorm2004_errors.TYPE_MISMATCH,
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
     for (const key in choice) {
@@ -392,7 +392,7 @@ export class ADLNavRequestValid extends BaseCMI {
         if (
           check2004ValidFormat(
             this._cmi_element + ".choice." + key,
-            choice[key],
+            choice[key] || "",
             scorm2004_regex.NAVBoolean,
           ) &&
           check2004ValidFormat(this._cmi_element + ".choice." + key, key, scorm2004_regex.NAVTarget)
@@ -427,13 +427,13 @@ export class ADLNavRequestValid extends BaseCMI {
     if (this.initialized) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".jump",
-        scorm2004_errors.READ_ONLY_ELEMENT,
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
       );
     }
     if (typeof jump !== "object") {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".jump",
-        scorm2004_errors.TYPE_MISMATCH,
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
     for (const key in jump) {
@@ -441,7 +441,7 @@ export class ADLNavRequestValid extends BaseCMI {
         if (
           check2004ValidFormat(
             this._cmi_element + ".jump." + key,
-            jump[key],
+            jump[key] || "",
             scorm2004_regex.NAVBoolean,
           ) &&
           check2004ValidFormat(this._cmi_element + ".jump." + key, key, scorm2004_regex.NAVTarget)

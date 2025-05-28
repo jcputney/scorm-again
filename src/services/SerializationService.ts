@@ -84,7 +84,7 @@ export class SerializationService implements ISerializationService {
             key,
             value: json[key],
             index: Number(intMatch[2]),
-            field: intMatch[3],
+            field: intMatch[3] || "",
           });
           continue;
         }
@@ -95,7 +95,7 @@ export class SerializationService implements ISerializationService {
             key,
             value: json[key],
             index: Number(objMatch[2]),
-            field: objMatch[3],
+            field: objMatch[3] || "",
           });
           continue;
         }

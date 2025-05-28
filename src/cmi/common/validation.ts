@@ -63,8 +63,8 @@ export const checkValidRange = memoize(
   ): boolean => {
     const ranges = rangePattern.split("#");
     value = value * 1.0;
-    if (value >= ranges[0]) {
-      if (ranges[1] === "*" || value <= ranges[1]) {
+    if (ranges[0] && value >= ranges[0]) {
+      if (ranges[1] && (ranges[1] === "*" || value <= ranges[1])) {
         return true;
       } else {
         throw new errorClass(CMIElement, errorCode);

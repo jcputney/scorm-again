@@ -129,7 +129,7 @@ export class CMI extends BaseRootCMI {
   set _version(_version: string) {
     throw new Scorm12ValidationError(
       this._cmi_element + "._version",
-      scorm12_errors.INVALID_SET_VALUE,
+      scorm12_errors.INVALID_SET_VALUE as number,
     );
   }
 
@@ -148,7 +148,7 @@ export class CMI extends BaseRootCMI {
   set _children(_children: string) {
     throw new Scorm12ValidationError(
       this._cmi_element + "._children",
-      scorm12_errors.INVALID_SET_VALUE,
+      scorm12_errors.INVALID_SET_VALUE as number,
     );
   }
 
@@ -186,7 +186,7 @@ export class CMI extends BaseRootCMI {
     if (this.initialized) {
       throw new Scorm12ValidationError(
         this._cmi_element + ".launch_data",
-        scorm12_errors.READ_ONLY_ELEMENT,
+        scorm12_errors.READ_ONLY_ELEMENT as number,
       );
     } else {
       this._launch_data = launch_data;
@@ -234,7 +234,7 @@ export class CMI extends BaseRootCMI {
     if (this.initialized) {
       throw new Scorm12ValidationError(
         this._cmi_element + ".comments_from_lms",
-        scorm12_errors.READ_ONLY_ELEMENT,
+        scorm12_errors.READ_ONLY_ELEMENT as number,
       );
     } else {
       this._comments_from_lms = comments_from_lms;

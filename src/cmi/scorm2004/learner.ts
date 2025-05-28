@@ -35,7 +35,7 @@ export class CMILearner extends BaseCMI {
     if (this.initialized) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".learner_id",
-        scorm2004_errors.READ_ONLY_ELEMENT,
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
       );
     } else {
       this._learner_id = learner_id;
@@ -58,7 +58,7 @@ export class CMILearner extends BaseCMI {
     if (this.initialized) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".learner_name",
-        scorm2004_errors.READ_ONLY_ELEMENT,
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
       );
     } else {
       this._learner_name = learner_name;

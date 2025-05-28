@@ -440,7 +440,7 @@ export function unflatten(data: StringKeyMap): object {
         if (m) {
           // Create array or object as needed
           cur = (cur[prop] ?? (cur[prop] = m[2] ? [] : ({} as StringKeyMap))) as StringKeyMap;
-          prop = m[2] || m[1];
+          prop = m[2] || m[1] || "";
         }
       });
 

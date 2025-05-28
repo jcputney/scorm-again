@@ -129,7 +129,7 @@ export class OfflineStorageService {
       );
       return {
         result: global_constants.SCORM_FALSE,
-        errorCode: this.error_codes.GENERAL,
+        errorCode: this.error_codes.GENERAL ?? 0,
       };
     }
   }
@@ -259,7 +259,7 @@ export class OfflineStorageService {
     if (!this.settings.lmsCommitUrl) {
       return {
         result: global_constants.SCORM_FALSE,
-        errorCode: this.error_codes.GENERAL,
+        errorCode: this.error_codes.GENERAL || 101,
       };
     }
 
@@ -313,7 +313,7 @@ export class OfflineStorageService {
       );
       return {
         result: global_constants.SCORM_FALSE,
-        errorCode: this.error_codes.GENERAL,
+        errorCode: this.error_codes.GENERAL || 101,
       };
     }
   }

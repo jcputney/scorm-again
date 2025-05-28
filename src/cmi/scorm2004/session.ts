@@ -40,7 +40,7 @@ export class CMISession extends BaseCMI {
     if (this.initialized) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".entry",
-        scorm2004_errors.READ_ONLY_ELEMENT,
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
       );
     } else {
       this._entry = entry;
@@ -55,7 +55,7 @@ export class CMISession extends BaseCMI {
     if (!this.jsonString) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".exit",
-        scorm2004_errors.WRITE_ONLY_ELEMENT,
+        scorm2004_errors.WRITE_ONLY_ELEMENT as number,
       );
     }
     return this._exit;
@@ -79,7 +79,7 @@ export class CMISession extends BaseCMI {
     if (!this.jsonString) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".session_time",
-        scorm2004_errors.WRITE_ONLY_ELEMENT,
+        scorm2004_errors.WRITE_ONLY_ELEMENT as number,
       );
     }
     return this._session_time;
@@ -117,7 +117,7 @@ export class CMISession extends BaseCMI {
     if (this.initialized) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".total_time",
-        scorm2004_errors.READ_ONLY_ELEMENT,
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
       );
     } else {
       this._total_time = total_time;

@@ -17,11 +17,16 @@ export class AICCValidationError extends ValidationError {
       super(
         CMIElement,
         errorCode,
-        aicc_errors[String(errorCode)].basicMessage,
-        aicc_errors[String(errorCode)].detailMessage,
+        aicc_errors[String(errorCode)]?.basicMessage || "Unknown error",
+        aicc_errors[String(errorCode)]?.detailMessage,
       );
     } else {
-      super(CMIElement, 101, aicc_errors["101"].basicMessage, aicc_errors["101"].detailMessage);
+      super(
+        CMIElement,
+        101,
+        aicc_errors["101"]?.basicMessage || "General error",
+        aicc_errors["101"]?.detailMessage,
+      );
     }
 
     // Set the prototype explicitly.

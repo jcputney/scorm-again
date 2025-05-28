@@ -63,7 +63,7 @@ export class ActivityTree extends BaseCMI {
     if (root !== null && !(root instanceof Activity)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".root",
-        scorm2004_errors.TYPE_MISMATCH,
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
     // Clear existing map when assigning a new root to avoid stale activities
@@ -104,7 +104,7 @@ export class ActivityTree extends BaseCMI {
     if (activity !== null && !(activity instanceof Activity)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".currentActivity",
-        scorm2004_errors.TYPE_MISMATCH,
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
 
@@ -137,7 +137,7 @@ export class ActivityTree extends BaseCMI {
     if (activity !== null && !(activity instanceof Activity)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".suspendedActivity",
-        scorm2004_errors.TYPE_MISMATCH,
+        scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
 
@@ -156,10 +156,10 @@ export class ActivityTree extends BaseCMI {
   /**
    * Get an activity by ID
    * @param {string} id - The ID of the activity to get
-   * @return {Activity | undefined} - The activity with the given ID, or undefined if not found
+   * @return {Activity | null} - The activity with the given ID, or null if not found
    */
-  getActivity(id: string): Activity | undefined {
-    return this._activities.get(id);
+  getActivity(id: string): Activity | null {
+    return this._activities.get(id) || null;
   }
 
   /**
@@ -214,7 +214,7 @@ export class ActivityTree extends BaseCMI {
     if (index === -1 || index === siblings.length - 1) {
       return null;
     }
-    return siblings[index + 1];
+    return siblings[index + 1] ?? null;
   }
 
   /**
@@ -231,7 +231,7 @@ export class ActivityTree extends BaseCMI {
     if (index <= 0) {
       return null;
     }
-    return siblings[index - 1];
+    return siblings[index - 1] ?? null;
   }
 
   /**
@@ -243,7 +243,7 @@ export class ActivityTree extends BaseCMI {
     if (activity.children.length === 0) {
       return null;
     }
-    return activity.children[0];
+    return activity.children[0] ?? null;
   }
 
   /**
@@ -255,7 +255,7 @@ export class ActivityTree extends BaseCMI {
     if (activity.children.length === 0) {
       return null;
     }
-    return activity.children[activity.children.length - 1];
+    return activity.children[activity.children.length - 1] ?? null;
   }
 
   /**

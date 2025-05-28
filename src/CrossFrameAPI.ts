@@ -163,7 +163,7 @@ export default class CrossFrameAPI {
     console.error(`CrossFrameAPI ${method} error:`, err);
     const match = /\b(\d{3})\b/.exec(err.message);
     const code = match ? match[1] : String(global_errors.GENERAL);
-    this._lastError = code;
+    this._lastError = code as string;
     this._cache.set(`error_${code}`, err.message);
   }
 }

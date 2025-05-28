@@ -161,7 +161,11 @@ export class ErrorHandlingService implements IErrorHandlingService {
       // Log the detailed error with stack trace
       this._loggingService.error(`${errorMessage}\n${stackTrace}`);
 
-      this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, `${errorType}: ${e.message}`);
+      this.throwSCORMError(
+        CMIElement,
+        this._errorCodes.GENERAL as number,
+        `${errorType}: ${e.message}`,
+      );
     } else {
       // For unknown errors, provide as much context as possible
       const errorMessage = `Unknown error occurred while accessing [Element: ${CMIElement}]`;
@@ -177,7 +181,7 @@ export class ErrorHandlingService implements IErrorHandlingService {
         this._loggingService.error("Could not stringify error object for details");
       }
 
-      this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, "Unknown error");
+      this.throwSCORMError(CMIElement, this._errorCodes.GENERAL as number, "Unknown error");
     }
     return returnValue;
   }
