@@ -9,7 +9,7 @@ import { CMIObjectivesObject } from "./cmi/scorm12/objectives";
 import {
   CMIInteractionsCorrectResponsesObject,
   CMIInteractionsObject,
-  CMIInteractionsObjectivesObject
+  CMIInteractionsObjectivesObject,
 } from "./cmi/scorm12/interactions";
 import { NAV } from "./cmi/scorm12/nav";
 import { CommitObject, ResultObject, ScoreObject, Settings } from "./types/api_types";
