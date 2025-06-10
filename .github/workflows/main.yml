@@ -169,7 +169,7 @@ jobs:
 
       - name: Commit and Push Changes
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: "[skip ci] Add changes during build"
           file_pattern: "dist/**/*.* src/**/*.* test/**/*.* src/*.* test/*.*"
