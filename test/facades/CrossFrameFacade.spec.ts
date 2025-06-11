@@ -404,6 +404,86 @@ describe("CrossFrameAPI (cache-first)", () => {
 
     postSpy.mockRestore();
   });
+
+  it("handles GetErrorString/LMSGetErrorString calls and caches error strings", async () => {
+    // Mock the _post method to return an error string
+    const postSpy = vi.spyOn(client as any, "_post").mockResolvedValue("Error: Data Model Element Not Initialized");
+
+    // Test GetErrorString
+    const errorString = client.GetErrorString("403");
+    expect(errorString).toBe(""); // Initial cache miss returns empty string
+
+    // Wait for the async call to complete
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    // Verify the cache was updated with the error string
+    expect(client._cache.get("error_403")).toBe("Error: Data Model Element Not Initialized");
+
+    // Test LMSGetErrorString
+    postSpy.mockClear();
+    const lmsErrorString = client.LMSGetErrorString("404");
+    
+    // Wait for the async call to complete
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    // Verify the cache was updated
+    expect(client._cache.get("error_404")).toBeDefined();
+
+    postSpy.mockRestore();
+  });
+
+  it("handles GetDiagnostic/LMSGetDiagnostic calls and caches diagnostic info", async () => {
+    // Mock the _post method to return diagnostic information
+    const postSpy = vi.spyOn(client as any, "_post").mockResolvedValue("Detailed diagnostic information for error 401");
+
+    // Test GetDiagnostic
+    const diagnostic = client.GetDiagnostic("401");
+    expect(diagnostic).toBe(""); // Initial cache miss returns empty string
+
+    // Wait for the async call to complete
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    // Verify the cache was updated with the diagnostic info
+    expect(client._cache.get("diag_401")).toBe("Detailed diagnostic information for error 401");
+
+    // Test LMSGetDiagnostic
+    postSpy.mockClear();
+    const lmsDiagnostic = client.LMSGetDiagnostic("402");
+    
+    // Wait for the async call to complete
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    // Verify the cache was updated
+    expect(client._cache.get("diag_402")).toBeDefined();
+
+    postSpy.mockRestore();
+  });
+
+  it("returns cached error strings when available", () => {
+    // Pre-populate cache with error string
+    client._cache.set("error_301", "General Session Timeout");
+
+    // Test GetErrorString with cached value
+    const errorString = client.GetErrorString("301");
+    expect(errorString).toBe("General Session Timeout");
+
+    // Test LMSGetErrorString with cached value
+    const lmsErrorString = client.LMSGetErrorString("301");
+    expect(lmsErrorString).toBe("General Session Timeout");
+  });
+
+  it("returns cached diagnostic info when available", () => {
+    // Pre-populate cache with diagnostic info
+    client._cache.set("diag_101", "Detailed information about general exception");
+
+    // Test GetDiagnostic with cached value
+    const diagnostic = client.GetDiagnostic("101");
+    expect(diagnostic).toBe("Detailed information about general exception");
+
+    // Test LMSGetDiagnostic with cached value
+    const lmsDiagnostic = client.LMSGetDiagnostic("101");
+    expect(lmsDiagnostic).toBe("Detailed information about general exception");
+  });
 });
 
 describe("CrossFrameLMS", () => {

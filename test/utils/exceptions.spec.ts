@@ -64,6 +64,12 @@ describe("Exception Tests", () => {
   it("ValidationException should return errorCode number", () => {
     expect(new ValidationError("api", 0, "Error Message").errorCode).toEqual(0);
   });
+  it("ValidationException should return detailedMessage when provided", () => {
+    expect(new ValidationError("api", 0, "Error Message", "Detailed error information").detailedMessage).toEqual("Detailed error information");
+  });
+  it("ValidationException should return empty string for detailedMessage when not provided", () => {
+    expect(new ValidationError("api", 0, "Error Message").detailedMessage).toEqual("");
+  });
   checkValidationMessage({
     errorClass: AICCValidationError,
     errorCodes: [101, 201, 202, 203, 301, 401, 402, 403, 404, 405, 407, 408],
