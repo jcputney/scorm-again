@@ -1453,4 +1453,167 @@ describe("BaseAPI", () => {
       expect(loadFromJSONSpy).not.toHaveBeenCalled();
     });
   });
+
+  describe("_commonGetCMIValue edge cases", () => {
+    it("should throw CHILDREN_ERROR for _children attribute in SCORM 1.2 when refObject ends up null", () => {
+      // Create an API that will simulate SCORM 1.2 behavior (scorm2004 = false)
+      const throwSCORMErrorSpy = vi.spyOn(api, "throwSCORMError");
+      
+      // Mock _checkObjectHasProperty to control the flow
+      (api as any)._checkObjectHasProperty = vi.fn().mockImplementation(() => {
+        return true; // Allow access to all properties
+      });
+
+      // Set up an object structure that will result in null when accessed
+      (api as any).testObject = {
+        get _children() { return null; }
+      };
+
+      // Call _commonGetCMIValue with scorm2004 = false and _children
+      api._commonGetCMIValue("test", false, "testObject._children");
+
+      expect(throwSCORMErrorSpy).toHaveBeenCalledWith(
+        "testObject._children",
+        errorCodes.CHILDREN_ERROR,
+        undefined
+      );
+    });
+
+    it("should throw COUNT_ERROR for _count attribute in SCORM 1.2 when refObject ends up null", () => {
+      // Create an API that will simulate SCORM 1.2 behavior (scorm2004 = false)
+      const throwSCORMErrorSpy = vi.spyOn(api, "throwSCORMError");
+      
+      // Mock _checkObjectHasProperty to control the flow
+      (api as any)._checkObjectHasProperty = vi.fn().mockImplementation(() => {
+        return true; // Allow access to all properties
+      });
+
+      // Set up an object structure that will result in null when accessed
+      (api as any).testObject = {
+        get _count() { return null; }
+      };
+
+      // Call _commonGetCMIValue with scorm2004 = false and _count
+      api._commonGetCMIValue("test", false, "testObject._count");
+
+      expect(throwSCORMErrorSpy).toHaveBeenCalledWith(
+        "testObject._count",
+        errorCodes.COUNT_ERROR,
+        undefined
+      );
+    });
+
+    it("should not throw CHILDREN_ERROR or COUNT_ERROR for SCORM 2004", () => {
+      // Create an API that will simulate SCORM 2004 behavior (scorm2004 = true)
+      const throwSCORMErrorSpy = vi.spyOn(api, "throwSCORMError");
+      
+      // Mock _checkObjectHasProperty to control the flow
+      (api as any)._checkObjectHasProperty = vi.fn().mockImplementation(() => {
+        return true; // Allow access to all properties
+      });
+
+      // Set up an object structure that will result in null when accessed
+      (api as any).testObject = {
+        get _children() { return null; }
+      };
+
+      // Call _commonGetCMIValue with scorm2004 = true to avoid the SCORM 1.2 path
+      api._commonGetCMIValue("test", true, "testObject._children");
+
+      // Should not throw CHILDREN_ERROR for SCORM 2004
+      expect(throwSCORMErrorSpy).not.toHaveBeenCalledWith(
+        "testObject._children",
+        errorCodes.CHILDREN_ERROR,
+        undefined
+      );
+    });
+  });
+
+  describe("getCommitObject integration", () => {
+    it("should exercise the callback function in SerializationService", () => {
+      // Mock the SerializationService to ensure it calls our callback
+      const mockSerializationService = {
+        getCommitObject: vi.fn().mockImplementation((
+          terminateCommit,
+          _alwaysSendTotalTime,
+          _renderCommonCommitFields,
+          renderCommitObjectCallback,
+          _renderCommitCMICallback,
+          _logLevel
+        ) => {
+          // Call the renderCommitObject callback to trigger line 1478
+          return renderCommitObjectCallback(terminateCommit, false);
+        })
+      };
+
+      // Replace the serialization service
+      (api as any)._serializationService = mockSerializationService;
+
+      // Add a spy on renderCommitObject method
+      const renderCommitObjectSpy = vi.spyOn(api, "renderCommitObject");
+      renderCommitObjectSpy.mockReturnValue({
+        successStatus: SuccessStatus.PASSED,
+        completionStatus: CompletionStatus.COMPLETED,
+        totalTimeSeconds: 3600,
+        runtimeData: {},
+        method: "POST",
+        params: { test: "data" }
+      } as CommitObject);
+
+      // Call getCommitObject to trigger the uncovered line 1478
+      (api as any).getCommitObject(true);
+
+      // Verify that renderCommitObject was called with correct parameters
+      expect(renderCommitObjectSpy).toHaveBeenCalledWith(true, false);
+      expect(mockSerializationService.getCommitObject).toHaveBeenCalled();
+    });
+
+    it("should call renderCommitObject callback with includeTotalTime when alwaysSendTotalTime is true", () => {
+      // Set alwaysSendTotalTime to true
+      api.settings = { ...api.settings, alwaysSendTotalTime: true };
+      
+      // Mock the SerializationService to ensure it calls our callback with the right parameters
+      const mockSerializationService = {
+        getCommitObject: vi.fn().mockImplementation((
+          terminateCommit,
+          alwaysSendTotalTime,
+          _renderCommonCommitFields,
+          renderCommitObjectCallback,
+          _renderCommitCMICallback,
+          _logLevel
+        ) => {
+          // Call the renderCommitObject callback with the alwaysSendTotalTime parameter
+          return renderCommitObjectCallback(terminateCommit, alwaysSendTotalTime);
+        })
+      };
+
+      // Replace the serialization service
+      (api as any)._serializationService = mockSerializationService;
+
+      // Add a spy on renderCommitObject method
+      const renderCommitObjectSpy = vi.spyOn(api, "renderCommitObject");
+      renderCommitObjectSpy.mockReturnValue({
+        successStatus: SuccessStatus.PASSED,
+        completionStatus: CompletionStatus.COMPLETED,
+        totalTimeSeconds: 3600,
+        runtimeData: {},
+        method: "POST",
+        params: { test: "data" }
+      } as CommitObject);
+
+      // Call getCommitObject to trigger the uncovered line 1478
+      (api as any).getCommitObject(false);
+
+      // Verify that renderCommitObject was called with the includeTotalTime parameter
+      expect(renderCommitObjectSpy).toHaveBeenCalledWith(false, true);
+      expect(mockSerializationService.getCommitObject).toHaveBeenCalledWith(
+        false,
+        true,
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.anything()
+      );
+    });
+  });
 });
