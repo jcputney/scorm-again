@@ -45,6 +45,9 @@ export declare class RuleCondition extends BaseCMI {
     get parameters(): Map<string, any>;
     set parameters(parameters: Map<string, any>);
     evaluate(activity: Activity): boolean;
+    private evaluateTimeLimitExceeded;
+    private evaluateOutsideAvailableTimeRange;
+    private parseISO8601Duration;
     toJSON(): object;
 }
 export declare class SequencingRule extends BaseCMI {

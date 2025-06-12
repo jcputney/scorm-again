@@ -1,5 +1,6 @@
 import { BaseCMI } from "../../common/base_cmi";
 import { CompletionStatus, SuccessStatus } from "../../../constants/enums";
+import { SequencingControls } from "./sequencing_controls";
 export declare class Activity extends BaseCMI {
     private _id;
     private _title;
@@ -20,6 +21,14 @@ export declare class Activity extends BaseCMI {
     private _objectiveSatisfiedStatus;
     private _objectiveMeasureStatus;
     private _objectiveNormalizedMeasure;
+    private _isHiddenFromChoice;
+    private _isAvailable;
+    private _attemptLimit;
+    private _timeLimitAction;
+    private _timeLimitDuration;
+    private _beginTimeLimit;
+    private _endTimeLimit;
+    private _sequencingControls;
     constructor(id?: string, title?: string);
     initialize(): void;
     reset(): void;
@@ -49,5 +58,24 @@ export declare class Activity extends BaseCMI {
     set objectiveMeasureStatus(objectiveMeasureStatus: boolean);
     get objectiveNormalizedMeasure(): number;
     set objectiveNormalizedMeasure(objectiveNormalizedMeasure: number);
+    get isHiddenFromChoice(): boolean;
+    set isHiddenFromChoice(isHiddenFromChoice: boolean);
+    get isAvailable(): boolean;
+    set isAvailable(isAvailable: boolean);
+    get attemptLimit(): number | null;
+    set attemptLimit(attemptLimit: number | null);
+    hasAttemptLimitExceeded(): boolean;
+    get timeLimitDuration(): string | null;
+    set timeLimitDuration(timeLimitDuration: string | null);
+    get timeLimitAction(): string | null;
+    set timeLimitAction(timeLimitAction: string | null);
+    get beginTimeLimit(): string | null;
+    set beginTimeLimit(beginTimeLimit: string | null);
+    get endTimeLimit(): string | null;
+    set endTimeLimit(endTimeLimit: string | null);
+    get attemptExperiencedDuration(): string;
+    set attemptExperiencedDuration(attemptExperiencedDuration: string);
+    get sequencingControls(): SequencingControls;
+    set sequencingControls(sequencingControls: SequencingControls);
     toJSON(): object;
 }

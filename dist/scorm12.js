@@ -141,7 +141,7 @@ this.Scorm12API = (function () {
     CMIExit: "^(time-out|suspend|logout|)$",
     CMIType: "^(true-false|choice|fill-in|matching|performance|sequencing|likert|numeric)$",
     CMIResult: "^(correct|wrong|unanticipated|neutral|([0-9]{0,3})?(\\.[0-9]*)?)$",
-    NAVEvent: "^(previous|continue)$",
+    NAVEvent: "^(previous|continue|start|resumeAll|choice|jump|exit|exitAll|abandon|abandonAll|suspendAll|retry|retryAll|_none_)$",
     // Data ranges
     score_range: "0#100",
     audio_range: "-1#100",

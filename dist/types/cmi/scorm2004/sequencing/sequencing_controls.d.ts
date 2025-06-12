@@ -1,6 +1,7 @@
 import { BaseCMI } from "../../common/base_cmi";
 export declare class SequencingControls extends BaseCMI {
     private _enabled;
+    private _choice;
     private _choiceExit;
     private _flow;
     private _forwardOnly;
@@ -15,6 +16,8 @@ export declare class SequencingControls extends BaseCMI {
     reset(): void;
     get enabled(): boolean;
     set enabled(enabled: boolean);
+    get choice(): boolean;
+    set choice(choice: boolean);
     get choiceExit(): boolean;
     set choiceExit(choiceExit: boolean);
     get flow(): boolean;
