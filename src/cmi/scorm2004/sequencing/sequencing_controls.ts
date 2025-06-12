@@ -6,6 +6,7 @@ import { BaseCMI } from "../../common/base_cmi";
 export class SequencingControls extends BaseCMI {
   // Sequencing Control Modes
   private _enabled: boolean = true;
+  private _choice: boolean = true;
   private _choiceExit: boolean = true;
   private _flow: boolean = false;
   private _forwardOnly: boolean = false;
@@ -34,6 +35,7 @@ export class SequencingControls extends BaseCMI {
   reset() {
     this._initialized = false;
     this._enabled = true;
+    this._choice = true;
     this._choiceExit = true;
     this._flow = false;
     this._forwardOnly = false;
@@ -60,6 +62,22 @@ export class SequencingControls extends BaseCMI {
    */
   set enabled(enabled: boolean) {
     this._enabled = enabled;
+  }
+
+  /**
+   * Getter for choice
+   * @return {boolean}
+   */
+  get choice(): boolean {
+    return this._choice;
+  }
+
+  /**
+   * Setter for choice
+   * @param {boolean} choice
+   */
+  set choice(choice: boolean) {
+    this._choice = choice;
   }
 
   /**
@@ -270,6 +288,7 @@ export class SequencingControls extends BaseCMI {
     this.jsonString = true;
     const result = {
       enabled: this._enabled,
+      choice: this._choice,
       choiceExit: this._choiceExit,
       flow: this._flow,
       forwardOnly: this._forwardOnly,

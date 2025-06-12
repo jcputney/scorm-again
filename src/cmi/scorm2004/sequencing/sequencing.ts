@@ -1,12 +1,18 @@
 import { BaseCMI } from "../../common/base_cmi";
 import { Activity } from "./activity";
 import { ActivityTree } from "./activity_tree";
-import { RuleActionType, SequencingRules } from "./sequencing_rules";
+import { SequencingRules } from "./sequencing_rules";
 import { SequencingControls } from "./sequencing_controls";
 import { RollupRules } from "./rollup_rules";
 import { ADLNav } from "../adl";
 import { Scorm2004ValidationError } from "../../../exceptions/scorm2004_exceptions";
 import { scorm2004_errors } from "../../../constants/error_codes";
+import {
+  SequencingProcess,
+  SequencingRequestType,
+  SequencingResult,
+  DeliveryRequestType,
+} from "./sequencing_process";
 
 /**
  * Class representing SCORM 2004 sequencing
@@ -17,6 +23,8 @@ export class Sequencing extends BaseCMI {
   private _sequencingControls: SequencingControls;
   private _rollupRules: RollupRules;
   private _adlNav: ADLNav | null = null;
+  private _sequencingProcess: SequencingProcess | null = null;
+  private _lastSequencingResult: SequencingResult | null = null;
 
   /**
    * Constructor for Sequencing
@@ -38,6 +46,16 @@ export class Sequencing extends BaseCMI {
     this._sequencingRules.initialize();
     this._sequencingControls.initialize();
     this._rollupRules.initialize();
+    
+    // Initialize sequencing process if ADL Nav is available
+    if (this._adlNav) {
+      this._sequencingProcess = new SequencingProcess(
+        this._activityTree,
+        this._sequencingRules,
+        this._sequencingControls,
+        this._adlNav,
+      );
+    }
   }
 
   /**
@@ -157,269 +175,154 @@ export class Sequencing extends BaseCMI {
    */
   set adlNav(adlNav: ADLNav | null) {
     this._adlNav = adlNav;
+    
+    // Update sequencing process with new ADL Nav
+    if (adlNav) {
+      this._sequencingProcess = new SequencingProcess(
+        this._activityTree,
+        this._sequencingRules,
+        this._sequencingControls,
+        adlNav,
+      );
+    }
   }
 
   /**
-   * Process navigation request
-   * @param {string} request - The navigation request
-   * @return {boolean} - True if the request is valid, false otherwise
+   * Get the last sequencing result
+   * @return {SequencingResult | null}
    */
-  processNavigationRequest(request: string): boolean {
-    if (!this._adlNav) {
+  get lastSequencingResult(): SequencingResult | null {
+    return this._lastSequencingResult;
+  }
+
+  /**
+   * Process navigation request using the new sequencing process
+   * @param {string} request - The navigation request
+   * @param {string | null} targetActivityId - Target activity ID for choice/jump requests
+   * @return {boolean} - True if the request is valid and results in delivery, false otherwise
+   */
+  processNavigationRequest(request: string, targetActivityId: string | null = null): boolean {
+    if (!this._sequencingProcess || !this._adlNav) {
       return false;
     }
 
-    // Set the navigation request
-    this._adlNav.request = request;
-
-    // Get the current activity
-    const currentActivity = this._activityTree.currentActivity;
-    if (!currentActivity) {
-      return false;
-    }
-
-    // Evaluate pre-condition rules
-    const preConditionAction = this._sequencingRules.evaluatePreConditionRules(currentActivity);
-    if (preConditionAction) {
-      // Handle pre-condition action
-      switch (preConditionAction) {
-        case RuleActionType.SKIP:
-          // Skip this activity
-          return false;
-        case RuleActionType.DISABLED:
-          // Disable this activity
-          return false;
-        case RuleActionType.HIDE_FROM_CHOICE:
-          // Hide this activity from choice
-          return false;
-        case RuleActionType.STOP_FORWARD_TRAVERSAL:
-          // Stop forward traversal
-          return false;
-        default:
-          break;
+    // Parse choice and jump requests to extract target
+    if (request.includes("choice") && request.includes("{target=")) {
+      const match = request.match(/\{target=([^}]+)\}/);
+      if (match) {
+        targetActivityId = match[1] || null;
+        request = "choice";
+      }
+    } else if (request.includes("jump") && request.includes("{target=")) {
+      const match = request.match(/\{target=([^}]+)\}/);
+      if (match) {
+        targetActivityId = match[1] || null;
+        request = "jump";
       }
     }
 
-    // Process the navigation request based on the request type
+    // Map string request to SequencingRequestType
+    let requestType: SequencingRequestType;
     switch (request) {
+      case "start":
+        requestType = SequencingRequestType.START;
+        break;
+      case "resumeAll":
+        requestType = SequencingRequestType.RESUME_ALL;
+        break;
       case "continue":
-        return this.processContinueRequest(currentActivity);
+        requestType = SequencingRequestType.CONTINUE;
+        break;
       case "previous":
-        return this.processPreviousRequest(currentActivity);
+        requestType = SequencingRequestType.PREVIOUS;
+        break;
       case "choice":
-        // Choice navigation would require additional parameters
-        return false;
+        requestType = SequencingRequestType.CHOICE;
+        break;
+      case "jump":
+        requestType = SequencingRequestType.JUMP;
+        break;
       case "exit":
-        return this.processExitRequest(currentActivity);
+        requestType = SequencingRequestType.EXIT;
+        break;
       case "exitAll":
-        return this.processExitAllRequest();
+        requestType = SequencingRequestType.EXIT_ALL;
+        break;
       case "abandon":
-        return this.processAbandonRequest(currentActivity);
+        requestType = SequencingRequestType.ABANDON;
+        break;
       case "abandonAll":
-        return this.processAbandonAllRequest();
+        requestType = SequencingRequestType.ABANDON_ALL;
+        break;
       case "suspendAll":
-        return this.processSuspendAllRequest(currentActivity);
+        requestType = SequencingRequestType.SUSPEND_ALL;
+        break;
+      case "retry":
+        requestType = SequencingRequestType.RETRY;
+        break;
+      case "retryAll":
+        requestType = SequencingRequestType.RETRY_ALL;
+        break;
       default:
         return false;
     }
-  }
 
-  /**
-   * Process continue request
-   * @param {Activity} currentActivity - The current activity
-   * @return {boolean} - True if the request is valid, false otherwise
-   */
-  processContinueRequest(currentActivity: Activity): boolean {
-    // Check if continue is allowed
-    if (!this._sequencingControls.isForwardNavigationAllowed()) {
-      return false;
-    }
+    // Process the sequencing request
+    const result = this._sequencingProcess.sequencingRequestProcess(requestType, targetActivityId);
+    this._lastSequencingResult = result;
 
-    // Get the next activity
-    const nextActivity = this._activityTree.getNextSibling(currentActivity);
-    if (!nextActivity) {
-      return false;
-    }
-
-    // Handle exit condition actions
-    if (this._handleExitConditionAction(currentActivity)) {
-      return true;
-    }
-
-    // Set the next activity as current
-    this._activityTree.currentActivity = nextActivity;
-
-    // Evaluate post-condition rules
-    const postConditionAction = this._sequencingRules.evaluatePostConditionRules(nextActivity);
-    if (postConditionAction) {
-      // Handle post-condition action
-      switch (postConditionAction) {
-        case RuleActionType.RETRY:
-          // Retry this activity
-          nextActivity.incrementAttemptCount();
-          return true;
-        case RuleActionType.RETRY_ALL:
-          // Retry all activities
-          this._activityTree.getAllActivities().forEach((activity) => {
-            activity.incrementAttemptCount();
-          });
-          return true;
-        case RuleActionType.CONTINUE:
-          // Continue to next activity
-          return this.processContinueRequest(nextActivity);
-        case RuleActionType.PREVIOUS:
-          // Go to previous activity
-          return this.processPreviousRequest(nextActivity);
-        case RuleActionType.EXIT:
-          // Exit this activity
-          this._activityTree.currentActivity = currentActivity;
-          return true;
-        default:
-          break;
+    // Update navigation request validity
+    if (result.exception) {
+      // Don't modify _choice and _jump as they are target-specific objects
+      // Note: These setters may throw if already initialized, but that's expected behavior
+      try {
+        this._adlNav.request_valid.continue = "false";
+        this._adlNav.request_valid.previous = "false";
+      } catch (e) {
+        // Expected when already initialized - navigation validity is read-only after init
       }
-    }
-
-    return true;
-  }
-
-  /**
-   * Process previous request
-   * @param {Activity} currentActivity - The current activity
-   * @return {boolean} - True if the request is valid, false otherwise
-   */
-  processPreviousRequest(currentActivity: Activity): boolean {
-    // Check if backward navigation is allowed
-    if (!this._sequencingControls.isBackwardNavigationAllowed()) {
       return false;
     }
 
-    // Get the previous activity
-    const previousActivity = this._activityTree.getPreviousSibling(currentActivity);
-    if (!previousActivity) {
-      return false;
-    }
+    // Update navigation request validity based on current state
+    this.updateNavigationRequestValidity();
 
-    // Handle exit condition actions
-    if (this._handleExitConditionAction(currentActivity)) {
-      return true;
-    }
-
-    // Set the previous activity as current
-    this._activityTree.currentActivity = previousActivity;
-
-    // Evaluate post-condition rules
-    const postConditionAction = this._sequencingRules.evaluatePostConditionRules(previousActivity);
-    if (postConditionAction) {
-      // Handle post-condition action
-      switch (postConditionAction) {
-        case RuleActionType.RETRY:
-          // Retry this activity
-          previousActivity.incrementAttemptCount();
-          return true;
-        case RuleActionType.RETRY_ALL:
-          // Retry all activities
-          this._activityTree.getAllActivities().forEach((activity) => {
-            activity.incrementAttemptCount();
-          });
-          return true;
-        case RuleActionType.CONTINUE:
-          // Continue to next activity
-          return this.processContinueRequest(previousActivity);
-        case RuleActionType.PREVIOUS:
-          // Go to previous activity
-          return this.processPreviousRequest(previousActivity);
-        case RuleActionType.EXIT:
-          // Exit this activity
-          this._activityTree.currentActivity = currentActivity;
-          return true;
-        default:
-          break;
-      }
-    }
-
-    return true;
+    // Return true if delivery is requested
+    return result.deliveryRequest === DeliveryRequestType.DELIVER;
   }
 
   /**
-   * Process exit request
-   * @param {Activity} currentActivity - The current activity
-   * @return {boolean} - True if the request is valid, false otherwise
+   * Update navigation request validity based on current state
    */
-  processExitRequest(currentActivity: Activity): boolean {
-    // Check if exit is allowed
-    if (!this._sequencingControls.choiceExit) {
-      return false;
+  private updateNavigationRequestValidity(): void {
+    if (!this._adlNav || !this._sequencingProcess) {
+      return;
     }
 
-    // Get the parent activity
-    const parent = currentActivity.parent;
-    if (!parent) {
-      return false;
+    // Check continue validity
+    const continueResult = this._sequencingProcess.sequencingRequestProcess(
+      SequencingRequestType.CONTINUE,
+    );
+    try {
+      this._adlNav.request_valid.continue = !continueResult.exception ? "true" : "false";
+    } catch (e) {
+      // Expected when already initialized - navigation validity is read-only after init
     }
 
-    // Set the parent activity as current
-    this._activityTree.currentActivity = parent;
-
-    return true;
-  }
-
-  /**
-   * Process exit all request
-   * @return {boolean} - True if the request is valid, false otherwise
-   */
-  processExitAllRequest(): boolean {
-    // Check if exit is allowed
-    if (!this._sequencingControls.choiceExit) {
-      return false;
+    // Check previous validity
+    const previousResult = this._sequencingProcess.sequencingRequestProcess(
+      SequencingRequestType.PREVIOUS,
+    );
+    try {
+      this._adlNav.request_valid.previous = !previousResult.exception ? "true" : "false";
+    } catch (e) {
+      // Expected when already initialized - navigation validity is read-only after init
     }
 
-    // Set no activity as current
-    this._activityTree.currentActivity = null;
-
-    return true;
+    // Choice and jump are target-specific and handled separately
+    // They are objects that map target IDs to NAVBoolean values
   }
 
-  /**
-   * Process abandon request
-   * @param {Activity} currentActivity - The current activity
-   * @return {boolean} - True if the request is valid, false otherwise
-   */
-  processAbandonRequest(currentActivity: Activity): boolean {
-    // Get the parent activity
-    const parent = currentActivity.parent;
-    if (!parent) {
-      return false;
-    }
-
-    // Set the parent activity as current without processing exit rules
-    this._activityTree.currentActivity = parent;
-
-    return true;
-  }
-
-  /**
-   * Process abandon all request
-   * @return {boolean} - True if the request is valid, false otherwise
-   */
-  processAbandonAllRequest(): boolean {
-    // Set no activity as current without processing exit rules
-    this._activityTree.currentActivity = null;
-
-    return true;
-  }
-
-  /**
-   * Process suspend all request
-   * @param {Activity} currentActivity - The current activity
-   * @return {boolean} - True if the request is valid, false otherwise
-   */
-  processSuspendAllRequest(currentActivity: Activity): boolean {
-    // Set the current activity as suspended
-    this._activityTree.suspendedActivity = currentActivity;
-    this._activityTree.currentActivity = null;
-
-    return true;
-  }
 
   /**
    * Process rollup for the entire activity tree
@@ -435,36 +338,6 @@ export class Sequencing extends BaseCMI {
     this._processRollupRecursive(root);
   }
 
-  /**
-   * Handle exit condition actions for an activity
-   * @param {Activity} activity - The activity to handle exit conditions for
-   * @return {boolean} - True if an exit action was handled, false otherwise
-   * @private
-   */
-  private _handleExitConditionAction(activity: Activity): boolean {
-    const exitConditionAction = this._sequencingRules.evaluateExitConditionRules(activity);
-    if (exitConditionAction) {
-      // Handle exit condition action
-      switch (exitConditionAction) {
-        case RuleActionType.EXIT_PARENT: {
-          // Exit to parent
-          const parent = activity.parent;
-          if (parent) {
-            this._activityTree.currentActivity = parent;
-            return true;
-          }
-          return false;
-        }
-        case RuleActionType.EXIT_ALL:
-          // Exit all
-          this._activityTree.currentActivity = null;
-          return true;
-        default:
-          break;
-      }
-    }
-    return false;
-  }
 
   /**
    * Process rollup recursively
@@ -482,6 +355,30 @@ export class Sequencing extends BaseCMI {
   }
 
   /**
+   * Get the last sequencing result
+   * @return {SequencingResult | null}
+   */
+  getLastSequencingResult(): SequencingResult | null {
+    return this._lastSequencingResult;
+  }
+
+  /**
+   * Get the current activity
+   * @return {Activity | null}
+   */
+  getCurrentActivity(): Activity | null {
+    return this._activityTree.currentActivity;
+  }
+
+  /**
+   * Get the root activity
+   * @return {Activity | null}
+   */
+  getRootActivity(): Activity | null {
+    return this._activityTree.root;
+  }
+
+  /**
    * toJSON for Sequencing
    * @return {object}
    */
@@ -492,6 +389,7 @@ export class Sequencing extends BaseCMI {
       sequencingRules: this._sequencingRules,
       sequencingControls: this._sequencingControls,
       rollupRules: this._rollupRules,
+      adlNav: this._adlNav,
     };
     this.jsonString = false;
     return result;

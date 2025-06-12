@@ -308,6 +308,8 @@ export class ADLNavRequestValid extends BaseCMI {
     this._initialized = false;
     this._continue = "unknown";
     this._previous = "unknown";
+    this._choice = {};
+    this._jump = {};
   }
 
   /**

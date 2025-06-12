@@ -177,12 +177,10 @@ export class RuleCondition extends BaseCMI {
         break;
       }
       case RuleConditionType.TIME_LIMIT_EXCEEDED:
-        // Time limit exceeded would require additional tracking
-        result = false;
+        result = this.evaluateTimeLimitExceeded(activity);
         break;
       case RuleConditionType.OUTSIDE_AVAILABLE_TIME_RANGE:
-        // Outside available time range would require additional tracking
-        result = false;
+        result = this.evaluateOutsideAvailableTimeRange(activity);
         break;
       case RuleConditionType.ALWAYS:
         result = true;
@@ -197,6 +195,85 @@ export class RuleCondition extends BaseCMI {
     }
 
     return result;
+  }
+
+  /**
+   * Evaluate if time limit has been exceeded
+   * @param {Activity} activity - The activity to evaluate
+   * @return {boolean}
+   * @private
+   */
+  private evaluateTimeLimitExceeded(activity: Activity): boolean {
+    const timeLimitDuration = activity.timeLimitDuration;
+    if (!timeLimitDuration) {
+      return false;
+    }
+
+    // Parse ISO 8601 duration to milliseconds
+    const durationMs = this.parseISO8601Duration(timeLimitDuration);
+    if (durationMs === 0) {
+      return false;
+    }
+
+    // Get current attempt duration
+    const attemptDuration = activity.attemptExperiencedDuration;
+    const attemptDurationMs = this.parseISO8601Duration(attemptDuration);
+
+    return attemptDurationMs > durationMs;
+  }
+
+  /**
+   * Evaluate if activity is outside available time range
+   * @param {Activity} activity - The activity to evaluate
+   * @return {boolean}
+   * @private
+   */
+  private evaluateOutsideAvailableTimeRange(activity: Activity): boolean {
+    const beginTime = activity.beginTimeLimit;
+    const endTime = activity.endTimeLimit;
+
+    if (!beginTime && !endTime) {
+      return false;
+    }
+
+    const now = new Date();
+
+    if (beginTime) {
+      const beginDate = new Date(beginTime);
+      if (now < beginDate) {
+        return true;
+      }
+    }
+
+    if (endTime) {
+      const endDate = new Date(endTime);
+      if (now > endDate) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Parse ISO 8601 duration to milliseconds
+   * @param {string} duration - ISO 8601 duration string
+   * @return {number} - Duration in milliseconds
+   * @private
+   */
+  private parseISO8601Duration(duration: string): number {
+    const regex = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?/;
+    const matches = duration.match(regex);
+
+    if (!matches) {
+      return 0;
+    }
+
+    const hours = parseInt(matches[1] || "0", 10);
+    const minutes = parseInt(matches[2] || "0", 10);
+    const seconds = parseFloat(matches[3] || "0");
+
+    return (hours * 3600 + minutes * 60 + seconds) * 1000;
   }
 
   /**

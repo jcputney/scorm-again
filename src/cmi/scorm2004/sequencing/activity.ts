@@ -4,6 +4,7 @@ import { check2004ValidFormat } from "../validation";
 import { Scorm2004ValidationError } from "../../../exceptions/scorm2004_exceptions";
 import { scorm2004_errors } from "../../../constants/error_codes";
 import { CompletionStatus, SuccessStatus } from "../../../constants/enums";
+import { SequencingControls } from "./sequencing_controls";
 
 /**
  * Class representing a single activity in the SCORM 2004 activity tree
@@ -28,6 +29,14 @@ export class Activity extends BaseCMI {
   private _objectiveSatisfiedStatus: boolean = false;
   private _objectiveMeasureStatus: boolean = false;
   private _objectiveNormalizedMeasure: number = 0;
+  private _isHiddenFromChoice: boolean = false;
+  private _isAvailable: boolean = true;
+  private _attemptLimit: number | null = null;
+  private _timeLimitAction: string | null = null;
+  private _timeLimitDuration: string | null = null;
+  private _beginTimeLimit: string | null = null;
+  private _endTimeLimit: string | null = null;
+  private _sequencingControls: SequencingControls;
 
   /**
    * Constructor for Activity
@@ -38,6 +47,7 @@ export class Activity extends BaseCMI {
     super("activity");
     this._id = id;
     this._title = title;
+    this._sequencingControls = new SequencingControls();
   }
 
   /**
@@ -304,6 +314,161 @@ export class Activity extends BaseCMI {
    */
   set objectiveNormalizedMeasure(objectiveNormalizedMeasure: number) {
     this._objectiveNormalizedMeasure = objectiveNormalizedMeasure;
+  }
+
+  /**
+   * Getter for isHiddenFromChoice
+   * @return {boolean}
+   */
+  get isHiddenFromChoice(): boolean {
+    return this._isHiddenFromChoice;
+  }
+
+  /**
+   * Setter for isHiddenFromChoice
+   * @param {boolean} isHiddenFromChoice
+   */
+  set isHiddenFromChoice(isHiddenFromChoice: boolean) {
+    this._isHiddenFromChoice = isHiddenFromChoice;
+  }
+
+  /**
+   * Getter for isAvailable
+   * @return {boolean}
+   */
+  get isAvailable(): boolean {
+    return this._isAvailable;
+  }
+
+  /**
+   * Setter for isAvailable
+   * @param {boolean} isAvailable
+   */
+  set isAvailable(isAvailable: boolean) {
+    this._isAvailable = isAvailable;
+  }
+
+  /**
+   * Getter for attemptLimit
+   * @return {number | null}
+   */
+  get attemptLimit(): number | null {
+    return this._attemptLimit;
+  }
+
+  /**
+   * Setter for attemptLimit
+   * @param {number | null} attemptLimit
+   */
+  set attemptLimit(attemptLimit: number | null) {
+    this._attemptLimit = attemptLimit;
+  }
+
+  /**
+   * Check if attempt limit has been exceeded
+   * @return {boolean}
+   */
+  hasAttemptLimitExceeded(): boolean {
+    if (this._attemptLimit === null) {
+      return false;
+    }
+    return this._attemptCount >= this._attemptLimit;
+  }
+
+  /**
+   * Getter for timeLimitDuration
+   * @return {string | null}
+   */
+  get timeLimitDuration(): string | null {
+    return this._timeLimitDuration;
+  }
+
+  /**
+   * Setter for timeLimitDuration
+   * @param {string | null} timeLimitDuration
+   */
+  set timeLimitDuration(timeLimitDuration: string | null) {
+    this._timeLimitDuration = timeLimitDuration;
+  }
+
+  /**
+   * Getter for timeLimitAction
+   * @return {string | null}
+   */
+  get timeLimitAction(): string | null {
+    return this._timeLimitAction;
+  }
+
+  /**
+   * Setter for timeLimitAction
+   * @param {string | null} timeLimitAction
+   */
+  set timeLimitAction(timeLimitAction: string | null) {
+    this._timeLimitAction = timeLimitAction;
+  }
+
+  /**
+   * Getter for beginTimeLimit
+   * @return {string | null}
+   */
+  get beginTimeLimit(): string | null {
+    return this._beginTimeLimit;
+  }
+
+  /**
+   * Setter for beginTimeLimit
+   * @param {string | null} beginTimeLimit
+   */
+  set beginTimeLimit(beginTimeLimit: string | null) {
+    this._beginTimeLimit = beginTimeLimit;
+  }
+
+  /**
+   * Getter for endTimeLimit
+   * @return {string | null}
+   */
+  get endTimeLimit(): string | null {
+    return this._endTimeLimit;
+  }
+
+  /**
+   * Setter for endTimeLimit
+   * @param {string | null} endTimeLimit
+   */
+  set endTimeLimit(endTimeLimit: string | null) {
+    this._endTimeLimit = endTimeLimit;
+  }
+
+  /**
+   * Getter for attemptExperiencedDuration
+   * @return {string}
+   */
+  get attemptExperiencedDuration(): string {
+    return this._attemptExperiencedDuration;
+  }
+
+  /**
+   * Setter for attemptExperiencedDuration
+   * @param {string} attemptExperiencedDuration
+   */
+  set attemptExperiencedDuration(attemptExperiencedDuration: string) {
+    this._attemptExperiencedDuration = attemptExperiencedDuration;
+  }
+
+  /**
+   * Getter for sequencingControls
+   * @return {SequencingControls}
+   */
+  get sequencingControls(): SequencingControls {
+    return this._sequencingControls;
+  }
+
+  /**
+   * Setter for sequencingControls
+   * @param {SequencingControls} sequencingControls
+   */
+  set sequencingControls(sequencingControls: SequencingControls) {
+    this._sequencingControls = sequencingControls;
   }
 
   /**

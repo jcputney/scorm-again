@@ -14,6 +14,65 @@ platform for running AICC, SCORM 1.2, and SCORM 2004 modules. This module is des
 agnostic, and is written to be able to be run without a backing LMS, logging all function calls and
 data instead of committing, if an LMS endpoint is not configured.
 
+## 🚀 Quick Start
+
+### Try the Interactive Demos
+Experience offline SCORM capabilities instantly in your browser:
+- **[🚀 Complete Offline Demo](https://codepen.io/scorm-again/pen/offline-demo-full)** - Full-featured demo with network simulation
+- **[⚡ Quick Start Demo](https://codepen.io/scorm-again/pen/offline-demo-simple)** - Minimal example to get started
+- **[📱 Mobile Demo](https://codepen.io/scorm-again/pen/offline-demo-mobile)** - Touch-friendly mobile simulation
+- **[🔧 Advanced Demo](https://codepen.io/scorm-again/pen/offline-demo-advanced)** - Complex features and customization
+
+### Get Started in 5 Minutes
+Choose your platform and get running quickly:
+- **[React Native Quick Start](docs/api_usage/examples/offline/quick_start_templates.md#react-native---minimal-example)**
+- **[Flutter Quick Start](docs/api_usage/examples/offline/quick_start_templates.md#flutter---minimal-example)**
+- **[iOS Swift Quick Start](docs/api_usage/examples/offline/quick_start_templates.md#ios-swift---minimal-example)**
+- **[Android Kotlin Quick Start](docs/api_usage/examples/offline/quick_start_templates.md#android-kotlin---minimal-example)**
+- **[Web/Browser Quick Start](docs/api_usage/examples/offline/quick_start_templates.md#webbrowser---minimal-example)**
+
+### Basic Web Usage
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/scorm-again@latest/dist/scorm-again.js"></script>
+<script>
+  // Initialize with offline support
+  window.API_1484_11 = new window.ScormAgain.Scorm2004API({
+    enableOfflineSupport: true,
+    courseId: 'my-course',
+    autocommit: true,
+    lmsCommitUrl: 'https://your-lms.com/api/scorm/commit'
+  });
+</script>
+```
+
+## 📱 Comprehensive Offline Support for Mobile Apps
+
+scorm-again provides **production-ready offline support** for mobile applications, allowing SCORM content to work seamlessly without internet connectivity.
+
+### Key Features
+- 🔄 **Automatic sync** when connectivity returns
+- 💾 **Local storage** of all SCORM data when offline
+- 📱 **Mobile-first design** for React Native, Flutter, iOS, and Android
+- 🌐 **Cross-platform** compatibility with consistent APIs
+- ⚡ **Production-ready** examples with external storage handling
+
+### Complete Mobile Examples
+- **[React Native](docs/api_usage/examples/offline/react_native.md)** - Full implementation with external storage (1,535 lines)
+- **[Flutter](docs/api_usage/examples/offline/flutter.md)** - Complete Dart implementation (481 lines)
+- **[iOS Native (Swift)](docs/api_usage/examples/offline/ios_native.md)** - Native iOS with WebKit (1,035 lines)
+- **[Android Native (Kotlin)](docs/api_usage/examples/offline/native_android.md)** - Native Android implementation (1,031 lines)
+- **[Xamarin/MAUI](docs/api_usage/examples/offline/xamarin_maui.md)** - Cross-platform .NET (1,182 lines)
+- **[Kotlin Multiplatform](docs/api_usage/examples/offline/kotlin_multiplatform.md)** - Shared Kotlin code (1,339 lines)
+
+Each example includes:
+- ✅ **External storage management** for large courses
+- ✅ **Permission handling** for Android/iOS
+- ✅ **Network connectivity detection**
+- ✅ **WebView configuration and JavaScript bridging**
+- ✅ **Error handling and user feedback**
+- ✅ **Production deployment considerations**
+
 ## What is this not and what doesn't it do?
 
 1. This is not an LMS
@@ -22,17 +81,16 @@ data instead of committing, if an LMS endpoint is not configured.
    extract the manifest and other
    metadata: [jcputney/elearning-module-parser](https://github.com/jcputney/elearning-module-parser))
 1. This library does not setup communication between an external AICC module and an LMS.
-1. This project is not complete! I'm still working on SCORM 2004 sequencing and testing
 
 ## Cross-Frame Communication
 
 > **Note:** The Cross-Frame Communication feature is available in scorm-again v3.0.0+
-> It’s implemented with a cache-first shim (no SharedArrayBuffer) and a Proxy-based façade.
+> It's implemented with a cache-first shim (no SharedArrayBuffer) and a Proxy-based façade.
 
 ### Purpose of CrossFrameLMS and CrossFrameAPI
 
 The Cross-Frame Communication feature lets SCORM content run inside sandboxed or cross-origin
-iframes while still talking to the real SCORM API in the parent frame. It’s ideal when:
+iframes while still talking to the real SCORM API in the parent frame. It's ideal when:
 
 - Loading SCORM content in a sandboxed iframe for extra security
 - Your app has a multi-frame architecture (e.g. host frame + content frame)
@@ -49,7 +107,7 @@ There are two core pieces:
 
 2. **CrossFrameAPI**
    - Lives in the **child** (content) frame and replaces the global `API` / `API_1484_11`
-   - Uses a JavaScript `Proxy` so you don’t need to predefine every SCORM method
+   - Uses a JavaScript `Proxy` so you don't need to predefine every SCORM method
    - **Synchronously** returns cached values or defaults for `GetValue`, `Initialize`, `Commit`,
      `SetValue`, `Finish`, etc.
    - **Asynchronously** sends a `postMessage` to refresh the cache and update `GetLastError` behind
@@ -99,7 +157,7 @@ window.API.LMSCommit();
 ### Notes
 
 - No SharedArrayBuffer or Atomics; everything is async under the hood, but sync from the SCORM
-  module’s perspective.
+  module's perspective.
 - Works in modern browsers and IE11.
 - For guaranteed Finish/Terminate delivery on unload, consider using `navigator.sendBeacon`.
 
@@ -348,8 +406,8 @@ The APIs include several settings to customize the functionality of each API:
 | `onLogMessage`             |             function             |                                                                                                                   | A function to be called whenever a message is logged. Defaults to console.{error,warn,info,debug,log}                                                                                                                                                                                                                                                                                                                                                   |
 | `scoItemIds`               |                []                |                                                     string[]                                                      | A list of valid SCO IDs to be used for choice/jump sequence validation. If a `sequencing` configuration is provided with an activity tree, this list will be automatically populated with all activity IDs from the tree.                                                                                                                                                                                                                               |
 | `scoItemIdValidator`       |              false               |                                                 false / function                                                  | A function to be called during choice/jump sequence checks to determine if a SCO ID is valid. Could be used to call an API to check validity.                                                                                                                                                                                                                                                                                                           |
-| `globalObjectiveIds`       |                []                |                                                     string[]                                                      | (SCORM 2004) A list of objective IDs that are considered "global" and should be shared across SCOs.                                                                                                                                                                                                                                                                                                                                                     |
-| `sequencing`               |               null               |                                                SequencingSettings                                                 | (SCORM 2004) Configuration for SCORM 2004 sequencing, including activity tree, sequencing rules, sequencing controls, and rollup rules. See the [Sequencing Configuration documentation](docs/sequencing_configuration.md) for details.                                                                                                                                                                                                                 |
+| `globalObjectiveIds`       |                []                |                                                     string[]                                                      | (SCORM 2004) A list of objective IDs that are considered "global" and should be shared across SCOs. **Global objectives must be stored separately by the LMS and synchronized across all SCOs in the package.** The LMS extracts these from `<imsss:mapInfo>` elements in the manifest.                                                                                                                                                               |
+| `sequencing`               |               null               |                                                SequencingSettings                                                 | (SCORM 2004) Configuration for SCORM 2004 sequencing, including activity tree, sequencing rules, sequencing controls, and rollup rules. **This data must be extracted by the LMS from the package's imsmanifest.xml file.** See the [Sequencing Configuration documentation](docs/sequencing_configuration.md) for details on the required format and LMS integration requirements.                                                                   |
 
 ## Settings Function Examples
 
@@ -427,7 +485,7 @@ var json = {
    learner_id: "123",
    learner_name: "Bob The Builder",
    suspend_data:
-       "viewed=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31|lastviewedslide=31|7#1##,3,3,3,7,3,3,7,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,11#0#b5e89fbb-7cfb-46f0-a7cb-758165d3fe7e=236~262~2542812732762722742772682802752822882852892872832862962931000~3579~32590001001010101010101010101001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001010010010010010010010010011010010010010010010010010010010010112101021000171000~236a71d398e-4023-4967-88fe-1af18721422d06passed6failed000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000105wrong110000000000000000000000000000000000~3185000000000000000000000000000000000000000000000000000000000000000000000000000000000~283~2191w11~21113101w41689~256~2100723031840~21007230314509062302670~2110723031061120000000000000000000~240~234531618~21601011000100000002814169400,#-1",
+       "viewed=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31|lastviewedslide=31|7#1##,3,3,3,7,3,3,7,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,11#0#b5e89fbb-7cfb-46f0-a7cb-758165d3fe7e=236~262~2542812732762722742772682802752822882852892872832862962931000~3579~32590001001010101010101010101001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001010010010010010010010010011010010010010010010010010010010010112101021000171000~236a71d398e-4023-4967-88fe-1af18721422d06passed6failed000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000105wrong110000000000000000000000000000000000~3185000000000000000000000000000000000000000000000000000000000000000000000000000000000~283~2191w11~21113101w41689~256~2100723031840~21007230314509062302670~2110723031061120000000000000000000~240~234531618~21601011000100000002814169400,#-1",
    interactions: {
       0: {
          id: "Question14_1",
@@ -469,7 +527,7 @@ window.API_1484_11.loadFromFlattenedJSON(json);
 var json = {
    "cmi.learner_id": "123",
    "cmi.learner_name": "Bob The Builder",
-   "cmi.suspend_data": "viewed=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31|lastviewedslide=31|7#1##,3,3,3,7,3,3,7,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,11#0#b5e89fbb-7cfb-46f0-a7cb-758165d3fe7e=236~262~2542812732762722742772682802752822882852892872832862962931000~3579~32590001001010101010101010101001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001010010010010010010010010011010010010010010010010010010010010112101021000171000~236a71d398e-4023-4967-88fe-1af18721422d06passed6failed000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000105wrong110000000000000000000000000000000000~3185000000000000000000000000000000000000000000000000000000000000000000000000000000000~283~2191w11~21113101w41689~256~2100723031840~21007230314509062302670~2110723031061120000000000000000000~240~234531618~21601011000100000002814169400,#-1",
+   "cmi.suspend_data": "viewed=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31|lastviewedslide=31|7#1##,3,3,3,7,3,3,7,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,11#0#b5e89fbb-7cfb-46f0-a7cb-758165d3fe7e=236~262~2542812732762722742772682802752822882852892872832862962931000~3579~32590001001010101010101010101001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001001010010010010010010010010011010010010010010010010010010010010112101021000171000~236a71d398e-4023-4967-88fe-1af18721422d06passed6failed000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000105wrong110000000000000000000000000000000000~3185000000000000000000000000000000000000000000000000000000000000000000000000000000000~283~2191w11~21113101w41689~256~2100723031840~21007230314509062302670~2110723031061120000000000000000000~240~234531618~21601011000100000002814169400,#-1",
    "cmi.interactions.0.id": "Question14_1",
    "cmi.interactions.0.type": "choice",
    "cmi.interactions.0.timestamp": "2018-08-26T11:05:21",
@@ -623,9 +681,18 @@ SCORM 2004 sequencing allows you to control the flow of content in a SCORM packa
 learners navigate between activities, how activities are ordered, and how the status of activities
 is determined based on the status of their children.
 
-The scorm-again library provides a comprehensive implementation of SCORM 2004 sequencing, which can
-be configured through the API settings. To configure sequencing, you need to provide a `sequencing`
-object in the settings when creating a SCORM 2004 API instance:
+The scorm-again library provides a **complete implementation** of SCORM 2004 sequencing following 
+the IMS Simple Sequencing Specification. This includes:
+
+- ✅ All navigation request types (start, continue, previous, choice, jump, exit, suspend, etc.)
+- ✅ Complete activity tree management with hierarchical activities
+- ✅ Pre-condition, post-condition, and exit sequencing rules
+- ✅ Rollup rules for status propagation
+- ✅ Time-based sequencing (time limits, tracked time)
+- ✅ Navigation request validation through `adl.nav.request_valid`
+- ✅ All sequencing algorithms from the SCORM 2004 Sequencing and Navigation book
+
+To configure sequencing, provide a `sequencing` object in the settings when creating a SCORM 2004 API instance:
 
 ```javascript
 import {Scorm2004API} from "scorm-again";
@@ -678,6 +745,42 @@ sequencing = {
 
 For more detailed information and examples, see
 the [Sequencing Configuration documentation](docs/sequencing_configuration.md).
+
+#### Navigation Events
+
+When using sequencing, the API will emit navigation events that the LMS should handle:
+
+- `SequenceNext` - Navigate to the next activity
+- `SequencePrevious` - Navigate to the previous activity  
+- `SequenceChoice` - Navigate to a specific activity (target ID provided as parameter)
+- `SequenceJump` - Jump to a specific activity (target ID provided as parameter)
+- `SequenceExit` - Exit the current activity
+- `SequenceExitAll` - Exit all activities and end the session
+- `SequenceAbandon` - Abandon the current activity
+- `SequenceAbandonAll` - Abandon all activities
+- `SequenceRetry` - Retry the current activity
+- `SequenceRetryAll` - Retry from the root activity
+- `ActivityDelivered` - An activity is ready for delivery (activity provided as parameter)
+- `SequencingComplete` - Sequencing process completed (result provided as parameter)
+- `SequencingError` - Sequencing error occurred (error provided as parameter)
+
+**Important**: The LMS is responsible for actually launching/switching SCOs based on these navigation events. The API handles all sequencing logic but does not control the actual content delivery.
+
+#### Special Considerations for Sequenced Courses
+
+1. **Global Objectives**: The LMS must handle global objectives specially - they are shared across all SCOs in a package and must be stored/loaded separately from SCO-specific data.
+
+2. **Suspend/Resume**: When a learner suspends a sequenced course, the LMS must preserve:
+   - The current activity state
+   - Suspend data for each SCO
+   - Global objective states
+   - Activity attempt counts
+
+3. **Data Persistence**: The commit data from sequenced courses includes additional metadata that the LMS should store for proper sequencing support.
+
+4. **API Reset**: When navigating between SCOs, the API should be reset to provide a clean state for each SCO. The LMS must preserve and reload global objectives and other shared state.
+
+See the [Sequencing Configuration documentation](docs/sequencing_configuration.md#runtime-data-storage-considerations) for detailed implementation guidance.
 
 ## Project Architecture
 
