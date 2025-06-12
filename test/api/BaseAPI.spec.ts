@@ -1458,7 +1458,7 @@ describe("BaseAPI", () => {
     it("should throw CHILDREN_ERROR for _children attribute in SCORM 1.2 when refObject ends up null", () => {
       // Create an API that will simulate SCORM 1.2 behavior (scorm2004 = false)
       const throwSCORMErrorSpy = vi.spyOn(api, "throwSCORMError");
-      
+
       // Mock _checkObjectHasProperty to control the flow
       (api as any)._checkObjectHasProperty = vi.fn().mockImplementation(() => {
         return true; // Allow access to all properties
@@ -1466,7 +1466,9 @@ describe("BaseAPI", () => {
 
       // Set up an object structure that will result in null when accessed
       (api as any).testObject = {
-        get _children() { return null; }
+        get _children() {
+          return null;
+        },
       };
 
       // Call _commonGetCMIValue with scorm2004 = false and _children
@@ -1475,14 +1477,14 @@ describe("BaseAPI", () => {
       expect(throwSCORMErrorSpy).toHaveBeenCalledWith(
         "testObject._children",
         errorCodes.CHILDREN_ERROR,
-        undefined
+        undefined,
       );
     });
 
     it("should throw COUNT_ERROR for _count attribute in SCORM 1.2 when refObject ends up null", () => {
       // Create an API that will simulate SCORM 1.2 behavior (scorm2004 = false)
       const throwSCORMErrorSpy = vi.spyOn(api, "throwSCORMError");
-      
+
       // Mock _checkObjectHasProperty to control the flow
       (api as any)._checkObjectHasProperty = vi.fn().mockImplementation(() => {
         return true; // Allow access to all properties
@@ -1490,7 +1492,9 @@ describe("BaseAPI", () => {
 
       // Set up an object structure that will result in null when accessed
       (api as any).testObject = {
-        get _count() { return null; }
+        get _count() {
+          return null;
+        },
       };
 
       // Call _commonGetCMIValue with scorm2004 = false and _count
@@ -1499,14 +1503,14 @@ describe("BaseAPI", () => {
       expect(throwSCORMErrorSpy).toHaveBeenCalledWith(
         "testObject._count",
         errorCodes.COUNT_ERROR,
-        undefined
+        undefined,
       );
     });
 
     it("should not throw CHILDREN_ERROR or COUNT_ERROR for SCORM 2004", () => {
       // Create an API that will simulate SCORM 2004 behavior (scorm2004 = true)
       const throwSCORMErrorSpy = vi.spyOn(api, "throwSCORMError");
-      
+
       // Mock _checkObjectHasProperty to control the flow
       (api as any)._checkObjectHasProperty = vi.fn().mockImplementation(() => {
         return true; // Allow access to all properties
@@ -1514,7 +1518,9 @@ describe("BaseAPI", () => {
 
       // Set up an object structure that will result in null when accessed
       (api as any).testObject = {
-        get _children() { return null; }
+        get _children() {
+          return null;
+        },
       };
 
       // Call _commonGetCMIValue with scorm2004 = true to avoid the SCORM 1.2 path
@@ -1524,7 +1530,7 @@ describe("BaseAPI", () => {
       expect(throwSCORMErrorSpy).not.toHaveBeenCalledWith(
         "testObject._children",
         errorCodes.CHILDREN_ERROR,
-        undefined
+        undefined,
       );
     });
   });
@@ -1533,17 +1539,21 @@ describe("BaseAPI", () => {
     it("should exercise the callback function in SerializationService", () => {
       // Mock the SerializationService to ensure it calls our callback
       const mockSerializationService = {
-        getCommitObject: vi.fn().mockImplementation((
-          terminateCommit,
-          _alwaysSendTotalTime,
-          _renderCommonCommitFields,
-          renderCommitObjectCallback,
-          _renderCommitCMICallback,
-          _logLevel
-        ) => {
-          // Call the renderCommitObject callback to trigger line 1478
-          return renderCommitObjectCallback(terminateCommit, false);
-        })
+        getCommitObject: vi
+          .fn()
+          .mockImplementation(
+            (
+              terminateCommit,
+              _alwaysSendTotalTime,
+              _renderCommonCommitFields,
+              renderCommitObjectCallback,
+              _renderCommitCMICallback,
+              _logLevel,
+            ) => {
+              // Call the renderCommitObject callback to trigger line 1478
+              return renderCommitObjectCallback(terminateCommit, false);
+            },
+          ),
       };
 
       // Replace the serialization service
@@ -1557,7 +1567,7 @@ describe("BaseAPI", () => {
         totalTimeSeconds: 3600,
         runtimeData: {},
         method: "POST",
-        params: { test: "data" }
+        params: { test: "data" },
       } as CommitObject);
 
       // Call getCommitObject to trigger the uncovered line 1478
@@ -1571,20 +1581,24 @@ describe("BaseAPI", () => {
     it("should call renderCommitObject callback with includeTotalTime when alwaysSendTotalTime is true", () => {
       // Set alwaysSendTotalTime to true
       api.settings = { ...api.settings, alwaysSendTotalTime: true };
-      
+
       // Mock the SerializationService to ensure it calls our callback with the right parameters
       const mockSerializationService = {
-        getCommitObject: vi.fn().mockImplementation((
-          terminateCommit,
-          alwaysSendTotalTime,
-          _renderCommonCommitFields,
-          renderCommitObjectCallback,
-          _renderCommitCMICallback,
-          _logLevel
-        ) => {
-          // Call the renderCommitObject callback with the alwaysSendTotalTime parameter
-          return renderCommitObjectCallback(terminateCommit, alwaysSendTotalTime);
-        })
+        getCommitObject: vi
+          .fn()
+          .mockImplementation(
+            (
+              terminateCommit,
+              alwaysSendTotalTime,
+              _renderCommonCommitFields,
+              renderCommitObjectCallback,
+              _renderCommitCMICallback,
+              _logLevel,
+            ) => {
+              // Call the renderCommitObject callback with the alwaysSendTotalTime parameter
+              return renderCommitObjectCallback(terminateCommit, alwaysSendTotalTime);
+            },
+          ),
       };
 
       // Replace the serialization service
@@ -1598,7 +1612,7 @@ describe("BaseAPI", () => {
         totalTimeSeconds: 3600,
         runtimeData: {},
         method: "POST",
-        params: { test: "data" }
+        params: { test: "data" },
       } as CommitObject);
 
       // Call getCommitObject to trigger the uncovered line 1478
@@ -1612,7 +1626,7 @@ describe("BaseAPI", () => {
         expect.anything(),
         expect.anything(),
         expect.anything(),
-        expect.anything()
+        expect.anything(),
       );
     });
   });

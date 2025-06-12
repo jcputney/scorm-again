@@ -407,7 +407,9 @@ describe("CrossFrameAPI (cache-first)", () => {
 
   it("handles GetErrorString/LMSGetErrorString calls and caches error strings", async () => {
     // Mock the _post method to return an error string
-    const postSpy = vi.spyOn(client as any, "_post").mockResolvedValue("Error: Data Model Element Not Initialized");
+    const postSpy = vi
+      .spyOn(client as any, "_post")
+      .mockResolvedValue("Error: Data Model Element Not Initialized");
 
     // Test GetErrorString
     const errorString = client.GetErrorString("403");
@@ -422,7 +424,7 @@ describe("CrossFrameAPI (cache-first)", () => {
     // Test LMSGetErrorString
     postSpy.mockClear();
     const lmsErrorString = client.LMSGetErrorString("404");
-    
+
     // Wait for the async call to complete
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -434,7 +436,9 @@ describe("CrossFrameAPI (cache-first)", () => {
 
   it("handles GetDiagnostic/LMSGetDiagnostic calls and caches diagnostic info", async () => {
     // Mock the _post method to return diagnostic information
-    const postSpy = vi.spyOn(client as any, "_post").mockResolvedValue("Detailed diagnostic information for error 401");
+    const postSpy = vi
+      .spyOn(client as any, "_post")
+      .mockResolvedValue("Detailed diagnostic information for error 401");
 
     // Test GetDiagnostic
     const diagnostic = client.GetDiagnostic("401");
@@ -449,7 +453,7 @@ describe("CrossFrameAPI (cache-first)", () => {
     // Test LMSGetDiagnostic
     postSpy.mockClear();
     const lmsDiagnostic = client.LMSGetDiagnostic("402");
-    
+
     // Wait for the async call to complete
     await new Promise((resolve) => setTimeout(resolve, 0));
 

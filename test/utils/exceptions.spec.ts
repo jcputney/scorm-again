@@ -65,7 +65,9 @@ describe("Exception Tests", () => {
     expect(new ValidationError("api", 0, "Error Message").errorCode).toEqual(0);
   });
   it("ValidationException should return detailedMessage when provided", () => {
-    expect(new ValidationError("api", 0, "Error Message", "Detailed error information").detailedMessage).toEqual("Detailed error information");
+    expect(
+      new ValidationError("api", 0, "Error Message", "Detailed error information").detailedMessage,
+    ).toEqual("Detailed error information");
   });
   it("ValidationException should return empty string for detailedMessage when not provided", () => {
     expect(new ValidationError("api", 0, "Error Message").detailedMessage).toEqual("");

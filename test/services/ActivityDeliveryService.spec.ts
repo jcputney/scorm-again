@@ -1,7 +1,13 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { ActivityDeliveryService, ActivityDeliveryCallbacks } from "../../src/services/ActivityDeliveryService";
+import {
+  ActivityDeliveryService,
+  ActivityDeliveryCallbacks,
+} from "../../src/services/ActivityDeliveryService";
 import { Activity } from "../../src/cmi/scorm2004/sequencing/activity";
-import { SequencingResult, DeliveryRequestType } from "../../src/cmi/scorm2004/sequencing/sequencing_process";
+import {
+  SequencingResult,
+  DeliveryRequestType,
+} from "../../src/cmi/scorm2004/sequencing/sequencing_process";
 import { EventService } from "../../src/services/EventService";
 import { LoggingService } from "../../src/services/LoggingService";
 
@@ -91,7 +97,7 @@ describe("ActivityDeliveryService", () => {
     it("should unload previous activity when delivering a new one", () => {
       const activity1 = new Activity("activity1", "Activity 1");
       const activity2 = new Activity("activity2", "Activity 2");
-      
+
       // First delivery
       const result1: SequencingResult = {
         exception: null,
@@ -99,7 +105,7 @@ describe("ActivityDeliveryService", () => {
         targetActivity: activity1,
       };
       activityDeliveryService.processSequencingResult(result1);
-      
+
       expect(activityDeliveryService.getCurrentDeliveredActivity()).toBe(activity1);
       expect(activity1.isActive).toBe(true);
 
@@ -119,14 +125,14 @@ describe("ActivityDeliveryService", () => {
       expect(eventProcessSpy).toHaveBeenCalledWith("ActivityUnload", "activity1", activity1);
       expect(callbacks.onUnloadActivity).toHaveBeenCalledWith(activity1);
       expect(activity1.isActive).toBe(false);
-      
+
       expect(activityDeliveryService.getCurrentDeliveredActivity()).toBe(activity2);
       expect(activity2.isActive).toBe(true);
     });
 
     it("should not unload activity if delivering the same activity", () => {
       const activity = new Activity("activity1", "Activity 1");
-      
+
       // First delivery
       const result1: SequencingResult = {
         exception: null,
@@ -256,7 +262,7 @@ describe("ActivityDeliveryService", () => {
       expect(() => {
         activityDeliveryService.reset();
       }).not.toThrow();
-      
+
       expect(activityDeliveryService.getCurrentDeliveredActivity()).toBeNull();
       expect(activityDeliveryService.getPendingDelivery()).toBeNull();
     });
