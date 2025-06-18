@@ -1,0 +1,301 @@
+SCORM 2004 – 3ᵈ Edition
+Text-Only Transcription with Diagram-Flow Description  ￼
+
+⸻
+
+1. Header
+
+At the very top center of the page:
+
+SCORM 2004 – 3ᵈ Edition
+
+⸻
+
+2. Left-Hand Column
+
+2.1 API_1484_11 Sequencing Activity State Data
+
+A boxed list of the public sequencing API calls:
+	•	Initialize(””) : bool
+	•	Terminate(””) : bool
+	•	GetValue(element : CMIElement) : string
+	•	SetValue(element : CMIElement, value : string) : bool
+	•	Commit(””) : bool
+	•	GetLastError() : CMIErrorCode
+	•	GetErrorString(errorCode : CMIErrorCode) : string
+	•	GetDiagnostic(errorCode : CMIErrorCode) : string
+
+⸻
+
+2.2 Runtime CMI / ADL.NAV Datamodel
+
+A comprehensive enumeration of all cmi and adl.nav data-model elements, their types (read-only or read/write), and purpose.  Below is the complete list:
+	1.	cmi._version (characterstring, RO)
+Represents the version of the data model.
+	2.	cmi.comments_from_learner._children (comment,location,timestamp, RO)
+Listing of supported data-model elements.
+	3.	cmi.comments_from_learner._count (non-negative integer, RO)
+Current number of learner comments.
+	4.	cmi.comments_from_learner.n.comment (localized_string_type SPM:4000, RW)
+Textual input.
+	5.	cmi.comments_from_learner.n.location (characterstring SPM:250, RW)
+Point in the SCO to which the comment applies.
+	6.	cmi.comments_from_learner.n.timestamp (time(second,10,0), RW)
+Point in time at which the comment was created or last changed.
+	7.	cmi.comments_from_lms._children (comment,location,timestamp, RO)
+Listing of supported data-model elements.
+	8.	cmi.comments_from_lms._count (non-negative integer, RO)
+Current number of comments from the LMS.
+	9.	cmi.comments_from_lms.n.comment (localized_string_type SPM:4000, RO)
+Comments or annotations associated with a SCO.
+	10.	cmi.comments_from_lms.n.location (characterstring SPM:250, RO)
+Point in the SCO to which the comment applies.
+	11.	cmi.comments_from_lms.n.timestamp (time(second,10,0), RO)
+Point in time at which the comment was created or last changed.
+	12.	cmi.completion_status (state {completed, incomplete, not attempted, unknown}, RW)
+Indicates whether the learner has completed the SCO.
+	13.	cmi.completion_threshold (real(10,7) range 0..1, RO)
+Used to determine whether the SCO should be considered complete.
+	14.	cmi.credit (state {credit, no_credit}, RO)
+Indicates whether the learner will be credited for performance.
+	15.	cmi.entry (state {ab_initio, resume, “”}, RO)
+Asserts whether the learner has previously accessed the SCO.
+	16.	cmi.exit (state {timeout, suspend, logout, normal, “”}, W)
+Indicates how or why the learner left the SCO.
+	17.	cmi.interactions._children (id,type,objectives,timestamp,correct_responses,weighting,learner_response,result,latency,description, RO)
+Listing of supported data-model elements.
+	18.	cmi.interactions._count (non-negative integer, RO)
+Current number of interactions being stored.
+	19.	cmi.interactions.n.id (long_identifier_type SPM:4000, RW)
+Unique label for the interaction.
+	20.	cmi.interactions.n.type (state {true_false, multiple_choice, fill_in, …}, RW)
+Which type of interaction is recorded.
+	21.	cmi.interactions.n.objectives._count (non-negative integer, RO)
+Current number of objectives stored for this interaction.
+	22.	cmi.interactions.n.objectives.n.id (long_identifier_type SPM:4000, RW)
+Label for objectives associated with the interaction.
+	23.	cmi.interactions.n.timestamp (time(second,10,0), RW)
+Point in time when the interaction was first made available.
+	24.	cmi.interactions.n.correct_responses._count (non-negative integer, RO)
+Number of correct responses stored by the LMS.
+	25.	cmi.interactions.n.correct_responses.n.pattern (format depends on interaction type, RW)
+One correct response pattern.
+	26.	cmi.interactions.n.weighting (real(10,7), RW)
+Weight given to the interaction relative to others.
+	27.	cmi.interactions.n.learner_response (format depends, RW)
+Data generated when a learner responds.
+	28.	cmi.interactions.n.result (state {correct, incorrect, …}, RW)
+Judgment of the correctness of the learner response.
+	29.	cmi.interactions.n.latency (timeinterval(second,10,2), RW)
+Time between availability and first response.
+	30.	cmi.interactions.n.description (localized_string_type SPM:250, RW)
+Brief informative description of the interaction.
+	31.	cmi.launch_data (characterstring SPM:4000, RO)
+Data provided to a SCO after launch.
+	32.	cmi.learner_id (long_identifier_type SPM:4000, RO)
+Identifies the learner.
+	33.	cmi.learner_name (localized_string_type SPM:250, RO)
+Name provided for the learner.
+	34.	cmi.learner_preference._children (audio_level,language,delivery_speed,audio_captioning, RO)
+	35.	cmi.learner_preference.audio_level (real(10,7), RW)
+Intended change in perceived audio level.
+	36.	cmi.learner_preference.language (language_type SPM:250, RW)
+Learner’s preferred language.
+	37.	cmi.learner_preference.delivery_speed (real(10,7), RW)
+Preferred relative speed of content delivery.
+	38.	cmi.learner_preference.audio_captioning (state {-1,0,1}, RW)
+Whether captioning is displayed.
+	39.	cmi.location (characterstring SPM:1000, RW)
+Learner’s current location in the SCO.
+	40.	cmi.max_time_allowed (timeinterval(second,10,2), RO)
+Accumulated time allowed.
+	41.	cmi.mode (state {browse, normal, review}, RO)
+Presentation mode.
+	42.	cmi.objectives._children (id,score,success_status,completion_status,description, RO)
+	43.	cmi.objectives._count (non-negative integer, RO)
+Number of objectives stored.
+	44.	cmi.objectives.n.id (long_identifier_type SPM:4000, RW)
+Unique objective label.
+	45.	cmi.objectives.n.score._children (scaled,raw,min,max, RO)
+	46.	cmi.objectives.n.score.scaled (real(10,7) range –1..1, RW)
+	47.	cmi.objectives.n.score.raw (real(10,7), RW)
+	48.	cmi.objectives.n.score.min (real(10,7), RW)
+	49.	cmi.objectives.n.score.max (real(10,7), RW)
+	50.	cmi.objectives.n.success_status (state {passed, failed, unknown}, RW)
+	51.	cmi.objectives.n.completion_status (state {completed, incomplete, …}, RW)
+	52.	cmi.objectives.n.progress_measure (real(10,7) range 0..1, RW)
+	53.	cmi.objectives.n.description (localized_string_type SPM:250, RW)
+	54.	cmi.progress_measure (real(10,7) range 0..1, RW)
+	55.	cmi.scaled_passing_score (real(10,7) range –1..1, RO)
+	56.	cmi.score._children (scaled,raw,min,max, RO)
+	57.	cmi.score.scaled (real(10,7) range –1..1, RW)
+	58.	cmi.score.raw (real(10,7), RW)
+	59.	cmi.score.min (real(10,7), RW)
+	60.	cmi.score.max (real(10,7), RW)
+	61.	cmi.session_time (timeinterval(second,10,2), WO)
+	62.	cmi.success_status (state {passed, failed, unknown}, RW)
+	63.	cmi.suspend_data (characterstring SPM:64000, RW)
+	64.	cmi.time_limit_action (state {exit,message; continue,message; exit,no message; continue,no message}, RO)
+	65.	cmi.total_time (timeinterval(second,10,2), RO)
+	66.	adl.nav.request (request {continue, previous, choice, exit, exitAll, abandon, abandonAll, none}, RW)
+	67.	adl.nav.request_valid.continue (state {true, false, unknown}, RO)
+	68.	adl.nav.request_valid.previous (state {true, false, unknown}, RO)
+	69.	adl.nav.request_valid.choice (state {true, false, unknown}, RO)
+
+⸻
+
+2.3 Sequencing Activity State Data (Bottom-Left)
+
+A small two-column box defines how “Activity” and “Objective” state map to CMI elements:
+	•	Activity Information
+	•	Activity Progress Status controls:
+	•	Activity Attempt Count – number of attempts a learner made on this activity.
+	•	Attempt Progress Status controls:
+	•	Attempt Completion Amount – measure of learner’s progress (maps to cmi.progress_status).
+	•	Attempt Completion Status – indicates whether an attempt is complete (maps to cmi.completion_status).
+	•	Objective Information
+	•	Objective Progress Status controls:
+	•	Objective Satisfied Status – indicates whether an objective is satisfied (maps to cmi.success_status).
+	•	Objective Measure Status controls:
+	•	Objective Normalized Measure – measure of the score for an objective (maps to cmi.score_scaled).
+
+⸻
+
+3. Right-Hand Diagram: “Sequencing Pseudo Code”
+
+The right half of the page is a flowchart illustrating the sequencing logic.  Below is a step-by-step textual description of each box and the arrows connecting them.
+
+3.1 Entry Point
+	1.	Overall Sequencing Process [OP.1]
+	•	Description: Controls overall execution of sequencing logic; one iteration of the sequencing loop.
+	•	Flow: From START, enters this box.
+
+3.2 Navigation Request
+	2.	Navigation Request Process [NB.2.1]
+	•	Description: Determines if a specified navigation request (Continue, Previous, Choice, etc.) is valid given current activity tree state.
+	•	Flow: Arrow → from Overall Sequencing Process to here.
+
+3.3 Termination Handling
+	3.	Termination Request Process [TB.2.3]
+	•	Description: Ends the attempt on the current activity to allow a navigation request to proceed.
+	•	Flow: Arrow → from Navigation Request Process.
+
+3.3.1 Exit-Sequencing Rules
+	•	Sequencing Exit Action Rules Subprocess [TB.2.1]
+	•	Checks for and evaluates exit sequencing rules.
+	•	Flow: Arrow → from Termination Request Process.
+	•	Sequencing Post-Condition Rules Subprocess [TB.2.2]
+	•	Checks for and evaluates post-condition sequencing rules.
+	•	Flow: Arrow → also from Termination Request Process.
+
+3.4 Sequencing Requests
+	4.	Sequencing Request Process [SB.2.12]
+	•	Description: Determines validity of a sequencing request; if valid, returns the next activity for delivery.
+	•	Flow: Arrow → from Termination Request Process (after exit-rules).
+
+3.4.1 Sub-Processes under Sequencing Request
+	•	Exit Sequencing Request Process [SB.2.11]
+	•	Validates an explicit exit sequencing request.
+	•	Resume All Sequencing Request Process [SB.2.6]
+	•	Validates a “resume all” request; identifies previously suspended activity.
+	•	Retry Sequencing Request Process [SB.2.10]
+	•	Validates a retry request; identifies next activity.
+	•	Continue Sequencing Request Process [SB.2.7]
+	•	Validates a continue request; identifies next activity.
+	•	Previous Sequencing Request Process [SB.2.8]
+	•	Validates a previous request; identifies next activity.
+	•	Start Sequencing Request Process [SB.2.5]
+	•	Validates a start request; identifies first activity.
+	•	Choice Sequencing Request Process [SB.2.9]
+	•	Validates a choice request; identifies next activity.
+
+3.4.1.1 Choice-Specific Sub-Processes
+	•	Choice Flow Subprocess [SB.2.9.1]
+	•	Determines the actual activity to deliver for a choice request.
+	•	Choice Flow Tree Traversal Subprocess [SB.9.2]
+	•	Traverses tree to find first available child for delivery.
+	•	Choice Activity Traversal Subprocess [SB.2.4]
+	•	Checks for stop-forward and forward-only restrictions on the choice.
+
+3.5 Delivery
+	5.	Delivery Request Process [DB.1.1]
+	•	Description: Determines if an activity is actually valid for delivery.
+	•	Flow: Arrow → from Sequencing Request Process upon valid request.
+	6.	Content Delivery Environment Process [DB.2]
+	•	Description: Responsible for the actual delivery of an activity to the learner.
+	•	Flow: Arrow → from Delivery Request Process.
+
+3.5.1 Clear Suspended Activity
+	•	Clear Suspended Activity Subprocess [DB.2.1]
+	•	Resets suspended activity and suspended status of ancestor activities.
+	•	Flow: Arrow → from Content Delivery Environment Process, before actual content launch.
+
+3.6 Post-Delivery: Attempt-End and Rollup
+	7.	End Attempt Process [UP.4]
+	•	Description: Ends an attempt on a given activity.
+	•	Flow: Arrow → from Content Delivery Environment Process (after delivery).
+	8.	Overall Rollup Process [RB.1.5]
+	•	Description: Consolidates state data from child activities to the parent.
+	•	Flow: Arrow → from End Attempt Process.
+
+3.6.1 Rollup Sub-Processes
+	•	Measure Rollup Process [RB.1.1]
+	•	Rolls up activity measure (score).
+	•	Objective Rollup Process [RB.1.2]
+	•	Rolls up objective activity data (satisfaction).
+	•	Using Rules [RB.1.2.b]
+	•	Using Measure [RB.1.2.a]
+	•	Using Default [RB.1.2.c]
+	•	Activity Progress Rollup Process [RB.1.3]
+	•	Rolls up activity progress data (completion).
+
+3.6.1.1 Rollup Rule Evaluation
+	•	Evaluate Rollup Conditions Subprocess [RB.1.4.1]
+	•	Determines if a single rollup rule condition is true.
+	•	Rollup Rule Check Subprocess [RB.1.4.2]
+	•	Determines if the action of a rollup rule should execute.
+	•	Check Child For Rollup Subprocess [RB.1.4.2]
+	•	Determines if an activity should participate in its parent’s rolled-up status.
+
+	9.	Terminate Descendent Attempts Process [UP.3]
+	•	Description: Ends attempts of activities on the current active path (e.g., when a parent completes).
+	•	Flow: Arrow → from Overall Rollup Process (after rollup).
+
+3.7 Sequencing Rules and Flow Checks
+	10.	Sequencing Rules Check Process [UP.2]
+	•	Description: Determines what sequencing action to execute based on sequencing rule conditions.
+	•	Flow: Arrow → from Overall Sequencing Process [OP.1] (concurrent branch).
+	11.	Sequencing Rules Check Subprocess [UP.2.1]
+	•	Description: Evaluates individual sequencing rule conditions.
+	12.	Limit Conditions Check Process [UP.1]
+	•	Description: Determines if the learner has exceeded any attempt limits.
+	13.	Check Activity Process [UP.5]
+	•	Description: Determines if an activity is disabled or if attempt limits have been exceeded.
+
+3.8 Flow-Based Navigation
+	14.	Flow Subprocess [SB.2.3]
+	•	Description: Finds appropriate activity to deliver when flowing (first, next, previous).
+	15.	Flow Activity Traversal Subprocess [SB.2.2]
+	•	Description: Determines if an activity can be delivered via flow navigation; otherwise, finds the next deliverable.
+	16.	Flow Tree Traversal Subprocess [SB.2.1]
+	•	Description: Moves one activity through the tree in the specified direction, finding the next candidate.
+
+3.9 Children Selection
+	17.	Select Children Process [SR.1]
+	•	Description: Determines which child activities will be included in the delivery of a parent.
+	18.	Randomize Children Process [SR.2]
+	•	Description: Randomizes the order in which child activities will be delivered; invoked by the LMS.
+
+⸻
+
+4. Flow Summary
+	•	Entry: OP.1 → NB.2.1 → TB.2.3
+	•	Exit Rules: TB.2.1 & TB.2.2
+	•	Sequencing Requests: SB.2.12 → one of the seven request processes (SB.2.5–SB.2.11) → if Choice, then SB.2.9.1/9.2/2.4
+	•	Delivery: DB.1.1 → DB.2 → DB.2.1 → UP.4
+	•	Rollup: RB.1.5 → RB.1.1/1.2/1.3 → RB.1.4.x → UP.3
+	•	Rule Checks (parallel flows): UP.2 → UP.2.1; UP.1; UP.5
+	•	Flow Navigation (parallel): SB.2.3 → SB.2.2 → SB.2.1
+	•	Child Selection (LMS-invoked): SR.1 → SR.2
+
+This completes a fully text-only, detailed rendition of every box, label, and the arrows connecting them, along with all accompanying text from the page.

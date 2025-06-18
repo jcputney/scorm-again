@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCORM-Again Offline Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.8;
+        }
+
+        .demo-controls {
+            padding: 20px;
+            background: #ecf0f1;
+            border-bottom: 1px solid #bdc3c7;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .control-group label {
+            font-weight: bold;
+            min-width: 120px;
+        }
+
+        .control-group input, .control-group select {
+            padding: 8px 12px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #e67e22;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .status-bar {
+            padding: 15px 20px;
+            background: #34495e;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .online {
+            background: #27ae60;
+        }
+
+        .offline {
+            background: #e74c3c;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .main-content {
+            display: flex;
+            height: 600px;
+        }
+
+        .scorm-player {
+            flex: 2;
+            border-right: 1px solid #bdc3c7;
+            position: relative;
+        }
+
+        .scorm-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .demo-sidebar {
+            flex: 1;
+            padding: 20px;
+            background: #f8f9fa;
+            overflow-y: auto;
+        }
+
+        .demo-section {
+            margin-bottom: 25px;
+        }
+
+        .demo-section h3 {
+            margin: 0 0 15px 0;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+
+        .log-container {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+
+        .log-info {
+            color: #3498db;
+        }
+
+        .log-success {
+            color: #27ae60;
+        }
+
+        .log-warning {
+            color: #f39c12;
+        }
+
+        .log-error {
+            color: #e74c3c;
+        }
+
+        .data-display {
+            background: white;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .data-display pre {
+            margin: 0;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #ecf0f1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-status {
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .status-active {
+            background: #d5f4e6;
+            color: #27ae60;
+        }
+
+        .status-inactive {
+            background: #fadbd8;
+            color: #e74c3c;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #2c3e50;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-right: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 SCORM-Again Offline Demo</h1>
+            <p>Interactive demonstration of offline SCORM capabilities</p>
+        </div>
+
+        <div class="demo-controls">
+            <div class="control-group">
+                <label>Course ID:</label>
+                <input type="text" id="courseId" value="demo-course-001" />
+
+                <label>SCORM Version:</label>
+                <select id="scormVersion">
+                    <option value="2004">SCORM 2004</option>
+                    <option value="12">SCORM 1.2</option>
+                </select>
+
+                <button class="btn btn-primary" onclick="initializeDemo()">Initialize SCORM</button>
+            </div>
+
+            <div class="control-group">
+                <button class="btn btn-success" onclick="simulateOnline()">🌐 Go Online</button>
+                <button class="btn btn-warning" onclick="simulateOffline()">📴 Go Offline</button>
+                <button class="btn btn-primary" onclick="syncData()">🔄 Sync Data</button>
+                <button class="btn btn-danger" onclick="clearData()">🗑️ Clear Data</button>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-indicator">
+                <div class="status-dot" id="connectionStatus"></div>
+                <span id="connectionText">Checking connection...</span>
+            </div>
+            <div>
+                <span>Offline Items: </span>
+                <strong id="offlineCount">0</strong>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="scorm-player">
+                <div id="loadingOverlay" class="loading-overlay">
+                    <div class="spinner"></div>
+                    Loading SCORM content...
+                </div>
+                <iframe id="scormFrame" class="scorm-iframe" style="display: none;"></iframe>
+            </div>
+
+            <div class="demo-sidebar">
+                <div class="demo-section">
+                    <h3>📊 SCORM Data</h3>
+                    <div class="data-display">
+                        <pre id="scormData">No data available</pre>
+                    </div>
+                </div>
+
+                <div class="demo-section">
+                    <h3>🔧 Quick Actions</h3>
+                    <div class="control-group" style="flex-direction: column; align-items: stretch;">
+                        <button class="btn btn-primary" onclick="setLessonStatus('completed')">Mark Complete</button>
+                        <button class="btn btn-primary" onclick="setScore(85)">Set Score (85%)</button>
+                        <button class="btn btn-primary" onclick="setLocation('page-5')">Set Location</button>
+                        <button class="btn btn-primary" onclick="addInteraction()">Add Interaction</button>
+                    </div>
+                </div>
+
+                <div class="demo-section">
+                    <h3>🎯 Features</h3>
+                    <ul class="feature-list">
+                        <li>
+                            Offline Storage
+                            <span class="feature-status status-active" id="offlineStorageStatus">Active</span>
+                        </li>
+                        <li>
+                            Auto Commit
+                            <span class="feature-status status-active" id="autoCommitStatus">Active</span>
+                        </li>
+                        <li>
+                            Auto Sync
+                            <span class="feature-status status-active" id="autoSyncStatus">Active</span>
+                        </li>
+                        <li>
+                            Event Listeners
+                            <span class="feature-status status-active" id="eventListenersStatus">Active</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="demo-section">
+                    <h3>📝 Activity Log</h3>
+                    <div class="log-container" id="activityLog">
+                        <div class="log-entry log-info">[INFO] Demo initialized</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/scorm-again@latest/dist/scorm-again.js"></script>
+    <script>
+        let scormAPI = null;
+        let isOnline = navigator.onLine;
+        let interactionCount = 0;
+
+        // Initialize the demo
+        function initializeDemo() {
+            log('Initializing SCORM demo...', 'info');
+
+            const courseId = document.getElementById('courseId').value;
+            const scormVersion = document.getElementById('scormVersion').value;
+
+            // Create SCORM API with offline support
+            const APIClass = scormVersion === '2004' ? window.ScormAgain.Scorm2004API : window.ScormAgain.Scorm12API;
+
+            scormAPI = new APIClass({
+                enableOfflineSupport: true,
+                courseId: courseId,
+                autocommit: true,
+                autocommitSeconds: 10,
+                syncOnInitialize: true,
+                syncOnTerminate: true,
+                logLevel: 2,
+                onLogMessage: function(level, message) {
+                    log(`[${level}] ${message}`, level.toLowerCase());
+                }
+            });
+
+            // Add event listeners
+            scormAPI.on('Initialize', () => log('SCORM API Initialized', 'success'));
+            scormAPI.on('Terminate', () => log('SCORM API Terminated', 'info'));
+            scormAPI.on('SetValue', (element, value) => {
+                log(`Set ${element} = ${value}`, 'info');
+                updateDataDisplay();
+            });
+            scormAPI.on('Commit', () => log('Data committed', 'success'));
+            scormAPI.on('OfflineDataSynced', () => {
+                log('Offline data synchronized!', 'success');
+                updateOfflineCount();
+            });
+
+            // Initialize the session
+            if (scormVersion === '2004') {
+                scormAPI.Initialize('');
+                window.API_1484_11 = scormAPI;
+            } else {
+                scormAPI.LMSInitialize('');
+                window.API = scormAPI;
+            }
+
+            // Load demo content
+            loadDemoContent();
+            updateDataDisplay();
+            updateOfflineCount();
+
+            log('SCORM demo ready!', 'success');
+        }
+
+        function loadDemoContent() {
+            const iframe = document.getElementById('scormFrame');
+            const overlay = document.getElementById('loadingOverlay');
+
+            // Create a simple demo SCORM content
+            const demoContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Demo SCORM Content</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; background: #f0f8ff; }
+                        .content { max-width: 600px; margin: 0 auto; }
+                        .lesson { background: white; padding: 20px; border-radius: 10px; margin: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                        .btn { padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+                        .btn:hover { background: #2980b9; }
+                        .progress { background: #ecf0f1; height: 20px; border-radius: 10px; margin: 20px 0; }
+                        .progress-bar { background: #27ae60; height: 100%; border-radius: 10px; width: 0%; transition: width 0.3s; }
+                    </style>
+                </head>
+                <body>
+                    <div class="content">
+                        <h1>🎓 Demo SCORM Course</h1>
+                        <div class="lesson">
+                            <h2>Lesson 1: Getting Started</h2>
+                            <p>Welcome to this interactive SCORM demo! This content demonstrates offline capabilities.</p>
+                            <div class="progress">
+                                <div class="progress-bar" id="progress"></div>
+                            </div>
+                            <button class="btn" onclick="nextStep()">Next Step</button>
+                            <button class="btn" onclick="takeQuiz()">Take Quiz</button>
+                            <button class="btn" onclick="completeLesson()">Complete Lesson</button>
+                        </div>
+
+                        <div class="lesson">
+                            <h2>📱 Offline Features</h2>
+                            <p>Try these actions while online and offline:</p>
+                            <button class="btn" onclick="updateProgress(25)">25% Progress</button>
+                            <button class="btn" onclick="updateProgress(50)">50% Progress</button>
+                            <button class="btn" onclick="updateProgress(75)">75% Progress</button>
+                            <button class="btn" onclick="updateProgress(100)">100% Progress</button>
+                        </div>
+                    </div>
+
+                    <script>
+                        let currentProgress = 0;
+
+                        function getAPI() {
+                            return parent.window.API_1484_11 || parent.window.API;
+                        }
+
+                        function nextStep() {
+                            const api = getAPI();
+                            if (api) {
+                                currentProgress = Math.min(currentProgress + 25, 100);
+                                updateProgress(currentProgress);
+                            }
+                        }
+
+                        function updateProgress(percent) {
+                            const api = getAPI();
+                            if (api) {
+                                document.getElementById('progress').style.width = percent + '%';
+
+                                if (api.SetValue) {
+                                    // SCORM 2004
+                                    api.SetValue('cmi.progress_measure', (percent / 100).toString());
+                                    api.SetValue('cmi.location', 'step_' + Math.floor(percent / 25));
+                                } else {
+                                    // SCORM 1.2
+                                    api.LMSSetValue('cmi.core.lesson_location', 'step_' + Math.floor(percent / 25));
+                                    api.LMSSetValue('cmi.core.score.raw', percent.toString());
+                                }
+                            }
+                        }
+
+                        function takeQuiz() {
+                            const api = getAPI();
+                            if (api) {
+                                const score = Math.floor(Math.random() * 40) + 60; // 60-100
+
+                                if (api.SetValue) {
+                                    // SCORM 2004
+                                    api.SetValue('cmi.score.raw', score.toString());
+                                    api.SetValue('cmi.score.scaled', (score / 100).toString());
+                                    api.SetValue('cmi.success_status', score >= 70 ? 'passed' : 'failed');
+                                } else {
+                                    // SCORM 1.2
+                                    api.LMSSetValue('cmi.core.score.raw', score.toString());
+                                    api.LMSSetValue('cmi.core.lesson_status', score >= 70 ? 'passed' : 'failed');
+                                }
+
+                                alert('Quiz completed! Score: ' + score + '%');
+                            }
+                        }
+
+                        function completeLesson() {
+                            const api = getAPI();
+                            if (api) {
+                                if (api.SetValue) {
+                                    // SCORM 2004
+                                    api.SetValue('cmi.completion_status', 'completed');
+                                    api.SetValue('cmi.success_status', 'passed');
+                                } else {
+                                    // SCORM 1.2
+                                    api.LMSSetValue('cmi.core.lesson_status', 'completed');
+                                }
+
+                                updateProgress(100);
+                                alert('Lesson completed successfully!');
+                            }
+                        }
+                    <\/script>
+                </body>
+                </html>
+            `;
+
+            iframe.srcdoc = demoContent;
+            iframe.onload = () => {
+                overlay.style.display = 'none';
+                iframe.style.display = 'block';
+            };
+        }
+
+        function simulateOnline() {
+            isOnline = true;
+            updateConnectionStatus();
+            if (scormAPI && scormAPI._offlineStorageService) {
+                scormAPI._offlineStorageService.isDeviceOnline = () => true;
+                scormAPI._offlineStorageService.syncOfflineData();
+            }
+            log('Simulated going online', 'success');
+        }
+
+        function simulateOffline() {
+            isOnline = false;
+            updateConnectionStatus();
+            if (scormAPI && scormAPI._offlineStorageService) {
+                scormAPI._offlineStorageService.isDeviceOnline = () => false;
+            }
+            log('Simulated going offline', 'warning');
+        }
+
+        function syncData() {
+            if (scormAPI && scormAPI._offlineStorageService) {
+                scormAPI._offlineStorageService.syncOfflineData().then(success => {
+                    if (success) {
+                        log('Manual sync completed successfully', 'success');
+                    } else {
+                        log('Manual sync failed', 'error');
+                    }
+                    updateOfflineCount();
+                });
+            }
+        }
+
+        function clearData() {
+            if (confirm('Clear all offline data? This cannot be undone.')) {
+                localStorage.clear();
+                log('All offline data cleared', 'warning');
+                updateOfflineCount();
+                updateDataDisplay();
+            }
+        }
+
+        function setLessonStatus(status) {
+            if (scormAPI) {
+                if (scormAPI.SetValue) {
+                    scormAPI.SetValue('cmi.completion_status', status);
+                } else {
+                    scormAPI.LMSSetValue('cmi.core.lesson_status', status);
+                }
+                log(`Lesson status set to: ${status}`, 'info');
+            }
+        }
+
+        function setScore(score) {
+            if (scormAPI) {
+                if (scormAPI.SetValue) {
+                    scormAPI.SetValue('cmi.score.raw', score.toString());
+                    scormAPI.SetValue('cmi.score.scaled', (score / 100).toString());
+                } else {
+                    scormAPI.LMSSetValue('cmi.core.score.raw', score.toString());
+                }
+                log(`Score set to: ${score}`, 'info');
+            }
+        }
+
+        function setLocation(location) {
+            if (scormAPI) {
+                if (scormAPI.SetValue) {
+                    scormAPI.SetValue('cmi.location', location);
+                } else {
+                    scormAPI.LMSSetValue('cmi.core.lesson_location', location);
+                }
+                log(`Location set to: ${location}`, 'info');
+            }
+        }
+
+        function addInteraction() {
+            if (scormAPI) {
+                const id = `interaction_${++interactionCount}`;
+                const responses = ['a', 'b', 'c', 'd'];
+                const response = responses[Math.floor(Math.random() * responses.length)];
+                const correct = Math.random() > 0.5;
+
+                if (scormAPI.SetValue) {
+                    scormAPI.SetValue(`cmi.interactions.${interactionCount - 1}.id`, id);
+                    scormAPI.SetValue(`cmi.interactions.${interactionCount - 1}.type`, 'choice');
+                    scormAPI.SetValue(`cmi.interactions.${interactionCount - 1}.learner_response`, response);
+                    scormAPI.SetValue(`cmi.interactions.${interactionCount - 1}.result`, correct ? 'correct' : 'incorrect');
+                } else {
+                    scormAPI.LMSSetValue(`cmi.interactions.${interactionCount - 1}.id`, id);
+                    scormAPI.LMSSetValue(`cmi.interactions.${interactionCount - 1}.type`, 'choice');
+                    scormAPI.LMSSetValue(`cmi.interactions.${interactionCount - 1}.student_response`, response);
+                    scormAPI.LMSSetValue(`cmi.interactions.${interactionCount - 1}.result`, correct ? 'correct' : 'wrong');
+                }
+
+                log(`Added interaction: ${id} (${correct ? 'correct' : 'incorrect'})`, 'info');
+            }
+        }
+
+        function updateConnectionStatus() {
+            const statusDot = document.getElementById('connectionStatus');
+            const statusText = document.getElementById('connectionText');
+
+            if (isOnline) {
+                statusDot.className = 'status-dot online';
+                statusText.textContent = 'Online - Data syncing to LMS';
+            } else {
+                statusDot.className = 'status-dot offline';
+                statusText.textContent = 'Offline - Data stored locally';
+            }
+        }
+
+        function updateDataDisplay() {
+            if (scormAPI && scormAPI.cmi) {
+                const dataDisplay = document.getElementById('scormData');
+                const cmiData = scormAPI.renderCommitCMI ? scormAPI.renderCommitCMI(true) : scormAPI.cmi;
+                dataDisplay.textContent = JSON.stringify(cmiData, null, 2);
+            }
+        }
+
+        function updateOfflineCount() {
+            const offlineCount = document.getElementById('offlineCount');
+            let count = 0;
+
+            // Count items in localStorage that match our course pattern
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.includes('scorm_offline_')) {
+                    count++;
+                }
+            }
+
+            offlineCount.textContent = count;
+        }
+
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('activityLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            updateConnectionStatus();
+            updateOfflineCount();
+
+            // Listen for actual online/offline events
+            window.addEventListener('online', () => {
+                isOnline = true;
+                updateConnectionStatus();
+                log('Device came online', 'success');
+            });
+
+            window.addEventListener('offline', () => {
+                isOnline = false;
+                updateConnectionStatus();
+                log('Device went offline', 'warning');
+            });
+
+            log('Demo page loaded - Click "Initialize SCORM" to begin', 'info');
+        });
+    </script>
+</body>
+</html>

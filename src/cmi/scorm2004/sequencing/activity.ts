@@ -5,6 +5,8 @@ import { Scorm2004ValidationError } from "../../../exceptions/scorm2004_exceptio
 import { scorm2004_errors } from "../../../constants/error_codes";
 import { CompletionStatus, SuccessStatus } from "../../../constants/enums";
 import { SequencingControls } from "./sequencing_controls";
+import { SequencingRules } from "./sequencing_rules";
+import { RollupRules } from "./rollup_rules";
 
 /**
  * Class representing a single activity in the SCORM 2004 activity tree
@@ -29,14 +31,21 @@ export class Activity extends BaseCMI {
   private _objectiveSatisfiedStatus: boolean = false;
   private _objectiveMeasureStatus: boolean = false;
   private _objectiveNormalizedMeasure: number = 0;
+  private _scaledPassingScore: number = 0.7; // Default passing score
   private _isHiddenFromChoice: boolean = false;
   private _isAvailable: boolean = true;
   private _attemptLimit: number | null = null;
+  private _attemptAbsoluteDurationLimit: string | null = null;
+  private _activityAbsoluteDurationLimit: string | null = null;
   private _timeLimitAction: string | null = null;
   private _timeLimitDuration: string | null = null;
   private _beginTimeLimit: string | null = null;
   private _endTimeLimit: string | null = null;
   private _sequencingControls: SequencingControls;
+  private _sequencingRules: SequencingRules;
+  private _rollupRules: RollupRules;
+  private _processedChildren: Activity[] | null = null;
+  private _isNewAttempt: boolean = false;
 
   /**
    * Constructor for Activity
@@ -48,6 +57,8 @@ export class Activity extends BaseCMI {
     this._id = id;
     this._title = title;
     this._sequencingControls = new SequencingControls();
+    this._sequencingRules = new SequencingRules();
+    this._rollupRules = new RollupRules();
   }
 
   /**
@@ -278,10 +289,49 @@ export class Activity extends BaseCMI {
   }
 
   /**
+   * Setter for attemptCount
+   * @param {number} value
+   */
+  set attemptCount(value: number) {
+    this._attemptCount = value;
+  }
+
+  /**
    * Increment the attempt count
    */
   incrementAttemptCount(): void {
     this._attemptCount++;
+    this._isNewAttempt = true;
+    // Reset processed children on new attempt if needed
+    const controls = this._sequencingControls;
+    if (
+      controls.selectionTiming === "onEachNewAttempt" ||
+      controls.randomizationTiming === "onEachNewAttempt"
+    ) {
+      this._processedChildren = null;
+    }
+  }
+
+  /**
+   * Getter for objectiveSatisfiedStatus
+   * @return {boolean}
+   */
+  get objectiveSatisfiedStatus(): boolean {
+    return this._objectiveSatisfiedStatus;
+  }
+
+  /**
+   * Setter for objectiveSatisfiedStatus
+   * @param {boolean} objectiveSatisfiedStatus
+   */
+  set objectiveSatisfiedStatus(objectiveSatisfiedStatus: boolean) {
+    this._objectiveSatisfiedStatus = objectiveSatisfiedStatus;
+    // Update success status based on objective satisfaction
+    if (objectiveSatisfiedStatus) {
+      this._successStatus = SuccessStatus.PASSED;
+    } else {
+      this._successStatus = SuccessStatus.FAILED;
+    }
   }
 
   /**
@@ -314,6 +364,24 @@ export class Activity extends BaseCMI {
    */
   set objectiveNormalizedMeasure(objectiveNormalizedMeasure: number) {
     this._objectiveNormalizedMeasure = objectiveNormalizedMeasure;
+  }
+
+  /**
+   * Getter for scaledPassingScore
+   * @return {number}
+   */
+  get scaledPassingScore(): number {
+    return this._scaledPassingScore;
+  }
+
+  /**
+   * Setter for scaledPassingScore
+   * @param {number} scaledPassingScore
+   */
+  set scaledPassingScore(scaledPassingScore: number) {
+    if (scaledPassingScore >= -1 && scaledPassingScore <= 1) {
+      this._scaledPassingScore = scaledPassingScore;
+    }
   }
 
   /**
@@ -439,6 +507,24 @@ export class Activity extends BaseCMI {
     this._endTimeLimit = endTimeLimit;
   }
 
+
+  /**
+   * Getter for attemptAbsoluteDurationLimit
+   * @return {string | null}
+   */
+  get attemptAbsoluteDurationLimit(): string | null {
+    return this._attemptAbsoluteDurationLimit;
+  }
+
+  /**
+   * Setter for attemptAbsoluteDurationLimit
+   * @param {string | null} attemptAbsoluteDurationLimit
+   */
+  set attemptAbsoluteDurationLimit(attemptAbsoluteDurationLimit: string | null) {
+    // TODO: Add proper validation for ISO 8601 duration format
+    this._attemptAbsoluteDurationLimit = attemptAbsoluteDurationLimit;
+  }
+
   /**
    * Getter for attemptExperiencedDuration
    * @return {string}
@@ -452,8 +538,44 @@ export class Activity extends BaseCMI {
    * @param {string} attemptExperiencedDuration
    */
   set attemptExperiencedDuration(attemptExperiencedDuration: string) {
+    // TODO: Add proper validation for ISO 8601 duration format
     this._attemptExperiencedDuration = attemptExperiencedDuration;
   }
+
+  /**
+   * Getter for activityAbsoluteDurationLimit
+   * @return {string | null}
+   */
+  get activityAbsoluteDurationLimit(): string | null {
+    return this._activityAbsoluteDurationLimit;
+  }
+
+  /**
+   * Setter for activityAbsoluteDurationLimit
+   * @param {string | null} activityAbsoluteDurationLimit
+   */
+  set activityAbsoluteDurationLimit(activityAbsoluteDurationLimit: string | null) {
+    // TODO: Add proper validation for ISO 8601 duration format
+    this._activityAbsoluteDurationLimit = activityAbsoluteDurationLimit;
+  }
+
+  /**
+   * Getter for activityExperiencedDuration
+   * @return {string}
+   */
+  get activityExperiencedDuration(): string {
+    return this._activityExperiencedDuration;
+  }
+
+  /**
+   * Setter for activityExperiencedDuration
+   * @param {string} activityExperiencedDuration
+   */
+  set activityExperiencedDuration(activityExperiencedDuration: string) {
+    // TODO: Add proper validation for ISO 8601 duration format
+    this._activityExperiencedDuration = activityExperiencedDuration;
+  }
+
 
   /**
    * Getter for sequencingControls
@@ -469,6 +591,89 @@ export class Activity extends BaseCMI {
    */
   set sequencingControls(sequencingControls: SequencingControls) {
     this._sequencingControls = sequencingControls;
+  }
+
+  /**
+   * Getter for sequencingRules
+   * @return {SequencingRules}
+   */
+  get sequencingRules(): SequencingRules {
+    return this._sequencingRules;
+  }
+
+  /**
+   * Setter for sequencingRules
+   * @param {SequencingRules} sequencingRules
+   */
+  set sequencingRules(sequencingRules: SequencingRules) {
+    this._sequencingRules = sequencingRules;
+  }
+
+  /**
+   * Getter for rollupRules
+   * @return {RollupRules}
+   */
+  get rollupRules(): RollupRules {
+    return this._rollupRules;
+  }
+
+  /**
+   * Setter for rollupRules
+   * @param {RollupRules} rollupRules
+   */
+  set rollupRules(rollupRules: RollupRules) {
+    this._rollupRules = rollupRules;
+  }
+
+  /**
+   * Get available children with selection and randomization applied
+   * @return {Activity[]}
+   */
+  getAvailableChildren(): Activity[] {
+    // If no children, return empty array
+    if (this._children.length === 0) {
+      return [];
+    }
+
+    // If processed children already exist and no new attempt, return them
+    if (this._processedChildren !== null) {
+      return this._processedChildren;
+    }
+
+    // If no processing has been done yet, return all children
+    // The sequencing process will call applySelectionAndRandomization when needed
+    return this._children;
+  }
+
+  /**
+   * Set the processed children (called by SelectionRandomization)
+   * @param {Activity[]} processedChildren
+   */
+  setProcessedChildren(processedChildren: Activity[]): void {
+    this._processedChildren = processedChildren;
+  }
+
+  /**
+   * Reset processed children (used when configuration changes)
+   */
+  resetProcessedChildren(): void {
+    this._processedChildren = null;
+  }
+
+  /**
+   * Get whether this is a new attempt
+   * @return {boolean}
+   */
+  get isNewAttempt(): boolean {
+    return this._isNewAttempt;
+  }
+
+  /**
+   * Set whether this is a new attempt
+   * @param {boolean} isNewAttempt
+   */
+  set isNewAttempt(isNewAttempt: boolean) {
+    this._isNewAttempt = isNewAttempt;
   }
 
   /**

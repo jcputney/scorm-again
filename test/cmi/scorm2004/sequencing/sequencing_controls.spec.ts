@@ -130,16 +130,16 @@ describe("SequencingControls", () => {
       expect(controls.objectiveMeasureWeight).toBe(0.5);
     });
 
-    it("should not set objectiveMeasureWeight outside valid range", () => {
+    it("should not set objectiveMeasureWeight to negative values", () => {
       const controls = new SequencingControls();
 
       // Try to set to negative value
       controls.objectiveMeasureWeight = -0.5;
       expect(controls.objectiveMeasureWeight).toBe(1.0); // Should remain at default
 
-      // Try to set to value > 1
+      // Values > 1 are now allowed per SCORM 2004 spec
       controls.objectiveMeasureWeight = 1.5;
-      expect(controls.objectiveMeasureWeight).toBe(1.0); // Should remain at default
+      expect(controls.objectiveMeasureWeight).toBe(1.5); // Should be set
 
       // Set to valid value
       controls.objectiveMeasureWeight = 0.75;

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SCORM Again - Interactive Demos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    
+    h1 {
+      color: #333;
+      text-align: center;
+    }
+    
+    .demo-list {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .demo-item {
+      margin: 20px 0;
+      padding: 20px;
+      background: #f9f9f9;
+      border-radius: 4px;
+      border-left: 4px solid #2196f3;
+    }
+    
+    .demo-item h3 {
+      margin-top: 0;
+      color: #2196f3;
+    }
+    
+    .demo-item p {
+      color: #666;
+      line-height: 1.6;
+    }
+    
+    .demo-item a {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 10px 20px;
+      background: #2196f3;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
+    
+    .demo-item a:hover {
+      background: #1976d2;
+    }
+    
+    .features {
+      margin-top: 10px;
+    }
+    
+    .features li {
+      color: #555;
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>SCORM Again - Interactive Demos</h1>
+  
+  <div class="demo-list">
+    <div class="demo-item">
+      <h3>1. Interactive Demo</h3>
+      <p>A comprehensive demo showing basic SCORM functionality including API usage, CMI data model interaction, progress tracking, and score reporting.</p>
+      <ul class="features">
+        <li>Basic SCORM API usage</li>
+        <li>CMI data model interaction</li>
+        <li>Progress tracking</li>
+        <li>Score reporting</li>
+        <li>Completion status</li>
+      </ul>
+      <a href="interactive_demo.html">Launch Demo</a>
+    </div>
+    
+    <div class="demo-item">
+      <h3>2. Selection and Randomization Demo</h3>
+      <p>Demonstrates SCORM 2004 advanced sequencing features for selecting and randomizing activities in a course structure.</p>
+      <ul class="features">
+        <li>Select Count (SR.1) - Limiting number of child activities</li>
+        <li>Randomize Children (SR.2) - Randomizing order of activities</li>
+        <li>Different timing options (once, on each new attempt)</li>
+        <li>Visual representation of activity tree changes</li>
+      </ul>
+      <a href="selection_randomization_demo.html">Launch Demo</a>
+    </div>
+    
+    <div class="demo-item">
+      <h3>3. Exit Action Rules Demo</h3>
+      <p>Demonstrates SCORM 2004 exit action rules (TB.2.1) that control how activities are terminated based on specific conditions.</p>
+      <ul class="features">
+        <li>Exit - Terminates current activity</li>
+        <li>Exit Parent - Terminates parent activity and all its children</li>
+        <li>Exit All - Terminates all activities in the course</li>
+        <li>Conditional exit rules based on activity state</li>
+        <li>Visual feedback showing activity termination</li>
+      </ul>
+      <a href="exit_action_rules_demo.html">Launch Demo</a>
+    </div>
+    
+    <div class="demo-item">
+      <h3>4. Post-Condition Rules Demo</h3>
+      <p>Demonstrates SCORM 2004 post-condition rules (TB.2.2) that automatically trigger navigation actions after an activity completes.</p>
+      <ul class="features">
+        <li>Continue - Automatically move to next activity</li>
+        <li>Previous - Go back to previous activity</li>
+        <li>Retry - Retry the current activity</li>
+        <li>Retry All - Start the course over</li>
+        <li>Exit Parent/All - Exit based on completion</li>
+        <li>Conditional rules based on completion, satisfaction, attempts, and scores</li>
+      </ul>
+      <a href="post_condition_rules_demo.html">Launch Demo</a>
+    </div>
+  </div>
+</body>
+</html>

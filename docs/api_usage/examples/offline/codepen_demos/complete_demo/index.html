@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCORM-Again Complete Offline Demo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 SCORM-Again Complete Offline Demo</h1>
+            <p>Full-featured demonstration of offline SCORM capabilities</p>
+        </div>
+
+        <div class="demo-controls">
+            <div class="control-group">
+                <label>Course ID:</label>
+                <input type="text" id="courseId" value="demo-course-001" />
+
+                <label>SCORM Version:</label>
+                <select id="scormVersion">
+                    <option value="2004">SCORM 2004</option>
+                    <option value="12">SCORM 1.2</option>
+                </select>
+
+                <button class="btn btn-primary" onclick="initializeDemo()">Initialize SCORM</button>
+            </div>
+
+            <div class="control-group">
+                <button class="btn btn-success" onclick="simulateOnline()">🌐 Go Online</button>
+                <button class="btn btn-warning" onclick="simulateOffline()">📴 Go Offline</button>
+                <button class="btn btn-primary" onclick="syncData()">🔄 Sync Data</button>
+                <button class="btn btn-danger" onclick="clearData()">🗑️ Clear Data</button>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-indicator">
+                <div class="status-dot" id="connectionStatus"></div>
+                <span id="connectionText">Checking connection...</span>
+            </div>
+            <div>
+                <span>Offline Items: </span>
+                <strong id="offlineCount">0</strong>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="scorm-player">
+                <div id="loadingOverlay" class="loading-overlay">
+                    <div class="spinner"></div>
+                    Loading SCORM content...
+                </div>
+                <iframe id="scormFrame" class="scorm-iframe" style="display: none;"></iframe>
+            </div>
+
+            <div class="demo-sidebar">
+                <div class="demo-section">
+                    <h3>📊 SCORM Data</h3>
+                    <div class="data-display">
+                        <pre id="scormData">No data available</pre>
+                    </div>
+                </div>
+
+                <div class="demo-section">
+                    <h3>🔧 Quick Actions</h3>
+                    <div class="control-group vertical">
+                        <button class="btn btn-primary" onclick="setLessonStatus('completed')">Mark Complete</button>
+                        <button class="btn btn-primary" onclick="setScore(85)">Set Score (85%)</button>
+                        <button class="btn btn-primary" onclick="setLocation('page-5')">Set Location</button>
+                        <button class="btn btn-primary" onclick="addInteraction()">Add Interaction</button>
+                    </div>
+                </div>
+
+                <div class="demo-section">
+                    <h3>🎯 Features</h3>
+                    <ul class="feature-list">
+                        <li>
+                            Offline Storage
+                            <span class="feature-status status-active">Active</span>
+                        </li>
+                        <li>
+                            Auto Commit
+                            <span class="feature-status status-active">Active</span>
+                        </li>
+                        <li>
+                            Auto Sync
+                            <span class="feature-status status-active">Active</span>
+                        </li>
+                        <li>
+                            Event Listeners
+                            <span class="feature-status status-active">Active</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="demo-section">
+                    <h3>📝 Activity Log</h3>
+                    <div class="log-container" id="activityLog">
+                        <div class="log-entry log-info">[INFO] Demo initialized</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/scorm-again@latest/dist/scorm-again.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

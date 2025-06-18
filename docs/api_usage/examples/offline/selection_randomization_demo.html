@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCORM 2004 Selection and Randomization Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+        .panel {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .activity {
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .activity.available {
+            background-color: #e8f5e9;
+            border-color: #4caf50;
+        }
+        .activity.hidden {
+            background-color: #ffebee;
+            border-color: #f44336;
+            opacity: 0.6;
+        }
+        .activity.current {
+            background-color: #e3f2fd;
+            border-color: #2196f3;
+            font-weight: bold;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        .controls label {
+            display: block;
+            margin: 10px 0;
+        }
+        .controls select, .controls input {
+            margin-left: 10px;
+            padding: 5px;
+        }
+        button {
+            background-color: #2196f3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #1976d2;
+        }
+        .info {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>SCORM 2004 Selection and Randomization Demo</h1>
+    
+    <div class="container">
+        <div class="panel">
+            <h2>Activity Tree</h2>
+            <div id="activityTree"></div>
+            
+            <div class="info">
+                <strong>Legend:</strong><br>
+                🟢 Available Activity<br>
+                🔴 Hidden Activity<br>
+                🔵 Current Activity
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>Configuration</h2>
+            <div class="controls">
+                <label>
+                    Selection Timing:
+                    <select id="selectionTiming">
+                        <option value="never">Never</option>
+                        <option value="once">Once</option>
+                        <option value="onEachNewAttempt">On Each New Attempt</option>
+                    </select>
+                </label>
+                
+                <label>
+                    Select Count:
+                    <input type="number" id="selectCount" min="1" max="10" value="5">
+                </label>
+                
+                <label>
+                    Randomization Timing:
+                    <select id="randomizationTiming">
+                        <option value="never">Never</option>
+                        <option value="once">Once</option>
+                        <option value="onEachNewAttempt">On Each New Attempt</option>
+                    </select>
+                </label>
+                
+                <label>
+                    Randomize Children:
+                    <input type="checkbox" id="randomizeChildren">
+                </label>
+            </div>
+            
+            <button onclick="applyConfiguration()">Apply Configuration</button>
+            <button onclick="startNewAttempt()">Start New Attempt</button>
+            <button onclick="resetDemo()">Reset Demo</button>
+            
+            <h3>Current Configuration:</h3>
+            <pre id="currentConfig"></pre>
+            
+            <h3>Activity Details:</h3>
+            <pre id="activityDetails"></pre>
+        </div>
+    </div>
+
+    <script src="../../../../dist/scorm-again.js"></script>
+    <script>
+        // Initialize SCORM 2004 API
+        const API_1484_11 = new window.Scorm2004API({
+            logLevel: 2,
+            mastery_override: true
+        });
+        
+        // Make it globally accessible
+        window.API_1484_11 = API_1484_11;
+        
+        // Initialize the API
+        API_1484_11.Initialize("");
+        
+        // Create a sample activity tree with 10 child activities
+        const rootActivity = {
+            id: "root",
+            title: "Demo Course",
+            children: []
+        };
+        
+        // Add 10 child activities
+        for (let i = 1; i <= 10; i++) {
+            rootActivity.children.push({
+                id: `activity${i}`,
+                title: `Activity ${i}`,
+                isAvailable: true,
+                isHiddenFromChoice: false
+            });
+        }
+        
+        // Store the original order
+        const originalOrder = [...rootActivity.children];
+        
+        function renderActivityTree() {
+            const treeContainer = document.getElementById('activityTree');
+            treeContainer.innerHTML = '<h3>' + rootActivity.title + '</h3>';
+            
+            rootActivity.children.forEach(activity => {
+                const activityDiv = document.createElement('div');
+                activityDiv.className = 'activity';
+                
+                if (activity.isHiddenFromChoice || !activity.isAvailable) {
+                    activityDiv.className += ' hidden';
+                    activityDiv.innerHTML = '🔴 ' + activity.title;
+                } else {
+                    activityDiv.className += ' available';
+                    activityDiv.innerHTML = '🟢 ' + activity.title;
+                }
+                
+                activityDiv.onclick = () => showActivityDetails(activity);
+                treeContainer.appendChild(activityDiv);
+            });
+        }
+        
+        function showActivityDetails(activity) {
+            const detailsContainer = document.getElementById('activityDetails');
+            detailsContainer.textContent = JSON.stringify({
+                id: activity.id,
+                title: activity.title,
+                isAvailable: activity.isAvailable,
+                isHiddenFromChoice: activity.isHiddenFromChoice
+            }, null, 2);
+        }
+        
+        function updateConfigDisplay() {
+            const configContainer = document.getElementById('currentConfig');
+            const config = {
+                selectionTiming: document.getElementById('selectionTiming').value,
+                selectCount: parseInt(document.getElementById('selectCount').value),
+                randomizationTiming: document.getElementById('randomizationTiming').value,
+                randomizeChildren: document.getElementById('randomizeChildren').checked
+            };
+            configContainer.textContent = JSON.stringify(config, null, 2);
+        }
+        
+        function applyConfiguration() {
+            const config = {
+                selectionTiming: document.getElementById('selectionTiming').value,
+                selectCount: parseInt(document.getElementById('selectCount').value),
+                randomizationTiming: document.getElementById('randomizationTiming').value,
+                randomizeChildren: document.getElementById('randomizeChildren').checked
+            };
+            
+            // Apply selection if needed
+            if (config.selectionTiming !== 'never') {
+                applySelection(config.selectCount);
+            } else {
+                // Reset selection
+                rootActivity.children.forEach(activity => {
+                    activity.isAvailable = true;
+                    activity.isHiddenFromChoice = false;
+                });
+            }
+            
+            // Apply randomization if needed
+            if (config.randomizationTiming !== 'never' && config.randomizeChildren) {
+                applyRandomization();
+            }
+            
+            updateConfigDisplay();
+            renderActivityTree();
+        }
+        
+        function applySelection(selectCount) {
+            // Reset all activities first
+            rootActivity.children.forEach(activity => {
+                activity.isAvailable = true;
+                activity.isHiddenFromChoice = false;
+            });
+            
+            // If selectCount is less than total, hide some activities
+            if (selectCount < rootActivity.children.length) {
+                const indices = [];
+                for (let i = 0; i < rootActivity.children.length; i++) {
+                    indices.push(i);
+                }
+                
+                // Randomly select activities to keep
+                const selectedIndices = [];
+                for (let i = 0; i < selectCount; i++) {
+                    const randomIndex = Math.floor(Math.random() * indices.length);
+                    selectedIndices.push(indices[randomIndex]);
+                    indices.splice(randomIndex, 1);
+                }
+                
+                // Hide non-selected activities
+                rootActivity.children.forEach((activity, index) => {
+                    if (!selectedIndices.includes(index)) {
+                        activity.isAvailable = false;
+                        activity.isHiddenFromChoice = true;
+                    }
+                });
+            }
+        }
+        
+        function applyRandomization() {
+            // Fisher-Yates shuffle
+            const children = [...rootActivity.children];
+            for (let i = children.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [children[i], children[j]] = [children[j], children[i]];
+            }
+            rootActivity.children = children;
+        }
+        
+        function startNewAttempt() {
+            const config = {
+                selectionTiming: document.getElementById('selectionTiming').value,
+                selectCount: parseInt(document.getElementById('selectCount').value),
+                randomizationTiming: document.getElementById('randomizationTiming').value,
+                randomizeChildren: document.getElementById('randomizeChildren').checked
+            };
+            
+            // Apply selection/randomization for new attempt
+            if (config.selectionTiming === 'onEachNewAttempt') {
+                applySelection(config.selectCount);
+            }
+            
+            if (config.randomizationTiming === 'onEachNewAttempt' && config.randomizeChildren) {
+                applyRandomization();
+            }
+            
+            renderActivityTree();
+            alert('New attempt started! Selection and randomization have been applied based on your configuration.');
+        }
+        
+        function resetDemo() {
+            // Restore original order
+            rootActivity.children = [...originalOrder];
+            
+            // Reset all activities
+            rootActivity.children.forEach(activity => {
+                activity.isAvailable = true;
+                activity.isHiddenFromChoice = false;
+            });
+            
+            // Reset controls
+            document.getElementById('selectionTiming').value = 'never';
+            document.getElementById('selectCount').value = '5';
+            document.getElementById('randomizationTiming').value = 'never';
+            document.getElementById('randomizeChildren').checked = false;
+            
+            updateConfigDisplay();
+            renderActivityTree();
+        }
+        
+        // Initial render
+        updateConfigDisplay();
+        renderActivityTree();
+    </script>
+</body>
+</html>

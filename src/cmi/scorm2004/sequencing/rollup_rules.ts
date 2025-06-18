@@ -418,32 +418,43 @@ export class RollupRules extends BaseCMI {
       return;
     }
 
-    const children = activity.children;
+    const children = activity.getAvailableChildren();
     let completionRollup = false;
     let successRollup = false;
 
-    // Process each rule
-    for (const rule of this._rules) {
-      if (rule.evaluate(children)) {
-        switch (rule.action) {
-          case RollupActionType.SATISFIED:
-            activity.successStatus = SuccessStatus.PASSED;
-            successRollup = true;
-            break;
-          case RollupActionType.NOT_SATISFIED:
-            activity.successStatus = SuccessStatus.FAILED;
-            successRollup = true;
-            break;
-          case RollupActionType.COMPLETED:
-            activity.completionStatus = CompletionStatus.COMPLETED;
-            activity.isCompleted = true;
-            completionRollup = true;
-            break;
-          case RollupActionType.INCOMPLETE:
-            activity.completionStatus = CompletionStatus.INCOMPLETE;
-            activity.isCompleted = false;
-            completionRollup = true;
-            break;
+    // First, check if we should use measure rollup (RB.1.2.a)
+    if (activity.sequencingControls.rollupObjectiveSatisfied) {
+      const measureRollupResult = this._objectiveRollupUsingMeasure(activity, children);
+      if (measureRollupResult !== null) {
+        successRollup = true;
+        // Skip rule-based rollup if measure rollup was successful
+      }
+    }
+
+    // Process each rule (RB.1.2.b)
+    if (!successRollup) {
+      for (const rule of this._rules) {
+        if (rule.evaluate(children)) {
+          switch (rule.action) {
+            case RollupActionType.SATISFIED:
+              activity.successStatus = SuccessStatus.PASSED;
+              successRollup = true;
+              break;
+            case RollupActionType.NOT_SATISFIED:
+              activity.successStatus = SuccessStatus.FAILED;
+              successRollup = true;
+              break;
+            case RollupActionType.COMPLETED:
+              activity.completionStatus = CompletionStatus.COMPLETED;
+              activity.isCompleted = true;
+              completionRollup = true;
+              break;
+            case RollupActionType.INCOMPLETE:
+              activity.completionStatus = CompletionStatus.INCOMPLETE;
+              activity.isCompleted = false;
+              completionRollup = true;
+              break;
+          }
         }
       }
     }
@@ -453,7 +464,7 @@ export class RollupRules extends BaseCMI {
       this._defaultCompletionRollup(activity, children);
     }
 
-    // If no rules applied for success, use default rollup
+    // If no rules applied for success, use default rollup (RB.1.2.c)
     if (!successRollup) {
       this._defaultSuccessRollup(activity, children);
     }
@@ -480,6 +491,64 @@ export class RollupRules extends BaseCMI {
         activity.completionStatus = CompletionStatus.INCOMPLETE;
         activity.isCompleted = false;
       }
+    }
+  }
+
+  /**
+   * Objective Rollup Using Measure Process (RB.1.2.a)
+   * @param {Activity} activity - The activity to process rollup for
+   * @param {Activity[]} children - The child activities
+   * @return {boolean | null} - True if satisfied, false if not satisfied, null if measure rollup not applicable
+   * @private
+   */
+  private _objectiveRollupUsingMeasure(activity: Activity, children: Activity[]): boolean | null {
+    // Check if objective measure weight is properly configured
+    const objectiveMeasureWeight = activity.sequencingControls.objectiveMeasureWeight;
+    if (objectiveMeasureWeight <= 0) {
+      return null; // Measure rollup not applicable
+    }
+
+    // Calculate weighted average of child objective measures
+    let totalWeight = 0;
+    let weightedSum = 0;
+    let hasValidMeasures = false;
+
+    for (const child of children) {
+      // Only include children that should contribute to rollup
+      if (!child.sequencingControls.rollupObjectiveSatisfied) {
+        continue;
+      }
+
+      // Check if child has a valid objective measure
+      if (child.objectiveMeasureStatus && child.objectiveMeasureStatus === true) {
+        const childWeight = child.sequencingControls.objectiveMeasureWeight;
+        if (childWeight > 0) {
+          weightedSum += child.objectiveNormalizedMeasure * childWeight;
+          totalWeight += childWeight;
+          hasValidMeasures = true;
+        }
+      }
+    }
+
+    // If no valid measures found, measure rollup is not applicable
+    if (!hasValidMeasures || totalWeight === 0) {
+      return null;
+    }
+
+    // Calculate the normalized measure for the parent activity
+    const normalizedMeasure = weightedSum / totalWeight;
+    activity.objectiveNormalizedMeasure = normalizedMeasure;
+    activity.objectiveMeasureStatus = true;
+
+    // Determine satisfaction based on scaled passing score
+    if (normalizedMeasure >= activity.scaledPassingScore) {
+      activity.successStatus = SuccessStatus.PASSED;
+      activity.objectiveSatisfiedStatus = true;
+      return true;
+    } else {
+      activity.successStatus = SuccessStatus.FAILED;
+      activity.objectiveSatisfiedStatus = false;
+      return false;
     }
   }
 

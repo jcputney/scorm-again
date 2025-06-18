@@ -1,6 +1,24 @@
 import { BaseCMI } from "../../common/base_cmi";
 
 /**
+ * Enum for selection timing
+ */
+export enum SelectionTiming {
+  NEVER = "never",
+  ONCE = "once",
+  ON_EACH_NEW_ATTEMPT = "onEachNewAttempt",
+}
+
+/**
+ * Enum for randomization timing
+ */
+export enum RandomizationTiming {
+  NEVER = "never",
+  ONCE = "once",
+  ON_EACH_NEW_ATTEMPT = "onEachNewAttempt",
+}
+
+/**
  * Class representing SCORM 2004 sequencing controls
  */
 export class SequencingControls extends BaseCMI {
@@ -21,6 +39,16 @@ export class SequencingControls extends BaseCMI {
   private _rollupObjectiveSatisfied: boolean = true;
   private _rollupProgressCompletion: boolean = true;
   private _objectiveMeasureWeight: number = 1.0;
+
+  // Selection Controls
+  private _selectionTiming: SelectionTiming = SelectionTiming.NEVER;
+  private _selectCount: number | null = null;
+  private _selectionCountStatus: boolean = false;
+  private _randomizeChildren: boolean = false;
+
+  // Randomization Controls
+  private _randomizationTiming: RandomizationTiming = RandomizationTiming.NEVER;
+  private _reorderChildren: boolean = false;
 
   /**
    * Constructor for SequencingControls
@@ -46,6 +74,12 @@ export class SequencingControls extends BaseCMI {
     this._rollupObjectiveSatisfied = true;
     this._rollupProgressCompletion = true;
     this._objectiveMeasureWeight = 1.0;
+    this._selectionTiming = SelectionTiming.NEVER;
+    this._selectCount = null;
+    this._selectionCountStatus = false;
+    this._randomizeChildren = false;
+    this._randomizationTiming = RandomizationTiming.NEVER;
+    this._reorderChildren = false;
   }
 
   /**
@@ -237,7 +271,8 @@ export class SequencingControls extends BaseCMI {
    * @param {number} objectiveMeasureWeight
    */
   set objectiveMeasureWeight(objectiveMeasureWeight: number) {
-    if (objectiveMeasureWeight >= 0 && objectiveMeasureWeight <= 1) {
+    // According to SCORM 2004, weight must be >= 0 but there's no upper limit
+    if (objectiveMeasureWeight >= 0) {
       this._objectiveMeasureWeight = objectiveMeasureWeight;
     }
   }
@@ -281,6 +316,104 @@ export class SequencingControls extends BaseCMI {
   }
 
   /**
+   * Getter for selectionTiming
+   * @return {SelectionTiming}
+   */
+  get selectionTiming(): SelectionTiming {
+    return this._selectionTiming;
+  }
+
+  /**
+   * Setter for selectionTiming
+   * @param {SelectionTiming} selectionTiming
+   */
+  set selectionTiming(selectionTiming: SelectionTiming) {
+    this._selectionTiming = selectionTiming;
+  }
+
+  /**
+   * Getter for selectCount
+   * @return {number | null}
+   */
+  get selectCount(): number | null {
+    return this._selectCount;
+  }
+
+  /**
+   * Setter for selectCount
+   * @param {number | null} selectCount
+   */
+  set selectCount(selectCount: number | null) {
+    if (selectCount === null || selectCount > 0) {
+      this._selectCount = selectCount;
+    }
+  }
+
+  /**
+   * Getter for selectionCountStatus
+   * @return {boolean}
+   */
+  get selectionCountStatus(): boolean {
+    return this._selectionCountStatus;
+  }
+
+  /**
+   * Setter for selectionCountStatus
+   * @param {boolean} selectionCountStatus
+   */
+  set selectionCountStatus(selectionCountStatus: boolean) {
+    this._selectionCountStatus = selectionCountStatus;
+  }
+
+  /**
+   * Getter for randomizeChildren
+   * @return {boolean}
+   */
+  get randomizeChildren(): boolean {
+    return this._randomizeChildren;
+  }
+
+  /**
+   * Setter for randomizeChildren
+   * @param {boolean} randomizeChildren
+   */
+  set randomizeChildren(randomizeChildren: boolean) {
+    this._randomizeChildren = randomizeChildren;
+  }
+
+  /**
+   * Getter for randomizationTiming
+   * @return {RandomizationTiming}
+   */
+  get randomizationTiming(): RandomizationTiming {
+    return this._randomizationTiming;
+  }
+
+  /**
+   * Setter for randomizationTiming
+   * @param {RandomizationTiming} randomizationTiming
+   */
+  set randomizationTiming(randomizationTiming: RandomizationTiming) {
+    this._randomizationTiming = randomizationTiming;
+  }
+
+  /**
+   * Getter for reorderChildren
+   * @return {boolean}
+   */
+  get reorderChildren(): boolean {
+    return this._reorderChildren;
+  }
+
+  /**
+   * Setter for reorderChildren
+   * @param {boolean} reorderChildren
+   */
+  set reorderChildren(reorderChildren: boolean) {
+    this._reorderChildren = reorderChildren;
+  }
+
+  /**
    * toJSON for SequencingControls
    * @return {object}
    */
@@ -299,6 +432,12 @@ export class SequencingControls extends BaseCMI {
       rollupObjectiveSatisfied: this._rollupObjectiveSatisfied,
       rollupProgressCompletion: this._rollupProgressCompletion,
       objectiveMeasureWeight: this._objectiveMeasureWeight,
+      selectionTiming: this._selectionTiming,
+      selectCount: this._selectCount,
+      selectionCountStatus: this._selectionCountStatus,
+      randomizeChildren: this._randomizeChildren,
+      randomizationTiming: this._randomizationTiming,
+      reorderChildren: this._reorderChildren,
     };
     this.jsonString = false;
     return result;

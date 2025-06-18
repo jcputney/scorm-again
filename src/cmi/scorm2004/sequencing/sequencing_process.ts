@@ -1,8 +1,9 @@
 import { Activity } from "./activity";
 import { ActivityTree } from "./activity_tree";
-import { SequencingRules, RuleActionType } from "./sequencing_rules";
+import { SequencingRules, SequencingRule, RuleActionType, RuleConditionOperator } from "./sequencing_rules";
 import { SequencingControls } from "./sequencing_controls";
 import { ADLNav } from "../adl";
+import { SelectionRandomization } from "./selection_randomization";
 
 /**
  * Enum for sequencing request types
@@ -55,19 +56,19 @@ export class SequencingResult {
  */
 export class SequencingProcess {
   private activityTree: ActivityTree;
-  private sequencingRules: SequencingRules;
-  private sequencingControls: SequencingControls;
+  private sequencingRules: SequencingRules | null;
+  private sequencingControls: SequencingControls | null;
   private adlNav: ADLNav | null;
 
   constructor(
     activityTree: ActivityTree,
-    sequencingRules: SequencingRules,
-    sequencingControls: SequencingControls,
+    sequencingRules?: SequencingRules | null,
+    sequencingControls?: SequencingControls | null,
     adlNav: ADLNav | null = null,
   ) {
     this.activityTree = activityTree;
-    this.sequencingRules = sequencingRules;
-    this.sequencingControls = sequencingControls;
+    this.sequencingRules = sequencingRules || null;
+    this.sequencingControls = sequencingControls || null;
     this.adlNav = adlNav;
   }
 
@@ -196,23 +197,49 @@ export class SequencingProcess {
       return result;
     }
 
-    // Flow from root to find first available activity
-    const flowResult = this.flowActivityTraversalSubprocess(
-      root,
-      true, // direction forward
-      true, // consider children (we want to flow into the root's children)
-      FlowSubprocessMode.FORWARD,
-    );
+    // For START, we need to flow into the activity tree from the root
+    // Start with the root and find first deliverable leaf activity
+    const deliverableActivity = this.findFirstDeliverableActivity(root);
 
-    if (!flowResult) {
+    if (!deliverableActivity) {
       result.exception = "SB.2.5-3"; // No activity available
       return result;
     }
 
     // Deliver the identified activity
     result.deliveryRequest = DeliveryRequestType.DELIVER;
-    result.targetActivity = flowResult;
+    result.targetActivity = deliverableActivity;
     return result;
+  }
+
+  /**
+   * Find First Deliverable Activity
+   * Recursively searches from the given activity to find the first deliverable leaf
+   * @param {Activity} activity - The activity to start searching from
+   * @return {Activity | null} - The first deliverable activity, or null if none found
+   */
+  private findFirstDeliverableActivity(activity: Activity): Activity | null {
+    // Check if this activity can be delivered (leaf activity)
+    if (activity.children.length === 0) {
+      // This is a leaf - check if it can be delivered
+      if (this.checkActivityProcess(activity)) {
+        return activity;
+      }
+      return null;
+    }
+
+    // This is a cluster - look through children for deliverable activity
+    this.ensureSelectionAndRandomization(activity);
+    const children = activity.getAvailableChildren();
+    
+    for (const child of children) {
+      const deliverable = this.findFirstDeliverableActivity(child);
+      if (deliverable) {
+        return deliverable;
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -250,30 +277,22 @@ export class SequencingProcess {
     const result = new SequencingResult();
 
     // Check if the current activity has been terminated
-    if (!currentActivity.isActive) {
+    if (currentActivity.isActive) {
       result.exception = "SB.2.7-1"; // Current activity not terminated
       return result;
     }
 
-    // Flow from current activity to find next
-    const flowResult = this.flowActivityTraversalSubprocess(
-      currentActivity,
-      false, // direction not forward (from current)
-      false, // don't consider children
-      FlowSubprocessMode.FORWARD,
-    );
-
-    if (!flowResult) {
-      result.exception = "SB.2.7-2"; // No activity available
+    // Check if flow is allowed from the current activity's parent
+    if (currentActivity.parent && !currentActivity.parent.sequencingControls.flow) {
+      result.exception = "SB.2.7-2"; // No activity available (flow disabled)
       return result;
     }
 
-    // Check if we can deliver the activity
-    const checkResult = this.checkActivityProcess(flowResult);
-    if (!checkResult) {
-      // End the attempt on the current activity
-      this.terminateDescendentAttemptsProcess(currentActivity);
-      // Sequencing ends with no delivery
+    // Flow from current activity to find next using flow subprocess
+    const flowResult = this.flowSubprocess(currentActivity, FlowSubprocessMode.FORWARD);
+
+    if (!flowResult) {
+      result.exception = "SB.2.7-2"; // No activity available
       return result;
     }
 
@@ -293,30 +312,28 @@ export class SequencingProcess {
     const result = new SequencingResult();
 
     // Check if the current activity has been terminated
-    if (!currentActivity.isActive) {
+    if (currentActivity.isActive) {
       result.exception = "SB.2.8-1"; // Current activity not terminated
       return result;
     }
 
-    // Flow from current activity to find previous
-    const flowResult = this.flowActivityTraversalSubprocess(
-      currentActivity,
-      false, // direction not forward (from current)
-      false, // don't consider children
-      FlowSubprocessMode.BACKWARD,
-    );
-
-    if (!flowResult) {
-      result.exception = "SB.2.8-2"; // No activity available
+    // Check if flow is allowed from the current activity's parent
+    if (currentActivity.parent && !currentActivity.parent.sequencingControls.flow) {
+      result.exception = "SB.2.8-2"; // No activity available (flow disabled)
       return result;
     }
 
-    // Check if we can deliver the activity
-    const checkResult = this.checkActivityProcess(flowResult);
-    if (!checkResult) {
-      // End the attempt on the current activity
-      this.terminateDescendentAttemptsProcess(currentActivity);
-      // Sequencing ends with no delivery
+    // Check if backward flow is allowed (forwardOnly control)
+    if (currentActivity.parent && currentActivity.parent.sequencingControls.forwardOnly) {
+      result.exception = "SB.2.8-2"; // No activity available (backward flow disabled)
+      return result;
+    }
+
+    // Flow from current activity to find previous using flow subprocess
+    const flowResult = this.flowSubprocess(currentActivity, FlowSubprocessMode.BACKWARD);
+
+    if (!flowResult) {
+      result.exception = "SB.2.8-2"; // No activity available
       return result;
     }
 
@@ -406,7 +423,9 @@ export class SequencingProcess {
     }
 
     // If target is not a leaf, flow forward to find a leaf
-    if (targetActivity.children.length > 0) {
+    this.ensureSelectionAndRandomization(targetActivity);
+    const availableChildren = targetActivity.getAvailableChildren();
+    if (availableChildren.length > 0) {
       const flowResult = this.flowActivityTraversalSubprocess(
         targetActivity,
         true, // direction forward
@@ -581,8 +600,21 @@ export class SequencingProcess {
   }
 
   /**
-   * Flow Activity Traversal Subprocess (SB.2.1)
-   * Identifies the next activity in the activity tree
+   * Ensure selection and randomization is applied to an activity
+   * @param {Activity} activity - The activity to process
+   */
+  private ensureSelectionAndRandomization(activity: Activity): void {
+    // Check if processing is needed
+    if (activity.getAvailableChildren() === activity.children && 
+        (SelectionRandomization.isSelectionNeeded(activity) || 
+         SelectionRandomization.isRandomizationNeeded(activity))) {
+      SelectionRandomization.applySelectionAndRandomization(activity, activity.isNewAttempt);
+    }
+  }
+
+  /**
+   * Flow Activity Traversal Subprocess (SB.2.2)
+   * Checks if an activity can be delivered and flows into clusters if needed
    */
   private flowActivityTraversalSubprocess(
     activity: Activity,
@@ -590,49 +622,44 @@ export class SequencingProcess {
     considerChildren: boolean,
     mode: FlowSubprocessMode,
   ): Activity | null {
-    if (mode === FlowSubprocessMode.FORWARD) {
-      // If we should consider children and the activity has children
-      if (considerChildren && activity.children.length > 0) {
-        // Flow to first child
-        return activity.children[0] || null;
-      }
-      
-      // Try to get next sibling
-      let nextSibling = this.activityTree.getNextSibling(activity);
-      if (nextSibling) {
-        return nextSibling;
-      }
-      
-      // No next sibling, traverse up the tree
-      let parent = activity.parent;
-      while (parent) {
-        nextSibling = this.activityTree.getNextSibling(parent);
-        if (nextSibling) {
-          return nextSibling;
-        }
-        parent = parent.parent;
-      }
-      
+    // Check if the activity is available
+    if (!activity.isAvailable) {
       return null;
-    } else {
-      // Backward flow
-      const previousSibling = this.activityTree.getPreviousSibling(activity);
-      if (previousSibling) {
-        // If the previous sibling has children, flow to the last child
-        if (previousSibling.children.length > 0) {
-          let lastChild: Activity | undefined = previousSibling.children[previousSibling.children.length - 1];
-          // Continue flowing to the last descendant
-          while (lastChild && lastChild.children.length > 0) {
-            lastChild = lastChild.children[lastChild.children.length - 1];
-          }
-          return lastChild || null;
-        }
-        return previousSibling;
-      }
-      
-      // No previous sibling, return parent
-      return activity.parent;
     }
+
+    // Check sequencing control modes
+    const parent = activity.parent;
+    if (parent && !parent.sequencingControls.flow) {
+      return null;
+    }
+
+    // If activity is a leaf, check if it can be delivered
+    if (activity.children.length === 0) {
+      if (this.checkActivityProcess(activity)) {
+        return activity;
+      }
+      return null;
+    }
+
+    // Activity is a cluster, flow into it to find a deliverable leaf
+    if (considerChildren) {
+      this.ensureSelectionAndRandomization(activity);
+      const availableChildren = activity.getAvailableChildren();
+      
+      for (const child of availableChildren) {
+        const deliverable = this.flowActivityTraversalSubprocess(
+          child,
+          mode === FlowSubprocessMode.FORWARD,
+          true,
+          mode
+        );
+        if (deliverable) {
+          return deliverable;
+        }
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -645,13 +672,17 @@ export class SequencingProcess {
       return false;
     }
 
-    // Check limit conditions
-    if (activity.hasAttemptLimitExceeded()) {
-      return false;
+    // Check limit conditions (UP.1)
+    if (this.limitConditionsCheckProcess(activity)) {
+      return false; // Activity violates limit conditions
     }
 
-    // Evaluate pre-condition rules
-    const preConditionResult = this.sequencingRules.evaluatePreConditionRules(activity);
+    // Check pre-condition rules using UP.2
+    const preConditionResult = this.sequencingRulesCheckProcess(
+      activity, 
+      activity.sequencingRules.preConditionRules
+    );
+    
     return preConditionResult !== RuleActionType.SKIP && 
            preConditionResult !== RuleActionType.DISABLED;
   }
@@ -660,14 +691,239 @@ export class SequencingProcess {
    * Terminate Descendent Attempts Process (SB.2.4)
    * Ends attempts on an activity and its descendants
    */
-  private terminateDescendentAttemptsProcess(activity: Activity): void {
+  private terminateDescendentAttemptsProcess(activity: Activity, skipExitRules: boolean = false): void {
+    // Apply Exit Action Rules (TB.2.1) first to check for exit actions
+    let exitAction = null;
+    if (!skipExitRules) {
+      exitAction = this.exitActionRulesSubprocess(activity);
+    }
+
     // End attempt on the activity
     activity.isActive = false;
 
     // Recursively terminate descendants
+    // Use all children here, not just available ones, since we need to terminate all
     for (const child of activity.children) {
-      this.terminateDescendentAttemptsProcess(child);
+      this.terminateDescendentAttemptsProcess(child, skipExitRules);
     }
+
+    // Process deferred exit actions after termination to avoid recursion
+    if (exitAction && !skipExitRules) {
+      this.processDeferredExitAction(exitAction, activity);
+    }
+  }
+
+  /**
+   * Exit Action Rules Subprocess (TB.2.1)
+   * Evaluates the exit condition rules for an activity
+   * @param {Activity} activity - The activity to evaluate exit rules for
+   * @return {RuleActionType | null} - The exit action to process, if any
+   * @private
+   */
+  private exitActionRulesSubprocess(activity: Activity): RuleActionType | null {
+    // Evaluate exit condition rules using UP.2
+    const exitAction = this.sequencingRulesCheckProcess(
+      activity,
+      activity.sequencingRules.exitConditionRules
+    );
+
+    // Only certain actions are valid for exit condition rules
+    if (exitAction === RuleActionType.EXIT || 
+        exitAction === RuleActionType.EXIT_PARENT || 
+        exitAction === RuleActionType.EXIT_ALL) {
+      return exitAction;
+    }
+
+    return null;
+  }
+
+  /**
+   * Process deferred exit action after termination
+   * @param {RuleActionType} exitAction - The exit action to process
+   * @param {Activity} activity - The activity that triggered the exit action
+   * @private
+   */
+  private processDeferredExitAction(exitAction: RuleActionType, activity: Activity): void {
+    switch (exitAction) {
+      case RuleActionType.EXIT:
+        // Exit terminates the current attempt on the activity
+        // Already handled by terminateDescendentAttemptsProcess
+        break;
+      
+      case RuleActionType.EXIT_PARENT:
+        // Exit parent terminates the current attempt on the parent activity
+        if (activity.parent && activity.parent.isActive) {
+          this.terminateDescendentAttemptsProcess(activity.parent, true);
+        }
+        break;
+      
+      case RuleActionType.EXIT_ALL:
+        // Exit all terminates all activities
+        if (this.activityTree.root && this.activityTree.root !== activity) {
+          // Only process if we haven't already terminated the root
+          const allActivities = this.activityTree.getAllActivities();
+          const anyActive = allActivities.some(a => a.isActive);
+          if (anyActive) {
+            this.terminateDescendentAttemptsProcess(this.activityTree.root, true);
+          }
+        }
+        break;
+    }
+  }
+
+  /**
+   * Post Condition Rules Subprocess (TB.2.2)
+   * Evaluates the post-condition rules for an activity after delivery
+   * @param {Activity} activity - The activity to evaluate post-condition rules for
+   * @return {RuleActionType | null} - The action to take, if any
+   * @private
+   */
+  private postConditionRulesSubprocess(activity: Activity): RuleActionType | null {
+    // Evaluate post-condition rules using UP.2
+    const postAction = this.sequencingRulesCheckProcess(
+      activity,
+      activity.sequencingRules.postConditionRules
+    );
+
+    // Only certain actions are valid for post-condition rules
+    const validActions = [
+      RuleActionType.EXIT_PARENT,
+      RuleActionType.EXIT_ALL,
+      RuleActionType.RETRY,
+      RuleActionType.RETRY_ALL,
+      RuleActionType.CONTINUE,
+      RuleActionType.PREVIOUS
+    ];
+
+    if (postAction && validActions.includes(postAction)) {
+      return postAction;
+    }
+
+    return null;
+  }
+
+  /**
+   * Limit Conditions Check Process (UP.1)
+   * Checks if an activity has exceeded its limit conditions (attempt limit or duration limits)
+   * @param {Activity} activity - The activity to check
+   * @return {boolean} - True if limit conditions are violated, false otherwise
+   * @private
+   */
+  private limitConditionsCheckProcess(activity: Activity): boolean {
+    // Check attempt limit
+    if (activity.attemptLimit !== null && activity.attemptCount >= activity.attemptLimit) {
+      return true; // Attempt limit exceeded
+    }
+
+    // Check attempt absolute duration limit
+    if (activity.attemptAbsoluteDurationLimit !== null) {
+      const attemptDurationMs = this.parseISO8601Duration(activity.attemptExperiencedDuration);
+      const attemptLimitMs = this.parseISO8601Duration(activity.attemptAbsoluteDurationLimit);
+      
+      if (attemptDurationMs >= attemptLimitMs) {
+        return true; // Attempt duration limit exceeded
+      }
+    }
+
+    // Check activity absolute duration limit
+    if (activity.activityAbsoluteDurationLimit !== null) {
+      const activityDurationMs = this.parseISO8601Duration(activity.activityExperiencedDuration);
+      const activityLimitMs = this.parseISO8601Duration(activity.activityAbsoluteDurationLimit);
+      
+      if (activityDurationMs >= activityLimitMs) {
+        return true; // Activity duration limit exceeded
+      }
+    }
+
+    return false; // No limit conditions violated
+  }
+
+  /**
+   * Parse ISO 8601 duration to milliseconds
+   * @param {string} duration - ISO 8601 duration string
+   * @return {number} - Duration in milliseconds
+   * @private
+   */
+  private parseISO8601Duration(duration: string): number {
+    const regex = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?/;
+    const matches = duration.match(regex);
+
+    if (!matches) {
+      return 0;
+    }
+
+    const hours = parseInt(matches[1] || "0", 10);
+    const minutes = parseInt(matches[2] || "0", 10);
+    const seconds = parseFloat(matches[3] || "0");
+
+    return (hours * 3600 + minutes * 60 + seconds) * 1000;
+  }
+
+  /**
+   * Sequencing Rules Check Process (UP.2)
+   * General process for evaluating a set of sequencing rules
+   * @param {Activity} activity - The activity to evaluate rules for
+   * @param {SequencingRule[]} rules - The rules to evaluate
+   * @return {RuleActionType | null} - The action to take, or null if no rules apply
+   * @private
+   */
+  private sequencingRulesCheckProcess(activity: Activity, rules: SequencingRule[]): RuleActionType | null {
+    // Evaluate each rule in order
+    for (const rule of rules) {
+      // Use the Sequencing Rules Check Subprocess (UP.2.1) to evaluate
+      if (this.sequencingRulesCheckSubprocess(activity, rule)) {
+        // Rule condition(s) met, return the action
+        return rule.action;
+      }
+    }
+    
+    // No rules applied
+    return null;
+  }
+
+  /**
+   * Sequencing Rules Check Subprocess (UP.2.1)
+   * Evaluates individual sequencing rule conditions
+   * @param {Activity} activity - The activity to evaluate the rule for
+   * @param {SequencingRule} rule - The rule to evaluate
+   * @return {boolean} - True if all rule conditions are met
+   * @private
+   */
+  private sequencingRulesCheckSubprocess(activity: Activity, rule: SequencingRule): boolean {
+    // If no conditions, the rule always applies
+    if (rule.conditions.length === 0) {
+      return true;
+    }
+
+    // Evaluate based on condition combination
+    const conditionCombination = rule.conditionCombination;
+    
+    if (conditionCombination === "all" || conditionCombination === RuleConditionOperator.AND) {
+      // All conditions must be true
+      return rule.conditions.every((condition) => {
+        const result = condition.evaluate(activity);
+        // Log evaluation for debugging
+        if (!result) {
+          // Condition failed, rule doesn't apply
+          return false;
+        }
+        return true;
+      });
+    } else if (conditionCombination === "any" || conditionCombination === RuleConditionOperator.OR) {
+      // At least one condition must be true
+      return rule.conditions.some((condition) => {
+        const result = condition.evaluate(activity);
+        // Log evaluation for debugging
+        if (result) {
+          // Condition passed, rule applies
+          return true;
+        }
+        return false;
+      });
+    }
+
+    // Unknown combination, default to false
+    return false;
   }
 
   /**
@@ -703,6 +959,228 @@ export class SequencingProcess {
     }
 
     return null;
+  }
+
+  /**
+   * Flow Subprocess (SB.2.3)
+   * Traverses the activity tree in the specified direction to find a deliverable activity
+   * @param {Activity} fromActivity - The activity to flow from
+   * @param {FlowSubprocessMode} direction - The flow direction
+   * @return {Activity | null} - The next deliverable activity, or null if none found
+   */
+  private flowSubprocess(fromActivity: Activity, direction: FlowSubprocessMode): Activity | null {
+    let candidateActivity: Activity | null = fromActivity;
+    let firstIteration = true;
+
+    // Keep traversing until we find a deliverable activity or run out of candidates
+    while (candidateActivity) {
+      // Get next candidate using flow tree traversal
+      // On first iteration, we want to skip the current activity's children
+      const nextCandidate = this.flowTreeTraversalSubprocess(
+        candidateActivity,
+        direction,
+        firstIteration
+      );
+
+      if (!nextCandidate) {
+        // No more candidates
+        return null;
+      }
+
+      // Check if this candidate can be delivered
+      const deliverable = this.flowActivityTraversalSubprocess(
+        nextCandidate,
+        direction === FlowSubprocessMode.FORWARD,
+        true, // consider children
+        direction
+      );
+
+      if (deliverable) {
+        return deliverable;
+      }
+
+      // Continue with next candidate
+      candidateActivity = nextCandidate;
+      firstIteration = false;
+    }
+
+    return null;
+  }
+
+
+  /**
+   * Flow Tree Traversal Subprocess (SB.2.1)
+   * Traverses the activity tree to find the next activity in the specified direction
+   * @param {Activity} fromActivity - The activity to traverse from
+   * @param {FlowSubprocessMode} direction - The traversal direction
+   * @param {boolean} skipChildren - Whether to skip checking children (for continuing from current)
+   * @return {Activity | null} - The next activity in the tree, or null if none
+   */
+  private flowTreeTraversalSubprocess(
+    fromActivity: Activity,
+    direction: FlowSubprocessMode,
+    skipChildren: boolean = false
+  ): Activity | null {
+    if (direction === FlowSubprocessMode.FORWARD) {
+      // First, check if activity has children (unless we're skipping them)
+      if (!skipChildren) {
+        this.ensureSelectionAndRandomization(fromActivity);
+        const children = fromActivity.getAvailableChildren();
+        if (children.length > 0) {
+          return children[0];
+        }
+      }
+
+      // No children, try to get next sibling
+      let current: Activity | null = fromActivity;
+      while (current) {
+        const nextSibling = this.activityTree.getNextSibling(current);
+        if (nextSibling) {
+          return nextSibling;
+        }
+        // No next sibling, move up to parent
+        current = current.parent;
+      }
+    } else {
+      // Backward direction
+      // Try to get previous sibling
+      const previousSibling = this.activityTree.getPreviousSibling(fromActivity);
+      if (previousSibling) {
+        // If previous sibling has children, go to the last descendant
+        let lastDescendant = previousSibling;
+        while (true) {
+          this.ensureSelectionAndRandomization(lastDescendant);
+          const children = lastDescendant.getAvailableChildren();
+          if (children.length === 0) {
+            break;
+          }
+          lastDescendant = children[children.length - 1];
+        }
+        return lastDescendant;
+      }
+
+      // No previous sibling, return parent
+      return fromActivity.parent;
+    }
+
+    return null;
+  }
+
+  /**
+   * Choice Flow Subprocess (SB.2.9.1)
+   * Handles the flow logic specific to choice navigation requests
+   * @param {Activity} targetActivity - The target activity for the choice
+   * @param {Activity | null} commonAncestor - The common ancestor between current and target
+   * @return {Activity | null} - The activity to deliver, or null if flow fails
+   */
+  private choiceFlowSubprocess(
+    targetActivity: Activity,
+    commonAncestor: Activity | null
+  ): Activity | null {
+    // If target is a leaf, it's the delivery candidate
+    if (targetActivity.children.length === 0) {
+      return targetActivity;
+    }
+
+    // If target is a cluster, use choice flow tree traversal
+    return this.choiceFlowTreeTraversalSubprocess(targetActivity);
+  }
+
+  /**
+   * Choice Flow Tree Traversal Subprocess (SB.2.9.2)
+   * Traverses into a cluster activity to find a leaf for delivery
+   * @param {Activity} fromActivity - The cluster activity to traverse from
+   * @return {Activity | null} - A leaf activity for delivery, or null if none found
+   */
+  private choiceFlowTreeTraversalSubprocess(fromActivity: Activity): Activity | null {
+    // Apply selection and randomization
+    this.ensureSelectionAndRandomization(fromActivity);
+    const children = fromActivity.getAvailableChildren();
+
+    // Find the first available child that can be delivered
+    for (const child of children) {
+      // Check if child can be delivered or traverse into it
+      const deliverable = this.choiceActivityTraversalSubprocess(child);
+      if (deliverable) {
+        return deliverable;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Choice Activity Traversal Subprocess (SB.2.4)
+   * Checks constraints and traverses into activities for choice navigation
+   * @param {Activity} activity - The activity to check and possibly traverse
+   * @return {Activity | null} - A deliverable activity, or null if none found
+   */
+  private choiceActivityTraversalSubprocess(activity: Activity): Activity | null {
+    // Check if activity is available
+    if (!activity.isAvailable) {
+      return null;
+    }
+
+    // Check if activity is hidden from choice
+    if (activity.isHiddenFromChoice) {
+      return null;
+    }
+
+    // Check constrain choice control
+    if (activity.parent && activity.parent.sequencingControls.constrainChoice) {
+      // Additional constraint checks can be added here
+      // For now, we'll allow the choice if not hidden
+    }
+
+    // If it's a leaf, check if it can be delivered
+    if (activity.children.length === 0) {
+      if (this.checkActivityProcess(activity)) {
+        return activity;
+      }
+      return null;
+    }
+
+    // If it's a cluster, traverse into it
+    return this.choiceFlowTreeTraversalSubprocess(activity);
+  }
+
+  /**
+   * Evaluate post-condition rules for the current activity
+   * This should be called after an activity has been delivered and the learner has interacted with it
+   * @param {Activity} activity - The activity to evaluate
+   * @return {SequencingRequestType | null} - The sequencing request to process, if any
+   */
+  public evaluatePostConditionRules(activity: Activity): SequencingRequestType | null {
+    const postAction = this.postConditionRulesSubprocess(activity);
+    
+    if (!postAction) {
+      return null;
+    }
+
+    // Map post-condition actions to sequencing requests
+    switch (postAction) {
+      case RuleActionType.EXIT_PARENT:
+        // Exit parent will be handled by exit action rules
+        return SequencingRequestType.EXIT;
+        
+      case RuleActionType.EXIT_ALL:
+        return SequencingRequestType.EXIT_ALL;
+        
+      case RuleActionType.RETRY:
+        return SequencingRequestType.RETRY;
+        
+      case RuleActionType.RETRY_ALL:
+        return SequencingRequestType.RETRY_ALL;
+        
+      case RuleActionType.CONTINUE:
+        return SequencingRequestType.CONTINUE;
+        
+      case RuleActionType.PREVIOUS:
+        return SequencingRequestType.PREVIOUS;
+        
+      default:
+        return null;
+    }
   }
 }
 
