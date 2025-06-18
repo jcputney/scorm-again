@@ -4783,3 +4783,4 @@ class Scorm12API extends BaseAPI {
 }
 
 export { Scorm12API };
+//# sourceMappingURL=scorm12.js.map
