@@ -673,6 +673,38 @@ describe("BaseAPI", () => {
         expect(apiLogSpy).not.toHaveBeenCalled();
       });
     });
+
+    describe("ScheduledCommit wrapper method", () => {
+      it("should not call commit when API is not initialized", async () => {
+        // Arrange
+        api.currentState = global_constants.STATE_NOT_INITIALIZED;
+        const commitSpy = vi.spyOn(api, "commit");
+
+        // Create a scheduled commit that will fire immediately
+        api.scheduleCommit(10, "testCallback");
+
+        // Wait for the timeout to fire
+        await new Promise((resolve) => setTimeout(resolve, 50));
+
+        // Assert
+        expect(commitSpy).not.toHaveBeenCalled();
+      });
+
+      it("should call commit when API is properly initialized", async () => {
+        // Arrange
+        api.currentState = global_constants.STATE_INITIALIZED;
+        const commitSpy = vi.spyOn(api, "commit").mockResolvedValue("true");
+
+        // Create a scheduled commit that will fire immediately
+        api.scheduleCommit(10, "testCallback");
+
+        // Wait for the timeout to fire
+        await new Promise((resolve) => setTimeout(resolve, 50));
+
+        // Assert
+        expect(commitSpy).toHaveBeenCalledWith("testCallback");
+      });
+    });
   });
 
   describe("checkState", () => {

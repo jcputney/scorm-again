@@ -2484,11 +2484,13 @@ class ScheduledCommit {
     }
   }
   /**
-   * Wrap the API commit call to check if the call has already been cancelled
+   * Wrap the API commit call to check if the call has already been canceled
    */
   wrapper() {
     if (!this._cancelled) {
-      (async () => await this._API.commit(this._callback))();
+      if (this._API.isInitialized()) {
+        (async () => await this._API.commit(this._callback))();
+      }
     }
   }
 }
