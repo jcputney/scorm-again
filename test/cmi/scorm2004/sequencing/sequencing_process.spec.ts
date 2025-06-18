@@ -184,13 +184,43 @@ describe("SequencingProcess", () => {
     });
 
     it("should flow to first child when choosing non-leaf", () => {
-      const result = sequencingProcess.sequencingRequestProcess(
+      // This test verifies that choosing a cluster (non-leaf) activity
+      // flows down to the first available child activity
+      
+      // Create a simple tree with flow enabled everywhere
+      const simpleRoot = new Activity("simpleRoot", "Simple Root");
+      const simpleParent = new Activity("simpleParent", "Simple Parent");
+      const simpleChild1 = new Activity("simpleChild1", "Simple Child 1");
+      const simpleChild2 = new Activity("simpleChild2", "Simple Child 2");
+      
+      simpleRoot.addChild(simpleParent);
+      simpleParent.addChild(simpleChild1);
+      simpleParent.addChild(simpleChild2);
+      
+      // Enable all necessary controls
+      simpleRoot.sequencingControls.flow = true;
+      simpleRoot.sequencingControls.choice = true;
+      simpleParent.sequencingControls.flow = true;
+      simpleParent.sequencingControls.choice = true;
+      
+      // Create a new tree and sequencing process for this test
+      const testTree = new ActivityTree();
+      testTree.root = simpleRoot;
+      
+      const testProcess = new SequencingProcess(
+        testTree,
+        sequencingRules,
+        sequencingControls,
+        adlNav,
+      );
+      
+      const result = testProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
-        "child1",
+        "simpleParent",
       );
       
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
-      expect(result.targetActivity?.id).toBe("grandchild1");
+      expect(result.targetActivity?.id).toBe("simpleChild1");
     });
   });
 

@@ -33,9 +33,10 @@ export declare class SequencingProcess {
     private sequencingRules;
     private sequencingControls;
     private adlNav;
-    constructor(activityTree: ActivityTree, sequencingRules: SequencingRules, sequencingControls: SequencingControls, adlNav?: ADLNav | null);
+    constructor(activityTree: ActivityTree, sequencingRules?: SequencingRules | null, sequencingControls?: SequencingControls | null, adlNav?: ADLNav | null);
     sequencingRequestProcess(request: SequencingRequestType, targetActivityId?: string | null): SequencingResult;
     private startSequencingRequestProcess;
+    private findFirstDeliverableActivity;
     private resumeAllSequencingRequestProcess;
     private continueSequencingRequestProcess;
     private previousSequencingRequestProcess;
@@ -48,9 +49,23 @@ export declare class SequencingProcess {
     private suspendAllSequencingRequestProcess;
     private retrySequencingRequestProcess;
     private retryAllSequencingRequestProcess;
+    private ensureSelectionAndRandomization;
     private flowActivityTraversalSubprocess;
     private checkActivityProcess;
     private terminateDescendentAttemptsProcess;
+    private exitActionRulesSubprocess;
+    private processDeferredExitAction;
+    private postConditionRulesSubprocess;
+    private limitConditionsCheckProcess;
+    private parseISO8601Duration;
+    private sequencingRulesCheckProcess;
+    private sequencingRulesCheckSubprocess;
     private isActivityInTree;
     private findCommonAncestor;
+    private flowSubprocess;
+    private flowTreeTraversalSubprocess;
+    private choiceFlowSubprocess;
+    private choiceFlowTreeTraversalSubprocess;
+    private choiceActivityTraversalSubprocess;
+    evaluatePostConditionRules(activity: Activity): SequencingRequestType | null;
 }

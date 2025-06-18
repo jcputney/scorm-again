@@ -68,6 +68,7 @@ export declare class RollupRules extends BaseCMI {
     removeRule(rule: RollupRule): boolean;
     processRollup(activity: Activity): void;
     private _defaultCompletionRollup;
+    private _objectiveRollupUsingMeasure;
     private _defaultSuccessRollup;
     toJSON(): object;
 }

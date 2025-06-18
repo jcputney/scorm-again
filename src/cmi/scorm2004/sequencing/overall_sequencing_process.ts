@@ -3,6 +3,7 @@ import { ActivityTree } from "./activity_tree";
 import { SequencingProcess, SequencingRequestType, SequencingResult, DeliveryRequestType } from "./sequencing_process";
 import { RollupProcess } from "./rollup_process";
 import { ADLNav } from "../adl";
+import { RuleActionType } from "./sequencing_rules";
 
 /**
  * Enum for navigation request types
@@ -109,9 +110,14 @@ export class OverallSequencingProcess {
 
     // Step 2: Termination Request Process (TB.2.3) if needed
     if (navResult.terminationRequest) {
-      const termResult = this.terminationRequestProcess(navResult.terminationRequest);
+      const termResult = this.terminationRequestProcess(navResult.terminationRequest, !!navResult.sequencingRequest);
       if (!termResult) {
         return new DeliveryRequest(false, null, "TB.2.3-1");
+      }
+      
+      // If this is a termination-only request (no sequencing request), return success
+      if (!navResult.sequencingRequest) {
+        return new DeliveryRequest(true, null);
       }
     }
 
@@ -319,28 +325,76 @@ export class OverallSequencingProcess {
    * Termination Request Process (TB.2.3)
    * Processes termination requests
    * @param {SequencingRequestType} request - The termination request
+   * @param {boolean} hasSequencingRequest - Whether a sequencing request follows
    * @return {boolean} - True if termination was successful
    */
-  private terminationRequestProcess(request: SequencingRequestType): boolean {
+  private terminationRequestProcess(request: SequencingRequestType, hasSequencingRequest: boolean = false): boolean {
     const currentActivity = this.activityTree.currentActivity;
     
     if (!currentActivity) {
       return false;
     }
 
+    // First, check exit action rules (TB.2.1) for EXIT request
+    if (request === SequencingRequestType.EXIT) {
+      const exitAction = this.exitActionRulesSubprocess(currentActivity);
+      if (exitAction) {
+        switch (exitAction) {
+          case 'EXIT_PARENT':
+            // Move up to parent and terminate from there
+            if (currentActivity.parent) {
+              this.activityTree.currentActivity = currentActivity.parent;
+              return this.terminationRequestProcess(request, hasSequencingRequest);
+            }
+            break;
+          case 'EXIT_ALL':
+            // Convert to EXIT_ALL request
+            request = SequencingRequestType.EXIT_ALL;
+            break;
+        }
+      }
+    }
+
+    // For EXIT_ALL and ABANDON_ALL, terminate descendant attempts first
+    // For regular EXIT, also terminate descendants if current has children
+    if (request === SequencingRequestType.EXIT_ALL || 
+        request === SequencingRequestType.ABANDON_ALL ||
+        (request === SequencingRequestType.EXIT && currentActivity.children.length > 0)) {
+      this.terminateDescendentAttemptsProcess(currentActivity);
+    }
+
     // Apply appropriate termination based on request type
     switch (request) {
       case SequencingRequestType.EXIT:
-      case SequencingRequestType.EXIT_ALL:
         // Terminate normally
         if (currentActivity.isActive) {
           this.endAttemptProcess(currentActivity);
         }
+        // Move to parent only if no sequencing follows
+        if (!hasSequencingRequest) {
+          this.activityTree.currentActivity = currentActivity.parent;
+        }
+        break;
+        
+      case SequencingRequestType.EXIT_ALL:
+        // EXIT_ALL terminates all activities from root down
+        if (this.activityTree.root) {
+          this.terminateAllActivities(this.activityTree.root);
+        }
+        this.activityTree.currentActivity = null;
         break;
 
       case SequencingRequestType.ABANDON:
-      case SequencingRequestType.ABANDON_ALL:
         // Abandon without ending attempt
+        currentActivity.isActive = false;
+        // Move to parent only if no sequencing follows
+        if (!hasSequencingRequest) {
+          this.activityTree.currentActivity = currentActivity.parent;
+        }
+        break;
+        
+      case SequencingRequestType.ABANDON_ALL:
+        // Abandon without ending attempt - clear current activity
         currentActivity.isActive = false;
         break;
 
@@ -355,9 +409,10 @@ export class OverallSequencingProcess {
         return false;
     }
 
-    // Clear current activity for exit all and abandon all
+    // Clear current activity for exit all, abandon all, and suspend all
     if (request === SequencingRequestType.EXIT_ALL || 
-        request === SequencingRequestType.ABANDON_ALL) {
+        request === SequencingRequestType.ABANDON_ALL ||
+        request === SequencingRequestType.SUSPEND_ALL) {
       this.activityTree.currentActivity = null;
     }
 
@@ -371,13 +426,18 @@ export class OverallSequencingProcess {
    * @return {DeliveryRequest} - The delivery validation result
    */
   private deliveryRequestProcess(activity: Activity): DeliveryRequest {
-    // Check if activity is a leaf
+    // Check if activity is a cluster (has children)
     if (activity.children.length > 0) {
       return new DeliveryRequest(false, null, "DB.1.1-1");
     }
 
-    // Additional delivery checks can be added here
-    // For now, if it's a leaf activity, it can be delivered
+    // Check if activity is an empty cluster (has flow control but no children)
+    // According to SCORM 2004, empty clusters should not be deliverable
+    if (activity.sequencingControls.flow && activity.children.length === 0) {
+      return new DeliveryRequest(false, null, "DB.1.1-2");
+    }
+
+    // Activity is a true leaf - can be delivered
     return new DeliveryRequest(true, activity);
   }
 
@@ -412,7 +472,12 @@ export class OverallSequencingProcess {
    */
   private clearSuspendedActivitySubprocess(): void {
     if (this.activityTree.suspendedActivity) {
-      this.activityTree.suspendedActivity.isSuspended = false;
+      // Clear suspended state from the activity and all its ancestors
+      let current: Activity | null = this.activityTree.suspendedActivity;
+      while (current) {
+        current.isSuspended = false;
+        current = current.parent;
+      }
       this.activityTree.suspendedActivity = null;
     }
   }
@@ -505,5 +570,85 @@ export class OverallSequencingProcess {
    */
   public resetContentDelivered(): void {
     this.contentDelivered = false;
+  }
+
+  /**
+   * Exit Action Rules Subprocess (TB.2.1)
+   * Evaluates exit action rules for the current activity
+   * @param {Activity} activity - The activity to evaluate
+   * @return {string | null} - The exit action to take, or null if none
+   */
+  private exitActionRulesSubprocess(activity: Activity): string | null {
+    // Check if activity has exit action rules
+    const exitRules = activity.sequencingRules.exitConditionRules;
+    
+    for (const rule of exitRules) {
+      // Evaluate the rule conditions
+      let conditionsMet = true;
+      
+      // Check rule condition combination
+      if (rule.conditionCombination === 'all') {
+        conditionsMet = rule.conditions.every(condition => condition.evaluate(activity));
+      } else {
+        conditionsMet = rule.conditions.some(condition => condition.evaluate(activity));
+      }
+      
+      if (conditionsMet) {
+        // Return the action to take
+        if (rule.action === RuleActionType.EXIT_PARENT) {
+          return 'EXIT_PARENT';
+        } else if (rule.action === RuleActionType.EXIT_ALL) {
+          return 'EXIT_ALL';
+        }
+      }
+    }
+    
+    return null;
+  }
+
+  /**
+   * Terminate all activities in the tree
+   * @param {Activity} activity - The activity to start from (usually root)
+   */
+  private terminateAllActivities(activity: Activity): void {
+    // Recursively terminate all children first
+    for (const child of activity.children) {
+      this.terminateAllActivities(child);
+    }
+    
+    // Then terminate this activity
+    if (activity.isActive) {
+      this.endAttemptProcess(activity);
+    }
+  }
+
+  /**
+   * Terminate Descendent Attempts Process (UP.3)
+   * Recursively terminates all active descendant attempts
+   * @param {Activity} activity - The activity whose descendants to terminate
+   */
+  private terminateDescendentAttemptsProcess(activity: Activity): void {
+    // Process all children
+    for (const child of activity.children) {
+      // Recursively terminate descendants first
+      if (child.children.length > 0) {
+        this.terminateDescendentAttemptsProcess(child);
+      }
+      
+      // Check exit rules for the child
+      const exitAction = this.exitActionRulesSubprocess(child);
+      
+      // Terminate the child if it's active
+      if (child.isActive) {
+        // Apply exit action if any
+        if (exitAction === 'EXIT_ALL') {
+          // Recursively terminate all descendants
+          this.terminateDescendentAttemptsProcess(child);
+        }
+        
+        // End the attempt
+        this.endAttemptProcess(child);
+      }
+    }
   }
 }

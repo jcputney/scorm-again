@@ -737,4 +737,59 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       );
     });
   });
+
+  describe("Additional response validation edge cases", (): void => {
+    it("should validate basic interaction types", (): void => {
+      const scorm2004API = apiInitialized();
+
+      // Test that basic interaction types work
+      scorm2004API.lmsSetValue("cmi.interactions.0.id", "choice-test");
+      scorm2004API.lmsSetValue("cmi.interactions.0.type", "choice");
+      expect(scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.0.pattern", "a")).toBe(
+        "true",
+      );
+
+      scorm2004API.lmsSetValue("cmi.interactions.1.id", "tf-test");
+      scorm2004API.lmsSetValue("cmi.interactions.1.type", "true-false");
+      expect(
+        scorm2004API.lmsSetValue("cmi.interactions.1.correct_responses.0.pattern", "true"),
+      ).toBe("true");
+    });
+
+    it("should handle likert interactions", (): void => {
+      const scorm2004API = apiInitialized();
+
+      scorm2004API.lmsSetValue("cmi.interactions.0.id", "likert-test");
+      scorm2004API.lmsSetValue("cmi.interactions.0.type", "likert");
+
+      // Test basic likert values
+      expect(
+        scorm2004API.lmsSetValue(
+          "cmi.interactions.0.correct_responses.0.pattern",
+          "strongly_agree",
+        ),
+      ).toBe("true");
+      expect(
+        scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.1.pattern", "agree"),
+      ).toBe("true");
+      expect(
+        scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.2.pattern", "neutral"),
+      ).toBe("true");
+    });
+
+    it("should validate numeric interactions", (): void => {
+      const scorm2004API = apiInitialized();
+
+      scorm2004API.lmsSetValue("cmi.interactions.0.id", "numeric-test");
+      scorm2004API.lmsSetValue("cmi.interactions.0.type", "numeric");
+
+      // Test basic numeric values
+      expect(scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.0.pattern", "42")).toBe(
+        "true",
+      );
+      expect(
+        scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.1.pattern", "1[:]10"),
+      ).toBe("true");
+    });
+  });
 });

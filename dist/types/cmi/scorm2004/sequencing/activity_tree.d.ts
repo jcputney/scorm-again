@@ -18,12 +18,12 @@ export declare class ActivityTree extends BaseCMI {
     getActivity(id: string): Activity | null;
     getAllActivities(): Activity[];
     getParent(activity: Activity): Activity | null;
-    getChildren(activity: Activity): Activity[];
+    getChildren(activity: Activity, useAvailableChildren?: boolean): Activity[];
     getSiblings(activity: Activity): Activity[];
-    getNextSibling(activity: Activity): Activity | null;
-    getPreviousSibling(activity: Activity): Activity | null;
-    getFirstChild(activity: Activity): Activity | null;
-    getLastChild(activity: Activity): Activity | null;
+    getNextSibling(activity: Activity, useAvailableChildren?: boolean): Activity | null;
+    getPreviousSibling(activity: Activity, useAvailableChildren?: boolean): Activity | null;
+    getFirstChild(activity: Activity, useAvailableChildren?: boolean): Activity | null;
+    getLastChild(activity: Activity, useAvailableChildren?: boolean): Activity | null;
     getCommonAncestor(activity1: Activity, activity2: Activity): Activity | null;
     toJSON(): object;
 }

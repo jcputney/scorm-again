@@ -45,7 +45,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
     root.sequencingControls.choice = true;
     child1.sequencingControls.flow = true;
     child1.sequencingControls.choice = true;
-    child2.sequencingControls.flow = true;
+    child2.sequencingControls.flow = false;  // Leaf activity - no flow
     child2.sequencingControls.choice = true;
     cluster.sequencingControls.flow = true;
     cluster.sequencingControls.choice = true;
@@ -168,7 +168,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
       // Deliver different activity
       const result = overallProcess.processNavigationRequest(
         NavigationRequestType.CHOICE,
-        "module2"
+        "lesson2"
       );
       
       expect(result.valid).toBe(true);
@@ -185,7 +185,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
       // Deliver different activity
       const result = overallProcess.processNavigationRequest(
         NavigationRequestType.CHOICE,
-        "module2"
+        "lesson2"
       );
       
       expect(result.valid).toBe(true);

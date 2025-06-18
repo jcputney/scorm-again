@@ -10,7 +10,12 @@ import {
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
-import { RuleActionType } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
+import { 
+  RuleActionType, 
+  SequencingRule, 
+  RuleCondition, 
+  RuleConditionType 
+} from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("Termination Request Process (TB.2.3)", () => {
   let overallProcess: OverallSequencingProcess;
@@ -184,14 +189,12 @@ describe("Termination Request Process (TB.2.3)", () => {
   });
 
   describe("Integration with Exit Action Rules (TB.2.1)", () => {
-    beforeEach(() => {
-      // Add exit action rules to test integration
-      const exitRule = grandchild1.sequencingRules.exitConditionRules[0] = 
-        new (sequencingProcess as any).SequencingRule(RuleActionType.EXIT);
-      exitRule.addCondition(new (sequencingProcess as any).RuleCondition("satisfied"));
-    });
-
     it("should apply exit action rules during termination", () => {
+      // Add exit action rule
+      const exitRule = new SequencingRule(RuleActionType.EXIT);
+      exitRule.addCondition(new RuleCondition(RuleConditionType.SATISFIED));
+      grandchild1.sequencingRules.addExitConditionRule(exitRule);
+      
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
       grandchild1.objectiveSatisfiedStatus = true;
@@ -203,32 +206,55 @@ describe("Termination Request Process (TB.2.3)", () => {
     });
 
     it("should handle EXIT_PARENT action", () => {
-      const exitRule = grandchild1.sequencingRules.exitConditionRules[0];
-      exitRule.action = RuleActionType.EXIT_PARENT;
+      // Add exit parent rule
+      const exitRule = new SequencingRule(RuleActionType.EXIT_PARENT);
+      exitRule.addCondition(new RuleCondition(RuleConditionType.SATISFIED));
+      grandchild1.sequencingRules.addExitConditionRule(exitRule);
       
-      activityTree.currentActivity = grandchild1;
+      // Enable flow controls
+      root.sequencingControls.flow = true;
+      child1.sequencingControls.flow = true;
+      child2.sequencingControls.flow = true;
+      
+      // Add a sibling to child1 so there's somewhere to continue to
       grandchild1.isActive = true;
       grandchild1.objectiveSatisfiedStatus = true;
       child1.isActive = true;
+      child2.isActive = false; // Not active, so we can flow to it
+      root.isActive = true;
       
-      const result = overallProcess.processNavigationRequest(NavigationRequestType.CONTINUE);
+      activityTree.currentActivity = grandchild1;
+      
+      // Process EXIT request directly (not CONTINUE)
+      const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT);
       
       expect(result.valid).toBe(true);
-      expect(child1.isActive).toBe(false); // Parent should be terminated
+      // After EXIT_PARENT, child1 and its descendants should be terminated
+      expect(child1.isActive).toBe(false);
+      expect(grandchild1.isActive).toBe(false);
     });
 
     it("should handle EXIT_ALL action", () => {
-      const exitRule = grandchild1.sequencingRules.exitConditionRules[0];
-      exitRule.action = RuleActionType.EXIT_ALL;
+      // Add exit all rule
+      const exitRule = new SequencingRule(RuleActionType.EXIT_ALL);
+      exitRule.addCondition(new RuleCondition(RuleConditionType.SATISFIED));
+      grandchild1.sequencingRules.addExitConditionRule(exitRule);
       
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
       grandchild1.objectiveSatisfiedStatus = true;
+      root.isActive = true;
+      child1.isActive = true;
       
-      const result = overallProcess.processNavigationRequest(NavigationRequestType.CONTINUE);
+      // Process EXIT request directly (not CONTINUE)
+      const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT);
       
       expect(result.valid).toBe(true);
-      expect(activityTree.currentActivity).toBeNull(); // All should be terminated
+      // After EXIT_ALL, all activities should be terminated
+      expect(root.isActive).toBe(false);
+      expect(child1.isActive).toBe(false);
+      expect(grandchild1.isActive).toBe(false);
+      expect(activityTree.currentActivity).toBeNull();
     });
   });
 
@@ -236,8 +262,8 @@ describe("Termination Request Process (TB.2.3)", () => {
     beforeEach(() => {
       // Add post-condition rules
       const postRule = grandchild1.sequencingRules.postConditionRules[0] = 
-        new (sequencingProcess as any).SequencingRule(RuleActionType.CONTINUE);
-      postRule.addCondition(new (sequencingProcess as any).RuleCondition("completed"));
+        new SequencingRule(RuleActionType.CONTINUE);
+      postRule.addCondition(new RuleCondition(RuleConditionType.COMPLETED));
     });
 
     it("should apply post-condition rules after termination", () => {
@@ -292,8 +318,8 @@ describe("Termination Request Process (TB.2.3)", () => {
     it("should apply exit rules recursively during descendant termination", () => {
       // Set up exit rule on grandchild that exits parent
       const exitRule = grandchild1.sequencingRules.exitConditionRules[0] = 
-        new (sequencingProcess as any).SequencingRule(RuleActionType.EXIT_PARENT);
-      exitRule.addCondition(new (sequencingProcess as any).RuleCondition("always"));
+        new SequencingRule(RuleActionType.EXIT_PARENT);
+      exitRule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
       
       activityTree.currentActivity = child1;
       child1.isActive = true;

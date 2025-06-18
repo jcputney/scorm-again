@@ -109,9 +109,27 @@ export class HttpService implements IHttpService {
       return this.transformResponse(response, processListeners);
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
-      apiLog("processHttpRequest", message, LogLevelEnum.ERROR);
+
+      // Enhanced error logging with more context
+      apiLog("processHttpRequest", `HTTP request failed to ${url}: ${message}`, LogLevelEnum.ERROR);
+
+      if (e instanceof Error && e.stack) {
+        apiLog("processHttpRequest", `Stack trace: ${e.stack}`, LogLevelEnum.DEBUG);
+      }
+
+      // Create enhanced error object with more details
+      const enhancedError: ResultObject = {
+        ...genericError,
+        errorMessage: message,
+        errorDetails: JSON.stringify({
+          url,
+          errorType: e instanceof Error ? e.constructor.name : typeof e,
+          originalError: message,
+        }),
+      };
+
       processListeners("CommitError");
-      return genericError;
+      return enhancedError;
     }
   }
 
@@ -249,15 +267,45 @@ export class HttpService implements IHttpService {
     response: Response,
     processListeners: (functionName: string, CMIElement?: string, value?: any) => void,
   ): Promise<ResultObject> {
-    // Parse the response using the configured handler or default to json
-    const result =
-      typeof this.settings.responseHandler === "function"
-        ? await this.settings.responseHandler(response)
-        : await response.json();
+    let result: any;
+
+    try {
+      // Parse the response using the configured handler or default to json
+      result =
+        typeof this.settings.responseHandler === "function"
+          ? await this.settings.responseHandler(response)
+          : await response.json();
+    } catch (parseError) {
+      // If we can't parse the response, log the raw response for debugging
+      const responseText = await response.text().catch(() => "Unable to read response text");
+
+      return {
+        result: global_constants.SCORM_FALSE,
+        errorCode: this.error_codes.GENERAL || 101,
+        errorMessage: `Failed to parse LMS response: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
+        errorDetails: JSON.stringify({
+          status: response.status,
+          statusText: response.statusText,
+          url: response.url,
+          responseText: responseText.substring(0, 500), // Limit response text to avoid huge logs
+          parseError: parseError instanceof Error ? parseError.message : String(parseError),
+        }),
+      };
+    }
 
     // Ensure result has an errorCode property
     if (!Object.hasOwnProperty.call(result, "errorCode")) {
       result.errorCode = this._isSuccessResponse(response, result) ? 0 : this.error_codes.GENERAL;
+    }
+
+    // Add response details for failed requests
+    if (!this._isSuccessResponse(response, result)) {
+      result.errorDetails = {
+        status: response.status,
+        statusText: response.statusText,
+        url: response.url,
+        ...result.errorDetails, // Preserve any existing error details
+      };
     }
 
     // Trigger appropriate event based on success/failure

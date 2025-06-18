@@ -245,6 +245,12 @@ export class Activity extends BaseCMI {
    */
   set isCompleted(isCompleted: boolean) {
     this._isCompleted = isCompleted;
+    // Update completion status based on boolean value
+    if (isCompleted) {
+      this._completionStatus = CompletionStatus.COMPLETED;
+    } else {
+      this._completionStatus = CompletionStatus.INCOMPLETE;
+    }
   }
 
   /**

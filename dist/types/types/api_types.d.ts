@@ -74,6 +74,8 @@ export type ResultObject = {
     result: string;
     errorCode: number;
     navRequest?: string | StringKeyMap;
+    errorMessage?: string;
+    errorDetails?: string;
 };
 export type ReadonlyResultObject = Readonly<ResultObject>;
 export type ScoreObject = {

@@ -491,6 +491,21 @@ export default abstract class BaseAPI implements IBaseAPI {
 
       const result: ResultObject = await this.storeData(true);
       if ((result.errorCode ?? 0) > 0) {
+        // Log detailed error information before throwing SCORM error
+        if (result.errorMessage) {
+          this.apiLog(
+            "terminate",
+            `Terminate failed with error: ${result.errorMessage}`,
+            LogLevelEnum.ERROR,
+          );
+        }
+        if (result.errorDetails) {
+          this.apiLog(
+            "terminate",
+            `Error details: ${JSON.stringify(result.errorDetails)}`,
+            LogLevelEnum.DEBUG,
+          );
+        }
         this.throwSCORMError("api", result.errorCode ?? 0);
       }
       returnValue = result?.result ?? global_constants.SCORM_FALSE;
@@ -635,6 +650,21 @@ export default abstract class BaseAPI implements IBaseAPI {
     ) {
       const result = await this.storeData(false);
       if ((result.errorCode ?? 0) > 0) {
+        // Log detailed error information before throwing SCORM error
+        if (result.errorMessage) {
+          this.apiLog(
+            "commit",
+            `Commit failed with error: ${result.errorMessage}`,
+            LogLevelEnum.ERROR,
+          );
+        }
+        if (result.errorDetails) {
+          this.apiLog(
+            "commit",
+            `Error details: ${JSON.stringify(result.errorDetails)}`,
+            LogLevelEnum.DEBUG,
+          );
+        }
         this.throwSCORMError("api", result.errorCode);
       }
       returnValue = result?.result ?? global_constants.SCORM_FALSE;

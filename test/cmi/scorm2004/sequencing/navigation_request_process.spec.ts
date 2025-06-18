@@ -43,7 +43,7 @@ describe("Navigation Request Process (NB.2.1)", () => {
     root.sequencingControls.choice = true;
     child1.sequencingControls.flow = true;
     child1.sequencingControls.choice = true;
-    child2.sequencingControls.flow = true;
+    child2.sequencingControls.flow = false;  // Leaf activity - no flow
     child2.sequencingControls.choice = true;
 
     sequencingProcess = new SequencingProcess(activityTree);
@@ -198,6 +198,12 @@ describe("Navigation Request Process (NB.2.1)", () => {
       root.sequencingControls.choice = true;
       child1.sequencingControls.choice = true;
       child2.sequencingControls.choice = true;
+      
+      // Ensure target activity passes all checks
+      child2.isAvailable = true;
+      child2.isHiddenFromChoice = false;
+      child2.attemptLimit = null; // No attempt limit
+      child2.attemptCount = 0;    // No attempts yet
       
       const result = overallProcess.processNavigationRequest(
         NavigationRequestType.CHOICE,

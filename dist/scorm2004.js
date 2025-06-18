@@ -563,9 +563,21 @@ this.Scorm2004API = (function () {
         return this.transformResponse(response, processListeners);
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
-        apiLog("processHttpRequest", message, LogLevelEnum.ERROR);
+        apiLog("processHttpRequest", `HTTP request failed to ${url}: ${message}`, LogLevelEnum.ERROR);
+        if (e instanceof Error && e.stack) {
+          apiLog("processHttpRequest", `Stack trace: ${e.stack}`, LogLevelEnum.DEBUG);
+        }
+        const enhancedError = {
+          ...genericError,
+          errorMessage: message,
+          errorDetails: JSON.stringify({
+            url,
+            errorType: e instanceof Error ? e.constructor.name : typeof e,
+            originalError: message
+          })
+        };
         processListeners("CommitError");
-        return genericError;
+        return enhancedError;
       }
     }
     /**
@@ -679,9 +691,36 @@ this.Scorm2004API = (function () {
      * @private
      */
     async transformResponse(response, processListeners) {
-      const result = typeof this.settings.responseHandler === "function" ? await this.settings.responseHandler(response) : await response.json();
+      let result;
+      try {
+        result = typeof this.settings.responseHandler === "function" ? await this.settings.responseHandler(response) : await response.json();
+      } catch (parseError) {
+        const responseText = await response.text().catch(() => "Unable to read response text");
+        return {
+          result: global_constants.SCORM_FALSE,
+          errorCode: this.error_codes.GENERAL || 101,
+          errorMessage: `Failed to parse LMS response: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
+          errorDetails: JSON.stringify({
+            status: response.status,
+            statusText: response.statusText,
+            url: response.url,
+            responseText: responseText.substring(0, 500),
+            // Limit response text to avoid huge logs
+            parseError: parseError instanceof Error ? parseError.message : String(parseError)
+          })
+        };
+      }
       if (!Object.hasOwnProperty.call(result, "errorCode")) {
         result.errorCode = this._isSuccessResponse(response, result) ? 0 : this.error_codes.GENERAL;
+      }
+      if (!this._isSuccessResponse(response, result)) {
+        result.errorDetails = {
+          status: response.status,
+          statusText: response.statusText,
+          url: response.url,
+          ...result.errorDetails
+          // Preserve any existing error details
+        };
       }
       if (this._isSuccessResponse(response, result)) {
         processListeners("CommitSuccess");
@@ -2025,6 +2064,12 @@ ${stackTrace}`);
         }
         const result = await this.storeData(true);
         if ((result.errorCode ?? 0) > 0) {
+          if (result.errorMessage) {
+            this.apiLog("terminate", `Terminate failed with error: ${result.errorMessage}`, LogLevelEnum.ERROR);
+          }
+          if (result.errorDetails) {
+            this.apiLog("terminate", `Error details: ${JSON.stringify(result.errorDetails)}`, LogLevelEnum.DEBUG);
+          }
           this.throwSCORMError("api", result.errorCode ?? 0);
         }
         returnValue = result?.result ?? global_constants.SCORM_FALSE;
@@ -2113,6 +2158,12 @@ ${stackTrace}`);
       if (this.checkState(checkTerminated, this._error_codes.COMMIT_BEFORE_INIT ?? 0, this._error_codes.COMMIT_AFTER_TERM ?? 0)) {
         const result = await this.storeData(false);
         if ((result.errorCode ?? 0) > 0) {
+          if (result.errorMessage) {
+            this.apiLog("commit", `Commit failed with error: ${result.errorMessage}`, LogLevelEnum.ERROR);
+          }
+          if (result.errorDetails) {
+            this.apiLog("commit", `Error details: ${JSON.stringify(result.errorDetails)}`, LogLevelEnum.DEBUG);
+          }
           this.throwSCORMError("api", result.errorCode);
         }
         returnValue = result?.result ?? global_constants.SCORM_FALSE;
@@ -5546,6 +5597,12 @@ ${stackTrace}`);
     }
   }
 
+  var RuleConditionOperator = /* @__PURE__ */(RuleConditionOperator2 => {
+    RuleConditionOperator2["NOT"] = "not";
+    RuleConditionOperator2["AND"] = "and";
+    RuleConditionOperator2["OR"] = "or";
+    return RuleConditionOperator2;
+  })(RuleConditionOperator || {});
   var RuleActionType = /* @__PURE__ */(RuleActionType2 => {
     RuleActionType2["SKIP"] = "skip";
     RuleActionType2["DISABLED"] = "disabled";
@@ -6335,30 +6392,38 @@ ${stackTrace}`);
       if (!activity || activity.children.length === 0) {
         return;
       }
-      const children = activity.children;
+      const children = activity.getAvailableChildren();
       let completionRollup = false;
       let successRollup = false;
-      for (const rule of this._rules) {
-        if (rule.evaluate(children)) {
-          switch (rule.action) {
-            case "satisfied" /* SATISFIED */:
-              activity.successStatus = SuccessStatus.PASSED;
-              successRollup = true;
-              break;
-            case "notSatisfied" /* NOT_SATISFIED */:
-              activity.successStatus = SuccessStatus.FAILED;
-              successRollup = true;
-              break;
-            case "completed" /* COMPLETED */:
-              activity.completionStatus = CompletionStatus.COMPLETED;
-              activity.isCompleted = true;
-              completionRollup = true;
-              break;
-            case "incomplete" /* INCOMPLETE */:
-              activity.completionStatus = CompletionStatus.INCOMPLETE;
-              activity.isCompleted = false;
-              completionRollup = true;
-              break;
+      if (activity.sequencingControls.rollupObjectiveSatisfied) {
+        const measureRollupResult = this._objectiveRollupUsingMeasure(activity, children);
+        if (measureRollupResult !== null) {
+          successRollup = true;
+        }
+      }
+      if (!successRollup) {
+        for (const rule of this._rules) {
+          if (rule.evaluate(children)) {
+            switch (rule.action) {
+              case "satisfied" /* SATISFIED */:
+                activity.successStatus = SuccessStatus.PASSED;
+                successRollup = true;
+                break;
+              case "notSatisfied" /* NOT_SATISFIED */:
+                activity.successStatus = SuccessStatus.FAILED;
+                successRollup = true;
+                break;
+              case "completed" /* COMPLETED */:
+                activity.completionStatus = CompletionStatus.COMPLETED;
+                activity.isCompleted = true;
+                completionRollup = true;
+                break;
+              case "incomplete" /* INCOMPLETE */:
+                activity.completionStatus = CompletionStatus.INCOMPLETE;
+                activity.isCompleted = false;
+                completionRollup = true;
+                break;
+            }
           }
         }
       }
@@ -6386,6 +6451,50 @@ ${stackTrace}`);
           activity.completionStatus = CompletionStatus.INCOMPLETE;
           activity.isCompleted = false;
         }
+      }
+    }
+    /**
+     * Objective Rollup Using Measure Process (RB.1.2.a)
+     * @param {Activity} activity - The activity to process rollup for
+     * @param {Activity[]} children - The child activities
+     * @return {boolean | null} - True if satisfied, false if not satisfied, null if measure rollup not applicable
+     * @private
+     */
+    _objectiveRollupUsingMeasure(activity, children) {
+      const objectiveMeasureWeight = activity.sequencingControls.objectiveMeasureWeight;
+      if (objectiveMeasureWeight <= 0) {
+        return null;
+      }
+      let totalWeight = 0;
+      let weightedSum = 0;
+      let hasValidMeasures = false;
+      for (const child of children) {
+        if (!child.sequencingControls.rollupObjectiveSatisfied) {
+          continue;
+        }
+        if (child.objectiveMeasureStatus && child.objectiveMeasureStatus === true) {
+          const childWeight = child.sequencingControls.objectiveMeasureWeight;
+          if (childWeight > 0) {
+            weightedSum += child.objectiveNormalizedMeasure * childWeight;
+            totalWeight += childWeight;
+            hasValidMeasures = true;
+          }
+        }
+      }
+      if (!hasValidMeasures || totalWeight === 0) {
+        return null;
+      }
+      const normalizedMeasure = weightedSum / totalWeight;
+      activity.objectiveNormalizedMeasure = normalizedMeasure;
+      activity.objectiveMeasureStatus = true;
+      if (normalizedMeasure >= activity.scaledPassingScore) {
+        activity.successStatus = SuccessStatus.PASSED;
+        activity.objectiveSatisfiedStatus = true;
+        return true;
+      } else {
+        activity.successStatus = SuccessStatus.FAILED;
+        activity.objectiveSatisfiedStatus = false;
+        return false;
       }
     }
     /**
@@ -6421,6 +6530,18 @@ ${stackTrace}`);
 
   const ValidLanguages = ["aa", "ab", "ae", "af", "ak", "am", "an", "ar", "as", "av", "ay", "az", "ba", "be", "bg", "bh", "bi", "bm", "bn", "bo", "br", "bs", "ca", "ce", "ch", "co", "cr", "cs", "cu", "cv", "cy", "da", "de", "dv", "dz", "ee", "el", "en", "eo", "es", "et", "eu", "fa", "ff", "fi", "fj", "fo", "fr", "fy", "ga", "gd", "gl", "gn", "gu", "gv", "ha", "he", "hi", "ho", "hr", "ht", "hu", "hy", "hz", "ia", "id", "ie", "ig", "ii", "ik", "io", "is", "it", "iu", "ja", "jv", "ka", "kg", "ki", "kj", "kk", "kl", "km", "kn", "ko", "kr", "ks", "ku", "kv", "kw", "ky", "la", "lb", "lg", "li", "ln", "lo", "lt", "lu", "lv", "mg", "mh", "mi", "mk", "ml", "mn", "mo", "mr", "ms", "mt", "my", "na", "nb", "nd", "ne", "ng", "nl", "nn", "no", "nr", "nv", "ny", "oc", "oj", "om", "or", "os", "pa", "pi", "pl", "ps", "pt", "qu", "rm", "rn", "ro", "ru", "rw", "sa", "sc", "sd", "se", "sg", "sh", "si", "sk", "sl", "sm", "sn", "so", "sq", "sr", "ss", "st", "su", "sv", "sw", "ta", "te", "tg", "th", "ti", "tk", "tl", "tn", "to", "tr", "ts", "tt", "tw", "ty", "ug", "uk", "ur", "uz", "ve", "vi", "vo", "wa", "wo", "xh", "yi", "yo", "za", "zh", "zu", "aar", "abk", "ave", "afr", "aka", "amh", "arg", "ara", "asm", "ava", "aym", "aze", "bak", "bel", "bul", "bih", "bis", "bam", "ben", "tib", "bod", "bre", "bos", "cat", "che", "cha", "cos", "cre", "cze", "ces", "chu", "chv", "wel", "cym", "dan", "ger", "deu", "div", "dzo", "ewe", "gre", "ell", "eng", "epo", "spa", "est", "baq", "eus", "per", "fas", "ful", "fin", "fij", "fao", "fre", "fra", "fry", "gle", "gla", "glg", "grn", "guj", "glv", "hau", "heb", "hin", "hmo", "hrv", "hat", "hun", "arm", "hye", "her", "ina", "ind", "ile", "ibo", "iii", "ipk", "ido", "ice", "isl", "ita", "iku", "jpn", "jav", "geo", "kat", "kon", "kik", "kua", "kaz", "kal", "khm", "kan", "kor", "kau", "kas", "kur", "kom", "cor", "kir", "lat", "ltz", "lug", "lim", "lin", "lao", "lit", "lub", "lav", "mlg", "mah", "mao", "mri", "mac", "mkd", "mal", "mon", "mol", "mar", "may", "msa", "mlt", "bur", "mya", "nau", "nob", "nde", "nep", "ndo", "dut", "nld", "nno", "nor", "nbl", "nav", "nya", "oci", "oji", "orm", "ori", "oss", "pan", "pli", "pol", "pus", "por", "que", "roh", "run", "rum", "ron", "rus", "kin", "san", "srd", "snd", "sme", "sag", "slo", "sin", "slk", "slv", "smo", "sna", "som", "alb", "sqi", "srp", "ssw", "sot", "sun", "swe", "swa", "tam", "tel", "tgk", "tha", "tir", "tuk", "tgl", "tsn", "ton", "tur", "tso", "tat", "twi", "tah", "uig", "ukr", "urd", "uzb", "ven", "vie", "vol", "wln", "wol", "xho", "yid", "yor", "zha", "chi", "zho", "zul"];
 
+  var SelectionTiming = /* @__PURE__ */(SelectionTiming2 => {
+    SelectionTiming2["NEVER"] = "never";
+    SelectionTiming2["ONCE"] = "once";
+    SelectionTiming2["ON_EACH_NEW_ATTEMPT"] = "onEachNewAttempt";
+    return SelectionTiming2;
+  })(SelectionTiming || {});
+  var RandomizationTiming = /* @__PURE__ */(RandomizationTiming2 => {
+    RandomizationTiming2["NEVER"] = "never";
+    RandomizationTiming2["ONCE"] = "once";
+    RandomizationTiming2["ON_EACH_NEW_ATTEMPT"] = "onEachNewAttempt";
+    return RandomizationTiming2;
+  })(RandomizationTiming || {});
   class SequencingControls extends BaseCMI {
     /**
      * Constructor for SequencingControls
@@ -6442,6 +6563,14 @@ ${stackTrace}`);
       this._rollupObjectiveSatisfied = true;
       this._rollupProgressCompletion = true;
       this._objectiveMeasureWeight = 1;
+      // Selection Controls
+      this._selectionTiming = "never" /* NEVER */;
+      this._selectCount = null;
+      this._selectionCountStatus = false;
+      this._randomizeChildren = false;
+      // Randomization Controls
+      this._randomizationTiming = "never" /* NEVER */;
+      this._reorderChildren = false;
     }
     /**
      * Reset the sequencing controls to their default values
@@ -6460,6 +6589,12 @@ ${stackTrace}`);
       this._rollupObjectiveSatisfied = true;
       this._rollupProgressCompletion = true;
       this._objectiveMeasureWeight = 1;
+      this._selectionTiming = "never" /* NEVER */;
+      this._selectCount = null;
+      this._selectionCountStatus = false;
+      this._randomizeChildren = false;
+      this._randomizationTiming = "never" /* NEVER */;
+      this._reorderChildren = false;
     }
     /**
      * Getter for enabled
@@ -6627,7 +6762,7 @@ ${stackTrace}`);
      * @param {number} objectiveMeasureWeight
      */
     set objectiveMeasureWeight(objectiveMeasureWeight) {
-      if (objectiveMeasureWeight >= 0 && objectiveMeasureWeight <= 1) {
+      if (objectiveMeasureWeight >= 0) {
         this._objectiveMeasureWeight = objectiveMeasureWeight;
       }
     }
@@ -6660,6 +6795,92 @@ ${stackTrace}`);
       return this._enabled && this._flow && !this._forwardOnly;
     }
     /**
+     * Getter for selectionTiming
+     * @return {SelectionTiming}
+     */
+    get selectionTiming() {
+      return this._selectionTiming;
+    }
+    /**
+     * Setter for selectionTiming
+     * @param {SelectionTiming} selectionTiming
+     */
+    set selectionTiming(selectionTiming) {
+      this._selectionTiming = selectionTiming;
+    }
+    /**
+     * Getter for selectCount
+     * @return {number | null}
+     */
+    get selectCount() {
+      return this._selectCount;
+    }
+    /**
+     * Setter for selectCount
+     * @param {number | null} selectCount
+     */
+    set selectCount(selectCount) {
+      if (selectCount === null || selectCount > 0) {
+        this._selectCount = selectCount;
+      }
+    }
+    /**
+     * Getter for selectionCountStatus
+     * @return {boolean}
+     */
+    get selectionCountStatus() {
+      return this._selectionCountStatus;
+    }
+    /**
+     * Setter for selectionCountStatus
+     * @param {boolean} selectionCountStatus
+     */
+    set selectionCountStatus(selectionCountStatus) {
+      this._selectionCountStatus = selectionCountStatus;
+    }
+    /**
+     * Getter for randomizeChildren
+     * @return {boolean}
+     */
+    get randomizeChildren() {
+      return this._randomizeChildren;
+    }
+    /**
+     * Setter for randomizeChildren
+     * @param {boolean} randomizeChildren
+     */
+    set randomizeChildren(randomizeChildren) {
+      this._randomizeChildren = randomizeChildren;
+    }
+    /**
+     * Getter for randomizationTiming
+     * @return {RandomizationTiming}
+     */
+    get randomizationTiming() {
+      return this._randomizationTiming;
+    }
+    /**
+     * Setter for randomizationTiming
+     * @param {RandomizationTiming} randomizationTiming
+     */
+    set randomizationTiming(randomizationTiming) {
+      this._randomizationTiming = randomizationTiming;
+    }
+    /**
+     * Getter for reorderChildren
+     * @return {boolean}
+     */
+    get reorderChildren() {
+      return this._reorderChildren;
+    }
+    /**
+     * Setter for reorderChildren
+     * @param {boolean} reorderChildren
+     */
+    set reorderChildren(reorderChildren) {
+      this._reorderChildren = reorderChildren;
+    }
+    /**
      * toJSON for SequencingControls
      * @return {object}
      */
@@ -6677,7 +6898,13 @@ ${stackTrace}`);
         constrainChoice: this._constrainChoice,
         rollupObjectiveSatisfied: this._rollupObjectiveSatisfied,
         rollupProgressCompletion: this._rollupProgressCompletion,
-        objectiveMeasureWeight: this._objectiveMeasureWeight
+        objectiveMeasureWeight: this._objectiveMeasureWeight,
+        selectionTiming: this._selectionTiming,
+        selectCount: this._selectCount,
+        selectionCountStatus: this._selectionCountStatus,
+        randomizeChildren: this._randomizeChildren,
+        randomizationTiming: this._randomizationTiming,
+        reorderChildren: this._reorderChildren
       };
       this.jsonString = false;
       return result;
@@ -6713,16 +6940,24 @@ ${stackTrace}`);
       this._objectiveSatisfiedStatus = false;
       this._objectiveMeasureStatus = false;
       this._objectiveNormalizedMeasure = 0;
+      this._scaledPassingScore = 0.7;
+      // Default passing score
       this._isHiddenFromChoice = false;
       this._isAvailable = true;
       this._attemptLimit = null;
+      this._attemptAbsoluteDurationLimit = null;
+      this._activityAbsoluteDurationLimit = null;
       this._timeLimitAction = null;
       this._timeLimitDuration = null;
       this._beginTimeLimit = null;
       this._endTimeLimit = null;
+      this._processedChildren = null;
+      this._isNewAttempt = false;
       this._id = id;
       this._title = title;
       this._sequencingControls = new SequencingControls();
+      this._sequencingRules = new SequencingRules();
+      this._rollupRules = new RollupRules();
     }
     /**
      * Called when the API has been initialized after the CMI has been created
@@ -6882,6 +7117,11 @@ ${stackTrace}`);
      */
     set isCompleted(isCompleted) {
       this._isCompleted = isCompleted;
+      if (isCompleted) {
+        this._completionStatus = CompletionStatus.COMPLETED;
+      } else {
+        this._completionStatus = CompletionStatus.INCOMPLETE;
+      }
     }
     /**
      * Getter for completionStatus
@@ -6920,10 +7160,41 @@ ${stackTrace}`);
       return this._attemptCount;
     }
     /**
+     * Setter for attemptCount
+     * @param {number} value
+     */
+    set attemptCount(value) {
+      this._attemptCount = value;
+    }
+    /**
      * Increment the attempt count
      */
     incrementAttemptCount() {
       this._attemptCount++;
+      this._isNewAttempt = true;
+      const controls = this._sequencingControls;
+      if (controls.selectionTiming === "onEachNewAttempt" || controls.randomizationTiming === "onEachNewAttempt") {
+        this._processedChildren = null;
+      }
+    }
+    /**
+     * Getter for objectiveSatisfiedStatus
+     * @return {boolean}
+     */
+    get objectiveSatisfiedStatus() {
+      return this._objectiveSatisfiedStatus;
+    }
+    /**
+     * Setter for objectiveSatisfiedStatus
+     * @param {boolean} objectiveSatisfiedStatus
+     */
+    set objectiveSatisfiedStatus(objectiveSatisfiedStatus) {
+      this._objectiveSatisfiedStatus = objectiveSatisfiedStatus;
+      if (objectiveSatisfiedStatus) {
+        this._successStatus = SuccessStatus.PASSED;
+      } else {
+        this._successStatus = SuccessStatus.FAILED;
+      }
     }
     /**
      * Getter for objectiveMeasureStatus
@@ -6952,6 +7223,22 @@ ${stackTrace}`);
      */
     set objectiveNormalizedMeasure(objectiveNormalizedMeasure) {
       this._objectiveNormalizedMeasure = objectiveNormalizedMeasure;
+    }
+    /**
+     * Getter for scaledPassingScore
+     * @return {number}
+     */
+    get scaledPassingScore() {
+      return this._scaledPassingScore;
+    }
+    /**
+     * Setter for scaledPassingScore
+     * @param {number} scaledPassingScore
+     */
+    set scaledPassingScore(scaledPassingScore) {
+      if (scaledPassingScore >= -1 && scaledPassingScore <= 1) {
+        this._scaledPassingScore = scaledPassingScore;
+      }
     }
     /**
      * Getter for isHiddenFromChoice
@@ -7062,6 +7349,20 @@ ${stackTrace}`);
       this._endTimeLimit = endTimeLimit;
     }
     /**
+     * Getter for attemptAbsoluteDurationLimit
+     * @return {string | null}
+     */
+    get attemptAbsoluteDurationLimit() {
+      return this._attemptAbsoluteDurationLimit;
+    }
+    /**
+     * Setter for attemptAbsoluteDurationLimit
+     * @param {string | null} attemptAbsoluteDurationLimit
+     */
+    set attemptAbsoluteDurationLimit(attemptAbsoluteDurationLimit) {
+      this._attemptAbsoluteDurationLimit = attemptAbsoluteDurationLimit;
+    }
+    /**
      * Getter for attemptExperiencedDuration
      * @return {string}
      */
@@ -7076,6 +7377,34 @@ ${stackTrace}`);
       this._attemptExperiencedDuration = attemptExperiencedDuration;
     }
     /**
+     * Getter for activityAbsoluteDurationLimit
+     * @return {string | null}
+     */
+    get activityAbsoluteDurationLimit() {
+      return this._activityAbsoluteDurationLimit;
+    }
+    /**
+     * Setter for activityAbsoluteDurationLimit
+     * @param {string | null} activityAbsoluteDurationLimit
+     */
+    set activityAbsoluteDurationLimit(activityAbsoluteDurationLimit) {
+      this._activityAbsoluteDurationLimit = activityAbsoluteDurationLimit;
+    }
+    /**
+     * Getter for activityExperiencedDuration
+     * @return {string}
+     */
+    get activityExperiencedDuration() {
+      return this._activityExperiencedDuration;
+    }
+    /**
+     * Setter for activityExperiencedDuration
+     * @param {string} activityExperiencedDuration
+     */
+    set activityExperiencedDuration(activityExperiencedDuration) {
+      this._activityExperiencedDuration = activityExperiencedDuration;
+    }
+    /**
      * Getter for sequencingControls
      * @return {SequencingControls}
      */
@@ -7088,6 +7417,74 @@ ${stackTrace}`);
      */
     set sequencingControls(sequencingControls) {
       this._sequencingControls = sequencingControls;
+    }
+    /**
+     * Getter for sequencingRules
+     * @return {SequencingRules}
+     */
+    get sequencingRules() {
+      return this._sequencingRules;
+    }
+    /**
+     * Setter for sequencingRules
+     * @param {SequencingRules} sequencingRules
+     */
+    set sequencingRules(sequencingRules) {
+      this._sequencingRules = sequencingRules;
+    }
+    /**
+     * Getter for rollupRules
+     * @return {RollupRules}
+     */
+    get rollupRules() {
+      return this._rollupRules;
+    }
+    /**
+     * Setter for rollupRules
+     * @param {RollupRules} rollupRules
+     */
+    set rollupRules(rollupRules) {
+      this._rollupRules = rollupRules;
+    }
+    /**
+     * Get available children with selection and randomization applied
+     * @return {Activity[]}
+     */
+    getAvailableChildren() {
+      if (this._children.length === 0) {
+        return [];
+      }
+      if (this._processedChildren !== null) {
+        return this._processedChildren;
+      }
+      return this._children;
+    }
+    /**
+     * Set the processed children (called by SelectionRandomization)
+     * @param {Activity[]} processedChildren
+     */
+    setProcessedChildren(processedChildren) {
+      this._processedChildren = processedChildren;
+    }
+    /**
+     * Reset processed children (used when configuration changes)
+     */
+    resetProcessedChildren() {
+      this._processedChildren = null;
+    }
+    /**
+     * Get whether this is a new attempt
+     * @return {boolean}
+     */
+    get isNewAttempt() {
+      return this._isNewAttempt;
+    }
+    /**
+     * Set whether this is a new attempt
+     * @param {boolean} isNewAttempt
+     */
+    set isNewAttempt(isNewAttempt) {
+      this._isNewAttempt = isNewAttempt;
     }
     /**
      * toJSON for Activity
@@ -7259,10 +7656,12 @@ ${stackTrace}`);
     /**
      * Get the children of an activity
      * @param {Activity} activity - The activity to get the children of
+     * @param {boolean} useAvailableChildren - Whether to use available children (with selection/randomization)
      * @return {Activity[]} - An array of the activity's children
      */
     getChildren(activity) {
-      return activity.children;
+      let useAvailableChildren = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+      return useAvailableChildren ? activity.getAvailableChildren() : activity.children;
     }
     /**
      * Get the siblings of an activity
@@ -7278,14 +7677,20 @@ ${stackTrace}`);
     /**
      * Get the next sibling of an activity
      * @param {Activity} activity - The activity to get the next sibling of
+     * @param {boolean} useAvailableChildren - Whether to use available children (with selection/randomization)
      * @return {Activity | null} - The next sibling of the activity, or null if it has no next sibling
      */
     getNextSibling(activity) {
+      let useAvailableChildren = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
       if (!activity.parent) {
         return null;
       }
-      const siblings = activity.parent.children;
-      const index = siblings.indexOf(activity);
+      let siblings = useAvailableChildren ? activity.parent.getAvailableChildren() : activity.parent.children;
+      let index = siblings.indexOf(activity);
+      if (index === -1 && useAvailableChildren) {
+        siblings = activity.parent.children;
+        index = siblings.indexOf(activity);
+      }
       if (index === -1 || index === siblings.length - 1) {
         return null;
       }
@@ -7294,14 +7699,20 @@ ${stackTrace}`);
     /**
      * Get the previous sibling of an activity
      * @param {Activity} activity - The activity to get the previous sibling of
+     * @param {boolean} useAvailableChildren - Whether to use available children (with selection/randomization)
      * @return {Activity | null} - The previous sibling of the activity, or null if it has no previous sibling
      */
     getPreviousSibling(activity) {
+      let useAvailableChildren = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
       if (!activity.parent) {
         return null;
       }
-      const siblings = activity.parent.children;
-      const index = siblings.indexOf(activity);
+      let siblings = useAvailableChildren ? activity.parent.getAvailableChildren() : activity.parent.children;
+      let index = siblings.indexOf(activity);
+      if (index === -1 && useAvailableChildren) {
+        siblings = activity.parent.children;
+        index = siblings.indexOf(activity);
+      }
       if (index <= 0) {
         return null;
       }
@@ -7310,24 +7721,30 @@ ${stackTrace}`);
     /**
      * Get the first child of an activity
      * @param {Activity} activity - The activity to get the first child of
+     * @param {boolean} useAvailableChildren - Whether to use available children (with selection/randomization)
      * @return {Activity | null} - The first child of the activity, or null if it has no children
      */
     getFirstChild(activity) {
-      if (activity.children.length === 0) {
+      let useAvailableChildren = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+      const children = useAvailableChildren ? activity.getAvailableChildren() : activity.children;
+      if (children.length === 0) {
         return null;
       }
-      return activity.children[0] ?? null;
+      return children[0] ?? null;
     }
     /**
      * Get the last child of an activity
      * @param {Activity} activity - The activity to get the last child of
+     * @param {boolean} useAvailableChildren - Whether to use available children (with selection/randomization)
      * @return {Activity | null} - The last child of the activity, or null if it has no children
      */
     getLastChild(activity) {
-      if (activity.children.length === 0) {
+      let useAvailableChildren = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+      const children = useAvailableChildren ? activity.getAvailableChildren() : activity.children;
+      if (children.length === 0) {
         return null;
       }
-      return activity.children[activity.children.length - 1] ?? null;
+      return children[children.length - 1] ?? null;
     }
     /**
      * Get the common ancestor of two activities
@@ -7367,6 +7784,156 @@ ${stackTrace}`);
     }
   }
 
+  class SelectionRandomization {
+    /**
+     * Select Children Process (SR.1)
+     * Selects a subset of child activities based on selection controls
+     * @param {Activity} activity - The parent activity whose children need to be selected
+     * @return {Activity[]} - The selected child activities
+     */
+    static selectChildrenProcess(activity) {
+      const controls = activity.sequencingControls;
+      const children = [...activity.children];
+      if (controls.selectionTiming === SelectionTiming.NEVER) {
+        return children;
+      }
+      if (controls.selectionTiming === SelectionTiming.ONCE && controls.selectionCountStatus) {
+        return children;
+      }
+      const selectCount = controls.selectCount;
+      if (selectCount === null || selectCount >= children.length) {
+        if (controls.selectionTiming === SelectionTiming.ONCE) {
+          controls.selectionCountStatus = true;
+        }
+        return children;
+      }
+      const selectedChildren = [];
+      const availableIndices = children.map((_, index) => index);
+      for (let i = 0; i < selectCount; i++) {
+        if (availableIndices.length === 0) break;
+        const randomIndex = Math.floor(Math.random() * availableIndices.length);
+        const childIndex = availableIndices[randomIndex];
+        if (childIndex !== void 0 && children[childIndex]) {
+          selectedChildren.push(children[childIndex]);
+        }
+        availableIndices.splice(randomIndex, 1);
+      }
+      if (controls.selectionTiming === SelectionTiming.ONCE) {
+        controls.selectionCountStatus = true;
+      }
+      for (const child of children) {
+        if (!selectedChildren.includes(child)) {
+          child.isHiddenFromChoice = true;
+          child.isAvailable = false;
+        }
+      }
+      return selectedChildren;
+    }
+    /**
+     * Randomize Children Process (SR.2)
+     * Randomizes the order of child activities based on randomization controls
+     * @param {Activity} activity - The parent activity whose children need to be randomized
+     * @return {Activity[]} - The randomized child activities
+     */
+    static randomizeChildrenProcess(activity) {
+      const controls = activity.sequencingControls;
+      const children = [...activity.children];
+      if (controls.randomizationTiming === RandomizationTiming.NEVER) {
+        return children;
+      }
+      if (controls.randomizationTiming === RandomizationTiming.ONCE && controls.reorderChildren) {
+        return children;
+      }
+      if (!controls.randomizeChildren) {
+        return children;
+      }
+      const randomizedChildren = [...children];
+      for (let i = randomizedChildren.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tempI = randomizedChildren[i];
+        const tempJ = randomizedChildren[j];
+        if (tempI && tempJ) {
+          randomizedChildren[i] = tempJ;
+          randomizedChildren[j] = tempI;
+        }
+      }
+      if (controls.randomizationTiming === RandomizationTiming.ONCE) {
+        controls.reorderChildren = true;
+      }
+      activity.children.length = 0;
+      activity.children.push(...randomizedChildren);
+      return randomizedChildren;
+    }
+    /**
+     * Apply selection and randomization to an activity
+     * This combines both SR.1 and SR.2 processes
+     * @param {Activity} activity - The parent activity
+     * @param {boolean} isNewAttempt - Whether this is a new attempt on the activity
+     * @return {Activity[]} - The processed child activities
+     */
+    static applySelectionAndRandomization(activity) {
+      let isNewAttempt = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+      const controls = activity.sequencingControls;
+      let shouldApplySelection = false;
+      let shouldApplyRandomization = false;
+      if (controls.selectionTiming === SelectionTiming.ON_EACH_NEW_ATTEMPT) {
+        shouldApplySelection = isNewAttempt;
+        if (isNewAttempt) {
+          controls.selectionCountStatus = false;
+        }
+      } else if (controls.selectionTiming === SelectionTiming.ONCE) {
+        shouldApplySelection = !controls.selectionCountStatus;
+      }
+      if (controls.randomizationTiming === RandomizationTiming.ON_EACH_NEW_ATTEMPT) {
+        shouldApplyRandomization = isNewAttempt;
+        if (isNewAttempt) {
+          controls.reorderChildren = false;
+        }
+      } else if (controls.randomizationTiming === RandomizationTiming.ONCE) {
+        shouldApplyRandomization = !controls.reorderChildren;
+      }
+      if (shouldApplySelection) {
+        this.selectChildrenProcess(activity);
+      }
+      if (shouldApplyRandomization) {
+        this.randomizeChildrenProcess(activity);
+      }
+      const processedChildren = activity.children.filter(child => child.isAvailable);
+      activity.setProcessedChildren(processedChildren);
+      return processedChildren;
+    }
+    /**
+     * Check if selection is needed for an activity
+     * @param {Activity} activity - The activity to check
+     * @return {boolean} - True if selection is needed
+     */
+    static isSelectionNeeded(activity) {
+      const controls = activity.sequencingControls;
+      if (controls.selectionTiming === SelectionTiming.NEVER) {
+        return false;
+      }
+      if (controls.selectionTiming === SelectionTiming.ONCE && controls.selectionCountStatus) {
+        return false;
+      }
+      return controls.selectCount !== null && controls.selectCount < activity.children.length;
+    }
+    /**
+     * Check if randomization is needed for an activity
+     * @param {Activity} activity - The activity to check
+     * @return {boolean} - True if randomization is needed
+     */
+    static isRandomizationNeeded(activity) {
+      const controls = activity.sequencingControls;
+      if (controls.randomizationTiming === RandomizationTiming.NEVER) {
+        return false;
+      }
+      if (controls.randomizationTiming === RandomizationTiming.ONCE && controls.reorderChildren) {
+        return false;
+      }
+      return controls.randomizeChildren;
+    }
+  }
+
   var SequencingRequestType = /* @__PURE__ */(SequencingRequestType2 => {
     SequencingRequestType2["START"] = "start";
     SequencingRequestType2["RESUME_ALL"] = "resumeAll";
@@ -7402,8 +7969,8 @@ ${stackTrace}`);
     constructor(activityTree, sequencingRules, sequencingControls) {
       let adlNav = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
       this.activityTree = activityTree;
-      this.sequencingRules = sequencingRules;
-      this.sequencingControls = sequencingControls;
+      this.sequencingRules = sequencingRules || null;
+      this.sequencingControls = sequencingControls || null;
       this.adlNav = adlNav;
     }
     /**
@@ -7506,18 +8073,37 @@ ${stackTrace}`);
         result.exception = "SB.2.5-2";
         return result;
       }
-      const flowResult = this.flowActivityTraversalSubprocess(root, true,
-      // direction forward
-      true,
-      // consider children (we want to flow into the root's children)
-      "forward" /* FORWARD */);
-      if (!flowResult) {
+      const deliverableActivity = this.findFirstDeliverableActivity(root);
+      if (!deliverableActivity) {
         result.exception = "SB.2.5-3";
         return result;
       }
       result.deliveryRequest = "deliver" /* DELIVER */;
-      result.targetActivity = flowResult;
+      result.targetActivity = deliverableActivity;
       return result;
+    }
+    /**
+     * Find First Deliverable Activity
+     * Recursively searches from the given activity to find the first deliverable leaf
+     * @param {Activity} activity - The activity to start searching from
+     * @return {Activity | null} - The first deliverable activity, or null if none found
+     */
+    findFirstDeliverableActivity(activity) {
+      if (activity.children.length === 0) {
+        if (this.checkActivityProcess(activity)) {
+          return activity;
+        }
+        return null;
+      }
+      this.ensureSelectionAndRandomization(activity);
+      const children = activity.getAvailableChildren();
+      for (const child of children) {
+        const deliverable = this.findFirstDeliverableActivity(child);
+        if (deliverable) {
+          return deliverable;
+        }
+      }
+      return null;
     }
     /**
      * Resume All Sequencing Request Process (SB.2.6)
@@ -7547,22 +8133,17 @@ ${stackTrace}`);
      */
     continueSequencingRequestProcess(currentActivity) {
       const result = new SequencingResult();
-      if (!currentActivity.isActive) {
+      if (currentActivity.isActive) {
         result.exception = "SB.2.7-1";
         return result;
       }
-      const flowResult = this.flowActivityTraversalSubprocess(currentActivity, false,
-      // direction not forward (from current)
-      false,
-      // don't consider children
-      "forward" /* FORWARD */);
-      if (!flowResult) {
+      if (currentActivity.parent && !currentActivity.parent.sequencingControls.flow) {
         result.exception = "SB.2.7-2";
         return result;
       }
-      const checkResult = this.checkActivityProcess(flowResult);
-      if (!checkResult) {
-        this.terminateDescendentAttemptsProcess(currentActivity);
+      const flowResult = this.flowSubprocess(currentActivity, "forward" /* FORWARD */);
+      if (!flowResult) {
+        result.exception = "SB.2.7-2";
         return result;
       }
       result.deliveryRequest = "deliver" /* DELIVER */;
@@ -7577,22 +8158,21 @@ ${stackTrace}`);
      */
     previousSequencingRequestProcess(currentActivity) {
       const result = new SequencingResult();
-      if (!currentActivity.isActive) {
+      if (currentActivity.isActive) {
         result.exception = "SB.2.8-1";
         return result;
       }
-      const flowResult = this.flowActivityTraversalSubprocess(currentActivity, false,
-      // direction not forward (from current)
-      false,
-      // don't consider children
-      "backward" /* BACKWARD */);
-      if (!flowResult) {
+      if (currentActivity.parent && !currentActivity.parent.sequencingControls.flow) {
         result.exception = "SB.2.8-2";
         return result;
       }
-      const checkResult = this.checkActivityProcess(flowResult);
-      if (!checkResult) {
-        this.terminateDescendentAttemptsProcess(currentActivity);
+      if (currentActivity.parent && currentActivity.parent.sequencingControls.forwardOnly) {
+        result.exception = "SB.2.8-2";
+        return result;
+      }
+      const flowResult = this.flowSubprocess(currentActivity, "backward" /* BACKWARD */);
+      if (!flowResult) {
+        result.exception = "SB.2.8-2";
         return result;
       }
       result.deliveryRequest = "deliver" /* DELIVER */;
@@ -7653,6 +8233,8 @@ ${stackTrace}`);
         }
       }
       if (targetActivity.children.length > 0) {
+        this.ensureSelectionAndRandomization(targetActivity);
+        targetActivity.getAvailableChildren();
         const flowResult = this.flowActivityTraversalSubprocess(targetActivity, true,
         // direction forward
         true,
@@ -7776,44 +8358,50 @@ ${stackTrace}`);
      * @return {SequencingResult}
      */
     retryAllSequencingRequestProcess() {
+      this.activityTree.currentActivity = null;
       return this.startSequencingRequestProcess();
     }
     /**
-     * Flow Activity Traversal Subprocess (SB.2.1)
-     * Identifies the next activity in the activity tree
+     * Ensure selection and randomization is applied to an activity
+     * @param {Activity} activity - The activity to process
+     */
+    ensureSelectionAndRandomization(activity) {
+      if (activity.getAvailableChildren() === activity.children && (SelectionRandomization.isSelectionNeeded(activity) || SelectionRandomization.isRandomizationNeeded(activity))) {
+        SelectionRandomization.applySelectionAndRandomization(activity, activity.isNewAttempt);
+      }
+    }
+    /**
+     * Flow Activity Traversal Subprocess (SB.2.2)
+     * Checks if an activity can be delivered and flows into clusters if needed
      */
     flowActivityTraversalSubprocess(activity, _direction, considerChildren, mode) {
-      if (mode === "forward" /* FORWARD */) {
-        if (considerChildren && activity.children.length > 0) {
-          return activity.children[0] || null;
-        }
-        let nextSibling = this.activityTree.getNextSibling(activity);
-        if (nextSibling) {
-          return nextSibling;
-        }
-        let parent = activity.parent;
-        while (parent) {
-          nextSibling = this.activityTree.getNextSibling(parent);
-          if (nextSibling) {
-            return nextSibling;
+      if (!activity.isAvailable) {
+        return null;
+      }
+      const parent = activity.parent;
+      if (parent && !parent.sequencingControls.flow) {
+        return null;
+      }
+      if (considerChildren) {
+        this.ensureSelectionAndRandomization(activity);
+        const availableChildren = activity.getAvailableChildren();
+        for (const child of availableChildren) {
+          const deliverable = this.flowActivityTraversalSubprocess(child, mode === "forward" /* FORWARD */, true, mode);
+          if (deliverable) {
+            return deliverable;
           }
-          parent = parent.parent;
+        }
+      }
+      if (activity.children.length === 0) {
+        if (activity.sequencingControls.flow) {
+          return null;
+        }
+        if (this.checkActivityProcess(activity)) {
+          return activity;
         }
         return null;
-      } else {
-        const previousSibling = this.activityTree.getPreviousSibling(activity);
-        if (previousSibling) {
-          if (previousSibling.children.length > 0) {
-            let lastChild = previousSibling.children[previousSibling.children.length - 1];
-            while (lastChild && lastChild.children.length > 0) {
-              lastChild = lastChild.children[lastChild.children.length - 1];
-            }
-            return lastChild || null;
-          }
-          return previousSibling;
-        }
-        return activity.parent;
       }
+      return null;
     }
     /**
      * Check Activity Process (SB.2.3)
@@ -7823,10 +8411,10 @@ ${stackTrace}`);
       if (!activity.isAvailable) {
         return false;
       }
-      if (activity.hasAttemptLimitExceeded()) {
+      if (this.limitConditionsCheckProcess(activity)) {
         return false;
       }
-      const preConditionResult = this.sequencingRules.evaluatePreConditionRules(activity);
+      const preConditionResult = this.sequencingRulesCheckProcess(activity, activity.sequencingRules.preConditionRules);
       return preConditionResult !== RuleActionType.SKIP && preConditionResult !== RuleActionType.DISABLED;
     }
     /**
@@ -7834,10 +8422,165 @@ ${stackTrace}`);
      * Ends attempts on an activity and its descendants
      */
     terminateDescendentAttemptsProcess(activity) {
+      let skipExitRules = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+      let exitAction = null;
+      if (!skipExitRules) {
+        exitAction = this.exitActionRulesSubprocess(activity);
+      }
       activity.isActive = false;
       for (const child of activity.children) {
-        this.terminateDescendentAttemptsProcess(child);
+        this.terminateDescendentAttemptsProcess(child, skipExitRules);
       }
+      if (exitAction && !skipExitRules) {
+        this.processDeferredExitAction(exitAction, activity);
+      }
+    }
+    /**
+     * Exit Action Rules Subprocess (TB.2.1)
+     * Evaluates the exit condition rules for an activity
+     * @param {Activity} activity - The activity to evaluate exit rules for
+     * @return {RuleActionType | null} - The exit action to process, if any
+     * @private
+     */
+    exitActionRulesSubprocess(activity) {
+      const exitAction = this.sequencingRulesCheckProcess(activity, activity.sequencingRules.exitConditionRules);
+      if (exitAction === RuleActionType.EXIT || exitAction === RuleActionType.EXIT_PARENT || exitAction === RuleActionType.EXIT_ALL) {
+        return exitAction;
+      }
+      return null;
+    }
+    /**
+     * Process deferred exit action after termination
+     * @param {RuleActionType} exitAction - The exit action to process
+     * @param {Activity} activity - The activity that triggered the exit action
+     * @private
+     */
+    processDeferredExitAction(exitAction, activity) {
+      switch (exitAction) {
+        case RuleActionType.EXIT:
+          break;
+        case RuleActionType.EXIT_PARENT:
+          if (activity.parent && activity.parent.isActive) {
+            this.terminateDescendentAttemptsProcess(activity.parent, true);
+          }
+          break;
+        case RuleActionType.EXIT_ALL:
+          if (this.activityTree.root && this.activityTree.root !== activity) {
+            const allActivities = this.activityTree.getAllActivities();
+            const anyActive = allActivities.some(a => a.isActive);
+            if (anyActive) {
+              this.terminateDescendentAttemptsProcess(this.activityTree.root, true);
+            }
+          }
+          break;
+      }
+    }
+    /**
+     * Post Condition Rules Subprocess (TB.2.2)
+     * Evaluates the post-condition rules for an activity after delivery
+     * @param {Activity} activity - The activity to evaluate post-condition rules for
+     * @return {RuleActionType | null} - The action to take, if any
+     * @private
+     */
+    postConditionRulesSubprocess(activity) {
+      const postAction = this.sequencingRulesCheckProcess(activity, activity.sequencingRules.postConditionRules);
+      const validActions = [RuleActionType.EXIT_PARENT, RuleActionType.EXIT_ALL, RuleActionType.RETRY, RuleActionType.RETRY_ALL, RuleActionType.CONTINUE, RuleActionType.PREVIOUS];
+      if (postAction && validActions.includes(postAction)) {
+        return postAction;
+      }
+      return null;
+    }
+    /**
+     * Limit Conditions Check Process (UP.1)
+     * Checks if an activity has exceeded its limit conditions (attempt limit or duration limits)
+     * @param {Activity} activity - The activity to check
+     * @return {boolean} - True if limit conditions are violated, false otherwise
+     * @private
+     */
+    limitConditionsCheckProcess(activity) {
+      if (activity.attemptLimit !== null && activity.attemptCount >= activity.attemptLimit) {
+        return true;
+      }
+      if (activity.attemptAbsoluteDurationLimit !== null) {
+        const attemptDurationMs = this.parseISO8601Duration(activity.attemptExperiencedDuration);
+        const attemptLimitMs = this.parseISO8601Duration(activity.attemptAbsoluteDurationLimit);
+        if (attemptDurationMs >= attemptLimitMs) {
+          return true;
+        }
+      }
+      if (activity.activityAbsoluteDurationLimit !== null) {
+        const activityDurationMs = this.parseISO8601Duration(activity.activityExperiencedDuration);
+        const activityLimitMs = this.parseISO8601Duration(activity.activityAbsoluteDurationLimit);
+        if (activityDurationMs >= activityLimitMs) {
+          return true;
+        }
+      }
+      return false;
+    }
+    /**
+     * Parse ISO 8601 duration to milliseconds
+     * @param {string} duration - ISO 8601 duration string
+     * @return {number} - Duration in milliseconds
+     * @private
+     */
+    parseISO8601Duration(duration) {
+      const regex = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?/;
+      const matches = duration.match(regex);
+      if (!matches) {
+        return 0;
+      }
+      const hours = parseInt(matches[1] || "0", 10);
+      const minutes = parseInt(matches[2] || "0", 10);
+      const seconds = parseFloat(matches[3] || "0");
+      return (hours * 3600 + minutes * 60 + seconds) * 1e3;
+    }
+    /**
+     * Sequencing Rules Check Process (UP.2)
+     * General process for evaluating a set of sequencing rules
+     * @param {Activity} activity - The activity to evaluate rules for
+     * @param {SequencingRule[]} rules - The rules to evaluate
+     * @return {RuleActionType | null} - The action to take, or null if no rules apply
+     * @private
+     */
+    sequencingRulesCheckProcess(activity, rules) {
+      for (const rule of rules) {
+        if (this.sequencingRulesCheckSubprocess(activity, rule)) {
+          return rule.action;
+        }
+      }
+      return null;
+    }
+    /**
+     * Sequencing Rules Check Subprocess (UP.2.1)
+     * Evaluates individual sequencing rule conditions
+     * @param {Activity} activity - The activity to evaluate the rule for
+     * @param {SequencingRule} rule - The rule to evaluate
+     * @return {boolean} - True if all rule conditions are met
+     * @private
+     */
+    sequencingRulesCheckSubprocess(activity, rule) {
+      if (rule.conditions.length === 0) {
+        return true;
+      }
+      const conditionCombination = rule.conditionCombination;
+      if (conditionCombination === "all" || conditionCombination === RuleConditionOperator.AND) {
+        return rule.conditions.every(condition => {
+          const result = condition.evaluate(activity);
+          if (!result) {
+            return false;
+          }
+          return true;
+        });
+      } else if (conditionCombination === "any" || conditionCombination === RuleConditionOperator.OR) {
+        return rule.conditions.some(condition => {
+          const result = condition.evaluate(activity);
+          if (result) {
+            return true;
+          }
+          return false;
+        });
+      }
+      return false;
     }
     /**
      * Check if activity is in the activity tree
@@ -7866,6 +8609,177 @@ ${stackTrace}`);
         current = current.parent;
       }
       return null;
+    }
+    /**
+     * Flow Subprocess (SB.2.3)
+     * Traverses the activity tree in the specified direction to find a deliverable activity
+     * @param {Activity} fromActivity - The activity to flow from
+     * @param {FlowSubprocessMode} direction - The flow direction
+     * @return {Activity | null} - The next deliverable activity, or null if none found
+     */
+    flowSubprocess(fromActivity, direction) {
+      let candidateActivity = fromActivity;
+      let firstIteration = true;
+      while (candidateActivity) {
+        const nextCandidate = this.flowTreeTraversalSubprocess(candidateActivity, direction, firstIteration);
+        if (!nextCandidate) {
+          return null;
+        }
+        const deliverable = this.flowActivityTraversalSubprocess(nextCandidate, direction === "forward" /* FORWARD */, true,
+        // consider children
+        direction);
+        if (deliverable) {
+          return deliverable;
+        }
+        candidateActivity = nextCandidate;
+        firstIteration = false;
+      }
+      return null;
+    }
+    /**
+     * Flow Tree Traversal Subprocess (SB.2.1)
+     * Traverses the activity tree to find the next activity in the specified direction
+     * @param {Activity} fromActivity - The activity to traverse from
+     * @param {FlowSubprocessMode} direction - The traversal direction
+     * @param {boolean} skipChildren - Whether to skip checking children (for continuing from current)
+     * @return {Activity | null} - The next activity in the tree, or null if none
+     */
+    flowTreeTraversalSubprocess(fromActivity, direction) {
+      let skipChildren = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+      if (direction === "forward" /* FORWARD */) {
+        if (!skipChildren) {
+          this.ensureSelectionAndRandomization(fromActivity);
+          const children = fromActivity.getAvailableChildren();
+          if (children.length > 0) {
+            return children[0] || null;
+          }
+        }
+        let current = fromActivity;
+        while (current) {
+          const nextSibling = this.activityTree.getNextSibling(current);
+          if (nextSibling) {
+            return nextSibling;
+          }
+          current = current.parent;
+        }
+      } else {
+        const previousSibling = this.activityTree.getPreviousSibling(fromActivity);
+        if (previousSibling) {
+          let lastDescendant = previousSibling;
+          while (true) {
+            this.ensureSelectionAndRandomization(lastDescendant);
+            const children = lastDescendant.getAvailableChildren();
+            if (children.length === 0) {
+              break;
+            }
+            const lastChild = children[children.length - 1];
+            if (!lastChild) break;
+            lastDescendant = lastChild;
+          }
+          return lastDescendant;
+        }
+        let current = fromActivity;
+        while (current && current.parent) {
+          const parentPreviousSibling = this.activityTree.getPreviousSibling(current.parent);
+          if (parentPreviousSibling) {
+            let lastDescendant = parentPreviousSibling;
+            while (true) {
+              this.ensureSelectionAndRandomization(lastDescendant);
+              const children = lastDescendant.getAvailableChildren();
+              if (children.length === 0) {
+                break;
+              }
+              const lastChild = children[children.length - 1];
+              if (!lastChild) break;
+              lastDescendant = lastChild;
+            }
+            return lastDescendant;
+          }
+          current = current.parent;
+        }
+        return null;
+      }
+      return null;
+    }
+    /**
+     * Choice Flow Subprocess (SB.2.9.1)
+     * Handles the flow logic specific to choice navigation requests
+     * @param {Activity} targetActivity - The target activity for the choice
+     * @param {Activity | null} commonAncestor - The common ancestor between current and target
+     * @return {Activity | null} - The activity to deliver, or null if flow fails
+     */
+    choiceFlowSubprocess(targetActivity, commonAncestor) {
+      if (targetActivity.children.length === 0) {
+        return targetActivity;
+      }
+      return this.choiceFlowTreeTraversalSubprocess(targetActivity);
+    }
+    /**
+     * Choice Flow Tree Traversal Subprocess (SB.2.9.2)
+     * Traverses into a cluster activity to find a leaf for delivery
+     * @param {Activity} fromActivity - The cluster activity to traverse from
+     * @return {Activity | null} - A leaf activity for delivery, or null if none found
+     */
+    choiceFlowTreeTraversalSubprocess(fromActivity) {
+      this.ensureSelectionAndRandomization(fromActivity);
+      const children = fromActivity.getAvailableChildren();
+      for (const child of children) {
+        const deliverable = this.choiceActivityTraversalSubprocess(child);
+        if (deliverable) {
+          return deliverable;
+        }
+      }
+      return null;
+    }
+    /**
+     * Choice Activity Traversal Subprocess (SB.2.4)
+     * Checks constraints and traverses into activities for choice navigation
+     * @param {Activity} activity - The activity to check and possibly traverse
+     * @return {Activity | null} - A deliverable activity, or null if none found
+     */
+    choiceActivityTraversalSubprocess(activity) {
+      if (!activity.isAvailable) {
+        return null;
+      }
+      if (activity.isHiddenFromChoice) {
+        return null;
+      }
+      if (activity.parent && activity.parent.sequencingControls.constrainChoice) ;
+      if (activity.children.length === 0) {
+        if (this.checkActivityProcess(activity)) {
+          return activity;
+        }
+        return null;
+      }
+      return this.choiceFlowTreeTraversalSubprocess(activity);
+    }
+    /**
+     * Evaluate post-condition rules for the current activity
+     * This should be called after an activity has been delivered and the learner has interacted with it
+     * @param {Activity} activity - The activity to evaluate
+     * @return {SequencingRequestType | null} - The sequencing request to process, if any
+     */
+    evaluatePostConditionRules(activity) {
+      const postAction = this.postConditionRulesSubprocess(activity);
+      if (!postAction) {
+        return null;
+      }
+      switch (postAction) {
+        case RuleActionType.EXIT_PARENT:
+          return "exit" /* EXIT */;
+        case RuleActionType.EXIT_ALL:
+          return "exitAll" /* EXIT_ALL */;
+        case RuleActionType.RETRY:
+          return "retry" /* RETRY */;
+        case RuleActionType.RETRY_ALL:
+          return "retryAll" /* RETRY_ALL */;
+        case RuleActionType.CONTINUE:
+          return "continue" /* CONTINUE */;
+        case RuleActionType.PREVIOUS:
+          return "previous" /* PREVIOUS */;
+        default:
+          return null;
+      }
     }
   }
 

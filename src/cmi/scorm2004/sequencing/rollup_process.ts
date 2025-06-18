@@ -16,7 +16,7 @@ export class RollupProcess {
 
     // Process rollup up the tree until we reach the root
     while (currentActivity && currentActivity.parent) {
-      const parent = currentActivity.parent;
+      const parent: Activity = currentActivity.parent;
 
       // Only perform rollup if the parent tracks status
       if (parent.sequencingControls.rollupObjectiveSatisfied || 
@@ -118,13 +118,11 @@ export class RollupProcess {
   private objectiveRollupUsingRules(activity: Activity, rules: RollupRule[]): boolean | null {
     // Get satisfied and not satisfied rules
     const satisfiedRules = rules.filter(rule => 
-      rule.action === RollupActionType.SATISFIED && 
-      rule.childActivitySet === "all"
+      rule.action === RollupActionType.SATISFIED
     );
     
     const notSatisfiedRules = rules.filter(rule => 
-      rule.action === RollupActionType.NOT_SATISFIED && 
-      rule.childActivitySet === "all"
+      rule.action === RollupActionType.NOT_SATISFIED
     );
 
     // Evaluate satisfied rules first
@@ -192,13 +190,11 @@ export class RollupProcess {
 
     // Get completion rules
     const completedRules = rollupRules.rules.filter(rule => 
-      rule.action === RollupActionType.COMPLETED && 
-      rule.childActivitySet === "all"
+      rule.action === RollupActionType.COMPLETED
     );
     
     const incompleteRules = rollupRules.rules.filter(rule => 
-      rule.action === RollupActionType.INCOMPLETE && 
-      rule.childActivitySet === "all"
+      rule.action === RollupActionType.INCOMPLETE
     );
 
     // Evaluate completed rules first
@@ -302,8 +298,11 @@ export class RollupProcess {
       }
     }
 
-    // Apply minimum count/percent logic
-    if (rule.minimumCount !== null) {
+    // Apply minimum count/percent logic OR consideration type
+    if (rule.consideration === RollupConsiderationType.ALL) {
+      // For ALL consideration, all contributing children must satisfy
+      return contributingChildren > 0 && satisfiedCount === contributingChildren;
+    } else if (rule.minimumCount !== null) {
       return satisfiedCount >= rule.minimumCount;
     } else if (rule.minimumPercent !== null) {
       const percent = contributingChildren > 0 ? (satisfiedCount / contributingChildren) : 0;

@@ -564,6 +564,12 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       grandchild.objectiveSatisfiedStatus = true;
       grandchild.isCompleted = true;
       
+      // Set other children as satisfied to meet default rollup rules
+      child2.objectiveSatisfiedStatus = true;
+      child2.isCompleted = true;
+      child3.objectiveSatisfiedStatus = true;
+      child3.isCompleted = true;
+      
       // Rollup from grandchild all the way to root
       rollupProcess.overallRollupProcess(grandchild);
       

@@ -423,9 +423,10 @@ export class SequencingProcess {
     }
 
     // If target is not a leaf, flow forward to find a leaf
-    this.ensureSelectionAndRandomization(targetActivity);
-    const availableChildren = targetActivity.getAvailableChildren();
-    if (availableChildren.length > 0) {
+    if (targetActivity.children.length > 0) {
+      this.ensureSelectionAndRandomization(targetActivity);
+      const availableChildren = targetActivity.getAvailableChildren();
+      
       const flowResult = this.flowActivityTraversalSubprocess(
         targetActivity,
         true, // direction forward
@@ -595,6 +596,9 @@ export class SequencingProcess {
    * @return {SequencingResult}
    */
   private retryAllSequencingRequestProcess(): SequencingResult {
+    // Clear current activity to allow restart
+    this.activityTree.currentActivity = null;
+    
     // Restart from the root
     return this.startSequencingRequestProcess();
   }
@@ -633,15 +637,7 @@ export class SequencingProcess {
       return null;
     }
 
-    // If activity is a leaf, check if it can be delivered
-    if (activity.children.length === 0) {
-      if (this.checkActivityProcess(activity)) {
-        return activity;
-      }
-      return null;
-    }
-
-    // Activity is a cluster, flow into it to find a deliverable leaf
+    // Activity is a cluster, try to flow into it to find a deliverable leaf
     if (considerChildren) {
       this.ensureSelectionAndRandomization(activity);
       const availableChildren = activity.getAvailableChildren();
@@ -657,6 +653,21 @@ export class SequencingProcess {
           return deliverable;
         }
       }
+    }
+
+    // If activity is a leaf (no children), check if it can be delivered
+    if (activity.children.length === 0) {
+      // Check if this activity was intended to be a cluster but is empty
+      // A cluster typically has flow control enabled
+      if (activity.sequencingControls.flow) {
+        // This appears to be an empty cluster, not a true leaf
+        return null;
+      }
+      
+      if (this.checkActivityProcess(activity)) {
+        return activity;
+      }
+      return null;
     }
 
     return null;
@@ -1027,7 +1038,7 @@ export class SequencingProcess {
         this.ensureSelectionAndRandomization(fromActivity);
         const children = fromActivity.getAvailableChildren();
         if (children.length > 0) {
-          return children[0];
+          return children[0] || null;
         }
       }
 
@@ -1054,13 +1065,37 @@ export class SequencingProcess {
           if (children.length === 0) {
             break;
           }
-          lastDescendant = children[children.length - 1];
+          const lastChild = children[children.length - 1];
+          if (!lastChild) break;
+          lastDescendant = lastChild;
         }
         return lastDescendant;
       }
 
-      // No previous sibling, return parent
-      return fromActivity.parent;
+      // No previous sibling at this level, try going up to parent and then its previous sibling
+      let current: Activity | null = fromActivity;
+      while (current && current.parent) {
+        const parentPreviousSibling = this.activityTree.getPreviousSibling(current.parent);
+        if (parentPreviousSibling) {
+          // Found a previous sibling of an ancestor, go to its last descendant
+          let lastDescendant = parentPreviousSibling;
+          while (true) {
+            this.ensureSelectionAndRandomization(lastDescendant);
+            const children = lastDescendant.getAvailableChildren();
+            if (children.length === 0) {
+              break;
+            }
+            const lastChild = children[children.length - 1];
+            if (!lastChild) break;
+            lastDescendant = lastChild;
+          }
+          return lastDescendant;
+        }
+        // Move up to grandparent
+        current = current.parent;
+      }
+
+      return null; // Reached beginning of tree
     }
 
     return null;

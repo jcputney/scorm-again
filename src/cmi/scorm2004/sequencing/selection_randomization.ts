@@ -48,7 +48,9 @@ export class SelectionRandomization {
       
       const randomIndex = Math.floor(Math.random() * availableIndices.length);
       const childIndex = availableIndices[randomIndex];
-      selectedChildren.push(children[childIndex]);
+      if (childIndex !== undefined && children[childIndex]) {
+        selectedChildren.push(children[childIndex]);
+      }
       
       // Remove selected index from available indices
       availableIndices.splice(randomIndex, 1);
@@ -102,10 +104,12 @@ export class SelectionRandomization {
     const randomizedChildren = [...children];
     for (let i = randomizedChildren.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [randomizedChildren[i], randomizedChildren[j]] = [
-        randomizedChildren[j],
-        randomizedChildren[i],
-      ];
+      const tempI = randomizedChildren[i];
+      const tempJ = randomizedChildren[j];
+      if (tempI && tempJ) {
+        randomizedChildren[i] = tempJ;
+        randomizedChildren[j] = tempI;
+      }
     }
 
     // Mark randomization as done only if timing is ONCE
