@@ -8,7 +8,7 @@ import {
   InternalSettings,
   LogLevel,
   ResultObject,
-  Settings
+  Settings,
 } from "./types/api_types";
 import { defaultLogHandler, DefaultSettings } from "./constants/default_settings";
 import { IBaseAPI } from "./interfaces/IBaseAPI";
@@ -27,7 +27,7 @@ import {
   IHttpService,
   ILoggingService,
   IOfflineStorageService,
-  ISerializationService
+  ISerializationService,
 } from "./interfaces/services";
 import { CMIArray } from "./cmi/common/array";
 import { ValidationError } from "./exceptions";
@@ -70,7 +70,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     cmiDataService?: ICMIDataService,
     errorHandlingService?: IErrorHandlingService,
     loggingService?: ILoggingService,
-    offlineStorageService?: IOfflineStorageService
+    offlineStorageService?: IOfflineStorageService,
   ) {
     if (new.target === BaseAPI) {
       throw new TypeError("Cannot construct BaseAPI instances directly");
@@ -82,7 +82,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     if (settings) {
       this.settings = {
         ...DefaultSettings,
-        ...settings
+        ...settings,
       } as InternalSettings;
     }
 
@@ -104,7 +104,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     this._eventService =
       eventService ||
       new EventService((functionName, message, level, element) =>
-        this.apiLog(functionName, message, level, element)
+        this.apiLog(functionName, message, level, element),
       );
 
     // Initialize Serialization service
@@ -117,7 +117,7 @@ export default abstract class BaseAPI implements IBaseAPI {
         this._error_codes,
         (functionName, message, level, element) =>
           this.apiLog(functionName, message, level, element),
-        (errorNumber, detail) => this.getLmsErrorMessageDetails(errorNumber, detail)
+        (errorNumber, detail) => this.getLmsErrorMessageDetails(errorNumber, detail),
       );
 
     // Initialize Offline Storage service if enabled
@@ -128,7 +128,7 @@ export default abstract class BaseAPI implements IBaseAPI {
           this.settings,
           this._error_codes,
           (functionName, message, level, element) =>
-            this.apiLog(functionName, message, level, element)
+            this.apiLog(functionName, message, level, element),
         );
 
       if (this.settings.courseId) {
@@ -150,7 +150,7 @@ export default abstract class BaseAPI implements IBaseAPI {
             this.apiLog(
               "constructor",
               `Error retrieving offline data: ${error}`,
-              LogLevelEnum.ERROR
+              LogLevelEnum.ERROR,
             );
           });
       }
@@ -225,7 +225,7 @@ export default abstract class BaseAPI implements IBaseAPI {
   initialize(
     callbackName: string,
     initializeMessage?: string,
-    terminationMessage?: string
+    terminationMessage?: string,
   ): string {
     let returnValue = global_constants.SCORM_FALSE;
 
@@ -256,7 +256,7 @@ export default abstract class BaseAPI implements IBaseAPI {
             this.apiLog(
               callbackName,
               "Syncing pending offline data on initialization",
-              LogLevelEnum.INFO
+              LogLevelEnum.INFO,
             );
             this._offlineStorageService?.syncOfflineData().then((syncSuccess) => {
               if (syncSuccess) {
@@ -352,7 +352,7 @@ export default abstract class BaseAPI implements IBaseAPI {
   abstract getChildElement(
     _CMIElement: string,
     _value: any,
-    _foundFirstIndex: boolean
+    _foundFirstIndex: boolean,
   ): BaseCMI | null;
 
   /**
@@ -375,7 +375,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    */
   abstract renderCommitCMI(
     _terminateCommit: boolean,
-    _includeTotalTime?: boolean
+    _includeTotalTime?: boolean,
   ): StringKeyMap | Array<string>;
 
   /**
@@ -463,7 +463,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       this.checkState(
         checkTerminated,
         this._error_codes.TERMINATION_BEFORE_INIT ?? 0,
-        this._error_codes.MULTIPLE_TERMINATION ?? 0
+        this._error_codes.MULTIPLE_TERMINATION ?? 0,
       )
     ) {
       this.currentState = global_constants.STATE_TERMINATED;
@@ -476,13 +476,13 @@ export default abstract class BaseAPI implements IBaseAPI {
         this._offlineStorageService.isDeviceOnline()
       ) {
         const hasPendingData = await this._offlineStorageService.hasPendingOfflineData(
-          this._courseId
+          this._courseId,
         );
         if (hasPendingData) {
           this.apiLog(
             callbackName,
             "Syncing pending offline data before termination",
-            LogLevelEnum.INFO
+            LogLevelEnum.INFO,
           );
           await this._offlineStorageService.syncOfflineData();
         }
@@ -495,14 +495,14 @@ export default abstract class BaseAPI implements IBaseAPI {
           this.apiLog(
             "terminate",
             `Terminate failed with error: ${result.errorMessage}`,
-            LogLevelEnum.ERROR
+            LogLevelEnum.ERROR,
           );
         }
         if (result.errorDetails) {
           this.apiLog(
             "terminate",
             `Error details: ${JSON.stringify(result.errorDetails)}`,
-            LogLevelEnum.DEBUG
+            LogLevelEnum.DEBUG,
           );
         }
         this.throwSCORMError("api", result.errorCode ?? 0);
@@ -536,7 +536,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       this.checkState(
         checkTerminated,
         this._error_codes.RETRIEVE_BEFORE_INIT ?? 0,
-        this._error_codes.RETRIEVE_AFTER_TERM ?? 0
+        this._error_codes.RETRIEVE_AFTER_TERM ?? 0,
       )
     ) {
       // Only reset the error code if there's no error and checkTerminated is true
@@ -578,7 +578,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     commitCallback: string,
     checkTerminated: boolean,
     CMIElement: string,
-    value: any
+    value: any,
   ): string {
     if (value !== undefined) {
       value = String(value);
@@ -589,7 +589,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       this.checkState(
         checkTerminated,
         this._error_codes.STORE_BEFORE_INIT ?? 0,
-        this._error_codes.STORE_AFTER_TERM ?? 0
+        this._error_codes.STORE_AFTER_TERM ?? 0,
       )
     ) {
       // Only reset the error code if there's no error and checkTerminated is true
@@ -618,7 +618,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       callbackName,
       ": " + value + ": result: " + returnValue,
       LogLevelEnum.INFO,
-      CMIElement
+      CMIElement,
     );
 
     // Only clear the error code if there's no error
@@ -644,7 +644,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       this.checkState(
         checkTerminated,
         this._error_codes.COMMIT_BEFORE_INIT ?? 0,
-        this._error_codes.COMMIT_AFTER_TERM ?? 0
+        this._error_codes.COMMIT_AFTER_TERM ?? 0,
       )
     ) {
       const result = await this.storeData(false);
@@ -654,14 +654,14 @@ export default abstract class BaseAPI implements IBaseAPI {
           this.apiLog(
             "commit",
             `Commit failed with error: ${result.errorMessage}`,
-            LogLevelEnum.ERROR
+            LogLevelEnum.ERROR,
           );
         }
         if (result.errorDetails) {
           this.apiLog(
             "commit",
             `Error details: ${JSON.stringify(result.errorDetails)}`,
-            LogLevelEnum.DEBUG
+            LogLevelEnum.DEBUG,
           );
         }
         this.throwSCORMError("api", result.errorCode);
@@ -833,7 +833,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     methodName: string,
     scorm2004: boolean,
     CMIElement: string,
-    value: any
+    value: any,
   ): string {
     if (!CMIElement || CMIElement === "") {
       return global_constants.SCORM_FALSE;
@@ -862,7 +862,7 @@ export default abstract class BaseAPI implements IBaseAPI {
           } else {
             refObject = {
               ...refObject,
-              attribute: value
+              attribute: value,
             };
           }
         } else if (
@@ -948,7 +948,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       this.apiLog(
         methodName,
         `There was an error setting the value for: ${CMIElement}, value of: ${value}`,
-        LogLevelEnum.WARN
+        LogLevelEnum.WARN,
       );
     }
 
@@ -1031,7 +1031,7 @@ export default abstract class BaseAPI implements IBaseAPI {
             this.throwSCORMError(
               CMIElement,
               this._error_codes.VALUE_NOT_INITIALIZED,
-              uninitializedErrorMessage
+              uninitializedErrorMessage,
             );
             break;
           }
@@ -1163,7 +1163,7 @@ export default abstract class BaseAPI implements IBaseAPI {
   throwSCORMError(
     CMIElement: string | undefined,
     errorNumber: number | undefined,
-    message?: string
+    message?: string,
   ) {
     this._errorHandlingService.throwSCORMError(CMIElement, errorNumber ?? 0, message);
   }
@@ -1210,7 +1210,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       () => this.isNotInitialized(),
       (data: StringKeyMap) => {
         this.startingData = data;
-      }
+      },
     );
   }
 
@@ -1257,7 +1257,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       () => this.isNotInitialized(),
       (data: StringKeyMap) => {
         this.startingData = data;
-      }
+      },
     );
   }
 
@@ -1303,7 +1303,7 @@ export default abstract class BaseAPI implements IBaseAPI {
   async processHttpRequest(
     url: string,
     params: CommitObject | StringKeyMap | Array<any>,
-    immediate: boolean = false
+    immediate: boolean = false,
   ): Promise<ResultObject> {
     // If offline support is enabled and device is offline, store data locally instead of sending
     if (
@@ -1315,23 +1315,23 @@ export default abstract class BaseAPI implements IBaseAPI {
       this.apiLog(
         "processHttpRequest",
         "Device is offline, storing data locally",
-        LogLevelEnum.INFO
+        LogLevelEnum.INFO,
       );
 
       if (params && typeof params === "object" && "cmi" in params) {
         return await this._offlineStorageService.storeOffline(
           this._courseId,
-          params as CommitObject
+          params as CommitObject,
         );
       } else {
         this.apiLog(
           "processHttpRequest",
           "Invalid commit data format for offline storage",
-          LogLevelEnum.ERROR
+          LogLevelEnum.ERROR,
         );
         return {
           result: global_constants.SCORM_FALSE,
-          errorCode: this._error_codes.GENERAL ?? 101 // Fallback to a default error code if GENERAL is undefined
+          errorCode: this._error_codes.GENERAL ?? 101, // Fallback to a default error code if GENERAL is undefined
         };
       }
     }
@@ -1342,7 +1342,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       params,
       immediate,
       (functionName, message, level, element) => this.apiLog(functionName, message, level, element),
-      (functionName, CMIElement, value) => this.processListeners(functionName, CMIElement, value)
+      (functionName, CMIElement, value) => this.processListeners(functionName, CMIElement, value),
     );
   }
 
@@ -1491,7 +1491,7 @@ export default abstract class BaseAPI implements IBaseAPI {
         this.renderCommitObject(terminateCommit, includeTotalTime),
       (terminateCommit: boolean, includeTotalTime?: boolean) =>
         this.renderCommitCMI(terminateCommit, includeTotalTime),
-      this.settings.logLevel
+      this.settings.logLevel,
     );
   }
 }
