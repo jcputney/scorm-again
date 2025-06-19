@@ -3492,6 +3492,8 @@ class BaseAPI {
     this._loggingService.setLogLevel(this.settings.logLevel);
     if (this.settings.onLogMessage) {
       this._loggingService.setLogHandler(this.settings.onLogMessage);
+    } else {
+      this._loggingService.setLogHandler(defaultLogHandler);
     }
     this._httpService = httpService || new HttpService(this.settings, this._error_codes);
     this._eventService = eventService || new EventService(
