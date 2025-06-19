@@ -3617,9 +3617,7 @@ class BaseAPI {
    */
   apiLog(functionName, logMessage, messageLevel, CMIElement) {
     logMessage = formatMessage(functionName, logMessage, CMIElement);
-    if (messageLevel >= this.settings.logLevel) {
-      this._loggingService.log(messageLevel, logMessage);
-    }
+    this._loggingService.log(messageLevel, logMessage);
   }
   /**
    * Getter for _settings
@@ -3637,7 +3635,6 @@ class BaseAPI {
     this._settings = { ...this._settings, ...settings };
     this._httpService?.updateSettings(this._settings);
     if (settings.logLevel !== void 0 && settings.logLevel !== previousSettings.logLevel) {
-      this.settings.logLevel = settings.logLevel;
       this._loggingService?.setLogLevel(settings.logLevel);
     }
     if (settings.onLogMessage !== void 0 && settings.onLogMessage !== previousSettings.onLogMessage) {

@@ -407,10 +407,8 @@ export default abstract class BaseAPI implements IBaseAPI {
   apiLog(functionName: string, logMessage: string, messageLevel: LogLevel, CMIElement?: string) {
     logMessage = formatMessage(functionName, logMessage, CMIElement);
 
-    if (messageLevel >= this.settings.logLevel) {
-      // Use the injected LoggingService
-      this._loggingService.log(messageLevel, logMessage);
-    }
+    // Delegate to LoggingService which handles log level comparison properly
+    this._loggingService.log(messageLevel, logMessage);
   }
 
   /**
@@ -438,7 +436,6 @@ export default abstract class BaseAPI implements IBaseAPI {
 
     // Update log level if it changed
     if (settings.logLevel !== undefined && settings.logLevel !== previousSettings.logLevel) {
-      this.settings.logLevel = settings.logLevel;
       this._loggingService?.setLogLevel(settings.logLevel);
     }
 

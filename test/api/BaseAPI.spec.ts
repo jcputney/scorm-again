@@ -264,24 +264,43 @@ describe("BaseAPI", () => {
   });
 
   describe("apiLog", () => {
-    it("should call loggingService.log when message level is higher than apiLogLevel", () => {
+    it("should always delegate to loggingService.log", () => {
       const loggingService = getLoggingService();
       const logSpy = vi.spyOn(loggingService, "log");
       api.settings.logLevel = LogLevelEnum.ERROR;
 
+      // Test with a message that would be filtered (WARN < ERROR)
       api.apiLog("test", "Test message", LogLevelEnum.WARN);
+      expect(logSpy).toHaveBeenCalledWith(LogLevelEnum.WARN, "test                : Test message");
 
-      expect(logSpy).not.toHaveBeenCalled();
+      // Test with a message that would be logged (ERROR = ERROR)
+      api.apiLog("test2", "Error message", LogLevelEnum.ERROR);
+      expect(logSpy).toHaveBeenCalledWith(
+        LogLevelEnum.ERROR,
+        "test2               : Error message",
+      );
+
+      // Test with a message that would be filtered (DEBUG < ERROR)
+      api.apiLog("test3", "Debug message", LogLevelEnum.DEBUG);
+      expect(logSpy).toHaveBeenCalledWith(
+        LogLevelEnum.DEBUG,
+        "test3               : Debug message",
+      );
+
+      // All calls should go through to loggingService
+      expect(logSpy).toHaveBeenCalledTimes(3);
     });
 
-    it("should not call loggingService.log when message level is lower than apiLogLevel", () => {
+    it("should format messages correctly", () => {
       const loggingService = getLoggingService();
       const logSpy = vi.spyOn(loggingService, "log");
-      api.settings.logLevel = LogLevelEnum.ERROR;
 
-      api.apiLog("test", "Test message", LogLevelEnum.DEBUG);
+      api.apiLog("functionName", "Test message", LogLevelEnum.INFO, "cmi.core.student_name");
 
-      expect(logSpy).not.toHaveBeenCalled();
+      expect(logSpy).toHaveBeenCalledWith(
+        LogLevelEnum.INFO,
+        "functionName        : cmi.core.student_name                           Test message",
+      );
     });
   });
 
