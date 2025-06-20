@@ -1785,6 +1785,7 @@ var BaseAPI = (function () {
                             errorCode: this.error_codes.GENERAL,
                         };
                         if (immediate) {
+                            params = this.settings.requestHandler(params);
                             this.performFetch(url, params).then(function (response) { return (0,tslib_es6.__awaiter)(_this, void 0, void 0, function () {
                                 return (0,tslib_es6.__generator)(this, function (_a) {
                                     switch (_a.label) {
@@ -4200,11 +4201,14 @@ var ADLNavRequestValid = (function (_super) {
             }
             for (var key in choice) {
                 if ({}.hasOwnProperty.call(choice, key)) {
-                    if (choice[key] !== undefined &&
-                        check2004ValidFormat(choice[key], regex.scorm2004_regex.NAVBoolean) &&
-                        check2004ValidFormat(key, regex.scorm2004_regex.NAVTarget)) {
-                        this._choice[key] =
-                            enums.NAVBoolean[choice[key]];
+                    if (choice[key] !== undefined && check2004ValidFormat(key, regex.scorm2004_regex.NAVTarget)) {
+                        var value = choice[key];
+                        if (typeof value === 'string' && check2004ValidFormat(value, regex.scorm2004_regex.NAVBoolean)) {
+                            this._choice[key] = enums.NAVBoolean[value];
+                        }
+                        else if (Object.values(enums.NAVBoolean).includes(value)) {
+                            this._choice[key] = value;
+                        }
                     }
                 }
             }
@@ -4225,10 +4229,14 @@ var ADLNavRequestValid = (function (_super) {
             }
             for (var key in jump) {
                 if ({}.hasOwnProperty.call(jump, key)) {
-                    if (jump[key] !== undefined &&
-                        check2004ValidFormat(jump[key], regex.scorm2004_regex.NAVBoolean) &&
-                        check2004ValidFormat(key, regex.scorm2004_regex.NAVTarget)) {
-                        this._jump[key] = enums.NAVBoolean[jump[key]];
+                    if (jump[key] !== undefined && check2004ValidFormat(key, regex.scorm2004_regex.NAVTarget)) {
+                        var value = jump[key];
+                        if (typeof value === 'string' && check2004ValidFormat(value, regex.scorm2004_regex.NAVBoolean)) {
+                            this._jump[key] = enums.NAVBoolean[value];
+                        }
+                        else if (Object.values(enums.NAVBoolean).includes(value)) {
+                            this._jump[key] = value;
+                        }
                     }
                 }
             }

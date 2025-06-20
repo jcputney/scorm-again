@@ -789,6 +789,7 @@ var BaseAPI = (function () {
                             errorCode: this.error_codes.GENERAL,
                         };
                         if (immediate) {
+                            params = this.settings.requestHandler(params);
                             this.performFetch(url, params).then(function (response) { return (0,tslib_es6.__awaiter)(_this, void 0, void 0, function () {
                                 return (0,tslib_es6.__generator)(this, function (_a) {
                                     switch (_a.label) {
