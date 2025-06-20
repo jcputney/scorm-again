@@ -123,10 +123,10 @@ export class CMI extends BaseRootCMI {
 
   /**
    * Setter for __children. Just throws an error.
-   * @param {number} _children
+   * @param {string} _children
    * @private
    */
-  set _children(_children: number) {
+  set _children(_children: string) {
     throw new Scorm2004ValidationError(
       scorm2004_errors.READ_ONLY_ELEMENT as number,
     );

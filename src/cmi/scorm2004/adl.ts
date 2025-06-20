@@ -312,9 +312,9 @@ export class ADLNavRequestValid extends BaseCMI {
 
   /**
    * Setter for _choice
-   * @param {{ [key: string]: string }} choice
+   * @param {{ [key: string]: string | NAVBoolean }} choice
    */
-  set choice(choice: { [key: string]: string }) {
+  set choice(choice: { [key: string]: string | NAVBoolean }) {
     if (this.initialized) {
       throw new Scorm2004ValidationError(
         scorm2004_errors.READ_ONLY_ELEMENT as number,
@@ -327,13 +327,13 @@ export class ADLNavRequestValid extends BaseCMI {
     }
     for (const key in choice) {
       if ({}.hasOwnProperty.call(choice, key)) {
-        if (
-          choice[key] !== undefined &&
-          check2004ValidFormat(choice[key], scorm2004_regex.NAVBoolean) &&
-          check2004ValidFormat(key, scorm2004_regex.NAVTarget)
-        ) {
-          this._choice[key] =
-            NAVBoolean[choice[key] as keyof typeof NAVBoolean];
+        if (choice[key] !== undefined && check2004ValidFormat(key, scorm2004_regex.NAVTarget)) {
+          const value = choice[key];
+          if (typeof value === 'string' && check2004ValidFormat(value, scorm2004_regex.NAVBoolean)) {
+            this._choice[key] = NAVBoolean[value as keyof typeof NAVBoolean];
+          } else if (Object.values(NAVBoolean).includes(value as NAVBoolean)) {
+            this._choice[key] = value as NAVBoolean;
+          }
         }
       }
     }
@@ -349,9 +349,9 @@ export class ADLNavRequestValid extends BaseCMI {
 
   /**
    * Setter for _jump
-   * @param {{ [key: string]: string }} jump
+   * @param {{ [key: string]: string | NAVBoolean }} jump
    */
-  set jump(jump: { [key: string]: string }) {
+  set jump(jump: { [key: string]: string | NAVBoolean }) {
     if (this.initialized) {
       throw new Scorm2004ValidationError(
         scorm2004_errors.READ_ONLY_ELEMENT as number,
@@ -364,12 +364,13 @@ export class ADLNavRequestValid extends BaseCMI {
     }
     for (const key in jump) {
       if ({}.hasOwnProperty.call(jump, key)) {
-        if (
-          jump[key] !== undefined &&
-          check2004ValidFormat(jump[key], scorm2004_regex.NAVBoolean) &&
-          check2004ValidFormat(key, scorm2004_regex.NAVTarget)
-        ) {
-          this._jump[key] = NAVBoolean[jump[key] as keyof typeof NAVBoolean];
+        if (jump[key] !== undefined && check2004ValidFormat(key, scorm2004_regex.NAVTarget)) {
+          const value = jump[key];
+          if (typeof value === 'string' && check2004ValidFormat(value, scorm2004_regex.NAVBoolean)) {
+            this._jump[key] = NAVBoolean[value as keyof typeof NAVBoolean];
+          } else if (Object.values(NAVBoolean).includes(value as NAVBoolean)) {
+            this._jump[key] = value as NAVBoolean;
+          }
         }
       }
     }
@@ -388,6 +389,8 @@ export class ADLNavRequestValid extends BaseCMI {
   toJSON(): {
     previous: string;
     continue: string;
+    choice: { [key: string]: NAVBoolean };
+    jump: { [key: string]: NAVBoolean };
   } {
     this.jsonString = true;
     const result = {
