@@ -1147,6 +1147,8 @@ export default abstract class BaseAPI implements IBaseAPI {
     // if we are terminating the module or closing the browser window/tab, we need to make this fetch ASAP.
     // Some browsers, especially Chrome, do not like synchronous requests to be made when the window is closing.
     if (immediate) {
+      // Apply requestHandler even for immediate requests
+      params = this.settings.requestHandler(params);
       this.performFetch(url, params).then(async (response) => {
         await this.transformResponse(response);
       });
