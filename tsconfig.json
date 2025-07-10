@@ -23,6 +23,8 @@
     "forceConsistentCasingInFileNames": true,
     "exactOptionalPropertyTypes": true,
     "strictNullChecks": true,
+    "useUnknownInCatchVariables": true,
+    "strict": true,
   },
   "include": [
     "src/**/*"

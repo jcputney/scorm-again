@@ -1123,7 +1123,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @return {object}
    */
   renderCMIToJSONObject(): object {
-    return JSON.parse(this.renderCMIToJSONString());
+    return JSON.parse(this.renderCMIToJSONString()) as object;
   }
 
   /**
