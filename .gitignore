@@ -85,3 +85,6 @@ coverage-*
 /playwright/.cache/
 summary.md
 docs/sequencing.md
+
+# Build artifacts (temporary exclusion for development)
+dist/

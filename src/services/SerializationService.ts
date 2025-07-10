@@ -279,7 +279,7 @@ export class SerializationService implements ISerializationService {
    */
   renderCMIToJSONObject(cmi: BaseCMI | StringKeyMap, sendFullCommit: boolean): StringKeyMap {
     // Revert to the original implementation to maintain compatibility with tests
-    return JSON.parse(this.renderCMIToJSONString(cmi, sendFullCommit));
+    return JSON.parse(this.renderCMIToJSONString(cmi, sendFullCommit)) as StringKeyMap;
   }
 
   /**
