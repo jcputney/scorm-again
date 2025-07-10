@@ -4481,4 +4481,3 @@ ${stackTrace}`);
   return Scorm12API;
 
 })();
-//# sourceMappingURL=scorm12.js.map

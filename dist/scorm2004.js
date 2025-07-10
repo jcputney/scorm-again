@@ -9863,4 +9863,3 @@ ${stackTrace}`);
   return Scorm2004API;
 
 })();
-//# sourceMappingURL=scorm2004.js.map
