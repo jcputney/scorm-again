@@ -65,13 +65,13 @@ var DefaultSettings = {
                             if (response.status === 200) {
                                 return [2, {
                                         result: api_constants.global_constants.SCORM_TRUE,
-                                        errorCode: 0,
+                                        errorCode: 0
                                     }];
                             }
                             else {
                                 return [2, {
                                         result: api_constants.global_constants.SCORM_FALSE,
-                                        errorCode: 101,
+                                        errorCode: 101
                                     }];
                             }
                         }
@@ -82,13 +82,13 @@ var DefaultSettings = {
                                         ? httpResult.errorCode
                                         : httpResult.result === api_constants.global_constants.SCORM_TRUE
                                             ? 0
-                                            : 101,
+                                            : 101
                                 }];
                         }
                         _a.label = 2;
                     case 2: return [2, {
                             result: api_constants.global_constants.SCORM_FALSE,
-                            errorCode: 101,
+                            errorCode: 101
                         }];
                 }
             });
@@ -132,7 +132,7 @@ var DefaultSettings = {
     },
     scoItemIds: [],
     scoItemIdValidator: false,
-    globalObjectiveIds: [],
+    globalObjectiveIds: []
 };
 
 ;// ./src/helpers/scheduled_commit.ts
@@ -261,8 +261,8 @@ var BaseAPI = (function () {
                             this.throwSCORMError(result.errorCode);
                         }
                         returnValue =
-                            typeof result !== "undefined" && result.result
-                                ? result.result
+                            typeof result !== "undefined" && (result.result === true || result.result === api_constants.global_constants.SCORM_TRUE)
+                                ? api_constants.global_constants.SCORM_TRUE
                                 : api_constants.global_constants.SCORM_FALSE;
                         if (checkTerminated)
                             this.lastErrorCode = "0";
@@ -342,8 +342,8 @@ var BaseAPI = (function () {
                             this.throwSCORMError(result.errorCode);
                         }
                         returnValue =
-                            typeof result !== "undefined" && result.result
-                                ? result.result
+                            typeof result !== "undefined" && (result.result === true || result.result === api_constants.global_constants.SCORM_TRUE)
+                                ? api_constants.global_constants.SCORM_TRUE
                                 : api_constants.global_constants.SCORM_FALSE;
                         this.apiLog(callbackName, " Result: " + returnValue, enums.LogLevelEnum.DEBUG, "HttpRequest");
                         if (checkTerminated)
@@ -578,7 +578,7 @@ var BaseAPI = (function () {
             this.listenerArray.push({
                 functionName: functionName,
                 CMIElement: CMIElement,
-                callback: callback,
+                callback: callback
             });
             this.apiLog("on", "Added event listener: ".concat(this.listenerArray.length), enums.LogLevelEnum.INFO, functionName);
         }
@@ -788,7 +788,7 @@ var BaseAPI = (function () {
                         api = this;
                         genericError = {
                             result: api_constants.global_constants.SCORM_FALSE,
-                            errorCode: this.error_codes.GENERAL,
+                            errorCode: this.error_codes.GENERAL
                         };
                         if (immediate) {
                             params = this.settings.requestHandler(params);
@@ -804,7 +804,7 @@ var BaseAPI = (function () {
                             }); });
                             return [2, {
                                     result: api_constants.global_constants.SCORM_TRUE,
-                                    errorCode: 0,
+                                    errorCode: 0
                                 }];
                         }
                         process = function (url, params, settings) { return (0,tslib_es6.__awaiter)(_this, void 0, void 0, function () {
@@ -888,7 +888,7 @@ var BaseAPI = (function () {
                     mode: this.settings.fetchMode,
                     body: params instanceof Array ? params.join("&") : JSON.stringify(params),
                     headers: (0,tslib_es6.__assign)((0,tslib_es6.__assign)({}, this.settings.xhrHeaders), { "Content-Type": this.settings.commitRequestDataType }),
-                    keepalive: true,
+                    keepalive: true
                 };
                 if (this.settings.xhrWithCredentials) {
                     init = (0,tslib_es6.__assign)((0,tslib_es6.__assign)({}, init), { credentials: "include" });

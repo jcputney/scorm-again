@@ -53,7 +53,7 @@ export type RefObject = {
     [key: string]: any;
 };
 export type ResultObject = {
-    result: string;
+    result: string | boolean;
     errorCode: number;
     navRequest?: string;
 };
