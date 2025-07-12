@@ -11,106 +11,27 @@ import { default as CrossFrameAPIImpl } from "./src/CrossFrameAPI";
 import { default as CrossFrameLMSImpl } from "./src/CrossFrameLMS";
 import { IBaseAPI } from "./src/interfaces/IBaseAPI";
 
-declare class Scorm12API extends Scorm12Impl {
+// Import implementations for extending
+import { Scorm12API as Scorm12APIImpl } from "./dist/types/Scorm12API";
+import { Scorm2004API as Scorm2004APIImpl } from "./dist/types/Scorm2004API";
+import { AICC as AICCImpl } from "./dist/types/AICC";
+import { Settings } from "./dist/types/types/api_types";
+
+// Declare the main API classes
+declare class Scorm12API extends Scorm12APIImpl {
   constructor(settings?: Settings);
-
-  cmi: Scorm12CMI;
-  nav: Scorm12NAV;
-  LMSInitialize: () => string;
-  LMSFinish: () => string;
-  LMSGetValue: (CMIElement: string) => string;
-  LMSSetValue: (CMIElement: string, value: any) => string;
-  LMSCommit: () => string;
-  LMSGetLastError: () => string;
-  LMSGetErrorString: (CMIErrorCode: string) => string;
-  LMSGetDiagnostic: (CMIErrorCode: string) => string;
-
-  loadFromJSON: (json: any, CMIElement?: string) => void;
-  loadFromFlattenedJSON: (json: any, CMIElement?: string) => void;
-  on: (listenerName: string, callback: Function) => void;
-  off: (listenerName: string, callback: Function) => void;
-  clear: (listenerName: string) => void;
-
-
-  /**
-   * Called when the API needs to be reset
-   */
-  reset(settings?: Settings): void;
 }
 
-declare class Scorm2004API extends Scorm2004Impl {
+declare class Scorm2004API extends Scorm2004APIImpl {
   constructor(settings?: Settings);
-
-  cmi: Scorm2004CMI;
-  adl: Scorm2004ADL;
-  Initialize: () => string;
-  Terminate: () => string;
-  GetValue: (CMIElement: string) => string;
-  SetValue: (CMIElement: string, value: any) => string;
-  Commit: () => string;
-  GetLastError: () => string;
-  GetErrorString: (CMIErrorCode: string | number) => string;
-  GetDiagnostic: (CMIErrorCode: string | number) => string;
-
-  loadFromJSON: (json: any, CMIElement?: string) => void;
-  loadFromFlattenedJSON: (json: any, CMIElement?: string) => void;
-  on: (listenerName: string, callback: Function) => void;
-  off: (listenerName: string, callback: Function) => void;
-  clear: (listenerName: string) => void;
-
-
-  /**
-   * Called when the API needs to be reset
-   */
-  reset(settings?: Settings): void;
 }
 
 declare class AICC extends AICCImpl {
   constructor(settings?: Settings);
-
-  cmi: AICCCMI;
-  nav: Scorm12NAV;
-  LMSInitialize: () => string;
-  LMSFinish: () => string;
-  LMSGetValue: (CMIElement: string) => string;
-  LMSSetValue: (CMIElement: string, value: any) => string;
-  LMSCommit: () => string;
-  LMSGetLastError: () => string;
-  LMSGetErrorString: (CMIErrorCode: string) => string;
-  LMSGetDiagnostic: (CMIErrorCode: string) => string;
-
-  loadFromJSON: (json: any, CMIElement?: string) => void;
-  loadFromFlattenedJSON: (json: any, CMIElement?: string) => void;
-  on: (listenerName: string, callback: Function) => void;
-  off: (listenerName: string, callback: Function) => void;
-  clear: (listenerName: string) => void;
-
-
-  /**
-   * Called when the API needs to be reset
-   */
-  reset(settings?: Settings): void;
 }
 
 declare class CrossFrameAPI extends CrossFrameAPIImpl {
   constructor(targetOrigin?: string, targetWindow?: Window);
-
-  LMSInitialize: () => string;
-  LMSFinish: () => string;
-  LMSGetValue: (CMIElement: string) => string;
-  LMSSetValue: (CMIElement: string, value: any) => string;
-  LMSCommit: () => string;
-  LMSGetLastError: () => string;
-  LMSGetErrorString: (CMIErrorCode: string) => string;
-  LMSGetDiagnostic: (CMIErrorCode: string) => string;
-  Initialize: () => string;
-  Terminate: () => string;
-  GetValue: (CMIElement: string) => string;
-  SetValue: (CMIElement: string, value: any) => string;
-  Commit: () => string;
-  GetLastError: () => string;
-  GetErrorString: (CMIErrorCode: string | number) => string;
-  GetDiagnostic: (CMIErrorCode: string | number) => string;
 }
 
 declare class CrossFrameLMS extends CrossFrameLMSImpl {

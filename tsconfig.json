@@ -23,6 +23,7 @@
     "importHelpers": true,
     "forceConsistentCasingInFileNames": true,
     "exactOptionalPropertyTypes": true,
+    "strict": true,
     "strictNullChecks": true
   },
   "include": [

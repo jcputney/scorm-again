@@ -24,7 +24,7 @@ export declare class CMI extends BaseRootCMI {
     get _version(): string;
     set _version(_version: string);
     get _children(): string;
-    set _children(_children: number);
+    set _children(_children: string);
     get completion_status(): string;
     set completion_status(completion_status: string);
     get completion_threshold(): string;

@@ -71,7 +71,7 @@ export type RefObject = {
 export type RefValue = string | number | boolean | null | undefined | RefArray;
 export type RefArray = ReadonlyArray<RefValue>;
 export type ResultObject = {
-    result: string;
+    result: string | boolean;
     errorCode: number;
     navRequest?: string | StringKeyMap;
     errorMessage?: string;

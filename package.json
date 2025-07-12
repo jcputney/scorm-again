@@ -77,6 +77,29 @@
   "browser": {
     "electron": false
   },
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./dist/esm/scorm-again.js",
+      "require": "./dist/scorm-again.js"
+    },
+    "./scorm12": {
+      "types": "./dist/types/Scorm12API.d.ts",
+      "import": "./dist/esm/scorm12.js",
+      "require": "./dist/scorm12.js"
+    },
+    "./scorm2004": {
+      "types": "./dist/types/Scorm2004API.d.ts",
+      "import": "./dist/esm/scorm2004.js",
+      "require": "./dist/scorm2004.js"
+    },
+    "./aicc": {
+      "types": "./dist/types/AICC.d.ts",
+      "import": "./dist/esm/aicc.js",
+      "require": "./dist/aicc.js"
+    },
+    "./package.json": "./package.json"
+  },
   "browserslist": [
     "> 1%",
     "edge >= 79",
