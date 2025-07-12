@@ -1,91 +1,34 @@
-import { Scorm12API as Scorm12Impl } from "./src/Scorm12API";
-import { CMI as Scorm12CMI } from "./src/cmi/scorm12/cmi";
-import { NAV as Scorm12NAV } from "./src/cmi/scorm12/nav";
-import { CMI as Scorm2004CMI } from "./src/cmi/scorm2004/cmi";
-import { ADL as Scorm2004ADL } from "./src/cmi/scorm2004/adl";
-import { Settings } from "./src/types/api_types";
-import { Scorm2004API as Scorm2004Impl } from "./src/Scorm2004API";
-import { AICC as AICCImpl } from "./src/AICC";
+// Re-export all types from the generated declarations
+export * from "./dist/types/Scorm12API";
+export * from "./dist/types/Scorm2004API";
+export * from "./dist/types/AICC";
+export * from "./dist/types/types/api_types";
+export * from "./dist/types/constants/enums";
+export * from "./dist/types/constants/error_codes";
+export * from "./dist/types/constants/api_constants";
+export * from "./dist/types/exceptions";
+export * from "./dist/types/exceptions/scorm12_exceptions";
+export * from "./dist/types/exceptions/scorm2004_exceptions";
+export * from "./dist/types/exceptions/aicc_exceptions";
 
-declare class Scorm12API extends Scorm12Impl {
+// Import implementations for extending
+import { Scorm12API as Scorm12APIImpl } from "./dist/types/Scorm12API";
+import { Scorm2004API as Scorm2004APIImpl } from "./dist/types/Scorm2004API";
+import { AICC as AICCImpl } from "./dist/types/AICC";
+import { Settings } from "./dist/types/types/api_types";
+
+// Declare the main API classes
+declare class Scorm12API extends Scorm12APIImpl {
   constructor(settings?: Settings);
-
-  cmi: Scorm12CMI;
-  nav: Scorm12NAV;
-  LMSInitialize: () => string;
-  LMSFinish: () => string;
-  LMSGetValue: (CMIElement: string) => string;
-  LMSSetValue: (CMIElement: string, value: any) => string;
-  LMSCommit: () => string;
-  LMSGetLastError: () => string;
-  LMSGetErrorString: (CMIErrorCode: string) => string;
-  LMSGetDiagnostic: (CMIErrorCode: string) => string;
-
-  loadFromJSON: (json: any, CMIElement?: string) => void;
-  loadFromFlattenedJSON: (json: any, CMIElement?: string) => void;
-  on: (listenerName: string, callback: Function) => void;
-  off: (listenerName: string, callback: Function) => void;
-  clear: (listenerName: string) => void;
-
-
-  /**
-   * Called when the API needs to be reset
-   */
-  reset(settings?: Settings): void;
 }
 
-declare class Scorm2004API extends Scorm2004Impl {
+declare class Scorm2004API extends Scorm2004APIImpl {
   constructor(settings?: Settings);
-
-  cmi: Scorm2004CMI;
-  adl: Scorm2004ADL;
-  Initialize: () => string;
-  Terminate: () => string;
-  GetValue: (CMIElement: string) => string;
-  SetValue: (CMIElement: string, value: any) => string;
-  Commit: () => string;
-  GetLastError: () => string;
-  GetErrorString: (CMIErrorCode: string) => string;
-  GetDiagnostic: (CMIErrorCode: string) => string;
-
-  loadFromJSON: (json: any, CMIElement?: string) => void;
-  loadFromFlattenedJSON: (json: any, CMIElement?: string) => void;
-  on: (listenerName: string, callback: Function) => void;
-  off: (listenerName: string, callback: Function) => void;
-  clear: (listenerName: string) => void;
-
-
-  /**
-   * Called when the API needs to be reset
-   */
-  reset(settings?: Settings): void;
 }
 
 declare class AICC extends AICCImpl {
   constructor(settings?: Settings);
-
-  cmi: Scorm12CMI;
-  nav: Scorm12NAV;
-  LMSInitialize: () => string;
-  LMSFinish: () => string;
-  LMSGetValue: (CMIElement: string) => string;
-  LMSSetValue: (CMIElement: string, value: any) => string;
-  LMSCommit: () => string;
-  LMSGetLastError: () => string;
-  LMSGetErrorString: (CMIErrorCode: string) => string;
-  LMSGetDiagnostic: (CMIErrorCode: string) => string;
-
-  loadFromJSON: (json: any, CMIElement?: string) => void;
-  loadFromFlattenedJSON: (json: any, CMIElement?: string) => void;
-  on: (listenerName: string, callback: Function) => void;
-  off: (listenerName: string, callback: Function) => void;
-  clear: (listenerName: string) => void;
-
-
-  /**
-   * Called when the API needs to be reset
-   */
-  reset(settings?: Settings): void;
 }
 
+// Export the main API classes and commonly used types
 export { Scorm12API, Scorm2004API, AICC, Settings };

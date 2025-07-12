@@ -22,12 +22,12 @@ export const DefaultSettings: InternalSettings = {
   xhrHeaders: {},
   xhrWithCredentials: false,
   fetchMode: "cors",
-  responseHandler: async function (response: Response): Promise<ResultObject> {
+  responseHandler: async function(response: Response): Promise<ResultObject> {
     if (typeof response !== "undefined") {
       const responseText = await response.text();
-      let httpResult = null;
+      let httpResult: any = null;
       if (responseText) {
-        httpResult = JSON.parse(responseText);
+        httpResult = JSON.parse(responseText) as any;
       }
       if (
         httpResult === null ||
@@ -36,12 +36,12 @@ export const DefaultSettings: InternalSettings = {
         if (response.status === 200) {
           return {
             result: global_constants.SCORM_TRUE,
-            errorCode: 0,
+            errorCode: 0
           };
         } else {
           return {
             result: global_constants.SCORM_FALSE,
-            errorCode: 101,
+            errorCode: 101
           };
         }
       } else {
@@ -51,19 +51,19 @@ export const DefaultSettings: InternalSettings = {
             ? httpResult.errorCode
             : httpResult.result === global_constants.SCORM_TRUE
               ? 0
-              : 101,
+              : 101
         };
       }
     }
     return {
       result: global_constants.SCORM_FALSE,
-      errorCode: 101,
+      errorCode: 101
     };
   },
-  requestHandler: function (commitObject) {
+  requestHandler: function(commitObject) {
     return commitObject;
   },
-  onLogMessage: function (messageLevel: LogLevel, logMessage) {
+  onLogMessage: function(messageLevel: LogLevel, logMessage) {
     switch (messageLevel) {
       case "4":
       case 4:
@@ -97,5 +97,5 @@ export const DefaultSettings: InternalSettings = {
   },
   scoItemIds: [],
   scoItemIdValidator: false,
-  globalObjectiveIds: [],
+  globalObjectiveIds: []
 };

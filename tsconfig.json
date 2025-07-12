@@ -22,9 +22,8 @@
     "importHelpers": true,
     "forceConsistentCasingInFileNames": true,
     "exactOptionalPropertyTypes": true,
-    "strictNullChecks": true,
-    "useUnknownInCatchVariables": true,
     "strict": true,
+    "strictNullChecks": true,
   },
   "include": [
     "src/**/*"

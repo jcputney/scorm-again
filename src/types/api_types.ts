@@ -1,8 +1,4 @@
-import {
-  CompletionStatus,
-  LogLevelEnum,
-  SuccessStatus,
-} from "../constants/enums";
+import { CompletionStatus, LogLevelEnum, SuccessStatus } from "../constants/enums";
 
 export type Settings = {
   autocommit?: boolean;
@@ -61,7 +57,7 @@ export type RefObject = {
 };
 
 export type ResultObject = {
-  result: string;
+  result: string | boolean;
   errorCode: number;
   navRequest?: string;
 };
