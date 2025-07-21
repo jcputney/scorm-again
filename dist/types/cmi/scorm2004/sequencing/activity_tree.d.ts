@@ -27,3 +27,4 @@ export declare class ActivityTree extends BaseCMI {
     getCommonAncestor(activity1: Activity, activity2: Activity): Activity | null;
     toJSON(): object;
 }
+//# sourceMappingURL=activity_tree.d.ts.map

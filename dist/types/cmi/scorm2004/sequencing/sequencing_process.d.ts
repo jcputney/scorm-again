@@ -69,3 +69,4 @@ export declare class SequencingProcess {
     private choiceActivityTraversalSubprocess;
     evaluatePostConditionRules(activity: Activity): SequencingRequestType | null;
 }
+//# sourceMappingURL=sequencing_process.d.ts.map

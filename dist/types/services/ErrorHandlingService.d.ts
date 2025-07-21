@@ -16,4 +16,5 @@ export declare class ErrorHandlingService implements IErrorHandlingService {
     handleValueAccessException(CMIElement: string, e: Error | ValidationError | unknown, returnValue: string): string;
     get errorCodes(): ErrorCode;
 }
-export declare function createErrorHandlingService(errorCodes: ErrorCode, apiLog: (functionName: string, message: string, logLevel: LogLevelEnum, CMIElement?: string) => void, getLmsErrorMessageDetails: (errorCode: number, detail: boolean) => string, loggingService?: ILoggingService): ErrorHandlingService;
+export declare function createErrorHandlingService(errorCodes: ErrorCode, apiLog: (functionName: string, message: string, logLevel?: LogLevelEnum, CMIElement?: string) => void, getLmsErrorMessageDetails: (errorCode: number, detail: boolean) => string, loggingService?: ILoggingService): ErrorHandlingService;
+//# sourceMappingURL=ErrorHandlingService.d.ts.map

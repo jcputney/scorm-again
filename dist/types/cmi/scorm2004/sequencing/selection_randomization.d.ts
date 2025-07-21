@@ -6,3 +6,4 @@ export declare class SelectionRandomization {
     static isSelectionNeeded(activity: Activity): boolean;
     static isRandomizationNeeded(activity: Activity): boolean;
 }
+//# sourceMappingURL=selection_randomization.d.ts.map

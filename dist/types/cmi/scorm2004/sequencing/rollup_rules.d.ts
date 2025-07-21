@@ -72,3 +72,4 @@ export declare class RollupRules extends BaseCMI {
     private _defaultSuccessRollup;
     toJSON(): object;
 }
+//# sourceMappingURL=rollup_rules.d.ts.map

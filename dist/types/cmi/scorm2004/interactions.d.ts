@@ -67,3 +67,4 @@ export declare class CMIInteractionsCorrectResponsesObject extends BaseCMI {
         pattern: string;
     };
 }
+//# sourceMappingURL=interactions.d.ts.map

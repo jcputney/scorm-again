@@ -21,3 +21,4 @@ export declare class CMITriesObject extends BaseCMI {
         score: CMIScore;
     };
 }
+//# sourceMappingURL=tries.d.ts.map

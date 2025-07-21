@@ -12,3 +12,4 @@ export declare class CMIContent extends BaseCMI {
     set suspend_data(suspend_data: string);
     reset(): void;
 }
+//# sourceMappingURL=content.d.ts.map

@@ -39,3 +39,4 @@ export declare class CMIScore extends BaseCMI {
         raw: string;
     };
 }
+//# sourceMappingURL=score.d.ts.map

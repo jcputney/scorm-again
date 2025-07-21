@@ -43,3 +43,4 @@ export declare class CMI extends BaseRootCMI {
     set comments_from_lms(comments_from_lms: string);
     getCurrentTotalTime(): string;
 }
+//# sourceMappingURL=cmi.d.ts.map

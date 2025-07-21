@@ -9,3 +9,4 @@ export declare class CMIThresholds extends BaseCMI {
     set completion_threshold(completion_threshold: string);
     reset(): void;
 }
+//# sourceMappingURL=thresholds.d.ts.map

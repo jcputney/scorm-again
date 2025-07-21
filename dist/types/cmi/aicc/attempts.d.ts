@@ -17,3 +17,4 @@ export declare class CMIAttemptRecordsObject extends BaseCMI {
         score: CMIScore;
     };
 }
+//# sourceMappingURL=attempts.d.ts.map

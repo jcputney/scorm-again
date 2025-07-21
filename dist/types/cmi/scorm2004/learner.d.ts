@@ -9,3 +9,4 @@ export declare class CMILearner extends BaseCMI {
     set learner_name(learner_name: string);
     reset(): void;
 }
+//# sourceMappingURL=learner.d.ts.map

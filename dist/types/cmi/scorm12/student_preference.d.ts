@@ -24,3 +24,4 @@ export declare class CMIStudentPreference extends BaseCMI {
         text: string;
     };
 }
+//# sourceMappingURL=student_preference.d.ts.map

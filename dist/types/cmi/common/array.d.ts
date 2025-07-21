@@ -18,3 +18,4 @@ export declare class CMIArray extends BaseCMI {
     set _count(_count: number);
     toJSON(): object;
 }
+//# sourceMappingURL=array.d.ts.map

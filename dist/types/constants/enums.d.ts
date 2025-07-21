@@ -25,3 +25,4 @@ export declare const LogLevelEnum: {
     NONE: number;
 };
 export type LogLevelEnum = (typeof LogLevelEnum)[keyof typeof LogLevelEnum];
+//# sourceMappingURL=enums.d.ts.map

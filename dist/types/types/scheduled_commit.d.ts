@@ -8,3 +8,4 @@ export declare class ScheduledCommit {
     cancel(): void;
     wrapper(): void;
 }
+//# sourceMappingURL=scheduled_commit.d.ts.map

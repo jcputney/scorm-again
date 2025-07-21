@@ -16,3 +16,4 @@ export declare class ValidationError extends BaseScormValidationError implements
     get detailedMessage(): string;
 }
 export {};
+//# sourceMappingURL=exceptions.d.ts.map

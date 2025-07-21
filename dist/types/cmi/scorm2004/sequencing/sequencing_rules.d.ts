@@ -83,3 +83,4 @@ export declare class SequencingRules extends BaseCMI {
     evaluatePostConditionRules(activity: Activity): RuleActionType | null;
     toJSON(): object;
 }
+//# sourceMappingURL=sequencing_rules.d.ts.map

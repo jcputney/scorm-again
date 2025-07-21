@@ -14,3 +14,4 @@ export declare class Scorm2004CMIScore extends CMIScore {
         max: string;
     };
 }
+//# sourceMappingURL=score.d.ts.map

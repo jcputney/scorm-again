@@ -13,3 +13,4 @@ export declare abstract class BaseRootCMI extends BaseCMI {
     setStartTime(): void;
     abstract getCurrentTotalTime(): string;
 }
+//# sourceMappingURL=base_cmi.d.ts.map

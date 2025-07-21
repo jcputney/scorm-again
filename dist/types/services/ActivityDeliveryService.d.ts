@@ -23,3 +23,4 @@ export declare class ActivityDeliveryService {
     updateCallbacks(callbacks: ActivityDeliveryCallbacks): void;
     reset(): void;
 }
+//# sourceMappingURL=ActivityDeliveryService.d.ts.map

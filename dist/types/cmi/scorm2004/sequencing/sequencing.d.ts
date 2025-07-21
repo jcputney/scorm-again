@@ -37,3 +37,4 @@ export declare class Sequencing extends BaseCMI {
     getRootActivity(): Activity | null;
     toJSON(): object;
 }
+//# sourceMappingURL=sequencing.d.ts.map

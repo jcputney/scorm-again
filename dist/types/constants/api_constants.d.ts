@@ -47,3 +47,4 @@ export declare const scorm12_constants: ScormConstants;
 export declare const aicc_constants: AiccConstants;
 export declare const scorm2004_constants: Scorm2004Constants;
 export {};
+//# sourceMappingURL=api_constants.d.ts.map

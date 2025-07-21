@@ -108,3 +108,4 @@ export declare class Activity extends BaseCMI {
     set isNewAttempt(isNewAttempt: boolean);
     toJSON(): object;
 }
+//# sourceMappingURL=activity.d.ts.map

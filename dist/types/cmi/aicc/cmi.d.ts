@@ -32,3 +32,4 @@ export declare class CMI extends Scorm12CMI.CMI {
         paths: CMIPaths;
     };
 }
+//# sourceMappingURL=cmi.d.ts.map

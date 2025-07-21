@@ -12,3 +12,4 @@ export * from "./utilities";
 export * from "./cmi/aicc/cmi";
 export * from "./cmi/scorm12/nav";
 export * from "./cmi/scorm2004/adl";
+//# sourceMappingURL=index.d.ts.map

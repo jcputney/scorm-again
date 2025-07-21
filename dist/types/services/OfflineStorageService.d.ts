@@ -21,3 +21,4 @@ export declare class OfflineStorageService {
     hasPendingOfflineData(courseId: string): Promise<boolean>;
     updateSettings(settings: InternalSettings): void;
 }
+//# sourceMappingURL=OfflineStorageService.d.ts.map

@@ -1,6 +1,6 @@
 import Scorm12API from "../src/Scorm12API";
-import {global_constants} from "../src";
-import {afterEach, beforeEach, describe, expect, it, MockedFunction, vi} from "vitest";
+import { global_constants } from "../src";
+import { afterEach, beforeEach, describe, expect, it, MockedFunction, vi } from "vitest";
 
 describe("BaseAPI requestHandler Tests", () => {
   let api: Scorm12API;
@@ -11,21 +11,21 @@ describe("BaseAPI requestHandler Tests", () => {
     // Stub the global fetch to prevent actual HTTP requests
     fetchStub = vi.spyOn(global, "fetch").mockImplementation(() => {
       return Promise.resolve(
-          new Response(
-              JSON.stringify({
-                result: global_constants.SCORM_TRUE,
-                errorCode: 0
-              }),
-              {
-                status: 200,
-                headers: {"Content-Type": "application/json"}
-              }
-          )
+        new Response(
+          JSON.stringify({
+            result: global_constants.SCORM_TRUE,
+            errorCode: 0,
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        ),
       );
     }) as MockedFunction<typeof global.fetch>;
 
     // Create a spy for requestHandler
-    requestHandlerSpy = vi.fn((params: { _requestHandlerCalled: boolean; }) => {
+    requestHandlerSpy = vi.fn((params: { _requestHandlerCalled: boolean }) => {
       // Add a marker to verify the handler was called
       if (typeof params === "object" && !Array.isArray(params)) {
         params._requestHandlerCalled = true;
@@ -36,7 +36,7 @@ describe("BaseAPI requestHandler Tests", () => {
     // Initialize API with requestHandler
     api = new Scorm12API({
       lmsCommitUrl: "http://example.com/commit",
-      requestHandler: requestHandlerSpy
+      requestHandler: requestHandlerSpy,
     });
   });
 
@@ -95,7 +95,7 @@ describe("BaseAPI requestHandler Tests", () => {
     it("should pass through params when no requestHandler is provided", async () => {
       // Create API without requestHandler
       const apiNoHandler = new Scorm12API({
-        lmsCommitUrl: "http://example.com/commit"
+        lmsCommitUrl: "http://example.com/commit",
       });
 
       apiNoHandler.lmsInitialize();
@@ -122,7 +122,7 @@ describe("BaseAPI requestHandler Tests", () => {
         lmsCommitUrl: "http://example.com/commit",
         requestHandler: () => {
           throw new Error("RequestHandler error");
-        }
+        },
       });
 
       errorApi.lmsInitialize();

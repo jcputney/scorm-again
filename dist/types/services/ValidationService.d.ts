@@ -8,3 +8,4 @@ export declare class ValidationService {
     validateReadOnly(CMIElement: string, initialized: boolean): void;
 }
 export declare const validationService: ValidationService;
+//# sourceMappingURL=ValidationService.d.ts.map

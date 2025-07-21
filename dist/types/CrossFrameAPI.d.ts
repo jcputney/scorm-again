@@ -11,3 +11,4 @@ export default class CrossFrameAPI {
     private _onMessage;
     private _capture;
 }
+//# sourceMappingURL=CrossFrameAPI.d.ts.map

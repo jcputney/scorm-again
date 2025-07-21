@@ -11,3 +11,4 @@ export declare class SerializationService implements ISerializationService {
     renderCMIToJSONObject(cmi: BaseCMI | StringKeyMap, sendFullCommit: boolean): StringKeyMap;
     getCommitObject(terminateCommit: boolean, alwaysSendTotalTime: boolean, renderCommonCommitFields: boolean | ((commitObject: CommitObject) => boolean), renderCommitObject: (terminateCommit: boolean, includeTotalTime?: boolean) => CommitObject, renderCommitCMI: (terminateCommit: boolean, includeTotalTime?: boolean) => StringKeyMap | Array<any>, apiLogLevel: LogLevel): CommitObject | StringKeyMap | Array<any>;
 }
+//# sourceMappingURL=SerializationService.d.ts.map

@@ -18,3 +18,4 @@ export declare class LoggingService implements ILoggingService {
     private getNumericLevel;
 }
 export declare function getLoggingService(): LoggingService;
+//# sourceMappingURL=LoggingService.d.ts.map

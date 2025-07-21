@@ -24,7 +24,7 @@ export declare class CMI extends BaseRootCMI {
     get _version(): string;
     set _version(_version: string);
     get _children(): string;
-    set _children(_children: string);
+    set _children(_children: number);
     get completion_status(): string;
     set completion_status(completion_status: string);
     get completion_threshold(): string;
@@ -88,3 +88,4 @@ export declare class CMI extends BaseRootCMI {
         time_limit_action: string;
     };
 }
+//# sourceMappingURL=cmi.d.ts.map

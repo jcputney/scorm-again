@@ -80,3 +80,4 @@ export declare const scorm2004_regex: {
     text_range: string;
     progress_range: string;
 };
+//# sourceMappingURL=regex.d.ts.map

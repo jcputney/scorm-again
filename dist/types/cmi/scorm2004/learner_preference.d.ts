@@ -24,3 +24,4 @@ export declare class CMILearnerPreference extends BaseCMI {
         audio_captioning: string;
     };
 }
+//# sourceMappingURL=learner_preference.d.ts.map

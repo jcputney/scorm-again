@@ -15,3 +15,4 @@ export declare class CMISettings extends BaseCMI {
     set max_time_allowed(max_time_allowed: string);
     reset(): void;
 }
+//# sourceMappingURL=settings.d.ts.map

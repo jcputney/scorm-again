@@ -18,3 +18,4 @@ export declare class AICCCMIStudentData extends CMIStudentData {
         attempt_records: CMIAttemptRecords;
     };
 }
+//# sourceMappingURL=student_data.d.ts.map

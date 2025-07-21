@@ -38,3 +38,4 @@ declare class Scorm12API extends BaseAPI {
     storeData(terminateCommit: boolean): Promise<ResultObject>;
 }
 export default Scorm12API;
+//# sourceMappingURL=Scorm12API.d.ts.map

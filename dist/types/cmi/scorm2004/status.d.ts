@@ -12,3 +12,4 @@ export declare class CMIStatus extends BaseCMI {
     set progress_measure(progress_measure: string);
     reset(): void;
 }
+//# sourceMappingURL=status.d.ts.map

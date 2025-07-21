@@ -9,3 +9,4 @@ export declare class NAV extends BaseCMI {
         event: string;
     };
 }
+//# sourceMappingURL=nav.d.ts.map

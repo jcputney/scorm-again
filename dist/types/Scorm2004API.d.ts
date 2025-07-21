@@ -62,3 +62,4 @@ declare class Scorm2004API extends BaseAPI {
     private createRollupRule;
 }
 export default Scorm2004API;
+//# sourceMappingURL=Scorm2004API.d.ts.map

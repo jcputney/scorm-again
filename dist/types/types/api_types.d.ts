@@ -71,7 +71,7 @@ export type RefObject = {
 export type RefValue = string | number | boolean | null | undefined | RefArray;
 export type RefArray = ReadonlyArray<RefValue>;
 export type ResultObject = {
-    result: string | boolean;
+    result: string;
     errorCode: number;
     navRequest?: string | StringKeyMap;
     errorMessage?: string;
@@ -106,3 +106,4 @@ export type NumericLogLevel = 1 | 2 | 3 | 4 | 5;
 export type StringNumericLogLevel = "1" | "2" | "3" | "4" | "5";
 export type NamedLogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR" | "NONE";
 export type LogLevel = NumericLogLevel | StringNumericLogLevel | NamedLogLevel | LogLevelEnum;
+//# sourceMappingURL=api_types.d.ts.map

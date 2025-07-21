@@ -13,3 +13,4 @@ export type MessageResponse = {
     };
     sab?: SharedArrayBuffer;
 };
+//# sourceMappingURL=CrossFrame.d.ts.map

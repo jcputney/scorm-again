@@ -32,3 +32,4 @@ export declare class AICCStudentPreferences extends CMIStudentPreference {
         windows: CMIArray;
     };
 }
+//# sourceMappingURL=student_preferences.d.ts.map

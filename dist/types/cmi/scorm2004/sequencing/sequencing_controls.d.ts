@@ -72,3 +72,4 @@ export declare class SequencingControls extends BaseCMI {
     set reorderChildren(reorderChildren: boolean);
     toJSON(): object;
 }
+//# sourceMappingURL=sequencing_controls.d.ts.map

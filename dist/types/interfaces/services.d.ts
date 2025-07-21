@@ -54,3 +54,4 @@ export interface IOfflineStorageService {
     isDeviceOnline(): boolean;
     updateSettings(settings: Settings): void;
 }
+//# sourceMappingURL=services.d.ts.map

@@ -53,3 +53,4 @@ export declare class OverallSequencingProcess {
     private terminateAllActivities;
     private terminateDescendentAttemptsProcess;
 }
+//# sourceMappingURL=overall_sequencing_process.d.ts.map

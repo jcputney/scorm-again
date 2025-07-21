@@ -59,3 +59,4 @@ export declare class CMIStudentDemographics extends BaseCMI {
         years_experience: string;
     };
 }
+//# sourceMappingURL=student_demographics.d.ts.map

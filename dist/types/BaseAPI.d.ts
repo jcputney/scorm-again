@@ -74,3 +74,4 @@ export default abstract class BaseAPI implements IBaseAPI {
     private handleValueAccessException;
     protected getCommitObject(terminateCommit: boolean): CommitObject | StringKeyMap | Array<any>;
 }
+//# sourceMappingURL=BaseAPI.d.ts.map

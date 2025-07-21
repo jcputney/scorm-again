@@ -36,3 +36,4 @@ export declare class CMIObjectivesObject extends BaseCMI {
         score: Scorm2004CMIScore;
     };
 }
+//# sourceMappingURL=objectives.d.ts.map

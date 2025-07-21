@@ -25,3 +25,4 @@ export declare class CMICommentsObject extends BaseCMI {
         timestamp: string;
     };
 }
+//# sourceMappingURL=comments.d.ts.map

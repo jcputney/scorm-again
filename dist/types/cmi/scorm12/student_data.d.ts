@@ -20,3 +20,4 @@ export declare class CMIStudentData extends BaseCMI {
         time_limit_action: string;
     };
 }
+//# sourceMappingURL=student_data.d.ts.map

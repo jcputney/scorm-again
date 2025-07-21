@@ -16,3 +16,4 @@ export declare class HttpService implements IHttpService {
     private _isSuccessResponse;
     updateSettings(settings: InternalSettings): void;
 }
+//# sourceMappingURL=HttpService.d.ts.map

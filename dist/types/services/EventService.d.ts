@@ -12,3 +12,4 @@ export declare class EventService implements IEventService {
     processListeners(functionName: string, CMIElement?: string, value?: any): void;
     reset(): void;
 }
+//# sourceMappingURL=EventService.d.ts.map

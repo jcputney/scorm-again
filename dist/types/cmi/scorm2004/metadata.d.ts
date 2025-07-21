@@ -9,3 +9,4 @@ export declare class CMIMetadata extends BaseCMI {
     set _children(_children: number);
     reset(): void;
 }
+//# sourceMappingURL=metadata.d.ts.map

@@ -63,22 +63,17 @@ export declare class ADLNavRequestValid extends BaseCMI {
         [key: string]: NAVBoolean;
     };
     set choice(choice: {
-        [key: string]: string | NAVBoolean;
+        [key: string]: string;
     });
     get jump(): {
         [key: string]: NAVBoolean;
     };
     set jump(jump: {
-        [key: string]: string | NAVBoolean;
+        [key: string]: string;
     });
     toJSON(): {
         previous: string;
         continue: string;
-        choice: {
-            [key: string]: NAVBoolean;
-        };
-        jump: {
-            [key: string]: NAVBoolean;
-        };
     };
 }
+//# sourceMappingURL=adl.d.ts.map

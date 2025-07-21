@@ -33,3 +33,4 @@ export declare class CMIPathsObject extends BaseCMI {
         time_in_element: string;
     };
 }
+//# sourceMappingURL=paths.d.ts.map

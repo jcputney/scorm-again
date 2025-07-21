@@ -14,3 +14,4 @@ export type ResponseType = {
 export type Responses = {
     [key: string]: ResponseType;
 };
+//# sourceMappingURL=response_constants.d.ts.map

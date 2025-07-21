@@ -6,3 +6,4 @@ export default class CrossFrameLMS {
     private _onMessage;
     private _process;
 }
+//# sourceMappingURL=CrossFrameLMS.d.ts.map

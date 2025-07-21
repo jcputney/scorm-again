@@ -55,3 +55,4 @@ export declare class CMICore extends BaseCMI {
         session_time: string;
     };
 }
+//# sourceMappingURL=core.d.ts.map

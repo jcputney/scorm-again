@@ -11,3 +11,4 @@ declare class AICC extends Scorm12API {
     replaceWithAnotherScormAPI(newAPI: AICC): void;
 }
 export default AICC;
+//# sourceMappingURL=AICC.d.ts.map

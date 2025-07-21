@@ -21,3 +21,4 @@ export interface IBaseAPI {
     validateCorrectResponse(_CMIElement: string, _value: any): void;
     getChildElement(_CMIElement: string, _value: any, _foundFirstIndex: boolean): BaseCMI | null;
 }
+//# sourceMappingURL=IBaseAPI.d.ts.map
