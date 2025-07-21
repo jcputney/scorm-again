@@ -202,7 +202,7 @@ export function createErrorHandlingService(
   apiLog: (
     functionName: string,
     message: string,
-    logLevel: LogLevelEnum,
+    logLevel?: LogLevelEnum,
     CMIElement?: string,
   ) => void,
   getLmsErrorMessageDetails: (errorCode: number, detail: boolean) => string,

@@ -116,7 +116,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       createErrorHandlingService(
         this._error_codes,
         (functionName, message, level, element) =>
-          this.apiLog(functionName, message, level, element),
+          this.apiLog(functionName, message, level || LogLevelEnum.ERROR, element),
         (errorNumber, detail) => this.getLmsErrorMessageDetails(errorNumber, detail),
       );
 
