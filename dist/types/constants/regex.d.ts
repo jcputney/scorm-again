@@ -1,6 +1,6 @@
 export declare const scorm12_regex: {
-    CMIString256: string;
-    CMIString4096: string;
+    CMIString256: RegExp;
+    CMIString4096: RegExp;
     CMITime: string;
     CMITimespan: string;
     CMIInteger: string;
@@ -23,8 +23,8 @@ export declare const scorm12_regex: {
 };
 export declare const aicc_regex: {
     CMIIdentifier: string;
-    CMIString256: string;
-    CMIString4096: string;
+    CMIString256: RegExp;
+    CMIString4096: RegExp;
     CMITime: string;
     CMITimespan: string;
     CMIInteger: string;
