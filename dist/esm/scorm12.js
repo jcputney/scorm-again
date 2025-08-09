@@ -117,8 +117,10 @@ const scorm12_errors$1 = {
 };
 
 const scorm12_regex = {
-  CMIString256: "^.{0,255}$",
-  CMIString4096: "^.{0,4096}$",
+  CMIString256: /^.{0,255}$/m,
+  // the `m` flag allows checking multiline strings, otherwise both ^ and $ only catch single lines.
+  CMIString4096: /^.{0,4096}$/m,
+  // the `m` flag allows checking multiline strings, otherwise both ^ and $ only catch single lines.
   CMITime: "^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)$",
   CMITimespan: "^([0-9]{2,}):([0-9]{2}):([0-9]{2})(.[0-9]{1,2})?$",
   CMISInteger: "^-?([0-9]+)$",
@@ -4784,4 +4786,3 @@ class Scorm12API extends BaseAPI {
 }
 
 export { Scorm12API };
-//# sourceMappingURL=scorm12.js.map

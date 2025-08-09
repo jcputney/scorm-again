@@ -13,7 +13,7 @@ import { scorm12_errors } from "../../constants/error_codes";
 export function checkAICCValidFormat(
   CMIElement: string,
   value: string,
-  regexPattern: string,
+  regexPattern: string | RegExp, // We accept either a string or a RegExp object to allow the usage of flags.
   allowEmptyString?: boolean,
 ): boolean {
   return checkValidFormat(

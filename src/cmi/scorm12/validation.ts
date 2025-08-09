@@ -13,7 +13,7 @@ import { Scorm12ValidationError } from "../../exceptions/scorm12_exceptions";
 export function check12ValidFormat(
   CMIElement: string,
   value: string,
-  regexPattern: string,
+  regexPattern: string | RegExp, // We accept either a string or a RegExp object to allow the usage of flags.
   allowEmptyString?: boolean,
 ): boolean {
   return checkValidFormat(

@@ -15,7 +15,7 @@ export const checkValidFormat = memoize(
   (
     CMIElement: string,
     value: string,
-    regexPattern: string,
+    regexPattern: string | RegExp, // We accept either a string or a RegExp object to allow the usage of flags.
     errorCode: number,
     errorClass: typeof BaseScormValidationError,
     allowEmptyString?: boolean,

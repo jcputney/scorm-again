@@ -3044,7 +3044,7 @@ function check2004ValidRange(CMIElement, value, rangePattern) {
 }
 
 const scorm12_regex = {
-  CMIString256: "^.{0,255}$",
+  CMIString256: /^.{0,255}$/m,
   CMISInteger: "^-?([0-9]+)$",
   CMIDecimal: "^-?([0-9]{0,3})(\\.[0-9]*)?$",
   // Data ranges
@@ -10865,4 +10865,3 @@ class Scorm2004API extends BaseAPI {
 }
 
 export { Scorm2004API };
-//# sourceMappingURL=scorm2004.js.map

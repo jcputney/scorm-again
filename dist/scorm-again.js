@@ -278,8 +278,10 @@
   };
 
   const scorm12_regex = {
-    CMIString256: "^.{0,255}$",
-    CMIString4096: "^.{0,4096}$",
+    CMIString256: /^.{0,255}$/m,
+    // the `m` flag allows checking multiline strings, otherwise both ^ and $ only catch single lines.
+    CMIString4096: /^.{0,4096}$/m,
+    // the `m` flag allows checking multiline strings, otherwise both ^ and $ only catch single lines.
     CMITime: "^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)$",
     CMITimespan: "^([0-9]{2,}):([0-9]{2}):([0-9]{2})(.[0-9]{1,2})?$",
     CMIInteger: "^\\d+$",
@@ -3541,7 +3543,7 @@ ${stackTrace}`);
       this._httpService = httpService || new HttpService(this.settings, this._error_codes);
       this._eventService = eventService || new EventService((functionName, message, level, element) => this.apiLog(functionName, message, level, element));
       this._serializationService = serializationService || new SerializationService();
-      this._errorHandlingService = errorHandlingService || createErrorHandlingService(this._error_codes, (functionName, message, level, element) => this.apiLog(functionName, message, level, element), (errorNumber, detail) => this.getLmsErrorMessageDetails(errorNumber, detail));
+      this._errorHandlingService = errorHandlingService || createErrorHandlingService(this._error_codes, (functionName, message, level, element) => this.apiLog(functionName, message, level || LogLevelEnum.ERROR, element), (errorNumber, detail) => this.getLmsErrorMessageDetails(errorNumber, detail));
       if (this.settings.enableOfflineSupport) {
         this._offlineStorageService = offlineStorageService || new OfflineStorageService(this.settings, this._error_codes, (functionName, message, level, element) => this.apiLog(functionName, message, level, element));
         if (this.settings.courseId) {
@@ -12628,4 +12630,3 @@ ${stackTrace}`);
   }
 
 })();
-//# sourceMappingURL=scorm-again.js.map

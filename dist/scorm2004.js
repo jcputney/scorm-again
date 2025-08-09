@@ -1913,7 +1913,7 @@ ${stackTrace}`);
       this._httpService = httpService || new HttpService(this.settings, this._error_codes);
       this._eventService = eventService || new EventService((functionName, message, level, element) => this.apiLog(functionName, message, level, element));
       this._serializationService = serializationService || new SerializationService();
-      this._errorHandlingService = errorHandlingService || createErrorHandlingService(this._error_codes, (functionName, message, level, element) => this.apiLog(functionName, message, level, element), (errorNumber, detail) => this.getLmsErrorMessageDetails(errorNumber, detail));
+      this._errorHandlingService = errorHandlingService || createErrorHandlingService(this._error_codes, (functionName, message, level, element) => this.apiLog(functionName, message, level || LogLevelEnum.ERROR, element), (errorNumber, detail) => this.getLmsErrorMessageDetails(errorNumber, detail));
       if (this.settings.enableOfflineSupport) {
         this._offlineStorageService = offlineStorageService || new OfflineStorageService(this.settings, this._error_codes, (functionName, message, level, element) => this.apiLog(functionName, message, level, element));
         if (this.settings.courseId) {
@@ -2876,7 +2876,7 @@ ${stackTrace}`);
   }
 
   const scorm12_regex = {
-    CMIString256: "^.{0,255}$",
+    CMIString256: /^.{0,255}$/m,
     CMISInteger: "^-?([0-9]+)$",
     CMIDecimal: "^-?([0-9]{0,3})(\\.[0-9]*)?$",
     // Data ranges
@@ -9863,4 +9863,3 @@ ${stackTrace}`);
   return Scorm2004API;
 
 })();
-//# sourceMappingURL=scorm2004.js.map
