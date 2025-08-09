@@ -28,6 +28,14 @@ describe("check12ValidFormat", () => {
     expect(result).toBe(true);
   });
 
+  it("should handle strings with line-breaks", () => {
+    const regex = /^.+$/m;
+    const value = "abc\ndef";
+
+    const result = check12ValidFormat(CMIElement, value, regex);
+    expect(result).toBe(true);
+  });
+
   it("should throw an error for empty string when not allowed", () => {
     const regex = "^[0-9]+$";
     const emptyValue = "";
