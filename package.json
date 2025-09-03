@@ -139,7 +139,7 @@
     "rollup-plugin-dts": "6.2.1",
     "rollup-plugin-esbuild": "6.2.1",
     "standard-version": "9.5.0",
-    "terser": "5.43.1",
+    "terser": "5.44.0",
     "tslib": "2.8.1",
     "tsx": "4.20.3",
     "typescript": "5.9.2",
