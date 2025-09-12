@@ -402,17 +402,17 @@ describe("SCORM 2004 ADL Tests", () => {
       expect(nav.request).toBe("_none_");
     });
 
-    it("should process navigation request when sequencing is set", () => {
+    it("should store navigation request when set", () => {
       const adl = new ADL();
       const mockSequencing = {
         adlNav: null,
-        processNavigationRequest: vi.fn(),
       };
 
       adl.nav.sequencing = mockSequencing as any;
       adl.nav.request = "continue";
 
-      expect(mockSequencing.processNavigationRequest).toHaveBeenCalledWith("continue");
+      // The ADL.nav setter now only stores the value - navigation processing is handled by SequencingService
+      expect(adl.nav.request).toBe("continue");
     });
   });
 });

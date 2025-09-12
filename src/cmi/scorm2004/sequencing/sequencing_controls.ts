@@ -34,6 +34,8 @@ export class SequencingControls extends BaseCMI {
   // Constrain Choice Controls
   private _preventActivation: boolean = false;
   private _constrainChoice: boolean = false;
+  // Rule-driven traversal limiter (e.g., post-condition stopForwardTraversal)
+  private _stopForwardTraversal: boolean = false;
 
   // Rollup Controls
   private _rollupObjectiveSatisfied: boolean = true;
@@ -71,6 +73,7 @@ export class SequencingControls extends BaseCMI {
     this._useCurrentAttemptProgressInfo = true;
     this._preventActivation = false;
     this._constrainChoice = false;
+    this._stopForwardTraversal = false;
     this._rollupObjectiveSatisfied = true;
     this._rollupProgressCompletion = true;
     this._objectiveMeasureWeight = 1.0;
@@ -224,6 +227,22 @@ export class SequencingControls extends BaseCMI {
    */
   set constrainChoice(constrainChoice: boolean) {
     this._constrainChoice = constrainChoice;
+  }
+
+  /**
+   * Getter for stopForwardTraversal
+   * @return {boolean}
+   */
+  get stopForwardTraversal(): boolean {
+    return this._stopForwardTraversal;
+  }
+
+  /**
+   * Setter for stopForwardTraversal
+   * @param {boolean} stopForwardTraversal
+   */
+  set stopForwardTraversal(stopForwardTraversal: boolean) {
+    this._stopForwardTraversal = stopForwardTraversal;
   }
 
   /**
@@ -429,6 +448,7 @@ export class SequencingControls extends BaseCMI {
       useCurrentAttemptProgressInfo: this._useCurrentAttemptProgressInfo,
       preventActivation: this._preventActivation,
       constrainChoice: this._constrainChoice,
+      stopForwardTraversal: this._stopForwardTraversal,
       rollupObjectiveSatisfied: this._rollupObjectiveSatisfied,
       rollupProgressCompletion: this._rollupProgressCompletion,
       objectiveMeasureWeight: this._objectiveMeasureWeight,

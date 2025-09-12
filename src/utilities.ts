@@ -250,6 +250,21 @@ export const getDurationAsSeconds = memoize(
 );
 
 /**
+ * Validates ISO 8601 duration format according to SCORM 2004 specification
+ * @param {string} duration - The duration string to validate
+ * @return {boolean} - True if valid ISO 8601 duration format
+ */
+export const validateISO8601Duration = memoize(
+  (duration: string, durationRegex: RegExp | string): boolean => {
+    if (typeof durationRegex === "string") {
+      durationRegex = new RegExp(durationRegex);
+    }
+
+    return !(!duration || !duration?.match?.(durationRegex));
+  },
+);
+
+/**
  * Adds together two ISO 8601 duration strings and returns the result as a new ISO 8601 duration string.
  * This function works by converting both durations to seconds, adding them together, and then
  * converting the result back to an ISO 8601 duration string.

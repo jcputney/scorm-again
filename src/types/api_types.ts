@@ -38,6 +38,9 @@ export type Settings = {
   syncOnInitialize?: boolean | undefined;
   syncOnTerminate?: boolean | undefined;
   maxSyncAttempts?: number | undefined;
+
+  // Sequencing state persistence settings
+  sequencingStatePersistence?: SequencingStatePersistenceConfig | undefined;
 };
 
 /**
@@ -76,6 +79,9 @@ export type InternalSettings = {
   syncOnInitialize?: boolean | undefined;
   syncOnTerminate?: boolean | undefined;
   maxSyncAttempts?: number | undefined;
+
+  // Sequencing state persistence settings
+  sequencingStatePersistence?: SequencingStatePersistenceConfig | undefined;
 };
 
 export type RefObject = {
@@ -167,3 +173,64 @@ export type NamedLogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR" | "NONE";
  * All possible log level values
  */
 export type LogLevel = NumericLogLevel | StringNumericLogLevel | NamedLogLevel | LogLevelEnum;
+
+/**
+ * Metadata for sequencing state operations
+ */
+export type SequencingStateMetadata = {
+  /** Unique identifier for the learner */
+  learnerId: string;
+  /** Course/SCO identifier */
+  courseId: string;
+  /** Optional attempt number */
+  attemptNumber?: number;
+  /** Timestamp of last update */
+  lastUpdated?: string;
+  /** State format version for compatibility */
+  version?: string;
+};
+
+/**
+ * Callback interface for LMS state persistence operations
+ */
+export type SequencingStatePersistence = {
+  /**
+   * Save sequencing state to persistent storage
+   * @param stateData - Serialized sequencing state
+   * @param metadata - Additional context about the state
+   * @returns Promise resolving to success status
+   */
+  saveState: (stateData: string, metadata: SequencingStateMetadata) => Promise<boolean>;
+
+  /**
+   * Load sequencing state from persistent storage
+   * @param metadata - Context for loading the correct state
+   * @returns Promise resolving to serialized state or null if not found
+   */
+  loadState: (metadata: SequencingStateMetadata) => Promise<string | null>;
+
+  /**
+   * Optional: Clear/delete sequencing state
+   * @param metadata - Context for the state to clear
+   * @returns Promise resolving to success status
+   */
+  clearState?: (metadata: SequencingStateMetadata) => Promise<boolean>;
+};
+
+/**
+ * Configuration for sequencing state persistence
+ */
+export type SequencingStatePersistenceConfig = {
+  /** LMS callback interface */
+  persistence: SequencingStatePersistence;
+  /** When to auto-save state (default: 'commit') */
+  autoSaveOn?: "commit" | "setValue" | "navigate" | "never";
+  /** Compress state data (default: true) */
+  compress?: boolean;
+  /** Maximum state size in bytes (default: 50KB) */
+  maxStateSize?: number;
+  /** State format version (default: '1.0') */
+  stateVersion?: string;
+  /** Debug logging for persistence operations */
+  debugPersistence?: boolean;
+};

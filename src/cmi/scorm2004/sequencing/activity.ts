@@ -7,6 +7,7 @@ import { CompletionStatus, SuccessStatus } from "../../../constants/enums";
 import { SequencingControls } from "./sequencing_controls";
 import { SequencingRules } from "./sequencing_rules";
 import { RollupRules } from "./rollup_rules";
+import { validateISO8601Duration } from "../../../utilities";
 
 /**
  * Class representing a single activity in the SCORM 2004 activity tree
@@ -32,6 +33,12 @@ export class Activity extends BaseCMI {
   private _objectiveMeasureStatus: boolean = false;
   private _objectiveNormalizedMeasure: number = 0;
   private _scaledPassingScore: number = 0.7; // Default passing score
+  private _progressMeasure: number = 0;
+  private _progressMeasureStatus: boolean = false;
+  private _location: string = "";
+  private _attemptAbsoluteStartTime: string = "";
+  private _learnerPrefs: any = null;
+  private _activityAttemptActive: boolean = false;
   private _isHiddenFromChoice: boolean = false;
   private _isAvailable: boolean = true;
   private _attemptLimit: number | null = null;
@@ -91,6 +98,12 @@ export class Activity extends BaseCMI {
     this._objectiveSatisfiedStatus = false;
     this._objectiveMeasureStatus = false;
     this._objectiveNormalizedMeasure = 0;
+    this._progressMeasure = 0;
+    this._progressMeasureStatus = false;
+    this._location = "";
+    this._attemptAbsoluteStartTime = "";
+    this._learnerPrefs = null;
+    this._activityAttemptActive = false;
 
     // Reset children
     for (const child of this._children) {
@@ -153,7 +166,7 @@ export class Activity extends BaseCMI {
     if (!(child instanceof Activity)) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".children",
-        scorm2004_errors.TYPE_MISMATCH as number,
+        scorm2004_errors.TYPE_MISMATCH as number
       );
     }
     child._parent = this;
@@ -303,6 +316,22 @@ export class Activity extends BaseCMI {
   }
 
   /**
+   * Getter for attemptCompletionAmount
+   * @return {number}
+   */
+  get attemptCompletionAmount(): number {
+    return this._attemptCompletionAmount;
+  }
+
+  /**
+   * Setter for attemptCompletionAmount
+   * @param {number} value
+   */
+  set attemptCompletionAmount(value: number) {
+    this._attemptCompletionAmount = value;
+  }
+
+  /**
    * Increment the attempt count
    */
   incrementAttemptCount(): void {
@@ -388,6 +417,102 @@ export class Activity extends BaseCMI {
     if (scaledPassingScore >= -1 && scaledPassingScore <= 1) {
       this._scaledPassingScore = scaledPassingScore;
     }
+  }
+
+  /**
+   * Getter for progressMeasure
+   * @return {number}
+   */
+  get progressMeasure(): number {
+    return this._progressMeasure;
+  }
+
+  /**
+   * Setter for progressMeasure
+   * @param {number} progressMeasure
+   */
+  set progressMeasure(progressMeasure: number) {
+    this._progressMeasure = progressMeasure;
+  }
+
+  /**
+   * Getter for progressMeasureStatus
+   * @return {boolean}
+   */
+  get progressMeasureStatus(): boolean {
+    return this._progressMeasureStatus;
+  }
+
+  /**
+   * Setter for progressMeasureStatus
+   * @param {boolean} progressMeasureStatus
+   */
+  set progressMeasureStatus(progressMeasureStatus: boolean) {
+    this._progressMeasureStatus = progressMeasureStatus;
+  }
+
+  /**
+   * Getter for location
+   * @return {string}
+   */
+  get location(): string {
+    return this._location;
+  }
+
+  /**
+   * Setter for location
+   * @param {string} location
+   */
+  set location(location: string) {
+    this._location = location;
+  }
+
+  /**
+   * Getter for attemptAbsoluteStartTime
+   * @return {string}
+   */
+  get attemptAbsoluteStartTime(): string {
+    return this._attemptAbsoluteStartTime;
+  }
+
+  /**
+   * Setter for attemptAbsoluteStartTime
+   * @param {string} attemptAbsoluteStartTime
+   */
+  set attemptAbsoluteStartTime(attemptAbsoluteStartTime: string) {
+    this._attemptAbsoluteStartTime = attemptAbsoluteStartTime;
+  }
+
+  /**
+   * Getter for learnerPrefs
+   * @return {any}
+   */
+  get learnerPrefs(): any {
+    return this._learnerPrefs;
+  }
+
+  /**
+   * Setter for learnerPrefs
+   * @param {any} learnerPrefs
+   */
+  set learnerPrefs(learnerPrefs: any) {
+    this._learnerPrefs = learnerPrefs;
+  }
+
+  /**
+   * Getter for activityAttemptActive
+   * @return {boolean}
+   */
+  get activityAttemptActive(): boolean {
+    return this._activityAttemptActive;
+  }
+
+  /**
+   * Setter for activityAttemptActive
+   * @param {boolean} activityAttemptActive
+   */
+  set activityAttemptActive(activityAttemptActive: boolean) {
+    this._activityAttemptActive = activityAttemptActive;
   }
 
   /**
@@ -527,7 +652,14 @@ export class Activity extends BaseCMI {
    * @param {string | null} attemptAbsoluteDurationLimit
    */
   set attemptAbsoluteDurationLimit(attemptAbsoluteDurationLimit: string | null) {
-    // TODO: Add proper validation for ISO 8601 duration format
+    if (attemptAbsoluteDurationLimit !== null) {
+      if (!validateISO8601Duration(attemptAbsoluteDurationLimit, scorm2004_regex.CMITimespan)) {
+        throw new Scorm2004ValidationError(
+          this._cmi_element + ".attemptAbsoluteDurationLimit",
+          scorm2004_errors.TYPE_MISMATCH as number
+        );
+      }
+    }
     this._attemptAbsoluteDurationLimit = attemptAbsoluteDurationLimit;
   }
 
@@ -544,7 +676,12 @@ export class Activity extends BaseCMI {
    * @param {string} attemptExperiencedDuration
    */
   set attemptExperiencedDuration(attemptExperiencedDuration: string) {
-    // TODO: Add proper validation for ISO 8601 duration format
+    if (!validateISO8601Duration(attemptExperiencedDuration, scorm2004_regex.CMITimespan)) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".attemptExperiencedDuration",
+        scorm2004_errors.TYPE_MISMATCH as number
+      );
+    }
     this._attemptExperiencedDuration = attemptExperiencedDuration;
   }
 
@@ -561,7 +698,14 @@ export class Activity extends BaseCMI {
    * @param {string | null} activityAbsoluteDurationLimit
    */
   set activityAbsoluteDurationLimit(activityAbsoluteDurationLimit: string | null) {
-    // TODO: Add proper validation for ISO 8601 duration format
+    if (activityAbsoluteDurationLimit !== null) {
+      if (!validateISO8601Duration(activityAbsoluteDurationLimit, scorm2004_regex.CMITimespan)) {
+        throw new Scorm2004ValidationError(
+          this._cmi_element + ".activityAbsoluteDurationLimit",
+          scorm2004_errors.TYPE_MISMATCH as number
+        );
+      }
+    }
     this._activityAbsoluteDurationLimit = activityAbsoluteDurationLimit;
   }
 
@@ -578,8 +722,45 @@ export class Activity extends BaseCMI {
    * @param {string} activityExperiencedDuration
    */
   set activityExperiencedDuration(activityExperiencedDuration: string) {
-    // TODO: Add proper validation for ISO 8601 duration format
+    if (!validateISO8601Duration(activityExperiencedDuration, scorm2004_regex.CMITimespan)) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".activityExperiencedDuration",
+        scorm2004_errors.TYPE_MISMATCH as number
+      );
+    }
     this._activityExperiencedDuration = activityExperiencedDuration;
+  }
+
+  /**
+   * Getter for attemptAbsoluteDuration (alias for limit)
+   * @return {string}
+   */
+  get attemptAbsoluteDuration(): string {
+    return this._attemptAbsoluteDurationLimit || "PT0H0M0S";
+  }
+
+  /**
+   * Setter for attemptAbsoluteDuration
+   * @param {string} duration
+   */
+  set attemptAbsoluteDuration(duration: string) {
+    this._attemptAbsoluteDurationLimit = duration;
+  }
+
+  /**
+   * Getter for activityAbsoluteDuration (alias for limit)
+   * @return {string}
+   */
+  get activityAbsoluteDuration(): string {
+    return this._activityAbsoluteDurationLimit || "PT0H0M0S";
+  }
+
+  /**
+   * Setter for activityAbsoluteDuration
+   * @param {string} duration
+   */
+  set activityAbsoluteDuration(duration: string) {
+    this._activityAbsoluteDurationLimit = duration;
   }
 
 
@@ -706,7 +887,7 @@ export class Activity extends BaseCMI {
       objectiveSatisfiedStatus: this._objectiveSatisfiedStatus,
       objectiveMeasureStatus: this._objectiveMeasureStatus,
       objectiveNormalizedMeasure: this._objectiveNormalizedMeasure,
-      children: this._children.map((child) => child.toJSON()),
+      children: this._children.map((child) => child.toJSON())
     };
     this.jsonString = false;
     return result;

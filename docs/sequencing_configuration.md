@@ -46,6 +46,31 @@ The `sequencing` object can contain the following properties:
   sequencing.
 - `rollupRules`: Configures the rollup rules, which define how the status of parent activities is
   determined based on the status of their children.
+ - `eventListeners`: Optional sequencing event listeners (e.g., `onActivityDelivery`, `onRollupComplete`, `onNavigationValidityUpdate`).
+ - `now`: Optional function `() => Date` to provide a custom clock for time-based decisions (begin/end windows, attempt start).
+ - `getAttemptElapsedSeconds`: Optional function `(activity) => number` that returns precise elapsed seconds for the current attempt; used by `timeLimitExceeded` conditions.
+ - `getActivityElapsedSeconds`: Optional function `(activity) => number` for activity-level elapsed time (reserved for future use).
+
+### Configuration Hooks
+
+You can supply runtime hooks under `sequencing` to control time behavior and receive validity updates:
+
+```javascript
+const api = new Scorm2004API({
+  sequencing: {
+    activityTree: {/* ... */},
+
+    // Time providers (optional)
+    now: () => new Date(),
+    getAttemptElapsedSeconds: (activity) => lmsTimer.getElapsedSeconds(activity.id),
+
+    // Listen for computed validity snapshot for UI
+    eventListeners: {
+      onNavigationValidityUpdate: (validity) => updateNavUI(validity)
+    }
+  }
+});
+```
 
 ### Activity Tree
 
@@ -820,3 +845,14 @@ This approach avoids the reset issue but requires more memory and careful state 
 - Global objectives require special handling and must be shared across SCOs
 - The LMS must track sequencing state separately from CMI data
 - The API should be reset between SCO launches to ensure clean state
+
+## Recent Enhancements (Sequencing)
+
+- Runtime time providers:
+  - `now?: () => Date` supplies a custom clock for all time-based decisions (begin/end windows, attempt start).
+  - `getAttemptElapsedSeconds?: (activity) => number` lets the LMS provide precise elapsed seconds for the current attempt; used by `timeLimitExceeded` conditions.
+- Per-target request validity:
+  - The library computes per-target maps for `choice` and `jump` and emits `onNavigationValidityUpdate` with `{ continue, previous, choice, jump }`.
+  - It attempts to set `adl.nav.request_valid.choice`/`jump` maps when writable; prefer the event payload for UI updates.
+- New sequencing control:
+  - `stopForwardTraversal` is honored when set (e.g., via a post-condition rule) to halt forward traversal through a cluster.

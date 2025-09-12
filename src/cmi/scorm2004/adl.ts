@@ -153,15 +153,7 @@ export class ADLNav extends BaseCMI {
    */
   set request(request: string) {
     if (check2004ValidFormat(this._cmi_element + ".request", request, scorm2004_regex.NAVEvent)) {
-      // Only process if the request is different from the current request
-      if (this._request !== request) {
-        this._request = request;
-
-        // Process the navigation request using the sequencing implementation
-        if (this._sequencing) {
-          this._sequencing.processNavigationRequest(request);
-        }
-      }
+      this._request = request;
     }
   }
 
@@ -293,6 +285,11 @@ export class ADLNavRequestValid extends BaseCMI {
   private _jump: {
     [key: string]: NAVBoolean;
   } = {};
+  private _exit = "unknown";
+  private _exitAll = "unknown";
+  private _abandon = "unknown";
+  private _abandonAll = "unknown";
+  private _suspendAll = "unknown";
 
   /**
    * Constructor for adl.nav.request_valid
@@ -310,6 +307,11 @@ export class ADLNavRequestValid extends BaseCMI {
     this._previous = "unknown";
     this._choice = {};
     this._jump = {};
+    this._exit = "unknown";
+    this._exitAll = "unknown";
+    this._abandon = "unknown";
+    this._abandonAll = "unknown";
+    this._suspendAll = "unknown";
   }
 
   /**
@@ -459,6 +461,136 @@ export class ADLNavRequestValid extends BaseCMI {
           }
         }
       }
+    }
+  }
+
+  /**
+   * Getter for _exit
+   * @return {string}
+   */
+  get exit(): string {
+    return this._exit;
+  }
+
+  /**
+   * Setter for _exit. Just throws an error.
+   * @param {string} _exit
+   */
+  set exit(_exit: string) {
+    if (this.initialized) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".exit",
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
+      );
+    }
+    if (
+      check2004ValidFormat(this._cmi_element + ".exit", _exit, scorm2004_regex.NAVBoolean)
+    ) {
+      this._exit = _exit;
+    }
+  }
+
+  /**
+   * Getter for _exitAll
+   * @return {string}
+   */
+  get exitAll(): string {
+    return this._exitAll;
+  }
+
+  /**
+   * Setter for _exitAll. Just throws an error.
+   * @param {string} _exitAll
+   */
+  set exitAll(_exitAll: string) {
+    if (this.initialized) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".exitAll",
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
+      );
+    }
+    if (
+      check2004ValidFormat(this._cmi_element + ".exitAll", _exitAll, scorm2004_regex.NAVBoolean)
+    ) {
+      this._exitAll = _exitAll;
+    }
+  }
+
+  /**
+   * Getter for _abandon
+   * @return {string}
+   */
+  get abandon(): string {
+    return this._abandon;
+  }
+
+  /**
+   * Setter for _abandon. Just throws an error.
+   * @param {string} _abandon
+   */
+  set abandon(_abandon: string) {
+    if (this.initialized) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".abandon",
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
+      );
+    }
+    if (
+      check2004ValidFormat(this._cmi_element + ".abandon", _abandon, scorm2004_regex.NAVBoolean)
+    ) {
+      this._abandon = _abandon;
+    }
+  }
+
+  /**
+   * Getter for _abandonAll
+   * @return {string}
+   */
+  get abandonAll(): string {
+    return this._abandonAll;
+  }
+
+  /**
+   * Setter for _abandonAll. Just throws an error.
+   * @param {string} _abandonAll
+   */
+  set abandonAll(_abandonAll: string) {
+    if (this.initialized) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".abandonAll",
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
+      );
+    }
+    if (
+      check2004ValidFormat(this._cmi_element + ".abandonAll", _abandonAll, scorm2004_regex.NAVBoolean)
+    ) {
+      this._abandonAll = _abandonAll;
+    }
+  }
+
+  /**
+   * Getter for _suspendAll
+   * @return {string}
+   */
+  get suspendAll(): string {
+    return this._suspendAll;
+  }
+
+  /**
+   * Setter for _suspendAll. Just throws an error.
+   * @param {string} _suspendAll
+   */
+  set suspendAll(_suspendAll: string) {
+    if (this.initialized) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".suspendAll",
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
+      );
+    }
+    if (
+      check2004ValidFormat(this._cmi_element + ".suspendAll", _suspendAll, scorm2004_regex.NAVBoolean)
+    ) {
+      this._suspendAll = _suspendAll;
     }
   }
 
