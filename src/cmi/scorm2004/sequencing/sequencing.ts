@@ -7,12 +7,6 @@ import { RollupRules } from "./rollup_rules";
 import { ADLNav } from "../adl";
 import { Scorm2004ValidationError } from "../../../exceptions/scorm2004_exceptions";
 import { scorm2004_errors } from "../../../constants/error_codes";
-import {
-  SequencingProcess,
-  SequencingRequestType,
-  SequencingResult,
-  DeliveryRequestType,
-} from "./sequencing_process";
 
 /**
  * Class representing SCORM 2004 sequencing
@@ -23,8 +17,6 @@ export class Sequencing extends BaseCMI {
   private _sequencingControls: SequencingControls;
   private _rollupRules: RollupRules;
   private _adlNav: ADLNav | null = null;
-  private _sequencingProcess: SequencingProcess | null = null;
-  private _lastSequencingResult: SequencingResult | null = null;
 
   /**
    * Constructor for Sequencing
@@ -47,15 +39,6 @@ export class Sequencing extends BaseCMI {
     this._sequencingControls.initialize();
     this._rollupRules.initialize();
     
-    // Initialize sequencing process if ADL Nav is available
-    if (this._adlNav) {
-      this._sequencingProcess = new SequencingProcess(
-        this._activityTree,
-        this._sequencingRules,
-        this._sequencingControls,
-        this._adlNav,
-      );
-    }
   }
 
   /**
@@ -176,152 +159,10 @@ export class Sequencing extends BaseCMI {
   set adlNav(adlNav: ADLNav | null) {
     this._adlNav = adlNav;
     
-    // Update sequencing process with new ADL Nav
-    if (adlNav) {
-      this._sequencingProcess = new SequencingProcess(
-        this._activityTree,
-        this._sequencingRules,
-        this._sequencingControls,
-        adlNav,
-      );
-    }
   }
 
-  /**
-   * Get the last sequencing result
-   * @return {SequencingResult | null}
-   */
-  get lastSequencingResult(): SequencingResult | null {
-    return this._lastSequencingResult;
-  }
 
-  /**
-   * Process navigation request using the new sequencing process
-   * @param {string} request - The navigation request
-   * @param {string | null} targetActivityId - Target activity ID for choice/jump requests
-   * @return {boolean} - True if the request is valid and results in delivery, false otherwise
-   */
-  processNavigationRequest(request: string, targetActivityId: string | null = null): boolean {
-    if (!this._sequencingProcess || !this._adlNav) {
-      return false;
-    }
 
-    // Parse choice and jump requests to extract target
-    if (request.includes("choice") && request.includes("{target=")) {
-      const match = request.match(/\{target=([^}]+)\}/);
-      if (match) {
-        targetActivityId = match[1] || null;
-        request = "choice";
-      }
-    } else if (request.includes("jump") && request.includes("{target=")) {
-      const match = request.match(/\{target=([^}]+)\}/);
-      if (match) {
-        targetActivityId = match[1] || null;
-        request = "jump";
-      }
-    }
-
-    // Map string request to SequencingRequestType
-    let requestType: SequencingRequestType;
-    switch (request) {
-      case "start":
-        requestType = SequencingRequestType.START;
-        break;
-      case "resumeAll":
-        requestType = SequencingRequestType.RESUME_ALL;
-        break;
-      case "continue":
-        requestType = SequencingRequestType.CONTINUE;
-        break;
-      case "previous":
-        requestType = SequencingRequestType.PREVIOUS;
-        break;
-      case "choice":
-        requestType = SequencingRequestType.CHOICE;
-        break;
-      case "jump":
-        requestType = SequencingRequestType.JUMP;
-        break;
-      case "exit":
-        requestType = SequencingRequestType.EXIT;
-        break;
-      case "exitAll":
-        requestType = SequencingRequestType.EXIT_ALL;
-        break;
-      case "abandon":
-        requestType = SequencingRequestType.ABANDON;
-        break;
-      case "abandonAll":
-        requestType = SequencingRequestType.ABANDON_ALL;
-        break;
-      case "suspendAll":
-        requestType = SequencingRequestType.SUSPEND_ALL;
-        break;
-      case "retry":
-        requestType = SequencingRequestType.RETRY;
-        break;
-      case "retryAll":
-        requestType = SequencingRequestType.RETRY_ALL;
-        break;
-      default:
-        return false;
-    }
-
-    // Process the sequencing request
-    const result = this._sequencingProcess.sequencingRequestProcess(requestType, targetActivityId);
-    this._lastSequencingResult = result;
-
-    // Update navigation request validity
-    if (result.exception) {
-      // Don't modify _choice and _jump as they are target-specific objects
-      // Note: These setters may throw if already initialized, but that's expected behavior
-      try {
-        this._adlNav.request_valid.continue = "false";
-        this._adlNav.request_valid.previous = "false";
-      } catch (e) {
-        // Expected when already initialized - navigation validity is read-only after init
-      }
-      return false;
-    }
-
-    // Update navigation request validity based on current state
-    this.updateNavigationRequestValidity();
-
-    // Return true if delivery is requested
-    return result.deliveryRequest === DeliveryRequestType.DELIVER;
-  }
-
-  /**
-   * Update navigation request validity based on current state
-   */
-  private updateNavigationRequestValidity(): void {
-    if (!this._adlNav || !this._sequencingProcess) {
-      return;
-    }
-
-    // Check continue validity
-    const continueResult = this._sequencingProcess.sequencingRequestProcess(
-      SequencingRequestType.CONTINUE,
-    );
-    try {
-      this._adlNav.request_valid.continue = !continueResult.exception ? "true" : "false";
-    } catch (e) {
-      // Expected when already initialized - navigation validity is read-only after init
-    }
-
-    // Check previous validity
-    const previousResult = this._sequencingProcess.sequencingRequestProcess(
-      SequencingRequestType.PREVIOUS,
-    );
-    try {
-      this._adlNav.request_valid.previous = !previousResult.exception ? "true" : "false";
-    } catch (e) {
-      // Expected when already initialized - navigation validity is read-only after init
-    }
-
-    // Choice and jump are target-specific and handled separately
-    // They are objects that map target IDs to NAVBoolean values
-  }
 
 
   /**
@@ -354,13 +195,6 @@ export class Sequencing extends BaseCMI {
     this._rollupRules.processRollup(activity);
   }
 
-  /**
-   * Get the last sequencing result
-   * @return {SequencingResult | null}
-   */
-  getLastSequencingResult(): SequencingResult | null {
-    return this._lastSequencingResult;
-  }
 
   /**
    * Get the current activity

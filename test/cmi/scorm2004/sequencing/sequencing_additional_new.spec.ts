@@ -1,146 +1,111 @@
-// noinspection DuplicatedCode
-
-import { describe, expect, it, vi } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { Sequencing } from "../../../../src/cmi/scorm2004/sequencing/sequencing";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
-import { RuleActionType } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
-import { ADLNav } from "../../../../src";
+import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
+import { SequencingRules } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
+import { SequencingControls } from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
+import { RollupRules } from "../../../../src/cmi/scorm2004/sequencing/rollup_rules";
+import { ADLNav } from "../../../../src/cmi/scorm2004/adl";
 
 describe("Additional Sequencing Tests", () => {
-  describe("processNavigationRequest", () => {
-    it("should return false for unknown request", () => {
+  describe("Sequencing initialization", () => {
+    it("should initialize sequencing components", () => {
       const sequencing = new Sequencing();
-      const adlNav = new ADLNav();
-      const activity = new Activity("activity", "Activity");
-
-      sequencing.adlNav = adlNav;
-      sequencing.activityTree.currentActivity = activity;
-
-      const result = sequencing.processNavigationRequest("unknownRequest");
-      expect(result).toBe(false);
-    });
-
-    it("should return false for invalid navigation request", () => {
-      const sequencing = new Sequencing();
-      const adlNav = new ADLNav();
-      const activity = new Activity("activity", "Activity");
-
-      sequencing.adlNav = adlNav;
-      sequencing.activityTree.currentActivity = activity;
-
-      const result = sequencing.processNavigationRequest("invalidRequest");
-      expect(result).toBe(false);
-    });
-  });
-
-  describe("processNavigationRequest - continue", () => {
-    it("should handle continue navigation request", () => {
-      const sequencing = new Sequencing();
-      const adlNav = new ADLNav();
-      const activity = new Activity("activity", "Activity");
-      const nextActivity = new Activity("next", "Next Activity");
-
-      sequencing.adlNav = adlNav;
-      sequencing.activityTree.currentActivity = activity;
-      activity.isActive = false; // Activity has been terminated
-
-      // Set up the activity tree
-      const root = new Activity("root", "Root");
-      root.addChild(activity);
-      root.addChild(nextActivity);
-      sequencing.activityTree.root = root;
-
-      const result = sequencing.processNavigationRequest("continue");
       
-      // Result depends on sequencing rules and activity states
-      expect(typeof result).toBe("boolean");
-    });
-  });
-
-  describe("processNavigationRequest - previous", () => {
-    it("should handle previous navigation request", () => {
-      const sequencing = new Sequencing();
-      const adlNav = new ADLNav();
-      const prevActivity = new Activity("prev", "Previous Activity");
-      const activity = new Activity("activity", "Activity");
-
-      sequencing.adlNav = adlNav;
-      sequencing.activityTree.currentActivity = activity;
-      activity.isActive = false; // Activity has been terminated
-
-      // Set up the activity tree
-      const root = new Activity("root", "Root");
-      root.addChild(prevActivity);
-      root.addChild(activity);
-      sequencing.activityTree.root = root;
-
-      const result = sequencing.processNavigationRequest("previous");
+      sequencing.initialize();
       
-      // Result depends on sequencing rules and activity states
-      expect(typeof result).toBe("boolean");
+      expect(sequencing.activityTree).toBeInstanceOf(ActivityTree);
+      expect(sequencing.sequencingRules).toBeInstanceOf(SequencingRules);
+      expect(sequencing.sequencingControls).toBeInstanceOf(SequencingControls);
+      expect(sequencing.rollupRules).toBeInstanceOf(RollupRules);
     });
   });
 
-  describe("processNavigationRequest - choice", () => {
-    it("should handle choice navigation request", () => {
+  describe("processRollup", () => {
+    it("should process rollup for the activity tree", () => {
       const sequencing = new Sequencing();
-      const adlNav = new ADLNav();
-      const activity = new Activity("activity", "Activity");
-      const targetActivity = new Activity("target", "Target Activity");
-
-      sequencing.adlNav = adlNav;
-      sequencing.activityTree.currentActivity = activity;
-      activity.isActive = false; // Activity has been terminated
-
-      // Set up the activity tree
-      const root = new Activity("root", "Root");
-      root.addChild(activity);
-      root.addChild(targetActivity);
-      sequencing.activityTree.root = root;
-
-      const result = sequencing.processNavigationRequest("choice", "target");
+      const rootActivity = new Activity("root", "Root Activity");
+      const childActivity1 = new Activity("child1", "Child Activity 1");
+      const childActivity2 = new Activity("child2", "Child Activity 2");
       
-      // Result depends on sequencing rules and activity states
-      expect(typeof result).toBe("boolean");
-    });
-  });
-
-  describe("processNavigationRequest - exit", () => {
-    it("should handle exit navigation request", () => {
-      const sequencing = new Sequencing();
-      const adlNav = new ADLNav();
-      const activity = new Activity("activity", "Activity");
-
-      sequencing.adlNav = adlNav;
-      sequencing.activityTree.currentActivity = activity;
-
-      // Set up the activity tree
-      const root = new Activity("root", "Root");
-      root.addChild(activity);
-      sequencing.activityTree.root = root;
-
-      const result = sequencing.processNavigationRequest("exit");
+      rootActivity.addChild(childActivity1);
+      rootActivity.addChild(childActivity2);
+      sequencing.activityTree.root = rootActivity;
       
-      // Result depends on sequencing rules and activity states
-      expect(typeof result).toBe("boolean");
+      // Mock the rollup rules processRollup method
+      const spy = vi.spyOn(sequencing.rollupRules, "processRollup");
+      
+      sequencing.processRollup();
+      
+      // Should process rollup for each activity
+      expect(spy).toHaveBeenCalledWith(childActivity1);
+      expect(spy).toHaveBeenCalledWith(childActivity2);
+      expect(spy).toHaveBeenCalledWith(rootActivity);
     });
   });
 
-  describe("getLastSequencingResult", () => {
-    it("should return the last sequencing result", () => {
+  describe("getCurrentActivity", () => {
+    it("should return the current activity", () => {
+      const sequencing = new Sequencing();
+      const activity = new Activity("activity", "Activity");
+      
+      sequencing.activityTree.currentActivity = activity;
+      
+      const currentActivity = sequencing.getCurrentActivity();
+      expect(currentActivity).toBe(activity);
+    });
+  });
+
+  describe("getRootActivity", () => {
+    it("should return the root activity", () => {
+      const sequencing = new Sequencing();
+      const rootActivity = new Activity("root", "Root Activity");
+      
+      sequencing.activityTree.root = rootActivity;
+      
+      const root = sequencing.getRootActivity();
+      expect(root).toBe(rootActivity);
+    });
+  });
+
+  // Navigation processing tests have been moved to SequencingService tests
+  // The Sequencing class is now a pure data model without business logic
+
+  describe("Sequencing as pure data model", () => {
+    it("should only provide data access methods", () => {
+      const sequencing = new Sequencing();
+      
+      // Verify data model methods exist
+      expect(sequencing.activityTree).toBeDefined();
+      expect(sequencing.sequencingRules).toBeDefined();
+      expect(sequencing.sequencingControls).toBeDefined();
+      expect(sequencing.rollupRules).toBeDefined();
+      expect(sequencing.getCurrentActivity).toBeDefined();
+      expect(sequencing.getRootActivity).toBeDefined();
+      
+      // Verify business logic methods have been removed
+      expect(sequencing.processNavigationRequest).toBeUndefined();
+      expect(sequencing.getLastSequencingResult).toBeUndefined();
+    });
+
+    it("should maintain data model relationships", () => {
       const sequencing = new Sequencing();
       const adlNav = new ADLNav();
-      const activity = new Activity("activity", "Activity");
-
+      
+      // Set ADL Nav
       sequencing.adlNav = adlNav;
-      sequencing.activityTree.currentActivity = activity;
-
-      // Process a navigation request to generate a result
-      sequencing.processNavigationRequest("exit");
-
-      const result = sequencing.getLastSequencingResult();
-      expect(result).toBeDefined();
-      expect(result?.deliveryRequest).toBeDefined();
+      expect(sequencing.adlNav).toBe(adlNav);
+      
+      // Activity tree operations
+      const root = new Activity("root", "Root");
+      const child = new Activity("child", "Child");
+      root.addChild(child);
+      
+      sequencing.activityTree.root = root;
+      sequencing.activityTree.currentActivity = child;
+      
+      expect(sequencing.getRootActivity()).toBe(root);
+      expect(sequencing.getCurrentActivity()).toBe(child);
     });
   });
 
@@ -157,25 +122,48 @@ describe("Additional Sequencing Tests", () => {
             children: [
               {
                 id: "child1",
-                title: "Child 1",
-                sequencingControls: {
-                  choice: true,
-                  flow: true
-                }
+                title: "Child Activity 1",
               },
               {
                 id: "child2",
-                title: "Child 2",
-                isHiddenFromChoice: true
-              }
-            ]
-          }
-        ]
+                title: "Child Activity 2",
+              },
+            ],
+          },
+        ],
       };
+      
+      // This would be handled by the API configuration methods
+      // The test verifies the data model can store the configured tree
+      const root = new Activity("root", "Root Activity");
+      const child1 = new Activity("child1", "Child Activity 1");
+      const child2 = new Activity("child2", "Child Activity 2");
+      
+      root.addChild(child1);
+      root.addChild(child2);
+      
+      sequencing.activityTree.root = root;
+      
+      expect(sequencing.activityTree.root).toBeDefined();
+      expect(sequencing.activityTree.root?.id).toBe("root");
+      expect(sequencing.activityTree.root?.children.length).toBe(2);
+    });
+  });
 
-      // Note: This would need to be implemented in the actual Sequencing class
-      // For now, we'll test what we have
-      expect(sequencing.activityTree).toBeDefined();
+  describe("toJSON", () => {
+    it("should serialize sequencing data", () => {
+      const sequencing = new Sequencing();
+      const activity = new Activity("test", "Test Activity");
+      
+      sequencing.activityTree.root = activity;
+      sequencing.activityTree.currentActivity = activity;
+      
+      const json = sequencing.toJSON();
+      
+      expect(json).toHaveProperty("activityTree");
+      expect(json).toHaveProperty("sequencingRules");
+      expect(json).toHaveProperty("sequencingControls");
+      expect(json).toHaveProperty("rollupRules");
     });
   });
 });

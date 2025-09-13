@@ -14,65 +14,6 @@ platform for running AICC, SCORM 1.2, and SCORM 2004 modules. This module is des
 agnostic, and is written to be able to be run without a backing LMS, logging all function calls and
 data instead of committing, if an LMS endpoint is not configured.
 
-## 🚀 Quick Start
-
-### Try the Interactive Demos
-Experience offline SCORM capabilities instantly in your browser:
-- **[🚀 Complete Offline Demo](https://codepen.io/scorm-again/pen/offline-demo-full)** - Full-featured demo with network simulation
-- **[⚡ Quick Start Demo](https://codepen.io/scorm-again/pen/offline-demo-simple)** - Minimal example to get started
-- **[📱 Mobile Demo](https://codepen.io/scorm-again/pen/offline-demo-mobile)** - Touch-friendly mobile simulation
-- **[🔧 Advanced Demo](https://codepen.io/scorm-again/pen/offline-demo-advanced)** - Complex features and customization
-
-### Get Started in 5 Minutes
-Choose your platform and get running quickly:
-- **[React Native Quick Start](docs/api_usage/examples/offline/quick_start_templates.md#react-native---minimal-example)**
-- **[Flutter Quick Start](docs/api_usage/examples/offline/quick_start_templates.md#flutter---minimal-example)**
-- **[iOS Swift Quick Start](docs/api_usage/examples/offline/quick_start_templates.md#ios-swift---minimal-example)**
-- **[Android Kotlin Quick Start](docs/api_usage/examples/offline/quick_start_templates.md#android-kotlin---minimal-example)**
-- **[Web/Browser Quick Start](docs/api_usage/examples/offline/quick_start_templates.md#webbrowser---minimal-example)**
-
-### Basic Web Usage
-
-```html
-<script src="https://cdn.jsdelivr.net/npm/scorm-again@latest/dist/scorm-again.js"></script>
-<script>
-  // Initialize with offline support
-  window.API_1484_11 = new window.ScormAgain.Scorm2004API({
-    enableOfflineSupport: true,
-    courseId: 'my-course',
-    autocommit: true,
-    lmsCommitUrl: 'https://your-lms.com/api/scorm/commit'
-  });
-</script>
-```
-
-## 📱 Comprehensive Offline Support for Mobile Apps
-
-scorm-again provides **production-ready offline support** for mobile applications, allowing SCORM content to work seamlessly without internet connectivity.
-
-### Key Features
-- 🔄 **Automatic sync** when connectivity returns
-- 💾 **Local storage** of all SCORM data when offline
-- 📱 **Mobile-first design** for React Native, Flutter, iOS, and Android
-- 🌐 **Cross-platform** compatibility with consistent APIs
-- ⚡ **Production-ready** examples with external storage handling
-
-### Complete Mobile Examples
-- **[React Native](docs/api_usage/examples/offline/react_native.md)** - Full implementation with external storage (1,535 lines)
-- **[Flutter](docs/api_usage/examples/offline/flutter.md)** - Complete Dart implementation (481 lines)
-- **[iOS Native (Swift)](docs/api_usage/examples/offline/ios_native.md)** - Native iOS with WebKit (1,035 lines)
-- **[Android Native (Kotlin)](docs/api_usage/examples/offline/native_android.md)** - Native Android implementation (1,031 lines)
-- **[Xamarin/MAUI](docs/api_usage/examples/offline/xamarin_maui.md)** - Cross-platform .NET (1,182 lines)
-- **[Kotlin Multiplatform](docs/api_usage/examples/offline/kotlin_multiplatform.md)** - Shared Kotlin code (1,339 lines)
-
-Each example includes:
-- ✅ **External storage management** for large courses
-- ✅ **Permission handling** for Android/iOS
-- ✅ **Network connectivity detection**
-- ✅ **WebView configuration and JavaScript bridging**
-- ✅ **Error handling and user feedback**
-- ✅ **Production deployment considerations**
-
 ## What is this not and what doesn't it do?
 
 1. This is not an LMS
@@ -681,7 +622,7 @@ SCORM 2004 sequencing allows you to control the flow of content in a SCORM packa
 learners navigate between activities, how activities are ordered, and how the status of activities
 is determined based on the status of their children.
 
-The scorm-again library provides a **complete implementation** of SCORM 2004 sequencing following 
+The scorm-again library provides a **complete implementation** of SCORM 2004 sequencing following
 the IMS Simple Sequencing Specification. This includes:
 
 - ✅ All navigation request types (start, continue, previous, choice, jump, exit, suspend, etc.)
@@ -751,7 +692,7 @@ the [Sequencing Configuration documentation](docs/sequencing_configuration.md).
 When using sequencing, the API will emit navigation events that the LMS should handle:
 
 - `SequenceNext` - Navigate to the next activity
-- `SequencePrevious` - Navigate to the previous activity  
+- `SequencePrevious` - Navigate to the previous activity
 - `SequenceChoice` - Navigate to a specific activity (target ID provided as parameter)
 - `SequenceJump` - Jump to a specific activity (target ID provided as parameter)
 - `SequenceExit` - Exit the current activity

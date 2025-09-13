@@ -181,6 +181,22 @@ export default abstract class BaseAPI implements IBaseAPI {
   }
 
   /**
+   * Protected getter for eventService
+   * @return {IEventService}
+   */
+  protected get eventService(): IEventService {
+    return this._eventService;
+  }
+
+  /**
+   * Protected getter for loggingService
+   * @return {ILoggingService}
+   */
+  protected get loggingService(): ILoggingService {
+    return this._loggingService;
+  }
+
+  /**
    * Reset the API to its initial state.
    * This method clears all current data and resets the API to an uninitialized state.
    * It can optionally accept new settings to configure the API after reset.

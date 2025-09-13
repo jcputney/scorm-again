@@ -41,184 +41,19 @@ describe("Sequencing", () => {
     });
   });
 
-  describe("processNavigationRequest", () => {
-    it("should return false if sequencing process is not initialized", () => {
-      const result = sequencing.processNavigationRequest("continue");
-      expect(result).toBe(false);
-    });
-
-    it("should process valid navigation request", () => {
+  describe("adlNav property", () => {
+    it("should store and retrieve ADLNav reference", () => {
       const adlNav = new ADLNav();
       sequencing.adlNav = adlNav;
-      
-      // Set up a simple activity tree
-      const root = new Activity("root", "Root Activity");
-      const child1 = new Activity("child1", "Child 1");
-      const child2 = new Activity("child2", "Child 2");
-      
-      root.addChild(child1);
-      root.addChild(child2);
-      
-      sequencing.activityTree.root = root;
-      
-      const result = sequencing.processNavigationRequest("start");
-      expect(typeof result).toBe("boolean");
+      expect(sequencing.adlNav).toBe(adlNav);
     });
 
-    it("should handle continue navigation request", () => {
-      const adlNav = new ADLNav();
-      sequencing.adlNav = adlNav;
-      
-      const root = new Activity("root", "Root Activity");
-      const child1 = new Activity("child1", "Child 1");
-      const child2 = new Activity("child2", "Child 2");
-      
-      root.addChild(child1);
-      root.addChild(child2);
-      
-      sequencing.activityTree.root = root;
-      sequencing.activityTree.currentActivity = child1;
-      child1.isActive = false; // Activity has been terminated
-      
-      const result = sequencing.processNavigationRequest("continue");
-      expect(typeof result).toBe("boolean");
-    });
-
-    it("should handle previous navigation request", () => {
-      const adlNav = new ADLNav();
-      sequencing.adlNav = adlNav;
-      
-      const root = new Activity("root", "Root Activity");
-      const child1 = new Activity("child1", "Child 1");
-      const child2 = new Activity("child2", "Child 2");
-      
-      root.addChild(child1);
-      root.addChild(child2);
-      
-      sequencing.activityTree.root = root;
-      sequencing.activityTree.currentActivity = child2;
-      child2.isActive = false; // Activity has been terminated
-      
-      const result = sequencing.processNavigationRequest("previous");
-      expect(typeof result).toBe("boolean");
-    });
-
-    it("should handle choice navigation request", () => {
-      const adlNav = new ADLNav();
-      sequencing.adlNav = adlNav;
-      
-      const root = new Activity("root", "Root Activity");
-      const child1 = new Activity("child1", "Child 1");
-      const child2 = new Activity("child2", "Child 2");
-      
-      root.addChild(child1);
-      root.addChild(child2);
-      
-      sequencing.activityTree.root = root;
-      
-      const result = sequencing.processNavigationRequest("choice", "child2");
-      expect(typeof result).toBe("boolean");
-    });
-
-    it("should handle exit navigation request", () => {
-      const adlNav = new ADLNav();
-      sequencing.adlNav = adlNav;
-      
-      const root = new Activity("root", "Root Activity");
-      const child1 = new Activity("child1", "Child 1");
-      
-      root.addChild(child1);
-      
-      sequencing.activityTree.root = root;
-      sequencing.activityTree.currentActivity = child1;
-      
-      const result = sequencing.processNavigationRequest("exit");
-      expect(typeof result).toBe("boolean");
-    });
-
-    it("should handle suspend navigation request", () => {
-      const adlNav = new ADLNav();
-      sequencing.adlNav = adlNav;
-      
-      const root = new Activity("root", "Root Activity");
-      const child1 = new Activity("child1", "Child 1");
-      
-      root.addChild(child1);
-      
-      sequencing.activityTree.root = root;
-      sequencing.activityTree.currentActivity = child1;
-      
-      const result = sequencing.processNavigationRequest("suspendAll");
-      expect(typeof result).toBe("boolean");
-    });
-
-    it("should handle jump navigation request", () => {
-      const adlNav = new ADLNav();
-      sequencing.adlNav = adlNav;
-      
-      const root = new Activity("root", "Root Activity");
-      const child1 = new Activity("child1", "Child 1");
-      const child2 = new Activity("child2", "Child 2");
-      
-      root.addChild(child1);
-      root.addChild(child2);
-      
-      sequencing.activityTree.root = root;
-      
-      const result = sequencing.processNavigationRequest("jump", "child2");
-      expect(typeof result).toBe("boolean");
-    });
-
-    it("should handle retry navigation request", () => {
-      const adlNav = new ADLNav();
-      sequencing.adlNav = adlNav;
-      
-      const root = new Activity("root", "Root Activity");
-      const child1 = new Activity("child1", "Child 1");
-      
-      root.addChild(child1);
-      
-      sequencing.activityTree.root = root;
-      sequencing.activityTree.currentActivity = child1;
-      child1.isActive = true;
-      
-      const result = sequencing.processNavigationRequest("retry");
-      expect(typeof result).toBe("boolean");
-    });
-
-    it("should return false for invalid navigation request", () => {
-      const adlNav = new ADLNav();
-      sequencing.adlNav = adlNav;
-      
-      const result = sequencing.processNavigationRequest("invalid");
-      expect(result).toBe(false);
+    it("should allow setting adlNav to null", () => {
+      sequencing.adlNav = null;
+      expect(sequencing.adlNav).toBeNull();
     });
   });
 
-  describe("getLastSequencingResult", () => {
-    it("should return null if no sequencing result", () => {
-      const result = sequencing.getLastSequencingResult();
-      expect(result).toBeNull();
-    });
-
-    it("should return last sequencing result after navigation", () => {
-      const adlNav = new ADLNav();
-      sequencing.adlNav = adlNav;
-      
-      const root = new Activity("root", "Root Activity");
-      const child1 = new Activity("child1", "Child 1");
-      
-      root.addChild(child1);
-      
-      sequencing.activityTree.root = root;
-      
-      sequencing.processNavigationRequest("start");
-      
-      const result = sequencing.getLastSequencingResult();
-      expect(result).toBeDefined();
-      expect(result?.deliveryRequest).toBeDefined();
-    });
-  });
 
   describe("getCurrentActivity", () => {
     it("should return current activity from activity tree", () => {
@@ -361,37 +196,14 @@ describe("Sequencing", () => {
     });
   });
 
-  describe("updateNavigationRequestValidity", () => {
-    it("should handle try-catch blocks for navigation validity setting", () => {
-      const adlNav = new ADLNav();
-      sequencing.adlNav = adlNav;
-      
-      const root = new Activity("root", "Root Activity");
-      const child1 = new Activity("child1", "Child 1");
-      
-      root.addChild(child1);
-      sequencing.activityTree.root = root;
-      sequencing.activityTree.currentActivity = child1;
-      
-      // Initialize the adlNav to trigger read-only behavior
-      adlNav.initialize();
-      
-      // This should not throw even though setting validity fails
-      expect(() => {
-        sequencing.processNavigationRequest("start");
-      }).not.toThrow();
-    });
-  });
 
   describe("adlNav setter", () => {
-    it("should create sequencing process when adlNav is set", () => {
+    it("should store ADLNav reference when set", () => {
       const adlNav = new ADLNav();
       
       sequencing.adlNav = adlNav;
       
       expect(sequencing.adlNav).toBe(adlNav);
-      // Should have created a sequencing process
-      expect(sequencing['_sequencingProcess']).toBeDefined();
     });
 
     it("should handle null adlNav", () => {
@@ -401,57 +213,6 @@ describe("Sequencing", () => {
     });
   });
 
-  describe("edge cases in processNavigationRequest", () => {
-    it("should handle malformed choice request", () => {
-      const adlNav = new ADLNav();
-      sequencing.adlNav = adlNav;
-      
-      const root = new Activity("root", "Root Activity");
-      sequencing.activityTree.root = root;
-      
-      // Malformed choice request without proper target
-      const result = sequencing.processNavigationRequest("{target=choice");
-      expect(result).toBe(false);
-    });
-
-    it("should handle malformed jump request", () => {
-      const adlNav = new ADLNav();
-      sequencing.adlNav = adlNav;
-      
-      const root = new Activity("root", "Root Activity");
-      sequencing.activityTree.root = root;
-      
-      // Malformed jump request without proper target
-      const result = sequencing.processNavigationRequest("{target=jump");
-      expect(result).toBe(false);
-    });
-
-    it("should parse choice request with target correctly", () => {
-      const adlNav = new ADLNav();
-      sequencing.adlNav = adlNav;
-      
-      const root = new Activity("root", "Root Activity");
-      const child1 = new Activity("child1", "Child 1");
-      root.addChild(child1);
-      sequencing.activityTree.root = root;
-      
-      const result = sequencing.processNavigationRequest("{target=child1}choice");
-      expect(typeof result).toBe("boolean");
-    });
-
-    it("should parse jump request with target correctly", () => {
-      const adlNav = new ADLNav();
-      sequencing.adlNav = adlNav;
-      
-      const root = new Activity("root", "Root Activity");
-      const child1 = new Activity("child1", "Child 1");
-      root.addChild(child1);
-      sequencing.activityTree.root = root;
-      
-      const result = sequencing.processNavigationRequest("{target=child1}jump");
-      expect(typeof result).toBe("boolean");
-    });
-  });
 
   describe("toJSON", () => {
     it("should return JSON representation", () => {

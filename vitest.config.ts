@@ -6,6 +6,14 @@ export default defineConfig({
     exclude: ["test/integration/*"],
     environment: "jsdom",
     globals: true,
+    // Use a single worker thread to avoid process kill restrictions
+    pool: "threads",
+    poolOptions: {
+      threads: {
+        minWorkers: 1,
+        maxWorkers: 1,
+      },
+    },
     coverage: {
       provider: "v8",
       reporter: ["html", "lcov", "text", "text-summary", "json-summary", "json"],

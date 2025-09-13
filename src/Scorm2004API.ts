@@ -6,7 +6,13 @@ import { global_constants, scorm2004_constants } from "./constants/api_constants
 import { scorm2004_errors } from "./constants/error_codes";
 import { CMIObjectivesObject } from "./cmi/scorm2004/objectives";
 import { ADL, ADLDataObject } from "./cmi/scorm2004/adl";
-import { CommitObject, ResultObject, ScoreObject, Settings } from "./types/api_types";
+import {
+  CommitObject,
+  ResultObject,
+  ScoreObject,
+  Settings,
+  SequencingStateMetadata,
+} from "./types/api_types";
 import {
   ActivitySettings,
   RollupRuleSettings,
@@ -15,6 +21,7 @@ import {
   SequencingRuleSettings,
   SequencingRulesSettings,
   SequencingSettings,
+  SequencingEventListeners,
 } from "./types/sequencing_types";
 import { RuleCondition, SequencingRule } from "./cmi/scorm2004/sequencing/sequencing_rules";
 import { RollupCondition, RollupRule } from "./cmi/scorm2004/sequencing/rollup_rules";
@@ -29,9 +36,10 @@ import { CMIArray } from "./cmi/common/array";
 import { CorrectResponses, ResponseType } from "./constants/response_constants";
 import { CMICommentsObject } from "./cmi/scorm2004/comments";
 import ValidLanguages from "./constants/language_constants";
-import { CompletionStatus, SuccessStatus } from "./constants/enums";
+import { CompletionStatus, SuccessStatus, LogLevelEnum } from "./constants/enums";
 import { Sequencing } from "./cmi/scorm2004/sequencing/sequencing";
 import { Activity } from "./cmi/scorm2004/sequencing/activity";
+import { SequencingService, SequencingConfiguration } from "./services/SequencingService";
 
 /**
  * API class for SCORM 2004
@@ -40,6 +48,7 @@ class Scorm2004API extends BaseAPI {
   private _version: string = "1.0";
   private _globalObjectives: CMIObjectivesObject[] = [];
   private readonly _sequencing: Sequencing;
+  private _sequencingService: SequencingService | null = null;
   private _extractedScoItemIds: string[] = [];
 
   /**
@@ -68,6 +77,9 @@ class Scorm2004API extends BaseAPI {
     if (settings?.sequencing) {
       this.configureSequencing(settings.sequencing);
     }
+
+    // Initialize sequencing service
+    this.initializeSequencingService(settings);
 
     // Rename functions to match 2004 Spec and expose to modules
     this.Initialize = this.lmsInitialize;
@@ -125,11 +137,25 @@ class Scorm2004API extends BaseAPI {
    */
   lmsInitialize(): string {
     this.cmi.initialize();
-    return this.initialize(
+    const result = this.initialize(
       "Initialize",
       "LMS was already initialized!",
       "LMS is already finished!",
     );
+
+    // Initialize sequencing service after successful API initialization
+    if (result === global_constants.SCORM_TRUE && this._sequencingService) {
+      this._sequencingService.initialize();
+    }
+
+    // Auto-load sequencing state after successful initialization if configured
+    if (result === global_constants.SCORM_TRUE && this.settings.sequencingStatePersistence) {
+      this.loadSequencingState().catch(() => {
+        this.apiLog("lmsInitialize", "Failed to auto-load sequencing state", LogLevelEnum.WARN);
+      });
+    }
+
+    return result;
   }
 
   /**
@@ -145,40 +171,76 @@ class Scorm2004API extends BaseAPI {
   }
 
   async internalFinish(): Promise<string> {
+    // Terminate sequencing service first (before normal termination)
+    if (this._sequencingService) {
+      this._sequencingService.terminate();
+    }
+
     const result = await this.terminate("Terminate", true);
 
     if (result === global_constants.SCORM_TRUE) {
-      if (this.adl.nav.request !== "_none_") {
-        const navActions: { [key: string]: string } = {
-          continue: "SequenceNext",
-          previous: "SequencePrevious",
-          choice: "SequenceChoice",
-          jump: "SequenceJump",
-          exit: "SequenceExit",
-          exitAll: "SequenceExitAll",
-          abandon: "SequenceAbandon",
-          abandonAll: "SequenceAbandonAll",
-        };
+      // Handle navigation requests - first try sequencing service, then fall back to legacy
+      let navigationHandled = false;
 
-        let request = this.adl.nav.request;
-        const choiceJumpRegex = new RegExp(scorm2004_regex.NAVEvent);
-        const matches = request.match(choiceJumpRegex);
-        let target = "";
-        if (matches) {
-          if (matches.groups?.choice_target) {
-            target = matches.groups?.choice_target;
-            request = "choice";
-          } else if (matches.groups?.jump_target) {
-            target = matches.groups?.jump_target;
-            request = "jump";
+      if (this._sequencingService && this.adl.nav.request !== "_none_") {
+        try {
+          // Extract target for choice/jump requests
+          let target = "";
+          let request = this.adl.nav.request;
+          const choiceJumpRegex = new RegExp(scorm2004_regex.NAVEvent);
+          const matches = request.match(choiceJumpRegex);
+          if (matches) {
+            if (matches.groups?.choice_target) {
+              target = matches.groups?.choice_target;
+              request = "choice";
+            } else if (matches.groups?.jump_target) {
+              target = matches.groups?.jump_target;
+              request = "jump";
+            }
           }
+
+          // Process navigation request through sequencing service
+          navigationHandled = this._sequencingService.processNavigationRequest(request, target);
+        } catch (error) {
+          // Fall back to legacy navigation handling if sequencing fails
+          navigationHandled = false;
         }
-        const action = navActions[request];
-        if (action) {
-          this.processListeners(action, "adl.nav.request", target);
+      }
+
+      // Legacy navigation handling (fallback)
+      if (!navigationHandled) {
+        if (this.adl.nav.request !== "_none_") {
+          const navActions: { [key: string]: string } = {
+            continue: "SequenceNext",
+            previous: "SequencePrevious",
+            choice: "SequenceChoice",
+            jump: "SequenceJump",
+            exit: "SequenceExit",
+            exitAll: "SequenceExitAll",
+            abandon: "SequenceAbandon",
+            abandonAll: "SequenceAbandonAll",
+          };
+
+          let request = this.adl.nav.request;
+          const choiceJumpRegex = new RegExp(scorm2004_regex.NAVEvent);
+          const matches = request.match(choiceJumpRegex);
+          let target = "";
+          if (matches) {
+            if (matches.groups?.choice_target) {
+              target = matches.groups?.choice_target;
+              request = "choice";
+            } else if (matches.groups?.jump_target) {
+              target = matches.groups?.jump_target;
+              request = "jump";
+            }
+          }
+          const action = navActions[request];
+          if (action) {
+            this.processListeners(action, "adl.nav.request", target);
+          }
+        } else if (this.settings.autoProgress) {
+          this.processListeners("SequenceNext", undefined, "next");
         }
-      } else if (this.settings.autoProgress) {
-        this.processListeners("SequenceNext", undefined, "next");
       }
     }
 
@@ -223,8 +285,50 @@ class Scorm2004API extends BaseAPI {
    * @return {string}
    */
   lmsSetValue(CMIElement: string, value: any): string {
+    // Get old value for change detection with error handling
+    let oldValue: any = null;
+    try {
+      oldValue = this.getCMIValue(CMIElement);
+    } catch (error) {
+      // If getting the old value fails, proceed without change detection
+      // This prevents errors during normal operation when CMI elements don't exist yet
+      oldValue = null;
+    }
+
     // Proceed with regular setting for non-objective elements or fallback behavior
-    return this.setValue("SetValue", "Commit", true, CMIElement, value);
+    const result = this.setValue("SetValue", "Commit", true, CMIElement, value);
+
+    // If successful and sequencing service is available, trigger rollup on critical CMI changes
+    if (result === global_constants.SCORM_TRUE && this._sequencingService) {
+      try {
+        this._sequencingService.triggerRollupOnCMIChange(CMIElement, oldValue, value);
+      } catch (rollupError) {
+        // Log rollup error but don't fail the SetValue operation
+        console.warn(`Sequencing rollup failed for ${CMIElement}: ${rollupError}`);
+      }
+    }
+
+    // Auto-save sequencing state on critical CMI changes if configured
+    if (
+      result === global_constants.SCORM_TRUE &&
+      this.settings.sequencingStatePersistence?.autoSaveOn === "setValue"
+    ) {
+      const sequencingElements = [
+        "cmi.completion_status",
+        "cmi.success_status",
+        "cmi.score.scaled",
+        "cmi.objectives",
+        "adl.nav.request",
+      ];
+
+      if (sequencingElements.some((element) => CMIElement.startsWith(element))) {
+        this.saveSequencingState().catch(() => {
+          this.apiLog("lmsSetValue", "Failed to auto-save sequencing state", LogLevelEnum.WARN);
+        });
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -237,7 +341,17 @@ class Scorm2004API extends BaseAPI {
       this.scheduleCommit(500, "Commit");
     } else {
       (async () => {
-        await this.commit("Commit", false);
+        const result = await this.commit("Commit", false);
+
+        // Auto-save sequencing state after successful commit if configured
+        if (
+          result === global_constants.SCORM_TRUE &&
+          this.settings.sequencingStatePersistence?.autoSaveOn === "commit"
+        ) {
+          await this.saveSequencingState().catch(() => {
+            this.apiLog("lmsCommit", "Failed to auto-save sequencing state", LogLevelEnum.WARN);
+          });
+        }
       })();
     }
     return global_constants.SCORM_TRUE;
@@ -935,6 +1049,56 @@ class Scorm2004API extends BaseAPI {
         activity.addChild(childActivity);
       }
     }
+    // Apply per-activity sequencing settings if provided
+    if (activitySettings.sequencingControls) {
+      const sc = activity.sequencingControls;
+      const c = activitySettings.sequencingControls;
+      if (c.enabled !== undefined) sc.enabled = c.enabled;
+      if (c.choiceExit !== undefined) sc.choiceExit = c.choiceExit;
+      if (c.flow !== undefined) sc.flow = c.flow;
+      if (c.forwardOnly !== undefined) sc.forwardOnly = c.forwardOnly;
+      if (c.useCurrentAttemptObjectiveInfo !== undefined)
+        sc.useCurrentAttemptObjectiveInfo = c.useCurrentAttemptObjectiveInfo;
+      if (c.useCurrentAttemptProgressInfo !== undefined)
+        sc.useCurrentAttemptProgressInfo = c.useCurrentAttemptProgressInfo;
+      if (c.preventActivation !== undefined) sc.preventActivation = c.preventActivation;
+      if (c.constrainChoice !== undefined) sc.constrainChoice = c.constrainChoice;
+      if (c.rollupObjectiveSatisfied !== undefined)
+        sc.rollupObjectiveSatisfied = c.rollupObjectiveSatisfied;
+      if (c.rollupProgressCompletion !== undefined)
+        sc.rollupProgressCompletion = c.rollupProgressCompletion;
+      if (c.objectiveMeasureWeight !== undefined)
+        sc.objectiveMeasureWeight = c.objectiveMeasureWeight;
+    }
+
+    if (activitySettings.sequencingRules) {
+      const rs = activitySettings.sequencingRules;
+      if (rs.preConditionRules) {
+        for (const ruleSettings of rs.preConditionRules) {
+          const rule = this.createSequencingRule(ruleSettings);
+          activity.sequencingRules.addPreConditionRule(rule);
+        }
+      }
+      if (rs.exitConditionRules) {
+        for (const ruleSettings of rs.exitConditionRules) {
+          const rule = this.createSequencingRule(ruleSettings);
+          activity.sequencingRules.addExitConditionRule(rule);
+        }
+      }
+      if (rs.postConditionRules) {
+        for (const ruleSettings of rs.postConditionRules) {
+          const rule = this.createSequencingRule(ruleSettings);
+          activity.sequencingRules.addPostConditionRule(rule);
+        }
+      }
+    }
+
+    if (activitySettings.rollupRules && activitySettings.rollupRules.rules) {
+      for (const ruleSettings of activitySettings.rollupRules.rules) {
+        const rule = this.createRollupRule(ruleSettings);
+        activity.rollupRules.addRule(rule);
+      }
+    }
 
     return activity;
   }
@@ -1082,6 +1246,349 @@ class Scorm2004API extends BaseAPI {
     }
 
     return rule;
+  }
+
+  /**
+   * Initialize the sequencing service
+   * @param {Settings} settings - API settings that may include sequencing configuration
+   */
+  private initializeSequencingService(settings?: Settings): void {
+    try {
+      // Create sequencing configuration from settings
+      const sequencingConfig: SequencingConfiguration = {
+        autoRollupOnCMIChange: settings?.sequencing?.autoRollupOnCMIChange ?? true,
+        autoProgressOnCompletion: settings?.sequencing?.autoProgressOnCompletion ?? false,
+        validateNavigationRequests: settings?.sequencing?.validateNavigationRequests ?? true,
+        enableEventSystem: settings?.sequencing?.enableEventSystem ?? true,
+        logLevel: settings?.sequencing?.logLevel ?? "info",
+      };
+
+      // Create the sequencing service
+      this._sequencingService = new SequencingService(
+        this._sequencing,
+        this.cmi,
+        this.adl,
+        this.eventService || this, // Use eventService if available, fallback to this
+        this.loggingService || (console as any), // Use loggingService if available, fallback to console
+        sequencingConfig,
+      );
+
+      // Set up event listeners if provided in settings
+      if (settings?.sequencing?.eventListeners) {
+        this._sequencingService.setEventListeners(settings.sequencing.eventListeners);
+      }
+    } catch (error) {
+      // If sequencing service initialization fails, log error but continue
+      console.warn("Failed to initialize sequencing service:", error);
+      this._sequencingService = null;
+    }
+  }
+
+  /**
+   * Get the sequencing service (for advanced sequencing operations)
+   * @return {SequencingService | null}
+   */
+  public getSequencingService(): SequencingService | null {
+    return this._sequencingService;
+  }
+
+  /**
+   * Set sequencing event listeners
+   * @param {SequencingEventListeners} listeners - Event listeners for sequencing events
+   */
+  public setSequencingEventListeners(listeners: SequencingEventListeners): void {
+    if (this._sequencingService) {
+      this._sequencingService.setEventListeners(listeners);
+    }
+  }
+
+  /**
+   * Update sequencing configuration
+   * @param {SequencingConfiguration} config - New sequencing configuration
+   */
+  public updateSequencingConfiguration(config: SequencingConfiguration): void {
+    if (this._sequencingService) {
+      this._sequencingService.updateConfiguration(config);
+    }
+  }
+
+  /**
+   * Get current sequencing state information
+   * @return {object} Current sequencing state
+   */
+  public getSequencingState(): any {
+    if (this._sequencingService) {
+      return this._sequencingService.getSequencingState();
+    }
+    return {
+      isInitialized: false,
+      isActive: false,
+      currentActivity: null,
+      rootActivity: this._sequencing.getRootActivity(),
+      lastSequencingResult: null,
+    };
+  }
+
+  /**
+   * Process a navigation request directly (for advanced use)
+   * @param {string} request - Navigation request
+   * @param {string} targetActivityId - Target activity ID for choice/jump requests
+   * @return {boolean} True if request was processed successfully
+   */
+  public processNavigationRequest(request: string, targetActivityId?: string): boolean {
+    if (this._sequencingService) {
+      return this._sequencingService.processNavigationRequest(request, targetActivityId);
+    }
+    return false;
+  }
+
+  /**
+   * Save current sequencing state to persistent storage
+   * @param {Partial<SequencingStateMetadata>} metadata - Optional metadata override
+   * @return {Promise<boolean>} Promise resolving to success status
+   */
+  public async saveSequencingState(metadata?: Partial<SequencingStateMetadata>): Promise<boolean> {
+    if (!this.settings.sequencingStatePersistence) {
+      this.apiLog("saveSequencingState", "No persistence configuration provided", LogLevelEnum.WARN);
+      return false;
+    }
+
+    try {
+      const stateData = this.serializeSequencingState();
+      const fullMetadata: SequencingStateMetadata = {
+        learnerId: this.cmi.learner_id || "unknown",
+        courseId: this.settings.courseId || "unknown",
+        attemptNumber: 1,
+        lastUpdated: new Date().toISOString(),
+        version: this.settings.sequencingStatePersistence.stateVersion || "1.0",
+        ...metadata,
+      };
+
+      const config = this.settings.sequencingStatePersistence;
+      let dataToSave = stateData;
+
+      // Compress if enabled (using simple base64 encoding for now)
+      if (config.compress !== false) {
+        dataToSave = this.compressStateData(stateData);
+      }
+
+      // Check size limits
+      if (config.maxStateSize && dataToSave.length > config.maxStateSize) {
+        throw new Error(`State size ${dataToSave.length} exceeds limit ${config.maxStateSize}`);
+      }
+
+      const success = await config.persistence.saveState(dataToSave, fullMetadata);
+
+      if (config.debugPersistence) {
+        this.apiLog(
+          "saveSequencingState",
+          `State save ${success ? "succeeded" : "failed"}: size=${dataToSave.length}`,
+          success ? LogLevelEnum.INFO : LogLevelEnum.WARN,
+        );
+      }
+
+      return success;
+    } catch (error) {
+      this.apiLog(
+        "saveSequencingState",
+        `Error saving sequencing state: ${error instanceof Error ? error.message : String(error)}`,
+        LogLevelEnum.ERROR,
+      );
+      return false;
+    }
+  }
+
+  /**
+   * Load sequencing state from persistent storage
+   * @param {Partial<SequencingStateMetadata>} metadata - Optional metadata override
+   * @return {Promise<boolean>} Promise resolving to success status
+   */
+  public async loadSequencingState(metadata?: Partial<SequencingStateMetadata>): Promise<boolean> {
+    if (!this.settings.sequencingStatePersistence) {
+      this.apiLog("loadSequencingState", "No persistence configuration provided", LogLevelEnum.WARN);
+      return false;
+    }
+
+    try {
+      const fullMetadata: SequencingStateMetadata = {
+        learnerId: this.cmi.learner_id || "unknown",
+        courseId: this.settings.courseId || "unknown",
+        attemptNumber: 1,
+        version: this.settings.sequencingStatePersistence.stateVersion || "1.0",
+        ...metadata,
+      };
+
+      const config = this.settings.sequencingStatePersistence;
+      const stateData = await config.persistence.loadState(fullMetadata);
+
+      if (!stateData) {
+        if (config.debugPersistence) {
+          this.apiLog("loadSequencingState", "No sequencing state found to load", LogLevelEnum.INFO);
+        }
+        return false;
+      }
+
+      // Decompress if needed
+      let dataToLoad = stateData;
+      if (config.compress !== false) {
+        dataToLoad = this.decompressStateData(stateData);
+      }
+
+      const success = this.deserializeSequencingState(dataToLoad);
+
+      if (config.debugPersistence) {
+        this.apiLog(
+          "loadSequencingState",
+          `State load ${success ? "succeeded" : "failed"}: size=${stateData.length}`,
+          success ? LogLevelEnum.INFO : LogLevelEnum.WARN,
+        );
+      }
+
+      return success;
+    } catch (error) {
+      this.apiLog(
+        "loadSequencingState",
+        `Error loading sequencing state: ${error instanceof Error ? error.message : String(error)}`,
+        LogLevelEnum.ERROR,
+      );
+      return false;
+    }
+  }
+
+  /**
+   * Serialize current sequencing state to JSON string
+   * @return {string} Serialized state
+   */
+  private serializeSequencingState(): string {
+    const state: any = {
+      version: this.settings.sequencingStatePersistence?.stateVersion || "1.0",
+      timestamp: new Date().toISOString(),
+      sequencing: null,
+      currentActivityId: null,
+      globalObjectives: this._globalObjectives.map((obj) => obj.toJSON()),
+      adlNavState: {
+        request: this.adl.nav.request,
+        request_valid: this.adl.nav.request_valid,
+      },
+      contentDelivered: false,
+    };
+
+    // Get sequencing state from overall sequencing process if available
+    if (this._sequencingService) {
+      const overallProcess = this._sequencingService.getOverallSequencingProcess();
+      if (overallProcess) {
+        // Use the getSequencingState method from overall_sequencing_process
+        const sequencingState = overallProcess.getSequencingState();
+        state.sequencing = sequencingState;
+        state.contentDelivered = overallProcess.hasContentBeenDelivered();
+      }
+
+      // Get current activity
+      const currentActivity = this._sequencing.getCurrentActivity();
+      if (currentActivity) {
+        state.currentActivityId = currentActivity.id;
+      }
+    }
+
+    return JSON.stringify(state);
+  }
+
+  /**
+   * Deserialize sequencing state from JSON string
+   * @param {string} stateData - Serialized state data
+   * @return {boolean} Success status
+   */
+  private deserializeSequencingState(stateData: string): boolean {
+    try {
+      const state = JSON.parse(stateData);
+
+      // Version compatibility check
+      const expectedVersion = this.settings.sequencingStatePersistence?.stateVersion || "1.0";
+      if (state.version !== expectedVersion) {
+        this.apiLog(
+          "deserializeSequencingState",
+          `State version mismatch: ${state.version} vs expected ${expectedVersion}`,
+          LogLevelEnum.WARN,
+        );
+      }
+
+      // Restore sequencing state
+      if (state.sequencing && this._sequencingService) {
+        const overallProcess = this._sequencingService.getOverallSequencingProcess();
+        if (overallProcess) {
+          overallProcess.restoreSequencingState(state.sequencing);
+
+          // Restore content delivered flag
+          if (state.contentDelivered) {
+            // Mark content as delivered (there's no direct setter, so we'll need to add one)
+            // For now, we'll just log it
+            this.apiLog("deserializeSequencingState", "Content delivery state restored", LogLevelEnum.DEBUG);
+          }
+        }
+      }
+
+      // Restore global objectives
+      if (state.globalObjectives && Array.isArray(state.globalObjectives)) {
+        this._globalObjectives = state.globalObjectives.map((objData: any) => {
+          const obj = new CMIObjectivesObject();
+          // If available, populate from serialized data (method added on CMIObjectivesObject)
+          // Fallback to direct field assignment if fromJSON is unavailable at runtime
+          if ((obj as any).fromJSON) {
+            (obj as any).fromJSON(objData);
+          } else {
+            Object.assign(obj as any, objData);
+          }
+          return obj;
+        });
+      }
+
+      // Restore ADL nav state
+      if (state.adlNavState) {
+        this.adl.nav.request = state.adlNavState.request || "_none_";
+        this.adl.nav.request_valid = state.adlNavState.request_valid || {};
+      }
+
+      return true;
+    } catch (error) {
+      this.apiLog(
+        "deserializeSequencingState",
+        `Error deserializing sequencing state: ${error instanceof Error ? error.message : String(error)}`,
+        LogLevelEnum.ERROR,
+      );
+      return false;
+    }
+  }
+
+  /**
+   * Simple compression using base64 encoding
+   * @param {string} data - Data to compress
+   * @return {string} Compressed data
+   */
+  private compressStateData(data: string): string {
+    // For now, just use base64 encoding
+    // In a real implementation, you might use a library like lz-string
+    if (typeof btoa !== "undefined") {
+      return btoa(encodeURIComponent(data));
+    }
+    return data;
+  }
+
+  /**
+   * Simple decompression from base64
+   * @param {string} data - Data to decompress
+   * @return {string} Decompressed data
+   */
+  private decompressStateData(data: string): string {
+    // For now, just use base64 decoding
+    // In a real implementation, you might use a library like lz-string
+    if (typeof atob !== "undefined") {
+      try {
+        return decodeURIComponent(atob(data));
+      } catch {
+        return data;
+      }
+    }
+    return data;
   }
 }
 

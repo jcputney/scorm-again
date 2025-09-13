@@ -24,6 +24,10 @@ export type ActivitySettings = {
   isActive?: boolean;
   isSuspended?: boolean;
   isCompleted?: boolean;
+  // Optional per-activity sequencing configuration
+  sequencingRules?: SequencingRulesSettings;
+  sequencingControls?: SequencingControlsSettings;
+  rollupRules?: RollupRulesSettings;
 };
 
 /**
@@ -104,4 +108,25 @@ export type SequencingSettings = {
   sequencingRules?: SequencingRulesSettings;
   sequencingControls?: SequencingControlsSettings;
   rollupRules?: RollupRulesSettings;
+
+  // Runtime sequencing configuration
+  autoRollupOnCMIChange?: boolean;
+  autoProgressOnCompletion?: boolean;
+  validateNavigationRequests?: boolean;
+  enableEventSystem?: boolean;
+  logLevel?: "debug" | "info" | "warn" | "error";
+  eventListeners?: SequencingEventListeners;
 };
+
+/**
+ * Interface for sequencing event listeners (re-exported for convenience)
+ */
+export interface SequencingEventListeners {
+  onSequencingStart?: (activity: any) => void;
+  onSequencingEnd?: () => void;
+  onActivityDelivery?: (activity: any) => void;
+  onActivityUnload?: (activity: any) => void;
+  onNavigationRequest?: (request: string, target?: string) => void;
+  onRollupComplete?: (activity: any) => void;
+  onSequencingError?: (error: string, context?: string) => void;
+}

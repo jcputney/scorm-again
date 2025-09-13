@@ -5,6 +5,7 @@ import {
 } from "../cmi/scorm2004/sequencing/sequencing_process";
 import { EventService } from "./EventService";
 import { LoggingService } from "./LoggingService";
+import { IEventService, ILoggingService } from "../interfaces/services";
 
 /**
  * Interface for activity delivery callbacks
@@ -20,15 +21,15 @@ export interface ActivityDeliveryCallbacks {
  * Service for managing activity delivery in SCORM 2004
  */
 export class ActivityDeliveryService {
-  private eventService: EventService;
-  private loggingService: LoggingService;
+  private eventService: IEventService;
+  private loggingService: ILoggingService;
   private callbacks: ActivityDeliveryCallbacks;
   private currentDeliveredActivity: Activity | null = null;
   private pendingDelivery: Activity | null = null;
 
   constructor(
-    eventService: EventService,
-    loggingService: LoggingService,
+    eventService: IEventService,
+    loggingService: ILoggingService,
     callbacks: ActivityDeliveryCallbacks = {},
   ) {
     this.eventService = eventService;

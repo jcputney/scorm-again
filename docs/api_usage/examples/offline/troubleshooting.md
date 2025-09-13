@@ -440,12 +440,9 @@ If you're still experiencing issues:
 
 1. **Check the console** for error messages
 2. **Enable debug logging** to see detailed information
-3. **Test with the live demos** to isolate the issue:
-   - [🚀 Complete Demo](https://codepen.io/scorm-again/pen/offline-demo-full)
-   - [⚡ Quick Start Demo](https://codepen.io/scorm-again/pen/offline-demo-simple)
-4. **Review the platform-specific examples** for your framework
-5. **Create a minimal reproduction** of the issue
-6. **Open an issue** on GitHub with:
+3. **Review the platform-specific examples** for your framework
+4. **Create a minimal reproduction** of the issue
+5. **Open an issue** on GitHub with:
    - Platform and version information
    - Steps to reproduce
    - Console logs and error messages
@@ -453,7 +450,6 @@ If you're still experiencing issues:
 
 ## 🔗 Additional Resources
 
-- [Live Interactive Demos](live_demos.md) - CodePen demos you can fork and modify
 - [Quick Start Templates](quick_start_templates.md) - Minimal working examples
 - [React Native Example](react_native.md) - Complete implementation
 - [Flutter Example](flutter.md) - Dart implementation

@@ -55,6 +55,8 @@ export class RuleCondition extends BaseCMI {
   private _condition: RuleConditionType = RuleConditionType.ALWAYS;
   private _operator: RuleConditionOperator | null = null;
   private _parameters: Map<string, any> = new Map();
+  // Optional, overridable provider for current time (LMS may set via SequencingService)
+  private static _now: () => Date = () => new Date();
 
   /**
    * Constructor for RuleCondition
@@ -71,6 +73,15 @@ export class RuleCondition extends BaseCMI {
     this._condition = condition;
     this._operator = operator;
     this._parameters = parameters;
+  }
+
+  /**
+   * Allow integrators to override the clock used for time-based rules.
+   */
+  public static setNowProvider(now: () => Date) {
+    if (typeof now === "function") {
+      RuleCondition._now = now;
+    }
   }
 
   /**
@@ -236,7 +247,7 @@ export class RuleCondition extends BaseCMI {
       return false;
     }
 
-    const now = new Date();
+    const now = RuleCondition._now();
 
     if (beginTime) {
       const beginDate = new Date(beginTime);

@@ -260,4 +260,23 @@ export class CMIObjectivesObject extends BaseCMI {
     this.jsonString = false;
     return result;
   }
+
+  /**
+   * Populate this objective from a plain object
+   * @param {any} data
+   */
+  fromJSON(data: any): void {
+    if (!data || typeof data !== "object") return;
+    if (typeof data.id === "string") this.id = data.id;
+    if (typeof data.success_status === "string") this.success_status = data.success_status;
+    if (typeof data.completion_status === "string") this.completion_status = data.completion_status;
+    if (typeof data.progress_measure !== "undefined") this.progress_measure = String(data.progress_measure);
+    if (typeof data.description === "string") this.description = data.description;
+    if (data.score && typeof data.score === "object") {
+      if (typeof data.score.scaled !== "undefined") this.score.scaled = String(data.score.scaled);
+      if (typeof data.score.raw !== "undefined") this.score.raw = String(data.score.raw);
+      if (typeof data.score.min !== "undefined") this.score.min = String(data.score.min);
+      if (typeof data.score.max !== "undefined") this.score.max = String(data.score.max);
+    }
+  }
 }
