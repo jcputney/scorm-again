@@ -15,8 +15,11 @@ export class ActivityTree extends BaseCMI {
   /**
    * Constructor for ActivityTree
    */
-  constructor() {
+  constructor(root?: Activity) {
     super("activityTree");
+    if (root) {
+      this.root = root;
+    }
   }
 
   /**

@@ -86,6 +86,7 @@ export class OverallSequencingProcess {
   private eventCallback: ((eventType: string, data?: any) => void) | null = null;
   private globalObjectiveMap: Map<string, any> = new Map();
   private now: () => Date;
+  private enhancedDeliveryValidation: boolean;
 
   constructor(
     activityTree: ActivityTree,
@@ -93,7 +94,7 @@ export class OverallSequencingProcess {
     rollupProcess: RollupProcess,
     adlNav: ADLNav | null = null,
     eventCallback: ((eventType: string, data?: any) => void) | null = null,
-    options?: { now?: () => Date }
+    options?: { now?: () => Date; enhancedDeliveryValidation?: boolean }
   ) {
     this.activityTree = activityTree;
     this.sequencingProcess = sequencingProcess;
@@ -101,6 +102,7 @@ export class OverallSequencingProcess {
     this.adlNav = adlNav;
     this.eventCallback = eventCallback;
     this.now = options?.now || (() => new Date());
+    this.enhancedDeliveryValidation = options?.enhancedDeliveryValidation === true;
 
     // Initialize global objective map
     this.initializeGlobalObjectiveMap();
@@ -692,10 +694,12 @@ export class OverallSequencingProcess {
       timestamp: new Date().toISOString()
     });
 
-    // Priority 4 Gap: Activity Tree State Consistency validation
-    const stateConsistencyCheck = this.validateActivityTreeStateConsistency(activity);
-    if (!stateConsistencyCheck.consistent) {
-      return new DeliveryRequest(false, null, stateConsistencyCheck.exception);
+    if (this.enhancedDeliveryValidation) {
+      // Activity Tree State Consistency
+      const stateConsistencyCheck = this.validateActivityTreeStateConsistency(activity);
+      if (!stateConsistencyCheck.consistent) {
+        return new DeliveryRequest(false, null, stateConsistencyCheck.exception);
+      }
     }
 
     // Check if activity is a cluster (has children)
@@ -709,22 +713,25 @@ export class OverallSequencingProcess {
       return new DeliveryRequest(false, null, "DB.1.1-2");
     }
 
-    // Priority 4 Gap: Resource Constraint Checking
-    const resourceConstraintCheck = this.validateResourceConstraints(activity);
-    if (!resourceConstraintCheck.available) {
-      return new DeliveryRequest(false, null, resourceConstraintCheck.exception);
+    if (this.enhancedDeliveryValidation) {
+      const resourceConstraintCheck = this.validateResourceConstraints(activity);
+      if (!resourceConstraintCheck.available) {
+        return new DeliveryRequest(false, null, resourceConstraintCheck.exception);
+      }
     }
 
-    // Priority 4 Gap: Concurrent Delivery Prevention
-    const concurrentDeliveryCheck = this.validateConcurrentDeliveryPrevention(activity);
-    if (!concurrentDeliveryCheck.allowed) {
-      return new DeliveryRequest(false, null, concurrentDeliveryCheck.exception);
+    if (this.enhancedDeliveryValidation) {
+      const concurrentDeliveryCheck = this.validateConcurrentDeliveryPrevention(activity);
+      if (!concurrentDeliveryCheck.allowed) {
+        return new DeliveryRequest(false, null, concurrentDeliveryCheck.exception);
+      }
     }
 
-    // Priority 4 Gap: Dependency Resolution
-    const dependencyCheck = this.validateActivityDependencies(activity);
-    if (!dependencyCheck.satisfied) {
-      return new DeliveryRequest(false, null, dependencyCheck.exception);
+    if (this.enhancedDeliveryValidation) {
+      const dependencyCheck = this.validateActivityDependencies(activity);
+      if (!dependencyCheck.satisfied) {
+        return new DeliveryRequest(false, null, dependencyCheck.exception);
+      }
     }
 
     // Use Check Activity Process (UP.5) to validate if activity can be delivered

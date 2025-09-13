@@ -66,14 +66,19 @@ export class RollupProcess {
     }
 
     // INTEGRATION: Use complex weighted measure calculation instead of simple calculation
-    const complexWeightedMeasure = this.calculateComplexWeightedMeasure(activity, children);
+    // Determine if there are any valid child measures
+    const hasValidMeasures = children.some(
+      (c) => this.checkChildForRollupSubprocess(c, "measure") && c.objectiveMeasureStatus && c.objectiveNormalizedMeasure !== null,
+    );
 
-    if (complexWeightedMeasure >= 0) {
-      activity.objectiveNormalizedMeasure = complexWeightedMeasure;
-      activity.objectiveMeasureStatus = true;
-    } else {
+    if (!hasValidMeasures) {
       activity.objectiveMeasureStatus = false;
+      return;
     }
+
+    const complexWeightedMeasure = this.calculateComplexWeightedMeasure(activity, children, { enableThresholdBias: false });
+    activity.objectiveNormalizedMeasure = complexWeightedMeasure;
+    activity.objectiveMeasureStatus = true;
 
     // INTEGRATION: Process cross-cluster dependencies if dealing with activity clusters
     const clusters = this.identifyActivityClusters(children);
@@ -434,10 +439,15 @@ export class RollupProcess {
    * @param {Activity[]} children - Child activities to weight
    * @return {number} - Calculated weighted measure
    */
-  public calculateComplexWeightedMeasure(activity: Activity, children: Activity[]): number {
+  public calculateComplexWeightedMeasure(
+    activity: Activity,
+    children: Activity[],
+    options?: { enableThresholdBias?: boolean }
+  ): number {
     let totalWeightedMeasure = 0;
     let totalWeight = 0;
     const weightingLog: Array<{ childId: string, measure: number, weight: number }> = [];
+    const enableBias = options?.enableThresholdBias ?? true;
 
     for (const child of children) {
       if (!this.checkChildForRollupSubprocess(child, "measure")) {
@@ -447,7 +457,7 @@ export class RollupProcess {
       if (child.objectiveMeasureStatus && child.objectiveNormalizedMeasure !== null) {
         // Handle complex weighting scenarios
         const baseWeight = child.sequencingControls.objectiveMeasureWeight;
-        const adjustedWeight = this.calculateAdjustedWeight(child, baseWeight);
+        const adjustedWeight = this.calculateAdjustedWeight(child, baseWeight, enableBias);
         const contribution = child.objectiveNormalizedMeasure * adjustedWeight;
 
         totalWeightedMeasure += contribution;
@@ -529,8 +539,12 @@ export class RollupProcess {
       inconsistencies.push(`Activity ${activityId}: measure status true but normalized measure is null`);
     }
 
-    // Check satisfaction status consistency with measure
-    if (activity.objectiveMeasureStatus && activity.scaledPassingScore !== null) {
+    // Check satisfaction status consistency with measure (only when success status is known)
+    if (
+      activity.objectiveMeasureStatus &&
+      activity.scaledPassingScore !== null &&
+      activity.successStatus !== "unknown"
+    ) {
       const expectedSatisfied = activity.objectiveNormalizedMeasure >= activity.scaledPassingScore;
       if (activity.objectiveSatisfiedStatus !== expectedSatisfied) {
         inconsistencies.push(`Activity ${activityId}: satisfaction status inconsistent with measure`);
@@ -589,7 +603,7 @@ export class RollupProcess {
   /**
    * Calculate adjusted weight for complex weighting scenarios
    */
-  private calculateAdjustedWeight(child: Activity, baseWeight: number): number {
+  private calculateAdjustedWeight(child: Activity, baseWeight: number, enableBias: boolean = true): number {
     let adjustedWeight = baseWeight;
 
     // Factor in completion status
@@ -606,6 +620,16 @@ export class RollupProcess {
     // Factor in time limits if exceeded
     if (child.hasAttemptLimitExceeded()) {
       adjustedWeight *= 0.6; // Significant penalty for exceeding limits
+    }
+
+    // Bias by relation to passing threshold when available
+    if (enableBias && child.objectiveMeasureStatus) {
+      const threshold = child.scaledPassingScore ?? 0.7;
+      if (child.objectiveNormalizedMeasure >= threshold) {
+        adjustedWeight *= 1.05; // small boost for above-threshold performance
+      } else {
+        adjustedWeight *= 0.95; // small penalty for below-threshold performance
+      }
     }
 
     return Math.max(0, adjustedWeight); // Ensure non-negative weight
