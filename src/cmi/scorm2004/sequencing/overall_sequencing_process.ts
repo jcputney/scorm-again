@@ -968,8 +968,16 @@ export class OverallSequencingProcess {
       jumpMap[act.id] = jumpRes.valid ? "true" : "false";
     }
     // Best-effort update of adl.nav.request_valid maps (may be RO post-init)
-    try { this.adlNav.request_valid.choice = choiceMap; } catch {}
-    try { this.adlNav.request_valid.jump = jumpMap; } catch {}
+    try {
+      this.adlNav.request_valid.choice = choiceMap;
+    } catch (e) {
+      // Ignore read-only constraints on nav request_valid during runtime
+    }
+    try {
+      this.adlNav.request_valid.jump = jumpMap;
+    } catch (e) {
+      // Ignore read-only constraints on nav request_valid during runtime
+    }
     // Notify listeners so LMS can update UI regardless of read-only state
     this.fireEvent("onNavigationValidityUpdate", {
       continue: continueResult.valid,

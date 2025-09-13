@@ -1533,7 +1533,11 @@ class Scorm2004API extends BaseAPI {
           const obj = new CMIObjectivesObject();
           // If available, populate from serialized data (method added on CMIObjectivesObject)
           // Fallback to direct field assignment if fromJSON is unavailable at runtime
-          (obj as any).fromJSON ? (obj as any).fromJSON(objData) : Object.assign(obj as any, objData);
+          if ((obj as any).fromJSON) {
+            (obj as any).fromJSON(objData);
+          } else {
+            Object.assign(obj as any, objData);
+          }
           return obj;
         });
       }
