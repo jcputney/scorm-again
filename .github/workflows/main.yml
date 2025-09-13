@@ -35,14 +35,17 @@ jobs:
               github.rest.pulls.listFiles,
               { owner, repo, pull_number: pr.number, per_page: 100 }
             );
-            const changedInDist = files.filter(f => f.filename.startsWith('dist/'));
+            const changedInDist = files.filter(f => {
+              const cur = f.filename?.startsWith('dist/');
+              const prev = f.previous_filename?.startsWith?.('dist/');
+              return cur || prev;
+            });
             if (changedInDist.length) {
               const list = changedInDist.map(f => `- ${f.status}: ${f.filename}`).join('\n');
               core.setFailed(`Changes in dist/ are not allowed in PRs.\n${list}`);
             }
   build:
     runs-on: ubuntu-latest
-    needs: [ guard-dist ]
 
     steps:
       # Checkout repository

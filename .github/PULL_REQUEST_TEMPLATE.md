@@ -32,6 +32,7 @@
 
 ## Checklist
 <!-- Verify that you have completed the following items -->
+- [ ] This PR does not include changes to files under `dist/` (CI will build and commit `dist/` on the default branch)
 - [ ] I have read the [Contribution Guidelines](docs/developer/contribution_guidelines.md)
 - [ ] My code follows the [TypeScript Style Guide](.junie/guidelines.md)
 - [ ] I have added tests that prove my fix is effective or that my feature works
