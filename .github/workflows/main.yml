@@ -67,19 +67,15 @@ jobs:
       - name: Create directories
         run: mkdir -p reports dist docs test-results
 
-      # Run Vitest tests with coverage
-      - name: Run unit tests with Vitest
-        run: npm run test:coverage
+      # Run Vitest once: coverage + JUnit
+      - name: Run unit tests with Vitest (coverage + JUnit)
+        run: npx vitest run --coverage --reporter=default --reporter=junit --outputFile=test-report.junit.xml
 
       - name: Upload coverage reports to Codecov
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: Running tests for codecov
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-        run: npm run test:codecov
 
       - name: Upload test results to Codecov
         if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
@@ -96,9 +92,13 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
+      # Build once (prod) to reuse for integration tests and analysis
+      - name: Build (prod)
+        run: npm run build:all:prod
+
       # Run integration tests
       - name: Run integration tests
-        run: npm run test:integration:ci
+        run: npx playwright test --reporter=list
 
       # Upload Playwright report
       - name: Upload Playwright report
@@ -173,11 +173,10 @@ jobs:
       - name: Dependency vulnerability scanning
         run: npm audit --level=moderate
 
-      # Analyze bundle size
+      # Analyze bundle size (reuse existing prod build)
       - name: Analyze bundle size
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: |
-          npm run build:all:prod
           ls -la dist/*.js | awk '{print $5, $9}' > bundle-size.txt
           cat bundle-size.txt
 
