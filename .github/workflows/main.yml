@@ -20,8 +20,29 @@ on:
   workflow_dispatch:
 
 jobs:
+  guard-dist:
+    name: Reject PRs changing dist/
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if PR modifies files in dist/
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const { owner, repo } = context.repo;
+            const files = await github.paginate(
+              github.rest.pulls.listFiles,
+              { owner, repo, pull_number: pr.number, per_page: 100 }
+            );
+            const changedInDist = files.filter(f => f.filename.startsWith('dist/'));
+            if (changedInDist.length) {
+              const list = changedInDist.map(f => `- ${f.status}: ${f.filename}`).join('\n');
+              core.setFailed(`Changes in dist/ are not allowed in PRs.\n${list}`);
+            }
   build:
     runs-on: ubuntu-latest
+    needs: [ guard-dist ]
 
     steps:
       # Checkout repository
@@ -172,5 +193,5 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: "[skip ci] Add changes during build"
-          file_pattern: "dist/**/*.* src/**/*.* test/**/*.* src/*.* test/*.*"
+          file_pattern: "dist/**/*"
           skip_dirty_check: false

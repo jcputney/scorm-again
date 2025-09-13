@@ -25,3 +25,32 @@ Start reading our code, and you'll get the hang of it. I try to optimize for rea
 - We indent using two spaces (soft tabs)
 - We ALWAYS put spaces after list items and method parameters (`[1, 2, 3]`, not `[1,2,3]`), around operators (`x += 1`, not `x+=1`), and around hash arrows.
 - `eslint ./src --fix` should always be run before submitting a pull request. Otherwise, the build could fail if you have issues with the formatting of your code.
+
+## dist/ policy and local development
+
+This repository treats `dist/` as a build artifact that is only updated by CI on pushes to the `master` branch. Please do not include `dist/` changes in pull requests — they will be rejected by CI.
+
+During local development, if you build and end up with modified files under `dist/`, you can tell Git to ignore local edits to that folder to keep your working tree clean:
+
+```
+npm run dev:dist:ignore   # ignore local changes to dist/
+npm run dev:dist:track    # re-enable tracking of dist/
+```
+
+Notes:
+- These commands use `git update-index --(no-)skip-worktree` and only affect your local clone.
+- CI will always build `dist/` fresh and commit the results back to `master`.
+
+### Optional: pre-commit hook to block dist/
+
+You can opt in to a local Git pre-commit hook that prevents accidentally committing `dist/` changes:
+
+```
+npm run hooks:install   # sets core.hooksPath to .githooks
+```
+
+Override once (if truly needed):
+
+```
+ALLOW_DIST_COMMIT=1 git commit -m "…"
+```
