@@ -33,7 +33,14 @@ export declare class SequencingProcess {
     private sequencingRules;
     private sequencingControls;
     private adlNav;
-    constructor(activityTree: ActivityTree, sequencingRules?: SequencingRules | null, sequencingControls?: SequencingControls | null, adlNav?: ADLNav | null);
+    private now;
+    private getAttemptElapsedSecondsHook;
+    private getActivityElapsedSecondsHook;
+    constructor(activityTree: ActivityTree, sequencingRules?: SequencingRules | null, sequencingControls?: SequencingControls | null, adlNav?: ADLNav | null, options?: {
+        now?: () => Date;
+        getAttemptElapsedSeconds?: (activity: Activity) => number;
+        getActivityElapsedSeconds?: (activity: Activity) => number;
+    });
     sequencingRequestProcess(request: SequencingRequestType, targetActivityId?: string | null): SequencingResult;
     private startSequencingRequestProcess;
     private findFirstDeliverableActivity;
@@ -56,6 +63,8 @@ export declare class SequencingProcess {
     private exitActionRulesSubprocess;
     private processDeferredExitAction;
     private postConditionRulesSubprocess;
+    private validateSequencingRequest;
+    private validateRequestSpecificConstraints;
     private limitConditionsCheckProcess;
     private parseISO8601Duration;
     private sequencingRulesCheckProcess;
@@ -66,7 +75,25 @@ export declare class SequencingProcess {
     private flowTreeTraversalSubprocess;
     private choiceFlowSubprocess;
     private choiceFlowTreeTraversalSubprocess;
+    private enhancedChoiceActivityTraversalSubprocess;
     private choiceActivityTraversalSubprocess;
     evaluatePostConditionRules(activity: Activity): SequencingRequestType | null;
+    private validateChoiceFlowConstraints;
+    private meetsChoiceFlowConstraints;
+    private validateChoiceTraversalConstraints;
+    private validateConstrainedChoiceBoundaries;
+    private validateConstrainChoiceForFlow;
+    private evaluateConstrainChoiceForTraversal;
+    private evaluateForwardOnlyForChoice;
+    private checkConstrainedChoiceBoundary;
+    private getCurrentActivity;
+    private isActivityAvailableForChoice;
+    private isActivityMandatory;
+    private isActivityCompleted;
+    private validateActivityChoiceState;
+    private hasBackwardChoiceException;
+    private hasChoiceBoundaryViolation;
+    private evaluateRuleConditions;
+    private getAttemptElapsedSeconds;
 }
 //# sourceMappingURL=sequencing_process.d.ts.map

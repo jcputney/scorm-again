@@ -142,10 +142,16 @@ export class SequencingService {
 
       // Create sequencing processes if we have an activity tree
       if (this.sequencing.activityTree.root) {
-        const seqOptions: { now?: () => Date; getAttemptElapsedSeconds?: (a: Activity) => number; getActivityElapsedSeconds?: (a: Activity) => number } = {};
+        const seqOptions: {
+          now?: () => Date;
+          getAttemptElapsedSeconds?: (a: Activity) => number;
+          getActivityElapsedSeconds?: (a: Activity) => number;
+        } = {};
         if (this.configuration.now) seqOptions.now = this.configuration.now;
-        if (this.configuration.getAttemptElapsedSeconds) seqOptions.getAttemptElapsedSeconds = this.configuration.getAttemptElapsedSeconds;
-        if (this.configuration.getActivityElapsedSeconds) seqOptions.getActivityElapsedSeconds = this.configuration.getActivityElapsedSeconds;
+        if (this.configuration.getAttemptElapsedSeconds)
+          seqOptions.getAttemptElapsedSeconds = this.configuration.getAttemptElapsedSeconds;
+        if (this.configuration.getActivityElapsedSeconds)
+          seqOptions.getActivityElapsedSeconds = this.configuration.getActivityElapsedSeconds;
 
         this.sequencingProcess = new SequencingProcess(
           this.sequencing.activityTree,

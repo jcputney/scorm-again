@@ -1349,7 +1349,11 @@ class Scorm2004API extends BaseAPI {
    */
   public async saveSequencingState(metadata?: Partial<SequencingStateMetadata>): Promise<boolean> {
     if (!this.settings.sequencingStatePersistence) {
-      this.apiLog("saveSequencingState", "No persistence configuration provided", LogLevelEnum.WARN);
+      this.apiLog(
+        "saveSequencingState",
+        "No persistence configuration provided",
+        LogLevelEnum.WARN,
+      );
       return false;
     }
 
@@ -1405,7 +1409,11 @@ class Scorm2004API extends BaseAPI {
    */
   public async loadSequencingState(metadata?: Partial<SequencingStateMetadata>): Promise<boolean> {
     if (!this.settings.sequencingStatePersistence) {
-      this.apiLog("loadSequencingState", "No persistence configuration provided", LogLevelEnum.WARN);
+      this.apiLog(
+        "loadSequencingState",
+        "No persistence configuration provided",
+        LogLevelEnum.WARN,
+      );
       return false;
     }
 
@@ -1423,7 +1431,11 @@ class Scorm2004API extends BaseAPI {
 
       if (!stateData) {
         if (config.debugPersistence) {
-          this.apiLog("loadSequencingState", "No sequencing state found to load", LogLevelEnum.INFO);
+          this.apiLog(
+            "loadSequencingState",
+            "No sequencing state found to load",
+            LogLevelEnum.INFO,
+          );
         }
         return false;
       }
@@ -1522,7 +1534,11 @@ class Scorm2004API extends BaseAPI {
           if (state.contentDelivered) {
             // Mark content as delivered (there's no direct setter, so we'll need to add one)
             // For now, we'll just log it
-            this.apiLog("deserializeSequencingState", "Content delivery state restored", LogLevelEnum.DEBUG);
+            this.apiLog(
+              "deserializeSequencingState",
+              "Content delivery state restored",
+              LogLevelEnum.DEBUG,
+            );
           }
         }
       }

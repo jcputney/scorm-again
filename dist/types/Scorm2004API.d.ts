@@ -3,15 +3,18 @@ import { CMI } from "./cmi/scorm2004/cmi";
 import { StringKeyMap } from "./utilities";
 import { CMIObjectivesObject } from "./cmi/scorm2004/objectives";
 import { ADL } from "./cmi/scorm2004/adl";
-import { CommitObject, ResultObject, Settings } from "./types/api_types";
+import { CommitObject, ResultObject, Settings, SequencingStateMetadata } from "./types/api_types";
+import { SequencingEventListeners } from "./types/sequencing_types";
 import { BaseCMI } from "./cmi/common/base_cmi";
 import { CMIInteractionsObject } from "./cmi/scorm2004/interactions";
 import { CMIArray } from "./cmi/common/array";
 import { ResponseType } from "./constants/response_constants";
+import { SequencingService, SequencingConfiguration } from "./services/SequencingService";
 declare class Scorm2004API extends BaseAPI {
     private _version;
     private _globalObjectives;
     private readonly _sequencing;
+    private _sequencingService;
     private _extractedScoItemIds;
     constructor(settings?: Settings);
     cmi: CMI;
@@ -60,6 +63,18 @@ declare class Scorm2004API extends BaseAPI {
     private configureSequencingControls;
     private configureRollupRules;
     private createRollupRule;
+    private initializeSequencingService;
+    getSequencingService(): SequencingService | null;
+    setSequencingEventListeners(listeners: SequencingEventListeners): void;
+    updateSequencingConfiguration(config: SequencingConfiguration): void;
+    getSequencingState(): any;
+    processNavigationRequest(request: string, targetActivityId?: string): boolean;
+    saveSequencingState(metadata?: Partial<SequencingStateMetadata>): Promise<boolean>;
+    loadSequencingState(metadata?: Partial<SequencingStateMetadata>): Promise<boolean>;
+    private serializeSequencingState;
+    private deserializeSequencingState;
+    private compressStateData;
+    private decompressStateData;
 }
 export default Scorm2004API;
 //# sourceMappingURL=Scorm2004API.d.ts.map

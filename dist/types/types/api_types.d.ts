@@ -32,6 +32,7 @@ export type Settings = {
     syncOnInitialize?: boolean | undefined;
     syncOnTerminate?: boolean | undefined;
     maxSyncAttempts?: number | undefined;
+    sequencingStatePersistence?: SequencingStatePersistenceConfig | undefined;
 };
 export type InternalSettings = {
     autocommit: boolean;
@@ -64,6 +65,7 @@ export type InternalSettings = {
     syncOnInitialize?: boolean | undefined;
     syncOnTerminate?: boolean | undefined;
     maxSyncAttempts?: number | undefined;
+    sequencingStatePersistence?: SequencingStatePersistenceConfig | undefined;
 };
 export type RefObject = {
     [key: string]: any;
@@ -106,4 +108,24 @@ export type NumericLogLevel = 1 | 2 | 3 | 4 | 5;
 export type StringNumericLogLevel = "1" | "2" | "3" | "4" | "5";
 export type NamedLogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR" | "NONE";
 export type LogLevel = NumericLogLevel | StringNumericLogLevel | NamedLogLevel | LogLevelEnum;
+export type SequencingStateMetadata = {
+    learnerId: string;
+    courseId: string;
+    attemptNumber?: number;
+    lastUpdated?: string;
+    version?: string;
+};
+export type SequencingStatePersistence = {
+    saveState: (stateData: string, metadata: SequencingStateMetadata) => Promise<boolean>;
+    loadState: (metadata: SequencingStateMetadata) => Promise<string | null>;
+    clearState?: (metadata: SequencingStateMetadata) => Promise<boolean>;
+};
+export type SequencingStatePersistenceConfig = {
+    persistence: SequencingStatePersistence;
+    autoSaveOn?: "commit" | "setValue" | "navigate" | "never";
+    compress?: boolean;
+    maxStateSize?: number;
+    stateVersion?: string;
+    debugPersistence?: boolean;
+};
 //# sourceMappingURL=api_types.d.ts.map

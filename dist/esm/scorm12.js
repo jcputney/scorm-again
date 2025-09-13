@@ -395,14 +395,14 @@ function stringMatches(str, tester) {
 }
 function memoize(fn, keyFn) {
   const cache = /* @__PURE__ */ new Map();
-  return (...args) => {
+  return ((...args) => {
     const key = keyFn ? keyFn(...args) : JSON.stringify(args);
     return cache.has(key) ? cache.get(key) : (() => {
       const result = fn(...args);
       cache.set(key, result);
       return result;
     })();
-  };
+  });
 }
 
 const checkValidFormat = memoize(
@@ -3519,6 +3519,20 @@ class BaseAPI {
     if (this._errorHandlingService) {
       this._errorHandlingService.lastErrorCode = errorCode;
     }
+  }
+  /**
+   * Protected getter for eventService
+   * @return {IEventService}
+   */
+  get eventService() {
+    return this._eventService;
+  }
+  /**
+   * Protected getter for loggingService
+   * @return {ILoggingService}
+   */
+  get loggingService() {
+    return this._loggingService;
   }
   /**
    * Common reset method for all APIs. New settings are merged with the existing settings.

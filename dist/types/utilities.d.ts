@@ -7,6 +7,7 @@ export declare const getSecondsAsHHMMSS: (totalSeconds: number | null) => string
 export declare const getSecondsAsISODuration: (seconds: number | null) => string;
 export declare const getTimeAsSeconds: (timeString: string | number | boolean | null, timeRegex: RegExp | string) => number;
 export declare const getDurationAsSeconds: (duration: string | null, durationRegex: RegExp | string) => number;
+export declare const validateISO8601Duration: (duration: string, durationRegex: RegExp | string) => boolean;
 export declare function addTwoDurations(first: string, second: string, durationRegex: RegExp | string): string;
 export declare function addHHMMSSTimeStrings(first: string, second: string, timeRegex: RegExp | string): string;
 export declare function flatten(data: StringKeyMap): StringKeyMap;

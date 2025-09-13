@@ -1,7 +1,6 @@
 import { Activity } from "../cmi/scorm2004/sequencing/activity";
 import { SequencingResult } from "../cmi/scorm2004/sequencing/sequencing_process";
-import { EventService } from "./EventService";
-import { LoggingService } from "./LoggingService";
+import { IEventService, ILoggingService } from "../interfaces/services";
 export interface ActivityDeliveryCallbacks {
     onDeliverActivity?: (activity: Activity) => void;
     onUnloadActivity?: (activity: Activity) => void;
@@ -14,7 +13,7 @@ export declare class ActivityDeliveryService {
     private callbacks;
     private currentDeliveredActivity;
     private pendingDelivery;
-    constructor(eventService: EventService, loggingService: LoggingService, callbacks?: ActivityDeliveryCallbacks);
+    constructor(eventService: IEventService, loggingService: ILoggingService, callbacks?: ActivityDeliveryCallbacks);
     processSequencingResult(result: SequencingResult): void;
     private deliverActivity;
     private unloadActivity;

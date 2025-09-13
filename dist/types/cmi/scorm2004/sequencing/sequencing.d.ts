@@ -5,15 +5,12 @@ import { SequencingRules } from "./sequencing_rules";
 import { SequencingControls } from "./sequencing_controls";
 import { RollupRules } from "./rollup_rules";
 import { ADLNav } from "../adl";
-import { SequencingResult } from "./sequencing_process";
 export declare class Sequencing extends BaseCMI {
     private _activityTree;
     private _sequencingRules;
     private _sequencingControls;
     private _rollupRules;
     private _adlNav;
-    private _sequencingProcess;
-    private _lastSequencingResult;
     constructor();
     initialize(): void;
     reset(): void;
@@ -27,12 +24,8 @@ export declare class Sequencing extends BaseCMI {
     set rollupRules(rollupRules: RollupRules);
     get adlNav(): ADLNav | null;
     set adlNav(adlNav: ADLNav | null);
-    get lastSequencingResult(): SequencingResult | null;
-    processNavigationRequest(request: string, targetActivityId?: string | null): boolean;
-    private updateNavigationRequestValidity;
     processRollup(): void;
     private _processRollupRecursive;
-    getLastSequencingResult(): SequencingResult | null;
     getCurrentActivity(): Activity | null;
     getRootActivity(): Activity | null;
     toJSON(): object;
