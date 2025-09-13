@@ -21,6 +21,8 @@ export default abstract class BaseAPI implements IBaseAPI {
     currentState: number;
     get lastErrorCode(): string;
     set lastErrorCode(errorCode: string);
+    protected get eventService(): IEventService;
+    protected get loggingService(): ILoggingService;
     abstract reset(settings?: Settings): void;
     commonReset(settings?: Settings): void;
     initialize(callbackName: string, initializeMessage?: string, terminationMessage?: string): string;

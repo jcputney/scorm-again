@@ -38,3 +38,4 @@ class CrossFrameLMS {
 }
 
 export { CrossFrameLMS };
+//# sourceMappingURL=cross-frame-lms.js.map

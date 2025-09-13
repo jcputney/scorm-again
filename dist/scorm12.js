@@ -3307,6 +3307,20 @@ ${stackTrace}`);
       }
     }
     /**
+     * Protected getter for eventService
+     * @return {IEventService}
+     */
+    get eventService() {
+      return this._eventService;
+    }
+    /**
+     * Protected getter for loggingService
+     * @return {ILoggingService}
+     */
+    get loggingService() {
+      return this._loggingService;
+    }
+    /**
      * Common reset method for all APIs. New settings are merged with the existing settings.
      * @param {Settings} settings
      * @protected
@@ -4483,3 +4497,4 @@ ${stackTrace}`);
   return Scorm12API;
 
 })();
+//# sourceMappingURL=scorm12.js.map

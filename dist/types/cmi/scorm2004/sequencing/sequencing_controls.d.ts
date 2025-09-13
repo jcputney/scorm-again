@@ -19,6 +19,7 @@ export declare class SequencingControls extends BaseCMI {
     private _useCurrentAttemptProgressInfo;
     private _preventActivation;
     private _constrainChoice;
+    private _stopForwardTraversal;
     private _rollupObjectiveSatisfied;
     private _rollupProgressCompletion;
     private _objectiveMeasureWeight;
@@ -48,6 +49,8 @@ export declare class SequencingControls extends BaseCMI {
     set preventActivation(preventActivation: boolean);
     get constrainChoice(): boolean;
     set constrainChoice(constrainChoice: boolean);
+    get stopForwardTraversal(): boolean;
+    set stopForwardTraversal(stopForwardTraversal: boolean);
     get rollupObjectiveSatisfied(): boolean;
     set rollupObjectiveSatisfied(rollupObjectiveSatisfied: boolean);
     get rollupProgressCompletion(): boolean;

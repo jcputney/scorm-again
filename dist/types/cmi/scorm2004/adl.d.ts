@@ -53,6 +53,11 @@ export declare class ADLNavRequestValid extends BaseCMI {
     private _previous;
     private _choice;
     private _jump;
+    private _exit;
+    private _exitAll;
+    private _abandon;
+    private _abandonAll;
+    private _suspendAll;
     constructor();
     reset(): void;
     get continue(): string;
@@ -71,6 +76,16 @@ export declare class ADLNavRequestValid extends BaseCMI {
     set jump(jump: {
         [key: string]: string;
     });
+    get exit(): string;
+    set exit(_exit: string);
+    get exitAll(): string;
+    set exitAll(_exitAll: string);
+    get abandon(): string;
+    set abandon(_abandon: string);
+    get abandonAll(): string;
+    set abandonAll(_abandonAll: string);
+    get suspendAll(): string;
+    set suspendAll(_suspendAll: string);
     toJSON(): {
         previous: string;
         continue: string;

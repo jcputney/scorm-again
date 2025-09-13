@@ -54,3 +54,4 @@ this.CrossFrameLMS = (function () {
   return CrossFrameLMS;
 
 })();
+//# sourceMappingURL=cross-frame-lms.js.map

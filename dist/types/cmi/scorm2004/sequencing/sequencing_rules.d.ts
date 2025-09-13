@@ -36,7 +36,9 @@ export declare class RuleCondition extends BaseCMI {
     private _condition;
     private _operator;
     private _parameters;
+    private static _now;
     constructor(condition?: RuleConditionType, operator?: RuleConditionOperator | null, parameters?: Map<string, any>);
+    static setNowProvider(now: () => Date): void;
     reset(): void;
     get condition(): RuleConditionType;
     set condition(condition: RuleConditionType);

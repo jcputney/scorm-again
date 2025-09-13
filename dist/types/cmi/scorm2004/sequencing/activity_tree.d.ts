@@ -5,7 +5,7 @@ export declare class ActivityTree extends BaseCMI {
     private _currentActivity;
     private _suspendedActivity;
     private _activities;
-    constructor();
+    constructor(root?: Activity);
     initialize(): void;
     reset(): void;
     get root(): Activity | null;

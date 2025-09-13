@@ -8,6 +8,9 @@ export type ActivitySettings = {
     isActive?: boolean;
     isSuspended?: boolean;
     isCompleted?: boolean;
+    sequencingRules?: SequencingRulesSettings;
+    sequencingControls?: SequencingControlsSettings;
+    rollupRules?: RollupRulesSettings;
 };
 export type RuleConditionSettings = {
     condition: RuleConditionType;
@@ -56,5 +59,20 @@ export type SequencingSettings = {
     sequencingRules?: SequencingRulesSettings;
     sequencingControls?: SequencingControlsSettings;
     rollupRules?: RollupRulesSettings;
+    autoRollupOnCMIChange?: boolean;
+    autoProgressOnCompletion?: boolean;
+    validateNavigationRequests?: boolean;
+    enableEventSystem?: boolean;
+    logLevel?: "debug" | "info" | "warn" | "error";
+    eventListeners?: SequencingEventListeners;
 };
+export interface SequencingEventListeners {
+    onSequencingStart?: (activity: any) => void;
+    onSequencingEnd?: () => void;
+    onActivityDelivery?: (activity: any) => void;
+    onActivityUnload?: (activity: any) => void;
+    onNavigationRequest?: (request: string, target?: string) => void;
+    onRollupComplete?: (activity: any) => void;
+    onSequencingError?: (error: string, context?: string) => void;
+}
 //# sourceMappingURL=sequencing_types.d.ts.map
