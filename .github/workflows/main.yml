@@ -26,11 +26,11 @@ jobs:
     steps:
       # Checkout repository
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Set up Node.js
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: "npm"
@@ -103,7 +103,7 @@ jobs:
       # Create GitHub issue for performance regressions
       - name: Create issue for performance regression
         if: steps.performance_test.outcome == 'failure' && github.event_name == 'push' && github.ref == 'refs/heads/master'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
