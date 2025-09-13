@@ -16346,8 +16346,10 @@ class SequencingService {
       if (this.sequencing.activityTree.root) {
         const seqOptions = {};
         if (this.configuration.now) seqOptions.now = this.configuration.now;
-        if (this.configuration.getAttemptElapsedSeconds) seqOptions.getAttemptElapsedSeconds = this.configuration.getAttemptElapsedSeconds;
-        if (this.configuration.getActivityElapsedSeconds) seqOptions.getActivityElapsedSeconds = this.configuration.getActivityElapsedSeconds;
+        if (this.configuration.getAttemptElapsedSeconds)
+          seqOptions.getAttemptElapsedSeconds = this.configuration.getAttemptElapsedSeconds;
+        if (this.configuration.getActivityElapsedSeconds)
+          seqOptions.getActivityElapsedSeconds = this.configuration.getActivityElapsedSeconds;
         this.sequencingProcess = new SequencingProcess(
           this.sequencing.activityTree,
           this.sequencing.sequencingRules,
@@ -17921,7 +17923,11 @@ class Scorm2004API extends BaseAPI {
    */
   async saveSequencingState(metadata) {
     if (!this.settings.sequencingStatePersistence) {
-      this.apiLog("saveSequencingState", "No persistence configuration provided", LogLevelEnum.WARN);
+      this.apiLog(
+        "saveSequencingState",
+        "No persistence configuration provided",
+        LogLevelEnum.WARN
+      );
       return false;
     }
     try {
@@ -17967,7 +17973,11 @@ class Scorm2004API extends BaseAPI {
    */
   async loadSequencingState(metadata) {
     if (!this.settings.sequencingStatePersistence) {
-      this.apiLog("loadSequencingState", "No persistence configuration provided", LogLevelEnum.WARN);
+      this.apiLog(
+        "loadSequencingState",
+        "No persistence configuration provided",
+        LogLevelEnum.WARN
+      );
       return false;
     }
     try {
@@ -17982,7 +17992,11 @@ class Scorm2004API extends BaseAPI {
       const stateData = await config.persistence.loadState(fullMetadata);
       if (!stateData) {
         if (config.debugPersistence) {
-          this.apiLog("loadSequencingState", "No sequencing state found to load", LogLevelEnum.INFO);
+          this.apiLog(
+            "loadSequencingState",
+            "No sequencing state found to load",
+            LogLevelEnum.INFO
+          );
         }
         return false;
       }
@@ -18060,7 +18074,11 @@ class Scorm2004API extends BaseAPI {
         if (overallProcess) {
           overallProcess.restoreSequencingState(state.sequencing);
           if (state.contentDelivered) {
-            this.apiLog("deserializeSequencingState", "Content delivery state restored", LogLevelEnum.DEBUG);
+            this.apiLog(
+              "deserializeSequencingState",
+              "Content delivery state restored",
+              LogLevelEnum.DEBUG
+            );
           }
         }
       }

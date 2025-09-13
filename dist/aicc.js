@@ -3296,7 +3296,7 @@ ${stackTrace}`);
       this._httpService = httpService || new HttpService(this.settings, this._error_codes);
       this._eventService = eventService || new EventService((functionName, message, level, element) => this.apiLog(functionName, message, level, element));
       this._serializationService = serializationService || new SerializationService();
-      this._errorHandlingService = errorHandlingService || createErrorHandlingService(this._error_codes, (functionName, message, level, element) => this.apiLog(functionName, message, level, element), (errorNumber, detail) => this.getLmsErrorMessageDetails(errorNumber, detail));
+      this._errorHandlingService = errorHandlingService || createErrorHandlingService(this._error_codes, (functionName, message, level, element) => this.apiLog(functionName, message, level || LogLevelEnum.ERROR, element), (errorNumber, detail) => this.getLmsErrorMessageDetails(errorNumber, detail));
       if (this.settings.enableOfflineSupport) {
         this._offlineStorageService = offlineStorageService || new OfflineStorageService(this.settings, this._error_codes, (functionName, message, level, element) => this.apiLog(functionName, message, level, element));
         if (this.settings.courseId) {
@@ -3329,6 +3329,20 @@ ${stackTrace}`);
       if (this._errorHandlingService) {
         this._errorHandlingService.lastErrorCode = errorCode;
       }
+    }
+    /**
+     * Protected getter for eventService
+     * @return {IEventService}
+     */
+    get eventService() {
+      return this._eventService;
+    }
+    /**
+     * Protected getter for loggingService
+     * @return {ILoggingService}
+     */
+    get loggingService() {
+      return this._loggingService;
     }
     /**
      * Common reset method for all APIs. New settings are merged with the existing settings.
