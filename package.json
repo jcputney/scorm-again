@@ -135,7 +135,7 @@
     "jsdom": "26.1.0",
     "playwright": "1.55.0",
     "prettier": "3.6.2",
-    "rollup": "4.50.1",
+    "rollup": "4.50.2",
     "rollup-plugin-dts": "6.2.3",
     "rollup-plugin-esbuild": "6.2.1",
     "standard-version": "9.5.0",
