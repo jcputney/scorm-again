@@ -133,8 +133,8 @@ this.AICC = (function () {
   };
 
   const scorm12_regex = {
-    CMIString256: "^.{0,255}$",
-    CMIString4096: "^.{0,4096}$",
+    CMIString256: "^[\\s\\S]{0,255}$",
+    CMIString4096: "^[\\s\\S]{0,4096}$",
     CMITime: "^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)$",
     CMITimespan: "^([0-9]{2,}):([0-9]{2}):([0-9]{2})(.[0-9]{1,2})?$",
     CMIInteger: "^\\d+$",
