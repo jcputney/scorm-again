@@ -2896,7 +2896,7 @@ ${stackTrace}`);
   }
 
   const scorm12_regex = {
-    CMIString256: "^.{0,255}$",
+    CMIString256: "^[\\s\\S]{0,255}$",
     CMISInteger: "^-?([0-9]+)$",
     CMIDecimal: "^-?([0-9]{0,3})(\\.[0-9]*)?$",
     // Data ranges
