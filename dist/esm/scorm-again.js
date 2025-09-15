@@ -275,10 +275,8 @@ const scorm2004_errors$1 = {
 };
 
 const scorm12_regex = {
-  CMIString256: /^.{0,255}$/m,
-  // the `m` flag allows checking multiline strings, otherwise both ^ and $ only catch single lines.
-  CMIString4096: /^.{0,4096}$/m,
-  // the `m` flag allows checking multiline strings, otherwise both ^ and $ only catch single lines.
+  CMIString256: "^.{0,255}$",
+  CMIString4096: "^.{0,4096}$",
   CMITime: "^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)$",
   CMITimespan: "^([0-9]{2,}):([0-9]{2}):([0-9]{2})(.[0-9]{1,2})?$",
   CMIInteger: "^\\d+$",
@@ -16348,8 +16346,10 @@ class SequencingService {
       if (this.sequencing.activityTree.root) {
         const seqOptions = {};
         if (this.configuration.now) seqOptions.now = this.configuration.now;
-        if (this.configuration.getAttemptElapsedSeconds) seqOptions.getAttemptElapsedSeconds = this.configuration.getAttemptElapsedSeconds;
-        if (this.configuration.getActivityElapsedSeconds) seqOptions.getActivityElapsedSeconds = this.configuration.getActivityElapsedSeconds;
+        if (this.configuration.getAttemptElapsedSeconds)
+          seqOptions.getAttemptElapsedSeconds = this.configuration.getAttemptElapsedSeconds;
+        if (this.configuration.getActivityElapsedSeconds)
+          seqOptions.getActivityElapsedSeconds = this.configuration.getActivityElapsedSeconds;
         this.sequencingProcess = new SequencingProcess(
           this.sequencing.activityTree,
           this.sequencing.sequencingRules,
@@ -17923,7 +17923,11 @@ class Scorm2004API extends BaseAPI {
    */
   async saveSequencingState(metadata) {
     if (!this.settings.sequencingStatePersistence) {
-      this.apiLog("saveSequencingState", "No persistence configuration provided", LogLevelEnum.WARN);
+      this.apiLog(
+        "saveSequencingState",
+        "No persistence configuration provided",
+        LogLevelEnum.WARN
+      );
       return false;
     }
     try {
@@ -17969,7 +17973,11 @@ class Scorm2004API extends BaseAPI {
    */
   async loadSequencingState(metadata) {
     if (!this.settings.sequencingStatePersistence) {
-      this.apiLog("loadSequencingState", "No persistence configuration provided", LogLevelEnum.WARN);
+      this.apiLog(
+        "loadSequencingState",
+        "No persistence configuration provided",
+        LogLevelEnum.WARN
+      );
       return false;
     }
     try {
@@ -17984,7 +17992,11 @@ class Scorm2004API extends BaseAPI {
       const stateData = await config.persistence.loadState(fullMetadata);
       if (!stateData) {
         if (config.debugPersistence) {
-          this.apiLog("loadSequencingState", "No sequencing state found to load", LogLevelEnum.INFO);
+          this.apiLog(
+            "loadSequencingState",
+            "No sequencing state found to load",
+            LogLevelEnum.INFO
+          );
         }
         return false;
       }
@@ -18062,7 +18074,11 @@ class Scorm2004API extends BaseAPI {
         if (overallProcess) {
           overallProcess.restoreSequencingState(state.sequencing);
           if (state.contentDelivered) {
-            this.apiLog("deserializeSequencingState", "Content delivery state restored", LogLevelEnum.DEBUG);
+            this.apiLog(
+              "deserializeSequencingState",
+              "Content delivery state restored",
+              LogLevelEnum.DEBUG
+            );
           }
         }
       }
