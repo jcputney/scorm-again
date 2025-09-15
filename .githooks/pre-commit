@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Prevent committing built artifacts under dist/.
+# Opt-in: set hooks path with `git config core.hooksPath .githooks`.
+# Override for exceptional cases: `ALLOW_DIST_COMMIT=1 git commit -m ...`.
+
+set -euo pipefail
+
+# Allow explicit override
+if [[ "${ALLOW_DIST_COMMIT:-}" == "1" ]]; then
+  exit 0
+fi
+
+# Detect staged changes affecting dist/
+if git diff --cached --name-only --diff-filter=ACMR | grep -qE '^dist/'; then
+  echo "✖ Commit blocked: changes in dist/ are not allowed."
+  echo "  dist/ is built by CI on main and should not be committed locally."
+  echo "  If this is intentional, re-run with ALLOW_DIST_COMMIT=1."
+  exit 1
+fi
+
+exit 0
+

@@ -837,6 +837,15 @@ documentation for contributors:
 - [Testing Strategy](docs/developer/testing_strategy.md): How to write and run tests
 - [CONTRIBUTING.md](CONTRIBUTING.md): Quick start guide for contributors
 
+### dist/ policy
+
+The `dist/` directory is a build artifact and is maintained by CI. Please do not include changes to `dist/` in pull requests — PRs that modify `dist/` will fail a required check and be rejected. On pushes to the default branch, CI builds and commits `dist/` automatically.
+
+For local development convenience:
+- Ignore local `dist/` changes: `npm run dev:dist:ignore`
+- Re-enable tracking: `npm run dev:dist:track`
+- Optional pre-commit hook to block `dist/` commits: `npm run hooks:install` (override once with `ALLOW_DIST_COMMIT=1`)
+
 ### Setup and Development
 
 You will need `node` installed on your local machine, and you'll have to run `npm install` in the

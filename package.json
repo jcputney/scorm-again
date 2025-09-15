@@ -177,7 +177,10 @@
     "release:alpha": "standard-version --prerelease alpha --no-verify",
     "release:beta": "standard-version --prerelease beta --no-verify",
     "release:publish": "git push --follow-tags origin master && npm publish",
-    "release": "npm run test:min && npm run test:integration:ci && npm run release:prepare && npm run compile && npm run release:publish"
+    "release": "npm run test:min && npm run test:integration:ci && npm run release:prepare && npm run compile && npm run release:publish",
+    "dev:dist:ignore": "git update-index --skip-worktree -R dist || true",
+    "dev:dist:track": "git update-index --no-skip-worktree -R dist || true",
+    "hooks:install": "git config core.hooksPath .githooks && chmod +x .githooks/pre-commit"
   },
   "repository": {
     "type": "git",

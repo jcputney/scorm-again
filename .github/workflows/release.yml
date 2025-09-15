@@ -26,16 +26,15 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      # Build once (prod) to reuse for integration tests
+      - name: Build (prod)
+        run: npm run build:all:prod
+
       # Run tests
       - name: Run tests
         run: |
           npm run test:min
-          npm run test:integration:ci
-
-      # Build the project
-      - name: Build project
-        run: |
-          npm run build:all
+          npx playwright test --reporter=list
 
       # Publish to npm
       - name: Publish to npm
