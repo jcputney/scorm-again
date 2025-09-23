@@ -6238,6 +6238,16 @@ class ADLNavRequestValid extends BaseCMI {
   }
 }
 
+const HIDE_LMS_UI_TOKENS = [
+  "continue",
+  "previous",
+  "exit",
+  "exitAll",
+  "abandon",
+  "abandonAll",
+  "suspendAll"
+];
+
 var RuleConditionOperator = /* @__PURE__ */ ((RuleConditionOperator2) => {
   RuleConditionOperator2["NOT"] = "not";
   RuleConditionOperator2["AND"] = "and";
@@ -7997,6 +8007,117 @@ class SequencingControls extends BaseCMI {
   }
 }
 
+class ActivityObjective {
+  constructor(id, options = {}) {
+    this._satisfiedStatus = false;
+    this._measureStatus = false;
+    this._normalizedMeasure = 0;
+    this._progressMeasure = 0;
+    this._progressMeasureStatus = false;
+    this._completionStatus = CompletionStatus.UNKNOWN;
+    this._id = id;
+    this._description = options.description ?? null;
+    this._satisfiedByMeasure = options.satisfiedByMeasure ?? false;
+    this._minNormalizedMeasure = options.minNormalizedMeasure ?? null;
+    this._mapInfo = options.mapInfo ? [...options.mapInfo] : [];
+    this._isPrimary = options.isPrimary ?? false;
+  }
+  get id() {
+    return this._id;
+  }
+  get description() {
+    return this._description;
+  }
+  get satisfiedByMeasure() {
+    return this._satisfiedByMeasure;
+  }
+  set satisfiedByMeasure(value) {
+    this._satisfiedByMeasure = value;
+  }
+  get minNormalizedMeasure() {
+    return this._minNormalizedMeasure;
+  }
+  set minNormalizedMeasure(value) {
+    this._minNormalizedMeasure = value;
+  }
+  get mapInfo() {
+    return this._mapInfo;
+  }
+  set mapInfo(mapInfo) {
+    this._mapInfo = [...mapInfo];
+  }
+  get isPrimary() {
+    return this._isPrimary;
+  }
+  set isPrimary(value) {
+    this._isPrimary = value;
+  }
+  get satisfiedStatus() {
+    return this._satisfiedStatus;
+  }
+  set satisfiedStatus(value) {
+    this._satisfiedStatus = value;
+  }
+  get measureStatus() {
+    return this._measureStatus;
+  }
+  set measureStatus(value) {
+    this._measureStatus = value;
+  }
+  get normalizedMeasure() {
+    return this._normalizedMeasure;
+  }
+  set normalizedMeasure(value) {
+    this._normalizedMeasure = value;
+  }
+  get progressMeasure() {
+    return this._progressMeasure;
+  }
+  set progressMeasure(value) {
+    this._progressMeasure = value;
+  }
+  get progressMeasureStatus() {
+    return this._progressMeasureStatus;
+  }
+  set progressMeasureStatus(value) {
+    this._progressMeasureStatus = value;
+  }
+  get completionStatus() {
+    return this._completionStatus;
+  }
+  set completionStatus(value) {
+    this._completionStatus = value;
+  }
+  resetState() {
+    this._satisfiedStatus = false;
+    this._measureStatus = false;
+    this._normalizedMeasure = 0;
+    this._progressMeasure = 0;
+    this._progressMeasureStatus = false;
+    this._completionStatus = CompletionStatus.UNKNOWN;
+  }
+  updateFromActivity(activity) {
+    this._satisfiedStatus = activity.objectiveSatisfiedStatus;
+    this._measureStatus = activity.objectiveMeasureStatus;
+    this._normalizedMeasure = activity.objectiveNormalizedMeasure;
+    this._progressMeasure = activity.progressMeasure;
+    this._progressMeasureStatus = activity.progressMeasureStatus;
+    this._completionStatus = activity.completionStatus;
+  }
+  applyToActivity(activity) {
+    if (!this._isPrimary) {
+      return;
+    }
+    activity.setPrimaryObjectiveState(
+      this._satisfiedStatus,
+      this._measureStatus,
+      this._normalizedMeasure,
+      this._progressMeasure,
+      this._progressMeasureStatus,
+      this._completionStatus
+    );
+  }
+}
 class Activity extends BaseCMI {
   /**
    * Constructor for Activity
@@ -8034,6 +8155,8 @@ class Activity extends BaseCMI {
     this._activityAttemptActive = false;
     this._isHiddenFromChoice = false;
     this._isAvailable = true;
+    this._hideLmsUi = [];
+    this._auxiliaryResources = [];
     this._attemptLimit = null;
     this._attemptAbsoluteDurationLimit = null;
     this._activityAbsoluteDurationLimit = null;
@@ -8043,11 +8166,23 @@ class Activity extends BaseCMI {
     this._endTimeLimit = null;
     this._processedChildren = null;
     this._isNewAttempt = false;
+    this._primaryObjective = null;
+    this._objectives = [];
+    this._rollupConsiderations = {
+      requiredForSatisfied: "always",
+      requiredForNotSatisfied: "always",
+      requiredForCompleted: "always",
+      requiredForIncomplete: "always",
+      measureSatisfactionIfActive: true
+    };
+    this._wasSkipped = false;
     this._id = id;
     this._title = title;
     this._sequencingControls = new SequencingControls();
     this._sequencingRules = new SequencingRules();
     this._rollupRules = new RollupRules();
+    this._primaryObjective = null;
+    this._objectives = [];
   }
   /**
    * Called when the API has been initialized after the CMI has been created
@@ -8083,9 +8218,17 @@ class Activity extends BaseCMI {
     this._attemptAbsoluteStartTime = "";
     this._learnerPrefs = null;
     this._activityAttemptActive = false;
+    if (this._primaryObjective) {
+      this._primaryObjective.resetState();
+      this._primaryObjective.updateFromActivity(this);
+    }
+    for (const objective of this._objectives) {
+      objective.resetState();
+    }
     for (const child of this._children) {
       child.reset();
     }
+    this._wasSkipped = false;
   }
   /**
    * Getter for id
@@ -8139,6 +8282,35 @@ class Activity extends BaseCMI {
     }
     child._parent = this;
     this._children.push(child);
+  }
+  /**
+   * Reorder child activities based on provided identifier order
+   * @param {string[]} order - Ordered list of child activity IDs
+   */
+  setChildOrder(order) {
+    if (order.length === 0) {
+      return;
+    }
+    const childMap = new Map(this._children.map((child) => [child.id, child]));
+    const reordered = [];
+    for (const id of order) {
+      const child = childMap.get(id);
+      if (child) {
+        reordered.push(child);
+        childMap.delete(id);
+      }
+    }
+    if (childMap.size > 0) {
+      for (const child of this._children) {
+        if (childMap.has(child.id)) {
+          reordered.push(child);
+          childMap.delete(child.id);
+        }
+      }
+    }
+    if (reordered.length === this._children.length) {
+      this._children.splice(0, this._children.length, ...reordered);
+    }
   }
   /**
    * Remove a child activity from this activity
@@ -8236,6 +8408,7 @@ class Activity extends BaseCMI {
   set completionStatus(completionStatus) {
     this._completionStatus = completionStatus;
     this._isCompleted = completionStatus === CompletionStatus.COMPLETED;
+    this.updatePrimaryObjectiveFromActivity();
   }
   /**
    * Getter for successStatus
@@ -8308,6 +8481,7 @@ class Activity extends BaseCMI {
     } else {
       this._successStatus = SuccessStatus.FAILED;
     }
+    this.updatePrimaryObjectiveFromActivity();
   }
   /**
    * Getter for objectiveMeasureStatus
@@ -8322,6 +8496,7 @@ class Activity extends BaseCMI {
    */
   set objectiveMeasureStatus(objectiveMeasureStatus) {
     this._objectiveMeasureStatus = objectiveMeasureStatus;
+    this.updatePrimaryObjectiveFromActivity();
   }
   /**
    * Getter for objectiveNormalizedMeasure
@@ -8336,6 +8511,7 @@ class Activity extends BaseCMI {
    */
   set objectiveNormalizedMeasure(objectiveNormalizedMeasure) {
     this._objectiveNormalizedMeasure = objectiveNormalizedMeasure;
+    this.updatePrimaryObjectiveFromActivity();
   }
   /**
    * Getter for scaledPassingScore
@@ -8366,6 +8542,7 @@ class Activity extends BaseCMI {
    */
   set progressMeasure(progressMeasure) {
     this._progressMeasure = progressMeasure;
+    this.updatePrimaryObjectiveFromActivity();
   }
   /**
    * Getter for progressMeasureStatus
@@ -8380,6 +8557,7 @@ class Activity extends BaseCMI {
    */
   set progressMeasureStatus(progressMeasureStatus) {
     this._progressMeasureStatus = progressMeasureStatus;
+    this.updatePrimaryObjectiveFromActivity();
   }
   /**
    * Getter for location
@@ -8699,6 +8877,175 @@ class Activity extends BaseCMI {
   set rollupRules(rollupRules) {
     this._rollupRules = rollupRules;
   }
+  get rollupConsiderations() {
+    return { ...this._rollupConsiderations };
+  }
+  set rollupConsiderations(config) {
+    this._rollupConsiderations = { ...config };
+  }
+  applyRollupConsiderations(settings) {
+    this._rollupConsiderations = {
+      ...this._rollupConsiderations,
+      ...settings
+    };
+  }
+  get wasSkipped() {
+    return this._wasSkipped;
+  }
+  set wasSkipped(value) {
+    this._wasSkipped = value;
+  }
+  /**
+   * Getter for primary objective
+   * @return {ActivityObjective | null}
+   */
+  get primaryObjective() {
+    return this._primaryObjective;
+  }
+  /**
+   * Setter for primary objective
+   * @param {ActivityObjective | null} objective
+   */
+  set primaryObjective(objective) {
+    this._primaryObjective = objective;
+    if (this._primaryObjective) {
+      this._primaryObjective.isPrimary = true;
+      if (this._primaryObjective.minNormalizedMeasure !== null) {
+        this._scaledPassingScore = this._primaryObjective.minNormalizedMeasure ?? this._scaledPassingScore;
+      }
+      this._primaryObjective.updateFromActivity(this);
+    }
+  }
+  /**
+   * Get additional objectives
+   * @return {ActivityObjective[]}
+   */
+  get objectives() {
+    return [...this._objectives];
+  }
+  /**
+   * Replace objectives collection
+   * @param {ActivityObjective[]} objectives
+   */
+  set objectives(objectives) {
+    this._objectives = [...objectives];
+  }
+  /**
+   * Add an objective
+   * @param {ActivityObjective} objective
+   */
+  addObjective(objective) {
+    if (!this._objectives.find((obj) => obj.id === objective.id)) {
+      this._objectives.push(objective);
+    }
+  }
+  /**
+   * Get objective by ID
+   * @param {string} objectiveId
+   * @return {{ objective: ActivityObjective, isPrimary: boolean } | null}
+   */
+  getObjectiveById(objectiveId) {
+    if (this._primaryObjective?.id === objectiveId) {
+      return { objective: this._primaryObjective, isPrimary: true };
+    }
+    const additional = this._objectives.find((obj) => obj.id === objectiveId);
+    if (additional) {
+      return { objective: additional, isPrimary: false };
+    }
+    return null;
+  }
+  /**
+   * Get all objectives including primary
+   * @return {ActivityObjective[]}
+   */
+  getAllObjectives() {
+    const objectives = [];
+    if (this._primaryObjective) {
+      objectives.push(this._primaryObjective);
+    }
+    return objectives.concat(this._objectives);
+  }
+  updatePrimaryObjectiveFromActivity() {
+    if (this._primaryObjective) {
+      this._primaryObjective.updateFromActivity(this);
+    }
+  }
+  setPrimaryObjectiveState(satisfiedStatus, measureStatus, normalizedMeasure, progressMeasure, progressMeasureStatus, completionStatus) {
+    this._objectiveSatisfiedStatus = satisfiedStatus;
+    this._objectiveMeasureStatus = measureStatus;
+    this._objectiveNormalizedMeasure = normalizedMeasure;
+    this._progressMeasure = progressMeasure;
+    this._progressMeasureStatus = progressMeasureStatus;
+    this._completionStatus = completionStatus;
+    if (this._primaryObjective) {
+      this._primaryObjective.satisfiedStatus = satisfiedStatus;
+      this._primaryObjective.measureStatus = measureStatus;
+      this._primaryObjective.normalizedMeasure = normalizedMeasure;
+      this._primaryObjective.progressMeasure = progressMeasure;
+      this._primaryObjective.progressMeasureStatus = progressMeasureStatus;
+      this._primaryObjective.completionStatus = completionStatus;
+    }
+  }
+  getObjectiveStateSnapshot() {
+    const primarySnapshot = this._primaryObjective ? {
+      id: this._primaryObjective.id,
+      satisfiedStatus: this.objectiveSatisfiedStatus,
+      measureStatus: this.objectiveMeasureStatus,
+      normalizedMeasure: this.objectiveNormalizedMeasure,
+      progressMeasure: this.progressMeasure ?? 0,
+      progressMeasureStatus: this.progressMeasureStatus,
+      completionStatus: this.completionStatus,
+      satisfiedByMeasure: this._primaryObjective.satisfiedByMeasure,
+      minNormalizedMeasure: this._primaryObjective.minNormalizedMeasure
+    } : null;
+    const additionalSnapshots = this._objectives.map((objective) => ({
+      id: objective.id,
+      satisfiedStatus: objective.satisfiedStatus,
+      measureStatus: objective.measureStatus,
+      normalizedMeasure: objective.normalizedMeasure,
+      progressMeasure: objective.progressMeasure,
+      progressMeasureStatus: objective.progressMeasureStatus,
+      completionStatus: objective.completionStatus,
+      satisfiedByMeasure: objective.satisfiedByMeasure,
+      minNormalizedMeasure: objective.minNormalizedMeasure
+    }));
+    return {
+      primary: primarySnapshot,
+      objectives: additionalSnapshots
+    };
+  }
+  applyObjectiveStateSnapshot(snapshot) {
+    if (snapshot.primary) {
+      const primary = this.getObjectiveById(snapshot.primary.id);
+      if (primary && primary.isPrimary) {
+        const state = snapshot.primary;
+        primary.objective.satisfiedByMeasure = state.satisfiedByMeasure ?? primary.objective.satisfiedByMeasure;
+        primary.objective.minNormalizedMeasure = state.minNormalizedMeasure !== void 0 ? state.minNormalizedMeasure : primary.objective.minNormalizedMeasure;
+        this.setPrimaryObjectiveState(
+          state.satisfiedStatus,
+          state.measureStatus,
+          state.normalizedMeasure,
+          state.progressMeasure,
+          state.progressMeasureStatus,
+          state.completionStatus
+        );
+      }
+    }
+    for (const state of snapshot.objectives) {
+      const match = this.getObjectiveById(state.id);
+      if (match && !match.isPrimary) {
+        const objective = match.objective;
+        objective.satisfiedStatus = state.satisfiedStatus;
+        objective.measureStatus = state.measureStatus;
+        objective.normalizedMeasure = state.normalizedMeasure;
+        objective.progressMeasure = state.progressMeasure;
+        objective.progressMeasureStatus = state.progressMeasureStatus;
+        objective.completionStatus = state.completionStatus;
+        objective.satisfiedByMeasure = state.satisfiedByMeasure ?? objective.satisfiedByMeasure;
+        objective.minNormalizedMeasure = state.minNormalizedMeasure !== void 0 ? state.minNormalizedMeasure : objective.minNormalizedMeasure;
+      }
+    }
+  }
   /**
    * Get available children with selection and randomization applied
    * @return {Activity[]}
@@ -8763,10 +9110,58 @@ class Activity extends BaseCMI {
       objectiveSatisfiedStatus: this._objectiveSatisfiedStatus,
       objectiveMeasureStatus: this._objectiveMeasureStatus,
       objectiveNormalizedMeasure: this._objectiveNormalizedMeasure,
+      rollupConsiderations: { ...this._rollupConsiderations },
+      wasSkipped: this._wasSkipped,
+      hideLmsUi: [...this._hideLmsUi],
+      auxiliaryResources: this._auxiliaryResources.map((resource) => ({ ...resource })),
       children: this._children.map((child) => child.toJSON())
     };
     this.jsonString = false;
     return result;
+  }
+  get auxiliaryResources() {
+    return this._auxiliaryResources.map((resource) => ({ ...resource }));
+  }
+  set auxiliaryResources(resources) {
+    const sanitized = [];
+    const seen = /* @__PURE__ */ new Set();
+    for (const resource of resources || []) {
+      if (!resource) continue;
+      const resourceId = typeof resource.resourceId === "string" ? resource.resourceId.trim() : "";
+      const purpose = typeof resource.purpose === "string" ? resource.purpose.trim() : "";
+      if (!resourceId || seen.has(resourceId)) {
+        continue;
+      }
+      seen.add(resourceId);
+      sanitized.push({ resourceId, purpose });
+    }
+    this._auxiliaryResources = sanitized;
+  }
+  addAuxiliaryResource(resource) {
+    this.auxiliaryResources = [...this._auxiliaryResources, resource];
+  }
+  /**
+   * Getter for hideLmsUi directives
+   * @return {HideLmsUiItem[]}
+   */
+  get hideLmsUi() {
+    return [...this._hideLmsUi];
+  }
+  /**
+   * Setter for hideLmsUi directives
+   * @param {HideLmsUiItem[]} hideLmsUi
+   */
+  set hideLmsUi(hideLmsUi) {
+    const valid = new Set(HIDE_LMS_UI_TOKENS);
+    const seen = /* @__PURE__ */ new Set();
+    const sanitized = [];
+    for (const directive of hideLmsUi) {
+      if (valid.has(directive) && !seen.has(directive)) {
+        seen.add(directive);
+        sanitized.push(directive);
+      }
+    }
+    this._hideLmsUi = sanitized;
   }
 }
 
@@ -9051,6 +9446,8 @@ class Sequencing extends BaseCMI {
   constructor() {
     super("sequencing");
     this._adlNav = null;
+    this._hideLmsUi = [];
+    this._auxiliaryResources = [];
     this._activityTree = new ActivityTree();
     this._sequencingRules = new SequencingRules();
     this._sequencingControls = new SequencingControls();
@@ -9075,6 +9472,8 @@ class Sequencing extends BaseCMI {
     this._sequencingRules.reset();
     this._sequencingControls.reset();
     this._rollupRules.reset();
+    this._hideLmsUi = [];
+    this._auxiliaryResources = [];
   }
   /**
    * Getter for activityTree
@@ -9135,6 +9534,18 @@ class Sequencing extends BaseCMI {
       );
     }
     this._sequencingControls = sequencingControls;
+  }
+  get hideLmsUi() {
+    return [...this._hideLmsUi];
+  }
+  set hideLmsUi(items) {
+    this._hideLmsUi = [...items];
+  }
+  get auxiliaryResources() {
+    return this._auxiliaryResources.map((resource) => ({ ...resource }));
+  }
+  set auxiliaryResources(resources) {
+    this._auxiliaryResources = resources.map((resource) => ({ ...resource }));
   }
   /**
    * Getter for rollupRules
@@ -9264,17 +9675,31 @@ class RollupProcess {
     if (children.length === 0) {
       return;
     }
-    const hasValidMeasures = children.some(
-      (c) => this.checkChildForRollupSubprocess(c, "measure") && c.objectiveMeasureStatus && c.objectiveNormalizedMeasure !== null
-    );
-    if (!hasValidMeasures) {
+    const rollupConsiderations = activity.rollupConsiderations;
+    const contributingChildren = children.filter((child) => {
+      if (!this.checkChildForRollupSubprocess(child, "measure")) {
+        return false;
+      }
+      if (!child.objectiveMeasureStatus || child.objectiveNormalizedMeasure === null) {
+        return false;
+      }
+      if (!rollupConsiderations.measureSatisfactionIfActive && (child.activityAttemptActive || child.isActive)) {
+        return false;
+      }
+      return true;
+    });
+    if (contributingChildren.length === 0) {
       activity.objectiveMeasureStatus = false;
       return;
     }
-    const complexWeightedMeasure = this.calculateComplexWeightedMeasure(activity, children, { enableThresholdBias: false });
+    const complexWeightedMeasure = this.calculateComplexWeightedMeasure(
+      activity,
+      contributingChildren,
+      { enableThresholdBias: false }
+    );
     activity.objectiveNormalizedMeasure = complexWeightedMeasure;
     activity.objectiveMeasureStatus = true;
-    const clusters = this.identifyActivityClusters(children);
+    const clusters = this.identifyActivityClusters(contributingChildren);
     if (clusters.length > 1) {
       this.processCrossClusterDependencies(activity, clusters);
     }
@@ -9344,14 +9769,34 @@ class RollupProcess {
     if (children.length === 0) {
       return false;
     }
-    for (const child of children) {
-      if (this.checkChildForRollupSubprocess(child, "objective")) {
-        if (!child.objectiveSatisfiedStatus) {
-          return false;
-        }
-      }
+    const contributors = children.filter(
+      (child) => this.checkChildForRollupSubprocess(child, "objective")
+    );
+    if (contributors.length === 0) {
+      return false;
     }
-    return true;
+    const considerations = activity.rollupConsiderations;
+    const notSatisfiedCandidates = this.filterChildrenForRequirement(
+      contributors,
+      considerations.requiredForNotSatisfied,
+      "objective",
+      "notSatisfied",
+      considerations
+    );
+    if (notSatisfiedCandidates.some((child) => !this.isChildSatisfiedForRollup(child))) {
+      return false;
+    }
+    const satisfiedCandidates = this.filterChildrenForRequirement(
+      contributors,
+      considerations.requiredForSatisfied,
+      "objective",
+      "satisfied",
+      considerations
+    );
+    if (satisfiedCandidates.length === 0) {
+      return false;
+    }
+    return satisfiedCandidates.every((child) => this.isChildSatisfiedForRollup(child));
   }
   /**
    * Activity Progress Rollup Process (RB.1.3)
@@ -9379,15 +9824,30 @@ class RollupProcess {
       }
     }
     const children = activity.getAvailableChildren();
-    let allCompleted = true;
-    for (const child of children) {
-      if (this.checkChildForRollupSubprocess(child, "progress")) {
-        if (child.completionStatus !== "completed") {
-          allCompleted = false;
-          break;
-        }
-      }
+    const contributors = children.filter(
+      (child) => this.checkChildForRollupSubprocess(child, "progress")
+    );
+    const considerations = activity.rollupConsiderations;
+    const incompleteCandidates = this.filterChildrenForRequirement(
+      contributors,
+      considerations.requiredForIncomplete,
+      "progress",
+      "incomplete",
+      considerations
+    );
+    if (incompleteCandidates.some((child) => !this.isChildCompletedForRollup(child))) {
+      activity.completionStatus = "incomplete";
+      return;
     }
+    const completedCandidates = this.filterChildrenForRequirement(
+      contributors,
+      considerations.requiredForCompleted,
+      "progress",
+      "completed",
+      considerations
+    );
+    const evaluationSet = completedCandidates.length > 0 ? completedCandidates : contributors;
+    const allCompleted = evaluationSet.length === 0 || evaluationSet.every((child) => this.isChildCompletedForRollup(child));
     activity.completionStatus = allCompleted ? "completed" : "incomplete";
   }
   /**
@@ -9415,6 +9875,58 @@ class RollupProcess {
       return false;
     }
     return true;
+  }
+  filterChildrenForRequirement(children, requirement, rollupType, mode, considerations) {
+    return children.filter(
+      (child) => this.shouldIncludeChildForRollup(child, requirement, rollupType, mode, considerations)
+    );
+  }
+  shouldIncludeChildForRollup(child, requirement, rollupType, _mode, considerations) {
+    if (!this.checkChildForRollupSubprocess(child, rollupType)) {
+      return false;
+    }
+    if (rollupType === "objective" && !considerations.measureSatisfactionIfActive && (child.activityAttemptActive || child.isActive)) {
+      return false;
+    }
+    switch (requirement) {
+      case "ifAttempted":
+        if (!(child.attemptCount > 0 || child.activityAttemptActive || child.isActive)) {
+          return false;
+        }
+        break;
+      case "ifNotSkipped":
+        if (child.wasSkipped) {
+          return false;
+        }
+        break;
+      case "ifNotSuspended":
+        if (child.isSuspended) {
+          return false;
+        }
+        break;
+    }
+    return true;
+  }
+  isChildSatisfiedForRollup(child) {
+    if (child.objectiveSatisfiedStatus === true) {
+      return true;
+    }
+    if (child.objectiveSatisfiedStatus === false) {
+      return false;
+    }
+    if (child.successStatus === SuccessStatus.PASSED) {
+      return true;
+    }
+    if (child.successStatus === SuccessStatus.FAILED) {
+      return false;
+    }
+    return false;
+  }
+  isChildCompletedForRollup(child) {
+    if (child.completionStatus === "completed" || child.isCompleted) {
+      return true;
+    }
+    return false;
   }
   /**
    * Evaluate a rollup rule
@@ -9658,14 +10170,13 @@ class RollupProcess {
    * Synchronize global objectives with activity-specific objectives
    */
   synchronizeGlobalObjectives(activity, globalObjectives) {
-    const activityObjectives = this.getActivityObjectives(activity);
-    for (const objectiveId of activityObjectives) {
-      if (globalObjectives.has(objectiveId)) {
-        const globalObjective = globalObjectives.get(objectiveId);
-        this.syncObjectiveState(activity, objectiveId, globalObjective);
-      } else {
-        const localObjective = this.getLocalObjectiveState(activity, objectiveId);
-        globalObjectives.set(objectiveId, localObjective);
+    const objectives = activity.getAllObjectives();
+    for (const objective of objectives) {
+      const mapInfos = objective.mapInfo.length > 0 ? objective.mapInfo : [this.createDefaultMapInfo(objective)];
+      for (const mapInfo of mapInfos) {
+        const targetId = mapInfo.targetObjectiveID || objective.id;
+        const globalObjective = this.ensureGlobalObjectiveEntry(globalObjectives, targetId, objective, mapInfo);
+        this.syncObjectiveState(activity, objective, mapInfo, globalObjective);
       }
     }
   }
@@ -9743,60 +10254,64 @@ class RollupProcess {
    * Get activity objectives (implementation depends on objective model)
    */
   getActivityObjectives(activity) {
-    return [activity.id + "_primary_objective"];
+    return activity.getAllObjectives().map((objective) => objective.id);
   }
   /**
    * Synchronize objective state between local and global according to SCORM 2004 specification
    */
-  syncObjectiveState(activity, objectiveId, globalObjective) {
+  syncObjectiveState(activity, objective, mapInfo, globalObjective) {
     try {
-      const localObjective = this.getLocalObjectiveState(activity, objectiveId);
+      const isPrimary = objective.isPrimary;
+      const localObjective = this.getLocalObjectiveState(activity, objective, isPrimary);
       if (globalObjective.readSatisfiedStatus && globalObjective.satisfiedStatusKnown) {
-        activity.objectiveSatisfiedStatus = globalObjective.satisfiedStatus;
-        activity.objectiveMeasureStatus = true;
+        objective.satisfiedStatus = globalObjective.satisfiedStatus;
+        objective.measureStatus = true;
       }
       if (globalObjective.readNormalizedMeasure && globalObjective.normalizedMeasureKnown) {
-        activity.objectiveNormalizedMeasure = globalObjective.normalizedMeasure;
-        activity.objectiveMeasureStatus = true;
-        if (globalObjective.satisfiedByMeasure) {
-          const scaledPassingScore = activity.scaledPassingScore || 0.7;
-          activity.objectiveSatisfiedStatus = globalObjective.normalizedMeasure >= scaledPassingScore;
+        objective.normalizedMeasure = globalObjective.normalizedMeasure;
+        objective.measureStatus = true;
+        if (globalObjective.satisfiedByMeasure || objective.satisfiedByMeasure) {
+          const threshold = objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
+          objective.satisfiedStatus = globalObjective.normalizedMeasure >= threshold;
         }
       }
-      if (globalObjective.writeSatisfiedStatus && activity.objectiveMeasureStatus) {
-        globalObjective.satisfiedStatus = activity.objectiveSatisfiedStatus;
+      if (globalObjective.readProgressMeasure && globalObjective.progressMeasureKnown) {
+        objective.progressMeasure = globalObjective.progressMeasure;
+        objective.progressMeasureStatus = true;
+      }
+      if (globalObjective.readCompletionStatus && globalObjective.completionStatusKnown) {
+        objective.completionStatus = globalObjective.completionStatus;
+      }
+      if (objective.isPrimary) {
+        objective.applyToActivity(activity);
+      }
+      if (globalObjective.writeSatisfiedStatus && objective.measureStatus) {
+        globalObjective.satisfiedStatus = objective.satisfiedStatus;
         globalObjective.satisfiedStatusKnown = true;
       }
-      if (globalObjective.writeNormalizedMeasure && activity.objectiveMeasureStatus) {
-        globalObjective.normalizedMeasure = activity.objectiveNormalizedMeasure;
+      if (globalObjective.writeNormalizedMeasure && objective.measureStatus) {
+        globalObjective.normalizedMeasure = objective.normalizedMeasure;
         globalObjective.normalizedMeasureKnown = true;
-        if (globalObjective.satisfiedByMeasure) {
-          const scaledPassingScore = activity.scaledPassingScore || 0.7;
-          globalObjective.satisfiedStatus = activity.objectiveNormalizedMeasure >= scaledPassingScore;
+        if (globalObjective.satisfiedByMeasure || objective.satisfiedByMeasure) {
+          const threshold = objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
+          globalObjective.satisfiedStatus = objective.normalizedMeasure >= threshold;
           globalObjective.satisfiedStatusKnown = true;
         }
       }
-      if (globalObjective.writeCompletionStatus && activity.completionStatus !== "unknown") {
-        globalObjective.completionStatus = activity.completionStatus;
+      if (globalObjective.writeCompletionStatus && objective.completionStatus !== CompletionStatus.UNKNOWN) {
+        globalObjective.completionStatus = objective.completionStatus;
         globalObjective.completionStatusKnown = true;
       }
-      if (globalObjective.readCompletionStatus && globalObjective.completionStatusKnown) {
-        activity.completionStatus = globalObjective.completionStatus;
-      }
-      if (globalObjective.writeProgressMeasure && activity.progressMeasureStatus) {
-        globalObjective.progressMeasure = activity.progressMeasure;
+      if (globalObjective.writeProgressMeasure && objective.progressMeasureStatus) {
+        globalObjective.progressMeasure = objective.progressMeasure;
         globalObjective.progressMeasureKnown = true;
       }
-      if (globalObjective.readProgressMeasure && globalObjective.progressMeasureKnown) {
-        activity.progressMeasure = globalObjective.progressMeasure;
-        activity.progressMeasureStatus = true;
-      }
       if (globalObjective.updateAttemptData) {
-        this.updateActivityAttemptData(activity, globalObjective);
+        this.updateActivityAttemptData(activity, globalObjective, objective);
       }
       this.eventCallback?.("objective_synchronized", {
         activityId: activity.id,
-        objectiveId,
+        objectiveId: objective.id,
         localState: localObjective,
         globalState: globalObjective,
         synchronizationTime: (/* @__PURE__ */ new Date()).toISOString()
@@ -9804,7 +10319,7 @@ class RollupProcess {
     } catch (error) {
       this.eventCallback?.("objective_sync_error", {
         activityId: activity.id,
-        objectiveId,
+        objectiveId: objective.id,
         error: error instanceof Error ? error.message : String(error),
         timestamp: (/* @__PURE__ */ new Date()).toISOString()
       });
@@ -9813,8 +10328,11 @@ class RollupProcess {
   /**
    * Update activity attempt data based on global objective state
    */
-  updateActivityAttemptData(activity, globalObjective) {
+  updateActivityAttemptData(activity, globalObjective, objective) {
     try {
+      if (!objective.isPrimary && !globalObjective.updateAttemptData) {
+        return;
+      }
       if (globalObjective.satisfiedStatusKnown && globalObjective.satisfiedStatus) {
         if (activity.completionStatus === "unknown" || activity.completionStatus === "incomplete") {
           activity.completionStatus = "completed";
@@ -9858,13 +10376,75 @@ class RollupProcess {
   /**
    * Get local objective state
    */
-  getLocalObjectiveState(activity, objectiveId) {
+  getLocalObjectiveState(activity, objective, isPrimary) {
+    if (isPrimary) {
+      return {
+        id: objective.id,
+        satisfiedStatus: activity.objectiveSatisfiedStatus,
+        measureStatus: activity.objectiveMeasureStatus,
+        normalizedMeasure: activity.objectiveNormalizedMeasure,
+        progressMeasure: activity.progressMeasure,
+        progressMeasureStatus: activity.progressMeasureStatus,
+        completionStatus: activity.completionStatus,
+        scaledPassingScore: activity.scaledPassingScore
+      };
+    }
     return {
-      id: objectiveId,
-      satisfiedStatus: activity.objectiveSatisfiedStatus,
-      measureStatus: activity.objectiveMeasureStatus,
-      normalizedMeasure: activity.objectiveNormalizedMeasure,
-      scaledPassingScore: activity.scaledPassingScore
+      id: objective.id,
+      satisfiedStatus: objective.satisfiedStatus,
+      measureStatus: objective.measureStatus,
+      normalizedMeasure: objective.normalizedMeasure,
+      progressMeasure: objective.progressMeasure,
+      progressMeasureStatus: objective.progressMeasureStatus,
+      completionStatus: objective.completionStatus,
+      scaledPassingScore: objective.minNormalizedMeasure
+    };
+  }
+  ensureGlobalObjectiveEntry(globalObjectives, targetId, objective, mapInfo) {
+    if (!globalObjectives.has(targetId)) {
+      globalObjectives.set(targetId, {
+        id: targetId,
+        satisfiedStatus: objective.satisfiedStatus,
+        satisfiedStatusKnown: objective.measureStatus,
+        normalizedMeasure: objective.normalizedMeasure,
+        normalizedMeasureKnown: objective.measureStatus,
+        progressMeasure: objective.progressMeasure,
+        progressMeasureKnown: objective.progressMeasureStatus,
+        completionStatus: objective.completionStatus,
+        completionStatusKnown: objective.completionStatus !== CompletionStatus.UNKNOWN,
+        readSatisfiedStatus: mapInfo.readSatisfiedStatus ?? false,
+        writeSatisfiedStatus: mapInfo.writeSatisfiedStatus ?? false,
+        readNormalizedMeasure: mapInfo.readNormalizedMeasure ?? false,
+        writeNormalizedMeasure: mapInfo.writeNormalizedMeasure ?? false,
+        readCompletionStatus: mapInfo.readCompletionStatus ?? false,
+        writeCompletionStatus: mapInfo.writeCompletionStatus ?? false,
+        readProgressMeasure: mapInfo.readProgressMeasure ?? false,
+        writeProgressMeasure: mapInfo.writeProgressMeasure ?? false,
+        readRawScore: mapInfo.readRawScore ?? false,
+        writeRawScore: mapInfo.writeRawScore ?? false,
+        readMinScore: mapInfo.readMinScore ?? false,
+        writeMinScore: mapInfo.writeMinScore ?? false,
+        readMaxScore: mapInfo.readMaxScore ?? false,
+        writeMaxScore: mapInfo.writeMaxScore ?? false,
+        satisfiedByMeasure: objective.satisfiedByMeasure,
+        minNormalizedMeasure: objective.minNormalizedMeasure,
+        updateAttemptData: mapInfo.updateAttemptData ?? objective.isPrimary
+      });
+    }
+    return globalObjectives.get(targetId);
+  }
+  createDefaultMapInfo(objective) {
+    return {
+      targetObjectiveID: objective.id,
+      readSatisfiedStatus: true,
+      writeSatisfiedStatus: true,
+      readNormalizedMeasure: true,
+      writeNormalizedMeasure: true,
+      readCompletionStatus: true,
+      writeCompletionStatus: true,
+      readProgressMeasure: true,
+      writeProgressMeasure: true,
+      updateAttemptData: objective.isPrimary
     };
   }
   /**
@@ -10523,6 +11103,7 @@ class SequencingProcess {
       activity,
       activity.sequencingRules.preConditionRules
     );
+    activity.wasSkipped = preConditionResult === RuleActionType.SKIP;
     return preConditionResult !== RuleActionType.SKIP && preConditionResult !== RuleActionType.DISABLED;
   }
   /**
@@ -11464,7 +12045,12 @@ class OverallSequencingProcess {
     this.eventCallback = eventCallback;
     this.now = options?.now || (() => /* @__PURE__ */ new Date());
     this.enhancedDeliveryValidation = options?.enhancedDeliveryValidation === true;
+    this.defaultHideLmsUi = options?.defaultHideLmsUi ? [...options.defaultHideLmsUi] : [];
+    this.defaultAuxiliaryResources = options?.defaultAuxiliaryResources ? options.defaultAuxiliaryResources.map((resource) => ({ ...resource })) : [];
     this.initializeGlobalObjectiveMap();
+  }
+  static {
+    this.HIDE_LMS_UI_ORDER = [...HIDE_LMS_UI_TOKENS];
   }
   /**
    * Overall Sequencing Process (OP.1)
@@ -11996,6 +12582,7 @@ class OverallSequencingProcess {
     if (!activity.attemptCount || activity.attemptCount === 0) {
       activity.attemptCount = 1;
     }
+    activity.wasSkipped = false;
     activity.attemptAbsoluteStartTime = this.now().toISOString();
     if (!activity.location) {
       activity.location = "";
@@ -12063,6 +12650,7 @@ class OverallSequencingProcess {
       return;
     }
     activity.isActive = false;
+    activity.activityAttemptActive = false;
     if (activity.completionStatus === "unknown") {
       activity.completionStatus = "incomplete";
     }
@@ -12113,8 +12701,45 @@ class OverallSequencingProcess {
       continue: continueResult.valid,
       previous: previousResult.valid,
       choice: choiceMap,
-      jump: jumpMap
+      jump: jumpMap,
+      hideLmsUi: this.getEffectiveHideLmsUi(this.activityTree.currentActivity)
     });
+  }
+  getEffectiveHideLmsUi(activity) {
+    const seen = /* @__PURE__ */ new Set();
+    for (const directive of this.defaultHideLmsUi) {
+      seen.add(directive);
+    }
+    let current = activity;
+    while (current) {
+      for (const directive of current.hideLmsUi) {
+        seen.add(directive);
+      }
+      current = current.parent;
+    }
+    return OverallSequencingProcess.HIDE_LMS_UI_ORDER.filter((directive) => seen.has(directive));
+  }
+  getEffectiveAuxiliaryResources(activity) {
+    const merged = /* @__PURE__ */ new Map();
+    for (const resource of this.defaultAuxiliaryResources) {
+      if (resource.resourceId) {
+        merged.set(resource.resourceId, { ...resource });
+      }
+    }
+    const lineage = [];
+    let current = activity;
+    while (current) {
+      lineage.push(current);
+      current = current.parent;
+    }
+    for (const node of lineage.reverse()) {
+      for (const resource of node.auxiliaryResources) {
+        if (resource.resourceId) {
+          merged.set(resource.resourceId, { ...resource });
+        }
+      }
+    }
+    return Array.from(merged.values());
   }
   /**
    * Find common ancestor between two activities
@@ -12297,7 +12922,8 @@ class OverallSequencingProcess {
       currentActivity: this.activityTree.currentActivity?.id || null,
       suspendedActivity: this.activityTree.suspendedActivity?.id || null,
       activityStates: this.serializeActivityStates(),
-      navigationState: this.getNavigationState()
+      navigationState: this.getNavigationState(),
+      globalObjectiveMap: this.serializeGlobalObjectiveMap()
     };
   }
   /**
@@ -12313,6 +12939,9 @@ class OverallSequencingProcess {
         return false;
       }
       this.contentDelivered = state.contentDelivered || false;
+      if (state.globalObjectiveMap) {
+        this.restoreGlobalObjectiveMap(state.globalObjectiveMap);
+      }
       if (state.activityStates) {
         this.deserializeActivityStates(state.activityStates);
       }
@@ -12332,6 +12961,9 @@ class OverallSequencingProcess {
       }
       if (state.navigationState) {
         this.restoreNavigationState(state.navigationState);
+      }
+      if (this.activityTree.root) {
+        this.rollupProcess.processGlobalObjectiveMapping(this.activityTree.root, this.globalObjectiveMap);
       }
       console.debug("Sequencing state restored successfully");
       return true;
@@ -12368,8 +13000,18 @@ class OverallSequencingProcess {
         progressMeasure: activity.progressMeasure,
         progressMeasureStatus: activity.progressMeasureStatus,
         isAvailable: activity.isAvailable,
+        isHiddenFromChoice: activity.isHiddenFromChoice,
         location: activity.location,
-        attemptAbsoluteStartTime: activity.attemptAbsoluteStartTime
+        attemptAbsoluteStartTime: activity.attemptAbsoluteStartTime,
+        objectives: activity.getObjectiveStateSnapshot(),
+        auxiliaryResources: activity.auxiliaryResources,
+        selectionRandomizationState: {
+          selectionCountStatus: activity.sequencingControls.selectionCountStatus,
+          reorderChildren: activity.sequencingControls.reorderChildren,
+          childOrder: activity.children.map((child) => child.id),
+          selectedChildIds: activity.children.filter((child) => child.isAvailable).map((child) => child.id),
+          hiddenFromChoiceChildIds: activity.children.filter((child) => child.isHiddenFromChoice).map((child) => child.id)
+        }
       };
       for (const child of activity.children) {
         serializeActivity(child);
@@ -12406,11 +13048,50 @@ class OverallSequencingProcess {
         activity.progressMeasure = state.progressMeasure || null;
         activity.progressMeasureStatus = state.progressMeasureStatus || false;
         activity.isAvailable = state.isAvailable !== false;
+        activity.isHiddenFromChoice = state.isHiddenFromChoice === true;
         activity.location = state.location || "";
         activity.attemptAbsoluteStartTime = state.attemptAbsoluteStartTime || null;
+        if (Array.isArray(state.auxiliaryResources)) {
+          activity.auxiliaryResources = state.auxiliaryResources;
+        }
+        if (state.objectives) {
+          activity.applyObjectiveStateSnapshot(state.objectives);
+        }
       }
       for (const child of activity.children) {
         restoreActivity(child);
+      }
+      if (state?.selectionRandomizationState) {
+        const selectionState = state.selectionRandomizationState;
+        const sequencingControls = activity.sequencingControls;
+        if (selectionState.selectionCountStatus !== void 0) {
+          sequencingControls.selectionCountStatus = selectionState.selectionCountStatus;
+        }
+        if (selectionState.reorderChildren !== void 0) {
+          sequencingControls.reorderChildren = selectionState.reorderChildren;
+        }
+        if (selectionState.childOrder && selectionState.childOrder.length > 0) {
+          activity.setChildOrder(selectionState.childOrder);
+        }
+        const selectedSet = Array.isArray(selectionState.selectedChildIds) ? new Set(selectionState.selectedChildIds) : null;
+        const hiddenSet = Array.isArray(selectionState.hiddenFromChoiceChildIds) ? new Set(selectionState.hiddenFromChoiceChildIds) : null;
+        if (selectedSet || hiddenSet) {
+          for (const child of activity.children) {
+            if (selectedSet) {
+              const isSelected = selectedSet.has(child.id);
+              child.isAvailable = isSelected;
+              if (!hiddenSet) {
+                child.isHiddenFromChoice = !isSelected;
+              }
+            }
+            if (hiddenSet) {
+              child.isHiddenFromChoice = hiddenSet.has(child.id);
+            }
+          }
+        }
+        activity.setProcessedChildren(activity.children.filter((child) => child.isAvailable));
+      } else {
+        activity.resetProcessedChildren();
       }
     };
     if (this.activityTree.root) {
@@ -12438,7 +13119,9 @@ class OverallSequencingProcess {
         abandon: this.adlNav.request_valid?.abandon || "false",
         abandonAll: this.adlNav.request_valid?.abandonAll || "false",
         suspendAll: this.adlNav.request_valid?.suspendAll || "false"
-      }
+      },
+      hideLmsUi: this.getEffectiveHideLmsUi(this.activityTree.currentActivity),
+      auxiliaryResources: this.getEffectiveAuxiliaryResources(this.activityTree.currentActivity)
     };
   }
   /**
@@ -12470,7 +13153,6 @@ class OverallSequencingProcess {
   /**
    * Enhanced Complex Choice Path Validation
    * Implements comprehensive choice validation with nested hierarchy support
-   * Priority 1 Gap: Complex Choice Path Validation
    * @param {Activity | null} currentActivity - Current activity
    * @param {Activity} targetActivity - Target activity for choice
    * @return {{valid: boolean, exception: string | null}} - Validation result
@@ -12486,6 +13168,15 @@ class OverallSequencingProcess {
       const commonAncestor = this.findCommonAncestor(currentActivity, targetActivity);
       if (!commonAncestor) {
         return { valid: false, exception: "NB.2.1-11" };
+      }
+      let node = currentActivity;
+      while (node) {
+        if (node.sequencingControls && node.sequencingControls.choiceExit === false) {
+          if (targetActivity !== node && !this.activityContains(node, targetActivity)) {
+            return { valid: false, exception: "NB.2.1-11" };
+          }
+        }
+        node = node.parent;
       }
       const constrainChoiceValidation = this.validateConstrainChoiceControls(currentActivity, targetActivity, commonAncestor);
       if (!constrainChoiceValidation.valid) {
@@ -12508,7 +13199,6 @@ class OverallSequencingProcess {
   /**
    * Enhanced Forward-Only Navigation Constraints
    * Handles forward-only constraints at different cluster levels
-   * Priority 1 Gap: Forward-Only Navigation Constraints
    * @param {Activity} currentActivity - Current activity
    * @return {{valid: boolean, exception: string | null}} - Validation result
    */
@@ -12528,57 +13218,77 @@ class OverallSequencingProcess {
   /**
    * Enhanced constrainChoice Control Validation
    * Implements proper constrainChoice validation in nested hierarchies
-   * Priority 1 Gap: constrainChoice control validation
    * @param {Activity} currentActivity - Current activity
    * @param {Activity} targetActivity - Target activity
    * @param {Activity} commonAncestor - Common ancestor
    * @return {{valid: boolean, exception: string | null}} - Validation result
    */
   validateConstrainChoiceControls(currentActivity, targetActivity, commonAncestor) {
-    if (commonAncestor.sequencingControls.constrainChoice) {
-      const currentIndex = commonAncestor.children.indexOf(this.findChildContaining(commonAncestor, currentActivity));
-      const targetIndex = commonAncestor.children.indexOf(this.findChildContaining(commonAncestor, targetActivity));
-      if (Math.abs(currentIndex - targetIndex) > 1) {
-        return { valid: false, exception: "NB.2.1-11" };
-      }
-    }
-    let ancestor = commonAncestor.parent;
+    let ancestor = commonAncestor;
     while (ancestor) {
-      if (ancestor.sequencingControls.constrainChoice) {
-        const ancestorValidation = this.validateAncestorConstraints(ancestor, currentActivity, targetActivity);
-        if (!ancestorValidation.valid) {
-          return ancestorValidation;
+      if (ancestor.sequencingControls?.constrainChoice || ancestor.sequencingControls?.preventActivation) {
+        const currentBranch = this.findChildContaining(ancestor, currentActivity);
+        if (!currentBranch) {
+          return { valid: false, exception: "NB.2.1-11" };
+        }
+        if (targetActivity === ancestor) {
+          return { valid: false, exception: "NB.2.1-11" };
+        }
+        const targetBranch = this.findChildContaining(ancestor, targetActivity);
+        if (!targetBranch) {
+          return { valid: false, exception: "NB.2.1-11" };
+        }
+        if (ancestor.sequencingControls?.constrainChoice && targetBranch !== currentBranch) {
+          return { valid: false, exception: "NB.2.1-11" };
+        }
+        if (ancestor.sequencingControls?.preventActivation && targetBranch !== currentBranch) {
+          if (this.requiresNewActivation(targetBranch, targetActivity)) {
+            return { valid: false, exception: "NB.2.1-11" };
+          }
         }
       }
       ancestor = ancestor.parent;
     }
-    return { valid: true, exception: null };
+    return this.validateAncestorConstraints(commonAncestor, currentActivity, targetActivity);
   }
   /**
    * Validate Choice Set Constraints
    * Validates choice sets with multiple targets
-   * Priority 1 Gap: Choice Set Constraints
    * @param {Activity} currentActivity - Current activity
    * @param {Activity} targetActivity - Target activity
    * @param {Activity} commonAncestor - Common ancestor
    * @return {{valid: boolean, exception: string | null}} - Validation result
    */
   validateChoiceSetConstraints(currentActivity, targetActivity, commonAncestor) {
-    const validChoiceSet = this.getValidChoiceSet(commonAncestor, currentActivity);
-    if (!validChoiceSet.includes(targetActivity)) {
+    if (!this.activityContains(commonAncestor, targetActivity) && targetActivity !== commonAncestor) {
       return { valid: false, exception: "NB.2.1-11" };
+    }
+    let node = targetActivity;
+    while (node && node !== commonAncestor) {
+      if (!node.isAvailable || node.isHiddenFromChoice || this.isActivityDisabled(node)) {
+        return { valid: false, exception: "NB.2.1-11" };
+      }
+      node = node.parent;
     }
     return { valid: true, exception: null };
   }
   /**
    * Check if activity is disabled
-   * Priority 1 Gap: Disabled Activity Detection
    * @param {Activity} activity - Activity to check
    * @return {boolean} - True if disabled
    */
   isActivityDisabled(activity) {
+    if (!activity.isAvailable) {
+      return true;
+    }
+    if (activity.isHiddenFromChoice) {
+      return true;
+    }
     const preConditionResult = this.evaluatePreConditionRulesForChoice(activity);
-    return preConditionResult === "DISABLED";
+    if (!preConditionResult) {
+      return false;
+    }
+    return preConditionResult === RuleActionType.DISABLED || preConditionResult === RuleActionType.HIDE_FROM_CHOICE || preConditionResult === RuleActionType.STOP_FORWARD_TRAVERSAL || preConditionResult === "DISABLED" || preConditionResult === "HIDDEN_FROM_CHOICE" || preConditionResult === "STOP_FORWARD_TRAVERSAL";
   }
   /**
    * Find child activity that contains the target activity
@@ -12635,74 +13345,76 @@ class OverallSequencingProcess {
     if (ancestor.sequencingControls.forwardOnly && targetIndex < currentIndex) {
       return { valid: false, exception: "NB.2.1-8" };
     }
+    const traversalStopIndex = children.findIndex((child) => child?.sequencingControls.stopForwardTraversal);
+    if (currentTop.sequencingControls.stopForwardTraversal && targetIndex > currentIndex) {
+      return { valid: false, exception: "NB.2.1-11" };
+    }
+    if (traversalStopIndex !== -1 && targetIndex > traversalStopIndex) {
+      return { valid: false, exception: "NB.2.1-11" };
+    }
     if (targetIndex > currentIndex) {
       for (let i = currentIndex + 1; i < targetIndex; i++) {
         const between = children[i];
-        if (between && this.helperIsActivityMandatory(between) && !this.helperIsActivityCompleted(between)) {
+        if (!between) {
+          continue;
+        }
+        if (between.sequencingControls.stopForwardTraversal) {
+          return { valid: false, exception: "NB.2.1-11" };
+        }
+        if (this.helperIsActivityMandatory(between) && !this.helperIsActivityCompleted(between)) {
           return { valid: false, exception: "NB.2.1-11" };
         }
       }
     }
     return { valid: true, exception: null };
   }
+  requiresNewActivation(branchRoot, targetActivity) {
+    if (this.branchHasActiveAttempt(branchRoot)) {
+      return false;
+    }
+    if (targetActivity.activityAttemptActive || targetActivity.isActive) {
+      return false;
+    }
+    return true;
+  }
+  branchHasActiveAttempt(activity) {
+    if (activity.activityAttemptActive || activity.isActive) {
+      return true;
+    }
+    for (const child of activity.children) {
+      if (this.branchHasActiveAttempt(child)) {
+        return true;
+      }
+    }
+    return false;
+  }
   /** Helper: mandatory activity detection (mirrors SequencingProcess behavior) */
   helperIsActivityMandatory(activity) {
-    if (activity.sequencingRules && activity.sequencingRules.preConditionRules) {
-      for (const rule of activity.sequencingRules.preConditionRules) {
-        if (rule.action === "skip" && rule.conditions && rule.conditions.length === 0) {
-          return false;
-        }
-      }
+    if (!activity.isAvailable || activity.isHiddenFromChoice) {
+      return false;
+    }
+    const preConditionResult = this.evaluatePreConditionRulesForChoice(activity);
+    if (preConditionResult === RuleActionType.SKIP || preConditionResult === RuleActionType.DISABLED || preConditionResult === RuleActionType.HIDE_FROM_CHOICE || preConditionResult === RuleActionType.STOP_FORWARD_TRAVERSAL || preConditionResult === "SKIP" || preConditionResult === "DISABLED" || preConditionResult === "HIDDEN_FROM_CHOICE" || preConditionResult === "STOP_FORWARD_TRAVERSAL") {
+      return false;
+    }
+    if (this.isActivityDisabled(activity)) {
+      return false;
     }
     return activity.mandatory !== false;
   }
   /** Helper: completed-state check (mirrors SequencingProcess behavior) */
   helperIsActivityCompleted(activity) {
+    if (!activity.isAvailable || activity.isHiddenFromChoice) {
+      return true;
+    }
+    const preConditionResult = this.evaluatePreConditionRulesForChoice(activity);
+    if (preConditionResult === RuleActionType.SKIP || preConditionResult === RuleActionType.DISABLED || preConditionResult === RuleActionType.HIDE_FROM_CHOICE || preConditionResult === RuleActionType.STOP_FORWARD_TRAVERSAL || preConditionResult === "SKIP" || preConditionResult === "DISABLED" || preConditionResult === "HIDDEN_FROM_CHOICE" || preConditionResult === "STOP_FORWARD_TRAVERSAL") {
+      return true;
+    }
+    if (this.isActivityDisabled(activity)) {
+      return true;
+    }
     return activity.completionStatus === "completed" || activity.successStatus === "passed" || activity.successStatus === "passed";
-  }
-  /**
-   * Get valid choice set for current activity
-   * @param {Activity} commonAncestor - Common ancestor
-   * @param {Activity} currentActivity - Current activity
-   * @return {Activity[]} - Array of valid choice activities
-   */
-  getValidChoiceSet(commonAncestor, currentActivity) {
-    const validChoices = [];
-    const allDescendants = this.getAllDescendants(commonAncestor);
-    for (const descendant of allDescendants) {
-      if (this.isValidChoiceTarget(descendant, currentActivity)) {
-        validChoices.push(descendant);
-      }
-    }
-    return validChoices;
-  }
-  /**
-   * Get all descendants of an activity
-   * @param {Activity} activity - Parent activity
-   * @return {Activity[]} - Array of all descendant activities
-   */
-  getAllDescendants(activity) {
-    const descendants = [];
-    for (const child of activity.children) {
-      descendants.push(child);
-      descendants.push(...this.getAllDescendants(child));
-    }
-    return descendants;
-  }
-  /**
-   * Check if activity is valid choice target
-   * @param {Activity} target - Target activity
-   * @param {Activity} currentActivity - Current activity
-   * @return {boolean} - True if valid choice target
-   */
-  isValidChoiceTarget(target, currentActivity) {
-    if (target.isHiddenFromChoice) {
-      return false;
-    }
-    if (target === currentActivity) {
-      return false;
-    }
-    return !this.isActivityDisabled(target);
   }
   /**
    * Evaluate pre-condition rules for choice navigation
@@ -12710,24 +13422,12 @@ class OverallSequencingProcess {
    * @return {string | null} - Rule result or null
    */
   evaluatePreConditionRulesForChoice(activity) {
-    const preRules = activity.sequencingRules.preConditionRules;
-    for (const rule of preRules) {
-      let conditionsMet = true;
-      if (rule.conditionCombination === "all") {
-        conditionsMet = rule.conditions.every((condition) => condition.evaluate(activity));
-      } else {
-        conditionsMet = rule.conditions.some((condition) => condition.evaluate(activity));
-      }
-      if (conditionsMet) {
-        switch (rule.action) {
-          case "skip":
-            return "SKIP";
-          case "disabled":
-            return "DISABLED";
-          case "hideFromChoice":
-            return "HIDDEN_FROM_CHOICE";
-        }
-      }
+    if (!activity.sequencingRules) {
+      return null;
+    }
+    const action = activity.sequencingRules.evaluatePreConditionRules(activity);
+    if (action) {
+      return action;
     }
     return null;
   }
@@ -13197,18 +13897,37 @@ class OverallSequencingProcess {
    * @param {Activity} activity - Activity to collect objectives from
    */
   collectGlobalObjectives(activity) {
-    const globalObjectiveId = activity.id + "_global";
-    if (!this.globalObjectiveMap.has(globalObjectiveId)) {
-      this.globalObjectiveMap.set(globalObjectiveId, {
-        id: globalObjectiveId,
-        satisfiedStatus: activity.objectiveSatisfiedStatus,
-        satisfiedStatusKnown: activity.objectiveMeasureStatus,
-        normalizedMeasure: activity.objectiveNormalizedMeasure,
-        normalizedMeasureKnown: activity.objectiveMeasureStatus,
-        progressMeasure: activity.progressMeasure,
-        progressMeasureKnown: activity.progressMeasureStatus,
-        completionStatus: activity.completionStatus,
-        completionStatusKnown: activity.completionStatus !== "unknown",
+    const objectives = activity.getAllObjectives();
+    if (objectives.length === 0) {
+      const defaultId = `${activity.id}_default_objective`;
+      if (!this.globalObjectiveMap.has(defaultId)) {
+        this.globalObjectiveMap.set(defaultId, {
+          id: defaultId,
+          satisfiedStatus: activity.objectiveSatisfiedStatus,
+          satisfiedStatusKnown: activity.objectiveMeasureStatus,
+          normalizedMeasure: activity.objectiveNormalizedMeasure,
+          normalizedMeasureKnown: activity.objectiveMeasureStatus,
+          progressMeasure: activity.progressMeasure,
+          progressMeasureKnown: activity.progressMeasureStatus,
+          completionStatus: activity.completionStatus,
+          completionStatusKnown: activity.completionStatus !== CompletionStatus.UNKNOWN,
+          readSatisfiedStatus: true,
+          writeSatisfiedStatus: true,
+          readNormalizedMeasure: true,
+          writeNormalizedMeasure: true,
+          readCompletionStatus: true,
+          writeCompletionStatus: true,
+          readProgressMeasure: true,
+          writeProgressMeasure: true,
+          satisfiedByMeasure: activity.scaledPassingScore !== null,
+          minNormalizedMeasure: activity.scaledPassingScore,
+          updateAttemptData: true
+        });
+      }
+    }
+    for (const objective of objectives) {
+      const mapInfos = objective.mapInfo.length > 0 ? objective.mapInfo : [{
+        targetObjectiveID: objective.id,
         readSatisfiedStatus: true,
         writeSatisfiedStatus: true,
         readNormalizedMeasure: true,
@@ -13217,9 +13936,41 @@ class OverallSequencingProcess {
         writeProgressMeasure: true,
         readCompletionStatus: true,
         writeCompletionStatus: true,
-        satisfiedByMeasure: activity.scaledPassingScore !== null,
-        updateAttemptData: true
-      });
+        updateAttemptData: objective.isPrimary
+      }];
+      for (const mapInfo of mapInfos) {
+        const targetId = mapInfo.targetObjectiveID || objective.id;
+        if (!this.globalObjectiveMap.has(targetId)) {
+          this.globalObjectiveMap.set(targetId, {
+            id: targetId,
+            satisfiedStatus: objective.satisfiedStatus,
+            satisfiedStatusKnown: objective.measureStatus,
+            normalizedMeasure: objective.normalizedMeasure,
+            normalizedMeasureKnown: objective.measureStatus,
+            progressMeasure: objective.progressMeasure,
+            progressMeasureKnown: objective.progressMeasureStatus,
+            completionStatus: objective.completionStatus,
+            completionStatusKnown: objective.completionStatus !== CompletionStatus.UNKNOWN,
+            readSatisfiedStatus: mapInfo.readSatisfiedStatus ?? false,
+            writeSatisfiedStatus: mapInfo.writeSatisfiedStatus ?? false,
+            readNormalizedMeasure: mapInfo.readNormalizedMeasure ?? false,
+            writeNormalizedMeasure: mapInfo.writeNormalizedMeasure ?? false,
+            readProgressMeasure: mapInfo.readProgressMeasure ?? false,
+            writeProgressMeasure: mapInfo.writeProgressMeasure ?? false,
+            readCompletionStatus: mapInfo.readCompletionStatus ?? false,
+            writeCompletionStatus: mapInfo.writeCompletionStatus ?? false,
+            readRawScore: mapInfo.readRawScore ?? false,
+            writeRawScore: mapInfo.writeRawScore ?? false,
+            readMinScore: mapInfo.readMinScore ?? false,
+            writeMinScore: mapInfo.writeMinScore ?? false,
+            readMaxScore: mapInfo.readMaxScore ?? false,
+            writeMaxScore: mapInfo.writeMaxScore ?? false,
+            satisfiedByMeasure: objective.satisfiedByMeasure,
+            minNormalizedMeasure: objective.minNormalizedMeasure,
+            updateAttemptData: mapInfo.updateAttemptData ?? objective.isPrimary
+          });
+        }
+      }
     }
     for (const child of activity.children) {
       this.collectGlobalObjectives(child);
@@ -13232,6 +13983,22 @@ class OverallSequencingProcess {
    */
   getGlobalObjectiveMap() {
     return this.globalObjectiveMap;
+  }
+  /**
+   * INTEGRATION: Snapshot the Global Objective Map
+   * Provides a serializable copy for persistence consumers
+   * @return {Record<string, any>} - Plain-object snapshot of global objectives
+   */
+  getGlobalObjectiveMapSnapshot() {
+    return this.serializeGlobalObjectiveMap();
+  }
+  /**
+   * INTEGRATION: Restore Global Objective Map
+   * Replaces the current map contents with persisted data
+   * @param {Record<string, any>} snapshot - Serialized global objective map
+   */
+  restoreGlobalObjectiveMapSnapshot(snapshot) {
+    this.restoreGlobalObjectiveMap(snapshot);
   }
   /**
    * INTEGRATION: Update Global Objective
@@ -13257,6 +14024,22 @@ class OverallSequencingProcess {
         error: error instanceof Error ? error.message : String(error),
         timestamp: (/* @__PURE__ */ new Date()).toISOString()
       });
+    }
+  }
+  serializeGlobalObjectiveMap() {
+    const serialized = {};
+    this.globalObjectiveMap.forEach((data, id) => {
+      serialized[id] = { ...data };
+    });
+    return serialized;
+  }
+  restoreGlobalObjectiveMap(mapData) {
+    this.globalObjectiveMap.clear();
+    if (!mapData) {
+      return;
+    }
+    for (const [id, data] of Object.entries(mapData)) {
+      this.globalObjectiveMap.set(id, { ...data });
     }
   }
 }
@@ -13412,6 +14195,13 @@ class SequencingService {
         );
         const overallOptions = {};
         if (this.configuration.now) overallOptions.now = this.configuration.now;
+        overallOptions.defaultHideLmsUi = [...this.sequencing.hideLmsUi];
+        if (this.sequencing.auxiliaryResources.length > 0) {
+          overallOptions.defaultAuxiliaryResources = this.sequencing.auxiliaryResources.map((resource) => ({
+            resourceId: resource.resourceId,
+            purpose: resource.purpose
+          }));
+        }
         this.overallSequencingProcess = new OverallSequencingProcess(
           this.sequencing.activityTree,
           this.sequencingProcess,
@@ -13871,6 +14661,9 @@ class SequencingService {
         case "onActivityAttemptEnd":
           this.fireActivityAttemptEnd(data);
           break;
+        case "onNavigationValidityUpdate":
+          this.fireNavigationValidityUpdate(data);
+          break;
         default:
           this.fireDebugEvent(`Sequencing process event: ${eventType}`, data);
       }
@@ -13927,6 +14720,7 @@ class Scorm2004API extends BaseAPI {
     this._globalObjectives = [];
     this._sequencingService = null;
     this._extractedScoItemIds = [];
+    this._sequencingCollections = {};
     this.cmi = new CMI();
     this.adl = new ADL();
     this._sequencing = new Sequencing();
@@ -14206,6 +15000,10 @@ class Scorm2004API extends BaseAPI {
           `_globalObjectives.${global_index}`
         );
         this._commonSetCMIValue("SetGlobalObjectiveValue", true, global_element, value);
+        const updatedObjective = this._globalObjectives[global_index];
+        if (objective_id && updatedObjective) {
+          this.updateGlobalObjectiveFromCMI(objective_id, updatedObjective);
+        }
       }
     }
     return this._commonSetCMIValue("SetValue", true, CMIElement, value);
@@ -14660,6 +15458,7 @@ class Scorm2004API extends BaseAPI {
    * @param {SequencingSettings} sequencingSettings - The sequencing settings
    */
   configureSequencing(sequencingSettings) {
+    this._sequencingCollections = this.sanitizeSequencingCollections(sequencingSettings.collections);
     if (sequencingSettings.activityTree) {
       this.configureActivityTree(sequencingSettings.activityTree);
     }
@@ -14671,6 +15470,18 @@ class Scorm2004API extends BaseAPI {
     }
     if (sequencingSettings.rollupRules) {
       this.configureRollupRules(sequencingSettings.rollupRules);
+    }
+    if (sequencingSettings.hideLmsUi) {
+      this._sequencing.hideLmsUi = this.sanitizeHideLmsUi(sequencingSettings.hideLmsUi);
+    } else {
+      this._sequencing.hideLmsUi = [];
+    }
+    if (sequencingSettings.auxiliaryResources) {
+      this._sequencing.auxiliaryResources = this.sanitizeAuxiliaryResources(
+        sequencingSettings.auxiliaryResources
+      );
+    } else {
+      this._sequencing.auxiliaryResources = [];
     }
   }
   /**
@@ -14702,6 +15513,14 @@ class Scorm2004API extends BaseAPI {
    */
   createActivity(activitySettings) {
     const activity = new Activity(activitySettings.id, activitySettings.title);
+    const selectionStates = [];
+    const collectionRefs = this.normalizeCollectionRefs(activitySettings.sequencingCollectionRefs);
+    for (const ref of collectionRefs) {
+      const collection = this._sequencingCollections[ref];
+      if (collection) {
+        this.applySequencingCollection(activity, collection, selectionStates);
+      }
+    }
     if (activitySettings.isVisible !== void 0) {
       activity.isVisible = activitySettings.isVisible;
     }
@@ -14714,58 +15533,84 @@ class Scorm2004API extends BaseAPI {
     if (activitySettings.isCompleted !== void 0) {
       activity.isCompleted = activitySettings.isCompleted;
     }
+    if (activitySettings.isHiddenFromChoice !== void 0) {
+      activity.isHiddenFromChoice = activitySettings.isHiddenFromChoice;
+    }
+    if (activitySettings.isAvailable !== void 0) {
+      activity.isAvailable = activitySettings.isAvailable;
+    }
+    if (activitySettings.attemptLimit !== void 0) {
+      activity.attemptLimit = activitySettings.attemptLimit;
+    }
+    if (activitySettings.attemptAbsoluteDurationLimit !== void 0) {
+      activity.attemptAbsoluteDurationLimit = activitySettings.attemptAbsoluteDurationLimit;
+    }
+    if (activitySettings.activityAbsoluteDurationLimit !== void 0) {
+      activity.activityAbsoluteDurationLimit = activitySettings.activityAbsoluteDurationLimit;
+    }
+    if (activitySettings.timeLimitAction !== void 0) {
+      activity.timeLimitAction = activitySettings.timeLimitAction;
+    }
+    if (activitySettings.timeLimitDuration !== void 0) {
+      activity.timeLimitDuration = activitySettings.timeLimitDuration;
+    }
+    if (activitySettings.beginTimeLimit !== void 0) {
+      activity.beginTimeLimit = activitySettings.beginTimeLimit;
+    }
+    if (activitySettings.endTimeLimit !== void 0) {
+      activity.endTimeLimit = activitySettings.endTimeLimit;
+    }
+    if (activitySettings.primaryObjective) {
+      const primaryObjective = this.createActivityObjectiveFromSettings(
+        activitySettings.primaryObjective,
+        true
+      );
+      activity.primaryObjective = primaryObjective;
+      if (primaryObjective.minNormalizedMeasure !== null) {
+        activity.scaledPassingScore = primaryObjective.minNormalizedMeasure;
+      }
+    }
+    if (activitySettings.objectives) {
+      for (const objectiveSettings of activitySettings.objectives) {
+        const objective = this.createActivityObjectiveFromSettings(objectiveSettings, false);
+        activity.addObjective(objective);
+      }
+    }
+    if (activitySettings.sequencingControls) {
+      this.applySequencingControlsSettings(activity.sequencingControls, activitySettings.sequencingControls);
+    }
+    if (activitySettings.sequencingRules) {
+      this.applySequencingRulesSettings(activity.sequencingRules, activitySettings.sequencingRules);
+    }
+    if (activitySettings.rollupRules) {
+      this.applyRollupRulesSettings(activity.rollupRules, activitySettings.rollupRules);
+    }
+    if (activitySettings.rollupConsiderations) {
+      activity.applyRollupConsiderations(activitySettings.rollupConsiderations);
+    }
+    if (activitySettings.hideLmsUi) {
+      const mergedHide = this.mergeHideLmsUi(activity.hideLmsUi, activitySettings.hideLmsUi);
+      if (mergedHide.length > 0) {
+        activity.hideLmsUi = mergedHide;
+      }
+    }
+    if (activitySettings.auxiliaryResources) {
+      const sanitizedAux = this.sanitizeAuxiliaryResources(activitySettings.auxiliaryResources);
+      if (sanitizedAux.length > 0) {
+        activity.auxiliaryResources = this.mergeAuxiliaryResources(activity.auxiliaryResources, sanitizedAux);
+      }
+    }
     if (activitySettings.children) {
       for (const childSettings of activitySettings.children) {
         const childActivity = this.createActivity(childSettings);
         activity.addChild(childActivity);
       }
     }
-    if (activitySettings.sequencingControls) {
-      const sc = activity.sequencingControls;
-      const c = activitySettings.sequencingControls;
-      if (c.enabled !== void 0) sc.enabled = c.enabled;
-      if (c.choiceExit !== void 0) sc.choiceExit = c.choiceExit;
-      if (c.flow !== void 0) sc.flow = c.flow;
-      if (c.forwardOnly !== void 0) sc.forwardOnly = c.forwardOnly;
-      if (c.useCurrentAttemptObjectiveInfo !== void 0)
-        sc.useCurrentAttemptObjectiveInfo = c.useCurrentAttemptObjectiveInfo;
-      if (c.useCurrentAttemptProgressInfo !== void 0)
-        sc.useCurrentAttemptProgressInfo = c.useCurrentAttemptProgressInfo;
-      if (c.preventActivation !== void 0) sc.preventActivation = c.preventActivation;
-      if (c.constrainChoice !== void 0) sc.constrainChoice = c.constrainChoice;
-      if (c.rollupObjectiveSatisfied !== void 0)
-        sc.rollupObjectiveSatisfied = c.rollupObjectiveSatisfied;
-      if (c.rollupProgressCompletion !== void 0)
-        sc.rollupProgressCompletion = c.rollupProgressCompletion;
-      if (c.objectiveMeasureWeight !== void 0)
-        sc.objectiveMeasureWeight = c.objectiveMeasureWeight;
+    if (activitySettings.selectionRandomizationState) {
+      selectionStates.push(this.cloneSelectionRandomizationState(activitySettings.selectionRandomizationState));
     }
-    if (activitySettings.sequencingRules) {
-      const rs = activitySettings.sequencingRules;
-      if (rs.preConditionRules) {
-        for (const ruleSettings of rs.preConditionRules) {
-          const rule = this.createSequencingRule(ruleSettings);
-          activity.sequencingRules.addPreConditionRule(rule);
-        }
-      }
-      if (rs.exitConditionRules) {
-        for (const ruleSettings of rs.exitConditionRules) {
-          const rule = this.createSequencingRule(ruleSettings);
-          activity.sequencingRules.addExitConditionRule(rule);
-        }
-      }
-      if (rs.postConditionRules) {
-        for (const ruleSettings of rs.postConditionRules) {
-          const rule = this.createSequencingRule(ruleSettings);
-          activity.sequencingRules.addPostConditionRule(rule);
-        }
-      }
-    }
-    if (activitySettings.rollupRules && activitySettings.rollupRules.rules) {
-      for (const ruleSettings of activitySettings.rollupRules.rules) {
-        const rule = this.createRollupRule(ruleSettings);
-        activity.rollupRules.addRule(rule);
-      }
+    for (const state of selectionStates) {
+      this.applySelectionRandomizationState(activity, state);
     }
     return activity;
   }
@@ -14774,25 +15619,7 @@ class Scorm2004API extends BaseAPI {
    * @param {SequencingRulesSettings} sequencingRulesSettings - The sequencing rules settings
    */
   configureSequencingRules(sequencingRulesSettings) {
-    const sequencingRules = this._sequencing.sequencingRules;
-    if (sequencingRulesSettings.preConditionRules) {
-      for (const ruleSettings of sequencingRulesSettings.preConditionRules) {
-        const rule = this.createSequencingRule(ruleSettings);
-        sequencingRules.addPreConditionRule(rule);
-      }
-    }
-    if (sequencingRulesSettings.exitConditionRules) {
-      for (const ruleSettings of sequencingRulesSettings.exitConditionRules) {
-        const rule = this.createSequencingRule(ruleSettings);
-        sequencingRules.addExitConditionRule(rule);
-      }
-    }
-    if (sequencingRulesSettings.postConditionRules) {
-      for (const ruleSettings of sequencingRulesSettings.postConditionRules) {
-        const rule = this.createSequencingRule(ruleSettings);
-        sequencingRules.addPostConditionRule(rule);
-      }
-    }
+    this.applySequencingRulesSettings(this._sequencing.sequencingRules, sequencingRulesSettings);
   }
   /**
    * Create a sequencing rule from settings
@@ -14816,53 +15643,364 @@ class Scorm2004API extends BaseAPI {
    * @param {SequencingControlsSettings} sequencingControlsSettings - The sequencing controls settings
    */
   configureSequencingControls(sequencingControlsSettings) {
-    const sequencingControls = this._sequencing.sequencingControls;
-    if (sequencingControlsSettings.enabled !== void 0) {
-      sequencingControls.enabled = sequencingControlsSettings.enabled;
+    this.applySequencingControlsSettings(this._sequencing.sequencingControls, sequencingControlsSettings);
+  }
+  applySelectionRandomizationState(activity, state) {
+    const sequencingControls = activity.sequencingControls;
+    if (state.selectionCountStatus !== void 0) {
+      sequencingControls.selectionCountStatus = state.selectionCountStatus;
     }
-    if (sequencingControlsSettings.choiceExit !== void 0) {
-      sequencingControls.choiceExit = sequencingControlsSettings.choiceExit;
+    if (state.reorderChildren !== void 0) {
+      sequencingControls.reorderChildren = state.reorderChildren;
     }
-    if (sequencingControlsSettings.flow !== void 0) {
-      sequencingControls.flow = sequencingControlsSettings.flow;
+    const selectedSet = state.selectedChildIds ? new Set(state.selectedChildIds) : null;
+    const hiddenSet = state.hiddenFromChoiceChildIds ? new Set(state.hiddenFromChoiceChildIds) : null;
+    if (state.childOrder && state.childOrder.length > 0) {
+      activity.setChildOrder(state.childOrder);
     }
-    if (sequencingControlsSettings.forwardOnly !== void 0) {
-      sequencingControls.forwardOnly = sequencingControlsSettings.forwardOnly;
+    let selectionTouched = false;
+    if (selectedSet || hiddenSet) {
+      for (const child of activity.children) {
+        if (selectedSet) {
+          const isSelected = selectedSet.has(child.id);
+          child.isAvailable = isSelected;
+          if (!hiddenSet) {
+            child.isHiddenFromChoice = !isSelected;
+          }
+          selectionTouched = true;
+        }
+        if (hiddenSet) {
+          child.isHiddenFromChoice = hiddenSet.has(child.id);
+          selectionTouched = true;
+        }
+      }
     }
-    if (sequencingControlsSettings.useCurrentAttemptObjectiveInfo !== void 0) {
-      sequencingControls.useCurrentAttemptObjectiveInfo = sequencingControlsSettings.useCurrentAttemptObjectiveInfo;
+    const shouldSetProcessedChildren = selectionTouched || !!selectedSet || state.selectionCountStatus !== void 0 || state.reorderChildren !== void 0 || state.childOrder && state.childOrder.length > 0;
+    if (shouldSetProcessedChildren) {
+      activity.setProcessedChildren(activity.children.filter((child) => child.isAvailable));
     }
-    if (sequencingControlsSettings.useCurrentAttemptProgressInfo !== void 0) {
-      sequencingControls.useCurrentAttemptProgressInfo = sequencingControlsSettings.useCurrentAttemptProgressInfo;
+  }
+  applySequencingControlsSettings(target, settings) {
+    if (settings.enabled !== void 0) {
+      target.enabled = settings.enabled;
     }
-    if (sequencingControlsSettings.preventActivation !== void 0) {
-      sequencingControls.preventActivation = sequencingControlsSettings.preventActivation;
+    if (settings.choice !== void 0) {
+      target.choice = settings.choice;
     }
-    if (sequencingControlsSettings.constrainChoice !== void 0) {
-      sequencingControls.constrainChoice = sequencingControlsSettings.constrainChoice;
+    if (settings.choiceExit !== void 0) {
+      target.choiceExit = settings.choiceExit;
     }
-    if (sequencingControlsSettings.rollupObjectiveSatisfied !== void 0) {
-      sequencingControls.rollupObjectiveSatisfied = sequencingControlsSettings.rollupObjectiveSatisfied;
+    if (settings.flow !== void 0) {
+      target.flow = settings.flow;
     }
-    if (sequencingControlsSettings.rollupProgressCompletion !== void 0) {
-      sequencingControls.rollupProgressCompletion = sequencingControlsSettings.rollupProgressCompletion;
+    if (settings.forwardOnly !== void 0) {
+      target.forwardOnly = settings.forwardOnly;
     }
-    if (sequencingControlsSettings.objectiveMeasureWeight !== void 0) {
-      sequencingControls.objectiveMeasureWeight = sequencingControlsSettings.objectiveMeasureWeight;
+    if (settings.useCurrentAttemptObjectiveInfo !== void 0) {
+      target.useCurrentAttemptObjectiveInfo = settings.useCurrentAttemptObjectiveInfo;
     }
+    if (settings.useCurrentAttemptProgressInfo !== void 0) {
+      target.useCurrentAttemptProgressInfo = settings.useCurrentAttemptProgressInfo;
+    }
+    if (settings.preventActivation !== void 0) {
+      target.preventActivation = settings.preventActivation;
+    }
+    if (settings.constrainChoice !== void 0) {
+      target.constrainChoice = settings.constrainChoice;
+    }
+    if (settings.stopForwardTraversal !== void 0) {
+      target.stopForwardTraversal = settings.stopForwardTraversal;
+    }
+    if (settings.rollupObjectiveSatisfied !== void 0) {
+      target.rollupObjectiveSatisfied = settings.rollupObjectiveSatisfied;
+    }
+    if (settings.rollupProgressCompletion !== void 0) {
+      target.rollupProgressCompletion = settings.rollupProgressCompletion;
+    }
+    if (settings.objectiveMeasureWeight !== void 0) {
+      target.objectiveMeasureWeight = settings.objectiveMeasureWeight;
+    }
+    if (settings.selectionTiming !== void 0) {
+      target.selectionTiming = settings.selectionTiming;
+    }
+    if (settings.selectCount !== void 0) {
+      target.selectCount = settings.selectCount;
+    }
+    if (settings.randomizeChildren !== void 0) {
+      target.randomizeChildren = settings.randomizeChildren;
+    }
+    if (settings.randomizationTiming !== void 0) {
+      target.randomizationTiming = settings.randomizationTiming;
+    }
+    if (settings.selectionCountStatus !== void 0) {
+      target.selectionCountStatus = settings.selectionCountStatus;
+    }
+    if (settings.reorderChildren !== void 0) {
+      target.reorderChildren = settings.reorderChildren;
+    }
+  }
+  applySequencingRulesSettings(target, settings) {
+    if (!settings) {
+      return;
+    }
+    if (settings.preConditionRules) {
+      for (const ruleSettings of settings.preConditionRules) {
+        const rule = this.createSequencingRule(ruleSettings);
+        target.addPreConditionRule(rule);
+      }
+    }
+    if (settings.exitConditionRules) {
+      for (const ruleSettings of settings.exitConditionRules) {
+        const rule = this.createSequencingRule(ruleSettings);
+        target.addExitConditionRule(rule);
+      }
+    }
+    if (settings.postConditionRules) {
+      for (const ruleSettings of settings.postConditionRules) {
+        const rule = this.createSequencingRule(ruleSettings);
+        target.addPostConditionRule(rule);
+      }
+    }
+  }
+  applyRollupRulesSettings(target, settings) {
+    if (!settings?.rules) {
+      return;
+    }
+    for (const ruleSettings of settings.rules) {
+      const rule = this.createRollupRule(ruleSettings);
+      target.addRule(rule);
+    }
+  }
+  cloneSelectionRandomizationState(state) {
+    const clone = {};
+    if (state.childOrder) {
+      clone.childOrder = [...state.childOrder];
+    }
+    if (state.selectedChildIds) {
+      clone.selectedChildIds = [...state.selectedChildIds];
+    }
+    if (state.hiddenFromChoiceChildIds) {
+      clone.hiddenFromChoiceChildIds = [...state.hiddenFromChoiceChildIds];
+    }
+    if (state.selectionCountStatus !== void 0) {
+      clone.selectionCountStatus = state.selectionCountStatus;
+    }
+    if (state.reorderChildren !== void 0) {
+      clone.reorderChildren = state.reorderChildren;
+    }
+    return clone;
+  }
+  mergeHideLmsUi(current, additional) {
+    if (!additional || additional.length === 0) {
+      return current;
+    }
+    return this.sanitizeHideLmsUi([...current, ...additional]);
+  }
+  sanitizeSequencingCollections(collections) {
+    if (!collections) {
+      return {};
+    }
+    const sanitized = {};
+    for (const [id, collection] of Object.entries(collections)) {
+      const trimmedId = id.trim();
+      if (!trimmedId) {
+        continue;
+      }
+      const sanitizedCollection = {};
+      if (collection.sequencingControls) {
+        sanitizedCollection.sequencingControls = { ...collection.sequencingControls };
+      }
+      if (collection.sequencingRules) {
+        const ruleClone = (rule) => {
+          const cloned = {
+            action: rule.action,
+            conditions: rule.conditions.map((condition) => {
+              const clonedCondition = {
+                condition: condition.condition
+              };
+              if (condition.operator !== void 0) {
+                clonedCondition.operator = condition.operator;
+              }
+              if (condition.parameters) {
+                clonedCondition.parameters = { ...condition.parameters };
+              }
+              return clonedCondition;
+            })
+          };
+          if (rule.conditionCombination !== void 0) {
+            cloned.conditionCombination = rule.conditionCombination;
+          }
+          return cloned;
+        };
+        sanitizedCollection.sequencingRules = {};
+        if (collection.sequencingRules.preConditionRules) {
+          sanitizedCollection.sequencingRules.preConditionRules = collection.sequencingRules.preConditionRules.map(ruleClone);
+        }
+        if (collection.sequencingRules.exitConditionRules) {
+          sanitizedCollection.sequencingRules.exitConditionRules = collection.sequencingRules.exitConditionRules.map(ruleClone);
+        }
+        if (collection.sequencingRules.postConditionRules) {
+          sanitizedCollection.sequencingRules.postConditionRules = collection.sequencingRules.postConditionRules.map(ruleClone);
+        }
+      }
+      if (collection.rollupRules) {
+        sanitizedCollection.rollupRules = {
+          rules: collection.rollupRules.rules?.map((rule) => {
+            const clonedRule = {
+              action: rule.action,
+              conditions: rule.conditions.map((condition) => {
+                const clonedCondition = {
+                  condition: condition.condition
+                };
+                if (condition.parameters) {
+                  clonedCondition.parameters = { ...condition.parameters };
+                }
+                return clonedCondition;
+              })
+            };
+            if (rule.consideration !== void 0) {
+              clonedRule.consideration = rule.consideration;
+            }
+            if (rule.minimumCount !== void 0) {
+              clonedRule.minimumCount = rule.minimumCount;
+            }
+            if (rule.minimumPercent !== void 0) {
+              clonedRule.minimumPercent = rule.minimumPercent;
+            }
+            return clonedRule;
+          })
+        };
+      }
+      if (collection.rollupConsiderations) {
+        sanitizedCollection.rollupConsiderations = { ...collection.rollupConsiderations };
+      }
+      if (collection.selectionRandomizationState) {
+        sanitizedCollection.selectionRandomizationState = this.cloneSelectionRandomizationState(
+          collection.selectionRandomizationState
+        );
+      }
+      if (collection.hideLmsUi) {
+        sanitizedCollection.hideLmsUi = this.sanitizeHideLmsUi(collection.hideLmsUi);
+      }
+      if (collection.auxiliaryResources) {
+        sanitizedCollection.auxiliaryResources = this.sanitizeAuxiliaryResources(collection.auxiliaryResources);
+      }
+      sanitized[trimmedId] = sanitizedCollection;
+    }
+    return sanitized;
+  }
+  normalizeCollectionRefs(refs) {
+    if (!refs) {
+      return [];
+    }
+    const raw = Array.isArray(refs) ? refs : [refs];
+    const seen = /* @__PURE__ */ new Set();
+    const result = [];
+    for (const ref of raw) {
+      if (typeof ref !== "string") {
+        continue;
+      }
+      const trimmed = ref.trim();
+      if (!trimmed || seen.has(trimmed)) {
+        continue;
+      }
+      seen.add(trimmed);
+      result.push(trimmed);
+    }
+    return result;
+  }
+  applySequencingCollection(activity, collection, selectionStates) {
+    if (!collection) {
+      return;
+    }
+    if (collection.sequencingControls) {
+      this.applySequencingControlsSettings(activity.sequencingControls, collection.sequencingControls);
+    }
+    if (collection.sequencingRules) {
+      this.applySequencingRulesSettings(activity.sequencingRules, collection.sequencingRules);
+    }
+    if (collection.rollupRules) {
+      this.applyRollupRulesSettings(activity.rollupRules, collection.rollupRules);
+    }
+    if (collection.rollupConsiderations) {
+      activity.applyRollupConsiderations(collection.rollupConsiderations);
+    }
+    if (collection.hideLmsUi) {
+      const merged = this.mergeHideLmsUi(activity.hideLmsUi, collection.hideLmsUi);
+      if (merged.length > 0) {
+        activity.hideLmsUi = merged;
+      }
+    }
+    if (collection.auxiliaryResources) {
+      const sanitizedAux = this.sanitizeAuxiliaryResources(collection.auxiliaryResources);
+      if (sanitizedAux.length > 0) {
+        activity.auxiliaryResources = this.mergeAuxiliaryResources(activity.auxiliaryResources, sanitizedAux);
+      }
+    }
+    if (collection.selectionRandomizationState) {
+      selectionStates.push(this.cloneSelectionRandomizationState(collection.selectionRandomizationState));
+    }
+  }
+  sanitizeAuxiliaryResources(resources) {
+    if (!resources) {
+      return [];
+    }
+    const sanitized = [];
+    const seen = /* @__PURE__ */ new Set();
+    for (const resource of resources) {
+      if (!resource) {
+        continue;
+      }
+      const resourceId = typeof resource.resourceId === "string" ? resource.resourceId.trim() : "";
+      const purpose = typeof resource.purpose === "string" ? resource.purpose.trim() : "";
+      if (!resourceId || !purpose) {
+        continue;
+      }
+      if (seen.has(resourceId)) {
+        continue;
+      }
+      seen.add(resourceId);
+      sanitized.push({ resourceId, purpose });
+    }
+    return sanitized;
+  }
+  mergeAuxiliaryResources(existing, additions) {
+    const merged = [];
+    const seen = /* @__PURE__ */ new Set();
+    for (const resource of [...existing ?? [], ...additions ?? []]) {
+      if (!resource) {
+        continue;
+      }
+      const resourceId = resource.resourceId;
+      if (!resourceId || seen.has(resourceId)) {
+        continue;
+      }
+      seen.add(resourceId);
+      merged.push({ resourceId, purpose: resource.purpose });
+    }
+    return merged;
+  }
+  sanitizeHideLmsUi(items) {
+    if (!items) {
+      return [];
+    }
+    const valid = new Set(HIDE_LMS_UI_TOKENS);
+    const seen = /* @__PURE__ */ new Set();
+    const sanitized = [];
+    for (const item of items) {
+      if (valid.has(item) && !seen.has(item)) {
+        seen.add(item);
+        sanitized.push(item);
+      }
+    }
+    return sanitized;
   }
   /**
    * Configure rollup rules based on provided settings
    * @param {RollupRulesSettings} rollupRulesSettings - The rollup rules settings
    */
   configureRollupRules(rollupRulesSettings) {
-    const rollupRules = this._sequencing.rollupRules;
-    if (rollupRulesSettings.rules) {
-      for (const ruleSettings of rollupRulesSettings.rules) {
-        const rule = this.createRollupRule(ruleSettings);
-        rollupRules.addRule(rule);
-      }
-    }
+    this.applyRollupRulesSettings(this._sequencing.rollupRules, rollupRulesSettings);
   }
   /**
    * Create a rollup rule from settings
@@ -14884,6 +16022,39 @@ class Scorm2004API extends BaseAPI {
       rule.addCondition(condition);
     }
     return rule;
+  }
+  /**
+   * Create an activity objective from settings
+   * @param {ObjectiveSettings} objectiveSettings
+   * @param {boolean} isPrimary
+   * @return {ActivityObjective}
+   */
+  createActivityObjectiveFromSettings(objectiveSettings, isPrimary) {
+    const mapInfo = (objectiveSettings.mapInfo || []).map((info) => ({
+      targetObjectiveID: info.targetObjectiveID,
+      readSatisfiedStatus: info.readSatisfiedStatus ?? false,
+      readNormalizedMeasure: info.readNormalizedMeasure ?? false,
+      writeSatisfiedStatus: info.writeSatisfiedStatus ?? false,
+      writeNormalizedMeasure: info.writeNormalizedMeasure ?? false,
+      readCompletionStatus: info.readCompletionStatus ?? false,
+      writeCompletionStatus: info.writeCompletionStatus ?? false,
+      readProgressMeasure: info.readProgressMeasure ?? false,
+      writeProgressMeasure: info.writeProgressMeasure ?? false,
+      readRawScore: info.readRawScore ?? false,
+      writeRawScore: info.writeRawScore ?? false,
+      readMinScore: info.readMinScore ?? false,
+      writeMinScore: info.writeMinScore ?? false,
+      readMaxScore: info.readMaxScore ?? false,
+      writeMaxScore: info.writeMaxScore ?? false,
+      updateAttemptData: info.updateAttemptData ?? false
+    }));
+    return new ActivityObjective(objectiveSettings.objectiveID, {
+      description: objectiveSettings.description ?? null,
+      satisfiedByMeasure: objectiveSettings.satisfiedByMeasure ?? false,
+      minNormalizedMeasure: objectiveSettings.minNormalizedMeasure ?? null,
+      mapInfo,
+      isPrimary
+    });
   }
   /**
    * Initialize the sequencing service
@@ -15086,6 +16257,7 @@ class Scorm2004API extends BaseAPI {
       sequencing: null,
       currentActivityId: null,
       globalObjectives: this._globalObjectives.map((obj) => obj.toJSON()),
+      globalObjectiveMap: {},
       adlNavState: {
         request: this.adl.nav.request,
         request_valid: this.adl.nav.request_valid
@@ -15098,11 +16270,15 @@ class Scorm2004API extends BaseAPI {
         const sequencingState = overallProcess.getSequencingState();
         state.sequencing = sequencingState;
         state.contentDelivered = overallProcess.hasContentBeenDelivered();
+        state.globalObjectiveMap = this.captureGlobalObjectiveSnapshot(overallProcess);
       }
       const currentActivity = this._sequencing.getCurrentActivity();
       if (currentActivity) {
         state.currentActivityId = currentActivity.id;
       }
+    }
+    if (!state.globalObjectiveMap || Object.keys(state.globalObjectiveMap).length === 0) {
+      state.globalObjectiveMap = this.captureGlobalObjectiveSnapshot();
     }
     return JSON.stringify(state);
   }
@@ -15122,6 +16298,9 @@ class Scorm2004API extends BaseAPI {
           LogLevelEnum.WARN
         );
       }
+      if (state.globalObjectiveMap && state.sequencing && !state.sequencing.globalObjectiveMap) {
+        state.sequencing.globalObjectiveMap = state.globalObjectiveMap;
+      }
       if (state.sequencing && this._sequencingService) {
         const overallProcess = this._sequencingService.getOverallSequencingProcess();
         if (overallProcess) {
@@ -15135,15 +16314,32 @@ class Scorm2004API extends BaseAPI {
           }
         }
       }
-      if (state.globalObjectives && Array.isArray(state.globalObjectives)) {
-        this._globalObjectives = state.globalObjectives.map((objData) => {
-          const obj = new CMIObjectivesObject();
-          if (obj.fromJSON) {
-            obj.fromJSON(objData);
-          } else {
-            Object.assign(obj, objData);
+      const restoredObjectives = /* @__PURE__ */ new Map();
+      if (Array.isArray(state.globalObjectives)) {
+        for (const objData of state.globalObjectives) {
+          const objective = this.buildCMIObjectiveFromJSON(objData);
+          if (objective.id) {
+            restoredObjectives.set(objective.id, objective);
           }
-          return obj;
+        }
+      }
+      if (state.globalObjectiveMap && typeof state.globalObjectiveMap === "object") {
+        const objectivesFromMap = this.buildCMIObjectivesFromMap(state.globalObjectiveMap);
+        for (const objective of objectivesFromMap) {
+          if (!objective.id) {
+            continue;
+          }
+          if (!restoredObjectives.has(objective.id)) {
+            restoredObjectives.set(objective.id, objective);
+          }
+        }
+      }
+      if (restoredObjectives.size > 0) {
+        this._globalObjectives = Array.from(restoredObjectives.values());
+        this._globalObjectives.forEach((objective) => {
+          if (objective.id) {
+            this.updateGlobalObjectiveFromCMI(objective.id, objective);
+          }
         });
       }
       if (state.adlNavState) {
@@ -15159,6 +16355,181 @@ class Scorm2004API extends BaseAPI {
       );
       return false;
     }
+  }
+  captureGlobalObjectiveSnapshot(overallProcess) {
+    const snapshot = {};
+    const process = overallProcess ?? this._sequencingService?.getOverallSequencingProcess() ?? null;
+    if (process) {
+      const processSnapshot = process.getGlobalObjectiveMapSnapshot();
+      for (const [id, data] of Object.entries(processSnapshot)) {
+        snapshot[id] = { ...data };
+      }
+    }
+    for (const objective of this._globalObjectives) {
+      if (!objective.id || snapshot[objective.id]) {
+        continue;
+      }
+      snapshot[objective.id] = this.buildObjectiveMapEntryFromCMI(objective);
+    }
+    return snapshot;
+  }
+  buildCMIObjectivesFromMap(snapshot) {
+    const objectives = [];
+    if (!snapshot || typeof snapshot !== "object") {
+      return objectives;
+    }
+    for (const [objectiveId, entry] of Object.entries(snapshot)) {
+      if (!entry || typeof entry !== "object") {
+        continue;
+      }
+      const objective = new CMIObjectivesObject();
+      objective.id = entry.id ?? objectiveId;
+      if (entry.satisfiedStatusKnown === true) {
+        objective.success_status = entry.satisfiedStatus ? SuccessStatus.PASSED : SuccessStatus.FAILED;
+      }
+      const normalizedMeasure = this.parseObjectiveNumber(entry.normalizedMeasure);
+      if (entry.normalizedMeasureKnown === true && normalizedMeasure !== null) {
+        objective.score.scaled = String(normalizedMeasure);
+      }
+      const progressMeasure = this.parseObjectiveNumber(entry.progressMeasure);
+      if (entry.progressMeasureKnown === true && progressMeasure !== null) {
+        objective.progress_measure = String(progressMeasure);
+      }
+      if (entry.completionStatusKnown === true && typeof entry.completionStatus === "string") {
+        objective.completion_status = entry.completionStatus;
+      }
+      objectives.push(objective);
+    }
+    return objectives;
+  }
+  buildCMIObjectiveFromJSON(data) {
+    const objective = new CMIObjectivesObject();
+    if (!data || typeof data !== "object") {
+      return objective;
+    }
+    if (typeof data.id === "string") {
+      objective.id = data.id;
+    }
+    if (typeof data.success_status === "string") {
+      objective.success_status = data.success_status;
+    }
+    if (typeof data.completion_status === "string") {
+      objective.completion_status = data.completion_status;
+    }
+    if (typeof data.progress_measure === "string" && data.progress_measure !== "") {
+      objective.progress_measure = data.progress_measure;
+    }
+    if (typeof data.description === "string") {
+      objective.description = data.description;
+    }
+    const score = data.score;
+    if (score && typeof score === "object") {
+      if (typeof score.scaled === "string" && score.scaled !== "") {
+        objective.score.scaled = score.scaled;
+      } else if (typeof score.scaled === "number" && Number.isFinite(score.scaled)) {
+        objective.score.scaled = String(score.scaled);
+      }
+      if (typeof score.raw === "string" && score.raw !== "") {
+        objective.score.raw = score.raw;
+      } else if (typeof score.raw === "number" && Number.isFinite(score.raw)) {
+        objective.score.raw = String(score.raw);
+      }
+      if (typeof score.min === "string" && score.min !== "") {
+        objective.score.min = score.min;
+      } else if (typeof score.min === "number" && Number.isFinite(score.min)) {
+        objective.score.min = String(score.min);
+      }
+      if (typeof score.max === "string" && score.max !== "") {
+        objective.score.max = score.max;
+      } else if (typeof score.max === "number" && Number.isFinite(score.max)) {
+        objective.score.max = String(score.max);
+      }
+    }
+    return objective;
+  }
+  buildObjectiveMapEntryFromCMI(objective) {
+    const entry = {
+      id: objective.id,
+      satisfiedStatusKnown: false,
+      normalizedMeasureKnown: false,
+      progressMeasureKnown: false,
+      completionStatusKnown: false,
+      readSatisfiedStatus: true,
+      writeSatisfiedStatus: true,
+      readNormalizedMeasure: true,
+      writeNormalizedMeasure: true,
+      readCompletionStatus: true,
+      writeCompletionStatus: true,
+      readProgressMeasure: true,
+      writeProgressMeasure: true
+    };
+    if (objective.success_status && objective.success_status !== SuccessStatus.UNKNOWN) {
+      entry.satisfiedStatus = objective.success_status === SuccessStatus.PASSED;
+      entry.satisfiedStatusKnown = true;
+    }
+    const normalizedMeasure = this.parseObjectiveNumber(objective.score?.scaled);
+    if (normalizedMeasure !== null) {
+      entry.normalizedMeasure = normalizedMeasure;
+      entry.normalizedMeasureKnown = true;
+    }
+    const progressMeasure = this.parseObjectiveNumber(objective.progress_measure);
+    if (progressMeasure !== null) {
+      entry.progressMeasure = progressMeasure;
+      entry.progressMeasureKnown = true;
+    }
+    if (objective.completion_status && objective.completion_status !== CompletionStatus.UNKNOWN) {
+      entry.completionStatus = objective.completion_status;
+      entry.completionStatusKnown = true;
+    }
+    return entry;
+  }
+  updateGlobalObjectiveFromCMI(objectiveId, objective) {
+    if (!objectiveId || !this._sequencingService) {
+      return;
+    }
+    const overallProcess = this._sequencingService.getOverallSequencingProcess();
+    if (!overallProcess) {
+      return;
+    }
+    const map = overallProcess.getGlobalObjectiveMap();
+    if (!map.has(objectiveId)) {
+      const fallbackEntry = this.buildObjectiveMapEntryFromCMI(objective);
+      overallProcess.updateGlobalObjective(objectiveId, fallbackEntry);
+      return;
+    }
+    const updatePayload = {};
+    if (objective.success_status && objective.success_status !== SuccessStatus.UNKNOWN) {
+      updatePayload.satisfiedStatus = objective.success_status === SuccessStatus.PASSED;
+      updatePayload.satisfiedStatusKnown = true;
+    }
+    const normalizedMeasure = this.parseObjectiveNumber(objective.score?.scaled);
+    if (normalizedMeasure !== null) {
+      updatePayload.normalizedMeasure = normalizedMeasure;
+      updatePayload.normalizedMeasureKnown = true;
+    }
+    const progressMeasure = this.parseObjectiveNumber(objective.progress_measure);
+    if (progressMeasure !== null) {
+      updatePayload.progressMeasure = progressMeasure;
+      updatePayload.progressMeasureKnown = true;
+    }
+    if (objective.completion_status && objective.completion_status !== CompletionStatus.UNKNOWN) {
+      updatePayload.completionStatus = objective.completion_status;
+      updatePayload.completionStatusKnown = true;
+    }
+    if (Object.keys(updatePayload).length === 0) {
+      return;
+    }
+    overallProcess.updateGlobalObjective(objectiveId, updatePayload);
+  }
+  parseObjectiveNumber(value) {
+    if (value === null || value === void 0) {
+      return null;
+    }
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+    const parsed = parseFloat(String(value));
+    return Number.isFinite(parsed) ? parsed : null;
   }
   /**
    * Simple compression using base64 encoding
