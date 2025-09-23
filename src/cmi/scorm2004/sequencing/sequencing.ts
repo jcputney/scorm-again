@@ -7,6 +7,7 @@ import { RollupRules } from "./rollup_rules";
 import { ADLNav } from "../adl";
 import { Scorm2004ValidationError } from "../../../exceptions/scorm2004_exceptions";
 import { scorm2004_errors } from "../../../constants/error_codes";
+import { AuxiliaryResource, HideLmsUiItem } from "../../../types/sequencing_types";
 
 /**
  * Class representing SCORM 2004 sequencing
@@ -17,6 +18,8 @@ export class Sequencing extends BaseCMI {
   private _sequencingControls: SequencingControls;
   private _rollupRules: RollupRules;
   private _adlNav: ADLNav | null = null;
+  private _hideLmsUi: HideLmsUiItem[] = [];
+  private _auxiliaryResources: AuxiliaryResource[] = [];
 
   /**
    * Constructor for Sequencing
@@ -50,6 +53,8 @@ export class Sequencing extends BaseCMI {
     this._sequencingRules.reset();
     this._sequencingControls.reset();
     this._rollupRules.reset();
+    this._hideLmsUi = [];
+    this._auxiliaryResources = [];
   }
 
   /**
@@ -119,6 +124,22 @@ export class Sequencing extends BaseCMI {
       );
     }
     this._sequencingControls = sequencingControls;
+  }
+
+  get hideLmsUi(): HideLmsUiItem[] {
+    return [...this._hideLmsUi];
+  }
+
+  set hideLmsUi(items: HideLmsUiItem[]) {
+    this._hideLmsUi = [...items];
+  }
+
+  get auxiliaryResources(): AuxiliaryResource[] {
+    return this._auxiliaryResources.map((resource) => ({ ...resource }));
+  }
+
+  set auxiliaryResources(resources: AuxiliaryResource[]) {
+    this._auxiliaryResources = resources.map((resource) => ({ ...resource }));
   }
 
   /**

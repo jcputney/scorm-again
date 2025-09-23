@@ -10,6 +10,8 @@ import { ADLNav } from "../adl";
 import { RuleActionType } from "./sequencing_rules";
 import { getDurationAsSeconds } from "../../../utilities";
 import { scorm2004_regex } from "../../../constants/regex";
+import { CompletionStatus } from "../../../constants/enums";
+import { AuxiliaryResource, HideLmsUiItem, HIDE_LMS_UI_TOKENS } from "../../../types/sequencing_types";
 
 /**
  * Enum for navigation request types
@@ -78,6 +80,7 @@ export class DeliveryRequest {
  * Controls the overall execution of the sequencing loop
  */
 export class OverallSequencingProcess {
+  private static readonly HIDE_LMS_UI_ORDER: HideLmsUiItem[] = [...HIDE_LMS_UI_TOKENS];
   private activityTree: ActivityTree;
   private sequencingProcess: SequencingProcess;
   private rollupProcess: RollupProcess;
@@ -87,6 +90,8 @@ export class OverallSequencingProcess {
   private globalObjectiveMap: Map<string, any> = new Map();
   private now: () => Date;
   private enhancedDeliveryValidation: boolean;
+  private defaultHideLmsUi: HideLmsUiItem[];
+  private defaultAuxiliaryResources: AuxiliaryResource[];
 
   constructor(
     activityTree: ActivityTree,
@@ -94,7 +99,12 @@ export class OverallSequencingProcess {
     rollupProcess: RollupProcess,
     adlNav: ADLNav | null = null,
     eventCallback: ((eventType: string, data?: any) => void) | null = null,
-    options?: { now?: () => Date; enhancedDeliveryValidation?: boolean }
+    options?: {
+      now?: () => Date;
+      enhancedDeliveryValidation?: boolean;
+      defaultHideLmsUi?: HideLmsUiItem[];
+      defaultAuxiliaryResources?: AuxiliaryResource[];
+    }
   ) {
     this.activityTree = activityTree;
     this.sequencingProcess = sequencingProcess;
@@ -103,6 +113,10 @@ export class OverallSequencingProcess {
     this.eventCallback = eventCallback;
     this.now = options?.now || (() => new Date());
     this.enhancedDeliveryValidation = options?.enhancedDeliveryValidation === true;
+    this.defaultHideLmsUi = options?.defaultHideLmsUi ? [...options.defaultHideLmsUi] : [];
+    this.defaultAuxiliaryResources = options?.defaultAuxiliaryResources
+      ? options.defaultAuxiliaryResources.map((resource) => ({ ...resource }))
+      : [];
 
     // Initialize global objective map
     this.initializeGlobalObjectiveMap();
@@ -827,6 +841,8 @@ export class OverallSequencingProcess {
       activity.attemptCount = 1;
     }
 
+    activity.wasSkipped = false;
+
     // Set attempt start time (use injected clock)
     activity.attemptAbsoluteStartTime = this.now().toISOString();
 
@@ -910,6 +926,7 @@ export class OverallSequencingProcess {
 
     // Set activity as inactive
     activity.isActive = false;
+    activity.activityAttemptActive = false;
 
     // Update attempt completion status if not already set
     if (activity.completionStatus === "unknown") {
@@ -984,7 +1001,53 @@ export class OverallSequencingProcess {
       previous: previousResult.valid,
       choice: choiceMap,
       jump: jumpMap,
+      hideLmsUi: this.getEffectiveHideLmsUi(this.activityTree.currentActivity),
     });
+  }
+
+  private getEffectiveHideLmsUi(activity: Activity | null): HideLmsUiItem[] {
+    const seen = new Set<HideLmsUiItem>();
+
+    for (const directive of this.defaultHideLmsUi) {
+      seen.add(directive);
+    }
+
+    let current: Activity | null = activity;
+    while (current) {
+      for (const directive of current.hideLmsUi) {
+        seen.add(directive);
+      }
+      current = current.parent;
+    }
+
+    return OverallSequencingProcess.HIDE_LMS_UI_ORDER.filter((directive) => seen.has(directive));
+  }
+
+  private getEffectiveAuxiliaryResources(activity: Activity | null): AuxiliaryResource[] {
+    const merged = new Map<string, AuxiliaryResource>();
+
+    for (const resource of this.defaultAuxiliaryResources) {
+      if (resource.resourceId) {
+        merged.set(resource.resourceId, { ...resource });
+      }
+    }
+
+    const lineage: Activity[] = [];
+    let current: Activity | null = activity;
+    while (current) {
+      lineage.push(current);
+      current = current.parent;
+    }
+
+    for (const node of lineage.reverse()) {
+      for (const resource of node.auxiliaryResources) {
+        if (resource.resourceId) {
+          merged.set(resource.resourceId, { ...resource });
+        }
+      }
+    }
+
+    return Array.from(merged.values());
   }
 
   /**
@@ -1226,7 +1289,8 @@ export class OverallSequencingProcess {
       currentActivity: this.activityTree.currentActivity?.id || null,
       suspendedActivity: this.activityTree.suspendedActivity?.id || null,
       activityStates: this.serializeActivityStates(),
-      navigationState: this.getNavigationState()
+      navigationState: this.getNavigationState(),
+      globalObjectiveMap: this.serializeGlobalObjectiveMap(),
     };
   }
 
@@ -1245,6 +1309,11 @@ export class OverallSequencingProcess {
 
       // Restore basic flags
       this.contentDelivered = state.contentDelivered || false;
+
+      // Restore global objective map before applying local state so reads use persisted data
+      if (state.globalObjectiveMap) {
+        this.restoreGlobalObjectiveMap(state.globalObjectiveMap);
+      }
 
       // Restore activity states
       if (state.activityStates) {
@@ -1272,6 +1341,11 @@ export class OverallSequencingProcess {
       // Restore navigation state
       if (state.navigationState) {
         this.restoreNavigationState(state.navigationState);
+      }
+
+      // Re-run global objective synchronization to ensure map and activities align after restore
+      if (this.activityTree.root) {
+        this.rollupProcess.processGlobalObjectiveMapping(this.activityTree.root, this.globalObjectiveMap);
       }
 
       console.debug("Sequencing state restored successfully");
@@ -1311,8 +1385,22 @@ export class OverallSequencingProcess {
         progressMeasure: activity.progressMeasure,
         progressMeasureStatus: activity.progressMeasureStatus,
         isAvailable: activity.isAvailable,
+        isHiddenFromChoice: activity.isHiddenFromChoice,
         location: activity.location,
-        attemptAbsoluteStartTime: activity.attemptAbsoluteStartTime
+        attemptAbsoluteStartTime: activity.attemptAbsoluteStartTime,
+        objectives: activity.getObjectiveStateSnapshot(),
+        auxiliaryResources: activity.auxiliaryResources,
+        selectionRandomizationState: {
+          selectionCountStatus: activity.sequencingControls.selectionCountStatus,
+          reorderChildren: activity.sequencingControls.reorderChildren,
+          childOrder: activity.children.map((child) => child.id),
+          selectedChildIds: activity.children
+            .filter((child) => child.isAvailable)
+            .map((child) => child.id),
+          hiddenFromChoiceChildIds: activity.children
+            .filter((child) => child.isHiddenFromChoice)
+            .map((child) => child.id),
+        },
       };
 
       // Recursively serialize children
@@ -1354,13 +1442,64 @@ export class OverallSequencingProcess {
         activity.progressMeasure = state.progressMeasure || null;
         activity.progressMeasureStatus = state.progressMeasureStatus || false;
         activity.isAvailable = state.isAvailable !== false; // Default to true
+        activity.isHiddenFromChoice = state.isHiddenFromChoice === true;
         activity.location = state.location || "";
         activity.attemptAbsoluteStartTime = state.attemptAbsoluteStartTime || null;
+        if (Array.isArray(state.auxiliaryResources)) {
+          activity.auxiliaryResources = state.auxiliaryResources;
+        }
+        if (state.objectives) {
+          activity.applyObjectiveStateSnapshot(state.objectives);
+        }
       }
 
       // Recursively restore children
       for (const child of activity.children) {
         restoreActivity(child);
+      }
+
+      if (state?.selectionRandomizationState) {
+        const selectionState = state.selectionRandomizationState;
+        const sequencingControls = activity.sequencingControls;
+
+        if (selectionState.selectionCountStatus !== undefined) {
+          sequencingControls.selectionCountStatus = selectionState.selectionCountStatus;
+        }
+
+        if (selectionState.reorderChildren !== undefined) {
+          sequencingControls.reorderChildren = selectionState.reorderChildren;
+        }
+
+        if (selectionState.childOrder && selectionState.childOrder.length > 0) {
+          activity.setChildOrder(selectionState.childOrder);
+        }
+
+        const selectedSet = Array.isArray(selectionState.selectedChildIds)
+          ? new Set(selectionState.selectedChildIds)
+          : null;
+        const hiddenSet = Array.isArray(selectionState.hiddenFromChoiceChildIds)
+          ? new Set(selectionState.hiddenFromChoiceChildIds)
+          : null;
+
+        if (selectedSet || hiddenSet) {
+          for (const child of activity.children) {
+            if (selectedSet) {
+              const isSelected = selectedSet.has(child.id);
+              child.isAvailable = isSelected;
+              if (!hiddenSet) {
+                child.isHiddenFromChoice = !isSelected;
+              }
+            }
+
+            if (hiddenSet) {
+              child.isHiddenFromChoice = hiddenSet.has(child.id);
+            }
+          }
+        }
+
+        activity.setProcessedChildren(activity.children.filter((child) => child.isAvailable));
+      } else {
+        activity.resetProcessedChildren();
       }
     };
 
@@ -1391,7 +1530,9 @@ export class OverallSequencingProcess {
         abandon: this.adlNav.request_valid?.abandon || "false",
         abandonAll: this.adlNav.request_valid?.abandonAll || "false",
         suspendAll: this.adlNav.request_valid?.suspendAll || "false"
-      }
+      },
+      hideLmsUi: this.getEffectiveHideLmsUi(this.activityTree.currentActivity),
+      auxiliaryResources: this.getEffectiveAuxiliaryResources(this.activityTree.currentActivity)
     };
   }
 
@@ -1428,7 +1569,6 @@ export class OverallSequencingProcess {
   /**
    * Enhanced Complex Choice Path Validation
    * Implements comprehensive choice validation with nested hierarchy support
-   * Priority 1 Gap: Complex Choice Path Validation
    * @param {Activity | null} currentActivity - Current activity
    * @param {Activity} targetActivity - Target activity for choice
    * @return {{valid: boolean, exception: string | null}} - Validation result
@@ -1437,12 +1577,12 @@ export class OverallSequencingProcess {
     valid: boolean,
     exception: string | null
   } {
-    // Check if target is hidden from choice
+    // Check if target is hidden from choice or otherwise unavailable
     if (targetActivity.isHiddenFromChoice) {
       return { valid: false, exception: "NB.2.1-11" };
     }
 
-    // Check if target is disabled
+    // Check if target is disabled (pre-condition rules, availability, etc.)
     if (this.isActivityDisabled(targetActivity)) {
       return { valid: false, exception: "NB.2.1-11" };
     }
@@ -1451,6 +1591,17 @@ export class OverallSequencingProcess {
       const commonAncestor = this.findCommonAncestor(currentActivity, targetActivity);
       if (!commonAncestor) {
         return { valid: false, exception: "NB.2.1-11" };
+      }
+
+      // Validate choiceExit controls along the current activity path
+      let node: Activity | null = currentActivity;
+      while (node) {
+        if (node.sequencingControls && node.sequencingControls.choiceExit === false) {
+          if (targetActivity !== node && !this.activityContains(node, targetActivity)) {
+            return { valid: false, exception: "NB.2.1-11" };
+          }
+        }
+        node = node.parent;
       }
 
       // Enhanced constrainChoice control validation in nested hierarchies
@@ -1481,7 +1632,6 @@ export class OverallSequencingProcess {
   /**
    * Enhanced Forward-Only Navigation Constraints
    * Handles forward-only constraints at different cluster levels
-   * Priority 1 Gap: Forward-Only Navigation Constraints
    * @param {Activity} currentActivity - Current activity
    * @return {{valid: boolean, exception: string | null}} - Validation result
    */
@@ -1510,7 +1660,6 @@ export class OverallSequencingProcess {
   /**
    * Enhanced constrainChoice Control Validation
    * Implements proper constrainChoice validation in nested hierarchies
-   * Priority 1 Gap: constrainChoice control validation
    * @param {Activity} currentActivity - Current activity
    * @param {Activity} targetActivity - Target activity
    * @param {Activity} commonAncestor - Common ancestor
@@ -1520,39 +1669,44 @@ export class OverallSequencingProcess {
     valid: boolean,
     exception: string | null
   } {
-    // Check constrainChoice at common ancestor level
-    if (commonAncestor.sequencingControls.constrainChoice) {
-      // Additional constraint validation for choice navigation
-      // This would include checking if the choice is within allowed boundaries
-      const currentIndex = commonAncestor.children.indexOf(this.findChildContaining(commonAncestor, currentActivity)!);
-      const targetIndex = commonAncestor.children.indexOf(this.findChildContaining(commonAncestor, targetActivity)!);
-
-      // Example constraint: constrainChoice might limit choices to adjacent activities only
-      if (Math.abs(currentIndex - targetIndex) > 1) {
-        return { valid: false, exception: "NB.2.1-11" };
-      }
-    }
-
-    // Check constrainChoice controls up the hierarchy
-    let ancestor = commonAncestor.parent;
+    // Check constrainChoice at the common ancestor and above in the path
+    let ancestor: Activity | null = commonAncestor;
     while (ancestor) {
-      if (ancestor.sequencingControls.constrainChoice) {
-        // Apply ancestor-level constraints
-        const ancestorValidation = this.validateAncestorConstraints(ancestor, currentActivity, targetActivity);
-        if (!ancestorValidation.valid) {
-          return ancestorValidation;
+      if (ancestor.sequencingControls?.constrainChoice || ancestor.sequencingControls?.preventActivation) {
+        const currentBranch = this.findChildContaining(ancestor, currentActivity);
+        if (!currentBranch) {
+          return { valid: false, exception: "NB.2.1-11" };
+        }
+
+        if (targetActivity === ancestor) {
+          return { valid: false, exception: "NB.2.1-11" };
+        }
+
+        const targetBranch = this.findChildContaining(ancestor, targetActivity);
+        if (!targetBranch) {
+          return { valid: false, exception: "NB.2.1-11" };
+        }
+
+        if (ancestor.sequencingControls?.constrainChoice && targetBranch !== currentBranch) {
+          return { valid: false, exception: "NB.2.1-11" };
+        }
+
+        if (ancestor.sequencingControls?.preventActivation && targetBranch !== currentBranch) {
+          if (this.requiresNewActivation(targetBranch, targetActivity)) {
+            return { valid: false, exception: "NB.2.1-11" };
+          }
         }
       }
+
       ancestor = ancestor.parent;
     }
 
-    return { valid: true, exception: null };
+    return this.validateAncestorConstraints(commonAncestor, currentActivity, targetActivity);
   }
 
   /**
    * Validate Choice Set Constraints
    * Validates choice sets with multiple targets
-   * Priority 1 Gap: Choice Set Constraints
    * @param {Activity} currentActivity - Current activity
    * @param {Activity} targetActivity - Target activity
    * @param {Activity} commonAncestor - Common ancestor
@@ -1563,9 +1717,18 @@ export class OverallSequencingProcess {
     exception: string | null
   } {
     // Check if target is within the valid choice set
-    const validChoiceSet = this.getValidChoiceSet(commonAncestor, currentActivity);
-    if (!validChoiceSet.includes(targetActivity)) {
+    // Ensure the target is contained within the common ancestor's subtree
+    if (!this.activityContains(commonAncestor, targetActivity) && targetActivity !== commonAncestor) {
       return { valid: false, exception: "NB.2.1-11" };
+    }
+
+    // Walk from target up to (but not including) the common ancestor ensuring availability
+    let node: Activity | null = targetActivity;
+    while (node && node !== commonAncestor) {
+      if (!node.isAvailable || node.isHiddenFromChoice || this.isActivityDisabled(node)) {
+        return { valid: false, exception: "NB.2.1-11" };
+      }
+      node = node.parent;
     }
 
     return { valid: true, exception: null };
@@ -1573,14 +1736,31 @@ export class OverallSequencingProcess {
 
   /**
    * Check if activity is disabled
-   * Priority 1 Gap: Disabled Activity Detection
    * @param {Activity} activity - Activity to check
    * @return {boolean} - True if disabled
    */
   private isActivityDisabled(activity: Activity): boolean {
-    // Check if activity is disabled through sequencing rules
+    if (!activity.isAvailable) {
+      return true;
+    }
+
+    if (activity.isHiddenFromChoice) {
+      return true;
+    }
+
     const preConditionResult = this.evaluatePreConditionRulesForChoice(activity);
-    return preConditionResult === "DISABLED";
+    if (!preConditionResult) {
+      return false;
+    }
+
+    return (
+      preConditionResult === RuleActionType.DISABLED ||
+      preConditionResult === RuleActionType.HIDE_FROM_CHOICE ||
+      preConditionResult === RuleActionType.STOP_FORWARD_TRAVERSAL ||
+      preConditionResult === "DISABLED" ||
+      preConditionResult === "HIDDEN_FROM_CHOICE" ||
+      preConditionResult === "STOP_FORWARD_TRAVERSAL"
+    );
   }
 
   /**
@@ -1649,11 +1829,34 @@ export class OverallSequencingProcess {
       return { valid: false, exception: "NB.2.1-8" };
     }
 
+    const traversalStopIndex = children.findIndex((child) => child?.sequencingControls.stopForwardTraversal);
+
+    // Current branch flagged stopForwardTraversal blocks moving past it
+    if (
+      currentTop.sequencingControls.stopForwardTraversal &&
+      targetIndex > currentIndex
+    ) {
+      return { valid: false, exception: "NB.2.1-11" };
+    }
+
+    // Stop forward traversal on siblings earlier than target also blocks progression
+    if (traversalStopIndex !== -1 && targetIndex > traversalStopIndex) {
+      return { valid: false, exception: "NB.2.1-11" };
+    }
+
     // Do not skip mandatory incomplete siblings when moving forward
     if (targetIndex > currentIndex) {
       for (let i = currentIndex + 1; i < targetIndex; i++) {
         const between = children[i];
-        if (between && this.helperIsActivityMandatory(between) && !this.helperIsActivityCompleted(between)) {
+        if (!between) {
+          continue;
+        }
+
+        if (between.sequencingControls.stopForwardTraversal) {
+          return { valid: false, exception: "NB.2.1-11" };
+        }
+
+        if (this.helperIsActivityMandatory(between) && !this.helperIsActivityCompleted(between)) {
           return { valid: false, exception: "NB.2.1-11" };
         }
       }
@@ -1662,20 +1865,83 @@ export class OverallSequencingProcess {
     return { valid: true, exception: null };
   }
 
-  /** Helper: mandatory activity detection (mirrors SequencingProcess behavior) */
-  private helperIsActivityMandatory(activity: Activity): boolean {
-    if (activity.sequencingRules && activity.sequencingRules.preConditionRules) {
-      for (const rule of activity.sequencingRules.preConditionRules) {
-        if ((rule as any).action === "skip" && (rule as any).conditions && (rule as any).conditions.length === 0) {
-          return false;
-        }
+  private requiresNewActivation(branchRoot: Activity, targetActivity: Activity): boolean {
+    if (this.branchHasActiveAttempt(branchRoot)) {
+      return false;
+    }
+
+    if (targetActivity.activityAttemptActive || targetActivity.isActive) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private branchHasActiveAttempt(activity: Activity): boolean {
+    if (activity.activityAttemptActive || activity.isActive) {
+      return true;
+    }
+
+    for (const child of activity.children) {
+      if (this.branchHasActiveAttempt(child)) {
+        return true;
       }
     }
+
+    return false;
+  }
+
+  /** Helper: mandatory activity detection (mirrors SequencingProcess behavior) */
+  private helperIsActivityMandatory(activity: Activity): boolean {
+    if (!activity.isAvailable || activity.isHiddenFromChoice) {
+      return false;
+    }
+
+    const preConditionResult = this.evaluatePreConditionRulesForChoice(activity);
+    if (
+      preConditionResult === RuleActionType.SKIP ||
+      preConditionResult === RuleActionType.DISABLED ||
+      preConditionResult === RuleActionType.HIDE_FROM_CHOICE ||
+      preConditionResult === RuleActionType.STOP_FORWARD_TRAVERSAL ||
+      preConditionResult === "SKIP" ||
+      preConditionResult === "DISABLED" ||
+      preConditionResult === "HIDDEN_FROM_CHOICE" ||
+      preConditionResult === "STOP_FORWARD_TRAVERSAL"
+    ) {
+      return false;
+    }
+
+    if (this.isActivityDisabled(activity)) {
+      return false;
+    }
+
     return (activity as any).mandatory !== false;
   }
 
   /** Helper: completed-state check (mirrors SequencingProcess behavior) */
   private helperIsActivityCompleted(activity: Activity): boolean {
+    if (!activity.isAvailable || activity.isHiddenFromChoice) {
+      return true;
+    }
+
+    const preConditionResult = this.evaluatePreConditionRulesForChoice(activity);
+    if (
+      preConditionResult === RuleActionType.SKIP ||
+      preConditionResult === RuleActionType.DISABLED ||
+      preConditionResult === RuleActionType.HIDE_FROM_CHOICE ||
+      preConditionResult === RuleActionType.STOP_FORWARD_TRAVERSAL ||
+      preConditionResult === "SKIP" ||
+      preConditionResult === "DISABLED" ||
+      preConditionResult === "HIDDEN_FROM_CHOICE" ||
+      preConditionResult === "STOP_FORWARD_TRAVERSAL"
+    ) {
+      return true;
+    }
+
+    if (this.isActivityDisabled(activity)) {
+      return true;
+    }
+
     return (
       activity.completionStatus === "completed" ||
       (activity as any).successStatus === "passed" ||
@@ -1684,92 +1950,18 @@ export class OverallSequencingProcess {
   }
 
   /**
-   * Get valid choice set for current activity
-   * @param {Activity} commonAncestor - Common ancestor
-   * @param {Activity} currentActivity - Current activity
-   * @return {Activity[]} - Array of valid choice activities
-   */
-  private getValidChoiceSet(commonAncestor: Activity, currentActivity: Activity): Activity[] {
-    const validChoices: Activity[] = [];
-
-    // Get all potential choice targets within the common ancestor
-    const allDescendants = this.getAllDescendants(commonAncestor);
-
-    for (const descendant of allDescendants) {
-      if (this.isValidChoiceTarget(descendant, currentActivity)) {
-        validChoices.push(descendant);
-      }
-    }
-
-    return validChoices;
-  }
-
-  /**
-   * Get all descendants of an activity
-   * @param {Activity} activity - Parent activity
-   * @return {Activity[]} - Array of all descendant activities
-   */
-  private getAllDescendants(activity: Activity): Activity[] {
-    const descendants: Activity[] = [];
-
-    for (const child of activity.children) {
-      descendants.push(child);
-      descendants.push(...this.getAllDescendants(child));
-    }
-
-    return descendants;
-  }
-
-  /**
-   * Check if activity is valid choice target
-   * @param {Activity} target - Target activity
-   * @param {Activity} currentActivity - Current activity
-   * @return {boolean} - True if valid choice target
-   */
-  private isValidChoiceTarget(target: Activity, currentActivity: Activity): boolean {
-    // Basic validation for choice target
-    if (target.isHiddenFromChoice) {
-      return false;
-    }
-
-    if (target === currentActivity) {
-      return false;
-    }
-
-    return !this.isActivityDisabled(target);
-  }
-
-  /**
    * Evaluate pre-condition rules for choice navigation
    * @param {Activity} activity - Activity to evaluate
    * @return {string | null} - Rule result or null
    */
-  private evaluatePreConditionRulesForChoice(activity: Activity): string | null {
-    // This would evaluate the activity's pre-condition rules
-    // and return "DISABLED", "SKIP", "HIDDEN_FROM_CHOICE", or null
-    const preRules = activity.sequencingRules.preConditionRules;
+  private evaluatePreConditionRulesForChoice(activity: Activity): RuleActionType | string | null {
+    if (!activity.sequencingRules) {
+      return null;
+    }
 
-    for (const rule of preRules) {
-      // Evaluate rule conditions
-      let conditionsMet = true;
-
-      if (rule.conditionCombination === "all") {
-        conditionsMet = rule.conditions.every(condition => condition.evaluate(activity));
-      } else {
-        conditionsMet = rule.conditions.some(condition => condition.evaluate(activity));
-      }
-
-      if (conditionsMet) {
-        // Return the action as string
-        switch (rule.action) {
-          case "skip":
-            return "SKIP";
-          case "disabled":
-            return "DISABLED";
-          case "hideFromChoice":
-            return "HIDDEN_FROM_CHOICE";
-        }
-      }
+    const action = activity.sequencingRules.evaluatePreConditionRules(activity);
+    if (action) {
+      return action;
     }
 
     return null;
@@ -2444,30 +2636,85 @@ export class OverallSequencingProcess {
    * @param {Activity} activity - Activity to collect objectives from
    */
   private collectGlobalObjectives(activity: Activity): void {
-    // Create a default global objective for this activity
-    const globalObjectiveId = activity.id + "_global";
-    if (!this.globalObjectiveMap.has(globalObjectiveId)) {
-      this.globalObjectiveMap.set(globalObjectiveId, {
-        id: globalObjectiveId,
-        satisfiedStatus: activity.objectiveSatisfiedStatus,
-        satisfiedStatusKnown: activity.objectiveMeasureStatus,
-        normalizedMeasure: activity.objectiveNormalizedMeasure,
-        normalizedMeasureKnown: activity.objectiveMeasureStatus,
-        progressMeasure: activity.progressMeasure,
-        progressMeasureKnown: activity.progressMeasureStatus,
-        completionStatus: activity.completionStatus,
-        completionStatusKnown: activity.completionStatus !== "unknown",
-        readSatisfiedStatus: true,
-        writeSatisfiedStatus: true,
-        readNormalizedMeasure: true,
-        writeNormalizedMeasure: true,
-        readProgressMeasure: true,
-        writeProgressMeasure: true,
-        readCompletionStatus: true,
-        writeCompletionStatus: true,
-        satisfiedByMeasure: activity.scaledPassingScore !== null,
-        updateAttemptData: true
-      });
+    const objectives = activity.getAllObjectives();
+
+    if (objectives.length === 0) {
+      const defaultId = `${activity.id}_default_objective`;
+      if (!this.globalObjectiveMap.has(defaultId)) {
+        this.globalObjectiveMap.set(defaultId, {
+          id: defaultId,
+          satisfiedStatus: activity.objectiveSatisfiedStatus,
+          satisfiedStatusKnown: activity.objectiveMeasureStatus,
+          normalizedMeasure: activity.objectiveNormalizedMeasure,
+          normalizedMeasureKnown: activity.objectiveMeasureStatus,
+          progressMeasure: activity.progressMeasure,
+          progressMeasureKnown: activity.progressMeasureStatus,
+          completionStatus: activity.completionStatus,
+          completionStatusKnown: activity.completionStatus !== CompletionStatus.UNKNOWN,
+          readSatisfiedStatus: true,
+          writeSatisfiedStatus: true,
+          readNormalizedMeasure: true,
+          writeNormalizedMeasure: true,
+          readCompletionStatus: true,
+          writeCompletionStatus: true,
+          readProgressMeasure: true,
+          writeProgressMeasure: true,
+          satisfiedByMeasure: activity.scaledPassingScore !== null,
+          minNormalizedMeasure: activity.scaledPassingScore,
+          updateAttemptData: true,
+        });
+      }
+    }
+
+    for (const objective of objectives) {
+      const mapInfos = objective.mapInfo.length > 0
+        ? objective.mapInfo
+        : [{
+            targetObjectiveID: objective.id,
+            readSatisfiedStatus: true,
+            writeSatisfiedStatus: true,
+            readNormalizedMeasure: true,
+            writeNormalizedMeasure: true,
+            readProgressMeasure: true,
+            writeProgressMeasure: true,
+            readCompletionStatus: true,
+            writeCompletionStatus: true,
+            updateAttemptData: objective.isPrimary,
+          }];
+
+      for (const mapInfo of mapInfos) {
+        const targetId = mapInfo.targetObjectiveID || objective.id;
+        if (!this.globalObjectiveMap.has(targetId)) {
+          this.globalObjectiveMap.set(targetId, {
+            id: targetId,
+            satisfiedStatus: objective.satisfiedStatus,
+            satisfiedStatusKnown: objective.measureStatus,
+            normalizedMeasure: objective.normalizedMeasure,
+            normalizedMeasureKnown: objective.measureStatus,
+            progressMeasure: objective.progressMeasure,
+            progressMeasureKnown: objective.progressMeasureStatus,
+            completionStatus: objective.completionStatus,
+            completionStatusKnown: objective.completionStatus !== CompletionStatus.UNKNOWN,
+            readSatisfiedStatus: mapInfo.readSatisfiedStatus ?? false,
+            writeSatisfiedStatus: mapInfo.writeSatisfiedStatus ?? false,
+            readNormalizedMeasure: mapInfo.readNormalizedMeasure ?? false,
+            writeNormalizedMeasure: mapInfo.writeNormalizedMeasure ?? false,
+            readProgressMeasure: mapInfo.readProgressMeasure ?? false,
+            writeProgressMeasure: mapInfo.writeProgressMeasure ?? false,
+            readCompletionStatus: mapInfo.readCompletionStatus ?? false,
+            writeCompletionStatus: mapInfo.writeCompletionStatus ?? false,
+            readRawScore: mapInfo.readRawScore ?? false,
+            writeRawScore: mapInfo.writeRawScore ?? false,
+            readMinScore: mapInfo.readMinScore ?? false,
+            writeMinScore: mapInfo.writeMinScore ?? false,
+            readMaxScore: mapInfo.readMaxScore ?? false,
+            writeMaxScore: mapInfo.writeMaxScore ?? false,
+            satisfiedByMeasure: objective.satisfiedByMeasure,
+            minNormalizedMeasure: objective.minNormalizedMeasure,
+            updateAttemptData: mapInfo.updateAttemptData ?? objective.isPrimary,
+          });
+        }
+      }
     }
 
     // Process children recursively
@@ -2483,6 +2730,24 @@ export class OverallSequencingProcess {
    */
   public getGlobalObjectiveMap(): Map<string, any> {
     return this.globalObjectiveMap;
+  }
+
+  /**
+   * INTEGRATION: Snapshot the Global Objective Map
+   * Provides a serializable copy for persistence consumers
+   * @return {Record<string, any>} - Plain-object snapshot of global objectives
+   */
+  public getGlobalObjectiveMapSnapshot(): Record<string, any> {
+    return this.serializeGlobalObjectiveMap();
+  }
+
+  /**
+   * INTEGRATION: Restore Global Objective Map
+   * Replaces the current map contents with persisted data
+   * @param {Record<string, any>} snapshot - Serialized global objective map
+   */
+  public restoreGlobalObjectiveMapSnapshot(snapshot: Record<string, any>): void {
+    this.restoreGlobalObjectiveMap(snapshot);
   }
 
   /**
@@ -2510,6 +2775,24 @@ export class OverallSequencingProcess {
         error: error instanceof Error ? error.message : String(error),
         timestamp: new Date().toISOString()
       });
+    }
+  }
+
+  private serializeGlobalObjectiveMap(): Record<string, any> {
+    const serialized: Record<string, any> = {};
+    this.globalObjectiveMap.forEach((data, id) => {
+      serialized[id] = { ...data };
+    });
+    return serialized;
+  }
+
+  private restoreGlobalObjectiveMap(mapData: Record<string, any>): void {
+    this.globalObjectiveMap.clear();
+    if (!mapData) {
+      return;
+    }
+    for (const [id, data] of Object.entries(mapData)) {
+      this.globalObjectiveMap.set(id, { ...data });
     }
   }
 }

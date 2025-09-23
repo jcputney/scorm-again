@@ -1,448 +1,287 @@
-# SCORM 2004 Sequencing Integration
+# SCORM 2004 Sequencing Integration Guide
 
-This document describes the enhanced SCORM 2004 sequencing features in scorm-again that make sequencing automatic and reduce LMS implementation burden.
+This guide documents everything an LMS must do to run SCORM 2004 sequencing with `scorm-again`. It covers configuration, runtime integration, navigation/UI handling, auxiliary resources, persistence, and cross-frame deployments.
 
-## Overview
+## 1. Runtime Requirements
 
-The enhanced sequencing system provides:
+- **Environment**: Browser capable of running the bundled `dist/scorm2004.min.js` (or the ESM build).
+- **Hosting**: Serve the API bundle before launching SCO content. Expose it globally as `window.API_1484_11`.
+- **Lifecycle**: LMS must call `Initialize()` when the SCO loads and `Terminate()` when the SCO exits. Sequence processing, navigation, rollup, and persistence hooks run inside those calls.
+- **Node version (tooling)**: `npm run build:types` and tests require Node ≥ 20. Client browsers see prebuilt bundles, no transpilation needed.
 
-1. **Runtime Integration Hooks** - Automatic sequencing when content calls Initialize/Terminate
-2. **Content Delivery Environment Process** - Complete DB.2 process implementation
-3. **Automatic Rollup Triggers** - Rollup when CMI values change (completion_status, success_status, score)
-4. **Enhanced Navigation Request Processing** - All navigation requests properly handled
-5. **Sequencing Event System** - LMS can listen to sequencing events
+```html
+<script src="/dist/scorm2004.min.js"></script>
+<script>
+  window.API_1484_11 = new Scorm2004API(settings);
+  // SCO runs Initialize/Terminate through the API facade.
+</script>
+```
 
-## Key Features
+## 2. Sequencing Configuration Data
 
-### Automatic Runtime Integration
+The LMS supplies the manifest-equivalent sequencing tree at API construction time. A minimal configuration looks like this:
 
-Sequencing automatically starts when `Initialize()` is called and processes navigation requests when `Terminate()` is called:
-
-```javascript
-// Create SCORM 2004 API with sequencing configuration
-const api = new Scorm2004API({
+```ts
+const settings = {
+  globalObjectiveIds: ["GLOBAL_PRIMARY"],
   sequencing: {
-    // Activity tree configuration
+    hideLmsUi: ["exitAll", "abandonAll"],
+    auxiliaryResources: [
+      { resourceId: "urn:lms:help", purpose: "help" },
+      { resourceId: "urn:lms:glossary", purpose: "glossary" },
+    ],
+    collections: {
+      clusteredModule: {
+        sequencingControls: {
+          flow: true,
+          choice: false,
+          selectionTiming: "once",
+          randomizeChildren: true,
+        },
+        hideLmsUi: ["continue"],
+        auxiliaryResources: [
+          { resourceId: "urn:lms:cheatsheet", purpose: "job-aid" },
+        ],
+        selectionRandomizationState: {
+          childOrder: ["modA", "modB"],
+          selectedChildIds: ["modA"],
+          hiddenFromChoiceChildIds: ["modB"],
+        },
+      },
+    },
     activityTree: {
       id: "course_root",
-      title: "My Course",
+      title: "Demo Course",
+      auxiliaryResources: [{ resourceId: "urn:lms:root-notes", purpose: "notes" }],
+      sequencingControls: {
+        flow: true,
+        stopForwardTraversal: false,
+      },
       children: [
         {
-          id: "lesson_1",
-          title: "Introduction",
+          id: "moduleA",
+          title: "Module A",
+          sequencingCollectionRefs: ["clusteredModule"],
+          primaryObjective: {
+            objectiveID: "OBJ_MODULE_A",
+            satisfiedByMeasure: true,
+            minNormalizedMeasure: 0.8,
+            mapInfo: [
+              {
+                targetObjectiveID: "GLOBAL_PRIMARY",
+                readSatisfiedStatus: true,
+                writeSatisfiedStatus: true,
+                readNormalizedMeasure: true,
+                writeNormalizedMeasure: true,
+              },
+            ],
+          },
           children: [
-            { id: "sco_1_1", title: "Welcome" },
-            { id: "sco_1_2", title: "Overview" }
-          ]
+            {
+              id: "scoA1",
+              title: "Introduction",
+              hideLmsUi: ["previous"],
+              auxiliaryResources: [
+                { resourceId: "urn:lms:scoA1-job", purpose: "job-aid" },
+              ],
+            },
+            { id: "scoA2", title: "Practice" },
+          ],
         },
         {
-          id: "lesson_2", 
-          title: "Content",
+          id: "moduleB",
+          title: "Module B",
+          auxiliaryResources: [
+            { resourceId: "urn:lms:modB-help", purpose: "help" },
+          ],
+          sequencingControls: {
+            flow: true,
+            forwardOnly: true,
+          },
           children: [
-            { id: "sco_2_1", title: "Theory" },
-            { id: "sco_2_2", title: "Practice" }
-          ]
-        }
-      ]
-    },
-    // Runtime sequencing configuration
-    autoRollupOnCMIChange: true,
-    autoProgressOnCompletion: false,
-    validateNavigationRequests: true,
-    enableEventSystem: true,
-    logLevel: 'info',
-    // Event listeners
-    eventListeners: {
-      onActivityDelivery: (activity) => {
-        console.log(`Deliver activity: ${activity.id} - ${activity.title}`);
-        // LMS should launch the content for this activity
-        launchContent(activity.id);
-      },
-      onActivityUnload: (activity) => {
-        console.log(`Unload activity: ${activity.id}`);
-        // LMS should unload current content
-      },
-      onNavigationRequest: (request, target) => {
-        console.log(`Navigation: ${request}`, target);
-      },
-      onRollupComplete: (activity) => {
-        console.log(`Rollup completed for: ${activity.id}`);
-        // Update UI based on activity status changes
-        updateNavigationUI(activity);
-      }
-    }
-  }
-});
-
-// Normal SCORM usage - sequencing happens automatically
-api.Initialize("");
-api.SetValue("cmi.completion_status", "completed"); // Triggers automatic rollup
-api.Terminate("");                                  // Processes navigation requests
-```
-
-### Automatic Rollup on CMI Changes
-
-When learners update critical CMI values, rollup is triggered automatically:
-
-```javascript
-// These SetValue calls will automatically trigger rollup:
-api.SetValue("cmi.completion_status", "completed");
-api.SetValue("cmi.success_status", "passed");
-api.SetValue("cmi.score.scaled", "0.85");
-api.SetValue("cmi.progress_measure", "1.0");
-
-// Rollup happens immediately, updating parent activities
-// and triggering onRollupComplete events
-```
-
-### Navigation Request Processing
-
-Navigation requests are processed through the complete Overall Sequencing Process:
-
-```javascript
-// Set navigation request
-api.SetValue("adl.nav.request", "continue");
-api.Terminate(""); // Automatically processes the request
-
-// Or process directly
-const success = api.processNavigationRequest("choice", "lesson_2");
-if (success) {
-  console.log("Navigation request processed successfully");
-}
-
-// Check navigation validity
-const canContinue = api.GetValue("adl.nav.request_valid.continue");
-const canGoToPrevious = api.GetValue("adl.nav.request_valid.previous"); 
-const canChooseLessson2 = api.GetValue("adl.nav.request_valid.choice.{target=lesson_2}");
-```
-
-## Complete Example
-
-Here's a complete example showing how an LMS can integrate with the enhanced sequencing:
-
-```javascript
-class SequencingEnabledLMS {
-  constructor() {
-    this.currentContent = null;
-    this.api = null;
-  }
-
-  initializeCourse(manifest) {
-    // Configure SCORM API with sequencing from manifest
-    this.api = new Scorm2004API({
-      sequencing: {
-        activityTree: this.buildActivityTree(manifest),
-        autoRollupOnCMIChange: true,
-        enableEventSystem: true,
-        eventListeners: {
-          onActivityDelivery: (activity) => this.deliverActivity(activity),
-          onActivityUnload: (activity) => this.unloadActivity(activity),
-          onRollupComplete: (activity) => this.updateUI(activity),
-          onSequencingError: (error, context) => this.handleError(error, context)
-        }
-      }
-    });
-
-    // Initialize - this will automatically start sequencing if configured
-    this.api.Initialize("");
-    
-    // Get current sequencing state
-    const state = this.api.getSequencingState();
-    console.log("Sequencing initialized:", state);
-  }
-
-  deliverActivity(activity) {
-    console.log(`Delivering activity: ${activity.id}`);
-    
-    // Unload current content
-    if (this.currentContent) {
-      this.unloadCurrentContent();
-    }
-    
-    // Launch new content
-    this.currentContent = activity;
-    this.launchContent(activity.id);
-    
-    // Update navigation UI
-    this.updateNavigationButtons(activity);
-  }
-
-  unloadActivity(activity) {
-    console.log(`Unloading activity: ${activity.id}`);
-    if (this.currentContent && this.currentContent.id === activity.id) {
-      this.unloadCurrentContent();
-      this.currentContent = null;
-    }
-  }
-
-  updateUI(activity) {
-    // Update progress indicators, navigation buttons, etc.
-    console.log(`UI update for rollup: ${activity.id}`);
-    this.updateProgressIndicators();
-    this.updateNavigationButtons(activity);
-  }
-
-  handleNavigation(request, target) {
-    // Process navigation request through enhanced sequencing
-    const success = this.api.processNavigationRequest(request, target);
-    
-    if (!success) {
-      console.warn(`Navigation request failed: ${request}`);
-      // Show user feedback
-    }
-    
-    return success;
-  }
-
-  updateNavigationButtons(activity) {
-    // Check navigation validity using the API
-    const canContinue = this.api.GetValue("adl.nav.request_valid.continue") === "true";
-    const canPrevious = this.api.GetValue("adl.nav.request_valid.previous") === "true";
-    
-    // Enable/disable navigation buttons
-    document.getElementById('continueBtn').disabled = !canContinue;
-    document.getElementById('previousBtn').disabled = !canPrevious;
-    
-    // Update choice navigation options
-    this.updateChoiceNavigation(activity);
-  }
-
-  buildActivityTree(manifest) {
-    // Build activity tree from SCORM manifest
-    // This would parse the imsmanifest.xml file
-    return {
-      id: manifest.identifier,
-      title: manifest.title,
-      children: manifest.organizations[0].items.map(item => this.buildActivity(item))
-    };
-  }
-
-  // ... additional LMS methods
-}
-
-// Usage
-const lms = new SequencingEnabledLMS();
-lms.initializeCourse(manifestData);
-
-// Navigation handling
-document.getElementById('continueBtn').onclick = () => {
-  lms.handleNavigation('continue');
-};
-
-document.getElementById('previousBtn').onclick = () => {
-  lms.handleNavigation('previous');
-};
-```
-
-## Advanced Configuration
-
-### Sequencing Rules and Controls
-
-```javascript
-const api = new Scorm2004API({
-  sequencing: {
-    activityTree: { /* ... */ },
-    
-    // Sequencing rules
-    sequencingRules: {
-      preConditionRules: [
-        {
-          action: "SKIP",
-          conditionCombination: "all",
-          conditions: [
-            {
-              condition: "SATISFIED",
-              operator: "no_op"
-            }
-          ]
-        }
+            { id: "scoB1", title: "Lecture" },
+            { id: "scoB2", title: "Assessment" },
+          ],
+        },
       ],
-      exitConditionRules: [
-        {
-          action: "EXIT_ALL",
-          conditionCombination: "any", 
-          conditions: [
-            {
-              condition: "TIME_LIMIT_EXCEEDED",
-              operator: "no_op"
-            }
-          ]
-        }
-      ]
     },
-    
-    // Sequencing controls
-    sequencingControls: {
-      flow: true,
-      forwardOnly: false,
-      choiceExit: true,
-      rollupObjectiveSatisfied: true,
-      rollupProgressCompletion: true
-    },
-    
-    // Rollup rules
-    rollupRules: {
-      rules: [
-        {
-          action: "SATISFIED",
-          consideration: "ALL",
-          conditions: [
-            {
-              condition: "SATISFIED"
-            }
-          ]
-        }
-      ]
-    }
+    autoRollupOnCMIChange: true,
+    enableEventSystem: true,
+    validateNavigationRequests: true,
+    logLevel: "info",
+    eventListeners: {}, // see Section 4
+  },
+};
+```
+
+### 2.1 Activity Settings Cheat Sheet
+
+| Field | Description |
+| --- | --- |
+| `id`, `title` | Unique identifier and display title for each activity. |
+| `children` | Nested `ActivitySettings` array; empty or omitted for leaf SCOs. |
+| `isVisible`, `isHiddenFromChoice`, `isAvailable` | Manifest visibility flags. |
+| `attemptLimit`, `beginTimeLimit`, `timeLimitAction`, etc. | Sequencing limit conditions. |
+| `primaryObjective`, `objectives[]` | Per-activity objectives with optional map info. |
+| `sequencingControls`, `sequencingRules`, `rollupRules`, `rollupConsiderations` | Per-node overrides. |
+| `selectionRandomizationState` | Persisted selection/randomization data for deterministic resumes. |
+| `hideLmsUi[]` | Additional LMS navigation hints. |
+| `auxiliaryResources[]` | Array of `{ resourceId, purpose }` entries for job aids, help, etc. |
+| `sequencingCollectionRefs` | One or many collection IDs to reuse shared settings. |
+
+### 2.2 Collections
+
+Collections let you define reusable sequencing bundles. A collection may contain controls, rules, rollup considerations, selection state, hide directives, and auxiliary resources. Activities reference collections via `sequencingCollectionRefs`; scorm-again merges collection data with per-activity settings (collection values apply first, activity overrides last).
+
+### 2.3 Auxiliary Resources
+
+`auxiliaryResources` appear at three levels:
+
+1. **Global defaults** (`settings.sequencing.auxiliaryResources`)
+2. **Collections** (shared defaults per cluster)
+3. **Per activity** (`activity.auxiliaryResources`)
+
+scorm-again merges them by resourceId (last writer wins) along the path from root → activity.
+
+## 3. Event Listeners & LMS Shell Integration
+
+Sequencing emits events when LMS shells register listeners via `API.setSequencingEventListeners`. Key callbacks:
+
+- `onActivityDelivery(Activity)` – launch the SCO.
+- `onActivityUnload(Activity)` – close the SCO frame and persist data.
+- `onNavigationValidityUpdate(validity)` – update navigation UI and auxiliary resources. Payload:
+  ```ts
+  {
+    continue: "true" | "false",
+    previous: "true" | "false",
+    choice: Record<string, "true" | "false">,
+    jump: Record<string, "true" | "false">,
+    hideLmsUi: HideLmsUiItem[],
+    auxiliaryResources: AuxiliaryResource[],
   }
+  ```
+- `onSequencingStateChange(state)` – full snapshot for debugging dashboards.
+- `onRollupComplete(Activity)` – update breadcrumbs/progress bars.
+- `onSequencingError(message, context?)` – hook for LMS logging.
+
+Example shell wiring:
+
+```ts
+API.setSequencingEventListeners({
+  onActivityDelivery: (activity) => launchSco(activity.id),
+  onActivityUnload: (activity) => closeSco(activity.id),
+  onNavigationValidityUpdate: (validity) => {
+    updateNavButtons(validity);
+    renderAuxiliaryResources(validity.auxiliaryResources);
+  },
+  onSequencingStateChange: (state) => updateDiagnosticsPanel(state),
 });
 ```
 
-### Event System Integration
+In wrappers (`test/integration/wrappers/*.html`) you can see the reference implementation: the navigation UI toggles hide directives and renders auxiliary resources dynamically.
 
-```javascript
-// Set up comprehensive event handling
-api.setSequencingEventListeners({
-  onSequencingStart: (activity) => {
-    console.log("Sequencing started with activity:", activity?.id);
-    // Initialize course UI
+## 4. Navigation Handling
+
+- Use ADL navigation values to trigger sequencing transitions: set `adl.nav.request` and call `Commit()`. Example: `API.SetValue("adl.nav.request", "_continue"); API.Commit("");`.
+- Honor `adl.nav.request_valid.*` (available in both the CMI tree and the event payload) to disable or grey-out illegal actions.
+- For direct LMS actions (no ADL value) you can call `API.processNavigationRequest(type, targetId?)`. Returns `true` on success.
+- Choice/jump requests require target IDs: `API.processNavigationRequest("choice", "moduleB")`.
+
+## 5. Auxiliary Resource Consumption
+
+The event payload provides the merged auxiliary resource list (`{ resourceId, purpose }`). The LMS should:
+
+1. Render each entry in a help/job-aid panel.
+2. Treat `resourceId` as a URI—either deep link or key into LMS storage.
+3. Update the panel for each `onActivityDelivery` or `onNavigationValidityUpdate` call.
+
+Wrapper implementations (`#aux-resources` lists) demonstrate a minimal UI.
+
+## 6. Persistence & LMS Endpoints
+
+Sequencing state can be persisted via a custom adapter so learners resume exactly where they left off (activity stack, randomization order, hide directives, auxiliary resources, global objective map, etc.). Provide `settings.sequencingStatePersistence`:
+
+```ts
+const persistence = {
+  async saveState(serializedState: string, metadata: SequencingStateMetadata) {
+    await fetch(`/api/scorm/state`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ metadata, state: serializedState }),
+    });
+    return true;
   },
-  
-  onSequencingEnd: () => {
-    console.log("Sequencing ended");
-    // Clean up course UI
+  async loadState(metadata) {
+    const res = await fetch(`/api/scorm/state?learner=${metadata.learnerId}&course=${metadata.courseId}`);
+    if (!res.ok) return null;
+    const { state } = await res.json();
+    return state; // string or null
   },
-  
-  onActivityDelivery: (activity) => {
-    console.log("Activity delivery:", activity.id, activity.title);
-    // Launch activity content
-    launchActivity(activity);
+  async clearState(metadata) {
+    await fetch(`/api/scorm/state?learner=${metadata.learnerId}&course=${metadata.courseId}`, {
+      method: 'DELETE',
+    });
+    return true;
   },
-  
-  onActivityUnload: (activity) => {
-    console.log("Activity unload:", activity.id);
-    // Clean up activity content
-  },
-  
-  onNavigationRequest: (request, target) => {
-    console.log("Navigation request:", request, target);
-    // Log navigation attempts
-  },
-  
-  onRollupComplete: (activity) => {
-    console.log("Rollup complete:", activity.id, activity.completionStatus);
-    // Update progress tracking
-    updateProgress(activity);
-  },
-  
-  onSequencingError: (error, context) => {
-    console.error("Sequencing error in", context, ":", error);
-    // Handle sequencing errors
-    showUserError("Navigation error occurred");
-  }
-});
+};
 ```
 
-## Migration Guide
+Recommended REST endpoints (adjust to your stack):
 
-### Migrating from Legacy Navigation
+| Method | Endpoint | Payload | Purpose |
+| --- | --- | --- | --- |
+| `PUT` | `/api/scorm/state` | `{ metadata, state }` | Save serialized sequencing state. |
+| `GET` | `/api/scorm/state?learner=...&course=...` | — | Load last saved state. Return `null` if none. |
+| `DELETE` | `/api/scorm/state?learner=...&course=...` | — | Forget stored state (e.g., new attempt). |
 
-If you currently handle navigation manually:
+Call `API.saveSequencingState(metadata)` during LMS checkpoints (e.g., commit, suspend). Call `API.loadSequencingState(metadata)` immediately after `Initialize()` when you resume a learner.
 
-```javascript
-// OLD WAY - Manual navigation handling
-api.addEventListener("Terminate", (event) => {
-  const request = api.GetValue("adl.nav.request");
-  if (request === "continue") {
-    // Manual logic to find next activity
-    const nextActivity = findNextActivity();
-    launchActivity(nextActivity);
-  }
-});
+Use `metadata: { learnerId, courseId, attemptId? }` to scope storage.
 
-// NEW WAY - Automatic sequencing
-const api = new Scorm2004API({
-  sequencing: {
-    activityTree: courseStructure,
-    eventListeners: {
-      onActivityDelivery: (activity) => launchActivity(activity)
-    }
-  }
-});
-// Navigation is handled automatically!
-```
+## 7. Cross-Frame / Cross-Domain Deployments
 
-### Benefits for LMS Developers
+If content runs in a different frame or domain, use the cross-frame facades:
 
-1. **Reduced Implementation Burden**: No need to implement complex sequencing logic
-2. **Standards Compliance**: Full SCORM 2004 sequencing specification compliance
-3. **Automatic Rollup**: Progress tracking happens automatically
-4. **Event-Driven Architecture**: Clean separation of concerns
-5. **Error Handling**: Built-in error handling and recovery
-6. **Performance**: Optimized sequencing algorithms
+- **LMS frame**: instantiate
+  ```ts
+  const server = createCrossFrameServer('2004', apiSettings, cmiDefaults);
+  ```
+  This wraps the real SCORM API and listens for `postMessage` calls.
 
-## API Reference
+- **Intermediate frame**: load `/test/integration/wrappers/cross-frame-intermediate.html` (or your derivative) to bridge LMS ↔ content.
 
-### New Methods
+- **Content frame**: import `createCrossFrameClient()` to obtain a SCORM API proxy that forwards commands to the LMS frame.
 
-- `getSequencingService()`: Get the sequencing service instance
-- `setSequencingEventListeners(listeners)`: Set event listeners
-- `updateSequencingConfiguration(config)`: Update configuration
-- `getSequencingState()`: Get current sequencing state
-- `processNavigationRequest(request, target?)`: Process navigation directly
+- **Origin restrictions**: set the `targetOrigin` when creating the server/client if you need strict cross-domain security.
 
-### Configuration Options
+The cross-frame wrapper in the repo demonstrates the pattern: it registers sequencing listeners, updates UI, and ensures hide directives/auxiliary resources render in the parent frame while the SCO stays sandboxed.
 
-See the `SequencingSettings` type definition for complete configuration options.
+## 8. LMS UI Responsibilities
 
-### Event Types
+1. **Navigation buttons**: show/hide & enable/disable according to `hideLmsUi` and `request_valid` values.
+2. **Auxiliary resources panel**: render the merged list every time `onActivityDelivery` or `onNavigationValidityUpdate` fires.
+3. **Activity launch**: map `activity.id` → SCO URL. `activity.title` helps with breadcrumbs.
+4. **Progress indicators**: use rollup events (`onRollupComplete`) and `API.getSequencingState()` to display completion/success.
+5. **Error surfaces**: capture `onSequencingError` for support logs.
 
-All sequencing events are available through the event listeners interface.
+## 9. Testing & Validation
 
-## Troubleshooting
+- Run the Vitest suites locally: `npm test -- SequencingConfiguration sequencing_process overall_sequencing_process SequencingPersistence`.
+- Run Playwright UI checks: `npx playwright test test/integration/NavigationUi.spec.ts` (ensures hide directives + auxiliary resources render correctly in all wrappers).
+- Provide LMS-side automated tests that:
+  - Launch multiple SCOs, exercise navigation requests, and verify LMS UI honors `hideLmsUi`.
+  - Randomize selection branches, suspend/resume, and confirm order persists.
+  - Verify auxiliary resource lists match expectations per activity.
 
-### Common Issues
+## 10. Integration Checklist
 
-1. **Sequencing not starting**: Check that `activityTree` is configured
-2. **Navigation not working**: Verify sequencing controls are properly set
-3. **Rollup not triggered**: Ensure `autoRollupOnCMIChange` is enabled
-4. **Events not firing**: Check that `enableEventSystem` is true
+- [ ] Serve `scorm2004.min.js` (or ESM) and instantiate `Scorm2004API` with complete sequencing configuration.
+- [ ] Register sequencing event listeners; update navigation controls and auxiliary resource panel on each event.
+- [ ] Forward user navigation actions via `adl.nav.request` + `Commit` or `processNavigationRequest`.
+- [ ] Implement persistence endpoints and wire `saveSequencingState` / `loadSequencingState` / `clearSequencingState`.
+- [ ] Render auxiliary resources (default + per-activity) in learner UI.
+- [ ] Handle cross-frame communication if content runs in another domain.
+- [ ] Provide LMS logging for `onSequencingError`, `onSequencingDebug` as desired.
+- [ ] Run Vitest + Playwright suites before rollout.
 
-### Debug Mode
-
-Enable debug logging for troubleshooting:
-
-```javascript
-const api = new Scorm2004API({
-  sequencing: {
-    logLevel: 'debug',
-    // ... other config
-  }
-});
-```
-
-This will provide detailed logging of all sequencing operations.
-
-## Runtime Hooks and Validity Updates
-
-- Time providers (optional):
-  - `now?: () => Date` to inject a clock for time checks (begin/end windows, attempt start times).
-  - `getAttemptElapsedSeconds?: (activity) => number` to supply accurate elapsed seconds used by `timeLimitExceeded`.
-- Per-target validity maps:
-  - The library computes and emits `onNavigationValidityUpdate` with `{ continue, previous, choice, jump }` where `choice` and `jump` are `{ [activityId]: 'true'|'false' }`.
-  - It also attempts to set `adl.nav.request_valid.choice/jump`; use the event payload for robust UI updates.
-
-Example config:
-
-```javascript
-const api = new Scorm2004API({
-  sequencing: {
-    activityTree: {/*...*/},
-    now: () => new Date(),
-    getAttemptElapsedSeconds: (activity) => lmsTimer.getElapsed(activity.id),
-    eventListeners: {
-      onNavigationValidityUpdate: (validity) => updateNavUI(validity)
-    }
-  }
-});
-```
+Following this guide ensures the LMS consumes every sequencing feature scorm-again exposes: collections, limit conditions, hide directives, auxiliary resources, randomization, persistence, and navigation events.

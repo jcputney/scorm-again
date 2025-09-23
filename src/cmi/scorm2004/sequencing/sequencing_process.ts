@@ -716,6 +716,8 @@ export class SequencingProcess {
       activity.sequencingRules.preConditionRules
     );
 
+    activity.wasSkipped = preConditionResult === RuleActionType.SKIP;
+
     return preConditionResult !== RuleActionType.SKIP &&
       preConditionResult !== RuleActionType.DISABLED;
   }

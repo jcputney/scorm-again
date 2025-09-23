@@ -7,11 +7,35 @@
   <script type="module">
     import {Scorm2004API} from "/dist/esm/scorm2004.min.js";
 
-    // Initialize the SCORM 2004 API
+    const sequencingDefaults = {
+      hideLmsUi: ["exitAll", "abandonAll"],
+      auxiliaryResources: [
+        { resourceId: "urn:scorm-again:help", purpose: "help" },
+        { resourceId: "urn:scorm-again:glossary", purpose: "glossary" },
+      ],
+    };
+
+    const navRequestMap = {
+      continue: "_continue",
+      previous: "_previous",
+      exit: "_exit",
+      exitAll: "_exitAll",
+      abandon: "_abandon",
+      abandonAll: "_abandonAll",
+      suspendAll: "_suspendAll",
+    };
+
+    const navMap = new Map();
+    let lastNavigationPayload = {
+      hideLmsUi: sequencingDefaults.hideLmsUi,
+      auxiliaryResources: sequencingDefaults.auxiliaryResources,
+    };
+
     window.API_1484_11 = new Scorm2004API({
       autocommit: true,
-      logLevel: 1, // Debug level
+      logLevel: 1,
       mastery_override: false,
+      sequencing: sequencingDefaults,
     });
 
     window.API_1484_11.loadFromJSON({
@@ -42,27 +66,151 @@
       },
     });
 
-    // Function to load the SCORM module
+    function refreshNavMap() {
+      navMap.clear();
+      document.querySelectorAll('[data-directive]').forEach((button) => {
+        const directive = button.getAttribute('data-directive');
+        if (directive) {
+          navMap.set(directive, button);
+        }
+      });
+    }
+
+    function bindNavigationHandlers() {
+      navMap.forEach((button) => {
+        button.addEventListener('click', requestNavigation);
+      });
+    }
+
+    function requestNavigation(event) {
+      const button = event.currentTarget;
+      const directive = button && typeof button.getAttribute === 'function' ? button.getAttribute('data-directive') : null;
+      if (!directive) return;
+      const navRequest = navRequestMap[directive];
+      if (!navRequest) return;
+      window.API_1484_11.SetValue("adl.nav.request", navRequest);
+      window.API_1484_11.Commit("");
+    }
+
+    function computeAuxiliaryResources(payload) {
+      const merged = new Map();
+      const addAll = (resources) => {
+        if (!Array.isArray(resources)) {
+          return;
+        }
+        for (const resource of resources) {
+          if (!resource) continue;
+          const resourceId = typeof resource.resourceId === 'string' ? resource.resourceId.trim() : '';
+          const purpose = typeof resource.purpose === 'string' ? resource.purpose.trim() : '';
+          if (!resourceId || merged.has(resourceId)) {
+            continue;
+          }
+          merged.set(resourceId, { resourceId, purpose });
+        }
+      };
+
+      addAll(sequencingDefaults.auxiliaryResources);
+      addAll(payload?.auxiliaryResources);
+
+      return Array.from(merged.values());
+    }
+
+    function applyNavigationState(update = {}) {
+      lastNavigationPayload = {
+        ...lastNavigationPayload,
+        ...update,
+        hideLmsUi: update.hideLmsUi ?? lastNavigationPayload.hideLmsUi,
+        auxiliaryResources: update.auxiliaryResources ?? lastNavigationPayload.auxiliaryResources,
+      };
+      const payload = lastNavigationPayload;
+
+      const hidden = new Set(sequencingDefaults.hideLmsUi ?? []);
+      if (Array.isArray(payload.hideLmsUi)) {
+        for (const directive of payload.hideLmsUi) {
+          if (typeof directive === 'string') {
+            hidden.add(directive);
+          }
+        }
+      }
+
+      navMap.forEach((button, directive) => {
+        const shouldHide = hidden.has(directive);
+        button.classList.toggle('is-hidden', shouldHide);
+        button.hidden = shouldHide;
+        button.setAttribute('aria-hidden', shouldHide ? 'true' : 'false');
+        button.tabIndex = shouldHide ? -1 : 0;
+      });
+
+      const continueButton = navMap.get('continue');
+      if (continueButton) {
+        const canContinue = payload.continue;
+        const shouldDisable = canContinue === false || canContinue === 'false';
+        continueButton.disabled = shouldDisable;
+      }
+
+      const previousButton = navMap.get('previous');
+      if (previousButton) {
+        const canPrevious = payload.previous;
+        const shouldDisable = canPrevious === false || canPrevious === 'false';
+        previousButton.disabled = shouldDisable;
+      }
+
+      const hideList = document.getElementById('hide-directives');
+      if (hideList) {
+        hideList.textContent = hidden.size ? Array.from(hidden).join(', ') : 'none';
+      }
+
+      const auxiliaryResources = computeAuxiliaryResources(payload);
+      const auxList = document.getElementById('aux-resources');
+      if (auxList) {
+        auxList.innerHTML = '';
+        if (auxiliaryResources.length === 0) {
+          const li = document.createElement('li');
+          li.textContent = 'None';
+          auxList.appendChild(li);
+        } else {
+          auxiliaryResources.forEach(({ resourceId, purpose }) => {
+            const li = document.createElement('li');
+            const label = purpose ? `${purpose}` : 'resource';
+            li.textContent = `${label}: ${resourceId}`;
+            auxList.appendChild(li);
+          });
+        }
+      }
+    }
+
+    window.API_1484_11.setSequencingEventListeners({
+      onNavigationValidityUpdate: applyNavigationState,
+      onActivityDelivery: (activity) => {
+        applyNavigationState({
+          hideLmsUi: activity?.hideLmsUi,
+          auxiliaryResources: activity?.auxiliaryResources,
+        });
+      },
+    });
+
     function loadModule(modulePath) {
       document.getElementById("moduleFrame").src = modulePath;
     }
 
-    // Get the module path from the URL query parameter
     function getModulePath() {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get("module") || "";
     }
 
-    // When the page loads, load the module
-    window.onload = function () {
+    window.addEventListener('DOMContentLoaded', () => {
+      refreshNavMap();
+      bindNavigationHandlers();
+      applyNavigationState();
+
       const modulePath = getModulePath();
       if (modulePath) {
         loadModule(modulePath);
       } else {
         document.getElementById("error").textContent =
-            "No module specified. Use ?module=path/to/module.html";
+          "No module specified. Use ?module=path/to/module.html";
       }
-    };
+    });
   </script>
   <style>
     body,
@@ -72,16 +220,114 @@
       height: 100%;
     }
 
+    body {
+      display: flex;
+      flex-direction: column;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    header {
+      padding: 12px 16px;
+      background: #0b3d91;
+      color: #fff;
+    }
+
+    #lmsUi {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 12px 16px;
+      background: #f2f6ff;
+      border-bottom: 1px solid #d4defd;
+      align-items: center;
+    }
+
+    #lmsUi button {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid #0b3d91;
+      background: #fff;
+      color: #0b3d91;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    #lmsUi button:disabled {
+      border-color: #9fb4d9;
+      color: #9fb4d9;
+      cursor: not-allowed;
+    }
+
+    #lmsUi button:not(:disabled):hover {
+      background: #0b3d91;
+      color: #fff;
+    }
+
+    #lmsUi button.is-hidden {
+      display: none;
+    }
+
+    #hide-directives {
+      margin-left: auto;
+      font-size: 12px;
+      color: #0b3d91;
+    }
+
+    #auxiliary-resources {
+      padding: 12px 16px;
+      background: #f8faff;
+      border-bottom: 1px solid #d4defd;
+    }
+
+    #auxiliary-resources h2 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      color: #0b3d91;
+    }
+
+    #aux-resources {
+      margin: 0;
+      padding-left: 20px;
+      color: #0b3d91;
+    }
+
     #moduleFrame {
       width: 100%;
-      height: 100%;
+      flex: 1;
       border: none;
       padding: 0;
       margin: 0;
     }
+
+    #error {
+      padding: 12px 16px 24px;
+      color: #a94442;
+      font-weight: 600;
+      background: #f9dede;
+      border-top: 1px solid #f2bcbc;
+    }
   </style>
 </head>
 <body>
+<header>
+  <h1>SCORM 2004 ESM Wrapper</h1>
+</header>
+<div id="lmsUi">
+  <button type="button" data-directive="continue">Continue</button>
+  <button type="button" data-directive="previous">Previous</button>
+  <button type="button" data-directive="exit">Exit</button>
+  <button type="button" data-directive="exitAll" aria-hidden="true" hidden>Exit All</button>
+  <button type="button" data-directive="abandon">Abandon</button>
+  <button type="button" data-directive="abandonAll" aria-hidden="true" hidden>Abandon All</button>
+  <button type="button" data-directive="suspendAll">Suspend All</button>
+  <span id="hide-directives" aria-live="polite">exitAll, abandonAll</span>
+</div>
+<section id="auxiliary-resources">
+  <h2>Auxiliary Resources</h2>
+  <ul id="aux-resources" aria-live="polite"><li>help: urn:scorm-again:help</li><li>glossary: urn:scorm-again:glossary</li></ul>
+</section>
 <iframe id="moduleFrame" title="SCORM Module"></iframe>
 <div id="error"></div>
 </body>

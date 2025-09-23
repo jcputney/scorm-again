@@ -19,6 +19,7 @@ import { CMI } from "../cmi/scorm2004/cmi";
 import { ADL } from "../cmi/scorm2004/adl";
 import { global_constants } from "../constants/api_constants";
 import { RuleCondition } from "../cmi/scorm2004/sequencing/sequencing_rules";
+import { AuxiliaryResource, HideLmsUiItem } from "../types/sequencing_types";
 
 /**
  * Interface for sequencing event listeners
@@ -161,8 +162,20 @@ export class SequencingService {
           seqOptions,
         );
 
-        const overallOptions: { now?: () => Date } = {};
+        const overallOptions: {
+          now?: () => Date;
+          enhancedDeliveryValidation?: boolean;
+          defaultHideLmsUi?: HideLmsUiItem[];
+          defaultAuxiliaryResources?: AuxiliaryResource[];
+        } = {};
         if (this.configuration.now) overallOptions.now = this.configuration.now;
+        overallOptions.defaultHideLmsUi = [...this.sequencing.hideLmsUi];
+        if (this.sequencing.auxiliaryResources.length > 0) {
+          overallOptions.defaultAuxiliaryResources = this.sequencing.auxiliaryResources.map((resource) => ({
+            resourceId: resource.resourceId,
+            purpose: resource.purpose,
+          }));
+        }
 
         this.overallSequencingProcess = new OverallSequencingProcess(
           this.sequencing.activityTree,
@@ -741,6 +754,9 @@ export class SequencingService {
           break;
         case "onActivityAttemptEnd":
           this.fireActivityAttemptEnd(data);
+          break;
+        case "onNavigationValidityUpdate":
+          this.fireNavigationValidityUpdate(data);
           break;
         default:
           // Pass through unknown events as debug events

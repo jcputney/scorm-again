@@ -198,6 +198,25 @@ describe("SequencingService", () => {
       // Event should not fire when system is disabled
       expect(eventFired).toBe(false);
     });
+
+    it("should emit navigation validity updates including hideLmsUi directives", () => {
+      const rootActivity = sequencing.activityTree.root!;
+      rootActivity.hideLmsUi = ["continue"];
+      sequencing.hideLmsUi = ["exit"];
+
+      let captured: any = null;
+      sequencingService.setEventListeners({
+        onNavigationValidityUpdate: (payload: any) => {
+          captured = payload;
+        },
+      });
+
+      sequencingService.initialize();
+      sequencingService.processNavigationRequest("start");
+
+      expect(captured).toBeTruthy();
+      expect(captured.hideLmsUi).toEqual(["continue", "exit"]);
+    });
   });
 
   describe("configuration updates", () => {

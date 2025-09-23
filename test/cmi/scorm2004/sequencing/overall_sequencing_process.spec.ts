@@ -5,7 +5,7 @@ import {
   NavigationRequestResult,
   DeliveryRequest,
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
-import { 
+import {
   SequencingProcess,
   SequencingRequestType,
   SequencingResult,
@@ -15,6 +15,12 @@ import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_p
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { ADLNav } from "../../../../src/cmi/scorm2004/adl";
+import {
+  SelectionTiming,
+  RandomizationTiming,
+  SequencingControls,
+} from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
+import { SequencingRules } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("Overall Sequencing Process (OP.1)", () => {
   let overallProcess: OverallSequencingProcess;
@@ -316,6 +322,191 @@ describe("Overall Sequencing Process (OP.1)", () => {
       expect(result.valid).toBe(true);
       // ADL nav request validity should be updated
       // Note: Due to readonly constraints, we can't directly test the values
+    });
+  });
+
+  describe("Persisted selection/randomization state", () => {
+    it("should resume suspended leaf within pre-selected cluster", () => {
+      const customTree = new ActivityTree();
+      const customRoot = new Activity("root", "Root");
+
+      const cluster = new Activity("cluster", "Cluster");
+      const childVisible = new Activity("childVisible", "Visible Leaf");
+      const childHidden = new Activity("childHidden", "Hidden Leaf");
+
+      customRoot.sequencingControls.flow = true;
+      customRoot.sequencingControls.selectionTiming = SelectionTiming.ONCE;
+      customRoot.sequencingControls.selectCount = 1;
+      customRoot.sequencingControls.selectionCountStatus = true;
+      customRoot.sequencingControls.randomizationTiming = RandomizationTiming.ONCE;
+      customRoot.sequencingControls.randomizeChildren = true;
+      customRoot.sequencingControls.reorderChildren = true;
+      customRoot.sequencingControls.choice = true;
+
+      cluster.sequencingControls.flow = true;
+      cluster.sequencingControls.selectionTiming = SelectionTiming.ONCE;
+      cluster.sequencingControls.selectCount = 1;
+      cluster.sequencingControls.selectionCountStatus = true;
+      cluster.sequencingControls.randomizationTiming = RandomizationTiming.ONCE;
+      cluster.sequencingControls.randomizeChildren = true;
+      cluster.sequencingControls.reorderChildren = true;
+      cluster.sequencingControls.choice = true;
+
+      cluster.addChild(childVisible);
+      cluster.addChild(childHidden);
+      customRoot.addChild(cluster);
+
+      customRoot.setChildOrder(["cluster"]);
+      cluster.setChildOrder(["childVisible", "childHidden"]);
+
+      cluster.setProcessedChildren([childVisible]);
+      customRoot.setProcessedChildren([cluster]);
+
+      childVisible.isHiddenFromChoice = false;
+      childVisible.isAvailable = true;
+      childHidden.isHiddenFromChoice = true;
+      childHidden.isAvailable = false;
+      cluster.isHiddenFromChoice = false;
+      cluster.isAvailable = true;
+
+      childVisible.isSuspended = true;
+      customTree.root = customRoot;
+
+      const customSequencingProcess = new SequencingProcess(
+        customTree,
+        new SequencingRules(),
+        new SequencingControls(),
+        new ADLNav(),
+      );
+      const customOverall = new OverallSequencingProcess(
+        customTree,
+        customSequencingProcess,
+        new RollupProcess(),
+        new ADLNav(),
+      );
+
+      customTree.suspendedActivity = childVisible;
+      customTree.currentActivity = null;
+
+      const resumeResult = customOverall.processNavigationRequest(NavigationRequestType.RESUME_ALL);
+
+      expect(resumeResult.valid).toBe(true);
+      expect(resumeResult.targetActivity).toBe(childVisible);
+      expect(cluster.getAvailableChildren().map((child) => child.id)).toEqual(["childVisible"]);
+    });
+
+    it("should enforce selection visibility for CHOICE navigation after restore", () => {
+      const customTree = new ActivityTree();
+      const customRoot = new Activity("root", "Root");
+
+      const cluster = new Activity("cluster", "Cluster");
+      const childVisible = new Activity("childVisible", "Visible Leaf");
+      const childHidden = new Activity("childHidden", "Hidden Leaf");
+
+      customRoot.sequencingControls.flow = true;
+      customRoot.sequencingControls.selectionTiming = SelectionTiming.ONCE;
+      customRoot.sequencingControls.selectCount = 1;
+      customRoot.sequencingControls.selectionCountStatus = true;
+      customRoot.sequencingControls.randomizationTiming = RandomizationTiming.ONCE;
+      customRoot.sequencingControls.randomizeChildren = true;
+      customRoot.sequencingControls.reorderChildren = true;
+      customRoot.sequencingControls.choice = true;
+
+      cluster.sequencingControls.flow = true;
+      cluster.sequencingControls.selectionTiming = SelectionTiming.ONCE;
+      cluster.sequencingControls.selectCount = 1;
+      cluster.sequencingControls.selectionCountStatus = true;
+      cluster.sequencingControls.randomizationTiming = RandomizationTiming.ONCE;
+      cluster.sequencingControls.randomizeChildren = true;
+      cluster.sequencingControls.reorderChildren = true;
+      cluster.sequencingControls.choice = true;
+
+      cluster.addChild(childVisible);
+      cluster.addChild(childHidden);
+      customRoot.addChild(cluster);
+
+      customRoot.setChildOrder(["cluster"]);
+      cluster.setChildOrder(["childVisible", "childHidden"]);
+
+      cluster.setProcessedChildren([childVisible]);
+      customRoot.setProcessedChildren([cluster]);
+
+      childVisible.isHiddenFromChoice = false;
+      childVisible.isAvailable = true;
+      childHidden.isHiddenFromChoice = true;
+      childHidden.isAvailable = false;
+      cluster.isHiddenFromChoice = false;
+      cluster.isAvailable = true;
+
+      customTree.root = customRoot;
+
+      const customSequencingProcess = new SequencingProcess(
+        customTree,
+        new SequencingRules(),
+        new SequencingControls(),
+        new ADLNav(),
+      );
+      const customOverall = new OverallSequencingProcess(
+        customTree,
+        customSequencingProcess,
+        new RollupProcess(),
+        new ADLNav(),
+      );
+
+      customTree.currentActivity = null;
+
+      const hiddenChoice = customOverall.processNavigationRequest(
+        NavigationRequestType.CHOICE,
+        "childHidden",
+      );
+      expect(hiddenChoice.valid).toBe(false);
+      expect(hiddenChoice.exception).toBe("NB.2.1-11");
+
+      const visibleChoice = customOverall.processNavigationRequest(
+        NavigationRequestType.CHOICE,
+        "childVisible",
+      );
+      expect(visibleChoice.valid).toBe(true);
+      expect(visibleChoice.targetActivity).toBe(childVisible);
+    });
+  });
+
+  describe("Hide LMS UI directives", () => {
+    it("should union default and activity directives when updating navigation", () => {
+      const customActivityTree = new ActivityTree();
+      const rootActivity = new Activity("root", "Root");
+      const childActivity = new Activity("child", "Child");
+
+      rootActivity.addChild(childActivity);
+      rootActivity.sequencingControls.flow = true;
+      rootActivity.hideLmsUi = ["continue"];
+      childActivity.hideLmsUi = ["previous"];
+
+      customActivityTree.root = rootActivity;
+
+      const sequencingProcess = new SequencingProcess(customActivityTree);
+      const rollupProcess = new RollupProcess();
+      const adlNav = new ADLNav();
+
+      const events: any[] = [];
+      const process = new OverallSequencingProcess(
+        customActivityTree,
+        sequencingProcess,
+        rollupProcess,
+        adlNav,
+        (eventType, data) => {
+          if (eventType === "onNavigationValidityUpdate") {
+            events.push(data);
+          }
+        },
+        { defaultHideLmsUi: ["exit"] },
+      );
+
+      const result = process.processNavigationRequest(NavigationRequestType.START);
+      expect(result.valid).toBe(true);
+      expect(events.length).toBeGreaterThan(0);
+      const lastEvent = events[events.length - 1];
+      expect(lastEvent.hideLmsUi).toEqual(["continue", "previous", "exit"]);
     });
   });
 

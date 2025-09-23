@@ -15,6 +15,9 @@ import {
 } from "./types/api_types";
 import {
   ActivitySettings,
+  AuxiliaryResource,
+  AuxiliaryResourceSettings,
+  ObjectiveSettings,
   RollupRuleSettings,
   RollupRulesSettings,
   SequencingControlsSettings,
@@ -22,9 +25,16 @@ import {
   SequencingRulesSettings,
   SequencingSettings,
   SequencingEventListeners,
+  SelectionRandomizationStateSettings,
+  HideLmsUiItem,
+  HIDE_LMS_UI_TOKENS,
+  SequencingCollectionSettings,
+  RuleConditionSettings,
+  RollupConditionSettings,
 } from "./types/sequencing_types";
-import { RuleCondition, SequencingRule } from "./cmi/scorm2004/sequencing/sequencing_rules";
-import { RollupCondition, RollupRule } from "./cmi/scorm2004/sequencing/rollup_rules";
+import { SequencingControls } from "./cmi/scorm2004/sequencing/sequencing_controls";
+import { RuleCondition, SequencingRule, SequencingRules } from "./cmi/scorm2004/sequencing/sequencing_rules";
+import { RollupCondition, RollupRule, RollupRules } from "./cmi/scorm2004/sequencing/rollup_rules";
 import { scorm2004_regex } from "./constants/regex"; // Import functions from extracted modules
 import { BaseCMI } from "./cmi/common/base_cmi";
 import {
@@ -38,7 +48,12 @@ import { CMICommentsObject } from "./cmi/scorm2004/comments";
 import ValidLanguages from "./constants/language_constants";
 import { CompletionStatus, SuccessStatus, LogLevelEnum } from "./constants/enums";
 import { Sequencing } from "./cmi/scorm2004/sequencing/sequencing";
-import { Activity } from "./cmi/scorm2004/sequencing/activity";
+import {
+  Activity,
+  ActivityObjective,
+  ObjectiveMapInfo,
+} from "./cmi/scorm2004/sequencing/activity";
+import { OverallSequencingProcess } from "./cmi/scorm2004/sequencing/overall_sequencing_process";
 import { SequencingService, SequencingConfiguration } from "./services/SequencingService";
 
 /**
@@ -50,6 +65,7 @@ class Scorm2004API extends BaseAPI {
   private readonly _sequencing: Sequencing;
   private _sequencingService: SequencingService | null = null;
   private _extractedScoItemIds: string[] = [];
+  private _sequencingCollections: Record<string, SequencingCollectionSettings> = {};
 
   /**
    * Constructor for SCORM 2004 API
@@ -432,6 +448,11 @@ class Scorm2004API extends BaseAPI {
           `_globalObjectives.${global_index}`,
         );
         this._commonSetCMIValue("SetGlobalObjectiveValue", true, global_element, value);
+
+        const updatedObjective = this._globalObjectives[global_index];
+        if (objective_id && updatedObjective) {
+          this.updateGlobalObjectiveFromCMI(objective_id, updatedObjective);
+        }
       }
     }
     return this._commonSetCMIValue("SetValue", true, CMIElement, value);
@@ -966,6 +987,8 @@ class Scorm2004API extends BaseAPI {
    * @param {SequencingSettings} sequencingSettings - The sequencing settings
    */
   private configureSequencing(sequencingSettings: SequencingSettings): void {
+    this._sequencingCollections = this.sanitizeSequencingCollections(sequencingSettings.collections);
+
     // Configure activity tree
     if (sequencingSettings.activityTree) {
       this.configureActivityTree(sequencingSettings.activityTree);
@@ -985,6 +1008,21 @@ class Scorm2004API extends BaseAPI {
     if (sequencingSettings.rollupRules) {
       this.configureRollupRules(sequencingSettings.rollupRules);
     }
+
+    if (sequencingSettings.hideLmsUi) {
+      this._sequencing.hideLmsUi = this.sanitizeHideLmsUi(sequencingSettings.hideLmsUi);
+    } else {
+      this._sequencing.hideLmsUi = [];
+    }
+
+    if (sequencingSettings.auxiliaryResources) {
+      this._sequencing.auxiliaryResources = this.sanitizeAuxiliaryResources(
+        sequencingSettings.auxiliaryResources,
+      );
+    } else {
+      this._sequencing.auxiliaryResources = [];
+    }
+
   }
 
   /**
@@ -1028,6 +1066,16 @@ class Scorm2004API extends BaseAPI {
     // Create activity
     const activity = new Activity(activitySettings.id, activitySettings.title);
 
+    const selectionStates: SelectionRandomizationStateSettings[] = [];
+    const collectionRefs = this.normalizeCollectionRefs(activitySettings.sequencingCollectionRefs);
+
+    for (const ref of collectionRefs) {
+      const collection = this._sequencingCollections[ref];
+      if (collection) {
+        this.applySequencingCollection(activity, collection, selectionStates);
+      }
+    }
+
     // Set activity properties
     if (activitySettings.isVisible !== undefined) {
       activity.isVisible = activitySettings.isVisible;
@@ -1041,6 +1089,82 @@ class Scorm2004API extends BaseAPI {
     if (activitySettings.isCompleted !== undefined) {
       activity.isCompleted = activitySettings.isCompleted;
     }
+    if (activitySettings.isHiddenFromChoice !== undefined) {
+      activity.isHiddenFromChoice = activitySettings.isHiddenFromChoice;
+    }
+    if (activitySettings.isAvailable !== undefined) {
+      activity.isAvailable = activitySettings.isAvailable;
+    }
+    if (activitySettings.attemptLimit !== undefined) {
+      activity.attemptLimit = activitySettings.attemptLimit;
+    }
+    if (activitySettings.attemptAbsoluteDurationLimit !== undefined) {
+      activity.attemptAbsoluteDurationLimit = activitySettings.attemptAbsoluteDurationLimit;
+    }
+    if (activitySettings.activityAbsoluteDurationLimit !== undefined) {
+      activity.activityAbsoluteDurationLimit =
+        activitySettings.activityAbsoluteDurationLimit;
+    }
+    if (activitySettings.timeLimitAction !== undefined) {
+      activity.timeLimitAction = activitySettings.timeLimitAction;
+    }
+    if (activitySettings.timeLimitDuration !== undefined) {
+      activity.timeLimitDuration = activitySettings.timeLimitDuration;
+    }
+    if (activitySettings.beginTimeLimit !== undefined) {
+      activity.beginTimeLimit = activitySettings.beginTimeLimit;
+    }
+    if (activitySettings.endTimeLimit !== undefined) {
+      activity.endTimeLimit = activitySettings.endTimeLimit;
+    }
+
+    if (activitySettings.primaryObjective) {
+      const primaryObjective = this.createActivityObjectiveFromSettings(
+        activitySettings.primaryObjective,
+        true,
+      );
+      activity.primaryObjective = primaryObjective;
+      if (primaryObjective.minNormalizedMeasure !== null) {
+        activity.scaledPassingScore = primaryObjective.minNormalizedMeasure;
+      }
+    }
+
+    if (activitySettings.objectives) {
+      for (const objectiveSettings of activitySettings.objectives) {
+        const objective = this.createActivityObjectiveFromSettings(objectiveSettings, false);
+        activity.addObjective(objective);
+      }
+    }
+
+    if (activitySettings.sequencingControls) {
+      this.applySequencingControlsSettings(activity.sequencingControls, activitySettings.sequencingControls);
+    }
+
+    if (activitySettings.sequencingRules) {
+      this.applySequencingRulesSettings(activity.sequencingRules, activitySettings.sequencingRules);
+    }
+
+    if (activitySettings.rollupRules) {
+      this.applyRollupRulesSettings(activity.rollupRules, activitySettings.rollupRules);
+    }
+
+    if (activitySettings.rollupConsiderations) {
+      activity.applyRollupConsiderations(activitySettings.rollupConsiderations);
+    }
+
+    if (activitySettings.hideLmsUi) {
+      const mergedHide = this.mergeHideLmsUi(activity.hideLmsUi, activitySettings.hideLmsUi);
+      if (mergedHide.length > 0) {
+        activity.hideLmsUi = mergedHide;
+      }
+    }
+
+    if (activitySettings.auxiliaryResources) {
+      const sanitizedAux = this.sanitizeAuxiliaryResources(activitySettings.auxiliaryResources);
+      if (sanitizedAux.length > 0) {
+        activity.auxiliaryResources = this.mergeAuxiliaryResources(activity.auxiliaryResources, sanitizedAux);
+      }
+    }
 
     // Create child activities
     if (activitySettings.children) {
@@ -1049,55 +1173,13 @@ class Scorm2004API extends BaseAPI {
         activity.addChild(childActivity);
       }
     }
-    // Apply per-activity sequencing settings if provided
-    if (activitySettings.sequencingControls) {
-      const sc = activity.sequencingControls;
-      const c = activitySettings.sequencingControls;
-      if (c.enabled !== undefined) sc.enabled = c.enabled;
-      if (c.choiceExit !== undefined) sc.choiceExit = c.choiceExit;
-      if (c.flow !== undefined) sc.flow = c.flow;
-      if (c.forwardOnly !== undefined) sc.forwardOnly = c.forwardOnly;
-      if (c.useCurrentAttemptObjectiveInfo !== undefined)
-        sc.useCurrentAttemptObjectiveInfo = c.useCurrentAttemptObjectiveInfo;
-      if (c.useCurrentAttemptProgressInfo !== undefined)
-        sc.useCurrentAttemptProgressInfo = c.useCurrentAttemptProgressInfo;
-      if (c.preventActivation !== undefined) sc.preventActivation = c.preventActivation;
-      if (c.constrainChoice !== undefined) sc.constrainChoice = c.constrainChoice;
-      if (c.rollupObjectiveSatisfied !== undefined)
-        sc.rollupObjectiveSatisfied = c.rollupObjectiveSatisfied;
-      if (c.rollupProgressCompletion !== undefined)
-        sc.rollupProgressCompletion = c.rollupProgressCompletion;
-      if (c.objectiveMeasureWeight !== undefined)
-        sc.objectiveMeasureWeight = c.objectiveMeasureWeight;
+
+    if (activitySettings.selectionRandomizationState) {
+      selectionStates.push(this.cloneSelectionRandomizationState(activitySettings.selectionRandomizationState));
     }
 
-    if (activitySettings.sequencingRules) {
-      const rs = activitySettings.sequencingRules;
-      if (rs.preConditionRules) {
-        for (const ruleSettings of rs.preConditionRules) {
-          const rule = this.createSequencingRule(ruleSettings);
-          activity.sequencingRules.addPreConditionRule(rule);
-        }
-      }
-      if (rs.exitConditionRules) {
-        for (const ruleSettings of rs.exitConditionRules) {
-          const rule = this.createSequencingRule(ruleSettings);
-          activity.sequencingRules.addExitConditionRule(rule);
-        }
-      }
-      if (rs.postConditionRules) {
-        for (const ruleSettings of rs.postConditionRules) {
-          const rule = this.createSequencingRule(ruleSettings);
-          activity.sequencingRules.addPostConditionRule(rule);
-        }
-      }
-    }
-
-    if (activitySettings.rollupRules && activitySettings.rollupRules.rules) {
-      for (const ruleSettings of activitySettings.rollupRules.rules) {
-        const rule = this.createRollupRule(ruleSettings);
-        activity.rollupRules.addRule(rule);
-      }
+    for (const state of selectionStates) {
+      this.applySelectionRandomizationState(activity, state);
     }
 
     return activity;
@@ -1108,31 +1190,7 @@ class Scorm2004API extends BaseAPI {
    * @param {SequencingRulesSettings} sequencingRulesSettings - The sequencing rules settings
    */
   private configureSequencingRules(sequencingRulesSettings: SequencingRulesSettings): void {
-    const sequencingRules = this._sequencing.sequencingRules;
-
-    // Configure pre-condition rules
-    if (sequencingRulesSettings.preConditionRules) {
-      for (const ruleSettings of sequencingRulesSettings.preConditionRules) {
-        const rule = this.createSequencingRule(ruleSettings);
-        sequencingRules.addPreConditionRule(rule);
-      }
-    }
-
-    // Configure exit condition rules
-    if (sequencingRulesSettings.exitConditionRules) {
-      for (const ruleSettings of sequencingRulesSettings.exitConditionRules) {
-        const rule = this.createSequencingRule(ruleSettings);
-        sequencingRules.addExitConditionRule(rule);
-      }
-    }
-
-    // Configure post-condition rules
-    if (sequencingRulesSettings.postConditionRules) {
-      for (const ruleSettings of sequencingRulesSettings.postConditionRules) {
-        const rule = this.createSequencingRule(ruleSettings);
-        sequencingRules.addPostConditionRule(rule);
-      }
-    }
+    this.applySequencingRulesSettings(this._sequencing.sequencingRules, sequencingRulesSettings);
   }
 
   /**
@@ -1164,46 +1222,444 @@ class Scorm2004API extends BaseAPI {
   private configureSequencingControls(
     sequencingControlsSettings: SequencingControlsSettings,
   ): void {
-    const sequencingControls = this._sequencing.sequencingControls;
+    this.applySequencingControlsSettings(this._sequencing.sequencingControls, sequencingControlsSettings);
+  }
 
-    // Set sequencing control properties
-    if (sequencingControlsSettings.enabled !== undefined) {
-      sequencingControls.enabled = sequencingControlsSettings.enabled;
+  private applySelectionRandomizationState(
+    activity: Activity,
+    state: SelectionRandomizationStateSettings,
+  ): void {
+    const sequencingControls = activity.sequencingControls;
+
+    if (state.selectionCountStatus !== undefined) {
+      sequencingControls.selectionCountStatus = state.selectionCountStatus;
     }
-    if (sequencingControlsSettings.choiceExit !== undefined) {
-      sequencingControls.choiceExit = sequencingControlsSettings.choiceExit;
+
+    if (state.reorderChildren !== undefined) {
+      sequencingControls.reorderChildren = state.reorderChildren;
     }
-    if (sequencingControlsSettings.flow !== undefined) {
-      sequencingControls.flow = sequencingControlsSettings.flow;
+
+    const selectedSet = state.selectedChildIds ? new Set(state.selectedChildIds) : null;
+    const hiddenSet = state.hiddenFromChoiceChildIds
+      ? new Set(state.hiddenFromChoiceChildIds)
+      : null;
+
+    if (state.childOrder && state.childOrder.length > 0) {
+      activity.setChildOrder(state.childOrder);
     }
-    if (sequencingControlsSettings.forwardOnly !== undefined) {
-      sequencingControls.forwardOnly = sequencingControlsSettings.forwardOnly;
+
+    let selectionTouched = false;
+
+    if (selectedSet || hiddenSet) {
+      for (const child of activity.children) {
+        if (selectedSet) {
+          const isSelected = selectedSet.has(child.id);
+          child.isAvailable = isSelected;
+          if (!hiddenSet) {
+            child.isHiddenFromChoice = !isSelected;
+          }
+          selectionTouched = true;
+        }
+
+        if (hiddenSet) {
+          child.isHiddenFromChoice = hiddenSet.has(child.id);
+          selectionTouched = true;
+        }
+      }
     }
-    if (sequencingControlsSettings.useCurrentAttemptObjectiveInfo !== undefined) {
-      sequencingControls.useCurrentAttemptObjectiveInfo =
-        sequencingControlsSettings.useCurrentAttemptObjectiveInfo;
+
+    const shouldSetProcessedChildren =
+      selectionTouched ||
+      !!selectedSet ||
+      state.selectionCountStatus !== undefined ||
+      state.reorderChildren !== undefined ||
+      (state.childOrder && state.childOrder.length > 0);
+
+    if (shouldSetProcessedChildren) {
+      activity.setProcessedChildren(activity.children.filter((child) => child.isAvailable));
     }
-    if (sequencingControlsSettings.useCurrentAttemptProgressInfo !== undefined) {
-      sequencingControls.useCurrentAttemptProgressInfo =
-        sequencingControlsSettings.useCurrentAttemptProgressInfo;
+  }
+
+  private applySequencingControlsSettings(
+    target: SequencingControls,
+    settings: SequencingControlsSettings,
+  ): void {
+    if (settings.enabled !== undefined) {
+      target.enabled = settings.enabled;
     }
-    if (sequencingControlsSettings.preventActivation !== undefined) {
-      sequencingControls.preventActivation = sequencingControlsSettings.preventActivation;
+    if (settings.choice !== undefined) {
+      target.choice = settings.choice;
     }
-    if (sequencingControlsSettings.constrainChoice !== undefined) {
-      sequencingControls.constrainChoice = sequencingControlsSettings.constrainChoice;
+    if (settings.choiceExit !== undefined) {
+      target.choiceExit = settings.choiceExit;
     }
-    if (sequencingControlsSettings.rollupObjectiveSatisfied !== undefined) {
-      sequencingControls.rollupObjectiveSatisfied =
-        sequencingControlsSettings.rollupObjectiveSatisfied;
+    if (settings.flow !== undefined) {
+      target.flow = settings.flow;
     }
-    if (sequencingControlsSettings.rollupProgressCompletion !== undefined) {
-      sequencingControls.rollupProgressCompletion =
-        sequencingControlsSettings.rollupProgressCompletion;
+    if (settings.forwardOnly !== undefined) {
+      target.forwardOnly = settings.forwardOnly;
     }
-    if (sequencingControlsSettings.objectiveMeasureWeight !== undefined) {
-      sequencingControls.objectiveMeasureWeight = sequencingControlsSettings.objectiveMeasureWeight;
+    if (settings.useCurrentAttemptObjectiveInfo !== undefined) {
+      target.useCurrentAttemptObjectiveInfo = settings.useCurrentAttemptObjectiveInfo;
     }
+    if (settings.useCurrentAttemptProgressInfo !== undefined) {
+      target.useCurrentAttemptProgressInfo = settings.useCurrentAttemptProgressInfo;
+    }
+    if (settings.preventActivation !== undefined) {
+      target.preventActivation = settings.preventActivation;
+    }
+    if (settings.constrainChoice !== undefined) {
+      target.constrainChoice = settings.constrainChoice;
+    }
+    if (settings.stopForwardTraversal !== undefined) {
+      target.stopForwardTraversal = settings.stopForwardTraversal;
+    }
+    if (settings.rollupObjectiveSatisfied !== undefined) {
+      target.rollupObjectiveSatisfied = settings.rollupObjectiveSatisfied;
+    }
+    if (settings.rollupProgressCompletion !== undefined) {
+      target.rollupProgressCompletion = settings.rollupProgressCompletion;
+    }
+    if (settings.objectiveMeasureWeight !== undefined) {
+      target.objectiveMeasureWeight = settings.objectiveMeasureWeight;
+    }
+    if (settings.selectionTiming !== undefined) {
+      target.selectionTiming = settings.selectionTiming;
+    }
+    if (settings.selectCount !== undefined) {
+      target.selectCount = settings.selectCount;
+    }
+    if (settings.randomizeChildren !== undefined) {
+      target.randomizeChildren = settings.randomizeChildren;
+    }
+    if (settings.randomizationTiming !== undefined) {
+      target.randomizationTiming = settings.randomizationTiming;
+    }
+    if (settings.selectionCountStatus !== undefined) {
+      target.selectionCountStatus = settings.selectionCountStatus;
+    }
+    if (settings.reorderChildren !== undefined) {
+      target.reorderChildren = settings.reorderChildren;
+    }
+  }
+
+  private applySequencingRulesSettings(
+    target: SequencingRules,
+    settings: SequencingRulesSettings,
+  ): void {
+    if (!settings) {
+      return;
+    }
+
+    if (settings.preConditionRules) {
+      for (const ruleSettings of settings.preConditionRules) {
+        const rule = this.createSequencingRule(ruleSettings);
+        target.addPreConditionRule(rule);
+      }
+    }
+
+    if (settings.exitConditionRules) {
+      for (const ruleSettings of settings.exitConditionRules) {
+        const rule = this.createSequencingRule(ruleSettings);
+        target.addExitConditionRule(rule);
+      }
+    }
+
+    if (settings.postConditionRules) {
+      for (const ruleSettings of settings.postConditionRules) {
+        const rule = this.createSequencingRule(ruleSettings);
+        target.addPostConditionRule(rule);
+      }
+    }
+  }
+
+  private applyRollupRulesSettings(target: RollupRules, settings: RollupRulesSettings): void {
+    if (!settings?.rules) {
+      return;
+    }
+
+    for (const ruleSettings of settings.rules) {
+      const rule = this.createRollupRule(ruleSettings);
+      target.addRule(rule);
+    }
+  }
+
+  private cloneSelectionRandomizationState(
+    state: SelectionRandomizationStateSettings,
+  ): SelectionRandomizationStateSettings {
+    const clone: SelectionRandomizationStateSettings = {};
+    if (state.childOrder) {
+      clone.childOrder = [...state.childOrder];
+    }
+    if (state.selectedChildIds) {
+      clone.selectedChildIds = [...state.selectedChildIds];
+    }
+    if (state.hiddenFromChoiceChildIds) {
+      clone.hiddenFromChoiceChildIds = [...state.hiddenFromChoiceChildIds];
+    }
+    if (state.selectionCountStatus !== undefined) {
+      clone.selectionCountStatus = state.selectionCountStatus;
+    }
+    if (state.reorderChildren !== undefined) {
+      clone.reorderChildren = state.reorderChildren;
+    }
+    return clone;
+  }
+
+  private mergeHideLmsUi(
+    current: HideLmsUiItem[],
+    additional?: HideLmsUiItem[],
+  ): HideLmsUiItem[] {
+    if (!additional || additional.length === 0) {
+      return current;
+    }
+    return this.sanitizeHideLmsUi([...current, ...additional]);
+  }
+
+  private sanitizeSequencingCollections(
+    collections?: Record<string, SequencingCollectionSettings>,
+  ): Record<string, SequencingCollectionSettings> {
+    if (!collections) {
+      return {};
+    }
+
+    const sanitized: Record<string, SequencingCollectionSettings> = {};
+    for (const [id, collection] of Object.entries(collections)) {
+      const trimmedId = id.trim();
+      if (!trimmedId) {
+        continue;
+      }
+
+      const sanitizedCollection: SequencingCollectionSettings = {};
+
+      if (collection.sequencingControls) {
+        sanitizedCollection.sequencingControls = { ...collection.sequencingControls };
+      }
+      if (collection.sequencingRules) {
+        const ruleClone = (rule: SequencingRuleSettings): SequencingRuleSettings => {
+          const cloned: SequencingRuleSettings = {
+            action: rule.action,
+            conditions: rule.conditions.map((condition) => {
+              const clonedCondition: RuleConditionSettings = {
+                condition: condition.condition,
+              };
+              if (condition.operator !== undefined) {
+                clonedCondition.operator = condition.operator;
+              }
+              if (condition.parameters) {
+                clonedCondition.parameters = { ...condition.parameters };
+              }
+              return clonedCondition;
+            }),
+          };
+          if (rule.conditionCombination !== undefined) {
+            cloned.conditionCombination = rule.conditionCombination;
+          }
+          return cloned;
+        };
+
+        sanitizedCollection.sequencingRules = {};
+        if (collection.sequencingRules.preConditionRules) {
+          sanitizedCollection.sequencingRules.preConditionRules =
+            collection.sequencingRules.preConditionRules.map(ruleClone);
+        }
+        if (collection.sequencingRules.exitConditionRules) {
+          sanitizedCollection.sequencingRules.exitConditionRules =
+            collection.sequencingRules.exitConditionRules.map(ruleClone);
+        }
+        if (collection.sequencingRules.postConditionRules) {
+          sanitizedCollection.sequencingRules.postConditionRules =
+            collection.sequencingRules.postConditionRules.map(ruleClone);
+        }
+      }
+
+      if (collection.rollupRules) {
+        sanitizedCollection.rollupRules = {
+          rules: collection.rollupRules.rules?.map((rule) => {
+            const clonedRule: RollupRuleSettings = {
+              action: rule.action,
+              conditions: rule.conditions.map((condition) => {
+                const clonedCondition: RollupConditionSettings = {
+                  condition: condition.condition,
+                };
+                if (condition.parameters) {
+                  clonedCondition.parameters = { ...condition.parameters };
+                }
+                return clonedCondition;
+              }),
+            };
+            if (rule.consideration !== undefined) {
+              clonedRule.consideration = rule.consideration;
+            }
+            if (rule.minimumCount !== undefined) {
+              clonedRule.minimumCount = rule.minimumCount;
+            }
+            if (rule.minimumPercent !== undefined) {
+              clonedRule.minimumPercent = rule.minimumPercent;
+            }
+            return clonedRule;
+          }),
+        };
+      }
+
+      if (collection.rollupConsiderations) {
+        sanitizedCollection.rollupConsiderations = { ...collection.rollupConsiderations };
+      }
+
+      if (collection.selectionRandomizationState) {
+        sanitizedCollection.selectionRandomizationState = this.cloneSelectionRandomizationState(
+          collection.selectionRandomizationState,
+        );
+      }
+
+      if (collection.hideLmsUi) {
+        sanitizedCollection.hideLmsUi = this.sanitizeHideLmsUi(collection.hideLmsUi);
+      }
+
+      if (collection.auxiliaryResources) {
+        sanitizedCollection.auxiliaryResources = this.sanitizeAuxiliaryResources(collection.auxiliaryResources);
+      }
+
+      sanitized[trimmedId] = sanitizedCollection;
+    }
+
+    return sanitized;
+  }
+
+  private normalizeCollectionRefs(refs?: string | string[]): string[] {
+    if (!refs) {
+      return [];
+    }
+
+    const raw = Array.isArray(refs) ? refs : [refs];
+    const seen = new Set<string>();
+    const result: string[] = [];
+
+    for (const ref of raw) {
+      if (typeof ref !== "string") {
+        continue;
+      }
+      const trimmed = ref.trim();
+      if (!trimmed || seen.has(trimmed)) {
+        continue;
+      }
+      seen.add(trimmed);
+      result.push(trimmed);
+    }
+
+    return result;
+  }
+
+  private applySequencingCollection(
+    activity: Activity,
+    collection: SequencingCollectionSettings,
+    selectionStates: SelectionRandomizationStateSettings[],
+  ): void {
+    if (!collection) {
+      return;
+    }
+
+    if (collection.sequencingControls) {
+      this.applySequencingControlsSettings(activity.sequencingControls, collection.sequencingControls);
+    }
+
+    if (collection.sequencingRules) {
+      this.applySequencingRulesSettings(activity.sequencingRules, collection.sequencingRules);
+    }
+
+    if (collection.rollupRules) {
+      this.applyRollupRulesSettings(activity.rollupRules, collection.rollupRules);
+    }
+
+    if (collection.rollupConsiderations) {
+      activity.applyRollupConsiderations(collection.rollupConsiderations);
+    }
+
+    if (collection.hideLmsUi) {
+      const merged = this.mergeHideLmsUi(activity.hideLmsUi, collection.hideLmsUi);
+      if (merged.length > 0) {
+        activity.hideLmsUi = merged;
+      }
+    }
+
+    if (collection.auxiliaryResources) {
+      const sanitizedAux = this.sanitizeAuxiliaryResources(collection.auxiliaryResources);
+      if (sanitizedAux.length > 0) {
+        activity.auxiliaryResources = this.mergeAuxiliaryResources(activity.auxiliaryResources, sanitizedAux);
+      }
+    }
+
+    if (collection.selectionRandomizationState) {
+      selectionStates.push(this.cloneSelectionRandomizationState(collection.selectionRandomizationState));
+    }
+  }
+
+  private sanitizeAuxiliaryResources(resources?: AuxiliaryResourceSettings[]): AuxiliaryResource[] {
+    if (!resources) {
+      return [];
+    }
+
+    const sanitized: AuxiliaryResource[] = [];
+    const seen = new Set<string>();
+
+    for (const resource of resources) {
+      if (!resource) {
+        continue;
+      }
+      const resourceId = typeof resource.resourceId === "string" ? resource.resourceId.trim() : "";
+      const purpose = typeof resource.purpose === "string" ? resource.purpose.trim() : "";
+      if (!resourceId || !purpose) {
+        continue;
+      }
+      if (seen.has(resourceId)) {
+        continue;
+      }
+      seen.add(resourceId);
+      sanitized.push({ resourceId, purpose });
+    }
+
+    return sanitized;
+  }
+
+  private mergeAuxiliaryResources(
+    existing: AuxiliaryResource[] | undefined,
+    additions: AuxiliaryResource[] | undefined,
+  ): AuxiliaryResource[] {
+    const merged: AuxiliaryResource[] = [];
+    const seen = new Set<string>();
+
+    for (const resource of [...(existing ?? []), ...(additions ?? [])]) {
+      if (!resource) {
+        continue;
+      }
+      const resourceId = resource.resourceId;
+      if (!resourceId || seen.has(resourceId)) {
+        continue;
+      }
+      seen.add(resourceId);
+      merged.push({ resourceId, purpose: resource.purpose });
+    }
+
+    return merged;
+  }
+
+  private sanitizeHideLmsUi(items: HideLmsUiItem[] | undefined): HideLmsUiItem[] {
+    if (!items) {
+      return [];
+    }
+
+    const valid = new Set(HIDE_LMS_UI_TOKENS);
+    const seen = new Set<HideLmsUiItem>();
+    const sanitized: HideLmsUiItem[] = [];
+
+    for (const item of items) {
+      if (valid.has(item) && !seen.has(item)) {
+        seen.add(item);
+        sanitized.push(item);
+      }
+    }
+
+    return sanitized;
   }
 
   /**
@@ -1211,15 +1667,7 @@ class Scorm2004API extends BaseAPI {
    * @param {RollupRulesSettings} rollupRulesSettings - The rollup rules settings
    */
   private configureRollupRules(rollupRulesSettings: RollupRulesSettings): void {
-    const rollupRules = this._sequencing.rollupRules;
-
-    // Configure rollup rules
-    if (rollupRulesSettings.rules) {
-      for (const ruleSettings of rollupRulesSettings.rules) {
-        const rule = this.createRollupRule(ruleSettings);
-        rollupRules.addRule(rule);
-      }
-    }
+    this.applyRollupRulesSettings(this._sequencing.rollupRules, rollupRulesSettings);
   }
 
   /**
@@ -1246,6 +1694,44 @@ class Scorm2004API extends BaseAPI {
     }
 
     return rule;
+  }
+
+  /**
+   * Create an activity objective from settings
+   * @param {ObjectiveSettings} objectiveSettings
+   * @param {boolean} isPrimary
+   * @return {ActivityObjective}
+   */
+  private createActivityObjectiveFromSettings(
+    objectiveSettings: ObjectiveSettings,
+    isPrimary: boolean,
+  ): ActivityObjective {
+    const mapInfo: ObjectiveMapInfo[] = (objectiveSettings.mapInfo || []).map((info) => ({
+      targetObjectiveID: info.targetObjectiveID,
+      readSatisfiedStatus: info.readSatisfiedStatus ?? false,
+      readNormalizedMeasure: info.readNormalizedMeasure ?? false,
+      writeSatisfiedStatus: info.writeSatisfiedStatus ?? false,
+      writeNormalizedMeasure: info.writeNormalizedMeasure ?? false,
+      readCompletionStatus: info.readCompletionStatus ?? false,
+      writeCompletionStatus: info.writeCompletionStatus ?? false,
+      readProgressMeasure: info.readProgressMeasure ?? false,
+      writeProgressMeasure: info.writeProgressMeasure ?? false,
+      readRawScore: info.readRawScore ?? false,
+      writeRawScore: info.writeRawScore ?? false,
+      readMinScore: info.readMinScore ?? false,
+      writeMinScore: info.writeMinScore ?? false,
+      readMaxScore: info.readMaxScore ?? false,
+      writeMaxScore: info.writeMaxScore ?? false,
+      updateAttemptData: info.updateAttemptData ?? false,
+    }));
+
+    return new ActivityObjective(objectiveSettings.objectiveID, {
+      description: objectiveSettings.description ?? null,
+      satisfiedByMeasure: objectiveSettings.satisfiedByMeasure ?? false,
+      minNormalizedMeasure: objectiveSettings.minNormalizedMeasure ?? null,
+      mapInfo,
+      isPrimary,
+    });
   }
 
   /**
@@ -1478,6 +1964,7 @@ class Scorm2004API extends BaseAPI {
       sequencing: null,
       currentActivityId: null,
       globalObjectives: this._globalObjectives.map((obj) => obj.toJSON()),
+      globalObjectiveMap: {},
       adlNavState: {
         request: this.adl.nav.request,
         request_valid: this.adl.nav.request_valid,
@@ -1493,6 +1980,7 @@ class Scorm2004API extends BaseAPI {
         const sequencingState = overallProcess.getSequencingState();
         state.sequencing = sequencingState;
         state.contentDelivered = overallProcess.hasContentBeenDelivered();
+        state.globalObjectiveMap = this.captureGlobalObjectiveSnapshot(overallProcess);
       }
 
       // Get current activity
@@ -1500,6 +1988,10 @@ class Scorm2004API extends BaseAPI {
       if (currentActivity) {
         state.currentActivityId = currentActivity.id;
       }
+    }
+
+    if (!state.globalObjectiveMap || Object.keys(state.globalObjectiveMap).length === 0) {
+      state.globalObjectiveMap = this.captureGlobalObjectiveSnapshot();
     }
 
     return JSON.stringify(state);
@@ -1524,6 +2016,11 @@ class Scorm2004API extends BaseAPI {
         );
       }
 
+      // If persistence stored the global objective map separately, ensure it is available to the sequencing state
+      if (state.globalObjectiveMap && state.sequencing && !state.sequencing.globalObjectiveMap) {
+        state.sequencing.globalObjectiveMap = state.globalObjectiveMap;
+      }
+
       // Restore sequencing state
       if (state.sequencing && this._sequencingService) {
         const overallProcess = this._sequencingService.getOverallSequencingProcess();
@@ -1544,17 +2041,35 @@ class Scorm2004API extends BaseAPI {
       }
 
       // Restore global objectives
-      if (state.globalObjectives && Array.isArray(state.globalObjectives)) {
-        this._globalObjectives = state.globalObjectives.map((objData: any) => {
-          const obj = new CMIObjectivesObject();
-          // If available, populate from serialized data (method added on CMIObjectivesObject)
-          // Fallback to direct field assignment if fromJSON is unavailable at runtime
-          if ((obj as any).fromJSON) {
-            (obj as any).fromJSON(objData);
-          } else {
-            Object.assign(obj as any, objData);
+      const restoredObjectives = new Map<string, CMIObjectivesObject>();
+
+      if (Array.isArray(state.globalObjectives)) {
+        for (const objData of state.globalObjectives) {
+          const objective = this.buildCMIObjectiveFromJSON(objData);
+          if (objective.id) {
+            restoredObjectives.set(objective.id, objective);
           }
-          return obj;
+        }
+      }
+
+      if (state.globalObjectiveMap && typeof state.globalObjectiveMap === "object") {
+        const objectivesFromMap = this.buildCMIObjectivesFromMap(state.globalObjectiveMap);
+        for (const objective of objectivesFromMap) {
+          if (!objective.id) {
+            continue;
+          }
+          if (!restoredObjectives.has(objective.id)) {
+            restoredObjectives.set(objective.id, objective);
+          }
+        }
+      }
+
+      if (restoredObjectives.size > 0) {
+        this._globalObjectives = Array.from(restoredObjectives.values());
+        this._globalObjectives.forEach((objective) => {
+          if (objective.id) {
+            this.updateGlobalObjectiveFromCMI(objective.id, objective);
+          }
         });
       }
 
@@ -1573,6 +2088,225 @@ class Scorm2004API extends BaseAPI {
       );
       return false;
     }
+  }
+
+  private captureGlobalObjectiveSnapshot(
+    overallProcess?: OverallSequencingProcess | null,
+  ): Record<string, any> {
+    const snapshot: Record<string, any> = {};
+
+    const process = overallProcess ?? this._sequencingService?.getOverallSequencingProcess() ?? null;
+    if (process) {
+      const processSnapshot = process.getGlobalObjectiveMapSnapshot();
+      for (const [id, data] of Object.entries(processSnapshot)) {
+        snapshot[id] = { ...data };
+      }
+    }
+
+    for (const objective of this._globalObjectives) {
+      if (!objective.id || snapshot[objective.id]) {
+        continue;
+      }
+      snapshot[objective.id] = this.buildObjectiveMapEntryFromCMI(objective);
+    }
+
+    return snapshot;
+  }
+
+  private buildCMIObjectivesFromMap(snapshot: Record<string, any>): CMIObjectivesObject[] {
+    const objectives: CMIObjectivesObject[] = [];
+    if (!snapshot || typeof snapshot !== "object") {
+      return objectives;
+    }
+
+    for (const [objectiveId, entry] of Object.entries(snapshot)) {
+      if (!entry || typeof entry !== "object") {
+        continue;
+      }
+      const objective = new CMIObjectivesObject();
+      objective.id = (entry as any).id ?? objectiveId;
+
+      if ((entry as any).satisfiedStatusKnown === true) {
+        objective.success_status = (entry as any).satisfiedStatus ? SuccessStatus.PASSED : SuccessStatus.FAILED;
+      }
+
+      const normalizedMeasure = this.parseObjectiveNumber((entry as any).normalizedMeasure);
+      if ((entry as any).normalizedMeasureKnown === true && normalizedMeasure !== null) {
+        objective.score.scaled = String(normalizedMeasure);
+      }
+
+      const progressMeasure = this.parseObjectiveNumber((entry as any).progressMeasure);
+      if ((entry as any).progressMeasureKnown === true && progressMeasure !== null) {
+        objective.progress_measure = String(progressMeasure);
+      }
+
+      if ((entry as any).completionStatusKnown === true && typeof (entry as any).completionStatus === "string") {
+        objective.completion_status = (entry as any).completionStatus;
+      }
+
+      objectives.push(objective);
+    }
+
+    return objectives;
+  }
+
+  private buildCMIObjectiveFromJSON(data: any): CMIObjectivesObject {
+    const objective = new CMIObjectivesObject();
+    if (!data || typeof data !== "object") {
+      return objective;
+    }
+
+    if (typeof data.id === "string") {
+      objective.id = data.id;
+    }
+
+    if (typeof data.success_status === "string") {
+      objective.success_status = data.success_status;
+    }
+
+    if (typeof data.completion_status === "string") {
+      objective.completion_status = data.completion_status;
+    }
+
+    if (typeof data.progress_measure === "string" && data.progress_measure !== "") {
+      objective.progress_measure = data.progress_measure;
+    }
+
+    if (typeof data.description === "string") {
+      objective.description = data.description;
+    }
+
+    const score = data.score;
+    if (score && typeof score === "object") {
+      if (typeof score.scaled === "string" && score.scaled !== "") {
+        objective.score.scaled = score.scaled;
+      } else if (typeof score.scaled === "number" && Number.isFinite(score.scaled)) {
+        objective.score.scaled = String(score.scaled);
+      }
+
+      if (typeof score.raw === "string" && score.raw !== "") {
+        objective.score.raw = score.raw;
+      } else if (typeof score.raw === "number" && Number.isFinite(score.raw)) {
+        objective.score.raw = String(score.raw);
+      }
+
+      if (typeof score.min === "string" && score.min !== "") {
+        objective.score.min = score.min;
+      } else if (typeof score.min === "number" && Number.isFinite(score.min)) {
+        objective.score.min = String(score.min);
+      }
+
+      if (typeof score.max === "string" && score.max !== "") {
+        objective.score.max = score.max;
+      } else if (typeof score.max === "number" && Number.isFinite(score.max)) {
+        objective.score.max = String(score.max);
+      }
+    }
+
+    return objective;
+  }
+
+  private buildObjectiveMapEntryFromCMI(objective: CMIObjectivesObject): Record<string, any> {
+    const entry: Record<string, any> = {
+      id: objective.id,
+      satisfiedStatusKnown: false,
+      normalizedMeasureKnown: false,
+      progressMeasureKnown: false,
+      completionStatusKnown: false,
+      readSatisfiedStatus: true,
+      writeSatisfiedStatus: true,
+      readNormalizedMeasure: true,
+      writeNormalizedMeasure: true,
+      readCompletionStatus: true,
+      writeCompletionStatus: true,
+      readProgressMeasure: true,
+      writeProgressMeasure: true,
+    };
+
+    if (objective.success_status && objective.success_status !== SuccessStatus.UNKNOWN) {
+      entry.satisfiedStatus = objective.success_status === SuccessStatus.PASSED;
+      entry.satisfiedStatusKnown = true;
+    }
+
+    const normalizedMeasure = this.parseObjectiveNumber(objective.score?.scaled);
+    if (normalizedMeasure !== null) {
+      entry.normalizedMeasure = normalizedMeasure;
+      entry.normalizedMeasureKnown = true;
+    }
+
+    const progressMeasure = this.parseObjectiveNumber(objective.progress_measure);
+    if (progressMeasure !== null) {
+      entry.progressMeasure = progressMeasure;
+      entry.progressMeasureKnown = true;
+    }
+
+    if (objective.completion_status && objective.completion_status !== CompletionStatus.UNKNOWN) {
+      entry.completionStatus = objective.completion_status;
+      entry.completionStatusKnown = true;
+    }
+
+    return entry;
+  }
+
+  private updateGlobalObjectiveFromCMI(objectiveId: string, objective: CMIObjectivesObject): void {
+    if (!objectiveId || !this._sequencingService) {
+      return;
+    }
+
+    const overallProcess = this._sequencingService.getOverallSequencingProcess();
+    if (!overallProcess) {
+      return;
+    }
+
+    const map = overallProcess.getGlobalObjectiveMap();
+    if (!map.has(objectiveId)) {
+      const fallbackEntry = this.buildObjectiveMapEntryFromCMI(objective);
+      overallProcess.updateGlobalObjective(objectiveId, fallbackEntry);
+      return;
+    }
+
+    const updatePayload: Record<string, any> = {};
+
+    if (objective.success_status && objective.success_status !== SuccessStatus.UNKNOWN) {
+      updatePayload.satisfiedStatus = objective.success_status === SuccessStatus.PASSED;
+      updatePayload.satisfiedStatusKnown = true;
+    }
+
+    const normalizedMeasure = this.parseObjectiveNumber(objective.score?.scaled);
+    if (normalizedMeasure !== null) {
+      updatePayload.normalizedMeasure = normalizedMeasure;
+      updatePayload.normalizedMeasureKnown = true;
+    }
+
+    const progressMeasure = this.parseObjectiveNumber(objective.progress_measure);
+    if (progressMeasure !== null) {
+      updatePayload.progressMeasure = progressMeasure;
+      updatePayload.progressMeasureKnown = true;
+    }
+
+    if (objective.completion_status && objective.completion_status !== CompletionStatus.UNKNOWN) {
+      updatePayload.completionStatus = objective.completion_status;
+      updatePayload.completionStatusKnown = true;
+    }
+
+    if (Object.keys(updatePayload).length === 0) {
+      return;
+    }
+
+    overallProcess.updateGlobalObjective(objectiveId, updatePayload);
+  }
+
+  private parseObjectiveNumber(value: any): number | null {
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+
+    const parsed = parseFloat(String(value));
+    return Number.isFinite(parsed) ? parsed : null;
   }
 
   /**

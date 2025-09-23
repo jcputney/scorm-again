@@ -579,4 +579,87 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       expect(root.objectiveSatisfiedStatus).toBe(true);
     });
   });
+
+  describe("ADL rollup considerations", () => {
+    it("ignores skipped children when requiredForNotSatisfied is ifNotSkipped", () => {
+      parent.applyRollupConsiderations({
+        requiredForNotSatisfied: "ifNotSkipped",
+        requiredForSatisfied: "ifAttempted",
+      });
+
+      child1.wasSkipped = true;
+      child1.objectiveSatisfiedStatus = false;
+      child1.attemptCount = 0;
+
+      child2.objectiveSatisfiedStatus = true;
+      child2.attemptCount = 1;
+
+      const adlParent = new Activity("adlParent", "ADL Parent");
+      adlParent.sequencingControls.rollupObjectiveSatisfied = true;
+
+      const skippedChild = new Activity("skipped", "Skipped Child");
+      const satisfiedChild = new Activity("satisfied", "Satisfied Child");
+
+      adlParent.addChild(skippedChild);
+      adlParent.addChild(satisfiedChild);
+
+      adlParent.applyRollupConsiderations({
+        requiredForNotSatisfied: "ifNotSkipped",
+        requiredForSatisfied: "ifAttempted",
+      });
+
+      skippedChild.wasSkipped = true;
+      skippedChild.objectiveSatisfiedStatus = false;
+
+      satisfiedChild.objectiveSatisfiedStatus = true;
+      satisfiedChild.attemptCount = 1;
+
+      rollupProcess.overallRollupProcess(satisfiedChild);
+
+      expect(adlParent.objectiveSatisfiedStatus).toBe(true);
+    });
+
+    it("considers only attempted children for completion when configured", () => {
+      parent.applyRollupConsiderations({
+        requiredForCompleted: "ifAttempted",
+        requiredForIncomplete: "ifAttempted",
+      });
+
+      child1.attemptCount = 1;
+      child1.completionStatus = "completed";
+
+      child2.attemptCount = 0;
+      child2.completionStatus = "not attempted";
+
+      rollupProcess.overallRollupProcess(child1);
+
+      expect(parent.completionStatus).toBe("completed");
+    });
+
+    it("defers satisfaction while a contributing child is active when configured", () => {
+      const adlParent = new Activity("adlParentActive", "ADL Parent Active");
+      adlParent.sequencingControls.rollupObjectiveSatisfied = true;
+
+      const activeChild = new Activity("active", "Active Child");
+      adlParent.addChild(activeChild);
+
+      adlParent.applyRollupConsiderations({
+        measureSatisfactionIfActive: false,
+      });
+
+      activeChild.objectiveSatisfiedStatus = true;
+      activeChild.attemptCount = 1;
+      activeChild.activityAttemptActive = true;
+      activeChild.isActive = true;
+
+      rollupProcess.overallRollupProcess(activeChild);
+      expect(adlParent.objectiveSatisfiedStatus).toBe(false);
+
+      activeChild.activityAttemptActive = false;
+      activeChild.isActive = false;
+
+      rollupProcess.overallRollupProcess(activeChild);
+      expect(adlParent.objectiveSatisfiedStatus).toBe(true);
+    });
+  });
 });

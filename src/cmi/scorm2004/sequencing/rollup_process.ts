@@ -1,5 +1,12 @@
-import { Activity } from "./activity";
+import {
+  Activity,
+  ActivityObjective,
+  ObjectiveMapInfo,
+  RollupConsiderationsConfig,
+  RollupConsiderationRequirement,
+} from "./activity";
 import { RollupActionType, RollupConsiderationType, RollupRule } from "./rollup_rules";
+import { CompletionStatus, SuccessStatus } from "../../../constants/enums";
 
 /**
  * Enhanced Rollup Process implementation for SCORM 2004 sequencing
@@ -65,23 +72,35 @@ export class RollupProcess {
       return;
     }
 
-    // INTEGRATION: Use complex weighted measure calculation instead of simple calculation
-    // Determine if there are any valid child measures
-    const hasValidMeasures = children.some(
-      (c) => this.checkChildForRollupSubprocess(c, "measure") && c.objectiveMeasureStatus && c.objectiveNormalizedMeasure !== null,
-    );
+    const rollupConsiderations = activity.rollupConsiderations;
+    const contributingChildren = children.filter((child) => {
+      if (!this.checkChildForRollupSubprocess(child, "measure")) {
+        return false;
+      }
+      if (!child.objectiveMeasureStatus || child.objectiveNormalizedMeasure === null) {
+        return false;
+      }
+      if (!rollupConsiderations.measureSatisfactionIfActive && (child.activityAttemptActive || child.isActive)) {
+        return false;
+      }
+      return true;
+    });
 
-    if (!hasValidMeasures) {
+    if (contributingChildren.length === 0) {
       activity.objectiveMeasureStatus = false;
       return;
     }
 
-    const complexWeightedMeasure = this.calculateComplexWeightedMeasure(activity, children, { enableThresholdBias: false });
+    const complexWeightedMeasure = this.calculateComplexWeightedMeasure(
+      activity,
+      contributingChildren,
+      { enableThresholdBias: false },
+    );
     activity.objectiveNormalizedMeasure = complexWeightedMeasure;
     activity.objectiveMeasureStatus = true;
 
     // INTEGRATION: Process cross-cluster dependencies if dealing with activity clusters
-    const clusters = this.identifyActivityClusters(children);
+    const clusters = this.identifyActivityClusters(contributingChildren);
     if (clusters.length > 1) {
       this.processCrossClusterDependencies(activity, clusters);
     }
@@ -166,22 +185,44 @@ export class RollupProcess {
    */
   private objectiveRollupUsingDefault(activity: Activity): boolean {
     const children = activity.getAvailableChildren();
-
-    // If no children, not satisfied
     if (children.length === 0) {
       return false;
     }
 
-    // Check if all tracked children are satisfied
-    for (const child of children) {
-      if (this.checkChildForRollupSubprocess(child, "objective")) {
-        if (!child.objectiveSatisfiedStatus) {
-          return false;
-        }
-      }
+    const contributors = children.filter((child) =>
+      this.checkChildForRollupSubprocess(child, "objective"),
+    );
+    if (contributors.length === 0) {
+      return false;
     }
 
-    return true;
+    const considerations = activity.rollupConsiderations;
+
+    const notSatisfiedCandidates = this.filterChildrenForRequirement(
+      contributors,
+      considerations.requiredForNotSatisfied,
+      "objective",
+      "notSatisfied",
+      considerations,
+    );
+
+    if (notSatisfiedCandidates.some((child) => !this.isChildSatisfiedForRollup(child))) {
+      return false;
+    }
+
+    const satisfiedCandidates = this.filterChildrenForRequirement(
+      contributors,
+      considerations.requiredForSatisfied,
+      "objective",
+      "satisfied",
+      considerations,
+    );
+
+    if (satisfiedCandidates.length === 0) {
+      return false;
+    }
+
+    return satisfiedCandidates.every((child) => this.isChildSatisfiedForRollup(child));
   }
 
   /**
@@ -219,16 +260,36 @@ export class RollupProcess {
 
     // Default: completed if all tracked children are completed
     const children = activity.getAvailableChildren();
-    let allCompleted = true;
+    const contributors = children.filter((child) =>
+      this.checkChildForRollupSubprocess(child, "progress"),
+    );
 
-    for (const child of children) {
-      if (this.checkChildForRollupSubprocess(child, "progress")) {
-        if (child.completionStatus !== "completed") {
-          allCompleted = false;
-          break;
-        }
-      }
+    const considerations = activity.rollupConsiderations;
+
+    const incompleteCandidates = this.filterChildrenForRequirement(
+      contributors,
+      considerations.requiredForIncomplete,
+      "progress",
+      "incomplete",
+      considerations,
+    );
+
+    if (incompleteCandidates.some((child) => !this.isChildCompletedForRollup(child))) {
+      activity.completionStatus = "incomplete";
+      return;
     }
+
+    const completedCandidates = this.filterChildrenForRequirement(
+      contributors,
+      considerations.requiredForCompleted,
+      "progress",
+      "completed",
+      considerations,
+    );
+
+    const evaluationSet = completedCandidates.length > 0 ? completedCandidates : contributors;
+
+    const allCompleted = evaluationSet.length === 0 || evaluationSet.every((child) => this.isChildCompletedForRollup(child));
 
     activity.completionStatus = allCompleted ? "completed" : "incomplete";
   }
@@ -264,6 +325,88 @@ export class RollupProcess {
     // Additional checks can be added here based on rollup configuration
 
     return true;
+  }
+
+  private filterChildrenForRequirement(
+    children: Activity[],
+    requirement: RollupConsiderationRequirement,
+    rollupType: "objective" | "progress",
+    mode: "satisfied" | "notSatisfied" | "completed" | "incomplete",
+    considerations: RollupConsiderationsConfig,
+  ): Activity[] {
+    return children.filter((child) =>
+      this.shouldIncludeChildForRollup(child, requirement, rollupType, mode, considerations),
+    );
+  }
+
+  private shouldIncludeChildForRollup(
+    child: Activity,
+    requirement: RollupConsiderationRequirement,
+    rollupType: "objective" | "progress",
+    _mode: "satisfied" | "notSatisfied" | "completed" | "incomplete",
+    considerations: RollupConsiderationsConfig,
+  ): boolean {
+    if (!this.checkChildForRollupSubprocess(child, rollupType)) {
+      return false;
+    }
+
+    if (
+      rollupType === "objective" &&
+      !considerations.measureSatisfactionIfActive &&
+      (child.activityAttemptActive || child.isActive)
+    ) {
+      return false;
+    }
+
+    switch (requirement) {
+      case "ifAttempted":
+        if (!(child.attemptCount > 0 || child.activityAttemptActive || child.isActive)) {
+          return false;
+        }
+        break;
+      case "ifNotSkipped":
+        if (child.wasSkipped) {
+          return false;
+        }
+        break;
+      case "ifNotSuspended":
+        if (child.isSuspended) {
+          return false;
+        }
+        break;
+      default:
+        break;
+    }
+
+    return true;
+  }
+
+  private isChildSatisfiedForRollup(child: Activity): boolean {
+    if (child.objectiveSatisfiedStatus === true) {
+      return true;
+    }
+
+    if (child.objectiveSatisfiedStatus === false) {
+      return false;
+    }
+
+    if (child.successStatus === SuccessStatus.PASSED) {
+      return true;
+    }
+
+    if (child.successStatus === SuccessStatus.FAILED) {
+      return false;
+    }
+
+    return false;
+  }
+
+  private isChildCompletedForRollup(child: Activity): boolean {
+    if (child.completionStatus === "completed" || child.isCompleted) {
+      return true;
+    }
+
+    return false;
   }
 
   /**
@@ -583,19 +726,17 @@ export class RollupProcess {
    * Synchronize global objectives with activity-specific objectives
    */
   private synchronizeGlobalObjectives(activity: Activity, globalObjectives: Map<string, any>): void {
-    // Implementation would depend on the specific objective model
-    // For now, we'll implement a basic synchronization framework
+    const objectives = activity.getAllObjectives();
 
-    const activityObjectives = this.getActivityObjectives(activity);
+    for (const objective of objectives) {
+      const mapInfos = objective.mapInfo.length > 0
+        ? objective.mapInfo
+        : [this.createDefaultMapInfo(objective)];
 
-    for (const objectiveId of activityObjectives) {
-      if (globalObjectives.has(objectiveId)) {
-        const globalObjective = globalObjectives.get(objectiveId);
-        this.syncObjectiveState(activity, objectiveId, globalObjective);
-      } else {
-        // Register new global objective
-        const localObjective = this.getLocalObjectiveState(activity, objectiveId);
-        globalObjectives.set(objectiveId, localObjective);
+      for (const mapInfo of mapInfos) {
+        const targetId = mapInfo.targetObjectiveID || objective.id;
+        const globalObjective = this.ensureGlobalObjectiveEntry(globalObjectives, targetId, objective, mapInfo);
+        this.syncObjectiveState(activity, objective, mapInfo, globalObjective);
       }
     }
   }
@@ -702,88 +843,87 @@ export class RollupProcess {
    * Get activity objectives (implementation depends on objective model)
    */
   private getActivityObjectives(activity: Activity): string[] {
-    // This would return the list of objective IDs associated with the activity
-    // For now, return a basic implementation
-    return [activity.id + "_primary_objective"];
+    return activity.getAllObjectives().map((objective) => objective.id);
   }
 
   /**
    * Synchronize objective state between local and global according to SCORM 2004 specification
    */
-  private syncObjectiveState(activity: Activity, objectiveId: string, globalObjective: any): void {
+  private syncObjectiveState(
+    activity: Activity,
+    objective: ActivityObjective,
+    mapInfo: ObjectiveMapInfo,
+    globalObjective: any,
+  ): void {
     try {
-      // Get current local objective state
-      const localObjective = this.getLocalObjectiveState(activity, objectiveId);
+      const isPrimary = objective.isPrimary;
+      const localObjective = this.getLocalObjectiveState(activity, objective, isPrimary);
 
-      // Perform bidirectional synchronization according to SCORM 2004 rules
-
-      // 1. Read from global to local (if readSatisfiedStatus is true)
+      // Read from global to local using map info directives
       if (globalObjective.readSatisfiedStatus && globalObjective.satisfiedStatusKnown) {
-        activity.objectiveSatisfiedStatus = globalObjective.satisfiedStatus;
-        activity.objectiveMeasureStatus = true; // Mark as known
+        objective.satisfiedStatus = globalObjective.satisfiedStatus;
+        objective.measureStatus = true;
       }
 
-      // 2. Read normalized measure from global to local (if readNormalizedMeasure is true)
+      // Read normalized measure
       if (globalObjective.readNormalizedMeasure && globalObjective.normalizedMeasureKnown) {
-        activity.objectiveNormalizedMeasure = globalObjective.normalizedMeasure;
-        activity.objectiveMeasureStatus = true;
+        objective.normalizedMeasure = globalObjective.normalizedMeasure;
+        objective.measureStatus = true;
 
-        // Update satisfaction based on measure if satisfiedByMeasure is true
-        if (globalObjective.satisfiedByMeasure) {
-          const scaledPassingScore = activity.scaledPassingScore || 0.7; // Default to 0.7
-          activity.objectiveSatisfiedStatus = globalObjective.normalizedMeasure >= scaledPassingScore;
+        if (globalObjective.satisfiedByMeasure || objective.satisfiedByMeasure) {
+          const threshold = objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
+          objective.satisfiedStatus = globalObjective.normalizedMeasure >= threshold;
         }
       }
 
-      // 3. Write from local to global (if writeSatisfiedStatus is true)
-      if (globalObjective.writeSatisfiedStatus && activity.objectiveMeasureStatus) {
-        globalObjective.satisfiedStatus = activity.objectiveSatisfiedStatus;
+      if (globalObjective.readProgressMeasure && globalObjective.progressMeasureKnown) {
+        objective.progressMeasure = globalObjective.progressMeasure;
+        objective.progressMeasureStatus = true;
+      }
+
+      if (globalObjective.readCompletionStatus && globalObjective.completionStatusKnown) {
+        objective.completionStatus = globalObjective.completionStatus as CompletionStatus;
+      }
+
+      if (objective.isPrimary) {
+        objective.applyToActivity(activity);
+      }
+
+      // Write from local to global using map info directives
+      if (globalObjective.writeSatisfiedStatus && objective.measureStatus) {
+        globalObjective.satisfiedStatus = objective.satisfiedStatus;
         globalObjective.satisfiedStatusKnown = true;
       }
 
-      // 4. Write normalized measure from local to global (if writeNormalizedMeasure is true)
-      if (globalObjective.writeNormalizedMeasure && activity.objectiveMeasureStatus) {
-        globalObjective.normalizedMeasure = activity.objectiveNormalizedMeasure;
+      if (globalObjective.writeNormalizedMeasure && objective.measureStatus) {
+        globalObjective.normalizedMeasure = objective.normalizedMeasure;
         globalObjective.normalizedMeasureKnown = true;
 
-        // Update global satisfaction based on measure if satisfiedByMeasure is true
-        if (globalObjective.satisfiedByMeasure) {
-          const scaledPassingScore = activity.scaledPassingScore || 0.7;
-          globalObjective.satisfiedStatus = activity.objectiveNormalizedMeasure >= scaledPassingScore;
+        if (globalObjective.satisfiedByMeasure || objective.satisfiedByMeasure) {
+          const threshold = objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
+          globalObjective.satisfiedStatus = objective.normalizedMeasure >= threshold;
           globalObjective.satisfiedStatusKnown = true;
         }
       }
 
-      // 5. Handle objective completion status synchronization
-      if (globalObjective.writeCompletionStatus && activity.completionStatus !== "unknown") {
-        globalObjective.completionStatus = activity.completionStatus;
+      if (globalObjective.writeCompletionStatus && objective.completionStatus !== CompletionStatus.UNKNOWN) {
+        globalObjective.completionStatus = objective.completionStatus;
         globalObjective.completionStatusKnown = true;
       }
 
-      if (globalObjective.readCompletionStatus && globalObjective.completionStatusKnown) {
-        activity.completionStatus = globalObjective.completionStatus;
-      }
-
-      // 6. Handle progress measure synchronization
-      if (globalObjective.writeProgressMeasure && activity.progressMeasureStatus) {
-        globalObjective.progressMeasure = activity.progressMeasure;
+      if (globalObjective.writeProgressMeasure && objective.progressMeasureStatus) {
+        globalObjective.progressMeasure = objective.progressMeasure;
         globalObjective.progressMeasureKnown = true;
       }
 
-      if (globalObjective.readProgressMeasure && globalObjective.progressMeasureKnown) {
-        activity.progressMeasure = globalObjective.progressMeasure;
-        activity.progressMeasureStatus = true;
-      }
-
-      // 7. Update activity attempt data based on global state
       if (globalObjective.updateAttemptData) {
-        this.updateActivityAttemptData(activity, globalObjective);
+        this.updateActivityAttemptData(activity, globalObjective, objective);
       }
 
-      // 8. Fire synchronization event for monitoring/logging
+      // Fire synchronization event for monitoring/logging
       this.eventCallback?.("objective_synchronized", {
         activityId: activity.id,
-        objectiveId,
+        objectiveId: objective.id,
         localState: localObjective,
         globalState: globalObjective,
         synchronizationTime: new Date().toISOString()
@@ -793,7 +933,7 @@ export class RollupProcess {
       // Log synchronization error but don't fail the rollup process
       this.eventCallback?.("objective_sync_error", {
         activityId: activity.id,
-        objectiveId,
+        objectiveId: objective.id,
         error: error instanceof Error ? error.message : String(error),
         timestamp: new Date().toISOString()
       });
@@ -803,8 +943,16 @@ export class RollupProcess {
   /**
    * Update activity attempt data based on global objective state
    */
-  private updateActivityAttemptData(activity: Activity, globalObjective: any): void {
+  private updateActivityAttemptData(
+    activity: Activity,
+    globalObjective: any,
+    objective: ActivityObjective,
+  ): void {
     try {
+      if (!objective.isPrimary && !globalObjective.updateAttemptData) {
+        return;
+      }
+
       // Update attempt completion based on global objective satisfaction
       if (globalObjective.satisfiedStatusKnown && globalObjective.satisfiedStatus) {
         // If global objective is satisfied, update local completion data
@@ -869,14 +1017,84 @@ export class RollupProcess {
   /**
    * Get local objective state
    */
-  private getLocalObjectiveState(activity: Activity, objectiveId: string): any {
-    // Return current local state for the objective
+  private getLocalObjectiveState(activity: Activity, objective: ActivityObjective, isPrimary: boolean): any {
+    if (isPrimary) {
+      return {
+        id: objective.id,
+        satisfiedStatus: activity.objectiveSatisfiedStatus,
+        measureStatus: activity.objectiveMeasureStatus,
+        normalizedMeasure: activity.objectiveNormalizedMeasure,
+        progressMeasure: activity.progressMeasure,
+        progressMeasureStatus: activity.progressMeasureStatus,
+        completionStatus: activity.completionStatus,
+        scaledPassingScore: activity.scaledPassingScore,
+      };
+    }
+
     return {
-      id: objectiveId,
-      satisfiedStatus: activity.objectiveSatisfiedStatus,
-      measureStatus: activity.objectiveMeasureStatus,
-      normalizedMeasure: activity.objectiveNormalizedMeasure,
-      scaledPassingScore: activity.scaledPassingScore
+      id: objective.id,
+      satisfiedStatus: objective.satisfiedStatus,
+      measureStatus: objective.measureStatus,
+      normalizedMeasure: objective.normalizedMeasure,
+      progressMeasure: objective.progressMeasure,
+      progressMeasureStatus: objective.progressMeasureStatus,
+      completionStatus: objective.completionStatus,
+      scaledPassingScore: objective.minNormalizedMeasure,
+    };
+  }
+
+  private ensureGlobalObjectiveEntry(
+    globalObjectives: Map<string, any>,
+    targetId: string,
+    objective: ActivityObjective,
+    mapInfo: ObjectiveMapInfo,
+  ): any {
+    if (!globalObjectives.has(targetId)) {
+      globalObjectives.set(targetId, {
+        id: targetId,
+        satisfiedStatus: objective.satisfiedStatus,
+        satisfiedStatusKnown: objective.measureStatus,
+        normalizedMeasure: objective.normalizedMeasure,
+        normalizedMeasureKnown: objective.measureStatus,
+        progressMeasure: objective.progressMeasure,
+        progressMeasureKnown: objective.progressMeasureStatus,
+        completionStatus: objective.completionStatus,
+        completionStatusKnown: objective.completionStatus !== CompletionStatus.UNKNOWN,
+        readSatisfiedStatus: mapInfo.readSatisfiedStatus ?? false,
+        writeSatisfiedStatus: mapInfo.writeSatisfiedStatus ?? false,
+        readNormalizedMeasure: mapInfo.readNormalizedMeasure ?? false,
+        writeNormalizedMeasure: mapInfo.writeNormalizedMeasure ?? false,
+        readCompletionStatus: mapInfo.readCompletionStatus ?? false,
+        writeCompletionStatus: mapInfo.writeCompletionStatus ?? false,
+        readProgressMeasure: mapInfo.readProgressMeasure ?? false,
+        writeProgressMeasure: mapInfo.writeProgressMeasure ?? false,
+        readRawScore: mapInfo.readRawScore ?? false,
+        writeRawScore: mapInfo.writeRawScore ?? false,
+        readMinScore: mapInfo.readMinScore ?? false,
+        writeMinScore: mapInfo.writeMinScore ?? false,
+        readMaxScore: mapInfo.readMaxScore ?? false,
+        writeMaxScore: mapInfo.writeMaxScore ?? false,
+        satisfiedByMeasure: objective.satisfiedByMeasure,
+        minNormalizedMeasure: objective.minNormalizedMeasure,
+        updateAttemptData: mapInfo.updateAttemptData ?? objective.isPrimary,
+      });
+    }
+
+    return globalObjectives.get(targetId);
+  }
+
+  private createDefaultMapInfo(objective: ActivityObjective): ObjectiveMapInfo {
+    return {
+      targetObjectiveID: objective.id,
+      readSatisfiedStatus: true,
+      writeSatisfiedStatus: true,
+      readNormalizedMeasure: true,
+      writeNormalizedMeasure: true,
+      readCompletionStatus: true,
+      writeCompletionStatus: true,
+      readProgressMeasure: true,
+      writeProgressMeasure: true,
+      updateAttemptData: objective.isPrimary,
     };
   }
 

@@ -8,7 +8,11 @@ import {
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
 import { SequencingRules } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
-import { SequencingControls } from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
+import {
+  SequencingControls,
+  SelectionTiming,
+  RandomizationTiming,
+} from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
 import { ADLNav } from "../../../../src/cmi/scorm2004/adl";
 
 describe("SequencingProcess", () => {
@@ -453,6 +457,165 @@ describe("SequencingProcess", () => {
         
         expect(result.exception).toBeTruthy();
       }
+    });
+  });
+
+  describe("selection/randomization persistence", () => {
+    it("should honor pre-selected children order when starting and continuing", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const childA = new Activity("childA", "Child A");
+      const childB = new Activity("childB", "Child B");
+      const childC = new Activity("childC", "Child C");
+
+      root.addChild(childA);
+      root.addChild(childB);
+      root.addChild(childC);
+
+      root.sequencingControls.selectionTiming = SelectionTiming.ONCE;
+      root.sequencingControls.selectCount = 2;
+      root.sequencingControls.selectionCountStatus = true;
+      root.sequencingControls.randomizationTiming = RandomizationTiming.ONCE;
+      root.sequencingControls.randomizeChildren = true;
+      root.sequencingControls.reorderChildren = true;
+      root.sequencingControls.flow = true;
+
+      root.setChildOrder(["childC", "childA", "childB"]);
+
+      childC.isHiddenFromChoice = false;
+      childC.isAvailable = true;
+      childA.isHiddenFromChoice = false;
+      childA.isAvailable = true;
+      childB.isHiddenFromChoice = true;
+      childB.isAvailable = false;
+
+      root.setProcessedChildren([childC, childA]);
+
+      tree.root = root;
+
+      const process = new SequencingProcess(
+        tree,
+        new SequencingRules(),
+        new SequencingControls(),
+        new ADLNav(),
+      );
+
+      const startResult = process.sequencingRequestProcess(SequencingRequestType.START);
+
+      expect(startResult.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
+      expect(startResult.targetActivity?.id).toBe("childC");
+      expect(root.getAvailableChildren().map((child) => child.id)).toEqual([
+        "childC",
+        "childA",
+      ]);
+
+      if (startResult.targetActivity) {
+        tree.currentActivity = startResult.targetActivity;
+        startResult.targetActivity.isActive = false;
+      }
+
+      const continueResult = process.sequencingRequestProcess(SequencingRequestType.CONTINUE);
+
+      expect(continueResult.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
+      expect(continueResult.targetActivity?.id).toBe("childA");
+      expect(root.getAvailableChildren().map((child) => child.id)).toEqual([
+        "childC",
+        "childA",
+      ]);
+    });
+
+    it("should respect nested selection state across clusters", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      root.sequencingControls.flow = true;
+      root.sequencingControls.selectionTiming = SelectionTiming.ONCE;
+      root.sequencingControls.selectCount = 1;
+      root.sequencingControls.selectionCountStatus = true;
+      root.sequencingControls.randomizationTiming = RandomizationTiming.ONCE;
+      root.sequencingControls.randomizeChildren = true;
+      root.sequencingControls.reorderChildren = true;
+
+      const clusterA = new Activity("clusterA", "Cluster A");
+      const clusterB = new Activity("clusterB", "Cluster B");
+      clusterA.sequencingControls.flow = true;
+      clusterB.sequencingControls.flow = true;
+      clusterB.sequencingControls.selectionTiming = SelectionTiming.ONCE;
+      clusterB.sequencingControls.selectCount = 2;
+      clusterB.sequencingControls.selectionCountStatus = true;
+      clusterB.sequencingControls.randomizationTiming = RandomizationTiming.ONCE;
+      clusterB.sequencingControls.randomizeChildren = true;
+      clusterB.sequencingControls.reorderChildren = true;
+
+      const leafB1 = new Activity("leafB1", "Leaf B1");
+      const leafB2 = new Activity("leafB2", "Leaf B2");
+      const leafB3 = new Activity("leafB3", "Leaf B3");
+      clusterB.addChild(leafB1);
+      clusterB.addChild(leafB2);
+      clusterB.addChild(leafB3);
+
+      const leafA1 = new Activity("leafA1", "Leaf A1");
+      clusterA.addChild(leafA1);
+
+      root.addChild(clusterA);
+      root.addChild(clusterB);
+
+      root.setChildOrder(["clusterB", "clusterA"]);
+      clusterB.setChildOrder(["leafB2", "leafB1", "leafB3"]);
+
+      clusterB.setProcessedChildren([leafB2, leafB1]);
+      root.setProcessedChildren([clusterB]);
+
+      // Mark availability/visibility according to persisted selection
+      clusterA.isHiddenFromChoice = true;
+      clusterA.isAvailable = false;
+      clusterB.isHiddenFromChoice = false;
+      clusterB.isAvailable = true;
+      leafB2.isHiddenFromChoice = false;
+      leafB2.isAvailable = true;
+      leafB1.isHiddenFromChoice = false;
+      leafB1.isAvailable = true;
+      leafB3.isHiddenFromChoice = true;
+      leafB3.isAvailable = false;
+
+      tree.root = root;
+
+      const process = new SequencingProcess(
+        tree,
+        new SequencingRules(),
+        new SequencingControls(),
+        new ADLNav(),
+      );
+
+      const startResult = process.sequencingRequestProcess(SequencingRequestType.START);
+      expect(startResult.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
+      expect(startResult.targetActivity?.id).toBe("leafB2");
+      expect(root.getAvailableChildren().map((child) => child.id)).toEqual(["clusterB"]);
+      expect(clusterB.getAvailableChildren().map((child) => child.id)).toEqual([
+        "leafB2",
+        "leafB1",
+      ]);
+
+      if (startResult.targetActivity) {
+        tree.currentActivity = startResult.targetActivity;
+        startResult.targetActivity.isActive = false;
+      }
+
+      const continueFirst = process.sequencingRequestProcess(SequencingRequestType.CONTINUE);
+      expect(continueFirst.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
+      expect(continueFirst.targetActivity?.id).toBe("leafB1");
+      expect(clusterB.getAvailableChildren().map((child) => child.id)).toEqual([
+        "leafB2",
+        "leafB1",
+      ]);
+
+      if (continueFirst.targetActivity) {
+        tree.currentActivity = continueFirst.targetActivity;
+        continueFirst.targetActivity.isActive = false;
+      }
+
+      const continueSecond = process.sequencingRequestProcess(SequencingRequestType.CONTINUE);
+      expect(continueSecond.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+      expect(continueSecond.exception).toBe("SB.2.7-2");
     });
   });
 });

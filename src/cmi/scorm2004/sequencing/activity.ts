@@ -8,6 +8,206 @@ import { SequencingControls } from "./sequencing_controls";
 import { SequencingRules } from "./sequencing_rules";
 import { RollupRules } from "./rollup_rules";
 import { validateISO8601Duration } from "../../../utilities";
+import { AuxiliaryResource, HideLmsUiItem, HIDE_LMS_UI_TOKENS } from "../../../types/sequencing_types";
+
+export interface ObjectiveMapInfo {
+  targetObjectiveID: string;
+  readSatisfiedStatus?: boolean;
+  readNormalizedMeasure?: boolean;
+  writeSatisfiedStatus?: boolean;
+  writeNormalizedMeasure?: boolean;
+  readCompletionStatus?: boolean;
+  writeCompletionStatus?: boolean;
+  readProgressMeasure?: boolean;
+  writeProgressMeasure?: boolean;
+  readRawScore?: boolean;
+  writeRawScore?: boolean;
+  readMinScore?: boolean;
+  writeMinScore?: boolean;
+  readMaxScore?: boolean;
+  writeMaxScore?: boolean;
+  updateAttemptData?: boolean;
+}
+
+export interface ActivityObjectiveOptions {
+  description?: string | null;
+  satisfiedByMeasure?: boolean;
+  minNormalizedMeasure?: number | null;
+  mapInfo?: ObjectiveMapInfo[];
+  isPrimary?: boolean;
+}
+
+export interface ActivityObjectiveState {
+  id: string;
+  satisfiedStatus: boolean;
+  measureStatus: boolean;
+  normalizedMeasure: number;
+  progressMeasure: number;
+  progressMeasureStatus: boolean;
+  completionStatus: CompletionStatus;
+  satisfiedByMeasure?: boolean;
+  minNormalizedMeasure?: number | null;
+}
+
+export type RollupConsiderationRequirement =
+  | "always"
+  | "ifAttempted"
+  | "ifNotSkipped"
+  | "ifNotSuspended";
+
+export interface RollupConsiderationsConfig {
+  requiredForSatisfied: RollupConsiderationRequirement;
+  requiredForNotSatisfied: RollupConsiderationRequirement;
+  requiredForCompleted: RollupConsiderationRequirement;
+  requiredForIncomplete: RollupConsiderationRequirement;
+  measureSatisfactionIfActive: boolean;
+}
+
+export class ActivityObjective {
+  private _id: string;
+  private _description: string | null;
+  private _satisfiedByMeasure: boolean;
+  private _minNormalizedMeasure: number | null;
+  private _mapInfo: ObjectiveMapInfo[];
+  private _isPrimary: boolean;
+
+  private _satisfiedStatus: boolean = false;
+  private _measureStatus: boolean = false;
+  private _normalizedMeasure: number = 0;
+  private _progressMeasure: number = 0;
+  private _progressMeasureStatus: boolean = false;
+  private _completionStatus: CompletionStatus = CompletionStatus.UNKNOWN;
+
+  constructor(id: string, options: ActivityObjectiveOptions = {}) {
+    this._id = id;
+    this._description = options.description ?? null;
+    this._satisfiedByMeasure = options.satisfiedByMeasure ?? false;
+    this._minNormalizedMeasure = options.minNormalizedMeasure ?? null;
+    this._mapInfo = options.mapInfo ? [...options.mapInfo] : [];
+    this._isPrimary = options.isPrimary ?? false;
+  }
+
+  get id(): string {
+    return this._id;
+  }
+
+  get description(): string | null {
+    return this._description;
+  }
+
+  get satisfiedByMeasure(): boolean {
+    return this._satisfiedByMeasure;
+  }
+
+  set satisfiedByMeasure(value: boolean) {
+    this._satisfiedByMeasure = value;
+  }
+
+  get minNormalizedMeasure(): number | null {
+    return this._minNormalizedMeasure;
+  }
+
+  set minNormalizedMeasure(value: number | null) {
+    this._minNormalizedMeasure = value;
+  }
+
+  get mapInfo(): ObjectiveMapInfo[] {
+    return this._mapInfo;
+  }
+
+  set mapInfo(mapInfo: ObjectiveMapInfo[]) {
+    this._mapInfo = [...mapInfo];
+  }
+
+  get isPrimary(): boolean {
+    return this._isPrimary;
+  }
+
+  set isPrimary(value: boolean) {
+    this._isPrimary = value;
+  }
+
+  get satisfiedStatus(): boolean {
+    return this._satisfiedStatus;
+  }
+
+  set satisfiedStatus(value: boolean) {
+    this._satisfiedStatus = value;
+  }
+
+  get measureStatus(): boolean {
+    return this._measureStatus;
+  }
+
+  set measureStatus(value: boolean) {
+    this._measureStatus = value;
+  }
+
+  get normalizedMeasure(): number {
+    return this._normalizedMeasure;
+  }
+
+  set normalizedMeasure(value: number) {
+    this._normalizedMeasure = value;
+  }
+
+  get progressMeasure(): number {
+    return this._progressMeasure;
+  }
+
+  set progressMeasure(value: number) {
+    this._progressMeasure = value;
+  }
+
+  get progressMeasureStatus(): boolean {
+    return this._progressMeasureStatus;
+  }
+
+  set progressMeasureStatus(value: boolean) {
+    this._progressMeasureStatus = value;
+  }
+
+  get completionStatus(): CompletionStatus {
+    return this._completionStatus;
+  }
+
+  set completionStatus(value: CompletionStatus) {
+    this._completionStatus = value;
+  }
+
+  resetState(): void {
+    this._satisfiedStatus = false;
+    this._measureStatus = false;
+    this._normalizedMeasure = 0;
+    this._progressMeasure = 0;
+    this._progressMeasureStatus = false;
+    this._completionStatus = CompletionStatus.UNKNOWN;
+  }
+
+  updateFromActivity(activity: Activity): void {
+    this._satisfiedStatus = activity.objectiveSatisfiedStatus;
+    this._measureStatus = activity.objectiveMeasureStatus;
+    this._normalizedMeasure = activity.objectiveNormalizedMeasure;
+    this._progressMeasure = activity.progressMeasure;
+    this._progressMeasureStatus = activity.progressMeasureStatus;
+    this._completionStatus = activity.completionStatus;
+  }
+
+  applyToActivity(activity: Activity): void {
+    if (!this._isPrimary) {
+      return;
+    }
+
+    activity.setPrimaryObjectiveState(
+      this._satisfiedStatus,
+      this._measureStatus,
+      this._normalizedMeasure,
+      this._progressMeasure,
+      this._progressMeasureStatus,
+      this._completionStatus
+    );
+  }
+}
 
 /**
  * Class representing a single activity in the SCORM 2004 activity tree
@@ -41,6 +241,8 @@ export class Activity extends BaseCMI {
   private _activityAttemptActive: boolean = false;
   private _isHiddenFromChoice: boolean = false;
   private _isAvailable: boolean = true;
+  private _hideLmsUi: HideLmsUiItem[] = [];
+  private _auxiliaryResources: AuxiliaryResource[] = [];
   private _attemptLimit: number | null = null;
   private _attemptAbsoluteDurationLimit: string | null = null;
   private _activityAbsoluteDurationLimit: string | null = null;
@@ -53,6 +255,16 @@ export class Activity extends BaseCMI {
   private _rollupRules: RollupRules;
   private _processedChildren: Activity[] | null = null;
   private _isNewAttempt: boolean = false;
+  private _primaryObjective: ActivityObjective | null = null;
+  private _objectives: ActivityObjective[] = [];
+  private _rollupConsiderations: RollupConsiderationsConfig = {
+    requiredForSatisfied: "always",
+    requiredForNotSatisfied: "always",
+    requiredForCompleted: "always",
+    requiredForIncomplete: "always",
+    measureSatisfactionIfActive: true
+  };
+  private _wasSkipped: boolean = false;
 
   /**
    * Constructor for Activity
@@ -66,6 +278,8 @@ export class Activity extends BaseCMI {
     this._sequencingControls = new SequencingControls();
     this._sequencingRules = new SequencingRules();
     this._rollupRules = new RollupRules();
+    this._primaryObjective = null;
+    this._objectives = [];
   }
 
   /**
@@ -105,10 +319,21 @@ export class Activity extends BaseCMI {
     this._learnerPrefs = null;
     this._activityAttemptActive = false;
 
+    if (this._primaryObjective) {
+      this._primaryObjective.resetState();
+      this._primaryObjective.updateFromActivity(this);
+    }
+
+    for (const objective of this._objectives) {
+      objective.resetState();
+    }
+
     // Reset children
     for (const child of this._children) {
       child.reset();
     }
+
+    this._wasSkipped = false;
   }
 
   /**
@@ -171,6 +396,40 @@ export class Activity extends BaseCMI {
     }
     child._parent = this;
     this._children.push(child);
+  }
+
+  /**
+   * Reorder child activities based on provided identifier order
+   * @param {string[]} order - Ordered list of child activity IDs
+   */
+  setChildOrder(order: string[]): void {
+    if (order.length === 0) {
+      return;
+    }
+
+    const childMap = new Map(this._children.map((child) => [child.id, child] as const));
+    const reordered: Activity[] = [];
+
+    for (const id of order) {
+      const child = childMap.get(id);
+      if (child) {
+        reordered.push(child);
+        childMap.delete(id);
+      }
+    }
+
+    if (childMap.size > 0) {
+      for (const child of this._children) {
+        if (childMap.has(child.id)) {
+          reordered.push(child);
+          childMap.delete(child.id);
+        }
+      }
+    }
+
+    if (reordered.length === this._children.length) {
+      this._children.splice(0, this._children.length, ...reordered);
+    }
   }
 
   /**
@@ -281,6 +540,7 @@ export class Activity extends BaseCMI {
   set completionStatus(completionStatus: CompletionStatus) {
     this._completionStatus = completionStatus;
     this._isCompleted = completionStatus === CompletionStatus.COMPLETED;
+    this.updatePrimaryObjectiveFromActivity();
   }
 
   /**
@@ -367,6 +627,7 @@ export class Activity extends BaseCMI {
     } else {
       this._successStatus = SuccessStatus.FAILED;
     }
+    this.updatePrimaryObjectiveFromActivity();
   }
 
   /**
@@ -383,6 +644,7 @@ export class Activity extends BaseCMI {
    */
   set objectiveMeasureStatus(objectiveMeasureStatus: boolean) {
     this._objectiveMeasureStatus = objectiveMeasureStatus;
+    this.updatePrimaryObjectiveFromActivity();
   }
 
   /**
@@ -399,6 +661,7 @@ export class Activity extends BaseCMI {
    */
   set objectiveNormalizedMeasure(objectiveNormalizedMeasure: number) {
     this._objectiveNormalizedMeasure = objectiveNormalizedMeasure;
+    this.updatePrimaryObjectiveFromActivity();
   }
 
   /**
@@ -433,6 +696,7 @@ export class Activity extends BaseCMI {
    */
   set progressMeasure(progressMeasure: number) {
     this._progressMeasure = progressMeasure;
+    this.updatePrimaryObjectiveFromActivity();
   }
 
   /**
@@ -449,6 +713,7 @@ export class Activity extends BaseCMI {
    */
   set progressMeasureStatus(progressMeasureStatus: boolean) {
     this._progressMeasureStatus = progressMeasureStatus;
+    this.updatePrimaryObjectiveFromActivity();
   }
 
   /**
@@ -812,6 +1077,215 @@ export class Activity extends BaseCMI {
     this._rollupRules = rollupRules;
   }
 
+  get rollupConsiderations(): RollupConsiderationsConfig {
+    return { ...this._rollupConsiderations };
+  }
+
+  set rollupConsiderations(config: RollupConsiderationsConfig) {
+    this._rollupConsiderations = { ...config };
+  }
+
+  applyRollupConsiderations(settings: Partial<RollupConsiderationsConfig>): void {
+    this._rollupConsiderations = {
+      ...this._rollupConsiderations,
+      ...settings
+    };
+  }
+
+  get wasSkipped(): boolean {
+    return this._wasSkipped;
+  }
+
+  set wasSkipped(value: boolean) {
+    this._wasSkipped = value;
+  }
+
+  /**
+   * Getter for primary objective
+   * @return {ActivityObjective | null}
+   */
+  get primaryObjective(): ActivityObjective | null {
+    return this._primaryObjective;
+  }
+
+  /**
+   * Setter for primary objective
+   * @param {ActivityObjective | null} objective
+   */
+  set primaryObjective(objective: ActivityObjective | null) {
+    this._primaryObjective = objective;
+    if (this._primaryObjective) {
+      this._primaryObjective.isPrimary = true;
+      if (this._primaryObjective.minNormalizedMeasure !== null) {
+        this._scaledPassingScore = this._primaryObjective.minNormalizedMeasure ?? this._scaledPassingScore;
+      }
+      this._primaryObjective.updateFromActivity(this);
+    }
+  }
+
+  /**
+   * Get additional objectives
+   * @return {ActivityObjective[]}
+   */
+  get objectives(): ActivityObjective[] {
+    return [...this._objectives];
+  }
+
+  /**
+   * Replace objectives collection
+   * @param {ActivityObjective[]} objectives
+   */
+  set objectives(objectives: ActivityObjective[]) {
+    this._objectives = [...objectives];
+  }
+
+  /**
+   * Add an objective
+   * @param {ActivityObjective} objective
+   */
+  addObjective(objective: ActivityObjective): void {
+    if (!this._objectives.find((obj) => obj.id === objective.id)) {
+      this._objectives.push(objective);
+    }
+  }
+
+  /**
+   * Get objective by ID
+   * @param {string} objectiveId
+   * @return {{ objective: ActivityObjective, isPrimary: boolean } | null}
+   */
+  getObjectiveById(objectiveId: string): {
+    objective: ActivityObjective;
+    isPrimary: boolean
+  } | null {
+    if (this._primaryObjective?.id === objectiveId) {
+      return { objective: this._primaryObjective, isPrimary: true };
+    }
+    const additional = this._objectives.find((obj) => obj.id === objectiveId);
+    if (additional) {
+      return { objective: additional, isPrimary: false };
+    }
+    return null;
+  }
+
+  /**
+   * Get all objectives including primary
+   * @return {ActivityObjective[]}
+   */
+  getAllObjectives(): ActivityObjective[] {
+    const objectives: ActivityObjective[] = [];
+    if (this._primaryObjective) {
+      objectives.push(this._primaryObjective);
+    }
+    return objectives.concat(this._objectives);
+  }
+
+  private updatePrimaryObjectiveFromActivity(): void {
+    if (this._primaryObjective) {
+      this._primaryObjective.updateFromActivity(this);
+    }
+  }
+
+  public setPrimaryObjectiveState(
+    satisfiedStatus: boolean,
+    measureStatus: boolean,
+    normalizedMeasure: number,
+    progressMeasure: number,
+    progressMeasureStatus: boolean,
+    completionStatus: CompletionStatus
+  ): void {
+    this._objectiveSatisfiedStatus = satisfiedStatus;
+    this._objectiveMeasureStatus = measureStatus;
+    this._objectiveNormalizedMeasure = normalizedMeasure;
+    this._progressMeasure = progressMeasure;
+    this._progressMeasureStatus = progressMeasureStatus;
+    this._completionStatus = completionStatus;
+
+    if (this._primaryObjective) {
+      this._primaryObjective.satisfiedStatus = satisfiedStatus;
+      this._primaryObjective.measureStatus = measureStatus;
+      this._primaryObjective.normalizedMeasure = normalizedMeasure;
+      this._primaryObjective.progressMeasure = progressMeasure;
+      this._primaryObjective.progressMeasureStatus = progressMeasureStatus;
+      this._primaryObjective.completionStatus = completionStatus;
+    }
+  }
+
+  public getObjectiveStateSnapshot(): {
+    primary: ActivityObjectiveState | null;
+    objectives: ActivityObjectiveState[];
+  } {
+    const primarySnapshot: ActivityObjectiveState | null = this._primaryObjective
+      ? {
+        id: this._primaryObjective.id,
+        satisfiedStatus: this.objectiveSatisfiedStatus,
+        measureStatus: this.objectiveMeasureStatus,
+        normalizedMeasure: this.objectiveNormalizedMeasure,
+        progressMeasure: this.progressMeasure ?? 0,
+        progressMeasureStatus: this.progressMeasureStatus,
+        completionStatus: this.completionStatus,
+        satisfiedByMeasure: this._primaryObjective.satisfiedByMeasure,
+        minNormalizedMeasure: this._primaryObjective.minNormalizedMeasure
+      }
+      : null;
+
+    const additionalSnapshots: ActivityObjectiveState[] = this._objectives.map((objective) => ({
+      id: objective.id,
+      satisfiedStatus: objective.satisfiedStatus,
+      measureStatus: objective.measureStatus,
+      normalizedMeasure: objective.normalizedMeasure,
+      progressMeasure: objective.progressMeasure,
+      progressMeasureStatus: objective.progressMeasureStatus,
+      completionStatus: objective.completionStatus,
+      satisfiedByMeasure: objective.satisfiedByMeasure,
+      minNormalizedMeasure: objective.minNormalizedMeasure
+    }));
+
+    return {
+      primary: primarySnapshot,
+      objectives: additionalSnapshots
+    };
+  }
+
+  public applyObjectiveStateSnapshot(snapshot: {
+    primary: ActivityObjectiveState | null;
+    objectives: ActivityObjectiveState[];
+  }): void {
+    if (snapshot.primary) {
+      const primary = this.getObjectiveById(snapshot.primary.id);
+      if (primary && primary.isPrimary) {
+        const state = snapshot.primary;
+        primary.objective.satisfiedByMeasure = state.satisfiedByMeasure ?? primary.objective.satisfiedByMeasure;
+        primary.objective.minNormalizedMeasure =
+          state.minNormalizedMeasure !== undefined ? state.minNormalizedMeasure : primary.objective.minNormalizedMeasure;
+        this.setPrimaryObjectiveState(
+          state.satisfiedStatus,
+          state.measureStatus,
+          state.normalizedMeasure,
+          state.progressMeasure,
+          state.progressMeasureStatus,
+          state.completionStatus
+        );
+      }
+    }
+
+    for (const state of snapshot.objectives) {
+      const match = this.getObjectiveById(state.id);
+      if (match && !match.isPrimary) {
+        const objective = match.objective;
+        objective.satisfiedStatus = state.satisfiedStatus;
+        objective.measureStatus = state.measureStatus;
+        objective.normalizedMeasure = state.normalizedMeasure;
+        objective.progressMeasure = state.progressMeasure;
+        objective.progressMeasureStatus = state.progressMeasureStatus;
+        objective.completionStatus = state.completionStatus;
+        objective.satisfiedByMeasure = state.satisfiedByMeasure ?? objective.satisfiedByMeasure;
+        objective.minNormalizedMeasure =
+          state.minNormalizedMeasure !== undefined ? state.minNormalizedMeasure : objective.minNormalizedMeasure;
+      }
+    }
+  }
+
   /**
    * Get available children with selection and randomization applied
    * @return {Activity[]}
@@ -887,9 +1361,62 @@ export class Activity extends BaseCMI {
       objectiveSatisfiedStatus: this._objectiveSatisfiedStatus,
       objectiveMeasureStatus: this._objectiveMeasureStatus,
       objectiveNormalizedMeasure: this._objectiveNormalizedMeasure,
+      rollupConsiderations: { ...this._rollupConsiderations },
+      wasSkipped: this._wasSkipped,
+      hideLmsUi: [...this._hideLmsUi],
+      auxiliaryResources: this._auxiliaryResources.map((resource) => ({ ...resource })),
       children: this._children.map((child) => child.toJSON())
     };
     this.jsonString = false;
     return result;
+ }
+
+  get auxiliaryResources(): AuxiliaryResource[] {
+    return this._auxiliaryResources.map((resource) => ({ ...resource }));
+  }
+
+  set auxiliaryResources(resources: AuxiliaryResource[]) {
+    const sanitized: AuxiliaryResource[] = [];
+    const seen = new Set<string>();
+    for (const resource of resources || []) {
+      if (!resource) continue;
+      const resourceId = typeof resource.resourceId === 'string' ? resource.resourceId.trim() : '';
+      const purpose = typeof resource.purpose === 'string' ? resource.purpose.trim() : '';
+      if (!resourceId || seen.has(resourceId)) {
+        continue;
+      }
+      seen.add(resourceId);
+      sanitized.push({ resourceId, purpose });
+    }
+    this._auxiliaryResources = sanitized;
+  }
+
+  addAuxiliaryResource(resource: AuxiliaryResource): void {
+    this.auxiliaryResources = [...this._auxiliaryResources, resource];
+  }
+
+  /**
+   * Getter for hideLmsUi directives
+   * @return {HideLmsUiItem[]}
+   */
+  get hideLmsUi(): HideLmsUiItem[] {
+    return [...this._hideLmsUi];
+  }
+
+  /**
+   * Setter for hideLmsUi directives
+   * @param {HideLmsUiItem[]} hideLmsUi
+   */
+  set hideLmsUi(hideLmsUi: HideLmsUiItem[]) {
+    const valid = new Set(HIDE_LMS_UI_TOKENS);
+    const seen = new Set<HideLmsUiItem>();
+    const sanitized: HideLmsUiItem[] = [];
+    for (const directive of hideLmsUi) {
+      if (valid.has(directive) && !seen.has(directive)) {
+        seen.add(directive);
+        sanitized.push(directive);
+      }
+    }
+    this._hideLmsUi = sanitized;
   }
 }
