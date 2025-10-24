@@ -103,7 +103,7 @@ jobs:
       # Upload Playwright report
       - name: Upload Playwright report
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: playwright-report
           path: playwright-report/
@@ -118,7 +118,7 @@ jobs:
       # Upload performance benchmark results
       - name: Upload performance benchmark results
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: performance-benchmark
           path: reports/performance-benchmark.json
