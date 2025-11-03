@@ -18,6 +18,7 @@ export const DefaultSettings: InternalSettings = {
   selfReportSessionTime: false,
   alwaysSendTotalTime: false,
   renderCommonCommitFields: false,
+  autoCompleteLessonStatus: false,
   strict_errors: true,
   xhrHeaders: {},
   xhrWithCredentials: false,

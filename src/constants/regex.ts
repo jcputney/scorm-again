@@ -2,13 +2,18 @@ export const scorm12_regex = {
   CMIString256: "^[\\s\\S]{0,255}$",
   CMIString4096: "^[\\s\\S]{0,4096}$",
   CMITime: "^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)$",
-  CMITimespan: "^([0-9]{2,}):([0-9]{2}):([0-9]{2})(.[0-9]{1,2})?$",
+  CMITimespan: "^([0-9]{2,}):([0-9]{2}):([0-9]{2})(\\.\\d{1,2})?$",
 
   CMIInteger: "^\\d+$",
   CMISInteger: "^-?([0-9]+)$",
   CMIDecimal: "^-?([0-9]{0,3})(\\.[0-9]*)?$",
 
   CMIIdentifier: "^[\\u0021-\\u007E\\s]{0,255}$",
+  CMICredit: "^(credit|no-credit)$",
+  CMIEntry: "^(ab-initio|resume|)$",
+  CMILessonMode: "^(normal|browse|review)$",
+  CMITimeLimitAction:
+    "^(exit,message|exit,no message|continue,message|continue,no message)$",
   // Allow storing larger responses for interactions
   // Some content packages may exceed the 255 character limit
   // defined in the SCORM 1.2 specification.  The previous

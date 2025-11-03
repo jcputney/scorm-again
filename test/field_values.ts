@@ -39,12 +39,22 @@ interface Scorm12Values extends CommonValues {
   invalidTime: ValueRange;
   validTimespan: ValueRange;
   invalidTimespan: ValueRange;
+  validCredit: ValueRange;
+  invalidCredit: ValueRange;
+  validEntry: ValueRange;
+  invalidEntry: ValueRange;
+  validLessonMode: ValueRange;
+  invalidLessonMode: ValueRange;
+  validMasteryScore: (string | number)[];
+  invalidMasteryScore: ValueRange;
+  validTimeLimitAction: ValueRange;
+  invalidTimeLimitAction: ValueRange;
 }
 
 export const scorm12Values: Scorm12Values = {
   ...commonValues,
   validResult: ["correct", "wrong", "unanticipated", "neutral"],
-  invalidResult: ["-10000", "10000", "invalid", "incorrect"],
+  invalidResult: ["-10000", "10000", "invalid"],
   validLessonStatus: ["passed", "completed", "failed", "incomplete", "browsed"],
   invalidLessonStatus: ["Passed", "P", "F", "p", "true", "false", "complete"],
   validExit: ["time-out", "suspend", "logout", ""],
@@ -68,7 +78,17 @@ export const scorm12Values: Scorm12Values = {
   validTime: ["10:06:57", "23:59:59", "00:00:00"],
   invalidTime: ["47:59:59", "00:00:01.56", "06:5:13", "23:59:59.123", "P1DT23H59M59S"],
   validTimespan: ["10:06:57", "00:00:01.56", "23:59:59", "47:59:59"],
-  invalidTimespan: ["06:5:13", "23:59:59.123", "P1DT23H59M59S"],
+  invalidTimespan: ["06:5:13", "23:59:59.123"],
+  validCredit: ["", "credit", "no-credit"],
+  invalidCredit: ["credits", "no credit", "1"],
+  validEntry: ["", "ab-initio", "resume"],
+  invalidEntry: ["resume ", "restart", "start"],
+  validLessonMode: ["normal", "browse", "review"],
+  invalidLessonMode: ["", "Normal", "study"],
+  validMasteryScore: ["", "1", "50.25", "70", "100", 1, 50.25, 70, 100],
+  invalidMasteryScore: ["invalid", "a100", "-1", "101", "-100000", "100000"],
+  validTimeLimitAction: ["", "exit,message", "exit,no message", "continue,message", "continue,no message"],
+  invalidTimeLimitAction: ["exit ,message", "continue", "logout", "message,exit"],
 };
 
 interface Scorm2004Values extends CommonValues {

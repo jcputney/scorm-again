@@ -150,9 +150,15 @@ describe("SCORM 1.2 CMI Tests", () => {
         limit: 255,
         expectedError: type_mismatch,
       });
-      h.checkReadAndWrite({
+      h.checkRead({
         cmi: cmi(),
         fieldName: "cmi.core.credit",
+      });
+      h.checkValidValues({
+        cmi: cmi(),
+        fieldName: "cmi.core.credit",
+        validValues: scorm12Values.validCredit,
+        invalidValues: scorm12Values.invalidCredit,
       });
       h.checkRead({
         cmi: cmi(),
@@ -165,18 +171,36 @@ describe("SCORM 1.2 CMI Tests", () => {
         validValues: scorm12Values.validLessonStatus,
         invalidValues: scorm12Values.invalidLessonStatus,
       });
-      h.checkReadAndWrite({
+      h.checkRead({
         cmi: cmi(),
         fieldName: "cmi.core.entry",
       });
-      h.checkReadAndWrite({
+      h.checkValidValues({
+        cmi: cmi(),
+        fieldName: "cmi.core.entry",
+        validValues: scorm12Values.validEntry,
+        invalidValues: scorm12Values.invalidEntry,
+      });
+      h.checkRead({
         cmi: cmi(),
         fieldName: "cmi.core.total_time",
       });
-      h.checkReadAndWrite({
+      h.checkValidValues({
+        cmi: cmi(),
+        fieldName: "cmi.core.total_time",
+        validValues: scorm12Values.validTimespan,
+        invalidValues: scorm12Values.invalidTimespan,
+      });
+      h.checkRead({
         cmi: cmi(),
         fieldName: "cmi.core.lesson_mode",
         expectedValue: "normal",
+      });
+      h.checkValidValues({
+        cmi: cmi(),
+        fieldName: "cmi.core.lesson_mode",
+        validValues: scorm12Values.validLessonMode,
+        invalidValues: scorm12Values.invalidLessonMode,
       });
       h.checkWrite({
         cmi: cmi(),
@@ -200,6 +224,13 @@ describe("SCORM 1.2 CMI Tests", () => {
         fieldName: "cmi.core.session_time",
         validValues: scorm12Values.validTimespan,
         invalidValues: scorm12Values.invalidTimespan,
+      });
+
+      it("normalizes session_time values with overflow minutes or seconds", () => {
+        const cmiObj = cmi();
+        cmiObj.core.session_time = "00:90:30";
+        const serialized = JSON.parse(JSON.stringify(cmiObj));
+        expect(serialized.core.session_time).toEqual("01:30:30");
       });
 
       /**
@@ -268,17 +299,37 @@ describe("SCORM 1.2 CMI Tests", () => {
         expectedValue: scorm12.student_data_children,
         expectedError: invalid_set,
       });
-      h.checkReadAndWrite({
+      h.checkValidValues({
         cmi: cmi(),
         fieldName: "cmi.student_data.mastery_score",
+        validValues: scorm12Values.validMasteryScore,
+        invalidValues: scorm12Values.invalidMasteryScore,
       });
-      h.checkReadAndWrite({
+      h.checkValidValues({
         cmi: cmi(),
         fieldName: "cmi.student_data.max_time_allowed",
+        validValues: scorm12Values.validTimespan,
+        invalidValues: scorm12Values.invalidTimespan,
       });
-      h.checkReadAndWrite({
+      h.checkValidValues({
         cmi: cmi(),
         fieldName: "cmi.student_data.time_limit_action",
+        validValues: scorm12Values.validTimeLimitAction,
+        invalidValues: scorm12Values.invalidTimeLimitAction,
+      });
+
+      it("normalizes student_data.max_time_allowed values with overflow", () => {
+        const cmiObj = cmi();
+        cmiObj.student_data.max_time_allowed = "02:75:00";
+        const serialized = JSON.parse(JSON.stringify(cmiObj));
+        expect(serialized.student_data.max_time_allowed).toEqual("03:15:00");
+      });
+
+      it("accepts ISO 8601 duration values for max_time_allowed", () => {
+        const cmiObj = cmi();
+        cmiObj.student_data.max_time_allowed = "P1DT23H59M59S";
+        const serialized = JSON.parse(JSON.stringify(cmiObj));
+        expect(serialized.student_data.max_time_allowed).toEqual("47:59:59");
       });
 
       /**
@@ -710,6 +761,13 @@ describe("SCORM 1.2 CMI Tests", () => {
         fieldName: "cmi.latency",
         validValues: scorm12Values.validTimespan,
         invalidValues: scorm12Values.invalidTimespan,
+      });
+
+      it("normalizes legacy 'incorrect' result value to 'wrong'", () => {
+        const cmiObj = interaction();
+        cmiObj.result = "incorrect";
+        const serialized = JSON.parse(JSON.stringify(cmiObj));
+        expect(serialized.result).toEqual("wrong");
       });
 
       it("should export JSON", () => {

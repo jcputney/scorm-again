@@ -3,6 +3,9 @@ import { scorm12_constants } from "../../constants/api_constants";
 import { Scorm12ValidationError } from "../../exceptions/scorm12_exceptions";
 import { scorm12_errors } from "../../constants/error_codes";
 import { validationService } from "../../services/ValidationService";
+import { check12ValidFormat, check12ValidRange } from "./validation";
+import { scorm12_regex, scorm2004_regex } from "../../constants/regex";
+import * as Util from "../../utilities";
 
 /**
  * Class representing the SCORM 1.2 cmi.student_data object
@@ -67,7 +70,34 @@ export class CMIStudentData extends BaseCMI {
    */
   set mastery_score(mastery_score: string) {
     validationService.validateReadOnly(this._cmi_element + ".mastery_score", this.initialized);
-    this._mastery_score = mastery_score;
+    if (mastery_score === undefined || mastery_score === null) {
+      return;
+    }
+
+    let normalizedMasteryScore = mastery_score;
+    if (typeof normalizedMasteryScore !== "string") {
+      normalizedMasteryScore = String(normalizedMasteryScore);
+    }
+
+    if (normalizedMasteryScore === "") {
+      this._mastery_score = mastery_score;
+      return;
+    }
+
+    if (
+      check12ValidFormat(
+        this._cmi_element + ".mastery_score",
+        normalizedMasteryScore,
+        scorm12_regex.CMIDecimal,
+      ) &&
+      check12ValidRange(
+        this._cmi_element + ".mastery_score",
+        normalizedMasteryScore,
+        scorm12_regex.score_range,
+      )
+    ) {
+      this._mastery_score = normalizedMasteryScore;
+    }
   }
 
   /**
@@ -84,7 +114,55 @@ export class CMIStudentData extends BaseCMI {
    */
   set max_time_allowed(max_time_allowed: string) {
     validationService.validateReadOnly(this._cmi_element + ".max_time_allowed", this.initialized);
-    this._max_time_allowed = max_time_allowed;
+    if (max_time_allowed === undefined || max_time_allowed === null) {
+      return;
+    }
+
+    const normalizedValue =
+      typeof max_time_allowed === "string" ? max_time_allowed : String(max_time_allowed);
+
+    if (normalizedValue === "") {
+      this._max_time_allowed = "";
+      return;
+    }
+
+    // First try SCORM 1.2 HH:MM:SS(.cc) format
+    try {
+      check12ValidFormat(
+        this._cmi_element + ".max_time_allowed",
+        normalizedValue,
+        scorm12_regex.CMITimespan,
+        true,
+      );
+      const totalSeconds = Util.getTimeAsSeconds(normalizedValue, scorm12_regex.CMITimespan);
+      this._max_time_allowed = Util.getSecondsAsHHMMSS(totalSeconds);
+      return;
+    } catch (e) {
+      // fall through and attempt other encodings
+    }
+
+    // Next try ISO 8601 durations (common in legacy manifests)
+    try {
+      check12ValidFormat(
+        this._cmi_element + ".max_time_allowed",
+        normalizedValue,
+        scorm2004_regex.CMITimespan,
+        true,
+      );
+      const totalSeconds = Util.getDurationAsSeconds(
+        normalizedValue,
+        scorm2004_regex.CMITimespan,
+      );
+      this._max_time_allowed = Util.getSecondsAsHHMMSS(totalSeconds);
+      return;
+    } catch (e) {
+      // fall back to storing raw value
+    }
+
+    throw new Scorm12ValidationError(
+      this._cmi_element + ".max_time_allowed",
+      scorm12_errors.TYPE_MISMATCH as number,
+    );
   }
 
   /**
@@ -101,7 +179,23 @@ export class CMIStudentData extends BaseCMI {
    */
   set time_limit_action(time_limit_action: string) {
     validationService.validateReadOnly(this._cmi_element + ".time_limit_action", this.initialized);
-    this._time_limit_action = time_limit_action;
+    if (time_limit_action === undefined || time_limit_action === null) {
+      return;
+    }
+
+    const normalizedValue =
+      typeof time_limit_action === "string" ? time_limit_action : String(time_limit_action);
+
+    if (
+      check12ValidFormat(
+        this._cmi_element + ".time_limit_action",
+        normalizedValue,
+        scorm12_regex.CMITimeLimitAction,
+        true,
+      )
+    ) {
+      this._time_limit_action = normalizedValue;
+    }
   }
 
   /**

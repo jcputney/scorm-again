@@ -628,10 +628,25 @@ describe("SCORM 1.2 API Tests", () => {
   });
 
   describe("storeData()", () => {
-    it('should set cmi.core.lesson_status to "completed"', () => {
+    it('should set cmi.core.lesson_status to "incomplete"', () => {
       const scorm12API = api();
       scorm12API.storeData(true);
+      expect(scorm12API.cmi.core.lesson_status).toEqual("incomplete");
+    });
+    it('should set cmi.core.lesson_status to "completed" when legacy auto-complete is enabled', () => {
+      const scorm12API = api({
+        ...DefaultSettings,
+        autoCompleteLessonStatus: true,
+      });
+      scorm12API.storeData(true);
       expect(scorm12API.cmi.core.lesson_status).toEqual("completed");
+    });
+    it("should not override lesson_status when set by module", () => {
+      const scorm12API = api();
+      scorm12API.cmi.core.lesson_status = "passed";
+      scorm12API.statusSetByModule = true;
+      scorm12API.storeData(true);
+      expect(scorm12API.cmi.core.lesson_status).toEqual("passed");
     });
     it('should set cmi.core.lesson_status to "browsed"', () => {
       const scorm12API = api();

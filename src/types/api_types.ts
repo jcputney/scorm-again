@@ -26,6 +26,7 @@ export type Settings = {
   onLogMessage?: ((messageLevel: LogLevel, logMessage: string) => void) | undefined;
   mastery_override?: boolean | undefined;
   renderCommonCommitFields?: boolean | undefined;
+  autoCompleteLessonStatus?: boolean | undefined;
   scoItemIds?: string[] | undefined;
   scoItemIdValidator?: false | ((scoItemId: string) => boolean) | undefined;
   globalObjectiveIds?: string[] | undefined;
@@ -58,6 +59,7 @@ export type InternalSettings = {
   logLevel: LogLevel;
   selfReportSessionTime: boolean;
   renderCommonCommitFields: boolean;
+  autoCompleteLessonStatus: boolean;
   alwaysSendTotalTime: boolean;
   strict_errors: boolean;
   xhrHeaders: StringKeyMap;

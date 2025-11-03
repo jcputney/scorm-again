@@ -30,13 +30,9 @@ export class HttpService implements IHttpService {
    *
    * 1. Immediate Mode (used during termination):
    *    When immediate=true, the method:
-   *    - Initiates the fetch request but doesn't wait for it to complete
-   *    - Returns a success result immediately
-   *    - Processes the response asynchronously when it arrives
-   *
-   *    This is critical for browser compatibility during page unload/termination,
-   *    as some browsers (especially Chrome) may cancel synchronous or awaited
-   *    requests when a page is closing.
+   *    - Uses keepalive-compatible delivery (fetch keepalive or sendBeacon)
+   *    - Awaits the transport response so the caller sees success/failure
+   *    - Still avoids blocking the SCO thread longer than necessary
    *
    * 2. Standard Mode (normal operation):
    *    When immediate=false, the method:
@@ -75,7 +71,7 @@ export class HttpService implements IHttpService {
    *   console.log,
    *   (event) => dispatchEvent(new CustomEvent(event))
    * );
-   * // result will be success immediately, regardless of actual HTTP result
+   * // result reflects the actual LMS response (or failure) even during unload
    */
   async processHttpRequest(
     url: string,
@@ -85,13 +81,13 @@ export class HttpService implements IHttpService {
       functionName: string,
       message: any,
       messageLevel: LogLevelEnum,
-      CMIElement?: string,
+      CMIElement?: string
     ) => void,
-    processListeners: (functionName: string, CMIElement?: string, value?: any) => void,
+    processListeners: (functionName: string, CMIElement?: string, value?: any) => void
   ): Promise<ResultObject> {
     const genericError: ResultObject = {
       result: global_constants.SCORM_FALSE,
-      errorCode: this.error_codes.GENERAL || 101,
+      errorCode: this.error_codes.GENERAL || 101
     };
 
     // If immediate mode (for termination), handle differently
@@ -124,8 +120,8 @@ export class HttpService implements IHttpService {
         errorDetails: JSON.stringify({
           url,
           errorType: e instanceof Error ? e.constructor.name : typeof e,
-          originalError: message,
-        }),
+          originalError: message
+        })
       };
 
       processListeners("CommitError");
@@ -137,43 +133,56 @@ export class HttpService implements IHttpService {
    * Handles an immediate request (used during termination)
    * @param {string} url - The URL to send the request to
    * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+   * @param apiLog - Function to log API messages
    * @param {Function} processListeners - Function to process event listeners
    * @return {ResultObject} - A success result object
    * @private
    */
-  private _handleImmediateRequest(
+  private async _handleImmediateRequest(
     url: string,
     params: CommitObject | StringKeyMap | Array<any>,
     apiLog: (
       functionName: string,
       message: any,
       messageLevel: LogLevelEnum,
-      CMIElement?: string,
+      CMIElement?: string
     ) => void,
-    processListeners: (functionName: string, CMIElement?: string, value?: any) => void,
-  ): ResultObject {
-    // Use Beacon API for final commit if specified in settings
-    if (this.settings.useBeaconInsteadOfFetch !== "never") {
-      const { body, contentType } = this._prepareRequestBody(params);
-      navigator.sendBeacon(url, new Blob([body], { type: contentType }));
-    } else {
-      // Use regular fetch with keepalive
-      this.performFetch(url, params)
-        .then(async (response) => {
-          await this.transformResponse(response, processListeners);
-        })
-        .catch((e: unknown) => {
-          const message = e instanceof Error ? e.message : String(e);
-          apiLog("processHttpRequest", message, LogLevelEnum.ERROR);
-          processListeners("CommitError");
-        });
-    }
+    processListeners: (functionName: string, CMIElement?: string, value?: any) => void
+  ): Promise<ResultObject> {
+    try {
+      // Prepare request payload without mutating the original params
+      const requestPayload =
+        this.settings.requestHandler(params) ?? params;
 
-    // Return success immediately without waiting for response
-    return {
-      result: global_constants.SCORM_TRUE,
-      errorCode: 0,
-    };
+      let response: Response;
+
+      if (this.settings.useBeaconInsteadOfFetch !== "never") {
+        response = await this.performBeacon(url, requestPayload as StringKeyMap | Array<any>);
+      } else {
+        response = await this.performFetch(url, requestPayload as StringKeyMap | Array<any>);
+      }
+
+      return await this.transformResponse(response, processListeners);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      apiLog(
+        "processHttpRequest",
+        `Immediate HTTP request failed to ${url}: ${message}`,
+        LogLevelEnum.ERROR
+      );
+      processListeners("CommitError");
+
+      return {
+        result: global_constants.SCORM_FALSE,
+        errorCode: this.error_codes.GENERAL || 101,
+        errorMessage: message,
+        errorDetails: JSON.stringify({
+          url,
+          immediate: true,
+          errorType: e instanceof Error ? e.constructor.name : typeof e
+        })
+      };
+    }
   }
 
   /**
@@ -215,9 +224,9 @@ export class HttpService implements IHttpService {
       body,
       headers: {
         ...this.settings.xhrHeaders,
-        "Content-Type": contentType,
+        "Content-Type": contentType
       },
-      keepalive: true,
+      keepalive: true
     } as RequestInit;
 
     if (this.settings.xhrWithCredentials) {
@@ -246,13 +255,13 @@ export class HttpService implements IHttpService {
       ok: beaconSuccess,
       json: async () => ({
         result: beaconSuccess ? "true" : "false",
-        errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL,
+        errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL
       }),
       text: async () =>
         JSON.stringify({
           result: beaconSuccess ? "true" : "false",
-          errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL,
-        }),
+          errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL
+        })
     } as Response);
   }
 
@@ -265,7 +274,7 @@ export class HttpService implements IHttpService {
    */
   private async transformResponse(
     response: Response,
-    processListeners: (functionName: string, CMIElement?: string, value?: any) => void,
+    processListeners: (functionName: string, CMIElement?: string, value?: any) => void
   ): Promise<ResultObject> {
     let result: any;
 
@@ -288,8 +297,8 @@ export class HttpService implements IHttpService {
           statusText: response.statusText,
           url: response.url,
           responseText: responseText.substring(0, 500), // Limit response text to avoid huge logs
-          parseError: parseError instanceof Error ? parseError.message : String(parseError),
-        }),
+          parseError: parseError instanceof Error ? parseError.message : String(parseError)
+        })
       };
     }
 
@@ -304,7 +313,7 @@ export class HttpService implements IHttpService {
         status: response.status,
         statusText: response.statusText,
         url: response.url,
-        ...result.errorDetails, // Preserve any existing error details
+        ...result.errorDetails // Preserve any existing error details
       };
     }
 

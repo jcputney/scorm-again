@@ -502,14 +502,11 @@ describe("HttpService", () => {
         processListenersStub,
       );
 
-      expect(result.result).toBe(global_constants.SCORM_TRUE);
-      expect(result.errorCode).toBe(0);
-
-      await new Promise((r) => setTimeout(r, 0));
-
+      expect(result.result).toBe(global_constants.SCORM_FALSE);
+      expect(result.errorCode).toBe(errorCodes.GENERAL);
       expect(apiLogStub).toHaveBeenCalledWith(
         "processHttpRequest",
-        "Network down",
+        `Immediate HTTP request failed to ${url}: Network down`,
         LogLevelEnum.ERROR,
       );
       expect(processListenersStub).toHaveBeenCalledWith("CommitError");

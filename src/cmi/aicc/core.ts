@@ -180,7 +180,11 @@ export class CMICore extends BaseCMI {
         scorm12_errors.READ_ONLY_ELEMENT as number,
       );
     } else {
-      this._credit = credit;
+      if (
+        check12ValidFormat(this._cmi_element + ".credit", credit, scorm12_regex.CMICredit, true)
+      ) {
+        this._credit = credit;
+      }
     }
   }
 
@@ -239,7 +243,9 @@ export class CMICore extends BaseCMI {
         scorm12_errors.READ_ONLY_ELEMENT as number,
       );
     } else {
-      this._entry = entry;
+      if (check12ValidFormat(this._cmi_element + ".entry", entry, scorm12_regex.CMIEntry, true)) {
+        this._entry = entry;
+      }
     }
   }
 
@@ -262,7 +268,21 @@ export class CMICore extends BaseCMI {
         scorm12_errors.READ_ONLY_ELEMENT as number,
       );
     } else {
-      this._total_time = total_time;
+      if (
+        check12ValidFormat(
+          this._cmi_element + ".total_time",
+          total_time,
+          scorm12_regex.CMITimespan,
+          true,
+        )
+      ) {
+        if (total_time) {
+          const totalSeconds = Util.getTimeAsSeconds(total_time, scorm12_regex.CMITimespan);
+          this._total_time = Util.getSecondsAsHHMMSS(totalSeconds);
+        } else {
+          this._total_time = total_time;
+        }
+      }
     }
   }
 
@@ -285,7 +305,11 @@ export class CMICore extends BaseCMI {
         scorm12_errors.READ_ONLY_ELEMENT as number,
       );
     } else {
-      this._lesson_mode = lesson_mode;
+      if (
+        check12ValidFormat(this._cmi_element + ".lesson_mode", lesson_mode, scorm12_regex.CMILessonMode)
+      ) {
+        this._lesson_mode = lesson_mode;
+      }
     }
   }
 
@@ -308,6 +332,12 @@ export class CMICore extends BaseCMI {
    * @param {string} exit
    */
   set exit(exit: string) {
+    if (exit === "normal") {
+      console.warn(
+        "SCORM 1.2: Received non-standard value 'normal' for cmi.core.exit; normalizing to empty string.",
+      );
+      exit = "";
+    }
     if (check12ValidFormat(this._cmi_element + ".exit", exit, scorm12_regex.CMIExit, true)) {
       this._exit = exit;
     }
@@ -339,7 +369,8 @@ export class CMICore extends BaseCMI {
         scorm12_regex.CMITimespan,
       )
     ) {
-      this._session_time = session_time;
+      const totalSeconds = Util.getTimeAsSeconds(session_time, scorm12_regex.CMITimespan);
+      this._session_time = Util.getSecondsAsHHMMSS(totalSeconds);
     }
   }
 

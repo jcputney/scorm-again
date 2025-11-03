@@ -369,7 +369,9 @@ class Scorm12API extends BaseAPI {
         !this.cmi.core.lesson_status ||
         (!this.statusSetByModule && this.cmi.core.lesson_status === "not attempted")
       ) {
-        this.cmi.core.lesson_status = "completed";
+        this.cmi.core.lesson_status = this.settings.autoCompleteLessonStatus
+          ? "completed"
+          : "incomplete";
       }
 
       if (this.cmi.core.lesson_mode === "normal") {

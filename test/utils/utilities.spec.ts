@@ -111,6 +111,11 @@ describe("Utility Tests", () => {
     it("Empty value returns 0", () => {
       expect(Utilities.getTimeAsSeconds(null, scorm12_regex.CMITimespan)).toEqual(0);
     });
+
+    it("converts overflow minute or second values to seconds", () => {
+      expect(Utilities.getTimeAsSeconds("00:60:00", scorm12_regex.CMITimespan)).toEqual(3600);
+      expect(Utilities.getTimeAsSeconds("00:00:60", scorm12_regex.CMITimespan)).toEqual(60);
+    });
   });
 
   describe("getDurationAsSeconds()", () => {
