@@ -3,6 +3,91 @@ import { CompletionStatus, SuccessStatus } from "../../../constants/enums";
 import { SequencingControls } from "./sequencing_controls";
 import { SequencingRules } from "./sequencing_rules";
 import { RollupRules } from "./rollup_rules";
+import { AuxiliaryResource, HideLmsUiItem } from "../../../types/sequencing_types";
+export interface ObjectiveMapInfo {
+    targetObjectiveID: string;
+    readSatisfiedStatus?: boolean;
+    readNormalizedMeasure?: boolean;
+    writeSatisfiedStatus?: boolean;
+    writeNormalizedMeasure?: boolean;
+    readCompletionStatus?: boolean;
+    writeCompletionStatus?: boolean;
+    readProgressMeasure?: boolean;
+    writeProgressMeasure?: boolean;
+    readRawScore?: boolean;
+    writeRawScore?: boolean;
+    readMinScore?: boolean;
+    writeMinScore?: boolean;
+    readMaxScore?: boolean;
+    writeMaxScore?: boolean;
+    updateAttemptData?: boolean;
+}
+export interface ActivityObjectiveOptions {
+    description?: string | null;
+    satisfiedByMeasure?: boolean;
+    minNormalizedMeasure?: number | null;
+    mapInfo?: ObjectiveMapInfo[];
+    isPrimary?: boolean;
+}
+export interface ActivityObjectiveState {
+    id: string;
+    satisfiedStatus: boolean;
+    measureStatus: boolean;
+    normalizedMeasure: number;
+    progressMeasure: number;
+    progressMeasureStatus: boolean;
+    completionStatus: CompletionStatus;
+    satisfiedByMeasure?: boolean;
+    minNormalizedMeasure?: number | null;
+}
+export type RollupConsiderationRequirement = "always" | "ifAttempted" | "ifNotSkipped" | "ifNotSuspended";
+export interface RollupConsiderationsConfig {
+    requiredForSatisfied: RollupConsiderationRequirement;
+    requiredForNotSatisfied: RollupConsiderationRequirement;
+    requiredForCompleted: RollupConsiderationRequirement;
+    requiredForIncomplete: RollupConsiderationRequirement;
+    measureSatisfactionIfActive: boolean;
+}
+export declare class ActivityObjective {
+    private _id;
+    private _description;
+    private _satisfiedByMeasure;
+    private _minNormalizedMeasure;
+    private _mapInfo;
+    private _isPrimary;
+    private _satisfiedStatus;
+    private _measureStatus;
+    private _normalizedMeasure;
+    private _progressMeasure;
+    private _progressMeasureStatus;
+    private _completionStatus;
+    constructor(id: string, options?: ActivityObjectiveOptions);
+    get id(): string;
+    get description(): string | null;
+    get satisfiedByMeasure(): boolean;
+    set satisfiedByMeasure(value: boolean);
+    get minNormalizedMeasure(): number | null;
+    set minNormalizedMeasure(value: number | null);
+    get mapInfo(): ObjectiveMapInfo[];
+    set mapInfo(mapInfo: ObjectiveMapInfo[]);
+    get isPrimary(): boolean;
+    set isPrimary(value: boolean);
+    get satisfiedStatus(): boolean;
+    set satisfiedStatus(value: boolean);
+    get measureStatus(): boolean;
+    set measureStatus(value: boolean);
+    get normalizedMeasure(): number;
+    set normalizedMeasure(value: number);
+    get progressMeasure(): number;
+    set progressMeasure(value: number);
+    get progressMeasureStatus(): boolean;
+    set progressMeasureStatus(value: boolean);
+    get completionStatus(): CompletionStatus;
+    set completionStatus(value: CompletionStatus);
+    resetState(): void;
+    updateFromActivity(activity: Activity): void;
+    applyToActivity(activity: Activity): void;
+}
 export declare class Activity extends BaseCMI {
     private _id;
     private _title;
@@ -32,6 +117,8 @@ export declare class Activity extends BaseCMI {
     private _activityAttemptActive;
     private _isHiddenFromChoice;
     private _isAvailable;
+    private _hideLmsUi;
+    private _auxiliaryResources;
     private _attemptLimit;
     private _attemptAbsoluteDurationLimit;
     private _activityAbsoluteDurationLimit;
@@ -44,6 +131,10 @@ export declare class Activity extends BaseCMI {
     private _rollupRules;
     private _processedChildren;
     private _isNewAttempt;
+    private _primaryObjective;
+    private _objectives;
+    private _rollupConsiderations;
+    private _wasSkipped;
     constructor(id?: string, title?: string);
     initialize(): void;
     reset(): void;
@@ -53,6 +144,7 @@ export declare class Activity extends BaseCMI {
     set title(title: string);
     get children(): Activity[];
     addChild(child: Activity): void;
+    setChildOrder(order: string[]): void;
     removeChild(child: Activity): boolean;
     get parent(): Activity | null;
     get isVisible(): boolean;
@@ -125,11 +217,41 @@ export declare class Activity extends BaseCMI {
     set sequencingRules(sequencingRules: SequencingRules);
     get rollupRules(): RollupRules;
     set rollupRules(rollupRules: RollupRules);
+    get rollupConsiderations(): RollupConsiderationsConfig;
+    set rollupConsiderations(config: RollupConsiderationsConfig);
+    applyRollupConsiderations(settings: Partial<RollupConsiderationsConfig>): void;
+    get wasSkipped(): boolean;
+    set wasSkipped(value: boolean);
+    get primaryObjective(): ActivityObjective | null;
+    set primaryObjective(objective: ActivityObjective | null);
+    get objectives(): ActivityObjective[];
+    set objectives(objectives: ActivityObjective[]);
+    addObjective(objective: ActivityObjective): void;
+    getObjectiveById(objectiveId: string): {
+        objective: ActivityObjective;
+        isPrimary: boolean;
+    } | null;
+    getAllObjectives(): ActivityObjective[];
+    private updatePrimaryObjectiveFromActivity;
+    setPrimaryObjectiveState(satisfiedStatus: boolean, measureStatus: boolean, normalizedMeasure: number, progressMeasure: number, progressMeasureStatus: boolean, completionStatus: CompletionStatus): void;
+    getObjectiveStateSnapshot(): {
+        primary: ActivityObjectiveState | null;
+        objectives: ActivityObjectiveState[];
+    };
+    applyObjectiveStateSnapshot(snapshot: {
+        primary: ActivityObjectiveState | null;
+        objectives: ActivityObjectiveState[];
+    }): void;
     getAvailableChildren(): Activity[];
     setProcessedChildren(processedChildren: Activity[]): void;
     resetProcessedChildren(): void;
     get isNewAttempt(): boolean;
     set isNewAttempt(isNewAttempt: boolean);
     toJSON(): object;
+    get auxiliaryResources(): AuxiliaryResource[];
+    set auxiliaryResources(resources: AuxiliaryResource[]);
+    addAuxiliaryResource(resource: AuxiliaryResource): void;
+    get hideLmsUi(): HideLmsUiItem[];
+    set hideLmsUi(hideLmsUi: HideLmsUiItem[]);
 }
 //# sourceMappingURL=activity.d.ts.map

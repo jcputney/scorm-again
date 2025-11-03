@@ -16,6 +16,7 @@ declare class Scorm2004API extends BaseAPI {
     private readonly _sequencing;
     private _sequencingService;
     private _extractedScoItemIds;
+    private _sequencingCollections;
     constructor(settings?: Settings);
     cmi: CMI;
     adl: ADL;
@@ -61,8 +62,21 @@ declare class Scorm2004API extends BaseAPI {
     private configureSequencingRules;
     private createSequencingRule;
     private configureSequencingControls;
+    private applySelectionRandomizationState;
+    private applySequencingControlsSettings;
+    private applySequencingRulesSettings;
+    private applyRollupRulesSettings;
+    private cloneSelectionRandomizationState;
+    private mergeHideLmsUi;
+    private sanitizeSequencingCollections;
+    private normalizeCollectionRefs;
+    private applySequencingCollection;
+    private sanitizeAuxiliaryResources;
+    private mergeAuxiliaryResources;
+    private sanitizeHideLmsUi;
     private configureRollupRules;
     private createRollupRule;
+    private createActivityObjectiveFromSettings;
     private initializeSequencingService;
     getSequencingService(): SequencingService | null;
     setSequencingEventListeners(listeners: SequencingEventListeners): void;
@@ -73,6 +87,12 @@ declare class Scorm2004API extends BaseAPI {
     loadSequencingState(metadata?: Partial<SequencingStateMetadata>): Promise<boolean>;
     private serializeSequencingState;
     private deserializeSequencingState;
+    private captureGlobalObjectiveSnapshot;
+    private buildCMIObjectivesFromMap;
+    private buildCMIObjectiveFromJSON;
+    private buildObjectiveMapEntryFromCMI;
+    private updateGlobalObjectiveFromCMI;
+    private parseObjectiveNumber;
     private compressStateData;
     private decompressStateData;
 }

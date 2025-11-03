@@ -5,12 +5,15 @@ import { SequencingRules } from "./sequencing_rules";
 import { SequencingControls } from "./sequencing_controls";
 import { RollupRules } from "./rollup_rules";
 import { ADLNav } from "../adl";
+import { AuxiliaryResource, HideLmsUiItem } from "../../../types/sequencing_types";
 export declare class Sequencing extends BaseCMI {
     private _activityTree;
     private _sequencingRules;
     private _sequencingControls;
     private _rollupRules;
     private _adlNav;
+    private _hideLmsUi;
+    private _auxiliaryResources;
     constructor();
     initialize(): void;
     reset(): void;
@@ -20,6 +23,10 @@ export declare class Sequencing extends BaseCMI {
     set sequencingRules(sequencingRules: SequencingRules);
     get sequencingControls(): SequencingControls;
     set sequencingControls(sequencingControls: SequencingControls);
+    get hideLmsUi(): HideLmsUiItem[];
+    set hideLmsUi(items: HideLmsUiItem[]);
+    get auxiliaryResources(): AuxiliaryResource[];
+    set auxiliaryResources(resources: AuxiliaryResource[]);
     get rollupRules(): RollupRules;
     set rollupRules(rollupRules: RollupRules);
     get adlNav(): ADLNav | null;

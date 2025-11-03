@@ -11,6 +11,10 @@ export declare class RollupProcess {
     private objectiveRollupUsingDefault;
     private activityProgressRollupProcess;
     private checkChildForRollupSubprocess;
+    private filterChildrenForRequirement;
+    private shouldIncludeChildForRollup;
+    private isChildSatisfiedForRollup;
+    private isChildCompletedForRollup;
     private evaluateRollupRule;
     private evaluateRollupConditionsSubprocess;
     validateRollupStateConsistency(rootActivity: Activity): boolean;
@@ -29,6 +33,8 @@ export declare class RollupProcess {
     private syncObjectiveState;
     private updateActivityAttemptData;
     private getLocalObjectiveState;
+    private ensureGlobalObjectiveEntry;
+    private createDefaultMapInfo;
     private identifyActivityClusters;
 }
 //# sourceMappingURL=rollup_process.d.ts.map

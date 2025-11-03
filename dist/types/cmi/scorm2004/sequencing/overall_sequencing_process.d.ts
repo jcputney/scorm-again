@@ -3,6 +3,7 @@ import { ActivityTree } from "./activity_tree";
 import { SequencingProcess, SequencingRequestType } from "./sequencing_process";
 import { RollupProcess } from "./rollup_process";
 import { ADLNav } from "../adl";
+import { AuxiliaryResource, HideLmsUiItem } from "../../../types/sequencing_types";
 export declare enum NavigationRequestType {
     START = "start",
     RESUME_ALL = "resumeAll",
@@ -32,6 +33,7 @@ export declare class DeliveryRequest {
     constructor(valid?: boolean, targetActivity?: Activity | null, exception?: string | null);
 }
 export declare class OverallSequencingProcess {
+    private static readonly HIDE_LMS_UI_ORDER;
     private activityTree;
     private sequencingProcess;
     private rollupProcess;
@@ -41,9 +43,13 @@ export declare class OverallSequencingProcess {
     private globalObjectiveMap;
     private now;
     private enhancedDeliveryValidation;
+    private defaultHideLmsUi;
+    private defaultAuxiliaryResources;
     constructor(activityTree: ActivityTree, sequencingProcess: SequencingProcess, rollupProcess: RollupProcess, adlNav?: ADLNav | null, eventCallback?: ((eventType: string, data?: any) => void) | null, options?: {
         now?: () => Date;
         enhancedDeliveryValidation?: boolean;
+        defaultHideLmsUi?: HideLmsUiItem[];
+        defaultAuxiliaryResources?: AuxiliaryResource[];
     });
     processNavigationRequest(navigationRequest: NavigationRequestType, targetActivityId?: string | null): DeliveryRequest;
     private navigationRequestProcess;
@@ -64,6 +70,8 @@ export declare class OverallSequencingProcess {
     private clearSuspendedActivitySubprocess;
     private endAttemptProcess;
     private updateNavigationValidity;
+    private getEffectiveHideLmsUi;
+    private getEffectiveAuxiliaryResources;
     private findCommonAncestor;
     hasContentBeenDelivered(): boolean;
     resetContentDelivered(): void;
@@ -86,11 +94,10 @@ export declare class OverallSequencingProcess {
     private findChildContaining;
     private activityContains;
     private validateAncestorConstraints;
+    private requiresNewActivation;
+    private branchHasActiveAttempt;
     private helperIsActivityMandatory;
     private helperIsActivityCompleted;
-    private getValidChoiceSet;
-    private getAllDescendants;
-    private isValidChoiceTarget;
     private evaluatePreConditionRulesForChoice;
     private validateActivityTreeStateConsistency;
     private validateResourceConstraints;
@@ -113,6 +120,10 @@ export declare class OverallSequencingProcess {
     private initializeGlobalObjectiveMap;
     private collectGlobalObjectives;
     getGlobalObjectiveMap(): Map<string, any>;
+    getGlobalObjectiveMapSnapshot(): Record<string, any>;
+    restoreGlobalObjectiveMapSnapshot(snapshot: Record<string, any>): void;
     updateGlobalObjective(objectiveId: string, objectiveData: any): void;
+    private serializeGlobalObjectiveMap;
+    private restoreGlobalObjectiveMap;
 }
 //# sourceMappingURL=overall_sequencing_process.d.ts.map
