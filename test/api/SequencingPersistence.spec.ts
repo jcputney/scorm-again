@@ -77,7 +77,10 @@ describe("SCORM 2004 sequencing persistence", () => {
     const persistedState = JSON.parse(inMemoryState.value!);
     expect(Array.isArray(persistedState.globalObjectives)).toBe(true);
     expect(persistedState.globalObjectives[0]?.id).toBe("GLOBAL_PRIMARY");
-    expect(persistedState.globalObjectiveMap?.GLOBAL_PRIMARY?.normalizedMeasure).toBeCloseTo(0.82, 5);
+    expect(persistedState.globalObjectiveMap?.GLOBAL_PRIMARY?.normalizedMeasure).toBeCloseTo(
+      0.82,
+      5,
+    );
 
     const api2 = new Scorm2004API(settings);
     expect(api2.Initialize("")).toBe("true");
@@ -113,9 +116,7 @@ describe("SCORM 2004 sequencing persistence", () => {
 
     const settings: Settings = {
       sequencing: {
-        auxiliaryResources: [
-          { resourceId: "urn:scorm-again:help", purpose: "help" },
-        ],
+        auxiliaryResources: [{ resourceId: "urn:scorm-again:help", purpose: "help" }],
         activityTree: {
           id: "root",
           title: "Root",
@@ -124,7 +125,9 @@ describe("SCORM 2004 sequencing persistence", () => {
             {
               id: "child",
               title: "Child",
-              auxiliaryResources: [{ resourceId: "urn:scorm-again:child-job-aid", purpose: "job-aid" }],
+              auxiliaryResources: [
+                { resourceId: "urn:scorm-again:child-job-aid", purpose: "job-aid" },
+              ],
             },
           ],
         },
@@ -249,13 +252,8 @@ describe("SCORM 2004 sequencing persistence", () => {
         "child1",
         "child2",
       ]);
-      expect(rootState.selectionRandomizationState.selectedChildIds).toEqual([
-        "child3",
-        "child1",
-      ]);
-      expect(rootState.selectionRandomizationState.hiddenFromChoiceChildIds).toEqual([
-        "child2",
-      ]);
+      expect(rootState.selectionRandomizationState.selectedChildIds).toEqual(["child3", "child1"]);
+      expect(rootState.selectionRandomizationState.hiddenFromChoiceChildIds).toEqual(["child2"]);
 
       const api2 = new Scorm2004API(settings);
       expect(api2.Initialize("")).toBe("true");
@@ -373,13 +371,19 @@ describe("SCORM 2004 sequencing persistence", () => {
     const restoredCluster = restoredRoot.children[0];
     const restoredClusterTwo = restoredRoot.children[1];
 
-    const restoredAvailable1 = SelectionRandomization.applySelectionAndRandomization(restoredCluster, false);
+    const restoredAvailable1 = SelectionRandomization.applySelectionAndRandomization(
+      restoredCluster,
+      false,
+    );
     expect(restoredCluster.sequencingControls.flow).toBe(true);
     expect(restoredCluster.sequencingControls.choice).toBe(false);
     expect(restoredCluster.hideLmsUi).toEqual(["continue"]);
     expect(restoredAvailable1.map((child: any) => child.id)).toEqual(["leafA"]);
 
-    const restoredAvailable2 = SelectionRandomization.applySelectionAndRandomization(restoredClusterTwo, false);
+    const restoredAvailable2 = SelectionRandomization.applySelectionAndRandomization(
+      restoredClusterTwo,
+      false,
+    );
     expect(restoredClusterTwo.sequencingControls.flow).toBe(true);
     expect(restoredClusterTwo.sequencingControls.choice).toBe(false);
     expect(restoredClusterTwo.hideLmsUi).toEqual(["continue"]);

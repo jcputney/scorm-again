@@ -171,10 +171,12 @@ export class SequencingService {
         if (this.configuration.now) overallOptions.now = this.configuration.now;
         overallOptions.defaultHideLmsUi = [...this.sequencing.hideLmsUi];
         if (this.sequencing.auxiliaryResources.length > 0) {
-          overallOptions.defaultAuxiliaryResources = this.sequencing.auxiliaryResources.map((resource) => ({
-            resourceId: resource.resourceId,
-            purpose: resource.purpose,
-          }));
+          overallOptions.defaultAuxiliaryResources = this.sequencing.auxiliaryResources.map(
+            (resource) => ({
+              resourceId: resource.resourceId,
+              purpose: resource.purpose,
+            }),
+          );
         }
 
         this.overallSequencingProcess = new OverallSequencingProcess(

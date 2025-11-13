@@ -12,8 +12,7 @@ export const scorm12_regex = {
   CMICredit: "^(credit|no-credit)$",
   CMIEntry: "^(ab-initio|resume|)$",
   CMILessonMode: "^(normal|browse|review)$",
-  CMITimeLimitAction:
-    "^(exit,message|exit,no message|continue,message|continue,no message)$",
+  CMITimeLimitAction: "^(exit,message|exit,no message|continue,message|continue,no message)$",
   // Allow storing larger responses for interactions
   // Some content packages may exceed the 255 character limit
   // defined in the SCORM 1.2 specification.  The previous

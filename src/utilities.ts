@@ -21,7 +21,7 @@ const designations: Designation = {
   D: SECONDS_PER_DAY,
   H: SECONDS_PER_HOUR,
   M: SECONDS_PER_MINUTE,
-  S: SECONDS_PER_SECOND
+  S: SECONDS_PER_SECOND,
 };
 
 /**
@@ -193,7 +193,7 @@ export const getTimeAsSeconds = memoize(
     const timeStr = typeof timeString === "string" ? timeString : String(timeString ?? "");
     const regexStr = typeof timeRegex === "string" ? timeRegex : (timeRegex?.toString() ?? "");
     return `${timeStr}:${regexStr}`;
-  }
+  },
 );
 
 /**
@@ -231,7 +231,7 @@ export const getDurationAsSeconds = memoize(
     }
 
     const [, years, _, , days, hours, minutes, seconds] =
-    new RegExp(durationRegex).exec?.(duration) ?? [];
+      new RegExp(durationRegex).exec?.(duration) ?? [];
     let result = 0.0;
     result += Number(seconds) || 0.0;
     result += Number(minutes) * 60.0 || 0.0;
@@ -246,7 +246,7 @@ export const getDurationAsSeconds = memoize(
     const regexStr =
       typeof durationRegex === "string" ? durationRegex : (durationRegex?.toString() ?? "");
     return `${durationStr}:${regexStr}`;
-  }
+  },
 );
 
 /**
@@ -261,7 +261,7 @@ export const validateISO8601Duration = memoize(
     }
 
     return !(!duration || !duration?.match?.(durationRegex));
-  }
+  },
 );
 
 /**
@@ -290,12 +290,12 @@ export const validateISO8601Duration = memoize(
 export function addTwoDurations(
   first: string,
   second: string,
-  durationRegex: RegExp | string
+  durationRegex: RegExp | string,
 ): string {
   const regex: RegExp =
     typeof durationRegex === "string" ? new RegExp(durationRegex) : durationRegex;
   return getSecondsAsISODuration(
-    getDurationAsSeconds(first, regex) + getDurationAsSeconds(second, regex)
+    getDurationAsSeconds(first, regex) + getDurationAsSeconds(second, regex),
   );
 }
 
@@ -325,13 +325,13 @@ export function addTwoDurations(
 export function addHHMMSSTimeStrings(
   first: string,
   second: string,
-  timeRegex: RegExp | string
+  timeRegex: RegExp | string,
 ): string {
   if (typeof timeRegex === "string") {
     timeRegex = new RegExp(timeRegex);
   }
   return getSecondsAsHHMMSS(
-    getTimeAsSeconds(first, timeRegex) + getTimeAsSeconds(second, timeRegex)
+    getTimeAsSeconds(first, timeRegex) + getTimeAsSeconds(second, timeRegex),
   );
 }
 
@@ -450,7 +450,7 @@ export function unflatten(data: StringKeyMap): object {
 
       // Process all matches in the property path
       Array.from({ length: p.match(new RegExp(pattern, "g"))?.length ?? 0 }, () =>
-        regex.exec(p)
+        regex.exec(p),
       ).forEach((m) => {
         if (m) {
           // Create array or object as needed
@@ -599,7 +599,7 @@ export function stringMatches(str: string | null | undefined, tester: string): b
  */
 export function memoize<T extends (...args: any[]) => any>(
   fn: T,
-  keyFn?: (...args: Parameters<T>) => string
+  keyFn?: (...args: Parameters<T>) => string,
 ): T {
   const cache = new Map<string, ReturnType<T>>();
 
@@ -609,9 +609,9 @@ export function memoize<T extends (...args: any[]) => any>(
     return cache.has(key)
       ? (cache.get(key) as ReturnType<T>)
       : (() => {
-        const result = fn(...args);
-        cache.set(key, result);
-        return result;
-      })();
+          const result = fn(...args);
+          cache.set(key, result);
+          return result;
+        })();
   }) as T;
 }

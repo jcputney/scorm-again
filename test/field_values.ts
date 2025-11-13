@@ -87,7 +87,13 @@ export const scorm12Values: Scorm12Values = {
   invalidLessonMode: ["", "Normal", "study"],
   validMasteryScore: ["", "1", "50.25", "70", "100", 1, 50.25, 70, 100],
   invalidMasteryScore: ["invalid", "a100", "-1", "101", "-100000", "100000"],
-  validTimeLimitAction: ["", "exit,message", "exit,no message", "continue,message", "continue,no message"],
+  validTimeLimitAction: [
+    "",
+    "exit,message",
+    "exit,no message",
+    "continue,message",
+    "continue,no message",
+  ],
   invalidTimeLimitAction: ["exit ,message", "continue", "logout", "message,exit"],
 };
 

@@ -8,7 +8,7 @@ import { SequencingSettings } from "./sequencing_types";
 export type Settings = {
   autocommit?: boolean | undefined;
   autocommitSeconds?: number | undefined;
-  asyncCommit?: boolean | undefined;
+  throttleCommits?: boolean | undefined;
   sendFullCommit?: boolean | undefined;
   lmsCommitUrl?: boolean | string | undefined;
   dataCommitFormat?: string | undefined;
@@ -50,7 +50,7 @@ export type Settings = {
 export type InternalSettings = {
   autocommit: boolean;
   autocommitSeconds: number;
-  asyncCommit: boolean;
+  throttleCommits: boolean;
   sendFullCommit: boolean;
   lmsCommitUrl: string | boolean;
   dataCommitFormat: string;

@@ -8,7 +8,7 @@ describe("Settings Type", () => {
   const defaultSettings: Settings = {
     autocommit: false,
     autocommitSeconds: 10,
-    asyncCommit: false,
+    throttleCommits: false,
     sendFullCommit: true,
     lmsCommitUrl: false,
     dataCommitFormat: "json",
@@ -34,7 +34,7 @@ describe("Settings Type", () => {
   it("should have correct default values", () => {
     expect(defaultSettings.autocommit).toBe(false);
     expect(defaultSettings.autocommitSeconds).toEqual(10);
-    expect(defaultSettings.asyncCommit).toBe(false);
+    expect(defaultSettings.throttleCommits).toBe(false);
     expect(defaultSettings.sendFullCommit).toBe(true);
     expect(defaultSettings.lmsCommitUrl).toBe(false);
     expect(defaultSettings.dataCommitFormat).toEqual("json");

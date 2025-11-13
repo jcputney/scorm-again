@@ -8,7 +8,7 @@ import { LogLevelEnum } from "./enums";
 export const DefaultSettings: InternalSettings = {
   autocommit: false,
   autocommitSeconds: 10,
-  asyncCommit: false,
+  throttleCommits: false,
   sendFullCommit: true,
   lmsCommitUrl: false,
   dataCommitFormat: "json",

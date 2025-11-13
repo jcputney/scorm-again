@@ -81,13 +81,13 @@ export class HttpService implements IHttpService {
       functionName: string,
       message: any,
       messageLevel: LogLevelEnum,
-      CMIElement?: string
+      CMIElement?: string,
     ) => void,
-    processListeners: (functionName: string, CMIElement?: string, value?: any) => void
+    processListeners: (functionName: string, CMIElement?: string, value?: any) => void,
   ): Promise<ResultObject> {
     const genericError: ResultObject = {
       result: global_constants.SCORM_FALSE,
-      errorCode: this.error_codes.GENERAL || 101
+      errorCode: this.error_codes.GENERAL || 101,
     };
 
     // If immediate mode (for termination), handle differently
@@ -120,8 +120,8 @@ export class HttpService implements IHttpService {
         errorDetails: JSON.stringify({
           url,
           errorType: e instanceof Error ? e.constructor.name : typeof e,
-          originalError: message
-        })
+          originalError: message,
+        }),
       };
 
       processListeners("CommitError");
@@ -145,14 +145,13 @@ export class HttpService implements IHttpService {
       functionName: string,
       message: any,
       messageLevel: LogLevelEnum,
-      CMIElement?: string
+      CMIElement?: string,
     ) => void,
-    processListeners: (functionName: string, CMIElement?: string, value?: any) => void
+    processListeners: (functionName: string, CMIElement?: string, value?: any) => void,
   ): Promise<ResultObject> {
     try {
       // Prepare request payload without mutating the original params
-      const requestPayload =
-        this.settings.requestHandler(params) ?? params;
+      const requestPayload = this.settings.requestHandler(params) ?? params;
 
       let response: Response;
 
@@ -168,7 +167,7 @@ export class HttpService implements IHttpService {
       apiLog(
         "processHttpRequest",
         `Immediate HTTP request failed to ${url}: ${message}`,
-        LogLevelEnum.ERROR
+        LogLevelEnum.ERROR,
       );
       processListeners("CommitError");
 
@@ -179,8 +178,8 @@ export class HttpService implements IHttpService {
         errorDetails: JSON.stringify({
           url,
           immediate: true,
-          errorType: e instanceof Error ? e.constructor.name : typeof e
-        })
+          errorType: e instanceof Error ? e.constructor.name : typeof e,
+        }),
       };
     }
   }
@@ -224,9 +223,9 @@ export class HttpService implements IHttpService {
       body,
       headers: {
         ...this.settings.xhrHeaders,
-        "Content-Type": contentType
+        "Content-Type": contentType,
       },
-      keepalive: true
+      keepalive: true,
     } as RequestInit;
 
     if (this.settings.xhrWithCredentials) {
@@ -255,13 +254,13 @@ export class HttpService implements IHttpService {
       ok: beaconSuccess,
       json: async () => ({
         result: beaconSuccess ? "true" : "false",
-        errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL
+        errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL,
       }),
       text: async () =>
         JSON.stringify({
           result: beaconSuccess ? "true" : "false",
-          errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL
-        })
+          errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL,
+        }),
     } as Response);
   }
 
@@ -274,7 +273,7 @@ export class HttpService implements IHttpService {
    */
   private async transformResponse(
     response: Response,
-    processListeners: (functionName: string, CMIElement?: string, value?: any) => void
+    processListeners: (functionName: string, CMIElement?: string, value?: any) => void,
   ): Promise<ResultObject> {
     let result: any;
 
@@ -297,8 +296,8 @@ export class HttpService implements IHttpService {
           statusText: response.statusText,
           url: response.url,
           responseText: responseText.substring(0, 500), // Limit response text to avoid huge logs
-          parseError: parseError instanceof Error ? parseError.message : String(parseError)
-        })
+          parseError: parseError instanceof Error ? parseError.message : String(parseError),
+        }),
       };
     }
 
@@ -313,7 +312,7 @@ export class HttpService implements IHttpService {
         status: response.status,
         statusText: response.statusText,
         url: response.url,
-        ...result.errorDetails // Preserve any existing error details
+        ...result.errorDetails, // Preserve any existing error details
       };
     }
 

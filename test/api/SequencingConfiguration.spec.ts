@@ -186,7 +186,9 @@ describe("Sequencing Configuration", () => {
               {
                 id: "child",
                 title: "Child",
-                auxiliaryResources: [{ resourceId: "urn:scorm-again:child-job-aid", purpose: "job-aid" }],
+                auxiliaryResources: [
+                  { resourceId: "urn:scorm-again:child-job-aid", purpose: "job-aid" },
+                ],
               },
             ],
           },
@@ -364,13 +366,19 @@ describe("Sequencing Configuration", () => {
       expect(cluster1.sequencingControls.flow).toBe(true);
       expect(cluster1.sequencingControls.choice).toBe(false);
       expect(cluster1.hideLmsUi).toEqual(["continue"]);
-      const availableCluster1 = SelectionRandomization.applySelectionAndRandomization(cluster1, false);
+      const availableCluster1 = SelectionRandomization.applySelectionAndRandomization(
+        cluster1,
+        false,
+      );
       expect(availableCluster1.map((child: any) => child.id)).toEqual(["leafA"]);
 
       expect(cluster2.sequencingControls.flow).toBe(true);
       expect(cluster2.sequencingControls.choice).toBe(false);
       expect(cluster2.hideLmsUi).toEqual(["continue"]);
-      const availableCluster2 = SelectionRandomization.applySelectionAndRandomization(cluster2, false);
+      const availableCluster2 = SelectionRandomization.applySelectionAndRandomization(
+        cluster2,
+        false,
+      );
       expect(availableCluster2.map((child: any) => child.id)).toEqual([]);
     });
   });
@@ -474,13 +482,13 @@ describe("Sequencing Configuration", () => {
             objectiveMeasureWeight: 0.5,
             selectionTiming: SelectionTiming.ONCE,
             selectCount: 2,
-          randomizeChildren: true,
-          randomizationTiming: RandomizationTiming.ON_EACH_NEW_ATTEMPT,
-          selectionCountStatus: true,
-          reorderChildren: true,
+            randomizeChildren: true,
+            randomizationTiming: RandomizationTiming.ON_EACH_NEW_ATTEMPT,
+            selectionCountStatus: true,
+            reorderChildren: true,
+          },
         },
-      },
-    });
+      });
 
       // Access the sequencing object and sequencing controls
       const sequencing = (api as any)._sequencing;
@@ -503,9 +511,7 @@ describe("Sequencing Configuration", () => {
       expect(sequencingControls.selectionTiming).toBe(SelectionTiming.ONCE);
       expect(sequencingControls.selectCount).toBe(2);
       expect(sequencingControls.randomizeChildren).toBe(true);
-      expect(sequencingControls.randomizationTiming).toBe(
-        RandomizationTiming.ON_EACH_NEW_ATTEMPT,
-      );
+      expect(sequencingControls.randomizationTiming).toBe(RandomizationTiming.ON_EACH_NEW_ATTEMPT);
       expect(sequencingControls.selectionCountStatus).toBe(true);
       expect(sequencingControls.reorderChildren).toBe(true);
     });
@@ -547,9 +553,7 @@ describe("Sequencing Configuration", () => {
       );
       expect(rootActivity.sequencingControls.selectCount).toBe(1);
       expect(rootActivity.sequencingControls.randomizeChildren).toBe(true);
-      expect(rootActivity.sequencingControls.randomizationTiming).toBe(
-        RandomizationTiming.ONCE,
-      );
+      expect(rootActivity.sequencingControls.randomizationTiming).toBe(RandomizationTiming.ONCE);
       expect(rootActivity.sequencingControls.selectionCountStatus).toBe(true);
     });
 

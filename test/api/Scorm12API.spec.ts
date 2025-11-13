@@ -709,8 +709,8 @@ describe("SCORM 1.2 API Tests", () => {
     });
   });
 
-  describe("LMSCommit Debounce Tests", () => {
-    it("should debounce LMSCommit calls when autocommit is true", async () => {
+  describe("LMSCommit Throttle Tests", () => {
+    it("should throttle LMSCommit calls when autocommit is true", async () => {
       const scorm12API = api({
         ...DefaultSettings,
         autocommit: true,
@@ -729,10 +729,10 @@ describe("SCORM 1.2 API Tests", () => {
       expect(commitSpy).toHaveBeenCalledOnce();
     });
 
-    it("should call LMSCommit only once within the debounce period", async () => {
+    it("should call LMSCommit only once within the throttle period", async () => {
       const scorm12API = api({
         ...DefaultSettings,
-        asyncCommit: true,
+        throttleCommits: true,
         autocommit: true,
         autocommitSeconds: 1,
       });
@@ -755,7 +755,7 @@ describe("SCORM 1.2 API Tests", () => {
       expect(commitSpy).toHaveBeenCalledOnce();
     });
 
-    it("should call LMSCommit multiple times if debounce period is exceeded", async () => {
+    it("should call LMSCommit multiple times if throttle period is exceeded", async () => {
       const scorm12API = api({
         ...DefaultSettings,
         autocommit: true,
@@ -873,7 +873,7 @@ describe("SCORM 1.2 API Tests", () => {
         ...{
           lmsCommitUrl: "/scorm12",
           autocommit: false,
-          asyncCommit: false,
+          throttleCommits: false,
         },
       });
       scorm12API.lmsInitialize();

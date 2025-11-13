@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
-const MODULE_PATH = "/test/integration/modules/RuntimeBasicCalls_SCORM20043rdEdition/shared/launchpage.html";
+const MODULE_PATH =
+  "/test/integration/modules/RuntimeBasicCalls_SCORM20043rdEdition/shared/launchpage.html";
 
 type WrapperConfig = {
   name: string;
@@ -29,7 +30,9 @@ wrappers.forEach((wrapper) => {
 
       // Wait for the sequencing API wiring to register and update the UI
       await page.waitForFunction(() => {
-        const continueButton = document.querySelector<HTMLButtonElement>("[data-directive='continue']");
+        const continueButton = document.querySelector<HTMLButtonElement>(
+          "[data-directive='continue']",
+        );
         return Boolean(continueButton && !continueButton.hidden);
       });
 
@@ -53,8 +56,14 @@ wrappers.forEach((wrapper) => {
       const auxList = page.locator("#aux-resources li");
       await expect(auxList).toHaveCount(2);
       const auxItems = await auxList.allTextContents();
-      expect(auxItems.some((text) => text.includes("help") && text.includes("urn:scorm-again:help"))).toBe(true);
-      expect(auxItems.some((text) => text.includes("glossary") && text.includes("urn:scorm-again:glossary"))).toBe(true);
+      expect(
+        auxItems.some((text) => text.includes("help") && text.includes("urn:scorm-again:help")),
+      ).toBe(true);
+      expect(
+        auxItems.some(
+          (text) => text.includes("glossary") && text.includes("urn:scorm-again:glossary"),
+        ),
+      ).toBe(true);
     });
   });
 });

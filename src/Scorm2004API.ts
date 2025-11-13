@@ -33,7 +33,11 @@ import {
   RollupConditionSettings,
 } from "./types/sequencing_types";
 import { SequencingControls } from "./cmi/scorm2004/sequencing/sequencing_controls";
-import { RuleCondition, SequencingRule, SequencingRules } from "./cmi/scorm2004/sequencing/sequencing_rules";
+import {
+  RuleCondition,
+  SequencingRule,
+  SequencingRules,
+} from "./cmi/scorm2004/sequencing/sequencing_rules";
 import { RollupCondition, RollupRule, RollupRules } from "./cmi/scorm2004/sequencing/rollup_rules";
 import { scorm2004_regex } from "./constants/regex"; // Import functions from extracted modules
 import { BaseCMI } from "./cmi/common/base_cmi";
@@ -48,11 +52,7 @@ import { CMICommentsObject } from "./cmi/scorm2004/comments";
 import ValidLanguages from "./constants/language_constants";
 import { CompletionStatus, SuccessStatus, LogLevelEnum } from "./constants/enums";
 import { Sequencing } from "./cmi/scorm2004/sequencing/sequencing";
-import {
-  Activity,
-  ActivityObjective,
-  ObjectiveMapInfo,
-} from "./cmi/scorm2004/sequencing/activity";
+import { Activity, ActivityObjective, ObjectiveMapInfo } from "./cmi/scorm2004/sequencing/activity";
 import { OverallSequencingProcess } from "./cmi/scorm2004/sequencing/overall_sequencing_process";
 import { SequencingService, SequencingConfiguration } from "./services/SequencingService";
 
@@ -353,7 +353,7 @@ class Scorm2004API extends BaseAPI {
    * @return {string} bool
    */
   lmsCommit(): string {
-    if (this.settings.asyncCommit) {
+    if (this.settings.throttleCommits) {
       this.scheduleCommit(500, "Commit");
     } else {
       (async () => {
@@ -987,7 +987,9 @@ class Scorm2004API extends BaseAPI {
    * @param {SequencingSettings} sequencingSettings - The sequencing settings
    */
   private configureSequencing(sequencingSettings: SequencingSettings): void {
-    this._sequencingCollections = this.sanitizeSequencingCollections(sequencingSettings.collections);
+    this._sequencingCollections = this.sanitizeSequencingCollections(
+      sequencingSettings.collections,
+    );
 
     // Configure activity tree
     if (sequencingSettings.activityTree) {
@@ -1022,7 +1024,6 @@ class Scorm2004API extends BaseAPI {
     } else {
       this._sequencing.auxiliaryResources = [];
     }
-
   }
 
   /**
@@ -1102,8 +1103,7 @@ class Scorm2004API extends BaseAPI {
       activity.attemptAbsoluteDurationLimit = activitySettings.attemptAbsoluteDurationLimit;
     }
     if (activitySettings.activityAbsoluteDurationLimit !== undefined) {
-      activity.activityAbsoluteDurationLimit =
-        activitySettings.activityAbsoluteDurationLimit;
+      activity.activityAbsoluteDurationLimit = activitySettings.activityAbsoluteDurationLimit;
     }
     if (activitySettings.timeLimitAction !== undefined) {
       activity.timeLimitAction = activitySettings.timeLimitAction;
@@ -1137,7 +1137,10 @@ class Scorm2004API extends BaseAPI {
     }
 
     if (activitySettings.sequencingControls) {
-      this.applySequencingControlsSettings(activity.sequencingControls, activitySettings.sequencingControls);
+      this.applySequencingControlsSettings(
+        activity.sequencingControls,
+        activitySettings.sequencingControls,
+      );
     }
 
     if (activitySettings.sequencingRules) {
@@ -1162,7 +1165,10 @@ class Scorm2004API extends BaseAPI {
     if (activitySettings.auxiliaryResources) {
       const sanitizedAux = this.sanitizeAuxiliaryResources(activitySettings.auxiliaryResources);
       if (sanitizedAux.length > 0) {
-        activity.auxiliaryResources = this.mergeAuxiliaryResources(activity.auxiliaryResources, sanitizedAux);
+        activity.auxiliaryResources = this.mergeAuxiliaryResources(
+          activity.auxiliaryResources,
+          sanitizedAux,
+        );
       }
     }
 
@@ -1175,7 +1181,9 @@ class Scorm2004API extends BaseAPI {
     }
 
     if (activitySettings.selectionRandomizationState) {
-      selectionStates.push(this.cloneSelectionRandomizationState(activitySettings.selectionRandomizationState));
+      selectionStates.push(
+        this.cloneSelectionRandomizationState(activitySettings.selectionRandomizationState),
+      );
     }
 
     for (const state of selectionStates) {
@@ -1222,7 +1230,10 @@ class Scorm2004API extends BaseAPI {
   private configureSequencingControls(
     sequencingControlsSettings: SequencingControlsSettings,
   ): void {
-    this.applySequencingControlsSettings(this._sequencing.sequencingControls, sequencingControlsSettings);
+    this.applySequencingControlsSettings(
+      this._sequencing.sequencingControls,
+      sequencingControlsSettings,
+    );
   }
 
   private applySelectionRandomizationState(
@@ -1406,10 +1417,7 @@ class Scorm2004API extends BaseAPI {
     return clone;
   }
 
-  private mergeHideLmsUi(
-    current: HideLmsUiItem[],
-    additional?: HideLmsUiItem[],
-  ): HideLmsUiItem[] {
+  private mergeHideLmsUi(current: HideLmsUiItem[], additional?: HideLmsUiItem[]): HideLmsUiItem[] {
     if (!additional || additional.length === 0) {
       return current;
     }
@@ -1517,7 +1525,9 @@ class Scorm2004API extends BaseAPI {
       }
 
       if (collection.auxiliaryResources) {
-        sanitizedCollection.auxiliaryResources = this.sanitizeAuxiliaryResources(collection.auxiliaryResources);
+        sanitizedCollection.auxiliaryResources = this.sanitizeAuxiliaryResources(
+          collection.auxiliaryResources,
+        );
       }
 
       sanitized[trimmedId] = sanitizedCollection;
@@ -1560,7 +1570,10 @@ class Scorm2004API extends BaseAPI {
     }
 
     if (collection.sequencingControls) {
-      this.applySequencingControlsSettings(activity.sequencingControls, collection.sequencingControls);
+      this.applySequencingControlsSettings(
+        activity.sequencingControls,
+        collection.sequencingControls,
+      );
     }
 
     if (collection.sequencingRules) {
@@ -1585,12 +1598,17 @@ class Scorm2004API extends BaseAPI {
     if (collection.auxiliaryResources) {
       const sanitizedAux = this.sanitizeAuxiliaryResources(collection.auxiliaryResources);
       if (sanitizedAux.length > 0) {
-        activity.auxiliaryResources = this.mergeAuxiliaryResources(activity.auxiliaryResources, sanitizedAux);
+        activity.auxiliaryResources = this.mergeAuxiliaryResources(
+          activity.auxiliaryResources,
+          sanitizedAux,
+        );
       }
     }
 
     if (collection.selectionRandomizationState) {
-      selectionStates.push(this.cloneSelectionRandomizationState(collection.selectionRandomizationState));
+      selectionStates.push(
+        this.cloneSelectionRandomizationState(collection.selectionRandomizationState),
+      );
     }
   }
 
@@ -2095,7 +2113,8 @@ class Scorm2004API extends BaseAPI {
   ): Record<string, any> {
     const snapshot: Record<string, any> = {};
 
-    const process = overallProcess ?? this._sequencingService?.getOverallSequencingProcess() ?? null;
+    const process =
+      overallProcess ?? this._sequencingService?.getOverallSequencingProcess() ?? null;
     if (process) {
       const processSnapshot = process.getGlobalObjectiveMapSnapshot();
       for (const [id, data] of Object.entries(processSnapshot)) {
@@ -2127,7 +2146,9 @@ class Scorm2004API extends BaseAPI {
       objective.id = (entry as any).id ?? objectiveId;
 
       if ((entry as any).satisfiedStatusKnown === true) {
-        objective.success_status = (entry as any).satisfiedStatus ? SuccessStatus.PASSED : SuccessStatus.FAILED;
+        objective.success_status = (entry as any).satisfiedStatus
+          ? SuccessStatus.PASSED
+          : SuccessStatus.FAILED;
       }
 
       const normalizedMeasure = this.parseObjectiveNumber((entry as any).normalizedMeasure);
@@ -2140,7 +2161,10 @@ class Scorm2004API extends BaseAPI {
         objective.progress_measure = String(progressMeasure);
       }
 
-      if ((entry as any).completionStatusKnown === true && typeof (entry as any).completionStatus === "string") {
+      if (
+        (entry as any).completionStatusKnown === true &&
+        typeof (entry as any).completionStatus === "string"
+      ) {
         objective.completion_status = (entry as any).completionStatus;
       }
 

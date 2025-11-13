@@ -179,8 +179,8 @@ describe("SCORM 1.2 API Additional Tests", () => {
   });
 
   describe("lmsCommit()", () => {
-    it("should schedule commit when asyncCommit is true", () => {
-      const scorm12API = api({ asyncCommit: true });
+    it("should schedule commit when throttleCommits is true", () => {
+      const scorm12API = api({ throttleCommits: true });
       const scheduleCommitSpy = vi.spyOn(scorm12API, "scheduleCommit");
 
       const result = scorm12API.lmsCommit();
@@ -190,8 +190,8 @@ describe("SCORM 1.2 API Additional Tests", () => {
       expect(scheduleCommitSpy).toHaveBeenCalledWith(500, "LMSCommit");
     });
 
-    it("should call commit directly when asyncCommit is false", () => {
-      const scorm12API = api({ asyncCommit: false });
+    it("should call commit directly when throttleCommits is false", () => {
+      const scorm12API = api({ throttleCommits: false });
       vi.spyOn(scorm12API, "commit");
 
       const result = scorm12API.lmsCommit();

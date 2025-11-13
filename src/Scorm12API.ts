@@ -151,7 +151,7 @@ class Scorm12API extends BaseAPI {
    * @return {string} bool
    */
   lmsCommit(): string {
-    if (this.settings.asyncCommit) {
+    if (this.settings.throttleCommits) {
       this.scheduleCommit(500, "LMSCommit");
     } else {
       (async () => {
