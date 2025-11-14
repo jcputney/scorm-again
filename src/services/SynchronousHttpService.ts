@@ -58,7 +58,10 @@ export class SynchronousHttpService implements IHttpService {
     url: string,
     params: CommitObject | StringKeyMap | Array<any>,
   ): ResultObject {
-    const requestPayload = this.settings.requestHandler(params) ?? params;
+    const requestPayload = (this.settings.requestHandler(params) ?? params) as
+      | CommitObject
+      | StringKeyMap
+      | Array<any>;
     const { body, contentType } = this._prepareRequestBody(requestPayload);
 
     const beaconSuccess = navigator.sendBeacon(url, new Blob([body], { type: contentType }));
@@ -80,7 +83,10 @@ export class SynchronousHttpService implements IHttpService {
     url: string,
     params: CommitObject | StringKeyMap | Array<any>,
   ): ResultObject {
-    const requestPayload = this.settings.requestHandler(params) ?? params;
+    const requestPayload = (this.settings.requestHandler(params) ?? params) as
+      | CommitObject
+      | StringKeyMap
+      | Array<any>;
     const { body, contentType } = this._prepareRequestBody(requestPayload);
 
     const xhr = new XMLHttpRequest();
@@ -89,7 +95,7 @@ export class SynchronousHttpService implements IHttpService {
     // Set headers
     xhr.setRequestHeader("Content-Type", contentType);
     Object.entries(this.settings.xhrHeaders).forEach(([key, value]) => {
-      xhr.setRequestHeader(key, value);
+      xhr.setRequestHeader(key, String(value));
     });
 
     // Set credentials
