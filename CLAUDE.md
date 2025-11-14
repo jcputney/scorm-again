@@ -42,13 +42,31 @@ The project includes a proxy-based façade pattern for sandboxed iframe communic
 
 ### Service Layer Architecture
 All APIs use a modular service layer (`src/services/`):
-- **HttpService** - Handles LMS communication with configurable fetch/beacon modes
+- **SynchronousHttpService** (default) / **AsynchronousHttpService** (legacy) - Handle LMS communication
 - **EventService** - Manages event listeners for all API method calls
 - **ValidationService** - Validates CMI data according to each standard's rules
 - **SerializationService** - Handles JSON/flattened/params data formats
 - **OfflineStorageService** - Manages offline data storage and synchronization
 - **LoggingService** - Configurable logging with different levels
 - **ErrorHandlingService** - Standardized error management across APIs
+
+### HTTP Service Architecture
+
+The project provides two HTTP service implementations:
+
+- **SynchronousHttpService** (default) - SCORM-compliant using synchronous XMLHttpRequest
+  - Blocks until LMS responds
+  - Returns actual success/failure to SCO
+  - Uses `sendBeacon()` for termination commits
+  - Cannot be throttled
+
+- **AsynchronousHttpService** (legacy) - Not SCORM-compliant
+  - Returns immediate optimistic success
+  - Actual result handled via events (CommitSuccess/CommitError)
+  - Can be throttled
+  - Should only be used for specific legacy compatibility
+
+Selection is automatic based on `useAsynchronousCommits` setting, or can be overridden via `httpService` setting.
 
 ### CMI Data Models
 Each standard has its own CMI implementation in `src/cmi/`:

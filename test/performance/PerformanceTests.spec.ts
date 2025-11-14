@@ -2,7 +2,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SerializationService } from "../../src/services/SerializationService";
-import { HttpService } from "../../src/services/HttpService";
+import { AsynchronousHttpService } from "../../src/services/AsynchronousHttpService";
 import { EventService } from "../../src/services/EventService";
 import { validationService } from "../../src/services/ValidationService";
 import { memoize, scorm2004_errors } from "../../src";
@@ -112,7 +112,7 @@ describe("Performance Tests", () => {
       apiLogSpy = vi.fn();
       processListenersSpy = vi.fn();
 
-      httpService = new HttpService(
+      httpService = new AsynchronousHttpService(
         {
           lmsCommitUrl: "/scorm2004",
           logLevel: LogLevelEnum.NONE,

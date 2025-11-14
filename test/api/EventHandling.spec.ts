@@ -29,6 +29,7 @@ describe("Event Handling", () => {
     api = new Scorm2004API({
       logLevel: LogLevelEnum.NONE,
       lmsCommitUrl: "/scorm2004",
+      useAsynchronousCommits: true, // CommitSuccess/CommitError events only fire with async commits
     });
     eventCallback = vi.fn();
   });
@@ -105,6 +106,7 @@ describe("Event Handling", () => {
         logLevel: LogLevelEnum.NONE,
         autoProgress: true,
         lmsCommitUrl: "/scorm2004",
+        useAsynchronousCommits: true,
       });
       const navCallback = vi.fn();
       api.on("SequenceNext", navCallback);
@@ -137,10 +139,7 @@ describe("Event Handling", () => {
         } as Response);
       });
 
-      await api.internalFinish();
-
-      // Wait for the next tick to allow event processing
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      api.Terminate();
 
       expect(navCallback).toHaveBeenCalledOnce();
       expect(navCallback.mock.calls[0][0]).toBe("next");
@@ -182,13 +181,7 @@ describe("Event Handling", () => {
       const navRequest = `{target=${target}}choice`;
       api.SetValue("adl.nav.request", navRequest);
 
-      // Wait for the next tick to allow event processing
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      await api.internalFinish();
-
-      // Wait for the next tick to allow event processing
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      api.Terminate();
 
       expect(navCallback).toHaveBeenCalledOnce();
       expect(navCallback.mock.calls[0][0]).toBe("activity_1");

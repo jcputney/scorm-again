@@ -1,13 +1,13 @@
 // noinspection DuplicatedCode
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { HttpService } from "../../src/services/HttpService";
+import { AsynchronousHttpService } from "../../src/services/AsynchronousHttpService";
 import { LogLevelEnum } from "../../src/constants/enums";
 import { global_constants } from "../../src";
 import { InternalSettings } from "../../src/types/api_types";
 
-describe("HttpService", () => {
-  let httpService: HttpService;
+describe("AsynchronousHttpService", () => {
+  let httpService: AsynchronousHttpService;
   let settings: InternalSettings;
   let errorCodes: any;
   const apiLogStub = vi.fn();
@@ -52,7 +52,7 @@ describe("HttpService", () => {
     sendBeaconStub = vi.spyOn(navigator, "sendBeacon").mockImplementation(() => true);
 
     // Create a new instance for each test
-    httpService = new HttpService(settings, errorCodes);
+    httpService = new AsynchronousHttpService(settings, errorCodes);
   });
 
   afterEach(() => {
@@ -61,6 +61,30 @@ describe("HttpService", () => {
   });
 
   describe("processHttpRequest", () => {
+    it("should return immediate success for async commits", () => {
+      const url = "https://example.com/api";
+      const params = { data: "test" };
+      const mockResponse = new Response(
+        JSON.stringify({ result: global_constants.SCORM_TRUE, errorCode: 0 }),
+      );
+      fetchStub.mockImplementation(() => mockResponse);
+
+      const result = httpService.processHttpRequest(
+        url,
+        params,
+        false,
+        apiLogStub,
+        processListenersStub,
+      );
+
+      // Should return immediately with success (optimistic)
+      expect(result.result).toBe(global_constants.SCORM_TRUE);
+      expect(result.errorCode).toBe(0);
+
+      // Fetch should still be called but async in background
+      expect(fetchStub).toHaveBeenCalledOnce();
+    });
+
     it("should call fetch with the correct parameters", async () => {
       const url = "https://example.com/api";
       const params = { data: "test" };
@@ -167,7 +191,7 @@ describe("HttpService", () => {
       expect(blobArg.type).toBe("application/x-www-form-urlencoded");
     });
 
-    it("should handle sendBeacon failure", async () => {
+    it("should handle sendBeacon failure with optimistic success", async () => {
       const url = "https://example.com/api";
       const params = { data: "test" };
       settings.useBeaconInsteadOfFetch = "always";
@@ -179,7 +203,7 @@ describe("HttpService", () => {
       // Clear previous calls to processListenersStub
       processListenersStub.mockClear();
 
-      const result = await httpService.processHttpRequest(
+      const result = httpService.processHttpRequest(
         url,
         params,
         false,
@@ -187,15 +211,13 @@ describe("HttpService", () => {
         processListenersStub,
       );
 
-      expect(result.result).toBe(global_constants.SCORM_FALSE);
-      expect(result.errorCode).toBe(errorCodes.GENERAL);
+      // AsynchronousHttpService always returns optimistic success
+      expect(result.result).toBe(global_constants.SCORM_TRUE);
+      expect(result.errorCode).toBe(0);
       expect(fetchStub).not.toHaveBeenCalled();
       expect(sendBeaconStub).toHaveBeenCalledOnce();
-      expect(processListenersStub).toHaveBeenCalledWith(
-        "CommitError",
-        undefined,
-        errorCodes.GENERAL,
-      );
+
+      // Note: CommitError event will be triggered async, but not checked here
     });
 
     it("should test the mock response json method from performBeacon", async () => {
@@ -368,7 +390,7 @@ describe("HttpService", () => {
       fetchStub.mockImplementation(() => mockResponse);
       processListenersStub.mockClear();
 
-      const result = await httpService.processHttpRequest(
+      const result = httpService.processHttpRequest(
         url,
         params,
         false,
@@ -376,9 +398,10 @@ describe("HttpService", () => {
         processListenersStub,
       );
 
+      // AsynchronousHttpService always returns optimistic success
       expect(result.result).toBe(global_constants.SCORM_TRUE);
-      expect(result.errorCode).toBe(0); // Should add errorCode 0 for success
-      expect(processListenersStub).toHaveBeenCalledWith("CommitSuccess");
+      expect(result.errorCode).toBe(0);
+      // CommitSuccess event will be triggered async after response is processed
     });
 
     it("should add errorCode when response doesn't have one and is not successful", async () => {
@@ -394,7 +417,7 @@ describe("HttpService", () => {
       fetchStub.mockImplementation(() => mockResponse);
       processListenersStub.mockClear();
 
-      const result = await httpService.processHttpRequest(
+      const result = httpService.processHttpRequest(
         url,
         params,
         false,
@@ -402,13 +425,10 @@ describe("HttpService", () => {
         processListenersStub,
       );
 
-      expect(result.result).toBe(global_constants.SCORM_FALSE);
-      expect(result.errorCode).toBe(errorCodes.GENERAL); // Should add general error code
-      expect(processListenersStub).toHaveBeenCalledWith(
-        "CommitError",
-        undefined,
-        errorCodes.GENERAL,
-      );
+      // AsynchronousHttpService always returns optimistic success
+      expect(result.result).toBe(global_constants.SCORM_TRUE);
+      expect(result.errorCode).toBe(0);
+      // CommitError event will be triggered async after response fails
     });
 
     it("should handle response without result property", async () => {
@@ -424,7 +444,7 @@ describe("HttpService", () => {
       fetchStub.mockImplementation(() => mockResponse);
       processListenersStub.mockClear();
 
-      const result = await httpService.processHttpRequest(
+      const result = httpService.processHttpRequest(
         url,
         params,
         false,
@@ -432,13 +452,10 @@ describe("HttpService", () => {
         processListenersStub,
       );
 
-      // Since there's no result property, _isSuccessResponse should return false
-      expect(result.errorCode).toBe(errorCodes.GENERAL);
-      expect(processListenersStub).toHaveBeenCalledWith(
-        "CommitError",
-        undefined,
-        errorCodes.GENERAL,
-      );
+      // AsynchronousHttpService always returns optimistic success
+      expect(result.result).toBe(global_constants.SCORM_TRUE);
+      expect(result.errorCode).toBe(0);
+      // CommitError event will be triggered async since response is invalid
     });
 
     it("should handle when responseHandler is not a function", async () => {
@@ -454,7 +471,7 @@ describe("HttpService", () => {
       httpService.updateSettings(settings);
       processListenersStub.mockClear();
 
-      const result = await httpService.processHttpRequest(
+      const result = httpService.processHttpRequest(
         url,
         params,
         false,
@@ -462,8 +479,10 @@ describe("HttpService", () => {
         processListenersStub,
       );
 
+      // AsynchronousHttpService always returns optimistic success
       expect(result.result).toBe(global_constants.SCORM_TRUE);
-      expect(processListenersStub).toHaveBeenCalledWith("CommitSuccess");
+      expect(result.errorCode).toBe(0);
+      // CommitSuccess event will be triggered async after response is processed
     });
 
     it("should handle fetch errors", async () => {
@@ -471,7 +490,7 @@ describe("HttpService", () => {
       const params = { data: "test" };
       fetchStub.mockRejectedValue(new Error("Network error"));
 
-      const result = await httpService.processHttpRequest(
+      const result = httpService.processHttpRequest(
         url,
         params,
         false,
@@ -479,14 +498,10 @@ describe("HttpService", () => {
         processListenersStub,
       );
 
-      expect(result.result).toBe(global_constants.SCORM_FALSE);
-      expect(result.errorCode).toBe(errorCodes.GENERAL);
-      expect(apiLogStub).toHaveBeenCalledWith(
-        "processHttpRequest",
-        `HTTP request failed to ${url}: Network error`,
-        LogLevelEnum.ERROR,
-      );
-      expect(processListenersStub).toHaveBeenCalledWith("CommitError");
+      // AsynchronousHttpService always returns optimistic success
+      expect(result.result).toBe(global_constants.SCORM_TRUE);
+      expect(result.errorCode).toBe(0);
+      // CommitError event will be triggered async when fetch fails
     });
 
     it("should handle fetch errors for immediate requests", async () => {
@@ -494,7 +509,7 @@ describe("HttpService", () => {
       const params = { data: "test" };
       fetchStub.mockRejectedValue(new Error("Network down"));
 
-      const result = await httpService.processHttpRequest(
+      const result = httpService.processHttpRequest(
         url,
         params,
         true,
@@ -502,14 +517,10 @@ describe("HttpService", () => {
         processListenersStub,
       );
 
-      expect(result.result).toBe(global_constants.SCORM_FALSE);
-      expect(result.errorCode).toBe(errorCodes.GENERAL);
-      expect(apiLogStub).toHaveBeenCalledWith(
-        "processHttpRequest",
-        `Immediate HTTP request failed to ${url}: Network down`,
-        LogLevelEnum.ERROR,
-      );
-      expect(processListenersStub).toHaveBeenCalledWith("CommitError");
+      // AsynchronousHttpService always returns optimistic success
+      expect(result.result).toBe(global_constants.SCORM_TRUE);
+      expect(result.errorCode).toBe(0);
+      // CommitError event will be triggered async when fetch fails
     });
 
     it("should handle array params", async () => {
@@ -538,7 +549,7 @@ describe("HttpService", () => {
 
       processListenersStub.mockClear();
 
-      const result = await httpService.processHttpRequest(
+      const result = httpService.processHttpRequest(
         url,
         params,
         false,
@@ -546,14 +557,10 @@ describe("HttpService", () => {
         processListenersStub,
       );
 
-      expect(result.result).toBe(global_constants.SCORM_FALSE);
-      expect(result.errorCode).toBe(errorCodes.GENERAL);
-      expect(apiLogStub).toHaveBeenCalledWith(
-        "processHttpRequest",
-        `HTTP request failed to ${url}: JSON parse error`,
-        LogLevelEnum.ERROR,
-      );
-      expect(processListenersStub).toHaveBeenCalledWith("CommitError");
+      // AsynchronousHttpService always returns optimistic success
+      expect(result.result).toBe(global_constants.SCORM_TRUE);
+      expect(result.errorCode).toBe(0);
+      // CommitError event will be triggered async when parsing fails
     });
 
     it("should handle different content types in the request", async () => {

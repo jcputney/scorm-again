@@ -21,7 +21,7 @@ export interface IHttpService {
    * @param {boolean} immediate - Whether to send the request immediately
    * @param {Function} apiLog - Function to log API messages
    * @param {Function} processListeners - Function to process event listeners
-   * @return {ResultObject} - The result of the request
+   * @return {ResultObject} - The result of the request (synchronous)
    */
   processHttpRequest(
     url: string,
@@ -34,7 +34,7 @@ export interface IHttpService {
       CMIElement?: string,
     ) => void,
     processListeners: (functionName: string, CMIElement?: string, value?: any) => void,
-  ): Promise<ResultObject>;
+  ): ResultObject;
 
   /**
    * Updates the service settings

@@ -9,6 +9,7 @@ import { NAV } from "./cmi/scorm12/nav";
 import { CMIPathsObject } from "./cmi/aicc/paths";
 import { Settings } from "./types/api_types";
 import { stringMatches } from "./utilities";
+import { IHttpService } from "./interfaces/services";
 
 /**
  * The AICC API class
@@ -17,9 +18,10 @@ class AICC extends Scorm12API {
   /**
    * Constructor to create AICC API object
    * @param {Settings} settings
+   * @param {IHttpService} httpService - Optional HTTP service instance
    */
-  constructor(settings?: Settings) {
-    super(settings);
+  constructor(settings?: Settings, httpService?: IHttpService) {
+    super(settings, httpService);
 
     this.cmi = new CMI();
     this.nav = new NAV();

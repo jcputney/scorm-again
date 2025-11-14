@@ -85,3 +85,4 @@ coverage-*
 /playwright/.cache/
 summary.md
 docs/sequencing.md
+.serena/

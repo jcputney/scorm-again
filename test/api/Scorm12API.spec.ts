@@ -10,8 +10,12 @@ import { CompletionStatus, LogLevelEnum, SuccessStatus } from "../../src/constan
 import { StringKeyMap } from "../../src";
 import BaseAPI from "../../src/BaseAPI";
 
-const api = (settings?: Settings, startingData: StringKeyMap = {}): Scorm12API => {
-  const API = new Scorm12API({ ...settings, logLevel: LogLevelEnum.NONE });
+const api = (
+  settings?: Settings,
+  httpService?: any,
+  startingData: StringKeyMap = {},
+): Scorm12API => {
+  const API = new Scorm12API({ ...settings, logLevel: LogLevelEnum.NONE }, httpService);
   API.startingData = startingData;
   return API;
 };
@@ -733,6 +737,7 @@ describe("SCORM 1.2 API Tests", () => {
       const scorm12API = api({
         ...DefaultSettings,
         throttleCommits: true,
+        useAsynchronousCommits: true,
         autocommit: true,
         autocommitSeconds: 1,
       });
@@ -1220,6 +1225,79 @@ describe("SCORM 1.2 API Tests", () => {
       scorm12api.lmsInitialize();
 
       expect(scorm12api.getCMIValue("cmi.objectives.10.id")).toEqual("topic-MllWvr");
+    });
+  });
+
+  describe("Synchronous Commit Tests", () => {
+    it("should return actual commit failure synchronously", () => {
+      const mockService = {
+        processHttpRequest: vi.fn().mockReturnValue({
+          result: "false",
+          errorCode: 101,
+        }),
+        updateSettings: vi.fn(),
+      };
+
+      const scorm12API = api(
+        {
+          lmsCommitUrl: "http://test.com/commit",
+        },
+        mockService,
+      );
+      scorm12API.lmsInitialize();
+
+      const result = scorm12API.lmsCommit();
+
+      // Should return actual failure synchronously
+      expect(result).toBe("false");
+      expect(scorm12API.lmsGetLastError()).toBe("101");
+    });
+
+    it("should return success when commit succeeds", () => {
+      const mockService = {
+        processHttpRequest: vi.fn().mockReturnValue({
+          result: "true",
+          errorCode: 0,
+        }),
+        updateSettings: vi.fn(),
+      };
+
+      const scorm12API = api(
+        {
+          lmsCommitUrl: "http://test.com/commit",
+        },
+        mockService,
+      );
+      scorm12API.lmsInitialize();
+
+      const result = scorm12API.lmsCommit();
+
+      expect(result).toBe("true");
+      expect(scorm12API.lmsGetLastError()).toBe("0");
+    });
+
+    it("should return actual terminate failure synchronously", () => {
+      const mockService = {
+        processHttpRequest: vi.fn().mockReturnValue({
+          result: "false",
+          errorCode: 101,
+        }),
+        updateSettings: vi.fn(),
+      };
+
+      const scorm12API = api(
+        {
+          lmsCommitUrl: "http://test.com/commit",
+        },
+        mockService,
+      );
+      scorm12API.lmsInitialize();
+
+      const result = scorm12API.lmsFinish();
+
+      // Should return actual failure synchronously
+      expect(result).toBe("false");
+      expect(scorm12API.lmsGetLastError()).toBe("101");
     });
   });
 });

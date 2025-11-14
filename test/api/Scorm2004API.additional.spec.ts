@@ -147,7 +147,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
   });
 
   describe("storeData()", (): void => {
-    it("should execute navigation request JavaScript when navRequest is true and result.navRequest is provided", async (): Promise<void> => {
+    it("should execute navigation request JavaScript when navRequest is true and result.navRequest is provided", (): void => {
       const scorm2004API = api({
         lmsCommitUrl: "test-url",
       });
@@ -159,7 +159,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       // Mock the processHttpRequest method to return a navRequest
       const processHttpRequestStub = vi
         .spyOn(scorm2004API, "processHttpRequest")
-        .mockImplementation(async () => {
+        .mockImplementation(() => {
           return {
             result: global_constants.SCORM_TRUE,
             errorCode: 0,
@@ -172,7 +172,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         (global.window as Window & typeof globalThis) || ({} as Window & typeof globalThis);
       global.window.testNavRequestExecuted = false;
 
-      await scorm2004API.storeData(true);
+      scorm2004API.storeData(true);
 
       expect(processHttpRequestStub).toHaveBeenCalledOnce();
       expect(global.window.testNavRequestExecuted).toBe(true);
@@ -184,7 +184,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       delete global.window.testNavRequestExecuted;
     });
 
-    it("should not execute navigation request JavaScript when navRequest is false", async (): Promise<void> => {
+    it("should not execute navigation request JavaScript when navRequest is false", (): void => {
       const scorm2004API = api({
         lmsCommitUrl: "test-url",
       });
@@ -196,7 +196,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       // Mock the processHttpRequest method to return a navRequest
       const processHttpRequestStub = vi
         .spyOn(scorm2004API, "processHttpRequest")
-        .mockImplementation(async () => {
+        .mockImplementation(() => {
           return {
             result: global_constants.SCORM_TRUE,
             errorCode: 0,
@@ -209,7 +209,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         (global.window as Window & typeof globalThis) || ({} as Window & typeof globalThis);
       global.window.testNavRequestExecuted = false;
 
-      await scorm2004API.storeData(true);
+      scorm2004API.storeData(true);
 
       expect(processHttpRequestStub).toHaveBeenCalledOnce();
       expect(global.window.testNavRequestExecuted).toBe(false);
@@ -221,7 +221,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       delete global.window.testNavRequestExecuted;
     });
 
-    it("should not execute navigation request JavaScript when result.navRequest is empty", async () => {
+    it("should not execute navigation request JavaScript when result.navRequest is empty", () => {
       const scorm2004API = api({
         lmsCommitUrl: "test-url",
       });
@@ -233,7 +233,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       // Mock the processHttpRequest method to return an empty navRequest
       const processHttpRequestStub = vi
         .spyOn(scorm2004API, "processHttpRequest")
-        .mockImplementation(async () => {
+        .mockImplementation(() => {
           return {
             result: global_constants.SCORM_TRUE,
             errorCode: 0,
@@ -246,7 +246,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         (global.window as Window & typeof globalThis) || ({} as Window & typeof globalThis);
       global.window.testNavRequestExecuted = false;
 
-      await scorm2004API.storeData(true);
+      scorm2004API.storeData(true);
 
       expect(processHttpRequestStub).toHaveBeenCalledOnce();
       expect(global.window.testNavRequestExecuted).toBe(false);

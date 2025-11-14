@@ -14,7 +14,8 @@ import { defaultLogHandler, DefaultSettings } from "./constants/default_settings
 import { IBaseAPI } from "./interfaces/IBaseAPI";
 import { ScheduledCommit } from "./types/scheduled_commit";
 import { LogLevelEnum } from "./constants/enums";
-import { HttpService } from "./services/HttpService";
+import { AsynchronousHttpService } from "./services/AsynchronousHttpService";
+import { SynchronousHttpService } from "./services/SynchronousHttpService";
 import { EventService } from "./services/EventService";
 import { SerializationService } from "./services/SerializationService";
 import { createErrorHandlingService } from "./services/ErrorHandlingService";
@@ -86,6 +87,14 @@ export default abstract class BaseAPI implements IBaseAPI {
       } as InternalSettings;
     }
 
+    // VALIDATION: Enforce throttleCommits incompatibility with sync commits
+    if (!this.settings.useAsynchronousCommits && this.settings.throttleCommits) {
+      console.warn(
+        "throttleCommits cannot be used with synchronous commits. Setting throttleCommits to false.",
+      );
+      this.settings.throttleCommits = false;
+    }
+
     // Initialize and configure LoggingService
     this._loggingService = loggingService || getLoggingService();
     this._loggingService.setLogLevel(this.settings.logLevel);
@@ -97,8 +106,26 @@ export default abstract class BaseAPI implements IBaseAPI {
       this._loggingService.setLogHandler(defaultLogHandler);
     }
 
-    // Initialize HTTP service
-    this._httpService = httpService || new HttpService(this.settings, this._error_codes);
+    // HTTP SERVICE SELECTION
+    if (httpService) {
+      // Constructor injection (for tests)
+      this._httpService = httpService;
+    } else if (this.settings.httpService) {
+      // Settings injection (advanced users)
+      this._httpService = this.settings.httpService;
+    } else {
+      // Auto-select based on useAsynchronousCommits
+      if (this.settings.useAsynchronousCommits) {
+        console.warn(
+          "WARNING: useAsynchronousCommits=true is not SCORM compliant. " +
+            "Commit failures will not be reported to the SCO, which may cause data loss. " +
+            "This setting should only be used for specific legacy compatibility cases.",
+        );
+        this._httpService = new AsynchronousHttpService(this.settings, this._error_codes);
+      } else {
+        this._httpService = new SynchronousHttpService(this.settings, this._error_codes);
+      }
+    }
 
     // Initialize Event service
     this._eventService =
@@ -133,6 +160,41 @@ export default abstract class BaseAPI implements IBaseAPI {
 
       if (this.settings.courseId) {
         this._courseId = this.settings.courseId;
+      }
+
+      // Set up offline sync on BeforeTerminate event
+      if (this.settings.syncOnTerminate) {
+        this._eventService.on("BeforeTerminate", () => {
+          if (this._offlineStorageService?.isDeviceOnline() && this._courseId) {
+            this._offlineStorageService
+              .hasPendingOfflineData(this._courseId)
+              .then((hasPendingData) => {
+                if (hasPendingData) {
+                  this.apiLog(
+                    "BeforeTerminate",
+                    "Syncing pending offline data before termination",
+                    LogLevelEnum.INFO,
+                  );
+                  return this._offlineStorageService?.syncOfflineData();
+                }
+              })
+              .then((syncSuccess) => {
+                if (syncSuccess) {
+                  this.processListeners("OfflineDataSynced");
+                } else if (syncSuccess === false) {
+                  this.processListeners("OfflineDataSyncFailed");
+                }
+              })
+              .catch((error) => {
+                this.apiLog(
+                  "BeforeTerminate",
+                  `Error syncing offline data: ${error}`,
+                  LogLevelEnum.ERROR,
+                );
+                this.processListeners("OfflineDataSyncFailed");
+              });
+          }
+        });
       }
 
       // Check for offline data to restore on initialization
@@ -379,7 +441,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @return {ResultObject}
    * @abstract
    */
-  abstract storeData(_calculateTotalTime: boolean): Promise<ResultObject>;
+  abstract storeData(_calculateTotalTime: boolean): ResultObject;
 
   /**
    * Render the cmi object to the proper format for LMS commit
@@ -472,39 +534,27 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {boolean} checkTerminated
    * @return {string}
    */
-  async terminate(callbackName: string, checkTerminated: boolean): Promise<string> {
-    let returnValue = global_constants.SCORM_FALSE;
+  terminate(callbackName: string, checkTerminated: boolean): string {
+    // Per SCORM spec: return "true" when called before init or after already terminated
+    // (with error code set)
+    let returnValue = global_constants.SCORM_TRUE;
+    let stateCheckPassed = false;
 
-    if (
-      this.checkState(
-        checkTerminated,
-        this._error_codes.TERMINATION_BEFORE_INIT ?? 0,
-        this._error_codes.MULTIPLE_TERMINATION ?? 0,
-      )
-    ) {
+    // Check if not initialized first
+    if (this.isNotInitialized()) {
+      this.throwSCORMError("api", this._error_codes.TERMINATION_BEFORE_INIT ?? 0);
+      // Return "true" but with error code set per SCORM spec
+    } else if (checkTerminated && this.isTerminated()) {
+      this.throwSCORMError("api", this._error_codes.MULTIPLE_TERMINATION ?? 0);
+      // Return "true" but with error code set per SCORM spec
+    } else {
+      stateCheckPassed = true;
       this.currentState = global_constants.STATE_TERMINATED;
-      // If enabled, attempt to sync offline data before termination
-      if (
-        this.settings.enableOfflineSupport &&
-        this._offlineStorageService &&
-        this._courseId &&
-        this.settings.syncOnTerminate &&
-        this._offlineStorageService.isDeviceOnline()
-      ) {
-        const hasPendingData = await this._offlineStorageService.hasPendingOfflineData(
-          this._courseId,
-        );
-        if (hasPendingData) {
-          this.apiLog(
-            callbackName,
-            "Syncing pending offline data before termination",
-            LogLevelEnum.INFO,
-          );
-          await this._offlineStorageService.syncOfflineData();
-        }
-      }
 
-      const result: ResultObject = await this.storeData(true);
+      // Fire BeforeTerminate event for offline sync
+      this.processListeners("BeforeTerminate");
+
+      const result: ResultObject = this.storeData(true);
       if ((result.errorCode ?? 0) > 0) {
         // Log detailed error information before throwing SCORM error
         if (result.errorMessage) {
@@ -522,17 +572,21 @@ export default abstract class BaseAPI implements IBaseAPI {
           );
         }
         this.throwSCORMError("api", result.errorCode ?? 0);
+      } else {
+        // Only clear error if there was no error
+        if (checkTerminated) this.lastErrorCode = "0";
       }
       returnValue = result?.result ?? global_constants.SCORM_FALSE;
 
-      if (checkTerminated) this.lastErrorCode = "0";
-
-      returnValue = global_constants.SCORM_TRUE;
       this.processListeners(callbackName);
     }
 
     this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
-    this.clearSCORMError(returnValue);
+
+    // Only clear error if state check passed
+    if (stateCheckPassed) {
+      this.clearSCORMError(returnValue);
+    }
 
     return returnValue;
   }
@@ -651,19 +705,22 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {boolean} checkTerminated
    * @return {string}
    */
-  async commit(callbackName: string, checkTerminated: boolean = false): Promise<string> {
+  commit(callbackName: string, checkTerminated: boolean = false): string {
     this.clearScheduledCommit();
 
-    let returnValue = global_constants.SCORM_FALSE;
+    // Per SCORM spec: return "true" when called before init (with error code set)
+    // But return "false" when called after termination (with error code set)
+    let returnValue = global_constants.SCORM_TRUE;
 
-    if (
-      this.checkState(
-        checkTerminated,
-        this._error_codes.COMMIT_BEFORE_INIT ?? 0,
-        this._error_codes.COMMIT_AFTER_TERM ?? 0,
-      )
-    ) {
-      const result = await this.storeData(false);
+    // Check if not initialized first
+    if (this.isNotInitialized()) {
+      this.throwSCORMError("api", this._error_codes.COMMIT_BEFORE_INIT ?? 0);
+      // Return "true" but with error code set per SCORM spec
+    } else if (checkTerminated && this.isTerminated()) {
+      this.throwSCORMError("api", this._error_codes.COMMIT_AFTER_TERM ?? 0);
+      returnValue = global_constants.SCORM_FALSE;
+    } else {
+      const result = this.storeData(false);
       if ((result.errorCode ?? 0) > 0) {
         // Log detailed error information before throwing SCORM error
         if (result.errorMessage) {
@@ -690,7 +747,7 @@ export default abstract class BaseAPI implements IBaseAPI {
 
       this.processListeners(callbackName);
 
-      // If online and there is offline data pending, attempt to sync it
+      // Fire async offline sync in background if needed
       if (
         this.settings.enableOfflineSupport &&
         this._offlineStorageService &&
@@ -715,8 +772,8 @@ export default abstract class BaseAPI implements IBaseAPI {
 
     this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
 
-    // Only clear the error code if there's no error
-    if (this.lastErrorCode === "0") {
+    // Only clear error if we actually performed a commit (not a state error)
+    if (!this.isNotInitialized() && !(checkTerminated && this.isTerminated())) {
       this.clearSCORMError(returnValue);
     }
 
@@ -1313,14 +1370,13 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {string} url - The URL to send the request to
    * @param {CommitObject | StringKeyMap | Array<any>} params - The parameters to send
    * @param {boolean} immediate - Whether to send the request immediately without waiting
-   * @returns {Promise<ResultObject>} - The result of the request
-   * @async
+   * @returns {ResultObject} - The result of the request
    */
-  async processHttpRequest(
+  processHttpRequest(
     url: string,
     params: CommitObject | StringKeyMap | Array<any>,
     immediate: boolean = false,
-  ): Promise<ResultObject> {
+  ): ResultObject {
     // If offline support is enabled and device is offline, store data locally instead of sending
     if (
       this.settings.enableOfflineSupport &&
@@ -1335,10 +1391,12 @@ export default abstract class BaseAPI implements IBaseAPI {
       );
 
       if (params && typeof params === "object" && "cmi" in params) {
-        return await this._offlineStorageService.storeOffline(
-          this._courseId,
-          params as CommitObject,
-        );
+        // Store offline - fire async but return optimistic success
+        this._offlineStorageService.storeOffline(this._courseId, params as CommitObject);
+        return {
+          result: global_constants.SCORM_TRUE,
+          errorCode: 0,
+        };
       } else {
         this.apiLog(
           "processHttpRequest",
@@ -1347,13 +1405,13 @@ export default abstract class BaseAPI implements IBaseAPI {
         );
         return {
           result: global_constants.SCORM_FALSE,
-          errorCode: this._error_codes.GENERAL ?? 101, // Fallback to a default error code if GENERAL is undefined
+          errorCode: this._error_codes.GENERAL ?? 101,
         };
       }
     }
 
-    // Otherwise, proceed with normal HTTP request
-    return await this._httpService.processHttpRequest(
+    // Otherwise, proceed with HTTP request (synchronous or async based on service)
+    return this._httpService.processHttpRequest(
       url,
       params,
       immediate,

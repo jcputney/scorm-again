@@ -703,17 +703,6 @@ describe("SCORM 2004 API Tests", () => {
     });
 
     describe("lmsFinish()", () => {
-      it("should call internalFinish and return SCORM_TRUE", async (): Promise<void> => {
-        const internalFinishStub = vi
-          .spyOn(scorm2004API, "internalFinish")
-          .mockImplementation(async () => global_constants.SCORM_TRUE);
-        const result = scorm2004API.lmsFinish();
-        expect(result).toEqual(global_constants.SCORM_TRUE);
-        expect(internalFinishStub).toHaveBeenCalledOnce();
-      });
-    });
-
-    describe("internalFinish()", () => {
       const navActions: { [key: string]: string } = {
         previous: "SequencePrevious",
         continue: "SequenceNext",
@@ -726,40 +715,40 @@ describe("SCORM 2004 API Tests", () => {
         abandonAll: "SequenceAbandonAll",
       };
 
-      it("should call terminate with 'Terminate' and true", async (): Promise<void> => {
-        terminateStub.mockImplementation(async () => global_constants.SCORM_TRUE);
-        await scorm2004API.internalFinish();
+      it("should call terminate with 'Terminate' and true", (): void => {
+        terminateStub.mockImplementation(() => global_constants.SCORM_TRUE);
+        scorm2004API.lmsFinish();
         expect(terminateStub).toHaveBeenCalledWith("Terminate", true);
       });
 
       for (const navRequest of Object.keys(navActions)) {
-        it(`should process the correct navigation action based on adl.nav.request = ${navRequest}`, async () => {
-          terminateStub.mockImplementation(async () => global_constants.SCORM_TRUE);
+        it(`should process the correct navigation action based on adl.nav.request = ${navRequest}`, () => {
+          terminateStub.mockImplementation(() => global_constants.SCORM_TRUE);
           scorm2004API.adl.nav.request = navRequest;
-          await scorm2004API.internalFinish();
+          scorm2004API.lmsFinish();
           expect(processListenersSpy.mock.calls[0][0]).toEqual(navActions[navRequest]);
         });
       }
 
-      it("should process 'SequenceNext' if adl.nav.request is '_none_' and autoProgress is true", async (): Promise<void> => {
-        terminateStub.mockImplementation(async () => global_constants.SCORM_TRUE);
+      it("should process 'SequenceNext' if adl.nav.request is '_none_' and autoProgress is true", (): void => {
+        terminateStub.mockImplementation(() => global_constants.SCORM_TRUE);
         scorm2004API.adl.nav.request = "_none_";
         scorm2004API.settings.autoProgress = true;
-        await scorm2004API.internalFinish();
+        scorm2004API.lmsFinish();
         expect(processListenersSpy.mock.calls[0][0]).toEqual("SequenceNext");
       });
 
-      it("should not process any action if adl.nav.request is '_none_' and autoProgress is false", async (): Promise<void> => {
-        terminateStub.mockImplementation(async () => global_constants.SCORM_TRUE);
+      it("should not process any action if adl.nav.request is '_none_' and autoProgress is false", (): void => {
+        terminateStub.mockImplementation(() => global_constants.SCORM_TRUE);
         scorm2004API.adl.nav.request = "_none_";
         scorm2004API.settings.autoProgress = false;
-        await scorm2004API.internalFinish();
+        scorm2004API.lmsFinish();
         expect(processListenersSpy).not.toHaveBeenCalled();
       });
 
-      it("should return the result of terminate", async (): Promise<void> => {
-        terminateStub.mockImplementation(async () => global_constants.SCORM_TRUE);
-        const result = await scorm2004API.internalFinish();
+      it("should return the result of terminate", (): void => {
+        terminateStub.mockImplementation(() => global_constants.SCORM_TRUE);
+        const result = scorm2004API.lmsFinish();
         expect(result).toEqual(global_constants.SCORM_TRUE);
       });
     });
@@ -768,10 +757,10 @@ describe("SCORM 2004 API Tests", () => {
   describe("lmsCommit()", () => {
     const scorm2004API = api();
 
-    it("should call commit and return SCORM_TRUE", async (): Promise<void> => {
+    it("should call commit and return SCORM_TRUE", (): void => {
       const commitStub = vi
         .spyOn(scorm2004API, "commit")
-        .mockImplementation(async () => global_constants.SCORM_TRUE);
+        .mockImplementation(() => global_constants.SCORM_TRUE);
       const result = scorm2004API.lmsCommit();
       expect(result).toEqual(global_constants.SCORM_TRUE);
       expect(commitStub).toHaveBeenCalledOnce();
@@ -1212,6 +1201,7 @@ describe("SCORM 2004 API Tests", () => {
           lmsCommitUrl: "/scorm2004",
           autocommit: true,
           autocommitSeconds: 1,
+          useAsynchronousCommits: true,
         },
       });
       scorm2004API.lmsInitialize();
@@ -1233,6 +1223,7 @@ describe("SCORM 2004 API Tests", () => {
           lmsCommitUrl: "/scorm2004",
           autocommit: true,
           autocommitSeconds: 1,
+          useAsynchronousCommits: true,
         },
       });
       scorm2004API.lmsInitialize();
@@ -1267,6 +1258,7 @@ describe("SCORM 2004 API Tests", () => {
           lmsCommitUrl: "/scorm2004",
           autocommit: true,
           autocommitSeconds: 1,
+          useAsynchronousCommits: true,
         },
       });
       scorm2004API.lmsInitialize();
@@ -1339,6 +1331,7 @@ describe("SCORM 2004 API Tests", () => {
           lmsCommitUrl: "/scorm2004/does_not_exist",
           autocommit: true,
           autocommitSeconds: 1,
+          useAsynchronousCommits: true,
         },
       });
       scorm2004API.lmsInitialize();

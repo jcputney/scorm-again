@@ -55,6 +55,7 @@ import { Sequencing } from "./cmi/scorm2004/sequencing/sequencing";
 import { Activity, ActivityObjective, ObjectiveMapInfo } from "./cmi/scorm2004/sequencing/activity";
 import { OverallSequencingProcess } from "./cmi/scorm2004/sequencing/overall_sequencing_process";
 import { SequencingService, SequencingConfiguration } from "./services/SequencingService";
+import { IHttpService } from "./interfaces/services";
 
 /**
  * API class for SCORM 2004
@@ -70,15 +71,16 @@ class Scorm2004API extends BaseAPI {
   /**
    * Constructor for SCORM 2004 API
    * @param {Settings} settings
+   * @param {IHttpService} httpService - Optional HTTP service instance
    */
-  constructor(settings?: Settings) {
+  constructor(settings?: Settings, httpService?: IHttpService) {
     if (settings) {
       if (settings.mastery_override === undefined) {
         settings.mastery_override = false;
       }
     }
 
-    super(scorm2004_errors, settings);
+    super(scorm2004_errors, settings, httpService);
 
     this.cmi = new CMI();
     this.adl = new ADL();
@@ -180,19 +182,12 @@ class Scorm2004API extends BaseAPI {
    * @return {string} bool
    */
   lmsFinish(): string {
-    (async () => {
-      await this.internalFinish();
-    })();
-    return global_constants.SCORM_TRUE;
-  }
-
-  async internalFinish(): Promise<string> {
     // Terminate sequencing service first (before normal termination)
     if (this._sequencingService) {
       this._sequencingService.terminate();
     }
 
-    const result = await this.terminate("Terminate", true);
+    const result = this.terminate("Terminate", true);
 
     if (result === global_constants.SCORM_TRUE) {
       // Handle navigation requests - first try sequencing service, then fall back to legacy
@@ -355,22 +350,22 @@ class Scorm2004API extends BaseAPI {
   lmsCommit(): string {
     if (this.settings.throttleCommits) {
       this.scheduleCommit(500, "Commit");
+      return global_constants.SCORM_TRUE;
     } else {
-      (async () => {
-        const result = await this.commit("Commit", false);
+      const result = this.commit("Commit", false);
 
-        // Auto-save sequencing state after successful commit if configured
-        if (
-          result === global_constants.SCORM_TRUE &&
-          this.settings.sequencingStatePersistence?.autoSaveOn === "commit"
-        ) {
-          await this.saveSequencingState().catch(() => {
-            this.apiLog("lmsCommit", "Failed to auto-save sequencing state", LogLevelEnum.WARN);
-          });
-        }
-      })();
+      // Auto-save sequencing state after successful commit if configured (async in background)
+      if (
+        result === global_constants.SCORM_TRUE &&
+        this.settings.sequencingStatePersistence?.autoSaveOn === "commit"
+      ) {
+        this.saveSequencingState().catch(() => {
+          this.apiLog("lmsCommit", "Failed to auto-save sequencing state", LogLevelEnum.WARN);
+        });
+      }
+
+      return result;
     }
-    return global_constants.SCORM_TRUE;
   }
 
   /**
@@ -917,7 +912,7 @@ class Scorm2004API extends BaseAPI {
    * @param {boolean} terminateCommit
    * @return {ResultObject}
    */
-  async storeData(terminateCommit: boolean): Promise<ResultObject> {
+  storeData(terminateCommit: boolean): ResultObject {
     if (terminateCommit) {
       if (this.cmi.mode === "normal") {
         if (this.cmi.credit === "credit") {
@@ -950,7 +945,7 @@ class Scorm2004API extends BaseAPI {
 
     const commitObject = this.getCommitObject(terminateCommit);
     if (typeof this.settings.lmsCommitUrl === "string") {
-      const result = await this.processHttpRequest(
+      const result = this.processHttpRequest(
         this.settings.lmsCommitUrl,
         commitObject,
         terminateCommit,

@@ -34,9 +34,11 @@ describe("BaseAPI requestHandler Tests", () => {
     });
 
     // Initialize API with requestHandler
+    // Use async commits to test fetch-based behavior
     api = new Scorm12API({
       lmsCommitUrl: "http://example.com/commit",
       requestHandler: requestHandlerSpy,
+      useAsynchronousCommits: true,
     });
   });
 
@@ -94,8 +96,10 @@ describe("BaseAPI requestHandler Tests", () => {
 
     it("should pass through params when no requestHandler is provided", async () => {
       // Create API without requestHandler
+      // Use async commits to test fetch-based behavior
       const apiNoHandler = new Scorm12API({
         lmsCommitUrl: "http://example.com/commit",
+        useAsynchronousCommits: true,
       });
 
       apiNoHandler.lmsInitialize();
@@ -118,11 +122,13 @@ describe("BaseAPI requestHandler Tests", () => {
 
     it("should handle requestHandler errors gracefully", async () => {
       // Create API with error-throwing requestHandler
+      // Use async commits to test fetch-based behavior
       const errorApi = new Scorm12API({
         lmsCommitUrl: "http://example.com/commit",
         requestHandler: () => {
           throw new Error("RequestHandler error");
         },
+        useAsynchronousCommits: true,
       });
 
       errorApi.lmsInitialize();

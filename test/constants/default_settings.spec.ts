@@ -182,4 +182,92 @@ describe("DefaultSettings", () => {
       console.debug = originalDebug;
     });
   });
+
+  describe("new HTTP service settings", () => {
+    it("should have useAsynchronousCommits default to false", () => {
+      expect(DefaultSettings.useAsynchronousCommits).toBe(false);
+    });
+
+    it("should have httpService default to null", () => {
+      expect(DefaultSettings.httpService).toBeNull();
+    });
+
+    it("should have xhrResponseHandler default function", () => {
+      expect(typeof DefaultSettings.xhrResponseHandler).toBe("function");
+    });
+
+    describe("xhrResponseHandler", () => {
+      it("should parse successful XHR response", () => {
+        const mockXHR = {
+          status: 200,
+          responseText: '{"result":"true","errorCode":0}',
+        } as XMLHttpRequest;
+
+        const result = DefaultSettings.xhrResponseHandler(mockXHR);
+        expect(result.result).toBe("true");
+        expect(result.errorCode).toBe(0);
+      });
+
+      it("should handle failed XHR response", () => {
+        const mockXHR = {
+          status: 500,
+          responseText: "",
+        } as XMLHttpRequest;
+
+        const result = DefaultSettings.xhrResponseHandler(mockXHR);
+        expect(result.result).toBe(global_constants.SCORM_FALSE);
+        expect(result.errorCode).toBe(101);
+      });
+
+      it("should handle XHR response with no result field", () => {
+        const mockXHR = {
+          status: 200,
+          responseText: "{}",
+        } as XMLHttpRequest;
+
+        const result = DefaultSettings.xhrResponseHandler(mockXHR);
+        expect(result.result).toBe(global_constants.SCORM_TRUE);
+        expect(result.errorCode).toBe(0);
+      });
+
+      it("should handle XHR response with invalid JSON", () => {
+        const mockXHR = {
+          status: 200,
+          responseText: "not json",
+        } as XMLHttpRequest;
+
+        const result = DefaultSettings.xhrResponseHandler(mockXHR);
+        expect(result.result).toBe(global_constants.SCORM_TRUE);
+        expect(result.errorCode).toBe(0);
+      });
+
+      it("should derive errorCode from result when only result is provided", () => {
+        const mockXHR = {
+          status: 200,
+          responseText: `{"result":"${global_constants.SCORM_TRUE}"}`,
+        } as XMLHttpRequest;
+
+        const result = DefaultSettings.xhrResponseHandler(mockXHR);
+        expect(result.result).toBe(global_constants.SCORM_TRUE);
+        expect(result.errorCode).toBe(0);
+      });
+
+      it("should derive errorCode 101 when result is SCORM_FALSE", () => {
+        const mockXHR = {
+          status: 200,
+          responseText: `{"result":"${global_constants.SCORM_FALSE}"}`,
+        } as XMLHttpRequest;
+
+        const result = DefaultSettings.xhrResponseHandler(mockXHR);
+        expect(result.result).toBe(global_constants.SCORM_FALSE);
+        expect(result.errorCode).toBe(101);
+      });
+
+      it("should return SCORM_FALSE for undefined XHR", () => {
+        const result = DefaultSettings.xhrResponseHandler(undefined as any);
+        expect(result.result).toBe(global_constants.SCORM_FALSE);
+        expect(result.errorCode).toBe(101);
+      });
+    });
+  });
 });

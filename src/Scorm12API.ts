@@ -16,6 +16,7 @@ import { CommitObject, ResultObject, ScoreObject, Settings } from "./types/api_t
 import { CompletionStatus, SuccessStatus } from "./constants/enums";
 import BaseAPI from "./BaseAPI";
 import { scorm12_regex } from "./constants/regex";
+import { IHttpService } from "./interfaces/services";
 
 /**
  * API class for SCORM 1.2
@@ -24,15 +25,16 @@ class Scorm12API extends BaseAPI {
   /**
    * Constructor for SCORM 1.2 API
    * @param {object} settings
+   * @param {IHttpService} httpService - Optional HTTP service instance
    */
-  constructor(settings?: Settings) {
+  constructor(settings?: Settings, httpService?: IHttpService) {
     if (settings) {
       if (settings.mastery_override === undefined) {
         settings.mastery_override = false;
       }
     }
 
-    super(scorm12_errors, settings);
+    super(scorm12_errors, settings, httpService);
 
     this.cmi = new CMI();
     this.nav = new NAV();
@@ -97,14 +99,7 @@ class Scorm12API extends BaseAPI {
    * @return {string} bool
    */
   lmsFinish(): string {
-    (async () => {
-      await this.internalFinish();
-    })();
-    return global_constants.SCORM_TRUE;
-  }
-
-  async internalFinish(): Promise<string> {
-    const result = await this.terminate("LMSFinish", true);
+    const result = this.terminate("LMSFinish", true);
 
     if (result === global_constants.SCORM_TRUE) {
       if (this.nav.event !== "") {
@@ -153,12 +148,10 @@ class Scorm12API extends BaseAPI {
   lmsCommit(): string {
     if (this.settings.throttleCommits) {
       this.scheduleCommit(500, "LMSCommit");
+      return global_constants.SCORM_TRUE;
     } else {
-      (async () => {
-        await this.commit("LMSCommit", false);
-      })();
+      return this.commit("LMSCommit", false);
     }
-    return global_constants.SCORM_TRUE;
   }
 
   /**
@@ -362,7 +355,7 @@ class Scorm12API extends BaseAPI {
    * @param {boolean} terminateCommit
    * @return {ResultObject}
    */
-  async storeData(terminateCommit: boolean): Promise<ResultObject> {
+  storeData(terminateCommit: boolean): ResultObject {
     if (terminateCommit) {
       const originalStatus = this.cmi.core.lesson_status;
       if (
@@ -399,11 +392,7 @@ class Scorm12API extends BaseAPI {
 
     const commitObject = this.getCommitObject(terminateCommit);
     if (typeof this.settings.lmsCommitUrl === "string") {
-      return await this.processHttpRequest(
-        this.settings.lmsCommitUrl,
-        commitObject,
-        terminateCommit,
-      );
+      return this.processHttpRequest(this.settings.lmsCommitUrl, commitObject, terminateCommit);
     } else {
       return {
         result: global_constants.SCORM_TRUE,

@@ -9,6 +9,7 @@ export const DefaultSettings: InternalSettings = {
   autocommit: false,
   autocommitSeconds: 10,
   throttleCommits: false,
+  useAsynchronousCommits: false,
   sendFullCommit: true,
   lmsCommitUrl: false,
   dataCommitFormat: "json",
@@ -72,6 +73,34 @@ export const DefaultSettings: InternalSettings = {
       errorCode: 101,
     };
   },
+  xhrResponseHandler: function (xhr: XMLHttpRequest): ResultObject {
+    if (typeof xhr !== "undefined") {
+      let httpResult = null;
+
+      if (xhr.status >= 200 && xhr.status <= 299) {
+        try {
+          httpResult = JSON.parse(xhr.responseText);
+        } catch (e) {
+          // Parsing failed, but status was success
+        }
+
+        if (httpResult === null || !{}.hasOwnProperty.call(httpResult, "result")) {
+          return { result: global_constants.SCORM_TRUE, errorCode: 0 };
+        }
+        return {
+          result: httpResult.result,
+          errorCode: httpResult.errorCode
+            ? httpResult.errorCode
+            : httpResult.result === global_constants.SCORM_TRUE
+              ? 0
+              : 101,
+        };
+      } else {
+        return { result: global_constants.SCORM_FALSE, errorCode: 101 };
+      }
+    }
+    return { result: global_constants.SCORM_FALSE, errorCode: 101 };
+  },
   requestHandler: function (commitObject) {
     return commitObject;
   },
@@ -86,6 +115,9 @@ export const DefaultSettings: InternalSettings = {
   syncOnInitialize: true,
   syncOnTerminate: true,
   maxSyncAttempts: 5,
+
+  // HTTP service settings
+  httpService: null,
 };
 
 export function defaultLogHandler(messageLevel: LogLevel, logMessage: string): void {

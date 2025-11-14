@@ -1,6 +1,7 @@
 import { CompletionStatus, LogLevelEnum, SuccessStatus } from "../constants/enums";
 import { StringKeyMap } from "../utilities";
 import { SequencingSettings } from "./sequencing_types";
+import type { IHttpService } from "../interfaces/services";
 
 /**
  * Base settings type with all properties optional
@@ -9,6 +10,7 @@ export type Settings = {
   autocommit?: boolean | undefined;
   autocommitSeconds?: number | undefined;
   throttleCommits?: boolean | undefined;
+  useAsynchronousCommits?: boolean | undefined;
   sendFullCommit?: boolean | undefined;
   lmsCommitUrl?: boolean | string | undefined;
   dataCommitFormat?: string | undefined;
@@ -22,6 +24,7 @@ export type Settings = {
   xhrWithCredentials?: boolean | undefined;
   fetchMode?: "cors" | "no-cors" | "same-origin" | "navigate" | undefined;
   responseHandler?: ((response: Response) => Promise<ResultObject>) | undefined;
+  xhrResponseHandler?: ((xhr: XMLHttpRequest) => ResultObject) | undefined;
   requestHandler?: ((commitObject: unknown) => unknown) | undefined;
   onLogMessage?: ((messageLevel: LogLevel, logMessage: string) => void) | undefined;
   mastery_override?: boolean | undefined;
@@ -42,6 +45,9 @@ export type Settings = {
 
   // Sequencing state persistence settings
   sequencingStatePersistence?: SequencingStatePersistenceConfig | undefined;
+
+  // HTTP service settings
+  httpService?: IHttpService | null | undefined;
 };
 
 /**
@@ -51,6 +57,7 @@ export type InternalSettings = {
   autocommit: boolean;
   autocommitSeconds: number;
   throttleCommits: boolean;
+  useAsynchronousCommits: boolean;
   sendFullCommit: boolean;
   lmsCommitUrl: string | boolean;
   dataCommitFormat: string;
@@ -66,6 +73,7 @@ export type InternalSettings = {
   xhrWithCredentials: boolean;
   fetchMode: "cors" | "no-cors" | "same-origin" | "navigate";
   responseHandler: (response: Response) => Promise<ResultObject>;
+  xhrResponseHandler: (xhr: XMLHttpRequest) => ResultObject;
   requestHandler: (commitObject: unknown) => unknown;
   onLogMessage?: ((messageLevel: LogLevel, logMessage: string) => void) | undefined;
   mastery_override?: boolean | undefined;
@@ -84,6 +92,9 @@ export type InternalSettings = {
 
   // Sequencing state persistence settings
   sequencingStatePersistence?: SequencingStatePersistenceConfig | undefined;
+
+  // HTTP service settings
+  httpService: IHttpService | null;
 };
 
 export type RefObject = {

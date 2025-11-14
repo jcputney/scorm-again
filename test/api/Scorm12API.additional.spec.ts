@@ -37,59 +37,59 @@ describe("SCORM 1.2 API Additional Tests", () => {
     });
   });
 
-  describe("internalFinish()", () => {
-    it("should call terminate with 'LMSFinish' and true", async () => {
+  describe("lmsFinish()", () => {
+    it("should call terminate with 'LMSFinish' and true", () => {
       const scorm12API = api();
       const terminateStub = vi
         .spyOn(scorm12API, "terminate")
-        .mockImplementation(async () => global_constants.SCORM_TRUE);
+        .mockImplementation(() => global_constants.SCORM_TRUE);
 
-      await scorm12API.internalFinish();
+      scorm12API.lmsFinish();
 
       expect(terminateStub).toHaveBeenCalledOnce();
       expect(terminateStub).toHaveBeenCalledWith("LMSFinish", true);
     });
 
-    it("should process 'SequenceNext' listener when nav.event is 'continue'", async () => {
+    it("should process 'SequenceNext' listener when nav.event is 'continue'", () => {
       const scorm12API = api();
-      vi.spyOn(scorm12API, "terminate").mockImplementation(async () => global_constants.SCORM_TRUE);
+      vi.spyOn(scorm12API, "terminate").mockImplementation(() => global_constants.SCORM_TRUE);
       const processListenersSpy = vi.spyOn(scorm12API, "processListeners");
       scorm12API.nav.event = "continue";
 
-      await scorm12API.internalFinish();
+      scorm12API.lmsFinish();
 
       expect(processListenersSpy).toHaveBeenCalledWith("SequenceNext");
     });
 
-    it("should process 'SequencePrevious' listener when nav.event is not 'continue'", async () => {
+    it("should process 'SequencePrevious' listener when nav.event is not 'continue'", () => {
       const scorm12API = api();
-      vi.spyOn(scorm12API, "terminate").mockImplementation(async () => global_constants.SCORM_TRUE);
+      vi.spyOn(scorm12API, "terminate").mockImplementation(() => global_constants.SCORM_TRUE);
       const processListenersSpy = vi.spyOn(scorm12API, "processListeners");
       scorm12API.nav.event = "previous";
 
-      await scorm12API.internalFinish();
+      scorm12API.lmsFinish();
 
       expect(processListenersSpy).toHaveBeenCalledWith("SequencePrevious");
     });
 
-    it("should process 'SequenceNext' listener when autoProgress is true and nav.event is empty", async () => {
+    it("should process 'SequenceNext' listener when autoProgress is true and nav.event is empty", () => {
       const scorm12API = api({ autoProgress: true });
-      vi.spyOn(scorm12API, "terminate").mockImplementation(async () => global_constants.SCORM_TRUE);
+      vi.spyOn(scorm12API, "terminate").mockImplementation(() => global_constants.SCORM_TRUE);
       const processListenersSpy = vi.spyOn(scorm12API, "processListeners");
       scorm12API.nav.event = "";
 
-      await scorm12API.internalFinish();
+      scorm12API.lmsFinish();
 
       expect(processListenersSpy).toHaveBeenCalledWith("SequenceNext");
     });
 
-    it("should not process any listeners when autoProgress is false and nav.event is empty", async () => {
+    it("should not process any listeners when autoProgress is false and nav.event is empty", () => {
       const scorm12API = api({ autoProgress: false });
-      vi.spyOn(scorm12API, "terminate").mockImplementation(async () => global_constants.SCORM_TRUE);
+      vi.spyOn(scorm12API, "terminate").mockImplementation(() => global_constants.SCORM_TRUE);
       const processListenersSpy = vi.spyOn(scorm12API, "processListeners");
       scorm12API.nav.event = "";
 
-      await scorm12API.internalFinish();
+      scorm12API.lmsFinish();
 
       expect(processListenersSpy).not.toHaveBeenCalled();
     });
@@ -180,7 +180,8 @@ describe("SCORM 1.2 API Additional Tests", () => {
 
   describe("lmsCommit()", () => {
     it("should schedule commit when throttleCommits is true", () => {
-      const scorm12API = api({ throttleCommits: true });
+      // throttleCommits requires useAsynchronousCommits
+      const scorm12API = api({ throttleCommits: true, useAsynchronousCommits: true });
       const scheduleCommitSpy = vi.spyOn(scorm12API, "scheduleCommit");
 
       const result = scorm12API.lmsCommit();
@@ -192,24 +193,13 @@ describe("SCORM 1.2 API Additional Tests", () => {
 
     it("should call commit directly when throttleCommits is false", () => {
       const scorm12API = api({ throttleCommits: false });
+      scorm12API.lmsInitialize();
       vi.spyOn(scorm12API, "commit");
 
       const result = scorm12API.lmsCommit();
 
       expect(result).toBe(global_constants.SCORM_TRUE);
       // Note: We can't easily test if commit was called because it's called in an async IIFE
-    });
-  });
-
-  describe("lmsFinish()", () => {
-    it("should call internalFinish and return SCORM_TRUE", () => {
-      const scorm12API = api();
-      vi.spyOn(scorm12API, "internalFinish");
-
-      const result = scorm12API.lmsFinish();
-
-      expect(result).toBe(global_constants.SCORM_TRUE);
-      // Note: We can't easily test if internalFinish was called because it's called in an async IIFE
     });
   });
 });

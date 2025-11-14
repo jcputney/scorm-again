@@ -6,14 +6,15 @@ import { ErrorCode } from "../constants/error_codes";
 import { StringKeyMap } from "../utilities";
 
 /**
- * Service for handling HTTP communication with the LMS
+ * Service for handling asynchronous HTTP communication with the LMS
+ * WARNING: Not SCORM-compliant - always returns immediate success
  */
-export class HttpService implements IHttpService {
+export class AsynchronousHttpService implements IHttpService {
   private settings: InternalSettings;
   private error_codes: ErrorCode;
 
   /**
-   * Constructor for HttpService
+   * Constructor for AsynchronousHttpService
    * @param {Settings} settings - The settings object
    * @param {ErrorCode} error_codes - The error codes object
    */
@@ -23,57 +24,21 @@ export class HttpService implements IHttpService {
   }
 
   /**
-   * Sends HTTP requests to the LMS with special handling for immediate and standard requests.
+   * Sends HTTP requests asynchronously to the LMS
+   * Returns immediate success - actual result handled via events
    *
-   * This method handles communication with the LMS server, implementing two distinct
-   * request handling strategies based on the context:
-   *
-   * 1. Immediate Mode (used during termination):
-   *    When immediate=true, the method:
-   *    - Uses keepalive-compatible delivery (fetch keepalive or sendBeacon)
-   *    - Awaits the transport response so the caller sees success/failure
-   *    - Still avoids blocking the SCO thread longer than necessary
-   *
-   * 2. Standard Mode (normal operation):
-   *    When immediate=false, the method:
-   *    - Processes the request parameters through the configured requestHandler
-   *    - Awaits the fetch response completely
-   *    - Transforms the response using the configured responseHandler
-   *    - Triggers appropriate event listeners based on success/failure
-   *    - Returns the complete result with appropriate error codes
-   *
-   * The method also includes error handling to catch network failures or other
-   * exceptions that might occur during the request process.
+   * WARNING: This is NOT SCORM-compliant. Always returns optimistic success immediately.
+   * The actual HTTP request happens in the background, and success/failure is reported
+   * via CommitSuccess/CommitError events, but NOT to the SCO's commit call.
    *
    * @param {string} url - The URL endpoint to send the request to
    * @param {CommitObject|StringKeyMap|Array} params - The data to send to the LMS
-   * @param {boolean} immediate - Whether to send the request immediately without waiting (true) or process normally (false)
+   * @param {boolean} immediate - Whether to send the request immediately without waiting
    * @param {Function} apiLog - Function to log API messages with appropriate levels
    * @param {Function} processListeners - Function to trigger event listeners for commit events
-   * @return {Promise<ResultObject>} - A promise that resolves with the result of the request
-   *
-   * @example
-   * // Standard request (waits for response)
-   * const result = await httpService.processHttpRequest(
-   *   "https://lms.example.com/commit",
-   *   { cmi: { core: { lesson_status: "completed" } } },
-   *   false,
-   *   console.log,
-   *   (event) => dispatchEvent(new CustomEvent(event))
-   * );
-   *
-   * @example
-   * // Immediate request (for termination)
-   * const result = await httpService.processHttpRequest(
-   *   "https://lms.example.com/commit",
-   *   { cmi: { core: { lesson_status: "completed" } } },
-   *   true,
-   *   console.log,
-   *   (event) => dispatchEvent(new CustomEvent(event))
-   * );
-   * // result reflects the actual LMS response (or failure) even during unload
+   * @return {ResultObject} - Immediate optimistic success result
    */
-  async processHttpRequest(
+  processHttpRequest(
     url: string,
     params: CommitObject | StringKeyMap | Array<any>,
     immediate: boolean = false,
@@ -84,63 +49,30 @@ export class HttpService implements IHttpService {
       CMIElement?: string,
     ) => void,
     processListeners: (functionName: string, CMIElement?: string, value?: any) => void,
-  ): Promise<ResultObject> {
-    const genericError: ResultObject = {
-      result: global_constants.SCORM_FALSE,
-      errorCode: this.error_codes.GENERAL || 101,
+  ): ResultObject {
+    // Fire request in background - don't wait for result
+    this._performAsyncRequest(url, params, immediate, apiLog, processListeners);
+
+    // Immediately return optimistic success
+    return {
+      result: global_constants.SCORM_TRUE,
+      errorCode: 0,
     };
-
-    // If immediate mode (for termination), handle differently
-    if (immediate) {
-      return this._handleImmediateRequest(url, params, apiLog, processListeners);
-    }
-
-    // Standard request processing
-    try {
-      const processedParams = this.settings.requestHandler(params) as
-        | CommitObject
-        | StringKeyMap
-        | Array<any>;
-      const response = await this.performFetch(url, processedParams);
-      return this.transformResponse(response, processListeners);
-    } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : String(e);
-
-      // Enhanced error logging with more context
-      apiLog("processHttpRequest", `HTTP request failed to ${url}: ${message}`, LogLevelEnum.ERROR);
-
-      if (e instanceof Error && e.stack) {
-        apiLog("processHttpRequest", `Stack trace: ${e.stack}`, LogLevelEnum.DEBUG);
-      }
-
-      // Create enhanced error object with more details
-      const enhancedError: ResultObject = {
-        ...genericError,
-        errorMessage: message,
-        errorDetails: JSON.stringify({
-          url,
-          errorType: e instanceof Error ? e.constructor.name : typeof e,
-          originalError: message,
-        }),
-      };
-
-      processListeners("CommitError");
-      return enhancedError;
-    }
   }
 
   /**
-   * Handles an immediate request (used during termination)
+   * Performs the async request in the background
    * @param {string} url - The URL to send the request to
    * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+   * @param {boolean} immediate - Whether this is an immediate request
    * @param apiLog - Function to log API messages
    * @param {Function} processListeners - Function to process event listeners
-   * @return {ResultObject} - A success result object
    * @private
    */
-  private async _handleImmediateRequest(
+  private async _performAsyncRequest(
     url: string,
     params: CommitObject | StringKeyMap | Array<any>,
+    immediate: boolean,
     apiLog: (
       functionName: string,
       message: any,
@@ -148,39 +80,32 @@ export class HttpService implements IHttpService {
       CMIElement?: string,
     ) => void,
     processListeners: (functionName: string, CMIElement?: string, value?: any) => void,
-  ): Promise<ResultObject> {
+  ): Promise<void> {
     try {
-      // Prepare request payload without mutating the original params
-      const requestPayload = this.settings.requestHandler(params) ?? params;
+      const processedParams = this.settings.requestHandler(params) as
+        | CommitObject
+        | StringKeyMap
+        | Array<any>;
 
       let response: Response;
-
-      if (this.settings.useBeaconInsteadOfFetch !== "never") {
-        response = await this.performBeacon(url, requestPayload as StringKeyMap | Array<any>);
+      if (immediate && this.settings.useBeaconInsteadOfFetch !== "never") {
+        response = await this.performBeacon(url, processedParams);
       } else {
-        response = await this.performFetch(url, requestPayload as StringKeyMap | Array<any>);
+        response = await this.performFetch(url, processedParams);
       }
 
-      return await this.transformResponse(response, processListeners);
+      const result = await this.transformResponse(response, processListeners);
+
+      // Trigger listeners based on actual result (after API method returns)
+      if (this._isSuccessResponse(response, result)) {
+        processListeners("CommitSuccess");
+      } else {
+        processListeners("CommitError", undefined, result.errorCode);
+      }
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
-      apiLog(
-        "processHttpRequest",
-        `Immediate HTTP request failed to ${url}: ${message}`,
-        LogLevelEnum.ERROR,
-      );
+      apiLog("processHttpRequest", `Async request failed: ${message}`, LogLevelEnum.ERROR);
       processListeners("CommitError");
-
-      return {
-        result: global_constants.SCORM_FALSE,
-        errorCode: this.error_codes.GENERAL || 101,
-        errorMessage: message,
-        errorDetails: JSON.stringify({
-          url,
-          immediate: true,
-          errorType: e instanceof Error ? e.constructor.name : typeof e,
-        }),
-      };
     }
   }
 
@@ -316,13 +241,7 @@ export class HttpService implements IHttpService {
       };
     }
 
-    // Trigger appropriate event based on success/failure
-    if (this._isSuccessResponse(response, result)) {
-      processListeners("CommitSuccess");
-    } else {
-      processListeners("CommitError", undefined, result.errorCode);
-    }
-
+    // Note: Event triggering is handled by _performAsyncRequest
     return result;
   }
 

@@ -1,7 +1,7 @@
 // noinspection DuplicatedCode
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { HttpService } from "../../src/services/HttpService";
+import { AsynchronousHttpService } from "../../src/services/AsynchronousHttpService";
 import { EventService } from "../../src/services/EventService";
 import { scorm2004_errors } from "../../src";
 import { LogLevelEnum } from "../../src/constants/enums";
@@ -73,7 +73,7 @@ describe("Stress Tests for Concurrent Operations", () => {
       apiLogSpy = vi.fn();
       processListenersSpy = vi.fn();
 
-      httpService = new HttpService(
+      httpService = new AsynchronousHttpService(
         {
           lmsCommitUrl: "/scorm2004",
           logLevel: LogLevelEnum.NONE,
@@ -200,6 +200,7 @@ describe("Stress Tests for Concurrent Operations", () => {
       api = new Scorm2004API({
         logLevel: LogLevelEnum.NONE,
         lmsCommitUrl: "/scorm2004",
+        useAsynchronousCommits: true, // Use async for performance testing concurrent operations
       });
 
       // Initialize the API before running tests
