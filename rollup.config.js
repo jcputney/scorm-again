@@ -131,6 +131,9 @@ const esmEntries = {
 // Determine if we're in production mode
 const isProduction = process.env.NODE_ENV === "production";
 
+// Allow skipping minified builds for faster development
+const skipMinified = process.env.SKIP_MINIFIED === "true";
+
 // Source map configuration - only generate source maps in production
 const generateSourceMap = isProduction;
 
@@ -193,58 +196,60 @@ Object.entries(entries).forEach(([name, input]) => {
     ],
   });
 
-  // Minified build
-  configs.push({
-    input,
-    output: {
-      file: `dist/${name}.min.js`,
-      format: "iife",
-      sourcemap: generateSourceMap,
-      exports: "auto",
-      name: exportName,
-      extend: true,
-    },
-    external: ["window.API", "window.API_1484_11"],
-    plugins: [
-      cache(),
-      esbuild({
-        tsconfig: "./tsconfig.json",
-        sourceMap: generateSourceMap,
-      }),
-      babel({
-        babelHelpers: "bundled",
-        presets: [
-          [
-            "@babel/preset-env",
-            {
-              targets: {
-                browsers: ["ie 11", "> 0.25%, not dead"],
+  // Minified build (skip in dev for faster builds)
+  if (!skipMinified) {
+    configs.push({
+      input,
+      output: {
+        file: `dist/${name}.min.js`,
+        format: "iife",
+        sourcemap: generateSourceMap,
+        exports: "auto",
+        name: exportName,
+        extend: true,
+      },
+      external: ["window.API", "window.API_1484_11"],
+      plugins: [
+        cache(),
+        esbuild({
+          tsconfig: "./tsconfig.json",
+          sourceMap: generateSourceMap,
+        }),
+        babel({
+          babelHelpers: "bundled",
+          presets: [
+            [
+              "@babel/preset-env",
+              {
+                targets: {
+                  browsers: ["ie 11", "> 0.25%, not dead"],
+                },
               },
-            },
+            ],
           ],
-        ],
-        extensions: [".js", ".ts"],
-      }),
-      terser({
-        compress: {
-          passes: 3,
-          drop_console: false,
-          pure_getters: true,
-          unsafe: true,
-          unsafe_comps: true,
-          unsafe_math: true,
-          unsafe_methods: true,
-          unsafe_proto: true,
-        },
-        format: {
-          comments: false,
-        },
-        mangle: {
-          reserved: reservedWords,
-        },
-      }),
-    ],
-  });
+          extensions: [".js", ".ts"],
+        }),
+        terser({
+          compress: {
+            passes: 2, // Reduced from 3 to 2 for faster builds
+            drop_console: false,
+            pure_getters: true,
+            unsafe: true,
+            unsafe_comps: true,
+            unsafe_math: true,
+            unsafe_methods: true,
+            unsafe_proto: true,
+          },
+          format: {
+            comments: false,
+          },
+          mangle: {
+            reserved: reservedWords,
+          },
+        }),
+      ],
+    });
+  }
 });
 
 Object.entries(esmEntries).forEach(([name, input]) => {
@@ -268,43 +273,45 @@ Object.entries(esmEntries).forEach(([name, input]) => {
     ],
   });
 
-  // ESM minified copies
-  configs.push({
-    input,
-    output: {
-      file: `dist/esm/${name}.min.js`,
-      format: "es",
-      sourcemap: generateSourceMap,
-      exports: "auto",
-    },
-    external: ["window.API", "window.API_1484_11"],
-    plugins: [
-      cache(),
-      esbuild({
-        tsconfig: "./tsconfig.json",
-        sourceMap: generateSourceMap,
-        target: "es2022",
-      }),
-      terser({
-        compress: {
-          passes: 3,
-          drop_console: false,
-          pure_getters: true,
-          unsafe: true,
-          unsafe_comps: true,
-          unsafe_math: true,
-          unsafe_methods: true,
-          unsafe_proto: true,
-        },
-        format: {
-          comments: false,
-        },
-        mangle: {
-          reserved: reservedWords,
-        },
-      }),
-    ],
-  });
+  // ESM minified copies (skip in dev for faster builds)
+  if (!skipMinified) {
+    configs.push({
+      input,
+      output: {
+        file: `dist/esm/${name}.min.js`,
+        format: "es",
+        sourcemap: generateSourceMap,
+        exports: "auto",
+      },
+      external: ["window.API", "window.API_1484_11"],
+      plugins: [
+        cache(),
+        esbuild({
+          tsconfig: "./tsconfig.json",
+          sourceMap: generateSourceMap,
+          target: "es2022",
+        }),
+        terser({
+          compress: {
+            passes: 2, // Reduced from 3 to 2 for faster builds
+            drop_console: false,
+            pure_getters: true,
+            unsafe: true,
+            unsafe_comps: true,
+            unsafe_math: true,
+            unsafe_methods: true,
+            unsafe_proto: true,
+          },
+          format: {
+            comments: false,
+          },
+          mangle: {
+            reserved: reservedWords,
+          },
+        }),
+      ],
+    });
+  }
 });
 
 // Add maxParallelFileOps to each config

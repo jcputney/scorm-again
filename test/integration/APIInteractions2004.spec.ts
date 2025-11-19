@@ -18,12 +18,12 @@ declare global {
 const wrappers = [
   {
     name: "Standard",
-    path: "/test/integration/wrappers/scorm2004-wrapper.html",
+    path: "/test/integration/wrappers/scorm2004-wrapper.html"
   },
   {
     name: "ESM",
-    path: "/test/integration/wrappers/scorm2004-wrapper-esm.html",
-  },
+    path: "/test/integration/wrappers/scorm2004-wrapper-esm.html"
+  }
 ];
 
 // Run tests for each wrapper type
@@ -41,7 +41,7 @@ wrappers.forEach((wrapper) => {
 
       // Navigate to the SCORM 2004 wrapper with the basic calls module
       await page.goto(
-        `${wrapper.path}?module=/test/integration/modules/RuntimeBasicCalls_SCORM20043rdEdition/shared/launchpage.html`,
+        `${wrapper.path}?module=/test/integration/modules/RuntimeBasicCalls_SCORM20043rdEdition/shared/launchpage.html`
       );
 
       // Wait for the page to load and the SCORM API to be initialized
@@ -58,31 +58,31 @@ wrappers.forEach((wrapper) => {
         const results = {
           learnerName: {
             set: window.API_1484_11.lmsSetValue("cmi.learner_name", "Test Student"),
-            get: window.API_1484_11.lmsGetValue("cmi.learner_name"),
+            get: window.API_1484_11.lmsGetValue("cmi.learner_name")
           },
           location: {
             set: window.API_1484_11.lmsSetValue("cmi.location", "page1"),
-            get: window.API_1484_11.lmsGetValue("cmi.location"),
+            get: window.API_1484_11.lmsGetValue("cmi.location")
           },
           suspendData: {
             set: window.API_1484_11.lmsSetValue("cmi.suspend_data", "test suspend data"),
-            get: window.API_1484_11.lmsGetValue("cmi.suspend_data"),
+            get: window.API_1484_11.lmsGetValue("cmi.suspend_data")
           },
           completionStatus: {
             set: window.API_1484_11.lmsSetValue("cmi.completion_status", "incomplete"),
-            get: window.API_1484_11.lmsGetValue("cmi.completion_status"),
+            get: window.API_1484_11.lmsGetValue("cmi.completion_status")
           },
           successStatus: {
             set: window.API_1484_11.lmsSetValue("cmi.success_status", "unknown"),
-            get: window.API_1484_11.lmsGetValue("cmi.success_status"),
+            get: window.API_1484_11.lmsGetValue("cmi.success_status")
           },
           score: {
             setRaw: window.API_1484_11.lmsSetValue("cmi.score.raw", "85"),
             getRaw: window.API_1484_11.lmsGetValue("cmi.score.raw"),
             setScaled: window.API_1484_11.lmsSetValue("cmi.score.scaled", "0.85"),
-            getScaled: window.API_1484_11.lmsGetValue("cmi.score.scaled"),
+            getScaled: window.API_1484_11.lmsGetValue("cmi.score.scaled")
           },
-          commit: window.API_1484_11.lmsCommit(),
+          commit: window.API_1484_11.lmsCommit()
         };
 
         // Test error handling
@@ -91,13 +91,13 @@ wrappers.forEach((wrapper) => {
             setValue: window.API_1484_11.SetValue("cmi.invalid_element", "test"),
             errorCode: window.API_1484_11.GetLastError(),
             errorString: window.API_1484_11.GetErrorString(window.API_1484_11.GetLastError()),
-            diagnosticInfo: window.API_1484_11.GetDiagnostic(window.API_1484_11.GetLastError()),
+            diagnosticInfo: window.API_1484_11.GetDiagnostic(window.API_1484_11.GetLastError())
           },
           readOnlyElement: {
             setValue: window.API_1484_11.SetValue("cmi.learner_id", "12345"),
             errorCode: window.API_1484_11.GetLastError(),
             errorString: window.API_1484_11.GetErrorString(window.API_1484_11.GetLastError()),
-            diagnosticInfo: window.API_1484_11.GetDiagnostic(window.API_1484_11.GetLastError()),
+            diagnosticInfo: window.API_1484_11.GetDiagnostic(window.API_1484_11.GetLastError())
           },
           typeMismatch: {
             // Set up an interaction
@@ -106,22 +106,22 @@ wrappers.forEach((wrapper) => {
             // Try to set an invalid value for a true-false interaction (should be "true" or "false")
             setValue: window.API_1484_11.SetValue(
               "cmi.interactions.0.correct_responses.0.pattern",
-              "invalid_value",
+              "invalid_value"
             ),
             errorCode: window.API_1484_11.GetLastError(),
             errorString: window.API_1484_11.GetErrorString(window.API_1484_11.GetLastError()),
-            diagnosticInfo: window.API_1484_11.GetDiagnostic(window.API_1484_11.GetLastError()),
+            diagnosticInfo: window.API_1484_11.GetDiagnostic(window.API_1484_11.GetLastError())
           },
           invalidTimestamp: {
             // Try to set an invalid timestamp value
             setValue: window.API_1484_11.SetValue(
               "cmi.interactions.0.timestamp",
-              "invalid_timestamp",
+              "invalid_timestamp"
             ),
             errorCode: window.API_1484_11.GetLastError(),
             errorString: window.API_1484_11.GetErrorString(window.API_1484_11.GetLastError()),
-            diagnosticInfo: window.API_1484_11.GetDiagnostic(window.API_1484_11.GetLastError()),
-          },
+            diagnosticInfo: window.API_1484_11.GetDiagnostic(window.API_1484_11.GetLastError())
+          }
         };
 
         return { results, errorHandling };
@@ -147,19 +147,19 @@ wrappers.forEach((wrapper) => {
       // Verify that error handling worked correctly
       expect(testInteractions.errorHandling.invalidElement.setValue).toBe("false");
       expect(testInteractions.errorHandling.invalidElement.errorCode).toBe(
-        "401", // UNDEFINED_DATA_MODEL
+        "401" // UNDEFINED_DATA_MODEL
       );
       expect(testInteractions.errorHandling.invalidElement.errorString.length).toBeGreaterThan(0);
       expect(testInteractions.errorHandling.invalidElement.diagnosticInfo.length).toBeGreaterThan(
-        0,
+        0
       );
       expect(testInteractions.errorHandling.readOnlyElement.setValue).toBe("false");
       expect(testInteractions.errorHandling.readOnlyElement.errorCode).toBe(
-        "404", // READ_ONLY_ELEMENT
+        "404" // READ_ONLY_ELEMENT
       );
       expect(testInteractions.errorHandling.readOnlyElement.errorString.length).toBeGreaterThan(0);
       expect(testInteractions.errorHandling.readOnlyElement.diagnosticInfo.length).toBeGreaterThan(
-        0,
+        0
       );
 
       // Verify TYPE_MISMATCH error for invalid interaction value
@@ -167,7 +167,7 @@ wrappers.forEach((wrapper) => {
       expect(testInteractions.errorHandling.typeMismatch.setupType).toBe("true");
       expect(testInteractions.errorHandling.typeMismatch.setValue).toBe("false");
       expect(testInteractions.errorHandling.typeMismatch.errorCode).toBe(
-        "406", // TYPE_MISMATCH
+        "406" // TYPE_MISMATCH
       );
       expect(testInteractions.errorHandling.typeMismatch.errorString.length).toBeGreaterThan(0);
       expect(testInteractions.errorHandling.typeMismatch.diagnosticInfo.length).toBeGreaterThan(0);
@@ -175,11 +175,11 @@ wrappers.forEach((wrapper) => {
       // Verify TYPE_MISMATCH error for invalid timestamp
       expect(testInteractions.errorHandling.invalidTimestamp.setValue).toBe("false");
       expect(testInteractions.errorHandling.invalidTimestamp.errorCode).toBe(
-        "406", // TYPE_MISMATCH
+        "406" // TYPE_MISMATCH
       );
       expect(testInteractions.errorHandling.invalidTimestamp.errorString.length).toBeGreaterThan(0);
       expect(testInteractions.errorHandling.invalidTimestamp.diagnosticInfo.length).toBeGreaterThan(
-        0,
+        0
       );
 
       // Test finishing the session
@@ -192,7 +192,7 @@ wrappers.forEach((wrapper) => {
     test("should handle advanced data model interactions", async ({ page }) => {
       // Navigate to the SCORM 2004 wrapper with the advanced calls module
       await page.goto(
-        `${wrapper.path}?module=/test/integration/modules/RunTimeAdvancedCalls_SCORM20043rdEdition/shared/launchpage.html`,
+        `${wrapper.path}?module=/test/integration/modules/RunTimeAdvancedCalls_SCORM20043rdEdition/shared/launchpage.html`
       );
 
       // Wait for the page to load and the SCORM API to be initialized
@@ -210,17 +210,17 @@ wrappers.forEach((wrapper) => {
           // Create a new interaction
           createInteraction: window.API_1484_11.lmsSetValue(
             "cmi.interactions.0.id",
-            "interaction_1",
+            "interaction_1"
           ),
           setType: window.API_1484_11.lmsSetValue("cmi.interactions.0.type", "choice"),
           setTimestamp: window.API_1484_11.lmsSetValue(
             "cmi.interactions.0.timestamp",
-            new Date().toISOString(),
+            new Date().toISOString()
           ),
           setWeighting: window.API_1484_11.lmsSetValue("cmi.interactions.0.weighting", "1"),
           setLearnerResponse: window.API_1484_11.lmsSetValue(
             "cmi.interactions.0.learner_response",
-            "a[,]b",
+            "a[,]b"
           ),
           setResult: window.API_1484_11.lmsSetValue("cmi.interactions.0.result", "correct"),
           setLatency: window.API_1484_11.lmsSetValue("cmi.interactions.0.latency", "PT1M30S"),
@@ -228,17 +228,17 @@ wrappers.forEach((wrapper) => {
           // Add correct responses
           setCorrectResponse: window.API_1484_11.lmsSetValue(
             "cmi.interactions.0.correct_responses.0.pattern",
-            "a[,]b",
+            "a[,]b"
           ),
 
           // Add objectives to the interaction
           setObjective: window.API_1484_11.lmsSetValue(
             "cmi.interactions.0.objectives.0.id",
-            "objective_1",
+            "objective_1"
           ),
 
           // Get the interaction count
-          getInteractionCount: window.API_1484_11.lmsGetValue("cmi.interactions._count"),
+          getInteractionCount: window.API_1484_11.lmsGetValue("cmi.interactions._count")
         };
 
         // Test objectives array
@@ -249,19 +249,19 @@ wrappers.forEach((wrapper) => {
           setScoreScaled: window.API_1484_11.lmsSetValue("cmi.objectives.0.score.scaled", "0.9"),
           setSuccessStatus: window.API_1484_11.lmsSetValue(
             "cmi.objectives.0.success_status",
-            "passed",
+            "passed"
           ),
           setCompletionStatus: window.API_1484_11.lmsSetValue(
             "cmi.objectives.0.completion_status",
-            "completed",
+            "completed"
           ),
           setDescription: window.API_1484_11.lmsSetValue(
             "cmi.objectives.0.description",
-            "Test objective",
+            "Test objective"
           ),
 
           // Get the objective count
-          getObjectiveCount: window.API_1484_11.lmsGetValue("cmi.objectives._count"),
+          getObjectiveCount: window.API_1484_11.lmsGetValue("cmi.objectives._count")
         };
 
         // Test comments from learner
@@ -269,19 +269,19 @@ wrappers.forEach((wrapper) => {
           // Add a comment
           setComment: window.API_1484_11.lmsSetValue(
             "cmi.comments_from_learner.0.comment",
-            "This is a test comment",
+            "This is a test comment"
           ),
           setLocation: window.API_1484_11.lmsSetValue(
             "cmi.comments_from_learner.0.location",
-            "Page 1",
+            "Page 1"
           ),
           setTimestamp: window.API_1484_11.lmsSetValue(
             "cmi.comments_from_learner.0.timestamp",
-            new Date().toISOString(),
+            new Date().toISOString()
           ),
 
           // Get the comment count
-          getCommentCount: window.API_1484_11.lmsGetValue("cmi.comments_from_learner._count"),
+          getCommentCount: window.API_1484_11.lmsGetValue("cmi.comments_from_learner._count")
         };
 
         // Commit the data
@@ -291,7 +291,7 @@ wrappers.forEach((wrapper) => {
           interactionResults,
           objectiveResults,
           commentsResults,
-          commitResult,
+          commitResult
         };
       });
 

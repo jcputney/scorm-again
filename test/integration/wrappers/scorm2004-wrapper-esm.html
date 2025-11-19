@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SCORM 2004 ESM Wrapper</title>
   <script type="module">
-    import {Scorm2004API} from "/dist/esm/scorm2004.min.js";
+    import {Scorm2004API} from "/dist/esm/scorm2004.js";
 
     const sequencingDefaults = {
       hideLmsUi: ["exitAll", "abandonAll"],
       auxiliaryResources: [
-        { resourceId: "urn:scorm-again:help", purpose: "help" },
-        { resourceId: "urn:scorm-again:glossary", purpose: "glossary" },
+        {resourceId: "urn:scorm-again:help", purpose: "help"},
+        {resourceId: "urn:scorm-again:glossary", purpose: "glossary"},
       ],
     };
 
@@ -105,7 +105,7 @@
           if (!resourceId || merged.has(resourceId)) {
             continue;
           }
-          merged.set(resourceId, { resourceId, purpose });
+          merged.set(resourceId, {resourceId, purpose});
         }
       };
 
@@ -113,6 +113,22 @@
       addAll(payload?.auxiliaryResources);
 
       return Array.from(merged.values());
+    }
+
+    function isSequencingAvailable() {
+      // Check if sequencing is available by checking if sequencing service exists
+      // and if there's an activity tree configured
+      if (!window.API_1484_11) {
+        return false;
+      }
+      const sequencingService = window.API_1484_11.getSequencingService();
+      if (!sequencingService) {
+        return false;
+      }
+      // Check if activity tree has a root (sequencing is configured)
+      const sequencingState = window.API_1484_11.getSequencingState();
+      // Sequencing is available if there's a root activity (hasActivityTree check)
+      return sequencingState && sequencingState.rootActivity !== null;
     }
 
     function applyNavigationState(update = {}) {
@@ -124,6 +140,9 @@
       };
       const payload = lastNavigationPayload;
 
+      // Check if sequencing is available - if not, hide all navigation buttons
+      const sequencingAvailable = isSequencingAvailable();
+
       const hidden = new Set(sequencingDefaults.hideLmsUi ?? []);
       if (Array.isArray(payload.hideLmsUi)) {
         for (const directive of payload.hideLmsUi) {
@@ -133,26 +152,38 @@
         }
       }
 
-      navMap.forEach((button, directive) => {
-        const shouldHide = hidden.has(directive);
-        button.classList.toggle('is-hidden', shouldHide);
-        button.hidden = shouldHide;
-        button.setAttribute('aria-hidden', shouldHide ? 'true' : 'false');
-        button.tabIndex = shouldHide ? -1 : 0;
-      });
+      // If sequencing is not available, hide all navigation buttons
+      if (!sequencingAvailable) {
+        navMap.forEach((button) => {
+          button.classList.add('is-hidden');
+          button.hidden = true;
+          button.setAttribute('aria-hidden', 'true');
+          button.tabIndex = -1;
+          button.disabled = true;
+        });
+      } else {
+        // Sequencing is available - apply normal visibility rules
+        navMap.forEach((button, directive) => {
+          const shouldHide = hidden.has(directive);
+          button.classList.toggle('is-hidden', shouldHide);
+          button.hidden = shouldHide;
+          button.setAttribute('aria-hidden', shouldHide ? 'true' : 'false');
+          button.tabIndex = shouldHide ? -1 : 0;
+        });
 
-      const continueButton = navMap.get('continue');
-      if (continueButton) {
-        const canContinue = payload.continue;
-        const shouldDisable = canContinue === false || canContinue === 'false';
-        continueButton.disabled = shouldDisable;
-      }
+        const continueButton = navMap.get('continue');
+        if (continueButton) {
+          const canContinue = payload.continue;
+          const shouldDisable = canContinue === false || canContinue === 'false';
+          continueButton.disabled = shouldDisable;
+        }
 
-      const previousButton = navMap.get('previous');
-      if (previousButton) {
-        const canPrevious = payload.previous;
-        const shouldDisable = canPrevious === false || canPrevious === 'false';
-        previousButton.disabled = shouldDisable;
+        const previousButton = navMap.get('previous');
+        if (previousButton) {
+          const canPrevious = payload.previous;
+          const shouldDisable = canPrevious === false || canPrevious === 'false';
+          previousButton.disabled = shouldDisable;
+        }
       }
 
       const hideList = document.getElementById('hide-directives');
@@ -169,7 +200,7 @@
           li.textContent = 'None';
           auxList.appendChild(li);
         } else {
-          auxiliaryResources.forEach(({ resourceId, purpose }) => {
+          auxiliaryResources.forEach(({resourceId, purpose}) => {
             const li = document.createElement('li');
             const label = purpose ? `${purpose}` : 'resource';
             li.textContent = `${label}: ${resourceId}`;
@@ -179,6 +210,57 @@
       }
     }
 
+    // Resource map: maps activity identifierref to resource URLs
+    // In a real LMS, this would be built from the manifest
+    const resourceMap = new Map();
+
+    // Function to build resource URL from activity
+    // In a real LMS, this would look up the resource in the manifest
+    function getResourceUrl(activity) {
+      if (!activity) return null;
+
+      // Try to get identifierref from activity metadata or settings
+      // For test modules, we'll construct URLs based on common patterns
+      const activityId = activity.id || '';
+      const identifierref = activity.identifierref || activity.resourceId || null;
+      const parameters = activity.parameters || '';
+
+      // If we have a resource map entry, use it
+      if (identifierref && resourceMap.has(identifierref)) {
+        const baseUrl = resourceMap.get(identifierref);
+        return parameters ? baseUrl + parameters : baseUrl;
+      }
+
+      // For test modules, construct URL based on activity ID patterns
+      // This is a fallback for test environments
+      if (activityId.includes('playing')) {
+        return '/test/integration/modules/' + getModuleBasePath() + '/shared/launchpage.html?content=playing';
+      } else if (activityId.includes('etiquette') || activityId.includes('etuqiette')) {
+        return '/test/integration/modules/' + getModuleBasePath() + '/shared/launchpage.html?content=etiquette';
+      } else if (activityId.includes('handicapping')) {
+        return '/test/integration/modules/' + getModuleBasePath() + '/shared/launchpage.html?content=handicapping';
+      } else if (activityId.includes('havingfun')) {
+        return '/test/integration/modules/' + getModuleBasePath() + '/shared/launchpage.html?content=havingfun';
+      } else if (activityId.includes('test') || activityId.includes('assessment')) {
+        const testNum = activityId.match(/\d+/);
+        const contentParam = testNum ? '?content=assessment' + testNum[0] : '?content=assessment';
+        return '/test/integration/modules/' + getModuleBasePath() + '/shared/launchpage.html' + (parameters || contentParam);
+      }
+
+      return null;
+    }
+
+    // Extract module base path from current module URL
+    function getModuleBasePath() {
+      const modulePath = getModulePath();
+      if (!modulePath) return '';
+      // Extract path up to the module directory
+      // e.g., /test/integration/modules/SequencingForcedSequential_SCORM20043rdEdition/shared/launchpage.html
+      // -> SequencingForcedSequential_SCORM20043rdEdition
+      const match = modulePath.match(/\/modules\/([^\/]+)/);
+      return match ? match[1] : '';
+    }
+
     window.API_1484_11.setSequencingEventListeners({
       onNavigationValidityUpdate: applyNavigationState,
       onActivityDelivery: (activity) => {
@@ -186,6 +268,26 @@
           hideLmsUi: activity?.hideLmsUi,
           auxiliaryResources: activity?.auxiliaryResources,
         });
+
+        // Load new SCO content when activity is delivered
+        // This is what a real LMS would do
+        if (activity && activity.id) {
+          const resourceUrl = getResourceUrl(activity);
+          if (resourceUrl) {
+            // Reset the API before loading new SCO
+            // This resets SCO-specific data while preserving global objectives
+            // The reset() method is designed for transitioning between SCOs
+            if (window.API_1484_11 && typeof window.API_1484_11.reset === 'function') {
+              window.API_1484_11.reset();
+            }
+            
+            const moduleFrame = document.getElementById("moduleFrame");
+            if (moduleFrame) {
+              // Load the new SCO content
+              moduleFrame.src = resourceUrl;
+            }
+          }
+        }
       },
     });
 
@@ -201,14 +303,19 @@
     window.addEventListener('DOMContentLoaded', () => {
       refreshNavMap();
       bindNavigationHandlers();
-      applyNavigationState();
+
+      // Apply initial navigation state after API is ready
+      // For non-sequenced modules, this will hide navigation buttons
+      setTimeout(() => {
+        applyNavigationState();
+      }, 100);
 
       const modulePath = getModulePath();
       if (modulePath) {
         loadModule(modulePath);
       } else {
         document.getElementById("error").textContent =
-          "No module specified. Use ?module=path/to/module.html";
+            "No module specified. Use ?module=path/to/module.html";
       }
     });
   </script>
@@ -326,7 +433,10 @@
 </div>
 <section id="auxiliary-resources">
   <h2>Auxiliary Resources</h2>
-  <ul id="aux-resources" aria-live="polite"><li>help: urn:scorm-again:help</li><li>glossary: urn:scorm-again:glossary</li></ul>
+  <ul id="aux-resources" aria-live="polite">
+    <li>help: urn:scorm-again:help</li>
+    <li>glossary: urn:scorm-again:glossary</li>
+  </ul>
 </section>
 <iframe id="moduleFrame" title="SCORM Module"></iframe>
 <div id="error"></div>

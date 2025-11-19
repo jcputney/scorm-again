@@ -11,8 +11,8 @@
     const sequencingDefaults = {
       hideLmsUi: ["exitAll", "abandonAll"],
       auxiliaryResources: [
-        { resourceId: "urn:scorm-again:help", purpose: "help" },
-        { resourceId: "urn:scorm-again:glossary", purpose: "glossary" },
+        {resourceId: "urn:scorm-again:help", purpose: "help"},
+        {resourceId: "urn:scorm-again:glossary", purpose: "glossary"},
       ],
     };
 
@@ -78,7 +78,7 @@
           if (!resourceId || merged.has(resourceId)) {
             continue;
           }
-          merged.set(resourceId, { resourceId, purpose });
+          merged.set(resourceId, {resourceId, purpose});
         }
       };
 
@@ -142,7 +142,7 @@
           li.textContent = 'None';
           auxList.appendChild(li);
         } else {
-          auxiliaryResources.forEach(({ resourceId, purpose }) => {
+          auxiliaryResources.forEach(({resourceId, purpose}) => {
             const li = document.createElement('li');
             const label = purpose ? `${purpose}` : 'resource';
             li.textContent = `${label}: ${resourceId}`;
@@ -360,7 +360,10 @@
 </div>
 <section id="auxiliary-resources">
   <h2>Auxiliary Resources</h2>
-  <ul id="aux-resources" aria-live="polite"><li>help: urn:scorm-again:help</li><li>glossary: urn:scorm-again:glossary</li></ul>
+  <ul id="aux-resources" aria-live="polite">
+    <li>help: urn:scorm-again:help</li>
+    <li>glossary: urn:scorm-again:glossary</li>
+  </ul>
 </section>
 <iframe id="moduleFrame" title="SCORM Module"></iframe>
 <div id="error"></div>

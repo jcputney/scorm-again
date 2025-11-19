@@ -11,16 +11,16 @@ type WrapperConfig = {
 const wrappers: WrapperConfig[] = [
   {
     name: "Standard",
-    path: "/test/integration/wrappers/scorm2004-wrapper.html",
+    path: "/test/integration/wrappers/scorm2004-wrapper.html"
   },
   {
     name: "ESM",
-    path: "/test/integration/wrappers/scorm2004-wrapper-esm.html",
+    path: "/test/integration/wrappers/scorm2004-wrapper-esm.html"
   },
   {
     name: "Cross-frame",
-    path: "/test/integration/wrappers/scorm2004-wrapper-cross-frame.html",
-  },
+    path: "/test/integration/wrappers/scorm2004-wrapper-cross-frame.html"
+  }
 ];
 
 wrappers.forEach((wrapper) => {
@@ -31,7 +31,7 @@ wrappers.forEach((wrapper) => {
       // Wait for the sequencing API wiring to register and update the UI
       await page.waitForFunction(() => {
         const continueButton = document.querySelector<HTMLButtonElement>(
-          "[data-directive='continue']",
+          "[data-directive='continue']"
         );
         return Boolean(continueButton && !continueButton.hidden);
       });
@@ -57,12 +57,12 @@ wrappers.forEach((wrapper) => {
       await expect(auxList).toHaveCount(2);
       const auxItems = await auxList.allTextContents();
       expect(
-        auxItems.some((text) => text.includes("help") && text.includes("urn:scorm-again:help")),
+        auxItems.some((text) => text.includes("help") && text.includes("urn:scorm-again:help"))
       ).toBe(true);
       expect(
         auxItems.some(
-          (text) => text.includes("glossary") && text.includes("urn:scorm-again:glossary"),
-        ),
+          (text) => text.includes("glossary") && text.includes("urn:scorm-again:glossary")
+        )
       ).toBe(true);
     });
   });

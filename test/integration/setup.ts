@@ -124,12 +124,12 @@ function startServer(): child_process.ChildProcess {
       "--cors",
       "-c-1", // Disable caching
       // "-o", // Don't open browser
-      "-s", // Silent mode (no logging)
+      "-s" // Silent mode (no logging)
     ],
     {
       stdio: ["ignore", "pipe", "pipe"],
-      detached: false,
-    },
+      detached: false
+    }
   );
 
   // Log server output

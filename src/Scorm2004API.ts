@@ -124,6 +124,26 @@ class Scorm2004API extends BaseAPI {
 
   /**
    * Called when the API needs to be reset
+   * 
+   * This method is designed for transitioning between SCOs in a sequenced course.
+   * When called, it resets SCO-specific data while preserving global objectives.
+   * 
+   * What gets reset:
+   * - SCO-specific CMI data (location, entry, session time, interactions, score)
+   * - Sequencing state (activity tree, current activity, etc.)
+   * - ADL navigation state
+   * 
+   * What is preserved:
+   * - Global objectives (_globalObjectives array) - these persist across SCO transitions
+   *   to allow activities to share objective data via mapInfo
+   * 
+   * According to SCORM 2004 Sequencing and Navigation (SN) Book:
+   * - Content Delivery Environment Process (DB.2) requires API reset between SCOs
+   * - Global objectives must persist to support cross-activity objective tracking
+   * - SCO-specific objectives in cmi.objectives are reset (via objectives.reset(false))
+   *   but the array structure is maintained
+   * 
+   * @param {Settings} settings - Optional new settings to merge with existing settings
    */
   reset(settings?: Settings) {
     this.commonReset(settings);
@@ -131,6 +151,10 @@ class Scorm2004API extends BaseAPI {
     this.cmi?.reset();
     this.adl?.reset();
     this._sequencing?.reset();
+    
+    // Note: _globalObjectives is intentionally NOT reset here
+    // Global objectives must persist across SCO transitions to support
+    // cross-activity objective tracking via mapInfo (SCORM 2004 SN Book SB.2.4)
   }
 
   /**
@@ -143,6 +167,14 @@ class Scorm2004API extends BaseAPI {
 
   /**
    * Getter for _globalObjectives
+   * 
+   * Global objectives persist across SCO transitions and are used for cross-activity
+   * objective tracking via mapInfo (SCORM 2004 SN Book SB.2.4).
+   * 
+   * These objectives are NOT reset when reset() is called, allowing activities
+   * to share objective data across SCO boundaries.
+   * 
+   * @return {CMIObjectivesObject[]} Array of global objective objects
    */
   get globalObjectives(): CMIObjectivesObject[] {
     return this._globalObjectives;
@@ -424,10 +456,13 @@ class Scorm2004API extends BaseAPI {
       }
 
       // Check if the objective ID matches a global objective
+      // Global objectives are identified via settings.globalObjectiveIds
+      // These objectives persist across SCO transitions (SCORM 2004 SN Book SB.2.4)
       const is_global = objective_id && this.settings.globalObjectiveIds?.includes(objective_id);
 
       if (is_global) {
         // Locate or create an entry in _globalObjectives for the global objective
+        // This array persists across reset() calls, allowing cross-activity tracking
         let global_index = this._globalObjectives.findIndex((obj) => obj.id === objective_id);
 
         if (global_index === -1) {
@@ -437,13 +472,15 @@ class Scorm2004API extends BaseAPI {
           this._globalObjectives.push(newGlobalObjective);
         }
 
-        // Update the global objective
+        // Update the global objective in the persistent storage
         const global_element = CMIElement.replace(
           element_base,
           `_globalObjectives.${global_index}`,
         );
         this._commonSetCMIValue("SetGlobalObjectiveValue", true, global_element, value);
 
+        // Synchronize with sequencing service global objective map
+        // This ensures sequencing rules can evaluate the objective status
         const updatedObjective = this._globalObjectives[global_index];
         if (objective_id && updatedObjective) {
           this.updateGlobalObjectiveFromCMI(objective_id, updatedObjective);
@@ -2267,6 +2304,24 @@ class Scorm2004API extends BaseAPI {
     return entry;
   }
 
+  /**
+   * Updates the global objective map in the sequencing service from CMI objective data.
+   * 
+   * This method synchronizes global objectives between:
+   * - _globalObjectives array (persists across SCO transitions)
+   * - Sequencing service global objective map (used for sequencing decisions)
+   * 
+   * When a SCO writes to a global objective via SetValue, this method ensures
+   * the sequencing service is updated so that sequencing rules can evaluate
+   * the objective status correctly.
+   * 
+   * According to SCORM 2004 SN Book SB.2.4, global objectives must be synchronized
+   * across all activities that reference them via mapInfo.
+   * 
+   * @param {string} objectiveId - The global objective ID
+   * @param {CMIObjectivesObject} objective - The CMI objective object with updated values
+   * @private
+   */
   private updateGlobalObjectiveFromCMI(objectiveId: string, objective: CMIObjectivesObject): void {
     if (!objectiveId || !this._sequencingService) {
       return;

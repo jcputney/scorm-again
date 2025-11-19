@@ -28,7 +28,7 @@ test.describe("Module Loading Tests", () => {
     // Validate individual module loadings through test results
     const testResults = await page.evaluate(() => {
       const results = {};
-      document.querySelectorAll('[id$="-result"]').forEach((element) => {
+      document.querySelectorAll("[id$=\"-result\"]").forEach((element) => {
         const id = element.id;
         (results as any)[id] = element.classList.contains("success");
       });

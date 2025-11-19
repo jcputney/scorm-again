@@ -80,6 +80,18 @@ export class CMI extends BaseRootCMI {
 
   /**
    * Called when API is moving to another SCO
+   * 
+   * Resets SCO-specific CMI data while preserving global objectives.
+   * 
+   * The objectives.reset(false) call resets individual objective objects
+   * but maintains the array structure. Global objectives stored in
+   * Scorm2004API._globalObjectives are preserved separately and are not
+   * affected by this reset.
+   * 
+   * This aligns with SCORM 2004 Sequencing and Navigation (SN) Book:
+   * - Content Delivery Environment Process (DB.2) requires reset between SCOs
+   * - Global objectives (via mapInfo) must persist across SCO transitions
+   * - SCO-specific data (location, entry, session, interactions) must be reset
    */
   reset() {
     this._initialized = false;
@@ -94,6 +106,8 @@ export class CMI extends BaseRootCMI {
     this.thresholds?.reset();
 
     // Reset original complex objects
+    // objectives.reset(false) - false means keep array structure, reset individual objectives
+    // This allows global objectives to persist while SCO-specific objectives are reset
     this.objectives?.reset(false);
     this.interactions?.reset(true);
     this.score?.reset();

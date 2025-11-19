@@ -33,7 +33,8 @@ async function startServer() {
 
     // Keep the process alive by setting an interval that does nothing
     // This prevents the Node.js process from exiting after starting the server
-    setInterval(() => {}, 1000);
+    setInterval(() => {
+    }, 1000);
   } catch (err) {
     console.error("Failed to start server:", err);
     process.exit(1);
@@ -48,5 +49,5 @@ startServer().then(
   (err) => {
     console.error("Error starting server:", err);
     process.exit(1);
-  },
+  }
 );

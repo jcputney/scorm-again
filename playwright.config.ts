@@ -13,6 +13,8 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
+  /* Maximize parallel workers - defaults to 50% of CPU cores, this uses all cores */
+  workers: process.env.CI ? "50%" : "100%",
   /* Reporter to use */
   reporter: "html",
   /* Shared settings for all the projects below */
@@ -21,29 +23,38 @@ export default defineConfig({
     baseURL: "http://localhost:3000",
     /* Collect trace when retrying the failed test */
     trace: "on-first-retry",
-    /* Record video for failed tests */
-    video: "on-first-retry",
+    /* Record video: "off" | "on" | "on-first-retry" | "retain-on-failure" */
+    /* "on" records all tests, "retain-on-failure" records all but only keeps failed ones */
+    video: process.env.RECORD_VIDEO === "true" ? "on" : "on-first-retry",
     /* Take a screenshot for failed tests */
     screenshot: {
       mode: "only-on-failure",
-      fullPage: true,
-    },
+      fullPage: true
+    }
   },
   /* Configure projects for major browsers */
-  projects: [
-    {
-      name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
-    },
-    {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
-    },
-    {
-      name: "webkit",
-      use: { ...devices["Desktop Safari"] },
-    },
-  ],
+  projects: process.env.CI
+    ? [
+      {
+        name: "chromium",
+        use: { ...devices["Desktop Chrome"] }
+      },
+      {
+        name: "firefox",
+        use: { ...devices["Desktop Firefox"] }
+      },
+      {
+        name: "webkit",
+        use: { ...devices["Desktop Safari"] }
+      }
+    ]
+    : [
+      // Run only chromium locally for faster feedback
+      {
+        name: "chromium",
+        use: { ...devices["Desktop Chrome"] }
+      }
+    ],
   /* Run local server before starting the tests */
   webServer: {
     command: "npm run test:integration:server",
@@ -51,6 +62,6 @@ export default defineConfig({
     reuseExistingServer: true,
     stdout: "pipe",
     stderr: "pipe",
-    timeout: 120000, // Increase timeout to 2 minutes
-  },
+    timeout: 120000 // Increase timeout to 2 minutes
+  }
 });

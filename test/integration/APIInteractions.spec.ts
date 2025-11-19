@@ -83,8 +83,8 @@ class ConsoleLogger {
         this.page.removeListener("console", listener);
         reject(
           new Error(
-            `Timeout waiting for console message matching ${pattern}. Messages received: ${this.messages.map((m) => m.text).join(", ")}`,
-          ),
+            `Timeout waiting for console message matching ${pattern}. Messages received: ${this.messages.map((m) => m.text).join(", ")}`
+          )
         );
       }, timeout);
 
@@ -101,12 +101,12 @@ class ConsoleLogger {
 const wrappers = [
   {
     name: "Standard",
-    path: "/test/integration/wrappers/scorm12-wrapper.html",
+    path: "/test/integration/wrappers/scorm12-wrapper.html"
   },
   {
     name: "ESM",
-    path: "/test/integration/wrappers/scorm12-wrapper-esm.html",
-  },
+    path: "/test/integration/wrappers/scorm12-wrapper-esm.html"
+  }
 ];
 
 wrappers.forEach((wrapper) => {
@@ -114,7 +114,7 @@ wrappers.forEach((wrapper) => {
     test("should handle data model interactions correctly", async ({ page }) => {
       // Navigate to the SCORM 1.2 wrapper with the golf module
       await page.goto(
-        `${wrapper.path}?module=/test/integration/modules/RuntimeBasicCalls_SCORM12/shared/launchpage.html`,
+        `${wrapper.path}?module=/test/integration/modules/RuntimeBasicCalls_SCORM12/shared/launchpage.html`
       );
 
       // Wait for the page to load and the SCORM API to be initialized
@@ -131,25 +131,25 @@ wrappers.forEach((wrapper) => {
         const results = {
           studentName: {
             set: window.API.LMSSetValue("cmi.core.student_name", "Test Student"),
-            get: window.API.LMSGetValue("cmi.core.student_name"),
+            get: window.API.LMSGetValue("cmi.core.student_name")
           },
           lessonLocation: {
             set: window.API.LMSSetValue("cmi.core.lesson_location", "page1"),
-            get: window.API.LMSGetValue("cmi.core.lesson_location"),
+            get: window.API.LMSGetValue("cmi.core.lesson_location")
           },
           suspendData: {
             set: window.API.LMSSetValue("cmi.suspend_data", "test suspend data"),
-            get: window.API.LMSGetValue("cmi.suspend_data"),
+            get: window.API.LMSGetValue("cmi.suspend_data")
           },
           lessonStatus: {
             set: window.API.LMSSetValue("cmi.core.lesson_status", "incomplete"),
-            get: window.API.LMSGetValue("cmi.core.lesson_status"),
+            get: window.API.LMSGetValue("cmi.core.lesson_status")
           },
           score: {
             setRaw: window.API.LMSSetValue("cmi.core.score.raw", "85"),
-            getRaw: window.API.LMSGetValue("cmi.core.score.raw"),
+            getRaw: window.API.LMSGetValue("cmi.core.score.raw")
           },
-          commit: window.API.LMSCommit(),
+          commit: window.API.LMSCommit()
         };
 
         // Test error handling
@@ -157,13 +157,13 @@ wrappers.forEach((wrapper) => {
           invalidElement: {
             setValue: window.API.LMSSetValue("cmi.invalid_element", "test"),
             errorCode: window.API.LMSGetLastError(),
-            errorString: window.API.LMSGetErrorString(window.API.LMSGetLastError()),
+            errorString: window.API.LMSGetErrorString(window.API.LMSGetLastError())
           },
           readOnlyElement: {
             setValue: window.API.LMSSetValue("cmi.core.student_id", "12345"),
             errorCode: window.API.LMSGetLastError(),
-            errorString: window.API.LMSGetErrorString(window.API.LMSGetLastError()),
-          },
+            errorString: window.API.LMSGetErrorString(window.API.LMSGetLastError())
+          }
         };
 
         return { results, errorHandling };
@@ -200,14 +200,14 @@ wrappers.forEach((wrapper) => {
 
   test.describe(`SCORM Module Integration Tests (${wrapper.name})`, () => {
     test("should load a SCORM 1.2 golf module and initialize correctly", async ({
-      page,
-    }, _testInfo) => {
+                                                                                  page
+                                                                                }, _testInfo) => {
       // Create a console logger to collect and check console messages
       const consoleLogger = new ConsoleLogger(page);
 
       // Navigate to the SCORM 1.2 wrapper with the golf module
       await page.goto(
-        `${wrapper.path}?module=/test/integration/modules/RuntimeBasicCalls_SCORM12/shared/launchpage.html`,
+        `${wrapper.path}?module=/test/integration/modules/RuntimeBasicCalls_SCORM12/shared/launchpage.html`
       );
 
       // Wait for the page to load and the SCORM API to be initialized
@@ -222,10 +222,10 @@ wrappers.forEach((wrapper) => {
       // Verify that the SCORM API is available
       expect(apiExists).toBeTruthy();
 
-      const moduleFrame = page.locator("#moduleFrame").contentFrame();
-      const contentFrame = moduleFrame.locator("#contentFrame").contentFrame();
+      const moduleFrame = page.frameLocator("#moduleFrame");
+      const contentFrame = moduleFrame.frameLocator("#contentFrame");
 
-      // Click the "Enter Course" button to start the course
+      // Click the "Next" button to navigate to the first content page
       await moduleFrame.locator("#butNext").click();
 
       // Wait for the LMSInitialize call
@@ -234,9 +234,11 @@ wrappers.forEach((wrapper) => {
 
       // Wait for the course to load
       await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(1000); // Additional wait for iframe content to load
 
-      // Verify that the course has started
-      expect(await contentFrame.getByRole("heading", { name: "Par" }).isVisible()).toBe(true);
+      // Verify that the course has started (first page is "Play of the game", second is "Par")
+      // After first click, we should be on page 1 (Par)
+      await expect(contentFrame.getByRole("heading", { name: "Par" })).toBeVisible({ timeout: 5000 });
 
       // Check if student name is set
       const studentName = await page.evaluate(() => {
@@ -258,12 +260,13 @@ wrappers.forEach((wrapper) => {
 
       expect(lessonLocation).toBe("page1");
 
-      // Navigate through the course
+      // Navigate through the course (click Next to go to page 2: Scoring)
       await moduleFrame.locator("#butNext").click();
       await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(1000); // Additional wait for iframe content to load
 
-      // Verify navigation worked
-      expect(await contentFrame.getByRole("heading", { name: "Scoring" }).isVisible()).toBe(true);
+      // Verify navigation worked (should now be on page 2: Scoring)
+      await expect(contentFrame.getByRole("heading", { name: "Scoring" })).toBeVisible({ timeout: 5000 });
 
       // Complete the course
       await page.evaluate(() => {
@@ -291,7 +294,7 @@ wrappers.forEach((wrapper) => {
 
       // Navigate to the SCORM 1.2 wrapper with the golf module
       await page.goto(
-        `${wrapper.path}?module=/test/integration/modules/RuntimeBasicCalls_SCORM12/shared/launchpage.html`,
+        `${wrapper.path}?module=/test/integration/modules/RuntimeBasicCalls_SCORM12/shared/launchpage.html`
       );
 
       // Wait for the page to load and the SCORM API to be initialized
