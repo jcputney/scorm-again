@@ -9,14 +9,14 @@ export type CheckFieldConstraintSize = {
   fieldName: string;
   limit: number;
   expectedValue?: string;
-  expectedError: number;
+  expectedError: number | undefined;
 };
 
 export type CheckReadOnly = {
   cmi: BaseCMI;
   fieldName: string;
   expectedValue?: string | number;
-  expectedError: number;
+  expectedError: number | undefined;
 };
 
 export type CheckRead = {
@@ -29,14 +29,14 @@ export type CheckReadAndWrite = {
   cmi: BaseCMI;
   fieldName: string;
   expectedValue?: string;
-  valueToTest?: string;
+  valueToTest?: string | undefined;
 };
 
 export type CheckWriteOnly = {
   cmi: BaseCMI;
   fieldName: string;
   valueToTest?: string;
-  expectedError: number;
+  expectedError: number | undefined;
 };
 
 export type CheckWrite = {
@@ -62,13 +62,13 @@ export type CheckGetCurrentTotalTime = {
 };
 
 export const checkFieldConstraintSize = ({
-  // noinspection JSUnusedLocalSymbols
-  cmi,
-  fieldName,
-  limit,
-  expectedValue = "",
-  expectedError,
-}: CheckFieldConstraintSize) => {
+                                           // noinspection JSUnusedLocalSymbols
+                                           cmi,
+                                           fieldName,
+                                           limit,
+                                           expectedValue = "",
+                                           expectedError
+                                         }: CheckFieldConstraintSize) => {
   describe(`Field: ${fieldName}`, () => {
     it(`Should be able to read from ${fieldName}`, () => {
       expect(eval(`${fieldName}`)).toEqual(expectedValue);
@@ -86,11 +86,11 @@ export const checkFieldConstraintSize = ({
 };
 
 export const checkReadOnly = ({
-  cmi,
-  fieldName,
-  expectedValue = "",
-  expectedError,
-}: CheckReadOnly) => {
+                                cmi,
+                                fieldName,
+                                expectedValue = "",
+                                expectedError
+                              }: CheckReadOnly) => {
   describe(`Field: ${fieldName}`, () => {
     it(`Should be able to read from ${fieldName}`, () => {
       expect(eval(`${fieldName}`)).toEqual(expectedValue);
@@ -112,11 +112,11 @@ export const checkRead = ({ cmi, fieldName, expectedValue = "" }: CheckRead) => 
 };
 
 export const checkReadAndWrite = ({
-  cmi,
-  fieldName,
-  expectedValue = "",
-  valueToTest = "xxx",
-}: CheckReadAndWrite) => {
+                                    cmi,
+                                    fieldName,
+                                    expectedValue = "",
+                                    valueToTest = "xxx"
+                                  }: CheckReadAndWrite) => {
   describe(`Field: ${fieldName}`, () => {
     it(`Should be able to read from ${fieldName}`, () => {
       expect(eval(`${fieldName}`)).toEqual(expectedValue);
@@ -129,11 +129,11 @@ export const checkReadAndWrite = ({
 };
 
 export const checkWriteOnly = ({
-  cmi,
-  fieldName,
-  valueToTest = "xxx",
-  expectedError,
-}: CheckWriteOnly) => {
+                                 cmi,
+                                 fieldName,
+                                 valueToTest = "xxx",
+                                 expectedError
+                               }: CheckWriteOnly) => {
   describe(`Field: ${fieldName}`, () => {
     it(`Should fail to read from ${fieldName}`, async () => {
       const error = await getError(async () => eval(`${fieldName}`));
@@ -155,11 +155,11 @@ export const checkWrite = ({ cmi, fieldName, valueToTest = "xxx" }: CheckWrite) 
 };
 
 export const checkValidValues = ({
-  cmi,
-  fieldName,
-  validValues,
-  invalidValues,
-}: CheckValidValues) => {
+                                   cmi,
+                                   fieldName,
+                                   validValues,
+                                   invalidValues
+                                 }: CheckValidValues) => {
   describe(`Field: ${fieldName}`, () => {
     for (const idx in validValues) {
       if ({}.hasOwnProperty.call(validValues, idx)) {
@@ -180,13 +180,13 @@ export const checkValidValues = ({
 };
 
 export const checkGetCurrentTotalTime = ({
-  cmi: cmi,
-  totalFieldName,
-  sessionFieldName,
-  startingTotal,
-  sessionTime,
-  expectedTotal,
-}: CheckGetCurrentTotalTime) => {
+                                           cmi: cmi,
+                                           totalFieldName,
+                                           sessionFieldName,
+                                           startingTotal,
+                                           sessionTime,
+                                           expectedTotal
+                                         }: CheckGetCurrentTotalTime) => {
   it(`Should return ${expectedTotal} with a starting time of ${startingTotal} and a session time of ${sessionTime}`, () => {
     eval(`${totalFieldName} = '${startingTotal}'`);
     eval(`${sessionFieldName} = '${sessionTime}'`);

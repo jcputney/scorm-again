@@ -279,6 +279,7 @@ export class SequencingService {
           : DeliveryRequestType.DO_NOT_DELIVER,
         targetActivity: deliveryRequest.targetActivity,
         exception: deliveryRequest.exception || null,
+        endSequencingSession: false,
       };
 
       // Store the result
