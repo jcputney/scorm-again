@@ -76,6 +76,17 @@ export class DeliveryRequest {
 }
 
 /**
+ * Result of Termination Request Process (TB.2.3)
+ * Contains the termination result, sequencing request, and validity
+ */
+export interface TerminationRequestResult {
+  terminationRequest: SequencingRequestType;
+  sequencingRequest: SequencingRequestType | null;
+  exception: string | null;
+  valid: boolean;
+}
+
+/**
  * Overall Sequencing Process (OP.1)
  * Controls the overall execution of the sequencing loop
  */
@@ -396,16 +407,20 @@ export class OverallSequencingProcess {
 
   /**
    * Enhanced Termination Request Process (TB.2.3)
-   * Processes termination requests with improved post-condition handling
-   * Priority 2 Gap: Post-Condition Rule Evaluation & Exit Action Rule Recursion
+   * Processes termination requests with post-condition loop for EXIT_PARENT handling
+   * GAP-02: Implements missing post-condition loop per SCORM 2004 3rd Edition TB.2.3
    * @param {SequencingRequestType} request - The termination request
    * @param {boolean} hasSequencingRequest - Whether a sequencing request follows
-   * @return {boolean} - True if termination was successful
+   * @return {TerminationRequestResult | boolean} - Termination result with sequencing request, or boolean for backward compatibility
    */
-  private terminationRequestProcess(request: SequencingRequestType, hasSequencingRequest: boolean = false): boolean {
+  private terminationRequestProcess(
+    request: SequencingRequestType,
+    hasSequencingRequest: boolean = false
+  ): TerminationRequestResult | boolean {
     const currentActivity = this.activityTree.currentActivity;
 
     if (!currentActivity) {
+      // Return boolean false for backward compatibility
       return false;
     }
 
@@ -416,151 +431,230 @@ export class OverallSequencingProcess {
       currentActivity: currentActivity.id
     });
 
-    // First, check exit action rules (TB.2.1) for EXIT request with recursion detection
-    if (request === SequencingRequestType.EXIT) {
-      const exitActionResult = this.enhancedExitActionRulesSubprocess(currentActivity);
-      if (exitActionResult.action) {
-        // Check for recursion to prevent infinite loops
-        if (exitActionResult.recursionDepth > 10) {
-          this.fireEvent("onSequencingError", {
-            error: "Exit action recursion detected",
-            depth: exitActionResult.recursionDepth,
-            activity: currentActivity.id
-          });
-          return false;
-        }
+    // Handle different termination types
+    switch (request) {
+      case SequencingRequestType.EXIT:
+        return this.handleExitTermination(currentActivity, hasSequencingRequest);
 
-        switch (exitActionResult.action) {
-          case "EXIT_PARENT":
-            // Move up to parent and terminate from there
-            if (currentActivity.parent) {
-              this.activityTree.currentActivity = currentActivity.parent;
-              return this.terminationRequestProcess(request, hasSequencingRequest);
-            }
-            break;
-          case "EXIT_ALL":
-            // Convert to EXIT_ALL request
-            request = SequencingRequestType.EXIT_ALL;
-            break;
-        }
+      case SequencingRequestType.EXIT_ALL:
+        return this.handleExitAllTermination(currentActivity);
+
+      case SequencingRequestType.ABANDON:
+        return this.handleAbandonTermination(currentActivity, hasSequencingRequest);
+
+      case SequencingRequestType.ABANDON_ALL:
+        return this.handleAbandonAllTermination(currentActivity);
+
+      case SequencingRequestType.SUSPEND_ALL:
+        return this.handleSuspendAllTermination(currentActivity);
+
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Handle EXIT termination with post-condition loop (TB.2.3 step 3)
+   * GAP-02: Implements the do-while loop for EXIT_PARENT cascading
+   * @param {Activity} currentActivity - The current activity
+   * @param {boolean} hasSequencingRequest - Whether a sequencing request follows
+   * @return {TerminationRequestResult} - The termination result
+   */
+  private handleExitTermination(
+    currentActivity: Activity,
+    hasSequencingRequest: boolean
+  ): TerminationRequestResult {
+    // TB.2.3 step 3.0: For cluster activities, terminate descendant attempts first
+    if (currentActivity.children.length > 0) {
+      this.terminateDescendentAttemptsProcess(currentActivity);
+    }
+
+    // TB.2.3 step 3.1: Apply End Attempt Process
+    this.endAttemptProcess(currentActivity);
+
+    // TB.2.3 step 3.2: Apply Sequencing Exit Action Rules Subprocess
+    const exitActionResult = this.enhancedExitActionRulesSubprocess(currentActivity);
+    if (exitActionResult.action === "EXIT_ALL") {
+      // Exit action changed termination to EXIT_ALL
+      return this.handleExitAllTermination(currentActivity);
+    } else if (exitActionResult.action === "EXIT_PARENT") {
+      // Exit action requests exit from parent
+      if (currentActivity.parent) {
+        // Move to parent and end its attempt
+        this.activityTree.currentActivity = currentActivity.parent;
+        this.endAttemptProcess(this.activityTree.currentActivity);
       }
+      // Continue to post-condition evaluation on the new current activity (parent or original)
     }
 
-    // For EXIT_ALL and ABANDON_ALL, terminate descendant attempts first
-    // For regular EXIT, also terminate descendants if current has children
-    if (request === SequencingRequestType.EXIT_ALL ||
-      request === SequencingRequestType.ABANDON_ALL ||
-      (request === SequencingRequestType.EXIT && currentActivity.children.length > 0)) {
-      this.terminateDescendentAttemptsProcess(currentActivity);
-    }
+    // TB.2.3 step 3.3: POST-CONDITION LOOP
+    let processedExit = false;
+    let postConditionResult: import("./sequencing_process").PostConditionResult;
 
-    // For descendant activities in the tree, terminate them first
-    // For EXIT_ALL and ABANDON_ALL, also terminate descendants
-    // For regular EXIT, also terminate descendants if current has children
-    if (request === SequencingRequestType.EXIT_ALL ||
-      request === SequencingRequestType.ABANDON_ALL ||
-      (request === SequencingRequestType.EXIT && currentActivity.children.length > 0)) {
-      this.terminateDescendentAttemptsProcess(currentActivity);
-    }
+    do {
+      // TB.2.3 step 3.3.1: Set processedExit to false
+      processedExit = false;
 
-    // Enhanced termination processing with post-condition rule evaluation
-    const terminationResult = this.executeTermination(request, currentActivity, hasSequencingRequest);
-    if (!terminationResult.success) {
-      return false;
-    }
+      // TB.2.3 step 3.3.2: Apply Sequencing Post Condition Rules Subprocess
+      postConditionResult = this.integratePostConditionRulesSubprocess(
+        this.activityTree.currentActivity || currentActivity
+      );
 
-    // Priority 2 Gap: Post-Condition Rule Evaluation Integration
-    // Evaluate post-condition rules after termination but before clearing current activity
-    if (terminationResult.shouldEvaluatePostConditions) {
-      const postConditionResult = this.integratePostConditionRulesSubprocess(currentActivity);
-      if (postConditionResult) {
-        // Post-condition rules triggered additional sequencing action
-        this.fireEvent("onPostConditionTriggered", {
-          activity: currentActivity.id,
-          action: postConditionResult
+      // TB.2.3 step 3.3.3: If returns EXIT_ALL, change termination type and break
+      if (postConditionResult.terminationRequest === SequencingRequestType.EXIT_ALL) {
+        this.fireEvent("onPostConditionExitAll", {
+          activity: (this.activityTree.currentActivity || currentActivity).id
         });
-
-        // Handle post-condition sequencing request
-        // This might need to be processed by the sequencing engine
-        // but for termination we log it for now
+        return this.handleExitAllTermination(this.activityTree.root!);
       }
+
+      // TB.2.3 step 3.3.4: If returns EXIT_PARENT, move up and continue loop
+      if (postConditionResult.terminationRequest === SequencingRequestType.EXIT_PARENT) {
+        const current = this.activityTree.currentActivity || currentActivity;
+
+        if (!current.parent) {
+          // TB.2.3 step 3.3.4.2: At root, cannot exit parent - this is an error
+          // However, we should still process the post-condition sequencing request if present
+          if (!current.parent) {
+            // At root with EXIT_PARENT - treat as reaching root
+            if (postConditionResult.sequencingRequest !== SequencingRequestType.RETRY) {
+              // TB.2.3 step 3.3.5: Return EXIT sequencing request
+              return {
+                terminationRequest: SequencingRequestType.EXIT,
+                sequencingRequest: SequencingRequestType.EXIT,
+                exception: null,
+                valid: true
+              };
+            }
+          }
+        } else {
+          // TB.2.3 step 3.3.4.1: Move to parent
+          this.activityTree.currentActivity = current.parent;
+
+          // TB.2.3 step 3.3.4.1.2: Apply End Attempt Process to parent
+          this.endAttemptProcess(this.activityTree.currentActivity);
+
+          // TB.2.3 step 3.3.4.1.3: Set processedExit = true to continue loop
+          processedExit = true;
+
+          this.fireEvent("onPostConditionExitParent", {
+            fromActivity: current.id,
+            toActivity: this.activityTree.currentActivity.id
+          });
+        }
+      }
+
+      // TB.2.3 step 3.3.5: Check if at root without retry
+      const atRoot = (this.activityTree.currentActivity || currentActivity) === this.activityTree.root;
+      if (atRoot && postConditionResult.sequencingRequest !== SequencingRequestType.RETRY) {
+        // Return EXIT sequencing request (ends session)
+        return {
+          terminationRequest: SequencingRequestType.EXIT,
+          sequencingRequest: SequencingRequestType.EXIT,
+          exception: null,
+          valid: true
+        };
+      }
+
+    } while (processedExit);
+
+    // TB.2.3 step 3.6: Return sequencing request from post-condition
+    // Move to parent if no sequencing request follows
+    if (!hasSequencingRequest) {
+      this.activityTree.currentActivity = (this.activityTree.currentActivity || currentActivity).parent;
     }
 
-    // Priority 2 Gap: Complex Suspended Activity Cleanup
-    if (request === SequencingRequestType.EXIT_ALL || request === SequencingRequestType.ABANDON_ALL) {
-      this.performComplexSuspendedActivityCleanup();
+    return {
+      terminationRequest: SequencingRequestType.EXIT,
+      sequencingRequest: postConditionResult.sequencingRequest,
+      exception: null,
+      valid: true
+    };
+  }
+
+  /**
+   * Handle EXIT_ALL termination (TB.2.3 step 4)
+   * @param {Activity} currentActivity - The current activity
+   * @return {TerminationRequestResult} - The termination result
+   */
+  private handleExitAllTermination(currentActivity: Activity): TerminationRequestResult {
+    // TB.2.3 step 4.1: Terminate descendant attempts from root
+    if (this.activityTree.root) {
+      this.handleMultiLevelExitActions(this.activityTree.root);
     }
 
+    // TB.2.3 step 4.2: End attempt on root
+    if (this.activityTree.root) {
+      this.endAttemptProcess(this.activityTree.root);
+    }
+
+    // TB.2.3 step 4.3: Clear current activity
+    this.activityTree.currentActivity = null;
+
+    // Clean up suspended activities
+    this.performComplexSuspendedActivityCleanup();
+
+    // TB.2.3 step 4.4: Return EXIT sequencing request (ends session)
+    return {
+      terminationRequest: SequencingRequestType.EXIT_ALL,
+      sequencingRequest: SequencingRequestType.EXIT,
+      exception: null,
+      valid: true
+    };
+  }
+
+  /**
+   * Handle ABANDON termination (TB.2.3 step 6)
+   * @param {Activity} currentActivity - The current activity
+   * @param {boolean} hasSequencingRequest - Whether a sequencing request follows
+   * @return {TerminationRequestResult | boolean} - The termination result
+   */
+  private handleAbandonTermination(
+    currentActivity: Activity,
+    hasSequencingRequest: boolean
+  ): TerminationRequestResult | boolean {
+    // TB.2.3 step 6.1: Set activity as not active (no attempt end)
+    currentActivity.isActive = false;
+
+    // TB.2.3 step 6.2: Move to parent if no sequencing follows
+    if (!hasSequencingRequest) {
+      this.activityTree.currentActivity = currentActivity.parent;
+    }
+
+    // Return boolean true for backward compatibility
     return true;
   }
 
   /**
-   * Execute Termination
-   * Enhanced termination execution with proper state management
-   * @param {SequencingRequestType} request - Termination request
-   * @param {Activity} currentActivity - Current activity
-   * @param {boolean} hasSequencingRequest - Whether sequencing follows
-   * @return {{success: boolean, shouldEvaluatePostConditions: boolean}} - Termination result
+   * Handle ABANDON_ALL termination (TB.2.3 step 7)
+   * @param {Activity} currentActivity - The current activity
+   * @return {TerminationRequestResult | boolean} - The termination result
    */
-  private executeTermination(request: SequencingRequestType, currentActivity: Activity, hasSequencingRequest: boolean): {
-    success: boolean,
-    shouldEvaluatePostConditions: boolean
-  } {
-    let shouldEvaluatePostConditions = false;
+  private handleAbandonAllTermination(currentActivity: Activity): TerminationRequestResult | boolean {
+    // TB.2.3 step 7.1: Set all activities as not active (no attempt ends)
+    currentActivity.isActive = false;
 
-    try {
-      switch (request) {
-        case SequencingRequestType.EXIT:
-          // Terminate normally with post-condition evaluation
-          if (currentActivity.isActive) {
-            this.endAttemptProcess(currentActivity);
-            shouldEvaluatePostConditions = true;
-          }
-          // Move to parent only if no sequencing follows
-          if (!hasSequencingRequest) {
-            this.activityTree.currentActivity = currentActivity.parent;
-          }
-          break;
+    // TB.2.3 step 7.2: Clear current activity
+    this.activityTree.currentActivity = null;
 
-        case SequencingRequestType.EXIT_ALL:
-          // Priority 2 Gap: Multi-Level Exit Actions
-          this.handleMultiLevelExitActions(this.activityTree.root!);
-          this.activityTree.currentActivity = null;
-          break;
+    // Clean up suspended activities
+    this.performComplexSuspendedActivityCleanup();
 
-        case SequencingRequestType.ABANDON:
-          // Abandon without ending attempt
-          currentActivity.isActive = false;
-          // Move to parent only if no sequencing follows
-          if (!hasSequencingRequest) {
-            this.activityTree.currentActivity = currentActivity.parent;
-          }
-          break;
+    // Return boolean true for backward compatibility
+    return true;
+  }
 
-        case SequencingRequestType.ABANDON_ALL:
-          // Abandon without ending attempt - clear current activity
-          currentActivity.isActive = false;
-          this.activityTree.currentActivity = null;
-          break;
+  /**
+   * Handle SUSPEND_ALL termination (TB.2.3 step 5)
+   * @param {Activity} currentActivity - The current activity
+   * @return {TerminationRequestResult | boolean} - The termination result
+   */
+  private handleSuspendAllTermination(currentActivity: Activity): TerminationRequestResult | boolean {
+    // TB.2.3 step 5.1: Suspend current activity
+    this.handleSuspendAllRequest(currentActivity);
 
-        case SequencingRequestType.SUSPEND_ALL:
-          // Suspend the current activity with enhanced cleanup
-          this.handleSuspendAllRequest(currentActivity);
-          break;
-
-        default:
-          return { success: false, shouldEvaluatePostConditions: false };
-      }
-
-      return { success: true, shouldEvaluatePostConditions };
-    } catch (error) {
-      this.fireEvent("onTerminationError", {
-        error: error instanceof Error ? error.message : String(error),
-        request,
-        activity: currentActivity.id
-      });
-      return { success: false, shouldEvaluatePostConditions: false };
-    }
+    // Return boolean true for backward compatibility
+    return true;
   }
 
   /**
@@ -608,24 +702,23 @@ export class OverallSequencingProcess {
    * Integrate Post-Condition Rules Subprocess
    * Priority 2 Gap: Post-Condition Rule Evaluation Integration
    * @param {Activity} activity - Activity to evaluate post-conditions for
-   * @return {string | null} - Post-condition action or null
+   * @return {import("./sequencing_process").PostConditionResult} - Post-condition result with sequencing and termination requests
    */
-  private integratePostConditionRulesSubprocess(activity: Activity): string | null {
+  private integratePostConditionRulesSubprocess(activity: Activity): import("./sequencing_process").PostConditionResult {
     // Evaluate post-condition rules using the sequencing process
-    const postAction = this.sequencingProcess.evaluatePostConditionRules(activity);
+    const postResult = this.sequencingProcess.evaluatePostConditionRules(activity);
 
-    if (postAction) {
+    if (postResult.sequencingRequest || postResult.terminationRequest) {
       // Log the post-condition action for tracking
       this.fireEvent("onPostConditionEvaluated", {
         activity: activity.id,
-        action: postAction,
+        sequencingRequest: postResult.sequencingRequest,
+        terminationRequest: postResult.terminationRequest,
         timestamp: new Date().toISOString()
       });
-
-      return postAction;
     }
 
-    return null;
+    return postResult;
   }
 
   /**

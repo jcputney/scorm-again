@@ -44,10 +44,11 @@ describe("Post-Condition Rules Subprocess (TB.2.2)", () => {
       childActivity1.sequencingRules.addPostConditionRule(continueRule);
 
       // Evaluate post-condition rules
-      const request = sequencingProcess.evaluatePostConditionRules(childActivity1);
+      const result = sequencingProcess.evaluatePostConditionRules(childActivity1);
 
       // Should return continue request
-      expect(request).toBe(SequencingRequestType.CONTINUE);
+      expect(result.sequencingRequest).toBe(SequencingRequestType.CONTINUE);
+      expect(result.terminationRequest).toBeNull();
     });
 
     it("should trigger continue only when activity is completed", () => {
@@ -58,13 +59,14 @@ describe("Post-Condition Rules Subprocess (TB.2.2)", () => {
 
       // Activity not completed yet
       childActivity1.completionStatus = CompletionStatus.INCOMPLETE;
-      let request = sequencingProcess.evaluatePostConditionRules(childActivity1);
-      expect(request).toBeNull();
+      let result = sequencingProcess.evaluatePostConditionRules(childActivity1);
+      expect(result.sequencingRequest).toBeNull();
+      expect(result.terminationRequest).toBeNull();
 
       // Mark as completed
       childActivity1.completionStatus = CompletionStatus.COMPLETED;
-      request = sequencingProcess.evaluatePostConditionRules(childActivity1);
-      expect(request).toBe(SequencingRequestType.CONTINUE);
+      result = sequencingProcess.evaluatePostConditionRules(childActivity1);
+      expect(result.sequencingRequest).toBe(SequencingRequestType.CONTINUE);
     });
   });
 
@@ -76,10 +78,11 @@ describe("Post-Condition Rules Subprocess (TB.2.2)", () => {
       childActivity2.sequencingRules.addPostConditionRule(previousRule);
 
       // Evaluate post-condition rules
-      const request = sequencingProcess.evaluatePostConditionRules(childActivity2);
+      const result = sequencingProcess.evaluatePostConditionRules(childActivity2);
 
       // Should return previous request
-      expect(request).toBe(SequencingRequestType.PREVIOUS);
+      expect(result.sequencingRequest).toBe(SequencingRequestType.PREVIOUS);
+      expect(result.terminationRequest).toBeNull();
     });
   });
 
@@ -95,10 +98,11 @@ describe("Post-Condition Rules Subprocess (TB.2.2)", () => {
       childActivity1.successStatus = SuccessStatus.FAILED;
 
       // Evaluate post-condition rules
-      const request = sequencingProcess.evaluatePostConditionRules(childActivity1);
+      const result = sequencingProcess.evaluatePostConditionRules(childActivity1);
 
       // Should return retry request
-      expect(request).toBe(SequencingRequestType.RETRY);
+      expect(result.sequencingRequest).toBe(SequencingRequestType.RETRY);
+      expect(result.terminationRequest).toBeNull();
     });
   });
 
@@ -110,38 +114,41 @@ describe("Post-Condition Rules Subprocess (TB.2.2)", () => {
       parentActivity.sequencingRules.addPostConditionRule(retryAllRule);
 
       // Evaluate post-condition rules
-      const request = sequencingProcess.evaluatePostConditionRules(parentActivity);
+      const result = sequencingProcess.evaluatePostConditionRules(parentActivity);
 
-      // Should return retry all request
-      expect(request).toBe(SequencingRequestType.RETRY_ALL);
+      // Should return retry sequencing request and EXIT_ALL termination request
+      expect(result.sequencingRequest).toBe(SequencingRequestType.RETRY);
+      expect(result.terminationRequest).toBe(SequencingRequestType.EXIT_ALL);
     });
   });
 
   describe("Exit Actions", () => {
-    it("should trigger exit request when EXIT_PARENT action is set", () => {
+    it("should trigger exit parent termination request when EXIT_PARENT action is set", () => {
       // Add post-condition rule to exit parent
       const exitParentRule = new SequencingRule(RuleActionType.EXIT_PARENT);
       exitParentRule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
       childActivity1.sequencingRules.addPostConditionRule(exitParentRule);
 
       // Evaluate post-condition rules
-      const request = sequencingProcess.evaluatePostConditionRules(childActivity1);
+      const result = sequencingProcess.evaluatePostConditionRules(childActivity1);
 
-      // Should return exit request (EXIT_PARENT is mapped to EXIT)
-      expect(request).toBe(SequencingRequestType.EXIT);
+      // Should return EXIT_PARENT as termination request
+      expect(result.terminationRequest).toBe(SequencingRequestType.EXIT_PARENT);
+      expect(result.sequencingRequest).toBeNull();
     });
 
-    it("should trigger exit all request when EXIT_ALL action is set", () => {
+    it("should trigger exit all termination request when EXIT_ALL action is set", () => {
       // Add post-condition rule to exit all
       const exitAllRule = new SequencingRule(RuleActionType.EXIT_ALL);
       exitAllRule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
       grandchildActivity.sequencingRules.addPostConditionRule(exitAllRule);
 
       // Evaluate post-condition rules
-      const request = sequencingProcess.evaluatePostConditionRules(grandchildActivity);
+      const result = sequencingProcess.evaluatePostConditionRules(grandchildActivity);
 
-      // Should return exit all request
-      expect(request).toBe(SequencingRequestType.EXIT_ALL);
+      // Should return EXIT_ALL as termination request
+      expect(result.terminationRequest).toBe(SequencingRequestType.EXIT_ALL);
+      expect(result.sequencingRequest).toBeNull();
     });
   });
 
@@ -161,10 +168,10 @@ describe("Post-Condition Rules Subprocess (TB.2.2)", () => {
       childActivity1.completionStatus = CompletionStatus.COMPLETED;
 
       // Evaluate post-condition rules
-      const request = sequencingProcess.evaluatePostConditionRules(childActivity1);
+      const result = sequencingProcess.evaluatePostConditionRules(childActivity1);
 
       // Should return retry (first matching rule)
-      expect(request).toBe(SequencingRequestType.RETRY);
+      expect(result.sequencingRequest).toBe(SequencingRequestType.RETRY);
     });
   });
 
@@ -180,10 +187,11 @@ describe("Post-Condition Rules Subprocess (TB.2.2)", () => {
       childActivity1.sequencingRules.addPostConditionRule(disabledRule);
 
       // Evaluate post-condition rules
-      const request = sequencingProcess.evaluatePostConditionRules(childActivity1);
+      const result = sequencingProcess.evaluatePostConditionRules(childActivity1);
 
       // Should return null (no valid action)
-      expect(request).toBeNull();
+      expect(result.sequencingRequest).toBeNull();
+      expect(result.terminationRequest).toBeNull();
     });
   });
 
@@ -201,13 +209,14 @@ describe("Post-Condition Rules Subprocess (TB.2.2)", () => {
       // Set objective measure below threshold
       childActivity1.objectiveMeasureStatus = true;
       childActivity1.objectiveNormalizedMeasure = 0.7;
-      let request = sequencingProcess.evaluatePostConditionRules(childActivity1);
-      expect(request).toBeNull();
+      let result = sequencingProcess.evaluatePostConditionRules(childActivity1);
+      expect(result.sequencingRequest).toBeNull();
+      expect(result.terminationRequest).toBeNull();
 
       // Set objective measure above threshold
       childActivity1.objectiveNormalizedMeasure = 0.9;
-      request = sequencingProcess.evaluatePostConditionRules(childActivity1);
-      expect(request).toBe(SequencingRequestType.CONTINUE);
+      result = sequencingProcess.evaluatePostConditionRules(childActivity1);
+      expect(result.sequencingRequest).toBe(SequencingRequestType.CONTINUE);
     });
 
     it("should handle attempt limit conditions", () => {
@@ -223,13 +232,14 @@ describe("Post-Condition Rules Subprocess (TB.2.2)", () => {
       // Less than limit
       childActivity1.incrementAttemptCount(); // 1
       childActivity1.incrementAttemptCount(); // 2
-      let request = sequencingProcess.evaluatePostConditionRules(childActivity1);
-      expect(request).toBeNull();
+      let result = sequencingProcess.evaluatePostConditionRules(childActivity1);
+      expect(result.sequencingRequest).toBeNull();
+      expect(result.terminationRequest).toBeNull();
 
       // At limit
       childActivity1.incrementAttemptCount(); // 3
-      request = sequencingProcess.evaluatePostConditionRules(childActivity1);
-      expect(request).toBe(SequencingRequestType.EXIT);
+      result = sequencingProcess.evaluatePostConditionRules(childActivity1);
+      expect(result.terminationRequest).toBe(SequencingRequestType.EXIT_PARENT);
     });
   });
 });

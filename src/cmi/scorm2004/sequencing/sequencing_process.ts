@@ -23,6 +23,7 @@ export enum SequencingRequestType {
   CHOICE = "choice",
   JUMP = "jump",
   EXIT = "exit",
+  EXIT_PARENT = "exitParent",
   EXIT_ALL = "exitAll",
   ABANDON = "abandon",
   ABANDON_ALL = "abandonAll",
@@ -59,6 +60,15 @@ export class SequencingResult {
     this.exception = exception;
     this.endSequencingSession = endSequencingSession;
   }
+}
+
+/**
+ * Result of Post-Condition Rule Evaluation (TB.2.2)
+ * Contains both sequencing and termination requests from post-condition rules
+ */
+export interface PostConditionResult {
+  sequencingRequest: SequencingRequestType | null;
+  terminationRequest: SequencingRequestType | null;
 }
 
 /**
@@ -1351,43 +1361,72 @@ export class SequencingProcess {
    * Evaluate post-condition rules for the current activity
    * This should be called after an activity has been delivered and the learner has interacted with it
    * @param {Activity} activity - The activity to evaluate
-   * @return {SequencingRequestType | null} - The sequencing request to process, if any
+   * @return {PostConditionResult} - The post-condition result with sequencing and termination requests
    */
-  public evaluatePostConditionRules(activity: Activity): SequencingRequestType | null {
+  public evaluatePostConditionRules(activity: Activity): PostConditionResult {
     const postAction = this.postConditionRulesSubprocess(activity);
 
     if (!postAction) {
-      return null;
+      return {
+        sequencingRequest: null,
+        terminationRequest: null
+      };
     }
 
-    // Map post-condition actions to sequencing requests
+    // Map post-condition actions to sequencing and termination requests
     switch (postAction) {
       case RuleActionType.EXIT_PARENT:
-        // Exit parent will be handled by exit action rules
-        return SequencingRequestType.EXIT;
+        // EXIT_PARENT is a termination request that moves to parent
+        return {
+          sequencingRequest: null,
+          terminationRequest: SequencingRequestType.EXIT_PARENT
+        };
 
       case RuleActionType.EXIT_ALL:
-        return SequencingRequestType.EXIT_ALL;
+        // EXIT_ALL is both a termination request and potentially a sequencing request
+        return {
+          sequencingRequest: null,
+          terminationRequest: SequencingRequestType.EXIT_ALL
+        };
 
       case RuleActionType.RETRY:
-        return SequencingRequestType.RETRY;
+        return {
+          sequencingRequest: SequencingRequestType.RETRY,
+          terminationRequest: null
+        };
 
       case RuleActionType.RETRY_ALL:
-        return SequencingRequestType.RETRY_ALL;
+        // RETRY_ALL includes EXIT_ALL termination
+        return {
+          sequencingRequest: SequencingRequestType.RETRY,
+          terminationRequest: SequencingRequestType.EXIT_ALL
+        };
 
       case RuleActionType.CONTINUE:
-        return SequencingRequestType.CONTINUE;
+        return {
+          sequencingRequest: SequencingRequestType.CONTINUE,
+          terminationRequest: null
+        };
 
       case RuleActionType.PREVIOUS:
-        return SequencingRequestType.PREVIOUS;
+        return {
+          sequencingRequest: SequencingRequestType.PREVIOUS,
+          terminationRequest: null
+        };
 
       case RuleActionType.STOP_FORWARD_TRAVERSAL:
         // Set traversal limiter on controls; not a navigation request
         activity.sequencingControls.stopForwardTraversal = true;
-        return null;
+        return {
+          sequencingRequest: null,
+          terminationRequest: null
+        };
 
       default:
-        return null;
+        return {
+          sequencingRequest: null,
+          terminationRequest: null
+        };
     }
   }
 

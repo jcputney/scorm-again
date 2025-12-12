@@ -273,8 +273,8 @@ describe("Sequencing Rules Check Process (UP.2)", () => {
       expect(result.deliveryRequest).toBe("doNotDeliver");
 
       // Test post-condition evaluation
-      const postRequest = sequencingProcess.evaluatePostConditionRules(childActivity1);
-      expect(postRequest).toBe(SequencingRequestType.CONTINUE);
+      const postResult = sequencingProcess.evaluatePostConditionRules(childActivity1);
+      expect(postResult.sequencingRequest).toBe(SequencingRequestType.CONTINUE);
     });
   });
 });
