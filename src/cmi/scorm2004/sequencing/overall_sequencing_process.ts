@@ -154,9 +154,20 @@ export class OverallSequencingProcess {
 
     // Step 2: Termination Request Process (TB.2.3) if needed
     if (navResult.terminationRequest) {
-      const termResult = this.terminationRequestProcess(navResult.terminationRequest, !!navResult.sequencingRequest);
+      const hadSequencingRequest = !!navResult.sequencingRequest;
+      const termResult = this.terminationRequestProcess(navResult.terminationRequest, hadSequencingRequest);
       if (!termResult.valid) {
         return new DeliveryRequest(false, null, termResult.exception || "TB.2.3-1");
+      }
+
+      // Per TB.2.3 Step 3.6/4.5: Post-condition sequencing request overrides navigation request
+      // Only override if:
+      // 1. There was a navigation sequencing request to override, OR
+      // 2. Post-condition returned a navigation request (CONTINUE, RETRY, PREVIOUS) not a cleanup request (EXIT)
+      if (termResult.sequencingRequest !== null) {
+        if (hadSequencingRequest || termResult.sequencingRequest !== SequencingRequestType.EXIT) {
+          navResult.sequencingRequest = termResult.sequencingRequest;
+        }
       }
 
       // If this is a termination-only request (no sequencing request), return success
@@ -581,9 +592,14 @@ export class OverallSequencingProcess {
     } while (processedExit);
 
     // TB.2.3 step 3.6: Return sequencing request from post-condition
-    // Move to parent if no sequencing request follows
-    if (!hasSequencingRequest) {
-      this.activityTree.currentActivity = (this.activityTree.currentActivity || currentActivity).parent;
+    // Move to parent if no sequencing request follows (neither original nor post-condition)
+    if (!hasSequencingRequest && !postConditionResult.sequencingRequest) {
+      const current = this.activityTree.currentActivity || currentActivity;
+      if (current.parent) {
+        // Set parent as current without using setter (which would auto-activate)
+        // The parent should remain inactive if it was terminated by the EXIT_PARENT cascade
+        (this.activityTree as any)._currentActivity = current.parent;
+      }
     }
 
     return {
