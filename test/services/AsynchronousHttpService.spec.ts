@@ -56,8 +56,8 @@ describe("AsynchronousHttpService", () => {
   });
 
   afterEach(() => {
-    // Restore stubs
-    // fetchStub.restore() - not needed with vi.restoreAllMocks()
+    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   describe("processHttpRequest", () => {
@@ -355,9 +355,12 @@ describe("AsynchronousHttpService", () => {
       );
       fetchStub.mockImplementation(() => mockResponse);
 
-      await httpService.processHttpRequest(url, params, false, apiLogStub, processListenersStub);
+      httpService.processHttpRequest(url, params, false, apiLogStub, processListenersStub);
 
-      expect(processListenersStub).toHaveBeenCalledWith("CommitSuccess");
+      // Wait for async operation to complete
+      await vi.waitFor(() => {
+        expect(processListenersStub).toHaveBeenCalledWith("CommitSuccess");
+      });
     });
 
     it("should call processListeners with CommitError on failed response", async () => {
@@ -372,9 +375,12 @@ describe("AsynchronousHttpService", () => {
       );
       fetchStub.mockImplementation(() => mockResponse);
 
-      await httpService.processHttpRequest(url, params, false, apiLogStub, processListenersStub);
+      httpService.processHttpRequest(url, params, false, apiLogStub, processListenersStub);
 
-      expect(processListenersStub).toHaveBeenCalledWith("CommitError", undefined, 101);
+      // Wait for async operation to complete
+      await vi.waitFor(() => {
+        expect(processListenersStub).toHaveBeenCalledWith("CommitError", undefined, 101);
+      });
     });
 
     it("should add errorCode when response doesn't have one but is successful", async () => {

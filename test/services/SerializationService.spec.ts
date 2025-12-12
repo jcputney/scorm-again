@@ -19,9 +19,8 @@ describe("SerializationService", () => {
   });
 
   afterEach(() => {
-    // Restore console methods
-    // consoleErrorStub.restore() - not needed with vi.restoreAllMocks()
-    // consoleDebugStub.restore() - not needed with vi.restoreAllMocks()
+    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   describe("loadFromFlattenedJSON", () => {

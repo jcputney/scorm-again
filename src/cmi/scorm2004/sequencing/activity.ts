@@ -1125,11 +1125,11 @@ export class Activity extends BaseCMI {
   }
 
   /**
-   * Get additional objectives
+   * Get additional objectives (excludes primary objective)
    * @return {ActivityObjective[]}
    */
   get objectives(): ActivityObjective[] {
-    return [...this._objectives];
+    return this._objectives.filter((obj) => obj.id !== this._primaryObjective?.id);
   }
 
   /**

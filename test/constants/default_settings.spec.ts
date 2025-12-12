@@ -1,6 +1,6 @@
 // noinspection DuplicatedCode
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DefaultSettings } from "../../src/constants/default_settings";
 import { global_constants } from "../../src";
@@ -116,6 +116,11 @@ describe("DefaultSettings", () => {
       consoleInfoStub = vi.spyOn(console, "info").mockImplementation(() => {});
       consoleDebugStub = vi.spyOn(console, "debug").mockImplementation(() => {});
       consoleLogStub = vi.spyOn(console, "log").mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+      vi.clearAllMocks();
     });
 
     it("should call console.error for ERROR level", () => {

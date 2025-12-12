@@ -3,7 +3,6 @@ import { SynchronousHttpService } from "../../src/services/SynchronousHttpServic
 import { DefaultSettings } from "../../src/constants/default_settings";
 import { scorm12_errors } from "../../src/constants/error_codes";
 import { global_constants } from "../../src/constants/api_constants";
-import { LogLevelEnum } from "../../src/constants/enums";
 
 describe("SynchronousHttpService", () => {
   let service: SynchronousHttpService;
@@ -16,9 +15,22 @@ describe("SynchronousHttpService", () => {
     mockProcessListeners = vi.fn();
   });
 
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  /**
+   * Creates a mock XMLHttpRequest constructor that returns the provided mock object
+   */
+  function createMockXHRConstructor(mockXHR: any) {
+    return function MockXMLHttpRequest(this: any) {
+      Object.assign(this, mockXHR);
+      return this;
+    } as unknown as typeof XMLHttpRequest;
+  }
+
   describe("processHttpRequest - synchronous mode", () => {
     it("should use sync XHR when immediate=false", () => {
-      // Mock XMLHttpRequest
       const mockXHR = {
         open: vi.fn(),
         setRequestHeader: vi.fn(),
@@ -26,7 +38,7 @@ describe("SynchronousHttpService", () => {
         status: 200,
         responseText: '{"result":"true","errorCode":0}',
       };
-      global.XMLHttpRequest = vi.fn(() => mockXHR) as any;
+      vi.stubGlobal("XMLHttpRequest", createMockXHRConstructor(mockXHR));
 
       const result = service.processHttpRequest(
         "http://test.com/commit",
@@ -49,7 +61,7 @@ describe("SynchronousHttpService", () => {
         status: 200,
         responseText: '{"result":"true","errorCode":0}',
       };
-      global.XMLHttpRequest = vi.fn(() => mockXHR) as any;
+      vi.stubGlobal("XMLHttpRequest", createMockXHRConstructor(mockXHR));
 
       const result = service.processHttpRequest(
         "http://test.com/commit",
@@ -72,7 +84,7 @@ describe("SynchronousHttpService", () => {
         statusText: "Internal Server Error",
         responseText: "",
       };
-      global.XMLHttpRequest = vi.fn(() => mockXHR) as any;
+      vi.stubGlobal("XMLHttpRequest", createMockXHRConstructor(mockXHR));
 
       const result = service.processHttpRequest(
         "http://test.com/commit",
@@ -94,7 +106,7 @@ describe("SynchronousHttpService", () => {
           throw new Error("Network error");
         }),
       };
-      global.XMLHttpRequest = vi.fn(() => mockXHR) as any;
+      vi.stubGlobal("XMLHttpRequest", createMockXHRConstructor(mockXHR));
 
       const result = service.processHttpRequest(
         "http://test.com/commit",
@@ -112,7 +124,7 @@ describe("SynchronousHttpService", () => {
   describe("processHttpRequest - immediate mode", () => {
     it("should use sendBeacon when immediate=true", () => {
       const mockBeacon = vi.fn().mockReturnValue(true);
-      global.navigator.sendBeacon = mockBeacon;
+      vi.stubGlobal("navigator", { sendBeacon: mockBeacon });
 
       const result = service.processHttpRequest(
         "http://test.com/commit",
@@ -129,7 +141,7 @@ describe("SynchronousHttpService", () => {
 
     it("should handle sendBeacon failure", () => {
       const mockBeacon = vi.fn().mockReturnValue(false);
-      global.navigator.sendBeacon = mockBeacon;
+      vi.stubGlobal("navigator", { sendBeacon: mockBeacon });
 
       const result = service.processHttpRequest(
         "http://test.com/commit",
@@ -153,7 +165,7 @@ describe("SynchronousHttpService", () => {
         status: 200,
         responseText: '{"result":"true","errorCode":0}',
       };
-      global.XMLHttpRequest = vi.fn(() => mockXHR) as any;
+      vi.stubGlobal("XMLHttpRequest", createMockXHRConstructor(mockXHR));
 
       const customSettings = {
         ...DefaultSettings,
@@ -173,15 +185,18 @@ describe("SynchronousHttpService", () => {
     });
 
     it("should set withCredentials when enabled", () => {
+      let capturedXhr: any = null;
       const mockXHR = {
         open: vi.fn(),
         setRequestHeader: vi.fn(),
-        send: vi.fn(),
+        send: vi.fn(function (this: any) {
+          capturedXhr = this;
+        }),
         status: 200,
         responseText: '{"result":"true","errorCode":0}',
         withCredentials: false,
       };
-      global.XMLHttpRequest = vi.fn(() => mockXHR) as any;
+      vi.stubGlobal("XMLHttpRequest", createMockXHRConstructor(mockXHR));
 
       const customSettings = {
         ...DefaultSettings,
@@ -197,7 +212,7 @@ describe("SynchronousHttpService", () => {
         mockProcessListeners,
       );
 
-      expect(mockXHR.withCredentials).toBe(true);
+      expect(capturedXhr.withCredentials).toBe(true);
     });
   });
 });

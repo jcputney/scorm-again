@@ -79,7 +79,7 @@ export class CMISession extends BaseCMI {
     if (!this.jsonString) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".session_time",
-        scorm2004_errors.READ_ONLY_ELEMENT as number,
+        scorm2004_errors.WRITE_ONLY_ELEMENT as number,
       );
     }
     return this._session_time;

@@ -476,7 +476,9 @@ wrappers.forEach((wrapper) => {
     });
 
     // TODO: Requires preConditionRule evaluation at delivery time - see SEQUENCING_TODO.md
-    test.skip("should prevent navigation when preConditionRule disables activity", async ({ page }) => {
+    test.skip("should prevent navigation when preConditionRule disables activity", async ({
+      page,
+    }) => {
       await launchSequencedModule(page);
       await waitForModuleFrame(page);
 
