@@ -267,19 +267,26 @@ export class OverallSequencingProcess {
           null
         );
 
-      case NavigationRequestType.CONTINUE:
+      case NavigationRequestType.CONTINUE: {
         if (!currentActivity) {
           return new NavigationRequestResult(false, null, null, null, "NB.2.1-4");
         }
         if (!currentActivity.parent || !currentActivity.parent.sequencingControls.flow) {
           return new NavigationRequestResult(false, null, null, null, "NB.2.1-5");
         }
+
+        // Per NB.2.1 Step 3.2.1: Only terminate if current activity is active
+        const continueTerminationRequest = currentActivity.isActive
+          ? SequencingRequestType.EXIT
+          : null;
+
         return new NavigationRequestResult(
           true,
-          SequencingRequestType.EXIT,
+          continueTerminationRequest,
           SequencingRequestType.CONTINUE,
           null
         );
+      }
 
       case NavigationRequestType.PREVIOUS: {
         if (!currentActivity) {
@@ -295,9 +302,14 @@ export class OverallSequencingProcess {
           return new NavigationRequestResult(false, null, null, null, forwardOnlyValidation.exception);
         }
 
+        // Per NB.2.1 Step 4.2.1.1: Only terminate if current activity is active
+        const previousTerminationRequest = currentActivity.isActive
+          ? SequencingRequestType.EXIT
+          : null;
+
         return new NavigationRequestResult(
           true,
-          SequencingRequestType.EXIT,
+          previousTerminationRequest,
           SequencingRequestType.PREVIOUS,
           null
         );
