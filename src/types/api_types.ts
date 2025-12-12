@@ -43,6 +43,10 @@ export type Settings = {
   syncOnTerminate?: boolean | undefined;
   maxSyncAttempts?: number | undefined;
 
+  // Multi-SCO support settings
+  scoId?: string | undefined;
+  autoPopulateCommitMetadata?: boolean | undefined;
+
   // Sequencing state persistence settings
   sequencingStatePersistence?: SequencingStatePersistenceConfig | undefined;
 
@@ -89,6 +93,10 @@ export type InternalSettings = {
   syncOnInitialize?: boolean | undefined;
   syncOnTerminate?: boolean | undefined;
   maxSyncAttempts?: number | undefined;
+
+  // Multi-SCO support settings
+  scoId?: string | undefined;
+  autoPopulateCommitMetadata?: boolean | undefined;
 
   // Sequencing state persistence settings
   sequencingStatePersistence?: SequencingStatePersistenceConfig | undefined;
@@ -155,6 +163,7 @@ export type CommitObject = {
   score?: ScoreObject;
   commitId?: string;
   courseId?: string;
+  scoId?: string;
   learnerId?: string;
   learnerName?: string;
   sessionId?: string;

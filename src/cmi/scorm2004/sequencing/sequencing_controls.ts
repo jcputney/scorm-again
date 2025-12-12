@@ -52,6 +52,10 @@ export class SequencingControls extends BaseCMI {
   private _randomizationTiming: RandomizationTiming = RandomizationTiming.NEVER;
   private _reorderChildren: boolean = false;
 
+  // Auto-completion/satisfaction controls
+  private _completionSetByContent: boolean = false;
+  private _objectiveSetByContent: boolean = false;
+
   /**
    * Constructor for SequencingControls
    */
@@ -83,6 +87,8 @@ export class SequencingControls extends BaseCMI {
     this._randomizeChildren = false;
     this._randomizationTiming = RandomizationTiming.NEVER;
     this._reorderChildren = false;
+    this._completionSetByContent = false;
+    this._objectiveSetByContent = false;
   }
 
   /**
@@ -433,6 +439,38 @@ export class SequencingControls extends BaseCMI {
   }
 
   /**
+   * Getter for completionSetByContent
+   * @return {boolean}
+   */
+  get completionSetByContent(): boolean {
+    return this._completionSetByContent;
+  }
+
+  /**
+   * Setter for completionSetByContent
+   * @param {boolean} completionSetByContent
+   */
+  set completionSetByContent(completionSetByContent: boolean) {
+    this._completionSetByContent = completionSetByContent;
+  }
+
+  /**
+   * Getter for objectiveSetByContent
+   * @return {boolean}
+   */
+  get objectiveSetByContent(): boolean {
+    return this._objectiveSetByContent;
+  }
+
+  /**
+   * Setter for objectiveSetByContent
+   * @param {boolean} objectiveSetByContent
+   */
+  set objectiveSetByContent(objectiveSetByContent: boolean) {
+    this._objectiveSetByContent = objectiveSetByContent;
+  }
+
+  /**
    * toJSON for SequencingControls
    * @return {object}
    */
@@ -458,6 +496,8 @@ export class SequencingControls extends BaseCMI {
       randomizeChildren: this._randomizeChildren,
       randomizationTiming: this._randomizationTiming,
       reorderChildren: this._reorderChildren,
+      completionSetByContent: this._completionSetByContent,
+      objectiveSetByContent: this._objectiveSetByContent,
     };
     this.jsonString = false;
     return result;

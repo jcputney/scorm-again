@@ -57,6 +57,12 @@ describe("GAP-02: Post-Condition Loop in Termination Request Process", () => {
     level1.sequencingControls.flow = true;
     level2.sequencingControls.flow = true;
 
+    // Disable auto-completion to test post-condition logic in isolation (GAP-04)
+    root.sequencingControls.completionSetByContent = true;
+    level1.sequencingControls.completionSetByContent = true;
+    level2.sequencingControls.completionSetByContent = true;
+    level3.sequencingControls.completionSetByContent = true;
+
     sequencingProcess = new SequencingProcess(activityTree);
     rollupProcess = new RollupProcess();
 

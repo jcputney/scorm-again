@@ -116,6 +116,10 @@ export const DefaultSettings: InternalSettings = {
   syncOnTerminate: true,
   maxSyncAttempts: 5,
 
+  // Multi-SCO support settings
+  scoId: "",
+  autoPopulateCommitMetadata: false,
+
   // HTTP service settings
   httpService: null,
 };

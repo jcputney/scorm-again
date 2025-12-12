@@ -860,9 +860,23 @@ export class OverallSequencingProcess {
       }
     }
 
-    // Use Check Activity Process (UP.5) to validate if activity can be delivered
-    if (!this.checkActivityProcess(activity)) {
-      return new DeliveryRequest(false, null, "DB.1.1-3");
+    // DB.1.1 Step 2: Form the activity path from root to target, inclusive
+    const activityPath = this.getActivityPath(activity, true);
+
+    // DB.1.1 Step 3: Check if path is empty (shouldn't happen with valid tree but per spec)
+    if (activityPath.length === 0) {
+      return new DeliveryRequest(false, null, "DB.1.1-2");
+    }
+
+    // DB.1.1 Step 4: For each activity in the path, apply Check Activity Process (UP.5)
+    // This ensures no ancestor violates limit conditions, preconditions, or is disabled
+    for (const pathActivity of activityPath) {
+      // Check Activity Process returns true if activity is VALID
+      // (Note: opposite of reference implementation which returns true for INVALID)
+      if (!this.checkActivityProcess(pathActivity)) {
+        // Activity check failed - cannot deliver
+        return new DeliveryRequest(false, null, "DB.1.1-3");
+      }
     }
 
     // Activity is a true leaf and passes all checks - can be delivered
@@ -1050,6 +1064,75 @@ export class OverallSequencingProcess {
     activity.isActive = false;
     activity.activityAttemptActive = false;
 
+    // [UP.4]1. If the activity is a leaf Then
+    if (activity.children.length === 0) {
+      // [UP.4]1.1. If Tracked for the activity is True Then
+      // Note: In SCORM 2004, all leaf activities are tracked by default
+      const isTracked = true;
+
+      if (isTracked) {
+        // [UP.4]1.1.1. If the Activity is Suspended for the activity is False Then
+        // (The sequencer will not affect the state of suspended activities)
+        if (!activity.isSuspended) {
+
+          // [UP.4]1.1.1.1. Auto-Completion Logic
+          if (!activity.sequencingControls.completionSetByContent) {
+            // [UP.4]1.1.1.1.1. If the Attempt Progress Status for the activity is False Then
+            // (Did the content inform the sequencer of the activity's completion status?)
+            if (!activity.attemptProgressStatus) {
+              // [UP.4]1.1.1.1.1.1. Set the Attempt Progress Status for the activity to True
+              activity.attemptProgressStatus = true;
+
+              // [UP.4]1.1.1.1.1.2. Set the Attempt Completion Status for the activity to True
+              activity.completionStatus = "completed";
+
+              // Track that this was automatic
+              activity.wasAutoCompleted = true;
+
+              this.fireEvent("onAutoCompletion", {
+                activityId: activity.id,
+                timestamp: new Date().toISOString()
+              });
+            }
+          }
+
+          // [UP.4]1.1.1.2. Auto-Satisfaction Logic
+          if (!activity.sequencingControls.objectiveSetByContent) {
+            // [UP.4]1.1.1.2.1. Get the primary objective
+            const primaryObjective = activity.primaryObjective;
+
+            if (primaryObjective) {
+              // [UP.4]1.1.1.2.1.1.1. If the Objective Progress Status for the objective is False Then
+              // (Did the content inform the sequencer of the activity's rolled-up objective status?)
+              if (!primaryObjective.progressStatus) {
+                // [UP.4]1.1.1.2.1.1.1.1. Set the Objective Progress Status for the objective to True
+                primaryObjective.progressStatus = true;
+
+                // [UP.4]1.1.1.2.1.1.1.2. Set the Objective Satisfied Status for the objective to True
+                primaryObjective.satisfiedStatus = true;
+                activity.objectiveSatisfiedStatus = true;
+                activity.successStatus = "passed";
+
+                // Track that this was automatic
+                activity.wasAutoSatisfied = true;
+
+                this.fireEvent("onAutoSatisfaction", {
+                  activityId: activity.id,
+                  timestamp: new Date().toISOString()
+                });
+              }
+            }
+          }
+        }
+      }
+    } else {
+      // [UP.4]2. Else (The activity has children)
+      // [UP.4]2.1. Update suspended status based on children
+      const hasSuspendedChildren = activity.children.some(child => child.isSuspended);
+      activity.isSuspended = hasSuspendedChildren;
+    }
+
+    // Handle unknown statuses for activities that weren't auto-completed/satisfied
     // Update attempt completion status if not already set
     if (activity.completionStatus === "unknown") {
       activity.completionStatus = "incomplete";
@@ -1361,32 +1444,53 @@ export class OverallSequencingProcess {
   }
 
   /**
+   * Get Activity Path (Helper for DB.1.1)
+   * Forms the activity path from root to target activity, inclusive
+   * Maps to GetActivityPath() in reference implementation
+   * @param {Activity} activity - The target activity
+   * @param {boolean} includeActivity - Whether to include the target in the path
+   * @return {Activity[]} - Array of activities from root to target
+   */
+  private getActivityPath(activity: Activity, includeActivity: boolean = true): Activity[] {
+    const path: Activity[] = [];
+    let current: Activity | null = activity;
+
+    // Walk up from target to root
+    while (current !== null) {
+      path.unshift(current);  // Add to beginning of array
+      current = current.parent;
+    }
+
+    // Remove target activity if not included
+    if (!includeActivity && path.length > 0) {
+      path.pop();
+    }
+
+    return path;
+  }
+
+  /**
    * Check Activity Process (UP.5)
-   * Validates if an activity can be delivered
+   * Validates if an activity can be delivered based on sequencing rules and limit conditions
+   * Note: Cluster/leaf validation is handled in DB.1.1 Step 1, not here
    * @param {Activity} activity - The activity to check
-   * @return {boolean} - True if activity can be delivered
+   * @return {boolean} - True if activity is valid (not disabled, limits not violated)
    */
   private checkActivityProcess(activity: Activity): boolean {
-    // Check if activity is available
+    // UP.5 Step 1-2: Check if activity is disabled by sequencing rules
+    // In scorm-again, isAvailable serves as the proxy for disabled status
     if (!activity.isAvailable) {
       return false;
     }
 
-    // Check if activity is hidden from choice (if this is a choice request)
-    if (activity.isHiddenFromChoice) {
-      // This would be false for choice navigation, but we need context
-      // For now, we'll allow it but this should be enhanced
-    }
-
-    // Check limit conditions (UP.1)
+    // UP.5 Step 3-4: Check limit conditions (UP.1)
     if (!this.limitConditionsCheckProcess(activity)) {
       return false;
     }
 
-    // Check if activity is a cluster that can't be delivered directly
-    if (activity.children.length > 0 && !activity.sequencingControls.flow) {
-      return false; // Clusters without flow can't be delivered
-    }
+    // Note: We intentionally do NOT check isHiddenFromChoice or cluster status here
+    // - isHiddenFromChoice is validated in navigation/choice processes
+    // - Cluster validation is handled in DB.1.1 Step 1 (only target activity)
 
     // Activity passes all checks
     return true;

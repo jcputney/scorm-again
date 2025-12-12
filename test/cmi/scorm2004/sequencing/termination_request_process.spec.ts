@@ -41,7 +41,7 @@ describe("Termination Request Process (TB.2.3)", () => {
     root.addChild(child2);
     child1.addChild(grandchild1);
     child1.addChild(grandchild2);
-    
+
     activityTree.root = root;
 
     // Enable flow for testing
@@ -50,9 +50,16 @@ describe("Termination Request Process (TB.2.3)", () => {
     child1.sequencingControls.flow = true;
     child2.sequencingControls.flow = true;
 
+    // Disable auto-completion to test termination logic in isolation (GAP-04)
+    root.sequencingControls.completionSetByContent = true;
+    child1.sequencingControls.completionSetByContent = true;
+    child2.sequencingControls.completionSetByContent = true;
+    grandchild1.sequencingControls.completionSetByContent = true;
+    grandchild2.sequencingControls.completionSetByContent = true;
+
     sequencingProcess = new SequencingProcess(activityTree);
     rollupProcess = new RollupProcess();
-    
+
     overallProcess = new OverallSequencingProcess(
       activityTree,
       sequencingProcess,

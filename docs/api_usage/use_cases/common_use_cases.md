@@ -15,6 +15,7 @@ differences.
 6. [Custom Data Persistence](#custom-data-persistence)
 7. [Handling Different LMS Environments](#handling-different-lms-environments)
 8. [Offline Learning with Synchronization](#offline-learning-with-synchronization)
+9. [Multi-SCO Module Support](#multi-sco-module-support)
 
 ## E-Learning Course Initialization
 
@@ -1353,3 +1354,253 @@ function initializeWithOfflineSupport() {
    console.log("Initialized with offline support");
 }
 ```
+
+## Multi-SCO Module Support
+
+Multi-SCO (Shareable Content Object) modules are SCORM packages that contain multiple independent
+learning objects within a single course. Each SCO maintains its own CMI data (completion status,
+scores, bookmarks, etc.) and can be launched independently by the LMS.
+
+### Understanding Multi-SCO Architecture
+
+In a multi-SCO course:
+
+- The **LMS** is responsible for:
+   - Parsing the manifest to identify all SCOs
+   - Launching each SCO in sequence or based on learner choice
+   - Persisting CMI data separately for each SCO
+   - Managing navigation between SCOs
+
+- The **scorm-again API** provides:
+   - Session management via `reset()` for SCO transitions
+   - Data pre-loading via `loadFromJSON()` for resuming SCOs
+   - Commit metadata population for identifying which SCO is committing data
+   - Event system for monitoring SCO lifecycle
+
+### Basic Multi-SCO Setup (LMS-Side)
+
+```javascript
+import { Scorm12API } from 'scorm-again';
+
+// Create a single API instance for the course
+const api = new Scorm12API({
+   lmsCommitUrl: '/api/scorm/commit',
+   autoPopulateCommitMetadata: true,  // Automatically include SCO info in commits
+   courseId: 'course-12345',
+});
+
+// Storage for each SCO's data (typically from your database)
+const scoDataStore = {
+   'sco-intro': { /* saved CMI data */ },
+   'sco-module1': { /* saved CMI data */ },
+   'sco-quiz': { /* saved CMI data */ },
+};
+
+/**
+ * Launch a specific SCO
+ * @param {string} scoId - The identifier for the SCO to launch
+ */
+function launchSCO(scoId) {
+   // Reset the API for the new SCO
+   api.reset({
+      scoId: scoId,  // Identify which SCO is active
+      autoPopulateCommitMetadata: true,
+   });
+
+   // Pre-load any saved data for this SCO
+   const savedData = scoDataStore[scoId];
+   if (savedData) {
+      api.loadFromJSON(savedData);
+   }
+
+   // Launch the SCO content (implementation depends on your LMS)
+   loadSCOContent(scoId);
+
+   // The SCO will call LMSInitialize() when it loads
+}
+
+/**
+ * Handle commit data from a SCO
+ * This would typically be your server-side endpoint
+ */
+function handleCommit(commitObject) {
+   // commitObject now includes:
+   // - courseId: 'course-12345'
+   // - scoId: 'sco-module1' (whichever SCO is active)
+   // - learnerId: from cmi.core.student_id
+   // - learnerName: from cmi.core.student_name
+   // - successStatus, completionStatus, score, runtimeData, etc.
+
+   // Save the data keyed by both courseId and scoId
+   saveToDB(commitObject.courseId, commitObject.scoId, commitObject);
+}
+```
+
+### Handling SCO Transitions
+
+When a learner navigates from one SCO to another:
+
+```javascript
+// Listen for navigation events
+api.on('SequenceNext', () => {
+   const currentScoIndex = getCurrentScoIndex();
+   const nextSco = scoList[currentScoIndex + 1];
+
+   if (nextSco) {
+      launchSCO(nextSco.id);
+   } else {
+      // Course complete
+      showCourseComplete();
+   }
+});
+
+api.on('SequencePrevious', () => {
+   const currentScoIndex = getCurrentScoIndex();
+   const prevSco = scoList[currentScoIndex - 1];
+
+   if (prevSco) {
+      launchSCO(prevSco.id);
+   }
+});
+
+// Example: Sequential SCO launch
+function launchNextSCO() {
+   // Save current SCO data
+   const currentData = api.renderCommitObject(true);
+   scoDataStore[currentScoId] = currentData.runtimeData;
+
+   // Move to next SCO
+   const nextScoId = getNextScoId();
+   launchSCO(nextScoId);
+}
+```
+
+### Pre-loading Learner Data
+
+When a learner resumes a previously-started SCO:
+
+```javascript
+// Example: Resume a SCO with saved data
+function resumeSCO(scoId, savedCmiData) {
+   api.reset({
+      scoId: scoId,
+      autoPopulateCommitMetadata: true,
+   });
+
+   // Load the saved CMI data before initialization
+   // This MUST be done before the SCO calls LMSInitialize()
+   api.loadFromJSON({
+      cmi: {
+         core: {
+            student_id: savedCmiData.studentId,
+            student_name: savedCmiData.studentName,
+            lesson_status: savedCmiData.lessonStatus,
+            lesson_location: savedCmiData.bookmark,
+            score: {
+               raw: savedCmiData.scoreRaw,
+               min: savedCmiData.scoreMin,
+               max: savedCmiData.scoreMax,
+            },
+         },
+         suspend_data: savedCmiData.suspendData,
+      },
+   });
+
+   // Now launch the SCO content
+   loadSCOContent(scoId);
+}
+```
+
+### Using requestHandler for Custom Commit Processing
+
+If you need more control over commit data beyond `autoPopulateCommitMetadata`:
+
+```javascript
+const api = new Scorm12API({
+   lmsCommitUrl: '/api/scorm/commit',
+   courseId: 'course-12345',
+
+   // Custom request handler for full control
+   requestHandler: (commitObject) => {
+      // Add custom fields
+      return {
+         ...commitObject,
+         scoId: currentScoId,
+         attemptNumber: currentAttempt,
+         customField: 'custom-value',
+         timestamp: new Date().toISOString(),
+      };
+   },
+});
+```
+
+### SCORM 2004 Multi-SCO with Sequencing
+
+SCORM 2004 has built-in sequencing support. When sequencing is active, `activityId` is
+automatically populated from the sequencing service:
+
+```javascript
+import { Scorm2004API } from 'scorm-again';
+
+const api = new Scorm2004API({
+   lmsCommitUrl: '/api/scorm/commit',
+   autoPopulateCommitMetadata: true,
+   courseId: 'course-2004-xyz',
+   scoId: 'activity-1',  // Can also be set; activityId comes from sequencing
+
+   // Sequencing configuration
+   sequencing: {
+      // Your sequencing settings from the manifest
+   },
+});
+
+// When autoPopulateCommitMetadata is true, commits include:
+// - courseId: from settings
+// - scoId: from settings
+// - activityId: from the current sequencing activity (if sequencing is active)
+// - learnerId: from cmi.learner_id
+// - learnerName: from cmi.learner_name
+```
+
+### Settings Reference for Multi-SCO Support
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `courseId` | `string` | `""` | Identifier for the course (used in offline storage and commit metadata) |
+| `scoId` | `string` | `""` | Identifier for the current SCO |
+| `autoPopulateCommitMetadata` | `boolean` | `false` | When `true`, automatically includes `courseId`, `scoId`, `learnerId`, and `learnerName` in commit objects |
+
+### CommitObject Metadata Fields
+
+When `autoPopulateCommitMetadata` is enabled, the following fields are populated:
+
+| Field | Source (SCORM 1.2) | Source (SCORM 2004) |
+|-------|-------------------|---------------------|
+| `courseId` | `settings.courseId` | `settings.courseId` |
+| `scoId` | `settings.scoId` | `settings.scoId` |
+| `learnerId` | `cmi.core.student_id` | `cmi.learner_id` |
+| `learnerName` | `cmi.core.student_name` | `cmi.learner_name` |
+| `activityId` | N/A | Current sequencing activity ID |
+
+### Best Practices for Multi-SCO Implementation
+
+1. **One API instance per course attempt** - Create a single API instance and use `reset()` for
+   SCO transitions rather than creating new instances.
+
+2. **Always call `reset()` before loading new SCO data** - This clears the previous SCO's state
+   and prepares the API for the new SCO.
+
+3. **Pre-load data before `LMSInitialize()`** - The `loadFromJSON()` method must be called before
+   the SCO content calls `LMSInitialize()`.
+
+4. **Use `autoPopulateCommitMetadata`** - This simplifies server-side processing by automatically
+   including SCO identification in every commit.
+
+5. **Store data by courseId + scoId** - Ensure your backend storage is keyed by both course and
+   SCO identifiers to properly isolate each SCO's data.
+
+6. **Handle navigation events** - Listen for `SequenceNext` and `SequencePrevious` events to
+   manage SCO transitions.
+
+7. **Re-register event listeners after reset** - Event listeners are cleared during `reset()`,
+   so re-register them for each new SCO if needed.

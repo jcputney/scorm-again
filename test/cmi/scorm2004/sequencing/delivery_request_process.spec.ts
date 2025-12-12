@@ -309,7 +309,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
     it("should properly integrate delivery validation with sequencing", () => {
       // The overall process should validate delivery after sequencing
       const result = overallProcess.processNavigationRequest(NavigationRequestType.START);
-      
+
       expect(result.valid).toBe(true);
       expect(result.targetActivity).toBeDefined();
       expect(result.targetActivity?.children.length).toBe(0); // Must be leaf
@@ -320,17 +320,220 @@ describe("Delivery Request Process (DB.1.1)", () => {
       grandchild1.isAvailable = false;
       grandchild2.isAvailable = false;
       child2.isAvailable = false;
-      
+
       // Add limit exceeded to cluster children
       const clusterChild = new Activity("cluster-child", "Cluster Child");
       cluster.addChild(clusterChild);
       clusterChild.attemptLimit = 1;
       clusterChild.attemptCount = 1; // Exceeded
-      
+
       const result = overallProcess.processNavigationRequest(NavigationRequestType.START);
-      
+
       expect(result.valid).toBe(false);
       expect(result.targetActivity).toBeNull();
+    });
+  });
+
+  describe("GAP-03: Activity Path Validation (DB.1.1)", () => {
+    it("should validate path includes checking all ancestors, not just target", () => {
+      // This test demonstrates that path validation checks ancestors
+      // by setting up an ancestor with a duration limit violation
+      // (Duration limits are checked in delivery, not navigation)
+
+      // Set parent (child1) to have exceeded attempt duration limit
+      child1.attemptAbsoluteDurationLimit = "PT1S"; // 1 second
+      child1.attemptStartTime = new Date(Date.now() - 2000).toISOString(); // Started 2 seconds ago
+      child1.isActive = true;
+
+      // Try to deliver grandchild1 (child of child1)
+      const result = overallProcess.processNavigationRequest(
+        NavigationRequestType.CHOICE,
+        "lesson1"
+      );
+
+      // Should fail because ancestor (child1) fails limit condition check
+      expect(result.valid).toBe(false);
+      expect(result.exception).toBe("DB.1.1-3");
+    });
+
+    it("should reject delivery when any ancestor in path is unavailable", () => {
+      // Path validation should check isAvailable for all ancestors
+      // However, navigation may also check this, so we verify rejection happens
+      child1.isAvailable = false;
+
+      const result = overallProcess.processNavigationRequest(
+        NavigationRequestType.CHOICE,
+        "lesson1"
+      );
+
+      // System correctly rejects - may be navigation or delivery layer
+      expect(result.valid).toBe(false);
+      expect(result.exception).toBeDefined();
+    });
+
+    it("should reject delivery when root in path is unavailable", () => {
+      // Verify root is also checked as part of path validation
+      root.isAvailable = false;
+
+      const result = overallProcess.processNavigationRequest(
+        NavigationRequestType.CHOICE,
+        "lesson1"
+      );
+
+      // System correctly rejects
+      expect(result.valid).toBe(false);
+      expect(result.exception).toBeDefined();
+    });
+
+    it("should reject delivery when ancestor has violated attempt duration limit", () => {
+      // Set parent to have exceeded attempt duration limit
+      child1.attemptAbsoluteDurationLimit = "PT1S"; // 1 second
+      child1.attemptStartTime = new Date(Date.now() - 2000).toISOString(); // Started 2 seconds ago
+      child1.isActive = true;
+
+      // Try to deliver grandchild1
+      const result = overallProcess.processNavigationRequest(
+        NavigationRequestType.CHOICE,
+        "lesson1"
+      );
+
+      // Should fail because parent has exceeded duration limit
+      expect(result.valid).toBe(false);
+      expect(result.exception).toBe("DB.1.1-3");
+    });
+
+    it("should allow delivery when all ancestors pass validation", () => {
+      // Ensure all ancestors are valid
+      root.isAvailable = true;
+      child1.isAvailable = true;
+      grandchild1.isAvailable = true;
+
+      // No limit violations
+      child1.attemptLimit = undefined;
+      child1.attemptCount = 0;
+
+      const result = overallProcess.processNavigationRequest(
+        NavigationRequestType.CHOICE,
+        "lesson1"
+      );
+
+      expect(result.valid).toBe(true);
+      expect(result.targetActivity).toBe(grandchild1);
+    });
+
+    it("should validate multi-level path from root to target", () => {
+      // Verify that path validation includes root activity
+      // Use duration limit which is checked in delivery, not navigation
+      root.attemptAbsoluteDurationLimit = "PT1S";
+      root.attemptStartTime = new Date(Date.now() - 2000).toISOString();
+      root.isActive = true;
+
+      const result = overallProcess.processNavigationRequest(
+        NavigationRequestType.CHOICE,
+        "lesson1"
+      );
+
+      // Should fail because root (in path) violates duration limit
+      expect(result.valid).toBe(false);
+      expect(result.exception).toBe("DB.1.1-3");
+    });
+
+    it("should validate middle ancestors in multi-level path", () => {
+      // Verify middle ancestors are checked, not just root and target
+      root.isAvailable = true;
+
+      // Middle level (child1) has duration violation
+      child1.attemptAbsoluteDurationLimit = "PT1S";
+      child1.attemptStartTime = new Date(Date.now() - 2000).toISOString();
+      child1.isActive = true;
+
+      grandchild1.isAvailable = true;
+
+      const result = overallProcess.processNavigationRequest(
+        NavigationRequestType.CHOICE,
+        "lesson1"
+      );
+
+      // Should fail because middle ancestor violates limit
+      expect(result.valid).toBe(false);
+      expect(result.exception).toBe("DB.1.1-3");
+    });
+
+    it("should validate single activity with no ancestors (direct child of root)", () => {
+      // child2 is direct child of root
+      child2.isAvailable = true;
+
+      const result = overallProcess.processNavigationRequest(
+        NavigationRequestType.CHOICE,
+        "module2"
+      );
+
+      // Should validate both root and child2
+      expect(result.valid).toBe(true);
+      expect(result.targetActivity).toBe(child2);
+    });
+
+    it("should validate target activity as part of path", () => {
+      // Path validation should include the target activity itself
+      root.isAvailable = true;
+      child1.isAvailable = true;
+
+      // Target activity has duration violation
+      grandchild1.attemptAbsoluteDurationLimit = "PT1S";
+      grandchild1.attemptStartTime = new Date(Date.now() - 2000).toISOString();
+      grandchild1.isActive = true;
+
+      const result = overallProcess.processNavigationRequest(
+        NavigationRequestType.CHOICE,
+        "lesson1"
+      );
+
+      // Should fail because target itself fails validation
+      expect(result.valid).toBe(false);
+      expect(result.exception).toBe("DB.1.1-3");
+    });
+
+    it("should validate deep activity trees with multiple ancestors", () => {
+      // Create a deeper tree: root → child1 → grandchild1 → great-grandchild
+      const greatGrandchild = new Activity("great-gc1", "Great Grandchild 1");
+      grandchild1.addChild(greatGrandchild);
+      grandchild1.sequencingControls.flow = true;
+
+      // Set duration violation at intermediate level (child1)
+      child1.attemptAbsoluteDurationLimit = "PT1S";
+      child1.attemptStartTime = new Date(Date.now() - 2000).toISOString();
+      child1.isActive = true;
+
+      // Try to deliver great-grandchild (3 levels deep)
+      const result = overallProcess.processNavigationRequest(
+        NavigationRequestType.CHOICE,
+        "great-gc1"
+      );
+
+      // Should fail because intermediate ancestor has violation
+      expect(result.valid).toBe(false);
+      // Exception depends on whether sequencing or delivery catches it
+      expect(result.exception).toBeDefined();
+    });
+
+    it("should integrate path validation with existing delivery checks", () => {
+      // Verify path validation works alongside other delivery validations
+      root.isAvailable = true;
+      child1.isAvailable = true;
+
+      // Set parent to have duration violation
+      child1.attemptAbsoluteDurationLimit = "PT1S";
+      child1.attemptStartTime = new Date(Date.now() - 2000).toISOString();
+      child1.isActive = true;
+
+      const result = overallProcess.processNavigationRequest(
+        NavigationRequestType.CHOICE,
+        "lesson1"
+      );
+
+      // Should fail during delivery path validation
+      expect(result.valid).toBe(false);
+      expect(result.exception).toBe("DB.1.1-3");
     });
   });
 });

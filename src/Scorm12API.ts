@@ -346,6 +346,23 @@ class Scorm12API extends BaseAPI {
     if (scoreObject) {
       commitObject.score = scoreObject;
     }
+
+    // Populate metadata if enabled
+    if (this.settings.autoPopulateCommitMetadata) {
+      if (this.settings.courseId) {
+        commitObject.courseId = this.settings.courseId;
+      }
+      if (this.settings.scoId) {
+        commitObject.scoId = this.settings.scoId;
+      }
+      if (this.cmi.core.student_id) {
+        commitObject.learnerId = this.cmi.core.student_id;
+      }
+      if (this.cmi.core.student_name) {
+        commitObject.learnerName = this.cmi.core.student_name;
+      }
+    }
+
     return commitObject;
   }
 

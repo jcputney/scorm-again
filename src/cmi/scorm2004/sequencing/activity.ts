@@ -47,6 +47,7 @@ export interface ActivityObjectiveState {
   completionStatus: CompletionStatus;
   satisfiedByMeasure?: boolean;
   minNormalizedMeasure?: number | null;
+  progressStatus: boolean;
 }
 
 export type RollupConsiderationRequirement =
@@ -77,6 +78,7 @@ export class ActivityObjective {
   private _progressMeasure: number = 0;
   private _progressMeasureStatus: boolean = false;
   private _completionStatus: CompletionStatus = CompletionStatus.UNKNOWN;
+  private _progressStatus: boolean = false;
 
   constructor(id: string, options: ActivityObjectiveOptions = {}) {
     this._id = id;
@@ -175,6 +177,14 @@ export class ActivityObjective {
     this._completionStatus = value;
   }
 
+  get progressStatus(): boolean {
+    return this._progressStatus;
+  }
+
+  set progressStatus(value: boolean) {
+    this._progressStatus = value;
+  }
+
   resetState(): void {
     this._satisfiedStatus = false;
     this._measureStatus = false;
@@ -182,6 +192,7 @@ export class ActivityObjective {
     this._progressMeasure = 0;
     this._progressMeasureStatus = false;
     this._completionStatus = CompletionStatus.UNKNOWN;
+    this._progressStatus = false;
   }
 
   updateFromActivity(activity: Activity): void {
@@ -265,6 +276,9 @@ export class Activity extends BaseCMI {
     measureSatisfactionIfActive: true
   };
   private _wasSkipped: boolean = false;
+  private _attemptProgressStatus: boolean = false;
+  private _wasAutoCompleted: boolean = false;
+  private _wasAutoSatisfied: boolean = false;
 
   /**
    * Constructor for Activity
@@ -334,6 +348,9 @@ export class Activity extends BaseCMI {
     }
 
     this._wasSkipped = false;
+    this._attemptProgressStatus = false;
+    this._wasAutoCompleted = false;
+    this._wasAutoSatisfied = false;
   }
 
   /**
@@ -1098,6 +1115,30 @@ export class Activity extends BaseCMI {
 
   set wasSkipped(value: boolean) {
     this._wasSkipped = value;
+  }
+
+  get attemptProgressStatus(): boolean {
+    return this._attemptProgressStatus;
+  }
+
+  set attemptProgressStatus(value: boolean) {
+    this._attemptProgressStatus = value;
+  }
+
+  get wasAutoCompleted(): boolean {
+    return this._wasAutoCompleted;
+  }
+
+  set wasAutoCompleted(value: boolean) {
+    this._wasAutoCompleted = value;
+  }
+
+  get wasAutoSatisfied(): boolean {
+    return this._wasAutoSatisfied;
+  }
+
+  set wasAutoSatisfied(value: boolean) {
+    this._wasAutoSatisfied = value;
   }
 
   /**

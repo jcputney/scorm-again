@@ -971,6 +971,27 @@ class Scorm2004API extends BaseAPI {
       commitObject.score = scoreObject;
     }
 
+    // Populate metadata if enabled
+    if (this.settings.autoPopulateCommitMetadata) {
+      if (this.settings.courseId) {
+        commitObject.courseId = this.settings.courseId;
+      }
+      if (this.settings.scoId) {
+        commitObject.scoId = this.settings.scoId;
+      }
+      if (this.cmi.learner_id) {
+        commitObject.learnerId = this.cmi.learner_id;
+      }
+      if (this.cmi.learner_name) {
+        commitObject.learnerName = this.cmi.learner_name;
+      }
+      // For SCORM 2004, also populate activityId if available from sequencing
+      const sequencingState = this._sequencingService?.getSequencingState();
+      if (sequencingState?.currentActivity?.id) {
+        commitObject.activityId = sequencingState.currentActivity.id;
+      }
+    }
+
     // Update sequencing activity state based on CMI runtime data
     // This ensures that cmi.success_status updates the primary objective,
     // which then triggers mapInfo global objective writes during rollup

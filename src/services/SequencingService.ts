@@ -533,6 +533,8 @@ export class SequencingService {
         | "incomplete"
         | "not attempted"
         | "unknown";
+      // Mark that content has set completion status
+      activity.attemptProgressStatus = true;
     }
 
     // Update success status
@@ -541,6 +543,10 @@ export class SequencingService {
       activity.objectiveSatisfiedStatus = this.cmi.success_status === "passed";
       // Set measureStatus to true since we now have a known satisfied status
       activity.objectiveMeasureStatus = true;
+      // Mark that content has set objective satisfaction status
+      if (activity.primaryObjective) {
+        activity.primaryObjective.progressStatus = true;
+      }
     }
 
     // Update progress measure
@@ -558,6 +564,10 @@ export class SequencingService {
       if (!isNaN(scaledScore)) {
         activity.objectiveNormalizedMeasure = scaledScore;
         activity.objectiveMeasureStatus = true;
+        // Mark that content has set objective measure (which affects satisfaction)
+        if (activity.primaryObjective) {
+          activity.primaryObjective.progressStatus = true;
+        }
       }
     }
 

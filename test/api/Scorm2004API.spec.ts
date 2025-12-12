@@ -930,6 +930,131 @@ describe("SCORM 2004 API Tests", () => {
       const runtimeCmi = commitObject.runtimeData.cmi as StringKeyMap;
       expect(runtimeCmi.total_time).toEqual("P1DT12H34M55S");
     });
+
+    describe("autoPopulateCommitMetadata", () => {
+      it("should not populate metadata when autoPopulateCommitMetadata is false (default)", () => {
+        const scorm2004API = api();
+        scorm2004API.cmi.learner_id = "learner_123";
+        scorm2004API.cmi.learner_name = "John Doe";
+        const commitObject = scorm2004API.renderCommitObject(true);
+        expect(commitObject.courseId).toBeUndefined();
+        expect(commitObject.scoId).toBeUndefined();
+        expect(commitObject.learnerId).toBeUndefined();
+        expect(commitObject.learnerName).toBeUndefined();
+        expect(commitObject.activityId).toBeUndefined();
+      });
+
+      it("should populate all metadata when autoPopulateCommitMetadata is true", () => {
+        const scorm2004API = api({
+          autoPopulateCommitMetadata: true,
+          courseId: "course-2004",
+          scoId: "sco-2004",
+        });
+        scorm2004API.cmi.learner_id = "learner_456";
+        scorm2004API.cmi.learner_name = "Jane Smith";
+        const commitObject = scorm2004API.renderCommitObject(true);
+        expect(commitObject.courseId).toEqual("course-2004");
+        expect(commitObject.scoId).toEqual("sco-2004");
+        expect(commitObject.learnerId).toEqual("learner_456");
+        expect(commitObject.learnerName).toEqual("Jane Smith");
+      });
+
+      it("should only populate courseId when only courseId is provided", () => {
+        const scorm2004API = api({
+          autoPopulateCommitMetadata: true,
+          courseId: "my-2004-course",
+        });
+        const commitObject = scorm2004API.renderCommitObject(true);
+        expect(commitObject.courseId).toEqual("my-2004-course");
+        expect(commitObject.scoId).toBeUndefined();
+        expect(commitObject.learnerId).toBeUndefined();
+        expect(commitObject.learnerName).toBeUndefined();
+      });
+
+      it("should only populate scoId when only scoId is provided", () => {
+        const scorm2004API = api({
+          autoPopulateCommitMetadata: true,
+          scoId: "my-2004-sco",
+        });
+        const commitObject = scorm2004API.renderCommitObject(true);
+        expect(commitObject.courseId).toBeUndefined();
+        expect(commitObject.scoId).toEqual("my-2004-sco");
+        expect(commitObject.learnerId).toBeUndefined();
+        expect(commitObject.learnerName).toBeUndefined();
+      });
+
+      it("should populate learner info from CMI when available", () => {
+        const scorm2004API = api({
+          autoPopulateCommitMetadata: true,
+        });
+        scorm2004API.cmi.learner_id = "learner-def";
+        scorm2004API.cmi.learner_name = "Bob Wilson";
+        const commitObject = scorm2004API.renderCommitObject(false);
+        expect(commitObject.learnerId).toEqual("learner-def");
+        expect(commitObject.learnerName).toEqual("Bob Wilson");
+      });
+
+      it("should not populate learner info when CMI values are empty", () => {
+        const scorm2004API = api({
+          autoPopulateCommitMetadata: true,
+          courseId: "course-empty",
+        });
+        // learner_id and learner_name are empty by default
+        const commitObject = scorm2004API.renderCommitObject(true);
+        expect(commitObject.courseId).toEqual("course-empty");
+        expect(commitObject.learnerId).toBeUndefined();
+        expect(commitObject.learnerName).toBeUndefined();
+      });
+
+      it("should work correctly on non-terminate commits", () => {
+        const scorm2004API = api({
+          autoPopulateCommitMetadata: true,
+          courseId: "course-2004-xyz",
+          scoId: "sco-2004-xyz",
+        });
+        scorm2004API.cmi.learner_id = "learner-2004-xyz";
+        const commitObject = scorm2004API.renderCommitObject(false);
+        expect(commitObject.courseId).toEqual("course-2004-xyz");
+        expect(commitObject.scoId).toEqual("sco-2004-xyz");
+        expect(commitObject.learnerId).toEqual("learner-2004-xyz");
+      });
+
+      it("should preserve other commit object fields when metadata is populated", () => {
+        const scorm2004API = api({
+          autoPopulateCommitMetadata: true,
+          courseId: "course-2004-preserve",
+        });
+        scorm2004API.cmi.success_status = "passed";
+        scorm2004API.cmi.completion_status = "completed";
+        scorm2004API.cmi.score.raw = "92";
+        scorm2004API.cmi.learner_id = "learner-2004-preserve";
+        const commitObject = scorm2004API.renderCommitObject(true);
+        // Verify original fields are intact
+        expect(commitObject.successStatus).toEqual(SuccessStatus.PASSED);
+        expect(commitObject.completionStatus).toEqual(CompletionStatus.COMPLETED);
+        expect(commitObject.score?.raw).toEqual(92);
+        // Verify metadata is added
+        expect(commitObject.courseId).toEqual("course-2004-preserve");
+        expect(commitObject.learnerId).toEqual("learner-2004-preserve");
+      });
+
+      it("should handle reset and metadata update for multi-SCO scenario", () => {
+        const scorm2004API = api({
+          autoPopulateCommitMetadata: true,
+          courseId: "course-2004-multi",
+          scoId: "activity-1",
+        });
+        scorm2004API.cmi.learner_id = "learner-2004-1";
+        const commitObject1 = scorm2004API.renderCommitObject(true);
+        expect(commitObject1.scoId).toEqual("activity-1");
+
+        // Simulate multi-SCO transition
+        scorm2004API.reset({ scoId: "activity-2", autoPopulateCommitMetadata: true });
+        scorm2004API.cmi.learner_id = "learner-2004-1"; // Re-set after reset
+        const commitObject2 = scorm2004API.renderCommitObject(true);
+        expect(commitObject2.scoId).toEqual("activity-2");
+      });
+    });
   });
 
   describe("lmsGetDiagnostic()", () => {

@@ -168,6 +168,8 @@ export type SequencingControlsSettings = {
   randomizationTiming?: RandomizationTiming;
   selectionCountStatus?: boolean;
   reorderChildren?: boolean;
+  completionSetByContent?: boolean;
+  objectiveSetByContent?: boolean;
 };
 
 export type SelectionRandomizationStateSettings = {
