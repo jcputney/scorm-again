@@ -155,8 +155,8 @@ export class OverallSequencingProcess {
     // Step 2: Termination Request Process (TB.2.3) if needed
     if (navResult.terminationRequest) {
       const termResult = this.terminationRequestProcess(navResult.terminationRequest, !!navResult.sequencingRequest);
-      if (!termResult) {
-        return new DeliveryRequest(false, null, "TB.2.3-1");
+      if (!termResult.valid) {
+        return new DeliveryRequest(false, null, termResult.exception || "TB.2.3-1");
       }
 
       // If this is a termination-only request (no sequencing request), return success
@@ -318,9 +318,10 @@ export class OverallSequencingProcess {
           return new NavigationRequestResult(false, null, null, null, choiceValidation.exception);
         }
 
+        // Per NB.2.1 Step 7.1.1.4: Only return EXIT if current activity is active
         return new NavigationRequestResult(
           true,
-          currentActivity ? SequencingRequestType.EXIT : null,
+          currentActivity?.isActive ? SequencingRequestType.EXIT : null,
           SequencingRequestType.CHOICE,
           targetActivityId
         );
@@ -411,17 +412,21 @@ export class OverallSequencingProcess {
    * GAP-02: Implements missing post-condition loop per SCORM 2004 3rd Edition TB.2.3
    * @param {SequencingRequestType} request - The termination request
    * @param {boolean} hasSequencingRequest - Whether a sequencing request follows
-   * @return {TerminationRequestResult | boolean} - Termination result with sequencing request, or boolean for backward compatibility
+   * @return {TerminationRequestResult} - Termination result with sequencing request
    */
   private terminationRequestProcess(
     request: SequencingRequestType,
     hasSequencingRequest: boolean = false
-  ): TerminationRequestResult | boolean {
+  ): TerminationRequestResult {
     const currentActivity = this.activityTree.currentActivity;
 
     if (!currentActivity) {
-      // Return boolean false for backward compatibility
-      return false;
+      return {
+        terminationRequest: request,
+        sequencingRequest: null,
+        exception: "TB.2.3-1",
+        valid: false
+      };
     }
 
     // Enhanced logging for debugging
@@ -449,7 +454,12 @@ export class OverallSequencingProcess {
         return this.handleSuspendAllTermination(currentActivity);
 
       default:
-        return false;
+        return {
+          terminationRequest: request,
+          sequencingRequest: null,
+          exception: "TB.2.3-1",
+          valid: false
+        };
     }
   }
 
@@ -607,12 +617,12 @@ export class OverallSequencingProcess {
    * Handle ABANDON termination (TB.2.3 step 6)
    * @param {Activity} currentActivity - The current activity
    * @param {boolean} hasSequencingRequest - Whether a sequencing request follows
-   * @return {TerminationRequestResult | boolean} - The termination result
+   * @return {TerminationRequestResult} - The termination result
    */
   private handleAbandonTermination(
     currentActivity: Activity,
     hasSequencingRequest: boolean
-  ): TerminationRequestResult | boolean {
+  ): TerminationRequestResult {
     // TB.2.3 step 6.1: Set activity as not active (no attempt end)
     currentActivity.isActive = false;
 
@@ -621,16 +631,20 @@ export class OverallSequencingProcess {
       this.activityTree.currentActivity = currentActivity.parent;
     }
 
-    // Return boolean true for backward compatibility
-    return true;
+    return {
+      terminationRequest: SequencingRequestType.ABANDON,
+      sequencingRequest: null,
+      exception: null,
+      valid: true
+    };
   }
 
   /**
    * Handle ABANDON_ALL termination (TB.2.3 step 7)
    * @param {Activity} currentActivity - The current activity
-   * @return {TerminationRequestResult | boolean} - The termination result
+   * @return {TerminationRequestResult} - The termination result
    */
-  private handleAbandonAllTermination(currentActivity: Activity): TerminationRequestResult | boolean {
+  private handleAbandonAllTermination(currentActivity: Activity): TerminationRequestResult {
     // TB.2.3 step 7.1: Set all activities as not active (no attempt ends)
     currentActivity.isActive = false;
 
@@ -640,17 +654,21 @@ export class OverallSequencingProcess {
     // Clean up suspended activities
     this.performComplexSuspendedActivityCleanup();
 
-    // Return boolean true for backward compatibility
-    return true;
+    return {
+      terminationRequest: SequencingRequestType.ABANDON_ALL,
+      sequencingRequest: null,
+      exception: null,
+      valid: true
+    };
   }
 
   /**
    * Handle SUSPEND_ALL termination (TB.2.3 step 5)
    * Implements TB.2.3 steps 5.1-5.7 for SUSPEND_ALL processing
    * @param {Activity} currentActivity - The current activity
-   * @return {TerminationRequestResult | boolean} - The termination result
+   * @return {TerminationRequestResult} - The termination result
    */
-  private handleSuspendAllTermination(currentActivity: Activity): TerminationRequestResult | boolean {
+  private handleSuspendAllTermination(currentActivity: Activity): TerminationRequestResult {
     // TB.2.3 steps 5.1-5.6: Suspend current activity and all ancestors, set current to root
     this.handleSuspendAllRequest(currentActivity);
 
@@ -659,10 +677,12 @@ export class OverallSequencingProcess {
     // The content unloads and currentActivity is cleared during termination.
     // When RESUME_ALL is called in the next session, currentActivity will be null.
 
-    // Return boolean true for backward compatibility
-    // Note: Reference implementation would return {valid: true, sequencingRequest: EXIT}
-    // but our architecture uses boolean returns for termination handlers
-    return true;
+    return {
+      terminationRequest: SequencingRequestType.SUSPEND_ALL,
+      sequencingRequest: SequencingRequestType.EXIT,
+      exception: null,
+      valid: true
+    };
   }
 
   /**
@@ -1902,9 +1922,11 @@ export class OverallSequencingProcess {
       }
 
       // Validate choiceExit controls along the current activity path
+      // Per NB.2.1 Step 7.1.1.2.3.1: Only check active ancestors from current to common ancestor (exclusive)
       let node: Activity | null = currentActivity;
-      while (node) {
-        if (node.sequencingControls && node.sequencingControls.choiceExit === false) {
+      while (node && node !== commonAncestor) {
+        // Only validate choiceExit if the activity is active
+        if (node.isActive === true && node.sequencingControls && node.sequencingControls.choiceExit === false) {
           if (targetActivity !== node && !this.activityContains(node, targetActivity)) {
             return { valid: false, exception: "NB.2.1-11" };
           }

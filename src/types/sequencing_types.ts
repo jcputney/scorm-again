@@ -253,4 +253,42 @@ export interface SequencingEventListeners {
     exception?: string | null;
     navigationRequest?: string;
   }) => void;
+  onAutoCompletion?: (data: { activity: string; completionStatus: string }) => void;
+  onAutoSatisfaction?: (data: { activity: string; satisfiedStatus: boolean }) => void;
+  onPostConditionExitParent?: (data: { activity: string }) => void;
+  onPostConditionExitAll?: (data: { activity: string }) => void;
+  onTerminationRequestProcessing?: (data: {
+    request: string;
+    hasSequencingRequest: boolean;
+    currentActivity: string;
+  }) => void;
+  onNavigationRequestProcessing?: (data: {
+    request: string;
+    targetActivityId: string | null;
+  }) => void;
+  onPostConditionEvaluated?: (data: {
+    activity: string;
+    result: string;
+    iteration: number;
+  }) => void;
+  onMultiLevelExitAction?: (data: { activity: string }) => void;
+  onSuspendedActivityCleanup?: (data: { activity: string }) => void;
+  onSuspendError?: (data: { activity: string; error: string }) => void;
+  onActivitySuspended?: (data: { activity: string }) => void;
+  onDeliveryRequestProcessing?: (data: { request: string; target: string | null }) => void;
+  onNavigationValidityUpdate?: (data: {
+    currentActivity: string | null;
+    validRequests: string[];
+  }) => void;
+  onLimitConditionCheck?: (data: {
+    activity: string;
+    limitType: string;
+    exceeded: boolean;
+  }) => void;
+  onStateInconsistency?: (data: { activity: string; issue: string }) => void;
+  onGlobalObjectiveMapInitialized?: (data: { count: number }) => void;
+  onGlobalObjectiveMapError?: (data: { error: string }) => void;
+  onGlobalObjectiveUpdated?: (data: { objectiveId: string; field: string; value: any }) => void;
+  onGlobalObjectiveUpdateError?: (data: { objectiveId: string; error: string }) => void;
+  onSequencingDebug?: (data: { message: string; context?: any }) => void;
 }

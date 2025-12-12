@@ -1032,34 +1032,17 @@ class Scorm2004API extends BaseAPI {
       primaryObjective.measureStatus = true;
       currentActivity.objectiveMeasureStatus = true;
       currentActivity.objectiveSatisfiedStatus = successStatus === SuccessStatus.PASSED;
-
-      // Also update the primary objective in the activity's objectives list
-      const primaryInList = currentActivity.objectives.find((obj) => obj.isPrimary);
-      if (primaryInList) {
-        primaryInList.satisfiedStatus = successStatus === SuccessStatus.PASSED;
-        primaryInList.measureStatus = true;
-      }
     }
 
     // Update primary objective completion status based on cmi.completion_status
     if (completionStatus !== CompletionStatus.UNKNOWN) {
       primaryObjective.completionStatus = completionStatus;
-
-      const primaryInList = currentActivity.objectives.find((obj) => obj.isPrimary);
-      if (primaryInList) {
-        primaryInList.completionStatus = completionStatus;
-      }
     }
 
     // Update normalized measure if score is provided
     if (scoreObject?.scaled !== undefined && scoreObject.scaled !== null) {
       primaryObjective.normalizedMeasure = scoreObject.scaled;
       primaryObjective.measureStatus = true;
-
-      const primaryInList = currentActivity.objectives.find((obj) => obj.isPrimary);
-      if (primaryInList) {
-        primaryInList.normalizedMeasure = scoreObject.scaled;
-      }
     }
   }
 
