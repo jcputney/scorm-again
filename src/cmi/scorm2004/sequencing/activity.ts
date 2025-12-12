@@ -64,6 +64,19 @@ export interface RollupConsiderationsConfig {
   measureSatisfactionIfActive: boolean;
 }
 
+/**
+ * Snapshot of rollup status for optimization comparison
+ * Used by Overall Rollup Process (RB.1.5) to detect when status stops changing
+ */
+export interface RollupStatusSnapshot {
+  measureStatus: boolean;
+  normalizedMeasure: number;
+  objectiveProgressStatus: boolean;
+  objectiveSatisfiedStatus: boolean;
+  attemptProgressStatus: boolean;
+  attemptCompletionStatus: boolean;
+}
+
 export class ActivityObjective {
   private _id: string;
   private _description: string | null;
@@ -1457,6 +1470,44 @@ export class Activity extends BaseCMI {
 
   addAuxiliaryResource(resource: AuxiliaryResource): void {
     this.auxiliaryResources = [...this._auxiliaryResources, resource];
+  }
+
+  /**
+   * Capture current rollup status for optimization comparison
+   * Used by Overall Rollup Process (RB.1.5) to detect when status stops changing
+   * @return {RollupStatusSnapshot} - Snapshot of current rollup-relevant status
+   */
+  captureRollupStatus(): RollupStatusSnapshot {
+    return {
+      measureStatus: this._objectiveMeasureStatus,
+      normalizedMeasure: this._objectiveNormalizedMeasure,
+      objectiveProgressStatus: this._objectiveSatisfiedStatus !== null &&
+                                this._objectiveSatisfiedStatus !== undefined,
+      objectiveSatisfiedStatus: this._objectiveSatisfiedStatus,
+      attemptProgressStatus: this._completionStatus !== CompletionStatus.UNKNOWN,
+      attemptCompletionStatus: this._completionStatus === CompletionStatus.COMPLETED,
+    };
+  }
+
+  /**
+   * Compare two rollup status snapshots for equality
+   * Uses epsilon comparison for floating point normalizedMeasure
+   * @param {RollupStatusSnapshot} prior - Previous status snapshot
+   * @param {RollupStatusSnapshot} current - Current status snapshot
+   * @return {boolean} - True if statuses are equal (no change), false if different
+   */
+  static compareRollupStatus(
+    prior: RollupStatusSnapshot,
+    current: RollupStatusSnapshot
+  ): boolean {
+    const EPSILON = 0.0001; // Floating point comparison tolerance
+
+    return prior.measureStatus === current.measureStatus &&
+           Math.abs(prior.normalizedMeasure - current.normalizedMeasure) < EPSILON &&
+           prior.objectiveProgressStatus === current.objectiveProgressStatus &&
+           prior.objectiveSatisfiedStatus === current.objectiveSatisfiedStatus &&
+           prior.attemptProgressStatus === current.attemptProgressStatus &&
+           prior.attemptCompletionStatus === current.attemptCompletionStatus;
   }
 
   /**

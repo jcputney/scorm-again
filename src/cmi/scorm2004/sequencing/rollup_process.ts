@@ -24,36 +24,75 @@ export class RollupProcess {
   /**
    * Overall Rollup Process (RB.1.5)
    * Performs rollup from a given activity up through its ancestors
+   * OPTIMIZATION: Stops propagating rollup when status stops changing (SCORM 2004 4.6.1)
    * @param {Activity} activity - The activity to start rollup from
+   * @return {Activity[]} - Array of activities that had status changes
    */
-  public overallRollupProcess(activity: Activity): void {
-    let currentActivity: Activity | null = activity;
+  public overallRollupProcess(activity: Activity): Activity[] {
+    const affectedActivities: Activity[] = [];
+    let currentActivity: Activity | null = activity.parent; // Start from parent, not the activity itself
+    let onlyDurationRollup = false;
+    let isFirst = true;
 
-    // Process rollup up the tree until we reach the root
-    while (currentActivity && currentActivity.parent) {
-      const parent: Activity = currentActivity.parent;
+    // Process rollup up the tree from parent to root
+    while (currentActivity) {
+      if (!onlyDurationRollup) {
+        // Capture status BEFORE rollup
+        const beforeStatus = currentActivity.captureRollupStatus();
 
-      // Only perform rollup if the parent tracks status
-      if (parent.sequencingControls.rollupObjectiveSatisfied ||
-        parent.sequencingControls.rollupProgressCompletion) {
+        // Only perform rollup if the activity tracks status
+        if (currentActivity.sequencingControls.rollupObjectiveSatisfied ||
+          currentActivity.sequencingControls.rollupProgressCompletion) {
 
-        // Step 1: Measure Rollup Process (RB.1.1)
-        this.measureRollupProcess(parent);
+          // Step 1: Measure Rollup Process (RB.1.1)
+          if (currentActivity.children.length > 0) {
+            this.measureRollupProcess(currentActivity);
+          }
 
-        // Step 2: Objective Rollup Process (RB.1.2)
-        if (parent.sequencingControls.rollupObjectiveSatisfied) {
-          this.objectiveRollupProcess(parent);
+          // Step 2: Objective Rollup Process (RB.1.2)
+          if (currentActivity.sequencingControls.rollupObjectiveSatisfied) {
+            this.objectiveRollupProcess(currentActivity);
+          }
+
+          // Step 3: Activity Progress Rollup Process (RB.1.3)
+          if (currentActivity.sequencingControls.rollupProgressCompletion) {
+            this.activityProgressRollupProcess(currentActivity);
+          }
         }
 
-        // Step 3: Activity Progress Rollup Process (RB.1.3)
-        if (parent.sequencingControls.rollupProgressCompletion) {
-          this.activityProgressRollupProcess(parent);
+        // Capture status AFTER rollup
+        const afterStatus = currentActivity.captureRollupStatus();
+
+        // OPTIMIZATION: Check if anything changed (skip first iteration)
+        // The first activity always gets processed regardless of change
+        if (!isFirst) {
+          const changed = !Activity.compareRollupStatus(beforeStatus, afterStatus);
+          if (!changed) {
+            // No changes detected - activate optimization
+            this.eventCallback?.("rollup_optimization_activated", {
+              activityId: currentActivity.id,
+              depth: affectedActivities.length
+            });
+            onlyDurationRollup = true;
+          }
+        }
+
+        // Add to affected activities if status changed or is first iteration
+        if (isFirst || !Activity.compareRollupStatus(beforeStatus, afterStatus)) {
+          affectedActivities.push(currentActivity);
         }
       }
 
+      // Duration rollup would go here (placeholder for GAP-20)
+      // TODO: Implement full duration rollup in GAP-20
+      // For now, duration rollup continues even when optimization is active
+
       // Move up the tree
-      currentActivity = parent;
+      currentActivity = currentActivity.parent;
+      isFirst = false;
     }
+
+    return affectedActivities;
   }
 
   /**

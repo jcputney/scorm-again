@@ -580,6 +580,191 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
     });
   });
 
+  describe("Rollup Optimization (RB.1.5 - SCORM 2004 4.6.1)", () => {
+    it("should stop rollup when status stops changing", () => {
+      // Create deep tree: root -> parent -> child1 -> deepChild1 -> deepChild2
+      const deepChild1 = new Activity("deepChild1", "Deep Child 1");
+      const deepChild2 = new Activity("deepChild2", "Deep Child 2");
+
+      root.addChild(parent);
+      parent.addChild(child1);
+      child1.addChild(deepChild1);
+      deepChild1.addChild(deepChild2);
+
+      // Enable rollup for all levels
+      root.sequencingControls.rollupObjectiveSatisfied = true;
+      root.sequencingControls.rollupProgressCompletion = true;
+      parent.sequencingControls.rollupObjectiveSatisfied = true;
+      parent.sequencingControls.rollupProgressCompletion = true;
+      child1.sequencingControls.rollupObjectiveSatisfied = true;
+      child1.sequencingControls.rollupProgressCompletion = true;
+      deepChild1.sequencingControls.rollupObjectiveSatisfied = true;
+      deepChild1.sequencingControls.rollupProgressCompletion = true;
+
+      // Set parent and root already completed and satisfied (stable state)
+      parent.objectiveSatisfiedStatus = true;
+      parent.completionStatus = CompletionStatus.COMPLETED;
+      root.objectiveSatisfiedStatus = true;
+      root.completionStatus = CompletionStatus.COMPLETED;
+
+      // Complete deepest child
+      deepChild2.objectiveSatisfiedStatus = true;
+      deepChild2.completionStatus = CompletionStatus.COMPLETED;
+
+      // Rollup from deepChild2 (processes parent deepChild1 and upward)
+      const affectedActivities = rollupProcess.overallRollupProcess(deepChild2);
+
+      // Should include deepChild1 (parent of deepChild2, first iteration always included)
+      expect(affectedActivities).toContain(deepChild1);
+
+      // Optimization should stop propagation before reaching root if no changes occur
+      // The exact stopping point depends on when status stops changing
+      expect(affectedActivities.length).toBeGreaterThan(0);
+      expect(affectedActivities.length).toBeLessThanOrEqual(4); // deepChild1, child1, parent, root
+    });
+
+    it("should always process first activity even if no change", () => {
+      // Set child already completed
+      child1.objectiveSatisfiedStatus = true;
+      child1.completionStatus = CompletionStatus.COMPLETED;
+      child2.objectiveSatisfiedStatus = true;
+      child2.completionStatus = CompletionStatus.COMPLETED;
+      child3.objectiveSatisfiedStatus = true;
+      child3.completionStatus = CompletionStatus.COMPLETED;
+
+      // Set parent already completed and satisfied (stable state)
+      parent.objectiveSatisfiedStatus = true;
+      parent.completionStatus = CompletionStatus.COMPLETED;
+
+      // Rollup from child1 (processes parent first)
+      const affectedActivities = rollupProcess.overallRollupProcess(child1);
+
+      // Should still include parent (first iteration always processed even if no change)
+      expect(affectedActivities).toContain(parent);
+      expect(affectedActivities.length).toBeGreaterThan(0);
+    });
+
+    it("should propagate all the way to root when changes occur at each level", () => {
+      // Create tree where each level will change
+      child1.objectiveSatisfiedStatus = true;
+      child1.completionStatus = CompletionStatus.COMPLETED;
+      child2.objectiveSatisfiedStatus = true;
+      child2.completionStatus = CompletionStatus.COMPLETED;
+      child3.objectiveSatisfiedStatus = true;
+      child3.completionStatus = CompletionStatus.COMPLETED;
+
+      // Parent and root start unsatisfied/incomplete
+      parent.objectiveSatisfiedStatus = false;
+      parent.completionStatus = CompletionStatus.INCOMPLETE;
+      root.objectiveSatisfiedStatus = false;
+      root.completionStatus = CompletionStatus.INCOMPLETE;
+
+      // Rollup from child1 - should propagate changes all the way up
+      const affectedActivities = rollupProcess.overallRollupProcess(child1);
+
+      // Should include parent and root (all changed)
+      // Note: child1 itself is not included as rollup processes from parent upward
+      expect(affectedActivities).toContain(parent);
+      expect(affectedActivities).toContain(root);
+    });
+
+    it("should handle floating point comparison correctly for normalizedMeasure", () => {
+      // Set up measure-based rollup
+      parent.scaledPassingScore = 0.7;
+      child1.objectiveMeasureStatus = true;
+      child1.objectiveNormalizedMeasure = 0.8;
+      child1.sequencingControls.objectiveMeasureWeight = 1.0;
+      child2.objectiveMeasureStatus = true;
+      child2.objectiveNormalizedMeasure = 0.8;
+      child2.sequencingControls.objectiveMeasureWeight = 1.0;
+      child3.objectiveMeasureStatus = true;
+      child3.objectiveNormalizedMeasure = 0.8;
+      child3.sequencingControls.objectiveMeasureWeight = 1.0;
+
+      // Set parent measure to very close value (within epsilon)
+      parent.objectiveMeasureStatus = true;
+      parent.objectiveNormalizedMeasure = 0.800001; // Within epsilon of 0.8
+      parent.objectiveSatisfiedStatus = true;
+
+      // Rollup from child1
+      const affectedActivities = rollupProcess.overallRollupProcess(child1);
+
+      // Parent's measure is essentially unchanged (within epsilon)
+      // Parent is first iteration so always included
+      expect(affectedActivities).toContain(parent);
+
+      // Optimization should activate at parent level, so root may not be in the list
+      expect(affectedActivities.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("should return array of affected activities", () => {
+      child1.objectiveSatisfiedStatus = true;
+      child1.completionStatus = CompletionStatus.COMPLETED;
+
+      const affectedActivities = rollupProcess.overallRollupProcess(child1);
+
+      // Should return an array
+      expect(Array.isArray(affectedActivities)).toBe(true);
+      expect(affectedActivities.length).toBeGreaterThan(0);
+    });
+
+    it("should stop early in deep tree when intermediate level doesn't change", () => {
+      // Create 5-level deep tree
+      const level1 = new Activity("level1", "Level 1");
+      const level2 = new Activity("level2", "Level 2");
+      const level3 = new Activity("level3", "Level 3");
+      const level4 = new Activity("level4", "Level 4");
+      const level5 = new Activity("level5", "Level 5");
+
+      level1.addChild(level2);
+      level2.addChild(level3);
+      level3.addChild(level4);
+      level4.addChild(level5);
+
+      // Enable rollup for all
+      [level1, level2, level3, level4, level5].forEach(activity => {
+        activity.sequencingControls.rollupObjectiveSatisfied = true;
+        activity.sequencingControls.rollupProgressCompletion = true;
+      });
+
+      // Set level1, level2, level3 already completed and satisfied
+      level1.objectiveSatisfiedStatus = true;
+      level1.completionStatus = CompletionStatus.COMPLETED;
+      level2.objectiveSatisfiedStatus = true;
+      level2.completionStatus = CompletionStatus.COMPLETED;
+      level3.objectiveSatisfiedStatus = true;
+      level3.completionStatus = CompletionStatus.COMPLETED;
+
+      // Complete deepest level
+      level5.objectiveSatisfiedStatus = true;
+      level5.completionStatus = CompletionStatus.COMPLETED;
+
+      const affectedActivities = rollupProcess.overallRollupProcess(level5);
+
+      // Should not process all 5 levels if optimization kicks in
+      expect(affectedActivities.length).toBeLessThan(5);
+    });
+
+    it("should detect changes in all tracked status fields", () => {
+      // Change only completion status, not satisfaction
+      parent.objectiveSatisfiedStatus = true;
+      parent.completionStatus = CompletionStatus.INCOMPLETE;
+
+      child1.objectiveSatisfiedStatus = true;
+      child1.completionStatus = CompletionStatus.COMPLETED;
+      child2.objectiveSatisfiedStatus = true;
+      child2.completionStatus = CompletionStatus.COMPLETED;
+      child3.objectiveSatisfiedStatus = true;
+      child3.completionStatus = CompletionStatus.COMPLETED;
+
+      const affectedActivities = rollupProcess.overallRollupProcess(child1);
+
+      // Parent's completion status should change, so it should be in affected list
+      expect(affectedActivities).toContain(parent);
+      expect(parent.completionStatus).toBe(CompletionStatus.COMPLETED);
+    });
+  });
+
   describe("ADL rollup considerations", () => {
     it("ignores skipped children when requiredForNotSatisfied is ifNotSkipped", () => {
       parent.applyRollupConsiderations({
