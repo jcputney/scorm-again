@@ -86,6 +86,7 @@ export class OverallSequencingProcess {
   private rollupProcess: RollupProcess;
   private adlNav: ADLNav | null;
   private contentDelivered: boolean = false;
+  private _deliveryInProgress: boolean = false; // Tracks when we're in contentDeliveryEnvironmentProcess
   private eventCallback: ((eventType: string, data?: any) => void) | null = null;
   private globalObjectiveMap: Map<string, any> = new Map();
   private now: () => Date;
@@ -160,14 +161,32 @@ export class OverallSequencingProcess {
         navResult.targetActivityId
       );
 
+      // OP.1 step 1.4.3: Check if sequencing session should end
+      if (seqResult.endSequencingSession) {
+        this.fireEvent("onSequencingSessionEnd", {
+          reason: "end_of_content",
+          exception: seqResult.exception,
+          navigationRequest: navigationRequest
+        });
+
+        // Return delivery request indicating session end
+        return new DeliveryRequest(false, null, seqResult.exception || "SESSION_ENDED");
+      }
+
       if (seqResult.exception) {
         return new DeliveryRequest(false, null, seqResult.exception);
       }
 
       if (seqResult.deliveryRequest === DeliveryRequestType.DELIVER && seqResult.targetActivity) {
         // INTEGRATION: Validate rollup state consistency before delivery
-        if (this.activityTree.root && !this.rollupProcess.validateRollupStateConsistency(this.activityTree.root)) {
-          return new DeliveryRequest(false, null, "OP.1-3");
+        if (this.activityTree.root) {
+          const isConsistent = this.rollupProcess.validateRollupStateConsistency(this.activityTree.root);
+          if (!isConsistent) {
+            this.fireEvent("onSequencingDebug", {
+              message: "Rollup state inconsistency detected before delivery",
+              activityId: this.activityTree.root.id,
+            });
+          }
         }
 
         // INTEGRATION: Process global objective mapping before delivery
@@ -763,32 +782,42 @@ export class OverallSequencingProcess {
    * @param {Activity} activity - The activity to deliver
    */
   private contentDeliveryEnvironmentProcess(activity: Activity): void {
-    // Step 1: Clear Suspended Activity Subprocess (DB.2.1) if needed
-    if (this.activityTree.suspendedActivity &&
-      this.activityTree.suspendedActivity !== activity) {
-      this.clearSuspendedActivitySubprocess();
+    // Mark that delivery is in progress to prevent re-entrant termination requests
+    // This handles the case where the old content's unload handler fires during delivery
+    // and calls Terminate, which would otherwise re-terminate the newly delivered activity
+    this._deliveryInProgress = true;
+
+    try {
+      // Step 1: Clear Suspended Activity Subprocess (DB.2.1) if needed
+      if (this.activityTree.suspendedActivity &&
+        this.activityTree.suspendedActivity !== activity) {
+        this.clearSuspendedActivitySubprocess();
+      }
+
+      // Step 2: Set the activity as current and active
+      this.activityTree.currentActivity = activity;
+      activity.isActive = true;
+
+      // Step 3: Initialize attempt for the delivered activity (DB.2.2)
+      this.initializeActivityForDelivery(activity);
+
+      // Step 4: Set up activity attempt tracking information
+      this.setupActivityAttemptTracking(activity);
+
+      // Step 5: Mark that content has been delivered
+      this.contentDelivered = true;
+
+      // Step 6: Update navigation validity if ADL nav is available
+      if (this.adlNav) {
+        this.updateNavigationValidity();
+      }
+
+      // Step 7: Fire activity delivery event
+      this.fireActivityDeliveryEvent(activity);
+    } finally {
+      // Clear delivery in progress flag
+      this._deliveryInProgress = false;
     }
-
-    // Step 2: Set the activity as current and active
-    this.activityTree.currentActivity = activity;
-    activity.isActive = true;
-
-    // Step 3: Initialize attempt for the delivered activity (DB.2.2)
-    this.initializeActivityForDelivery(activity);
-
-    // Step 4: Set up activity attempt tracking information
-    this.setupActivityAttemptTracking(activity);
-
-    // Step 5: Mark that content has been delivered
-    this.contentDelivered = true;
-
-    // Step 6: Update navigation validity if ADL nav is available
-    if (this.adlNav) {
-      this.updateNavigationValidity();
-    }
-
-    // Step 7: Fire activity delivery event
-    this.fireActivityDeliveryEvent(activity);
   }
 
   /**
@@ -939,7 +968,8 @@ export class OverallSequencingProcess {
     }
 
     // INTEGRATION: Process global objective mapping after activity completion
-    this.rollupProcess.processGlobalObjectiveMapping(activity, this.globalObjectiveMap);
+    const mappingRoot = this.activityTree.root || activity;
+    this.rollupProcess.processGlobalObjectiveMapping(mappingRoot, this.globalObjectiveMap);
 
     // Trigger rollup from this activity
     this.rollupProcess.overallRollupProcess(activity);
@@ -952,8 +982,9 @@ export class OverallSequencingProcess {
 
   /**
    * Update navigation validity in ADL nav
+   * Called after activity delivery and after rollup to update navigation button states
    */
-  private updateNavigationValidity(): void {
+  public updateNavigationValidity(): void {
     if (!this.adlNav || !this.activityTree.currentActivity) {
       return;
     }
@@ -1003,6 +1034,20 @@ export class OverallSequencingProcess {
       jump: jumpMap,
       hideLmsUi: this.getEffectiveHideLmsUi(this.activityTree.currentActivity),
     });
+  }
+
+  /**
+   * Synchronize global objectives from activity states
+   * Called after CMI changes that affect objective status to update global objective mappings
+   * This ensures that preconditions based on global objectives are properly evaluated
+   */
+  public synchronizeGlobalObjectives(): void {
+    if (!this.activityTree.root) {
+      return;
+    }
+
+    // Process global objective mapping from root to synchronize all activities
+    this.rollupProcess.processGlobalObjectiveMapping(this.activityTree.root, this.globalObjectiveMap);
   }
 
   private getEffectiveHideLmsUi(activity: Activity | null): HideLmsUiItem[] {
@@ -1079,6 +1124,14 @@ export class OverallSequencingProcess {
    */
   public hasContentBeenDelivered(): boolean {
     return this.contentDelivered;
+  }
+
+  /**
+   * Check if content delivery is currently in progress
+   * Used to prevent re-entrant termination requests during delivery
+   */
+  public isDeliveryInProgress(): boolean {
+    return this._deliveryInProgress;
   }
 
   /**

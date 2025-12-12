@@ -8,12 +8,59 @@
     import {Scorm2004API} from "/dist/esm/scorm2004.js";
     import {createCrossFrameServer} from "/dist/esm/cross-frame-facade.js";
 
-    const sequencingDefaults = {
+    const baseSequencingDefaults = {
       hideLmsUi: ["exitAll", "abandonAll"],
       auxiliaryResources: [
         {resourceId: "urn:scorm-again:help", purpose: "help"},
         {resourceId: "urn:scorm-again:glossary", purpose: "glossary"},
       ],
+    };
+    const baseCmiDefaults = {
+      learner_id: "123456",
+      learner_name: "John Doe",
+      completion_status: "not attempted",
+      entry: "ab-initio",
+      credit: "credit",
+      exit: "time-out",
+      score: {
+        raw: 0,
+        min: 0,
+        max: 100,
+      },
+      time_limit_action: "exit,message",
+      max_time_allowed: "PT1H",
+      objectives: [
+        {
+          id: "obj_playing",
+          score: {
+            raw: 0,
+            min: 0,
+            max: 100,
+          },
+        },
+      ],
+    };
+
+    function resolveWrapperConfig() {
+      const config = window.__SCORM_WRAPPER_CONFIG__ || {};
+      delete window.__SCORM_WRAPPER_CONFIG__;
+      return config;
+    }
+
+    function deepClone(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    }
+
+    const wrapperConfig = resolveWrapperConfig();
+    const sequencingDefaults = {
+      ...baseSequencingDefaults,
+      ...(wrapperConfig.sequencing || {}),
+    };
+    const apiOptions = {
+      autocommit: true,
+      logLevel: 1,
+      mastery_override: false,
+      ...(wrapperConfig.apiOptions || {}),
     };
 
     const navRequestMap = {
@@ -33,9 +80,7 @@
     };
 
     window.API_1484_11 = new Scorm2004API({
-      autocommit: true,
-      logLevel: 1,
-      mastery_override: false,
+      ...apiOptions,
       sequencing: sequencingDefaults,
     });
 
@@ -162,66 +207,21 @@
       },
     });
 
+    const initialCmi = Object.assign(deepClone(baseCmiDefaults), wrapperConfig.initialCmi || {});
     window.API_1484_11.loadFromJSON({
-      cmi: {
-        learner_id: "123456",
-        learner_name: "John Doe",
-        completion_status: "not attempted",
-        entry: "ab-initio",
-        credit: "credit",
-        exit: "time-out",
-        score: {
-          raw: 0,
-          min: 0,
-          max: 100,
-        },
-        time_limit_action: "exit,message",
-        max_time_allowed: "PT1H",
-        objectives: [
-          {
-            id: "obj_playing",
-            score: {
-              raw: 0,
-              min: 0,
-              max: 100,
-            },
-          },
-        ],
-      },
+      cmi: initialCmi,
     });
 
-    const crossFrameServer = createCrossFrameServer("2004", {
-      autocommit: true,
-      logLevel: 1,
-      mastery_override: false,
-      sequencing: sequencingDefaults,
-    }, {
-      cmi: {
-        learner_id: "123456",
-        learner_name: "John Doe",
-        completion_status: "not attempted",
-        entry: "ab-initio",
-        credit: "credit",
-        exit: "time-out",
-        score: {
-          raw: 0,
-          min: 0,
-          max: 100,
-        },
-        time_limit_action: "exit,message",
-        max_time_allowed: "PT1H",
-        objectives: [
-          {
-            id: "obj_playing",
-            score: {
-              raw: 0,
-              min: 0,
-              max: 100,
-            },
-          },
-        ],
+    const crossFrameServer = createCrossFrameServer(
+      "2004",
+      {
+        ...apiOptions,
+        sequencing: sequencingDefaults,
       },
-    });
+      {
+        cmi: initialCmi,
+      },
+    );
 
     function loadModule(modulePath) {
       document.getElementById("moduleFrame").src = "/test/integration/wrappers/cross-frame-intermediate.html?module=" + encodeURIComponent(modulePath);

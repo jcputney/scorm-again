@@ -14,9 +14,7 @@ import {
 import { scormCommonApiTests } from "./suites/scorm-common-api.js";
 import { scorm2004DataModelTests } from "./suites/scorm2004-data-model.js";
 import { scorm2004NavigationTests } from "./suites/scorm2004-navigation.js";
-import {
-  scorm2004InteractionsObjectivesTests
-} from "./suites/scorm2004-interactions-objectives.js";
+import { scorm2004InteractionsObjectivesTests } from "./suites/scorm2004-interactions-objectives.js";
 
 /**
  * Comprehensive integration tests for RunTimeAdvancedCalls_SCORM20043rdEdition module
@@ -55,7 +53,7 @@ const moduleConfig = {
   path: MODULE_PATH,
   apiName: "API_1484_11" as const,
   expectedLearnerId: "123456",
-  hasSequencing: false // Single SCO, but uses internal navigation
+  hasSequencing: false, // Single SCO, but uses internal navigation
 };
 
 // Get wrapper configurations
@@ -95,7 +93,7 @@ wrappers.forEach((wrapper) => {
       // Verify launchpage loaded (should have navigation buttons)
       const moduleFrame = page.frameLocator("#moduleFrame");
       const hasNextButton = await moduleFrame
-        .locator("button:has-text(\"Next\"), input[value*=\"Next\"]")
+        .locator('button:has-text("Next"), input[value*="Next"]')
         .isVisible()
         .catch(() => false);
       expect(hasNextButton).toBe(true);
@@ -116,7 +114,9 @@ wrappers.forEach((wrapper) => {
 
       // Navigate to next page using the Next button
       const moduleFrame = page.frameLocator("#moduleFrame");
-      const nextButton = moduleFrame.locator("button:has-text(\"Next\"), input[value*=\"Next\"]").first();
+      const nextButton = moduleFrame
+        .locator('button:has-text("Next"), input[value*="Next"]')
+        .first();
 
       if (await nextButton.isVisible({ timeout: 2000 }).catch(() => false)) {
         await nextButton.click();
@@ -143,7 +143,9 @@ wrappers.forEach((wrapper) => {
 
       // Navigate to next page
       const moduleFrame = page.frameLocator("#moduleFrame");
-      const nextButton = moduleFrame.locator("button:has-text(\"Next\"), input[value*=\"Next\"]").first();
+      const nextButton = moduleFrame
+        .locator('button:has-text("Next"), input[value*="Next"]')
+        .first();
 
       if (await nextButton.isVisible({ timeout: 2000 }).catch(() => false)) {
         await nextButton.click();
@@ -181,19 +183,27 @@ wrappers.forEach((wrapper) => {
 
       if (playingObjIndex >= 0) {
         // Get initial progress for playing objective
-        const initialProgress = await getCmiValue(page, `cmi.objectives.${playingObjIndex}.progress_measure`);
+        const initialProgress = await getCmiValue(
+          page,
+          `cmi.objectives.${playingObjIndex}.progress_measure`,
+        );
         const initialProgressNum = initialProgress ? parseFloat(initialProgress) : 0;
 
         // Navigate to next page (should be a playing page)
         const moduleFrame = page.frameLocator("#moduleFrame");
-        const nextButton = moduleFrame.locator("button:has-text(\"Next\"), input[value*=\"Next\"]").first();
+        const nextButton = moduleFrame
+          .locator('button:has-text("Next"), input[value*="Next"]')
+          .first();
 
         if (await nextButton.isVisible({ timeout: 2000 }).catch(() => false)) {
           await nextButton.click();
           await page.waitForTimeout(2000);
 
           // Verify objective progress was updated
-          const newProgress = await getCmiValue(page, `cmi.objectives.${playingObjIndex}.progress_measure`);
+          const newProgress = await getCmiValue(
+            page,
+            `cmi.objectives.${playingObjIndex}.progress_measure`,
+          );
           const newProgressNum = parseFloat(newProgress);
           expect(newProgressNum).toBeGreaterThanOrEqual(initialProgressNum);
           expect(newProgressNum).toBeGreaterThanOrEqual(0);
@@ -225,20 +235,32 @@ wrappers.forEach((wrapper) => {
 
       if (playingObjIndex >= 0) {
         // Get initial completion status
-        const initialStatus = await getCmiValue(page, `cmi.objectives.${playingObjIndex}.completion_status`);
+        const initialStatus = await getCmiValue(
+          page,
+          `cmi.objectives.${playingObjIndex}.completion_status`,
+        );
 
         // Navigate through multiple pages
         const moduleFrame = page.frameLocator("#moduleFrame");
-        const nextButton = moduleFrame.locator("button:has-text(\"Next\"), input[value*=\"Next\"]").first();
+        const nextButton = moduleFrame
+          .locator('button:has-text("Next"), input[value*="Next"]')
+          .first();
 
         // Navigate a few pages
-        for (let i = 0; i < 3 && await nextButton.isVisible({ timeout: 1000 }).catch(() => false); i++) {
+        for (
+          let i = 0;
+          i < 3 && (await nextButton.isVisible({ timeout: 1000 }).catch(() => false));
+          i++
+        ) {
           await nextButton.click();
           await page.waitForTimeout(1500);
         }
 
         // Check if completion status changed
-        const newStatus = await getCmiValue(page, `cmi.objectives.${playingObjIndex}.completion_status`);
+        const newStatus = await getCmiValue(
+          page,
+          `cmi.objectives.${playingObjIndex}.completion_status`,
+        );
         // Status should be "incomplete" or "completed" (not "unknown")
         expect(["incomplete", "completed", "unknown"]).toContain(newStatus);
       }
@@ -280,7 +302,7 @@ wrappers.forEach((wrapper) => {
       await page.waitForTimeout(2000);
 
       // Actually take the quiz by answering correctly
-      const score = await completeAssessmentSCO(page, true);
+      const { score } = await completeAssessmentSCO(page, true);
 
       // Verify the module set the score
       expect(score).toBeGreaterThanOrEqual(0);
@@ -292,7 +314,9 @@ wrappers.forEach((wrapper) => {
         // Verify interaction is linked to an objective
         const interaction0ObjId = await getCmiValue(page, "cmi.interactions.0.objectives.0.id");
         expect(interaction0ObjId).toBeTruthy();
-        expect(["obj_playing", "obj_etiquette", "obj_handicapping", "obj_havingfun"]).toContain(interaction0ObjId);
+        expect(["obj_playing", "obj_etiquette", "obj_handicapping", "obj_havingfun"]).toContain(
+          interaction0ObjId,
+        );
       }
     });
 
@@ -346,7 +370,9 @@ wrappers.forEach((wrapper) => {
 
       // Navigate to the last page (assessment)
       const moduleFrame = page.frameLocator("#moduleFrame");
-      const nextButton = moduleFrame.locator("button:has-text(\"Next\"), input[value*=\"Next\"]").first();
+      const nextButton = moduleFrame
+        .locator('button:has-text("Next"), input[value*="Next"]')
+        .first();
 
       // Navigate to last page (page 14 is the assessment, which is pageArray.length - 1)
       // The launchpage sets completion_status to "completed" when currentPage == pageArray.length - 1
@@ -394,8 +420,12 @@ wrappers.forEach((wrapper) => {
       await page.waitForTimeout(2000);
 
       const moduleFrame = page.frameLocator("#moduleFrame");
-      const nextButton = moduleFrame.locator("button:has-text(\"Next\"), input[value*=\"Next\"]").first();
-      const prevButton = moduleFrame.locator("button:has-text(\"Previous\"), input[value*=\"Previous\"]").first();
+      const nextButton = moduleFrame
+        .locator('button:has-text("Next"), input[value*="Next"]')
+        .first();
+      const prevButton = moduleFrame
+        .locator('button:has-text("Previous"), input[value*="Previous"]')
+        .first();
 
       // Verify buttons exist
       const hasNext = await nextButton.isVisible({ timeout: 2000 }).catch(() => false);
@@ -415,8 +445,10 @@ wrappers.forEach((wrapper) => {
         expect(locationAfterNext).not.toBe(initialLocation);
 
         // Navigate back
-        if (await prevButton.isVisible({ timeout: 2000 }).catch(() => false) &&
-          !(await prevButton.getAttribute("disabled"))) {
+        if (
+          (await prevButton.isVisible({ timeout: 2000 }).catch(() => false)) &&
+          !(await prevButton.getAttribute("disabled"))
+        ) {
           await prevButton.click();
           await page.waitForTimeout(2000);
 
@@ -437,7 +469,9 @@ wrappers.forEach((wrapper) => {
       await page.waitForTimeout(2000);
 
       const moduleFrame = page.frameLocator("#moduleFrame");
-      const exitButton = moduleFrame.locator("button:has-text(\"Exit\"), input[value*=\"Exit\"]").first();
+      const exitButton = moduleFrame
+        .locator('button:has-text("Exit"), input[value*="Exit"]')
+        .first();
 
       if (await exitButton.isVisible({ timeout: 2000 }).catch(() => false)) {
         // The exit button should set adl.nav.request
@@ -469,7 +503,9 @@ wrappers.forEach((wrapper) => {
 
       // Navigate a few pages
       const moduleFrame = page.frameLocator("#moduleFrame");
-      const nextButton = moduleFrame.locator("button:has-text(\"Next\"), input[value*=\"Next\"]").first();
+      const nextButton = moduleFrame
+        .locator('button:has-text("Next"), input[value*="Next"]')
+        .first();
 
       if (await nextButton.isVisible({ timeout: 2000 }).catch(() => false)) {
         await nextButton.click();
@@ -500,11 +536,17 @@ wrappers.forEach((wrapper) => {
 
       // Navigate through pages to trigger objective initialization
       const moduleFrame = page.frameLocator("#moduleFrame");
-      const nextButton = moduleFrame.locator("button:has-text(\"Next\"), input[value*=\"Next\"]").first();
+      const nextButton = moduleFrame
+        .locator('button:has-text("Next"), input[value*="Next"]')
+        .first();
 
       // Navigate through pages to visit different objective sections
       // Pages 0-4: obj_playing, pages 5-7: obj_etiquette, pages 8-11: obj_handicapping, pages 12-13: obj_havingfun
-      for (let i = 0; i < 8 && await nextButton.isVisible({ timeout: 1000 }).catch(() => false); i++) {
+      for (
+        let i = 0;
+        i < 8 && (await nextButton.isVisible({ timeout: 1000 }).catch(() => false));
+        i++
+      ) {
         const isDisabled = await nextButton.getAttribute("disabled").catch(() => null);
         if (isDisabled !== null) break;
         await nextButton.click();
@@ -545,10 +587,16 @@ wrappers.forEach((wrapper) => {
 
       // Navigate through multiple pages
       const moduleFrame = page.frameLocator("#moduleFrame");
-      const nextButton = moduleFrame.locator("button:has-text(\"Next\"), input[value*=\"Next\"]").first();
+      const nextButton = moduleFrame
+        .locator('button:has-text("Next"), input[value*="Next"]')
+        .first();
 
       // Navigate 5 pages
-      for (let i = 0; i < 5 && await nextButton.isVisible({ timeout: 1000 }).catch(() => false); i++) {
+      for (
+        let i = 0;
+        i < 5 && (await nextButton.isVisible({ timeout: 1000 }).catch(() => false));
+        i++
+      ) {
         await nextButton.click();
         await page.waitForTimeout(1500);
       }
@@ -598,4 +646,3 @@ wrappers.forEach((wrapper) => {
     });
   });
 });
-

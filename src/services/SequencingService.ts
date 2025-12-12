@@ -191,6 +191,9 @@ export class SequencingService {
         this.log("info", "Sequencing processes created");
       }
 
+      // Mark service initialized before processing navigation so auto-start requests are honored
+      this.isInitialized = true;
+
       // Start automatic sequencing if configured
       if (this.shouldAutoStartSequencing()) {
         this.startSequencing();
@@ -198,8 +201,6 @@ export class SequencingService {
 
       // Initialize CMI tracking
       this.initializeCMITracking();
-
-      this.isInitialized = true;
       this.fireEvent("onSequencingStart", this.sequencing.getCurrentActivity());
 
       this.log("info", "Sequencing service initialized successfully");
@@ -220,12 +221,7 @@ export class SequencingService {
     try {
       this.log("info", "Terminating sequencing service");
 
-      // Process any pending navigation requests
-      if (this.adl.nav.request !== "_none_") {
-        this.processNavigationRequest(this.adl.nav.request);
-      }
-
-      // Trigger final rollup
+      // Trigger final rollup for the current activity
       this.triggerFinalRollup();
 
       // End sequencing session
@@ -277,20 +273,26 @@ export class SequencingService {
           targetActivityId || null,
         );
 
+      const sequencingResult: SequencingResult = {
+        deliveryRequest: deliveryRequest.valid
+          ? DeliveryRequestType.DELIVER
+          : DeliveryRequestType.DO_NOT_DELIVER,
+        targetActivity: deliveryRequest.targetActivity,
+        exception: deliveryRequest.exception || null,
+      };
+
+      // Store the result
+      this.lastSequencingResult = sequencingResult;
+
       // Handle the delivery request
       if (deliveryRequest.valid && deliveryRequest.targetActivity) {
         // Process delivery through activity delivery service
-        const sequencingResult: SequencingResult = {
-          deliveryRequest: deliveryRequest.valid
-            ? DeliveryRequestType.DELIVER
-            : DeliveryRequestType.DO_NOT_DELIVER,
-          targetActivity: deliveryRequest.targetActivity,
-          exception: deliveryRequest.exception || null,
-        };
-
-        // Store the result
-        this.lastSequencingResult = sequencingResult;
         this.activityDeliveryService.processSequencingResult(sequencingResult);
+
+        // Update navigation validity for the new current activity
+        // This ensures Continue/Previous buttons are correctly enabled/disabled
+        this.overallSequencingProcess.updateNavigationValidity();
+
         this.log(
           "info",
           `Navigation request '${request}' resulted in activity delivery: ${deliveryRequest.targetActivity.id}`,
@@ -360,6 +362,16 @@ export class SequencingService {
       // Trigger rollup process
       this.rollupProcess.overallRollupProcess(currentActivity);
 
+      // Synchronize global objectives after rollup (required for cross-activity preconditions)
+      if (this.overallSequencingProcess) {
+        this.overallSequencingProcess.synchronizeGlobalObjectives();
+      }
+
+      // Update navigation validity after rollup (preconditions may have changed)
+      if (this.overallSequencingProcess) {
+        this.overallSequencingProcess.updateNavigationValidity();
+      }
+
       this.fireEvent("onRollupComplete", currentActivity);
 
       this.log("debug", `Rollup completed for activity: ${currentActivity.id}`);
@@ -411,6 +423,15 @@ export class SequencingService {
    */
   public getOverallSequencingProcess(): OverallSequencingProcess | null {
     return this.overallSequencingProcess;
+  }
+
+  /**
+   * Check if content delivery is currently in progress
+   * Used to prevent re-entrant termination requests during delivery
+   * @return {boolean} True if delivery is in progress
+   */
+  public isDeliveryInProgress(): boolean {
+    return this.overallSequencingProcess?.isDeliveryInProgress() ?? false;
   }
 
   // Private helper methods
@@ -488,6 +509,11 @@ export class SequencingService {
         // Trigger rollup
         this.rollupProcess.overallRollupProcess(currentActivity);
 
+        // Synchronize global objectives after final rollup
+        if (this.overallSequencingProcess) {
+          this.overallSequencingProcess.synchronizeGlobalObjectives();
+        }
+
         this.log("info", "Final rollup completed");
       }
     } catch (error) {
@@ -512,6 +538,8 @@ export class SequencingService {
     if (this.cmi.success_status !== "unknown") {
       activity.successStatus = this.cmi.success_status as "passed" | "failed" | "unknown";
       activity.objectiveSatisfiedStatus = this.cmi.success_status === "passed";
+      // Set measureStatus to true since we now have a known satisfied status
+      activity.objectiveMeasureStatus = true;
     }
 
     // Update progress measure
@@ -531,12 +559,23 @@ export class SequencingService {
         activity.objectiveMeasureStatus = true;
       }
     }
+
+    // Sync primary objective with activity state for global objective mapping
+    if (activity.primaryObjective) {
+      activity.primaryObjective.updateFromActivity(activity);
+    }
   }
 
   /**
    * Parse navigation request string to NavigationRequestType
    */
   private parseNavigationRequest(request: string): NavigationRequestType | null {
+    // Normalize SCORM nav request tokens (e.g., _continue, _previous)
+    let normalizedRequest = request;
+    if (normalizedRequest.startsWith("_") && normalizedRequest !== "_none_") {
+      normalizedRequest = normalizedRequest.substring(1);
+    }
+
     // Handle choice and jump with targets
     if (request.includes("choice")) {
       return NavigationRequestType.CHOICE;
@@ -546,7 +585,7 @@ export class SequencingService {
     }
 
     // Handle standard navigation requests
-    switch (request) {
+    switch (normalizedRequest) {
       case "start":
         return NavigationRequestType.START;
       case "resumeAll":

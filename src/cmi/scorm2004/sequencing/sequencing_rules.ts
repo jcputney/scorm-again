@@ -1,5 +1,5 @@
 import { BaseCMI } from "../../common/base_cmi";
-import { Activity } from "./activity";
+import { Activity, ActivityObjective } from "./activity";
 import { Scorm2004ValidationError } from "../../../exceptions/scorm2004_exceptions";
 import { scorm2004_errors } from "../../../constants/error_codes";
 import { SuccessStatus } from "../../../constants/enums";
@@ -55,6 +55,7 @@ export class RuleCondition extends BaseCMI {
   private _condition: RuleConditionType = RuleConditionType.ALWAYS;
   private _operator: RuleConditionOperator | null = null;
   private _parameters: Map<string, any> = new Map();
+  private _referencedObjective: string | null = null;
   // Optional, overridable provider for current time (LMS may set via SequencingService)
   private static _now: () => Date = () => new Date();
 
@@ -142,6 +143,25 @@ export class RuleCondition extends BaseCMI {
     this._parameters = parameters;
   }
 
+  get referencedObjective(): string | null {
+    return this._referencedObjective;
+  }
+
+  set referencedObjective(objectiveId: string | null) {
+    this._referencedObjective = objectiveId;
+  }
+
+  private resolveReferencedObjective(activity: Activity): ActivityObjective | null {
+    if (!this._referencedObjective) {
+      return null;
+    }
+    if (activity.primaryObjective?.id === this._referencedObjective) {
+      return activity.primaryObjective;
+    }
+    const objectives = activity.objectives || [];
+    return objectives.find((obj) => obj.id === this._referencedObjective) || null;
+  }
+
   /**
    * Evaluate the condition for an activity
    * @param {Activity} activity - The activity to evaluate the condition for
@@ -149,28 +169,50 @@ export class RuleCondition extends BaseCMI {
    */
   evaluate(activity: Activity): boolean {
     let result;
+    const referencedObjective = this.resolveReferencedObjective(activity);
+
     switch (this._condition) {
       case RuleConditionType.SATISFIED:
-        result = activity.successStatus === SuccessStatus.PASSED;
+        if (referencedObjective) {
+          result = referencedObjective.satisfiedStatus === true;
+        } else {
+          result =
+            activity.successStatus === SuccessStatus.PASSED ||
+            activity.objectiveSatisfiedStatus === true;
+        }
         break;
       case RuleConditionType.OBJECTIVE_STATUS_KNOWN:
         // noinspection PointlessBooleanExpressionJS
-        result = !!activity.objectiveMeasureStatus;
+        result = referencedObjective
+          ? !!referencedObjective.measureStatus
+          : !!activity.objectiveMeasureStatus;
         break;
       case RuleConditionType.OBJECTIVE_MEASURE_KNOWN:
         // noinspection PointlessBooleanExpressionJS
-        result = !!activity.objectiveMeasureStatus;
+        result = referencedObjective
+          ? !!referencedObjective.measureStatus
+          : !!activity.objectiveMeasureStatus;
         break;
       case RuleConditionType.OBJECTIVE_MEASURE_GREATER_THAN: {
         const greaterThanValue = this._parameters.get("threshold") || 0;
-        result =
-          activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure > greaterThanValue;
+        const measureStatus = referencedObjective
+          ? referencedObjective.measureStatus
+          : activity.objectiveMeasureStatus;
+        const measureValue = referencedObjective
+          ? referencedObjective.normalizedMeasure
+          : activity.objectiveNormalizedMeasure;
+        result = !!measureStatus && measureValue > greaterThanValue;
         break;
       }
       case RuleConditionType.OBJECTIVE_MEASURE_LESS_THAN: {
         const lessThanValue = this._parameters.get("threshold") || 0;
-        result =
-          activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure < lessThanValue;
+        const measureStatus = referencedObjective
+          ? referencedObjective.measureStatus
+          : activity.objectiveMeasureStatus;
+        const measureValue = referencedObjective
+          ? referencedObjective.normalizedMeasure
+          : activity.objectiveNormalizedMeasure;
+        result = !!measureStatus && measureValue < lessThanValue;
         break;
       }
       case RuleConditionType.COMPLETED:

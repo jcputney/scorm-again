@@ -172,7 +172,8 @@ describe("SCORM 2004 CMISession Tests", () => {
 
         session.reset();
 
-        expect(session.entry).toBe("");
+        // After reset, entry should be "ab-initio" for new attempts per SCORM 2004 spec
+        expect(session.entry).toBe("ab-initio");
 
         // Check exit and session_time by setting jsonString to true
         session.jsonString = true;

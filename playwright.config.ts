@@ -3,6 +3,8 @@ import { defineConfig, devices } from "@playwright/test";
 /**
  * See https://playwright.dev/docs/test-configuration
  */
+const skipWebServer = process.env.PLAYWRIGHT_SKIP_WEBSERVER === "true";
+
 export default defineConfig({
   testDir: "./test/integration",
   /* Maximum time one test can run for */
@@ -56,12 +58,14 @@ export default defineConfig({
       }
     ],
   /* Run local server before starting the tests */
-  webServer: {
-    command: "npm run test:integration:server",
-    url: "http://localhost:3000",
-    reuseExistingServer: true,
-    stdout: "pipe",
-    stderr: "pipe",
-    timeout: 120000 // Increase timeout to 2 minutes
-  }
+  webServer: skipWebServer
+    ? undefined
+    : {
+        command: "npm run test:integration:server",
+        url: "http://localhost:3000",
+        reuseExistingServer: true,
+        stdout: "pipe",
+        stderr: "pipe",
+        timeout: 120000 // Increase timeout to 2 minutes
+      }
 });

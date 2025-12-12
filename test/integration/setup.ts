@@ -4,6 +4,7 @@ import * as https from "https";
 import * as child_process from "child_process";
 import extract from "extract-zip";
 import { fileURLToPath } from "url";
+import { createMockLmsServer, MockLmsServer } from "./mock-lms-server.js";
 
 // Create __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -13,6 +14,7 @@ const MODULES_DIR = path.join(__dirname, "modules");
 const MODULES_URL = "https://cdn.noverant.com/AllGolfExamples.zip";
 const MODULES_ZIP = path.join(MODULES_DIR, "AllGolfExamples.zip");
 const SERVER_PORT = 3000;
+const MOCK_LMS_PORT = 3001;
 
 /**
  * Checks if the test modules are already downloaded and extracted
@@ -124,12 +126,12 @@ function startServer(): child_process.ChildProcess {
       "--cors",
       "-c-1", // Disable caching
       // "-o", // Don't open browser
-      "-s" // Silent mode (no logging)
+      "-s", // Silent mode (no logging)
     ],
     {
       stdio: ["ignore", "pipe", "pipe"],
-      detached: false
-    }
+      detached: false,
+    },
   );
 
   // Log server output
@@ -154,10 +156,15 @@ function startServer(): child_process.ChildProcess {
   return serverProcess;
 }
 
+export interface SetupResult {
+  httpServer: child_process.ChildProcess;
+  mockLms: MockLmsServer;
+}
+
 /**
  * Main setup function
  */
-export async function setup(): Promise<child_process.ChildProcess> {
+export async function setup(): Promise<SetupResult> {
   try {
     if (!modulesExist()) {
       await downloadModules();
@@ -166,23 +173,33 @@ export async function setup(): Promise<child_process.ChildProcess> {
       console.log("Test modules already exist, skipping download");
     }
 
-    // Start the server
-    const serverProcess = startServer();
+    // Start the HTTP server for static files
+    const httpServer = startServer();
 
-    // Wait for the server to be ready
+    // Start the mock LMS server
+    const mockLms = await createMockLmsServer(MOCK_LMS_PORT);
+
+    // Wait for the HTTP server to be ready
     await new Promise<void>((resolve) => {
       // Give the server a moment to start up
       setTimeout(() => {
-        console.log("Server is now ready to accept connections");
+        console.log("Servers are now ready to accept connections");
         resolve();
       }, 1000);
     });
 
-    return serverProcess;
+    return { httpServer, mockLms };
   } catch (err) {
     console.error("Setup failed:", err);
     throw err;
   }
+}
+
+/**
+ * Get the mock LMS URL for configuring API in tests
+ */
+export function getMockLmsUrl(): string {
+  return `http://localhost:${MOCK_LMS_PORT}`;
 }
 
 /**

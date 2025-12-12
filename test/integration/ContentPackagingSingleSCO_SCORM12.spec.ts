@@ -9,7 +9,7 @@ import {
   setCmiValue,
   setupCommitMocking,
   verifyApiAccessibleFromModule,
-  waitForModuleFrame
+  waitForModuleFrame,
 } from "./helpers/scorm12-helpers";
 import { scormCommonApiTests } from "./suites/scorm-common-api.js";
 import { scorm12DataModelTests } from "./suites/scorm12-data-model.js";
@@ -43,7 +43,7 @@ const MODULE_PATH =
 const moduleConfig = {
   path: MODULE_PATH,
   apiName: "API" as const,
-  expectedLearnerId: "123456"
+  expectedLearnerId: "123456",
 };
 
 // Get wrapper configurations
@@ -196,7 +196,7 @@ wrappers.forEach((wrapper) => {
             lmsCommitUrl: "http://localhost:3000/api/commit",
             autocommit: true,
             autocommitSeconds: 1,
-            useAsynchronousCommits: true
+            useAsynchronousCommits: true,
           };
         }
       });
@@ -246,7 +246,7 @@ wrappers.forEach((wrapper) => {
             const api = window.API as any;
             return {
               hasCommitUrl: !!api.settings?.lmsCommitUrl,
-              isInitialized: api.isInitialized?.() || false
+              isInitialized: api.isInitialized?.() || false,
             };
           });
 
@@ -287,7 +287,7 @@ wrappers.forEach((wrapper) => {
           (window.API as any).settings = {
             ...(window.API as any).settings,
             autocommit: true,
-            autocommitSeconds: 1
+            autocommitSeconds: 1,
           };
         }
       });
@@ -344,7 +344,10 @@ wrappers.forEach((wrapper) => {
       await page.evaluate(() => {
         const iframe = document.querySelector<HTMLIFrameElement>("#moduleFrame");
         if (iframe?.contentWindow?.parent?.window?.API) {
-          iframe.contentWindow.parent.window.API.LMSSetValue("cmi.core.lesson_location", "etiquette-course");
+          iframe.contentWindow.parent.window.API.LMSSetValue(
+            "cmi.core.lesson_location",
+            "etiquette-course",
+          );
         }
       });
 
@@ -374,8 +377,10 @@ wrappers.forEach((wrapper) => {
       await page.waitForTimeout(2000); // Wait for iframe and quiz to load
 
       // Wait for quiz to render
-      await moduleFrame.locator("h1:has-text('Knowledge Check')").waitFor({ timeout: 5000 }).catch(() => {
-      });
+      await moduleFrame
+        .locator("h1:has-text('Knowledge Check')")
+        .waitFor({ timeout: 5000 })
+        .catch(() => {});
 
       // Verify quiz loaded
       const quizLoaded = await moduleFrame
@@ -403,7 +408,9 @@ wrappers.forEach((wrapper) => {
           const iframe = document.querySelector<HTMLIFrameElement>("#moduleFrame");
           if (iframe?.contentDocument) {
             const doc = iframe.contentDocument;
-            const radios = Array.from(doc.querySelectorAll<HTMLInputElement>("input[type=\"radio\"]"));
+            const radios = Array.from(
+              doc.querySelectorAll<HTMLInputElement>('input[type="radio"]'),
+            );
 
             // Answer first question (first radio button)
             if (radios.length > 0) {
@@ -416,7 +423,7 @@ wrappers.forEach((wrapper) => {
 
         // Try to find and click submit button
         const submitButton = moduleFrame
-          .locator("input[type=\"button\"][value*=\"Submit\"], button:has-text(\"Submit\")")
+          .locator('input[type="button"][value*="Submit"], button:has-text("Submit")')
           .first();
         if (await submitButton.isVisible({ timeout: 2000 }).catch(() => false)) {
           await submitButton.click();
@@ -470,14 +477,14 @@ wrappers.forEach((wrapper) => {
       // Enhance RecordQuestion to capture interactions for verification
       await page.evaluate(() => {
         const originalRecordQuestion = (window as any).RecordQuestion;
-        (window as any).RecordQuestion = function(
+        (window as any).RecordQuestion = function (
           id: string,
           text: string,
           type: string,
           learnerResponse: string,
           correctAnswer: string,
           wasCorrect: boolean,
-          objectiveId: string
+          objectiveId: string,
         ) {
           // Capture for verification
           (window as any).capturedInteractions.push({
@@ -487,11 +494,19 @@ wrappers.forEach((wrapper) => {
             learnerResponse,
             correctAnswer,
             wasCorrect,
-            objectiveId
+            objectiveId,
           });
           // Call original
           if (originalRecordQuestion) {
-            originalRecordQuestion(id, text, type, learnerResponse, correctAnswer, wasCorrect, objectiveId);
+            originalRecordQuestion(
+              id,
+              text,
+              type,
+              learnerResponse,
+              correctAnswer,
+              wasCorrect,
+              objectiveId,
+            );
           }
         };
       });
@@ -507,8 +522,12 @@ wrappers.forEach((wrapper) => {
           const iframe = document.querySelector<HTMLIFrameElement>("#moduleFrame");
           if (iframe?.contentDocument) {
             const doc = iframe.contentDocument;
-            const radios = Array.from(doc.querySelectorAll<HTMLInputElement>("input[type=\"radio\"]"));
-            const textboxes = Array.from(doc.querySelectorAll<HTMLInputElement>("input[type=\"text\"]"));
+            const radios = Array.from(
+              doc.querySelectorAll<HTMLInputElement>('input[type="radio"]'),
+            );
+            const textboxes = Array.from(
+              doc.querySelectorAll<HTMLInputElement>('input[type="text"]'),
+            );
 
             // Answer first radio question
             if (radios.length > 0) {
@@ -528,7 +547,7 @@ wrappers.forEach((wrapper) => {
         await page.waitForTimeout(500);
 
         const submitButton = moduleFrame
-          .locator("input[type=\"button\"][value*=\"Submit\"], button:has-text(\"Submit\")")
+          .locator('input[type="button"][value*="Submit"], button:has-text("Submit")')
           .first();
         if (await submitButton.isVisible({ timeout: 2000 }).catch(() => false)) {
           await submitButton.click();
@@ -662,14 +681,14 @@ wrappers.forEach((wrapper) => {
         // Try to interact with quiz
         const moduleFrame = page.frameLocator("#moduleFrame");
         try {
-          const firstRadio = moduleFrame.locator("input[type=\"radio\"]").first();
+          const firstRadio = moduleFrame.locator('input[type="radio"]').first();
           if (await firstRadio.isVisible({ timeout: 2000 }).catch(() => false)) {
             await firstRadio.click();
             await page.waitForTimeout(500);
           }
 
           const submitButton = moduleFrame
-            .locator("input[type=\"button\"][value*=\"Submit\"], button:has-text(\"Submit\")")
+            .locator('input[type="button"][value*="Submit"], button:has-text("Submit")')
             .first();
           if (await submitButton.isVisible({ timeout: 2000 }).catch(() => false)) {
             await submitButton.click();
@@ -689,20 +708,20 @@ wrappers.forEach((wrapper) => {
       const contentSections = [
         {
           name: "Playing",
-          path: "/test/integration/modules/ContentPackagingSingleSCO_SCORM12/Playing/Playing.html"
+          path: "/test/integration/modules/ContentPackagingSingleSCO_SCORM12/Playing/Playing.html",
         },
         {
           name: "Etiquette",
-          path: "/test/integration/modules/ContentPackagingSingleSCO_SCORM12/Etiquette/Course.html"
+          path: "/test/integration/modules/ContentPackagingSingleSCO_SCORM12/Etiquette/Course.html",
         },
         {
           name: "Handicapping",
-          path: "/test/integration/modules/ContentPackagingSingleSCO_SCORM12/Handicapping/Overview.html"
+          path: "/test/integration/modules/ContentPackagingSingleSCO_SCORM12/Handicapping/Overview.html",
         },
         {
           name: "HavingFun",
-          path: "/test/integration/modules/ContentPackagingSingleSCO_SCORM12/HavingFun/HowToHaveFun.html"
-        }
+          path: "/test/integration/modules/ContentPackagingSingleSCO_SCORM12/HavingFun/HowToHaveFun.html",
+        },
       ];
 
       for (const section of contentSections) {
@@ -723,7 +742,7 @@ wrappers.forEach((wrapper) => {
             return {
               hasH1: !!h1,
               h1Text: h1?.textContent?.trim() || "",
-              hasContent: iframe.contentDocument.body?.textContent?.length > 0
+              hasContent: iframe.contentDocument.body?.textContent?.length > 0,
             };
           }
           return { hasH1: false, h1Text: "", hasContent: false };
@@ -736,4 +755,3 @@ wrappers.forEach((wrapper) => {
     });
   });
 });
-

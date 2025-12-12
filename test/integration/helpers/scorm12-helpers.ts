@@ -52,12 +52,30 @@ export class CommitRequestTracker {
     return this.requests;
   }
 
+  getRequestCount(): number {
+    return this.requests.length;
+  }
+
   clear() {
     this.requests = [];
   }
 
   getLastRequest(): any {
     return this.requests[this.requests.length - 1] || null;
+  }
+
+  hasRequestWithMethod(method: string): boolean {
+    return this.requests.some((req) => req.method === method);
+  }
+
+  hasRequestWithData(key: string, value: any): boolean {
+    return this.requests.some((req) => {
+      const data = req.postData;
+      if (typeof data === "object" && data !== null) {
+        return data[key] === value;
+      }
+      return false;
+    });
   }
 }
 
@@ -462,6 +480,42 @@ export async function answerQuizIncorrectly(
 }
 
 /**
+ * Exit the SCO using the learner-facing UI so that the module drives Terminate/Commit.
+ * @param preserveProgress - Whether to accept the "save progress" prompt.
+ */
+export async function exitScorm12Course(
+  page: Page,
+  { preserveProgress = true }: { preserveProgress?: boolean } = {}
+): Promise<void> {
+  const moduleFrame = page.frameLocator("#moduleFrame");
+  const exitButton = moduleFrame.locator('button:has-text("Exit"), input[value*="Exit"]');
+
+  const isVisible = await exitButton.isVisible({ timeout: 3000 }).catch(() => false);
+  if (!isVisible) {
+    throw new Error("Exit button not available in module frame");
+  }
+
+  const dialogHandler = async (dialog: any) => {
+    if (preserveProgress) {
+      await dialog.accept();
+    } else {
+      await dialog.dismiss();
+    }
+  };
+
+  page.on("dialog", dialogHandler);
+  try {
+    await exitButton.click();
+    await page.waitForTimeout(500);
+  } finally {
+    page.off("dialog", dialogHandler);
+  }
+
+  // Give the module time to run its unload handlers and for commits to flush
+  await page.waitForTimeout(1500);
+}
+
+/**
  * Complete an assessment SCO by answering questions and submitting
  * This lets the module's own code set score and lesson_status
  * 
@@ -473,7 +527,8 @@ export async function completeAssessmentSCO(
   page: Page,
   shouldPass: boolean = true,
   passThreshold: number = 70
-): Promise<number> {
+): Promise<{score: number; lessonStatus: string | null}> {
+  await injectQuizFunctions(page);
   const moduleFrame = await waitForModuleFrame(page);
   await page.waitForTimeout(2000); // Wait for quiz to load
 
@@ -493,12 +548,41 @@ export async function completeAssessmentSCO(
   
   if (submitVisible) {
     await submitButton.click();
-    await page.waitForTimeout(3000); // Wait for quiz to process and RecordTest to be called
+
+    await Promise.race([
+      page.waitForFunction(
+        () => {
+          const api = (window as any).API;
+          if (!api) {
+            return false;
+          }
+          const scoreValue = api.LMSGetValue("cmi.core.score.raw");
+          return typeof scoreValue === "string" && scoreValue !== "";
+        },
+        { timeout: 15000 }
+      ).catch(() => null),
+      page.waitForFunction(
+        () => {
+          const api = (window as any).API;
+          if (!api) {
+            return false;
+          }
+          const status = api.LMSGetValue("cmi.core.lesson_status");
+          return (
+            typeof status === "string" &&
+            status !== "" &&
+            status !== "not attempted"
+          );
+        },
+        { timeout: 15000 }
+      ).catch(() => null)
+    ]);
   }
 
-  // Return the score that was set (SCORM 1.2 uses cmi.core.score.raw)
-  const score = await getCmiValue(page, "cmi.core.score.raw");
-  return score ? parseInt(score, 10) : 0;
+  const scoreRaw = await getCmiValue(page, "cmi.core.score.raw");
+  const lessonStatus = await getCmiValue(page, "cmi.core.lesson_status");
+  const parsedScore = scoreRaw ? parseInt(scoreRaw, 10) : 0;
+  return { score: parsedScore, lessonStatus: lessonStatus ?? null };
 }
 
 export function getWrapperConfigs(): Array<{ name: string; path: string }> {
@@ -513,4 +597,3 @@ export function getWrapperConfigs(): Array<{ name: string; path: string }> {
     }
   ];
 }
-

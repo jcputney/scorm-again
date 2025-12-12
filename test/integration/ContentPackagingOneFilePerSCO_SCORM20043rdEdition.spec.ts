@@ -9,14 +9,12 @@ import {
   setCmiValue,
   setupCommitMocking,
   verifyApiAccessibleFromModule,
-  waitForModuleFrame
+  waitForModuleFrame,
 } from "./helpers/scorm2004-helpers";
 import { scormCommonApiTests } from "./suites/scorm-common-api.js";
 import { scorm2004DataModelTests } from "./suites/scorm2004-data-model.js";
 import { scorm2004NavigationTests } from "./suites/scorm2004-navigation.js";
-import {
-  scorm2004InteractionsObjectivesTests
-} from "./suites/scorm2004-interactions-objectives.js";
+import { scorm2004InteractionsObjectivesTests } from "./suites/scorm2004-interactions-objectives.js";
 
 /**
  * Comprehensive integration tests for ContentPackagingOneFilePerSCO_SCORM20043rdEdition module
@@ -47,7 +45,7 @@ const moduleConfig = {
   path: MODULE_PATH,
   apiName: "API_1484_11" as const,
   expectedLearnerId: "123456",
-  hasSequencing: true // This module uses sequencing
+  hasSequencing: true, // This module uses sequencing
 };
 
 // Get wrapper configurations
@@ -128,8 +126,8 @@ wrappers.forEach((wrapper) => {
       await page.waitForTimeout(1000);
 
       // For sequenced modules, navigation buttons should exist
-      const continueButton = page.locator("button[data-directive=\"continue\"]");
-      const previousButton = page.locator("button[data-directive=\"previous\"]");
+      const continueButton = page.locator('button[data-directive="continue"]');
+      const previousButton = page.locator('button[data-directive="previous"]');
 
       // Buttons should exist
       const continueExists = await continueButton.count();
@@ -172,7 +170,7 @@ wrappers.forEach((wrapper) => {
           return {
             currentActivity: state?.currentActivity?.title || null,
             activityId: state?.currentActivity?.id || null,
-            hasState: !!state
+            hasState: !!state,
           };
         }
         return { currentActivity: null, activityId: null, hasState: false };
@@ -268,7 +266,7 @@ wrappers.forEach((wrapper) => {
       // The quiz structure may vary, so we'll try to interact with it
       try {
         // Try to find and click the first radio button (first answer)
-        const firstRadio = moduleFrame.locator("input[type=\"radio\"]").first();
+        const firstRadio = moduleFrame.locator('input[type="radio"]').first();
         if (await firstRadio.isVisible({ timeout: 2000 }).catch(() => false)) {
           await firstRadio.click();
           await page.waitForTimeout(500);
@@ -276,7 +274,7 @@ wrappers.forEach((wrapper) => {
 
         // Try to find and click submit button
         const submitButton = moduleFrame
-          .locator("input[type=\"button\"][value*=\"Submit\"], button:has-text(\"Submit\")")
+          .locator('input[type="button"][value*="Submit"], button:has-text("Submit")')
           .first();
         if (await submitButton.isVisible({ timeout: 2000 }).catch(() => false)) {
           await submitButton.click();
@@ -365,23 +363,23 @@ wrappers.forEach((wrapper) => {
         {
           name: "Playing",
           path: "/test/integration/modules/ContentPackagingOneFilePerSCO_SCORM20043rdEdition/Playing/Playing.html",
-          expectedTitle: "Play of the game"
+          expectedTitle: "Play of the game",
         },
         {
           name: "Etiquette",
           path: "/test/integration/modules/ContentPackagingOneFilePerSCO_SCORM20043rdEdition/Etiquette/Course.html",
-          expectedTitle: "Etiquette - Care For the Course"
+          expectedTitle: "Etiquette - Care For the Course",
         },
         {
           name: "Handicapping",
           path: "/test/integration/modules/ContentPackagingOneFilePerSCO_SCORM20043rdEdition/Handicapping/Overview.html",
-          expectedTitle: "Handicapping"
+          expectedTitle: "Handicapping",
         },
         {
           name: "HavingFun",
           path: "/test/integration/modules/ContentPackagingOneFilePerSCO_SCORM20043rdEdition/HavingFun/HowToHaveFun.html",
-          expectedTitle: "How to Have Fun Playing Golf"
-        }
+          expectedTitle: "How to Have Fun Playing Golf",
+        },
       ];
 
       for (const section of contentSections) {
@@ -403,12 +401,12 @@ wrappers.forEach((wrapper) => {
               return {
                 hasH1: !!h1,
                 h1Text: h1?.textContent?.trim() || "",
-                hasContent: iframe.contentDocument.body?.textContent?.length > 0
+                hasContent: iframe.contentDocument.body?.textContent?.length > 0,
               };
             }
             return { hasH1: false, h1Text: "", hasContent: false };
           },
-          { expectedTitle: section.expectedTitle }
+          { expectedTitle: section.expectedTitle },
         );
 
         // Verify content loaded
@@ -426,10 +424,9 @@ wrappers.forEach((wrapper) => {
         const hasExpectedWords = expectedWords.some((word) => h1Lower.includes(word));
 
         expect(hasExpectedWords || h1Text.includes(section.expectedTitle.split(" - ")[0])).toBe(
-          true
+          true,
         );
       }
     });
   });
 });
-

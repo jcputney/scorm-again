@@ -1111,7 +1111,7 @@ export class Activity extends BaseCMI {
   /**
    * Setter for primary objective
    * @param {ActivityObjective | null} objective
-   */
+  */
   set primaryObjective(objective: ActivityObjective | null) {
     this._primaryObjective = objective;
     if (this._primaryObjective) {
@@ -1121,6 +1121,7 @@ export class Activity extends BaseCMI {
       }
       this._primaryObjective.updateFromActivity(this);
     }
+    this.syncPrimaryObjectiveCollection();
   }
 
   /**
@@ -1134,9 +1135,10 @@ export class Activity extends BaseCMI {
   /**
    * Replace objectives collection
    * @param {ActivityObjective[]} objectives
-   */
+  */
   set objectives(objectives: ActivityObjective[]) {
     this._objectives = [...objectives];
+    this.syncPrimaryObjectiveCollection();
   }
 
   /**
@@ -1147,6 +1149,27 @@ export class Activity extends BaseCMI {
     if (!this._objectives.find((obj) => obj.id === objective.id)) {
       this._objectives.push(objective);
     }
+  }
+
+  /**
+   * Ensure the primary objective is represented within the objectives collection.
+   */
+  private syncPrimaryObjectiveCollection(): void {
+    if (!this._primaryObjective) {
+      this._objectives = this._objectives.filter((objective) => !objective.isPrimary);
+      return;
+    }
+
+    const existingIndex = this._objectives.findIndex(
+      (objective) => objective.id === this._primaryObjective?.id
+    );
+
+    if (existingIndex >= 0) {
+      this._objectives[existingIndex] = this._primaryObjective;
+      return;
+    }
+
+    this._objectives = [this._primaryObjective, ...this._objectives];
   }
 
   /**

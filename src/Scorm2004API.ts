@@ -10,27 +10,27 @@ import {
   CommitObject,
   ResultObject,
   ScoreObject,
-  Settings,
   SequencingStateMetadata,
+  Settings,
 } from "./types/api_types";
 import {
   ActivitySettings,
   AuxiliaryResource,
   AuxiliaryResourceSettings,
+  HIDE_LMS_UI_TOKENS,
+  HideLmsUiItem,
   ObjectiveSettings,
+  RollupConditionSettings,
   RollupRuleSettings,
   RollupRulesSettings,
+  RuleConditionSettings,
+  SelectionRandomizationStateSettings,
+  SequencingCollectionSettings,
   SequencingControlsSettings,
+  SequencingEventListeners,
   SequencingRuleSettings,
   SequencingRulesSettings,
   SequencingSettings,
-  SequencingEventListeners,
-  SelectionRandomizationStateSettings,
-  HideLmsUiItem,
-  HIDE_LMS_UI_TOKENS,
-  SequencingCollectionSettings,
-  RuleConditionSettings,
-  RollupConditionSettings,
 } from "./types/sequencing_types";
 import { SequencingControls } from "./cmi/scorm2004/sequencing/sequencing_controls";
 import {
@@ -50,11 +50,11 @@ import { CMIArray } from "./cmi/common/array";
 import { CorrectResponses, ResponseType } from "./constants/response_constants";
 import { CMICommentsObject } from "./cmi/scorm2004/comments";
 import ValidLanguages from "./constants/language_constants";
-import { CompletionStatus, SuccessStatus, LogLevelEnum } from "./constants/enums";
+import { CompletionStatus, LogLevelEnum, SuccessStatus } from "./constants/enums";
 import { Sequencing } from "./cmi/scorm2004/sequencing/sequencing";
 import { Activity, ActivityObjective, ObjectiveMapInfo } from "./cmi/scorm2004/sequencing/activity";
 import { OverallSequencingProcess } from "./cmi/scorm2004/sequencing/overall_sequencing_process";
-import { SequencingService, SequencingConfiguration } from "./services/SequencingService";
+import { SequencingConfiguration, SequencingService } from "./services/SequencingService";
 import { IHttpService } from "./interfaces/services";
 
 /**
@@ -124,25 +124,25 @@ class Scorm2004API extends BaseAPI {
 
   /**
    * Called when the API needs to be reset
-   * 
+   *
    * This method is designed for transitioning between SCOs in a sequenced course.
    * When called, it resets SCO-specific data while preserving global objectives.
-   * 
+   *
    * What gets reset:
    * - SCO-specific CMI data (location, entry, session time, interactions, score)
    * - Sequencing state (activity tree, current activity, etc.)
    * - ADL navigation state
-   * 
+   *
    * What is preserved:
    * - Global objectives (_globalObjectives array) - these persist across SCO transitions
    *   to allow activities to share objective data via mapInfo
-   * 
+   *
    * According to SCORM 2004 Sequencing and Navigation (SN) Book:
    * - Content Delivery Environment Process (DB.2) requires API reset between SCOs
    * - Global objectives must persist to support cross-activity objective tracking
    * - SCO-specific objectives in cmi.objectives are reset (via objectives.reset(false))
    *   but the array structure is maintained
-   * 
+   *
    * @param {Settings} settings - Optional new settings to merge with existing settings
    */
   reset(settings?: Settings) {
@@ -150,11 +150,13 @@ class Scorm2004API extends BaseAPI {
 
     this.cmi?.reset();
     this.adl?.reset();
-    this._sequencing?.reset();
-    
-    // Note: _globalObjectives is intentionally NOT reset here
-    // Global objectives must persist across SCO transitions to support
-    // cross-activity objective tracking via mapInfo (SCORM 2004 SN Book SB.2.4)
+
+    // IMPORTANT: Do not reset sequencing state when running as the LMS.
+    // The sequencing service owns the activity tree and global objective
+    // mappings for the entire attempt. Resetting it here would erase the learner's
+    // position and make navigation requests fail (since currentActivity becomes null).
+    //
+    // If a full sequencing reset is needed (e.g., for tests), call resetSequencingState().
   }
 
   /**
@@ -167,13 +169,13 @@ class Scorm2004API extends BaseAPI {
 
   /**
    * Getter for _globalObjectives
-   * 
+   *
    * Global objectives persist across SCO transitions and are used for cross-activity
    * objective tracking via mapInfo (SCORM 2004 SN Book SB.2.4).
-   * 
+   *
    * These objectives are NOT reset when reset() is called, allowing activities
    * to share objective data across SCO boundaries.
-   * 
+   *
    * @return {CMIObjectivesObject[]} Array of global objective objects
    */
   get globalObjectives(): CMIObjectivesObject[] {
@@ -214,36 +216,66 @@ class Scorm2004API extends BaseAPI {
    * @return {string} bool
    */
   lmsFinish(): string {
-    // Terminate sequencing service first (before normal termination)
-    if (this._sequencingService) {
-      this._sequencingService.terminate();
-    }
+    const pendingNavRequest = this.adl?.nav?.request || "_none_";
+
+    // Check if we were already terminated before calling terminate
+    // This handles the case where a SCO's unload handler calls Terminate after
+    // we've already moved on to delivering a new activity
+    const wasAlreadyTerminated = this.isTerminated();
+
+    // Check if content delivery is in progress
+    // This handles the case where the old content's unload handler fires during
+    // delivery of a new activity and calls Terminate
+    const deliveryInProgress = this._sequencingService?.isDeliveryInProgress() ?? false;
 
     const result = this.terminate("Terminate", true);
 
-    if (result === global_constants.SCORM_TRUE) {
+    // Only process navigation if this was a legitimate first termination
+    // AND delivery is not already in progress
+    // Skip navigation processing for duplicate terminations or during delivery
+    // to avoid re-terminating the newly delivered activity
+    if (result === global_constants.SCORM_TRUE && !wasAlreadyTerminated && !deliveryInProgress) {
       // Handle navigation requests - first try sequencing service, then fall back to legacy
       let navigationHandled = false;
+      let processedSequencingRequest: string | null = null;
+      let normalizedRequest = pendingNavRequest;
+      let normalizedTarget = "";
+      const choiceJumpRegex = new RegExp(scorm2004_regex.NAVEvent);
 
-      if (this._sequencingService && this.adl.nav.request !== "_none_") {
+      if (pendingNavRequest !== "_none_") {
+        const matches = pendingNavRequest.match(choiceJumpRegex);
+        if (matches) {
+          if (matches.groups?.choice_target) {
+            normalizedTarget = matches.groups?.choice_target;
+            normalizedRequest = "choice";
+          } else if (matches.groups?.jump_target) {
+            normalizedTarget = matches.groups?.jump_target;
+            normalizedRequest = "jump";
+          }
+        }
+      }
+
+      if (this._sequencingService) {
         try {
-          // Extract target for choice/jump requests
-          let target = "";
-          let request = this.adl.nav.request;
-          const choiceJumpRegex = new RegExp(scorm2004_regex.NAVEvent);
-          const matches = request.match(choiceJumpRegex);
-          if (matches) {
-            if (matches.groups?.choice_target) {
-              target = matches.groups?.choice_target;
-              request = "choice";
-            } else if (matches.groups?.jump_target) {
-              target = matches.groups?.jump_target;
-              request = "jump";
-            }
+          let requestToProcess: string | null = null;
+          let targetForProcessing: string | undefined;
+
+          if (normalizedRequest !== "_none_") {
+            requestToProcess = normalizedRequest;
+            targetForProcessing = normalizedTarget || undefined;
+          } else if (this._sequencing.getCurrentActivity()) {
+            // No explicit navigation request, but the SCO terminated.
+            // Issue an "exit" so the sequencing session records the end of the attempt.
+            requestToProcess = "exit";
           }
 
-          // Process navigation request through sequencing service
-          navigationHandled = this._sequencingService.processNavigationRequest(request, target);
+          if (requestToProcess) {
+            navigationHandled = this._sequencingService.processNavigationRequest(
+              requestToProcess,
+              targetForProcessing,
+            );
+            processedSequencingRequest = requestToProcess;
+          }
         } catch (error) {
           // Fall back to legacy navigation handling if sequencing fails
           navigationHandled = false;
@@ -252,7 +284,7 @@ class Scorm2004API extends BaseAPI {
 
       // Legacy navigation handling (fallback)
       if (!navigationHandled) {
-        if (this.adl.nav.request !== "_none_") {
+        if (pendingNavRequest !== "_none_") {
           const navActions: { [key: string]: string } = {
             continue: "SequenceNext",
             previous: "SequencePrevious",
@@ -264,27 +296,25 @@ class Scorm2004API extends BaseAPI {
             abandonAll: "SequenceAbandonAll",
           };
 
-          let request = this.adl.nav.request;
-          const choiceJumpRegex = new RegExp(scorm2004_regex.NAVEvent);
-          const matches = request.match(choiceJumpRegex);
-          let target = "";
-          if (matches) {
-            if (matches.groups?.choice_target) {
-              target = matches.groups?.choice_target;
-              request = "choice";
-            } else if (matches.groups?.jump_target) {
-              target = matches.groups?.jump_target;
-              request = "jump";
-            }
-          }
-          const action = navActions[request];
+          const action = navActions[normalizedRequest];
           if (action) {
-            this.processListeners(action, "adl.nav.request", target);
+            this.processListeners(action, "adl.nav.request", normalizedTarget);
           }
         } else if (this.settings.autoProgress) {
           this.processListeners("SequenceNext", undefined, "next");
         }
       }
+
+      if (
+        this._sequencingService &&
+        processedSequencingRequest &&
+        ["exitAll", "abandonAll", "suspendAll"].includes(processedSequencingRequest)
+      ) {
+        this._sequencingService.terminate();
+      }
+
+      // Reset nav request state
+      this.adl.nav.request = "_none_";
     }
 
     return result;
@@ -940,7 +970,76 @@ class Scorm2004API extends BaseAPI {
     if (scoreObject) {
       commitObject.score = scoreObject;
     }
+
+    // Update sequencing activity state based on CMI runtime data
+    // This ensures that cmi.success_status updates the primary objective,
+    // which then triggers mapInfo global objective writes during rollup
+    this.syncCmiToSequencingActivity(completionStatus, successStatus, scoreObject);
+
     return commitObject;
+  }
+
+  /**
+   * Synchronize CMI runtime data to the current sequencing activity
+   * When cmi.success_status or cmi.completion_status are set, update the
+   * current activity's primary objective accordingly
+   *
+   * @param {CompletionStatus} completionStatus
+   * @param {SuccessStatus} successStatus
+   * @param {ScoreObject} scoreObject
+   * @private
+   */
+  private syncCmiToSequencingActivity(
+    completionStatus: CompletionStatus,
+    successStatus: SuccessStatus,
+    scoreObject?: ScoreObject,
+  ): void {
+    if (!this._sequencing) {
+      return;
+    }
+
+    const currentActivity = this._sequencing.getCurrentActivity();
+    if (!currentActivity || !currentActivity.primaryObjective) {
+      return;
+    }
+
+    const primaryObjective = currentActivity.primaryObjective;
+
+    // Update primary objective satisfied status based on cmi.success_status
+    if (successStatus !== SuccessStatus.UNKNOWN) {
+      primaryObjective.satisfiedStatus = successStatus === SuccessStatus.PASSED;
+      primaryObjective.measureStatus = true;
+      currentActivity.objectiveMeasureStatus = true;
+      currentActivity.objectiveSatisfiedStatus = successStatus === SuccessStatus.PASSED;
+
+      // Also update the primary objective in the activity's objectives list
+      const primaryInList = currentActivity.objectives.find((obj) => obj.isPrimary);
+      if (primaryInList) {
+        primaryInList.satisfiedStatus = successStatus === SuccessStatus.PASSED;
+        primaryInList.measureStatus = true;
+      }
+    }
+
+    // Update primary objective completion status based on cmi.completion_status
+    if (completionStatus !== CompletionStatus.UNKNOWN) {
+      primaryObjective.completionStatus = completionStatus;
+
+      const primaryInList = currentActivity.objectives.find((obj) => obj.isPrimary);
+      if (primaryInList) {
+        primaryInList.completionStatus = completionStatus;
+      }
+    }
+
+    // Update normalized measure if score is provided
+    if (scoreObject?.scaled !== undefined && scoreObject.scaled !== null) {
+      primaryObjective.normalizedMeasure = scoreObject.scaled;
+      primaryObjective.measureStatus = true;
+
+      const primaryInList = currentActivity.objectives.find((obj) => obj.isPrimary);
+      if (primaryInList) {
+        primaryInList.normalizedMeasure = scoreObject.scaled;
+      }
+    }
   }
 
   /**
@@ -981,6 +1080,20 @@ class Scorm2004API extends BaseAPI {
     }
 
     const commitObject = this.getCommitObject(terminateCommit);
+    const scoreObject = this.cmi?.score?.getScoreObject() || {};
+    let completionStatusEnum = CompletionStatus.UNKNOWN;
+    if (this.cmi.completion_status === "completed") {
+      completionStatusEnum = CompletionStatus.COMPLETED;
+    } else if (this.cmi.completion_status === "incomplete") {
+      completionStatusEnum = CompletionStatus.INCOMPLETE;
+    }
+    let successStatusEnum = SuccessStatus.UNKNOWN;
+    if (this.cmi.success_status === "passed") {
+      successStatusEnum = SuccessStatus.PASSED;
+    } else if (this.cmi.success_status === "failed") {
+      successStatusEnum = SuccessStatus.FAILED;
+    }
+    this.syncCmiToSequencingActivity(completionStatusEnum, successStatusEnum, scoreObject);
     if (typeof this.settings.lmsCommitUrl === "string") {
       const result = this.processHttpRequest(
         this.settings.lmsCommitUrl,
@@ -999,7 +1112,8 @@ class Scorm2004API extends BaseAPI {
       } else if (result?.navRequest && !navRequest) {
         if (
           typeof result.navRequest === "object" &&
-          Object.hasOwnProperty.call(result.navRequest, "name")
+          Object.hasOwnProperty.call(result.navRequest, "name") &&
+          result.navRequest.name
         ) {
           this.processListeners(result.navRequest.name as string, result.navRequest.data as string);
         }
@@ -1163,8 +1277,13 @@ class Scorm2004API extends BaseAPI {
 
     if (activitySettings.objectives) {
       for (const objectiveSettings of activitySettings.objectives) {
-        const objective = this.createActivityObjectiveFromSettings(objectiveSettings, false);
-        activity.addObjective(objective);
+        const isPrimary = objectiveSettings.isPrimary === true;
+        const objective = this.createActivityObjectiveFromSettings(objectiveSettings, isPrimary);
+        if (isPrimary) {
+          activity.primaryObjective = objective;
+        } else {
+          activity.addObjective(objective);
+        }
       }
     }
 
@@ -1249,6 +1368,9 @@ class Scorm2004API extends BaseAPI {
         conditionSettings.operator,
         new Map(Object.entries(conditionSettings.parameters || {})),
       );
+      if (conditionSettings.referencedObjective) {
+        condition.referencedObjective = conditionSettings.referencedObjective;
+      }
       rule.addCondition(condition);
     }
 
@@ -1268,6 +1390,16 @@ class Scorm2004API extends BaseAPI {
     );
   }
 
+  /**
+   * Applies the selection randomization state to the given activity by updating its sequencing controls
+   * and configuring visibility, availability, and order of its child elements.
+   *
+   * @param {Activity} activity - The activity to which the selection randomization state is applied.
+   * @param {SelectionRandomizationStateSettings} state - The settings object defining the selection
+   * randomization state, including properties for selection count status, child order, reorder controls,
+   * selected child IDs, and hidden child IDs.
+   * @return {void} This method does not return a value.
+   */
   private applySelectionRandomizationState(
     activity: Activity,
     state: SelectionRandomizationStateSettings,
@@ -1323,6 +1455,13 @@ class Scorm2004API extends BaseAPI {
     }
   }
 
+  /**
+   * Applies the given sequencing controls settings to the specified target.
+   *
+   * @param {SequencingControls} target - The target object where sequencing control settings will be applied.
+   * @param {SequencingControlsSettings} settings - An object containing the sequencing control settings to be applied to the target.
+   * @return {void} - No return value as the method modifies the target object directly.
+   */
   private applySequencingControlsSettings(
     target: SequencingControls,
     settings: SequencingControlsSettings,
@@ -1386,6 +1525,13 @@ class Scorm2004API extends BaseAPI {
     }
   }
 
+  /**
+   * Applies the sequencing rules settings to the specified target object.
+   *
+   * @param {SequencingRules} target The target object where the sequencing rules will be applied.
+   * @param {SequencingRulesSettings} settings The settings object containing the sequencing rules to be applied. If null or undefined, no rules will be applied.
+   * @return {void} This method does not return a value.
+   */
   private applySequencingRulesSettings(
     target: SequencingRules,
     settings: SequencingRulesSettings,
@@ -1416,6 +1562,15 @@ class Scorm2004API extends BaseAPI {
     }
   }
 
+  /**
+   * Applies rollup rules settings to the specified target object.
+   * This method processes the provided settings and adds the corresponding
+   * rollup rules to the target.
+   *
+   * @param {RollupRules} target - The target object where rollup rules will be applied.
+   * @param {RollupRulesSettings} settings - The settings containing the rollup rules to be applied.
+   * @return {void} This method does not return a value.
+   */
   private applyRollupRulesSettings(target: RollupRules, settings: RollupRulesSettings): void {
     if (!settings?.rules) {
       return;
@@ -1427,6 +1582,12 @@ class Scorm2004API extends BaseAPI {
     }
   }
 
+  /**
+   * Clones the given SelectionRandomizationStateSettings object, creating a new object with identical properties.
+   *
+   * @param {SelectionRandomizationStateSettings} state - The SelectionRandomizationStateSettings object to be cloned.
+   * @return {SelectionRandomizationStateSettings} A new instance of SelectionRandomizationStateSettings with the same properties as the input object.
+   */
   private cloneSelectionRandomizationState(
     state: SelectionRandomizationStateSettings,
   ): SelectionRandomizationStateSettings {
@@ -1449,6 +1610,14 @@ class Scorm2004API extends BaseAPI {
     return clone;
   }
 
+  /**
+   * Merges the current array of HideLmsUiItem objects with an optional additional array,
+   * and sanitizes the combined result.
+   *
+   * @param {HideLmsUiItem[]} current - The current array of HideLmsUiItem objects.
+   * @param {HideLmsUiItem[]} [additional] - An optional array of additional HideLmsUiItem objects to merge.
+   * @return {HideLmsUiItem[]} The sanitized merged array of HideLmsUiItem objects.
+   */
   private mergeHideLmsUi(current: HideLmsUiItem[], additional?: HideLmsUiItem[]): HideLmsUiItem[] {
     if (!additional || additional.length === 0) {
       return current;
@@ -1456,6 +1625,19 @@ class Scorm2004API extends BaseAPI {
     return this.sanitizeHideLmsUi([...current, ...additional]);
   }
 
+  /**
+   * Sanitizes and processes a collection of sequencing settings. This involves ensuring that
+   * the IDs are trimmed and non-empty, cloning objects deeply to ensure immutability,
+   * and sanitizing each subset of sequencing configurations.
+   *
+   * @param {Record<string, SequencingCollectionSettings>} [collections] -
+   *        A record of sequencing collection settings where keys are collection IDs
+   *        and values are the associated configuration to be sanitized.
+   *
+   * @return {Record<string, SequencingCollectionSettings>}
+   *         A sanitized record of sequencing collection settings, with processed and
+   *         cloned settings for immutability and validity.
+   */
   private sanitizeSequencingCollections(
     collections?: Record<string, SequencingCollectionSettings>,
   ): Record<string, SequencingCollectionSettings> {
@@ -1568,6 +1750,14 @@ class Scorm2004API extends BaseAPI {
     return sanitized;
   }
 
+  /**
+   * Normalizes the provided collection references into an array of unique, trimmed strings.
+   * Removes duplicates and trims whitespace from each reference.
+   *
+   * @param {string | string[]} [refs] - A single reference string or an array of reference strings to be normalized.
+   *                                      If not provided, defaults to an empty array.
+   * @return {string[]} An array of unique and trimmed strings representing normalized collection references.
+   */
   private normalizeCollectionRefs(refs?: string | string[]): string[] {
     if (!refs) {
       return [];
@@ -1578,9 +1768,6 @@ class Scorm2004API extends BaseAPI {
     const result: string[] = [];
 
     for (const ref of raw) {
-      if (typeof ref !== "string") {
-        continue;
-      }
       const trimmed = ref.trim();
       if (!trimmed || seen.has(trimmed)) {
         continue;
@@ -1592,6 +1779,14 @@ class Scorm2004API extends BaseAPI {
     return result;
   }
 
+  /**
+   * Applies the sequencing configuration from the given collection to the specified activity.
+   *
+   * @param {Activity} activity - The activity to which the sequencing collection settings will be applied.
+   * @param {SequencingCollectionSettings} collection - The collection of sequencing settings to apply to the activity.
+   * @param {SelectionRandomizationStateSettings[]} selectionStates - The list of selection randomization state objects, which may be modified during this process.
+   * @return {void} This method does not return a value.
+   */
   private applySequencingCollection(
     activity: Activity,
     collection: SequencingCollectionSettings,
@@ -1644,6 +1839,15 @@ class Scorm2004API extends BaseAPI {
     }
   }
 
+  /**
+   * Sanitizes and filters the given auxiliary resources by removing duplicates,
+   * trimming unnecessary whitespace, and ensuring valid data integrity.
+   *
+   * @param {AuxiliaryResourceSettings[]} [resources] - An optional array of auxiliary resource settings
+   *     that include details such as resource ID and purpose.
+   * @return {AuxiliaryResource[]} - A sanitized array of auxiliary resources, each containing
+   *     valid resource IDs and purposes, with duplicates and invalid entries removed.
+   */
   private sanitizeAuxiliaryResources(resources?: AuxiliaryResourceSettings[]): AuxiliaryResource[] {
     if (!resources) {
       return [];
@@ -1656,8 +1860,8 @@ class Scorm2004API extends BaseAPI {
       if (!resource) {
         continue;
       }
-      const resourceId = typeof resource.resourceId === "string" ? resource.resourceId.trim() : "";
-      const purpose = typeof resource.purpose === "string" ? resource.purpose.trim() : "";
+      const resourceId = resource.resourceId.trim();
+      const purpose = resource.purpose.trim();
       if (!resourceId || !purpose) {
         continue;
       }
@@ -1671,6 +1875,13 @@ class Scorm2004API extends BaseAPI {
     return sanitized;
   }
 
+  /**
+   * Merges two arrays of auxiliary resources, removing duplicates based on their resource identifiers.
+   *
+   * @param {AuxiliaryResource[] | undefined} existing - The existing array of auxiliary resources. This can be undefined.
+   * @param {AuxiliaryResource[] | undefined} additions - The array of new auxiliary resources to add. This can be undefined.
+   * @return {AuxiliaryResource[]} A new array containing unique auxiliary resources from both input arrays, filtered by their resource identifiers.
+   */
   private mergeAuxiliaryResources(
     existing: AuxiliaryResource[] | undefined,
     additions: AuxiliaryResource[] | undefined,
@@ -1693,6 +1904,14 @@ class Scorm2004API extends BaseAPI {
     return merged;
   }
 
+  /**
+   * Filters and sanitizes a list of items by removing duplicates and ensuring
+   * only valid items are included according to a predefined set of valid tokens.
+   *
+   * @param {HideLmsUiItem[] | undefined} items - The list of items to be sanitized.
+   * Can be undefined, in which case an empty array is returned.
+   * @return {HideLmsUiItem[]} The sanitized list of unique and valid items.
+   */
   private sanitizeHideLmsUi(items: HideLmsUiItem[] | undefined): HideLmsUiItem[] {
     if (!items) {
       return [];
@@ -1876,6 +2095,14 @@ class Scorm2004API extends BaseAPI {
       return this._sequencingService.processNavigationRequest(request, targetActivityId);
     }
     return false;
+  }
+
+  /**
+   * Reset sequencing state explicitly (primarily for tests/tools, not normal LMS flow)
+   */
+  public resetSequencingState(): void {
+    this._sequencing?.reset();
+    this._sequencingService?.setEventListeners({});
   }
 
   /**
@@ -2140,6 +2367,13 @@ class Scorm2004API extends BaseAPI {
     }
   }
 
+  /**
+   * Captures the global objective snapshot by collecting data from the provided overall process
+   * or the internally managed sequencing service if no process is provided.
+   *
+   * @param {OverallSequencingProcess | null} [overallProcess] - An optional parameter representing the overall sequencing process. If not provided, it attempts to use the internal sequencing service.
+   * @return {Record<string, any>} A record containing the snapshot of the global objectives, with each objective's identifier as the key and its corresponding data as the value.
+   */
   private captureGlobalObjectiveSnapshot(
     overallProcess?: OverallSequencingProcess | null,
   ): Record<string, any> {
@@ -2164,6 +2398,16 @@ class Scorm2004API extends BaseAPI {
     return snapshot;
   }
 
+  /**
+   * Constructs an array of `CMIObjectivesObject` instances from a given snapshot map.
+   *
+   * @param {Record<string, any>} snapshot - A map where each entry represents objective data
+   *                                         with various properties that may include
+   *                                         satisfied status, progress measure, completion status, etc.
+   * @return {CMIObjectivesObject[]} An array of `CMIObjectivesObject` instances built
+   *                                  from the provided snapshot map. Returns an empty array
+   *                                  if the snapshot is invalid or no valid objectives can be created.
+   */
   private buildCMIObjectivesFromMap(snapshot: Record<string, any>): CMIObjectivesObject[] {
     const objectives: CMIObjectivesObject[] = [];
     if (!snapshot || typeof snapshot !== "object") {
@@ -2206,6 +2450,12 @@ class Scorm2004API extends BaseAPI {
     return objectives;
   }
 
+  /**
+   * Constructs a `CMIObjectivesObject` instance from the provided JSON data.
+   *
+   * @param {any} data - The JSON data used to populate the `CMIObjectivesObject`. If the input is invalid or missing, an empty `CMIObjectivesObject` instance is returned.
+   * @return {CMIObjectivesObject} A populated `CMIObjectivesObject` instance based on the input data. Returns a default object if the input does not contain valid fields.
+   */
   private buildCMIObjectiveFromJSON(data: any): CMIObjectivesObject {
     const objective = new CMIObjectivesObject();
     if (!data || typeof data !== "object") {
@@ -2262,6 +2512,12 @@ class Scorm2004API extends BaseAPI {
     return objective;
   }
 
+  /**
+   * Builds a map entry from the given CMI objectives object to a standardized Record object.
+   *
+   * @param {CMIObjectivesObject} objective - The CMI objectives object containing data about a specific learning objective.
+   * @return {Record<string, any>} An object containing mapped properties and their values based on the provided objective.
+   */
   private buildObjectiveMapEntryFromCMI(objective: CMIObjectivesObject): Record<string, any> {
     const entry: Record<string, any> = {
       id: objective.id,
@@ -2306,18 +2562,18 @@ class Scorm2004API extends BaseAPI {
 
   /**
    * Updates the global objective map in the sequencing service from CMI objective data.
-   * 
+   *
    * This method synchronizes global objectives between:
    * - _globalObjectives array (persists across SCO transitions)
    * - Sequencing service global objective map (used for sequencing decisions)
-   * 
+   *
    * When a SCO writes to a global objective via SetValue, this method ensures
    * the sequencing service is updated so that sequencing rules can evaluate
    * the objective status correctly.
-   * 
+   *
    * According to SCORM 2004 SN Book SB.2.4, global objectives must be synchronized
    * across all activities that reference them via mapInfo.
-   * 
+   *
    * @param {string} objectiveId - The global objective ID
    * @param {CMIObjectivesObject} objective - The CMI objective object with updated values
    * @private
@@ -2370,6 +2626,12 @@ class Scorm2004API extends BaseAPI {
     overallProcess.updateGlobalObjective(objectiveId, updatePayload);
   }
 
+  /**
+   * Parses the given value into a finite number if possible, otherwise returns null.
+   *
+   * @param {any} value - The input value to be parsed into a number.
+   * @return {number | null} The parsed finite number if the input is valid, otherwise null.
+   */
   private parseObjectiveNumber(value: any): number | null {
     if (value === null || value === undefined) {
       return null;

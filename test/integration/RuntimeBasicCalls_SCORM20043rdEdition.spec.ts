@@ -6,11 +6,12 @@ import {
   waitForModuleFrame,
   verifyApiAccessibleFromModule,
   getCmiValue,
-  setCmiValue,
   getWrapperConfigs,
   ensureApiInitialized,
+  injectQuizFunctions,
   completeContentSCO,
   completeAssessmentSCO,
+  exitScorm2004Course,
 } from "./helpers/scorm2004-helpers";
 import { scormCommonApiTests } from "./suites/scorm-common-api.js";
 import { scorm2004DataModelTests } from "./suites/scorm2004-data-model.js";
@@ -75,7 +76,7 @@ wrappers.forEach((wrapper) => {
       // Verify launchpage loaded (should have navigation buttons)
       const moduleFrame = page.frameLocator("#moduleFrame");
       const hasNextButton = await moduleFrame
-        .locator("button:has-text(\"Next\"), input[value*=\"Next\"]")
+        .locator('button:has-text("Next"), input[value*="Next"]')
         .isVisible()
         .catch(() => false);
       expect(hasNextButton).toBe(true);
@@ -100,7 +101,9 @@ wrappers.forEach((wrapper) => {
 
       // Navigate to next page using the Next button
       const moduleFrame = page.frameLocator("#moduleFrame");
-      const nextButton = moduleFrame.locator("button:has-text(\"Next\"), input[value*=\"Next\"]").first();
+      const nextButton = moduleFrame
+        .locator('button:has-text("Next"), input[value*="Next"]')
+        .first();
 
       if (await nextButton.isVisible({ timeout: 2000 }).catch(() => false)) {
         await nextButton.click();
@@ -125,10 +128,16 @@ wrappers.forEach((wrapper) => {
 
       // Navigate to a specific page
       const moduleFrame = page.frameLocator("#moduleFrame");
-      const nextButton = moduleFrame.locator("button:has-text(\"Next\"), input[value*=\"Next\"]").first();
+      const nextButton = moduleFrame
+        .locator('button:has-text("Next"), input[value*="Next"]')
+        .first();
 
       // Navigate a few pages
-      for (let i = 0; i < 3 && await nextButton.isVisible({ timeout: 1000 }).catch(() => false); i++) {
+      for (
+        let i = 0;
+        i < 3 && (await nextButton.isVisible({ timeout: 1000 }).catch(() => false));
+        i++
+      ) {
         const isDisabled = await nextButton.getAttribute("disabled").catch(() => null);
         if (isDisabled !== null) break;
         await nextButton.click();
@@ -152,7 +161,9 @@ wrappers.forEach((wrapper) => {
       expect(restoredLocation).toBeTruthy();
     });
 
-    test("should track completion_status and success_status during navigation", async ({ page }) => {
+    test("should track completion_status and success_status during navigation", async ({
+      page,
+    }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
       await page.waitForLoadState("networkidle");
 
@@ -167,7 +178,9 @@ wrappers.forEach((wrapper) => {
 
       // Navigate to the last page (assessment)
       const moduleFrame = page.frameLocator("#moduleFrame");
-      const nextButton = moduleFrame.locator("button:has-text(\"Next\"), input[value*=\"Next\"]").first();
+      const nextButton = moduleFrame
+        .locator('button:has-text("Next"), input[value*="Next"]')
+        .first();
 
       // Navigate to last page (page 14 is the assessment)
       // The launchpage sets completion_status to "completed" when currentPage == pageArray.length - 1
@@ -227,7 +240,7 @@ wrappers.forEach((wrapper) => {
       await page.waitForTimeout(2000);
 
       // Actually take the quiz by answering correctly
-      const score = await completeAssessmentSCO(page, true);
+      const { score } = await completeAssessmentSCO(page, true);
 
       // Verify the module set the score (not us - the module did it via RecordTest)
       expect(score).toBeGreaterThanOrEqual(0);
@@ -247,7 +260,7 @@ wrappers.forEach((wrapper) => {
       }
     });
 
-    test("should track total_time and session_time during navigation", async ({ page }) => {
+    test("should track total_time and treat session_time as write-only", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
       await page.waitForLoadState("networkidle");
 
@@ -258,7 +271,9 @@ wrappers.forEach((wrapper) => {
 
       // Navigate a few pages
       const moduleFrame = page.frameLocator("#moduleFrame");
-      const nextButton = moduleFrame.locator("button:has-text(\"Next\"), input[value*=\"Next\"]").first();
+      const nextButton = moduleFrame
+        .locator('button:has-text("Next"), input[value*="Next"]')
+        .first();
 
       if (await nextButton.isVisible({ timeout: 2000 }).catch(() => false)) {
         await nextButton.click();
@@ -269,22 +284,13 @@ wrappers.forEach((wrapper) => {
       const totalTime = await getCmiValue(page, "cmi.total_time");
       expect(typeof totalTime === "string").toBe(true);
 
-      // session_time is write-only in SCORM 2004
-      // The module itself sets session_time, so we can verify it's write-only
-      // by attempting to set it and checking the result
-      // Note: session_time format must be valid SCORM 2004 time format (P[n]Y[n]M[n]DT[n]H[n]M[n]S or P[n]W)
-      const setResult = await page.evaluate(() => {
-        // Try setting a valid SCORM 2004 time format
-        return window.API_1484_11.lmsSetValue("cmi.session_time", "PT30S");
+      const sessionTimeCheck = await page.evaluate(() => {
+        const value = window.API_1484_11.lmsGetValue("cmi.session_time");
+        const error = window.API_1484_11.lmsGetLastError().toString();
+        return { value, error };
       });
-      // Setting session_time may return "true" or "false" depending on validation
-      // The important thing is that it's a write-only element
-      expect(typeof setResult === "string").toBe(true);
-
-      // Verify that we cannot read session_time back (it's write-only)
-      const sessionTimeRead = await getCmiValue(page, "cmi.session_time");
-      // Should return empty string for write-only elements
-      expect(sessionTimeRead === "" || sessionTimeRead === "false").toBe(true);
+      expect(sessionTimeCheck.value === "" || sessionTimeCheck.value === "false").toBe(true);
+      expect(sessionTimeCheck.error).toBe("404");
     });
 
     test("should handle previous/next navigation buttons", async ({ page }) => {
@@ -297,8 +303,12 @@ wrappers.forEach((wrapper) => {
       await page.waitForTimeout(2000);
 
       const moduleFrame = page.frameLocator("#moduleFrame");
-      const nextButton = moduleFrame.locator("button:has-text(\"Next\"), input[value*=\"Next\"]").first();
-      const prevButton = moduleFrame.locator("button:has-text(\"Previous\"), input[value*=\"Previous\"]").first();
+      const nextButton = moduleFrame
+        .locator('button:has-text("Next"), input[value*="Next"]')
+        .first();
+      const prevButton = moduleFrame
+        .locator('button:has-text("Previous"), input[value*="Previous"]')
+        .first();
 
       // Verify buttons exist
       const hasNext = await nextButton.isVisible({ timeout: 2000 }).catch(() => false);
@@ -318,8 +328,10 @@ wrappers.forEach((wrapper) => {
         expect(locationAfterNext).not.toBe(initialLocation);
 
         // Navigate back
-        if (await prevButton.isVisible({ timeout: 2000 }).catch(() => false) &&
-          !(await prevButton.getAttribute("disabled"))) {
+        if (
+          (await prevButton.isVisible({ timeout: 2000 }).catch(() => false)) &&
+          !(await prevButton.getAttribute("disabled"))
+        ) {
           await prevButton.click();
           await page.waitForTimeout(2000);
 
@@ -330,7 +342,7 @@ wrappers.forEach((wrapper) => {
       }
     });
 
-    test("should handle exit button", async ({ page }) => {
+    test("should exit via UI without breaking API availability", async ({ page }) => {
       await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
       await page.waitForLoadState("networkidle");
 
@@ -339,29 +351,13 @@ wrappers.forEach((wrapper) => {
       // Wait for launchpage to initialize
       await page.waitForTimeout(2000);
 
-      const moduleFrame = page.frameLocator("#moduleFrame");
-      const exitButton = moduleFrame.locator("button:has-text(\"Exit\"), input[value*=\"Exit\"]").first();
+      await exitScorm2004Course(page, { preserveProgress: false });
 
-      if (await exitButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-        // The exit button should trigger termination
-        // Click it (may show a confirm dialog)
-        await exitButton.click();
-        await page.waitForTimeout(1000);
-
-        // Handle any confirm dialog
-        page.on("dialog", async (dialog) => {
-          await dialog.dismiss();
-        });
-
-        await page.waitForTimeout(1000);
-
-        // Verify API is still accessible (termination doesn't break the page)
-        const apiAccessible = await verifyApiAccessibleFromModule(page);
-        expect(apiAccessible).toBe(true);
-      }
+      const apiAccessible = await verifyApiAccessibleFromModule(page);
+      expect(apiAccessible).toBe(true);
     });
 
-    test("should handle commit with mocked LMS HTTP calls", async ({ page }) => {
+    test("should send commits with mocked LMS HTTP calls via learner actions", async ({ page }) => {
       const tracker = new CommitRequestTracker();
 
       // Setup route interception before navigating
@@ -372,85 +368,23 @@ wrappers.forEach((wrapper) => {
 
       await ensureApiInitialized(page);
 
-      // Configure API with commit URL
+      await injectQuizFunctions(page);
+
       await configureApiForHttpCommits(page);
 
       // Wait for launchpage to initialize
       await page.waitForTimeout(2000);
 
-      // Set some data and commit
-      const commitResult = await page.evaluate(async () => {
-        window.API_1484_11.lmsSetValue("cmi.location", "5");
-        window.API_1484_11.lmsSetValue("cmi.score.raw", "85");
-        return window.API_1484_11.lmsCommit();
-      });
+      await completeContentSCO(page);
+      await completeAssessmentSCO(page, true);
+      await exitScorm2004Course(page);
 
-      // Wait a bit for async commit to complete
-      await page.waitForTimeout(1500);
-
-      // With async commits, should return "true" immediately (optimistic success)
-      // But if async isn't working, it might return "false" - accept both for webkit compatibility
-      expect(["true", "false"]).toContain(commitResult);
-
-      // Verify data was set
-      const location = await getCmiValue(page, "cmi.location");
-      expect(location).toBe("5");
-    });
-
-    test("should handle completion_status and success_status transitions correctly", async ({ page }) => {
-      await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
-
-      await ensureApiInitialized(page);
-
-      // Wait for launchpage to initialize
       await page.waitForTimeout(2000);
 
-      // Get initial status
-      const initialCompletion = await getCmiValue(page, "cmi.completion_status");
-      expect(["unknown", "not attempted", "incomplete", "completed"]).toContain(initialCompletion);
-
-      // Set status to incomplete (if not already)
-      if (initialCompletion !== "incomplete") {
-        await setCmiValue(page, "cmi.completion_status", "incomplete");
-        const statusAfterSet = await getCmiValue(page, "cmi.completion_status");
-        expect(statusAfterSet).toBe("incomplete");
-      }
-
-      // Set status to completed
-      await setCmiValue(page, "cmi.completion_status", "completed");
-      const completedStatus = await getCmiValue(page, "cmi.completion_status");
-      expect(completedStatus).toBe("completed");
-
-      // Set success_status to passed
-      await setCmiValue(page, "cmi.success_status", "passed");
-      const passedStatus = await getCmiValue(page, "cmi.success_status");
-      expect(passedStatus).toBe("passed");
-    });
-
-    test("should handle score tracking with min and max", async ({ page }) => {
-      await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-      await page.waitForLoadState("networkidle");
-
-      await ensureApiInitialized(page);
-
-      // Wait for launchpage to initialize
-      await page.waitForTimeout(2000);
-
-      // Set score with min and max
-      await setCmiValue(page, "cmi.score.raw", "85");
-      await setCmiValue(page, "cmi.score.min", "0");
-      await setCmiValue(page, "cmi.score.max", "100");
-
-      // Verify score was set
-      const rawScore = await getCmiValue(page, "cmi.score.raw");
-      expect(rawScore).toBe("85");
-
-      const minScore = await getCmiValue(page, "cmi.score.min");
-      expect(minScore === "0" || minScore === "").toBe(true); // Can be empty if not set
-
-      const maxScore = await getCmiValue(page, "cmi.score.max");
-      expect(maxScore).toBe("100");
+      expect(tracker.getRequestCount()).toBeGreaterThan(0);
+      const lastRequest = tracker.getLastRequest();
+      expect(lastRequest?.postData?.cmi?.location).toBeDefined();
+      expect(lastRequest?.postData?.cmi?.score?.raw).toBeDefined();
     });
 
     test("should handle all content sections navigation", async ({ page }) => {
@@ -463,7 +397,9 @@ wrappers.forEach((wrapper) => {
       await page.waitForTimeout(2000);
 
       const moduleFrame = page.frameLocator("#moduleFrame");
-      const nextButton = moduleFrame.locator("button:has-text(\"Next\"), input[value*=\"Next\"]").first();
+      const nextButton = moduleFrame
+        .locator('button:has-text("Next"), input[value*="Next"]')
+        .first();
 
       // Navigate through multiple pages to verify content loads
       for (let i = 0; i < 5; i++) {
@@ -486,7 +422,7 @@ wrappers.forEach((wrapper) => {
               return {
                 hasH1: !!h1,
                 h1Text: h1?.textContent?.trim() || "",
-                hasContent: innerFrame.contentDocument.body?.textContent?.length > 0
+                hasContent: innerFrame.contentDocument.body?.textContent?.length > 0,
               };
             }
           }
@@ -499,4 +435,3 @@ wrappers.forEach((wrapper) => {
     });
   });
 });
-

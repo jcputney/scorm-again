@@ -515,8 +515,8 @@ export function countDecimals(num: number): number {
 export function formatMessage(functionName: string, message: string, CMIElement?: string): string {
   const baseLength = 20;
 
-  // Use string padding instead of loops
-  let messageString = functionName ? `${functionName.padEnd(baseLength)}: ` : "";
+  // Use string padding instead of loops - handle undefined/null functionName
+  let messageString = functionName ? `${String(functionName).padEnd(baseLength)}: ` : "";
 
   if (CMIElement) {
     const CMIElementBaseLength = 70;

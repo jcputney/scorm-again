@@ -123,7 +123,8 @@ describe("SCORM 2004 Component Tests", () => {
 
       session.reset();
 
-      expect(session.entry).toBe("");
+      // After reset, entry should be "ab-initio" for new attempts per SCORM 2004 spec
+      expect(session.entry).toBe("ab-initio");
       // exit is write-only, so we don't test reading it
       // session_time is write-only, so we don't test reading it
       expect(session.total_time).toBe("PT2H0M0S"); // total_time should not be reset

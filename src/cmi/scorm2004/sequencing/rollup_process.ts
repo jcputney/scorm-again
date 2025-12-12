@@ -557,7 +557,7 @@ export class RollupProcess {
       this.synchronizeGlobalObjectives(activity, globalObjectives);
 
       // Process children recursively
-      const children = activity.getAvailableChildren();
+      const children = activity.children;
       for (const child of children) {
         this.processGlobalObjectiveMapping(child, globalObjectives);
       }

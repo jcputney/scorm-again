@@ -9,14 +9,12 @@ import {
   setCmiValue,
   setupCommitMocking,
   verifyApiAccessibleFromModule,
-  waitForModuleFrame
+  waitForModuleFrame,
 } from "./helpers/scorm2004-helpers";
 import { scormCommonApiTests } from "./suites/scorm-common-api.js";
 import { scorm2004DataModelTests } from "./suites/scorm2004-data-model.js";
 import { scorm2004NavigationTests } from "./suites/scorm2004-navigation.js";
-import {
-  scorm2004InteractionsObjectivesTests
-} from "./suites/scorm2004-interactions-objectives.js";
+import { scorm2004InteractionsObjectivesTests } from "./suites/scorm2004-interactions-objectives.js";
 
 /**
  * Comprehensive integration tests for ContentPackagingSingleSCO_SCORM20042ndEdition module
@@ -47,7 +45,7 @@ const moduleConfig = {
   path: MODULE_PATH,
   apiName: "API_1484_11" as const,
   expectedLearnerId: "123456",
-  hasSequencing: false // Single SCO, no sequencing
+  hasSequencing: false, // Single SCO, no sequencing
 };
 
 // Get wrapper configurations
@@ -224,7 +222,7 @@ wrappers.forEach((wrapper) => {
             lmsCommitUrl: "http://localhost:3000/api/commit",
             autocommit: true,
             autocommitSeconds: 1,
-            useAsynchronousCommits: true
+            useAsynchronousCommits: true,
           };
         }
       });
@@ -274,7 +272,7 @@ wrappers.forEach((wrapper) => {
             const api = window.API_1484_11 as any;
             return {
               hasCommitUrl: !!api.settings?.lmsCommitUrl,
-              isInitialized: api.isInitialized?.() || false
+              isInitialized: api.isInitialized?.() || false,
             };
           });
 
@@ -315,7 +313,7 @@ wrappers.forEach((wrapper) => {
           (window.API_1484_11 as any).settings = {
             ...(window.API_1484_11 as any).settings,
             autocommit: true,
-            autocommitSeconds: 1
+            autocommitSeconds: 1,
           };
         }
       });
@@ -372,7 +370,10 @@ wrappers.forEach((wrapper) => {
       await page.evaluate(() => {
         const iframe = document.querySelector<HTMLIFrameElement>("#moduleFrame");
         if (iframe?.contentWindow?.parent?.window?.API_1484_11) {
-          iframe.contentWindow.parent.window.API_1484_11.lmsSetValue("cmi.location", "etiquette-course");
+          iframe.contentWindow.parent.window.API_1484_11.lmsSetValue(
+            "cmi.location",
+            "etiquette-course",
+          );
         }
       });
 
@@ -402,8 +403,10 @@ wrappers.forEach((wrapper) => {
       await page.waitForTimeout(2000); // Wait for iframe and quiz to load
 
       // Wait for quiz to render
-      await moduleFrame.locator("h1:has-text('Knowledge Check')").waitFor({ timeout: 5000 }).catch(() => {
-      });
+      await moduleFrame
+        .locator("h1:has-text('Knowledge Check')")
+        .waitFor({ timeout: 5000 })
+        .catch(() => {});
 
       // Verify quiz loaded
       const quizLoaded = await moduleFrame
@@ -431,7 +434,9 @@ wrappers.forEach((wrapper) => {
           const iframe = document.querySelector<HTMLIFrameElement>("#moduleFrame");
           if (iframe?.contentDocument) {
             const doc = iframe.contentDocument;
-            const radios = Array.from(doc.querySelectorAll<HTMLInputElement>("input[type=\"radio\"]"));
+            const radios = Array.from(
+              doc.querySelectorAll<HTMLInputElement>('input[type="radio"]'),
+            );
 
             // Answer first question (first radio button)
             if (radios.length > 0) {
@@ -444,7 +449,7 @@ wrappers.forEach((wrapper) => {
 
         // Try to find and click submit button
         const submitButton = moduleFrame
-          .locator("input[type=\"button\"][value*=\"Submit\"], button:has-text(\"Submit\")")
+          .locator('input[type="button"][value*="Submit"], button:has-text("Submit")')
           .first();
         if (await submitButton.isVisible({ timeout: 2000 }).catch(() => false)) {
           await submitButton.click();
@@ -489,14 +494,14 @@ wrappers.forEach((wrapper) => {
       // Enhance RecordQuestion to capture interactions for verification
       await page.evaluate(() => {
         const originalRecordQuestion = (window as any).RecordQuestion;
-        (window as any).RecordQuestion = function(
+        (window as any).RecordQuestion = function (
           id: string,
           text: string,
           type: string,
           learnerResponse: string,
           correctAnswer: string,
           wasCorrect: boolean,
-          objectiveId: string
+          objectiveId: string,
         ) {
           // Capture for verification
           (window as any).capturedInteractions.push({
@@ -506,11 +511,19 @@ wrappers.forEach((wrapper) => {
             learnerResponse,
             correctAnswer,
             wasCorrect,
-            objectiveId
+            objectiveId,
           });
           // Call original
           if (originalRecordQuestion) {
-            originalRecordQuestion(id, text, type, learnerResponse, correctAnswer, wasCorrect, objectiveId);
+            originalRecordQuestion(
+              id,
+              text,
+              type,
+              learnerResponse,
+              correctAnswer,
+              wasCorrect,
+              objectiveId,
+            );
           }
         };
       });
@@ -526,8 +539,12 @@ wrappers.forEach((wrapper) => {
           const iframe = document.querySelector<HTMLIFrameElement>("#moduleFrame");
           if (iframe?.contentDocument) {
             const doc = iframe.contentDocument;
-            const radios = Array.from(doc.querySelectorAll<HTMLInputElement>("input[type=\"radio\"]"));
-            const textboxes = Array.from(doc.querySelectorAll<HTMLInputElement>("input[type=\"text\"]"));
+            const radios = Array.from(
+              doc.querySelectorAll<HTMLInputElement>('input[type="radio"]'),
+            );
+            const textboxes = Array.from(
+              doc.querySelectorAll<HTMLInputElement>('input[type="text"]'),
+            );
 
             // Answer first radio question
             if (radios.length > 0) {
@@ -547,7 +564,7 @@ wrappers.forEach((wrapper) => {
         await page.waitForTimeout(500);
 
         const submitButton = moduleFrame
-          .locator("input[type=\"button\"][value*=\"Submit\"], button:has-text(\"Submit\")")
+          .locator('input[type="button"][value*="Submit"], button:has-text("Submit")')
           .first();
         if (await submitButton.isVisible({ timeout: 2000 }).catch(() => false)) {
           await submitButton.click();
@@ -675,14 +692,14 @@ wrappers.forEach((wrapper) => {
         // Try to interact with quiz
         const moduleFrame = page.frameLocator("#moduleFrame");
         try {
-          const firstRadio = moduleFrame.locator("input[type=\"radio\"]").first();
+          const firstRadio = moduleFrame.locator('input[type="radio"]').first();
           if (await firstRadio.isVisible({ timeout: 2000 }).catch(() => false)) {
             await firstRadio.click();
             await page.waitForTimeout(500);
           }
 
           const submitButton = moduleFrame
-            .locator("input[type=\"button\"][value*=\"Submit\"], button:has-text(\"Submit\")")
+            .locator('input[type="button"][value*="Submit"], button:has-text("Submit")')
             .first();
           if (await submitButton.isVisible({ timeout: 2000 }).catch(() => false)) {
             await submitButton.click();
@@ -702,20 +719,20 @@ wrappers.forEach((wrapper) => {
       const contentSections = [
         {
           name: "Playing",
-          path: "/test/integration/modules/ContentPackagingSingleSCO_SCORM20042ndEdition/Playing/Playing.html"
+          path: "/test/integration/modules/ContentPackagingSingleSCO_SCORM20042ndEdition/Playing/Playing.html",
         },
         {
           name: "Etiquette",
-          path: "/test/integration/modules/ContentPackagingSingleSCO_SCORM20042ndEdition/Etiquette/Course.html"
+          path: "/test/integration/modules/ContentPackagingSingleSCO_SCORM20042ndEdition/Etiquette/Course.html",
         },
         {
           name: "Handicapping",
-          path: "/test/integration/modules/ContentPackagingSingleSCO_SCORM20042ndEdition/Handicapping/Overview.html"
+          path: "/test/integration/modules/ContentPackagingSingleSCO_SCORM20042ndEdition/Handicapping/Overview.html",
         },
         {
           name: "HavingFun",
-          path: "/test/integration/modules/ContentPackagingSingleSCO_SCORM20042ndEdition/HavingFun/HowToHaveFun.html"
-        }
+          path: "/test/integration/modules/ContentPackagingSingleSCO_SCORM20042ndEdition/HavingFun/HowToHaveFun.html",
+        },
       ];
 
       for (const section of contentSections) {
@@ -736,7 +753,7 @@ wrappers.forEach((wrapper) => {
             return {
               hasH1: !!h1,
               h1Text: h1?.textContent?.trim() || "",
-              hasContent: iframe.contentDocument.body?.textContent?.length > 0
+              hasContent: iframe.contentDocument.body?.textContent?.length > 0,
             };
           }
           return { hasH1: false, h1Text: "", hasContent: false };
@@ -749,4 +766,3 @@ wrappers.forEach((wrapper) => {
     });
   });
 });
-

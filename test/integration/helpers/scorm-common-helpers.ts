@@ -8,6 +8,17 @@ import { Page } from "@playwright/test";
 export type ScormApiName = "API" | "API_1484_11" | "AICC";
 
 /**
+ * Configure the SCORM wrapper with settings that must be applied before navigation.
+ * This works by injecting a script that seeds window.__SCORM_WRAPPER_CONFIG__ prior
+ * to the wrapper HTML executing its bootstrapping logic.
+ */
+export async function configureWrapper(page: Page, config: Record<string, any>): Promise<void> {
+  await page.addInitScript((wrapperConfig) => {
+    (window as any).__SCORM_WRAPPER_CONFIG__ = wrapperConfig;
+  }, config);
+}
+
+/**
  * Get the API object from window
  */
 export function getApiFromWindow(page: Page, apiName: ScormApiName): Promise<any> {
@@ -327,4 +338,3 @@ export function getScorm2004WrapperConfigs() {
     }
   ];
 }
-

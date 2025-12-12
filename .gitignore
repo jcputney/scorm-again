@@ -86,3 +86,4 @@ coverage-*
 summary.md
 docs/sequencing.md
 .serena/
+/reference/

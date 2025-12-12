@@ -1,7 +1,7 @@
 import esbuild from "rollup-plugin-esbuild";
-import terser from "@rollup/plugin-terser";
 import cache from "@mo36924/rollup-plugin-cache";
 import { babel } from "@rollup/plugin-babel";
+import { minify } from "terser";
 
 /**
  * Bundle Size Optimization Notes:
@@ -109,6 +109,54 @@ const reservedWords = [
   "_count",
   "_version", // special meta-properties
 ];
+
+function cloneOptions(options) {
+  if (!options) {
+    return {};
+  }
+  return JSON.parse(JSON.stringify(options));
+}
+
+function buildTerserOptions(overrides, outputOptions) {
+  const options = cloneOptions(overrides);
+  const sourcemap =
+    outputOptions.sourcemap === true || typeof outputOptions.sourcemap === "string";
+
+  if (sourcemap) {
+    options.sourceMap = true;
+  }
+
+  if (outputOptions.format === "es") {
+    options.module = true;
+  }
+
+  if (outputOptions.format === "cjs") {
+    options.toplevel = true;
+  }
+
+  return options;
+}
+
+function createTerserPlugin(overrides = {}) {
+  return {
+    name: "inline-terser",
+    async renderChunk(code, chunk, outputOptions) {
+      const options = buildTerserOptions(overrides, outputOptions);
+      const result = await minify(code, options);
+
+      if (result.map) {
+        const map =
+          typeof result.map === "string" ? JSON.parse(result.map) : result.map || null;
+        return {
+          code: result.code ?? code,
+          map,
+        };
+      }
+
+      return result.code ?? code;
+    },
+  };
+}
 
 // Entry points
 const entries = {
@@ -229,7 +277,7 @@ Object.entries(entries).forEach(([name, input]) => {
           ],
           extensions: [".js", ".ts"],
         }),
-        terser({
+        createTerserPlugin({
           compress: {
             passes: 2, // Reduced from 3 to 2 for faster builds
             drop_console: false,
@@ -291,7 +339,7 @@ Object.entries(esmEntries).forEach(([name, input]) => {
           sourceMap: generateSourceMap,
           target: "es2022",
         }),
-        terser({
+        createTerserPlugin({
           compress: {
             passes: 2, // Reduced from 3 to 2 for faster builds
             drop_console: false,

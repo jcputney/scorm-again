@@ -46,15 +46,41 @@ export class SequencingResult {
   public deliveryRequest: DeliveryRequestType;
   public targetActivity: Activity | null;
   public exception: string | null;
+  public endSequencingSession: boolean;
 
   constructor(
     deliveryRequest: DeliveryRequestType = DeliveryRequestType.DO_NOT_DELIVER,
     targetActivity: Activity | null = null,
-    exception: string | null = null
+    exception: string | null = null,
+    endSequencingSession: boolean = false
   ) {
     this.deliveryRequest = deliveryRequest;
     this.targetActivity = targetActivity;
     this.exception = exception;
+    this.endSequencingSession = endSequencingSession;
+  }
+}
+
+/**
+ * Result of Flow Subprocess (SB.2.3)
+ * Used internally to propagate endSequencingSession flag through flow processes
+ */
+class FlowSubprocessResult {
+  public identifiedActivity: Activity | null;
+  public deliverable: boolean;
+  public exception: string | null;
+  public endSequencingSession: boolean;
+
+  constructor(
+    identifiedActivity: Activity | null,
+    deliverable: boolean,
+    exception: string | null = null,
+    endSequencingSession: boolean = false
+  ) {
+    this.identifiedActivity = identifiedActivity;
+    this.deliverable = deliverable;
+    this.exception = exception;
+    this.endSequencingSession = endSequencingSession;
   }
 }
 
@@ -313,14 +339,17 @@ export class SequencingProcess {
     // Flow from current activity to find next using flow subprocess
     const flowResult = this.flowSubprocess(currentActivity, FlowSubprocessMode.FORWARD);
 
-    if (!flowResult) {
-      result.exception = "SB.2.7-2"; // No activity available
+    if (!flowResult.deliverable) {
+      // SB.2.7 step 4.1: Propagate exception and endSequencingSession flag
+      result.exception = flowResult.exception || "SB.2.7-2";
+      result.endSequencingSession = flowResult.endSequencingSession;
       return result;
     }
 
     // Deliver the identified activity
     result.deliveryRequest = DeliveryRequestType.DELIVER;
-    result.targetActivity = flowResult;
+    result.targetActivity = flowResult.identifiedActivity;
+    result.endSequencingSession = false;
     return result;
   }
 
@@ -354,14 +383,17 @@ export class SequencingProcess {
     // Flow from current activity to find previous using flow subprocess
     const flowResult = this.flowSubprocess(currentActivity, FlowSubprocessMode.BACKWARD);
 
-    if (!flowResult) {
-      result.exception = "SB.2.8-2"; // No activity available
+    if (!flowResult.deliverable) {
+      // SB.2.8 step 4.1: Propagate exception and endSequencingSession flag
+      result.exception = flowResult.exception || "SB.2.8-2";
+      result.endSequencingSession = flowResult.endSequencingSession;
       return result;
     }
 
     // Deliver the identified activity
     result.deliveryRequest = DeliveryRequestType.DELIVER;
-    result.targetActivity = flowResult;
+    result.targetActivity = flowResult.identifiedActivity;
+    result.endSequencingSession = false;
     return result;
   }
 
@@ -1069,9 +1101,9 @@ export class SequencingProcess {
    * Traverses the activity tree in the specified direction to find a deliverable activity
    * @param {Activity} fromActivity - The activity to flow from
    * @param {FlowSubprocessMode} direction - The flow direction
-   * @return {Activity | null} - The next deliverable activity, or null if none found
+   * @return {FlowSubprocessResult} - Result containing the deliverable activity and session end flag
    */
-  private flowSubprocess(fromActivity: Activity, direction: FlowSubprocessMode): Activity | null {
+  private flowSubprocess(fromActivity: Activity, direction: FlowSubprocessMode): FlowSubprocessResult {
     let candidateActivity: Activity | null = fromActivity;
     let firstIteration = true;
 
@@ -1079,35 +1111,44 @@ export class SequencingProcess {
     while (candidateActivity) {
       // Get next candidate using flow tree traversal
       // On first iteration, we want to skip the current activity's children
-      const nextCandidate = this.flowTreeTraversalSubprocess(
+      const traversalResult = this.flowTreeTraversalSubprocess(
         candidateActivity,
         direction,
         firstIteration
       );
 
-      if (!nextCandidate) {
-        // No more candidates
-        return null;
+      if (!traversalResult.activity) {
+        // No more candidates - propagate endSequencingSession flag from traversal
+        // SB.2.3 step 3.1: Exit with no deliverable activity and endSequencingSession flag
+        // Note: Exception code will be set by calling process (Continue/Previous)
+        return new FlowSubprocessResult(
+          candidateActivity,
+          false,
+          null,
+          traversalResult.endSequencingSession
+        );
       }
 
       // Check if this candidate can be delivered
       const deliverable = this.flowActivityTraversalSubprocess(
-        nextCandidate,
+        traversalResult.activity,
         direction === FlowSubprocessMode.FORWARD,
         true, // consider children
         direction
       );
 
       if (deliverable) {
-        return deliverable;
+        // Found a deliverable activity
+        return new FlowSubprocessResult(deliverable, true, null, false);
       }
 
       // Continue with next candidate
-      candidateActivity = nextCandidate;
+      candidateActivity = traversalResult.activity;
       firstIteration = false;
     }
 
-    return null;
+    // Should not reach here, but return safe default
+    return new FlowSubprocessResult(null, false, null, false);
   }
 
 
@@ -1117,20 +1158,31 @@ export class SequencingProcess {
    * @param {Activity} fromActivity - The activity to traverse from
    * @param {FlowSubprocessMode} direction - The traversal direction
    * @param {boolean} skipChildren - Whether to skip checking children (for continuing from current)
-   * @return {Activity | null} - The next activity in the tree, or null if none
+   * @return {{ activity: Activity | null; endSequencingSession: boolean }} - The next activity and session end flag
    */
   private flowTreeTraversalSubprocess(
     fromActivity: Activity,
     direction: FlowSubprocessMode,
     skipChildren: boolean = false
-  ): Activity | null {
+  ): { activity: Activity | null; endSequencingSession: boolean } {
     if (direction === FlowSubprocessMode.FORWARD) {
+      // SB.2.1 step 3.1: Check if we're at the last activity in forward traversal
+      // Before checking children, see if this is already the last activity overall
+      if (skipChildren && this.isActivityLastOverall(fromActivity)) {
+        // SB.2.1 step 3.1.1: Terminate all descendent attempts at root
+        if (this.activityTree.root) {
+          this.terminateDescendentAttemptsProcess(this.activityTree.root);
+        }
+        // SB.2.1 step 3.1.2: Exit with endSequencingSession = true
+        return { activity: null, endSequencingSession: true };
+      }
+
       // First, check if activity has children (unless we're skipping them)
       if (!skipChildren) {
         this.ensureSelectionAndRandomization(fromActivity);
         const children = fromActivity.getAvailableChildren();
         if (children.length > 0) {
-          return children[0] || null;
+          return { activity: children[0] || null, endSequencingSession: false };
         }
       }
 
@@ -1139,11 +1191,19 @@ export class SequencingProcess {
       while (current) {
         const nextSibling = this.activityTree.getNextSibling(current);
         if (nextSibling) {
-          return nextSibling;
+          return { activity: nextSibling, endSequencingSession: false };
         }
         // No next sibling, move up to parent
         current = current.parent;
       }
+
+      // Reached end of tree in forward direction
+      // SB.2.1 step 3.1.1: Terminate all descendent attempts at root
+      if (this.activityTree.root) {
+        this.terminateDescendentAttemptsProcess(this.activityTree.root);
+      }
+      // SB.2.1 step 3.1.2: Exit with endSequencingSession = true
+      return { activity: null, endSequencingSession: true };
     } else {
       // Backward direction
       // Try to get previous sibling
@@ -1161,7 +1221,7 @@ export class SequencingProcess {
           if (!lastChild) break;
           lastDescendant = lastChild;
         }
-        return lastDescendant;
+        return { activity: lastDescendant, endSequencingSession: false };
       }
 
       // No previous sibling at this level, try going up to parent and then its previous sibling
@@ -1181,16 +1241,15 @@ export class SequencingProcess {
             if (!lastChild) break;
             lastDescendant = lastChild;
           }
-          return lastDescendant;
+          return { activity: lastDescendant, endSequencingSession: false };
         }
         // Move up to grandparent
         current = current.parent;
       }
 
-      return null; // Reached beginning of tree
+      // Reached beginning of tree (backward direction does NOT end session)
+      return { activity: null, endSequencingSession: false };
     }
-
-    return null;
   }
 
   /**
@@ -1843,6 +1902,14 @@ export class SequencingProcess {
     for (const condition of conditions) {
       const conditionType = condition.condition || condition.conditionType;
       let result = false;
+      const referencedObjectiveId = condition.referencedObjective;
+      const referencedObjective =
+        referencedObjectiveId && activity.objectives
+          ? activity.objectives.find((obj) => obj.id === referencedObjectiveId) ||
+            (activity.primaryObjective?.id === referencedObjectiveId
+              ? activity.primaryObjective
+              : null)
+          : null;
 
       switch (conditionType) {
         case "always":
@@ -1860,24 +1927,32 @@ export class SequencingProcess {
           result = this.isActivityCompleted(activity);
           break;
         case "satisfied":
-          result = activity.objectiveSatisfiedStatus === true;
+          result = referencedObjective
+            ? referencedObjective.satisfiedStatus === true
+            : activity.objectiveSatisfiedStatus === true;
           break;
         case "objectiveStatusKnown":
-          result = activity.objectiveMeasureStatus === true;
-          break;
         case "objectiveMeasureKnown":
-          result = activity.objectiveMeasureStatus === true;
+          result = referencedObjective
+            ? referencedObjective.measureStatus === true
+            : activity.objectiveMeasureStatus === true;
           break;
         case "objectiveMeasureGreaterThan":
-          if (activity.objectiveMeasureStatus) {
+          if (referencedObjective ? referencedObjective.measureStatus : activity.objectiveMeasureStatus) {
             const threshold = condition.measureThreshold || 0;
-            result = activity.objectiveNormalizedMeasure > threshold;
+            const measure = referencedObjective
+              ? referencedObjective.normalizedMeasure
+              : activity.objectiveNormalizedMeasure;
+            result = measure > threshold;
           }
           break;
         case "objectiveMeasureLessThan":
-          if (activity.objectiveMeasureStatus) {
+          if (referencedObjective ? referencedObjective.measureStatus : activity.objectiveMeasureStatus) {
             const threshold = condition.measureThreshold || 0;
-            result = activity.objectiveNormalizedMeasure < threshold;
+            const measure = referencedObjective
+              ? referencedObjective.normalizedMeasure
+              : activity.objectiveNormalizedMeasure;
+            result = measure < threshold;
           }
           break;
         case "progressKnown":
@@ -1967,6 +2042,34 @@ export class SequencingProcess {
       }
     }
     return 0;
+  }
+
+  /**
+   * Check if activity is the last activity in a forward preorder tree traversal
+   * Per SB.2.1 step 3.1: An activity is last overall if it's a leaf with no next siblings
+   * anywhere in its ancestor chain
+   * @param {Activity} activity - The activity to check
+   * @return {boolean} - True if this is the last activity in the tree
+   */
+  private isActivityLastOverall(activity: Activity): boolean {
+    // An activity is last overall if:
+    // 1. It's a leaf (no children)
+    // 2. It has no next sibling
+    // 3. None of its ancestors have next siblings
+
+    if (activity.children.length > 0) {
+      return false;  // Not a leaf
+    }
+
+    let current: Activity | null = activity;
+    while (current) {
+      if (this.activityTree.getNextSibling(current)) {
+        return false;  // Has a next sibling somewhere in the ancestor chain
+      }
+      current = current.parent;
+    }
+
+    return true;  // No next siblings anywhere - this is the last activity
   }
 }
 

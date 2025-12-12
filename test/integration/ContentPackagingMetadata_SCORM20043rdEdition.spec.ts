@@ -9,14 +9,12 @@ import {
   setupCommitMocking,
   verifyInteractionsRecorded,
   verifyQuizScore,
-  waitForModuleFrame
+  waitForModuleFrame,
 } from "./helpers/scorm2004-helpers";
 import { scormCommonApiTests } from "./suites/scorm-common-api.js";
 import { scorm2004DataModelTests } from "./suites/scorm2004-data-model.js";
 import { scorm2004NavigationTests } from "./suites/scorm2004-navigation.js";
-import {
-  scorm2004InteractionsObjectivesTests
-} from "./suites/scorm2004-interactions-objectives.js";
+import { scorm2004InteractionsObjectivesTests } from "./suites/scorm2004-interactions-objectives.js";
 
 /**
  * Comprehensive integration tests for ContentPackagingMetadata_SCORM20043rdEdition module
@@ -42,7 +40,7 @@ const moduleConfig = {
   path: MODULE_PATH,
   apiName: "API_1484_11" as const,
   expectedLearnerId: "123456",
-  hasSequencing: false // This module is a single SCO without sequencing
+  hasSequencing: false, // This module is a single SCO without sequencing
 };
 
 // Get wrapper configurations
@@ -172,7 +170,7 @@ wrappers.forEach((wrapper) => {
             lmsCommitUrl: "http://localhost:3000/api/commit",
             autocommit: true,
             autocommitSeconds: 1,
-            useAsynchronousCommits: true
+            useAsynchronousCommits: true,
           };
         }
       });
@@ -224,7 +222,7 @@ wrappers.forEach((wrapper) => {
             const api = window.API_1484_11 as any;
             return {
               hasCommitUrl: !!api.settings?.lmsCommitUrl,
-              isInitialized: api.isInitialized?.() || false
+              isInitialized: api.isInitialized?.() || false,
             };
           });
 
@@ -267,7 +265,7 @@ wrappers.forEach((wrapper) => {
           (window.API_1484_11 as any).settings = {
             ...(window.API_1484_11 as any).settings,
             autocommit: true,
-            autocommitSeconds: 1
+            autocommitSeconds: 1,
           };
         }
       });
@@ -307,7 +305,9 @@ wrappers.forEach((wrapper) => {
       await page.waitForTimeout(1000); // Wait for iframe to load
 
       // Verify the content loaded
-      const contentLoaded = await moduleFrame.locator("h1:has-text('Etiquette - Care For the Course')").isVisible();
+      const contentLoaded = await moduleFrame
+        .locator("h1:has-text('Etiquette - Care For the Course')")
+        .isVisible();
       expect(contentLoaded).toBe(true);
 
       // Verify API is accessible from the content
@@ -324,7 +324,10 @@ wrappers.forEach((wrapper) => {
       await page.evaluate(() => {
         const iframe = document.querySelector<HTMLIFrameElement>("#moduleFrame");
         if (iframe?.contentWindow?.parent?.window?.API_1484_11) {
-          iframe.contentWindow.parent.window.API_1484_11.lmsSetValue("cmi.location", "etiquette-course");
+          iframe.contentWindow.parent.window.API_1484_11.lmsSetValue(
+            "cmi.location",
+            "etiquette-course",
+          );
         }
       });
 
@@ -353,23 +356,27 @@ wrappers.forEach((wrapper) => {
       await injectQuizFunctions(page);
 
       const moduleFrame = page.frameLocator("#moduleFrame");
-      
+
       // Wait for quiz to render
       await moduleFrame.locator("h1:has-text('Knowledge Check')").waitFor({ timeout: 10000 });
 
       // Check if contentFrame exists (for sequenced modules with launchpage.html)
       // or if quiz is directly in moduleFrame (for non-sequenced modules)
       let quizFrame: FrameLocator;
-      const hasContentFrame = await moduleFrame.locator('#contentFrame').count().then(count => count > 0).catch(() => false);
-      
+      const hasContentFrame = await moduleFrame
+        .locator("#contentFrame")
+        .count()
+        .then((count) => count > 0)
+        .catch(() => false);
+
       if (hasContentFrame) {
         // Sequenced module: quiz is in nested contentFrame
-        quizFrame = moduleFrame.frameLocator('#contentFrame');
-        await quizFrame.locator('form').waitFor({ state: 'attached', timeout: 10000 });
+        quizFrame = moduleFrame.frameLocator("#contentFrame");
+        await quizFrame.locator("form").waitFor({ state: "attached", timeout: 10000 });
       } else {
         // Non-sequenced module: quiz is directly in moduleFrame
         quizFrame = moduleFrame;
-        await quizFrame.locator('form').waitFor({ state: 'attached', timeout: 10000 });
+        await quizFrame.locator("form").waitFor({ state: "attached", timeout: 10000 });
       }
 
       // Verify quiz loaded
@@ -413,20 +420,22 @@ wrappers.forEach((wrapper) => {
       }
 
       // Submit the quiz using Playwright locator (visible in video)
-      await moduleFrame.locator("input[type=\"button\"][value=\"Submit Answers\"]").click();
+      await moduleFrame.locator('input[type="button"][value="Submit Answers"]').click();
 
       // Wait for quiz results and API calls (quiz calls RecordTest and RecordQuestion)
-      await page.waitForFunction(
-        () => {
-          const api = (window as any).API_1484_11;
-          if (!api) return false;
-          const score = api.lmsGetValue("cmi.score.raw");
-          return score !== "" && score !== null;
-        },
-        { timeout: 10000 }
-      ).catch(() => {
-        // If score isn't set, wait a bit more
-      });
+      await page
+        .waitForFunction(
+          () => {
+            const api = (window as any).API_1484_11;
+            if (!api) return false;
+            const score = api.lmsGetValue("cmi.score.raw");
+            return score !== "" && score !== null;
+          },
+          { timeout: 10000 },
+        )
+        .catch(() => {
+          // If score isn't set, wait a bit more
+        });
       await page.waitForTimeout(1000); // Small buffer
 
       // Verify score was recorded using helper
@@ -459,14 +468,14 @@ wrappers.forEach((wrapper) => {
       // Enhance RecordQuestion to capture interactions
       await page.evaluate(() => {
         const originalRecordQuestion = (window as any).RecordQuestion;
-        (window as any).RecordQuestion = function(
+        (window as any).RecordQuestion = function (
           id: string,
           text: string,
           type: string,
           learnerResponse: string,
           correctAnswer: string,
           wasCorrect: boolean,
-          objectiveId: string
+          objectiveId: string,
         ) {
           // Capture for verification
           (window as any).capturedInteractions.push({
@@ -476,11 +485,19 @@ wrappers.forEach((wrapper) => {
             learnerResponse,
             correctAnswer,
             wasCorrect,
-            objectiveId
+            objectiveId,
           });
           // Call original
           if (originalRecordQuestion) {
-            originalRecordQuestion(id, text, type, learnerResponse, correctAnswer, wasCorrect, objectiveId);
+            originalRecordQuestion(
+              id,
+              text,
+              type,
+              learnerResponse,
+              correctAnswer,
+              wasCorrect,
+              objectiveId,
+            );
           }
         };
       });
@@ -489,22 +506,26 @@ wrappers.forEach((wrapper) => {
       await ensureApiInitialized(page);
 
       const moduleFrame = page.frameLocator("#moduleFrame");
-      
+
       // Wait for quiz to load
       await moduleFrame.locator("h1:has-text('Knowledge Check')").waitFor({ timeout: 10000 });
-      
+
       // Check if contentFrame exists (for sequenced modules) or quiz is directly in moduleFrame
       let quizFrame: FrameLocator;
-      const hasContentFrame = await moduleFrame.locator('#contentFrame').count().then(count => count > 0).catch(() => false);
-      
+      const hasContentFrame = await moduleFrame
+        .locator("#contentFrame")
+        .count()
+        .then((count) => count > 0)
+        .catch(() => false);
+
       if (hasContentFrame) {
         // Sequenced module: quiz is in nested contentFrame
-        quizFrame = moduleFrame.frameLocator('#contentFrame');
-        await quizFrame.locator('form').waitFor({ state: 'attached', timeout: 10000 });
+        quizFrame = moduleFrame.frameLocator("#contentFrame");
+        await quizFrame.locator("form").waitFor({ state: "attached", timeout: 10000 });
       } else {
         // Non-sequenced module: quiz is directly in moduleFrame
         quizFrame = moduleFrame;
-        await quizFrame.locator('form').waitFor({ state: 'attached', timeout: 10000 });
+        await quizFrame.locator("form").waitFor({ state: "attached", timeout: 10000 });
       }
 
       // Answer questions using Playwright locators (visible in video recordings)
@@ -524,21 +545,23 @@ wrappers.forEach((wrapper) => {
       }
 
       // Submit quiz using Playwright locator (visible in video)
-      await moduleFrame.locator("input[type=\"button\"][value=\"Submit Answers\"]").click();
-      
+      await moduleFrame.locator('input[type="button"][value="Submit Answers"]').click();
+
       // Wait for quiz to process and RecordTest/RecordQuestion to be called
-      await page.waitForFunction(
-        () => {
-          const api = (window as any).API_1484_11;
-          if (!api) return false;
-          const score = api.lmsGetValue("cmi.score.raw");
-          return score !== "" && score !== null;
-        },
-        { timeout: 10000 }
-      ).catch(() => {
-        // If score isn't set, wait a bit more for quiz processing
-      });
-      
+      await page
+        .waitForFunction(
+          () => {
+            const api = (window as any).API_1484_11;
+            if (!api) return false;
+            const score = api.lmsGetValue("cmi.score.raw");
+            return score !== "" && score !== null;
+          },
+          { timeout: 10000 },
+        )
+        .catch(() => {
+          // If score isn't set, wait a bit more for quiz processing
+        });
+
       await page.waitForTimeout(1000); // Small buffer for async operations
 
       // Verify interactions were captured
@@ -716,23 +739,23 @@ wrappers.forEach((wrapper) => {
         {
           name: "Etiquette",
           path: "/test/integration/modules/ContentPackagingMetadata_SCORM20043rdEdition/Etiquette/Course.html",
-          expectedTitle: "Etiquette - Care For the Course"
+          expectedTitle: "Etiquette - Care For the Course",
         },
         {
           name: "Handicapping",
           path: "/test/integration/modules/ContentPackagingMetadata_SCORM20043rdEdition/Handicapping/Overview.html",
-          expectedTitle: "Handicapping"
+          expectedTitle: "Handicapping",
         },
         {
           name: "HavingFun",
           path: "/test/integration/modules/ContentPackagingMetadata_SCORM20043rdEdition/HavingFun/HowToHaveFun.html",
-          expectedTitle: "How to Have Fun Golfing"
+          expectedTitle: "How to Have Fun Golfing",
         },
         {
           name: "Playing",
           path: "/test/integration/modules/ContentPackagingMetadata_SCORM20043rdEdition/Playing/Par.html",
-          expectedTitle: "Par"
-        }
+          expectedTitle: "Par",
+        },
       ];
 
       for (const section of contentSections) {
@@ -782,7 +805,7 @@ wrappers.forEach((wrapper) => {
         await injectQuizFunctions(page);
 
         const moduleFrame = page.frameLocator("#moduleFrame");
-        
+
         // Wait for quiz to render
         await moduleFrame.locator("h1:has-text('Knowledge Check')").waitFor({ timeout: 10000 });
 
@@ -792,16 +815,20 @@ wrappers.forEach((wrapper) => {
 
         // Check if contentFrame exists (for sequenced modules) or quiz is directly in moduleFrame
         let quizFrame: FrameLocator;
-        const hasContentFrame = await moduleFrame.locator('#contentFrame').count().then(count => count > 0).catch(() => false);
-        
+        const hasContentFrame = await moduleFrame
+          .locator("#contentFrame")
+          .count()
+          .then((count) => count > 0)
+          .catch(() => false);
+
         if (hasContentFrame) {
           // Sequenced module: quiz is in nested contentFrame
-          quizFrame = moduleFrame.frameLocator('#contentFrame');
-          await quizFrame.locator('form').waitFor({ state: 'attached', timeout: 10000 });
+          quizFrame = moduleFrame.frameLocator("#contentFrame");
+          await quizFrame.locator("form").waitFor({ state: "attached", timeout: 10000 });
         } else {
           // Non-sequenced module: quiz is directly in moduleFrame
           quizFrame = moduleFrame;
-          await quizFrame.locator('form').waitFor({ state: 'attached', timeout: 10000 });
+          await quizFrame.locator("form").waitFor({ state: "attached", timeout: 10000 });
         }
 
         // Answer at least one question using Playwright locators (visible in video)
@@ -811,7 +838,7 @@ wrappers.forEach((wrapper) => {
         }
 
         // Submit the quiz
-        const submitButton = moduleFrame.locator("input[type=\"button\"][value=\"Submit Answers\"]");
+        const submitButton = moduleFrame.locator('input[type="button"][value="Submit Answers"]');
         if (await submitButton.isVisible()) {
           await submitButton.click();
           await page.waitForTimeout(2000);
@@ -823,7 +850,9 @@ wrappers.forEach((wrapper) => {
       }
     });
 
-    test("should handle Abandon and Suspend All buttons for non-sequenced module", async ({ page }) => {
+    test("should handle Abandon and Suspend All buttons for non-sequenced module", async ({
+      page,
+    }) => {
       // Note: For non-sequenced modules, navigation buttons should be hidden
       // since they're only relevant for sequenced content with multiple activities
 
@@ -837,8 +866,8 @@ wrappers.forEach((wrapper) => {
       await page.waitForTimeout(1000);
 
       // For non-sequenced modules, these buttons should be hidden
-      const abandonButton = page.locator("button[data-directive=\"abandon\"]");
-      const suspendAllButton = page.locator("button[data-directive=\"suspendAll\"]");
+      const abandonButton = page.locator('button[data-directive="abandon"]');
+      const suspendAllButton = page.locator('button[data-directive="suspendAll"]');
 
       // Check if buttons are hidden (non-sequenced modules shouldn't show navigation)
       const abandonVisible = await abandonButton.isVisible().catch(() => false);
@@ -866,4 +895,3 @@ wrappers.forEach((wrapper) => {
     // Note: All suite tests are now composed above. Only module-specific tests remain below.
   });
 });
-

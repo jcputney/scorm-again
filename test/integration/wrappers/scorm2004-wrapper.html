@@ -6,12 +6,59 @@
   <title>SCORM 2004 Wrapper</title>
   <script src="/dist/scorm2004.js"></script>
   <script>
-    const sequencingDefaults = {
+    const baseSequencingDefaults = {
       hideLmsUi: ["exitAll", "abandonAll"],
       auxiliaryResources: [
         {resourceId: "urn:scorm-again:help", purpose: "help"},
         {resourceId: "urn:scorm-again:glossary", purpose: "glossary"},
       ],
+    };
+    const baseCmiDefaults = {
+      learner_id: "123456",
+      learner_name: "John Doe",
+      completion_status: "not attempted",
+      entry: "ab-initio",
+      credit: "credit",
+      exit: "time-out",
+      score: {
+        raw: 0,
+        min: 0,
+        max: 100,
+      },
+      time_limit_action: "exit,message",
+      max_time_allowed: "PT1H",
+      objectives: [
+        {
+          id: "obj_playing",
+          score: {
+            raw: 0,
+            min: 0,
+            max: 100,
+          },
+        },
+      ],
+    };
+
+    function resolveWrapperConfig() {
+      const config = window.__SCORM_WRAPPER_CONFIG__ || {};
+      delete window.__SCORM_WRAPPER_CONFIG__;
+      return config;
+    }
+
+    function deepClone(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    }
+
+    const wrapperConfig = resolveWrapperConfig();
+    const sequencingDefaults = {
+      ...baseSequencingDefaults,
+      ...(wrapperConfig.sequencing || {}),
+    };
+    const apiOptions = {
+      autocommit: true,
+      logLevel: 1,
+      mastery_override: false,
+      ...(wrapperConfig.apiOptions || {}),
     };
 
     const navRequestMap = {
@@ -32,38 +79,13 @@
 
     // Initialize the SCORM 2004 API
     window.API_1484_11 = new Scorm2004API({
-      autocommit: true,
-      logLevel: 1,
-      mastery_override: false,
+      ...apiOptions,
       sequencing: sequencingDefaults,
     });
 
+    const initialCmi = Object.assign(deepClone(baseCmiDefaults), wrapperConfig.initialCmi || {});
     window.API_1484_11.loadFromJSON({
-      cmi: {
-        learner_id: "123456",
-        learner_name: "John Doe",
-        completion_status: "not attempted",
-        entry: "ab-initio",
-        credit: "credit",
-        exit: "time-out",
-        score: {
-          raw: 0,
-          min: 0,
-          max: 100,
-        },
-        time_limit_action: "exit,message",
-        max_time_allowed: "PT1H",
-        objectives: [
-          {
-            id: "obj_playing",
-            score: {
-              raw: 0,
-              min: 0,
-              max: 100,
-            },
-          },
-        ],
-      },
+      cmi: initialCmi,
     });
 
     function refreshNavMap() {
@@ -82,14 +104,48 @@
       });
     }
 
+    function terminateActiveSco() {
+      const moduleFrame = document.getElementById('moduleFrame');
+      if (moduleFrame && moduleFrame.contentWindow) {
+        const child = moduleFrame.contentWindow;
+        try {
+          if (typeof child.ScormProcessTerminate === 'function') {
+            child.ScormProcessTerminate();
+            return true;
+          }
+        } catch (err) {
+          console.warn('Error terminating SCO via ScormProcessTerminate', err);
+        }
+      }
+
+      if (window.API_1484_11 && typeof window.API_1484_11.Terminate === 'function') {
+        try {
+          window.API_1484_11.Terminate('');
+          return true;
+        } catch (err) {
+          console.warn('Error terminating SCO via API.Terminate', err);
+        }
+      }
+
+      return false;
+    }
+
     function requestNavigation(event) {
       const button = event.currentTarget;
       const directive = button && typeof button.getAttribute === 'function' ? button.getAttribute('data-directive') : null;
       if (!directive) return;
       const navRequest = navRequestMap[directive];
       if (!navRequest) return;
-      window.API_1484_11.SetValue("adl.nav.request", navRequest);
+
+      const setResult = window.API_1484_11.SetValue("adl.nav.request", navRequest);
+      const lastError = window.API_1484_11.GetLastError?.() ?? "0";
+      if (setResult !== "true" || lastError !== "0") {
+        console.warn("Failed to set adl.nav.request", { navRequest, setResult, lastError });
+      }
       window.API_1484_11.Commit("");
+
+      // End the current SCO attempt after registering the navigation request so the LMS can process it
+      terminateActiveSco();
     }
 
     function computeAuxiliaryResources(payload) {

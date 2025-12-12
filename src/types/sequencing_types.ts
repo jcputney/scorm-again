@@ -111,6 +111,7 @@ export type ObjectiveMapInfoSettings = {
 export type ObjectiveSettings = {
   objectiveID: string;
   description?: string;
+  isPrimary?: boolean;
   satisfiedByMeasure?: boolean;
   minNormalizedMeasure?: number | null;
   mapInfo?: ObjectiveMapInfoSettings[];
@@ -122,6 +123,7 @@ export type ObjectiveSettings = {
 export type RuleConditionSettings = {
   condition: RuleConditionType;
   operator?: RuleConditionOperator;
+  referencedObjective?: string;
   parameters?: Record<string, any>;
 };
 
@@ -244,4 +246,9 @@ export interface SequencingEventListeners {
   onNavigationRequest?: (request: string, target?: string) => void;
   onRollupComplete?: (activity: any) => void;
   onSequencingError?: (error: string, context?: string) => void;
+  onSequencingSessionEnd?: (data: {
+    reason: string;
+    exception?: string | null;
+    navigationRequest?: string;
+  }) => void;
 }

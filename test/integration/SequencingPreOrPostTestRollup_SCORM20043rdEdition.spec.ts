@@ -6,18 +6,21 @@ import {
   waitForModuleFrame,
   verifyApiAccessibleFromModule,
   getCmiValue,
-  setCmiValue,
   getWrapperConfigs,
-  ensureApiInitialized,
   completeContentSCO,
   completeAssessmentSCO,
+  initializeSequencedModule,
+  clickSequencingButton,
+  waitForScoContent,
+  getModuleFramePath,
+  getNavigationValidity,
+  requestChoiceNavigation,
+  getObjectiveStatus,
 } from "./helpers/scorm2004-helpers";
 import { scormCommonApiTests } from "./suites/scorm-common-api.js";
 import { scorm2004DataModelTests } from "./suites/scorm2004-data-model.js";
 import { scorm2004NavigationTests } from "./suites/scorm2004-navigation.js";
-import {
-  scorm2004InteractionsObjectivesTests
-} from "./suites/scorm2004-interactions-objectives.js";
+import { scorm2004InteractionsObjectivesTests } from "./suites/scorm2004-interactions-objectives.js";
 
 /**
  * Comprehensive integration tests for SequencingPreOrPostTestRollup_SCORM20043rdEdition module
@@ -322,946 +325,540 @@ const moduleConfig = {
 // Get wrapper configurations
 const wrappers = getWrapperConfigs();
 
-// Helper function to inject sequencing configuration into the wrapper
-async function injectSequencingConfig(
-  page: any,
-  activityTree: any,
-  sequencingControls: any
-) {
-  await page.evaluate(
-    ({ activityTree, sequencingControls }) => {
-      // Try to get Scorm2004API from window (Standard wrapper) or import it (ESM wrapper)
-      let Scorm2004API = (window as any).Scorm2004API;
-      
-      // For ESM wrapper, try to access it from the existing API instance
-      if (!Scorm2004API && (window as any).API_1484_11) {
-        // Get the constructor from the existing API instance
-        Scorm2004API = (window as any).API_1484_11.constructor;
-      }
-      
-      if (Scorm2004API) {
-        // Re-initialize API with sequencing configuration
-        (window as any).API_1484_11 = new Scorm2004API({
-          autocommit: true,
-          logLevel: 1,
-          mastery_override: false,
-          sequencing: {
-            activityTree,
-            sequencingControls,
-            hideLmsUi: ["exitAll", "abandonAll"],
-            auxiliaryResources: [
-              { resourceId: "urn:scorm-again:help", purpose: "help" },
-              { resourceId: "urn:scorm-again:glossary", purpose: "glossary" },
-            ],
-          },
-        });
-
-        // Load initial CMI data
-        (window as any).API_1484_11.loadFromJSON({
-          cmi: {
-            learner_id: "123456",
-            learner_name: "John Doe",
-            completion_status: "not attempted",
-            entry: "ab-initio",
-            credit: "credit",
-            exit: "time-out",
-            score: {
-              raw: 0,
-              min: 0,
-              max: 100,
-            },
-          },
-        });
-      } else {
-        console.error("Scorm2004API not found in window");
-      }
-    },
-    { activityTree, sequencingControls }
-  );
-}
-
 // Run tests for each wrapper type
 wrappers.forEach((wrapper) => {
-  test.describe(
-    `SequencingPreOrPostTestRollup SCORM 2004 3rd Edition Integration (${wrapper.name})`,
-    () => {
-      // Compose universal API tests
-      scormCommonApiTests(wrapper, moduleConfig);
-
-      // Compose SCORM 2004 data model tests
-      scorm2004DataModelTests(wrapper, moduleConfig);
-
-      // Compose SCORM 2004 navigation tests (with sequencing enabled)
-      scorm2004NavigationTests(wrapper, { ...moduleConfig, hasSequencing: true });
-
-      // Compose SCORM 2004 interactions/objectives tests
-      scorm2004InteractionsObjectivesTests(wrapper, moduleConfig);
-
-      // Module-specific sequencing tests below
-
-      test("should initialize API with sequencing configuration", async ({ page }) => {
-        await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-        await page.waitForLoadState("networkidle");
-
-        // Inject sequencing configuration after page loads
-        await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
-
-        // Re-initialize the API to activate sequencing
-        await ensureApiInitialized(page);
-
-        // Wait for sequencing to initialize
-        await page.waitForTimeout(2000);
-
-        // Verify sequencing is available
-        const sequencingInfo = await page.evaluate(() => {
-          const api = (window as any).API_1484_11;
-          const results: any = {};
-
-          if (api?.getSequencingService) {
-            const sequencingService = api.getSequencingService();
-            results.hasSequencingService = !!sequencingService;
-
-            if (sequencingService) {
-              const state = api.getSequencingState();
-              results.hasSequencingState = !!state;
-              results.isInitialized = state?.isInitialized || false;
-              results.hasRootActivity = !!state?.rootActivity;
-              results.rootActivityId = state?.rootActivity?.id || null;
-            }
-          }
-
-          return results;
-        });
-
-        expect(sequencingInfo.hasSequencingService).toBe(true);
-        expect(sequencingInfo.hasSequencingState).toBe(true);
-        expect(sequencingInfo.hasRootActivity).toBe(true);
-        expect(sequencingInfo.rootActivityId).toBe("golf_sample_default_org");
+  test.describe(`SequencingPreOrPostTestRollup SCORM 2004 3rd Edition Integration (${wrapper.name})`, () => {
+    const launchSequencedModule = async (
+      page: any,
+      modulePath: string = MODULE_PATH,
+      options: Record<string, any> = {},
+    ) => {
+      await initializeSequencedModule(page, wrapper.path, modulePath, {
+        activityTree: ACTIVITY_TREE,
+        sequencingControls: SEQUENCING_CONTROLS,
+        ...options,
       });
+      await waitForModuleFrame(page);
+    };
 
-      /**
-       * Test: Pre-test attempt limit enforcement
-       *
-       * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
-       * - Section: Limit Conditions (SB.2.5)
-       * - Expected Behavior: Pre-test can only be attempted once (attemptLimit="1")
-       *
-       * Manifest Analysis:
-       * - pretest_item has attemptLimit="1"
-       * - PreConditionRule disables if attemptLimitExceeded
-       */
-      test("should enforce pre-test attempt limit per SCORM 2004 SN Book SB.2.5", async ({
-        page,
-      }) => {
-        await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-        await page.waitForLoadState("networkidle");
+    const PRETEST_ACTIVITY = { id: "pretest_item", key: "assessment" };
+    const POSTTEST_ACTIVITY = { id: "posttest_item", key: "assessment" };
+    const CONTENT_ACTIVITIES = [
+      { id: "playing_item", key: "playing" },
+      { id: "etuqiette_item", key: "etiquette" },
+      { id: "handicapping_item", key: "handicapping" },
+      { id: "havingfun_item", key: "havingfun" },
+    ];
 
-        // Inject sequencing configuration
-        await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
-        await ensureApiInitialized(page);
-        await page.waitForTimeout(2000);
+    const startPretest = async (page: any) => {
+      await requestChoiceNavigation(page, PRETEST_ACTIVITY.id);
+      await waitForScoContent(page, PRETEST_ACTIVITY.key);
+    };
 
-        // Verify attempt limit is configured
-        const attemptLimit = await page.evaluate(() => {
-          const api = (window as any).API_1484_11;
-          const state = api.getSequencingState();
-          let pretest: any = null;
+    const startPosttest = async (page: any) => {
+      await requestChoiceNavigation(page, POSTTEST_ACTIVITY.id);
+      await waitForScoContent(page, POSTTEST_ACTIVITY.key);
+    };
 
-          if (state?.rootActivity?.children?.[0]?.children) {
-            pretest = state.rootActivity.children[0].children.find(
-              (child: any) => child.id === "pretest_item"
-            );
-          }
-
-          return pretest?.attemptLimit ?? null;
-        });
-
-        expect(attemptLimit).toBe(1);
-      });
-
-      /**
-       * Test: Post-test disabled until content is completed
-       *
-       * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
-       * - Section: PreConditionRule (SB.2.3)
-       * - Expected Behavior: Post-test is disabled until content_completed is satisfied
-       *
-       * Manifest Analysis:
-       * - posttest_item has preConditionRule checking if content_completed is NOT satisfied
-       * - Content wrapper writes to global: content_completed when all content SCOs are completed
-       */
-      test("should disable post-test until content is completed per SCORM 2004 SN Book SB.2.3", async ({
-        page,
-      }) => {
-        await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-        await page.waitForLoadState("networkidle");
-
-        // Inject sequencing configuration
-        await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
-        await ensureApiInitialized(page);
-        await page.waitForTimeout(2000);
-
-        // Don't complete content - check if post-test is accessible
-        // Post-test should be disabled because content is not completed
-        let navResult = await page.evaluate(() => {
-          const api = (window as any).API_1484_11;
-          // Check if choice navigation to posttest_item is valid
-          const isValid = api.lmsGetValue("adl.nav.request_valid.choice.{target=posttest_item}");
-          return isValid;
-        });
-
-        // If unknown, try processing the navigation request to trigger update
-        if (navResult === "unknown") {
-          const processed = await page.evaluate(() => {
-            const api = (window as any).API_1484_11;
-            if (api.processNavigationRequest) {
-              return api.processNavigationRequest("choice", { target: "posttest_item" });
-            }
-            return false;
-          });
-          await page.waitForTimeout(500);
-          navResult = await page.evaluate(() => {
-            const api = (window as any).API_1484_11;
-            return api.lmsGetValue("adl.nav.request_valid.choice.{target=posttest_item}");
-          });
+    const completeSequentialContent = async (page: any) => {
+      for (let i = 0; i < CONTENT_ACTIVITIES.length; i++) {
+        const { key } = CONTENT_ACTIVITIES[i];
+        await waitForScoContent(page, key);
+        await completeContentSCO(page);
+        if (i < CONTENT_ACTIVITIES.length - 1) {
+          await clickSequencingButton(page, "continue");
         }
+      }
+    };
+    // Compose universal API tests
+    scormCommonApiTests(wrapper, moduleConfig);
 
-        // Navigation should be invalid because content is not completed
-        expect(["false", "unknown"]).toContain(navResult);
-      });
+    // Compose SCORM 2004 data model tests
+    scorm2004DataModelTests(wrapper, moduleConfig);
 
-      /**
-       * Test: Pre-test and post-test mutual disabling
-       *
-       * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
-       * - Section: PreConditionRule (SB.2.3)
-       * - Expected Behavior: Once any test (pre or post) is satisfied, both tests are disabled
-       *
-       * Manifest Analysis:
-       * - Both pretest_item and posttest_item check if assessment_satisfied is satisfied
-       * - They share the same global objective: assessment_satisfied
-       * - When one test passes, it writes to the global, disabling both tests
-       */
-      test("should disable both tests when one is satisfied per SCORM 2004 SN Book SB.2.3", async ({
-        page,
-      }) => {
-        await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-        await page.waitForLoadState("networkidle");
+    // Compose SCORM 2004 navigation tests (with sequencing enabled)
+    scorm2004NavigationTests(wrapper, { ...moduleConfig, hasSequencing: true });
 
-        // Inject sequencing configuration
-        await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
-        await ensureApiInitialized(page);
-        await page.waitForTimeout(2000);
+    // Compose SCORM 2004 interactions/objectives tests
+    scorm2004InteractionsObjectivesTests(wrapper, moduleConfig);
 
-        // Satisfy the pre-test by setting the global objective
-        await page.evaluate(() => {
-          const api = (window as any).API_1484_11;
-          // Set the global objective for assessment_satisfied
-          api.lmsSetValue(
-            "cmi.objectives.0.id",
-            "com.scorm.golfsamples.sequencing.preorposttestrollup.assessment_satisfied"
-          );
-          api.lmsSetValue("cmi.objectives.0.success_status", "passed");
-          api.lmsSetValue("cmi.objectives.0.score.scaled", "0.8");
-          api.lmsCommit();
-        });
+    // Module-specific sequencing tests below
 
-        await page.waitForTimeout(2000);
+    test("should initialize API with sequencing configuration", async ({ page }) => {
+      await launchSequencedModule(page);
+      await page.waitForTimeout(1000);
 
-        // Verify both tests are now disabled
-        const testAccessibility = await page.evaluate(() => {
-          const api = (window as any).API_1484_11;
-          return {
-            pretest: api.lmsGetValue("adl.nav.request_valid.choice.{target=pretest_item}"),
-            posttest: api.lmsGetValue("adl.nav.request_valid.choice.{target=posttest_item}"),
-          };
-        });
+      // Verify sequencing is available
+      const sequencingInfo = await page.evaluate(() => {
+        const api = (window as any).API_1484_11;
+        const results: any = {};
 
-        // Both tests should be disabled after one is satisfied
-        // Accept "unknown" if sequencing hasn't updated yet
-        expect(["false", "unknown"]).toContain(testAccessibility.pretest);
-        expect(["false", "unknown"]).toContain(testAccessibility.posttest);
-      });
+        if (api?.getSequencingService) {
+          const sequencingService = api.getSequencingService();
+          results.hasSequencingService = !!sequencingService;
 
-      /**
-       * Test: Content wrapper rollup when all content is completed
-       *
-       * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
-       * - Section: Rollup Rules (SB.2.4)
-       * - Expected Behavior: Content wrapper is satisfied when all children are completed
-       *
-       * Manifest Analysis:
-       * - content_wrapper has rollup rule: all children completed → satisfied
-       * - Writes to global: content_completed when satisfied
-       */
-      test("should satisfy content wrapper when all content SCOs are completed per SCORM 2004 SN Book SB.2.4", async ({
-        page,
-      }) => {
-        await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-        await page.waitForLoadState("networkidle");
-
-        // Inject sequencing configuration
-        await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
-        await ensureApiInitialized(page);
-        await page.waitForTimeout(2000);
-
-        // Complete all content SCOs
-        const contentSCOs = ["playing_item", "etuqiette_item", "handicapping_item", "havingfun_item"];
-        
-        for (const scoId of contentSCOs) {
-          // Navigate to and complete each SCO
-          await page.evaluate(
-            ({ scoId }) => {
-              const api = (window as any).API_1484_11;
-              // Set completion status for the SCO
-              api.lmsSetValue("cmi.completion_status", "completed");
-              api.lmsCommit();
-            },
-            { scoId }
-          );
-          await page.waitForTimeout(1000);
-        }
-
-        // Wait for rollup to process
-        await page.waitForTimeout(2000);
-
-        // Verify content_completed global objective is set
-        const contentCompleted = await page.evaluate(() => {
-          const api = (window as any).API_1484_11;
-          // Check if content_completed global objective exists and is satisfied
-          const objId = api.lmsGetValue("cmi.objectives.0.id");
-          const successStatus = api.lmsGetValue("cmi.objectives.0.success_status");
-          return {
-            id: objId,
-            status: successStatus,
-          };
-        });
-
-        // Content completed objective should be set (may need to check multiple objectives)
-        // The exact index depends on sequencing state
-        expect(contentCompleted.id || contentCompleted.status).toBeTruthy();
-      });
-
-      /**
-       * Test: Root rollup when any child is satisfied
-       *
-       * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
-       * - Section: Rollup Rules (SB.2.4)
-       * - Expected Behavior: Root is completed when any child is satisfied
-       *
-       * Manifest Analysis:
-       * - Root has rollup rule: any child satisfied → completed
-       * - This allows course completion via either pre-test or post-test
-       */
-      test("should complete root when any child is satisfied per SCORM 2004 SN Book SB.2.4", async ({
-        page,
-      }) => {
-        await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-        await page.waitForLoadState("networkidle");
-
-        // Inject sequencing configuration
-        await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
-        await ensureApiInitialized(page);
-        await page.waitForTimeout(2000);
-
-        // Satisfy the pre-test (test-out scenario)
-        await page.evaluate(() => {
-          const api = (window as any).API_1484_11;
-          // Set the global objective for assessment_satisfied
-          api.lmsSetValue(
-            "cmi.objectives.0.id",
-            "com.scorm.golfsamples.sequencing.preorposttestrollup.assessment_satisfied"
-          );
-          api.lmsSetValue("cmi.objectives.0.success_status", "passed");
-          api.lmsSetValue("cmi.objectives.0.score.scaled", "0.8");
-          api.lmsCommit();
-        });
-
-        await page.waitForTimeout(2000);
-
-        // Verify root completion status
-        const rootStatus = await page.evaluate(() => {
-          const api = (window as any).API_1484_11;
-          const state = api.getSequencingState();
-          return state?.rootActivity?.completionStatus || null;
-        });
-
-        // Root should be completed when any child is satisfied
-        // Note: May need to trigger rollup processing
-        expect(["completed", "incomplete", "unknown"]).toContain(rootStatus);
-      });
-
-      /**
-       * Test: Free form navigation is allowed
-       *
-       * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
-       * - Section: Sequencing Controls (SB.2.1)
-       * - Expected Behavior: Choice and flow navigation are enabled
-       *
-       * Manifest Analysis:
-       * - Root, dummy_item, and content_wrapper all have choice="true" and flow="true"
-       * - This allows free form navigation between activities
-       */
-      test("should allow free form navigation per SCORM 2004 SN Book SB.2.1", async ({
-        page,
-      }) => {
-        await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-        await page.waitForLoadState("networkidle");
-
-        // Inject sequencing configuration
-        await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
-        await ensureApiInitialized(page);
-        await page.waitForTimeout(2000);
-
-        // Verify choice and flow are enabled
-        const controls = await page.evaluate(() => {
-          const api = (window as any).API_1484_11;
-          const state = api.getSequencingState();
-          return {
-            rootChoice: state?.rootActivity?.sequencingControls?.choice ?? false,
-            rootFlow: state?.rootActivity?.sequencingControls?.flow ?? false,
-          };
-        });
-
-        expect(controls.rootChoice).toBe(true);
-        expect(controls.rootFlow).toBe(true);
-      });
-
-      /**
-       * Test: Test-out scenario (pre-test passing)
-       *
-       * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
-       * - Section: Rollup Rules (SB.2.4)
-       * - Expected Behavior: Course can be completed by passing the pre-test
-       *
-       * Manifest Analysis:
-       * - Pre-test writes to global: assessment_satisfied
-       * - Dummy wrapper reads from assessment_satisfied
-       * - Root rolls up: any child satisfied → completed
-       * - This allows "testing out" without completing all content
-       */
-      test("should allow test-out via pre-test per SCORM 2004 SN Book SB.2.4", async ({
-        page,
-      }) => {
-        await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-        await page.waitForLoadState("networkidle");
-
-        // Inject sequencing configuration
-        await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
-        await ensureApiInitialized(page);
-        await page.waitForTimeout(2000);
-
-        // Satisfy the pre-test (test-out scenario)
-        await page.evaluate(() => {
-          const api = (window as any).API_1484_11;
-          // Set the global objective for assessment_satisfied (pre-test passing)
-          api.lmsSetValue(
-            "cmi.objectives.0.id",
-            "com.scorm.golfsamples.sequencing.preorposttestrollup.assessment_satisfied"
-          );
-          api.lmsSetValue("cmi.objectives.0.success_status", "passed");
-          api.lmsSetValue("cmi.objectives.0.score.scaled", "0.8");
-          api.lmsCommit();
-        });
-
-        await page.waitForTimeout(2000);
-
-        // Verify the objective was set
-        const objectiveId = await getCmiValue(page, "cmi.objectives.0.id");
-        expect(objectiveId).toBe(
-          "com.scorm.golfsamples.sequencing.preorposttestrollup.assessment_satisfied"
-        );
-
-        const successStatus = await getCmiValue(page, "cmi.objectives.0.success_status");
-        expect(successStatus).toBe("passed");
-
-        // Verify both tests are now disabled (mutual disabling)
-        const testAccessibility = await page.evaluate(() => {
-          const api = (window as any).API_1484_11;
-          return {
-            pretest: api.lmsGetValue("adl.nav.request_valid.choice.{target=pretest_item}"),
-            posttest: api.lmsGetValue("adl.nav.request_valid.choice.{target=posttest_item}"),
-          };
-        });
-
-        // Both tests should be disabled after pre-test is satisfied
-        expect(["false", "unknown"]).toContain(testAccessibility.pretest);
-        expect(["false", "unknown"]).toContain(testAccessibility.posttest);
-      });
-
-      /**
-       * Test: Full course scenario (all content + post-test)
-       *
-       * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
-       * - Section: Rollup Rules (SB.2.4)
-       * - Expected Behavior: Course can be completed by completing all content and passing post-test
-       *
-       * Manifest Analysis:
-       * - Content wrapper: all children completed → satisfied → writes content_completed
-       * - Post-test: requires content_completed to be satisfied
-       * - Post-test writes to global: assessment_satisfied
-       * - Root rolls up: any child satisfied → completed
-       */
-      test("should allow full course completion via content and post-test per SCORM 2004 SN Book SB.2.4", async ({
-        page,
-      }) => {
-        await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-        await page.waitForLoadState("networkidle");
-
-        // Inject sequencing configuration
-        await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
-        await ensureApiInitialized(page);
-        await page.waitForTimeout(2000);
-
-        // Complete all content SCOs
-        const contentSCOs = ["playing_item", "etuqiette_item", "handicapping_item", "havingfun_item"];
-        
-        for (const scoId of contentSCOs) {
-          await page.evaluate(
-            ({ scoId }) => {
-              const api = (window as any).API_1484_11;
-              // Set completion status for the SCO
-              api.lmsSetValue("cmi.completion_status", "completed");
-              api.lmsCommit();
-            },
-            { scoId }
-          );
-          await page.waitForTimeout(1000);
-        }
-
-        // Wait for content wrapper rollup to process
-        await page.waitForTimeout(2000);
-
-        // Now post-test should be accessible (content is completed)
-        let posttestAccessible = await page.evaluate(() => {
-          const api = (window as any).API_1484_11;
-          return api.lmsGetValue("adl.nav.request_valid.choice.{target=posttest_item}");
-        });
-
-        // If unknown, try processing navigation request
-        if (posttestAccessible === "unknown") {
-          await page.evaluate(() => {
-            const api = (window as any).API_1484_11;
-            if (api.processNavigationRequest) {
-              api.processNavigationRequest("choice", { target: "posttest_item" });
-            }
-          });
-          await page.waitForTimeout(500);
-          posttestAccessible = await page.evaluate(() => {
-            const api = (window as any).API_1484_11;
-            return api.lmsGetValue("adl.nav.request_valid.choice.{target=posttest_item}");
-          });
-        }
-
-        // Post-test should be accessible after content is completed
-        // (unless pre-test was already satisfied, which would disable it)
-        expect(["true", "false", "unknown"]).toContain(posttestAccessible);
-
-        // Satisfy the post-test
-        await page.evaluate(() => {
-          const api = (window as any).API_1484_11;
-          // Set the global objective for assessment_satisfied (post-test passing)
-          api.lmsSetValue(
-            "cmi.objectives.0.id",
-            "com.scorm.golfsamples.sequencing.preorposttestrollup.assessment_satisfied"
-          );
-          api.lmsSetValue("cmi.objectives.0.success_status", "passed");
-          api.lmsSetValue("cmi.objectives.0.score.scaled", "0.85");
-          api.lmsCommit();
-        });
-
-        await page.waitForTimeout(2000);
-
-        // Verify the objective was set
-        const objectiveId = await getCmiValue(page, "cmi.objectives.0.id");
-        expect(objectiveId).toBe(
-          "com.scorm.golfsamples.sequencing.preorposttestrollup.assessment_satisfied"
-        );
-
-        const successStatus = await getCmiValue(page, "cmi.objectives.0.success_status");
-        expect(successStatus).toBe("passed");
-      });
-
-      /**
-       * Test: Attempt limit enforcement when exceeded
-       *
-       * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
-       * - Section: Limit Conditions (SB.2.5)
-       * - Expected Behavior: Pre-test should be disabled after attempt limit is exceeded
-       *
-       * Manifest Analysis:
-       * - Pre-test has attemptLimit="1"
-       * - PreConditionRule disables if attemptLimitExceeded
-       * - After one attempt, pre-test should be disabled
-       */
-      test("should disable pre-test when attempt limit is exceeded per SCORM 2004 SN Book SB.2.5", async ({
-        page,
-      }) => {
-        await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-        await page.waitForLoadState("networkidle");
-
-        // Inject sequencing configuration
-        await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
-        await ensureApiInitialized(page);
-        await page.waitForTimeout(2000);
-
-        // Simulate attempting the pre-test (increment attempt count)
-        await page.evaluate(() => {
-          const api = (window as any).API_1484_11;
-          const state = api.getSequencingState();
-          
-          // Find pre-test activity and increment attempt count
-          if (state?.rootActivity?.children?.[0]?.children) {
-            const pretest = state.rootActivity.children[0].children.find(
-              (child: any) => child.id === "pretest_item"
-            );
-            if (pretest) {
-              // Increment attempt count to exceed limit
-              pretest.attemptCount = (pretest.attemptCount || 0) + 1;
-            }
-          }
-        });
-
-        await page.waitForTimeout(1000);
-
-        // Check if pre-test is now disabled
-        const pretestAccessible = await page.evaluate(() => {
-          const api = (window as any).API_1484_11;
-          return api.lmsGetValue("adl.nav.request_valid.choice.{target=pretest_item}");
-        });
-
-        // Pre-test should be disabled after exceeding attempt limit
-        expect(["false", "unknown"]).toContain(pretestAccessible);
-      });
-
-      /**
-       * Test: Navigation validity for all activities
-       *
-       * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
-       * - Section: Navigation Validity (SB.2.2)
-       * - Expected Behavior: Navigation validity should be determined for all activities
-       *
-       * Manifest Analysis:
-       * - Choice and flow navigation are enabled
-       * - PreConditionRules control access to activities
-       */
-      test("should determine navigation validity for all activities per SCORM 2004 SN Book SB.2.2", async ({
-        page,
-      }) => {
-        await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-        await page.waitForLoadState("networkidle");
-
-        // Inject sequencing configuration
-        await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
-        await ensureApiInitialized(page);
-        await page.waitForTimeout(2000);
-
-        // Check navigation validity for all activities
-        const navValidity = await page.evaluate(() => {
-          const api = (window as any).API_1484_11;
-          const activities = ["pretest_item", "playing_item", "etuqiette_item", "handicapping_item", "havingfun_item", "posttest_item"];
-          const validity: Record<string, any> = {};
-
-          for (const activityId of activities) {
-            validity[activityId] = {
-              continue: api.lmsGetValue("adl.nav.request_valid.continue"),
-              previous: api.lmsGetValue("adl.nav.request_valid.previous"),
-              choice: api.lmsGetValue(`adl.nav.request_valid.choice.{target=${activityId}}`),
-            };
-          }
-
-          return validity;
-        });
-
-        // Verify navigation validity is determined for all activities
-        for (const [activityId, validity] of Object.entries(navValidity)) {
-          expect(["true", "false", "unknown"]).toContain(validity.continue);
-          expect(["true", "false", "unknown"]).toContain(validity.previous);
-          expect(["true", "false", "unknown"]).toContain(validity.choice);
-        }
-      });
-
-      /**
-       * Test: Actual navigation request processing
-       *
-       * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
-       * - Section: Navigation Request Processing (SB.2.2)
-       * - Expected Behavior: Navigation requests should be processed and current activity updated
-       *
-       * Manifest Analysis:
-       * - Choice and flow navigation are enabled
-       * - Navigation requests should update current activity
-       */
-      test("should process navigation requests and update current activity per SCORM 2004 SN Book SB.2.2", async ({
-        page,
-      }) => {
-        await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-        await page.waitForLoadState("networkidle");
-
-        // Inject sequencing configuration
-        await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
-        await ensureApiInitialized(page);
-        await page.waitForTimeout(2000);
-
-        // Process choice navigation request to pre-test
-        const navigationResult = await page.evaluate(() => {
-          const api = (window as any).API_1484_11;
-          api.lmsSetValue("adl.nav.request", "_choice");
-          if (api.processNavigationRequest) {
-            const result = api.processNavigationRequest("choice", { target: "pretest_item" });
+          if (sequencingService) {
             const state = api.getSequencingState();
-            return {
-              processed: result,
-              currentActivity: state?.currentActivity?.id || null,
-            };
+            results.hasSequencingState = !!state;
+            results.isInitialized = state?.isInitialized || false;
+            results.hasRootActivity = !!state?.rootActivity;
+            results.rootActivityId = state?.rootActivity?.id || null;
           }
-          return { processed: false, currentActivity: null };
-        });
-
-        await page.waitForTimeout(1000);
-
-        // Navigation should be processed
-        expect(navigationResult.processed !== undefined).toBe(true);
-      });
-
-      /**
-       * Test: Free form navigation between activities
-       *
-       * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
-       * - Section: Choice Navigation (SB.2.2.1)
-       * - Expected Behavior: Choice navigation allows free form navigation between accessible activities
-       *
-       * Manifest Analysis:
-       * - Choice and flow navigation are enabled
-       * - Pre-test and content SCOs should be accessible via choice
-       */
-      test("should allow free form navigation between accessible activities per SCORM 2004 SN Book SB.2.2.1", async ({
-        page,
-      }) => {
-        await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-        await page.waitForLoadState("networkidle");
-
-        // Inject sequencing configuration
-        await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
-        await ensureApiInitialized(page);
-        await page.waitForTimeout(2000);
-
-        // Check if choice navigation is valid for accessible activities
-        const choiceValidity = await page.evaluate(() => {
-          const api = (window as any).API_1484_11;
-          return {
-            pretest: api.lmsGetValue("adl.nav.request_valid.choice.{target=pretest_item}"),
-            playing: api.lmsGetValue("adl.nav.request_valid.choice.{target=playing_item}"),
-            etiquette: api.lmsGetValue("adl.nav.request_valid.choice.{target=etuqiette_item}"),
-          };
-        });
-
-        // Pre-test and first content SCO should be accessible
-        // Accept any valid navigation validity value
-        expect(["true", "false", "unknown"]).toContain(choiceValidity.pretest);
-        expect(["true", "false", "unknown"]).toContain(choiceValidity.playing);
-      });
-
-      /**
-       * Test: Content wrapper rollup calculation
-       *
-       * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
-       * - Section: Rollup Rules (SB.2.4)
-       * - Expected Behavior: Content wrapper should be satisfied when all children are completed
-       *
-       * Manifest Analysis:
-       * - Content wrapper has rollup rule: all children completed → satisfied
-       * - Should write to global: content_completed when satisfied
-       */
-      test("should calculate content wrapper rollup when all children completed per SCORM 2004 SN Book SB.2.4", async ({
-        page,
-      }) => {
-        await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-        await page.waitForLoadState("networkidle");
-
-        // Inject sequencing configuration
-        await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
-        await ensureApiInitialized(page);
-        await page.waitForTimeout(2000);
-
-        // Complete all content SCOs
-        const contentSCOs = ["playing_item", "etuqiette_item", "handicapping_item", "havingfun_item"];
-        for (const scoId of contentSCOs) {
-          await page.evaluate(
-            ({ scoId }) => {
-              const api = (window as any).API_1484_11;
-              api.lmsSetValue("cmi.completion_status", "completed");
-              api.lmsCommit();
-            },
-            { scoId }
-          );
-          await page.waitForTimeout(1000);
         }
 
-        await page.waitForTimeout(2000);
-
-        // Verify content wrapper rollup
-        const wrapperStatus = await page.evaluate(() => {
-          const api = (window as any).API_1484_11;
-          const state = api.getSequencingState();
-          
-          // Find content wrapper
-          if (state?.rootActivity?.children?.[0]?.children) {
-            const contentWrapper = state.rootActivity.children[0].children.find(
-              (child: any) => child.id === "content_wrapper"
-            );
-            return {
-              completionStatus: contentWrapper?.completionStatus || null,
-              successStatus: contentWrapper?.successStatus || null,
-            };
-          }
-          return { completionStatus: null, successStatus: null };
-        });
-
-        // Content wrapper should be satisfied after all children are completed
-        expect(wrapperStatus.completionStatus || wrapperStatus.successStatus).toBeTruthy();
+        return results;
       });
 
-      /**
-       * Test: Dummy wrapper rollup behavior
-       *
-       * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
-       * - Section: Rollup Rules (SB.2.4)
-       * - Expected Behavior: Dummy wrapper should roll up from children
-       *
-       * Manifest Analysis:
-       * - Dummy wrapper has rollup rules: any child completed → incomplete, all children completed → completed
-       * - Reads from global: assessment_satisfied
-       */
-      test("should calculate dummy wrapper rollup per SCORM 2004 SN Book SB.2.4", async ({
+      expect(sequencingInfo.hasSequencingService).toBe(true);
+      expect(sequencingInfo.hasSequencingState).toBe(true);
+      expect(sequencingInfo.hasRootActivity).toBe(true);
+      expect(sequencingInfo.rootActivityId).toBe("golf_sample_default_org");
+    });
+
+    /**
+     * Test: Pre-test attempt limit enforcement
+     *
+     * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
+     * - Section: Limit Conditions (SB.2.5)
+     * - Expected Behavior: Pre-test can only be attempted once (attemptLimit="1")
+     *
+     * Manifest Analysis:
+     * - pretest_item has attemptLimit="1"
+     * - PreConditionRule disables if attemptLimitExceeded
+     */
+    test("should enforce pre-test attempt limit per SCORM 2004 SN Book SB.2.5", async ({
+      page,
+    }) => {
+      await launchSequencedModule(page);
+      await startPretest(page);
+      await completeAssessmentSCO(page, true);
+      await clickSequencingButton(page, "continue");
+
+      const pretestValidity = await getNavigationValidity(page, "choice", PRETEST_ACTIVITY.id);
+      expect(["false", "unknown"]).toContain(pretestValidity);
+    });
+
+    /**
+     * Test: Post-test disabled until content is completed
+     *
+     * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
+     * - Section: PreConditionRule (SB.2.3)
+     * - Expected Behavior: Post-test is disabled until content_completed is satisfied
+     *
+     * Manifest Analysis:
+     * - posttest_item has preConditionRule checking if content_completed is NOT satisfied
+     * - Content wrapper writes to global: content_completed when all content SCOs are completed
+     */
+    test("should disable post-test until content is completed per SCORM 2004 SN Book SB.2.3", async ({
+      page,
+    }) => {
+      await launchSequencedModule(page);
+      const navResult = await getNavigationValidity(page, "choice", POSTTEST_ACTIVITY.id);
+      expect(["false", "unknown"]).toContain(navResult);
+    });
+
+    /**
+     * Test: Pre-test and post-test mutual disabling
+     *
+     * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
+     * - Section: PreConditionRule (SB.2.3)
+     * - Expected Behavior: Once any test (pre or post) is satisfied, both tests are disabled
+     *
+     * Manifest Analysis:
+     * - Both pretest_item and posttest_item check if assessment_satisfied is satisfied
+     * - They share the same global objective: assessment_satisfied
+     * - When one test passes, it writes to the global, disabling both tests
+     */
+    test("should disable both tests when one is satisfied per SCORM 2004 SN Book SB.2.3", async ({
+      page,
+    }) => {
+      await launchSequencedModule(page);
+      await startPretest(page);
+      await completeAssessmentSCO(page, true);
+      await clickSequencingButton(page, "continue");
+
+      const pretestValidity = await getNavigationValidity(page, "choice", PRETEST_ACTIVITY.id);
+      const posttestValidity = await getNavigationValidity(page, "choice", POSTTEST_ACTIVITY.id);
+      expect(["false", "unknown"]).toContain(pretestValidity);
+      expect(["false", "unknown"]).toContain(posttestValidity);
+    });
+
+    /**
+     * Test: Content wrapper rollup when all content is completed
+     *
+     * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
+     * - Section: Rollup Rules (SB.2.4)
+     * - Expected Behavior: Content wrapper is satisfied when all children are completed
+     *
+     * Manifest Analysis:
+     * - content_wrapper has rollup rule: all children completed → satisfied
+     * - Writes to global: content_completed when satisfied
+     */
+    test("should satisfy content wrapper when all content SCOs are completed per SCORM 2004 SN Book SB.2.4", async ({
+      page,
+    }) => {
+      await launchSequencedModule(page);
+      await completeSequentialContent(page);
+
+      const contentObjective = await getObjectiveStatus(
         page,
-      }) => {
-        await page.goto(`${wrapper.path}?module=${MODULE_PATH}`);
-        await page.waitForLoadState("networkidle");
+        "com.scorm.golfsamples.sequencing.preorposttestrollup.content_completed",
+      );
 
-        // Inject sequencing configuration
-        await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
-        await ensureApiInitialized(page);
-        await page.waitForTimeout(2000);
+      expect(contentObjective?.success).toBeDefined();
+    });
 
-        // Satisfy pre-test (test-out scenario)
-        await page.evaluate(() => {
-          const api = (window as any).API_1484_11;
-          api.lmsSetValue(
-            "cmi.objectives.0.id",
-            "com.scorm.golfsamples.sequencing.preorposttestrollup.assessment_satisfied"
+    /**
+     * Test: Root rollup when any child is satisfied
+     *
+     * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
+     * - Section: Rollup Rules (SB.2.4)
+     * - Expected Behavior: Root is completed when any child is satisfied
+     *
+     * Manifest Analysis:
+     * - Root has rollup rule: any child satisfied → completed
+     * - This allows course completion via either pre-test or post-test
+     */
+    test("should complete root when any child is satisfied per SCORM 2004 SN Book SB.2.4", async ({
+      page,
+    }) => {
+      await launchSequencedModule(page);
+      await startPretest(page);
+      await completeAssessmentSCO(page, true);
+      await clickSequencingButton(page, "continue");
+
+      const rootStatus = await page.evaluate(() => {
+        const api = (window as any).API_1484_11;
+        const state = api.getSequencingState();
+        return state?.rootActivity?.completionStatus || null;
+      });
+
+      expect(rootStatus).toBe("completed");
+    });
+
+    /**
+     * Test: Free form navigation is allowed
+     *
+     * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
+     * - Section: Sequencing Controls (SB.2.1)
+     * - Expected Behavior: Choice and flow navigation are enabled
+     *
+     * Manifest Analysis:
+     * - Root, dummy_item, and content_wrapper all have choice="true" and flow="true"
+     * - This allows free form navigation between activities
+     */
+    test("should allow free form navigation per SCORM 2004 SN Book SB.2.1", async ({ page }) => {
+      await launchSequencedModule(page);
+      await advanceScoPages(page, 1);
+
+      await requestChoiceNavigation(page, "handicapping_item");
+      await waitForScoContent(page, "handicapping");
+
+      const navValid = await getNavigationValidity(page, "choice", "havingfun_item");
+      expect(["true", "unknown"]).toContain(navValid);
+
+      await requestChoiceNavigation(page, "playing_item");
+      await waitForScoContent(page, "playing");
+
+      const framePath = await getModuleFramePath(page);
+      expect(framePath).toContain("playing");
+    });
+
+    /**
+     * Test: Test-out scenario (pre-test passing)
+     *
+     * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
+     * - Section: Rollup Rules (SB.2.4)
+     * - Expected Behavior: Course can be completed by passing the pre-test
+     *
+     * Manifest Analysis:
+     * - Pre-test writes to global: assessment_satisfied
+     * - Dummy wrapper reads from assessment_satisfied
+     * - Root rolls up: any child satisfied → completed
+     * - This allows "testing out" without completing all content
+     */
+    test("should allow test-out via pre-test per SCORM 2004 SN Book SB.2.4", async ({ page }) => {
+      await launchSequencedModule(page);
+      await startPretest(page);
+      await completeAssessmentSCO(page, true);
+      await clickSequencingButton(page, "continue");
+
+      const assessmentObjective = await getObjectiveStatus(
+        page,
+        "com.scorm.golfsamples.sequencing.preorposttestrollup.assessment_satisfied",
+      );
+      expect(assessmentObjective?.success).toBe("passed");
+
+      const pretestValidity = await getNavigationValidity(page, "choice", PRETEST_ACTIVITY.id);
+      const posttestValidity = await getNavigationValidity(page, "choice", POSTTEST_ACTIVITY.id);
+      expect(["false", "unknown"]).toContain(pretestValidity);
+      expect(["false", "unknown"]).toContain(posttestValidity);
+    });
+
+    /**
+     * Test: Full course scenario (all content + post-test)
+     *
+     * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
+     * - Section: Rollup Rules (SB.2.4)
+     * - Expected Behavior: Course can be completed by completing all content and passing post-test
+     *
+     * Manifest Analysis:
+     * - Content wrapper: all children completed → satisfied → writes content_completed
+     * - Post-test: requires content_completed to be satisfied
+     * - Post-test writes to global: assessment_satisfied
+     * - Root rolls up: any child satisfied → completed
+     */
+    test("should allow full course completion via content and post-test per SCORM 2004 SN Book SB.2.4", async ({
+      page,
+    }) => {
+      await launchSequencedModule(page);
+      await completeSequentialContent(page);
+
+      const contentObjective = await getObjectiveStatus(
+        page,
+        "com.scorm.golfsamples.sequencing.preorposttestrollup.content_completed",
+      );
+      expect(contentObjective?.success).toBeDefined();
+
+      await startPosttest(page);
+      await completeAssessmentSCO(page, true);
+      await clickSequencingButton(page, "continue");
+
+      const assessmentObjective = await getObjectiveStatus(
+        page,
+        "com.scorm.golfsamples.sequencing.preorposttestrollup.assessment_satisfied",
+      );
+      expect(assessmentObjective?.success).toBe("passed");
+    });
+
+    /**
+     * Test: Attempt limit enforcement when exceeded
+     *
+     * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
+     * - Section: Limit Conditions (SB.2.5)
+     * - Expected Behavior: Pre-test should be disabled after attempt limit is exceeded
+     *
+     * Manifest Analysis:
+     * - Pre-test has attemptLimit="1"
+     * - PreConditionRule disables if attemptLimitExceeded
+     * - After one attempt, pre-test should be disabled
+     */
+    test("should disable pre-test when attempt limit is exceeded per SCORM 2004 SN Book SB.2.5", async ({
+      page,
+    }) => {
+      await launchSequencedModule(page);
+      await startPretest(page);
+      await completeAssessmentSCO(page, false);
+      await clickSequencingButton(page, "continue");
+
+      const pretestValidity = await getNavigationValidity(page, "choice", PRETEST_ACTIVITY.id);
+      expect(["false", "unknown"]).toContain(pretestValidity);
+    });
+
+    /**
+     * Test: Navigation validity for all activities
+     *
+     * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
+     * - Section: Navigation Validity (SB.2.2)
+     * - Expected Behavior: Navigation validity should be determined for all activities
+     *
+     * Manifest Analysis:
+     * - Choice and flow navigation are enabled
+     * - PreConditionRules control access to activities
+     */
+    test("should determine navigation validity for all activities per SCORM 2004 SN Book SB.2.2", async ({
+      page,
+    }) => {
+      await launchSequencedModule(page);
+      const activities = [
+        PRETEST_ACTIVITY.id,
+        "playing_item",
+        "etuqiette_item",
+        "handicapping_item",
+        "havingfun_item",
+        POSTTEST_ACTIVITY.id,
+      ];
+
+      for (const id of activities) {
+        const validity = await getNavigationValidity(page, "choice", id);
+        expect(["true", "false", "unknown"]).toContain(validity);
+      }
+    });
+
+    /**
+     * Test: Actual navigation request processing
+     *
+     * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
+     * - Section: Navigation Request Processing (SB.2.2)
+     * - Expected Behavior: Navigation requests should be processed and current activity updated
+     *
+     * Manifest Analysis:
+     * - Choice and flow navigation are enabled
+     * - Navigation requests should update current activity
+     */
+    test("should process navigation requests and update current activity per SCORM 2004 SN Book SB.2.2", async ({
+      page,
+    }) => {
+      await launchSequencedModule(page);
+      await requestChoiceNavigation(page, PRETEST_ACTIVITY.id);
+      await waitForScoContent(page, PRETEST_ACTIVITY.key);
+
+      const frameSrc = await getModuleFramePath(page);
+      expect(frameSrc).toContain(PRETEST_ACTIVITY.key);
+
+      const navState = await getNavigationValidity(page, "choice", PRETEST_ACTIVITY.id);
+      expect(["false", "unknown"]).toContain(navState);
+    });
+
+    /**
+     * Test: Free form navigation between activities
+     *
+     * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
+     * - Section: Choice Navigation (SB.2.2.1)
+     * - Expected Behavior: Choice navigation allows free form navigation between accessible activities
+     *
+     * Manifest Analysis:
+     * - Choice and flow navigation are enabled
+     * - Pre-test and content SCOs should be accessible via choice
+     */
+    test("should allow free form navigation between accessible activities per SCORM 2004 SN Book SB.2.2.1", async ({
+      page,
+    }) => {
+      await launchSequencedModule(page);
+
+      const pretestValidity = await getNavigationValidity(page, "choice", PRETEST_ACTIVITY.id);
+      expect(["true", "false", "unknown"]).toContain(pretestValidity);
+
+      await requestChoiceNavigation(page, "playing_item");
+      await waitForScoContent(page, "playing");
+
+      const etiquetteValidity = await getNavigationValidity(page, "choice", "etuqiette_item");
+      expect(["true", "false", "unknown"]).toContain(etiquetteValidity);
+    });
+
+    /**
+     * Test: Content wrapper rollup calculation
+     *
+     * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
+     * - Section: Rollup Rules (SB.2.4)
+     * - Expected Behavior: Content wrapper should be satisfied when all children are completed
+     *
+     * Manifest Analysis:
+     * - Content wrapper has rollup rule: all children completed → satisfied
+     * - Should write to global: content_completed when satisfied
+     */
+    test("should calculate content wrapper rollup when all children completed per SCORM 2004 SN Book SB.2.4", async ({
+      page,
+    }) => {
+      await launchSequencedModule(page);
+      await completeSequentialContent(page);
+
+      const contentObjective = await getObjectiveStatus(
+        page,
+        "com.scorm.golfsamples.sequencing.preorposttestrollup.content_completed",
+      );
+
+      expect(contentObjective?.success).toBeDefined();
+    });
+
+    /**
+     * Test: Dummy wrapper rollup behavior
+     *
+     * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
+     * - Section: Rollup Rules (SB.2.4)
+     * - Expected Behavior: Dummy wrapper should roll up from children
+     *
+     * Manifest Analysis:
+     * - Dummy wrapper has rollup rules: any child completed → incomplete, all children completed → completed
+     * - Reads from global: assessment_satisfied
+     */
+    test("should calculate dummy wrapper rollup per SCORM 2004 SN Book SB.2.4", async ({
+      page,
+    }) => {
+      await launchSequencedModule(page);
+      await startPretest(page);
+      await completeAssessmentSCO(page, true);
+      await clickSequencingButton(page, "continue");
+
+      const dummyStatus = await page.evaluate(() => {
+        const api = (window as any).API_1484_11;
+        const state = api.getSequencingState();
+
+        // Find dummy wrapper
+        if (state?.rootActivity?.children) {
+          const dummyWrapper = state.rootActivity.children.find(
+            (child: any) => child.id === "dummy_item",
           );
-          api.lmsSetValue("cmi.objectives.0.success_status", "passed");
-          api.lmsSetValue("cmi.objectives.0.score.scaled", "0.8");
-          api.lmsCommit();
-        });
-
-        await page.waitForTimeout(2000);
-
-        // Verify dummy wrapper rollup
-        const dummyStatus = await page.evaluate(() => {
-          const api = (window as any).API_1484_11;
-          const state = api.getSequencingState();
-          
-          // Find dummy wrapper
-          if (state?.rootActivity?.children) {
-            const dummyWrapper = state.rootActivity.children.find(
-              (child: any) => child.id === "dummy_item"
-            );
-            return {
-              completionStatus: dummyWrapper?.completionStatus || null,
-              successStatus: dummyWrapper?.successStatus || null,
-            };
-          }
-          return { completionStatus: null, successStatus: null };
-        });
-
-        // Dummy wrapper should reflect child status after rollup
-        expect(dummyStatus.completionStatus || dummyStatus.successStatus).toBeTruthy();
+          return {
+            completionStatus: dummyWrapper?.completionStatus || null,
+            successStatus: dummyWrapper?.successStatus || null,
+          };
+        }
+        return { completionStatus: null, successStatus: null };
       });
 
-      /**
-       * Test: Pass pre-test and verify rollup behavior
-       *
-       * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
-       * - Section: Rollup Rules (SB.2.5), PreConditionRules (SB.2.3)
-       * - Expected Behavior: When a learner passes the pre-test:
-       *   1. Module sets success_status to "passed"
-       *   2. Rollup occurs based on pre-test results
-       *   3. Content activities may be skipped if pre-test passed
-       *
-       * This module tests both pre-test and post-test rollup behavior.
-       */
-      test("should pass pre-test and verify rollup per SCORM 2004 SN Book SB.2.5", async ({
-        page,
-      }) => {
-        // Load the pre-test assessment SCO directly
-        const pretestPath =
-          "/test/integration/modules/SequencingPreOrPostTestRollup_SCORM20043rdEdition/shared/launchpage.html?content=pretest";
-        await page.goto(`${wrapper.path}?module=${pretestPath}`);
-        await page.waitForLoadState("networkidle");
+      expect(dummyStatus.completionStatus).toBe("completed");
+    });
 
-        // Inject sequencing configuration
-        await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
-        await ensureApiInitialized(page);
-        await page.waitForTimeout(2000);
+    /**
+     * Test: Pass pre-test and verify rollup behavior
+     *
+     * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
+     * - Section: Rollup Rules (SB.2.5), PreConditionRules (SB.2.3)
+     * - Expected Behavior: When a learner passes the pre-test:
+     *   1. Module sets success_status to "passed"
+     *   2. Rollup occurs based on pre-test results
+     *   3. Content activities may be skipped if pre-test passed
+     *
+     * This module tests both pre-test and post-test rollup behavior.
+     */
+    test("should pass pre-test and verify rollup per SCORM 2004 SN Book SB.2.5", async ({
+      page,
+    }) => {
+      await launchSequencedModule(page);
+      await startPretest(page);
 
-        // Actually take the quiz by answering correctly
-        const score = await completeAssessmentSCO(page, true);
+      const { score, successStatus, completionStatus } = await completeAssessmentSCO(page, true);
+      await clickSequencingButton(page, "continue");
 
-        // Verify the module set the score
-        expect(score).toBeGreaterThanOrEqual(70); // Should pass
+      // Verify the module set the score
+      expect(score).toBeGreaterThanOrEqual(70); // Should pass
 
-        // Verify the module set success_status to "passed"
-        const successStatus = await getCmiValue(page, "cmi.success_status");
-        expect(successStatus).toBe("passed");
+      // Verify the module set success_status to "passed"
+      expect(successStatus).toBe("passed");
 
-        // Verify completion_status was set
-        const completionStatus = await getCmiValue(page, "cmi.completion_status");
-        expect(completionStatus).toBe("completed");
-      });
+      // Verify completion_status was set
+      expect(completionStatus).toBe("completed");
+    });
 
-      /**
-       * Test: Pass post-test and verify rollup behavior
-       *
-       * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
-       * - Section: Rollup Rules (SB.2.5)
-       * - Expected Behavior: When a learner passes the post-test:
-       *   1. Module sets success_status to "passed"
-       *   2. Rollup occurs based on post-test results
-       *   3. Parent activity rollup reflects assessment completion
-       *
-       * This module tests post-test rollup behavior.
-       */
-      test("should pass post-test and verify rollup per SCORM 2004 SN Book SB.2.5", async ({
-        page,
-      }) => {
-        // Load the post-test assessment SCO directly
-        const posttestPath =
-          "/test/integration/modules/SequencingPreOrPostTestRollup_SCORM20043rdEdition/shared/launchpage.html?content=assessment";
-        await page.goto(`${wrapper.path}?module=${posttestPath}`);
-        await page.waitForLoadState("networkidle");
+    /**
+     * Test: Pass post-test and verify rollup behavior
+     *
+     * Specification: SCORM 2004 Sequencing and Navigation (SN) Book
+     * - Section: Rollup Rules (SB.2.5)
+     * - Expected Behavior: When a learner passes the post-test:
+     *   1. Module sets success_status to "passed"
+     *   2. Rollup occurs based on post-test results
+     *   3. Parent activity rollup reflects assessment completion
+     *
+     * This module tests post-test rollup behavior.
+     */
+    test("should pass post-test and verify rollup per SCORM 2004 SN Book SB.2.5", async ({
+      page,
+    }) => {
+      await launchSequencedModule(page);
+      await completeSequentialContent(page);
+      await startPosttest(page);
+      const { score, successStatus, completionStatus } = await completeAssessmentSCO(page, true);
 
-        // Inject sequencing configuration
-        await injectSequencingConfig(page, ACTIVITY_TREE, SEQUENCING_CONTROLS);
-        await ensureApiInitialized(page);
-        await page.waitForTimeout(2000);
+      // Verify the module set the score
+      expect(score).toBeGreaterThanOrEqual(70); // Should pass
 
-        // Actually take the quiz by answering correctly
-        const score = await completeAssessmentSCO(page, true);
+      // Verify the module set success_status to "passed"
+      expect(successStatus).toBe("passed");
 
-        // Verify the module set the score
-        expect(score).toBeGreaterThanOrEqual(70); // Should pass
-
-        // Verify the module set success_status to "passed"
-        const successStatus = await getCmiValue(page, "cmi.success_status");
-        expect(successStatus).toBe("passed");
-
-        // Verify completion_status was set
-        const completionStatus = await getCmiValue(page, "cmi.completion_status");
-        expect(completionStatus).toBe("completed");
-      });
-    }
-  );
+      // Verify completion_status was set
+      expect(completionStatus).toBe("completed");
+    });
+  });
 });
-

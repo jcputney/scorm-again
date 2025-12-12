@@ -79,7 +79,7 @@ export class CMISession extends BaseCMI {
     if (!this.jsonString) {
       throw new Scorm2004ValidationError(
         this._cmi_element + ".session_time",
-        scorm2004_errors.WRITE_ONLY_ELEMENT as number,
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
       );
     }
     return this._session_time;
@@ -141,10 +141,17 @@ export class CMISession extends BaseCMI {
 
   /**
    * Reset the session properties
+   *
+   * When resetting for a new SCO delivery, entry is set to "ab-initio" per SCORM 2004 spec:
+   * - "ab-initio" indicates the learner is beginning a new attempt on the activity
+   * - "resume" indicates the learner is resuming a previously suspended attempt
+   *
+   * Since reset() is called for SCO transitions (new attempts), "ab-initio" is the correct value.
+   * The LMS can override this if the learner is resuming a suspended session.
    */
   reset(): void {
     this._initialized = false;
-    this._entry = "";
+    this._entry = "ab-initio";
     this._exit = "";
     this._session_time = "PT0H0M0S";
     // Don't reset total_time as it's read-only after initialization

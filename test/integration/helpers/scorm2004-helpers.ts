@@ -7,7 +7,8 @@ import {
   setCmiValue as setCmiValueCommon,
   setCmiValueFromModule as setCmiValueFromModuleCommon,
   verifyApiAccessibleFromModule as verifyApiAccessibleFromModuleCommon,
-  waitForModuleFrame as waitForModuleFrameCommon
+  waitForModuleFrame as waitForModuleFrameCommon,
+  configureWrapper
 } from "./scorm-common-helpers";
 
 /**
@@ -25,6 +26,29 @@ declare global {
 
 // SCORM 2004 API name constant
 const SCORM2004_API_NAME = "API_1484_11" as const;
+const DEFAULT_SEQUENCING = {
+  hideLmsUi: ["exitAll", "abandonAll"],
+  auxiliaryResources: [
+    { resourceId: "urn:scorm-again:help", purpose: "help" },
+    { resourceId: "urn:scorm-again:glossary", purpose: "glossary" }
+  ]
+};
+
+const DEFAULT_CMI = {
+  learner_id: "123456",
+  learner_name: "John Doe",
+  completion_status: "not attempted",
+  entry: "ab-initio",
+  credit: "credit",
+  exit: "time-out",
+  score: {
+    raw: 0,
+    min: 0,
+    max: 100
+  },
+  time_limit_action: "exit,message",
+  max_time_allowed: "PT1H"
+};
 
 /**
  * Helper class to track and verify commit HTTP requests
@@ -768,6 +792,39 @@ export async function answerQuizIncorrectly(
 }
 
 /**
+ * Exit a SCORM 2004 module through its UI so that sequencing and commits run naturally.
+ */
+export async function exitScorm2004Course(
+  page: Page,
+  { preserveProgress = true }: { preserveProgress?: boolean } = {}
+): Promise<void> {
+  const moduleFrame = page.frameLocator("#moduleFrame");
+  const exitButton = moduleFrame.locator('button:has-text("Exit"), input[value*="Exit"]');
+  const visible = await exitButton.isVisible({ timeout: 3000 }).catch(() => false);
+  if (!visible) {
+    throw new Error("Exit button not available in module frame");
+  }
+
+  const dialogHandler = async (dialog: any) => {
+    if (preserveProgress) {
+      await dialog.accept();
+    } else {
+      await dialog.dismiss();
+    }
+  };
+
+  page.on("dialog", dialogHandler);
+  try {
+    await exitButton.click();
+    await page.waitForTimeout(500);
+  } finally {
+    page.off("dialog", dialogHandler);
+  }
+
+  await page.waitForTimeout(1500);
+}
+
+/**
  * Complete an assessment SCO by answering questions and submitting
  * This lets the module's own code set score, success_status, and objectives
  * 
@@ -779,7 +836,7 @@ export async function completeAssessmentSCO(
   page: Page,
   shouldPass: boolean = true,
   passThreshold: number = 70
-): Promise<number> {
+): Promise<{score: number, successStatus: string, completionStatus: string}> {
   // Inject quiz functions (RecordTest, RecordQuestion) if not already available
   // These are needed for the quiz template to submit scores
   await injectQuizFunctions(page);
@@ -865,9 +922,17 @@ export async function completeAssessmentSCO(
   // Give it a moment for the API to update
   await page.waitForTimeout(500);
 
-  // Return the score that was set
-  const score = await getCmiValue(page, "cmi.score.raw");
-  return score ? parseInt(score, 10) : 0;
+  // Capture values BEFORE sequencing can advance to next activity
+  // (After quiz submission, sequencing may deliver next activity which resets CMI)
+  const scoreRaw = await getCmiValue(page, "cmi.score.raw");
+  const successStatus = await getCmiValue(page, "cmi.success_status");
+  const completionStatus = await getCmiValue(page, "cmi.completion_status");
+
+  return {
+    score: scoreRaw ? parseInt(scoreRaw, 10) : 0,
+    successStatus,
+    completionStatus
+  };
 }
 
 /**
@@ -961,63 +1026,56 @@ export async function ensureApiInitialized(page: Page): Promise<void> {
  * @param activityTree - Activity tree configuration
  * @param sequencingControls - Sequencing controls configuration
  */
+type SequencedModuleOptions = {
+  activityTree?: any;
+  sequencingControls?: any;
+  initialCmi?: Record<string, any>;
+  apiOptions?: Record<string, any>;
+  sequencingOverrides?: Record<string, any>;
+};
+
 export async function initializeSequencedModule(
   page: Page,
   wrapperPath: string,
   modulePath: string,
-  activityTree?: any,
-  sequencingControls?: any
+  options: SequencedModuleOptions = {}
 ): Promise<void> {
+  const sequencing = {
+    ...DEFAULT_SEQUENCING,
+    ...(options.sequencingOverrides ?? {})
+  };
+
+  if (options.activityTree) {
+    sequencing.activityTree = options.activityTree;
+  }
+
+  if (options.sequencingControls) {
+    sequencing.sequencingControls = options.sequencingControls;
+  }
+
+  await configureWrapper(page, {
+    apiOptions: {
+      autocommit: true,
+      logLevel: 1,
+      mastery_override: false,
+      ...(options.apiOptions ?? {})
+    },
+    sequencing,
+    initialCmi: {
+      ...DEFAULT_CMI,
+      ...(options.initialCmi ?? {})
+    }
+  });
+
   await page.goto(`${wrapperPath}?module=${modulePath}`);
   await page.waitForLoadState("networkidle");
-  
-  // If activityTree is provided, inject sequencing configuration BEFORE module loads
-  // This ensures the module finds the correct API instance with sequencing enabled
-  if (activityTree) {
-    await injectSequencingConfig(page, activityTree, sequencingControls || {});
-  }
-  
-  // Wait for moduleFrame to load so we can update its API reference if needed
-  await page.waitForSelector("#moduleFrame", { state: "attached", timeout: 10000 }).catch(() => {
-    // ModuleFrame might not exist yet - that's okay
-  });
-  
-  // If we injected sequencing, update the module's API reference
-  if (activityTree) {
-    await page.evaluate(() => {
-      try {
-        const iframe = document.querySelector<HTMLIFrameElement>("#moduleFrame");
-        if (iframe?.contentWindow) {
-          const moduleWindow = iframe.contentWindow as any;
-          // Re-run API discovery in the module to find the new API instance
-          // The module's GetAPI function will search parent windows for API_1484_11
-          // Since we just updated window.API_1484_11, it should find the new instance
-          if (moduleWindow.GetAPI) {
-            moduleWindow.GetAPI(moduleWindow);
-            // If the module has ScormProcessInitialize, re-initialize with the new API
-            if (moduleWindow.ScormProcessInitialize && moduleWindow.API) {
-              // The API variable should now point to the new instance
-              // Re-initialize to ensure it's ready
-              moduleWindow.ScormProcessInitialize();
-            }
-          }
-        }
-      } catch (e) {
-        // Can't access moduleFrame - that's okay
-      }
-    });
-  }
-  
   await ensureApiInitialized(page);
-  
-  // Inject quiz functions in case this module has assessments
+  await waitForModuleFrameCommon(page).catch(() => {});
   await injectQuizFunctions(page);
-  
-  // Wait for API to be ready
   await page.waitForFunction(
     () => {
       const api = (window as any).API_1484_11;
-      return api && typeof api.lmsGetValue === 'function';
+      return api && typeof api.lmsGetValue === "function";
     },
     { timeout: 5000 }
   );
@@ -1293,3 +1351,326 @@ export function getWrapperConfigs() {
   ];
 }
 
+export async function getModuleFramePath(page: Page): Promise<string> {
+  return await page.evaluate(() => {
+    const frame = document.getElementById("moduleFrame") as HTMLIFrameElement | null;
+    return frame?.getAttribute("src") || "";
+  });
+}
+
+export async function clickSequencingButton(page: Page, directive: string): Promise<void> {
+  const button = page.locator(`button[data-directive="${directive}"]`);
+  await button.waitFor({ state: "visible" });
+  const enabled = await button.isEnabled();
+  if (!enabled) {
+    throw new Error(`Sequencing button ${directive} is disabled`);
+  }
+  await button.click();
+  await page.waitForTimeout(500);
+}
+
+export async function waitForScoContent(page: Page, contentKey: string): Promise<void> {
+  await page
+    .waitForFunction(
+      (key) => {
+        const frame = document.getElementById("moduleFrame") as HTMLIFrameElement | null;
+        return Boolean(frame?.src.includes(key));
+      },
+      contentKey,
+      { timeout: 10000 }
+    )
+    .catch(async (error) => {
+      const debugInfo = await page.evaluate(() => {
+        const api = (window as any).API_1484_11;
+        const state = api?.getSequencingState?.();
+        return {
+          currentActivity: state?.currentActivity?.id || null,
+          navRequest: api?.adl?.nav?.request || null,
+          completionStatus: api?.cmi?.completion_status || null,
+          successStatus: api?.cmi?.success_status || null,
+          lastSequencingResult: state?.lastSequencingResult || null
+        };
+      });
+      throw new Error(
+        `Timed out waiting for SCO content '${contentKey}'. Sequencing state: ${JSON.stringify(
+          debugInfo
+        )}\nOriginal error: ${error}`
+      );
+    });
+}
+
+export async function advanceScoPages(page: Page, steps: number): Promise<void> {
+  const moduleFrame = page.frameLocator("#moduleFrame");
+  const nextButton = moduleFrame.locator('button:has-text("Next"), input[value*="Next"]').first();
+
+  for (let i = 0; i < steps; i++) {
+    const visible = await nextButton.isVisible({ timeout: 2000 }).catch(() => false);
+    const enabled = visible ? await nextButton.isEnabled().catch(() => false) : false;
+    if (!visible || !enabled) break;
+    await nextButton.click();
+    await page.waitForTimeout(500);
+  }
+}
+
+export async function requestChoiceNavigation(page: Page, activityId: string): Promise<void> {
+  await page.evaluate(({ target }) => {
+    const api = (window as any).API_1484_11;
+    if (!api) {
+      return;
+    }
+    api.lmsSetValue("adl.nav.request", `choice.{target=${target}}`);
+    if (typeof api.processNavigationRequest === "function") {
+      api.processNavigationRequest("choice", { target });
+    } else if (typeof api.Commit === "function") {
+      api.Commit("");
+    }
+  }, { target: activityId });
+
+  await page.waitForTimeout(500);
+}
+
+export async function waitForCurrentActivity(
+  page: Page,
+  activityId: string,
+  timeout: number = 10000
+): Promise<void> {
+  await page.waitForFunction(
+    (target) => {
+      const api = (window as any).API_1484_11;
+      const state = api?.getSequencingState?.();
+      return state?.currentActivity?.id === target;
+    },
+    activityId,
+    { timeout }
+  );
+}
+
+export async function getObjectiveStatus(
+  page: Page,
+  objectiveId: string
+): Promise<{ success: string; completion: string } | null> {
+  return await page.evaluate((targetId) => {
+    const api = (window as any).API_1484_11;
+    if (!api) return null;
+    const count = parseInt(api.lmsGetValue("cmi.objectives._count") || "0", 10);
+    for (let i = 0; i < count; i++) {
+      const id = api.lmsGetValue(`cmi.objectives.${i}.id`);
+      if (id === targetId) {
+        return {
+          success: api.lmsGetValue(`cmi.objectives.${i}.success_status`),
+          completion: api.lmsGetValue(`cmi.objectives.${i}.completion_status`)
+        };
+      }
+    }
+    return null;
+  }, objectiveId);
+}
+
+// ============================================================================
+// Assertion Helpers - For outcome-focused sequencing tests
+// ============================================================================
+
+/**
+ * Assert that the current activity matches the expected activity ID.
+ * Waits for the activity to become current with a timeout.
+ */
+export async function expectCurrentActivity(
+  page: Page,
+  expectedActivityId: string,
+  timeout: number = 10000
+): Promise<void> {
+  const startTime = Date.now();
+  let lastActivityId: string | null = null;
+
+  while (Date.now() - startTime < timeout) {
+    lastActivityId = await page.evaluate(() => {
+      const api = (window as any).API_1484_11;
+      const state = api?.getSequencingState?.();
+      return state?.currentActivity?.id || null;
+    });
+
+    if (lastActivityId === expectedActivityId) {
+      return;
+    }
+
+    await page.waitForTimeout(100);
+  }
+
+  throw new Error(
+    `Expected current activity to be "${expectedActivityId}" but was "${lastActivityId}" after ${timeout}ms`
+  );
+}
+
+/**
+ * Assert that navigation validity matches expected value.
+ * @param directive - "continue", "previous", or "choice"
+ * @param expected - "true", "false", or "unknown"
+ * @param targetActivityId - Required for "choice" directive
+ */
+export async function expectNavigationValid(
+  page: Page,
+  directive: "continue" | "previous" | "choice",
+  expected: "true" | "false" | "unknown",
+  targetActivityId?: string
+): Promise<void> {
+  const actual = await getNavigationValidity(page, directive, targetActivityId);
+
+  if (actual !== expected) {
+    throw new Error(
+      `Expected navigation "${directive}"${targetActivityId ? ` to ${targetActivityId}` : ""} to be "${expected}" but was "${actual}"`
+    );
+  }
+}
+
+/**
+ * Assert that the course (root activity) is complete.
+ * Checks both completion_status and success_status of the root activity.
+ */
+export async function expectCourseComplete(page: Page): Promise<void> {
+  const status = await page.evaluate(() => {
+    const api = (window as any).API_1484_11;
+    const state = api?.getSequencingState?.();
+    const root = state?.rootActivity;
+
+    return {
+      completionStatus: root?.completionStatus || api?.lmsGetValue?.("cmi.completion_status"),
+      successStatus: root?.successStatus || api?.lmsGetValue?.("cmi.success_status"),
+    };
+  });
+
+  const isComplete =
+    status.completionStatus === "completed" ||
+    status.successStatus === "passed";
+
+  if (!isComplete) {
+    throw new Error(
+      `Expected course to be complete but completion_status="${status.completionStatus}", success_status="${status.successStatus}"`
+    );
+  }
+}
+
+/**
+ * Assert activity status (completion and/or success).
+ */
+export async function expectActivityStatus(
+  page: Page,
+  activityId: string,
+  expected: { completion?: string; success?: string }
+): Promise<void> {
+  const actual = await page.evaluate((targetId) => {
+    const api = (window as any).API_1484_11;
+    const state = api?.getSequencingState?.();
+
+    // Find activity in tree
+    function findActivity(activity: any): any {
+      if (!activity) return null;
+      if (activity.id === targetId) return activity;
+      if (activity.children) {
+        for (const child of activity.children) {
+          const found = findActivity(child);
+          if (found) return found;
+        }
+      }
+      return null;
+    }
+
+    const activity = findActivity(state?.rootActivity);
+    if (!activity) return null;
+
+    return {
+      completion: activity.completionStatus || "unknown",
+      success: activity.successStatus || "unknown",
+    };
+  }, activityId);
+
+  if (!actual) {
+    throw new Error(`Activity "${activityId}" not found in activity tree`);
+  }
+
+  if (expected.completion && actual.completion !== expected.completion) {
+    throw new Error(
+      `Expected activity "${activityId}" completion to be "${expected.completion}" but was "${actual.completion}"`
+    );
+  }
+
+  if (expected.success && actual.success !== expected.success) {
+    throw new Error(
+      `Expected activity "${activityId}" success to be "${expected.success}" but was "${actual.success}"`
+    );
+  }
+}
+
+/**
+ * Assert that navigation to an activity is blocked (for forced sequential tests).
+ */
+export async function expectNavigationBlocked(
+  page: Page,
+  targetActivityId: string
+): Promise<void> {
+  // Check that choice navigation to this activity is not valid
+  const validity = await getNavigationValidity(page, "choice", targetActivityId);
+
+  if (validity === "true") {
+    throw new Error(
+      `Expected navigation to "${targetActivityId}" to be blocked but it was allowed`
+    );
+  }
+}
+
+/**
+ * Assert that the module frame shows specific content (by checking the iframe src or content).
+ */
+export async function expectModuleContent(
+  page: Page,
+  contentIdentifier: string,
+  timeout: number = 10000
+): Promise<void> {
+  await page.waitForFunction(
+    (identifier) => {
+      const frame = document.getElementById("moduleFrame") as HTMLIFrameElement | null;
+      if (!frame?.src) return false;
+      return frame.src.includes(identifier);
+    },
+    contentIdentifier,
+    { timeout }
+  );
+}
+
+// ============================================================================
+// LMS Communication Helpers
+// ============================================================================
+
+/**
+ * Configure the API to use a specific LMS commit URL.
+ */
+export async function configureLmsEndpoint(page: Page, lmsUrl: string): Promise<void> {
+  await page.evaluate((url) => {
+    const api = (window as any).API_1484_11;
+    if (api?.settings) {
+      api.settings.lmsCommitUrl = `${url}/lms/commit`;
+    }
+  }, lmsUrl);
+}
+
+/**
+ * Reset the mock LMS server state via HTTP.
+ */
+export async function resetMockLms(lmsUrl: string): Promise<void> {
+  await fetch(`${lmsUrl}/lms/reset`, { method: "POST" });
+}
+
+/**
+ * Get commit history from mock LMS server.
+ */
+export async function getMockLmsCommitHistory(lmsUrl: string): Promise<any[]> {
+  const response = await fetch(`${lmsUrl}/lms/history`);
+  return response.json();
+}
+
+/**
+ * Get stored data from mock LMS server.
+ */
+export async function getMockLmsStorage(lmsUrl: string): Promise<Record<string, any>> {
+  const response = await fetch(`${lmsUrl}/lms/storage`);
+  return response.json();
+}
