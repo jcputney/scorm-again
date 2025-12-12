@@ -513,7 +513,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
   describe("Error handling", () => {
     it("should handle invalid navigation request type", () => {
       const result = overallProcess.processNavigationRequest("invalid" as NavigationRequestType);
-      
+
       expect(result.valid).toBe(false);
       expect(result.exception).toBe("NB.2.1-18");
     });
@@ -523,17 +523,266 @@ describe("Overall Sequencing Process (OP.1)", () => {
       const cluster = new Activity("cluster", "Cluster");
       const leaf = new Activity("leaf", "Leaf");
       cluster.addChild(leaf);
-      
+
       activityTree.root = cluster;
       activityTree.currentActivity = null;
-      
+
       // Try to deliver the cluster directly (should fail)
       cluster.isAvailable = false; // Make children unavailable
       leaf.isAvailable = false;
-      
+
       const result = overallProcess.processNavigationRequest(NavigationRequestType.START);
-      
+
       expect(result.valid).toBe(false);
+    });
+  });
+
+  describe("GAP-06: SUSPEND_ALL Path Processing", () => {
+    describe("Basic suspend path processing", () => {
+      it("should suspend all ancestors from current activity to root", () => {
+        // Arrange: Set grandchild1 as current and active
+        activityTree.currentActivity = grandchild1;
+        grandchild1.isActive = true;
+
+        // Act: Suspend all
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.SUSPEND_ALL);
+
+        // Assert: All activities in path should be suspended
+        expect(result.valid).toBe(true);
+
+        // Grandchild (current activity) should be suspended
+        expect(grandchild1.isSuspended).toBe(true);
+        expect(grandchild1.isActive).toBe(false);
+
+        // Parent should be suspended
+        expect(child1.isSuspended).toBe(true);
+        expect(child1.isActive).toBe(false);
+
+        // Root should be suspended
+        expect(root.isSuspended).toBe(true);
+        expect(root.isActive).toBe(false);
+
+        // Suspended activity reference should be set to current
+        expect(activityTree.suspendedActivity).toBe(grandchild1);
+
+        // TB.2.3 5.6: Current activity should move to root
+        expect(activityTree.currentActivity).toBe(root);
+      });
+
+      it("should suspend entire path for deeply nested activity (3+ levels)", () => {
+        // Arrange: Create deeper tree
+        const deepTree = new ActivityTree();
+        const level0 = new Activity("level0", "Level 0");
+        const level1 = new Activity("level1", "Level 1");
+        const level2 = new Activity("level2", "Level 2");
+        const level3 = new Activity("level3", "Level 3");
+        const level4 = new Activity("level4", "Level 4");
+
+        level0.addChild(level1);
+        level1.addChild(level2);
+        level2.addChild(level3);
+        level3.addChild(level4);
+
+        deepTree.root = level0;
+        deepTree.currentActivity = level4;
+        level4.isActive = true;
+
+        const deepProcess = new OverallSequencingProcess(
+          deepTree,
+          new SequencingProcess(deepTree),
+          rollupProcess,
+          adlNav
+        );
+
+        // Act: Suspend all
+        const result = deepProcess.processNavigationRequest(NavigationRequestType.SUSPEND_ALL);
+
+        // Assert: All 5 levels should be suspended
+        expect(result.valid).toBe(true);
+        expect(level4.isSuspended).toBe(true);
+        expect(level4.isActive).toBe(false);
+        expect(level3.isSuspended).toBe(true);
+        expect(level3.isActive).toBe(false);
+        expect(level2.isSuspended).toBe(true);
+        expect(level2.isActive).toBe(false);
+        expect(level1.isSuspended).toBe(true);
+        expect(level1.isActive).toBe(false);
+        expect(level0.isSuspended).toBe(true);
+        expect(level0.isActive).toBe(false);
+
+        expect(deepTree.suspendedActivity).toBe(level4);
+        expect(deepTree.currentActivity).toBe(level0);
+      });
+
+      it("should handle suspend when current activity is root (single element path)", () => {
+        // Arrange: Set root as current and active
+        activityTree.currentActivity = root;
+        root.isActive = true;
+
+        // Act: Suspend all
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.SUSPEND_ALL);
+
+        // Assert: Root should be suspended
+        expect(result.valid).toBe(true);
+        expect(root.isSuspended).toBe(true);
+        expect(root.isActive).toBe(false);
+        expect(activityTree.suspendedActivity).toBe(root);
+        expect(activityTree.currentActivity).toBe(root);
+      });
+
+      it("should not affect sibling activities outside the path", () => {
+        // Arrange: Set grandchild1 as current, ensure sibling is active
+        activityTree.currentActivity = grandchild1;
+        grandchild1.isActive = true;
+        grandchild2.isActive = true;
+        child2.isActive = true;
+
+        // Act: Suspend all
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.SUSPEND_ALL);
+
+        // Assert: Path from grandchild1 to root is suspended
+        expect(result.valid).toBe(true);
+        expect(grandchild1.isSuspended).toBe(true);
+        expect(child1.isSuspended).toBe(true);
+        expect(root.isSuspended).toBe(true);
+
+        // Siblings should NOT be affected
+        expect(grandchild2.isSuspended).toBe(false);
+        expect(grandchild2.isActive).toBe(true);
+        expect(child2.isSuspended).toBe(false);
+        expect(child2.isActive).toBe(true);
+      });
+    });
+
+    describe("Resume after suspend", () => {
+      it("should properly restore suspended activity after RESUME_ALL", () => {
+        // Arrange: Suspend grandchild1 with full path
+        activityTree.currentActivity = grandchild1;
+        grandchild1.isActive = true;
+
+        overallProcess.processNavigationRequest(NavigationRequestType.SUSPEND_ALL);
+
+        // Verify suspend worked
+        expect(grandchild1.isSuspended).toBe(true);
+        expect(child1.isSuspended).toBe(true);
+        expect(root.isSuspended).toBe(true);
+        expect(activityTree.suspendedActivity).toBe(grandchild1);
+        expect(activityTree.currentActivity).toBe(root);
+
+        // Simulate session termination and new session (Terminate/Initialize cycle)
+        // During termination, currentActivity is cleared
+        activityTree.currentActivity = null;
+
+        // Act: Resume in new session
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.RESUME_ALL);
+
+        // Assert: Should resume to suspended activity
+        expect(result.valid).toBe(true);
+        expect(result.targetActivity).toBe(grandchild1);
+
+        // After delivery, suspended state should be cleared by clearSuspendedActivitySubprocess
+        // which walks the same path and clears isSuspended flags
+      });
+
+      it("should clear suspended state from all ancestors on delivery", () => {
+        // Arrange: Manually set up suspended path (simulating state after session restart)
+        grandchild1.isSuspended = true;
+        child1.isSuspended = true;
+        root.isSuspended = true;
+        activityTree.suspendedActivity = grandchild1;
+        activityTree.currentActivity = null;
+
+        // Act: Resume (which triggers delivery and clearSuspendedActivitySubprocess)
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.RESUME_ALL);
+
+        // Assert: Suspended state should be cleared
+        expect(result.valid).toBe(true);
+        expect(grandchild1.isSuspended).toBe(false);
+        expect(child1.isSuspended).toBe(false);
+        expect(root.isSuspended).toBe(false);
+        expect(activityTree.suspendedActivity).toBeNull();
+      });
+    });
+
+    describe("Edge cases and validation", () => {
+      it("should handle null current activity gracefully", () => {
+        // Arrange: No current activity
+        activityTree.currentActivity = null;
+
+        // Act: Try to suspend all (should be caught by navigation validation)
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.SUSPEND_ALL);
+
+        // Assert: Should fail validation
+        expect(result.valid).toBe(false);
+        expect(result.exception).toBe("NB.2.1-17");
+      });
+
+      it("should suspend even if current activity is not active", () => {
+        // Arrange: Current activity is set but not active
+        activityTree.currentActivity = grandchild1;
+        grandchild1.isActive = false;
+
+        // Act: Suspend all
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.SUSPEND_ALL);
+
+        // Assert: Should still suspend (reference allows this)
+        expect(result.valid).toBe(true);
+        expect(grandchild1.isSuspended).toBe(true);
+        expect(child1.isSuspended).toBe(true);
+        expect(root.isSuspended).toBe(true);
+      });
+
+      it("should suspend already suspended activity and its ancestors", () => {
+        // Arrange: Current activity already suspended
+        activityTree.currentActivity = grandchild1;
+        grandchild1.isSuspended = true;
+        grandchild1.isActive = true;
+
+        // Act: Suspend all again
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.SUSPEND_ALL);
+
+        // Assert: Should work (idempotent)
+        expect(result.valid).toBe(true);
+        expect(grandchild1.isSuspended).toBe(true);
+        expect(child1.isSuspended).toBe(true);
+        expect(root.isSuspended).toBe(true);
+      });
+    });
+
+    describe("Symmetric behavior with clearSuspendedActivitySubprocess", () => {
+      it("should mirror the cleanup logic that walks path to clear flags", () => {
+        // This test verifies that handleSuspendAllRequest sets the same flags
+        // that clearSuspendedActivitySubprocess clears
+
+        // Arrange: Set up suspended path manually
+        activityTree.currentActivity = grandchild1;
+        grandchild1.isActive = true;
+
+        // Act: Suspend all (sets flags on path)
+        overallProcess.processNavigationRequest(NavigationRequestType.SUSPEND_ALL);
+
+        // Assert: Verify all ancestors have isSuspended set
+        expect(grandchild1.isSuspended).toBe(true);
+        expect(child1.isSuspended).toBe(true);
+        expect(root.isSuspended).toBe(true);
+
+        // Now trigger cleanup by delivering a different activity
+        activityTree.currentActivity = null;
+        root.sequencingControls.choice = true;
+        child2.sequencingControls.choice = true;
+
+        const result = overallProcess.processNavigationRequest(
+          NavigationRequestType.CHOICE,
+          "module2"
+        );
+
+        // Assert: clearSuspendedActivitySubprocess should have cleared all flags
+        expect(result.valid).toBe(true);
+        expect(grandchild1.isSuspended).toBe(false);
+        expect(child1.isSuspended).toBe(false);
+        expect(root.isSuspended).toBe(false);
+        expect(activityTree.suspendedActivity).toBeNull();
+      });
     });
   });
 });

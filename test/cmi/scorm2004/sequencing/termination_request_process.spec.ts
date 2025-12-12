@@ -171,27 +171,35 @@ describe("Termination Request Process (TB.2.3)", () => {
   });
 
   describe("SUSPEND_ALL termination", () => {
-    it("should suspend current activity", () => {
+    it("should suspend current activity and all ancestors", () => {
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
-      
+
       const result = overallProcess.processNavigationRequest(NavigationRequestType.SUSPEND_ALL);
-      
+
       expect(result.valid).toBe(true);
+      // Per TB.2.3 5.5, all activities in path should be suspended
       expect(grandchild1.isActive).toBe(false);
       expect(grandchild1.isSuspended).toBe(true);
+      expect(child1.isSuspended).toBe(true);
+      expect(root.isSuspended).toBe(true);
       expect(activityTree.suspendedActivity).toBe(grandchild1);
-      expect(activityTree.currentActivity).toBeNull();
+      // Per TB.2.3 5.6, current activity is set to root
+      expect(activityTree.currentActivity).toBe(root);
     });
 
-    it("should not suspend root activity", () => {
+    it("should suspend root when it is current activity", () => {
       activityTree.currentActivity = root;
       root.isActive = true;
-      
+
       const result = overallProcess.processNavigationRequest(NavigationRequestType.SUSPEND_ALL);
-      
+
       expect(result.valid).toBe(true);
-      // Root cannot be suspended, but process should still succeed
+      // Root CAN be suspended when it is the current activity
+      expect(root.isSuspended).toBe(true);
+      expect(root.isActive).toBe(false);
+      expect(activityTree.suspendedActivity).toBe(root);
+      expect(activityTree.currentActivity).toBe(root);
     });
   });
 
@@ -356,14 +364,18 @@ describe("Termination Request Process (TB.2.3)", () => {
     it("should maintain consistent state after SUSPEND", () => {
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
-      
+
       const result = overallProcess.processNavigationRequest(NavigationRequestType.SUSPEND_ALL);
-      
+
       expect(result.valid).toBe(true);
+      // Per GAP-06 fix: all ancestors are suspended
       expect(grandchild1.isActive).toBe(false);
       expect(grandchild1.isSuspended).toBe(true);
+      expect(child1.isSuspended).toBe(true);
+      expect(root.isSuspended).toBe(true);
       expect(activityTree.suspendedActivity).toBe(grandchild1);
-      expect(activityTree.currentActivity).toBeNull();
+      // Per TB.2.3 5.6: current activity set to root
+      expect(activityTree.currentActivity).toBe(root);
     });
 
     it("should clear suspended state when resuming different activity", () => {
@@ -371,18 +383,25 @@ describe("Termination Request Process (TB.2.3)", () => {
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
       overallProcess.processNavigationRequest(NavigationRequestType.SUSPEND_ALL);
-      
+
       expect(grandchild1.isSuspended).toBe(true);
+      expect(child1.isSuspended).toBe(true);
       expect(activityTree.suspendedActivity).toBe(grandchild1);
-      
+
+      // Simulate session boundary
+      activityTree.currentActivity = null;
+
       // Now choose a different activity
       const result = overallProcess.processNavigationRequest(
         NavigationRequestType.CHOICE,
         "lesson2"
       );
-      
+
       expect(result.valid).toBe(true);
+      // Per DB.2.1: all suspended activities should be cleared
       expect(grandchild1.isSuspended).toBe(false);
+      expect(child1.isSuspended).toBe(false);
+      expect(root.isSuspended).toBe(false);
       expect(activityTree.suspendedActivity).toBeNull();
     });
   });

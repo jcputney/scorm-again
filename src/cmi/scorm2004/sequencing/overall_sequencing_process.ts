@@ -646,14 +646,22 @@ export class OverallSequencingProcess {
 
   /**
    * Handle SUSPEND_ALL termination (TB.2.3 step 5)
+   * Implements TB.2.3 steps 5.1-5.7 for SUSPEND_ALL processing
    * @param {Activity} currentActivity - The current activity
    * @return {TerminationRequestResult | boolean} - The termination result
    */
   private handleSuspendAllTermination(currentActivity: Activity): TerminationRequestResult | boolean {
-    // TB.2.3 step 5.1: Suspend current activity
+    // TB.2.3 steps 5.1-5.6: Suspend current activity and all ancestors, set current to root
     this.handleSuspendAllRequest(currentActivity);
 
+    // TB.2.3 5.7: Return EXIT sequencing request to end session
+    // Note: Per SCORM spec, after SUSPEND_ALL returns EXIT, the session ends.
+    // The content unloads and currentActivity is cleared during termination.
+    // When RESUME_ALL is called in the next session, currentActivity will be null.
+
     // Return boolean true for backward compatibility
+    // Note: Reference implementation would return {valid: true, sequencingRequest: EXIT}
+    // but our architecture uses boolean returns for termination handlers
     return true;
   }
 
@@ -790,19 +798,68 @@ export class OverallSequencingProcess {
 
   /**
    * Handle Suspend All Request
-   * Enhanced suspend handling with proper state management
+   * Implements TB.2.3 steps 5.1-5.6 from SCORM 2004 reference
+   * Suspends all activities in the path from current activity to root
    * @param {Activity} currentActivity - Current activity to suspend
    */
   private handleSuspendAllRequest(currentActivity: Activity): void {
-    // Suspend the current activity
-    currentActivity.isSuspended = true;
-    currentActivity.isActive = false;
-    this.activityTree.suspendedActivity = currentActivity;
-    this.activityTree.currentActivity = null;
+    const rootActivity = this.activityTree.root;
 
-    // Log suspend event
+    // TB.2.3 5.1: Validation - Check if current activity is defined
+    if (!currentActivity || !rootActivity) {
+      this.fireEvent("onSuspendError", {
+        exception: "TB.2.3-1",
+        message: "No current activity to suspend",
+        activity: currentActivity?.id
+      });
+      return;
+    }
+
+    // TB.2.3 5.2: Check if current activity is active (validation)
+    // Note: Reference allows suspend if already suspended OR active
+    // We'll be permissive here to match reference behavior
+
+    // Set the suspended activity reference
+    this.activityTree.suspendedActivity = currentActivity;
+
+    // TB.2.3 5.3: Form activity path from current activity to root (inclusive)
+    // We walk up the tree from current to root
+    const activityPath: Activity[] = [];
+    let current: Activity | null = currentActivity;
+    while (current !== null) {
+      activityPath.push(current);
+      current = current.parent;
+    }
+
+    // TB.2.3 5.4: Check if path is empty
+    if (activityPath.length === 0) {
+      this.fireEvent("onSuspendError", {
+        exception: "TB.2.3-5",
+        message: "Activity path is empty",
+        activity: currentActivity.id
+      });
+      return;
+    }
+
+    // TB.2.3 5.5: For each activity in the path, suspend it
+    // 5.5.1: Set Activity is Active = false
+    // 5.5.2: Set Activity is Suspended = true
+    for (const activity of activityPath) {
+      activity.isActive = false;
+      activity.isSuspended = true;
+    }
+
+    // TB.2.3 5.6: Set current activity to root of activity tree
+    // Note: The ActivityTree setter automatically sets isActive = true,
+    // but we need root to remain suspended, so we override it
+    this.activityTree.currentActivity = rootActivity;
+    rootActivity.isActive = false; // Keep root suspended
+
+    // Log suspend event with full path information
     this.fireEvent("onActivitySuspended", {
       activity: currentActivity.id,
+      suspendedPath: activityPath.map(a => a.id),
+      pathLength: activityPath.length,
       timestamp: new Date().toISOString()
     });
   }
@@ -896,8 +953,9 @@ export class OverallSequencingProcess {
 
     try {
       // Step 1: Clear Suspended Activity Subprocess (DB.2.1) if needed
-      if (this.activityTree.suspendedActivity &&
-        this.activityTree.suspendedActivity !== activity) {
+      // Clear suspended state whether we're resuming the suspended activity
+      // or delivering a different activity (abandoning the suspended session)
+      if (this.activityTree.suspendedActivity) {
         this.clearSuspendedActivitySubprocess();
       }
 

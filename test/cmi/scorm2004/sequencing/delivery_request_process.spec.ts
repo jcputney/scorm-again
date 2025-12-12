@@ -127,35 +127,44 @@ describe("Delivery Request Process (DB.1.1)", () => {
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
       overallProcess.processNavigationRequest(NavigationRequestType.SUSPEND_ALL);
-      
+
       expect(activityTree.suspendedActivity).toBe(grandchild1);
       expect(grandchild1.isSuspended).toBe(true);
-      
-      // Now deliver a different activity
+
+      // Simulate session boundary (Terminate/Initialize)
+      activityTree.currentActivity = null;
+
+      // Now deliver a different activity in new session
       const result = overallProcess.processNavigationRequest(
         NavigationRequestType.CHOICE,
         "lesson2"
       );
-      
+
       expect(result.valid).toBe(true);
       expect(activityTree.suspendedActivity).toBeNull();
       expect(grandchild1.isSuspended).toBe(false);
     });
 
-    it("should not clear suspended activity when resuming it", () => {
+    it("should clear suspended activity when resuming it", () => {
       // Suspend an activity
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
       overallProcess.processNavigationRequest(NavigationRequestType.SUSPEND_ALL);
-      
+
       expect(activityTree.suspendedActivity).toBe(grandchild1);
-      
+      expect(grandchild1.isSuspended).toBe(true);
+
+      // Simulate session boundary (Terminate/Initialize)
+      activityTree.currentActivity = null;
+
       // Resume the same activity
       const result = overallProcess.processNavigationRequest(NavigationRequestType.RESUME_ALL);
-      
+
       expect(result.valid).toBe(true);
       expect(result.targetActivity).toBe(grandchild1);
-      expect(grandchild1.isSuspended).toBe(true); // Still suspended until activity completes
+      // Per DB.2.1, suspended state is cleared when activity is delivered
+      expect(grandchild1.isSuspended).toBe(false);
+      expect(activityTree.suspendedActivity).toBeNull();
     });
   });
 
