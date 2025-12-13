@@ -284,13 +284,18 @@ describe("SequencingProcess", () => {
       const child1 = activityTree.root?.children[0];
       if (child1) {
         activityTree.currentActivity = child1;
-        child1.isActive = true;
+        // Per SB.2.10: Activity must NOT be active or suspended for retry to work
+        child1.isActive = false;
+        child1.isSuspended = false;
         const initialAttemptCount = child1.attemptCount;
 
         const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.RETRY);
 
         expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
-        expect(result.targetActivity).toBe(child1);
+        // Per SB.2.10: When retrying a cluster, flow subprocess finds deliverable child
+        // So we should get grandchild1, not child1
+        const grandchild1 = child1.children[0];
+        expect(result.targetActivity).toBe(grandchild1);
         // GAP-18: Attempt count increment moved to contentDeliveryEnvironmentProcess
         // The increment no longer happens in retrySequencingRequestProcess
         expect(child1.attemptCount).toBe(initialAttemptCount);

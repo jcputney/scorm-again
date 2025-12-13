@@ -84,6 +84,15 @@ export const ChoiceExceptions = {
 };
 
 /**
+ * Retry Sequencing Request Process (SB.2.10) Exception Codes
+ */
+export const RetryExceptions = {
+  "SB.2.10-1": "Current activity not defined",
+  "SB.2.10-2": "Activity is still active or suspended",
+  "SB.2.10-3": "Flow subprocess returned false (nothing to deliver)",
+};
+
+/**
  * Exit Sequencing Request Process (SB.2.11) Exception Codes
  */
 export const ExitExceptions = {
@@ -152,6 +161,7 @@ export const SequencingExceptions = {
   ...ContinueExceptions,
   ...PreviousExceptions,
   ...ChoiceExceptions,
+  ...RetryExceptions,
   ...ExitExceptions,
   ...SequencingRequestExceptions,
   ...JumpExceptions,

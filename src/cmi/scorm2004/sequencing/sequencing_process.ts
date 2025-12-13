@@ -643,14 +643,54 @@ export class SequencingProcess {
   }
 
   /**
-   * Retry Sequencing Request Process
+   * Retry Sequencing Request Process (SB.2.10)
    * @param {Activity} currentActivity - The current activity
    * @return {SequencingResult}
    */
   private retrySequencingRequestProcess(currentActivity: Activity): SequencingResult {
     const result = new SequencingResult();
 
-    // Terminate current activity
+    // SB.2.10 step 2: Check if activity is still active or suspended
+    if (currentActivity.isActive || currentActivity.isSuspended) {
+      result.exception = "SB.2.10-2"; // Activity is still active or suspended
+      return result;
+    }
+
+    // SB.2.10 step 3: If current activity is not a leaf (is a cluster)
+    if (currentActivity.children.length > 0) {
+      // SB.2.10 step 3.1: Apply flow subprocess to find deliverable activity
+      // We need to find a deliverable child within the cluster
+      this.ensureSelectionAndRandomization(currentActivity);
+      const availableChildren = currentActivity.getAvailableChildren();
+
+      let deliverableActivity: Activity | null = null;
+
+      // Try each child using flowActivityTraversalSubprocess
+      for (const child of availableChildren) {
+        deliverableActivity = this.flowActivityTraversalSubprocess(
+          child,
+          true,  // direction: forward
+          true,  // considerChildren: true
+          FlowSubprocessMode.FORWARD
+        );
+        if (deliverableActivity) {
+          break;
+        }
+      }
+
+      // SB.2.10 step 3.2: If flow subprocess returned false (no deliverable found)
+      if (!deliverableActivity) {
+        result.exception = "SB.2.10-3"; // Flow subprocess returned false (nothing to deliver)
+        return result;
+      }
+
+      // SB.2.10 step 3.3: Deliver the activity identified by flow subprocess
+      result.deliveryRequest = DeliveryRequestType.DELIVER;
+      result.targetActivity = deliverableActivity;
+      return result;
+    }
+
+    // SB.2.10 step 4: Activity is a leaf - terminate and deliver it again
     this.terminateDescendentAttemptsProcess(currentActivity);
 
     // NOTE: Attempt count increment removed here (GAP-18 fix)

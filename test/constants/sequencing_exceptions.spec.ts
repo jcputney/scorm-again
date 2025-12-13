@@ -7,6 +7,7 @@ import {
   ContinueExceptions,
   PreviousExceptions,
   ChoiceExceptions,
+  RetryExceptions,
   ExitExceptions,
   SequencingRequestExceptions,
   JumpExceptions,
@@ -112,6 +113,28 @@ describe("Sequencing Exceptions Constants", () => {
     });
   });
 
+  describe("RetryExceptions (SB.2.10)", () => {
+    it("should define all SB.2.10 exception codes", () => {
+      expect(RetryExceptions["SB.2.10-1"]).toBe("Current activity not defined");
+      expect(RetryExceptions["SB.2.10-2"]).toBe("Activity is still active or suspended");
+      expect(RetryExceptions["SB.2.10-3"]).toBe(
+        "Flow subprocess returned false (nothing to deliver)",
+      );
+    });
+
+    it("should have exactly 3 retry exception codes", () => {
+      const keys = Object.keys(RetryExceptions);
+      expect(keys).toHaveLength(3);
+    });
+
+    it("should have all keys starting with SB.2.10", () => {
+      const keys = Object.keys(RetryExceptions);
+      keys.forEach((key) => {
+        expect(key).toMatch(/^SB\.2\.10-\d+$/);
+      });
+    });
+  });
+
   describe("ExitExceptions (SB.2.11)", () => {
     it("should define all SB.2.11 exception codes", () => {
       expect(ExitExceptions["SB.2.11-1"]).toBe("Exit not allowed - no parent");
@@ -191,6 +214,9 @@ describe("Sequencing Exceptions Constants", () => {
       Object.keys(ChoiceExceptions).forEach((key) => {
         expect(SequencingExceptions).toHaveProperty(key);
       });
+      Object.keys(RetryExceptions).forEach((key) => {
+        expect(SequencingExceptions).toHaveProperty(key);
+      });
       Object.keys(ExitExceptions).forEach((key) => {
         expect(SequencingExceptions).toHaveProperty(key);
       });
@@ -233,6 +259,11 @@ describe("Sequencing Exceptions Constants", () => {
         "Sequencing session not begun (current activity not terminated)",
       );
       expect(getExceptionDescription("SB.2.9-1")).toBe("Target activity does not exist");
+      expect(getExceptionDescription("SB.2.10-1")).toBe("Current activity not defined");
+      expect(getExceptionDescription("SB.2.10-2")).toBe("Activity is still active or suspended");
+      expect(getExceptionDescription("SB.2.10-3")).toBe(
+        "Flow subprocess returned false (nothing to deliver)",
+      );
       expect(getExceptionDescription("SB.2.12-1")).toBe("No current activity");
     });
 
