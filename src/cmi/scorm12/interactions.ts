@@ -348,10 +348,16 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
   }
 
   /**
-   * Getter for _id
+   * Getter for _id. Should only be called during JSON export.
    * @return {string}
    */
   get id(): string {
+    if (!this.jsonString) {
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".id",
+        scorm12_errors.WRITE_ONLY_ELEMENT as number,
+      );
+    }
     return this._id;
   }
 

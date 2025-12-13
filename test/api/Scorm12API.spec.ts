@@ -357,17 +357,15 @@ describe("SCORM 1.2 API Tests", () => {
       });
     });
 
-    describe("Read and Write Properties - Should Success", () => {
+    describe("Write-Only Properties - Should Always Fail", () => {
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.interactions.0.objectives.0.id",
         initializeFirst: true,
         initializationValue: "AAA",
-        expectedValue: "AAA",
+        expectedError: 404,
+        errorThrown: false,
       });
-    });
-
-    describe("Write-Only Properties - Should Always Fail", () => {
       h.checkLMSGetValue({
         api: apiInitialized(),
         fieldName: "cmi.core.exit",

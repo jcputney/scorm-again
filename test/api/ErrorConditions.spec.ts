@@ -294,6 +294,19 @@ describe("Error Conditions Tests", () => {
         expect(api.lmsGetLastError()).toEqual(String(scorm12_errors.WRITE_ONLY_ELEMENT));
       });
 
+      it("should set WRITE_ONLY_ELEMENT (404) error when attempting to get cmi.interactions.n.objectives.n.id", () => {
+        const api = scorm12Api();
+        api.lmsInitialize();
+
+        // Set up an interaction with an objective
+        api.lmsSetValue("cmi.interactions.0.id", "interaction_1");
+        api.lmsSetValue("cmi.interactions.0.objectives.0.id", "objective_1");
+
+        // Attempt to get the write-only objective id
+        expect(api.lmsGetValue("cmi.interactions.0.objectives.0.id")).toEqual("false");
+        expect(api.lmsGetLastError()).toEqual(String(scorm12_errors.WRITE_ONLY_ELEMENT));
+      });
+
       it("should set TYPE_MISMATCH (405) error when setting a value with incorrect data type", () => {
         const api = scorm12Api();
         api.lmsInitialize();
