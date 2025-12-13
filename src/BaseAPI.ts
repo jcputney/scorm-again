@@ -995,6 +995,20 @@ export default abstract class BaseAPI implements IBaseAPI {
               refObject = item;
               foundFirstIndex = true;
             } else {
+              // SCORM spec requires sequential array indices (0, 1, 2, ...)
+              // Cannot skip indices when adding to arrays
+              if (index > refObject.childArray.length) {
+                const errorCode = scorm2004
+                  ? this._error_codes.GENERAL_SET_FAILURE
+                  : this._error_codes.INVALID_SET_VALUE || this._error_codes.GENERAL_SET_FAILURE;
+                this.throwSCORMError(
+                  CMIElement,
+                  errorCode,
+                  `Cannot set array element at index ${index}. Array indices must be sequential. Current array length is ${refObject.childArray.length}, expected index ${refObject.childArray.length}.`,
+                );
+                break;
+              }
+
               const newChild = this.getChildElement(CMIElement, value, foundFirstIndex);
               foundFirstIndex = true;
 
