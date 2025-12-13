@@ -8,15 +8,15 @@ export interface IBaseAPI {
 
   initialize(callbackName: string, initializeMessage?: string, terminationMessage?: string): string;
 
-  lmsInitialize(): string;
+  lmsInitialize(parameter?: string): string;
 
-  lmsFinish(): string;
+  lmsFinish(parameter?: string): string;
 
   lmsGetValue(CMIElement: string): string;
 
   lmsSetValue(CMIElement: string, value: any): string;
 
-  lmsCommit(): string;
+  lmsCommit(parameter?: string): string;
 
   lmsGetLastError(): string;
 
