@@ -1204,7 +1204,10 @@ export class SequencingProcess {
         // SB.2.3 step 3.1: Exit with no deliverable activity and endSequencingSession flag
         // Set appropriate exception code based on direction and reason
         let exceptionCode: string | null = null;
-        if (direction === FlowSubprocessMode.BACKWARD) {
+        if (traversalResult.exception) {
+          // Use exception from traversal (e.g., SB.2.1-4 for forwardOnly violation)
+          exceptionCode = traversalResult.exception;
+        } else if (direction === FlowSubprocessMode.BACKWARD) {
           exceptionCode = "SB.2.1-3"; // Reached beginning of course
         } else if (lastCandidateHadNoChildren) {
           exceptionCode = "SB.2.1-2"; // No available children to deliver
@@ -1250,13 +1253,13 @@ export class SequencingProcess {
    * @param {Activity} fromActivity - The activity to traverse from
    * @param {FlowSubprocessMode} direction - The traversal direction
    * @param {boolean} skipChildren - Whether to skip checking children (for continuing from current)
-   * @return {{ activity: Activity | null; endSequencingSession: boolean }} - The next activity and session end flag
+   * @return {{ activity: Activity | null; endSequencingSession: boolean; exception?: string }} - The next activity, session end flag, and optional exception
    */
   private flowTreeTraversalSubprocess(
     fromActivity: Activity,
     direction: FlowSubprocessMode,
     skipChildren: boolean = false
-  ): { activity: Activity | null; endSequencingSession: boolean } {
+  ): { activity: Activity | null; endSequencingSession: boolean; exception?: string } {
     if (direction === FlowSubprocessMode.FORWARD) {
       // SB.2.1 step 3.1: Check if we're at the last activity in forward traversal
       // Before checking children, see if this is already the last activity overall
@@ -1298,6 +1301,11 @@ export class SequencingProcess {
       return { activity: null, endSequencingSession: true };
     } else {
       // Backward direction
+      // SB.2.1-4: Check if forwardOnly constraint prevents backward traversal
+      if (fromActivity.parent && fromActivity.parent.sequencingControls.forwardOnly) {
+        return { activity: null, endSequencingSession: false, exception: "SB.2.1-4" };
+      }
+
       // Try to get previous sibling
       const previousSibling = this.activityTree.getPreviousSibling(fromActivity);
       if (previousSibling) {

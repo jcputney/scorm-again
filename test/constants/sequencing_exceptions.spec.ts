@@ -87,6 +87,21 @@ describe("Sequencing Exceptions Constants", () => {
     it("should define all SB.2.1 exception codes", () => {
       expect(FlowTreeTraversalExceptions["SB.2.1-2"]).toBe("No available children to deliver");
       expect(FlowTreeTraversalExceptions["SB.2.1-3"]).toBe("Reached beginning of course");
+      expect(FlowTreeTraversalExceptions["SB.2.1-4"]).toBe(
+        "Forward only violation - cannot traverse backward",
+      );
+    });
+
+    it("should have exactly 3 flow tree traversal exception codes", () => {
+      const keys = Object.keys(FlowTreeTraversalExceptions);
+      expect(keys).toHaveLength(3);
+    });
+
+    it("should have all keys starting with SB.2.1", () => {
+      const keys = Object.keys(FlowTreeTraversalExceptions);
+      keys.forEach((key) => {
+        expect(key).toMatch(/^SB\.2\.1-\d+$/);
+      });
     });
   });
 
@@ -302,6 +317,10 @@ describe("Sequencing Exceptions Constants", () => {
 
     it("should return correct description for flow exceptions", () => {
       expect(getExceptionDescription("SB.2.1-2")).toBe("No available children to deliver");
+      expect(getExceptionDescription("SB.2.1-3")).toBe("Reached beginning of course");
+      expect(getExceptionDescription("SB.2.1-4")).toBe(
+        "Forward only violation - cannot traverse backward",
+      );
       expect(getExceptionDescription("SB.2.2-1")).toBe("Flow control disabled on parent");
     });
 

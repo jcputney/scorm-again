@@ -47,6 +47,7 @@ export const TerminationExceptions = {
 export const FlowTreeTraversalExceptions = {
   "SB.2.1-2": "No available children to deliver",
   "SB.2.1-3": "Reached beginning of course",
+  "SB.2.1-4": "Forward only violation - cannot traverse backward",
 };
 
 /**

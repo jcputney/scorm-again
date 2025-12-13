@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { CMISession } from "../../src/cmi/scorm2004/session";
 import { scorm2004_errors } from "../../src";
 import { Scorm2004ValidationError } from "../../src/exceptions/scorm2004_exceptions";
@@ -41,6 +41,16 @@ describe("SCORM 2004 CMISession Tests", () => {
     });
 
     describe("exit", () => {
+      let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
+
+      beforeEach(() => {
+        consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      });
+
+      afterEach(() => {
+        consoleWarnSpy.mockRestore();
+      });
+
       it("should set exit", () => {
         const session = new CMISession();
 
@@ -69,6 +79,59 @@ describe("SCORM 2004 CMISession Tests", () => {
           // noinspection JSUnusedLocalSymbols
           const _ = session.exit;
         }).toThrow(new Scorm2004ValidationError("cmi.exit", scorm2004_errors.WRITE_ONLY_ELEMENT));
+      });
+
+      it('should log deprecation warning for "logout" value', () => {
+        const session = new CMISession();
+
+        session.exit = "logout";
+
+        expect(consoleWarnSpy).toHaveBeenCalledOnce();
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+          'SCORM 2004: cmi.exit value "logout" is deprecated per 4th Edition. ' +
+            'Consider using "normal" or "suspend" instead.',
+        );
+      });
+
+      it('should accept "logout" value despite deprecation warning', () => {
+        const session = new CMISession();
+
+        session.exit = "logout";
+        session.jsonString = true;
+
+        expect(session.exit).toBe("logout");
+      });
+
+      it('should not log warning for "suspend" value', () => {
+        const session = new CMISession();
+
+        session.exit = "suspend";
+
+        expect(consoleWarnSpy).not.toHaveBeenCalled();
+      });
+
+      it('should not log warning for "normal" value', () => {
+        const session = new CMISession();
+
+        session.exit = "normal";
+
+        expect(consoleWarnSpy).not.toHaveBeenCalled();
+      });
+
+      it('should not log warning for "time-out" value', () => {
+        const session = new CMISession();
+
+        session.exit = "time-out";
+
+        expect(consoleWarnSpy).not.toHaveBeenCalled();
+      });
+
+      it("should not log warning for empty string value", () => {
+        const session = new CMISession();
+
+        session.exit = "";
+
+        expect(consoleWarnSpy).not.toHaveBeenCalled();
       });
     });
 
