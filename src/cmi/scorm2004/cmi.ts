@@ -14,6 +14,18 @@ import { CMIThresholds } from "./thresholds";
 
 /**
  * Class representing cmi object for SCORM 2004
+ *
+ * Per SCORM 2004 RTE Section 4.1:
+ * - Enhanced data model with additional elements vs SCORM 1.2
+ * - Separate completion_status and success_status tracking
+ * - Progress measure (0-1 scale) for completion tracking
+ * - Scaled scores (-1 to 1) with threshold support
+ * - Language support via LangString types
+ * - Comments from learner and LMS with timestamps
+ * - Enhanced interactions with better type validation
+ * - Global objectives support for cross-SCO tracking
+ *
+ * @extends BaseRootCMI
  */
 export class CMI extends BaseRootCMI {
   /**

@@ -12,6 +12,14 @@ import { CMIInteractions } from "./interactions";
 
 /**
  * Class representing the cmi object for SCORM 1.2
+ *
+ * Per SCORM 1.2 RTE Section 3.4:
+ * - Core data model for tracking learner progress
+ * - Contains core (session data), objectives, student_data, student_preference, interactions
+ * - All elements accessible via GetValue/SetValue API
+ * - Data persistence managed by LMS between sessions
+ *
+ * @extends BaseRootCMI
  */
 export class CMI extends BaseRootCMI {
   private readonly __children: string = "";

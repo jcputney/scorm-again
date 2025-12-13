@@ -1,5 +1,16 @@
 /**
  * Class representing SCORM 2004's `cmi.interactions` object
+ *
+ * Per SCORM 2004 RTE Section 4.1.6:
+ * - Enhanced interaction tracking vs SCORM 1.2
+ * - Supports additional interaction types (long-fill-in, other)
+ * - learner_response replaces student_response
+ * - timestamp: ISO 8601 format for precise timing
+ * - description: Textual description with language support
+ * - Stricter validation of response formats by type
+ * - Correct response patterns support complex formats
+ *
+ * @extends CMIArray
  */
 import { BaseCMI } from "../common/base_cmi";
 import { CMIArray } from "../common/array";
@@ -16,7 +27,11 @@ import {
 
 export class CMIInteractions extends CMIArray {
   /**
-   * Constructor for `cmi.objectives` Array
+   * Constructor for `cmi.interactions` Array
+   *
+   * Per SCORM 2004 RTE Section 4.1.6:
+   * - Read-only array structure (add via index access)
+   * - Each interaction has enhanced metadata and validation
    */
   constructor() {
     super({
@@ -30,6 +45,19 @@ export class CMIInteractions extends CMIArray {
 
 /**
  * Class for SCORM 2004's cmi.interaction.n object
+ *
+ * Per SCORM 2004 RTE Section 4.1.6:
+ * - id: Long identifier (up to 4000 chars, supports URN format)
+ * - type: Interaction type (true-false, choice, fill-in, long-fill-in, matching, performance, sequencing, likert, numeric, other)
+ * - timestamp: ISO 8601 date/time when interaction occurred
+ * - weighting: Decimal weight for scoring
+ * - learner_response: Response format validated against interaction type
+ * - result: correct, incorrect, unanticipated, neutral, or numeric score
+ * - latency: ISO 8601 duration format
+ * - description: LangString250 with optional language tag
+ * - Dependency: id must be set before other elements (except objectives/correct_responses)
+ *
+ * @extends BaseCMI
  */
 
 export class CMIInteractionsObject extends BaseCMI {
@@ -439,6 +467,13 @@ export class CMIInteractionsObject extends BaseCMI {
 
 /**
  * Class representing SCORM 2004's cmi.interactions.n.objectives.n object
+ *
+ * Per SCORM 2004 RTE Section 4.1.6.1:
+ * - Associates interaction with objectives
+ * - id: Long identifier matching objective in cmi.objectives
+ * - Used to relate interaction performance to learning objectives
+ *
+ * @extends BaseCMI
  */
 export class CMIInteractionsObjectivesObject extends BaseCMI {
   private _id = "";
@@ -698,6 +733,19 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
   }
 }
 
+/**
+ * Class representing SCORM 2004's cmi.interactions.n.correct_responses.n object
+ *
+ * Per SCORM 2004 RTE Section 4.1.6.2 and Appendix D:
+ * - Defines correct response patterns for interactions
+ * - pattern: Format depends on interaction type (see Appendix D)
+ * - Validates pattern against type-specific rules
+ * - Supports escaped delimiters in patterns
+ * - Multiple correct responses allowed for some types
+ * - Type-specific validation ensures data integrity
+ *
+ * @extends BaseCMI
+ */
 export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
   private _pattern = "";
   private readonly _interactionType?: string | undefined;
