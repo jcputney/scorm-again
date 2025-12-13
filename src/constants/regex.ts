@@ -70,7 +70,14 @@ export const scorm2004_regex = {
     "^P(?:([.,\\d]+)Y)?(?:([.,\\d]+)M)?(?:([.,\\d]+)W)?(?:([.,\\d]+)D)?(?:T?(?:([.,\\d]+)H)?(?:([.,\\d]+)M)?(?:([.,\\d]+)S)?)?$",
   CMIInteger: "^\\d+$",
   CMISInteger: "^-?([0-9]+)$",
-  CMIDecimal: "^-?([0-9]{1,5})(\\.[0-9]{1,18})?$",
+  /**
+   * CMIDecimal - SCORM 2004 RTE Appendix C
+   * Spec allows unlimited digits, but we set practical limits to prevent abuse
+   * while maintaining broad compatibility:
+   * - Up to 10 digits before decimal (supports values up to 10 billion)
+   * - Up to 18 digits after decimal (maintains precision for scientific use)
+   */
+  CMIDecimal: "^-?([0-9]{1,10})(\\.[0-9]{1,18})?$",
   CMIIdentifier: "^\\S{1,250}[a-zA-Z0-9]$",
   CMIShortIdentifier: "^[\\w\\.\\-\\_]{1,250}$",
   CMILongIdentifier: "^(?:(?!urn:)\\S{1,4000}|urn:[A-Za-z0-9-]{1,31}:\\S{1,4000}|.{1,4000})$",
