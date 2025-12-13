@@ -784,9 +784,10 @@ describe("SCORM 1.2 CMI Tests", () => {
       /**
        * cmi.interactions.n.objectives.n object
        */
-      h.checkReadAndWrite({
+      h.checkWriteOnly({
         cmi: interactionObjective(),
         fieldName: "cmi.id",
+        expectedError: write_only,
       });
 
       it("should export JSON", () => {
