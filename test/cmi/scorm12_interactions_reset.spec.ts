@@ -65,13 +65,16 @@ describe("SCORM 1.2 Interactions Reset Tests", () => {
 
       // Set the id
       objective.id = "objective-1";
-      expect(objective.id).toBe("objective-1");
+
+      // We can't directly check the id property because it's write-only
+      // So we'll use JSON.stringify to check the value
+      expect(JSON.stringify(objective)).toContain('"id":"objective-1"');
 
       // Reset the objective
       objective.reset();
 
       // Verify id is reset
-      expect(objective.id).toBe("");
+      expect(JSON.stringify(objective)).toContain('"id":""');
     });
   });
 
