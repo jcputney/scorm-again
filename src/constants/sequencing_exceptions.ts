@@ -34,8 +34,11 @@ export const NavigationExceptions = {
 export const TerminationExceptions = {
   "TB.2.3-1": "No current activity to terminate",
   "TB.2.3-2": "Current activity already terminated",
+  "TB.2.3-3": "Nothing to suspend (root activity)",
   "TB.2.3-4": "Cannot EXIT_PARENT from root activity",
   "TB.2.3-5": "Activity path is empty during suspend",
+  "TB.2.3-6": "Nothing to abandon",
+  "TB.2.3-7": "Undefined termination request",
 };
 
 /**

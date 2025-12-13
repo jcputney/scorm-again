@@ -117,6 +117,24 @@ describe("SCORM 1.2 API Additional Tests", () => {
       expect(getErrorStringSpy).toHaveBeenCalledOnce();
       expect(getErrorStringSpy).toHaveBeenCalledWith("LMSGetErrorString", "101");
     });
+
+    it("should return the error string for a given error code", () => {
+      const scorm12API = api();
+      const errorString = scorm12API.lmsGetErrorString("101");
+      expect(errorString).toEqual("General Exception");
+    });
+
+    it("should return empty string when error code is empty string (per SCORM spec)", () => {
+      const scorm12API = api();
+      const errorString = scorm12API.lmsGetErrorString("");
+      expect(errorString).toEqual("");
+    });
+
+    it("should return 'No Error' for an unknown error code (SCORM 1.2 default)", () => {
+      const scorm12API = api();
+      const errorString = scorm12API.lmsGetErrorString("9999");
+      expect(errorString).toEqual("No Error");
+    });
   });
 
   describe("lmsGetDiagnostic()", () => {
