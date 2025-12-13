@@ -5,6 +5,30 @@
  */
 
 /**
+ * Navigation Request Process (NB.2.1) Exception Codes
+ */
+export const NavigationExceptions = {
+  "NB.2.1-1": "Sequencing session already started",
+  "NB.2.1-2": "Current activity not defined / sequencing not begun",
+  "NB.2.1-3": "No suspended activity to resume",
+  "NB.2.1-4": "Flow not enabled / current activity is root",
+  "NB.2.1-5": "Violates control mode (forward only or flow disabled)",
+  "NB.2.1-6": "Cannot move backward from root",
+  "NB.2.1-7": "Forward/Backward navigation not supported",
+  "NB.2.1-8": "Forward-only constraint violation",
+  "NB.2.1-9": "Activity path empty",
+  "NB.2.1-10": "Choice control disabled on parent",
+  "NB.2.1-11": "Target activity does not exist",
+  "NB.2.1-12": "Activity already terminated",
+  "NB.2.1-13": "Undefined navigation request",
+  "NB.2.1-14": "No current activity for EXIT_ALL",
+  "NB.2.1-15": "No current activity for ABANDON",
+  "NB.2.1-16": "No current activity for ABANDON_ALL",
+  "NB.2.1-17": "No current activity for SUSPEND_ALL",
+  "NB.2.1-18": "Invalid navigation request type",
+};
+
+/**
  * Termination Request Process (TB.2.3) Exception Codes
  */
 export const TerminationExceptions = {
@@ -114,6 +138,9 @@ export const SuspendExceptions = {
  * Combined mapping of all exception codes to their descriptions
  */
 export const SequencingExceptions = {
+  // Navigation exceptions
+  ...NavigationExceptions,
+
   // Termination exceptions
   ...TerminationExceptions,
 
@@ -121,7 +148,7 @@ export const SequencingExceptions = {
   ...FlowTreeTraversalExceptions,
   ...FlowActivityTraversalExceptions,
 
-  // Navigation request exceptions
+  // Sequencing request exceptions
   ...ContinueExceptions,
   ...PreviousExceptions,
   ...ChoiceExceptions,
