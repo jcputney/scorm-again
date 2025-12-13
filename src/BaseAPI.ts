@@ -354,14 +354,42 @@ export default abstract class BaseAPI implements IBaseAPI {
   }
 
   /**
-   * Initialize the LMS API
+   * Initialize the LMS API - Begins a communication session
+   *
+   * SCORM 1.2 per RTE Section 3.4.3.1 (LMSInitialize):
+   * - Parameter must be empty string ("")
+   * - Returns "true" on success, "false" on failure
+   * - Sets error 101 if already initialized
+   * - Sets error 101 if already terminated
+   *
+   * SCORM 2004 per RTE Section 3.1.2.1 (Initialize):
+   * - Parameter must be empty string ("")
+   * - Returns "true" on success, "false" on failure
+   * - Sets error 103 if already initialized
+   * - Sets error 104 if already terminated
+   *
    * @param {string} parameter - Must be an empty string per SCORM specification
    * @return {string} "true" if successful, "false" otherwise
    */
   abstract lmsInitialize(parameter?: string): string;
 
   /**
-   * Finish the current LMS API session
+   * Finish the current LMS API session - Ends a communication session
+   *
+   * SCORM 1.2 per RTE Section 3.4.3.2 (LMSFinish):
+   * - Parameter must be empty string ("")
+   * - Returns "true" on success, "false" on failure
+   * - Commits all data to persistent storage
+   * - Sets error 101 if not initialized
+   * - Sets error 101 if already terminated
+   *
+   * SCORM 2004 per RTE Section 3.1.2.2 (Terminate):
+   * - Parameter must be empty string ("")
+   * - Returns "true" on success, "false" on failure
+   * - Commits all data to persistent storage
+   * - Sets error 112 if not initialized
+   * - Sets error 113 if already terminated
+   *
    * @param {string} parameter - Must be an empty string per SCORM specification
    * @return {string} "true" if successful, "false" otherwise
    */
@@ -369,6 +397,22 @@ export default abstract class BaseAPI implements IBaseAPI {
 
   /**
    * Get the value of a CMI element from the LMS
+   *
+   * SCORM 1.2 per RTE Section 3.4.3.3 (LMSGetValue):
+   * - Returns the value of the specified CMI data model element
+   * - Returns empty string if element has no value
+   * - Sets error 101 if not initialized
+   * - Sets error 301 if invalid element specified
+   * - Sets error 201 if element is write-only
+   *
+   * SCORM 2004 per RTE Section 3.1.2.3 (GetValue):
+   * - Returns the value of the specified CMI data model element
+   * - Returns empty string if element has no value
+   * - Sets error 122 if not initialized
+   * - Sets error 123 if terminated
+   * - Sets error 401 if invalid element specified
+   * - Sets error 405 if element is write-only
+   *
    * @param {string} CMIElement - The CMI element to get the value of
    * @return {string} The value of the CMI element
    */
@@ -376,6 +420,25 @@ export default abstract class BaseAPI implements IBaseAPI {
 
   /**
    * Set the value of a CMI element in the LMS
+   *
+   * SCORM 1.2 per RTE Section 3.4.3.4 (LMSSetValue):
+   * - Sets the value of the specified CMI data model element
+   * - Returns "true" on success, "false" on failure
+   * - Sets error 101 if not initialized
+   * - Sets error 301 if invalid element specified
+   * - Sets error 351 if element exceeds maximum length
+   * - Sets error 201 if element is read-only
+   * - Sets error 405 if incorrect data type
+   *
+   * SCORM 2004 per RTE Section 3.1.2.4 (SetValue):
+   * - Sets the value of the specified CMI data model element
+   * - Returns "true" on success, "false" on failure
+   * - Sets error 132 if not initialized
+   * - Sets error 133 if terminated
+   * - Sets error 401 if invalid element specified
+   * - Sets error 403 if element is read-only
+   * - Sets error 406 if incorrect data type
+   *
    * @param {string} CMIElement - The CMI element to set the value of
    * @param {any} value - The value to set
    * @return {string} "true" if successful, "false" otherwise
@@ -383,7 +446,23 @@ export default abstract class BaseAPI implements IBaseAPI {
   abstract lmsSetValue(CMIElement: string, value: any): string;
 
   /**
-   * Commit the current data to the LMS
+   * Commit the current data to the LMS - Persists data to storage
+   *
+   * SCORM 1.2 per RTE Section 3.4.4.1 (LMSCommit):
+   * - Parameter must be empty string ("")
+   * - Requests immediate persistence of all data since last commit
+   * - Returns "true" on success, "false" on failure
+   * - Sets error 101 if not initialized
+   * - Sets error 391 if commit failed
+   *
+   * SCORM 2004 per RTE Section 3.1.2.5 (Commit):
+   * - Parameter must be empty string ("")
+   * - Requests immediate persistence of all data since last commit
+   * - Returns "true" on success, "false" on failure
+   * - Sets error 142 if not initialized
+   * - Sets error 143 if terminated
+   * - Sets error 391 if commit failed
+   *
    * @param {string} parameter - Must be an empty string per SCORM specification
    * @return {string} "true" if successful, "false" otherwise
    */
@@ -391,12 +470,38 @@ export default abstract class BaseAPI implements IBaseAPI {
 
   /**
    * Get the last error code from the LMS
+   *
+   * SCORM 1.2 per RTE Section 3.4.4.2 (LMSGetLastError):
+   * - Returns the error code from the last API call
+   * - Returns "0" if no error occurred
+   * - Can be called at any time (even before initialization)
+   * - Does not change the current error state
+   *
+   * SCORM 2004 per RTE Section 3.1.2.6 (GetLastError):
+   * - Returns the error code from the last API call
+   * - Returns "0" if no error occurred
+   * - Can be called at any time (even before initialization)
+   * - Does not change the current error state
+   *
    * @return {string} The last error code
    */
   abstract lmsGetLastError(): string;
 
   /**
    * Get the error string for a specific error code
+   *
+   * SCORM 1.2 per RTE Section 3.4.4.3 (LMSGetErrorString):
+   * - Returns a short textual description for the specified error code
+   * - Returns empty string if error code is not recognized
+   * - Can be called at any time (even before initialization)
+   * - Does not change the current error state
+   *
+   * SCORM 2004 per RTE Section 3.1.2.7 (GetErrorString):
+   * - Returns a short textual description for the specified error code
+   * - Returns empty string if error code is not recognized
+   * - Can be called at any time (even before initialization)
+   * - Does not change the current error state
+   *
    * @param {string|number} CMIErrorCode - The error code to get the string for
    * @return {string} The error string
    */
@@ -404,6 +509,21 @@ export default abstract class BaseAPI implements IBaseAPI {
 
   /**
    * Get diagnostic information for a specific error code
+   *
+   * SCORM 1.2 per RTE Section 3.4.4.4 (LMSGetDiagnostic):
+   * - Returns detailed diagnostic information for the specified error code
+   * - Implementation-specific; can include additional context or debugging info
+   * - Returns empty string if no diagnostic information is available
+   * - Can be called at any time (even before initialization)
+   * - Does not change the current error state
+   *
+   * SCORM 2004 per RTE Section 3.1.2.8 (GetDiagnostic):
+   * - Returns detailed diagnostic information for the specified error code
+   * - Implementation-specific; can include additional context or debugging info
+   * - Returns empty string if no diagnostic information is available
+   * - Can be called at any time (even before initialization)
+   * - Does not change the current error state
+   *
    * @param {string|number} CMIErrorCode - The error code to get diagnostic information for
    * @return {string} The diagnostic information
    */

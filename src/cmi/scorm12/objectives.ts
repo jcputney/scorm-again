@@ -9,6 +9,13 @@ import { CMIArray } from "../common/array";
 
 /**
  * Class representing SCORM 1.2's `cmi.objectives` object
+ *
+ * Per SCORM 1.2 RTE Section 3.4.2.6:
+ * - Array of objective records for tracking learning goals
+ * - Each objective contains: id, score (raw, min, max), status
+ * - Indices must be sequential starting at 0
+ * - SCO can define multiple objectives to track sub-goals
+ *
  * @extends CMIArray
  */
 export class CMIObjectives extends CMIArray {
@@ -27,6 +34,14 @@ export class CMIObjectives extends CMIArray {
 
 /**
  * Class representing SCORM 1.2's cmi.objectives.n object
+ *
+ * Per SCORM 1.2 RTE Section 3.4.2.6:
+ * - Individual objective record
+ * - id: Unique identifier for the objective (CMIIdentifier)
+ * - score: Learner's score for this objective (raw, min, max)
+ * - status: Achievement status (passed, completed, failed, incomplete, browsed, not attempted)
+ * - Used to track progress toward specific learning goals
+ *
  * @extends BaseCMI
  */
 export class CMIObjectivesObject extends BaseCMI {

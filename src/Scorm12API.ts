@@ -112,10 +112,17 @@ class Scorm12API extends BaseAPI {
   }
 
   /**
-   * lmsInitialize function from SCORM 1.2 Spec
+   * LMSInitialize - Begins a communication session with the LMS
+   *
+   * Per SCORM 1.2 RTE Section 3.4.3.1:
+   * - Parameter must be empty string ("")
+   * - Returns "true" on success, "false" on failure
+   * - Sets error 101 if already initialized
+   * - Sets error 101 if already terminated
+   * - Initializes cmi.core.lesson_status to "not attempted" if not already set
    *
    * @param {string} parameter - Must be an empty string per SCORM 1.2 specification
-   * @return {string} bool
+   * @return {string} "true" or "false"
    */
   lmsInitialize(parameter: string = ""): string {
     // SCORM 1.2 RTE 3.4.3.1: Parameter must be an empty string
@@ -138,10 +145,18 @@ class Scorm12API extends BaseAPI {
   }
 
   /**
-   * LMSFinish function from SCORM 1.2 Spec
+   * LMSFinish - Ends the communication session and persists data
+   *
+   * Per SCORM 1.2 RTE Section 3.4.3.2:
+   * - Parameter must be empty string ("")
+   * - Returns "true" on success, "false" on failure
+   * - Commits all data to persistent storage
+   * - Sets error 101 if not initialized
+   * - Sets error 101 if already terminated
+   * - Processes navigation events (continue/previous) if nav.event is set
    *
    * @param {string} parameter - Must be an empty string per SCORM 1.2 specification
-   * @return {string} bool
+   * @return {string} "true" or "false"
    */
   lmsFinish(parameter: string = ""): string {
     // SCORM 1.2 RTE 3.4.3.2: Parameter must be an empty string
@@ -168,21 +183,39 @@ class Scorm12API extends BaseAPI {
   }
 
   /**
-   * LMSGetValue function from SCORM 1.2 Spec
+   * LMSGetValue - Retrieves a value from the CMI data model
    *
-   * @param {string} CMIElement
-   * @return {string}
+   * Per SCORM 1.2 RTE Section 3.4.3.3:
+   * - Returns the value of the specified CMI element
+   * - Returns empty string if element has no value
+   * - Sets error 101 if not initialized
+   * - Sets error 301 if element is not implemented (invalid element)
+   * - Sets error 201 if element is write-only
+   * - Sets error 202 if element is not initialized
+   *
+   * @param {string} CMIElement - The CMI element path (e.g., "cmi.core.score.raw")
+   * @return {string} The value of the element, or empty string
    */
   lmsGetValue(CMIElement: string): string {
     return this.getValue("LMSGetValue", false, CMIElement);
   }
 
   /**
-   * LMSSetValue function from SCORM 1.2 Spec
+   * LMSSetValue - Sets a value in the CMI data model
    *
-   * @param {string} CMIElement
-   * @param {*} value
-   * @return {string}
+   * Per SCORM 1.2 RTE Section 3.4.3.4:
+   * - Sets the value of the specified CMI element
+   * - Returns "true" on success, "false" on failure
+   * - Sets error 101 if not initialized
+   * - Sets error 301 if element is not implemented (invalid element)
+   * - Sets error 351 if element exceeds maximum length
+   * - Sets error 201 if element is read-only
+   * - Sets error 405 if incorrect data type
+   * - Triggers autocommit if enabled
+   *
+   * @param {string} CMIElement - The CMI element path (e.g., "cmi.core.lesson_status")
+   * @param {any} value - The value to set
+   * @return {string} "true" or "false"
    */
   lmsSetValue(CMIElement: string, value: any): string {
     if (CMIElement === "cmi.core.lesson_status") {
@@ -192,10 +225,18 @@ class Scorm12API extends BaseAPI {
   }
 
   /**
-   * LMSCommit function from SCORM 1.2 Spec
+   * LMSCommit - Requests immediate persistence of data to the LMS
+   *
+   * Per SCORM 1.2 RTE Section 3.4.4.1:
+   * - Parameter must be empty string ("")
+   * - Requests persistence of all data set since last successful commit
+   * - Returns "true" on success, "false" on failure
+   * - Sets error 101 if not initialized
+   * - Sets error 391 if commit failed
+   * - Does not terminate the communication session
    *
    * @param {string} parameter - Must be an empty string per SCORM 1.2 specification
-   * @return {string} bool
+   * @return {string} "true" or "false"
    */
   lmsCommit(parameter: string = ""): string {
     // SCORM 1.2 RTE 3.4.4.1: Parameter must be an empty string
@@ -213,29 +254,51 @@ class Scorm12API extends BaseAPI {
   }
 
   /**
-   * LMSGetLastError function from SCORM 1.2 Spec
+   * LMSGetLastError - Returns the error code from the last API call
    *
-   * @return {string}
+   * Per SCORM 1.2 RTE Section 3.4.4.2:
+   * - Returns the error code that resulted from the last API call
+   * - Returns "0" if no error occurred
+   * - Can be called at any time (even before LMSInitialize)
+   * - Does not change the current error state
+   * - Should be called after each API call to check for errors
+   *
+   * @return {string} Error code as a string (e.g., "0", "101", "301")
    */
   lmsGetLastError(): string {
     return this.getLastError("LMSGetLastError");
   }
 
   /**
-   * LMSGetErrorString function from SCORM 1.2 Spec
+   * LMSGetErrorString - Returns a short description for an error code
    *
-   * @param {string} CMIErrorCode
-   * @return {string}
+   * Per SCORM 1.2 RTE Section 3.4.4.3:
+   * - Returns a textual description for the specified error code
+   * - Returns empty string if error code is not recognized
+   * - Can be called at any time (even before LMSInitialize)
+   * - Does not change the current error state
+   * - Used to provide user-friendly error messages
+   *
+   * @param {string} CMIErrorCode - The error code to get the description for
+   * @return {string} Short error description
    */
   lmsGetErrorString(CMIErrorCode: string): string {
     return this.getErrorString("LMSGetErrorString", CMIErrorCode);
   }
 
   /**
-   * LMSGetDiagnostic function from SCORM 1.2 Spec
+   * LMSGetDiagnostic - Returns detailed diagnostic information for an error
    *
-   * @param {string} CMIErrorCode
-   * @return {string}
+   * Per SCORM 1.2 RTE Section 3.4.4.4:
+   * - Returns detailed diagnostic information for the specified error code
+   * - Implementation-specific; can include additional context or debugging info
+   * - Returns empty string if no diagnostic information is available
+   * - Can be called at any time (even before LMSInitialize)
+   * - Does not change the current error state
+   * - Used for debugging and troubleshooting
+   *
+   * @param {string} CMIErrorCode - The error code to get diagnostic information for
+   * @return {string} Detailed diagnostic information
    */
   lmsGetDiagnostic(CMIErrorCode: string): string {
     return this.getDiagnostic("LMSGetDiagnostic", CMIErrorCode);

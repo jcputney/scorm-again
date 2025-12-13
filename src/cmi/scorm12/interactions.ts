@@ -9,6 +9,13 @@ import * as Util from "../../utilities";
 
 /**
  * Class representing the SCORM 1.2 `cmi.interactions`
+ *
+ * Per SCORM 1.2 RTE Section 3.4.2.7:
+ * - Array of interaction records tracking learner responses to questions
+ * - Each interaction: id, time, type, weighting, student_response, result, latency
+ * - Supports objectives and correct_responses sub-arrays
+ * - All interaction data is write-only (except during JSON export)
+ *
  * @extends CMIArray
  */
 export class CMIInteractions extends CMIArray {
@@ -27,6 +34,16 @@ export class CMIInteractions extends CMIArray {
 
 /**
  * Class representing SCORM 1.2's cmi.interactions.n object
+ *
+ * Per SCORM 1.2 RTE Section 3.4.2.7:
+ * - Individual interaction record
+ * - id: Unique identifier for the interaction (CMIIdentifier)
+ * - type: Interaction type (true-false, choice, fill-in, matching, performance, sequencing, likert, numeric)
+ * - weighting: Weight assigned to the interaction (CMIDecimal, -100 to 100)
+ * - student_response: Learner's response (format depends on type)
+ * - result: Outcome (correct, wrong, unanticipated, neutral, or numeric score)
+ * - latency: Time from presentation to response (CMITimespan)
+ *
  * @extends BaseCMI
  */
 export class CMIInteractionsObject extends BaseCMI {
@@ -327,6 +344,12 @@ export class CMIInteractionsObject extends BaseCMI {
 
 /**
  * Class representing SCORM 1.2's cmi.interactions.n.objectives.n object
+ *
+ * Per SCORM 1.2 RTE Section 3.4.2.7.3:
+ * - Associates an interaction with one or more objectives
+ * - id: Identifier matching an objective in cmi.objectives
+ * - Write-only data element
+ *
  * @extends BaseCMI
  */
 export class CMIInteractionsObjectivesObject extends BaseCMI {
@@ -393,6 +416,13 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
 
 /**
  * Class representing SCORM 1.2's cmi.interactions.correct_responses.n object
+ *
+ * Per SCORM 1.2 RTE Section 3.4.2.7.4:
+ * - Defines correct response patterns for an interaction
+ * - pattern: Expected correct response (format depends on interaction type)
+ * - Multiple patterns allowed for interactions with multiple correct answers
+ * - Write-only data element
+ *
  * @extends BaseCMI
  */
 export class CMIInteractionsCorrectResponsesObject extends BaseCMI {
