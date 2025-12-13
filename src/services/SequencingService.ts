@@ -167,6 +167,8 @@ export class SequencingService {
           enhancedDeliveryValidation?: boolean;
           defaultHideLmsUi?: HideLmsUiItem[];
           defaultAuxiliaryResources?: AuxiliaryResource[];
+          getCMIData?: () => any;
+          is4thEdition?: boolean;
         } = {};
         if (this.configuration.now) overallOptions.now = this.configuration.now;
         overallOptions.defaultHideLmsUi = [...this.sequencing.hideLmsUi];
@@ -178,6 +180,9 @@ export class SequencingService {
             }),
           );
         }
+
+        // GAP-19: Provide CMI data callback for RTE data transfer
+        overallOptions.getCMIData = () => this.getCMIDataForTransfer();
 
         this.overallSequencingProcess = new OverallSequencingProcess(
           this.sequencing.activityTree,
@@ -575,6 +580,48 @@ export class SequencingService {
     if (activity.primaryObjective) {
       activity.primaryObjective.updateFromActivity(activity);
     }
+  }
+
+  /**
+   * GAP-19: Get CMI data for RTE data transfer to activity state
+   * This method provides all CMI data to the sequencing process for transfer
+   * @return {Object} - CMI data formatted for transfer
+   */
+  private getCMIDataForTransfer(): any {
+    const cmiData: any = {
+      completion_status: this.cmi.completion_status,
+      success_status: this.cmi.success_status,
+      progress_measure: this.cmi.progress_measure,
+      score: {
+        scaled: this.cmi.score?.scaled || "",
+        raw: this.cmi.score?.raw || "",
+        min: this.cmi.score?.min || "",
+        max: this.cmi.score?.max || "",
+      },
+      objectives: [],
+    };
+
+    // Transfer all CMI objectives
+    if (this.cmi.objectives && this.cmi.objectives.childArray) {
+      for (const cmiObjective of this.cmi.objectives.childArray) {
+        if (cmiObjective.id) {
+          cmiData.objectives.push({
+            id: cmiObjective.id,
+            success_status: cmiObjective.success_status,
+            completion_status: cmiObjective.completion_status,
+            progress_measure: cmiObjective.progress_measure,
+            score: {
+              scaled: cmiObjective.score?.scaled || "",
+              raw: cmiObjective.score?.raw || "",
+              min: cmiObjective.score?.min || "",
+              max: cmiObjective.score?.max || "",
+            },
+          });
+        }
+      }
+    }
+
+    return cmiData;
   }
 
   /**

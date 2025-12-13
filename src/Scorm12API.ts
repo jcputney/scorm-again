@@ -23,6 +23,26 @@ import { IHttpService } from "./interfaces/services";
  */
 class Scorm12API extends BaseAPI {
   /**
+   * Static global storage for learner preferences
+   * When globalStudentPreferences is enabled, preferences persist across SCO instances
+   * @private
+   */
+  private static _globalLearnerPrefs: {
+    audio: string;
+    language: string;
+    speed: string;
+    text: string;
+  } | null = null;
+
+  /**
+   * Clear the global learner preferences storage
+   * @public
+   */
+  public static clearGlobalPreferences(): void {
+    Scorm12API._globalLearnerPrefs = null;
+  }
+
+  /**
    * Constructor for SCORM 1.2 API
    * @param {object} settings
    * @param {IHttpService} httpService - Optional HTTP service instance
@@ -38,6 +58,23 @@ class Scorm12API extends BaseAPI {
 
     this.cmi = new CMI();
     this.nav = new NAV();
+
+    // Initialize preferences from global storage if enabled
+    // Only set non-empty values to avoid validation errors
+    if (this.settings.globalStudentPreferences && Scorm12API._globalLearnerPrefs) {
+      if (Scorm12API._globalLearnerPrefs.audio !== "") {
+        this.cmi.student_preference.audio = Scorm12API._globalLearnerPrefs.audio;
+      }
+      if (Scorm12API._globalLearnerPrefs.language !== "") {
+        this.cmi.student_preference.language = Scorm12API._globalLearnerPrefs.language;
+      }
+      if (Scorm12API._globalLearnerPrefs.speed !== "") {
+        this.cmi.student_preference.speed = Scorm12API._globalLearnerPrefs.speed;
+      }
+      if (Scorm12API._globalLearnerPrefs.text !== "") {
+        this.cmi.student_preference.text = Scorm12API._globalLearnerPrefs.text;
+      }
+    }
 
     // Rename functions to match 1.2 Spec and expose to modules
     this.LMSInitialize = this.lmsInitialize;
@@ -191,7 +228,38 @@ class Scorm12API extends BaseAPI {
    * @return {string}
    */
   override setCMIValue(CMIElement: string, value: any): string {
-    return this._commonSetCMIValue("LMSSetValue", false, CMIElement, value);
+    const result = this._commonSetCMIValue("LMSSetValue", false, CMIElement, value);
+
+    // Update global learner preferences if enabled
+    if (this.settings.globalStudentPreferences) {
+      if (CMIElement === "cmi.student_preference.audio") {
+        this._updateGlobalPreference("audio", value);
+      } else if (CMIElement === "cmi.student_preference.language") {
+        this._updateGlobalPreference("language", value);
+      } else if (CMIElement === "cmi.student_preference.speed") {
+        this._updateGlobalPreference("speed", value);
+      } else if (CMIElement === "cmi.student_preference.text") {
+        this._updateGlobalPreference("text", value);
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Updates a specific field in the global learner preferences storage
+   * @param {string} field - The preference field to update
+   * @param {string} value - The value to set
+   * @private
+   */
+  private _updateGlobalPreference(
+    field: "audio" | "language" | "speed" | "text",
+    value: string,
+  ): void {
+    if (!Scorm12API._globalLearnerPrefs) {
+      Scorm12API._globalLearnerPrefs = { audio: "", language: "", speed: "", text: "" };
+    }
+    Scorm12API._globalLearnerPrefs[field] = value;
   }
 
   /**
@@ -375,6 +443,8 @@ class Scorm12API extends BaseAPI {
   storeData(terminateCommit: boolean): ResultObject {
     if (terminateCommit) {
       const originalStatus = this.cmi.core.lesson_status;
+
+      // Stage 1: Apply mastery when status is unset/not-attempted
       if (
         !this.cmi.core.lesson_status ||
         (!this.statusSetByModule && this.cmi.core.lesson_status === "not attempted")
@@ -403,6 +473,24 @@ class Scorm12API extends BaseAPI {
           originalStatus === "not attempted"
         ) {
           this.cmi.core.lesson_status = "browsed";
+        }
+      }
+
+      // Stage 2: Override SCO-set status if score_overrides_status is enabled
+      if (
+        this.settings.score_overrides_status &&
+        this.statusSetByModule &&
+        this.cmi.core.lesson_mode === "normal" &&
+        this.cmi.core.credit === "credit" &&
+        this.cmi.student_data.mastery_score !== "" &&
+        this.cmi.core.score.raw !== ""
+      ) {
+        if (
+          parseFloat(this.cmi.core.score.raw) >= parseFloat(this.cmi.student_data.mastery_score)
+        ) {
+          this.cmi.core.lesson_status = "passed";
+        } else {
+          this.cmi.core.lesson_status = "failed";
         }
       }
     }

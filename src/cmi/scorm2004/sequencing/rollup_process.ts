@@ -7,6 +7,8 @@ import {
 } from "./activity";
 import { RollupActionType, RollupConsiderationType, RollupRule } from "./rollup_rules";
 import { CompletionStatus, SuccessStatus } from "../../../constants/enums";
+import { scorm2004_regex } from "../../../constants/regex";
+import { getDurationAsSeconds, getSecondsAsISODuration } from "../../../utilities";
 
 /**
  * Enhanced Rollup Process implementation for SCORM 2004 sequencing
@@ -36,6 +38,12 @@ export class RollupProcess {
 
     // Process rollup up the tree from parent to root
     while (currentActivity) {
+      // Duration rollup happens FIRST, ALWAYS for cluster activities (GAP-20)
+      // This happens even when optimization is active for other rollup types
+      if (currentActivity.children.length > 0) {
+        this.durationRollupProcess(currentActivity);
+      }
+
       if (!onlyDurationRollup) {
         // Capture status BEFORE rollup
         const beforeStatus = currentActivity.captureRollupStatus();
@@ -47,6 +55,8 @@ export class RollupProcess {
           // Step 1: Measure Rollup Process (RB.1.1)
           if (currentActivity.children.length > 0) {
             this.measureRollupProcess(currentActivity);
+            // Step 1b: Completion Measure Rollup Process (RB.1.1 b - GAP-27)
+            this.completionMeasureRollupProcess(currentActivity);
           }
 
           // Step 2: Objective Rollup Process (RB.1.2)
@@ -82,10 +92,6 @@ export class RollupProcess {
           affectedActivities.push(currentActivity);
         }
       }
-
-      // Duration rollup would go here (placeholder for GAP-20)
-      // TODO: Implement full duration rollup in GAP-20
-      // For now, duration rollup continues even when optimization is active
 
       // Move up the tree
       currentActivity = currentActivity.parent;
@@ -265,11 +271,82 @@ export class RollupProcess {
   }
 
   /**
+   * Completion Measure Rollup Process (RB.1.1 b - GAP-27)
+   * Rolls up attemptCompletionAmount from children to parent using weighted averaging
+   * 4th Edition Addition: Supports completion measure rollup for progress tracking
+   * @param {Activity} activity - The parent activity
+   */
+  private completionMeasureRollupProcess(activity: Activity): void {
+    const children = activity.getAvailableChildren();
+    if (children.length === 0) {
+      return;
+    }
+
+    const contributingChildren = children.filter((child) => {
+      return child.attemptCompletionAmountStatus;
+    });
+
+    if (contributingChildren.length === 0) {
+      activity.attemptCompletionAmountStatus = false;
+      return;
+    }
+
+    let totalWeightedMeasure = 0;
+    let totalWeight = 0;
+
+    for (const child of contributingChildren) {
+      totalWeightedMeasure += child.attemptCompletionAmount * child.progressWeight;
+      totalWeight += child.progressWeight;
+    }
+
+    if (totalWeight > 0) {
+      activity.attemptCompletionAmount = totalWeightedMeasure / totalWeight;
+      activity.attemptCompletionAmountStatus = true;
+    }
+  }
+
+  /**
+   * Activity Progress Rollup Using Measure (RB.1.3 a - GAP-27)
+   * Determines completion status using attemptCompletionAmount threshold comparison
+   * 4th Edition Addition: Measure-based completion determination
+   * @param {Activity} activity - The activity to evaluate
+   * @return {boolean} - True if measure-based evaluation was applied, false otherwise
+   */
+  private activityProgressRollupUsingMeasure(activity: Activity): boolean {
+    // Only apply if completedByMeasure is enabled
+    if (!activity.completedByMeasure) {
+      return false;
+    }
+
+    // Check if we have valid completion amount data
+    if (!activity.attemptCompletionAmountStatus) {
+      activity.completionStatus = CompletionStatus.UNKNOWN;
+      return true;
+    }
+
+    // Compare completion amount against threshold
+    if (activity.attemptCompletionAmount >= activity.minProgressMeasure) {
+      activity.completionStatus = CompletionStatus.COMPLETED;
+    } else {
+      activity.completionStatus = CompletionStatus.INCOMPLETE;
+    }
+
+    return true;
+  }
+
+  /**
    * Activity Progress Rollup Process (RB.1.3)
    * Determines activity completion status
+   * MODIFIED for GAP-27: Now tries measure-based rollup first
    * @param {Activity} activity - The parent activity
    */
   private activityProgressRollupProcess(activity: Activity): void {
+    // GAP-27: Try measure-based rollup first (RB.1.3 a)
+    if (this.activityProgressRollupUsingMeasure(activity)) {
+      return;
+    }
+
+    // Continue with rules-based rollup (original implementation)
     const rollupRules = activity.rollupRules;
 
     // Get completion rules
@@ -331,6 +408,151 @@ export class RollupProcess {
     const allCompleted = evaluationSet.length === 0 || evaluationSet.every((child) => this.isChildCompletedForRollup(child));
 
     activity.completionStatus = allCompleted ? "completed" : "incomplete";
+  }
+
+  /**
+   * Duration Rollup Process (GAP-20)
+   * Aggregates duration information from child activities to parent cluster
+   * Called ALWAYS for cluster activities, even when other rollup is skipped due to optimization
+   * Reference: Overall Rollup Process [RB.1.5] - duration rollup happens before optimization check
+   *
+   * @param {Activity} activity - The parent cluster activity
+   */
+  private durationRollupProcess(activity: Activity): void {
+    // Only process cluster activities (non-leaf)
+    if (activity.children.length === 0) {
+      return;
+    }
+
+    const children = activity.getAvailableChildren();
+
+    // No children available, nothing to rollup
+    if (children.length === 0) {
+      return;
+    }
+
+    let earliestChildActivityStartTimestampUtc: string | null = null;
+    let earliestChildAttemptStartTimestampUtc: string | null = null;
+    let latestChildEndDate: Date | null = null;
+    let latestAttemptChildEndDate: Date | null = null;
+
+    // Aggregate experienced durations (in seconds for easier math)
+    let childrenActivityExperiencedDurationSeconds = 0;
+    let childrenAttemptExperiencedDurationSeconds = 0;
+
+    // Process each child
+    for (const child of children) {
+      // Track earliest activity start timestamp
+      if (child.activityStartTimestampUtc) {
+        if (!earliestChildActivityStartTimestampUtc ||
+            child.activityStartTimestampUtc < earliestChildActivityStartTimestampUtc) {
+          earliestChildActivityStartTimestampUtc = child.activityStartTimestampUtc;
+        }
+      }
+
+      // Track latest activity end date
+      if (child.activityEndedDate) {
+        if (!latestChildEndDate || child.activityEndedDate > latestChildEndDate) {
+          latestChildEndDate = child.activityEndedDate;
+        }
+      }
+
+      // Aggregate activity experienced duration
+      // Use Value field if available (for cluster activities), otherwise use regular field (for leaf activities)
+      const activityDuration = child.activityExperiencedDurationValue !== "PT0H0M0S"
+        ? child.activityExperiencedDurationValue
+        : child.activityExperiencedDuration;
+
+      if (activityDuration && activityDuration !== "PT0H0M0S") {
+        childrenActivityExperiencedDurationSeconds += getDurationAsSeconds(
+          activityDuration,
+          scorm2004_regex.CMITimespan
+        );
+      }
+
+      // Check if child is in same attempt as parent
+      // (child attempt started after or at same time as parent attempt start)
+      const isChildInSameAttempt = !activity.attemptStartTimestampUtc ||
+        (child.attemptStartTimestampUtc &&
+         child.attemptStartTimestampUtc >= activity.attemptStartTimestampUtc);
+
+      if (isChildInSameAttempt) {
+        // Track earliest attempt start timestamp
+        if (child.attemptStartTimestampUtc) {
+          if (!earliestChildAttemptStartTimestampUtc ||
+              child.attemptStartTimestampUtc < earliestChildAttemptStartTimestampUtc) {
+            earliestChildAttemptStartTimestampUtc = child.attemptStartTimestampUtc;
+          }
+        }
+
+        // Track latest attempt end date
+        if (child.activityEndedDate) {
+          if (!latestAttemptChildEndDate ||
+              child.activityEndedDate > latestAttemptChildEndDate) {
+            latestAttemptChildEndDate = child.activityEndedDate;
+          }
+        }
+
+        // Aggregate attempt experienced duration
+        // Use Value field if available (for cluster activities), otherwise use regular field (for leaf activities)
+        const attemptDuration = child.attemptExperiencedDurationValue !== "PT0H0M0S"
+          ? child.attemptExperiencedDurationValue
+          : child.attemptExperiencedDuration;
+
+        if (attemptDuration && attemptDuration !== "PT0H0M0S") {
+          childrenAttemptExperiencedDurationSeconds += getDurationAsSeconds(
+            attemptDuration,
+            scorm2004_regex.CMITimespan
+          );
+        }
+      }
+    }
+
+    // Update parent activity timestamps and durations if we found any child data
+    if (earliestChildActivityStartTimestampUtc !== null) {
+      // Set earliest start timestamps
+      activity.activityStartTimestampUtc = earliestChildActivityStartTimestampUtc;
+
+      if (!activity.attemptStartTimestampUtc && earliestChildAttemptStartTimestampUtc) {
+        activity.attemptStartTimestampUtc = earliestChildAttemptStartTimestampUtc;
+      }
+
+      // Set latest end date
+      activity.activityEndedDate = latestChildEndDate;
+
+      // Calculate absolute durations (wall clock time)
+      if (latestChildEndDate && activity.activityStartTimestampUtc) {
+        const startDate = new Date(activity.activityStartTimestampUtc);
+        const durationMs = latestChildEndDate.getTime() - startDate.getTime();
+        const durationSeconds = Math.max(0, durationMs / 1000);
+        activity.activityAbsoluteDurationValue = getSecondsAsISODuration(durationSeconds);
+      }
+
+      if (latestAttemptChildEndDate && activity.attemptStartTimestampUtc) {
+        const startDate = new Date(activity.attemptStartTimestampUtc);
+        const durationMs = latestAttemptChildEndDate.getTime() - startDate.getTime();
+        const durationSeconds = Math.max(0, durationMs / 1000);
+        activity.attemptAbsoluteDurationValue = getSecondsAsISODuration(durationSeconds);
+      }
+
+      // Set aggregated experienced durations
+      activity.activityExperiencedDurationValue = getSecondsAsISODuration(
+        childrenActivityExperiencedDurationSeconds
+      );
+      activity.attemptExperiencedDurationValue = getSecondsAsISODuration(
+        childrenAttemptExperiencedDurationSeconds
+      );
+
+      // Fire event for monitoring
+      this.eventCallback?.("duration_rollup_completed", {
+        activityId: activity.id,
+        activityAbsoluteDuration: activity.activityAbsoluteDurationValue,
+        attemptAbsoluteDuration: activity.attemptAbsoluteDurationValue,
+        activityExperiencedDuration: activity.activityExperiencedDurationValue,
+        attemptExperiencedDuration: activity.attemptExperiencedDurationValue,
+        childCount: children.length
+      });
+    }
   }
 
   /**

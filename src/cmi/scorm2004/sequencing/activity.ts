@@ -253,6 +253,18 @@ export class Activity extends BaseCMI {
   private _attemptExperiencedDuration: string = "PT0H0M0S";
   private _activityAbsoluteDuration: string = "PT0H0M0S";
   private _activityExperiencedDuration: string = "PT0H0M0S";
+
+  // Duration tracking fields (separate from limits) - actual calculated values
+  private _attemptAbsoluteDurationValue: string = "PT0H0M0S";
+  private _attemptExperiencedDurationValue: string = "PT0H0M0S";
+  private _activityAbsoluteDurationValue: string = "PT0H0M0S";
+  private _activityExperiencedDurationValue: string = "PT0H0M0S";
+
+  // Timestamp tracking for duration calculation
+  private _activityStartTimestampUtc: string | null = null;
+  private _attemptStartTimestampUtc: string | null = null;
+  private _activityEndedDate: Date | null = null;
+
   private _objectiveSatisfiedStatus: boolean = false;
   private _objectiveMeasureStatus: boolean = false;
   private _objectiveNormalizedMeasure: number = 0;
@@ -274,6 +286,10 @@ export class Activity extends BaseCMI {
   private _timeLimitDuration: string | null = null;
   private _beginTimeLimit: string | null = null;
   private _endTimeLimit: string | null = null;
+  private _launchData: string = "";
+  private _credit: string = "credit";
+  private _maxTimeAllowed: string = "";
+  private _completionThreshold: string = "";
   private _sequencingControls: SequencingControls;
   private _sequencingRules: SequencingRules;
   private _rollupRules: RollupRules;
@@ -292,6 +308,10 @@ export class Activity extends BaseCMI {
   private _attemptProgressStatus: boolean = false;
   private _wasAutoCompleted: boolean = false;
   private _wasAutoSatisfied: boolean = false;
+  private _completedByMeasure: boolean = false;
+  private _minProgressMeasure: number = 1.0;
+  private _progressWeight: number = 1.0;
+  private _attemptCompletionAmountStatus: boolean = false;
 
   /**
    * Constructor for Activity
@@ -336,6 +356,13 @@ export class Activity extends BaseCMI {
     this._attemptExperiencedDuration = "PT0H0M0S";
     this._activityAbsoluteDuration = "PT0H0M0S";
     this._activityExperiencedDuration = "PT0H0M0S";
+    this._attemptAbsoluteDurationValue = "PT0H0M0S";
+    this._attemptExperiencedDurationValue = "PT0H0M0S";
+    this._activityAbsoluteDurationValue = "PT0H0M0S";
+    this._activityExperiencedDurationValue = "PT0H0M0S";
+    this._activityStartTimestampUtc = null;
+    this._attemptStartTimestampUtc = null;
+    this._activityEndedDate = null;
     this._objectiveSatisfiedStatus = false;
     this._objectiveMeasureStatus = false;
     this._objectiveNormalizedMeasure = 0;
@@ -364,6 +391,10 @@ export class Activity extends BaseCMI {
     this._attemptProgressStatus = false;
     this._wasAutoCompleted = false;
     this._wasAutoSatisfied = false;
+    this._completedByMeasure = false;
+    this._minProgressMeasure = 1.0;
+    this._progressWeight = 1.0;
+    this._attemptCompletionAmountStatus = false;
   }
 
   /**
@@ -1058,6 +1089,142 @@ export class Activity extends BaseCMI {
     this._activityAbsoluteDurationLimit = duration;
   }
 
+  /**
+   * Getter for attemptAbsoluteDurationValue (actual calculated duration)
+   * @return {string}
+   */
+  get attemptAbsoluteDurationValue(): string {
+    return this._attemptAbsoluteDurationValue;
+  }
+
+  /**
+   * Setter for attemptAbsoluteDurationValue
+   * @param {string} duration
+   */
+  set attemptAbsoluteDurationValue(duration: string) {
+    if (!validateISO8601Duration(duration, scorm2004_regex.CMITimespan)) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".attemptAbsoluteDurationValue",
+        scorm2004_errors.TYPE_MISMATCH as number
+      );
+    }
+    this._attemptAbsoluteDurationValue = duration;
+  }
+
+  /**
+   * Getter for attemptExperiencedDurationValue (actual calculated duration)
+   * @return {string}
+   */
+  get attemptExperiencedDurationValue(): string {
+    return this._attemptExperiencedDurationValue;
+  }
+
+  /**
+   * Setter for attemptExperiencedDurationValue
+   * @param {string} duration
+   */
+  set attemptExperiencedDurationValue(duration: string) {
+    if (!validateISO8601Duration(duration, scorm2004_regex.CMITimespan)) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".attemptExperiencedDurationValue",
+        scorm2004_errors.TYPE_MISMATCH as number
+      );
+    }
+    this._attemptExperiencedDurationValue = duration;
+  }
+
+  /**
+   * Getter for activityAbsoluteDurationValue (actual calculated duration)
+   * @return {string}
+   */
+  get activityAbsoluteDurationValue(): string {
+    return this._activityAbsoluteDurationValue;
+  }
+
+  /**
+   * Setter for activityAbsoluteDurationValue
+   * @param {string} duration
+   */
+  set activityAbsoluteDurationValue(duration: string) {
+    if (!validateISO8601Duration(duration, scorm2004_regex.CMITimespan)) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".activityAbsoluteDurationValue",
+        scorm2004_errors.TYPE_MISMATCH as number
+      );
+    }
+    this._activityAbsoluteDurationValue = duration;
+  }
+
+  /**
+   * Getter for activityExperiencedDurationValue (actual calculated duration)
+   * @return {string}
+   */
+  get activityExperiencedDurationValue(): string {
+    return this._activityExperiencedDurationValue;
+  }
+
+  /**
+   * Setter for activityExperiencedDurationValue
+   * @param {string} duration
+   */
+  set activityExperiencedDurationValue(duration: string) {
+    if (!validateISO8601Duration(duration, scorm2004_regex.CMITimespan)) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".activityExperiencedDurationValue",
+        scorm2004_errors.TYPE_MISMATCH as number
+      );
+    }
+    this._activityExperiencedDurationValue = duration;
+  }
+
+  /**
+   * Getter for activityStartTimestampUtc
+   * @return {string | null}
+   */
+  get activityStartTimestampUtc(): string | null {
+    return this._activityStartTimestampUtc;
+  }
+
+  /**
+   * Setter for activityStartTimestampUtc
+   * @param {string | null} timestamp
+   */
+  set activityStartTimestampUtc(timestamp: string | null) {
+    this._activityStartTimestampUtc = timestamp;
+  }
+
+  /**
+   * Getter for attemptStartTimestampUtc
+   * @return {string | null}
+   */
+  get attemptStartTimestampUtc(): string | null {
+    return this._attemptStartTimestampUtc;
+  }
+
+  /**
+   * Setter for attemptStartTimestampUtc
+   * @param {string | null} timestamp
+   */
+  set attemptStartTimestampUtc(timestamp: string | null) {
+    this._attemptStartTimestampUtc = timestamp;
+  }
+
+  /**
+   * Getter for activityEndedDate
+   * @return {Date | null}
+   */
+  get activityEndedDate(): Date | null {
+    return this._activityEndedDate;
+  }
+
+  /**
+   * Setter for activityEndedDate
+   * @param {Date | null} date
+   */
+  set activityEndedDate(date: Date | null) {
+    this._activityEndedDate = date;
+  }
+
 
   /**
    * Getter for sequencingControls
@@ -1152,6 +1319,50 @@ export class Activity extends BaseCMI {
 
   set wasAutoSatisfied(value: boolean) {
     this._wasAutoSatisfied = value;
+  }
+
+  get completedByMeasure(): boolean {
+    return this._completedByMeasure;
+  }
+
+  set completedByMeasure(value: boolean) {
+    this._completedByMeasure = value;
+  }
+
+  get minProgressMeasure(): number {
+    return this._minProgressMeasure;
+  }
+
+  set minProgressMeasure(value: number) {
+    if (value < 0.0 || value > 1.0) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".minProgressMeasure",
+        scorm2004_errors.TYPE_MISMATCH as number
+      );
+    }
+    this._minProgressMeasure = value;
+  }
+
+  get progressWeight(): number {
+    return this._progressWeight;
+  }
+
+  set progressWeight(value: number) {
+    if (value < 0.0) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".progressWeight",
+        scorm2004_errors.TYPE_MISMATCH as number
+      );
+    }
+    this._progressWeight = value;
+  }
+
+  get attemptCompletionAmountStatus(): boolean {
+    return this._attemptCompletionAmountStatus;
+  }
+
+  set attemptCompletionAmountStatus(value: boolean) {
+    this._attemptCompletionAmountStatus = value;
   }
 
   /**
@@ -1415,6 +1626,70 @@ export class Activity extends BaseCMI {
   }
 
   /**
+   * Getter for launchData
+   * @return {string}
+   */
+  get launchData(): string {
+    return this._launchData;
+  }
+
+  /**
+   * Setter for launchData
+   * @param {string} launchData
+   */
+  set launchData(launchData: string) {
+    this._launchData = launchData;
+  }
+
+  /**
+   * Getter for credit
+   * @return {string}
+   */
+  get credit(): string {
+    return this._credit;
+  }
+
+  /**
+   * Setter for credit
+   * @param {string} credit
+   */
+  set credit(credit: string) {
+    this._credit = credit;
+  }
+
+  /**
+   * Getter for maxTimeAllowed
+   * @return {string}
+   */
+  get maxTimeAllowed(): string {
+    return this._maxTimeAllowed;
+  }
+
+  /**
+   * Setter for maxTimeAllowed
+   * @param {string} maxTimeAllowed
+   */
+  set maxTimeAllowed(maxTimeAllowed: string) {
+    this._maxTimeAllowed = maxTimeAllowed;
+  }
+
+  /**
+   * Getter for completionThreshold
+   * @return {string}
+   */
+  get completionThreshold(): string {
+    return this._completionThreshold;
+  }
+
+  /**
+   * Setter for completionThreshold
+   * @param {string} completionThreshold
+   */
+  set completionThreshold(completionThreshold: string) {
+    this._completionThreshold = completionThreshold;
+  }
+
+  /**
    * toJSON for Activity
    * @return {object}
    */
@@ -1440,6 +1715,10 @@ export class Activity extends BaseCMI {
       objectiveNormalizedMeasure: this._objectiveNormalizedMeasure,
       rollupConsiderations: { ...this._rollupConsiderations },
       wasSkipped: this._wasSkipped,
+      completedByMeasure: this._completedByMeasure,
+      minProgressMeasure: this._minProgressMeasure,
+      progressWeight: this._progressWeight,
+      attemptCompletionAmountStatus: this._attemptCompletionAmountStatus,
       hideLmsUi: [...this._hideLmsUi],
       auxiliaryResources: this._auxiliaryResources.map((resource) => ({ ...resource })),
       children: this._children.map((child) => child.toJSON())

@@ -41,6 +41,12 @@ describe("State Persistence (Multi-Session Support)", () => {
 
     activityTree.root = root;
 
+    // Enable flow for traversal (only on clusters, not leaves)
+    root.sequencingControls.flow = true;
+    module1.sequencingControls.flow = true;
+    module2.sequencingControls.flow = true;
+    // Leaves should NOT have flow=true (GAP-15)
+
     sequencingProcess = new SequencingProcess(activityTree);
     rollupProcess = new RollupProcess();
     adlNav = new ADLNav();
@@ -235,6 +241,12 @@ describe("State Persistence (Multi-Session Support)", () => {
       newModule2.addChild(newLesson3);
       newActivityTree.root = newRoot;
 
+      // Enable flow for traversal (only on clusters, not leaves)
+      newRoot.sequencingControls.flow = true;
+      newModule1.sequencingControls.flow = true;
+      newModule2.sequencingControls.flow = true;
+      // Leaves should NOT have flow=true (GAP-15)
+
       const newSequencingProcess = new SequencingProcess(newActivityTree);
       const newRollupProcess = new RollupProcess();
       const newAdlNav = new ADLNav();
@@ -274,6 +286,11 @@ describe("State Persistence (Multi-Session Support)", () => {
       newModule1.addChild(newLesson1);
       newActivityTree.root = newRoot;
 
+      // Enable flow for traversal (only on clusters, not leaves)
+      newRoot.sequencingControls.flow = true;
+      newModule1.sequencingControls.flow = true;
+      // Leaves should NOT have flow=true (GAP-15)
+
       const newOverallProcess = new OverallSequencingProcess(
         newActivityTree,
         new SequencingProcess(newActivityTree),
@@ -305,6 +322,11 @@ describe("State Persistence (Multi-Session Support)", () => {
       newModule1.addChild(newLesson1);
       newActivityTree.root = newRoot;
 
+      // Enable flow for traversal (only on clusters, not leaves)
+      newRoot.sequencingControls.flow = true;
+      newModule1.sequencingControls.flow = true;
+      // Leaves should NOT have flow=true (GAP-15)
+
       const newOverallProcess = new OverallSequencingProcess(
         newActivityTree,
         new SequencingProcess(newActivityTree),
@@ -334,6 +356,11 @@ describe("State Persistence (Multi-Session Support)", () => {
       newRoot.addChild(newModule1);
       newModule1.addChild(newLesson1);
       newActivityTree.root = newRoot;
+
+      // Enable flow for traversal (only on clusters, not leaves)
+      newRoot.sequencingControls.flow = true;
+      newModule1.sequencingControls.flow = true;
+      // Leaves should NOT have flow=true (GAP-15)
 
       const newOverallProcess = new OverallSequencingProcess(
         newActivityTree,
@@ -385,6 +412,11 @@ describe("State Persistence (Multi-Session Support)", () => {
       newModule1.addChild(newLesson1);
       newActivityTree.root = newRoot;
 
+      // Enable flow for traversal (only on clusters, not leaves)
+      newRoot.sequencingControls.flow = true;
+      newModule1.sequencingControls.flow = true;
+      // Leaves should NOT have flow=true (GAP-15)
+
       const newOverallProcess = new OverallSequencingProcess(
         newActivityTree,
         new SequencingProcess(newActivityTree),
@@ -412,6 +444,11 @@ describe("State Persistence (Multi-Session Support)", () => {
       newRoot.addChild(newModule1);
       newModule1.addChild(newLesson1);
       newActivityTree.root = newRoot;
+
+      // Enable flow for traversal (only on clusters, not leaves)
+      newRoot.sequencingControls.flow = true;
+      newModule1.sequencingControls.flow = true;
+      // Leaves should NOT have flow=true (GAP-15)
 
       const newOverallProcess = new OverallSequencingProcess(
         newActivityTree,
@@ -442,6 +479,11 @@ describe("State Persistence (Multi-Session Support)", () => {
       newModule1.addChild(newLesson1);
       newModule1.addChild(newLesson2);
       newActivityTree.root = newRoot;
+
+      // Enable flow for traversal (only on clusters, not leaves)
+      newRoot.sequencingControls.flow = true;
+      newModule1.sequencingControls.flow = true;
+      // Leaves should NOT have flow=true (GAP-15)
 
       const newOverallProcess = new OverallSequencingProcess(
         newActivityTree,
@@ -483,6 +525,12 @@ describe("State Persistence (Multi-Session Support)", () => {
       newModule1.addChild(newLesson2);
       newModule2.addChild(newLesson3);
       newActivityTree.root = newRoot;
+
+      // Enable flow for traversal (only on clusters, not leaves)
+      newRoot.sequencingControls.flow = true;
+      newModule1.sequencingControls.flow = true;
+      newModule2.sequencingControls.flow = true;
+      // Leaves should NOT have flow=true (GAP-15)
 
       const newOverallProcess = new OverallSequencingProcess(
         newActivityTree,
@@ -540,6 +588,12 @@ describe("State Persistence (Multi-Session Support)", () => {
       newModule2.addChild(newLesson3);
       newActivityTree.root = newRoot;
 
+      // Enable flow for traversal (only on clusters, not leaves)
+      newRoot.sequencingControls.flow = true;
+      newModule1.sequencingControls.flow = true;
+      newModule2.sequencingControls.flow = true;
+      // Leaves should NOT have flow=true (GAP-15)
+
       const newOverallProcess = new OverallSequencingProcess(
         newActivityTree,
         new SequencingProcess(newActivityTree),
@@ -592,6 +646,11 @@ describe("State Persistence (Multi-Session Support)", () => {
       newModule1.addChild(newLesson2);
       newActivityTree.root = newRoot;
 
+      // Enable flow for traversal (only on clusters, not leaves)
+      newRoot.sequencingControls.flow = true;
+      newModule1.sequencingControls.flow = true;
+      // Leaves should NOT have flow=true (GAP-15)
+
       const newOverallProcess = new OverallSequencingProcess(
         newActivityTree,
         new SequencingProcess(newActivityTree),
@@ -634,6 +693,11 @@ describe("State Persistence (Multi-Session Support)", () => {
       newRoot.addChild(newModule1);
       newModule1.addChild(newLesson1);
       newActivityTree.root = newRoot;
+
+      // Enable flow for traversal (only on clusters, not leaves)
+      newRoot.sequencingControls.flow = true;
+      newModule1.sequencingControls.flow = true;
+      // Leaves should NOT have flow=true (GAP-15)
 
       const newAdlNav = new ADLNav();
       const newOverallProcess = new OverallSequencingProcess(

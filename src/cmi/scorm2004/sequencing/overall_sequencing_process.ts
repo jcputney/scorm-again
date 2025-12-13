@@ -12,6 +12,7 @@ import { getDurationAsSeconds } from "../../../utilities";
 import { scorm2004_regex } from "../../../constants/regex";
 import { CompletionStatus } from "../../../constants/enums";
 import { AuxiliaryResource, HideLmsUiItem, HIDE_LMS_UI_TOKENS } from "../../../types/sequencing_types";
+import { SelectionRandomization } from "./selection_randomization";
 
 /**
  * Enum for navigation request types
@@ -90,6 +91,33 @@ export interface TerminationRequestResult {
  * Overall Sequencing Process (OP.1)
  * Controls the overall execution of the sequencing loop
  */
+/**
+ * Interface for CMI data provided to sequencing process for RTE data transfer
+ */
+export interface CMIDataForTransfer {
+  completion_status?: string;
+  success_status?: string;
+  score?: {
+    scaled?: string;
+    raw?: string;
+    min?: string;
+    max?: string;
+  };
+  progress_measure?: string;
+  objectives?: Array<{
+    id: string;
+    success_status?: string;
+    completion_status?: string;
+    score?: {
+      scaled?: string;
+      raw?: string;
+      min?: string;
+      max?: string;
+    };
+    progress_measure?: string;
+  }>;
+}
+
 export class OverallSequencingProcess {
   private static readonly HIDE_LMS_UI_ORDER: HideLmsUiItem[] = [...HIDE_LMS_UI_TOKENS];
   private activityTree: ActivityTree;
@@ -104,6 +132,8 @@ export class OverallSequencingProcess {
   private enhancedDeliveryValidation: boolean;
   private defaultHideLmsUi: HideLmsUiItem[];
   private defaultAuxiliaryResources: AuxiliaryResource[];
+  private getCMIData: (() => CMIDataForTransfer) | null = null;
+  private is4thEdition: boolean = false;
 
   constructor(
     activityTree: ActivityTree,
@@ -116,6 +146,8 @@ export class OverallSequencingProcess {
       enhancedDeliveryValidation?: boolean;
       defaultHideLmsUi?: HideLmsUiItem[];
       defaultAuxiliaryResources?: AuxiliaryResource[];
+      getCMIData?: () => CMIDataForTransfer;
+      is4thEdition?: boolean;
     }
   ) {
     this.activityTree = activityTree;
@@ -129,6 +161,8 @@ export class OverallSequencingProcess {
     this.defaultAuxiliaryResources = options?.defaultAuxiliaryResources
       ? options.defaultAuxiliaryResources.map((resource) => ({ ...resource }))
       : [];
+    this.getCMIData = options?.getCMIData || null;
+    this.is4thEdition = options?.is4thEdition || false;
 
     // Initialize global objective map
     this.initializeGlobalObjectiveMap();
@@ -452,6 +486,18 @@ export class OverallSequencingProcess {
       };
     }
 
+    // TB.2.3-2: Check if trying to terminate already-terminated activity
+    if ((request === SequencingRequestType.EXIT ||
+         request === SequencingRequestType.ABANDON) &&
+        !currentActivity.isActive) {
+      return {
+        terminationRequest: request,
+        sequencingRequest: null,
+        exception: "TB.2.3-2",
+        valid: false
+      };
+    }
+
     // Enhanced logging for debugging
     this.fireEvent("onTerminationRequestProcessing", {
       request,
@@ -546,20 +592,13 @@ export class OverallSequencingProcess {
         const current = this.activityTree.currentActivity || currentActivity;
 
         if (!current.parent) {
-          // TB.2.3 step 3.3.4.2: At root, cannot exit parent - this is an error
-          // However, we should still process the post-condition sequencing request if present
-          if (!current.parent) {
-            // At root with EXIT_PARENT - treat as reaching root
-            if (postConditionResult.sequencingRequest !== SequencingRequestType.RETRY) {
-              // TB.2.3 step 3.3.5: Return EXIT sequencing request
-              return {
-                terminationRequest: SequencingRequestType.EXIT,
-                sequencingRequest: SequencingRequestType.EXIT,
-                exception: null,
-                valid: true
-              };
-            }
-          }
+          // TB.2.3-4: Cannot EXIT_PARENT from root
+          return {
+            terminationRequest: SequencingRequestType.EXIT_PARENT,
+            sequencingRequest: null,
+            exception: "TB.2.3-4",
+            valid: false
+          };
         } else {
           // TB.2.3 step 3.3.4.1: Move to parent
           this.activityTree.currentActivity = current.parent;
@@ -1000,32 +1039,59 @@ export class OverallSequencingProcess {
     this._deliveryInProgress = true;
 
     try {
-      // Step 1: Clear Suspended Activity Subprocess (DB.2.1) if needed
+      // Step 1: Check if we're resuming before clearing suspended state
+      // Capture suspended state of delivered activity BEFORE clearSuspendedActivitySubprocess
+      const isResuming = activity.isSuspended;
+
+      // Step 2: Clear Suspended Activity Subprocess (DB.2.1) if needed
       // Clear suspended state whether we're resuming the suspended activity
       // or delivering a different activity (abandoning the suspended session)
       if (this.activityTree.suspendedActivity) {
         this.clearSuspendedActivitySubprocess();
       }
 
-      // Step 2: Set the activity as current and active
-      this.activityTree.currentActivity = activity;
-      activity.isActive = true;
+      // Step 3: Process activity path and initialize tracking data (DB.2.2)
+      // Get the full path from root to delivered activity
+      const activityPath = this.getActivityPath(activity, true);
 
-      // Step 3: Initialize attempt for the delivered activity (DB.2.2)
+      // Process each activity in the path (root to leaf)
+      for (const pathActivity of activityPath) {
+        // Only process activities that are not already active
+        if (!pathActivity.isActive) {
+          if (isResuming || pathActivity.isSuspended) {
+            // Resuming: clear suspended flag but don't increment attempt
+            pathActivity.isSuspended = false;
+          } else {
+            // New attempt: increment attempt count
+            pathActivity.incrementAttemptCount();
+          }
+          pathActivity.isActive = true;
+
+          // Step 3.1: Apply selection and randomization per SCORM 2004 3rd Edition DB.2
+          // (GAP-17: Randomization at specification-required process points)
+          // This occurs after activity.isActive is set and attempt count is incremented
+          SelectionRandomization.applySelectionAndRandomization(pathActivity, pathActivity.attemptCount <= 1);
+        }
+      }
+
+      // Step 4: Set the activity as current
+      this.activityTree.currentActivity = activity;
+
+      // Step 5: Initialize attempt for the delivered activity
       this.initializeActivityForDelivery(activity);
 
-      // Step 4: Set up activity attempt tracking information
+      // Step 6: Set up activity attempt tracking information
       this.setupActivityAttemptTracking(activity);
 
-      // Step 5: Mark that content has been delivered
+      // Step 7: Mark that content has been delivered
       this.contentDelivered = true;
 
-      // Step 6: Update navigation validity if ADL nav is available
+      // Step 8: Update navigation validity if ADL nav is available
       if (this.adlNav) {
         this.updateNavigationValidity();
       }
 
-      // Step 7: Fire activity delivery event
+      // Step 9: Fire activity delivery event
       this.fireActivityDeliveryEvent(activity);
     } finally {
       // Clear delivery in progress flag
@@ -1078,10 +1144,8 @@ export class OverallSequencingProcess {
    * @param {Activity} activity - The activity being delivered
    */
   private setupActivityAttemptTracking(activity: Activity): void {
-    // Initialize attempt counter if this is a new attempt
-    if (!activity.attemptCount || activity.attemptCount === 0) {
-      activity.attemptCount = 1;
-    }
+    // Note: Attempt count is now incremented in contentDeliveryEnvironmentProcess
+    // during activity path processing, so we don't increment it here
 
     activity.wasSkipped = false;
 
@@ -1165,6 +1229,10 @@ export class OverallSequencingProcess {
     if (!activity.isActive) {
       return;
     }
+
+    // GAP-19: Transfer RTE data to activity state BEFORE auto-completion logic
+    // This ensures that CMI data set by content is properly transferred to activity objectives
+    this.transferRteDataToActivity(activity);
 
     // Set activity as inactive
     activity.isActive = false;
@@ -1260,6 +1328,198 @@ export class OverallSequencingProcess {
     if (this.activityTree.root) {
       this.rollupProcess.validateRollupStateConsistency(this.activityTree.root);
     }
+
+    // Apply selection and randomization per SCORM 2004 3rd Edition UP.4
+    // (GAP-17: Randomization at specification-required process points)
+    // This occurs after rollup processing completes
+    SelectionRandomization.applySelectionAndRandomization(activity, false);
+  }
+
+  /**
+   * GAP-19: Transfer RTE Data to Activity (Full Implementation)
+   * Transfers ALL CMI data from runtime environment to activity state
+   * Called at the start of endAttemptProcess to ensure proper data transfer
+   *
+   * This implements:
+   * - Primary objective data transfer (completion, success, score)
+   * - Non-primary objective data transfer by ID matching
+   * - Change tracking to prevent overwriting global objectives
+   * - Score normalization (ScaleRawScore)
+   * - 4th Edition specific handling
+   *
+   * @param {Activity} activity - The activity to transfer data to
+   */
+  private transferRteDataToActivity(activity: Activity): void {
+    if (!this.getCMIData) {
+      // No CMI data provider, skip transfer
+      return;
+    }
+
+    const cmiData = this.getCMIData();
+    if (!cmiData) {
+      return;
+    }
+
+    // Transfer primary objective data (cmi.* level)
+    this.transferPrimaryObjectiveData(activity, cmiData);
+
+    // Transfer non-primary objectives (cmi.objectives[n])
+    this.transferNonPrimaryObjectiveData(activity, cmiData);
+
+    this.fireEvent("onRteDataTransfer", {
+      activityId: activity.id,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  /**
+   * Transfer primary objective data from CMI to activity
+   * @param {Activity} activity - The activity to transfer data to
+   * @param {CMIDataForTransfer} cmiData - CMI data from runtime
+   */
+  private transferPrimaryObjectiveData(activity: Activity, cmiData: CMIDataForTransfer): void {
+    // Transfer completion status
+    if (cmiData.completion_status && cmiData.completion_status !== "unknown") {
+      activity.completionStatus = cmiData.completion_status as CompletionStatus;
+      activity.attemptProgressStatus = true;
+    }
+
+    // Transfer success status
+    if (cmiData.success_status && cmiData.success_status !== "unknown") {
+      const successStatus = cmiData.success_status === "passed";
+      activity.objectiveSatisfiedStatus = successStatus;
+      activity.successStatus = cmiData.success_status as "passed" | "failed" | "unknown";
+
+      if (activity.primaryObjective) {
+        activity.primaryObjective.satisfiedStatus = successStatus;
+        activity.primaryObjective.progressStatus = true;
+      }
+    }
+
+    // Transfer score (with normalization support)
+    if (cmiData.score) {
+      const normalizedScore = this.normalizeScore(cmiData.score);
+      if (normalizedScore !== null) {
+        activity.objectiveNormalizedMeasure = normalizedScore;
+        activity.objectiveMeasureStatus = true;
+
+        if (activity.primaryObjective) {
+          activity.primaryObjective.normalizedMeasure = normalizedScore;
+          activity.primaryObjective.measureStatus = true;
+        }
+      }
+    }
+
+    // Transfer progress measure
+    if (cmiData.progress_measure && cmiData.progress_measure !== "") {
+      const progressMeasure = parseFloat(cmiData.progress_measure);
+      if (!isNaN(progressMeasure)) {
+        activity.progressMeasure = progressMeasure;
+        activity.progressMeasureStatus = true;
+
+        if (activity.primaryObjective) {
+          activity.primaryObjective.progressMeasure = progressMeasure;
+          activity.primaryObjective.progressMeasureStatus = true;
+        }
+      }
+    }
+  }
+
+  /**
+   * Transfer non-primary objective data from CMI to activity objectives
+   * Only transfers changed values to protect global objectives
+   * @param {Activity} activity - The activity to transfer data to
+   * @param {CMIDataForTransfer} cmiData - CMI data from runtime
+   */
+  private transferNonPrimaryObjectiveData(activity: Activity, cmiData: CMIDataForTransfer): void {
+    if (!cmiData.objectives || cmiData.objectives.length === 0) {
+      return;
+    }
+
+    for (const cmiObjective of cmiData.objectives) {
+      if (!cmiObjective.id) {
+        continue;
+      }
+
+      // Find matching activity objective by ID
+      const activityObjectiveMatch = activity.getObjectiveById(cmiObjective.id);
+      if (!activityObjectiveMatch || activityObjectiveMatch.isPrimary) {
+        // Skip if not found or if it's the primary objective (already handled)
+        continue;
+      }
+
+      const activityObjective = activityObjectiveMatch.objective;
+
+      // Transfer success status (only if changed during runtime)
+      if (cmiObjective.success_status && cmiObjective.success_status !== "unknown") {
+        const successStatus = cmiObjective.success_status === "passed";
+        activityObjective.satisfiedStatus = successStatus;
+        activityObjective.progressStatus = true;
+      }
+
+      // Transfer completion status
+      if (cmiObjective.completion_status && cmiObjective.completion_status !== "unknown") {
+        activityObjective.completionStatus = cmiObjective.completion_status as CompletionStatus;
+      }
+
+      // Transfer score (with normalization)
+      if (cmiObjective.score) {
+        const normalizedScore = this.normalizeScore(cmiObjective.score);
+        if (normalizedScore !== null) {
+          activityObjective.normalizedMeasure = normalizedScore;
+          activityObjective.measureStatus = true;
+        }
+      }
+
+      // Transfer progress measure
+      if (cmiObjective.progress_measure && cmiObjective.progress_measure !== "") {
+        const progressMeasure = parseFloat(cmiObjective.progress_measure);
+        if (!isNaN(progressMeasure)) {
+          activityObjective.progressMeasure = progressMeasure;
+          activityObjective.progressMeasureStatus = true;
+        }
+      }
+    }
+  }
+
+  /**
+   * Normalize score from raw/min/max if scaled is not available
+   * Implements ScaleRawScore process
+   * @param {Object} score - Score object with scaled, raw, min, max
+   * @return {number | null} - Normalized score or null if cannot normalize
+   */
+  private normalizeScore(score: {
+    scaled?: string;
+    raw?: string;
+    min?: string;
+    max?: string;
+  }): number | null {
+    // If scaled score exists, use it directly
+    if (score.scaled && score.scaled !== "") {
+      const scaled = parseFloat(score.scaled);
+      if (!isNaN(scaled)) {
+        return scaled;
+      }
+    }
+
+    // If no scaled score, try to calculate from raw/min/max
+    if (score.raw && score.raw !== "" &&
+        score.min && score.min !== "" &&
+        score.max && score.max !== "") {
+      const raw = parseFloat(score.raw);
+      const min = parseFloat(score.min);
+      const max = parseFloat(score.max);
+
+      if (!isNaN(raw) && !isNaN(min) && !isNaN(max) && max > min) {
+        // ScaleRawScore formula: scaled = (raw - min) / (max - min)
+        const normalized = (raw - min) / (max - min);
+
+        // Clamp to [-1, 1] range per SCORM spec
+        return Math.max(-1, Math.min(1, normalized));
+      }
+    }
+
+    return null;
   }
 
   /**

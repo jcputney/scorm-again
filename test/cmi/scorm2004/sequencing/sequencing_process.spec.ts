@@ -40,6 +40,11 @@ describe("SequencingProcess", () => {
     child1.addChild(grandchild1);
     child1.addChild(grandchild2);
 
+    // Enable flow controls (required for START to work correctly)
+    root.sequencingControls.flow = true;
+    child1.sequencingControls.flow = true;
+    child2.sequencingControls.flow = true;
+
     activityTree.root = root;
 
     sequencingProcess = new SequencingProcess(
@@ -283,10 +288,12 @@ describe("SequencingProcess", () => {
         const initialAttemptCount = child1.attemptCount;
 
         const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.RETRY);
-        
+
         expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
         expect(result.targetActivity).toBe(child1);
-        expect(child1.attemptCount).toBe(initialAttemptCount + 1);
+        // GAP-18: Attempt count increment moved to contentDeliveryEnvironmentProcess
+        // The increment no longer happens in retrySequencingRequestProcess
+        expect(child1.attemptCount).toBe(initialAttemptCount);
       }
     });
 

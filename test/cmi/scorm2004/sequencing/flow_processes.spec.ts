@@ -51,12 +51,13 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
     
     activityTree.root = root;
 
-    // Enable flow by default
+    // Enable flow by default (only on clusters, not leaves)
     root.sequencingControls.flow = true;
     root.sequencingControls.choice = true;
     module1.sequencingControls.flow = true;
     module2.sequencingControls.flow = true;
     module3.sequencingControls.flow = true;
+    // Leaves should NOT have flow=true (GAP-15)
 
     sequencingProcess = new SequencingProcess(activityTree);
   });
@@ -121,11 +122,12 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
       it("should traverse to beginning of tree", () => {
         activityTree.currentActivity = lesson1_1;
         lesson1_1.isActive = false;
-        
+
         const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.PREVIOUS);
-        
+
         expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
-        expect(result.exception).toBe("SB.2.8-2"); // No activity available
+        // GAP-22: More specific exception code SB.2.1-3 (reached beginning) takes precedence over SB.2.8-2
+        expect(result.exception).toBe("SB.2.1-3"); // Reached beginning of course
       });
 
       it("should respect forwardOnly control", () => {
@@ -328,11 +330,15 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
       // Create deeper nesting
       const subLesson = new Activity("sub1", "Sub Lesson");
       const subSubLesson = new Activity("sub2", "Sub Sub Lesson");
+      // When we add children to lesson1_1, it becomes a cluster and needs flow
+      lesson1_1.sequencingControls.flow = true; // Now a cluster
+      subLesson.sequencingControls.flow = true; // Cluster
+      // subSubLesson is a leaf, should NOT have flow=true
       lesson1_1.addChild(subLesson);
       subLesson.addChild(subSubLesson);
-      
+
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START);
-      
+
       // Should flow all the way down to leaf
       expect(result.targetActivity).toBe(subSubLesson);
     });

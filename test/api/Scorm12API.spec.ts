@@ -834,6 +834,152 @@ describe("SCORM 1.2 API Tests", () => {
       scorm12API.storeData(true);
       expect(scorm12API.cmi.core.lesson_status).toEqual("passed");
     });
+
+    // GAP-34: score_overrides_status tests
+    describe("score_overrides_status setting", () => {
+      it("should preserve SCO-set status when score_overrides_status=false (backward compatibility)", () => {
+        const scorm12API = api({
+          ...DefaultSettings,
+          score_overrides_status: false,
+        });
+        scorm12API.cmi.core.credit = "credit";
+        scorm12API.cmi.student_data.mastery_score = "60.0";
+        scorm12API.lmsInitialize();
+        scorm12API.lmsSetValue("cmi.core.lesson_status", "completed");
+        scorm12API.cmi.core.score.raw = "75.0";
+        scorm12API.storeData(true);
+        expect(scorm12API.cmi.core.lesson_status).toEqual("completed");
+      });
+
+      it("should override SCO-set status to 'passed' when score_overrides_status=true and score >= mastery", () => {
+        const scorm12API = api({
+          ...DefaultSettings,
+          score_overrides_status: true,
+        });
+        scorm12API.cmi.core.credit = "credit";
+        scorm12API.cmi.student_data.mastery_score = "60.0";
+        scorm12API.lmsInitialize();
+        scorm12API.lmsSetValue("cmi.core.lesson_status", "completed");
+        scorm12API.cmi.core.score.raw = "75.0";
+        scorm12API.storeData(true);
+        expect(scorm12API.cmi.core.lesson_status).toEqual("passed");
+      });
+
+      it("should override SCO-set status to 'failed' when score_overrides_status=true and score < mastery", () => {
+        const scorm12API = api({
+          ...DefaultSettings,
+          score_overrides_status: true,
+        });
+        scorm12API.cmi.core.credit = "credit";
+        scorm12API.cmi.student_data.mastery_score = "60.0";
+        scorm12API.lmsInitialize();
+        scorm12API.lmsSetValue("cmi.core.lesson_status", "completed");
+        scorm12API.cmi.core.score.raw = "45.0";
+        scorm12API.storeData(true);
+        expect(scorm12API.cmi.core.lesson_status).toEqual("failed");
+      });
+
+      it("should override SCO-set 'passed' status to 'failed' when score_overrides_status=true and score < mastery", () => {
+        const scorm12API = api({
+          ...DefaultSettings,
+          score_overrides_status: true,
+        });
+        scorm12API.cmi.core.credit = "credit";
+        scorm12API.cmi.student_data.mastery_score = "60.0";
+        scorm12API.lmsInitialize();
+        scorm12API.lmsSetValue("cmi.core.lesson_status", "passed");
+        scorm12API.cmi.core.score.raw = "45.0";
+        scorm12API.storeData(true);
+        expect(scorm12API.cmi.core.lesson_status).toEqual("failed");
+      });
+
+      it("should override SCO-set 'failed' status to 'passed' when score_overrides_status=true and score >= mastery", () => {
+        const scorm12API = api({
+          ...DefaultSettings,
+          score_overrides_status: true,
+        });
+        scorm12API.cmi.core.credit = "credit";
+        scorm12API.cmi.student_data.mastery_score = "60.0";
+        scorm12API.lmsInitialize();
+        scorm12API.lmsSetValue("cmi.core.lesson_status", "failed");
+        scorm12API.cmi.core.score.raw = "75.0";
+        scorm12API.storeData(true);
+        expect(scorm12API.cmi.core.lesson_status).toEqual("passed");
+      });
+
+      it("should only apply in normal mode with credit", () => {
+        const scorm12API = api({
+          ...DefaultSettings,
+          score_overrides_status: true,
+        });
+        scorm12API.cmi.core.credit = "no-credit";
+        scorm12API.cmi.student_data.mastery_score = "60.0";
+        scorm12API.lmsInitialize();
+        scorm12API.lmsSetValue("cmi.core.lesson_status", "completed");
+        scorm12API.cmi.core.score.raw = "75.0";
+        scorm12API.storeData(true);
+        expect(scorm12API.cmi.core.lesson_status).toEqual("completed");
+      });
+
+      it("should only apply in normal mode", () => {
+        const scorm12API = api({
+          ...DefaultSettings,
+          score_overrides_status: true,
+        });
+        scorm12API.cmi.core.credit = "credit";
+        scorm12API.cmi.core.lesson_mode = "browse";
+        scorm12API.cmi.student_data.mastery_score = "60.0";
+        scorm12API.lmsInitialize();
+        scorm12API.lmsSetValue("cmi.core.lesson_status", "completed");
+        scorm12API.cmi.core.score.raw = "75.0";
+        scorm12API.storeData(true);
+        expect(scorm12API.cmi.core.lesson_status).toEqual("completed");
+      });
+
+      it("should only apply when both mastery_score and raw score are set", () => {
+        const scorm12API = api({
+          ...DefaultSettings,
+          score_overrides_status: true,
+        });
+        scorm12API.cmi.core.credit = "credit";
+        scorm12API.cmi.student_data.mastery_score = "60.0";
+        scorm12API.lmsInitialize();
+        scorm12API.lmsSetValue("cmi.core.lesson_status", "completed");
+        // No raw score set
+        scorm12API.storeData(true);
+        expect(scorm12API.cmi.core.lesson_status).toEqual("completed");
+      });
+
+      it("should only apply when mastery_score is set", () => {
+        const scorm12API = api({
+          ...DefaultSettings,
+          score_overrides_status: true,
+        });
+        scorm12API.cmi.core.credit = "credit";
+        // mastery_score is empty by default
+        scorm12API.lmsInitialize();
+        scorm12API.lmsSetValue("cmi.core.lesson_status", "completed");
+        scorm12API.cmi.core.score.raw = "75.0";
+        scorm12API.storeData(true);
+        expect(scorm12API.cmi.core.lesson_status).toEqual("completed");
+      });
+
+      it("should only override when statusSetByModule is true", () => {
+        const scorm12API = api({
+          ...DefaultSettings,
+          score_overrides_status: true,
+          mastery_override: false,
+        });
+        scorm12API.cmi.core.credit = "credit";
+        scorm12API.cmi.student_data.mastery_score = "60.0";
+        scorm12API.cmi.core.score.raw = "75.0";
+        // statusSetByModule is false since we didn't call lmsSetValue for lesson_status
+        scorm12API.storeData(true);
+        // Should default to "incomplete" (autoCompleteLessonStatus is false)
+        // Stage 2 doesn't apply because statusSetByModule is false
+        expect(scorm12API.cmi.core.lesson_status).toEqual("incomplete");
+      });
+    });
   });
 
   describe("LMSCommit Throttle Tests", () => {

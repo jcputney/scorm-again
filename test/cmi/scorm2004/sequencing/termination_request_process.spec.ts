@@ -310,14 +310,15 @@ describe("Termination Request Process (TB.2.3)", () => {
       expect(result.exception).toBe("NB.2.1-13"); // Navigation validation fails first
     });
 
-    it("should handle termination of inactive activity gracefully", () => {
+    it("should return TB.2.3-2 when terminating already-terminated activity", () => {
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = false; // Already terminated
-      
+
       const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT);
-      
-      expect(result.valid).toBe(true);
-      // Should not error on already terminated activity
+
+      // GAP-22: TB.2.3-2 check - cannot terminate an already-terminated activity
+      expect(result.valid).toBe(false);
+      expect(result.exception).toBe("TB.2.3-2");
     });
   });
 

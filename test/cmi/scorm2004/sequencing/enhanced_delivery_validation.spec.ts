@@ -38,6 +38,12 @@ describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
 
     activityTree.root = root;
 
+    // Enable flow for traversal (only on clusters, not leaves)
+    root.sequencingControls.flow = true;
+    module1.sequencingControls.flow = true;
+    module2.sequencingControls.flow = true;
+    // Leaves should NOT have flow=true (GAP-15)
+
     sequencingProcess = new SequencingProcess(activityTree);
     rollupProcess = new RollupProcess();
     adlNav = new ADLNav();

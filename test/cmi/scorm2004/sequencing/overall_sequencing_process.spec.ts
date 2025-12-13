@@ -50,6 +50,12 @@ describe("Overall Sequencing Process (OP.1)", () => {
     
     activityTree.root = root;
 
+    // Enable flow for traversal (only on clusters, not leaves)
+    root.sequencingControls.flow = true;
+    child1.sequencingControls.flow = true;
+    // child2 has no children, so it's a leaf and should NOT have flow=true
+    // grandchild1 and grandchild2 are leaves, should NOT have flow=true (GAP-15)
+
     // Initialize sequencing components
     sequencingProcess = new SequencingProcess(activityTree);
     rollupProcess = new RollupProcess();
@@ -479,6 +485,7 @@ describe("Overall Sequencing Process (OP.1)", () => {
 
       rootActivity.addChild(childActivity);
       rootActivity.sequencingControls.flow = true;
+      // childActivity is a leaf, should NOT have flow=true
       rootActivity.hideLmsUi = ["continue"];
       childActivity.hideLmsUi = ["previous"];
 
@@ -586,6 +593,13 @@ describe("Overall Sequencing Process (OP.1)", () => {
         deepTree.root = level0;
         deepTree.currentActivity = level4;
         level4.isActive = true;
+
+        // Enable flow for deep tree traversal (only on clusters, not leaves)
+        level0.sequencingControls.flow = true;
+        level1.sequencingControls.flow = true;
+        level2.sequencingControls.flow = true;
+        level3.sequencingControls.flow = true;
+        // level4 is a leaf, should NOT have flow=true
 
         const deepProcess = new OverallSequencingProcess(
           deepTree,

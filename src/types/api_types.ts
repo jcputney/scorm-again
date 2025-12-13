@@ -28,6 +28,8 @@ export type Settings = {
   requestHandler?: ((commitObject: unknown) => unknown) | undefined;
   onLogMessage?: ((messageLevel: LogLevel, logMessage: string) => void) | undefined;
   mastery_override?: boolean | undefined;
+  score_overrides_status?: boolean | undefined;
+  completion_status_on_failed?: "completed" | "incomplete" | undefined;
   renderCommonCommitFields?: boolean | undefined;
   autoCompleteLessonStatus?: boolean | undefined;
   scoItemIds?: string[] | undefined;
@@ -52,6 +54,9 @@ export type Settings = {
 
   // HTTP service settings
   httpService?: IHttpService | null | undefined;
+
+  // Global learner preferences settings
+  globalStudentPreferences?: boolean | undefined;
 };
 
 /**
@@ -81,6 +86,8 @@ export type InternalSettings = {
   requestHandler: (commitObject: unknown) => unknown;
   onLogMessage?: ((messageLevel: LogLevel, logMessage: string) => void) | undefined;
   mastery_override?: boolean | undefined;
+  score_overrides_status?: boolean | undefined;
+  completion_status_on_failed?: "completed" | "incomplete" | undefined;
   scoItemIds?: string[] | undefined;
   scoItemIdValidator?: false | ((scoItemId: string) => boolean) | undefined;
   globalObjectiveIds?: string[] | undefined;
@@ -103,6 +110,9 @@ export type InternalSettings = {
 
   // HTTP service settings
   httpService: IHttpService | null;
+
+  // Global learner preferences settings
+  globalStudentPreferences?: boolean | undefined;
 };
 
 export type RefObject = {

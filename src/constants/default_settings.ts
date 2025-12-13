@@ -105,6 +105,9 @@ export const DefaultSettings: InternalSettings = {
     return commitObject;
   },
   onLogMessage: defaultLogHandler,
+  mastery_override: false,
+  score_overrides_status: false,
+  completion_status_on_failed: "completed",
   scoItemIds: [],
   scoItemIdValidator: false,
   globalObjectiveIds: [],
@@ -122,6 +125,9 @@ export const DefaultSettings: InternalSettings = {
 
   // HTTP service settings
   httpService: null,
+
+  // Global learner preferences settings
+  globalStudentPreferences: false,
 };
 
 export function defaultLogHandler(messageLevel: LogLevel, logMessage: string): void {

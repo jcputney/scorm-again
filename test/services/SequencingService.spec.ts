@@ -39,6 +39,11 @@ describe("SequencingService", () => {
     const childActivity2 = new Activity("child2", "Child 2");
     rootActivity.addChild(childActivity1);
     rootActivity.addChild(childActivity2);
+
+    // Enable flow for traversal (only on clusters, not leaves)
+    rootActivity.sequencingControls.flow = true;
+    // Leaves should NOT have flow=true (GAP-15)
+
     sequencing.activityTree.root = rootActivity;
 
     sequencingService = new SequencingService(

@@ -238,6 +238,7 @@ export class SequencingProcess {
   /**
    * Start Sequencing Request Process (SB.2.5)
    * Determines the first activity to deliver when starting
+   * Uses Flow Activity Traversal Subprocess (SB.2.2) to respect flow controls
    * @return {SequencingResult}
    */
   private startSequencingRequestProcess(): SequencingResult {
@@ -255,9 +256,15 @@ export class SequencingProcess {
       return result;
     }
 
-    // For START, we need to flow into the activity tree from the root
-    // Start with the root and find first deliverable leaf activity
-    const deliverableActivity = this.findFirstDeliverableActivity(root);
+    // Use Flow Activity Traversal Subprocess to find first deliverable activity
+    // This ensures flow controls (flow=true, stopForwardTraversal) are respected
+    // Start from root, forward direction, consider children
+    const deliverableActivity = this.flowActivityTraversalSubprocess(
+      root,
+      true,  // direction: forward
+      true,  // considerChildren: true
+      FlowSubprocessMode.FORWARD
+    );
 
     if (!deliverableActivity) {
       result.exception = "SB.2.5-3"; // No activity available
@@ -273,6 +280,7 @@ export class SequencingProcess {
   /**
    * Find First Deliverable Activity
    * Recursively searches from the given activity to find the first deliverable leaf
+   * @deprecated This method is deprecated - use flowActivityTraversalSubprocess instead
    * @param {Activity} activity - The activity to start searching from
    * @return {Activity | null} - The first deliverable activity, or null if none found
    */
@@ -462,6 +470,12 @@ export class SequencingProcess {
       return result;
     }
 
+    // GAP-16: Early availability check before expensive operations
+    if (!targetActivity.isAvailable) {
+      result.exception = "SB.2.9-7";
+      return result;
+    }
+
     // Find common ancestor
     const commonAncestor = this.findCommonAncestor(currentActivity, targetActivity);
 
@@ -486,17 +500,10 @@ export class SequencingProcess {
       }
     }
 
-    // If target is not a leaf, flow forward to find a leaf
+    // If target is not a leaf, use choice flow subprocess to find a deliverable leaf
+    // This uses enhanced validation per SB.2.9.1, SB.2.9.2, and SB.2.4
     if (targetActivity.children.length > 0) {
-      this.ensureSelectionAndRandomization(targetActivity);
-      const availableChildren = targetActivity.getAvailableChildren();
-
-      const flowResult = this.flowActivityTraversalSubprocess(
-        targetActivity,
-        true, // direction forward
-        true, // consider children
-        FlowSubprocessMode.FORWARD
-      );
+      const flowResult = this.choiceFlowSubprocess(targetActivity, commonAncestor);
 
       if (!flowResult) {
         result.exception = "SB.2.9-7"; // No activity available from target
@@ -646,8 +653,9 @@ export class SequencingProcess {
     // Terminate current activity
     this.terminateDescendentAttemptsProcess(currentActivity);
 
-    // Increment attempt count
-    currentActivity.incrementAttemptCount();
+    // NOTE: Attempt count increment removed here (GAP-18 fix)
+    // The increment happens in contentDeliveryEnvironmentProcess() at line 1028
+    // Incrementing here caused a double-increment bug on RETRY requests
 
     // Deliver the activity again
     result.deliveryRequest = DeliveryRequestType.DELIVER;
@@ -690,18 +698,24 @@ export class SequencingProcess {
     considerChildren: boolean,
     mode: FlowSubprocessMode
   ): Activity | null {
-    // Check if the activity is available
-    if (!activity.isAvailable) {
-      return null;
-    }
-
-    // Check sequencing control modes
+    // SB.2.2 Step 1: Check sequencing control modes (flow control check)
     const parent = activity.parent;
     if (parent && !parent.sequencingControls.flow) {
       return null;
     }
 
-    // Activity is a cluster, try to flow into it to find a deliverable leaf
+    // SB.2.2 Step 2: Check if the activity is available
+    if (!activity.isAvailable) {
+      return null;
+    }
+
+    // SB.2.2 Step 3: Check stopForwardTraversal flag for forward direction
+    if (mode === FlowSubprocessMode.FORWARD && activity.sequencingControls.stopForwardTraversal) {
+      // Cannot traverse into this activity's children in forward direction
+      return null;
+    }
+
+    // SB.2.2 Step 4: Activity is a cluster, try to flow into it to find a deliverable leaf
     if (considerChildren) {
       this.ensureSelectionAndRandomization(activity);
       const availableChildren = activity.getAvailableChildren();
@@ -719,12 +733,12 @@ export class SequencingProcess {
       }
     }
 
-    // If activity is a leaf (no children), check if it can be delivered
+    // SB.2.2 Step 5: If activity is a leaf (no children), check if it can be delivered
     if (activity.children.length === 0) {
-      // Check if this activity was intended to be a cluster but is empty
-      // A cluster typically has flow control enabled
+      // An activity with no children and flow=true is likely an empty cluster (authoring error)
+      // True leaf activities should have flow=false
       if (activity.sequencingControls.flow) {
-        // This appears to be an empty cluster, not a true leaf
+        // This appears to be an intended cluster that has no children
         return null;
       }
 
@@ -1116,6 +1130,7 @@ export class SequencingProcess {
   private flowSubprocess(fromActivity: Activity, direction: FlowSubprocessMode): FlowSubprocessResult {
     let candidateActivity: Activity | null = fromActivity;
     let firstIteration = true;
+    let lastCandidateHadNoChildren = false;
 
     // Keep traversing until we find a deliverable activity or run out of candidates
     while (candidateActivity) {
@@ -1130,14 +1145,24 @@ export class SequencingProcess {
       if (!traversalResult.activity) {
         // No more candidates - propagate endSequencingSession flag from traversal
         // SB.2.3 step 3.1: Exit with no deliverable activity and endSequencingSession flag
-        // Note: Exception code will be set by calling process (Continue/Previous)
+        // Set appropriate exception code based on direction and reason
+        let exceptionCode: string | null = null;
+        if (direction === FlowSubprocessMode.BACKWARD) {
+          exceptionCode = "SB.2.1-3"; // Reached beginning of course
+        } else if (lastCandidateHadNoChildren) {
+          exceptionCode = "SB.2.1-2"; // No available children to deliver
+        }
         return new FlowSubprocessResult(
           candidateActivity,
           false,
-          null,
+          exceptionCode,
           traversalResult.endSequencingSession
         );
       }
+
+      // Track if this activity is a cluster with no available children
+      lastCandidateHadNoChildren = traversalResult.activity.children.length > 0 &&
+        traversalResult.activity.getAvailableChildren().length === 0;
 
       // Check if this candidate can be delivered
       const deliverable = this.flowActivityTraversalSubprocess(

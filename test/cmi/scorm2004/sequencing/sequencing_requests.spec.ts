@@ -205,14 +205,15 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
       expect(result.exception).toBe("SB.2.8-1");
     });
 
-    it("should fail if no previous activity (SB.2.8-2)", () => {
+    it("should fail if no previous activity (SB.2.8-2 or SB.2.1-3)", () => {
       activityTree.currentActivity = lesson1_1; // First activity
       lesson1_1.isActive = false;
-      
+
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.PREVIOUS);
-      
+
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
-      expect(result.exception).toBe("SB.2.8-2");
+      // GAP-22: More specific exception code SB.2.1-3 (reached beginning) takes precedence over SB.2.8-2
+      expect(result.exception).toBe("SB.2.1-3");
     });
 
     it("should handle flow across module boundaries backward", () => {
@@ -353,21 +354,25 @@ describe("Sequencing Request Processes (SB.2.5-2.11)", () => {
       activityTree.currentActivity = lesson1_1;
       lesson1_1.isActive = false;
       lesson1_1.attemptCount = 1;
-      
+
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.RETRY);
-      
+
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
       expect(result.targetActivity).toBe(lesson1_1);
-      expect(lesson1_1.attemptCount).toBe(2);
+      // GAP-18: Attempt count increment moved to contentDeliveryEnvironmentProcess
+      // The increment no longer happens in retrySequencingRequestProcess
+      expect(lesson1_1.attemptCount).toBe(1);
     });
 
     it("should increment attempt count", () => {
       activityTree.currentActivity = lesson1_1;
       lesson1_1.attemptCount = 0;
-      
+
       sequencingProcess.sequencingRequestProcess(SequencingRequestType.RETRY);
-      
-      expect(lesson1_1.attemptCount).toBe(1);
+
+      // GAP-18: Attempt count increment moved to contentDeliveryEnvironmentProcess
+      // The increment no longer happens in retrySequencingRequestProcess
+      expect(lesson1_1.attemptCount).toBe(0);
     });
 
     it("should handle retry with selection/randomization", () => {

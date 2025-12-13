@@ -124,7 +124,8 @@ describe("GAP-01: EndSequencingSession Handling", () => {
 
       // Verify: Should fail but NOT end session
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
-      expect(result.exception).toBe("SB.2.8-2"); // No activity available
+      // GAP-22: More specific exception code SB.2.1-3 (reached beginning) takes precedence over SB.2.8-2
+      expect(result.exception).toBe("SB.2.1-3"); // Reached beginning of course
       expect(result.endSequencingSession).toBe(false); // Session continues
       expect(result.targetActivity).toBeNull();
     });
