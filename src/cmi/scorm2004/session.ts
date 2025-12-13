@@ -66,6 +66,12 @@ export class CMISession extends BaseCMI {
    * @param {string} exit
    */
   set exit(exit: string) {
+    if (exit === "logout") {
+      console.warn(
+        'SCORM 2004: cmi.exit value "logout" is deprecated per 4th Edition. ' +
+          'Consider using "normal" or "suspend" instead.',
+      );
+    }
     if (check2004ValidFormat(this._cmi_element + ".exit", exit, scorm2004_regex.CMIExit, true)) {
       this._exit = exit;
     }
