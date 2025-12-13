@@ -95,6 +95,23 @@ class FlowSubprocessResult {
 }
 
 /**
+ * Result of Choice Traversal Subprocess (SB.2.4)
+ * Used internally to propagate exception information from choice traversal
+ */
+class ChoiceTraversalResult {
+  public activity: Activity | null;
+  public exception: string | null;
+
+  constructor(
+    activity: Activity | null,
+    exception: string | null = null
+  ) {
+    this.activity = activity;
+    this.exception = exception;
+  }
+}
+
+/**
  * Class implementing SCORM 2004 sequencing processes
  */
 export class SequencingProcess {
@@ -1367,10 +1384,13 @@ export class SequencingProcess {
     // Find the first available child that can be delivered
     for (const child of constraintValidation.validChildren) {
       // Check if child can be delivered or traverse into it
-      const deliverable = this.enhancedChoiceActivityTraversalSubprocess(child);
-      if (deliverable) {
-        return deliverable;
+      const traversalResult = this.enhancedChoiceActivityTraversalSubprocess(child);
+      if (traversalResult.activity) {
+        return traversalResult.activity;
       }
+      // Note: Exception information is intentionally not propagated here
+      // as we continue searching through siblings. The exception would only
+      // be relevant if no children are deliverable (handled by caller).
     }
 
     return null;
@@ -1380,46 +1400,69 @@ export class SequencingProcess {
    * Enhanced Choice Activity Traversal Subprocess (SB.2.4)
    * Priority 3 Gap: Choice Activity Traversal with stopForwardTraversal and forwardOnly checks
    * @param {Activity} activity - The activity to check and possibly traverse
-   * @return {Activity | null} - A deliverable activity, or null if none found
+   * @param {boolean} isBackwardTraversal - Whether this is a backward traversal (default: false)
+   * @return {ChoiceTraversalResult} - Result with deliverable activity or exception
    */
-  private enhancedChoiceActivityTraversalSubprocess(activity: Activity): Activity | null {
+  private enhancedChoiceActivityTraversalSubprocess(
+    activity: Activity,
+    isBackwardTraversal: boolean = false
+  ): ChoiceTraversalResult {
+    // SB.2.4-3: Cannot walk backward from root of activity tree
+    if (isBackwardTraversal && activity === this.activityTree.root) {
+      return new ChoiceTraversalResult(null, "SB.2.4-3");
+    }
+
     // Check if activity is available
     if (!activity.isAvailable) {
-      return null;
+      return new ChoiceTraversalResult(null, null);
     }
 
     // Check if activity is hidden from choice
     if (activity.isHiddenFromChoice) {
-      return null;
+      return new ChoiceTraversalResult(null, null);
+    }
+
+    // SB.2.4-1: Check if stopForwardTraversal rule evaluates to true
+    if (activity.sequencingControls && activity.sequencingControls.stopForwardTraversal) {
+      return new ChoiceTraversalResult(null, "SB.2.4-1");
     }
 
     // Enhanced constraint checks including stopForwardTraversal and forwardOnly
     const traversalValidation = this.validateChoiceTraversalConstraints(activity);
     if (!traversalValidation.canTraverse) {
-      return null;
+      return new ChoiceTraversalResult(null, null);
     }
 
     // If it's a leaf, check if it can be delivered
     if (activity.children.length === 0) {
       if (this.checkActivityProcess(activity)) {
-        return activity;
+        return new ChoiceTraversalResult(activity, null);
       }
-      return null;
+      return new ChoiceTraversalResult(null, null);
+    }
+
+    // SB.2.4-2: Constrained choice requires forward traversal from leaf
+    // If parent has constrainChoice enabled and we're at a cluster (not a leaf),
+    // we need to ensure we can traverse forward into children
+    if (activity.parent?.sequencingControls.constrainChoice && !traversalValidation.canTraverseInto) {
+      return new ChoiceTraversalResult(null, "SB.2.4-2");
     }
 
     // If it's a cluster, traverse into it with enhanced validation
     if (traversalValidation.canTraverseInto) {
-      return this.choiceFlowTreeTraversalSubprocess(activity);
+      const flowResult = this.choiceFlowTreeTraversalSubprocess(activity);
+      return new ChoiceTraversalResult(flowResult, null);
     }
 
-    return null;
+    return new ChoiceTraversalResult(null, null);
   }
 
   /**
    * Original Choice Activity Traversal Subprocess for backwards compatibility
    */
   private choiceActivityTraversalSubprocess(activity: Activity): Activity | null {
-    return this.enhancedChoiceActivityTraversalSubprocess(activity);
+    const result = this.enhancedChoiceActivityTraversalSubprocess(activity);
+    return result.activity;
   }
 
   /**
