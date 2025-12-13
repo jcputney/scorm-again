@@ -1083,6 +1083,18 @@ describe("SCORM 2004 API Tests", () => {
       expect(errorString).toEqual("General Exception");
     });
 
+    it("should return 'No Error' for error code 0", (): void => {
+      const scorm2004API = api();
+      const errorString = scorm2004API.lmsGetErrorString("0");
+      expect(errorString).toEqual("No Error");
+    });
+
+    it("should return empty string when error code is empty string (per SCORM 2004 3rd Ed Addendum)", (): void => {
+      const scorm2004API = api();
+      const errorString = scorm2004API.lmsGetErrorString("");
+      expect(errorString).toEqual("");
+    });
+
     it("should return an empty string for an unknown error code", (): void => {
       const scorm2004API = api();
       const unknownErrorCode = 9999;

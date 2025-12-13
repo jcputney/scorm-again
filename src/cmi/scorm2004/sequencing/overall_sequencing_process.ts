@@ -526,7 +526,7 @@ export class OverallSequencingProcess {
         return {
           terminationRequest: request,
           sequencingRequest: null,
-          exception: "TB.2.3-1",
+          exception: "TB.2.3-7",
           valid: false
         };
     }
@@ -712,10 +712,30 @@ export class OverallSequencingProcess {
    * @return {TerminationRequestResult} - The termination result
    */
   private handleAbandonAllTermination(currentActivity: Activity): TerminationRequestResult {
-    // TB.2.3 step 7.1: Set all activities as not active (no attempt ends)
-    currentActivity.isActive = false;
+    // TB.2.3 step 7.1: Form the activity path from current to root
+    const activityPath: Activity[] = [];
+    let current: Activity | null = currentActivity;
+    while (current !== null) {
+      activityPath.push(current);
+      current = current.parent;
+    }
 
-    // TB.2.3 step 7.2: Clear current activity
+    // TB.2.3 step 7.2: If the activity path is empty
+    if (activityPath.length === 0) {
+      return {
+        terminationRequest: SequencingRequestType.ABANDON_ALL,
+        sequencingRequest: null,
+        exception: "TB.2.3-6",
+        valid: false
+      };
+    }
+
+    // TB.2.3 step 7.3: For each activity in the activity path, set not active
+    for (const activity of activityPath) {
+      activity.isActive = false;
+    }
+
+    // TB.2.3 step 7.4: Clear current activity
     this.activityTree.currentActivity = null;
 
     // Clean up suspended activities
@@ -737,7 +757,12 @@ export class OverallSequencingProcess {
    */
   private handleSuspendAllTermination(currentActivity: Activity): TerminationRequestResult {
     // TB.2.3 steps 5.1-5.6: Suspend current activity and all ancestors, set current to root
-    this.handleSuspendAllRequest(currentActivity);
+    const suspendResult = this.handleSuspendAllRequest(currentActivity);
+
+    // Check if suspend failed
+    if (!suspendResult.valid) {
+      return suspendResult;
+    }
 
     // TB.2.3 5.7: Return EXIT sequencing request to end session
     // Note: Per SCORM spec, after SUSPEND_ALL returns EXIT, the session ends.
@@ -888,8 +913,9 @@ export class OverallSequencingProcess {
    * Implements TB.2.3 steps 5.1-5.6 from SCORM 2004 reference
    * Suspends all activities in the path from current activity to root
    * @param {Activity} currentActivity - Current activity to suspend
+   * @return {TerminationRequestResult} - Result with validation status
    */
-  private handleSuspendAllRequest(currentActivity: Activity): void {
+  private handleSuspendAllRequest(currentActivity: Activity): TerminationRequestResult {
     const rootActivity = this.activityTree.root;
 
     // TB.2.3 5.1: Validation - Check if current activity is defined
@@ -899,20 +925,39 @@ export class OverallSequencingProcess {
         message: "No current activity to suspend",
         activity: currentActivity?.id
       });
-      return;
+      return {
+        terminationRequest: SequencingRequestType.SUSPEND_ALL,
+        sequencingRequest: null,
+        exception: "TB.2.3-1",
+        valid: false
+      };
     }
 
-    // TB.2.3 5.2: Check if current activity is active (validation)
-    // Note: Reference allows suspend if already suspended OR active
-    // We'll be permissive here to match reference behavior
+    // TB.2.3-3: Check if trying to suspend inactive/unsuspended root activity
+    if (currentActivity === rootActivity && !currentActivity.isActive && !currentActivity.isSuspended) {
+      this.fireEvent("onSuspendError", {
+        exception: "TB.2.3-3",
+        message: "Nothing to suspend (root activity)",
+        activity: currentActivity.id
+      });
+      return {
+        terminationRequest: SequencingRequestType.SUSPEND_ALL,
+        sequencingRequest: null,
+        exception: "TB.2.3-3",
+        valid: false
+      };
+    }
 
-    // Set the suspended activity reference
+    // TB.2.3 5.1-5.2: Set the suspended activity reference
+    // Note: Reference implementation is permissive and allows suspending current activity
+    // even if not active, as long as it's not the root
     this.activityTree.suspendedActivity = currentActivity;
 
     // TB.2.3 5.3: Form activity path from current activity to root (inclusive)
     // We walk up the tree from current to root
+    const suspendedActivity = currentActivity;
     const activityPath: Activity[] = [];
-    let current: Activity | null = currentActivity;
+    let current: Activity | null = suspendedActivity;
     while (current !== null) {
       activityPath.push(current);
       current = current.parent;
@@ -923,9 +968,14 @@ export class OverallSequencingProcess {
       this.fireEvent("onSuspendError", {
         exception: "TB.2.3-5",
         message: "Activity path is empty",
-        activity: currentActivity.id
+        activity: suspendedActivity?.id
       });
-      return;
+      return {
+        terminationRequest: SequencingRequestType.SUSPEND_ALL,
+        sequencingRequest: null,
+        exception: "TB.2.3-5",
+        valid: false
+      };
     }
 
     // TB.2.3 5.5: For each activity in the path, suspend it
@@ -944,11 +994,19 @@ export class OverallSequencingProcess {
 
     // Log suspend event with full path information
     this.fireEvent("onActivitySuspended", {
-      activity: currentActivity.id,
+      activity: suspendedActivity?.id,
       suspendedPath: activityPath.map(a => a.id),
       pathLength: activityPath.length,
       timestamp: new Date().toISOString()
     });
+
+    // Return success
+    return {
+      terminationRequest: SequencingRequestType.SUSPEND_ALL,
+      sequencingRequest: null,
+      exception: null,
+      valid: true
+    };
   }
 
   /**

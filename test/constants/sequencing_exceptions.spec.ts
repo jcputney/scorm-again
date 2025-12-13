@@ -63,8 +63,23 @@ describe("Sequencing Exceptions Constants", () => {
     it("should define all TB.2.3 exception codes", () => {
       expect(TerminationExceptions["TB.2.3-1"]).toBe("No current activity to terminate");
       expect(TerminationExceptions["TB.2.3-2"]).toBe("Current activity already terminated");
+      expect(TerminationExceptions["TB.2.3-3"]).toBe("Nothing to suspend (root activity)");
       expect(TerminationExceptions["TB.2.3-4"]).toBe("Cannot EXIT_PARENT from root activity");
       expect(TerminationExceptions["TB.2.3-5"]).toBe("Activity path is empty during suspend");
+      expect(TerminationExceptions["TB.2.3-6"]).toBe("Nothing to abandon");
+      expect(TerminationExceptions["TB.2.3-7"]).toBe("Undefined termination request");
+    });
+
+    it("should have exactly 7 termination exception codes", () => {
+      const keys = Object.keys(TerminationExceptions);
+      expect(keys).toHaveLength(7);
+    });
+
+    it("should have all keys starting with TB.2.3", () => {
+      const keys = Object.keys(TerminationExceptions);
+      keys.forEach((key) => {
+        expect(key).toMatch(/^TB\.2\.3-\d+$/);
+      });
     });
   });
 
@@ -277,6 +292,12 @@ describe("Sequencing Exceptions Constants", () => {
 
     it("should return correct description for termination exceptions", () => {
       expect(getExceptionDescription("TB.2.3-1")).toBe("No current activity to terminate");
+      expect(getExceptionDescription("TB.2.3-2")).toBe("Current activity already terminated");
+      expect(getExceptionDescription("TB.2.3-3")).toBe("Nothing to suspend (root activity)");
+      expect(getExceptionDescription("TB.2.3-4")).toBe("Cannot EXIT_PARENT from root activity");
+      expect(getExceptionDescription("TB.2.3-5")).toBe("Activity path is empty during suspend");
+      expect(getExceptionDescription("TB.2.3-6")).toBe("Nothing to abandon");
+      expect(getExceptionDescription("TB.2.3-7")).toBe("Undefined termination request");
     });
 
     it("should return correct description for flow exceptions", () => {
