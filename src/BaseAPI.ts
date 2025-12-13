@@ -355,15 +355,17 @@ export default abstract class BaseAPI implements IBaseAPI {
 
   /**
    * Initialize the LMS API
+   * @param {string} parameter - Must be an empty string per SCORM specification
    * @return {string} "true" if successful, "false" otherwise
    */
-  abstract lmsInitialize(): string;
+  abstract lmsInitialize(parameter?: string): string;
 
   /**
    * Finish the current LMS API session
+   * @param {string} parameter - Must be an empty string per SCORM specification
    * @return {string} "true" if successful, "false" otherwise
    */
-  abstract lmsFinish(): string;
+  abstract lmsFinish(parameter?: string): string;
 
   /**
    * Get the value of a CMI element from the LMS
@@ -382,9 +384,10 @@ export default abstract class BaseAPI implements IBaseAPI {
 
   /**
    * Commit the current data to the LMS
+   * @param {string} parameter - Must be an empty string per SCORM specification
    * @return {string} "true" if successful, "false" otherwise
    */
-  abstract lmsCommit(): string;
+  abstract lmsCommit(parameter?: string): string;
 
   /**
    * Get the last error code from the LMS

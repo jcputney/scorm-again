@@ -113,11 +113,11 @@ class Scorm2004API extends BaseAPI {
   public cmi: CMI;
   public adl: ADL;
 
-  public Initialize: () => string;
-  public Terminate: () => string;
+  public Initialize: (parameter?: string) => string;
+  public Terminate: (parameter?: string) => string;
   public GetValue: (CMIElement: string) => string;
   public SetValue: (CMIElement: string, value: any) => string;
-  public Commit: () => string;
+  public Commit: (parameter?: string) => string;
   public GetLastError: () => string;
   public GetErrorString: (CMIErrorCode: string | number) => string;
   public GetDiagnostic: (CMIErrorCode: string | number) => string;
@@ -185,9 +185,16 @@ class Scorm2004API extends BaseAPI {
   /**
    * Initialize function from SCORM 2004 Spec
    *
+   * @param {string} parameter - Must be an empty string per SCORM 2004 specification
    * @return {string} bool
    */
-  lmsInitialize(): string {
+  lmsInitialize(parameter: string = ""): string {
+    // SCORM 2004 RTE 3.1.2.1: Parameter must be an empty string
+    if (parameter !== "") {
+      this.throwSCORMError("api", this._error_codes.ARGUMENT_ERROR);
+      return global_constants.SCORM_FALSE;
+    }
+
     this.cmi.initialize();
     const result = this.initialize(
       "Initialize",
@@ -213,9 +220,16 @@ class Scorm2004API extends BaseAPI {
   /**
    * Terminate function from SCORM 2004 Spec
    *
+   * @param {string} parameter - Must be an empty string per SCORM 2004 specification
    * @return {string} bool
    */
-  lmsFinish(): string {
+  lmsFinish(parameter: string = ""): string {
+    // SCORM 2004 RTE 3.1.2.2: Parameter must be an empty string
+    if (parameter !== "") {
+      this.throwSCORMError("api", this._error_codes.ARGUMENT_ERROR);
+      return global_constants.SCORM_FALSE;
+    }
+
     const pendingNavRequest = this.adl?.nav?.request || "_none_";
 
     // Check if we were already terminated before calling terminate
@@ -407,9 +421,16 @@ class Scorm2004API extends BaseAPI {
   /**
    * Commit function from SCORM 2004 Spec
    *
+   * @param {string} parameter - Must be an empty string per SCORM 2004 specification
    * @return {string} bool
    */
-  lmsCommit(): string {
+  lmsCommit(parameter: string = ""): string {
+    // SCORM 2004 RTE 3.1.2.5: Parameter must be an empty string
+    if (parameter !== "") {
+      this.throwSCORMError("api", this._error_codes.ARGUMENT_ERROR);
+      return global_constants.SCORM_FALSE;
+    }
+
     if (this.settings.throttleCommits) {
       this.scheduleCommit(500, "Commit");
       return global_constants.SCORM_TRUE;

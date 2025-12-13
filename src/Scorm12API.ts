@@ -92,11 +92,11 @@ class Scorm12API extends BaseAPI {
   cmi: CMI;
   nav: NAV;
 
-  LMSInitialize: () => string;
-  LMSFinish: () => string;
+  LMSInitialize: (parameter?: string) => string;
+  LMSFinish: (parameter?: string) => string;
   LMSGetValue: (CMIElement: string) => string;
   LMSSetValue: (CMIElement: string, value: any) => string;
-  LMSCommit: () => string;
+  LMSCommit: (parameter?: string) => string;
   LMSGetLastError: () => string;
   LMSGetErrorString: (CMIErrorCode: string) => string;
   LMSGetDiagnostic: (CMIErrorCode: string) => string;
@@ -114,9 +114,16 @@ class Scorm12API extends BaseAPI {
   /**
    * lmsInitialize function from SCORM 1.2 Spec
    *
+   * @param {string} parameter - Must be an empty string per SCORM 1.2 specification
    * @return {string} bool
    */
-  lmsInitialize(): string {
+  lmsInitialize(parameter: string = ""): string {
+    // SCORM 1.2 RTE 3.4.3.1: Parameter must be an empty string
+    if (parameter !== "") {
+      this.throwSCORMError("api", this._error_codes.ARGUMENT_ERROR);
+      return global_constants.SCORM_FALSE;
+    }
+
     this.cmi.initialize();
     if (this.cmi.core.lesson_status) {
       this.statusSetByModule = true;
@@ -133,9 +140,16 @@ class Scorm12API extends BaseAPI {
   /**
    * LMSFinish function from SCORM 1.2 Spec
    *
+   * @param {string} parameter - Must be an empty string per SCORM 1.2 specification
    * @return {string} bool
    */
-  lmsFinish(): string {
+  lmsFinish(parameter: string = ""): string {
+    // SCORM 1.2 RTE 3.4.3.2: Parameter must be an empty string
+    if (parameter !== "") {
+      this.throwSCORMError("api", this._error_codes.ARGUMENT_ERROR);
+      return global_constants.SCORM_FALSE;
+    }
+
     const result = this.terminate("LMSFinish", true);
 
     if (result === global_constants.SCORM_TRUE) {
@@ -180,9 +194,16 @@ class Scorm12API extends BaseAPI {
   /**
    * LMSCommit function from SCORM 1.2 Spec
    *
+   * @param {string} parameter - Must be an empty string per SCORM 1.2 specification
    * @return {string} bool
    */
-  lmsCommit(): string {
+  lmsCommit(parameter: string = ""): string {
+    // SCORM 1.2 RTE 3.4.4.1: Parameter must be an empty string
+    if (parameter !== "") {
+      this.throwSCORMError("api", this._error_codes.ARGUMENT_ERROR);
+      return global_constants.SCORM_FALSE;
+    }
+
     if (this.settings.throttleCommits) {
       this.scheduleCommit(500, "LMSCommit");
       return global_constants.SCORM_TRUE;
