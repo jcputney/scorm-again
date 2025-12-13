@@ -7,6 +7,7 @@ import {
   ContinueExceptions,
   PreviousExceptions,
   ChoiceExceptions,
+  ChoiceTraversalExceptions,
   RetryExceptions,
   ExitExceptions,
   SequencingRequestExceptions,
@@ -113,6 +114,32 @@ describe("Sequencing Exceptions Constants", () => {
     });
   });
 
+  describe("ChoiceTraversalExceptions (SB.2.4)", () => {
+    it("should define all SB.2.4 exception codes", () => {
+      expect(ChoiceTraversalExceptions["SB.2.4-1"]).toBe(
+        "Stop forward traversal rule evaluates to true",
+      );
+      expect(ChoiceTraversalExceptions["SB.2.4-2"]).toBe(
+        "Constrained choice requires forward traversal from leaf",
+      );
+      expect(ChoiceTraversalExceptions["SB.2.4-3"]).toBe(
+        "Cannot walk backward from root of activity tree",
+      );
+    });
+
+    it("should have exactly 3 choice traversal exception codes", () => {
+      const keys = Object.keys(ChoiceTraversalExceptions);
+      expect(keys).toHaveLength(3);
+    });
+
+    it("should have all keys starting with SB.2.4", () => {
+      const keys = Object.keys(ChoiceTraversalExceptions);
+      keys.forEach((key) => {
+        expect(key).toMatch(/^SB\.2\.4-\d+$/);
+      });
+    });
+  });
+
   describe("RetryExceptions (SB.2.10)", () => {
     it("should define all SB.2.10 exception codes", () => {
       expect(RetryExceptions["SB.2.10-1"]).toBe("Current activity not defined");
@@ -214,6 +241,9 @@ describe("Sequencing Exceptions Constants", () => {
       Object.keys(ChoiceExceptions).forEach((key) => {
         expect(SequencingExceptions).toHaveProperty(key);
       });
+      Object.keys(ChoiceTraversalExceptions).forEach((key) => {
+        expect(SequencingExceptions).toHaveProperty(key);
+      });
       Object.keys(RetryExceptions).forEach((key) => {
         expect(SequencingExceptions).toHaveProperty(key);
       });
@@ -259,6 +289,15 @@ describe("Sequencing Exceptions Constants", () => {
         "Sequencing session not begun (current activity not terminated)",
       );
       expect(getExceptionDescription("SB.2.9-1")).toBe("Target activity does not exist");
+      expect(getExceptionDescription("SB.2.4-1")).toBe(
+        "Stop forward traversal rule evaluates to true",
+      );
+      expect(getExceptionDescription("SB.2.4-2")).toBe(
+        "Constrained choice requires forward traversal from leaf",
+      );
+      expect(getExceptionDescription("SB.2.4-3")).toBe(
+        "Cannot walk backward from root of activity tree",
+      );
       expect(getExceptionDescription("SB.2.10-1")).toBe("Current activity not defined");
       expect(getExceptionDescription("SB.2.10-2")).toBe("Activity is still active or suspended");
       expect(getExceptionDescription("SB.2.10-3")).toBe(

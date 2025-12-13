@@ -84,6 +84,15 @@ export const ChoiceExceptions = {
 };
 
 /**
+ * Choice Activity Traversal Subprocess (SB.2.4) Exception Codes
+ */
+export const ChoiceTraversalExceptions = {
+  "SB.2.4-1": "Stop forward traversal rule evaluates to true",
+  "SB.2.4-2": "Constrained choice requires forward traversal from leaf",
+  "SB.2.4-3": "Cannot walk backward from root of activity tree",
+};
+
+/**
  * Retry Sequencing Request Process (SB.2.10) Exception Codes
  */
 export const RetryExceptions = {
@@ -161,6 +170,7 @@ export const SequencingExceptions = {
   ...ContinueExceptions,
   ...PreviousExceptions,
   ...ChoiceExceptions,
+  ...ChoiceTraversalExceptions,
   ...RetryExceptions,
   ...ExitExceptions,
   ...SequencingRequestExceptions,
