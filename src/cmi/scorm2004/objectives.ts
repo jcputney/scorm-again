@@ -9,6 +9,15 @@ import { scorm2004_constants } from "../../constants/api_constants";
 
 /**
  * Class representing SCORM 2004's `cmi.objectives` object
+ *
+ * Per SCORM 2004 RTE Section 4.1.5:
+ * - Enhanced objectives with separate success and completion tracking
+ * - Supports global objectives for cross-SCO state sharing
+ * - progress_measure: Decimal (0-1) indicating objective completion
+ * - description: LangString250 with optional language tag
+ * - Objectives can be mapped to sequencing objectives via manifest
+ * - Global objectives persist across SCO sessions
+ *
  * @extends CMIArray
  */
 export class CMIObjectives extends CMIArray {
@@ -48,6 +57,18 @@ export class CMIObjectives extends CMIArray {
 
 /**
  * Class for SCORM 2004's cmi.objectives.n object
+ *
+ * Per SCORM 2004 RTE Section 4.1.5:
+ * - id: Long identifier (up to 4000 chars, supports URN format)
+ * - success_status: Separate from completion (passed, failed, unknown)
+ * - completion_status: Completion state (completed, incomplete, not attempted, unknown)
+ * - progress_measure: Decimal (0-1) for objective completion percentage
+ * - description: LangString250 with optional language tag
+ * - score: Scaled score (-1 to 1) and raw/min/max values
+ * - Dependency: id must be set before other elements
+ * - Global objectives: Persist across SCOs when mapped via manifest
+ *
+ * @extends BaseCMI
  */
 export class CMIObjectivesObject extends BaseCMI {
   private _id = "";
