@@ -36,9 +36,11 @@ describe('GAP-18: RETRY Attempt Count Single-Increment Fix', () => {
   });
 
   it('should NOT increment attempt count in retrySequencingRequestProcess', () => {
-    // Set up: activity has been attempted once
+    // Set up: activity has been attempted once and is terminated
     activityTree.currentActivity = activity;
-    activity.isActive = true;
+    // Per SB.2.10: Activity must NOT be active or suspended for retry to work
+    activity.isActive = false;
+    activity.isSuspended = false;
     activity.attemptCount = 1;
 
     // Execute RETRY request
@@ -54,9 +56,11 @@ describe('GAP-18: RETRY Attempt Count Single-Increment Fix', () => {
   });
 
   it('should increment attempt count ONCE during content delivery for RETRY', () => {
-    // Set up: activity has been attempted once and is currently active
+    // Set up: activity has been attempted once and is terminated
     activityTree.currentActivity = activity;
-    activity.isActive = true;
+    // Per SB.2.10: Activity must NOT be active or suspended for retry to work
+    activity.isActive = false;
+    activity.isSuspended = false;
     activity.attemptCount = 1;
 
     // First, process the RETRY request
@@ -65,9 +69,6 @@ describe('GAP-18: RETRY Attempt Count Single-Increment Fix', () => {
 
     // At this point, attempt count should still be 1
     expect(activity.attemptCount).toBe(1);
-
-    // Mark activity as inactive to simulate termination
-    activity.isActive = false;
 
     // Now process content delivery
     overallSequencingProcess.contentDeliveryEnvironmentProcess(activity);
