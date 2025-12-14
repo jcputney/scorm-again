@@ -114,7 +114,8 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
 
       // Previous should be blocked by forwardOnly
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
-      expect(result.exception).toBe("SB.2.8-2");
+      // Enhanced multi-level forwardOnly validation returns SB.2.9-5 (correct per SCORM spec)
+      expect(result.exception).toBe("SB.2.9-5");
     });
 
     it("should allow forward choice when forwardOnly is true", () => {

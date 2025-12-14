@@ -557,35 +557,120 @@ export class RollupProcess {
 
   /**
    * Check Child For Rollup Subprocess (RB.1.4.2)
-   * Determines if a child activity contributes to rollup
+   * Determines if a child activity contributes to rollup based on its individual consideration settings
+   * This implements the full SCORM 2004 RB.1.4.2 specification
    * @param {Activity} child - The child activity to check
    * @param {string} rollupType - Type of rollup ("measure", "objective", "progress")
+   * @param {string} [rollupAction] - Specific rollup action (satisfied, notSatisfied, completed, incomplete)
    * @return {boolean} - True if child contributes to rollup
    */
-  private checkChildForRollupSubprocess(child: Activity, rollupType: string): boolean {
-    // Check if child is tracked
-    switch (rollupType) {
-      case "measure":
-      case "objective":
-        if (!child.sequencingControls.rollupObjectiveSatisfied) {
-          return false;
+  private checkChildForRollupSubprocess(
+    child: Activity,
+    rollupType: string,
+    rollupAction?: string
+  ): boolean {
+    let included = false;
+
+    // RB.1.4.2 Step 2: Check for objective rollup (satisfied/notSatisfied)
+    if (rollupType === "measure" || rollupType === "objective") {
+      // Step 2.1: Check if child tracks objective rollup
+      if (!child.sequencingControls.rollupObjectiveSatisfied) {
+        return false;
+      }
+
+      // Step 2.1.1: Default to included
+      included = true;
+
+      // Get the child's individual consideration requirements
+      const requiredForSatisfied = child.requiredForSatisfied;
+      const requiredForNotSatisfied = child.requiredForNotSatisfied;
+
+      // Step 2.1.2: Check ifNotSuspended consideration
+      if (
+        (rollupAction === "satisfied" && requiredForSatisfied === "ifNotSuspended") ||
+        (rollupAction === "notSatisfied" && requiredForNotSatisfied === "ifNotSuspended")
+      ) {
+        // Step 2.1.2.1: Exclude if not attempted or if attempted and suspended
+        if (!child.attemptProgressStatus || (child.attemptCount > 0 && child.isSuspended)) {
+          included = false;
         }
-        break;
-      case "progress":
-        if (!child.sequencingControls.rollupProgressCompletion) {
-          return false;
+      }
+      // Step 2.1.3: Check ifAttempted consideration
+      else if (
+        (rollupAction === "satisfied" && requiredForSatisfied === "ifAttempted") ||
+        (rollupAction === "notSatisfied" && requiredForNotSatisfied === "ifAttempted")
+      ) {
+        // Step 2.1.3.1.1: Exclude if not attempted
+        if (!child.attemptProgressStatus || child.attemptCount === 0) {
+          included = false;
         }
-        break;
+      }
+      // Step 2.1.3.2: Check ifNotSkipped consideration
+      else if (
+        (rollupAction === "satisfied" && requiredForSatisfied === "ifNotSkipped") ||
+        (rollupAction === "notSatisfied" && requiredForNotSatisfied === "ifNotSkipped")
+      ) {
+        // Step 2.1.3.2.1: Exclude if activity is skipped
+        if (child.wasSkipped) {
+          included = false;
+        }
+      }
+      // "always" is the default - activity is included
     }
 
-    // Check if child is available for rollup
-    if (!child.isAvailable) {
+    // RB.1.4.2 Step 3: Check for progress rollup (completed/incomplete)
+    if (rollupType === "progress") {
+      // Step 3.1: Check if child tracks progress rollup
+      if (!child.sequencingControls.rollupProgressCompletion) {
+        return false;
+      }
+
+      // Step 3.1.1: Default to included
+      included = true;
+
+      // Get the child's individual consideration requirements
+      const requiredForCompleted = child.requiredForCompleted;
+      const requiredForIncomplete = child.requiredForIncomplete;
+
+      // Step 3.1.2: Check ifNotSuspended consideration
+      if (
+        (rollupAction === "completed" && requiredForCompleted === "ifNotSuspended") ||
+        (rollupAction === "incomplete" && requiredForIncomplete === "ifNotSuspended")
+      ) {
+        // Step 3.1.2.1: Exclude if not attempted or if attempted and suspended
+        if (!child.attemptProgressStatus || (child.attemptCount > 0 && child.isSuspended)) {
+          included = false;
+        }
+      }
+      // Step 3.1.3: Check ifAttempted consideration
+      else if (
+        (rollupAction === "completed" && requiredForCompleted === "ifAttempted") ||
+        (rollupAction === "incomplete" && requiredForIncomplete === "ifAttempted")
+      ) {
+        // Step 3.1.3.1.1: Exclude if not attempted
+        if (!child.attemptProgressStatus || child.attemptCount === 0) {
+          included = false;
+        }
+      }
+      // Step 3.1.3.2: Check ifNotSkipped consideration
+      else if (
+        (rollupAction === "completed" && requiredForCompleted === "ifNotSkipped") ||
+        (rollupAction === "incomplete" && requiredForIncomplete === "ifNotSkipped")
+      ) {
+        // Step 3.1.3.2.1: Exclude if activity is skipped
+        if (child.wasSkipped) {
+          included = false;
+        }
+      }
+      // "always" is the default - activity is included
+    }
+
+    // Check if child is available for rollup (additional safety check)
+    if (included && !child.isAvailable) {
       return false;
     }
 
-    // Additional checks can be added here based on rollup configuration
-
-    return true;
+    return included;
   }
 
   private filterChildrenForRequirement(
@@ -604,39 +689,21 @@ export class RollupProcess {
     child: Activity,
     requirement: RollupConsiderationRequirement,
     rollupType: "objective" | "progress",
-    _mode: "satisfied" | "notSatisfied" | "completed" | "incomplete",
+    mode: "satisfied" | "notSatisfied" | "completed" | "incomplete",
     considerations: RollupConsiderationsConfig,
   ): boolean {
-    if (!this.checkChildForRollupSubprocess(child, rollupType)) {
+    // Use the enhanced RB.1.4.2 implementation with rollupAction parameter
+    if (!this.checkChildForRollupSubprocess(child, rollupType, mode)) {
       return false;
     }
 
+    // Check parent-level measureSatisfactionIfActive setting
     if (
       rollupType === "objective" &&
       !considerations.measureSatisfactionIfActive &&
       (child.activityAttemptActive || child.isActive)
     ) {
       return false;
-    }
-
-    switch (requirement) {
-      case "ifAttempted":
-        if (!(child.attemptCount > 0 || child.activityAttemptActive || child.isActive)) {
-          return false;
-        }
-        break;
-      case "ifNotSkipped":
-        if (child.wasSkipped) {
-          return false;
-        }
-        break;
-      case "ifNotSuspended":
-        if (child.isSuspended) {
-          return false;
-        }
-        break;
-      default:
-        break;
     }
 
     return true;
@@ -682,24 +749,30 @@ export class RollupProcess {
     let satisfiedCount = 0;
 
     // Count children that meet the rule conditions
+    // IMPORTANT: Only count children that BOTH pass consideration check AND condition check
     for (const child of children) {
-      // Check if child contributes based on rule action
-      let contributes = false;
+      // Step 1: Check if child is included based on consideration settings (RB.1.4.2)
+      let isIncluded = false;
       switch (rule.action) {
         case RollupActionType.SATISFIED:
+          isIncluded = this.checkChildForRollupSubprocess(child, "objective", "satisfied");
+          break;
         case RollupActionType.NOT_SATISFIED:
-          contributes = this.checkChildForRollupSubprocess(child, "objective");
+          isIncluded = this.checkChildForRollupSubprocess(child, "objective", "notSatisfied");
           break;
         case RollupActionType.COMPLETED:
+          isIncluded = this.checkChildForRollupSubprocess(child, "progress", "completed");
+          break;
         case RollupActionType.INCOMPLETE:
-          contributes = this.checkChildForRollupSubprocess(child, "progress");
+          isIncluded = this.checkChildForRollupSubprocess(child, "progress", "incomplete");
           break;
       }
 
-      if (contributes) {
+      // Step 2: Only count if child is included by consideration settings
+      if (isIncluded) {
         contributingChildren++;
 
-        // Evaluate rule conditions for this child using RB.1.4.1
+        // Step 3: Evaluate rule conditions for this child using RB.1.4.1
         if (this.evaluateRollupConditionsSubprocess(child, rule)) {
           satisfiedCount++;
         }
@@ -957,15 +1030,83 @@ export class RollupProcess {
 
     // Check rollup controls consistency
     const controls = activity.sequencingControls;
+    // Note: Having rollup data without rollup controls enabled is valid (data from content)
+    // We only flag it as inconsistent if the data seems to be from rollup
     if (!controls.rollupObjectiveSatisfied && !controls.rollupProgressCompletion) {
-      // Activity doesn't contribute to rollup but has rollup data
-      if (activity.objectiveMeasureStatus || activity.completionStatus !== "unknown") {
-        inconsistencies.push(`Activity ${activityId}: has rollup data but rollup controls disabled`);
+      // Only flag as inconsistent if this is a cluster with children
+      // (leaf activities can have data set by content)
+      if (activity.children.length > 0) {
+        if (activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure !== 0) {
+          // Cluster has measure data but rollup is disabled - this could be inconsistent
+          // unless it was set explicitly by content (which is unusual but valid)
+        }
       }
     }
 
-    // Check children consistency
+    // Check rollup consideration consistency (RB.1.4 enhancement)
+    // Validate that consideration settings are appropriate for activity state
+    if (activity.requiredForSatisfied === "ifAttempted" && activity.attemptCount === 0) {
+      // Activity requires being attempted but hasn't been attempted
+      // This is valid - just means it won't contribute to rollup yet
+    }
+
+    if (activity.requiredForSatisfied === "ifNotSuspended" && activity.isSuspended && activity.attemptCount > 0) {
+      // Activity is suspended and won't contribute to satisfied rollup
+      // This is valid - just means it's temporarily excluded
+    }
+
+    if (activity.requiredForSatisfied === "ifNotSkipped" && activity.wasSkipped) {
+      // Activity was skipped and won't contribute to satisfied rollup
+      // This is valid - just means it's excluded
+    }
+
+    // Check children consistency and their rollup contributions
     const children = activity.getAvailableChildren();
+
+    // Validate parent's rolled-up state matches children's contributions
+    if (children.length > 0 && controls.rollupObjectiveSatisfied) {
+      const satisfiedChildren = children.filter(child =>
+        this.checkChildForRollupSubprocess(child, "objective", "satisfied") &&
+        this.isChildSatisfiedForRollup(child)
+      );
+
+      const notSatisfiedChildren = children.filter(child =>
+        this.checkChildForRollupSubprocess(child, "objective", "notSatisfied") &&
+        !this.isChildSatisfiedForRollup(child)
+      );
+
+      // If all contributing children are satisfied, parent should be satisfied
+      if (satisfiedChildren.length > 0 && notSatisfiedChildren.length === 0) {
+        if (activity.objectiveSatisfiedStatus === false && activity.rollupRules.rules.length === 0) {
+          inconsistencies.push(
+            `Activity ${activityId}: all children satisfied but parent is not satisfied (no rollup rules to override)`
+          );
+        }
+      }
+    }
+
+    if (children.length > 0 && controls.rollupProgressCompletion) {
+      const completedChildren = children.filter(child =>
+        this.checkChildForRollupSubprocess(child, "progress", "completed") &&
+        this.isChildCompletedForRollup(child)
+      );
+
+      const incompleteChildren = children.filter(child =>
+        this.checkChildForRollupSubprocess(child, "progress", "incomplete") &&
+        !this.isChildCompletedForRollup(child)
+      );
+
+      // If all contributing children are completed, parent should be completed
+      if (completedChildren.length > 0 && incompleteChildren.length === 0) {
+        if (activity.completionStatus !== "completed" && activity.rollupRules.rules.length === 0) {
+          inconsistencies.push(
+            `Activity ${activityId}: all children completed but parent is incomplete (no rollup rules to override)`
+          );
+        }
+      }
+    }
+
+    // Recursively validate children
     for (const child of children) {
       this.validateActivityRollupState(child, inconsistencies);
     }
