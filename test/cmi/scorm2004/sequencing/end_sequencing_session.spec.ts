@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  SequencingProcess,
-  SequencingRequestType,
   DeliveryRequestType,
+  SequencingProcess,
+  SequencingRequestType
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
 import {
-  OverallSequencingProcess,
   NavigationRequestType,
+  OverallSequencingProcess
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
@@ -18,7 +18,7 @@ import { ADLNav } from "../../../../src/cmi/scorm2004/adl";
  *
  * These tests verify that the sequencing system properly detects and signals
  * when a sequencing session should terminate, following SCORM 2004 3rd Edition
- * reference implementation behavior.
+ * expected behavior.
  *
  * Key behaviors tested:
  * 1. Forward navigation at end of tree sets endSequencingSession = true
@@ -266,7 +266,7 @@ describe("GAP-01: EndSequencingSession Handling", () => {
         "onSequencingSessionEnd",
         expect.objectContaining({
           reason: "end_of_content",
-          exception: "SB.2.7-2",
+          exception: "SB.2.7-2"
         })
       );
     });
@@ -324,7 +324,7 @@ describe("GAP-01: EndSequencingSession Handling", () => {
       expect(eventCallback).toHaveBeenCalledWith(
         "onSequencingSessionEnd",
         expect.objectContaining({
-          navigationRequest: NavigationRequestType.CONTINUE,
+          navigationRequest: NavigationRequestType.CONTINUE
         })
       );
     });

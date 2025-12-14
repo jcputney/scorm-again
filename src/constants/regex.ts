@@ -9,15 +9,26 @@ export const scorm12_regex = {
   CMIString4096: "^[\\s\\S]{0,4096}$",
   /** CMITime - Clock time in HH:MM:SS format (RTE A.2) */
   CMITime: "^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)$",
-  /** CMITimespan - Time interval in HHHH:MM:SS.SS format (RTE A.3) */
-  CMITimespan: "^([0-9]{2,}):([0-9]{2}):([0-9]{2})(\\.\\d{1,2})?$",
+  /**
+   * CMITimespan - Time interval in HHHH:MM:SS.SS format (RTE A.3)
+   * We allow more digits for the hour to support values generated
+   * by getSecondsAsHHMMSS which can produce larger hour values
+   * (e.g., 17496:00:00 for very long durations).
+   * Changed from minimum 2 digits to 1+ digits with no upper limit.
+   */
+  CMITimespan: "^([0-9]+):([0-9]{2}):([0-9]{2})(\\.\\d{1,2})?$",
 
   /** CMIInteger - Non-negative integer (RTE A.4) */
   CMIInteger: "^\\d+$",
   /** CMISInteger - Signed integer (RTE A.5) */
   CMISInteger: "^-?([0-9]+)$",
-  /** CMIDecimal - Signed decimal with max 3 digits before decimal (RTE A.6) */
-  CMIDecimal: "^-?([0-9]{0,3})(\\.[0-9]*)?$",
+  /**
+   * CMIDecimal - Signed decimal (RTE A.6)
+   * We set practical limits on decimals to prevent abuse while maintaining
+   * broad compatibility with legacy content.
+   * Increased from 3 to 10 digits before decimal to match SCORM 2004 behavior.
+   */
+  CMIDecimal: "^-?([0-9]{0,10})(\\.[0-9]*)?$",
 
   /** CMIIdentifier - Printable ASCII characters, max 255 chars (RTE A.7) */
   CMIIdentifier: "^[\\u0021-\\u007E\\s]{0,255}$",
@@ -59,7 +70,7 @@ export const scorm12_regex = {
   /** weighting_range - Interaction weighting range -100 to 100 (RTE 3.4.2.7.4) */
   weighting_range: "-100#100",
   /** text_range - Text display preference -1 to 1 (RTE 3.4.2.3.3) */
-  text_range: "-1#1",
+  text_range: "-1#1"
 };
 /**
  * AICC Data Type Definitions
@@ -75,8 +86,8 @@ export const aicc_regex = {
      * More restrictive than SCORM 1.2 (no spaces, limited punctuation)
      * Per AICC CMI001 Section 3.2.1
      */
-    CMIIdentifier: "^[A-Za-z0-9._-]{1,255}$",
-  },
+    CMIIdentifier: "^[A-Za-z0-9._-]{1,255}$"
+  }
 };
 /**
  * SCORM 2004 Data Type Definitions
@@ -113,7 +124,7 @@ export const scorm2004_regex = {
     "^(19[7-9]{1}[0-9]{1}|20[0-2]{1}[0-9]{1}|203[0-8]{1})((-(0[1-9]{1}|1[0-2]{1}))((-(0[1-9]{1}|[1-2]{1}[0-9]{1}|3[0-1]{1}))(T([0-1]{1}[0-9]{1}|2[0-3]{1})((:[0-5]{1}[0-9]{1})((:[0-5]{1}[0-9]{1})((\\.[0-9]{1,6})((Z|([+|-]([0-1]{1}[0-9]{1}|2[0-3]{1})))(:[0-5]{1}[0-9]{1})?)?)?)?)?)?)?)?$",
   /** CMITimespan - ISO 8601 duration format (RTE C.1.5) */
   CMITimespan:
-    "^P(?:([.,\\d]+)Y)?(?:([.,\\d]+)M)?(?:([.,\\d]+)W)?(?:([.,\\d]+)D)?(?:T?(?:([.,\\d]+)H)?(?:([.,\\d]+)M)?(?:([.,\\d]+)S)?)?$",
+    "^P(?:([.,\\d]+)Y)?(?:([.,\\d]+)M)?(?:([.,\\d]+)W)?(?:([.,\\d]+)D)?(?:T?(?:([.,\\d]+)H)?(?:([.,\\d]+)M)?(?:(\\d+(?:\\.\\d{1,2})?)S)?)?$",
   /** CMIInteger - Non-negative integer (RTE C.1.6) */
   CMIInteger: "^\\d+$",
   /** CMISInteger - Signed integer (RTE C.1.7) */
@@ -126,8 +137,13 @@ export const scorm2004_regex = {
    * - Up to 18 digits after decimal (maintains precision for scientific use)
    */
   CMIDecimal: "^-?([0-9]{1,10})(\\.[0-9]{1,18})?$",
-  /** CMIIdentifier - Identifier with alphanumeric ending, max 250 chars (RTE C.1.9) */
-  CMIIdentifier: "^\\S{1,250}[a-zA-Z0-9]$",
+  /**
+   * CMIIdentifier - Identifier with alphanumeric ending, max 250 chars (RTE C.1.9)
+   * Must contain at least one word character (\w) and only allow: letters,
+   * numbers, - ( ) + . : = @ ; $ _ ! * ' % / #
+   * URN format is validated separately if string starts with "urn:"
+   */
+  CMIIdentifier: "^(?=.*\\w)[\\w\\-\\(\\)\\+\\.\\:\\=\\@\\;\\$\\_\\!\\*\\'\\%\\/\\#]{1,250}$",
   /** CMIShortIdentifier - Short identifier with word chars/punctuation, max 250 chars (RTE C.1.10) */
   CMIShortIdentifier: "^[\\w\\.\\-\\_]{1,250}$",
   /** CMILongIdentifier - Long identifier supporting URN format, max 4000 chars (RTE C.1.11) */
@@ -166,5 +182,5 @@ export const scorm2004_regex = {
   /** text_range - Text display preference -1 to 1 (RTE 4.1.7.5) */
   text_range: "-1#1",
   /** progress_range - Progress measure range 0 to 1 (RTE 4.1.8) */
-  progress_range: "0#1",
+  progress_range: "0#1"
 };
