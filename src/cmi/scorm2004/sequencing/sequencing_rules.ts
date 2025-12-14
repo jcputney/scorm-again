@@ -18,17 +18,21 @@ export enum RuleConditionOperator {
  */
 export enum RuleConditionType {
   SATISFIED = "satisfied",
+  OBJECTIVE_SATISFIED = "objectiveSatisfied",
   OBJECTIVE_STATUS_KNOWN = "objectiveStatusKnown",
   OBJECTIVE_MEASURE_KNOWN = "objectiveMeasureKnown",
   OBJECTIVE_MEASURE_GREATER_THAN = "objectiveMeasureGreaterThan",
   OBJECTIVE_MEASURE_LESS_THAN = "objectiveMeasureLessThan",
   COMPLETED = "completed",
+  ACTIVITY_COMPLETED = "activityCompleted",
   PROGRESS_KNOWN = "progressKnown",
+  ACTIVITY_PROGRESS_KNOWN = "activityProgressKnown",
   ATTEMPTED = "attempted",
   ATTEMPT_LIMIT_EXCEEDED = "attemptLimitExceeded",
   TIME_LIMIT_EXCEEDED = "timeLimitExceeded",
   OUTSIDE_AVAILABLE_TIME_RANGE = "outsideAvailableTimeRange",
   ALWAYS = "always",
+  NEVER = "never",
 }
 
 /**
@@ -173,6 +177,7 @@ export class RuleCondition extends BaseCMI {
 
     switch (this._condition) {
       case RuleConditionType.SATISFIED:
+      case RuleConditionType.OBJECTIVE_SATISFIED:
         if (referencedObjective) {
           result = referencedObjective.satisfiedStatus === true;
         } else {
@@ -216,9 +221,11 @@ export class RuleCondition extends BaseCMI {
         break;
       }
       case RuleConditionType.COMPLETED:
+      case RuleConditionType.ACTIVITY_COMPLETED:
         result = activity.isCompleted;
         break;
       case RuleConditionType.PROGRESS_KNOWN:
+      case RuleConditionType.ACTIVITY_PROGRESS_KNOWN:
         result = activity.completionStatus !== "unknown";
         break;
       case RuleConditionType.ATTEMPTED:
@@ -237,6 +244,9 @@ export class RuleCondition extends BaseCMI {
         break;
       case RuleConditionType.ALWAYS:
         result = true;
+        break;
+      case RuleConditionType.NEVER:
+        result = false;
         break;
       default:
         result = false;

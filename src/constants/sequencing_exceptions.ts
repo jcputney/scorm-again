@@ -85,6 +85,7 @@ export const ChoiceExceptions = {
   "SB.2.9-5": "Choice control is not allowed",
   "SB.2.9-6": "Current activity not terminated",
   "SB.2.9-7": "No activity available from target",
+  "SB.2.9-8": "choiceExit prevents navigation outside ancestor subtree",
 };
 
 /**

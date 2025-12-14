@@ -17,6 +17,7 @@ import {
   HideLmsUiItem
 } from "../../../types/sequencing_types";
 import { SelectionRandomization } from "./selection_randomization";
+import { NavigationLookAhead, NavigationPredictions } from "./navigation_look_ahead";
 
 /**
  * Enum for navigation request types
@@ -138,6 +139,7 @@ export class OverallSequencingProcess {
   private defaultAuxiliaryResources: AuxiliaryResource[];
   private getCMIData: (() => CMIDataForTransfer) | null = null;
   private is4thEdition: boolean = false;
+  private navigationLookAhead: NavigationLookAhead;
 
   constructor(
     activityTree: ActivityTree,
@@ -170,6 +172,9 @@ export class OverallSequencingProcess {
 
     // Initialize global objective map
     this.initializeGlobalObjectiveMap();
+
+    // Initialize navigation look-ahead
+    this.navigationLookAhead = new NavigationLookAhead(this.activityTree, this.sequencingProcess);
   }
 
   /**
@@ -258,6 +263,9 @@ export class OverallSequencingProcess {
         if (deliveryResult.valid) {
           // Step 5: Content Delivery Environment Process (DB.2)
           this.contentDeliveryEnvironmentProcess(deliveryResult.targetActivity!);
+
+          // Invalidate navigation predictions after activity change
+          this.navigationLookAhead.invalidateCache();
 
           // INTEGRATION: Validate rollup state consistency after delivery
           if (this.activityTree.root) {
@@ -1382,6 +1390,9 @@ export class OverallSequencingProcess {
 
     // Trigger rollup from this activity
     this.rollupProcess.overallRollupProcess(activity);
+
+    // Invalidate navigation predictions after rollup
+    this.navigationLookAhead.invalidateCache();
 
     // INTEGRATION: Validate rollup state consistency after rollup
     if (this.activityTree.root) {
@@ -3470,5 +3481,136 @@ export class OverallSequencingProcess {
     for (const [id, data] of Object.entries(mapData)) {
       this.globalObjectiveMap.set(id, { ...data });
     }
+  }
+
+  /**
+   * Get complete suspension state including activity tree and global objectives
+   * Captures all state needed to restore sequencing after suspend/resume
+   * @return {object} - Complete suspension state
+   */
+  public getSuspensionState(): object {
+    const state = {
+      activityTree: this.activityTree.root ? this.activityTree.root.getSuspensionState() : null,
+      currentActivityId: this.activityTree.currentActivity?.id || null,
+      suspendedActivityId: this.activityTree.suspendedActivity?.id || null,
+      globalObjectives: this.serializeGlobalObjectiveMap(),
+      timestamp: new Date().toISOString()
+    };
+
+    this.fireEvent("onSuspensionStateCaptured", {
+      hasActivityTree: !!state.activityTree,
+      currentActivityId: state.currentActivityId,
+      suspendedActivityId: state.suspendedActivityId,
+      globalObjectiveCount: Object.keys(state.globalObjectives).length,
+      timestamp: state.timestamp
+    });
+
+    return state;
+  }
+
+  /**
+   * Restore complete suspension state including activity tree and global objectives
+   * Restores all state needed to resume from suspended state
+   * @param {any} state - Suspension state to restore
+   */
+  public restoreSuspensionState(state: any): void {
+    if (!state) {
+      this.fireEvent("onSuspensionStateRestoreError", {
+        error: "No suspension state provided",
+        timestamp: new Date().toISOString()
+      });
+      return;
+    }
+
+    try {
+      // Restore global objectives first
+      if (state.globalObjectives) {
+        this.restoreGlobalObjectiveMap(state.globalObjectives);
+      }
+
+      // Restore activity tree state
+      if (state.activityTree && this.activityTree.root) {
+        this.activityTree.root.restoreSuspensionState(state.activityTree);
+      }
+
+      // Restore current and suspended activity references
+      if (state.currentActivityId) {
+        const currentActivity = this.activityTree.getActivity(state.currentActivityId);
+        if (currentActivity) {
+          this.activityTree.currentActivity = currentActivity;
+        }
+      }
+
+      if (state.suspendedActivityId) {
+        const suspendedActivity = this.activityTree.getActivity(state.suspendedActivityId);
+        if (suspendedActivity) {
+          this.activityTree.suspendedActivity = suspendedActivity;
+        }
+      }
+
+      this.fireEvent("onSuspensionStateRestored", {
+        currentActivityId: state.currentActivityId,
+        suspendedActivityId: state.suspendedActivityId,
+        globalObjectiveCount: state.globalObjectives ? Object.keys(state.globalObjectives).length : 0,
+        originalTimestamp: state.timestamp,
+        restoreTimestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      this.fireEvent("onSuspensionStateRestoreError", {
+        error: error instanceof Error ? error.message : String(error),
+        timestamp: new Date().toISOString()
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Get navigation look-ahead predictions
+   * Provides UI with navigation button states before user interaction
+   * @return {NavigationPredictions} - Current navigation predictions
+   */
+  public getNavigationLookAhead(): NavigationPredictions {
+    return this.navigationLookAhead.getAllPredictions();
+  }
+
+  /**
+   * Predict if Continue navigation would succeed
+   * @return {boolean} - True if Continue would succeed
+   */
+  public predictContinueEnabled(): boolean {
+    return this.navigationLookAhead.predictContinueEnabled();
+  }
+
+  /**
+   * Predict if Previous navigation would succeed
+   * @return {boolean} - True if Previous would succeed
+   */
+  public predictPreviousEnabled(): boolean {
+    return this.navigationLookAhead.predictPreviousEnabled();
+  }
+
+  /**
+   * Predict if choice to specific activity would succeed
+   * @param {string} activityId - Target activity ID
+   * @return {boolean} - True if choice would succeed
+   */
+  public predictChoiceEnabled(activityId: string): boolean {
+    return this.navigationLookAhead.predictChoiceEnabled(activityId);
+  }
+
+  /**
+   * Get list of all activities that can be chosen
+   * @return {string[]} - Array of activity IDs available for choice
+   */
+  public getAvailableChoices(): string[] {
+    return this.navigationLookAhead.getAvailableChoices();
+  }
+
+  /**
+   * Invalidate navigation prediction cache
+   * Called when state changes that affect navigation
+   */
+  public invalidateNavigationCache(): void {
+    this.navigationLookAhead.invalidateCache();
   }
 }
