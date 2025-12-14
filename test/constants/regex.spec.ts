@@ -153,11 +153,13 @@ describe("Regex Constants", () => {
     const regex = new RegExp(scorm12_regex.CMIDecimal);
 
     describe("Valid decimal values", () => {
-      it("should accept values with 0-3 digits before decimal", () => {
+      it("should accept values with 0-10 digits before decimal", () => {
         expect(regex.test("0")).toBe(true);
         expect(regex.test("9")).toBe(true);
         expect(regex.test("99")).toBe(true);
         expect(regex.test("999")).toBe(true);
+        expect(regex.test("1000")).toBe(true); // Now allowed (changed from 3 to 10 digit limit)
+        expect(regex.test("9999999999")).toBe(true); // 10 digits - max allowed
         expect(regex.test("0.5")).toBe(true);
         expect(regex.test("99.99")).toBe(true);
         expect(regex.test("100")).toBe(true);
@@ -185,10 +187,10 @@ describe("Regex Constants", () => {
     });
 
     describe("Invalid decimal values", () => {
-      it("should reject values with more than 3 digits before decimal", () => {
-        expect(regex.test("1000")).toBe(false);
-        expect(regex.test("9999")).toBe(false);
-        expect(regex.test("-1000")).toBe(false);
+      it("should reject values with more than 10 digits before decimal", () => {
+        expect(regex.test("99999999999")).toBe(false); // 11 digits - too many
+        expect(regex.test("123456789012")).toBe(false); // 12 digits - too many
+        expect(regex.test("-99999999999")).toBe(false); // 11 digits - too many
       });
 
       it("should reject non-numeric strings", () => {
@@ -214,10 +216,12 @@ describe("Regex Constants", () => {
       expect(regex.test("123456.789")).toBe(true);
     });
 
-    it("SCORM 1.2: should continue to restrict to 3 digits before decimal", () => {
+    it("SCORM 1.2: should now allow up to 10 digits before decimal (increased from 3)", () => {
       const regex = new RegExp(scorm12_regex.CMIDecimal);
       expect(regex.test("999")).toBe(true);
-      expect(regex.test("1000")).toBe(false);
+      expect(regex.test("1000")).toBe(true); // Now allowed
+      expect(regex.test("9999999999")).toBe(true); // 10 digits - max
+      expect(regex.test("99999999999")).toBe(false); // 11 digits - too many
     });
   });
 });

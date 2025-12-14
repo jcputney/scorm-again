@@ -11,7 +11,11 @@ import { RuleActionType } from "./sequencing_rules";
 import { getDurationAsSeconds } from "../../../utilities";
 import { scorm2004_regex } from "../../../constants/regex";
 import { CompletionStatus } from "../../../constants/enums";
-import { AuxiliaryResource, HideLmsUiItem, HIDE_LMS_UI_TOKENS } from "../../../types/sequencing_types";
+import {
+  AuxiliaryResource,
+  HIDE_LMS_UI_TOKENS,
+  HideLmsUiItem
+} from "../../../types/sequencing_types";
 import { SelectionRandomization } from "./selection_randomization";
 
 /**
@@ -240,7 +244,7 @@ export class OverallSequencingProcess {
           if (!isConsistent) {
             this.fireEvent("onSequencingDebug", {
               message: "Rollup state inconsistency detected before delivery",
-              activityId: this.activityTree.root.id,
+              activityId: this.activityTree.root.id
             });
           }
         }
@@ -488,8 +492,8 @@ export class OverallSequencingProcess {
 
     // TB.2.3-2: Check if trying to terminate already-terminated activity
     if ((request === SequencingRequestType.EXIT ||
-         request === SequencingRequestType.ABANDON) &&
-        !currentActivity.isActive) {
+        request === SequencingRequestType.ABANDON) &&
+      !currentActivity.isActive) {
       return {
         terminationRequest: request,
         sequencingRequest: null,
@@ -949,8 +953,6 @@ export class OverallSequencingProcess {
     }
 
     // TB.2.3 5.1-5.2: Set the suspended activity reference
-    // Note: Reference implementation is permissive and allows suspending current activity
-    // even if not active, as long as it's not the root
     this.activityTree.suspendedActivity = currentActivity;
 
     // TB.2.3 5.3: Form activity path from current activity to root (inclusive)
@@ -1074,7 +1076,6 @@ export class OverallSequencingProcess {
     // This ensures no ancestor violates limit conditions, preconditions, or is disabled
     for (const pathActivity of activityPath) {
       // Check Activity Process returns true if activity is VALID
-      // (Note: opposite of reference implementation which returns true for INVALID)
       if (!this.checkActivityProcess(pathActivity)) {
         // Activity check failed - cannot deliver
         return new DeliveryRequest(false, null, "DB.1.1-3");
@@ -1562,8 +1563,8 @@ export class OverallSequencingProcess {
 
     // If no scaled score, try to calculate from raw/min/max
     if (score.raw && score.raw !== "" &&
-        score.min && score.min !== "" &&
-        score.max && score.max !== "") {
+      score.min && score.min !== "" &&
+      score.max && score.max !== "") {
       const raw = parseFloat(score.raw);
       const min = parseFloat(score.min);
       const max = parseFloat(score.max);
@@ -1632,7 +1633,7 @@ export class OverallSequencingProcess {
       previous: previousResult.valid,
       choice: choiceMap,
       jump: jumpMap,
-      hideLmsUi: this.getEffectiveHideLmsUi(this.activityTree.currentActivity),
+      hideLmsUi: this.getEffectiveHideLmsUi(this.activityTree.currentActivity)
     });
   }
 
@@ -1870,7 +1871,6 @@ export class OverallSequencingProcess {
   /**
    * Get Activity Path (Helper for DB.1.1)
    * Forms the activity path from root to target activity, inclusive
-   * Maps to GetActivityPath() in reference implementation
    * @param {Activity} activity - The target activity
    * @param {boolean} includeActivity - Whether to include the target in the path
    * @return {Activity[]} - Array of activities from root to target
@@ -1964,7 +1964,7 @@ export class OverallSequencingProcess {
       suspendedActivity: this.activityTree.suspendedActivity?.id || null,
       activityStates: this.serializeActivityStates(),
       navigationState: this.getNavigationState(),
-      globalObjectiveMap: this.serializeGlobalObjectiveMap(),
+      globalObjectiveMap: this.serializeGlobalObjectiveMap()
     };
   }
 
@@ -2073,8 +2073,8 @@ export class OverallSequencingProcess {
             .map((child) => child.id),
           hiddenFromChoiceChildIds: activity.children
             .filter((child) => child.isHiddenFromChoice)
-            .map((child) => child.id),
-        },
+            .map((child) => child.id)
+        }
       };
 
       // Recursively serialize children
@@ -3337,7 +3337,7 @@ export class OverallSequencingProcess {
           writeProgressMeasure: true,
           satisfiedByMeasure: activity.scaledPassingScore !== null,
           minNormalizedMeasure: activity.scaledPassingScore,
-          updateAttemptData: true,
+          updateAttemptData: true
         });
       }
     }
@@ -3346,17 +3346,17 @@ export class OverallSequencingProcess {
       const mapInfos = objective.mapInfo.length > 0
         ? objective.mapInfo
         : [{
-            targetObjectiveID: objective.id,
-            readSatisfiedStatus: true,
-            writeSatisfiedStatus: true,
-            readNormalizedMeasure: true,
-            writeNormalizedMeasure: true,
-            readProgressMeasure: true,
-            writeProgressMeasure: true,
-            readCompletionStatus: true,
-            writeCompletionStatus: true,
-            updateAttemptData: objective.isPrimary,
-          }];
+          targetObjectiveID: objective.id,
+          readSatisfiedStatus: true,
+          writeSatisfiedStatus: true,
+          readNormalizedMeasure: true,
+          writeNormalizedMeasure: true,
+          readProgressMeasure: true,
+          writeProgressMeasure: true,
+          readCompletionStatus: true,
+          writeCompletionStatus: true,
+          updateAttemptData: objective.isPrimary
+        }];
 
       for (const mapInfo of mapInfos) {
         const targetId = mapInfo.targetObjectiveID || objective.id;
@@ -3387,7 +3387,7 @@ export class OverallSequencingProcess {
             writeMaxScore: mapInfo.writeMaxScore ?? false,
             satisfiedByMeasure: objective.satisfiedByMeasure,
             minNormalizedMeasure: objective.minNormalizedMeasure,
-            updateAttemptData: mapInfo.updateAttemptData ?? objective.isPrimary,
+            updateAttemptData: mapInfo.updateAttemptData ?? objective.isPrimary
           });
         }
       }
