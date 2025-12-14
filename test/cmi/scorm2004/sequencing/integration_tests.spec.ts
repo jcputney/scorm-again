@@ -52,6 +52,17 @@ describe("SCORM 2004 Sequencing Integration", () => {
   });
 
   test("should validate rollup state consistency", () => {
+    // First enable rollup on root and perform rollup to establish state
+    rootActivity.sequencingControls.rollupObjectiveSatisfied = true;
+    rootActivity.sequencingControls.rollupProgressCompletion = true;
+
+    // Perform rollup to calculate root's state from children
+    const child = rootActivity.children[0];
+    if (child) {
+      rollupProcess.overallRollupProcess(child);
+    }
+
+    // Now validate the consistency
     const isConsistent = rollupProcess.validateRollupStateConsistency(rootActivity);
     expect(isConsistent).toBe(true);
   });

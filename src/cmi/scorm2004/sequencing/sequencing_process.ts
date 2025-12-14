@@ -4,7 +4,7 @@ import {
   RuleActionType,
   RuleConditionOperator,
   SequencingRule,
-  SequencingRules
+  SequencingRules,
 } from "./sequencing_rules";
 import { SequencingControls } from "./sequencing_controls";
 import { ADLNav } from "../adl";
@@ -53,7 +53,7 @@ export class SequencingResult {
     deliveryRequest: DeliveryRequestType = DeliveryRequestType.DO_NOT_DELIVER,
     targetActivity: Activity | null = null,
     exception: string | null = null,
-    endSequencingSession: boolean = false
+    endSequencingSession: boolean = false,
   ) {
     this.deliveryRequest = deliveryRequest;
     this.targetActivity = targetActivity;
@@ -85,7 +85,7 @@ class FlowSubprocessResult {
     identifiedActivity: Activity | null,
     deliverable: boolean,
     exception: string | null = null,
-    endSequencingSession: boolean = false
+    endSequencingSession: boolean = false,
   ) {
     this.identifiedActivity = identifiedActivity;
     this.deliverable = deliverable;
@@ -102,10 +102,7 @@ class ChoiceTraversalResult {
   public activity: Activity | null;
   public exception: string | null;
 
-  constructor(
-    activity: Activity | null,
-    exception: string | null = null
-  ) {
+  constructor(activity: Activity | null, exception: string | null = null) {
     this.activity = activity;
     this.exception = exception;
   }
@@ -132,19 +129,19 @@ export class SequencingProcess {
       now?: () => Date;
       getAttemptElapsedSeconds?: (activity: Activity) => number;
       getActivityElapsedSeconds?: (activity: Activity) => number;
-    }
+    },
   ) {
     this.activityTree = activityTree;
     this.sequencingRules = sequencingRules || null;
     this.sequencingControls = sequencingControls || null;
     this.adlNav = adlNav;
     this.now = options?.now || (() => new Date());
-    this.getAttemptElapsedSecondsHook = (options?.getAttemptElapsedSeconds as
+    this.getAttemptElapsedSecondsHook = options?.getAttemptElapsedSeconds as
       | ((activity: Activity) => number)
-      | undefined);
-    this.getActivityElapsedSecondsHook = (options?.getActivityElapsedSeconds as
+      | undefined;
+    this.getActivityElapsedSecondsHook = options?.getActivityElapsedSeconds as
       | ((activity: Activity) => number)
-      | undefined);
+      | undefined;
   }
 
   /**
@@ -156,7 +153,7 @@ export class SequencingProcess {
    */
   public sequencingRequestProcess(
     request: SequencingRequestType,
-    targetActivityId: string | null = null
+    targetActivityId: string | null = null,
   ): SequencingResult {
     // Initialize result
     const result = new SequencingResult();
@@ -278,9 +275,9 @@ export class SequencingProcess {
     // Start from root, forward direction, consider children
     const deliverableActivity = this.flowActivityTraversalSubprocess(
       root,
-      true,  // direction: forward
-      true,  // considerChildren: true
-      FlowSubprocessMode.FORWARD
+      true, // direction: forward
+      true, // considerChildren: true
+      FlowSubprocessMode.FORWARD,
     );
 
     if (!deliverableActivity) {
@@ -409,9 +406,11 @@ export class SequencingProcess {
       return result;
     }
 
-    // Check if backward flow is allowed (forwardOnly control)
-    if (currentActivity.parent && currentActivity.parent.sequencingControls.forwardOnly) {
-      result.exception = "SB.2.8-2"; // No activity available (backward flow disabled)
+    // Enhanced multi-level forwardOnly validation
+    // Check forwardOnly constraint at ALL ancestor levels, not just immediate parent
+    const forwardOnlyViolation = this.checkForwardOnlyViolationAtAllLevels(currentActivity);
+    if (forwardOnlyViolation) {
+      result.exception = forwardOnlyViolation.exception;
       return result;
     }
 
@@ -441,7 +440,7 @@ export class SequencingProcess {
    */
   private choiceSequencingRequestProcess(
     targetActivityId: string,
-    currentActivity: Activity | null
+    currentActivity: Activity | null,
   ): SequencingResult {
     const result = new SequencingResult();
 
@@ -493,8 +492,109 @@ export class SequencingProcess {
       return result;
     }
 
+    // Check choiceExit constraint at ALL ancestor levels (SB.2.9-8)
+    // Walk from current activity to root, checking for choiceExit=false
+    // If found AND ancestor is active, target must be a descendant of that ancestor (cannot exit that subtree)
+    // Per SCORM spec: choiceExit only applies when we're actively IN that ancestor's subtree
+    if (currentActivity) {
+      let currentAncestor: Activity | null = currentActivity.parent;
+      while (currentAncestor) {
+        // choiceExit only applies when the ancestor is ACTIVE
+        // An inactive ancestor means we're not truly "in" that subtree from a sequencing perspective
+        if (currentAncestor.isActive && !currentAncestor.sequencingControls.choiceExit) {
+          // choiceExit is false at this active ancestor
+          // Check if target is a descendant of this ancestor
+          if (!this.isActivity1AParentOfActivity2(currentAncestor, targetActivity)) {
+            this.logger?.debug(
+              `[SequencingProcess] choiceExit blocked: Cannot exit from ${currentAncestor.id} to ${targetActivity.id} (SB.2.9-8). ` +
+                `Ancestor ${currentAncestor.id} is active with choiceExit=false, blocking navigation outside its subtree.`,
+            );
+            result.exception = "SB.2.9-8";
+            return result;
+          }
+          // If target is within this subtree, we can stop checking choiceExit at higher levels
+          // since we're not exiting this ancestor's subtree
+          break;
+        }
+        currentAncestor = currentAncestor.parent;
+      }
+    }
+
     // Find common ancestor
     const commonAncestor = this.findCommonAncestor(currentActivity, targetActivity);
+
+    // SB.2.9: Validate choice against ALL ancestor constraints (constrainChoice, forwardOnly, preventActivation)
+    // Walk from target's parent up checking each ancestor's constraints
+    let ancestorActivity: Activity | null = targetActivity.parent;
+    while (ancestorActivity) {
+      // Find which child of this ancestor contains current and target
+      const targetChild = this.findChildInPathToActivity(ancestorActivity, targetActivity);
+      const currentChild = currentActivity
+        ? this.findChildInPathToActivity(ancestorActivity, currentActivity)
+        : null;
+
+      // If both current and target are children of this ancestor, check constraints
+      if (targetChild && currentChild) {
+        const siblings = ancestorActivity.children;
+        const targetIndex = siblings.indexOf(targetChild);
+        const currentIndex = siblings.indexOf(currentChild);
+
+        if (targetIndex !== -1 && currentIndex !== -1) {
+          // Priority 1: Check forwardOnly constraint FIRST (higher priority)
+          // Per SCORM 2004 spec, forwardOnly blocks ALL backward navigation regardless of completion
+          if (ancestorActivity.sequencingControls.forwardOnly && targetIndex < currentIndex) {
+            result.exception = "SB.2.9-5"; // Choice not allowed (forwardOnly)
+            return result;
+          }
+
+          // Priority 2: Check mandatory activities being skipped
+          if (targetIndex > currentIndex) {
+            for (let i = currentIndex + 1; i < targetIndex; i++) {
+              const intermediateChild = siblings[i];
+              if (
+                intermediateChild &&
+                this.isActivityMandatory(intermediateChild) &&
+                !this.isActivityCompleted(intermediateChild)
+              ) {
+                result.exception = "SB.2.9-6"; // Cannot skip mandatory incomplete
+                return result;
+              }
+            }
+          }
+
+          // Priority 3: Check constrainChoice constraint
+          if (ancestorActivity.sequencingControls.constrainChoice) {
+            // Check if trying to skip beyond next sibling in forward direction
+            if (targetIndex > currentIndex + 1) {
+              result.exception = "SB.2.9-7"; // Constrained choice - cannot skip forward
+              return result;
+            }
+
+            // Check if trying to go backward to incomplete activity
+            if (targetIndex < currentIndex) {
+              if (
+                targetActivity.completionStatus !== "completed" &&
+                targetActivity.completionStatus !== "passed"
+              ) {
+                result.exception = "SB.2.9-7"; // Constrained choice - backward to incomplete
+                return result;
+              }
+            }
+          }
+        }
+      }
+
+      // Check preventActivation constraint
+      if (ancestorActivity.sequencingControls.preventActivation) {
+        // preventActivation blocks choice to activities that haven't been attempted
+        if (targetActivity.attemptCount === 0 && !targetActivity.isActive) {
+          result.exception = "SB.2.9-6"; // Prevent activation
+          return result;
+        }
+      }
+
+      ancestorActivity = ancestorActivity.parent;
+    }
 
     // Terminate descendent attempts from common ancestor
     if (currentActivity) {
@@ -686,9 +786,9 @@ export class SequencingProcess {
       for (const child of availableChildren) {
         deliverableActivity = this.flowActivityTraversalSubprocess(
           child,
-          true,  // direction: forward
-          true,  // considerChildren: true
-          FlowSubprocessMode.FORWARD
+          true, // direction: forward
+          true, // considerChildren: true
+          FlowSubprocessMode.FORWARD,
         );
         if (deliverableActivity) {
           break;
@@ -738,9 +838,11 @@ export class SequencingProcess {
    */
   private ensureSelectionAndRandomization(activity: Activity): void {
     // Check if processing is needed
-    if (activity.getAvailableChildren() === activity.children &&
+    if (
+      activity.getAvailableChildren() === activity.children &&
       (SelectionRandomization.isSelectionNeeded(activity) ||
-        SelectionRandomization.isRandomizationNeeded(activity))) {
+        SelectionRandomization.isRandomizationNeeded(activity))
+    ) {
       SelectionRandomization.applySelectionAndRandomization(activity, activity.isNewAttempt);
     }
   }
@@ -753,7 +855,7 @@ export class SequencingProcess {
     activity: Activity,
     _direction: boolean,
     considerChildren: boolean,
-    mode: FlowSubprocessMode
+    mode: FlowSubprocessMode,
   ): Activity | null {
     // SB.2.2 Step 1: Check sequencing control modes (flow control check)
     const parent = activity.parent;
@@ -782,7 +884,7 @@ export class SequencingProcess {
           child,
           mode === FlowSubprocessMode.FORWARD,
           true,
-          mode
+          mode,
         );
         if (deliverable) {
           return deliverable;
@@ -826,20 +928,24 @@ export class SequencingProcess {
     // Check pre-condition rules using UP.2
     const preConditionResult = this.sequencingRulesCheckProcess(
       activity,
-      activity.sequencingRules.preConditionRules
+      activity.sequencingRules.preConditionRules,
     );
 
     activity.wasSkipped = preConditionResult === RuleActionType.SKIP;
 
-    return preConditionResult !== RuleActionType.SKIP &&
-      preConditionResult !== RuleActionType.DISABLED;
+    return (
+      preConditionResult !== RuleActionType.SKIP && preConditionResult !== RuleActionType.DISABLED
+    );
   }
 
   /**
    * Terminate Descendent Attempts Process (SB.2.4)
    * Ends attempts on an activity and its descendants
    */
-  private terminateDescendentAttemptsProcess(activity: Activity, skipExitRules: boolean = false): void {
+  private terminateDescendentAttemptsProcess(
+    activity: Activity,
+    skipExitRules: boolean = false,
+  ): void {
     // Apply Exit Action Rules (TB.2.1) first to check for exit actions
     let exitAction = null;
     if (!skipExitRules) {
@@ -872,13 +978,15 @@ export class SequencingProcess {
     // Evaluate exit condition rules using UP.2
     const exitAction = this.sequencingRulesCheckProcess(
       activity,
-      activity.sequencingRules.exitConditionRules
+      activity.sequencingRules.exitConditionRules,
     );
 
     // Only certain actions are valid for exit condition rules
-    if (exitAction === RuleActionType.EXIT ||
+    if (
+      exitAction === RuleActionType.EXIT ||
       exitAction === RuleActionType.EXIT_PARENT ||
-      exitAction === RuleActionType.EXIT_ALL) {
+      exitAction === RuleActionType.EXIT_ALL
+    ) {
       return exitAction;
     }
 
@@ -910,7 +1018,7 @@ export class SequencingProcess {
         if (this.activityTree.root && this.activityTree.root !== activity) {
           // Only process if we haven't already terminated the root
           const allActivities = this.activityTree.getAllActivities();
-          const anyActive = allActivities.some(a => a.isActive);
+          const anyActive = allActivities.some((a) => a.isActive);
           if (anyActive) {
             this.terminateDescendentAttemptsProcess(this.activityTree.root, true);
           }
@@ -930,7 +1038,7 @@ export class SequencingProcess {
     // Evaluate post-condition rules using UP.2
     const postAction = this.sequencingRulesCheckProcess(
       activity,
-      activity.sequencingRules.postConditionRules
+      activity.sequencingRules.postConditionRules,
     );
 
     // Only certain actions are valid for post-condition rules
@@ -958,9 +1066,12 @@ export class SequencingProcess {
    * @param {string | null} targetActivityId - Target activity ID
    * @return {{valid: boolean, exception: string | null}} - Validation result
    */
-  private validateSequencingRequest(request: SequencingRequestType, targetActivityId: string | null): {
-    valid: boolean,
-    exception: string | null
+  private validateSequencingRequest(
+    request: SequencingRequestType,
+    targetActivityId: string | null,
+  ): {
+    valid: boolean;
+    exception: string | null;
   } {
     // Validate request type
     const validRequestTypes = Object.values(SequencingRequestType);
@@ -969,12 +1080,18 @@ export class SequencingProcess {
     }
 
     // Validate target activity ID for choice and jump requests
-    if ((request === SequencingRequestType.CHOICE || request === SequencingRequestType.JUMP) && !targetActivityId) {
+    if (
+      (request === SequencingRequestType.CHOICE || request === SequencingRequestType.JUMP) &&
+      !targetActivityId
+    ) {
       return { valid: false, exception: "SB.2.12-5" };
     }
 
     // Additional request-specific validation
-    const requestSpecificValidation = this.validateRequestSpecificConstraints(request, targetActivityId);
+    const requestSpecificValidation = this.validateRequestSpecificConstraints(
+      request,
+      targetActivityId,
+    );
     if (!requestSpecificValidation.valid) {
       return requestSpecificValidation;
     }
@@ -988,9 +1105,12 @@ export class SequencingProcess {
    * @param {string | null} targetActivityId - Target activity ID
    * @return {{valid: boolean, exception: string | null}} - Validation result
    */
-  private validateRequestSpecificConstraints(request: SequencingRequestType, targetActivityId: string | null): {
-    valid: boolean,
-    exception: string | null
+  private validateRequestSpecificConstraints(
+    request: SequencingRequestType,
+    targetActivityId: string | null,
+  ): {
+    valid: boolean;
+    exception: string | null;
   } {
     const currentActivity = this.activityTree.currentActivity;
 
@@ -1066,23 +1186,61 @@ export class SequencingProcess {
 
   /**
    * Parse ISO 8601 duration to milliseconds
-   * @param {string} duration - ISO 8601 duration string
-   * @return {number} - Duration in milliseconds
+   * Supports full ISO 8601 duration format with years, months, weeks, days, hours, minutes, and seconds
+   * Reference: SCORM 2004 4th Edition ValidTimeInterval function
+   * @param {string} duration - ISO 8601 duration string (e.g., "P1Y2M3DT4H5M6.5S")
+   * @return {number} - Duration in milliseconds (returns 0 for invalid strings)
    * @private
    */
   private parseISO8601Duration(duration: string): number {
-    const regex = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?/;
+    // Validate input
+    if (!duration || typeof duration !== "string") {
+      return 0;
+    }
+
+    // Full ISO 8601 duration regex supporting all components
+    // Format: P[nY][nM][nW][nD][T[nH][nM][n.nS]]
+    // Regex from reference implementation: /^P(\d+Y)?(\d+M)?(\d+D)?(T(\d+H)?(\d+M)?(\d+(.\d\d?)?S)?)?$/
+    const regex =
+      /^P(?:(\d+(?:\.\d+)?)Y)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)W)?(?:(\d+(?:\.\d+)?)D)?(?:T(?:(\d+(?:\.\d+)?)H)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)S)?)?$/;
+
     const matches = duration.match(regex);
 
     if (!matches) {
       return 0;
     }
 
-    const hours = parseInt(matches[1] || "0", 10);
-    const minutes = parseInt(matches[2] || "0", 10);
-    const seconds = parseFloat(matches[3] || "0");
+    // Invalid cases from reference implementation
+    if (duration === "P") {
+      return 0;
+    }
+    if (duration.endsWith("T")) {
+      return 0;
+    }
 
-    return (hours * 3600 + minutes * 60 + seconds) * 1000;
+    // Extract components (with decimal support)
+    const years = parseFloat(matches[1] || "0");
+    const months = parseFloat(matches[2] || "0");
+    const weeks = parseFloat(matches[3] || "0");
+    const days = parseFloat(matches[4] || "0");
+    const hours = parseFloat(matches[5] || "0");
+    const minutes = parseFloat(matches[6] || "0");
+    const seconds = parseFloat(matches[7] || "0");
+
+    // Convert to milliseconds
+    // Using approximate conversions for years and months
+    // 1 year = 365.25 days (accounting for leap years)
+    // 1 month = 30.44 days (average month length)
+    let totalMs = 0;
+    totalMs += years * 365.25 * 24 * 3600 * 1000;
+    totalMs += months * 30.44 * 24 * 3600 * 1000;
+    totalMs += weeks * 7 * 24 * 3600 * 1000;
+    totalMs += days * 24 * 3600 * 1000;
+    totalMs += hours * 3600 * 1000;
+    totalMs += minutes * 60 * 1000;
+    totalMs += seconds * 1000;
+
+    return totalMs;
   }
 
   /**
@@ -1093,7 +1251,10 @@ export class SequencingProcess {
    * @return {RuleActionType | null} - The action to take, or null if no rules apply
    * @private
    */
-  private sequencingRulesCheckProcess(activity: Activity, rules: SequencingRule[]): RuleActionType | null {
+  private sequencingRulesCheckProcess(
+    activity: Activity,
+    rules: SequencingRule[],
+  ): RuleActionType | null {
     // Evaluate each rule in order
     for (const rule of rules) {
       // Use the Sequencing Rules Check Subprocess (UP.2.1) to evaluate
@@ -1130,7 +1291,10 @@ export class SequencingProcess {
         // Log evaluation for debugging
         return condition.evaluate(activity);
       });
-    } else if (conditionCombination === "any" || conditionCombination === RuleConditionOperator.OR) {
+    } else if (
+      conditionCombination === "any" ||
+      conditionCombination === RuleConditionOperator.OR
+    ) {
       // At least one condition must be true
       return rule.conditions.some((condition) => {
         // Log evaluation for debugging
@@ -1150,9 +1314,30 @@ export class SequencingProcess {
   }
 
   /**
+   * Check if activity1 is a parent (ancestor) of activity2
+   * Used for choiceExit validation to determine if target is within a subtree
+   * @param {Activity} activity1 - Potential parent/ancestor activity
+   * @param {Activity} activity2 - Potential child/descendant activity
+   * @return {boolean} - True if activity1 is an ancestor of activity2
+   */
+  private isActivity1AParentOfActivity2(activity1: Activity, activity2: Activity): boolean {
+    let current: Activity | null = activity2;
+    while (current) {
+      if (current === activity1) {
+        return true;
+      }
+      current = current.parent;
+    }
+    return false;
+  }
+
+  /**
    * Find common ancestor of two activities
    */
-  private findCommonAncestor(activity1: Activity | null, activity2: Activity | null): Activity | null {
+  private findCommonAncestor(
+    activity1: Activity | null,
+    activity2: Activity | null,
+  ): Activity | null {
     if (!activity1 || !activity2) {
       return null;
     }
@@ -1184,7 +1369,10 @@ export class SequencingProcess {
    * @param {FlowSubprocessMode} direction - The flow direction
    * @return {FlowSubprocessResult} - Result containing the deliverable activity and session end flag
    */
-  private flowSubprocess(fromActivity: Activity, direction: FlowSubprocessMode): FlowSubprocessResult {
+  private flowSubprocess(
+    fromActivity: Activity,
+    direction: FlowSubprocessMode,
+  ): FlowSubprocessResult {
     let candidateActivity: Activity | null = fromActivity;
     let firstIteration = true;
     let lastCandidateHadNoChildren = false;
@@ -1196,7 +1384,7 @@ export class SequencingProcess {
       const traversalResult = this.flowTreeTraversalSubprocess(
         candidateActivity,
         direction,
-        firstIteration
+        firstIteration,
       );
 
       if (!traversalResult.activity) {
@@ -1216,12 +1404,13 @@ export class SequencingProcess {
           candidateActivity,
           false,
           exceptionCode,
-          traversalResult.endSequencingSession
+          traversalResult.endSequencingSession,
         );
       }
 
       // Track if this activity is a cluster with no available children
-      lastCandidateHadNoChildren = traversalResult.activity.children.length > 0 &&
+      lastCandidateHadNoChildren =
+        traversalResult.activity.children.length > 0 &&
         traversalResult.activity.getAvailableChildren().length === 0;
 
       // Check if this candidate can be delivered
@@ -1229,7 +1418,7 @@ export class SequencingProcess {
         traversalResult.activity,
         direction === FlowSubprocessMode.FORWARD,
         true, // consider children
-        direction
+        direction,
       );
 
       if (deliverable) {
@@ -1246,7 +1435,6 @@ export class SequencingProcess {
     return new FlowSubprocessResult(null, false, null, false);
   }
 
-
   /**
    * Flow Tree Traversal Subprocess (SB.2.1)
    * Traverses the activity tree to find the next activity in the specified direction
@@ -1258,7 +1446,7 @@ export class SequencingProcess {
   private flowTreeTraversalSubprocess(
     fromActivity: Activity,
     direction: FlowSubprocessMode,
-    skipChildren: boolean = false
+    skipChildren: boolean = false,
   ): { activity: Activity | null; endSequencingSession: boolean; exception?: string } {
     if (direction === FlowSubprocessMode.FORWARD) {
       // SB.2.1 step 3.1: Check if we're at the last activity in forward traversal
@@ -1361,7 +1549,7 @@ export class SequencingProcess {
    */
   private choiceFlowSubprocess(
     targetActivity: Activity,
-    commonAncestor: Activity | null
+    commonAncestor: Activity | null,
   ): Activity | null {
     // If target is a leaf, it's the delivery candidate
     if (targetActivity.children.length === 0) {
@@ -1413,7 +1601,7 @@ export class SequencingProcess {
    */
   private enhancedChoiceActivityTraversalSubprocess(
     activity: Activity,
-    isBackwardTraversal: boolean = false
+    isBackwardTraversal: boolean = false,
   ): ChoiceTraversalResult {
     // SB.2.4-3: Cannot walk backward from root of activity tree
     if (isBackwardTraversal && activity === this.activityTree.root) {
@@ -1452,7 +1640,10 @@ export class SequencingProcess {
     // SB.2.4-2: Constrained choice requires forward traversal from leaf
     // If parent has constrainChoice enabled and we're at a cluster (not a leaf),
     // we need to ensure we can traverse forward into children
-    if (activity.parent?.sequencingControls.constrainChoice && !traversalValidation.canTraverseInto) {
+    if (
+      activity.parent?.sequencingControls.constrainChoice &&
+      !traversalValidation.canTraverseInto
+    ) {
       return new ChoiceTraversalResult(null, "SB.2.4-2");
     }
 
@@ -1485,7 +1676,7 @@ export class SequencingProcess {
     if (!postAction) {
       return {
         sequencingRequest: null,
-        terminationRequest: null
+        terminationRequest: null,
       };
     }
 
@@ -1495,39 +1686,39 @@ export class SequencingProcess {
         // EXIT_PARENT is a termination request that moves to parent
         return {
           sequencingRequest: null,
-          terminationRequest: SequencingRequestType.EXIT_PARENT
+          terminationRequest: SequencingRequestType.EXIT_PARENT,
         };
 
       case RuleActionType.EXIT_ALL:
         // EXIT_ALL is both a termination request and potentially a sequencing request
         return {
           sequencingRequest: null,
-          terminationRequest: SequencingRequestType.EXIT_ALL
+          terminationRequest: SequencingRequestType.EXIT_ALL,
         };
 
       case RuleActionType.RETRY:
         return {
           sequencingRequest: SequencingRequestType.RETRY,
-          terminationRequest: null
+          terminationRequest: null,
         };
 
       case RuleActionType.RETRY_ALL:
         // RETRY_ALL includes EXIT_ALL termination
         return {
           sequencingRequest: SequencingRequestType.RETRY,
-          terminationRequest: SequencingRequestType.EXIT_ALL
+          terminationRequest: SequencingRequestType.EXIT_ALL,
         };
 
       case RuleActionType.CONTINUE:
         return {
           sequencingRequest: SequencingRequestType.CONTINUE,
-          terminationRequest: null
+          terminationRequest: null,
         };
 
       case RuleActionType.PREVIOUS:
         return {
           sequencingRequest: SequencingRequestType.PREVIOUS,
-          terminationRequest: null
+          terminationRequest: null,
         };
 
       case RuleActionType.STOP_FORWARD_TRAVERSAL:
@@ -1535,13 +1726,13 @@ export class SequencingProcess {
         activity.sequencingControls.stopForwardTraversal = true;
         return {
           sequencingRequest: null,
-          terminationRequest: null
+          terminationRequest: null,
         };
 
       default:
         return {
           sequencingRequest: null,
-          terminationRequest: null
+          terminationRequest: null,
         };
     }
   }
@@ -1553,9 +1744,12 @@ export class SequencingProcess {
    * @param {Activity[]} children - Available children
    * @return {{valid: boolean, validChildren: Activity[]}} - Validation result
    */
-  private validateChoiceFlowConstraints(fromActivity: Activity, children: Activity[]): {
-    valid: boolean,
-    validChildren: Activity[]
+  private validateChoiceFlowConstraints(
+    fromActivity: Activity,
+    children: Activity[],
+  ): {
+    valid: boolean;
+    validChildren: Activity[];
   } {
     const validChildren: Activity[] = [];
 
@@ -1568,7 +1762,7 @@ export class SequencingProcess {
 
     return {
       valid: validChildren.length > 0,
-      validChildren
+      validChildren,
     };
   }
 
@@ -1600,8 +1794,8 @@ export class SequencingProcess {
    * @return {{canTraverse: boolean, canTraverseInto: boolean}} - Traversal permissions
    */
   private validateChoiceTraversalConstraints(activity: Activity): {
-    canTraverse: boolean,
-    canTraverseInto: boolean
+    canTraverse: boolean;
+    canTraverseInto: boolean;
   } {
     let canTraverse = true;
     let canTraverseInto = true;
@@ -1634,9 +1828,12 @@ export class SequencingProcess {
    * @param {Activity} targetActivity - Target activity
    * @return {{valid: boolean, exception: string | null}} - Validation result
    */
-  private validateConstrainedChoiceBoundaries(currentActivity: Activity | null, targetActivity: Activity): {
-    valid: boolean,
-    exception: string | null
+  private validateConstrainedChoiceBoundaries(
+    currentActivity: Activity | null,
+    targetActivity: Activity,
+  ): {
+    valid: boolean;
+    exception: string | null;
   } {
     // Path to root validation with enhanced constraint checking
     let activity: Activity | null = targetActivity;
@@ -1652,7 +1849,11 @@ export class SequencingProcess {
 
       // Check constrained choice boundaries
       if (activity.parent?.sequencingControls.constrainChoice) {
-        const boundaryCheck = this.checkConstrainedChoiceBoundary(currentActivity, activity, activity.parent);
+        const boundaryCheck = this.checkConstrainedChoiceBoundary(
+          currentActivity,
+          activity,
+          activity.parent,
+        );
         if (!boundaryCheck.valid) {
           return boundaryCheck;
         }
@@ -1668,7 +1869,7 @@ export class SequencingProcess {
    * Helper methods for enhanced choice processing
    */
   private validateConstrainChoiceForFlow(activity: Activity, parent: Activity): boolean {
-    // Implement specific constrainChoice logic for flow scenarios according to SCORM 2004
+    // SB.2.9 - Validate constrained choice for flow scenarios according to SCORM 2004
 
     // If constrainChoice is false, no restrictions apply
     if (!parent.sequencingControls || !parent.sequencingControls.constrainChoice) {
@@ -1681,113 +1882,160 @@ export class SequencingProcess {
       return true;
     }
 
+    // Get sibling index of target activity
     const targetIndex = children.indexOf(activity);
     if (targetIndex === -1) {
       return false; // Activity not found in parent's children
     }
 
-    // Get the current activity in the flow
+    // Get the current activity within this parent's children
     const currentActivity = this.getCurrentActivity(parent);
     if (!currentActivity) {
-      // No current activity, allow choice to first available activity
+      // No current activity in this cluster, allow choice to first available activity
       return this.isActivityAvailableForChoice(activity);
     }
 
     const currentIndex = children.indexOf(currentActivity);
     if (currentIndex === -1) {
-      return false; // Current activity not found
+      // Current activity not in this cluster, allow choice
+      return true;
     }
 
-    // Check flow direction constraints
+    // Check flow direction constraints per SCORM 2004 SB.2.9
     if (parent.sequencingControls.flow) {
-      // In forward flow mode with constrainChoice, only allow:
-      // 1. Next activity in sequence
-      // 2. Previously completed activities if forwardOnly is false
+      // In forward flow mode with constrainChoice:
+      // 1. Can choose next activity in sequence
+      // 2. Can choose previously completed activities if forwardOnly is false
+      // 3. Cannot skip forward beyond next sibling
+      // 4. Cannot skip backward if forwardOnly is true
 
-      if (targetIndex === currentIndex + 1) {
-        // Next activity - allow if available
-        return this.isActivityAvailableForChoice(activity);
+      // Check forwardOnly constraint interaction
+      if (parent.sequencingControls.forwardOnly && targetIndex < currentIndex) {
+        // Backward navigation blocked by forwardOnly
+        // Exception: allow if target was previously completed
+        if (activity.completionStatus === "completed" || activity.completionStatus === "passed") {
+          return true;
+        }
+        return false;
       }
 
-      if (targetIndex < currentIndex && !parent.sequencingControls.forwardOnly) {
-        // Previous activity - allow if it was completed
-        return activity.completionStatus === "completed" ||
-          activity.completionStatus === "passed";
+      // Forward direction (or same position)
+      if (targetIndex >= currentIndex) {
+        // Can only choose immediate next sibling or current
+        if (targetIndex === currentIndex || targetIndex === currentIndex + 1) {
+          return this.isActivityAvailableForChoice(activity);
+        }
+        // Cannot skip forward beyond next sibling
+        return false;
       }
 
-      // All other choices are constrained
+      // Backward direction (forwardOnly is false per check above)
+      if (targetIndex < currentIndex) {
+        // Allow backward choice to previously completed activities
+        return (
+          (activity.completionStatus === "completed" || activity.completionStatus === "passed") &&
+          this.isActivityAvailableForChoice(activity)
+        );
+      }
+
       return false;
     } else {
-      // Non-flow mode - constrainChoice limits to completed/available activities
-      return this.isActivityAvailableForChoice(activity) &&
+      // Non-flow mode with constrainChoice
+      // Constrain to completed or available activities only
+      return (
+        this.isActivityAvailableForChoice(activity) &&
         (activity.completionStatus === "completed" ||
           activity.completionStatus === "unknown" ||
-          activity.completionStatus === "incomplete");
+          activity.completionStatus === "incomplete")
+      );
     }
   }
 
   private evaluateConstrainChoiceForTraversal(activity: Activity): boolean {
-    // Implement constrainChoice evaluation for traversal according to SCORM 2004
+    // SB.2.9 - Evaluate constrainChoice for traversal according to SCORM 2004
+    // This method validates traversal at ALL ancestor levels, not just immediate parent
 
     if (!activity.parent) {
       return true; // Root activity has no traversal constraints
     }
 
-    const parent = activity.parent;
+    // Check constraint at ALL ancestor levels (multi-level validation)
+    let currentAncestor: Activity | null = activity.parent;
+    while (currentAncestor) {
+      // If any ancestor has constrainChoice, validate at that level
+      if (
+        currentAncestor.sequencingControls &&
+        currentAncestor.sequencingControls.constrainChoice
+      ) {
+        // Find which child of this ancestor is in the path to target
+        const ancestorChildren = currentAncestor.children;
+        const childInPath = this.findChildInPathToActivity(currentAncestor, activity);
 
-    // If constrainChoice is false, traversal is allowed
-    if (!parent.sequencingControls || !parent.sequencingControls.constrainChoice) {
-      return true;
-    }
+        if (childInPath) {
+          const childIndex = ancestorChildren.indexOf(childInPath);
 
-    // When constrainChoice is true, traversal must respect choice constraints
-    // This is evaluated during navigation request processing
+          // Get current activity at this ancestor level
+          const currentAtLevel = this.getCurrentActivity(currentAncestor);
 
-    const siblings = parent.children;
-    if (!siblings || siblings.length === 0) {
-      return true;
-    }
+          if (currentAtLevel) {
+            const currentIndex = ancestorChildren.indexOf(currentAtLevel);
 
-    const activityIndex = siblings.indexOf(activity);
-    if (activityIndex === -1) {
-      return false; // Activity not found in siblings
-    }
+            if (currentIndex !== -1 && childIndex !== -1) {
+              // Check mandatory intermediate activities
+              if (currentIndex < childIndex) {
+                // Forward traversal - check for mandatory incomplete activities
+                for (let i = currentIndex + 1; i < childIndex; i++) {
+                  const intermediateActivity = ancestorChildren[i];
+                  if (
+                    intermediateActivity &&
+                    this.isActivityMandatory(intermediateActivity) &&
+                    !this.isActivityCompleted(intermediateActivity)
+                  ) {
+                    return false; // Cannot skip mandatory incomplete activity
+                  }
+                }
+              }
 
-    // Check if this activity can be reached through constrained choice
-    // 1. Check if activity is available for choice
-    if (!this.isActivityAvailableForChoice(activity)) {
-      return false;
-    }
-
-    // 2. Check traversal path constraints
-    if (parent.sequencingControls.flow) {
-      // In flow mode, check if we can traverse to this activity
-      const currentActivity = this.getCurrentActivity(parent);
-      if (currentActivity) {
-        const currentIndex = siblings.indexOf(currentActivity);
-
-        // If forwardOnly is true, can only traverse forward
-        if (parent.sequencingControls.forwardOnly && activityIndex < currentIndex) {
-          return false;
-        }
-
-        // Check if there are any blocking activities between current and target
-        if (currentIndex < activityIndex) {
-          // Forward traversal - check for mandatory intermediate activities
-          for (let i = currentIndex + 1; i < activityIndex; i++) {
-            const intermediateActivity = siblings[i];
-            if (intermediateActivity &&
-              this.isActivityMandatory(intermediateActivity) &&
-              !this.isActivityCompleted(intermediateActivity)) {
-              return false; // Cannot skip mandatory incomplete activity
+              // Check forwardOnly constraint
+              if (currentAncestor.sequencingControls.forwardOnly && childIndex < currentIndex) {
+                // Backward traversal blocked by forwardOnly
+                // Exception: allow if child path leads to completed activity
+                if (!this.isActivityCompleted(activity)) {
+                  return false;
+                }
+              }
             }
           }
         }
       }
+
+      currentAncestor = currentAncestor.parent;
     }
 
-    // 3. Check specific choice constraints based on activity state
+    // Check basic activity availability and state
+    if (!this.isActivityAvailableForChoice(activity)) {
+      return false;
+    }
+
+    // Validate activity choice state (pre-conditions, etc.)
     return this.validateActivityChoiceState(activity);
+  }
+
+  /**
+   * Find which child of ancestor is in the path to the target activity
+   * Used for multi-level constraint validation
+   */
+  private findChildInPathToActivity(ancestor: Activity, target: Activity): Activity | null {
+    let current: Activity | null = target;
+
+    while (current && current.parent) {
+      if (current.parent === ancestor) {
+        return current;
+      }
+      current = current.parent;
+    }
+
+    return null;
   }
 
   private evaluateForwardOnlyForChoice(activity: Activity): boolean {
@@ -1832,8 +2080,7 @@ export class SequencingProcess {
       // Backward choice - check for exceptions
 
       // Exception 1: Allow choice to previously completed activities if they are choice-enabled
-      if (activity.completionStatus === "completed" ||
-        activity.completionStatus === "passed") {
+      if (activity.completionStatus === "completed" || activity.completionStatus === "passed") {
         // Check if the activity allows choice even in forwardOnly mode
         if (activity.sequencingControls && activity.sequencingControls.choice) {
           return true;
@@ -1853,11 +2100,15 @@ export class SequencingProcess {
     return this.isActivityAvailableForChoice(activity);
   }
 
-  private checkConstrainedChoiceBoundary(currentActivity: Activity | null, activity: Activity, parent: Activity): {
-    valid: boolean,
-    exception: string | null
+  private checkConstrainedChoiceBoundary(
+    currentActivity: Activity | null,
+    activity: Activity,
+    parent: Activity,
+  ): {
+    valid: boolean;
+    exception: string | null;
   } {
-    // Implement boundary checking logic for constrained choice according to SCORM 2004
+    // SB.2.9 - Complete boundary checking logic for constrained choice according to SCORM 2004
 
     try {
       // If no current activity, choice to any available activity is valid
@@ -1865,7 +2116,7 @@ export class SequencingProcess {
         if (this.isActivityAvailableForChoice(activity)) {
           return { valid: true, exception: null };
         } else {
-          return { valid: false, exception: "Activity not available for choice" };
+          return { valid: false, exception: "SB.2.9-7" }; // Activity not available
         }
       }
 
@@ -1875,7 +2126,7 @@ export class SequencingProcess {
         if (this.isActivityAvailableForChoice(activity)) {
           return { valid: true, exception: null };
         } else {
-          return { valid: false, exception: "Activity not available for choice" };
+          return { valid: false, exception: "SB.2.9-7" }; // Activity not available
         }
       }
 
@@ -1888,30 +2139,55 @@ export class SequencingProcess {
       const targetIndex = siblings.indexOf(activity);
 
       if (currentIndex === -1 || targetIndex === -1) {
-        return { valid: false, exception: "Activity not found in parent structure" };
+        return { valid: false, exception: "SB.2.9-2" }; // Activity not in tree
       }
 
       // Check flow and forwardOnly constraints
       if (parent.sequencingControls.flow) {
-        // Flow mode constraints
+        // Flow mode constraints with complete forwardOnly boundary validation
         if (parent.sequencingControls.forwardOnly && targetIndex < currentIndex) {
-          // Backward navigation in forwardOnly flow
-          if (activity.completionStatus !== "completed" &&
-            activity.completionStatus !== "passed") {
-            return { valid: false, exception: "Forward-only constraint violated" };
+          // SB.2.9-5: Backward navigation in forwardOnly flow
+          // Exception: allow if target was previously completed
+          if (activity.completionStatus !== "completed" && activity.completionStatus !== "passed") {
+            return { valid: false, exception: "SB.2.9-5" }; // Choice not allowed (forwardOnly)
           }
         }
 
-        // Check if we're skipping mandatory activities
+        // Check if we're skipping mandatory activities (forward direction)
         if (targetIndex > currentIndex) {
           for (let i = currentIndex + 1; i < targetIndex; i++) {
             const intermediateActivity = siblings[i];
-            if (intermediateActivity &&
+            if (
+              intermediateActivity &&
               this.isActivityMandatory(intermediateActivity) &&
-              !this.isActivityCompleted(intermediateActivity)) {
-              return { valid: false, exception: "Cannot skip mandatory incomplete activity" };
+              !this.isActivityCompleted(intermediateActivity)
+            ) {
+              // SB.2.9-6: Cannot skip mandatory incomplete activity
+              return { valid: false, exception: "SB.2.9-6" };
             }
           }
+        }
+
+        // Check if we're skipping mandatory activities (backward direction)
+        // This handles the case where backward is allowed but we can't skip mandatory
+        if (targetIndex < currentIndex && !parent.sequencingControls.forwardOnly) {
+          for (let i = targetIndex + 1; i < currentIndex; i++) {
+            const intermediateActivity = siblings[i];
+            if (
+              intermediateActivity &&
+              this.isActivityMandatory(intermediateActivity) &&
+              !this.isActivityCompleted(intermediateActivity)
+            ) {
+              // Cannot skip mandatory incomplete activity even when going backward
+              return { valid: false, exception: "SB.2.9-6" };
+            }
+          }
+        }
+
+        // ConstrainChoice in flow mode: can only choose immediate next or completed previous
+        if (targetIndex > currentIndex + 1) {
+          // Trying to skip forward beyond next sibling
+          return { valid: false, exception: "SB.2.9-7" }; // Constrained choice violation
         }
       }
 
@@ -1927,7 +2203,6 @@ export class SequencingProcess {
 
       // All boundary checks passed
       return { valid: true, exception: null };
-
     } catch (error) {
       return { valid: false, exception: `Boundary check error: ${error}` };
     }
@@ -1950,10 +2225,12 @@ export class SequencingProcess {
 
   private isActivityAvailableForChoice(activity: Activity): boolean {
     // Check if activity is available for choice according to SCORM 2004 rules
-    return activity.isVisible &&
+    return (
+      activity.isVisible &&
       !activity.isHiddenFromChoice &&
       activity.isAvailable &&
-      (activity.sequencingControls ? activity.sequencingControls.choice : true);
+      (activity.sequencingControls ? activity.sequencingControls.choice : true)
+    );
   }
 
   private isActivityMandatory(activity: Activity): boolean {
@@ -1967,15 +2244,18 @@ export class SequencingProcess {
       }
     }
 
-    // Check for explicit mandatory flag or default to true for flow sequences
-    return (activity as any).mandatory !== false;
+    // Check for explicit mandatory flag. Default to false (not mandatory) unless explicitly set
+    // Activities are only mandatory if explicitly marked as such
+    return (activity as any).mandatory === true;
   }
 
   private isActivityCompleted(activity: Activity): boolean {
     // Check if activity is completed
-    return activity.completionStatus === "completed" ||
+    return (
+      activity.completionStatus === "completed" ||
       activity.completionStatus === "passed" ||
-      activity.successStatus === "passed";
+      activity.successStatus === "passed"
+    );
   }
 
   private validateActivityChoiceState(activity: Activity): boolean {
@@ -1989,7 +2269,10 @@ export class SequencingProcess {
     // Check pre-condition rules
     if (activity.sequencingRules && activity.sequencingRules.preConditionRules) {
       for (const rule of activity.sequencingRules.preConditionRules) {
-        if (rule.action === RuleActionType.DISABLED || rule.action === RuleActionType.HIDE_FROM_CHOICE) {
+        if (
+          rule.action === RuleActionType.DISABLED ||
+          rule.action === RuleActionType.HIDE_FROM_CHOICE
+        ) {
           // Check if conditions are met for disabling/hiding
           const combinationMode = (rule as any).conditionCombination || "all";
           if (this.evaluateRuleConditions(rule.conditions || [], activity, combinationMode)) {
@@ -2020,7 +2303,11 @@ export class SequencingProcess {
     return (activity as any).allowBackwardChoice === true;
   }
 
-  private hasChoiceBoundaryViolation(currentActivity: Activity, targetActivity: Activity, parent: Activity): boolean {
+  private hasChoiceBoundaryViolation(
+    currentActivity: Activity,
+    targetActivity: Activity,
+    parent: Activity,
+  ): boolean {
     // Check for specific boundary violations
 
     // Check for time-based constraints
@@ -2041,11 +2328,16 @@ export class SequencingProcess {
     }
 
     // Check for attempt limit violations
-    return !!(targetActivity.attemptLimit &&
-      targetActivity.attemptCount >= targetActivity.attemptLimit);
+    return !!(
+      targetActivity.attemptLimit && targetActivity.attemptCount >= targetActivity.attemptLimit
+    );
   }
 
-  private evaluateRuleConditions(conditions: any[], activity: Activity, combinationMode: string = "all"): boolean {
+  private evaluateRuleConditions(
+    conditions: any[],
+    activity: Activity,
+    combinationMode: string = "all",
+  ): boolean {
     // Full SCORM 2004 rule condition evaluation
     if (conditions.length === 0) {
       return true; // No conditions means always true
@@ -2053,7 +2345,7 @@ export class SequencingProcess {
 
     // Evaluate each condition and collect results
     const conditionResults: boolean[] = [];
-    
+
     for (const condition of conditions) {
       const conditionType = condition.condition || condition.conditionType;
       let result = false;
@@ -2093,7 +2385,11 @@ export class SequencingProcess {
             : activity.objectiveMeasureStatus === true;
           break;
         case "objectiveMeasureGreaterThan":
-          if (referencedObjective ? referencedObjective.measureStatus : activity.objectiveMeasureStatus) {
+          if (
+            referencedObjective
+              ? referencedObjective.measureStatus
+              : activity.objectiveMeasureStatus
+          ) {
             const threshold = condition.measureThreshold || 0;
             const measure = referencedObjective
               ? referencedObjective.normalizedMeasure
@@ -2102,7 +2398,11 @@ export class SequencingProcess {
           }
           break;
         case "objectiveMeasureLessThan":
-          if (referencedObjective ? referencedObjective.measureStatus : activity.objectiveMeasureStatus) {
+          if (
+            referencedObjective
+              ? referencedObjective.measureStatus
+              : activity.objectiveMeasureStatus
+          ) {
             const threshold = condition.measureThreshold || 0;
             const measure = referencedObjective
               ? referencedObjective.normalizedMeasure
@@ -2117,44 +2417,129 @@ export class SequencingProcess {
           result = activity.hasAttemptLimitExceeded();
           break;
         case "timeLimitExceeded": {
-          const limit = activity.timeLimitDuration;
+          // Enhanced time limit checking with support for both attempt and activity duration limits
+          // Handles missing/invalid durations gracefully and supports sub-second precision
+
+          // Check timeLimitDuration (primary time limit for the condition)
+          let limit = activity.timeLimitDuration;
+
+          // Fallback to attemptAbsoluteDurationLimit if timeLimitDuration is not set
+          if (!limit && activity.attemptAbsoluteDurationLimit) {
+            limit = activity.attemptAbsoluteDurationLimit;
+          }
+
+          // No limit means condition is false
           if (!limit) {
             result = false;
             break;
           }
-          const limitSeconds = getDurationAsSeconds(limit, scorm2004_regex.CMITimespan);
+
+          // Parse limit - getDurationAsSeconds handles invalid strings gracefully (returns 0)
+          const limitSeconds = getDurationAsSeconds(
+            limit,
+            scorm2004_regex.CMITimespan,
+          );
+
+          // Invalid or zero limit means condition is false
+          if (limitSeconds <= 0) {
+            result = false;
+            break;
+          }
+
           let elapsedSeconds = 0;
-          // Prefer LMS-provided hook
+
+          // Strategy 1: Prefer LMS-provided hook for accurate time tracking
           if (this.getAttemptElapsedSecondsHook) {
             try {
-              elapsedSeconds = this.getAttemptElapsedSecondsHook(activity) || 0;
-            } catch (_) {
+              const hookResult = this.getAttemptElapsedSecondsHook(activity);
+              // Ensure we have a valid number
+              if (
+                typeof hookResult === "number" &&
+                !Number.isNaN(hookResult) &&
+                hookResult >= 0
+              ) {
+                elapsedSeconds = hookResult;
+              }
+            } catch (error) {
+              // Hook failed, fall through to timestamp-based calculation
               elapsedSeconds = 0;
             }
-          } else if (activity.attemptAbsoluteStartTime) {
-            const start = new Date(activity.attemptAbsoluteStartTime).getTime();
-            const nowMs = this.now().getTime();
-            if (!Number.isNaN(start) && nowMs > start) {
-              elapsedSeconds = Math.max(0, (nowMs - start) / 1000);
+          }
+
+          // Strategy 2: Calculate from attemptAbsoluteStartTime if hook not available or failed
+          if (elapsedSeconds === 0 && activity.attemptAbsoluteStartTime) {
+            try {
+              const start = new Date(activity.attemptAbsoluteStartTime).getTime();
+              const nowMs = this.now().getTime();
+
+              // Validate timestamps before calculating
+              if (!Number.isNaN(start) && !Number.isNaN(nowMs) && nowMs >= start) {
+                // Use precise millisecond calculation, then convert to seconds
+                elapsedSeconds = (nowMs - start) / 1000;
+              }
+            } catch (error) {
+              // Invalid date, default to 0
+              elapsedSeconds = 0;
             }
           }
-          result = elapsedSeconds > limitSeconds && limitSeconds > 0;
+
+          // Time limit is exceeded if elapsed time is strictly greater than limit
+          // Both values must be positive for a valid comparison
+          result = elapsedSeconds > limitSeconds;
           break;
         }
-        case "outsideAvailableTimeRange":
-          // Check if current time is outside available time range
-          if (activity.beginTimeLimit || activity.endTimeLimit) {
-            const now = new Date();
-            if (activity.beginTimeLimit) {
+        case "outsideAvailableTimeRange": {
+          // Enhanced time range checking with timezone-aware date comparisons
+          // Handles ISO 8601 date strings with timezone offsets
+          result = false; // Default to false (inside range)
+
+          // Get current time using injected clock for testability
+          const now = this.now();
+
+          // Check begin time limit (activity not yet available)
+          if (activity.beginTimeLimit) {
+            try {
+              // Parse ISO 8601 date string (may include timezone offset like +05:00)
               const beginDate = new Date(activity.beginTimeLimit);
-              if (now < beginDate) result = true;
-            }
-            if (activity.endTimeLimit) {
-              const endDate = new Date(activity.endTimeLimit);
-              if (now > endDate) result = true;
+
+              // Validate the parsed date
+              if (!Number.isNaN(beginDate.getTime())) {
+                // If current time is before begin time, we're outside the range
+                if (now < beginDate) {
+                  result = true;
+                }
+              }
+            } catch (error) {
+              // Invalid date format - treat as no begin limit
             }
           }
+
+          // Check end time limit (activity no longer available)
+          // Only check if we haven't already determined we're outside the range
+          if (!result && activity.endTimeLimit) {
+            try {
+              // Parse ISO 8601 date string (may include timezone offset like -08:00)
+              const endDate = new Date(activity.endTimeLimit);
+
+              // Validate the parsed date
+              if (!Number.isNaN(endDate.getTime())) {
+                // If current time is after end time, we're outside the range
+                if (now > endDate) {
+                  result = true;
+                }
+              }
+            } catch (error) {
+              // Invalid date format - treat as no end limit
+            }
+          }
+
+          // Edge cases handled:
+          // - Only beginTimeLimit defined: false if now >= begin, true if now < begin
+          // - Only endTimeLimit defined: false if now <= end, true if now > end
+          // - Both defined: false if begin <= now <= end, true otherwise
+          // - Neither defined: false (always inside non-existent range)
           break;
+        }
         default:
           // For unknown conditions, assume false for safety
           result = false;
@@ -2172,13 +2557,13 @@ export class SequencingProcess {
     // Combine results based on combination mode
     if (combinationMode === "all" || combinationMode === "and") {
       // All conditions must be true (AND logic)
-      return conditionResults.every(result => result);
+      return conditionResults.every((result) => result);
     } else if (combinationMode === "any" || combinationMode === "or") {
       // At least one condition must be true (OR logic)
-      return conditionResults.some(result => result);
+      return conditionResults.some((result) => result);
     } else {
       // Default to AND logic if combination mode is unknown
-      return conditionResults.every(result => result);
+      return conditionResults.every((result) => result);
     }
   }
 
@@ -2187,7 +2572,11 @@ export class SequencingProcess {
    */
   private getAttemptElapsedSeconds(activity: Activity): number {
     if (this.getAttemptElapsedSecondsHook) {
-      try { return this.getAttemptElapsedSecondsHook(activity) || 0; } catch { return 0; }
+      try {
+        return this.getAttemptElapsedSecondsHook(activity) || 0;
+      } catch {
+        return 0;
+      }
     }
     if (activity.attemptAbsoluteStartTime) {
       const start = new Date(activity.attemptAbsoluteStartTime).getTime();
@@ -2213,18 +2602,371 @@ export class SequencingProcess {
     // 3. None of its ancestors have next siblings
 
     if (activity.children.length > 0) {
-      return false;  // Not a leaf
+      return false; // Not a leaf
     }
 
     let current: Activity | null = activity;
     while (current) {
       if (this.activityTree.getNextSibling(current)) {
-        return false;  // Has a next sibling somewhere in the ancestor chain
+        return false; // Has a next sibling somewhere in the ancestor chain
       }
       current = current.parent;
     }
 
-    return true;  // No next siblings anywhere - this is the last activity
+    return true; // No next siblings anywhere - this is the last activity
+  }
+
+  /**
+   * Check forwardOnly violation at ALL ancestor levels (multi-level validation)
+   * This is critical for complex activity trees where forwardOnly may be set at different levels
+   * Returns the first violation found, or null if no violations
+   * @param {Activity} fromActivity - The activity to check from
+   * @return {{exception: string} | null} - Violation info or null
+   */
+  private checkForwardOnlyViolationAtAllLevels(
+    fromActivity: Activity,
+  ): { exception: string } | null {
+    // Walk up the ancestor chain checking forwardOnly at each level
+    let current: Activity | null = fromActivity.parent;
+
+    while (current) {
+      if (current.sequencingControls.forwardOnly) {
+        // SB.2.9-5: forwardOnly violation at this ancestor level
+        return { exception: "SB.2.9-5" };
+      }
+      current = current.parent;
+    }
+
+    return null; // No violations found
+  }
+
+  /**
+   * Validate navigation request before expensive operations
+   * Provides early validation to catch invalid requests quickly
+   * @param {SequencingRequestType} request - The navigation request
+   * @param {string | null} targetActivityId - Target activity ID for choice/jump
+   * @param {Activity | null} currentActivity - Current activity
+   * @return {{valid: boolean, exception: string | null}} - Validation result
+   */
+  public validateNavigationRequest(
+    request: SequencingRequestType,
+    targetActivityId: string | null = null,
+    currentActivity: Activity | null = null,
+  ): { valid: boolean; exception: string | null } {
+    // Basic request type validation
+    const validRequestTypes = Object.values(SequencingRequestType);
+    if (!validRequestTypes.includes(request)) {
+      return { valid: false, exception: "SB.2.12-6" };
+    }
+
+    // Validate based on request type
+    switch (request) {
+      case SequencingRequestType.CONTINUE:
+      case SequencingRequestType.PREVIOUS: {
+        if (!currentActivity) {
+          return { valid: false, exception: "SB.2.12-1" };
+        }
+        if (currentActivity.isActive) {
+          return {
+            valid: false,
+            exception: request === SequencingRequestType.CONTINUE ? "SB.2.7-1" : "SB.2.8-1",
+          };
+        }
+        // Pre-check flow control
+        if (currentActivity.parent && !currentActivity.parent.sequencingControls.flow) {
+          return {
+            valid: false,
+            exception: request === SequencingRequestType.CONTINUE ? "SB.2.7-2" : "SB.2.8-2",
+          };
+        }
+        // Pre-check forwardOnly for PREVIOUS
+        if (request === SequencingRequestType.PREVIOUS) {
+          const forwardOnlyViolation = this.checkForwardOnlyViolationAtAllLevels(currentActivity);
+          if (forwardOnlyViolation) {
+            return { valid: false, exception: forwardOnlyViolation.exception };
+          }
+        }
+        break;
+      }
+
+      case SequencingRequestType.CHOICE: {
+        if (!targetActivityId) {
+          return { valid: false, exception: "SB.2.12-5" };
+        }
+        const targetActivity = this.activityTree.getActivity(targetActivityId);
+        if (!targetActivity) {
+          return { valid: false, exception: "SB.2.9-1" };
+        }
+        // Early validation of choice path
+        const choicePathValidation = this.validateChoicePathConstraints(
+          currentActivity,
+          targetActivity,
+        );
+        if (!choicePathValidation.valid) {
+          return choicePathValidation;
+        }
+        break;
+      }
+
+      case SequencingRequestType.JUMP: {
+        if (!targetActivityId) {
+          return { valid: false, exception: "SB.2.12-5" };
+        }
+        const jumpTarget = this.activityTree.getActivity(targetActivityId);
+        if (!jumpTarget) {
+          return { valid: false, exception: "SB.2.13-1" };
+        }
+        break;
+      }
+
+      default:
+        // Other requests have their own validation in their respective methods
+        break;
+    }
+
+    return { valid: true, exception: null };
+  }
+
+  /**
+   * Validate choice path constraints across ALL ancestors
+   * Checks forwardOnly, constrainChoice, preventActivation, choiceExit, and hiddenFromChoice at each level
+   * @param {Activity | null} currentActivity - Current activity
+   * @param {Activity} targetActivity - Target activity for choice
+   * @return {{valid: boolean, exception: string | null}} - Validation result
+   */
+  private validateChoicePathConstraints(
+    currentActivity: Activity | null,
+    targetActivity: Activity,
+  ): { valid: boolean; exception: string | null } {
+    // Basic tree membership check
+    if (!this.isActivityInTree(targetActivity)) {
+      return { valid: false, exception: "SB.2.9-2" };
+    }
+
+    // Cannot choose root
+    if (targetActivity === this.activityTree.root) {
+      return { valid: false, exception: "SB.2.9-3" };
+    }
+
+    // Check if hidden from choice along path to root
+    let activity: Activity | null = targetActivity;
+    while (activity) {
+      if (activity.isHiddenFromChoice) {
+        this.logger?.debug(
+          `[SequencingProcess] Choice blocked: Activity ${activity.id} is hidden from choice (SB.2.9-4)`
+        );
+        return { valid: false, exception: "SB.2.9-4" };
+      }
+
+      // Check choice control at each ancestor
+      if (activity.parent && !activity.parent.sequencingControls.choice) {
+        return { valid: false, exception: "SB.2.9-5" };
+      }
+
+      activity = activity.parent;
+    }
+
+    // If no current activity, just check availability
+    if (!currentActivity) {
+      if (!targetActivity.isAvailable) {
+        return { valid: false, exception: "SB.2.9-7" };
+      }
+      return { valid: true, exception: null };
+    }
+
+    // Check choiceExit constraint at ALL ancestor levels
+    // Walk from current activity to root, checking for choiceExit=false
+    // If found AND ancestor is active, target must be a descendant of that ancestor (cannot exit that subtree)
+    // Per SCORM spec: choiceExit only applies when we're actively IN that ancestor's subtree
+    let currentAncestor: Activity | null = currentActivity.parent;
+    while (currentAncestor) {
+      // choiceExit only applies when the ancestor is ACTIVE
+      if (currentAncestor.isActive && !currentAncestor.sequencingControls.choiceExit) {
+        // choiceExit is false at this active ancestor
+        // Check if target is a descendant of this ancestor
+        if (!this.isActivity1AParentOfActivity2(currentAncestor, targetActivity)) {
+          this.logger?.debug(
+            `[SequencingProcess] choiceExit blocked: Cannot exit from ${currentAncestor.id} to ${targetActivity.id} (SB.2.9-8). ` +
+              `Ancestor ${currentAncestor.id} is active with choiceExit=false, blocking navigation outside its subtree.`,
+          );
+          return { valid: false, exception: "SB.2.9-8" };
+        }
+        // If target is within this subtree, we can stop checking choiceExit at higher levels
+        // since we're not exiting this ancestor's subtree
+        break;
+      }
+      currentAncestor = currentAncestor.parent;
+    }
+
+    // Enhanced multi-level validation of ALL ancestor constraints
+    let ancestorActivity: Activity | null = targetActivity.parent;
+    while (ancestorActivity) {
+      const validation = this.validateConstraintsAtAncestorLevel(
+        ancestorActivity,
+        currentActivity,
+        targetActivity,
+      );
+      if (!validation.valid) {
+        return validation;
+      }
+      ancestorActivity = ancestorActivity.parent;
+    }
+
+    return { valid: true, exception: null };
+  }
+
+  /**
+   * Validate constraints at a specific ancestor level
+   * Checks forwardOnly, constrainChoice, and preventActivation for this ancestor
+   * @param {Activity} ancestor - The ancestor to check constraints for
+   * @param {Activity} currentActivity - Current activity
+   * @param {Activity} targetActivity - Target activity
+   * @return {{valid: boolean, exception: string | null}} - Validation result
+   */
+  private validateConstraintsAtAncestorLevel(
+    ancestor: Activity,
+    currentActivity: Activity,
+    targetActivity: Activity,
+  ): { valid: boolean; exception: string | null } {
+    // Find which children of this ancestor contain current and target
+    const targetChild = this.findChildInPathToActivity(ancestor, targetActivity);
+    const currentChild = this.findChildInPathToActivity(ancestor, currentActivity);
+
+    // Only validate if both current and target are descendants of this ancestor
+    if (!targetChild || !currentChild) {
+      return { valid: true, exception: null };
+    }
+
+    const siblings = ancestor.children;
+    const targetIndex = siblings.indexOf(targetChild);
+    const currentIndex = siblings.indexOf(currentChild);
+
+    if (targetIndex === -1 || currentIndex === -1) {
+      return { valid: true, exception: null };
+    }
+
+    // Priority 1: Check forwardOnly constraint (highest priority)
+    if (ancestor.sequencingControls.forwardOnly && targetIndex < currentIndex) {
+      return { valid: false, exception: "SB.2.9-5" };
+    }
+
+    // Priority 2: Check mandatory activities being skipped
+    if (targetIndex > currentIndex) {
+      for (let i = currentIndex + 1; i < targetIndex; i++) {
+        const intermediateChild = siblings[i];
+        if (
+          intermediateChild &&
+          this.isActivityMandatory(intermediateChild) &&
+          !this.isActivityCompleted(intermediateChild)
+        ) {
+          return { valid: false, exception: "SB.2.9-6" };
+        }
+      }
+    }
+
+    // Priority 3: Check constrainChoice constraint
+    if (ancestor.sequencingControls.constrainChoice) {
+      // Cannot skip forward beyond next sibling
+      if (targetIndex > currentIndex + 1) {
+        return { valid: false, exception: "SB.2.9-7" };
+      }
+
+      // Cannot go backward to incomplete activity
+      if (targetIndex < currentIndex) {
+        if (
+          targetActivity.completionStatus !== "completed" &&
+          targetActivity.completionStatus !== "passed"
+        ) {
+          return { valid: false, exception: "SB.2.9-7" };
+        }
+      }
+    }
+
+    // Check preventActivation constraint at this level
+    if (ancestor.sequencingControls.preventActivation) {
+      if (targetActivity.attemptCount === 0 && !targetActivity.isActive) {
+        return { valid: false, exception: "SB.2.9-6" };
+      }
+    }
+
+    return { valid: true, exception: null };
+  }
+
+  /**
+   * Get all available activities that can be selected via choice navigation
+   * Excludes activities that are:
+   * - Hidden from choice (isHiddenFromChoice = true)
+   * - Not available (isAvailable = false)
+   * - Outside choiceExit=false boundaries
+   * - Blocked by other sequencing constraints
+   *
+   * This method is useful for UIs that need to show available navigation options
+   *
+   * @return {Activity[]} - Array of activities available for choice
+   */
+  public getAvailableChoices(): Activity[] {
+    const allActivities = this.activityTree.getAllActivities();
+    const currentActivity = this.currentActivity;
+    const availableActivities: Activity[] = [];
+
+    for (const activity of allActivities) {
+      // Skip root activity
+      if (activity === this.activityTree.root) {
+        continue;
+      }
+
+      // Skip if hidden from choice
+      if (activity.isHiddenFromChoice) {
+        continue;
+      }
+
+      // Skip if not available
+      if (!activity.isAvailable) {
+        continue;
+      }
+
+      // Skip if not visible
+      if (!activity.isVisible) {
+        continue;
+      }
+
+      // Check if choice is allowed by parent
+      if (activity.parent && !activity.parent.sequencingControls.choice) {
+        continue;
+      }
+
+      // If there's a current activity, check choiceExit constraints
+      if (currentActivity) {
+        let blocked = false;
+        let currentAncestor: Activity | null = currentActivity.parent;
+
+        while (currentAncestor) {
+          // choiceExit only applies when the ancestor is ACTIVE
+          if (currentAncestor.isActive && !currentAncestor.sequencingControls.choiceExit) {
+            // choiceExit is false at this active ancestor - can only choose activities within this subtree
+            if (!this.isActivity1AParentOfActivity2(currentAncestor, activity)) {
+              blocked = true;
+              break;
+            }
+            // Within the subtree, stop checking higher levels
+            break;
+          }
+          currentAncestor = currentAncestor.parent;
+        }
+
+        if (blocked) {
+          continue;
+        }
+      }
+
+      // Validate the full choice path
+      const validation = this.validateChoicePathConstraints(currentActivity, activity);
+      if (validation.valid) {
+        availableActivities.push(activity);
+      }
+    }
+
+    return availableActivities;
   }
 }
 

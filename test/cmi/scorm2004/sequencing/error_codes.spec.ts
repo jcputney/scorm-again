@@ -212,11 +212,13 @@ describe("GAP-22: Missing SCORM 2004 Sequencing Exception Codes", () => {
 
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.PREVIOUS,
-        null
+        null,
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
-      expect(result.exception).toBe("SB.2.8-2");
+      // Enhanced multi-level forwardOnly validation returns SB.2.9-5 (correct per SCORM spec)
+      // SB.2.9-5 is the official exception code for forwardOnly violations
+      expect(result.exception).toBe("SB.2.9-5");
     });
 
     it("should return SB.2.8-2 when flow is disabled on parent", () => {

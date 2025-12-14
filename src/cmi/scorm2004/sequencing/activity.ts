@@ -304,6 +304,12 @@ export class Activity extends BaseCMI {
     requiredForIncomplete: "always",
     measureSatisfactionIfActive: true
   };
+  // Individual rollup consideration properties for this activity (RB.1.4.2)
+  // These determine when THIS activity is included in parent rollup calculations
+  private _requiredForSatisfied: RollupConsiderationRequirement = "always";
+  private _requiredForNotSatisfied: RollupConsiderationRequirement = "always";
+  private _requiredForCompleted: RollupConsiderationRequirement = "always";
+  private _requiredForIncomplete: RollupConsiderationRequirement = "always";
   private _wasSkipped: boolean = false;
   private _attemptProgressStatus: boolean = false;
   private _wasAutoCompleted: boolean = false;
@@ -1289,6 +1295,42 @@ export class Activity extends BaseCMI {
     };
   }
 
+  /**
+   * Individual rollup consideration getters/setters (RB.1.4.2)
+   * These control when THIS activity is included in parent rollup
+   */
+  get requiredForSatisfied(): RollupConsiderationRequirement {
+    return this._requiredForSatisfied;
+  }
+
+  set requiredForSatisfied(value: RollupConsiderationRequirement) {
+    this._requiredForSatisfied = value;
+  }
+
+  get requiredForNotSatisfied(): RollupConsiderationRequirement {
+    return this._requiredForNotSatisfied;
+  }
+
+  set requiredForNotSatisfied(value: RollupConsiderationRequirement) {
+    this._requiredForNotSatisfied = value;
+  }
+
+  get requiredForCompleted(): RollupConsiderationRequirement {
+    return this._requiredForCompleted;
+  }
+
+  set requiredForCompleted(value: RollupConsiderationRequirement) {
+    this._requiredForCompleted = value;
+  }
+
+  get requiredForIncomplete(): RollupConsiderationRequirement {
+    return this._requiredForIncomplete;
+  }
+
+  set requiredForIncomplete(value: RollupConsiderationRequirement) {
+    this._requiredForIncomplete = value;
+  }
+
   get wasSkipped(): boolean {
     return this._wasSkipped;
   }
@@ -1687,6 +1729,203 @@ export class Activity extends BaseCMI {
    */
   set completionThreshold(completionThreshold: string) {
     this._completionThreshold = completionThreshold;
+  }
+
+  /**
+   * Get suspension state for this activity and its descendants
+   * Captures all state needed to restore activity tree after suspend/resume
+   * @return {object} - Complete suspension state
+   */
+  getSuspensionState(): object {
+    return {
+      id: this._id,
+      title: this._title,
+      isVisible: this._isVisible,
+      isActive: this._isActive,
+      isSuspended: this._isSuspended,
+      isCompleted: this._isCompleted,
+      completionStatus: this._completionStatus,
+      successStatus: this._successStatus,
+      attemptCount: this._attemptCount,
+      attemptCompletionAmount: this._attemptCompletionAmount,
+      attemptAbsoluteDuration: this._attemptAbsoluteDuration,
+      attemptExperiencedDuration: this._attemptExperiencedDuration,
+      activityAbsoluteDuration: this._activityAbsoluteDuration,
+      activityExperiencedDuration: this._activityExperiencedDuration,
+      attemptAbsoluteDurationValue: this._attemptAbsoluteDurationValue,
+      attemptExperiencedDurationValue: this._attemptExperiencedDurationValue,
+      activityAbsoluteDurationValue: this._activityAbsoluteDurationValue,
+      activityExperiencedDurationValue: this._activityExperiencedDurationValue,
+      activityStartTimestampUtc: this._activityStartTimestampUtc,
+      attemptStartTimestampUtc: this._attemptStartTimestampUtc,
+      objectiveSatisfiedStatus: this._objectiveSatisfiedStatus,
+      objectiveMeasureStatus: this._objectiveMeasureStatus,
+      objectiveNormalizedMeasure: this._objectiveNormalizedMeasure,
+      scaledPassingScore: this._scaledPassingScore,
+      progressMeasure: this._progressMeasure,
+      progressMeasureStatus: this._progressMeasureStatus,
+      location: this._location,
+      attemptAbsoluteStartTime: this._attemptAbsoluteStartTime,
+      activityAttemptActive: this._activityAttemptActive,
+      isHiddenFromChoice: this._isHiddenFromChoice,
+      isAvailable: this._isAvailable,
+      rollupConsiderations: { ...this._rollupConsiderations },
+      wasSkipped: this._wasSkipped,
+      attemptProgressStatus: this._attemptProgressStatus,
+      wasAutoCompleted: this._wasAutoCompleted,
+      wasAutoSatisfied: this._wasAutoSatisfied,
+      completedByMeasure: this._completedByMeasure,
+      minProgressMeasure: this._minProgressMeasure,
+      progressWeight: this._progressWeight,
+      attemptCompletionAmountStatus: this._attemptCompletionAmountStatus,
+      // Selection/randomization state preservation
+      processedChildren: this._processedChildren ? this._processedChildren.map(c => c.id) : null,
+      isNewAttempt: this._isNewAttempt,
+      selectionCountStatus: this._sequencingControls.selectionCountStatus,
+      reorderChildren: this._sequencingControls.reorderChildren,
+      // Objective state preservation
+      primaryObjective: this._primaryObjective ? {
+        id: this._primaryObjective.id,
+        satisfiedStatus: this._primaryObjective.satisfiedStatus,
+        measureStatus: this._primaryObjective.measureStatus,
+        normalizedMeasure: this._primaryObjective.normalizedMeasure,
+        progressMeasure: this._primaryObjective.progressMeasure,
+        progressMeasureStatus: this._primaryObjective.progressMeasureStatus,
+        completionStatus: this._primaryObjective.completionStatus,
+        satisfiedByMeasure: this._primaryObjective.satisfiedByMeasure,
+        minNormalizedMeasure: this._primaryObjective.minNormalizedMeasure,
+        progressStatus: this._primaryObjective.progressStatus,
+        mapInfo: this._primaryObjective.mapInfo
+      } : null,
+      objectives: this._objectives.map(obj => ({
+        id: obj.id,
+        satisfiedStatus: obj.satisfiedStatus,
+        measureStatus: obj.measureStatus,
+        normalizedMeasure: obj.normalizedMeasure,
+        progressMeasure: obj.progressMeasure,
+        progressMeasureStatus: obj.progressMeasureStatus,
+        completionStatus: obj.completionStatus,
+        satisfiedByMeasure: obj.satisfiedByMeasure,
+        minNormalizedMeasure: obj.minNormalizedMeasure,
+        progressStatus: obj.progressStatus,
+        mapInfo: obj.mapInfo
+      })),
+      // Recursively save children state
+      children: this._children.map(child => child.getSuspensionState())
+    };
+  }
+
+  /**
+   * Restore suspension state for this activity and its descendants
+   * Restores all state needed to resume from suspended state
+   * @param {any} state - Suspension state to restore
+   */
+  restoreSuspensionState(state: any): void {
+    if (!state) return;
+
+    // Restore basic activity state
+    this._isVisible = state.isVisible ?? this._isVisible;
+    this._isActive = state.isActive ?? this._isActive;
+    this._isSuspended = state.isSuspended ?? this._isSuspended;
+    this._isCompleted = state.isCompleted ?? this._isCompleted;
+    this._completionStatus = state.completionStatus ?? this._completionStatus;
+    this._successStatus = state.successStatus ?? this._successStatus;
+    this._attemptCount = state.attemptCount ?? this._attemptCount;
+    this._attemptCompletionAmount = state.attemptCompletionAmount ?? this._attemptCompletionAmount;
+    this._attemptAbsoluteDuration = state.attemptAbsoluteDuration ?? this._attemptAbsoluteDuration;
+    this._attemptExperiencedDuration = state.attemptExperiencedDuration ?? this._attemptExperiencedDuration;
+    this._activityAbsoluteDuration = state.activityAbsoluteDuration ?? this._activityAbsoluteDuration;
+    this._activityExperiencedDuration = state.activityExperiencedDuration ?? this._activityExperiencedDuration;
+    this._attemptAbsoluteDurationValue = state.attemptAbsoluteDurationValue ?? this._attemptAbsoluteDurationValue;
+    this._attemptExperiencedDurationValue = state.attemptExperiencedDurationValue ?? this._attemptExperiencedDurationValue;
+    this._activityAbsoluteDurationValue = state.activityAbsoluteDurationValue ?? this._activityAbsoluteDurationValue;
+    this._activityExperiencedDurationValue = state.activityExperiencedDurationValue ?? this._activityExperiencedDurationValue;
+    this._activityStartTimestampUtc = state.activityStartTimestampUtc ?? this._activityStartTimestampUtc;
+    this._attemptStartTimestampUtc = state.attemptStartTimestampUtc ?? this._attemptStartTimestampUtc;
+
+    // Restore tracking data
+    this._objectiveSatisfiedStatus = state.objectiveSatisfiedStatus ?? this._objectiveSatisfiedStatus;
+    this._objectiveMeasureStatus = state.objectiveMeasureStatus ?? this._objectiveMeasureStatus;
+    this._objectiveNormalizedMeasure = state.objectiveNormalizedMeasure ?? this._objectiveNormalizedMeasure;
+    this._scaledPassingScore = state.scaledPassingScore ?? this._scaledPassingScore;
+    this._progressMeasure = state.progressMeasure ?? this._progressMeasure;
+    this._progressMeasureStatus = state.progressMeasureStatus ?? this._progressMeasureStatus;
+    this._location = state.location ?? this._location;
+    this._attemptAbsoluteStartTime = state.attemptAbsoluteStartTime ?? this._attemptAbsoluteStartTime;
+    this._activityAttemptActive = state.activityAttemptActive ?? this._activityAttemptActive;
+    this._isHiddenFromChoice = state.isHiddenFromChoice ?? this._isHiddenFromChoice;
+    this._isAvailable = state.isAvailable ?? this._isAvailable;
+
+    // Restore rollup considerations
+    if (state.rollupConsiderations) {
+      this._rollupConsiderations = { ...state.rollupConsiderations };
+    }
+
+    // Restore other tracking state
+    this._wasSkipped = state.wasSkipped ?? this._wasSkipped;
+    this._attemptProgressStatus = state.attemptProgressStatus ?? this._attemptProgressStatus;
+    this._wasAutoCompleted = state.wasAutoCompleted ?? this._wasAutoCompleted;
+    this._wasAutoSatisfied = state.wasAutoSatisfied ?? this._wasAutoSatisfied;
+    this._completedByMeasure = state.completedByMeasure ?? this._completedByMeasure;
+    this._minProgressMeasure = state.minProgressMeasure ?? this._minProgressMeasure;
+    this._progressWeight = state.progressWeight ?? this._progressWeight;
+    this._attemptCompletionAmountStatus = state.attemptCompletionAmountStatus ?? this._attemptCompletionAmountStatus;
+
+    // Restore selection/randomization state
+    this._isNewAttempt = state.isNewAttempt ?? this._isNewAttempt;
+    if (state.selectionCountStatus !== undefined) {
+      this._sequencingControls.selectionCountStatus = state.selectionCountStatus;
+    }
+    if (state.reorderChildren !== undefined) {
+      this._sequencingControls.reorderChildren = state.reorderChildren;
+    }
+
+    // Restore processedChildren - map IDs back to actual children
+    if (state.processedChildren) {
+      const childMap = new Map(this._children.map(c => [c.id, c]));
+      this._processedChildren = state.processedChildren
+        .map((id: string) => childMap.get(id))
+        .filter((c: Activity | undefined) => c !== undefined) as Activity[];
+    } else {
+      this._processedChildren = null;
+    }
+
+    // Restore objective state
+    if (state.primaryObjective && this._primaryObjective) {
+      this._primaryObjective.satisfiedStatus = state.primaryObjective.satisfiedStatus ?? this._primaryObjective.satisfiedStatus;
+      this._primaryObjective.measureStatus = state.primaryObjective.measureStatus ?? this._primaryObjective.measureStatus;
+      this._primaryObjective.normalizedMeasure = state.primaryObjective.normalizedMeasure ?? this._primaryObjective.normalizedMeasure;
+      this._primaryObjective.progressMeasure = state.primaryObjective.progressMeasure ?? this._primaryObjective.progressMeasure;
+      this._primaryObjective.progressMeasureStatus = state.primaryObjective.progressMeasureStatus ?? this._primaryObjective.progressMeasureStatus;
+      this._primaryObjective.completionStatus = state.primaryObjective.completionStatus ?? this._primaryObjective.completionStatus;
+      this._primaryObjective.progressStatus = state.primaryObjective.progressStatus ?? this._primaryObjective.progressStatus;
+    }
+
+    if (state.objectives) {
+      for (const objState of state.objectives) {
+        const objective = this._objectives.find(o => o.id === objState.id);
+        if (objective) {
+          objective.satisfiedStatus = objState.satisfiedStatus ?? objective.satisfiedStatus;
+          objective.measureStatus = objState.measureStatus ?? objective.measureStatus;
+          objective.normalizedMeasure = objState.normalizedMeasure ?? objective.normalizedMeasure;
+          objective.progressMeasure = objState.progressMeasure ?? objective.progressMeasure;
+          objective.progressMeasureStatus = objState.progressMeasureStatus ?? objective.progressMeasureStatus;
+          objective.completionStatus = objState.completionStatus ?? objective.completionStatus;
+          objective.progressStatus = objState.progressStatus ?? objective.progressStatus;
+        }
+      }
+    }
+
+    // Recursively restore children state
+    if (state.children && Array.isArray(state.children)) {
+      for (let i = 0; i < state.children.length && i < this._children.length; i++) {
+        const childState = state.children[i];
+        const child = this._children.find(c => c.id === childState.id);
+        if (child) {
+          child.restoreSuspensionState(childState);
+        }
+      }
+    }
   }
 
   /**

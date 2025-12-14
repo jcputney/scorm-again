@@ -134,11 +134,12 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
         module1.sequencingControls.forwardOnly = true;
         activityTree.currentActivity = lesson1_2;
         lesson1_2.isActive = false;
-        
+
         const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.PREVIOUS);
-        
+
         expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
-        expect(result.exception).toBe("SB.2.8-2");
+        // Enhanced multi-level forwardOnly validation returns SB.2.9-5 (correct per SCORM spec)
+        expect(result.exception).toBe("SB.2.9-5");
       });
     });
   });

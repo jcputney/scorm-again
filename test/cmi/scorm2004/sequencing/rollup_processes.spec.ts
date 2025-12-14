@@ -767,18 +767,6 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
 
   describe("ADL rollup considerations", () => {
     it("ignores skipped children when requiredForNotSatisfied is ifNotSkipped", () => {
-      parent.applyRollupConsiderations({
-        requiredForNotSatisfied: "ifNotSkipped",
-        requiredForSatisfied: "ifAttempted",
-      });
-
-      child1.wasSkipped = true;
-      child1.objectiveSatisfiedStatus = false;
-      child1.attemptCount = 0;
-
-      child2.objectiveSatisfiedStatus = true;
-      child2.attemptCount = 1;
-
       const adlParent = new Activity("adlParent", "ADL Parent");
       adlParent.sequencingControls.rollupObjectiveSatisfied = true;
 
@@ -788,36 +776,51 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       adlParent.addChild(skippedChild);
       adlParent.addChild(satisfiedChild);
 
-      adlParent.applyRollupConsiderations({
-        requiredForNotSatisfied: "ifNotSkipped",
-        requiredForSatisfied: "ifAttempted",
-      });
+      // Set tracking on children
+      skippedChild.sequencingControls.rollupObjectiveSatisfied = true;
+      satisfiedChild.sequencingControls.rollupObjectiveSatisfied = true;
 
+      // Set INDIVIDUAL child consideration settings (RB.1.4.2)
+      skippedChild.requiredForNotSatisfied = "ifNotSkipped";
+      skippedChild.requiredForSatisfied = "ifAttempted";
       skippedChild.wasSkipped = true;
       skippedChild.objectiveSatisfiedStatus = false;
 
+      satisfiedChild.requiredForNotSatisfied = "ifNotSkipped";
+      satisfiedChild.requiredForSatisfied = "ifAttempted";
       satisfiedChild.objectiveSatisfiedStatus = true;
+      satisfiedChild.attemptProgressStatus = true;
       satisfiedChild.attemptCount = 1;
 
       rollupProcess.overallRollupProcess(satisfiedChild);
 
+      // Skipped child should be excluded from notSatisfied check
       expect(adlParent.objectiveSatisfiedStatus).toBe(true);
     });
 
     it("considers only attempted children for completion when configured", () => {
-      parent.applyRollupConsiderations({
-        requiredForCompleted: "ifAttempted",
-        requiredForIncomplete: "ifAttempted",
-      });
-
+      // Set INDIVIDUAL child consideration settings (RB.1.4.2)
+      child1.requiredForCompleted = "ifAttempted";
+      child1.requiredForIncomplete = "ifAttempted";
+      child1.attemptProgressStatus = true;
       child1.attemptCount = 1;
       child1.completionStatus = "completed";
 
+      child2.requiredForCompleted = "ifAttempted";
+      child2.requiredForIncomplete = "ifAttempted";
+      child2.attemptProgressStatus = false;
       child2.attemptCount = 0;
-      child2.completionStatus = "not attempted";
+      child2.completionStatus = CompletionStatus.UNKNOWN;
+
+      child3.requiredForCompleted = "ifAttempted";
+      child3.requiredForIncomplete = "ifAttempted";
+      child3.attemptProgressStatus = false;
+      child3.attemptCount = 0;
+      child3.completionStatus = CompletionStatus.UNKNOWN;
 
       rollupProcess.overallRollupProcess(child1);
 
+      // Only child1 is attempted and completed, child2 and child3 are excluded
       expect(parent.completionStatus).toBe("completed");
     });
 
