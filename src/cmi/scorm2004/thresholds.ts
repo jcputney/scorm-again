@@ -2,6 +2,7 @@
  * Class representing threshold properties for SCORM 2004's cmi object
  */
 import { scorm2004_errors } from "../../constants/error_codes";
+import { scorm2004_regex } from "../../constants/regex";
 import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
 import { BaseCMI } from "../common/base_cmi";
 
@@ -37,9 +38,33 @@ export class CMIThresholds extends BaseCMI {
         this._cmi_element + ".scaled_passing_score",
         scorm2004_errors.READ_ONLY_ELEMENT ?? 404,
       );
-    } else {
-      this._scaled_passing_score = scaled_passing_score;
     }
+
+    // Allow empty string (undefined value)
+    if (scaled_passing_score === "") {
+      this._scaled_passing_score = scaled_passing_score;
+      return;
+    }
+
+    // Validate format using CMIDecimal regex
+    const regex = new RegExp(scorm2004_regex.CMIDecimal);
+    if (!regex.test(scaled_passing_score)) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".scaled_passing_score",
+        scorm2004_errors.TYPE_MISMATCH ?? 406,
+      );
+    }
+
+    // Validate range: -1 to 1
+    const num = parseFloat(scaled_passing_score);
+    if (num < -1 || num > 1) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".scaled_passing_score",
+        scorm2004_errors.VALUE_OUT_OF_RANGE ?? 407,
+      );
+    }
+
+    this._scaled_passing_score = scaled_passing_score;
   }
 
   /**
@@ -60,9 +85,33 @@ export class CMIThresholds extends BaseCMI {
         this._cmi_element + ".completion_threshold",
         scorm2004_errors.READ_ONLY_ELEMENT ?? 404,
       );
-    } else {
-      this._completion_threshold = completion_threshold;
     }
+
+    // Allow empty string (undefined value)
+    if (completion_threshold === "") {
+      this._completion_threshold = completion_threshold;
+      return;
+    }
+
+    // Validate format using CMIDecimal regex
+    const regex = new RegExp(scorm2004_regex.CMIDecimal);
+    if (!regex.test(completion_threshold)) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".completion_threshold",
+        scorm2004_errors.TYPE_MISMATCH ?? 406,
+      );
+    }
+
+    // Validate range: 0 to 1
+    const num = parseFloat(completion_threshold);
+    if (num < 0 || num > 1) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".completion_threshold",
+        scorm2004_errors.VALUE_OUT_OF_RANGE ?? 407,
+      );
+    }
+
+    this._completion_threshold = completion_threshold;
   }
 
   /**
