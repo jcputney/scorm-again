@@ -140,12 +140,21 @@ describe("CMIArray Sequential Index Validation", () => {
       expect(errorCode).toBe(String(scorm2004_errors.GENERAL_SET_FAILURE));
     });
 
-    it("should allow updating existing index 0 in objectives array", () => {
+    // Per SCORM 2004 RTE Section 4.1.5: Once set, an objective ID is immutable
+    it("should reject changing an existing objective ID (immutability)", () => {
       scorm2004API.lmsSetValue("cmi.objectives.0.id", "obj_0");
       const result = scorm2004API.lmsSetValue("cmi.objectives.0.id", "obj_0_updated");
+      expect(result).toBe("false");
+      expect(scorm2004API.lmsGetLastError()).toBe(String(scorm2004_errors.GENERAL_SET_FAILURE));
+      // Original ID should be preserved
+      expect(scorm2004API.lmsGetValue("cmi.objectives.0.id")).toBe("obj_0");
+    });
+
+    it("should allow setting the same objective ID again (idempotent)", () => {
+      scorm2004API.lmsSetValue("cmi.objectives.0.id", "obj_0");
+      const result = scorm2004API.lmsSetValue("cmi.objectives.0.id", "obj_0");
       expect(result).toBe("true");
       expect(scorm2004API.lmsGetLastError()).toBe("0");
-      expect(scorm2004API.lmsGetValue("cmi.objectives.0.id")).toBe("obj_0_updated");
     });
 
     it("should allow sequential index setting (0, 1, 2, 3) in objectives", () => {

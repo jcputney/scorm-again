@@ -124,8 +124,9 @@ describe("Error Conditions Tests", () => {
         api.lmsInitialize();
         api.lmsFinish();
 
-        expect(api.lmsCommit()).toEqual("true");
-        expect(api.lmsGetLastError()).toEqual("0");
+        // Per SCORM 2004 RTE 3.1.2.5: Commit after Terminate returns "false" with error 143
+        expect(api.lmsCommit()).toEqual("false");
+        expect(api.lmsGetLastError()).toEqual(String(scorm2004_errors.COMMIT_AFTER_TERM));
       });
     });
 

@@ -921,9 +921,13 @@ export default abstract class BaseAPI implements IBaseAPI {
   /**
    * Returns the errorNumber error description
    *
+   * Per SCORM RTE specifications: The return value must not exceed 255 characters.
+   * All built-in error strings are intentionally kept under 255 chars to comply.
+   * No programmatic truncation is performed since all current messages comply.
+   *
    * @param {string} callbackName
    * @param {(string|number)} CMIErrorCode
-   * @return {string}
+   * @return {string} - Error description string (max 255 chars per spec)
    */
   getErrorString(callbackName: string, CMIErrorCode: string | number): string {
     let returnValue = "";
@@ -984,6 +988,68 @@ export default abstract class BaseAPI implements IBaseAPI {
     }
 
     return true;
+  }
+
+  /**
+   * Checks if setting an ID would create a duplicate in the objectives or interactions array.
+   * Per SCORM 2004 RTE Section 4.1.5/4.1.6: IDs must be unique within their respective arrays.
+   *
+   * @param {string} CMIElement - The element path (e.g., "cmi.objectives.0.id")
+   * @param {string} value - The ID value being set
+   * @return {boolean} - True if a duplicate would be created, false otherwise
+   * @protected
+   */
+  protected _checkForDuplicateId(CMIElement: string, value: string): boolean {
+    // Match objectives: cmi.objectives.n.id
+    const objectivesMatch = CMIElement.match(/^cmi\.objectives\.(\d+)\.id$/);
+    if (objectivesMatch) {
+      const currentIndex = parseInt(objectivesMatch[1], 10);
+      const cmiObj = (this as StringKeyMap).cmi;
+      if (cmiObj?.objectives?.childArray) {
+        for (let i = 0; i < cmiObj.objectives.childArray.length; i++) {
+          if (i !== currentIndex && cmiObj.objectives.childArray[i]?.id === value) {
+            return true; // Duplicate found
+          }
+        }
+      }
+      return false;
+    }
+
+    // Match interactions: cmi.interactions.n.id
+    const interactionsMatch = CMIElement.match(/^cmi\.interactions\.(\d+)\.id$/);
+    if (interactionsMatch) {
+      const currentIndex = parseInt(interactionsMatch[1], 10);
+      const cmiObj = (this as StringKeyMap).cmi;
+      if (cmiObj?.interactions?.childArray) {
+        for (let i = 0; i < cmiObj.interactions.childArray.length; i++) {
+          if (i !== currentIndex && cmiObj.interactions.childArray[i]?.id === value) {
+            return true; // Duplicate found
+          }
+        }
+      }
+      return false;
+    }
+
+    // Match interaction objectives: cmi.interactions.n.objectives.m.id
+    const interactionObjectivesMatch = CMIElement.match(
+      /^cmi\.interactions\.(\d+)\.objectives\.(\d+)\.id$/,
+    );
+    if (interactionObjectivesMatch) {
+      const interactionIndex = parseInt(interactionObjectivesMatch[1], 10);
+      const currentObjIndex = parseInt(interactionObjectivesMatch[2], 10);
+      const cmiObj = (this as StringKeyMap).cmi;
+      const interaction = cmiObj?.interactions?.childArray?.[interactionIndex];
+      if (interaction?.objectives?.childArray) {
+        for (let i = 0; i < interaction.objectives.childArray.length; i++) {
+          if (i !== currentObjIndex && interaction.objectives.childArray[i]?.id === value) {
+            return true; // Duplicate found
+          }
+        }
+      }
+      return false;
+    }
+
+    return false;
   }
 
   /**
@@ -1097,6 +1163,17 @@ export default abstract class BaseAPI implements IBaseAPI {
               this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
               break;
             }
+
+            // SCORM 2004: Check for duplicate IDs in objectives and interactions arrays
+            // Per SCORM 2004 RTE Section 4.1.5/4.1.6: IDs must be unique within their respective arrays
+            if (scorm2004 && attribute === "id" && this.isInitialized()) {
+              const duplicateError = this._checkForDuplicateId(CMIElement, value);
+              if (duplicateError) {
+                this.throwSCORMError(CMIElement, this._error_codes.GENERAL_SET_FAILURE);
+                break;
+              }
+            }
+
             (refObject as StringKeyMap)[attribute] = value;
             returnValue = global_constants.SCORM_TRUE;
           }
