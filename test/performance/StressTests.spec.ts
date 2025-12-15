@@ -278,25 +278,27 @@ describe("Stress Tests for Concurrent Operations", () => {
 
       for (const concurrency of concurrencyLevels) {
         // Pre-populate interactions sequentially to satisfy sequential index requirement
+        // Per SCORM 2004 RTE: IDs are immutable once set, so we set them once here
         for (let i = 0; i < concurrency; i++) {
-          api.SetValue(`cmi.interactions.${i}.id`, `interaction_${i}_initial`);
+          api.SetValue(`cmi.interactions.${i}.id`, `interaction_${i}`);
+          api.SetValue(`cmi.interactions.${i}.type`, "choice");
         }
 
         // Create a mix of SetValue and GetValue operations
+        // Note: We update `type` property instead of `id` since IDs are immutable per SCORM spec
         const operations = Array(concurrency)
           .fill(0)
           .map((_, i) => {
             if (i % 2 === 0) {
-              // Even indices: SetValue (updating existing interactions)
+              // Even indices: SetValue (updating existing interaction type)
               return async () => {
-                const result = api.SetValue(`cmi.interactions.${i}.id`, `interaction_${i}`);
+                const result = api.SetValue(`cmi.interactions.${i}.type`, "true-false");
                 expect(result).toBe("true");
               };
             } else {
               // Odd indices: GetValue (on previously set values)
               return async () => {
                 const value = api.GetValue(`cmi.interactions.${i - 1}.id`);
-                // Value could be initial or updated depending on race conditions
                 expect(value).toBeTruthy();
               };
             }

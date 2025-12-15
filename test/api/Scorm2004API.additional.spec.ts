@@ -792,4 +792,215 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       ).toBe("true");
     });
   });
+
+  /**
+   * SCORM 2004 RTE Section 4.1.5/4.1.6: ID Uniqueness and Immutability Tests
+   *
+   * Per SCORM 2004 spec:
+   * - Objective IDs must be unique within the cmi.objectives array
+   * - Interaction IDs must be unique within the cmi.interactions array
+   * - Once set, an ID cannot be changed (immutability)
+   * - Violation results in error 351 (General Set Failure)
+   *
+   * INTENTIONAL RELAXATION: SPM (Smallest Permitted Maximum) limits are NOT enforced
+   * for suspend_data, location, and comments. Modern content often exceeds these limits,
+   * and strict enforcement would break otherwise functional learning content.
+   * See inline code comments for details on specific relaxations.
+   */
+  describe("ID Uniqueness and Immutability Validation", (): void => {
+    describe("Objective ID Uniqueness", (): void => {
+      it("should allow setting unique objective IDs", (): void => {
+        const scorm2004API = apiInitialized();
+
+        // Set unique IDs for multiple objectives
+        expect(scorm2004API.lmsSetValue("cmi.objectives.0.id", "objective-1")).toBe("true");
+        expect(scorm2004API.lmsSetValue("cmi.objectives.1.id", "objective-2")).toBe("true");
+        expect(scorm2004API.lmsSetValue("cmi.objectives.2.id", "objective-3")).toBe("true");
+        expect(scorm2004API.lmsGetLastError()).toBe("0");
+      });
+
+      it("should reject duplicate objective IDs with error 351", (): void => {
+        const scorm2004API = apiInitialized();
+
+        // Set first objective ID
+        expect(scorm2004API.lmsSetValue("cmi.objectives.0.id", "duplicate-id")).toBe("true");
+        expect(scorm2004API.lmsGetLastError()).toBe("0");
+
+        // Attempt to set same ID on different objective - should fail
+        expect(scorm2004API.lmsSetValue("cmi.objectives.1.id", "duplicate-id")).toBe("false");
+        expect(scorm2004API.lmsGetLastError()).toBe(String(scorm2004_errors.GENERAL_SET_FAILURE));
+      });
+
+      it("should allow setting the same ID on the same objective (idempotent)", (): void => {
+        const scorm2004API = apiInitialized();
+
+        // Set objective ID
+        expect(scorm2004API.lmsSetValue("cmi.objectives.0.id", "my-objective")).toBe("true");
+
+        // Setting the same value again should succeed (idempotent)
+        expect(scorm2004API.lmsSetValue("cmi.objectives.0.id", "my-objective")).toBe("true");
+        expect(scorm2004API.lmsGetLastError()).toBe("0");
+      });
+    });
+
+    describe("Objective ID Immutability", (): void => {
+      it("should reject changing an objective ID once set with error 351", (): void => {
+        const scorm2004API = apiInitialized();
+
+        // Set initial objective ID
+        expect(scorm2004API.lmsSetValue("cmi.objectives.0.id", "original-id")).toBe("true");
+        expect(scorm2004API.lmsGetLastError()).toBe("0");
+
+        // Attempt to change the ID - should fail with error 351
+        expect(scorm2004API.lmsSetValue("cmi.objectives.0.id", "new-id")).toBe("false");
+        expect(scorm2004API.lmsGetLastError()).toBe(String(scorm2004_errors.GENERAL_SET_FAILURE));
+
+        // Verify original ID is preserved
+        expect(scorm2004API.lmsGetValue("cmi.objectives.0.id")).toBe("original-id");
+      });
+
+      it("should allow setting other objective properties after ID is set", (): void => {
+        const scorm2004API = apiInitialized();
+
+        // Set objective ID first
+        expect(scorm2004API.lmsSetValue("cmi.objectives.0.id", "my-objective")).toBe("true");
+
+        // Other properties should work fine
+        expect(scorm2004API.lmsSetValue("cmi.objectives.0.success_status", "passed")).toBe("true");
+        expect(scorm2004API.lmsSetValue("cmi.objectives.0.completion_status", "completed")).toBe(
+          "true",
+        );
+        expect(scorm2004API.lmsSetValue("cmi.objectives.0.score.scaled", "0.95")).toBe("true");
+        expect(scorm2004API.lmsGetLastError()).toBe("0");
+      });
+    });
+
+    describe("Interaction ID Uniqueness", (): void => {
+      it("should allow setting unique interaction IDs", (): void => {
+        const scorm2004API = apiInitialized();
+
+        // Set unique IDs for multiple interactions
+        expect(scorm2004API.lmsSetValue("cmi.interactions.0.id", "interaction-1")).toBe("true");
+        expect(scorm2004API.lmsSetValue("cmi.interactions.1.id", "interaction-2")).toBe("true");
+        expect(scorm2004API.lmsSetValue("cmi.interactions.2.id", "interaction-3")).toBe("true");
+        expect(scorm2004API.lmsGetLastError()).toBe("0");
+      });
+
+      it("should reject duplicate interaction IDs with error 351", (): void => {
+        const scorm2004API = apiInitialized();
+
+        // Set first interaction ID
+        expect(scorm2004API.lmsSetValue("cmi.interactions.0.id", "duplicate-interaction")).toBe(
+          "true",
+        );
+        expect(scorm2004API.lmsGetLastError()).toBe("0");
+
+        // Attempt to set same ID on different interaction - should fail
+        expect(scorm2004API.lmsSetValue("cmi.interactions.1.id", "duplicate-interaction")).toBe(
+          "false",
+        );
+        expect(scorm2004API.lmsGetLastError()).toBe(String(scorm2004_errors.GENERAL_SET_FAILURE));
+      });
+
+      it("should allow setting the same ID on the same interaction (idempotent)", (): void => {
+        const scorm2004API = apiInitialized();
+
+        // Set interaction ID
+        expect(scorm2004API.lmsSetValue("cmi.interactions.0.id", "my-interaction")).toBe("true");
+
+        // Setting the same value again should succeed (idempotent)
+        expect(scorm2004API.lmsSetValue("cmi.interactions.0.id", "my-interaction")).toBe("true");
+        expect(scorm2004API.lmsGetLastError()).toBe("0");
+      });
+    });
+
+    describe("Interaction ID Immutability", (): void => {
+      it("should reject changing an interaction ID once set with error 351", (): void => {
+        const scorm2004API = apiInitialized();
+
+        // Set initial interaction ID
+        expect(scorm2004API.lmsSetValue("cmi.interactions.0.id", "original-interaction")).toBe(
+          "true",
+        );
+        expect(scorm2004API.lmsGetLastError()).toBe("0");
+
+        // Attempt to change the ID - should fail with error 351
+        expect(scorm2004API.lmsSetValue("cmi.interactions.0.id", "new-interaction")).toBe("false");
+        expect(scorm2004API.lmsGetLastError()).toBe(String(scorm2004_errors.GENERAL_SET_FAILURE));
+
+        // Verify original ID is preserved
+        expect(scorm2004API.lmsGetValue("cmi.interactions.0.id")).toBe("original-interaction");
+      });
+
+      it("should allow setting other interaction properties after ID is set", (): void => {
+        const scorm2004API = apiInitialized();
+
+        // Set interaction ID first
+        expect(scorm2004API.lmsSetValue("cmi.interactions.0.id", "my-interaction")).toBe("true");
+
+        // Other properties should work fine
+        expect(scorm2004API.lmsSetValue("cmi.interactions.0.type", "choice")).toBe("true");
+        expect(scorm2004API.lmsSetValue("cmi.interactions.0.learner_response", "a")).toBe("true");
+        expect(scorm2004API.lmsSetValue("cmi.interactions.0.result", "correct")).toBe("true");
+        expect(scorm2004API.lmsGetLastError()).toBe("0");
+      });
+    });
+
+    describe("Interaction Objectives ID Uniqueness", (): void => {
+      it("should allow unique IDs within an interaction's objectives", (): void => {
+        const scorm2004API = apiInitialized();
+
+        // Set up interaction first
+        scorm2004API.lmsSetValue("cmi.interactions.0.id", "test-interaction");
+        scorm2004API.lmsSetValue("cmi.interactions.0.type", "choice");
+
+        // Set unique objective IDs within the interaction
+        expect(scorm2004API.lmsSetValue("cmi.interactions.0.objectives.0.id", "obj-a")).toBe(
+          "true",
+        );
+        expect(scorm2004API.lmsSetValue("cmi.interactions.0.objectives.1.id", "obj-b")).toBe(
+          "true",
+        );
+        expect(scorm2004API.lmsGetLastError()).toBe("0");
+      });
+
+      it("should reject duplicate IDs within an interaction's objectives", (): void => {
+        const scorm2004API = apiInitialized();
+
+        // Set up interaction first
+        scorm2004API.lmsSetValue("cmi.interactions.0.id", "test-interaction");
+        scorm2004API.lmsSetValue("cmi.interactions.0.type", "choice");
+
+        // Set first objective ID
+        expect(scorm2004API.lmsSetValue("cmi.interactions.0.objectives.0.id", "dup-obj")).toBe(
+          "true",
+        );
+
+        // Attempt duplicate - should fail
+        expect(scorm2004API.lmsSetValue("cmi.interactions.0.objectives.1.id", "dup-obj")).toBe(
+          "false",
+        );
+        expect(scorm2004API.lmsGetLastError()).toBe(String(scorm2004_errors.GENERAL_SET_FAILURE));
+      });
+
+      it("should allow same objective ID in different interactions", (): void => {
+        const scorm2004API = apiInitialized();
+
+        // Set up two interactions
+        scorm2004API.lmsSetValue("cmi.interactions.0.id", "interaction-1");
+        scorm2004API.lmsSetValue("cmi.interactions.0.type", "choice");
+        scorm2004API.lmsSetValue("cmi.interactions.1.id", "interaction-2");
+        scorm2004API.lmsSetValue("cmi.interactions.1.type", "choice");
+
+        // Same objective ID in different interactions is allowed
+        expect(scorm2004API.lmsSetValue("cmi.interactions.0.objectives.0.id", "shared-obj")).toBe(
+          "true",
+        );
+        expect(scorm2004API.lmsSetValue("cmi.interactions.1.objectives.0.id", "shared-obj")).toBe(
+          "true",
+        );
+        expect(scorm2004API.lmsGetLastError()).toBe("0");
+      });
+    });
+  });
 });

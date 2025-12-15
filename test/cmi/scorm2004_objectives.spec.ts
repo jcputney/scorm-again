@@ -153,9 +153,30 @@ describe("SCORM 2004 Objectives Tests", () => {
 
           objectiveObj.id = "objective-1";
           expect(objectiveObj.id).toBe("objective-1");
+        });
 
-          objectiveObj.id = "another-objective";
-          expect(objectiveObj.id).toBe("another-objective");
+        // Per SCORM 2004 RTE Section 4.1.5: Once set, an objective ID is immutable
+        it("should reject changing id once set (immutability)", () => {
+          const objectiveObj = new CMIObjectivesObject();
+
+          objectiveObj.id = "objective-1";
+          expect(objectiveObj.id).toBe("objective-1");
+
+          // Attempting to change ID should throw
+          expect(() => {
+            objectiveObj.id = "another-objective";
+          }).toThrow();
+
+          // Original ID should be preserved
+          expect(objectiveObj.id).toBe("objective-1");
+        });
+
+        it("should allow setting the same id again (idempotent)", () => {
+          const objectiveObj = new CMIObjectivesObject();
+
+          objectiveObj.id = "objective-1";
+          objectiveObj.id = "objective-1"; // Same value should work
+          expect(objectiveObj.id).toBe("objective-1");
         });
 
         it("should reject invalid id values", () => {
