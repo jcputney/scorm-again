@@ -251,8 +251,15 @@ export class SequencingService {
   /**
    * Process a navigation request
    * Implements the complete Overall Sequencing Process (OP.1)
+   * @param {string} request - The navigation request
+   * @param {string} targetActivityId - Optional target activity ID for choice/jump requests
+   * @param {string} exitType - Optional cmi.exit value (logout, normal, suspend, time-out, or empty)
    */
-  public processNavigationRequest(request: string, targetActivityId?: string): boolean {
+  public processNavigationRequest(
+    request: string,
+    targetActivityId?: string,
+    exitType?: string,
+  ): boolean {
     if (!this.isInitialized || !this.overallSequencingProcess) {
       this.log("warn", `Navigation request '${request}' ignored - sequencing not initialized`);
       return false;
@@ -261,7 +268,7 @@ export class SequencingService {
     try {
       this.log(
         "info",
-        `Processing navigation request: ${request}${targetActivityId ? ` (target: ${targetActivityId})` : ""}`,
+        `Processing navigation request: ${request}${targetActivityId ? ` (target: ${targetActivityId})` : ""}${exitType ? ` (exit: ${exitType})` : ""}`,
       );
 
       // Fire navigation request event
@@ -279,6 +286,7 @@ export class SequencingService {
         this.overallSequencingProcess.processNavigationRequest(
           navRequestType,
           targetActivityId || null,
+          exitType,
         );
 
       const sequencingResult: SequencingResult = {
