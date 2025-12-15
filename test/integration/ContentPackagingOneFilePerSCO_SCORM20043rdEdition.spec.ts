@@ -201,13 +201,16 @@ wrappers.forEach((wrapper) => {
 
       expect(navResult).toBe("true");
 
-      // Get the navigation request value
-      const navValue = await page.evaluate(() => {
-        return window.API_1484_11.lmsGetValue("adl.nav.request");
+      // Get the navigation request value - should return "" with error 405 (write-only)
+      const navData = await page.evaluate(() => {
+        const value = window.API_1484_11.lmsGetValue("adl.nav.request");
+        const error = window.API_1484_11.lmsGetLastError();
+        return { value, error };
       });
 
-      // Navigation request should be set (may be normalized)
-      expect(["continue", "_continue"]).toContain(navValue);
+      // adl.nav.request is write-only per SCORM 2004 spec
+      expect(navData.value).toBe("");
+      expect(navData.error).toBe("405");
     });
 
     test("should load individual SCO content pages", async ({ page }) => {

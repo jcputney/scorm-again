@@ -41,12 +41,14 @@ describe("SCORM 2004 API Navigation Request Processing Tests", () => {
       expect(apiInstance.adl.nav.request).toBeDefined();
     });
 
-    it("should handle lmsGetValue for adl.nav.request", () => {
+    it("should return error 405 when reading adl.nav.request (write-only)", () => {
       const apiInstance = apiInitialized();
 
-      // Test basic getValue for navigation request
+      // adl.nav.request is write-only per SCORM 2004 spec
       const result = apiInstance.lmsGetValue("adl.nav.request");
-      expect(typeof result).toBe("string");
+
+      expect(result).toBe("");
+      expect(apiInstance.lmsGetLastError()).toBe("405"); // WRITE_ONLY_ELEMENT
     });
 
     it("should handle lmsGetValue for adl.nav.request_valid", () => {

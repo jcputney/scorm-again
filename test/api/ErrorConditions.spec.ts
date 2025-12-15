@@ -156,9 +156,9 @@ describe("Error Conditions Tests", () => {
         // Set up a navigation request
         api.lmsSetValue("adl.nav.request", "continue");
 
-        // Attempt to get a write-only element
-        expect(api.lmsGetValue("adl.nav.request")).toEqual("continue");
-        expect(api.lmsGetLastError()).toEqual("0");
+        // Attempt to get a write-only element - should return "" and set error 405
+        expect(api.lmsGetValue("adl.nav.request")).toEqual("");
+        expect(api.lmsGetLastError()).toEqual(String(scorm2004_errors.WRITE_ONLY_ELEMENT));
       });
 
       it("should set TYPE_MISMATCH (406) error when setting a value with incorrect data type", () => {
