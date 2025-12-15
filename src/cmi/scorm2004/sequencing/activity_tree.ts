@@ -144,15 +144,26 @@ export class ActivityTree extends BaseCMI {
       );
     }
 
-    // If there's already a suspended activity, unsuspend it
+    // Unsuspend previous suspended activity and all its ancestors
     if (this._suspendedActivity) {
       this._suspendedActivity.isSuspended = false;
+      let ancestor = this._suspendedActivity.parent;
+      while (ancestor) {
+        ancestor.isSuspended = false;
+        ancestor = ancestor.parent;
+      }
     }
 
-    // Set the new suspended activity and mark it as suspended
     this._suspendedActivity = activity;
+
+    // Set new suspended activity and mark all ancestors as suspended
     if (activity) {
       activity.isSuspended = true;
+      let ancestor = activity.parent;
+      while (ancestor) {
+        ancestor.isSuspended = true;
+        ancestor = ancestor.parent;
+      }
     }
   }
 

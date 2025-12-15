@@ -360,4 +360,73 @@ describe("ActivityTree", () => {
       expect(result).toHaveProperty("suspendedActivity", null);
     });
   });
+
+  describe("Cluster Suspend Propagation", () => {
+    it("should mark all ancestors as suspended when a leaf is suspended", () => {
+      const tree = new ActivityTree();
+      const root = new Activity({ id: "root", title: "Root" });
+      const cluster = new Activity({ id: "cluster", title: "Cluster" });
+      const leaf = new Activity({ id: "leaf", title: "Leaf" });
+
+      tree.root = root;
+      root.addChild(cluster);
+      cluster.addChild(leaf);
+
+      // Suspend the leaf
+      tree.suspendedActivity = leaf;
+
+      // Verify all ancestors are also suspended
+      expect(leaf.isSuspended).toBe(true);
+      expect(cluster.isSuspended).toBe(true);
+      expect(root.isSuspended).toBe(true);
+    });
+
+    it("should unsuspend all ancestors when suspended activity is cleared", () => {
+      const tree = new ActivityTree();
+      const root = new Activity({ id: "root", title: "Root" });
+      const cluster = new Activity({ id: "cluster", title: "Cluster" });
+      const leaf = new Activity({ id: "leaf", title: "Leaf" });
+
+      tree.root = root;
+      root.addChild(cluster);
+      cluster.addChild(leaf);
+
+      // Suspend then unsuspend
+      tree.suspendedActivity = leaf;
+      tree.suspendedActivity = null;
+
+      // Verify all are no longer suspended
+      expect(leaf.isSuspended).toBe(false);
+      expect(cluster.isSuspended).toBe(false);
+      expect(root.isSuspended).toBe(false);
+    });
+
+    it("should handle switching suspended activity to different branch", () => {
+      const tree = new ActivityTree();
+      const root = new Activity({ id: "root", title: "Root" });
+      const cluster1 = new Activity({ id: "cluster1", title: "Cluster1" });
+      const cluster2 = new Activity({ id: "cluster2", title: "Cluster2" });
+      const leaf1 = new Activity({ id: "leaf1", title: "Leaf1" });
+      const leaf2 = new Activity({ id: "leaf2", title: "Leaf2" });
+
+      tree.root = root;
+      root.addChild(cluster1);
+      root.addChild(cluster2);
+      cluster1.addChild(leaf1);
+      cluster2.addChild(leaf2);
+
+      // Suspend leaf1
+      tree.suspendedActivity = leaf1;
+      expect(cluster1.isSuspended).toBe(true);
+      expect(cluster2.isSuspended).toBe(false);
+
+      // Switch to leaf2
+      tree.suspendedActivity = leaf2;
+      expect(leaf1.isSuspended).toBe(false);
+      expect(cluster1.isSuspended).toBe(false);
+      expect(leaf2.isSuspended).toBe(true);
+      expect(cluster2.isSuspended).toBe(true);
+      expect(root.isSuspended).toBe(true);
+    });
+  });
 });
