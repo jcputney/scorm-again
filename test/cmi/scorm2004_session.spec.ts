@@ -10,7 +10,7 @@ describe("SCORM 2004 CMISession Tests", () => {
 
       expect(session.entry).toBe("");
       // session_time is write-only, so we can't test it directly
-      expect(session.total_time).toBe("");
+      expect(session.total_time).toBe("PT0S");
 
       // exit is write-only, but we can test it by setting jsonString to true
       session.jsonString = true;

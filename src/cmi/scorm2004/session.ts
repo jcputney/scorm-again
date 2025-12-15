@@ -15,7 +15,7 @@ export class CMISession extends BaseCMI {
   private _entry = "";
   private _exit = "";
   private _session_time = "PT0H0M0S";
-  private _total_time = "";
+  private _total_time = "PT0S";
 
   /**
    * Constructor for CMISession

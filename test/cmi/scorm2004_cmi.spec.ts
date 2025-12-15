@@ -230,7 +230,7 @@ describe("SCORM 2004 CMI Tests", () => {
       h.checkReadAndWrite({
         cmi: cmi(),
         fieldName: "cmi.total_time",
-        expectedValue: "",
+        expectedValue: "PT0S",
       });
 
       /**
@@ -527,7 +527,7 @@ describe("SCORM 2004 CMI Tests", () => {
       h.checkReadOnly({
         cmi: cmiInitialized(),
         fieldName: "cmi.total_time",
-        expectedValue: "",
+        expectedValue: "PT0S",
         expectedError: read_only,
       });
 
