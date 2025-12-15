@@ -190,6 +190,78 @@ describe("Error Conditions Tests", () => {
         );
         expect(api.lmsGetLastError()).toEqual(String(scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED));
       });
+
+      it("should set GENERAL_GET_FAILURE (301) error when GetValue is called with empty string", () => {
+        const api = scorm2004Api();
+        api.lmsInitialize();
+
+        // Attempt to get value with empty string parameter
+        expect(api.lmsGetValue("")).toEqual("");
+        expect(api.lmsGetLastError()).toEqual(String(scorm2004_errors.GENERAL_GET_FAILURE));
+        expect(api.lmsGetDiagnostic("")).toContain("not specified");
+      });
+
+      it("should set GENERAL_SET_FAILURE (351) error when SetValue is called with empty CMIElement", () => {
+        const api = scorm2004Api();
+        api.lmsInitialize();
+
+        // Attempt to set value with empty string element
+        expect(api.lmsSetValue("", "some value")).toEqual("false");
+        expect(api.lmsGetLastError()).toEqual(String(scorm2004_errors.GENERAL_SET_FAILURE));
+      });
+
+      it("should set GENERAL_GET_FAILURE (301) error when using ._version on non-base element", () => {
+        const api = scorm2004Api();
+        api.lmsInitialize();
+
+        // Attempt to get ._version on a non-base element (only cmi._version is valid)
+        expect(api.lmsGetValue("cmi.learner_id._version")).toEqual("");
+        expect(api.lmsGetLastError()).toEqual(String(scorm2004_errors.GENERAL_GET_FAILURE));
+        expect(api.lmsGetDiagnostic("")).toContain("_version keyword was used incorrectly");
+      });
+
+      it("should set GENERAL_GET_FAILURE (301) error when using ._children on non-parent element", () => {
+        const api = scorm2004Api();
+        api.lmsInitialize();
+
+        // Attempt to get ._children on a non-parent element (learner_name has no children)
+        expect(api.lmsGetValue("cmi.learner_name._children")).toEqual("");
+        expect(api.lmsGetLastError()).toEqual(String(scorm2004_errors.GENERAL_GET_FAILURE));
+        expect(api.lmsGetDiagnostic("")).toContain("does not have children");
+      });
+
+      it("should set GENERAL_GET_FAILURE (301) error when using ._count on non-collection element", () => {
+        const api = scorm2004Api();
+        api.lmsInitialize();
+
+        // Attempt to get ._count on a non-collection element
+        expect(api.lmsGetValue("cmi.learner_name._count")).toEqual("");
+        expect(api.lmsGetLastError()).toEqual(String(scorm2004_errors.GENERAL_GET_FAILURE));
+        expect(api.lmsGetDiagnostic("")).toContain("not a collection");
+      });
+
+      it("should set VALUE_NOT_INITIALIZED (403) error when accessing out-of-range collection index", () => {
+        const api = scorm2004Api();
+        api.lmsInitialize();
+
+        // Attempt to access an objective that doesn't exist (no objectives have been created)
+        expect(api.lmsGetValue("cmi.objectives.99.id")).toEqual("");
+        expect(api.lmsGetLastError()).toEqual(String(scorm2004_errors.VALUE_NOT_INITIALIZED));
+      });
+    });
+
+    describe("State Transition Errors", () => {
+      it("should set TERMINATED (104) error when attempting to initialize after termination", () => {
+        const api = scorm2004Api();
+
+        // Initialize and terminate
+        api.lmsInitialize();
+        api.lmsFinish();
+
+        // Attempt to initialize again after termination
+        expect(api.lmsInitialize()).toEqual("false");
+        expect(api.lmsGetLastError()).toEqual(String(scorm2004_errors.TERMINATED));
+      });
     });
   });
 

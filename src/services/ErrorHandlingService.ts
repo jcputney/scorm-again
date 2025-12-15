@@ -10,6 +10,7 @@ import { getLoggingService } from "./LoggingService";
  */
 export class ErrorHandlingService implements IErrorHandlingService {
   private _lastErrorCode: string = "0";
+  private _lastDiagnostic: string = "";
   private readonly _errorCodes: ErrorCode;
   private readonly _apiLog: (
     functionName: string,
@@ -64,6 +65,15 @@ export class ErrorHandlingService implements IErrorHandlingService {
   }
 
   /**
+   * Get the last custom diagnostic message
+   *
+   * @return {string} - The last custom diagnostic message, or empty string if none
+   */
+  get lastDiagnostic(): string {
+    return this._lastDiagnostic;
+  }
+
+  /**
    * Throws a SCORM error
    *
    * @param {string} CMIElement
@@ -72,6 +82,9 @@ export class ErrorHandlingService implements IErrorHandlingService {
    * @throws {ValidationError} - If throwException is true, throws a ValidationError
    */
   throwSCORMError(CMIElement: string, errorNumber: number, message?: string): void {
+    // Store custom diagnostic if provided, otherwise clear it
+    this._lastDiagnostic = message || "";
+
     if (!message) {
       message = this._getLmsErrorMessageDetails(errorNumber, true);
     }

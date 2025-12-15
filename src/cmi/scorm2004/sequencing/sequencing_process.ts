@@ -4,7 +4,7 @@ import {
   RuleActionType,
   RuleConditionOperator,
   SequencingRule,
-  SequencingRules,
+  SequencingRules
 } from "./sequencing_rules";
 import { SequencingControls } from "./sequencing_controls";
 import { ADLNav } from "../adl";
@@ -53,7 +53,7 @@ export class SequencingResult {
     deliveryRequest: DeliveryRequestType = DeliveryRequestType.DO_NOT_DELIVER,
     targetActivity: Activity | null = null,
     exception: string | null = null,
-    endSequencingSession: boolean = false,
+    endSequencingSession: boolean = false
   ) {
     this.deliveryRequest = deliveryRequest;
     this.targetActivity = targetActivity;
@@ -85,7 +85,7 @@ class FlowSubprocessResult {
     identifiedActivity: Activity | null,
     deliverable: boolean,
     exception: string | null = null,
-    endSequencingSession: boolean = false,
+    endSequencingSession: boolean = false
   ) {
     this.identifiedActivity = identifiedActivity;
     this.deliverable = deliverable;
@@ -129,7 +129,7 @@ export class SequencingProcess {
       now?: () => Date;
       getAttemptElapsedSeconds?: (activity: Activity) => number;
       getActivityElapsedSeconds?: (activity: Activity) => number;
-    },
+    }
   ) {
     this.activityTree = activityTree;
     this.sequencingRules = sequencingRules || null;
@@ -153,7 +153,7 @@ export class SequencingProcess {
    */
   public sequencingRequestProcess(
     request: SequencingRequestType,
-    targetActivityId: string | null = null,
+    targetActivityId: string | null = null
   ): SequencingResult {
     // Initialize result
     const result = new SequencingResult();
@@ -277,7 +277,7 @@ export class SequencingProcess {
       root,
       true, // direction: forward
       true, // considerChildren: true
-      FlowSubprocessMode.FORWARD,
+      FlowSubprocessMode.FORWARD
     );
 
     if (!deliverableActivity) {
@@ -440,7 +440,7 @@ export class SequencingProcess {
    */
   private choiceSequencingRequestProcess(
     targetActivityId: string,
-    currentActivity: Activity | null,
+    currentActivity: Activity | null
   ): SequencingResult {
     const result = new SequencingResult();
 
@@ -507,7 +507,7 @@ export class SequencingProcess {
           if (!this.isActivity1AParentOfActivity2(currentAncestor, targetActivity)) {
             this.logger?.debug(
               `[SequencingProcess] choiceExit blocked: Cannot exit from ${currentAncestor.id} to ${targetActivity.id} (SB.2.9-8). ` +
-                `Ancestor ${currentAncestor.id} is active with choiceExit=false, blocking navigation outside its subtree.`,
+              `Ancestor ${currentAncestor.id} is active with choiceExit=false, blocking navigation outside its subtree.`
             );
             result.exception = "SB.2.9-8";
             return result;
@@ -788,7 +788,7 @@ export class SequencingProcess {
           child,
           true, // direction: forward
           true, // considerChildren: true
-          FlowSubprocessMode.FORWARD,
+          FlowSubprocessMode.FORWARD
         );
         if (deliverableActivity) {
           break;
@@ -855,7 +855,7 @@ export class SequencingProcess {
     activity: Activity,
     _direction: boolean,
     considerChildren: boolean,
-    mode: FlowSubprocessMode,
+    mode: FlowSubprocessMode
   ): Activity | null {
     // SB.2.2 Step 1: Check sequencing control modes (flow control check)
     const parent = activity.parent;
@@ -884,7 +884,7 @@ export class SequencingProcess {
           child,
           mode === FlowSubprocessMode.FORWARD,
           true,
-          mode,
+          mode
         );
         if (deliverable) {
           return deliverable;
@@ -926,7 +926,7 @@ export class SequencingProcess {
     // Check pre-condition rules using UP.2
     const preConditionResult = this.sequencingRulesCheckProcess(
       activity,
-      activity.sequencingRules.preConditionRules,
+      activity.sequencingRules.preConditionRules
     );
 
     activity.wasSkipped = preConditionResult === RuleActionType.SKIP;
@@ -942,7 +942,7 @@ export class SequencingProcess {
    */
   private terminateDescendentAttemptsProcess(
     activity: Activity,
-    skipExitRules: boolean = false,
+    skipExitRules: boolean = false
   ): void {
     // Apply Exit Action Rules (TB.2.1) first to check for exit actions
     let exitAction = null;
@@ -976,7 +976,7 @@ export class SequencingProcess {
     // Evaluate exit condition rules using UP.2
     const exitAction = this.sequencingRulesCheckProcess(
       activity,
-      activity.sequencingRules.exitConditionRules,
+      activity.sequencingRules.exitConditionRules
     );
 
     // Only certain actions are valid for exit condition rules
@@ -1036,7 +1036,7 @@ export class SequencingProcess {
     // Evaluate post-condition rules using UP.2
     const postAction = this.sequencingRulesCheckProcess(
       activity,
-      activity.sequencingRules.postConditionRules,
+      activity.sequencingRules.postConditionRules
     );
 
     // Only certain actions are valid for post-condition rules
@@ -1047,7 +1047,7 @@ export class SequencingProcess {
       RuleActionType.RETRY_ALL,
       RuleActionType.CONTINUE,
       RuleActionType.PREVIOUS,
-      RuleActionType.STOP_FORWARD_TRAVERSAL,
+      RuleActionType.STOP_FORWARD_TRAVERSAL
     ];
 
     if (postAction && validActions.includes(postAction)) {
@@ -1066,7 +1066,7 @@ export class SequencingProcess {
    */
   private validateSequencingRequest(
     request: SequencingRequestType,
-    targetActivityId: string | null,
+    targetActivityId: string | null
   ): {
     valid: boolean;
     exception: string | null;
@@ -1088,7 +1088,7 @@ export class SequencingProcess {
     // Additional request-specific validation
     const requestSpecificValidation = this.validateRequestSpecificConstraints(
       request,
-      targetActivityId,
+      targetActivityId
     );
     if (!requestSpecificValidation.valid) {
       return requestSpecificValidation;
@@ -1105,7 +1105,7 @@ export class SequencingProcess {
    */
   private validateRequestSpecificConstraints(
     request: SequencingRequestType,
-    targetActivityId: string | null,
+    targetActivityId: string | null
   ): {
     valid: boolean;
     exception: string | null;
@@ -1257,7 +1257,7 @@ export class SequencingProcess {
    */
   private sequencingRulesCheckProcess(
     activity: Activity,
-    rules: SequencingRule[],
+    rules: SequencingRule[]
   ): RuleActionType | null {
     // Evaluate each rule in order
     for (const rule of rules) {
@@ -1340,7 +1340,7 @@ export class SequencingProcess {
    */
   private findCommonAncestor(
     activity1: Activity | null,
-    activity2: Activity | null,
+    activity2: Activity | null
   ): Activity | null {
     if (!activity1 || !activity2) {
       return null;
@@ -1375,7 +1375,7 @@ export class SequencingProcess {
    */
   private flowSubprocess(
     fromActivity: Activity,
-    direction: FlowSubprocessMode,
+    direction: FlowSubprocessMode
   ): FlowSubprocessResult {
     let candidateActivity: Activity | null = fromActivity;
     let firstIteration = true;
@@ -1388,7 +1388,7 @@ export class SequencingProcess {
       const traversalResult = this.flowTreeTraversalSubprocess(
         candidateActivity,
         direction,
-        firstIteration,
+        firstIteration
       );
 
       if (!traversalResult.activity) {
@@ -1408,7 +1408,7 @@ export class SequencingProcess {
           candidateActivity,
           false,
           exceptionCode,
-          traversalResult.endSequencingSession,
+          traversalResult.endSequencingSession
         );
       }
 
@@ -1422,7 +1422,7 @@ export class SequencingProcess {
         traversalResult.activity,
         direction === FlowSubprocessMode.FORWARD,
         true, // consider children
-        direction,
+        direction
       );
 
       if (deliverable) {
@@ -1450,7 +1450,7 @@ export class SequencingProcess {
   private flowTreeTraversalSubprocess(
     fromActivity: Activity,
     direction: FlowSubprocessMode,
-    skipChildren: boolean = false,
+    skipChildren: boolean = false
   ): { activity: Activity | null; endSequencingSession: boolean; exception?: string } {
     if (direction === FlowSubprocessMode.FORWARD) {
       // SB.2.1 step 3.1: Check if we're at the last activity in forward traversal
@@ -1554,7 +1554,7 @@ export class SequencingProcess {
    */
   private choiceFlowSubprocess(
     targetActivity: Activity,
-    commonAncestor: Activity | null,
+    commonAncestor: Activity | null
   ): Activity | null {
     // If target is a leaf, it's the delivery candidate
     if (targetActivity.children.length === 0) {
@@ -1606,7 +1606,7 @@ export class SequencingProcess {
    */
   private enhancedChoiceActivityTraversalSubprocess(
     activity: Activity,
-    isBackwardTraversal: boolean = false,
+    isBackwardTraversal: boolean = false
   ): ChoiceTraversalResult {
     // SB.2.4-3: Cannot walk backward from root of activity tree
     if (isBackwardTraversal && activity === this.activityTree.root) {
@@ -1681,7 +1681,7 @@ export class SequencingProcess {
     if (!postAction) {
       return {
         sequencingRequest: null,
-        terminationRequest: null,
+        terminationRequest: null
       };
     }
 
@@ -1691,39 +1691,39 @@ export class SequencingProcess {
         // EXIT_PARENT is a termination request that moves to parent
         return {
           sequencingRequest: null,
-          terminationRequest: SequencingRequestType.EXIT_PARENT,
+          terminationRequest: SequencingRequestType.EXIT_PARENT
         };
 
       case RuleActionType.EXIT_ALL:
         // EXIT_ALL is both a termination request and potentially a sequencing request
         return {
           sequencingRequest: null,
-          terminationRequest: SequencingRequestType.EXIT_ALL,
+          terminationRequest: SequencingRequestType.EXIT_ALL
         };
 
       case RuleActionType.RETRY:
         return {
           sequencingRequest: SequencingRequestType.RETRY,
-          terminationRequest: null,
+          terminationRequest: null
         };
 
       case RuleActionType.RETRY_ALL:
         // RETRY_ALL includes EXIT_ALL termination
         return {
           sequencingRequest: SequencingRequestType.RETRY,
-          terminationRequest: SequencingRequestType.EXIT_ALL,
+          terminationRequest: SequencingRequestType.EXIT_ALL
         };
 
       case RuleActionType.CONTINUE:
         return {
           sequencingRequest: SequencingRequestType.CONTINUE,
-          terminationRequest: null,
+          terminationRequest: null
         };
 
       case RuleActionType.PREVIOUS:
         return {
           sequencingRequest: SequencingRequestType.PREVIOUS,
-          terminationRequest: null,
+          terminationRequest: null
         };
 
       case RuleActionType.STOP_FORWARD_TRAVERSAL:
@@ -1731,13 +1731,13 @@ export class SequencingProcess {
         activity.sequencingControls.stopForwardTraversal = true;
         return {
           sequencingRequest: null,
-          terminationRequest: null,
+          terminationRequest: null
         };
 
       default:
         return {
           sequencingRequest: null,
-          terminationRequest: null,
+          terminationRequest: null
         };
     }
   }
@@ -1751,7 +1751,7 @@ export class SequencingProcess {
    */
   private validateChoiceFlowConstraints(
     fromActivity: Activity,
-    children: Activity[],
+    children: Activity[]
   ): {
     valid: boolean;
     validChildren: Activity[];
@@ -1767,7 +1767,7 @@ export class SequencingProcess {
 
     return {
       valid: validChildren.length > 0,
-      validChildren,
+      validChildren
     };
   }
 
@@ -1835,7 +1835,7 @@ export class SequencingProcess {
    */
   private validateConstrainedChoiceBoundaries(
     currentActivity: Activity | null,
-    targetActivity: Activity,
+    targetActivity: Activity
   ): {
     valid: boolean;
     exception: string | null;
@@ -1857,7 +1857,7 @@ export class SequencingProcess {
         const boundaryCheck = this.checkConstrainedChoiceBoundary(
           currentActivity,
           activity,
-          activity.parent,
+          activity.parent
         );
         if (!boundaryCheck.valid) {
           return boundaryCheck;
@@ -2108,7 +2108,7 @@ export class SequencingProcess {
   private checkConstrainedChoiceBoundary(
     currentActivity: Activity | null,
     activity: Activity,
-    parent: Activity,
+    parent: Activity
   ): {
     valid: boolean;
     exception: string | null;
@@ -2311,7 +2311,7 @@ export class SequencingProcess {
   private hasChoiceBoundaryViolation(
     currentActivity: Activity,
     targetActivity: Activity,
-    parent: Activity,
+    parent: Activity
   ): boolean {
     // Check for specific boundary violations
 
@@ -2341,7 +2341,7 @@ export class SequencingProcess {
   private evaluateRuleConditions(
     conditions: any[],
     activity: Activity,
-    combinationMode: string = "all",
+    combinationMode: string = "all"
   ): boolean {
     // Full SCORM 2004 rule condition evaluation
     if (conditions.length === 0) {
@@ -2358,9 +2358,9 @@ export class SequencingProcess {
       const referencedObjective =
         referencedObjectiveId && activity.objectives
           ? activity.objectives.find((obj) => obj.id === referencedObjectiveId) ||
-            (activity.primaryObjective?.id === referencedObjectiveId
-              ? activity.primaryObjective
-              : null)
+          (activity.primaryObjective?.id === referencedObjectiveId
+            ? activity.primaryObjective
+            : null)
           : null;
 
       switch (conditionType) {
@@ -2442,7 +2442,7 @@ export class SequencingProcess {
           // Parse limit - getDurationAsSeconds handles invalid strings gracefully (returns 0)
           const limitSeconds = getDurationAsSeconds(
             limit,
-            scorm2004_regex.CMITimespan,
+            scorm2004_regex.CMITimespan
           );
 
           // Invalid or zero limit means condition is false
@@ -2629,7 +2629,7 @@ export class SequencingProcess {
    * @return {{exception: string} | null} - Violation info or null
    */
   private checkForwardOnlyViolationAtAllLevels(
-    fromActivity: Activity,
+    fromActivity: Activity
   ): { exception: string } | null {
     // Walk up the ancestor chain checking forwardOnly at each level
     let current: Activity | null = fromActivity.parent;
@@ -2666,7 +2666,7 @@ export class SequencingProcess {
   public validateNavigationRequest(
     request: SequencingRequestType,
     targetActivityId: string | null = null,
-    currentActivity: Activity | null = null,
+    currentActivity: Activity | null = null
   ): { valid: boolean; exception: string | null } {
     // Basic request type validation
     const validRequestTypes = Object.values(SequencingRequestType);
@@ -2684,14 +2684,14 @@ export class SequencingProcess {
         if (currentActivity.isActive) {
           return {
             valid: false,
-            exception: request === SequencingRequestType.CONTINUE ? "SB.2.7-1" : "SB.2.8-1",
+            exception: request === SequencingRequestType.CONTINUE ? "SB.2.7-1" : "SB.2.8-1"
           };
         }
         // Pre-check flow control
         if (currentActivity.parent && !currentActivity.parent.sequencingControls.flow) {
           return {
             valid: false,
-            exception: request === SequencingRequestType.CONTINUE ? "SB.2.7-2" : "SB.2.8-2",
+            exception: request === SequencingRequestType.CONTINUE ? "SB.2.7-2" : "SB.2.8-2"
           };
         }
         // Pre-check forwardOnly for PREVIOUS
@@ -2715,7 +2715,7 @@ export class SequencingProcess {
         // Early validation of choice path
         const choicePathValidation = this.validateChoicePathConstraints(
           currentActivity,
-          targetActivity,
+          targetActivity
         );
         if (!choicePathValidation.valid) {
           return choicePathValidation;
@@ -2751,7 +2751,7 @@ export class SequencingProcess {
    */
   private validateChoicePathConstraints(
     currentActivity: Activity | null,
-    targetActivity: Activity,
+    targetActivity: Activity
   ): { valid: boolean; exception: string | null } {
     // Basic tree membership check
     if (!this.isActivityInTree(targetActivity)) {
@@ -2802,7 +2802,7 @@ export class SequencingProcess {
         if (!this.isActivity1AParentOfActivity2(currentAncestor, targetActivity)) {
           this.logger?.debug(
             `[SequencingProcess] choiceExit blocked: Cannot exit from ${currentAncestor.id} to ${targetActivity.id} (SB.2.9-8). ` +
-              `Ancestor ${currentAncestor.id} is active with choiceExit=false, blocking navigation outside its subtree.`,
+            `Ancestor ${currentAncestor.id} is active with choiceExit=false, blocking navigation outside its subtree.`
           );
           return { valid: false, exception: "SB.2.9-8" };
         }
@@ -2819,7 +2819,7 @@ export class SequencingProcess {
       const validation = this.validateConstraintsAtAncestorLevel(
         ancestorActivity,
         currentActivity,
-        targetActivity,
+        targetActivity
       );
       if (!validation.valid) {
         return validation;
@@ -2841,7 +2841,7 @@ export class SequencingProcess {
   private validateConstraintsAtAncestorLevel(
     ancestor: Activity,
     currentActivity: Activity,
-    targetActivity: Activity,
+    targetActivity: Activity
   ): { valid: boolean; exception: string | null } {
     // Find which children of this ancestor contain current and target
     const targetChild = this.findChildInPathToActivity(ancestor, targetActivity);

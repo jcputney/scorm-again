@@ -921,10 +921,6 @@ export default abstract class BaseAPI implements IBaseAPI {
   /**
    * Returns the errorNumber error description
    *
-   * Per SCORM RTE specifications: The return value must not exceed 255 characters.
-   * All built-in error strings are intentionally kept under 255 chars to comply.
-   * No programmatic truncation is performed since all current messages comply.
-   *
    * @param {string} callbackName
    * @param {(string|number)} CMIErrorCode
    * @return {string} - Error description string (max 255 chars per spec)
@@ -935,6 +931,11 @@ export default abstract class BaseAPI implements IBaseAPI {
     if (CMIErrorCode !== null && CMIErrorCode !== "") {
       returnValue = this.getLmsErrorMessageDetails(CMIErrorCode);
       this.processListeners(callbackName);
+    }
+
+    // Per SCORM spec: GetErrorString return value max length is 255 characters
+    if (returnValue.length > 255) {
+      returnValue = returnValue.substring(0, 255);
     }
 
     this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
@@ -956,7 +957,14 @@ export default abstract class BaseAPI implements IBaseAPI {
     const errorCode = CMIErrorCode === "" ? String(this.lastErrorCode) : CMIErrorCode;
 
     if (errorCode !== null && errorCode !== "") {
-      returnValue = this.getLmsErrorMessageDetails(errorCode, true);
+      // Check for custom diagnostic message first (set by throwSCORMError)
+      // Only use custom diagnostic if requesting info about the last error
+      const customDiagnostic = this._errorHandlingService.lastDiagnostic;
+      if (customDiagnostic && String(errorCode) === String(this.lastErrorCode)) {
+        returnValue = customDiagnostic;
+      } else {
+        returnValue = this.getLmsErrorMessageDetails(errorCode, true);
+      }
       this.processListeners(callbackName);
     }
 
@@ -1106,6 +1114,13 @@ export default abstract class BaseAPI implements IBaseAPI {
     value: any,
   ): string {
     if (!CMIElement || CMIElement === "") {
+      if (scorm2004) {
+        this.throwSCORMError(
+          CMIElement,
+          this._error_codes.GENERAL_SET_FAILURE,
+          "The data model element was not specified",
+        );
+      }
       return global_constants.SCORM_FALSE;
     }
 
@@ -1260,6 +1275,23 @@ export default abstract class BaseAPI implements IBaseAPI {
    */
   _commonGetCMIValue(methodName: string, scorm2004: boolean, CMIElement: string): any {
     if (!CMIElement || CMIElement === "") {
+      if (scorm2004) {
+        this.throwSCORMError(
+          CMIElement,
+          this._error_codes.GENERAL_GET_FAILURE,
+          "The data model element was not specified",
+        );
+      }
+      return "";
+    }
+
+    // SCORM 2004: Validate ._version keyword usage - only valid on cmi._version
+    if (scorm2004 && CMIElement.endsWith("._version") && CMIElement !== "cmi._version") {
+      this.throwSCORMError(
+        CMIElement,
+        this._error_codes.GENERAL_GET_FAILURE,
+        "The _version keyword was used incorrectly",
+      );
       return "";
     }
 
@@ -1297,6 +1329,22 @@ export default abstract class BaseAPI implements IBaseAPI {
           typeof attribute === "undefined" ||
           !this._checkObjectHasProperty(refObject, attribute)
         ) {
+          // SCORM 2004: Check for keyword errors with specific diagnostics
+          if (attribute === "_children") {
+            this.throwSCORMError(
+              CMIElement,
+              this._error_codes.GENERAL_GET_FAILURE,
+              "The data model element does not have children",
+            );
+            return;
+          } else if (attribute === "_count") {
+            this.throwSCORMError(
+              CMIElement,
+              this._error_codes.GENERAL_GET_FAILURE,
+              "The data model element is not a collection and therefore does not have a count",
+            );
+            return;
+          }
           this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
           return;
         }
@@ -1328,7 +1376,7 @@ export default abstract class BaseAPI implements IBaseAPI {
               this._error_codes.VALUE_NOT_INITIALIZED,
               uninitializedErrorMessage,
             );
-            break;
+            return;
           }
 
           // Have to update idx value to skip the array position
@@ -1339,12 +1387,14 @@ export default abstract class BaseAPI implements IBaseAPI {
 
     if (refObject === null || refObject === undefined) {
       if (!scorm2004) {
+        // SCORM 1.2: Use specific keyword error codes
         if (attribute === "_children") {
           this.throwSCORMError(CMIElement, this._error_codes.CHILDREN_ERROR, undefined);
         } else if (attribute === "_count") {
           this.throwSCORMError(CMIElement, this._error_codes.COUNT_ERROR, undefined);
         }
       }
+      // SCORM 2004 keyword errors are handled during traversal (lines 1318-1333)
     } else {
       return refObject;
     }
@@ -1705,11 +1755,15 @@ export default abstract class BaseAPI implements IBaseAPI {
    * const obj = { name: "John" };
    * this._checkObjectHasProperty(obj, "age"); // Returns false
    */
-  private _checkObjectHasProperty(StringKeyMap: StringKeyMap, attribute: string): boolean {
+  private _checkObjectHasProperty(obj: StringKeyMap, attribute: string): boolean {
+    // Handle primitives - they don't have custom properties and 'in' operator throws on them
+    if (obj === null || obj === undefined || typeof obj !== "object") {
+      return false;
+    }
     return (
-      Object.hasOwnProperty.call(StringKeyMap, attribute) ||
-      Object.getOwnPropertyDescriptor(Object.getPrototypeOf(StringKeyMap), attribute) != null ||
-      attribute in StringKeyMap
+      Object.hasOwnProperty.call(obj, attribute) ||
+      Object.getOwnPropertyDescriptor(Object.getPrototypeOf(obj), attribute) != null ||
+      attribute in obj
     );
   }
 

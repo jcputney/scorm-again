@@ -247,6 +247,13 @@ export interface IErrorHandlingService {
   set lastErrorCode(errorCode: string);
 
   /**
+   * Get the last custom diagnostic message
+   *
+   * @return {string} - The last custom diagnostic message, or empty string if none
+   */
+  get lastDiagnostic(): string;
+
+  /**
    * Throws a SCORM error
    *
    * @param {string} CMIElement
