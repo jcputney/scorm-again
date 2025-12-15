@@ -799,4 +799,108 @@ describe("Overall Sequencing Process (OP.1)", () => {
       });
     });
   });
+
+  describe("Logout Exit Handling", () => {
+    it("should treat cmi.exit='logout' as exitAll navigation request", () => {
+      // Set current activity
+      activityTree.currentActivity = grandchild1;
+      grandchild1.isActive = true;
+
+      // Process termination with logout exit
+      // Note: This will require extending processNavigationRequest to accept exitType
+      const result = overallProcess.processNavigationRequest(
+        NavigationRequestType.EXIT,
+        null,
+        "logout" // cmi.exit value
+      );
+
+      // Should end session completely like EXIT_ALL
+      expect(result.valid).toBe(true);
+      expect(activityTree.currentActivity).toBeNull();
+    });
+
+    it("should end session completely when cmi.exit='logout'", () => {
+      activityTree.currentActivity = grandchild1;
+      grandchild1.isActive = true;
+
+      // Process with logout
+      const result = overallProcess.processNavigationRequest(
+        NavigationRequestType.EXIT,
+        null,
+        "logout"
+      );
+
+      // Session should end - all activities should be terminated
+      expect(result.valid).toBe(true);
+      expect(activityTree.currentActivity).toBeNull();
+      expect(grandchild1.isActive).toBe(false);
+      expect(child1.isActive).toBe(false);
+      expect(root.isActive).toBe(false);
+    });
+
+    it("should handle normal exit when cmi.exit is not 'logout'", () => {
+      activityTree.currentActivity = grandchild1;
+      grandchild1.isActive = true;
+
+      // Process with normal exit (not logout)
+      const result = overallProcess.processNavigationRequest(
+        NavigationRequestType.EXIT,
+        null,
+        "normal"
+      );
+
+      // Should perform normal exit (not exit all)
+      expect(result.valid).toBe(true);
+      // Current activity should change but session shouldn't completely end
+      expect(grandchild1.isActive).toBe(false);
+    });
+
+    it("should handle suspend exit type", () => {
+      activityTree.currentActivity = grandchild1;
+      grandchild1.isActive = true;
+
+      // Process with suspend exit
+      const result = overallProcess.processNavigationRequest(
+        NavigationRequestType.EXIT,
+        null,
+        "suspend"
+      );
+
+      // Should perform normal exit
+      expect(result.valid).toBe(true);
+      expect(grandchild1.isActive).toBe(false);
+    });
+
+    it("should handle time-out exit type", () => {
+      activityTree.currentActivity = grandchild1;
+      grandchild1.isActive = true;
+
+      // Process with time-out exit
+      const result = overallProcess.processNavigationRequest(
+        NavigationRequestType.EXIT,
+        null,
+        "time-out"
+      );
+
+      // Should perform normal exit
+      expect(result.valid).toBe(true);
+      expect(grandchild1.isActive).toBe(false);
+    });
+
+    it("should handle empty exit type (defaults to normal)", () => {
+      activityTree.currentActivity = grandchild1;
+      grandchild1.isActive = true;
+
+      // Process with empty/undefined exit type
+      const result = overallProcess.processNavigationRequest(
+        NavigationRequestType.EXIT,
+        null,
+        ""
+      );
+
+      // Should perform normal exit
+      expect(result.valid).toBe(true);
+      expect(grandchild1.isActive).toBe(false);
+    });
+  });
 });
