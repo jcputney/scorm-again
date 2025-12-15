@@ -9,7 +9,7 @@ import {
 import { SequencingControls } from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
 import { OverallSequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
-import { SequencingRule, RuleActionType } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
+import { SequencingRule, RuleActionType, RuleCondition, RuleConditionType } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("GAP-22: Missing SCORM 2004 Sequencing Exception Codes", () => {
   let activityTree: ActivityTree;
@@ -69,7 +69,7 @@ describe("GAP-22: Missing SCORM 2004 Sequencing Exception Codes", () => {
 
     activityTree = new ActivityTree(root);
     sequencingProcess = new SequencingProcess(activityTree);
-    rollupProcess = new RollupProcess(activityTree);
+    rollupProcess = new RollupProcess();
     overallSequencingProcess = new OverallSequencingProcess(
       activityTree,
       sequencingProcess,
@@ -78,27 +78,101 @@ describe("GAP-22: Missing SCORM 2004 Sequencing Exception Codes", () => {
   });
 
   describe("TB.2.3-2: Current activity already terminated", () => {
-    it.skip("should return TB.2.3-2 when trying to EXIT an already-terminated activity", () => {
-      // Note: TB.2.3-2 is checked in terminationRequestProcess which is private
-      // This validation happens in the overall sequencing flow but requires
-      // a more complex test setup through the full navigation request process.
-      // The implementation is verified to be correct through manual inspection
-      // and integration tests at the API level.
+    it("should return TB.2.3-2 when trying to EXIT an already-terminated non-root activity", () => {
+      // Set up: current activity is leaf1 (not root) and is not active (already terminated)
+      // TB.2.3-2 only applies to EXIT (not EXIT_ALL), which requires non-root current activity
+      activityTree.currentActivity = leaf1;
+      leaf1.isActive = false; // Activity already terminated
+
+      // Process an EXIT navigation request (not exitAll)
+      // Per NB.2.1: EXIT at non-root maps to SequencingRequestType.EXIT
+      const result = overallSequencingProcess.processNavigationRequest("exit");
+
+      expect(result.valid).toBe(false);
+      expect(result.exception).toBe("TB.2.3-2");
     });
 
-    it.skip("should return TB.2.3-2 when trying to ABANDON an already-terminated activity", () => {
-      // Note: Same as above - TB.2.3-2 check exists in the implementation
-      // but testing it requires the full navigation/termination request flow.
+    it("should return TB.2.3-2 when trying to ABANDON an already-terminated activity", () => {
+      // Set up: current activity exists but is not active (already terminated)
+      activityTree.currentActivity = leaf1;
+      leaf1.isActive = false; // Activity already terminated
+
+      // Process an ABANDON navigation request (not abandonAll)
+      const result = overallSequencingProcess.processNavigationRequest("abandon");
+
+      expect(result.valid).toBe(false);
+      expect(result.exception).toBe("TB.2.3-2");
+    });
+
+    it("should allow EXIT when current activity is active", () => {
+      // Set up: current activity exists and is active
+      activityTree.currentActivity = leaf1;
+      leaf1.isActive = true; // Activity is active
+
+      // Process an EXIT navigation request
+      const result = overallSequencingProcess.processNavigationRequest("exit");
+
+      // Should not return TB.2.3-2 error (may have other errors due to missing callback)
+      expect(result.exception).not.toBe("TB.2.3-2");
     });
   });
 
   describe("TB.2.3-4: Cannot EXIT_PARENT from root activity", () => {
-    it.skip("should return TB.2.3-4 when EXIT_PARENT is triggered at root during post-condition", () => {
-      // Note: TB.2.3-4 is implemented in handleExitTermination when post-condition
-      // rules trigger EXIT_PARENT at the root activity. The implementation is correct
-      // but testing it requires a full integration test with the navigation request process.
-      // The code path is: navigationRequestProcess -> terminationRequestProcess ->
-      // handleExitTermination -> post-condition evaluation -> TB.2.3-4 check
+    it("should return TB.2.3-4 when EXIT_PARENT cascade reaches root", () => {
+      // TB.2.3-4 is triggered when:
+      // 1. Starting at non-root with EXIT termination (not EXIT_ALL)
+      // 2. Post-conditions cascade EXIT_PARENT up through the tree
+      // 3. Root's post-condition also returns EXIT_PARENT
+      // Since root has no parent, TB.2.3-4 is returned
+
+      // Create EXIT_PARENT post-condition rule for all levels
+      const exitParentRule1 = new SequencingRule(RuleActionType.EXIT_PARENT);
+      exitParentRule1.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+
+      const exitParentRule2 = new SequencingRule(RuleActionType.EXIT_PARENT);
+      exitParentRule2.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+
+      const exitParentRuleRoot = new SequencingRule(RuleActionType.EXIT_PARENT);
+      exitParentRuleRoot.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+
+      // Add EXIT_PARENT to leaf, cluster, and root
+      leaf1.sequencingRules.addPostConditionRule(exitParentRule1);
+      cluster1.sequencingRules.addPostConditionRule(exitParentRule2);
+      root.sequencingRules.addPostConditionRule(exitParentRuleRoot);
+
+      // Start at leaf (non-root) with EXIT - this enters the post-condition loop
+      activityTree.currentActivity = leaf1;
+      leaf1.isActive = true;
+      cluster1.isActive = true;
+      root.isActive = true;
+
+      // Process EXIT (not EXIT_ALL - EXIT at non-root goes to handleExitTermination)
+      const result = overallSequencingProcess.processNavigationRequest("exit");
+
+      // Should cascade: leaf1->cluster1->root->TB.2.3-4
+      expect(result.valid).toBe(false);
+      expect(result.exception).toBe("TB.2.3-4");
+    });
+
+    it("should allow EXIT_PARENT when parent exists (no TB.2.3-4)", () => {
+      // EXIT_PARENT at non-root should not return TB.2.3-4
+      const exitParentRule = new SequencingRule(RuleActionType.EXIT_PARENT);
+      exitParentRule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
+
+      // Add EXIT_PARENT only to leaf1 (cluster1 and root don't have it)
+      leaf1.sequencingRules.addPostConditionRule(exitParentRule);
+
+      // Start at leaf1
+      activityTree.currentActivity = leaf1;
+      leaf1.isActive = true;
+      cluster1.isActive = true;
+      root.isActive = true;
+
+      // Process EXIT
+      const result = overallSequencingProcess.processNavigationRequest("exit");
+
+      // Should not return TB.2.3-4 (cascade stops at cluster1 which doesn't have EXIT_PARENT)
+      expect(result.exception).not.toBe("TB.2.3-4");
     });
   });
 

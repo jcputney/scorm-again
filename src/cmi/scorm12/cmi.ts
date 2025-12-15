@@ -187,7 +187,22 @@ export class CMI extends BaseRootCMI {
   }
 
   /**
-   * Setter for _launch_data. Can only be called before  initialization.
+   * Setter for _launch_data. Can only be called before initialization.
+   *
+   * SPEC COMPLIANCE NOTE:
+   * The SCORM 1.2 specification defines launch_data as CMIString4096 (max 4096 chars).
+   * This implementation intentionally omits length validation because:
+   *
+   * 1. launch_data is LMS-provided data, not SCO-provided - the LMS is responsible
+   *    for ensuring valid data is provided to content
+   * 2. This setter is only callable before API initialization (read-only to SCO)
+   * 3. Real-world LMS systems may provide launch_data exceeding 4096 chars
+   * 4. Rejecting oversized LMS data would break content with no recovery path
+   *
+   * Unlike cmi.suspend_data and cmi.comments (which SCOs write), launch_data
+   * comes from the LMS manifest/configuration, so strict validation here would
+   * penalize content for LMS decisions outside SCO control.
+   *
    * @param {string} launch_data
    */
   set launch_data(launch_data: string) {

@@ -893,15 +893,12 @@ export class SequencingProcess {
     }
 
     // SB.2.2 Step 5: If activity is a leaf (no children), check if it can be delivered
+    // Note: The 'flow' control is only relevant for parent activities controlling navigation
+    // through their children. For leaf activities, 'flow' is meaningless and should not
+    // affect deliverability.
     if (activity.children.length === 0) {
-      // An activity with no children and flow=true is likely an empty cluster (authoring error)
-      // True leaf activities should have flow=false
-      if (activity.sequencingControls.flow) {
-        // This appears to be an intended cluster that has no children
-        return null;
-      }
-
-      if (this.checkActivityProcess(activity)) {
+      const canDeliver = this.checkActivityProcess(activity);
+      if (canDeliver) {
         return activity;
       }
       return null;
@@ -921,7 +918,8 @@ export class SequencingProcess {
     }
 
     // Check limit conditions (UP.1)
-    if (this.limitConditionsCheckProcess(activity)) {
+    const limitViolated = this.limitConditionsCheckProcess(activity);
+    if (limitViolated) {
       return false; // Activity violates limit conditions
     }
 
@@ -1162,22 +1160,28 @@ export class SequencingProcess {
     }
 
     // Check attempt absolute duration limit
+    // A limit of 0 (or "PT0H0M0S") is treated as "no limit" per IMS SS spec
     if (activity.attemptAbsoluteDurationLimit !== null) {
-      const attemptDurationMs = this.parseISO8601Duration(activity.attemptExperiencedDuration);
       const attemptLimitMs = this.parseISO8601Duration(activity.attemptAbsoluteDurationLimit);
-
-      if (attemptDurationMs >= attemptLimitMs) {
-        return true; // Attempt duration limit exceeded
+      // Only check if there's an actual non-zero limit
+      if (attemptLimitMs > 0) {
+        const attemptDurationMs = this.parseISO8601Duration(activity.attemptExperiencedDuration);
+        if (attemptDurationMs >= attemptLimitMs) {
+          return true; // Attempt duration limit exceeded
+        }
       }
     }
 
     // Check activity absolute duration limit
+    // A limit of 0 (or "PT0H0M0S") is treated as "no limit" per IMS SS spec
     if (activity.activityAbsoluteDurationLimit !== null) {
-      const activityDurationMs = this.parseISO8601Duration(activity.activityExperiencedDuration);
       const activityLimitMs = this.parseISO8601Duration(activity.activityAbsoluteDurationLimit);
-
-      if (activityDurationMs >= activityLimitMs) {
-        return true; // Activity duration limit exceeded
+      // Only check if there's an actual non-zero limit
+      if (activityLimitMs > 0) {
+        const activityDurationMs = this.parseISO8601Duration(activity.activityExperiencedDuration);
+        if (activityDurationMs >= activityLimitMs) {
+          return true; // Activity duration limit exceeded
+        }
       }
     }
 
@@ -1489,6 +1493,7 @@ export class SequencingProcess {
       return { activity: null, endSequencingSession: true };
     } else {
       // Backward direction
+
       // SB.2.1-4: Check if forwardOnly constraint prevents backward traversal
       if (fromActivity.parent && fromActivity.parent.sequencingControls.forwardOnly) {
         return { activity: null, endSequencingSession: false, exception: "SB.2.1-4" };
@@ -2310,9 +2315,9 @@ export class SequencingProcess {
   ): boolean {
     // Check for specific boundary violations
 
-    // Check for time-based constraints
+    // Check for time-based constraints (use this.now() for testability)
     if (targetActivity.timeLimitAction && targetActivity.beginTimeLimit) {
-      const now = new Date();
+      const now = this.now();
       const beginTime = new Date(targetActivity.beginTimeLimit);
       if (now < beginTime) {
         return true; // Not yet available
@@ -2320,7 +2325,7 @@ export class SequencingProcess {
     }
 
     if (targetActivity.endTimeLimit) {
-      const now = new Date();
+      const now = this.now();
       const endTime = new Date(targetActivity.endTimeLimit);
       if (now > endTime) {
         return true; // No longer available
@@ -2638,6 +2643,16 @@ export class SequencingProcess {
     }
 
     return null; // No violations found
+  }
+
+  /**
+   * Check if an activity can be delivered (public wrapper for checkActivityProcess)
+   * Used by NavigationLookAhead to properly evaluate preConditionRules
+   * @param {Activity} activity - The activity to check
+   * @return {boolean} - True if the activity can be delivered
+   */
+  public canActivityBeDelivered(activity: Activity): boolean {
+    return this.checkActivityProcess(activity);
   }
 
   /**

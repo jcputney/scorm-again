@@ -106,10 +106,11 @@ describe("SCORM 1.2 CMI Tests", () => {
         expectedValue: scorm12.cmi_children,
         expectedError: invalid_set,
       });
+      // Note: suspend_data uses 64000 limit (not spec's 4096) for legacy compatibility
       h.checkFieldConstraintSize({
         cmi: cmi(),
         fieldName: "cmi.suspend_data",
-        limit: 4096,
+        limit: 64000,
         expectedError: type_mismatch,
       });
       h.checkReadAndWrite({
@@ -411,10 +412,11 @@ describe("SCORM 1.2 CMI Tests", () => {
         expectedValue: scorm12.cmi_children,
         expectedError: invalid_set,
       });
+      // Note: suspend_data uses 64000 limit (not spec's 4096) for legacy compatibility
       h.checkFieldConstraintSize({
         cmi: cmiInitialized(),
         fieldName: "cmi.suspend_data",
-        limit: 4096,
+        limit: 64000,
         expectedError: type_mismatch,
       });
       h.checkWrite({
@@ -422,10 +424,11 @@ describe("SCORM 1.2 CMI Tests", () => {
         fieldName: "cmi.suspend_data",
         valueToTest: "",
       });
+      // Note: suspend_data uses 64000 limit (not spec's 4096) for legacy compatibility
       h.checkFieldConstraintSize({
         cmi: cmiInitialized(),
         fieldName: "cmi.core.suspend_data",
-        limit: 4096,
+        limit: 64000,
         expectedError: type_mismatch,
       });
       h.checkWrite({

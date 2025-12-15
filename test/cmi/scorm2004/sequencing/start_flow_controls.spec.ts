@@ -389,15 +389,17 @@ describe("START Sequencing Request Process - Flow Controls (GAP-15)", () => {
       expect(result.targetActivity).toBeNull();
     });
 
-    it("should handle cluster appearing to be a leaf (has flow control but is empty)", () => {
-      // Setup - an empty cluster that has flow control enabled
+    it("should deliver leaf activity regardless of flow control setting", () => {
+      // Setup - a leaf activity that has flow control enabled
+      // Per SCORM 2004, the 'flow' control is only relevant for controlling navigation
+      // through a parent's children. For leaf activities, 'flow' is meaningless.
       activityTree = new ActivityTree();
       const root = new Activity("root", "Course");
-      const emptyCluster = new Activity("emptyCluster", "Empty Module");
+      const leafActivity = new Activity("leafActivity", "Leaf Module");
 
-      root.addChild(emptyCluster);
-      // emptyCluster has no children but has flow control
-      emptyCluster.sequencingControls.flow = true;
+      root.addChild(leafActivity);
+      // leafActivity has no children - flow control is irrelevant for leaves
+      leafActivity.sequencingControls.flow = true;
 
       root.sequencingControls.flow = true;
 
@@ -410,10 +412,9 @@ describe("START Sequencing Request Process - Flow Controls (GAP-15)", () => {
         SequencingRequestType.START
       );
 
-      // Verify - empty cluster with flow control should be treated as cluster, not leaf
-      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
-      expect(result.exception).toBe("SB.2.5-3");
-      expect(result.targetActivity).toBeNull();
+      // Verify - leaf activity should be deliverable regardless of flow setting
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
+      expect(result.targetActivity?.id).toBe("leafActivity");
     });
 
     it("should find first available when some activities are unavailable", () => {

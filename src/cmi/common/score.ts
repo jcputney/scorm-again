@@ -34,6 +34,21 @@ export class CMIScore extends BaseCMI {
    *     errorClass: typeof BaseScormValidationError
    * } params
    */
+  /**
+   * Constructor for *.score
+   *
+   * SPEC COMPLIANCE NOTE for _max default:
+   * The SCORM 1.2 specification defines the default value for score.max as empty string ("").
+   * This implementation defaults to "100" instead for the following reasons:
+   *
+   * 1. Most SCOs expect a 0-100 scale and don't explicitly set max
+   * 2. An empty max creates ambiguity in score interpretation
+   * 3. "100" is the most common expected value and simplifies SCO development
+   * 4. This matches real-world LMS behavior (most default to 100)
+   * 5. SCOs can still explicitly set max="" if needed
+   *
+   * Strict spec default would be: ""
+   */
   constructor(params: {
     CMIElement: string;
     score_children?: string;
@@ -49,6 +64,7 @@ export class CMIScore extends BaseCMI {
 
     this.__children = params.score_children || scorm12_constants.score_children;
     this.__score_range = !params.score_range ? false : scorm12_regex.score_range;
+    // See SPEC COMPLIANCE NOTE above for why default is "100" instead of ""
     this._max = params.max || params.max === "" ? params.max : "100";
     this.__invalid_error_code =
       params.invalidErrorCode || (scorm12_errors.INVALID_SET_VALUE as number);
