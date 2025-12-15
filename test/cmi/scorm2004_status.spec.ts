@@ -117,3 +117,79 @@ describe("SCORM 2004 CMIStatus Tests", () => {
     });
   });
 });
+
+// API-level tests for success_status GetValue evaluation
+import Scorm2004API from "../../src/Scorm2004API";
+
+describe("SCORM 2004 success_status GetValue evaluation", () => {
+  describe("cmi.success_status GetValue evaluation", () => {
+    it("should return 'passed' when score.scaled >= scaled_passing_score", () => {
+      const api = new Scorm2004API();
+      api.cmi.scaled_passing_score = "0.8";
+      api.lmsInitialize();
+      api.lmsSetValue("cmi.score.scaled", "0.85");
+
+      expect(api.lmsGetValue("cmi.success_status")).toBe("passed");
+    });
+
+    it("should return 'failed' when score.scaled < scaled_passing_score", () => {
+      const api = new Scorm2004API();
+      api.cmi.scaled_passing_score = "0.8";
+      api.lmsInitialize();
+      api.lmsSetValue("cmi.score.scaled", "0.75");
+
+      expect(api.lmsGetValue("cmi.success_status")).toBe("failed");
+    });
+
+    it("should return 'unknown' when scaled_passing_score set but no score yet", () => {
+      const api = new Scorm2004API();
+      api.cmi.scaled_passing_score = "0.8";
+      api.lmsInitialize();
+
+      expect(api.lmsGetValue("cmi.success_status")).toBe("unknown");
+    });
+
+    it("should return SCO-set value when no scaled_passing_score defined", () => {
+      const api = new Scorm2004API();
+      api.lmsInitialize();
+      api.lmsSetValue("cmi.success_status", "passed");
+
+      expect(api.lmsGetValue("cmi.success_status")).toBe("passed");
+    });
+
+    it("should override SCO-set value when threshold defined and score available", () => {
+      const api = new Scorm2004API();
+      api.cmi.scaled_passing_score = "0.8";
+      api.lmsInitialize();
+      api.lmsSetValue("cmi.success_status", "passed"); // SCO says passed
+      api.lmsSetValue("cmi.score.scaled", "0.5"); // But score says failed
+
+      expect(api.lmsGetValue("cmi.success_status")).toBe("failed"); // LMS overrides
+    });
+
+    it("should handle exact threshold value as passed", () => {
+      const api = new Scorm2004API();
+      api.cmi.scaled_passing_score = "0.8";
+      api.lmsInitialize();
+      api.lmsSetValue("cmi.score.scaled", "0.8");
+
+      expect(api.lmsGetValue("cmi.success_status")).toBe("passed");
+    });
+
+    it("should return stored value when scaled_passing_score is empty string", () => {
+      const api = new Scorm2004API();
+      api.cmi.scaled_passing_score = "";
+      api.lmsInitialize();
+      api.lmsSetValue("cmi.success_status", "failed");
+
+      expect(api.lmsGetValue("cmi.success_status")).toBe("failed");
+    });
+
+    it("should return 'unknown' when no threshold and no SCO value set", () => {
+      const api = new Scorm2004API();
+      api.lmsInitialize();
+
+      expect(api.lmsGetValue("cmi.success_status")).toBe("unknown");
+    });
+  });
+});
