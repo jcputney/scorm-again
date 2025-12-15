@@ -122,9 +122,6 @@ describe("SCORM 2004 CMILearnerPreference Tests", () => {
         learnerPreference.delivery_speed = "0.5";
         expect(learnerPreference.delivery_speed).toBe("0.5");
 
-        learnerPreference.delivery_speed = "0";
-        expect(learnerPreference.delivery_speed).toBe("0");
-
         learnerPreference.delivery_speed = "1";
         expect(learnerPreference.delivery_speed).toBe("1");
 
@@ -143,6 +140,13 @@ describe("SCORM 2004 CMILearnerPreference Tests", () => {
         // Out of range
         expect(() => {
           learnerPreference.delivery_speed = "-0.1";
+        }).toThrow();
+      });
+
+      it("should reject zero delivery_speed (spec requires > 0)", () => {
+        const learnerPreference = new CMILearnerPreference();
+        expect(() => {
+          learnerPreference.delivery_speed = "0";
         }).toThrow();
       });
     });
