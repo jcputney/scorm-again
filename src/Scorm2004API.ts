@@ -249,6 +249,10 @@ class Scorm2004API extends BaseAPI {
 
     const pendingNavRequest = this.adl?.nav?.request || "_none_";
 
+    // Capture the cmi.exit value before termination for sequencing
+    // Note: cmi.exit is write-only, so we access the internal field directly from session
+    const exitType = (this.cmi?.session as any)?._exit || "";
+
     // Check if we were already terminated before calling terminate
     // This handles the case where a SCO's unload handler calls Terminate after
     // we've already moved on to delivering a new activity
@@ -304,6 +308,7 @@ class Scorm2004API extends BaseAPI {
             navigationHandled = this._sequencingService.processNavigationRequest(
               requestToProcess,
               targetForProcessing,
+              exitType,
             );
             processedSequencingRequest = requestToProcess;
           }
@@ -367,6 +372,17 @@ class Scorm2004API extends BaseAPI {
    * @return {string} The value of the element, or empty string
    */
   lmsGetValue(CMIElement: string): string {
+    // Per SCORM 2004 3rd Edition: adl.nav.request is write-only
+    // GetValue must return "" and set error 405 (WRITE_ONLY_ELEMENT)
+    if (CMIElement === "adl.nav.request") {
+      this.throwSCORMError(
+        CMIElement,
+        scorm2004_errors.WRITE_ONLY_ELEMENT,
+        "adl.nav.request is write-only",
+      );
+      return "";
+    }
+
     const adlNavRequestRegex =
       "^adl\\.nav\\.request_valid\\.(choice|jump)\\.{target=\\S{0,}([a-zA-Z0-9-_]+)}$";
     if (stringMatches(CMIElement, adlNavRequestRegex)) {
