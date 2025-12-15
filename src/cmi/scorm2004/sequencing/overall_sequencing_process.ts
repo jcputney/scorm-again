@@ -182,11 +182,13 @@ export class OverallSequencingProcess {
    * Main entry point for processing navigation requests
    * @param {NavigationRequestType} navigationRequest - The navigation request
    * @param {string | null} targetActivityId - Target activity for choice/jump requests
+   * @param {string} exitType - The cmi.exit value (logout, normal, suspend, time-out, or empty)
    * @return {DeliveryRequest} - The delivery request result
    */
   public processNavigationRequest(
     navigationRequest: NavigationRequestType,
-    targetActivityId: string | null = null
+    targetActivityId: string | null = null,
+    exitType?: string
   ): DeliveryRequest {
     // Step 1: Navigation Request Process (NB.2.1)
     const navResult = this.navigationRequestProcess(navigationRequest, targetActivityId);
@@ -198,7 +200,7 @@ export class OverallSequencingProcess {
     // Step 2: Termination Request Process (TB.2.3) if needed
     if (navResult.terminationRequest) {
       const hadSequencingRequest = !!navResult.sequencingRequest;
-      const termResult = this.terminationRequestProcess(navResult.terminationRequest, hadSequencingRequest);
+      const termResult = this.terminationRequestProcess(navResult.terminationRequest, hadSequencingRequest, exitType);
       if (!termResult.valid) {
         return new DeliveryRequest(false, null, termResult.exception || "TB.2.3-1");
       }
@@ -481,11 +483,13 @@ export class OverallSequencingProcess {
    * GAP-02: Implements missing post-condition loop per SCORM 2004 3rd Edition TB.2.3
    * @param {SequencingRequestType} request - The termination request
    * @param {boolean} hasSequencingRequest - Whether a sequencing request follows
+   * @param {string} exitType - The cmi.exit value (logout, normal, suspend, time-out, or empty)
    * @return {TerminationRequestResult} - Termination result with sequencing request
    */
   private terminationRequestProcess(
     request: SequencingRequestType,
-    hasSequencingRequest: boolean = false
+    hasSequencingRequest: boolean = false,
+    exitType?: string
   ): TerminationRequestResult {
     const currentActivity = this.activityTree.currentActivity;
 
@@ -514,8 +518,18 @@ export class OverallSequencingProcess {
     this.fireEvent("onTerminationRequestProcessing", {
       request,
       hasSequencingRequest,
-      currentActivity: currentActivity.id
+      currentActivity: currentActivity.id,
+      exitType
     });
+
+    // REQ-NAV-025: Handle logout exit - treat as exitAll navigation request
+    if (exitType === "logout") {
+      this.fireEvent("onSequencingDebug", {
+        message: "cmi.exit='logout' detected, treating as EXIT_ALL",
+        activityId: currentActivity.id
+      });
+      return this.handleExitAllTermination(currentActivity);
+    }
 
     // Handle different termination types
     switch (request) {
