@@ -98,6 +98,7 @@ export class ADLNav extends BaseCMI {
   constructor() {
     super("adl.nav");
     this.request_valid = new ADLNavRequestValid();
+    this.request_valid.setParentNav(this);
   }
 
   public request_valid: ADLNavRequestValid;
@@ -273,29 +274,127 @@ export class ADLDataObject extends BaseCMI {
 }
 
 /**
+ * Helper class for adl.nav.request_valid.choice to support target validation
+ */
+class ADLNavRequestValidChoice {
+  private _parentNav: ADLNav | null = null;
+  private _staticValues: { [key: string]: NAVBoolean } = {};
+
+  setParentNav(nav: ADLNav): void {
+    this._parentNav = nav;
+  }
+
+  /**
+   * Validate if a target can be chosen
+   * Called by BaseAPI when accessing adl.nav.request_valid.choice.{target=...}
+   */
+  _isTargetValid(target: string): string {
+    // If sequencing is available, evaluate dynamically
+    if (this._parentNav?.sequencing?.overallSequencingProcess) {
+      const process = this._parentNav.sequencing.overallSequencingProcess;
+      if (process.predictChoiceEnabled) {
+        return process.predictChoiceEnabled(target) ? "true" : "false";
+      }
+    }
+    // Fall back to static value if sequencing not available
+    const value = this._staticValues[target];
+    if (value === NAVBoolean.TRUE) return "true";
+    if (value === NAVBoolean.FALSE) return "false";
+    return "unknown";
+  }
+
+  /**
+   * Get all static values
+   */
+  getAll(): { [key: string]: NAVBoolean } {
+    return { ...this._staticValues };
+  }
+
+  /**
+   * Set static values (used during initialization)
+   */
+  setAll(values: { [key: string]: NAVBoolean }): void {
+    this._staticValues = { ...values };
+  }
+}
+
+/**
+ * Helper class for adl.nav.request_valid.jump to support target validation
+ */
+class ADLNavRequestValidJump {
+  private _parentNav: ADLNav | null = null;
+  private _staticValues: { [key: string]: NAVBoolean } = {};
+
+  setParentNav(nav: ADLNav): void {
+    this._parentNav = nav;
+  }
+
+  /**
+   * Validate if a target can be jumped to
+   * Called by BaseAPI when accessing adl.nav.request_valid.jump.{target=...}
+   */
+  _isTargetValid(target: string): string {
+    // If sequencing is available, evaluate dynamically
+    // Note: Jump validation checks if target exists and is in the tree
+    if (this._parentNav?.sequencing?.activityTree) {
+      const activity = this._parentNav.sequencing.activityTree.getActivity(target);
+      return activity ? "true" : "false";
+    }
+    // Fall back to static value if sequencing not available
+    const value = this._staticValues[target];
+    if (value === NAVBoolean.TRUE) return "true";
+    if (value === NAVBoolean.FALSE) return "false";
+    return "unknown";
+  }
+
+  /**
+   * Get all static values
+   */
+  getAll(): { [key: string]: NAVBoolean } {
+    return { ...this._staticValues };
+  }
+
+  /**
+   * Set static values (used during initialization)
+   */
+  setAll(values: { [key: string]: NAVBoolean }): void {
+    this._staticValues = { ...values };
+  }
+}
+
+/**
  * Class representing SCORM 2004's adl.nav.request_valid object
  */
 
 export class ADLNavRequestValid extends BaseCMI {
   private _continue = "unknown";
   private _previous = "unknown";
-  private _choice: {
-    [key: string]: NAVBoolean;
-  } = {};
-  private _jump: {
-    [key: string]: NAVBoolean;
-  } = {};
+  private _choice: ADLNavRequestValidChoice;
+  private _jump: ADLNavRequestValidJump;
   private _exit = "unknown";
   private _exitAll = "unknown";
   private _abandon = "unknown";
   private _abandonAll = "unknown";
   private _suspendAll = "unknown";
+  private _parentNav: ADLNav | null = null;
 
   /**
    * Constructor for adl.nav.request_valid
    */
   constructor() {
     super("adl.nav.request_valid");
+    this._choice = new ADLNavRequestValidChoice();
+    this._jump = new ADLNavRequestValidJump();
+  }
+
+  /**
+   * Set parent nav reference for sequencing access
+   * @param {ADLNav} nav - Parent ADLNav instance
+   */
+  setParentNav(nav: ADLNav): void {
+    this._parentNav = nav;
+    this._choice.setParentNav(nav);
+    this._jump.setParentNav(nav);
   }
 
   /**
@@ -305,8 +404,8 @@ export class ADLNavRequestValid extends BaseCMI {
     this._initialized = false;
     this._continue = "unknown";
     this._previous = "unknown";
-    this._choice = {};
-    this._jump = {};
+    this._choice.setAll({});
+    this._jump.setAll({});
     this._exit = "unknown";
     this._exitAll = "unknown";
     this._abandon = "unknown";
@@ -316,9 +415,18 @@ export class ADLNavRequestValid extends BaseCMI {
 
   /**
    * Getter for _continue
+   * Dynamically evaluates whether continue navigation is valid using sequencing
    * @return {string}
    */
   get continue(): string {
+    // If sequencing is available, evaluate dynamically
+    if (this._parentNav?.sequencing?.overallSequencingProcess) {
+      const process = this._parentNav.sequencing.overallSequencingProcess;
+      if (process.predictContinueEnabled) {
+        return process.predictContinueEnabled() ? "true" : "false";
+      }
+    }
+    // Fall back to static value if sequencing not available
     return this._continue;
   }
 
@@ -342,9 +450,18 @@ export class ADLNavRequestValid extends BaseCMI {
 
   /**
    * Getter for _previous
+   * Dynamically evaluates whether previous navigation is valid using sequencing
    * @return {string}
    */
   get previous(): string {
+    // If sequencing is available, evaluate dynamically
+    if (this._parentNav?.sequencing?.overallSequencingProcess) {
+      const process = this._parentNav.sequencing.overallSequencingProcess;
+      if (process.predictPreviousEnabled) {
+        return process.predictPreviousEnabled() ? "true" : "false";
+      }
+    }
+    // Fall back to static value if sequencing not available
     return this._previous;
   }
 
@@ -368,9 +485,9 @@ export class ADLNavRequestValid extends BaseCMI {
 
   /**
    * Getter for _choice
-   * @return {{ [key: string]: NAVBoolean }}
+   * @return {ADLNavRequestValidChoice}
    */
-  get choice(): { [key: string]: NAVBoolean } {
+  get choice(): ADLNavRequestValidChoice {
     return this._choice;
   }
 
@@ -391,6 +508,7 @@ export class ADLNavRequestValid extends BaseCMI {
         scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
+    const converted: { [key: string]: NAVBoolean } = {};
     for (const key in choice) {
       if ({}.hasOwnProperty.call(choice, key)) {
         if (
@@ -404,22 +522,23 @@ export class ADLNavRequestValid extends BaseCMI {
           // Convert string value to NAVBoolean enum value
           const value = choice[key];
           if (value === "true") {
-            this._choice[key] = NAVBoolean.TRUE;
+            converted[key] = NAVBoolean.TRUE;
           } else if (value === "false") {
-            this._choice[key] = NAVBoolean.FALSE;
+            converted[key] = NAVBoolean.FALSE;
           } else if (value === "unknown") {
-            this._choice[key] = NAVBoolean.UNKNOWN;
+            converted[key] = NAVBoolean.UNKNOWN;
           }
         }
       }
     }
+    this._choice.setAll(converted);
   }
 
   /**
    * Getter for _jump
-   * @return {{ [key: string]: NAVBoolean }}
+   * @return {ADLNavRequestValidJump}
    */
-  get jump(): { [key: string]: NAVBoolean } {
+  get jump(): ADLNavRequestValidJump {
     return this._jump;
   }
 
@@ -440,6 +559,7 @@ export class ADLNavRequestValid extends BaseCMI {
         scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
+    const converted: { [key: string]: NAVBoolean } = {};
     for (const key in jump) {
       if ({}.hasOwnProperty.call(jump, key)) {
         if (
@@ -453,15 +573,16 @@ export class ADLNavRequestValid extends BaseCMI {
           // Convert string value to NAVBoolean enum value
           const value = jump[key];
           if (value === "true") {
-            this._jump[key] = NAVBoolean.TRUE;
+            converted[key] = NAVBoolean.TRUE;
           } else if (value === "false") {
-            this._jump[key] = NAVBoolean.FALSE;
+            converted[key] = NAVBoolean.FALSE;
           } else if (value === "unknown") {
-            this._jump[key] = NAVBoolean.UNKNOWN;
+            converted[key] = NAVBoolean.UNKNOWN;
           }
         }
       }
     }
+    this._jump.setAll(converted);
   }
 
   /**
@@ -610,10 +731,10 @@ export class ADLNavRequestValid extends BaseCMI {
   } {
     this.jsonString = true;
     const result = {
-      previous: this._previous,
-      continue: this._continue,
-      choice: this._choice,
-      jump: this._jump,
+      previous: this.previous,
+      continue: this.continue,
+      choice: this._choice.getAll(),
+      jump: this._jump.getAll(),
     };
     this.jsonString = false;
     return result;

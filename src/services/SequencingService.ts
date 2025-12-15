@@ -193,6 +193,9 @@ export class SequencingService {
           overallOptions,
         );
 
+        // Store reference on sequencing object for access from ADL nav
+        this.sequencing.overallSequencingProcess = this.overallSequencingProcess;
+
         this.log("info", "Sequencing processes created");
       }
 
