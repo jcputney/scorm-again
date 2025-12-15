@@ -11,7 +11,7 @@ import {
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
 import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
-import { ADLNav } from "../../../../src/cmi/scorm2004/adl";
+import { ADLNav } from "../../../../src";
 
 /**
  * GAP-01: EndSequencingSession Handling Tests
@@ -72,7 +72,7 @@ describe("GAP-01: EndSequencingSession Handling", () => {
       sequencingProcess,
       rollupProcess,
       adlNav,
-      eventCallback
+      eventCallback as (any)
     );
   });
 

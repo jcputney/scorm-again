@@ -1101,6 +1101,61 @@ describe("SCORM 2004 API Tests", () => {
       const errorString = scorm2004API.lmsGetErrorString(unknownErrorCode);
       expect(errorString).toEqual("");
     });
+
+    it("should truncate error strings longer than 255 characters", (): void => {
+      const scorm2004API = api();
+      // Mock getLmsErrorMessageDetails to return a very long string
+      const longMessage = "A".repeat(300);
+      vi.spyOn(scorm2004API, "getLmsErrorMessageDetails").mockReturnValue(longMessage);
+
+      const errorString = scorm2004API.lmsGetErrorString("101");
+
+      expect(errorString.length).toBeLessThanOrEqual(255);
+      expect(errorString).toEqual("A".repeat(255));
+    });
+
+    it("should not truncate error strings under 255 characters", (): void => {
+      const scorm2004API = api();
+      const errorString = scorm2004API.lmsGetErrorString("101");
+
+      expect(errorString.length).toBeLessThan(255);
+      expect(errorString).toEqual("General Exception");
+    });
+
+    it("should work in Not Initialized state (state independence)", (): void => {
+      const scorm2004API = api();
+      // Do not call Initialize - verify GetErrorString works in Not Initialized state
+      const errorString = scorm2004API.lmsGetErrorString("101");
+      expect(errorString).toEqual("General Exception");
+      // Should not set any error
+      expect(scorm2004API.lmsGetLastError()).toEqual("0");
+    });
+
+    it("should work in Terminated state (state independence)", (): void => {
+      const scorm2004API = api();
+      scorm2004API.lmsInitialize();
+      scorm2004API.lmsFinish();
+
+      // Verify GetErrorString works in Terminated state
+      const errorString = scorm2004API.lmsGetErrorString("101");
+      expect(errorString).toEqual("General Exception");
+    });
+
+    it("should not change current error state", (): void => {
+      const scorm2004API = api();
+      scorm2004API.lmsInitialize();
+
+      // Set an error by accessing an invalid element
+      scorm2004API.lmsGetValue("cmi.invalid_element");
+      const originalError = scorm2004API.lmsGetLastError();
+      expect(originalError).not.toEqual("0");
+
+      // Call GetErrorString - should not modify error state
+      scorm2004API.lmsGetErrorString("101");
+
+      // Error should remain unchanged
+      expect(scorm2004API.lmsGetLastError()).toEqual(originalError);
+    });
   });
 
   describe("replaceWithAnotherScormAPI()", () => {

@@ -30,7 +30,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
     it("should handle adl.nav.request_valid.choice with target", (): void => {
       // Create a mock API with scoItemIds
       const scorm2004API = api({
-        scoItemIds: ["sco-1", "sco-2"],
+        scoItemIds: ["sco-1", "sco-2"]
       });
 
       // Initialize the API to avoid RETRIEVE_BEFORE_INIT error
@@ -45,7 +45,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
 
     it("should handle adl.nav.request_valid.jump with target", (): void => {
       const scorm2004API = api({
-        scoItemIds: ["sco-1", "sco-2"],
+        scoItemIds: ["sco-1", "sco-2"]
       });
 
       // Initialize the API to avoid RETRIEVE_BEFORE_INIT error
@@ -60,7 +60,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
 
     it("should return false for invalid target in adl.nav.request_valid.choice", (): void => {
       const scorm2004API = api({
-        scoItemIds: ["sco-1", "sco-2"],
+        scoItemIds: ["sco-1", "sco-2"]
       });
 
       // Initialize the API to avoid RETRIEVE_BEFORE_INIT error
@@ -79,7 +79,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
     it("should use scoItemIdValidator if provided", (): void => {
       const validator = vi.fn().mockImplementation((_scoItemId: string) => true);
       const scorm2004API = api({
-        scoItemIdValidator: validator,
+        scoItemIdValidator: validator
       });
 
       // Initialize the API to avoid RETRIEVE_BEFORE_INIT error
@@ -105,9 +105,10 @@ describe("SCORM 2004 API Additional Tests", (): void => {
           childArray: [{ pattern: "choice1" }],
           _errorCode: 0,
           _errorClass: null,
-          reset: (): void => {},
-          toJSON: (): Record<string, unknown> => ({}),
-        } as unknown as CMIArray,
+          reset: (): void => {
+          },
+          toJSON: (): Record<string, unknown> => ({})
+        } as unknown as CMIArray
       } as CMIInteractionsObject;
 
       scorm2004API.checkDuplicateChoiceResponse("api", interaction, "choice1");
@@ -121,8 +122,8 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         type: "choice",
         correct_responses: {
           _count: 1,
-          childArray: [{ pattern: "choice1" }],
-        } as CMIArray,
+          childArray: [{ pattern: "choice1" }]
+        } as CMIArray
       } as CMIInteractionsObject;
 
       scorm2004API.checkDuplicateChoiceResponse("api", interaction, "choice2");
@@ -136,8 +137,8 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         type: "true-false",
         correct_responses: {
           _count: 1,
-          childArray: [{ pattern: "true" }],
-        },
+          childArray: [{ pattern: "true" }]
+        }
       } as CMIInteractionsObject;
 
       scorm2004API.checkDuplicateChoiceResponse("api", interaction, "true");
@@ -149,7 +150,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
   describe("storeData()", (): void => {
     it("should execute navigation request JavaScript when navRequest is true and result.navRequest is provided", (): void => {
       const scorm2004API = api({
-        lmsCommitUrl: "test-url",
+        lmsCommitUrl: "test-url"
       });
 
       // Set up a navigation request
@@ -163,7 +164,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
           return {
             result: global_constants.SCORM_TRUE,
             errorCode: 0,
-            navRequest: "window.testNavRequestExecuted = true;",
+            navRequest: "window.testNavRequestExecuted = true;"
           };
         });
 
@@ -186,7 +187,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
 
     it("should not execute navigation request JavaScript when navRequest is false", (): void => {
       const scorm2004API = api({
-        lmsCommitUrl: "test-url",
+        lmsCommitUrl: "test-url"
       });
 
       // No navigation request
@@ -200,7 +201,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
           return {
             result: global_constants.SCORM_TRUE,
             errorCode: 0,
-            navRequest: "window.testNavRequestExecuted = true;",
+            navRequest: "window.testNavRequestExecuted = true;"
           };
         });
 
@@ -223,7 +224,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
 
     it("should not execute navigation request JavaScript when result.navRequest is empty", () => {
       const scorm2004API = api({
-        lmsCommitUrl: "test-url",
+        lmsCommitUrl: "test-url"
       });
 
       // Set up a navigation request
@@ -237,7 +238,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
           return {
             result: global_constants.SCORM_TRUE,
             errorCode: 0,
-            navRequest: "",
+            navRequest: ""
           };
         });
 
@@ -270,7 +271,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       // Validate a correct response
       scorm2004API.validateCorrectResponse(
         "cmi.interactions.0.correct_responses.0.pattern",
-        "true",
+        "true"
       );
 
       expect(scorm2004API.lmsGetLastError()).toBe("0");
@@ -287,7 +288,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       // Try to add the same pattern again
       scorm2004API.validateCorrectResponse(
         "cmi.interactions.0.correct_responses.1.pattern",
-        "choice1",
+        "choice1"
       );
 
       expect(scorm2004API.lmsGetLastError()).toBe(String(scorm2004_errors.GENERAL_SET_FAILURE));
@@ -307,7 +308,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
 
       // Directly modify the validateCorrectResponse method to throw the expected error
       const originalValidateCorrectResponse = scorm2004API.validateCorrectResponse;
-      scorm2004API.validateCorrectResponse = function (CMIElement, value) {
+      scorm2004API.validateCorrectResponse = function(CMIElement, value) {
         const parts = CMIElement.split(".");
         const index = Number(parts[2]);
         const interaction = this.cmi.interactions.childArray[index];
@@ -322,7 +323,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
           this.throwSCORMError(
             CMIElement,
             scorm2004_errors.GENERAL_SET_FAILURE,
-            "Data Model Element Collection Limit Reached",
+            "Data Model Element Collection Limit Reached"
           );
           return;
         }
@@ -334,7 +335,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       // Try to add another correct response directly via validateCorrectResponse
       scorm2004API.validateCorrectResponse(
         "cmi.interactions.0.correct_responses.1.pattern",
-        "false",
+        "false"
       );
 
       // Check that the error code is set correctly
@@ -349,7 +350,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         max: 2,
         delimiter: ",",
         format: ".*",
-        unique: true,
+        unique: true
       };
 
       // Create a value with more nodes than the maximum allowed
@@ -366,7 +367,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         max: 2,
         delimiter: ",",
         format: ".*",
-        unique: true,
+        unique: true
       };
 
       // Create a value with a valid number of nodes
@@ -381,8 +382,8 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       expect(
         checkCorrectResponseValueSpy.mock.calls.some(
           (call) =>
-            JSON.stringify(call) === JSON.stringify(["api", "choice", ["value1", "value2"], value]),
-        ),
+            JSON.stringify(call) === JSON.stringify(["api", "choice", ["value1", "value2"], value])
+        )
       ).toBe(true);
 
       // checkCorrectResponseValueSpy.restore() - not needed with vi.restoreAllMocks()
@@ -403,7 +404,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       expect(throwSCORMErrorSpy).toHaveBeenCalledWith(
         "api",
         scorm2004_errors.TYPE_MISMATCH,
-        "Incorrect Response Type: invalid-type",
+        "Incorrect Response Type: invalid-type"
       );
 
       // throwSCORMErrorSpy.restore() - not needed with vi.restoreAllMocks()
@@ -421,14 +422,14 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         "api",
         "matching",
         ["invalid@id.validId"],
-        "invalid@id.validId",
+        "invalid@id.validId"
       );
 
       // Verify that throwSCORMError was called with the expected arguments
       expect(throwSCORMErrorSpy).toHaveBeenCalledWith(
         "api",
         scorm2004_errors.TYPE_MISMATCH,
-        "matching: invalid@id.validId",
+        "matching: invalid@id.validId"
       );
 
       // throwSCORMErrorSpy.restore() - not needed with vi.restoreAllMocks()
@@ -446,14 +447,14 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         "api",
         "matching",
         ["validId.invalid@id"],
-        "validId.invalid@id",
+        "validId.invalid@id"
       );
 
       // Verify that throwSCORMError was called with the expected arguments
       expect(throwSCORMErrorSpy).toHaveBeenCalledWith(
         "api",
         scorm2004_errors.TYPE_MISMATCH,
-        "matching: validId.invalid@id",
+        "matching: validId.invalid@id"
       );
 
       // throwSCORMErrorSpy.restore() - not needed with vi.restoreAllMocks()
@@ -472,7 +473,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       expect(throwSCORMErrorSpy).toHaveBeenCalledWith(
         "api",
         scorm2004_errors.TYPE_MISMATCH,
-        "matching: singleValue",
+        "matching: singleValue"
       );
 
       // throwSCORMErrorSpy.restore() - not needed with vi.restoreAllMocks()
@@ -492,8 +493,8 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         throwSCORMErrorSpy.mock.calls.some(
           (call) =>
             JSON.stringify(call) ===
-            JSON.stringify(["api", scorm2004_errors.TYPE_MISMATCH, "numeric: 10:5"]),
-        ),
+            JSON.stringify(["api", scorm2004_errors.TYPE_MISMATCH, "numeric: 10:5"])
+        )
       ).toBe(true);
 
       // throwSCORMErrorSpy.restore() - not needed with vi.restoreAllMocks()
@@ -510,14 +511,14 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         "api",
         "choice",
         ["value1", "value2", "value1"],
-        "value1,value2,value1",
+        "value1,value2,value1"
       );
 
       // Verify that throwSCORMError was called with the expected arguments
       expect(throwSCORMErrorSpy).toHaveBeenCalledWith(
         "api",
         scorm2004_errors.TYPE_MISMATCH,
-        "choice: value1,value2,value1",
+        "choice: value1,value2,value1"
       );
 
       // throwSCORMErrorSpy.restore() - not needed with vi.restoreAllMocks()
@@ -537,13 +538,13 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       // Call createCorrectResponsesObject with an index that doesn't exist
       scorm2004API["createCorrectResponsesObject"](
         "cmi.interactions.999.correct_responses.0.pattern",
-        "true",
+        "true"
       );
 
       expect(throwSCORMErrorSpy).toHaveBeenCalledWith(
         "cmi.interactions.999.correct_responses.0.pattern",
         scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
-        "cmi.interactions.999.correct_responses.0.pattern",
+        "cmi.interactions.999.correct_responses.0.pattern"
       );
 
       // throwSCORMErrorSpy.restore() - not needed with vi.restoreAllMocks()
@@ -564,13 +565,13 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       // Call createCorrectResponsesObject
       scorm2004API["createCorrectResponsesObject"](
         "cmi.interactions.0.correct_responses.0.pattern",
-        "true",
+        "true"
       );
 
       expect(throwSCORMErrorSpy).toHaveBeenCalledWith(
         "cmi.interactions.0.correct_responses.0.pattern",
         scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED,
-        "cmi.interactions.0.correct_responses.0.pattern",
+        "cmi.interactions.0.correct_responses.0.pattern"
       );
 
       // throwSCORMErrorSpy.restore() - not needed with vi.restoreAllMocks()
@@ -588,8 +589,8 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         type: "invalid-type",
         correct_responses: {
           _count: 0,
-          childArray: [],
-        },
+          childArray: []
+        }
       };
 
       // Set up a spy on throwSCORMError
@@ -598,13 +599,13 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       // Call createCorrectResponsesObject
       scorm2004API["createCorrectResponsesObject"](
         "cmi.interactions.0.correct_responses.0.pattern",
-        "true",
+        "true"
       );
 
       expect(throwSCORMErrorSpy).toHaveBeenCalledWith(
         "cmi.interactions.0.correct_responses.0.pattern",
         scorm2004_errors.GENERAL_SET_FAILURE,
-        "Incorrect Response Type: invalid-type",
+        "Incorrect Response Type: invalid-type"
       );
 
       // throwSCORMErrorSpy.restore() - not needed with vi.restoreAllMocks()
@@ -705,35 +706,35 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       const processListenersSpy = vi.spyOn(scorm2004API, "processListeners");
 
       // Mock the navigation result by directly modifying the internal navigation request result
-      const originalStoreData = scorm2004API.storeData;
-      vi.spyOn(scorm2004API, "storeData").mockImplementation(async function (
-        terminateCommit: boolean,
+      const originalStoreData = scorm2004API.storeData.bind(scorm2004API);
+      vi.spyOn(scorm2004API, "storeData").mockImplementation(function(
+        terminateCommit: boolean
       ) {
         // Simulate a result that would trigger the object handling code path
-        const result = await originalStoreData.call(this, terminateCommit);
+        const result = originalStoreData(terminateCommit);
 
         // Trigger the navigation object handling code path manually
         const navRequestObj = {
           name: "customNavigationEvent",
-          data: "someNavigationData",
+          data: "someNavigationData"
         };
 
         // Check if the object has the name property (line 875 coverage)
         if (Object.hasOwnProperty.call(navRequestObj, "name")) {
           // This covers lines 877-878
-          this.processListeners(navRequestObj.name as string, navRequestObj.data as string);
+          scorm2004API.processListeners(navRequestObj.name as string, navRequestObj.data as string);
         }
 
         return result;
       });
 
       // Call storeData to trigger the navigation handling
-      await scorm2004API.storeData(false);
+      scorm2004API.storeData(false);
 
       // Verify the object was processed correctly
       expect(processListenersSpy).toHaveBeenCalledWith(
         "customNavigationEvent",
-        "someNavigationData",
+        "someNavigationData"
       );
     });
   });
@@ -746,13 +747,13 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       scorm2004API.lmsSetValue("cmi.interactions.0.id", "choice-test");
       scorm2004API.lmsSetValue("cmi.interactions.0.type", "choice");
       expect(scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.0.pattern", "a")).toBe(
-        "true",
+        "true"
       );
 
       scorm2004API.lmsSetValue("cmi.interactions.1.id", "tf-test");
       scorm2004API.lmsSetValue("cmi.interactions.1.type", "true-false");
       expect(
-        scorm2004API.lmsSetValue("cmi.interactions.1.correct_responses.0.pattern", "true"),
+        scorm2004API.lmsSetValue("cmi.interactions.1.correct_responses.0.pattern", "true")
       ).toBe("true");
     });
 
@@ -766,14 +767,14 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       expect(
         scorm2004API.lmsSetValue(
           "cmi.interactions.0.correct_responses.0.pattern",
-          "strongly_agree",
-        ),
+          "strongly_agree"
+        )
       ).toBe("true");
       expect(
-        scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.1.pattern", "agree"),
+        scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.1.pattern", "agree")
       ).toBe("true");
       expect(
-        scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.2.pattern", "neutral"),
+        scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.2.pattern", "neutral")
       ).toBe("true");
     });
 
@@ -785,10 +786,10 @@ describe("SCORM 2004 API Additional Tests", (): void => {
 
       // Test basic numeric values
       expect(scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.0.pattern", "42")).toBe(
-        "true",
+        "true"
       );
       expect(
-        scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.1.pattern", "1[:]10"),
+        scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.1.pattern", "1[:]10")
       ).toBe("true");
     });
   });
@@ -868,7 +869,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         // Other properties should work fine
         expect(scorm2004API.lmsSetValue("cmi.objectives.0.success_status", "passed")).toBe("true");
         expect(scorm2004API.lmsSetValue("cmi.objectives.0.completion_status", "completed")).toBe(
-          "true",
+          "true"
         );
         expect(scorm2004API.lmsSetValue("cmi.objectives.0.score.scaled", "0.95")).toBe("true");
         expect(scorm2004API.lmsGetLastError()).toBe("0");
@@ -891,13 +892,13 @@ describe("SCORM 2004 API Additional Tests", (): void => {
 
         // Set first interaction ID
         expect(scorm2004API.lmsSetValue("cmi.interactions.0.id", "duplicate-interaction")).toBe(
-          "true",
+          "true"
         );
         expect(scorm2004API.lmsGetLastError()).toBe("0");
 
         // Attempt to set same ID on different interaction - should fail
         expect(scorm2004API.lmsSetValue("cmi.interactions.1.id", "duplicate-interaction")).toBe(
-          "false",
+          "false"
         );
         expect(scorm2004API.lmsGetLastError()).toBe(String(scorm2004_errors.GENERAL_SET_FAILURE));
       });
@@ -920,7 +921,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
 
         // Set initial interaction ID
         expect(scorm2004API.lmsSetValue("cmi.interactions.0.id", "original-interaction")).toBe(
-          "true",
+          "true"
         );
         expect(scorm2004API.lmsGetLastError()).toBe("0");
 
@@ -956,10 +957,10 @@ describe("SCORM 2004 API Additional Tests", (): void => {
 
         // Set unique objective IDs within the interaction
         expect(scorm2004API.lmsSetValue("cmi.interactions.0.objectives.0.id", "obj-a")).toBe(
-          "true",
+          "true"
         );
         expect(scorm2004API.lmsSetValue("cmi.interactions.0.objectives.1.id", "obj-b")).toBe(
-          "true",
+          "true"
         );
         expect(scorm2004API.lmsGetLastError()).toBe("0");
       });
@@ -973,12 +974,12 @@ describe("SCORM 2004 API Additional Tests", (): void => {
 
         // Set first objective ID
         expect(scorm2004API.lmsSetValue("cmi.interactions.0.objectives.0.id", "dup-obj")).toBe(
-          "true",
+          "true"
         );
 
         // Attempt duplicate - should fail
         expect(scorm2004API.lmsSetValue("cmi.interactions.0.objectives.1.id", "dup-obj")).toBe(
-          "false",
+          "false"
         );
         expect(scorm2004API.lmsGetLastError()).toBe(String(scorm2004_errors.GENERAL_SET_FAILURE));
       });
@@ -994,10 +995,10 @@ describe("SCORM 2004 API Additional Tests", (): void => {
 
         // Same objective ID in different interactions is allowed
         expect(scorm2004API.lmsSetValue("cmi.interactions.0.objectives.0.id", "shared-obj")).toBe(
-          "true",
+          "true"
         );
         expect(scorm2004API.lmsSetValue("cmi.interactions.1.objectives.0.id", "shared-obj")).toBe(
-          "true",
+          "true"
         );
         expect(scorm2004API.lmsGetLastError()).toBe("0");
       });
@@ -1014,11 +1015,11 @@ describe("SCORM 2004 API Additional Tests", (): void => {
             children: [
               {
                 id: "lesson1",
-                title: "Lesson 1",
-              },
-            ],
-          },
-        },
+                title: "Lesson 1"
+              }
+            ]
+          }
+        }
       });
 
       // Get the sequencing service before initialization
@@ -1056,11 +1057,11 @@ describe("SCORM 2004 API Additional Tests", (): void => {
             children: [
               {
                 id: "lesson1",
-                title: "Lesson 1",
-              },
-            ],
-          },
-        },
+                title: "Lesson 1"
+              }
+            ]
+          }
+        }
       });
 
       scorm2004API.lmsInitialize();
@@ -1088,11 +1089,11 @@ describe("SCORM 2004 API Additional Tests", (): void => {
             children: [
               {
                 id: "lesson1",
-                title: "Lesson 1",
-              },
-            ],
-          },
-        },
+                title: "Lesson 1"
+              }
+            ]
+          }
+        }
       });
 
       scorm2004API.lmsInitialize();
@@ -1242,7 +1243,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         // Simulate complete LMS state for resumed activity
         scorm2004API.cmi.entry = "resume";
         scorm2004API.cmi.location = "page7";
-        scorm2004API.cmi.suspend_data = '{"currentPage":7,"answers":[1,2,3]}';
+        scorm2004API.cmi.suspend_data = "{\"currentPage\":7,\"answers\":[1,2,3]}";
         scorm2004API.cmi.completion_status = "incomplete";
         scorm2004API.cmi.success_status = "unknown";
         scorm2004API.cmi.score.scaled = "0.5";
@@ -1254,7 +1255,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         expect(scorm2004API.lmsGetValue("cmi.entry")).toBe("resume");
         expect(scorm2004API.lmsGetValue("cmi.location")).toBe("page7");
         expect(scorm2004API.lmsGetValue("cmi.suspend_data")).toBe(
-          '{"currentPage":7,"answers":[1,2,3]}',
+          "{\"currentPage\":7,\"answers\":[1,2,3]}"
         );
         expect(scorm2004API.lmsGetValue("cmi.completion_status")).toBe("incomplete");
         expect(scorm2004API.lmsGetValue("cmi.success_status")).toBe("unknown");
@@ -1291,4 +1292,4 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       });
     });
   });
-};);
+});
