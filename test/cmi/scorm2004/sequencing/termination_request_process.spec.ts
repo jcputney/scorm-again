@@ -450,6 +450,83 @@ describe("Termination Request Process (TB.2.3)", () => {
     });
   });
 
+  describe("Exit Type Handling (cmi.exit)", () => {
+    it("should handle logout exit type and terminate all activities", () => {
+      activityTree.currentActivity = grandchild1;
+      grandchild1.isActive = true;
+      child1.isActive = true;
+      root.isActive = true;
+
+      // Process EXIT request with logout exit type
+      const result = overallProcess.processNavigationRequest(
+        NavigationRequestType.EXIT,
+        null,
+        "logout"
+      );
+
+      expect(result.valid).toBe(true);
+      // Logout should terminate all activities (like EXIT_ALL)
+      expect(grandchild1.isActive).toBe(false);
+      expect(child1.isActive).toBe(false);
+      expect(root.isActive).toBe(false);
+      expect(activityTree.currentActivity).toBeNull();
+    });
+
+    it("should handle normal exit type as regular exit", () => {
+      activityTree.currentActivity = grandchild1;
+      grandchild1.isActive = true;
+      child1.isActive = true;
+
+      // Process EXIT request with normal exit type
+      const result = overallProcess.processNavigationRequest(
+        NavigationRequestType.EXIT,
+        null,
+        "normal"
+      );
+
+      expect(result.valid).toBe(true);
+      // Normal exit should just exit current activity
+      expect(grandchild1.isActive).toBe(false);
+      expect(activityTree.currentActivity).toBe(child1);
+    });
+
+    it("should handle suspend exit type (note: exitType is informational)", () => {
+      activityTree.currentActivity = grandchild1;
+      grandchild1.isActive = true;
+
+      // Process EXIT request with suspend exit type
+      // Note: cmi.exit="suspend" is informational; actual suspension requires SUSPEND_ALL request
+      const result = overallProcess.processNavigationRequest(
+        NavigationRequestType.EXIT,
+        null,
+        "suspend"
+      );
+
+      expect(result.valid).toBe(true);
+      // EXIT with exitType="suspend" still performs normal exit
+      // To actually suspend, use SUSPEND_ALL navigation request
+      expect(grandchild1.isActive).toBe(false);
+      expect(activityTree.currentActivity).toBe(child1);
+    });
+
+    it("should handle empty exit type as normal exit", () => {
+      activityTree.currentActivity = grandchild1;
+      grandchild1.isActive = true;
+
+      // Process EXIT request with empty exit type
+      const result = overallProcess.processNavigationRequest(
+        NavigationRequestType.EXIT,
+        null,
+        ""
+      );
+
+      expect(result.valid).toBe(true);
+      // Empty exit should behave like normal exit
+      expect(grandchild1.isActive).toBe(false);
+      expect(activityTree.currentActivity).toBe(child1);
+    });
+  });
+
   describe("Post-Condition Return Value (GAP-09)", () => {
     it("should return and use CONTINUE sequencing request from post-condition", () => {
       // Set up activity with post-condition CONTINUE rule

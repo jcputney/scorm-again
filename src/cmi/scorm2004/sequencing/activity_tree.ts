@@ -111,15 +111,26 @@ export class ActivityTree extends BaseCMI {
       );
     }
 
-    // If there's already a current activity, deactivate it
+    // Deactivate previous current activity and all its ancestors
     if (this._currentActivity) {
       this._currentActivity.isActive = false;
+      let ancestor = this._currentActivity.parent;
+      while (ancestor) {
+        ancestor.isActive = false;
+        ancestor = ancestor.parent;
+      }
     }
 
-    // Set the new current activity and activate it
     this._currentActivity = activity;
+
+    // Set new current activity and mark all ancestors as active
     if (activity) {
       activity.isActive = true;
+      let ancestor = activity.parent;
+      while (ancestor) {
+        ancestor.isActive = true;
+        ancestor = ancestor.parent;
+      }
     }
   }
 
