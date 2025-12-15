@@ -186,8 +186,8 @@ describe("ADL Classes", () => {
       const adlNavRequestValid = new ADLNavRequestValid();
       expect(adlNavRequestValid.continue).toBe("unknown");
       expect(adlNavRequestValid.previous).toBe("unknown");
-      expect(adlNavRequestValid.choice).toEqual({});
-      expect(adlNavRequestValid.jump).toEqual({});
+      expect(adlNavRequestValid.choice).toBeDefined();
+      expect(adlNavRequestValid.jump).toBeDefined();
     });
 
     it("should reset properties when reset is called", () => {

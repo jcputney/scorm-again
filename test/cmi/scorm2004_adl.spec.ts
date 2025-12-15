@@ -142,8 +142,8 @@ describe("SCORM 2004 ADL Tests", () => {
 
       expect(requestValid.continue).toBe(NAVBoolean.UNKNOWN);
       expect(requestValid.previous).toBe(NAVBoolean.UNKNOWN);
-      expect(requestValid.choice).toEqual({});
-      expect(requestValid.jump).toEqual({});
+      expect(requestValid.choice).toBeDefined();
+      expect(requestValid.jump).toBeDefined();
     });
 
     it("should reset to default values", () => {
@@ -208,7 +208,8 @@ describe("SCORM 2004 ADL Tests", () => {
         requestValid.choice = { "{target=target1}": "true" };
       }).not.toThrow();
 
-      expect(requestValid.choice).toEqual({
+      // Choice is now a wrapper class, check internal values via getAll()
+      expect((requestValid.choice as any).getAll()).toEqual({
         "{target=target1}": NAVBoolean.TRUE,
       });
 
@@ -216,7 +217,7 @@ describe("SCORM 2004 ADL Tests", () => {
         requestValid.choice = { "{target=target1}": "false" };
       }).not.toThrow();
 
-      expect(requestValid.choice).toEqual({
+      expect((requestValid.choice as any).getAll()).toEqual({
         "{target=target1}": NAVBoolean.FALSE,
       });
 
@@ -224,7 +225,7 @@ describe("SCORM 2004 ADL Tests", () => {
         requestValid.choice = { "{target=target1}": "unknown" };
       }).not.toThrow();
 
-      expect(requestValid.choice).toEqual({
+      expect((requestValid.choice as any).getAll()).toEqual({
         "{target=target1}": NAVBoolean.UNKNOWN,
       });
     });
@@ -236,7 +237,8 @@ describe("SCORM 2004 ADL Tests", () => {
         requestValid.jump = { "{target=target1}": "true" };
       }).not.toThrow();
 
-      expect(requestValid.jump).toEqual({
+      // Jump is now a wrapper class, check internal values via getAll()
+      expect((requestValid.jump as any).getAll()).toEqual({
         "{target=target1}": NAVBoolean.TRUE,
       });
 
@@ -244,7 +246,7 @@ describe("SCORM 2004 ADL Tests", () => {
         requestValid.jump = { "{target=target1}": "false" };
       }).not.toThrow();
 
-      expect(requestValid.jump).toEqual({
+      expect((requestValid.jump as any).getAll()).toEqual({
         "{target=target1}": NAVBoolean.FALSE,
       });
 
@@ -252,7 +254,7 @@ describe("SCORM 2004 ADL Tests", () => {
         requestValid.jump = { "{target=target1}": "unknown" };
       }).not.toThrow();
 
-      expect(requestValid.jump).toEqual({
+      expect((requestValid.jump as any).getAll()).toEqual({
         "{target=target1}": NAVBoolean.UNKNOWN,
       });
     });

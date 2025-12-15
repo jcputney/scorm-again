@@ -9,6 +9,10 @@ import { Scorm2004ValidationError } from "../../../exceptions/scorm2004_exceptio
 import { scorm2004_errors } from "../../../constants/error_codes";
 import { AuxiliaryResource, HideLmsUiItem } from "../../../types/sequencing_types";
 
+// Forward declaration to avoid circular dependency
+ 
+type OverallSequencingProcessType = any;
+
 /**
  * Class representing SCORM 2004 sequencing
  */
@@ -20,6 +24,7 @@ export class Sequencing extends BaseCMI {
   private _adlNav: ADLNav | null = null;
   private _hideLmsUi: HideLmsUiItem[] = [];
   private _auxiliaryResources: AuxiliaryResource[] = [];
+  private _overallSequencingProcess: OverallSequencingProcessType | null = null;
 
   /**
    * Constructor for Sequencing
@@ -179,10 +184,24 @@ export class Sequencing extends BaseCMI {
    */
   set adlNav(adlNav: ADLNav | null) {
     this._adlNav = adlNav;
-    
+
   }
 
+  /**
+   * Getter for overallSequencingProcess
+   * @return {any | null}
+   */
+  get overallSequencingProcess(): OverallSequencingProcessType | null {
+    return this._overallSequencingProcess;
+  }
 
+  /**
+   * Setter for overallSequencingProcess
+   * @param {any | null} process
+   */
+  set overallSequencingProcess(process: OverallSequencingProcessType | null) {
+    this._overallSequencingProcess = process;
+  }
 
 
 
