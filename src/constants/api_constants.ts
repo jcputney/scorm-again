@@ -152,7 +152,7 @@ export const aicc_constants: AiccConstants = {
 export const scorm2004_constants: Scorm2004Constants = {
   // Children lists
   cmi_children:
-    "_version,comments_from_learner,comments_from_lms,completion_status,credit,entry,exit,interactions,launch_data,learner_id,learner_name,learner_preference,location,max_time_allowed,mode,objectives,progress_measure,scaled_passing_score,score,session_time,success_status,suspend_data,time_limit_action,total_time",
+    "_version,comments_from_learner,comments_from_lms,completion_status,completion_threshold,credit,entry,exit,interactions,launch_data,learner_id,learner_name,learner_preference,location,max_time_allowed,mode,objectives,progress_measure,scaled_passing_score,score,session_time,success_status,suspend_data,time_limit_action,total_time",
   comments_children: "comment,timestamp,location",
   score_children: "max,raw,scaled,min",
   objectives_children: "progress_measure,completion_status,success_status,description,score,id",
