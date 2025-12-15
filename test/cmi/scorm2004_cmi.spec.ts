@@ -130,11 +130,13 @@ describe("SCORM 2004 CMI Tests", () => {
       h.checkReadAndWrite({
         cmi: cmi(),
         fieldName: "cmi.completion_threshold",
+        valueToTest: "0.75",
       });
       h.checkReadAndWrite({
         cmi: cmi(),
         fieldName: "cmi.credit",
         expectedValue: "credit",
+        valueToTest: "no-credit",
       });
       h.checkReadAndWrite({
         cmi: cmi(),
@@ -173,15 +175,18 @@ describe("SCORM 2004 CMI Tests", () => {
       h.checkReadAndWrite({
         cmi: cmi(),
         fieldName: "cmi.max_time_allowed",
+        valueToTest: "PT1H30M",
       });
       h.checkReadAndWrite({
         cmi: cmi(),
         fieldName: "cmi.mode",
         expectedValue: "normal",
+        valueToTest: "browse",
       });
       h.checkReadAndWrite({
         cmi: cmi(),
         fieldName: "cmi.max_time_allowed",
+        valueToTest: "PT2H",
       });
       h.checkValidValues({
         cmi: cmi(),
@@ -192,6 +197,7 @@ describe("SCORM 2004 CMI Tests", () => {
       h.checkReadAndWrite({
         cmi: cmi(),
         fieldName: "cmi.scaled_passing_score",
+        valueToTest: "0.8",
       });
       h.checkWriteOnly({
         cmi: cmi(),
@@ -226,6 +232,7 @@ describe("SCORM 2004 CMI Tests", () => {
         cmi: cmi(),
         fieldName: "cmi.time_limit_action",
         expectedValue: "continue,no message",
+        valueToTest: "exit,message",
       });
       h.checkReadAndWrite({
         cmi: cmi(),
