@@ -241,6 +241,78 @@ describe("SCORM 2004 CMISettings Tests", () => {
           new Scorm2004ValidationError("cmi.max_time_allowed", scorm2004_errors.READ_ONLY_ELEMENT),
         );
       });
+
+      it("should accept empty string (undefined value)", () => {
+        const settings = new CMISettings();
+
+        settings.max_time_allowed = "";
+        expect(settings.max_time_allowed).toBe("");
+      });
+
+      it("should accept valid ISO 8601 duration formats", () => {
+        const settings = new CMISettings();
+
+        settings.max_time_allowed = "PT1H30M";
+        expect(settings.max_time_allowed).toBe("PT1H30M");
+
+        const settings2 = new CMISettings();
+        settings2.max_time_allowed = "PT2H";
+        expect(settings2.max_time_allowed).toBe("PT2H");
+
+        const settings3 = new CMISettings();
+        settings3.max_time_allowed = "PT30M";
+        expect(settings3.max_time_allowed).toBe("PT30M");
+
+        const settings4 = new CMISettings();
+        settings4.max_time_allowed = "PT45S";
+        expect(settings4.max_time_allowed).toBe("PT45S");
+
+        const settings5 = new CMISettings();
+        settings5.max_time_allowed = "P1DT2H30M";
+        expect(settings5.max_time_allowed).toBe("P1DT2H30M");
+
+        const settings6 = new CMISettings();
+        settings6.max_time_allowed = "P1Y2M3DT4H5M6S";
+        expect(settings6.max_time_allowed).toBe("P1Y2M3DT4H5M6S");
+
+        const settings7 = new CMISettings();
+        settings7.max_time_allowed = "PT1H30M45.5S";
+        expect(settings7.max_time_allowed).toBe("PT1H30M45.5S");
+      });
+
+      it("should reject invalid duration formats", () => {
+        const settings = new CMISettings();
+
+        expect(() => {
+          settings.max_time_allowed = "1H30M";
+        }).toThrow(
+          new Scorm2004ValidationError("cmi.max_time_allowed", scorm2004_errors.TYPE_MISMATCH),
+        );
+
+        expect(() => {
+          settings.max_time_allowed = "PT90";
+        }).toThrow(
+          new Scorm2004ValidationError("cmi.max_time_allowed", scorm2004_errors.TYPE_MISMATCH),
+        );
+
+        expect(() => {
+          settings.max_time_allowed = "abc";
+        }).toThrow(
+          new Scorm2004ValidationError("cmi.max_time_allowed", scorm2004_errors.TYPE_MISMATCH),
+        );
+
+        expect(() => {
+          settings.max_time_allowed = "123";
+        }).toThrow(
+          new Scorm2004ValidationError("cmi.max_time_allowed", scorm2004_errors.TYPE_MISMATCH),
+        );
+
+        expect(() => {
+          settings.max_time_allowed = "T1H30M";
+        }).toThrow(
+          new Scorm2004ValidationError("cmi.max_time_allowed", scorm2004_errors.TYPE_MISMATCH),
+        );
+      });
     });
   });
 
