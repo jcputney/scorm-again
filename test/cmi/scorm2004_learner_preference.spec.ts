@@ -10,7 +10,7 @@ describe("SCORM 2004 CMILearnerPreference Tests", () => {
       expect(learnerPreference.audio_level).toBe("1");
       expect(learnerPreference.language).toBe("");
       expect(learnerPreference.delivery_speed).toBe("1");
-      expect(learnerPreference.audio_captioning).toBe("0");
+      expect(learnerPreference.audio_captioning).toBe("-1");
     });
 
     it("should have read-only _children property", () => {
