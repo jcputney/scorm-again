@@ -2489,8 +2489,8 @@ class Scorm2004API extends BaseAPI {
    * api.determineEntryValue("suspend", true); // Returns: "resume"
    *
    * @example
-   * // Learner who completed normally without suspend data
-   * api.determineEntryValue("normal", false); // Returns: "ab-initio"
+   * // Learner who completed normally (not a new attempt, but not resume)
+   * api.determineEntryValue("normal", false); // Returns: ""
    *
    * @example
    * // Learner who timed out but has suspend data
@@ -2501,6 +2501,7 @@ class Scorm2004API extends BaseAPI {
     const trimmedExit = previousExit?.trim();
 
     // No previous exit or empty exit means first-time entry
+    // Per SCORM 2004 spec Rule 1: ab-initio when this is the first learner session
     if (
       previousExit === "" ||
       previousExit === undefined ||
@@ -2510,18 +2511,26 @@ class Scorm2004API extends BaseAPI {
       return "ab-initio";
     }
 
-    // Suspend and logout always mean resume
-    if (previousExit === "suspend" || previousExit === "logout") {
+    // Per SCORM 2004 spec Rule 2: resume when previous exit was "suspend"
+    if (previousExit === "suspend") {
       return "resume";
     }
 
-    // Normal or time-out depend on suspend data
-    if (previousExit === "time-out" || previousExit === "normal") {
-      return hasSuspendData ? "resume" : "ab-initio";
+    // Per SCORM 2004 spec: logout and normal always mean empty string
+    // (learner previously accessed SCO but didn't suspend)
+    if (previousExit === "logout" || previousExit === "normal") {
+      return "";
     }
 
-    // Unknown/invalid exit values default to ab-initio
-    return "ab-initio";
+    // Per SCORM 2004 spec: time-out returns "" (or possibly "resume" if suspend data exists)
+    // The spec allows resume for time-out when there's suspend data from earlier
+    if (previousExit === "time-out") {
+      return hasSuspendData ? "resume" : "";
+    }
+
+    // Unknown/invalid exit values indicate the learner has accessed the SCO before
+    // but conditions for ab-initio or resume aren't met, so return empty string
+    return "";
   }
 
   /**
