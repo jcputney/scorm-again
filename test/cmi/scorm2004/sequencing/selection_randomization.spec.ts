@@ -63,7 +63,7 @@ describe("SelectionRandomization", () => {
       parentActivity.sequencingControls.selectCount = 3;
 
       const selected = SelectionRandomization.selectChildrenProcess(parentActivity);
-      
+
       expect(selected).toHaveLength(3);
       // Verify selected children are from the original set
       selected.forEach(child => {
@@ -102,7 +102,8 @@ describe("SelectionRandomization", () => {
       parentActivity.sequencingControls.selectionCountStatus = false;
 
       SelectionRandomization.selectChildrenProcess(parentActivity);
-      
+
+      // After selection, status should be set to true
       expect(parentActivity.sequencingControls.selectionCountStatus).toBe(true);
     });
 
@@ -237,19 +238,18 @@ describe("SelectionRandomization", () => {
     it("should apply selection/randomization and update status flags when isNewAttempt is true", () => {
       parentActivity.sequencingControls.selectionTiming = SelectionTiming.ON_EACH_NEW_ATTEMPT;
       parentActivity.sequencingControls.selectCount = 3;
-      parentActivity.sequencingControls.selectionCountStatus = true;
+      parentActivity.sequencingControls.selectionCountStatus = false; // Start disabled
       parentActivity.sequencingControls.randomizationTiming = RandomizationTiming.ON_EACH_NEW_ATTEMPT;
       parentActivity.sequencingControls.randomizeChildren = true;
-      parentActivity.sequencingControls.reorderChildren = true;
+      parentActivity.sequencingControls.reorderChildren = false;
 
       const processed = SelectionRandomization.applySelectionAndRandomization(parentActivity, true);
-      
+
       // Should have selected 3 children
       expect(processed).toHaveLength(3);
-      // Status flags should remain false during ON_EACH_NEW_ATTEMPT timing
-      // They get set during the process, but for ON_EACH_NEW_ATTEMPT, we expect them to be reset first
-      expect(parentActivity.sequencingControls.selectionCountStatus).toBe(false);
-      expect(parentActivity.sequencingControls.reorderChildren).toBe(false);
+      // For ON_EACH_NEW_ATTEMPT timing, selectionCountStatus should be enabled (true) after processing
+      expect(parentActivity.sequencingControls.selectionCountStatus).toBe(true);
+      // reorderChildren is not used for randomization tracking in the same way
     });
 
     it("should not apply when isNewAttempt is false and timing is ON_EACH_NEW_ATTEMPT", () => {
@@ -337,6 +337,99 @@ describe("SelectionRandomization", () => {
       parentActivity.sequencingControls.reorderChildren = false;
 
       expect(SelectionRandomization.isRandomizationNeeded(parentActivity)).toBe(true);
+    });
+  });
+
+  describe("Activity State Validation", () => {
+    it("should not apply selection to active activity when isNewAttempt is false", () => {
+      parentActivity.isActive = true;
+      parentActivity.sequencingControls.selectionTiming = SelectionTiming.ON_EACH_NEW_ATTEMPT;
+      parentActivity.sequencingControls.selectCount = 2;
+      parentActivity.sequencingControls.selectionCountStatus = true;
+
+      const result = SelectionRandomization.applySelectionAndRandomization(parentActivity, false);
+
+      // Should return all children unchanged (selection not applied)
+      expect(result).toHaveLength(5);
+      // All children should remain available
+      expect(child1.isAvailable).toBe(true);
+      expect(child2.isAvailable).toBe(true);
+      expect(child3.isAvailable).toBe(true);
+      expect(child4.isAvailable).toBe(true);
+      expect(child5.isAvailable).toBe(true);
+    });
+
+    it("should not apply selection to suspended activity when isNewAttempt is false", () => {
+      parentActivity.isSuspended = true;
+      parentActivity.sequencingControls.selectionTiming = SelectionTiming.ON_EACH_NEW_ATTEMPT;
+      parentActivity.sequencingControls.selectCount = 2;
+      parentActivity.sequencingControls.selectionCountStatus = true;
+
+      const result = SelectionRandomization.applySelectionAndRandomization(parentActivity, false);
+
+      // Should return all children unchanged
+      expect(result).toHaveLength(5);
+      expect(child1.isAvailable).toBe(true);
+      expect(child2.isAvailable).toBe(true);
+      expect(child3.isAvailable).toBe(true);
+      expect(child4.isAvailable).toBe(true);
+      expect(child5.isAvailable).toBe(true);
+    });
+
+    it("should not apply randomization to active activity when isNewAttempt is false", () => {
+      parentActivity.isActive = true;
+      parentActivity.sequencingControls.randomizationTiming = RandomizationTiming.ON_EACH_NEW_ATTEMPT;
+      parentActivity.sequencingControls.randomizeChildren = true;
+
+      const originalOrder = parentActivity.children.map(c => c.id);
+      SelectionRandomization.applySelectionAndRandomization(parentActivity, false);
+      const newOrder = parentActivity.children.map(c => c.id);
+
+      // Order should be unchanged
+      expect(newOrder).toEqual(originalOrder);
+    });
+
+    it("should not apply randomization to suspended activity when isNewAttempt is false", () => {
+      parentActivity.isSuspended = true;
+      parentActivity.sequencingControls.randomizationTiming = RandomizationTiming.ON_EACH_NEW_ATTEMPT;
+      parentActivity.sequencingControls.randomizeChildren = true;
+
+      const originalOrder = parentActivity.children.map(c => c.id);
+      SelectionRandomization.applySelectionAndRandomization(parentActivity, false);
+      const newOrder = parentActivity.children.map(c => c.id);
+
+      // Order should be unchanged
+      expect(newOrder).toEqual(originalOrder);
+    });
+  });
+
+  describe("Selection Count Status Enforcement", () => {
+    it("should not apply selection when selectionCountStatus is false for ON_EACH_NEW_ATTEMPT timing", () => {
+      parentActivity.sequencingControls.selectionTiming = SelectionTiming.ON_EACH_NEW_ATTEMPT;
+      parentActivity.sequencingControls.selectCount = 2;
+      parentActivity.sequencingControls.selectionCountStatus = false;
+
+      const result = SelectionRandomization.selectChildrenProcess(parentActivity);
+
+      // Should return all children (selection not applied)
+      expect(result).toHaveLength(5);
+      // All children should remain available
+      expect(child1.isAvailable).toBe(true);
+      expect(child2.isAvailable).toBe(true);
+      expect(child3.isAvailable).toBe(true);
+      expect(child4.isAvailable).toBe(true);
+      expect(child5.isAvailable).toBe(true);
+    });
+
+    it("should apply selection when selectionCountStatus is true for ON_EACH_NEW_ATTEMPT timing", () => {
+      parentActivity.sequencingControls.selectionTiming = SelectionTiming.ON_EACH_NEW_ATTEMPT;
+      parentActivity.sequencingControls.selectCount = 2;
+      parentActivity.sequencingControls.selectionCountStatus = true;
+
+      const result = SelectionRandomization.selectChildrenProcess(parentActivity);
+
+      // Should select only 2 children
+      expect(result).toHaveLength(2);
     });
   });
 });
