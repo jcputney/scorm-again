@@ -132,7 +132,7 @@
     "http-server": "14.1.1",
     "jsdoc": "4.0.4",
     "jsdoc-babel": "0.5.0",
-    "jsdom": "26.1.0",
+    "jsdom": "27.3.0",
     "playwright": "1.55.0",
     "prettier": "3.6.2",
     "rollup": "4.50.1",
