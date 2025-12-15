@@ -551,6 +551,18 @@ export class RollupProcess {
   }
 
   /**
+   * Get trackable children for rollup operations
+   * Filters out activities with tracked=false from rollup calculations
+   * @param {Activity} activity - The parent activity
+   * @return {Activity[]} - Array of trackable children
+   */
+  private getTrackableChildren(activity: Activity): Activity[] {
+    return activity.children.filter(child =>
+      child.sequencingControls.tracked !== false
+    );
+  }
+
+  /**
    * Check Child For Rollup Subprocess (RB.1.4.2)
    * Determines if a child activity contributes to rollup based on its individual consideration settings
    * This implements the full SCORM 2004 RB.1.4.2 specification
@@ -564,6 +576,11 @@ export class RollupProcess {
     rollupType: string,
     rollupAction?: string
   ): boolean {
+    // First check if child is tracked
+    if (child.sequencingControls.tracked === false) {
+      return false;
+    }
+
     let included = false;
 
     // RB.1.4.2 Step 2: Check for objective rollup (satisfied/notSatisfied)

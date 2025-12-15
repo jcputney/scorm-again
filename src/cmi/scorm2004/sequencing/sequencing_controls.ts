@@ -57,6 +57,9 @@ export class SequencingControls extends BaseCMI {
   private _completionSetByContent: boolean = false;
   private _objectiveSetByContent: boolean = false;
 
+  // Delivery Controls
+  private _tracked: boolean = true;
+
   /**
    * Constructor for SequencingControls
    */
@@ -90,6 +93,7 @@ export class SequencingControls extends BaseCMI {
     this._reorderChildren = false;
     this._completionSetByContent = false;
     this._objectiveSetByContent = false;
+    this._tracked = true;
   }
 
   /**
@@ -472,6 +476,22 @@ export class SequencingControls extends BaseCMI {
   }
 
   /**
+   * Getter for tracked
+   * @return {boolean}
+   */
+  get tracked(): boolean {
+    return this._tracked;
+  }
+
+  /**
+   * Setter for tracked
+   * @param {boolean} tracked
+   */
+  set tracked(tracked: boolean) {
+    this._tracked = tracked;
+  }
+
+  /**
    * toJSON for SequencingControls
    * @return {object}
    */
@@ -499,6 +519,7 @@ export class SequencingControls extends BaseCMI {
       reorderChildren: this._reorderChildren,
       completionSetByContent: this._completionSetByContent,
       objectiveSetByContent: this._objectiveSetByContent,
+      tracked: this._tracked,
     };
     this.jsonString = false;
     return result;
