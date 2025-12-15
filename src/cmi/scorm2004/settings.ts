@@ -39,9 +39,14 @@ export class CMISettings extends BaseCMI {
         this._cmi_element + ".credit",
         scorm2004_errors.READ_ONLY_ELEMENT as number,
       );
-    } else {
-      this._credit = credit;
     }
+    if (!/^(credit|no-credit)$/.test(credit)) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".credit",
+        scorm2004_errors.TYPE_MISMATCH as number,
+      );
+    }
+    this._credit = credit;
   }
 
   /**
@@ -62,9 +67,14 @@ export class CMISettings extends BaseCMI {
         this._cmi_element + ".mode",
         scorm2004_errors.READ_ONLY_ELEMENT as number,
       );
-    } else {
-      this._mode = mode;
     }
+    if (!/^(browse|normal|review)$/.test(mode)) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".mode",
+        scorm2004_errors.TYPE_MISMATCH as number,
+      );
+    }
+    this._mode = mode;
   }
 
   /**
@@ -85,9 +95,14 @@ export class CMISettings extends BaseCMI {
         this._cmi_element + ".time_limit_action",
         scorm2004_errors.READ_ONLY_ELEMENT as number,
       );
-    } else {
-      this._time_limit_action = time_limit_action;
     }
+    if (!/^(exit,message|exit,no message|continue,message|continue,no message)$/.test(time_limit_action)) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".time_limit_action",
+        scorm2004_errors.TYPE_MISMATCH as number,
+      );
+    }
+    this._time_limit_action = time_limit_action;
   }
 
   /**
