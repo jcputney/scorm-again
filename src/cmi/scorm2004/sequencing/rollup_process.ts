@@ -225,6 +225,10 @@ export class RollupProcess {
 
   /**
    * Objective Rollup Using Default (RB.1.2.c)
+   * For default rollup (no explicit rules), a child is included only if it
+   * passes BOTH requiredForSatisfied AND requiredForNotSatisfied considerations.
+   * This ensures symmetric exclusion: setting either consideration excludes
+   * the child from the entire objective rollup evaluation.
    * @param {Activity} activity - The parent activity
    * @return {boolean} - True if all tracked children are satisfied
    */
@@ -234,40 +238,41 @@ export class RollupProcess {
       return false;
     }
 
-    const contributors = children.filter((child) =>
-      this.checkChildForRollupSubprocess(child, "objective"),
-    );
+    const considerations = activity.rollupConsiderations;
+
+    // For default rollup, use INTERSECTION of both consideration filters.
+    // A child must pass BOTH requiredForSatisfied AND requiredForNotSatisfied
+    // to contribute to the rollup. This ensures that setting either
+    // consideration (e.g., ifNotSuspended, ifNotSkipped) excludes the child
+    // from the entire default objective rollup evaluation.
+    const contributors = children.filter((child) => {
+      // Check both consideration filters
+      if (!this.checkChildForRollupSubprocess(child, "objective", "satisfied") ||
+          !this.checkChildForRollupSubprocess(child, "objective", "notSatisfied")) {
+        return false;
+      }
+
+      // Check parent-level measureSatisfactionIfActive setting
+      if (!considerations.measureSatisfactionIfActive &&
+          (child.activityAttemptActive || child.isActive)) {
+        return false;
+      }
+
+      return true;
+    });
+
     if (contributors.length === 0) {
       return false;
     }
 
-    const considerations = activity.rollupConsiderations;
-
-    const notSatisfiedCandidates = this.filterChildrenForRequirement(
-      contributors,
-      considerations.requiredForNotSatisfied,
-      "objective",
-      "notSatisfied",
-      considerations,
-    );
-
-    if (notSatisfiedCandidates.some((child) => !this.isChildSatisfiedForRollup(child))) {
+    // Default rollup logic:
+    // - Parent is "not satisfied" if ANY contributor is not satisfied
+    // - Parent is "satisfied" if ALL contributors are satisfied
+    if (contributors.some((child) => !this.isChildSatisfiedForRollup(child))) {
       return false;
     }
 
-    const satisfiedCandidates = this.filterChildrenForRequirement(
-      contributors,
-      considerations.requiredForSatisfied,
-      "objective",
-      "satisfied",
-      considerations,
-    );
-
-    if (satisfiedCandidates.length === 0) {
-      return false;
-    }
-
-    return satisfiedCandidates.every((child) => this.isChildSatisfiedForRollup(child));
+    return contributors.every((child) => this.isChildSatisfiedForRollup(child));
   }
 
   /**
@@ -375,39 +380,29 @@ export class RollupProcess {
     }
 
     // Default: completed if all tracked children are completed
+    // For default rollup, use INTERSECTION of both consideration filters.
+    // A child must pass BOTH requiredForCompleted AND requiredForIncomplete
+    // to contribute to the rollup. This ensures symmetric exclusion.
     const children = activity.getAvailableChildren();
     const contributors = children.filter((child) =>
-      this.checkChildForRollupSubprocess(child, "progress"),
+      this.checkChildForRollupSubprocess(child, "progress", "completed") &&
+      this.checkChildForRollupSubprocess(child, "progress", "incomplete"),
     );
 
-    const considerations = activity.rollupConsiderations;
-
-    const incompleteCandidates = this.filterChildrenForRequirement(
-      contributors,
-      considerations.requiredForIncomplete,
-      "progress",
-      "incomplete",
-      considerations,
-    );
-
-    if (incompleteCandidates.some((child) => !this.isChildCompletedForRollup(child))) {
+    if (contributors.length === 0) {
       activity.completionStatus = "incomplete";
       return;
     }
 
-    const completedCandidates = this.filterChildrenForRequirement(
-      contributors,
-      considerations.requiredForCompleted,
-      "progress",
-      "completed",
-      considerations,
-    );
+    // Default progress rollup logic:
+    // - Parent is "incomplete" if ANY contributor is incomplete
+    // - Parent is "completed" if ALL contributors are completed
+    if (contributors.some((child) => !this.isChildCompletedForRollup(child))) {
+      activity.completionStatus = "incomplete";
+      return;
+    }
 
-    const evaluationSet = completedCandidates.length > 0 ? completedCandidates : contributors;
-
-    const allCompleted = evaluationSet.length === 0 || evaluationSet.every((child) => this.isChildCompletedForRollup(child));
-
-    activity.completionStatus = allCompleted ? "completed" : "incomplete";
+    activity.completionStatus = "completed";
   }
 
   /**

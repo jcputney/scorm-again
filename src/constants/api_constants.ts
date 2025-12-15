@@ -71,6 +71,10 @@ export const scorm12_constants: ScormConstants = {
   interactions_children:
     "id,objectives,time,type,correct_responses,weighting,student_response,result,latency",
   error_descriptions: {
+    "0": {
+      basicMessage: "No Error",
+      detailMessage: "No error occurred, the previous API call was successful.",
+    },
     "101": {
       basicMessage: "General Exception",
       detailMessage: "No specific error code exists to describe the error.",

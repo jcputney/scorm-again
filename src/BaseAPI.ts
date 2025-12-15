@@ -948,9 +948,17 @@ export default abstract class BaseAPI implements IBaseAPI {
   getDiagnostic(callbackName: string, CMIErrorCode: string | number): string {
     let returnValue = "";
 
-    if (CMIErrorCode !== null && CMIErrorCode !== "") {
-      returnValue = this.getLmsErrorMessageDetails(CMIErrorCode, true);
+    // Per SCORM spec: empty string requests diagnostic for the last error
+    const errorCode = CMIErrorCode === "" ? String(this.lastErrorCode) : CMIErrorCode;
+
+    if (errorCode !== null && errorCode !== "") {
+      returnValue = this.getLmsErrorMessageDetails(errorCode, true);
       this.processListeners(callbackName);
+    }
+
+    // Per SCORM spec: GetDiagnostic return value max length is 255 characters
+    if (returnValue.length > 255) {
+      returnValue = returnValue.substring(0, 255);
     }
 
     this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
@@ -1660,7 +1668,12 @@ export default abstract class BaseAPI implements IBaseAPI {
   private handleValueAccessException(CMIElement: string, e: any, returnValue: string): string {
     if (e instanceof ValidationError) {
       this.lastErrorCode = String(e.errorCode);
-      returnValue = global_constants.SCORM_FALSE;
+      // Per SCORM spec: GetValue returns "" on error, SetValue returns "false"
+      // The caller passes the appropriate default, so we preserve it
+      // Only override to "false" if returnValue wasn't already set to ""
+      if (returnValue !== "") {
+        returnValue = global_constants.SCORM_FALSE;
+      }
       this.throwSCORMError(CMIElement, e.errorCode, e.errorMessage);
     } else {
       if (e instanceof Error && e.message) {

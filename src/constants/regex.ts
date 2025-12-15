@@ -7,8 +7,32 @@ export const scorm12_regex = {
   CMIString256: "^[\\s\\S]{0,255}$",
   /** CMIString4096 - Character string, max 4096 chars (RTE A.1) */
   CMIString4096: "^[\\s\\S]{0,4096}$",
-  /** CMITime - Clock time in HH:MM:SS format (RTE A.2) */
-  CMITime: "^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)$",
+  /**
+   * CMIString64000 - Extended character string, max 64000 chars
+   *
+   * SPEC COMPLIANCE NOTE:
+   * The SCORM 1.2 specification defines cmi.suspend_data as CMIString4096 (max 4096 chars).
+   * This implementation intentionally increases the limit to 64000 chars (matching SCORM 2004)
+   * for the following reasons:
+   *
+   * 1. Modern content frequently exceeds 4096 chars due to JSON state serialization,
+   *    base64 encoding, complex bookmark data, and rich interaction tracking
+   * 2. The 4096 limit was set in 2001 when content was simpler; modern authoring tools
+   *    routinely generate larger suspend_data
+   * 3. Most LMS systems can handle larger values - the API shouldn't be the bottleneck
+   * 4. Content that gets rejected has no recovery path, causing data loss
+   * 5. Aligns with SCORM 2004's more practical 64000 char limit
+   *
+   * Used by: cmi.suspend_data (SCORM 1.2 / AICC)
+   *
+   * Strict spec pattern would be: ^[\s\S]{0,4096}$
+   */
+  CMIString64000: "^[\\s\\S]{0,64000}$",
+  /**
+   * CMITime - Clock time in HH:MM:SS.SS format (RTE A.2)
+   * Optional centiseconds (1-2 decimal digits) per spec.
+   */
+  CMITime: "^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)(\\.\\d{1,2})?$",
   /**
    * CMITimespan - Time interval in HHHH:MM:SS.SS format (RTE A.3)
    * We allow more digits for the hour to support values generated
@@ -18,7 +42,22 @@ export const scorm12_regex = {
    */
   CMITimespan: "^([0-9]+):([0-9]{2}):([0-9]{2})(\\.\\d{1,2})?$",
 
-  /** CMIInteger - Non-negative integer (RTE A.4) */
+  /**
+   * CMIInteger - Non-negative integer (RTE A.4)
+   *
+   * SPEC COMPLIANCE NOTE:
+   * The SCORM 1.2 specification defines CMIInteger as 0-65536 range.
+   * This implementation intentionally omits range validation to support
+   * legacy content that may exceed this limit in _count fields or other
+   * integer values. Real-world content often violates the spec by storing
+   * larger values, and strict enforcement would break compatibility.
+   *
+   * Affected elements:
+   * - cmi.objectives._count
+   * - cmi.interactions._count
+   * - cmi.interactions.n.objectives._count
+   * - cmi.interactions.n.correct_responses._count
+   */
   CMIInteger: "^\\d+$",
   /** CMISInteger - Signed integer (RTE A.5) */
   CMISInteger: "^-?([0-9]+)$",
@@ -30,7 +69,28 @@ export const scorm12_regex = {
    */
   CMIDecimal: "^-?([0-9]{0,10})(\\.[0-9]*)?$",
 
-  /** CMIIdentifier - Printable ASCII characters, max 255 chars (RTE A.7) */
+  /**
+   * CMIIdentifier - Printable ASCII characters, max 255 chars (RTE A.7)
+   *
+   * SPEC COMPLIANCE NOTE:
+   * The SCORM 1.2 specification defines CMIIdentifier as alphanumeric only:
+   * letters (a-z, A-Z), numbers (0-9), hyphens (-), and underscores (_).
+   * Spaces and periods are explicitly NOT allowed per spec.
+   *
+   * This implementation intentionally relaxes validation to accept all
+   * printable ASCII characters (0x21-0x7E) plus whitespace to support
+   * legacy content. Many real-world LMS systems and content packages use
+   * identifiers that violate the strict spec (e.g., student IDs with spaces,
+   * objective IDs with periods or special characters).
+   *
+   * Strict spec pattern would be: ^[A-Za-z0-9_-]{0,255}$
+   *
+   * Affected elements:
+   * - cmi.core.student_id
+   * - cmi.objectives.n.id
+   * - cmi.interactions.n.id
+   * - cmi.interactions.n.objectives.n.id
+   */
   CMIIdentifier: "^[\\u0021-\\u007E\\s]{0,255}$",
   /** CMICredit - Vocabulary: credit or no-credit (RTE 3.4.2.1.3) */
   CMICredit: "^(credit|no-credit)$",
@@ -42,8 +102,29 @@ export const scorm12_regex = {
   CMITimeLimitAction: "^(exit,message|exit,no message|continue,message|continue,no message)$",
   /**
    * CMIFeedback - Relaxed for compatibility (normally CMIString255)
-   * Note: Spec defines 255 char limit, but relaxed to support legacy content
-   * that exceeds limits. See SCORM 1.2 RTE A.1 for standard definition.
+   *
+   * SPEC COMPLIANCE NOTE:
+   * The SCORM 1.2 specification defines CMIFeedback as CMIString255 (max 255 chars)
+   * with format varying by interaction type (see RTE 3.4.2.7.5, 3.4.2.7.7).
+   *
+   * This implementation intentionally relaxes validation for two reasons:
+   *
+   * 1. LENGTH: Many legacy content packages store responses exceeding 255 chars,
+   *    especially for fill-in and performance interaction types. Strict enforcement
+   *    would break existing content with no user-facing benefit.
+   *
+   * 2. FORMAT: The spec requires type-specific formats (e.g., true-false accepts
+   *    only "0"/"1"/"t"/"f", choice accepts comma-separated single chars). However:
+   *    - Format validation requires knowing interaction type at validation time
+   *    - Legacy content often uses non-standard formats
+   *    - The SCO is responsible for response evaluation, not the API
+   *    - Strict format validation provides minimal benefit vs. compatibility cost
+   *
+   * Affected elements:
+   * - cmi.interactions.n.student_response
+   * - cmi.interactions.n.correct_responses.n.pattern
+   *
+   * Strict spec pattern would be: ^[\s\S]{0,255}$ with type-specific subpatterns
    */
   CMIFeedback: "^.*$",
   /** CMIIndex - Pattern for array index extraction */
@@ -104,24 +185,31 @@ export const scorm2004_regex = {
   CMIString4000: "^[\\u0000-\\uFFFF]{0,4000}$",
   /** CMIString64000 - Character string, max 64000 chars (RTE C.1.1) */
   CMIString64000: "^[\\u0000-\\uFFFF]{0,64000}$",
-  /** CMILang - Language code per RFC 1766 (RTE C.1.2) */
-  CMILang: "^([a-zA-Z]{2,3}|i|x)(-[a-zA-Z0-9-]{2,8})?$|^$",
+  /**
+   * CMILang - Language code per RFC 1766/RFC 3066 (RTE C.1.2)
+   * Primary tag: 1-8 characters (ISO 639-1: 2, ISO 639-2: 3, or i/x for IANA/private)
+   * Subtag: 2-8 alphanumeric characters
+   */
+  CMILang: "^([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?$|^$",
 
   /** CMILangString250 - String with optional language tag, max 250 chars (RTE C.1.3) */
-  CMILangString250: "^({lang=([a-zA-Z]{2,3}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,250}$)?$",
+  CMILangString250: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,250}$)?$",
 
   /** CMILangcr - Language tag pattern with content */
-  CMILangcr: "^(({lang=([a-zA-Z]{2,3}|i|x)?(-[a-zA-Z0-9-]{2,8})?}))(.*?)$",
+  CMILangcr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9-]{2,8})?}))(.*?)$",
 
   /** CMILangString250cr - String with optional language tag (carriage return variant) */
-  CMILangString250cr: "^(({lang=([a-zA-Z]{2,3}|i|x)?(-[a-zA-Z0-9-]{2,8})?})?(.{0,250})?)?$",
+  CMILangString250cr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9-]{2,8})?})?(.{0,250})?)?$",
 
   /** CMILangString4000 - String with optional language tag, max 4000 chars (RTE C.1.3) */
-  CMILangString4000: "^({lang=([a-zA-Z]{2,3}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,4000}$)?$",
+  CMILangString4000: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,4000}$)?$",
 
-  /** CMITime - ISO 8601 timestamp format (RTE C.1.4) */
+  /**
+   * CMITime - ISO 8601 timestamp format (RTE C.1.4)
+   * Year range expanded from 1970-2038 to 1970-9999 to support future dates
+   */
   CMITime:
-    "^(19[7-9]{1}[0-9]{1}|20[0-2]{1}[0-9]{1}|203[0-8]{1})((-(0[1-9]{1}|1[0-2]{1}))((-(0[1-9]{1}|[1-2]{1}[0-9]{1}|3[0-1]{1}))(T([0-1]{1}[0-9]{1}|2[0-3]{1})((:[0-5]{1}[0-9]{1})((:[0-5]{1}[0-9]{1})((\\.[0-9]{1,6})((Z|([+|-]([0-1]{1}[0-9]{1}|2[0-3]{1})))(:[0-5]{1}[0-9]{1})?)?)?)?)?)?)?)?$",
+    "^(19[7-9][0-9]|[2-9][0-9]{3})((-(0[1-9]|1[0-2]))((-(0[1-9]|[1-2][0-9]|3[0-1]))(T([0-1][0-9]|2[0-3])((:[0-5][0-9])((:[0-5][0-9])((\\.[0-9]{1,6})((Z|([+|-]([0-1][0-9]|2[0-3])))(:[0-5][0-9])?)?)?)?)?)?)?)?$",
   /** CMITimespan - ISO 8601 duration format (RTE C.1.5) */
   CMITimespan:
     "^P(?:([.,\\d]+)Y)?(?:([.,\\d]+)M)?(?:([.,\\d]+)W)?(?:([.,\\d]+)D)?(?:T?(?:([.,\\d]+)H)?(?:([.,\\d]+)M)?(?:(\\d+(?:\\.\\d{1,2})?)S)?)?$",

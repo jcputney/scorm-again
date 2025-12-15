@@ -26,7 +26,8 @@ export class SequencingControls extends BaseCMI {
   private _enabled: boolean = true;
   private _choice: boolean = true;
   private _choiceExit: boolean = true;
-  private _flow: boolean = false;
+  // Per SCORM 2004 Sequencing & Navigation, flow defaults to true
+  private _flow: boolean = true;
   private _forwardOnly: boolean = false;
   private _useCurrentAttemptObjectiveInfo: boolean = true;
   private _useCurrentAttemptProgressInfo: boolean = true;
@@ -71,7 +72,7 @@ export class SequencingControls extends BaseCMI {
     this._enabled = true;
     this._choice = true;
     this._choiceExit = true;
-    this._flow = false;
+    this._flow = true;
     this._forwardOnly = false;
     this._useCurrentAttemptObjectiveInfo = true;
     this._useCurrentAttemptProgressInfo = true;

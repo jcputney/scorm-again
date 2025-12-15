@@ -10,9 +10,10 @@ describe("SequencingControls", () => {
       const controls = new SequencingControls();
 
       // Check default values for sequencing control modes
+      // Per SCORM 2004 Sequencing & Navigation, flow defaults to true
       expect(controls.enabled).toBe(true);
       expect(controls.choiceExit).toBe(true);
-      expect(controls.flow).toBe(false);
+      expect(controls.flow).toBe(true);
       expect(controls.forwardOnly).toBe(false);
       expect(controls.useCurrentAttemptObjectiveInfo).toBe(true);
       expect(controls.useCurrentAttemptProgressInfo).toBe(true);
@@ -49,9 +50,10 @@ describe("SequencingControls", () => {
       controls.reset();
 
       // Check that values are reset to defaults
+      // Per SCORM 2004 Sequencing & Navigation, flow defaults to true
       expect(controls.enabled).toBe(true);
       expect(controls.choiceExit).toBe(true);
-      expect(controls.flow).toBe(false);
+      expect(controls.flow).toBe(true);
       expect(controls.forwardOnly).toBe(false);
       expect(controls.useCurrentAttemptObjectiveInfo).toBe(true);
       expect(controls.useCurrentAttemptProgressInfo).toBe(true);
@@ -172,8 +174,8 @@ describe("SequencingControls", () => {
     it("isFlowNavigationAllowed should return correct value", () => {
       const controls = new SequencingControls();
 
-      // Default values: enabled = true, flow = false
-      expect(controls.isFlowNavigationAllowed()).toBe(false);
+      // Default values: enabled = true, flow = true (per SCORM 2004)
+      expect(controls.isFlowNavigationAllowed()).toBe(true);
 
       // Disabled
       controls.enabled = false;
@@ -193,8 +195,8 @@ describe("SequencingControls", () => {
     it("isForwardNavigationAllowed should return correct value", () => {
       const controls = new SequencingControls();
 
-      // Default values: enabled = true, forwardOnly = false, flow = false
-      expect(controls.isForwardNavigationAllowed()).toBe(false);
+      // Default values: enabled = true, forwardOnly = false, flow = true (per SCORM 2004)
+      expect(controls.isForwardNavigationAllowed()).toBe(true);
 
       // Disabled
       controls.enabled = false;
@@ -222,8 +224,8 @@ describe("SequencingControls", () => {
     it("isBackwardNavigationAllowed should return correct value", () => {
       const controls = new SequencingControls();
 
-      // Default values: enabled = true, forwardOnly = false
-      expect(controls.isBackwardNavigationAllowed()).toBe(false);
+      // Default values: enabled = true, forwardOnly = false, flow = true (per SCORM 2004)
+      expect(controls.isBackwardNavigationAllowed()).toBe(true);
 
       // Disabled
       controls.enabled = false;

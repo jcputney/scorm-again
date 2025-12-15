@@ -39,10 +39,11 @@ describe("AICC CMI Tests", () => {
         expectedError: invalid_set,
       });
 
+      // Note: suspend_data uses 64000 limit (not spec's 4096) for legacy compatibility
       h.checkFieldConstraintSize({
         cmi: cmi(),
         fieldName: "cmi.suspend_data",
-        limit: 4096,
+        limit: 64000,
         expectedError: type_mismatch,
       });
       h.checkReadAndWrite({
@@ -344,10 +345,11 @@ describe("AICC CMI Tests", () => {
         expectedValue: aicc_constants.cmi_children,
         expectedError: invalid_set,
       });
+      // Note: suspend_data uses 64000 limit (not spec's 4096) for legacy compatibility
       h.checkFieldConstraintSize({
         cmi: cmi(),
         fieldName: "cmi.suspend_data",
-        limit: 4096,
+        limit: 64000,
         expectedError: type_mismatch,
       });
       h.checkReadOnly({

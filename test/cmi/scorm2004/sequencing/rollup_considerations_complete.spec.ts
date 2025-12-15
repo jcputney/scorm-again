@@ -191,8 +191,7 @@ describe("Rollup Considerations Complete (RB.1.4)", () => {
       expect(parent.objectiveSatisfiedStatus).toBe(false);
     });
 
-    // TODO: ifNotSuspended consideration needs investigation for notSatisfied rollup
-    it.skip("should exclude suspended children from notSatisfied check with 'ifNotSuspended'", () => {
+    it("should exclude suspended children from notSatisfied check with 'ifNotSuspended'", () => {
       // All children satisfied
       child1.requiredForNotSatisfied = "ifNotSuspended";
       child1.objectiveSatisfiedStatus = true;
@@ -336,8 +335,7 @@ describe("Rollup Considerations Complete (RB.1.4)", () => {
       expect(parent.completionStatus).toBe(CompletionStatus.INCOMPLETE);
     });
 
-    // TODO: ifNotSuspended consideration needs investigation for incomplete rollup
-    it.skip("should exclude suspended children from incomplete check with 'ifNotSuspended'", () => {
+    it("should exclude suspended children from incomplete check with 'ifNotSuspended'", () => {
       // All children completed
       child1.requiredForIncomplete = "ifNotSuspended";
       child1.completionStatus = CompletionStatus.COMPLETED;
@@ -364,8 +362,7 @@ describe("Rollup Considerations Complete (RB.1.4)", () => {
   });
 
   describe("Mixed consideration types", () => {
-    // TODO: Mixed considerations need investigation for proper rollup behavior
-    it.skip("should handle different considerations for each child", () => {
+    it("should handle different considerations for each child", () => {
       // Child1: always included
       child1.requiredForSatisfied = "always";
       child1.objectiveSatisfiedStatus = true;

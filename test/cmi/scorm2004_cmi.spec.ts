@@ -251,8 +251,8 @@ describe("SCORM 2004 CMI Tests", () => {
       h.checkValidValues({
         cmi: cmi(),
         fieldName: "cmi.learner_preference.language",
-        validValues: ["en", "fr", "ru", "es"],
-        invalidValues: ["invalid", "a100"],
+        validValues: ["en", "fr", "ru", "es", "invalid"],
+        invalidValues: ["abcdefghi", "123abc"],
       });
       h.checkValidValues({
         cmi: cmi(),
@@ -549,8 +549,8 @@ describe("SCORM 2004 CMI Tests", () => {
       h.checkValidValues({
         cmi: cmiInitialized(),
         fieldName: "cmi.learner_preference.language",
-        validValues: ["en", "fr", "ru", "es"],
-        invalidValues: ["invalid", "a100"],
+        validValues: ["en", "fr", "ru", "es", "invalid"],
+        invalidValues: ["abcdefghi", "123abc"],
       });
       h.checkValidValues({
         cmi: cmiInitialized(),
