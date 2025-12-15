@@ -1003,4 +1003,292 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       });
     });
   });
-});
+
+  describe("cmi.exit integration with sequencing", (): void => {
+    it("should pass cmi.exit='logout' to sequencing service during Terminate", (): void => {
+      const scorm2004API = api({
+        sequencing: {
+          activityTree: {
+            id: "root",
+            title: "Test Course",
+            children: [
+              {
+                id: "lesson1",
+                title: "Lesson 1",
+              },
+            ],
+          },
+        },
+      });
+
+      // Get the sequencing service before initialization
+      scorm2004API.lmsInitialize();
+      const sequencingService = scorm2004API["_sequencingService"];
+      expect(sequencingService).toBeDefined();
+
+      // Spy on processNavigationRequest to verify exitType is passed
+      const processNavSpy = vi.spyOn(sequencingService!, "processNavigationRequest");
+
+      // Set exit value to logout
+      scorm2004API.lmsSetValue("cmi.exit", "logout");
+
+      // Terminate the session
+      scorm2004API.lmsFinish("");
+
+      // Verify processNavigationRequest was called with the logout exit type
+      expect(processNavSpy).toHaveBeenCalled();
+      const calls = processNavSpy.mock.calls;
+      // Debug: log all calls to see what parameters are being passed
+      // calls.forEach((call, idx) => {
+      //   console.log(`Call ${idx}:`, call[0], call[1], call[2]);
+      // });
+      // Check if any call has "logout" as the third parameter (exitType)
+      const hasLogoutExitType = calls.some((call) => call[2] === "logout");
+      expect(hasLogoutExitType).toBe(true);
+    });
+
+    it("should pass cmi.exit='suspend' to sequencing service during Terminate", (): void => {
+      const scorm2004API = api({
+        sequencing: {
+          activityTree: {
+            id: "root",
+            title: "Test Course",
+            children: [
+              {
+                id: "lesson1",
+                title: "Lesson 1",
+              },
+            ],
+          },
+        },
+      });
+
+      scorm2004API.lmsInitialize();
+
+      // Set exit value to suspend
+      scorm2004API.lmsSetValue("cmi.exit", "suspend");
+
+      const sequencingService = scorm2004API["_sequencingService"];
+      const processNavSpy = vi.spyOn(sequencingService!, "processNavigationRequest");
+
+      scorm2004API.lmsFinish("");
+
+      expect(processNavSpy).toHaveBeenCalled();
+      const calls = processNavSpy.mock.calls;
+      const hasSuspendExitType = calls.some((call) => call[2] === "suspend");
+      expect(hasSuspendExitType).toBe(true);
+    });
+
+    it("should pass empty string when cmi.exit is not set", (): void => {
+      const scorm2004API = api({
+        sequencing: {
+          activityTree: {
+            id: "root",
+            title: "Test Course",
+            children: [
+              {
+                id: "lesson1",
+                title: "Lesson 1",
+              },
+            ],
+          },
+        },
+      });
+
+      scorm2004API.lmsInitialize();
+
+      // Don't set cmi.exit (default is empty string)
+      const sequencingService = scorm2004API["_sequencingService"];
+      const processNavSpy = vi.spyOn(sequencingService!, "processNavigationRequest");
+
+      scorm2004API.lmsFinish("");
+
+      expect(processNavSpy).toHaveBeenCalled();
+      const calls = processNavSpy.mock.calls;
+      // Should be called with empty string as exitType
+      const hasEmptyExitType = calls.some((call) => call[2] === "");
+      expect(hasEmptyExitType).toBe(true);
+    });
+  });
+
+  /**
+   * CMI Initialization Integration Tests (REQ-NAV-040)
+   *
+   * Per SCORM 2004 3rd Edition RTE Book Section 4.1.5 and SN Book Section DB.2:
+   * - cmi.entry must be set to "ab-initio" for first-time learner or new attempt
+   * - cmi.entry must be set to "resume" when resuming a suspended activity
+   * - cmi.completion_status and cmi.success_status must be initialized correctly
+   * - These values are typically provided by the LMS via startingData
+   */
+  describe("CMI initialization with sequencing", (): void => {
+    describe("cmi.entry initialization", (): void => {
+      it("should default to empty string for new attempt without pre-loaded data", (): void => {
+        const scorm2004API = api();
+
+        scorm2004API.lmsInitialize();
+
+        // Default entry value is empty string (SCORM 2004 RTE 4.2.5.1)
+        expect(scorm2004API.lmsGetValue("cmi.entry")).toBe("");
+      });
+
+      it("should preserve 'ab-initio' when set before initialization", (): void => {
+        const scorm2004API = api();
+
+        // Set entry before initialization (simulates LMS providing data)
+        scorm2004API.cmi.entry = "ab-initio";
+
+        scorm2004API.lmsInitialize();
+
+        expect(scorm2004API.lmsGetValue("cmi.entry")).toBe("ab-initio");
+      });
+
+      it("should preserve 'resume' when set before initialization", (): void => {
+        const scorm2004API = api();
+
+        // Set entry and related data before initialization (simulates LMS providing data)
+        scorm2004API.cmi.entry = "resume";
+        scorm2004API.cmi.location = "page5";
+        scorm2004API.cmi.suspend_data = "some_suspend_data";
+
+        scorm2004API.lmsInitialize();
+
+        expect(scorm2004API.lmsGetValue("cmi.entry")).toBe("resume");
+        expect(scorm2004API.lmsGetValue("cmi.location")).toBe("page5");
+        expect(scorm2004API.lmsGetValue("cmi.suspend_data")).toBe("some_suspend_data");
+      });
+
+      it("should be read-only after initialization", (): void => {
+        const scorm2004API = apiInitialized();
+
+        const result = scorm2004API.lmsSetValue("cmi.entry", "resume");
+
+        expect(result).toBe("false");
+        expect(scorm2004API.lmsGetLastError()).toBe(String(scorm2004_errors.READ_ONLY_ELEMENT));
+      });
+    });
+
+    describe("cmi.completion_status initialization", (): void => {
+      it("should initialize to 'unknown' for new attempt with ab-initio", (): void => {
+        const scorm2004API = api();
+
+        scorm2004API.cmi.entry = "ab-initio";
+        scorm2004API.cmi.completion_status = "unknown";
+
+        scorm2004API.lmsInitialize();
+
+        expect(scorm2004API.lmsGetValue("cmi.completion_status")).toBe("unknown");
+      });
+
+      it("should restore completion_status for resumed activity", (): void => {
+        const scorm2004API = api();
+
+        scorm2004API.cmi.entry = "resume";
+        scorm2004API.cmi.completion_status = "incomplete";
+        scorm2004API.cmi.suspend_data = "some_data";
+
+        scorm2004API.lmsInitialize();
+
+        expect(scorm2004API.lmsGetValue("cmi.completion_status")).toBe("incomplete");
+      });
+
+      it("should allow setting completion_status to 'completed' after initialization", (): void => {
+        const scorm2004API = apiInitialized();
+
+        const result = scorm2004API.lmsSetValue("cmi.completion_status", "completed");
+
+        expect(result).toBe("true");
+        expect(scorm2004API.lmsGetValue("cmi.completion_status")).toBe("completed");
+      });
+    });
+
+    describe("cmi.success_status initialization", (): void => {
+      it("should initialize to 'unknown' for new attempt with ab-initio", (): void => {
+        const scorm2004API = api();
+
+        scorm2004API.cmi.entry = "ab-initio";
+        scorm2004API.cmi.success_status = "unknown";
+
+        scorm2004API.lmsInitialize();
+
+        expect(scorm2004API.lmsGetValue("cmi.success_status")).toBe("unknown");
+      });
+
+      it("should restore success_status for resumed activity", (): void => {
+        const scorm2004API = api();
+
+        scorm2004API.cmi.entry = "resume";
+        scorm2004API.cmi.success_status = "passed";
+        scorm2004API.cmi.suspend_data = "some_data";
+
+        scorm2004API.lmsInitialize();
+
+        expect(scorm2004API.lmsGetValue("cmi.success_status")).toBe("passed");
+      });
+
+      it("should allow setting success_status to 'passed' after initialization", (): void => {
+        const scorm2004API = apiInitialized();
+
+        const result = scorm2004API.lmsSetValue("cmi.success_status", "passed");
+
+        expect(result).toBe("true");
+        expect(scorm2004API.lmsGetValue("cmi.success_status")).toBe("passed");
+      });
+    });
+
+    describe("Full CMI initialization scenario", (): void => {
+      it("should properly initialize all CMI values for resume scenario", (): void => {
+        const scorm2004API = api();
+
+        // Simulate complete LMS state for resumed activity
+        scorm2004API.cmi.entry = "resume";
+        scorm2004API.cmi.location = "page7";
+        scorm2004API.cmi.suspend_data = '{"currentPage":7,"answers":[1,2,3]}';
+        scorm2004API.cmi.completion_status = "incomplete";
+        scorm2004API.cmi.success_status = "unknown";
+        scorm2004API.cmi.score.scaled = "0.5";
+        scorm2004API.cmi.total_time = "PT45M30S";
+
+        scorm2004API.lmsInitialize();
+
+        // Verify all values are correctly restored
+        expect(scorm2004API.lmsGetValue("cmi.entry")).toBe("resume");
+        expect(scorm2004API.lmsGetValue("cmi.location")).toBe("page7");
+        expect(scorm2004API.lmsGetValue("cmi.suspend_data")).toBe(
+          '{"currentPage":7,"answers":[1,2,3]}',
+        );
+        expect(scorm2004API.lmsGetValue("cmi.completion_status")).toBe("incomplete");
+        expect(scorm2004API.lmsGetValue("cmi.success_status")).toBe("unknown");
+        expect(scorm2004API.lmsGetValue("cmi.score.scaled")).toBe("0.5");
+        expect(scorm2004API.lmsGetValue("cmi.total_time")).toBe("PT45M30S");
+      });
+
+      it("should properly initialize all CMI values for new attempt scenario", (): void => {
+        const scorm2004API = api();
+
+        // Simulate LMS state for brand new attempt
+        scorm2004API.cmi.entry = "ab-initio";
+        scorm2004API.cmi.learner_id = "learner123";
+        scorm2004API.cmi.learner_name = "John Doe";
+        scorm2004API.cmi.completion_status = "unknown";
+        scorm2004API.cmi.success_status = "unknown";
+        scorm2004API.cmi.credit = "credit";
+        scorm2004API.cmi.mode = "normal";
+
+        scorm2004API.lmsInitialize();
+
+        // Verify initial values
+        expect(scorm2004API.lmsGetValue("cmi.entry")).toBe("ab-initio");
+        expect(scorm2004API.lmsGetValue("cmi.learner_id")).toBe("learner123");
+        expect(scorm2004API.lmsGetValue("cmi.learner_name")).toBe("John Doe");
+        expect(scorm2004API.lmsGetValue("cmi.completion_status")).toBe("unknown");
+        expect(scorm2004API.lmsGetValue("cmi.success_status")).toBe("unknown");
+        expect(scorm2004API.lmsGetValue("cmi.credit")).toBe("credit");
+        expect(scorm2004API.lmsGetValue("cmi.mode")).toBe("normal");
+
+        // location and suspend_data should be empty for new attempt
+        expect(scorm2004API.lmsGetValue("cmi.location")).toBe("");
+        expect(scorm2004API.lmsGetValue("cmi.suspend_data")).toBe("");
+      });
+    });
+  });
+};);

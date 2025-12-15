@@ -13,7 +13,7 @@ export class CMILearnerPreference extends BaseCMI {
   private _audio_level = "1";
   private _language = "";
   private _delivery_speed = "1";
-  private _audio_captioning = "-1";
+  private _audio_captioning = "0";
 
   /**
    * Constructor for cmi.learner_preference

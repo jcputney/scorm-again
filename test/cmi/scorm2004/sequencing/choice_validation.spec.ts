@@ -95,11 +95,13 @@ describe("GAP-07: CHOICE validation with isActive and common ancestor", () => {
     });
 
     it("should allow choice when inactive parent has choiceExit=false", () => {
-      // Setup: clusterA is NOT active with choiceExit=false, leafA1 is current
-      clusterA.isActive = false;
+      // Setup: clusterA with choiceExit=false, but NO current activity
+      // This means clusterA will be inactive (no current activity means no active path)
       clusterA.sequencingControls.choiceExit = false;
-      leafA1.isActive = false;
-      activityTree.currentActivity = leafA1;
+      activityTree.currentActivity = null;
+
+      // Verify clusterA is indeed inactive
+      expect(clusterA.isActive).toBe(false);
 
       // Try to navigate to different cluster
       const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, leafB1.id);

@@ -429,4 +429,153 @@ describe("ActivityTree", () => {
       expect(root.isSuspended).toBe(true);
     });
   });
+
+  describe("Active Path Validation (REQ-5.1.5, REQ-6.1.3)", () => {
+    it("should mark all ancestors as active when an activity becomes current", () => {
+      const tree = new ActivityTree();
+      const root = new Activity({ id: "root", title: "Root" });
+      const cluster = new Activity({ id: "cluster", title: "Cluster" });
+      const leaf = new Activity({ id: "leaf", title: "Leaf" });
+
+      tree.root = root;
+      root.addChild(cluster);
+      cluster.addChild(leaf);
+
+      // Set leaf as current
+      tree.currentActivity = leaf;
+
+      // Verify the leaf and all ancestors are active
+      expect(leaf.isActive).toBe(true);
+      expect(cluster.isActive).toBe(true);
+      expect(root.isActive).toBe(true);
+    });
+
+    it("should deactivate all ancestors when current activity is cleared", () => {
+      const tree = new ActivityTree();
+      const root = new Activity({ id: "root", title: "Root" });
+      const cluster = new Activity({ id: "cluster", title: "Cluster" });
+      const leaf = new Activity({ id: "leaf", title: "Leaf" });
+
+      tree.root = root;
+      root.addChild(cluster);
+      cluster.addChild(leaf);
+
+      // Set and then clear current activity
+      tree.currentActivity = leaf;
+      tree.currentActivity = null;
+
+      // Verify all are no longer active
+      expect(leaf.isActive).toBe(false);
+      expect(cluster.isActive).toBe(false);
+      expect(root.isActive).toBe(false);
+    });
+
+    it("should handle switching current activity to different branch", () => {
+      const tree = new ActivityTree();
+      const root = new Activity({ id: "root", title: "Root" });
+      const cluster1 = new Activity({ id: "cluster1", title: "Cluster1" });
+      const cluster2 = new Activity({ id: "cluster2", title: "Cluster2" });
+      const leaf1 = new Activity({ id: "leaf1", title: "Leaf1" });
+      const leaf2 = new Activity({ id: "leaf2", title: "Leaf2" });
+
+      tree.root = root;
+      root.addChild(cluster1);
+      root.addChild(cluster2);
+      cluster1.addChild(leaf1);
+      cluster2.addChild(leaf2);
+
+      // Set leaf1 as current
+      tree.currentActivity = leaf1;
+      expect(leaf1.isActive).toBe(true);
+      expect(cluster1.isActive).toBe(true);
+      expect(cluster2.isActive).toBe(false);
+      expect(leaf2.isActive).toBe(false);
+
+      // Switch to leaf2
+      tree.currentActivity = leaf2;
+
+      // Old path should be deactivated
+      expect(leaf1.isActive).toBe(false);
+      expect(cluster1.isActive).toBe(false);
+
+      // New path should be activated
+      expect(leaf2.isActive).toBe(true);
+      expect(cluster2.isActive).toBe(true);
+      expect(root.isActive).toBe(true);
+    });
+
+    it("should handle switching current activity within same parent", () => {
+      const tree = new ActivityTree();
+      const root = new Activity({ id: "root", title: "Root" });
+      const cluster = new Activity({ id: "cluster", title: "Cluster" });
+      const leaf1 = new Activity({ id: "leaf1", title: "Leaf1" });
+      const leaf2 = new Activity({ id: "leaf2", title: "Leaf2" });
+
+      tree.root = root;
+      root.addChild(cluster);
+      cluster.addChild(leaf1);
+      cluster.addChild(leaf2);
+
+      // Set leaf1 as current
+      tree.currentActivity = leaf1;
+      expect(leaf1.isActive).toBe(true);
+      expect(cluster.isActive).toBe(true);
+      expect(root.isActive).toBe(true);
+
+      // Switch to leaf2 (same parent)
+      tree.currentActivity = leaf2;
+
+      // Leaf1 should be deactivated
+      expect(leaf1.isActive).toBe(false);
+
+      // Leaf2 and shared ancestors should be active
+      expect(leaf2.isActive).toBe(true);
+      expect(cluster.isActive).toBe(true);
+      expect(root.isActive).toBe(true);
+    });
+
+    it("should handle setting cluster as current activity", () => {
+      const tree = new ActivityTree();
+      const root = new Activity({ id: "root", title: "Root" });
+      const cluster = new Activity({ id: "cluster", title: "Cluster" });
+      const leaf = new Activity({ id: "leaf", title: "Leaf" });
+
+      tree.root = root;
+      root.addChild(cluster);
+      cluster.addChild(leaf);
+
+      // Set cluster as current (not just a leaf)
+      tree.currentActivity = cluster;
+
+      // Verify cluster and its ancestors are active, but not children
+      expect(cluster.isActive).toBe(true);
+      expect(root.isActive).toBe(true);
+      expect(leaf.isActive).toBe(false);
+    });
+
+    it("should handle deep nesting with multiple levels", () => {
+      const tree = new ActivityTree();
+      const root = new Activity({ id: "root", title: "Root" });
+      const level1 = new Activity({ id: "level1", title: "Level1" });
+      const level2 = new Activity({ id: "level2", title: "Level2" });
+      const level3 = new Activity({ id: "level3", title: "Level3" });
+      const leaf = new Activity({ id: "leaf", title: "Leaf" });
+
+      tree.root = root;
+      root.addChild(level1);
+      level1.addChild(level2);
+      level2.addChild(level3);
+      level3.addChild(leaf);
+
+      // Set deeply nested leaf as current
+      tree.currentActivity = leaf;
+
+      // Verify entire path is active
+      expect(leaf.isActive).toBe(true);
+      expect(level3.isActive).toBe(true);
+      expect(level2.isActive).toBe(true);
+      expect(level1.isActive).toBe(true);
+      expect(root.isActive).toBe(true);
+    });
+  });
 });
