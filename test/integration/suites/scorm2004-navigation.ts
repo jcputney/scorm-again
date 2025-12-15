@@ -39,11 +39,14 @@ export function scorm2004NavigationTests(
         "adl.nav.request",
         "continue"
       );
+      // adl.nav.request is write-only per SCORM 2004 spec - GetValue returns "" with error 405
       results.getContinue = window.API_1484_11.lmsGetValue("adl.nav.request");
+      results.getContinueError = window.API_1484_11.lmsGetLastError();
 
       // Clear navigation request - use "_none_" instead of empty string (empty string is not valid)
       results.setNone = window.API_1484_11.lmsSetValue("adl.nav.request", "_none_");
       results.getNone = window.API_1484_11.lmsGetValue("adl.nav.request");
+      results.getNoneError = window.API_1484_11.lmsGetLastError();
 
       // Test invalid navigation request
       results.setInvalid = window.API_1484_11.lmsSetValue(
@@ -56,10 +59,12 @@ export function scorm2004NavigationTests(
     });
 
     expect(navResults.setContinue).toBe("true");
-    // The value might be stored as "continue" or "_continue" depending on implementation
-    expect(["continue", "_continue"]).toContain(navResults.getContinue);
+    // adl.nav.request is write-only - GetValue returns "" with error 405
+    expect(navResults.getContinue).toBe("");
+    expect(navResults.getContinueError).toBe("405");
     expect(navResults.setNone).toBe("true");
-    expect(navResults.getNone).toBe("_none_");
+    expect(navResults.getNone).toBe("");
+    expect(navResults.getNoneError).toBe("405");
     expect(navResults.setInvalid).toBe("false");
     expect(navResults.getInvalidError).not.toBe("0");
   });
@@ -112,8 +117,15 @@ export function scorm2004NavigationTests(
     expect(navTests.setSuspendAll).toBe("true");
     expect(navTests.setNone).toBe("true");
 
-    // Values should be retrievable (may be normalized with underscores)
-    expect(navTests.getNone).toBe("_none_");
+    // adl.nav.request is write-only - all GetValue calls return "" with error 405
+    expect(navTests.getContinue).toBe("");
+    expect(navTests.getPrevious).toBe("");
+    expect(navTests.getExit).toBe("");
+    expect(navTests.getExitAll).toBe("");
+    expect(navTests.getAbandon).toBe("");
+    expect(navTests.getAbandonAll).toBe("");
+    expect(navTests.getSuspendAll).toBe("");
+    expect(navTests.getNone).toBe("");
   });
 
   test("should handle navigation button state", async ({ page }) => {
