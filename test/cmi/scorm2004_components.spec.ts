@@ -111,7 +111,7 @@ describe("SCORM 2004 Component Tests", () => {
       expect(session.entry).toBe("");
       // exit is write-only, so we don't test reading it
       // session_time is write-only, so we don't test reading it
-      expect(session.total_time).toBe("");
+      expect(session.total_time).toBe("PT0S");
     });
 
     it("should reset to default values", () => {
