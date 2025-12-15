@@ -201,10 +201,11 @@ export class NavigationLookAhead {
 
     // Check if there's any sibling after current
     if (currentIndex < siblings.length - 1) {
-      // Simple check: is there a non-hidden activity after this one?
+      // Check if there's a deliverable activity after this one
+      // Uses full preConditionRule evaluation for forward navigation
       for (let i = currentIndex + 1; i < siblings.length; i++) {
         const sibling = siblings[i];
-        if (this.isActivityPotentiallyDeliverable(sibling)) {
+        if (this.isActivityPotentiallyDeliverableForward(sibling)) {
           return true;
         }
       }
@@ -265,10 +266,11 @@ export class NavigationLookAhead {
 
     // Check if there's any sibling before current
     if (currentIndex > 0) {
-      // Simple check: is there a non-hidden activity before this one?
+      // Check if there's a deliverable activity before this one
+      // Uses simpler check for backward navigation (reviewing previously visited content)
       for (let i = currentIndex - 1; i >= 0; i--) {
         const sibling = siblings[i];
-        if (this.isActivityPotentiallyDeliverable(sibling)) {
+        if (this.isActivityPotentiallyDeliverableBackward(sibling)) {
           return true;
         }
       }
@@ -345,20 +347,62 @@ export class NavigationLookAhead {
   }
 
   /**
-   * Check if activity is potentially deliverable (not hidden, available)
+   * Check if activity is potentially deliverable for forward navigation (Continue)
+   * This properly evaluates preConditionRules to determine if the activity can be delivered
    * @param {Activity} activity - Activity to check
    * @return {boolean} - True if potentially deliverable
    * @private
    */
-  private isActivityPotentiallyDeliverable(activity: Activity): boolean {
-    // Basic checks for deliverability
-    // Note: We check basic availability, but full validation happens in validateNavigationRequest
-    return (
-      activity.isVisible &&
-      !activity.isHiddenFromChoice &&
-      activity.isAvailable &&
-      (activity.sequencingControls ? activity.sequencingControls.choice : true)
-    );
+  private isActivityPotentiallyDeliverableForward(activity: Activity): boolean {
+    // First check basic visibility/availability flags
+    if (!activity.isVisible || activity.isHiddenFromChoice || !activity.isAvailable) {
+      return false;
+    }
+
+    // For leaf activities, use the full check that evaluates preConditionRules
+    if (activity.children.length === 0) {
+      return this.sequencingProcess.canActivityBeDelivered(activity);
+    }
+
+    // For clusters, check if any child is potentially deliverable
+    for (const child of activity.children) {
+      if (this.isActivityPotentiallyDeliverableForward(child)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Check if activity is potentially deliverable for backward navigation (Previous)
+   * This uses a simpler check that doesn't fully evaluate preConditionRules
+   * since we're typically going back to a previously visited activity
+   * @param {Activity} activity - Activity to check
+   * @return {boolean} - True if potentially deliverable
+   * @private
+   */
+  private isActivityPotentiallyDeliverableBackward(activity: Activity): boolean {
+    // Basic checks for backward deliverability
+    // For backward navigation, we use a simpler check since the activity was likely
+    // already delivered before (the learner is going back to review)
+    if (!activity.isVisible || activity.isHiddenFromChoice || !activity.isAvailable) {
+      return false;
+    }
+
+    // For leaf activities, it's deliverable if basic checks pass
+    if (activity.children.length === 0) {
+      return true;
+    }
+
+    // For clusters, check if any child is potentially deliverable
+    for (const child of activity.children) {
+      if (this.isActivityPotentiallyDeliverableBackward(child)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**

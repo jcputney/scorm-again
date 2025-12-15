@@ -49,8 +49,10 @@ class Scorm12API extends BaseAPI {
    */
   constructor(settings?: Settings, httpService?: IHttpService) {
     if (settings) {
+      // Per SCORM 1.2 spec, LMS may override lesson_status based on mastery score
+      // Default to true for spec compliance; set to false for conservative behavior
       if (settings.mastery_override === undefined) {
-        settings.mastery_override = false;
+        settings.mastery_override = true;
       }
     }
 

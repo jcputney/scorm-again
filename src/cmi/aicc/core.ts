@@ -329,6 +329,22 @@ export class CMICore extends BaseCMI {
 
   /**
    * Setter for _exit
+   *
+   * SPEC COMPLIANCE NOTE:
+   * The SCORM 1.2 specification defines exit vocabulary as: "time-out", "suspend", "logout", or ""
+   * The value "normal" is NOT part of the SCORM 1.2 vocabulary (it's a SCORM 2004 value).
+   *
+   * This implementation accepts "normal" and normalizes it to "" (empty string) for the
+   * following reasons:
+   *
+   * 1. Legacy content authored for SCORM 2004 sometimes runs in SCORM 1.2 mode
+   * 2. Some authoring tools incorrectly use "normal" for SCORM 1.2 content
+   * 3. Rejecting "normal" would break content with no user benefit
+   * 4. Empty string ("") has the same semantic meaning as "normal" (regular exit)
+   * 5. A console warning is logged to help developers identify the issue
+   *
+   * Strict spec vocabulary: "time-out" | "suspend" | "logout" | ""
+   *
    * @param {string} exit
    */
   set exit(exit: string) {
@@ -384,6 +400,11 @@ export class CMICore extends BaseCMI {
 
   /**
    * Setter for _suspend_data
+   *
+   * SPEC COMPLIANCE NOTE:
+   * Uses CMIString64000 (64000 char limit) instead of spec-defined CMIString4096.
+   * See scorm12_regex.CMIString64000 documentation for rationale.
+   *
    * @param {string} suspend_data
    */
   set suspend_data(suspend_data: string) {
@@ -391,7 +412,7 @@ export class CMICore extends BaseCMI {
       check12ValidFormat(
         this._cmi_element + ".suspend_data",
         suspend_data,
-        scorm12_regex.CMIString4096,
+        scorm12_regex.CMIString64000,
         true,
       )
     ) {

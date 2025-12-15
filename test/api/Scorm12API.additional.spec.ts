@@ -105,6 +105,33 @@ describe("SCORM 1.2 API Additional Tests", () => {
       expect(getLastErrorSpy).toHaveBeenCalledOnce();
       expect(getLastErrorSpy).toHaveBeenCalledWith("LMSGetLastError");
     });
+
+    // SCORM spec: can be called at any time
+    it("should work before LMSInitialize (state-independence)", () => {
+      const scorm12API = api();
+      // Don't call LMSInitialize
+      const errorCode = scorm12API.lmsGetLastError();
+      expect(errorCode).toBe("0"); // No error initially
+    });
+
+    // SCORM spec: can be called at any time
+    it("should work after LMSFinish (state-independence)", () => {
+      const scorm12API = api();
+      scorm12API.lmsInitialize();
+      scorm12API.lmsFinish();
+      const errorCode = scorm12API.lmsGetLastError();
+      expect(typeof errorCode).toBe("string");
+    });
+
+    it("should return error code as string", () => {
+      const scorm12API = api();
+      scorm12API.lmsInitialize();
+      // Trigger an error
+      scorm12API.lmsSetValue("cmi.core.student_id", "test");
+      const errorCode = scorm12API.lmsGetLastError();
+      expect(typeof errorCode).toBe("string");
+      expect(errorCode).toBe("403");
+    });
   });
 
   describe("lmsGetErrorString()", () => {
@@ -135,6 +162,46 @@ describe("SCORM 1.2 API Additional Tests", () => {
       const errorString = scorm12API.lmsGetErrorString("9999");
       expect(errorString).toEqual("No Error");
     });
+
+    // SCORM spec: can be called at any time
+    it("should work before LMSInitialize (state-independence)", () => {
+      const scorm12API = api();
+      // Don't call LMSInitialize
+      const errorString = scorm12API.lmsGetErrorString("101");
+      expect(errorString).toBe("General Exception");
+    });
+
+    // SCORM spec: can be called at any time
+    it("should work after LMSFinish (state-independence)", () => {
+      const scorm12API = api();
+      scorm12API.lmsInitialize();
+      scorm12API.lmsFinish();
+      const errorString = scorm12API.lmsGetErrorString("101");
+      expect(errorString).toBe("General Exception");
+    });
+
+    // Test all standard SCORM 1.2 error codes return valid strings
+    it("should return valid error strings for all standard SCORM 1.2 error codes", () => {
+      const scorm12API = api();
+      const expectedStrings: Record<string, string> = {
+        "0": "No Error",
+        "101": "General Exception",
+        "201": "Invalid argument error",
+        "202": "Element cannot have children",
+        "203": "Element not an array - cannot have count",
+        "301": "Not initialized",
+        "401": "Not implemented error",
+        "402": "Invalid set value, element is a keyword",
+        "403": "Element is read only",
+        "404": "Element is write only",
+        "405": "Incorrect Data Type",
+      };
+
+      for (const [code, expectedString] of Object.entries(expectedStrings)) {
+        const actualString = scorm12API.lmsGetErrorString(code);
+        expect(actualString, `Error code ${code}`).toBe(expectedString);
+      }
+    });
   });
 
   describe("lmsGetDiagnostic()", () => {
@@ -146,6 +213,112 @@ describe("SCORM 1.2 API Additional Tests", () => {
 
       expect(getDiagnosticSpy).toHaveBeenCalledOnce();
       expect(getDiagnosticSpy).toHaveBeenCalledWith("LMSGetDiagnostic", "101");
+    });
+
+    // SCORM spec: can be called at any time, even before LMSInitialize
+    it("should work before LMSInitialize (state-independence)", () => {
+      const scorm12API = api();
+      // Don't call LMSInitialize
+      const diagnostic = scorm12API.lmsGetDiagnostic("101");
+      expect(typeof diagnostic).toBe("string");
+      expect(diagnostic.length).toBeGreaterThan(0);
+    });
+
+    // SCORM spec: can be called at any time, even after LMSFinish
+    it("should work after LMSFinish (state-independence)", () => {
+      const scorm12API = api();
+      scorm12API.lmsInitialize();
+      scorm12API.lmsFinish();
+      const diagnostic = scorm12API.lmsGetDiagnostic("101");
+      expect(typeof diagnostic).toBe("string");
+      expect(diagnostic.length).toBeGreaterThan(0);
+    });
+
+    // SCORM spec: does not reset the current error code
+    it("should not reset error code after being called", () => {
+      const scorm12API = api();
+      scorm12API.lmsInitialize();
+
+      // Trigger an error by setting a read-only element
+      scorm12API.lmsSetValue("cmi.core.student_id", "new_id");
+      const errorBefore = scorm12API.lmsGetLastError();
+      expect(errorBefore).toBe("403"); // Read-only error
+
+      // Call GetDiagnostic
+      scorm12API.lmsGetDiagnostic("403");
+
+      // Error code should still be the same
+      const errorAfter = scorm12API.lmsGetLastError();
+      expect(errorAfter).toBe("403");
+    });
+
+    // SCORM spec: empty string returns diagnostic for last error
+    it("should return diagnostic for last error when called with empty string", () => {
+      const scorm12API = api();
+      scorm12API.lmsInitialize();
+
+      // Trigger error 403 (read-only)
+      scorm12API.lmsSetValue("cmi.core.student_id", "new_id");
+      expect(scorm12API.lmsGetLastError()).toBe("403");
+
+      // Empty string should return diagnostic for error 403
+      const diagnosticEmpty = scorm12API.lmsGetDiagnostic("");
+      const diagnosticExplicit = scorm12API.lmsGetDiagnostic("403");
+
+      // Both should return the same diagnostic
+      expect(diagnosticEmpty).toBe(diagnosticExplicit);
+      expect(diagnosticEmpty.length).toBeGreaterThan(0);
+    });
+
+    // SCORM spec: max length 255 characters
+    it("should truncate diagnostic to 255 characters maximum", () => {
+      const scorm12API = api();
+
+      // Mock getLmsErrorMessageDetails to return a very long string
+      const longMessage = "A".repeat(300);
+      vi.spyOn(scorm12API, "getLmsErrorMessageDetails").mockReturnValue(longMessage);
+
+      const diagnostic = scorm12API.lmsGetDiagnostic("101");
+
+      expect(diagnostic.length).toBeLessThanOrEqual(255);
+      expect(diagnostic).toBe("A".repeat(255));
+    });
+
+    // Test all standard SCORM 1.2 error codes return valid diagnostics
+    it("should return valid diagnostics for all standard SCORM 1.2 error codes", () => {
+      const scorm12API = api();
+      const errorCodes = [
+        "0",
+        "101",
+        "201",
+        "202",
+        "203",
+        "301",
+        "401",
+        "402",
+        "403",
+        "404",
+        "405",
+      ];
+
+      for (const code of errorCodes) {
+        const diagnostic = scorm12API.lmsGetDiagnostic(code);
+        expect(typeof diagnostic).toBe("string");
+        // All standard error codes should have non-empty diagnostics
+        if (code !== "0") {
+          expect(
+            diagnostic.length,
+            `Error code ${code} should have a diagnostic message`,
+          ).toBeGreaterThan(0);
+        }
+      }
+    });
+
+    it("should return 'No Error' for unknown error codes", () => {
+      const scorm12API = api();
+      const diagnostic = scorm12API.lmsGetDiagnostic("9999");
+      // Unknown error codes return the default "No Error" message
+      expect(diagnostic).toBe("No Error");
     });
   });
 

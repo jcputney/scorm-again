@@ -387,7 +387,73 @@ class Scorm2004API extends BaseAPI {
         }
       }
     }
+
+    // Check termination and initialization state first (must happen before any value retrieval)
+    // This ensures proper error codes are set for invalid API state.
+    // Check termination FIRST because after termination, isInitialized() returns false
+    // (state is TERMINATED, not INITIALIZED), which would incorrectly trigger RETRIEVE_BEFORE_INIT
+    if (this.isTerminated()) {
+      this.lastErrorCode = String(scorm2004_errors.RETRIEVE_AFTER_TERM);
+      return "";
+    }
+    if (!this.isInitialized()) {
+      this.lastErrorCode = String(scorm2004_errors.RETRIEVE_BEFORE_INIT);
+      return "";
+    }
+
+    // Per SCORM 2004 RTE Table 4.2.4.1a: Automatic evaluation of completion_status
+    // When completion_threshold is defined, completion_status is evaluated dynamically
+    // based on progress_measure, not just the stored value.
+    if (CMIElement === "cmi.completion_status") {
+      return this.evaluateCompletionStatus();
+    }
+
     return this.getValue("GetValue", true, CMIElement);
+  }
+
+  /**
+   * Evaluates completion_status per SCORM 2004 RTE Table 4.2.4.1a
+   *
+   * Rules:
+   * 1. If completion_threshold is defined AND progress_measure is set:
+   *    - Return "completed" if progress_measure >= completion_threshold
+   *    - Return "incomplete" if progress_measure < completion_threshold
+   * 2. If completion_threshold is defined but progress_measure is NOT set:
+   *    - Return "unknown"
+   * 3. Otherwise:
+   *    - Return the SCO-set value (or "unknown" if not set)
+   *
+   * @returns {string} The evaluated completion status
+   */
+  private evaluateCompletionStatus(): string {
+    const threshold = this.cmi.completion_threshold;
+    const progressMeasure = this.cmi.progress_measure;
+    const storedStatus = this.cmi.completion_status;
+
+    // If completion_threshold is defined
+    if (threshold !== "" && threshold !== null && threshold !== undefined) {
+      const thresholdValue = parseFloat(String(threshold));
+
+      if (!isNaN(thresholdValue)) {
+        // Check if progress_measure is set
+        if (progressMeasure !== "" && progressMeasure !== null && progressMeasure !== undefined) {
+          const progressValue = parseFloat(String(progressMeasure));
+
+          if (!isNaN(progressValue)) {
+            // Evaluate based on threshold comparison
+            return progressValue >= thresholdValue
+              ? CompletionStatus.COMPLETED
+              : CompletionStatus.INCOMPLETE;
+          }
+        }
+
+        // completion_threshold is defined but progress_measure is not set
+        return CompletionStatus.UNKNOWN;
+      }
+    }
+
+    // No completion_threshold defined - return stored value
+    return storedStatus || CompletionStatus.UNKNOWN;
   }
 
   /**

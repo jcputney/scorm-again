@@ -932,16 +932,33 @@ describe("BaseAPI", () => {
         expect(processListenersSpy).not.toHaveBeenCalled();
       });
 
-      it("should return empty string when CMIErrorCode is empty", () => {
-        // Arrange
+      it("should return diagnostic for last error when CMIErrorCode is empty string", () => {
+        // Arrange - per SCORM spec, empty string should get diagnostic for last error
+        api.lastErrorCode = 101;
+        const getLmsErrorMessageDetailsSpy = vi
+          .spyOn(api, "getLmsErrorMessageDetails")
+          .mockReturnValue("General exception diagnostic");
         const processListenersSpy = vi.spyOn(api, "processListeners");
 
         // Act
         const result = api.getDiagnostic("GetDiagnostic", "");
 
         // Assert
-        expect(result).toBe("");
-        expect(processListenersSpy).not.toHaveBeenCalled();
+        expect(result).toBe("General exception diagnostic");
+        expect(getLmsErrorMessageDetailsSpy).toHaveBeenCalledWith("101", true);
+        expect(processListenersSpy).toHaveBeenCalledWith("GetDiagnostic");
+      });
+
+      it("should return empty string when CMIErrorCode is empty and lastErrorCode is 0", () => {
+        // Arrange - no error has occurred (lastErrorCode defaults to 0)
+        api.lastErrorCode = 0;
+        const processListenersSpy = vi.spyOn(api, "processListeners");
+
+        // Act
+        const result = api.getDiagnostic("GetDiagnostic", "");
+
+        // Assert - "0" means no error, so diagnostic should still be returned for code 0
+        expect(processListenersSpy).toHaveBeenCalledWith("GetDiagnostic");
       });
 
       it("should call getLmsErrorMessageDetails with detail=true and process listeners when CMIErrorCode is valid", () => {

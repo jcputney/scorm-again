@@ -72,8 +72,7 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       expect(result.deliveryRequest).toBe("deliver");
     });
 
-    // TODO: This edge case needs investigation - boundary condition evaluation
-    it.skip("should handle attempt duration exactly at limit (boundary test)", () => {
+    it("should handle attempt duration exactly at limit (boundary test)", () => {
       // Setup: 10 second limit
       testActivity.timeLimitDuration = "PT10S";
 
@@ -90,7 +89,6 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       rule.addCondition(new RuleCondition(RuleConditionType.TIME_LIMIT_EXCEEDED));
       testActivity.sequencingRules.addPreConditionRule(rule);
 
-      activityTree.currentActivity = rootActivity;
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
         "test",
@@ -282,8 +280,7 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       ).not.toThrow();
     });
 
-    // TODO: This edge case needs investigation - integration with sequencing framework
-    it.skip("should handle invalid duration string gracefully (malformed)", () => {
+    it("should handle invalid duration string gracefully (malformed)", () => {
       // Setup: malformed duration (getDurationAsSeconds returns 0)
       testActivity.timeLimitDuration = "INVALID";
 
@@ -292,7 +289,6 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       rule.addCondition(new RuleCondition(RuleConditionType.TIME_LIMIT_EXCEEDED));
       testActivity.sequencingRules.addPreConditionRule(rule);
 
-      activityTree.currentActivity = rootActivity;
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
         "test",
@@ -354,8 +350,7 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       expect(result.deliveryRequest).toBe("doNotDeliver");
     });
 
-    // TODO: This edge case needs investigation - time range with no limit condition
-    it.skip("should return false when current time is within time range", () => {
+    it("should return false when current time is within time range", () => {
       // Setup: Current time between begin and end
       const beginTime = new Date("2025-01-01T12:00:00.000Z");
       const endTime = new Date("2025-01-01T16:00:00.000Z");
@@ -363,7 +358,9 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       testActivity.beginTimeLimit = beginTime.toISOString();
       testActivity.endTimeLimit = endTime.toISOString();
 
+      // Mock both clock sources for consistent time
       sequencingProcess.now = () => currentTime;
+      RuleCondition.setNowProvider(() => currentTime);
 
       // Add skip rule
       const rule = new SequencingRule(RuleActionType.SKIP);
@@ -372,7 +369,6 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       );
       testActivity.sequencingRules.addPreConditionRule(rule);
 
-      activityTree.currentActivity = rootActivity;
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
         "test",
@@ -481,8 +477,7 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       expect(result.deliveryRequest).toBe("doNotDeliver");
     });
 
-    // TODO: This edge case needs investigation - single bound time range
-    it.skip("should handle edge case: only beginTimeLimit defined (after)", () => {
+    it("should handle edge case: only beginTimeLimit defined (after)", () => {
       // Setup: Only begin time, current after begin
       const beginTime = new Date("2025-01-01T14:00:00.000Z");
       const currentTime = new Date("2025-01-01T15:00:00.000Z");
@@ -498,7 +493,6 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       );
       testActivity.sequencingRules.addPreConditionRule(rule);
 
-      activityTree.currentActivity = rootActivity;
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
         "test",
@@ -508,15 +502,16 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       expect(result.deliveryRequest).toBe("deliver");
     });
 
-    // TODO: This edge case needs investigation - single bound time range
-    it.skip("should handle edge case: only endTimeLimit defined (before)", () => {
+    it("should handle edge case: only endTimeLimit defined (before)", () => {
       // Setup: Only end time, current before end
       const endTime = new Date("2025-01-01T15:00:00.000Z");
       const currentTime = new Date("2025-01-01T14:00:00.000Z");
       testActivity.beginTimeLimit = null;
       testActivity.endTimeLimit = endTime.toISOString();
 
+      // Mock both clock sources for consistent time
       sequencingProcess.now = () => currentTime;
+      RuleCondition.setNowProvider(() => currentTime);
 
       // Add skip rule
       const rule = new SequencingRule(RuleActionType.SKIP);
@@ -525,7 +520,6 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       );
       testActivity.sequencingRules.addPreConditionRule(rule);
 
-      activityTree.currentActivity = rootActivity;
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
         "test",
@@ -561,8 +555,7 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       expect(result.deliveryRequest).toBe("doNotDeliver");
     });
 
-    // TODO: This edge case needs investigation - no limits behavior
-    it.skip("should handle edge case: neither limit defined", () => {
+    it("should handle edge case: neither limit defined", () => {
       // Setup: No time limits
       testActivity.beginTimeLimit = null;
       testActivity.endTimeLimit = null;
@@ -574,7 +567,6 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       );
       testActivity.sequencingRules.addPreConditionRule(rule);
 
-      activityTree.currentActivity = rootActivity;
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
         "test",
@@ -683,8 +675,7 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       expect(result.deliveryRequest).toBe("doNotDeliver");
     });
 
-    // TODO: This edge case needs investigation - invalid duration handling
-    it.skip("should reject invalid duration 'P' (empty duration)", () => {
+    it("should reject invalid duration 'P' (empty duration)", () => {
       // Setup: Invalid "P" only
       testActivity.timeLimitDuration = "P";
 
@@ -693,7 +684,6 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       rule.addCondition(new RuleCondition(RuleConditionType.TIME_LIMIT_EXCEEDED));
       testActivity.sequencingRules.addPreConditionRule(rule);
 
-      activityTree.currentActivity = rootActivity;
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
         "test",
@@ -703,8 +693,7 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       expect(result.deliveryRequest).toBe("deliver");
     });
 
-    // TODO: This edge case needs investigation - invalid duration handling
-    it.skip("should reject invalid duration ending with 'T'", () => {
+    it("should reject invalid duration ending with 'T'", () => {
       // Setup: Invalid duration ending with T
       testActivity.timeLimitDuration = "P1DT";
 
@@ -713,7 +702,6 @@ describe("Time Limit Edge Cases (UP.1)", () => {
       rule.addCondition(new RuleCondition(RuleConditionType.TIME_LIMIT_EXCEEDED));
       testActivity.sequencingRules.addPreConditionRule(rule);
 
-      activityTree.currentActivity = rootActivity;
       const result = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
         "test",

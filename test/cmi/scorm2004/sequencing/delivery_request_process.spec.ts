@@ -70,20 +70,22 @@ describe("Delivery Request Process (DB.1.1)", () => {
       expect(result.targetActivity?.children.length).toBe(0); // Confirm it's a leaf
     });
 
-    it("should reject delivery of cluster activities", () => {
-      // Try to deliver a cluster activity directly
-      cluster.isAvailable = true;
-      
-      // Force sequencing to try to deliver the cluster
+    it("should reject delivery of cluster activities with children", () => {
+      // A true cluster is an activity WITH children - these should not be delivered directly.
+      // Instead, navigation should flow into the cluster's children.
+      // Note: The 'flow' control is irrelevant here - what makes something a cluster
+      // is whether it has children, not the 'flow' setting.
+
+      // child1 is a cluster (has grandchild1, grandchild2)
       const result = overallProcess.processNavigationRequest(
         NavigationRequestType.CHOICE,
-        "cluster"
+        "module1"
       );
-      
-      // The process should fail or flow into the cluster's children
-      if (result.valid && result.targetActivity === cluster) {
-        expect(result.targetActivity.children.length).toBeGreaterThan(0);
-      }
+
+      // The result should be valid and flow into child1's first child (grandchild1)
+      expect(result.valid).toBe(true);
+      expect(result.targetActivity).toBe(grandchild1);
+      expect(child1.children.length).toBeGreaterThan(0); // Confirm child1 is a cluster
     });
 
     it("should flow from cluster to leaf when choosing cluster", () => {

@@ -629,15 +629,19 @@ export class OverallSequencingProcess {
       }
 
       // TB.2.3 step 3.3.5: Check if at root without retry
-      const atRoot = (this.activityTree.currentActivity || currentActivity) === this.activityTree.root;
-      if (atRoot && postConditionResult.sequencingRequest !== SequencingRequestType.RETRY) {
-        // Return EXIT sequencing request (ends session)
-        return {
-          terminationRequest: SequencingRequestType.EXIT,
-          sequencingRequest: SequencingRequestType.EXIT,
-          exception: null,
-          valid: true
-        };
+      // Only check atRoot when NOT in middle of EXIT_PARENT cascade (processedExit = false)
+      // If processedExit is true, we need to continue loop to evaluate the new activity's post-conditions
+      if (!processedExit) {
+        const atRoot = (this.activityTree.currentActivity || currentActivity) === this.activityTree.root;
+        if (atRoot && postConditionResult.sequencingRequest !== SequencingRequestType.RETRY) {
+          // Return EXIT sequencing request (ends session)
+          return {
+            terminationRequest: SequencingRequestType.EXIT,
+            sequencingRequest: SequencingRequestType.EXIT,
+            exception: null,
+            valid: true
+          };
+        }
       }
 
     } while (processedExit);
@@ -1041,14 +1045,11 @@ export class OverallSequencingProcess {
     }
 
     // Check if activity is a cluster (has children)
+    // Note: Only activities with children are considered clusters. The 'flow' control
+    // is only relevant for controlling navigation through a parent's children and does
+    // not affect whether a leaf activity can be delivered.
     if (activity.children.length > 0) {
       return new DeliveryRequest(false, null, "DB.1.1-1");
-    }
-
-    // Check if activity is an empty cluster (has flow control but no children)
-    // According to SCORM 2004, empty clusters should not be deliverable
-    if (activity.sequencingControls.flow && activity.children.length === 0) {
-      return new DeliveryRequest(false, null, "DB.1.1-2");
     }
 
     if (this.enhancedDeliveryValidation) {
@@ -1601,18 +1602,21 @@ export class OverallSequencingProcess {
       return;
     }
 
-    // Update continue validity
-    const continueResult = this.navigationRequestProcess(NavigationRequestType.CONTINUE);
+    // Invalidate look-ahead cache to ensure fresh calculations
+    this.navigationLookAhead.invalidateCache();
+
+    // Use NavigationLookAhead for Continue/Previous validity
+    // This properly evaluates preConditionRules on target activities
+    const continueValid = this.navigationLookAhead.predictContinueEnabled();
     try {
-      this.adlNav.request_valid.continue = continueResult.valid ? "true" : "false";
+      this.adlNav.request_valid.continue = continueValid ? "true" : "false";
     } catch (e) {
       // Navigation validity might be read-only after init
     }
 
-    // Update previous validity
-    const previousResult = this.navigationRequestProcess(NavigationRequestType.PREVIOUS);
+    const previousValid = this.navigationLookAhead.predictPreviousEnabled();
     try {
-      this.adlNav.request_valid.previous = previousResult.valid ? "true" : "false";
+      this.adlNav.request_valid.previous = previousValid ? "true" : "false";
     } catch (e) {
       // Navigation validity might be read-only after init
     }
@@ -1640,8 +1644,8 @@ export class OverallSequencingProcess {
     }
     // Notify listeners so LMS can update UI regardless of read-only state
     this.fireEvent("onNavigationValidityUpdate", {
-      continue: continueResult.valid,
-      previous: previousResult.valid,
+      continue: continueValid,
+      previous: previousValid,
       choice: choiceMap,
       jump: jumpMap,
       hideLmsUi: this.getEffectiveHideLmsUi(this.activityTree.currentActivity)
@@ -1822,22 +1826,30 @@ export class OverallSequencingProcess {
     }
 
     // Check attempt absolute duration limit
+    // A limit of 0 (or "PT0H0M0S") is treated as "no limit" per IMS SS spec
     if (result && activity.attemptAbsoluteDurationLimit) {
-      const currentDuration = getDurationAsSeconds(activity.attemptAbsoluteDuration || "PT0H0M0S", scorm2004_regex.CMITimespan);
       const limitDuration = getDurationAsSeconds(activity.attemptAbsoluteDurationLimit, scorm2004_regex.CMITimespan);
-      if (currentDuration >= limitDuration) {
-        result = false;
-        failureReason = "Attempt duration limit exceeded";
+      // Only check if there's an actual non-zero limit
+      if (limitDuration > 0) {
+        const currentDuration = getDurationAsSeconds(activity.attemptAbsoluteDuration || "PT0H0M0S", scorm2004_regex.CMITimespan);
+        if (currentDuration >= limitDuration) {
+          result = false;
+          failureReason = "Attempt duration limit exceeded";
+        }
       }
     }
 
     // Check activity absolute duration limit
+    // A limit of 0 (or "PT0H0M0S") is treated as "no limit" per IMS SS spec
     if (result && activity.activityAbsoluteDurationLimit) {
-      const currentDuration = getDurationAsSeconds(activity.activityAbsoluteDuration || "PT0H0M0S", scorm2004_regex.CMITimespan);
       const limitDuration = getDurationAsSeconds(activity.activityAbsoluteDurationLimit, scorm2004_regex.CMITimespan);
-      if (currentDuration >= limitDuration) {
-        result = false;
-        failureReason = "Activity duration limit exceeded";
+      // Only check if there's an actual non-zero limit
+      if (limitDuration > 0) {
+        const currentDuration = getDurationAsSeconds(activity.activityAbsoluteDuration || "PT0H0M0S", scorm2004_regex.CMITimespan);
+        if (currentDuration >= limitDuration) {
+          result = false;
+          failureReason = "Activity duration limit exceeded";
+        }
       }
     }
 

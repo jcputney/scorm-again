@@ -138,9 +138,17 @@ export class CMIInteractionsObject extends BaseCMI {
 
   /**
    * Setter for _id
+   * Per SCORM 2004 RTE: identifier SHALL NOT be empty or contain only whitespace
    * @param {string} id
    */
   set id(id: string) {
+    // Per spec: identifier cannot be empty or whitespace-only
+    if (id === "" || id.trim() === "") {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".id",
+        scorm2004_errors.TYPE_MISMATCH as number,
+      );
+    }
     if (check2004ValidFormat(this._cmi_element + ".id", id, scorm2004_regex.CMILongIdentifier)) {
       this._id = id;
     }
@@ -503,9 +511,17 @@ export class CMIInteractionsObjectivesObject extends BaseCMI {
 
   /**
    * Setter for _id
+   * Per SCORM 2004 RTE: identifier SHALL NOT be empty or contain only whitespace
    * @param {string} id
    */
   set id(id: string) {
+    // Per spec: identifier cannot be empty or whitespace-only
+    if (id === "" || id.trim() === "") {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".id",
+        scorm2004_errors.TYPE_MISMATCH as number,
+      );
+    }
     if (check2004ValidFormat(this._cmi_element + ".id", id, scorm2004_regex.CMILongIdentifier)) {
       this._id = id;
     }

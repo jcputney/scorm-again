@@ -289,8 +289,8 @@ describe("Error Conditions Tests", () => {
         // Set up a write-only element
         api.lmsSetValue("cmi.core.exit", "suspend");
 
-        // Attempt to get a write-only element
-        expect(api.lmsGetValue("cmi.core.exit")).toEqual("false");
+        // Attempt to get a write-only element - per SCORM spec, returns "" with error code set
+        expect(api.lmsGetValue("cmi.core.exit")).toEqual("");
         expect(api.lmsGetLastError()).toEqual(String(scorm12_errors.WRITE_ONLY_ELEMENT));
       });
 
@@ -302,8 +302,8 @@ describe("Error Conditions Tests", () => {
         api.lmsSetValue("cmi.interactions.0.id", "interaction_1");
         api.lmsSetValue("cmi.interactions.0.objectives.0.id", "objective_1");
 
-        // Attempt to get the write-only objective id
-        expect(api.lmsGetValue("cmi.interactions.0.objectives.0.id")).toEqual("false");
+        // Attempt to get the write-only objective id - per SCORM spec, returns "" with error code set
+        expect(api.lmsGetValue("cmi.interactions.0.objectives.0.id")).toEqual("");
         expect(api.lmsGetLastError()).toEqual(String(scorm12_errors.WRITE_ONLY_ELEMENT));
       });
 

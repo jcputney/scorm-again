@@ -299,20 +299,24 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
   });
 
   describe("Edge cases and error conditions", () => {
-    it("should handle empty clusters", () => {
-      // Create empty module
-      const emptyModule = new Activity("empty", "Empty Module");
-      root.addChild(emptyModule);
-      emptyModule.sequencingControls.flow = true;
-      
-      // Try to flow into empty module
+    it("should deliver leaf activities regardless of flow control setting", () => {
+      // Create a leaf activity (no children) - per SCORM 2004, the 'flow' control
+      // is only relevant for controlling navigation through a parent's children.
+      // For leaf activities, the 'flow' setting is meaningless.
+      const leafModule = new Activity("leaf", "Leaf Module");
+      root.addChild(leafModule);
+      // Even with flow=true, this is still a leaf since it has no children
+      leafModule.sequencingControls.flow = true;
+
+      // Try to flow into the leaf module
       activityTree.currentActivity = lesson3_1;
       lesson3_1.isActive = false;
-      
+
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
-      
-      // Should skip empty module or end
-      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+
+      // Leaf activities should be deliverable regardless of flow setting
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
+      expect(result.targetActivity?.id).toBe("leaf");
     });
 
     it("should handle circular references gracefully", () => {
