@@ -145,12 +145,11 @@ describe("State Machine Tests", () => {
         expect(api.lmsGetLastError()).toBe("133"); // STORE_AFTER_TERM
       });
 
-      // Note: SCORM 2004 implementation doesn't check terminated state for Commit
-      // This matches SCORM 1.2 behavior where Commit can be called after Terminate
-      it("Commit should succeed after Terminate (implementation doesn't check terminated state)", () => {
+      // Per SCORM 2004 RTE 3.1.2.5: Commit after Terminate returns "false" with error 143
+      it("Commit should fail after Terminate with error 143", () => {
         const result = api.lmsCommit();
-        expect(result).toBe("true");
-        expect(api.lmsGetLastError()).toBe("0");
+        expect(result).toBe("false");
+        expect(api.lmsGetLastError()).toBe("143"); // COMMIT_AFTER_TERM
       });
 
       it("GetValue and SetValue should fail after Terminate with appropriate errors", () => {
@@ -162,9 +161,9 @@ describe("State Machine Tests", () => {
         api.lmsSetValue("cmi.session_time", "PT1H0M0S");
         expect(api.lmsGetLastError()).toBe("133");
 
-        // Third operation - Commit succeeds (doesn't check terminated state)
+        // Third operation - Commit fails with error 143 per SCORM 2004 RTE 3.1.2.5
         api.lmsCommit();
-        expect(api.lmsGetLastError()).toBe("0");
+        expect(api.lmsGetLastError()).toBe("143"); // COMMIT_AFTER_TERM
       });
     });
 

@@ -72,6 +72,7 @@ export class CMIObjectives extends CMIArray {
  */
 export class CMIObjectivesObject extends BaseCMI {
   private _id = "";
+  private _idIsSet = false;
   private _success_status = "unknown";
   private _completion_status = "unknown";
   private _progress_measure = "";
@@ -87,6 +88,7 @@ export class CMIObjectivesObject extends BaseCMI {
 
   override reset() {
     this._initialized = false;
+    this._idIsSet = false;
   }
 
   public score: Scorm2004CMIScore;
@@ -110,6 +112,7 @@ export class CMIObjectivesObject extends BaseCMI {
   /**
    * Setter for _id
    * Per SCORM 2004 RTE: identifier SHALL NOT be empty or contain only whitespace
+   * Per SCORM 2004 RTE Section 4.1.5: Once set, an objective ID is immutable (error 351)
    * @param {string} id
    */
   set id(id: string) {
@@ -120,8 +123,16 @@ export class CMIObjectivesObject extends BaseCMI {
         scorm2004_errors.TYPE_MISMATCH as number,
       );
     }
+    // Per SCORM 2004 RTE: Once an objective ID is set, it cannot be changed
+    if (this._idIsSet && this._id !== id) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".id",
+        scorm2004_errors.GENERAL_SET_FAILURE as number,
+      );
+    }
     if (check2004ValidFormat(this._cmi_element + ".id", id, scorm2004_regex.CMILongIdentifier)) {
       this._id = id;
+      this._idIsSet = true;
     }
   }
 

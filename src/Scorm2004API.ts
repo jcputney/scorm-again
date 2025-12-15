@@ -548,7 +548,8 @@ class Scorm2004API extends BaseAPI {
       this.scheduleCommit(500, "Commit");
       return global_constants.SCORM_TRUE;
     } else {
-      const result = this.commit("Commit", false);
+      // Pass true to check for terminated state - error 143 per SCORM 2004 RTE 3.1.2.5
+      const result = this.commit("Commit", true);
 
       // Auto-save sequencing state after successful commit if configured (async in background)
       if (
