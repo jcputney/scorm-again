@@ -424,6 +424,13 @@ class Scorm2004API extends BaseAPI {
       return this.evaluateCompletionStatus();
     }
 
+    // Per SCORM 2004 RTE Table 4.2.21.1a: Automatic evaluation of success_status
+    // When scaled_passing_score is defined, success_status is evaluated dynamically
+    // based on score.scaled, not just the stored value.
+    if (CMIElement === "cmi.success_status") {
+      return this.evaluateSuccessStatus();
+    }
+
     return this.getValue("GetValue", true, CMIElement);
   }
 
@@ -470,6 +477,53 @@ class Scorm2004API extends BaseAPI {
 
     // No completion_threshold defined - return stored value
     return storedStatus || CompletionStatus.UNKNOWN;
+  }
+
+  /**
+   * Evaluates success_status per SCORM 2004 RTE Table 4.2.21.1a
+   *
+   * Rules:
+   * 1. If scaled_passing_score is defined AND score.scaled is set:
+   *    - Return "passed" if score.scaled >= scaled_passing_score
+   *    - Return "failed" if score.scaled < scaled_passing_score
+   * 2. If scaled_passing_score is defined but score.scaled is NOT set:
+   *    - Return "unknown"
+   * 3. Otherwise:
+   *    - Return the SCO-set value (or "unknown" if not set)
+   *
+   * @returns {string} The evaluated success status
+   */
+  private evaluateSuccessStatus(): string {
+    const scaledPassingScore = this.cmi.scaled_passing_score;
+    const scaledScore = this.cmi.score.scaled;
+    const storedStatus = this.cmi.success_status;
+
+    // If scaled_passing_score is defined
+    if (
+      scaledPassingScore !== "" &&
+      scaledPassingScore !== null &&
+      scaledPassingScore !== undefined
+    ) {
+      const passingScoreValue = parseFloat(String(scaledPassingScore));
+
+      if (!isNaN(passingScoreValue)) {
+        // Check if score.scaled is set
+        if (scaledScore !== "" && scaledScore !== null && scaledScore !== undefined) {
+          const scoreValue = parseFloat(String(scaledScore));
+
+          if (!isNaN(scoreValue)) {
+            // Evaluate based on threshold comparison
+            return scoreValue >= passingScoreValue ? "passed" : "failed";
+          }
+        }
+
+        // scaled_passing_score is defined but score.scaled is not set
+        return "unknown";
+      }
+    }
+
+    // No scaled_passing_score defined - return stored value
+    return storedStatus || "unknown";
   }
 
   /**
