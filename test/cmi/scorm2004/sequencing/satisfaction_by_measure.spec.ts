@@ -376,7 +376,7 @@ describe("Satisfaction By Measure Edge Cases (RB.1.2.a)", () => {
 
       // Set child measure to value that might have precision issues
       child.objectiveMeasureStatus = true;
-      child.objectiveNormalizedMeasure = 1/3; // JavaScript: 0.3333333333333333
+      child.objectiveNormalizedMeasure = 1 / 3; // JavaScript: 0.3333333333333333
 
       // Trigger rollup
       rollupProcess.overallRollupProcess(child);
