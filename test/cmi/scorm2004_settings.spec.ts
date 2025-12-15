@@ -34,6 +34,40 @@ describe("SCORM 2004 CMISettings Tests", () => {
           settings.credit = "credit";
         }).toThrow(new Scorm2004ValidationError("cmi.credit", scorm2004_errors.READ_ONLY_ELEMENT));
       });
+
+      it("should accept valid credit value 'credit'", () => {
+        const settings = new CMISettings();
+
+        settings.credit = "credit";
+        expect(settings.credit).toBe("credit");
+      });
+
+      it("should accept valid credit value 'no-credit'", () => {
+        const settings = new CMISettings();
+
+        settings.credit = "no-credit";
+        expect(settings.credit).toBe("no-credit");
+      });
+
+      it("should reject invalid credit values", () => {
+        const settings = new CMISettings();
+
+        expect(() => {
+          settings.credit = "invalid";
+        }).toThrow(new Scorm2004ValidationError("cmi.credit", scorm2004_errors.TYPE_MISMATCH));
+
+        expect(() => {
+          settings.credit = "CREDIT";
+        }).toThrow(new Scorm2004ValidationError("cmi.credit", scorm2004_errors.TYPE_MISMATCH));
+
+        expect(() => {
+          settings.credit = "";
+        }).toThrow(new Scorm2004ValidationError("cmi.credit", scorm2004_errors.TYPE_MISMATCH));
+
+        expect(() => {
+          settings.credit = "no credit";
+        }).toThrow(new Scorm2004ValidationError("cmi.credit", scorm2004_errors.TYPE_MISMATCH));
+      });
     });
 
     describe("mode", () => {
@@ -53,6 +87,47 @@ describe("SCORM 2004 CMISettings Tests", () => {
         expect(() => {
           settings.mode = "normal";
         }).toThrow(new Scorm2004ValidationError("cmi.mode", scorm2004_errors.READ_ONLY_ELEMENT));
+      });
+
+      it("should accept valid mode value 'browse'", () => {
+        const settings = new CMISettings();
+
+        settings.mode = "browse";
+        expect(settings.mode).toBe("browse");
+      });
+
+      it("should accept valid mode value 'normal'", () => {
+        const settings = new CMISettings();
+
+        settings.mode = "normal";
+        expect(settings.mode).toBe("normal");
+      });
+
+      it("should accept valid mode value 'review'", () => {
+        const settings = new CMISettings();
+
+        settings.mode = "review";
+        expect(settings.mode).toBe("review");
+      });
+
+      it("should reject invalid mode values", () => {
+        const settings = new CMISettings();
+
+        expect(() => {
+          settings.mode = "invalid";
+        }).toThrow(new Scorm2004ValidationError("cmi.mode", scorm2004_errors.TYPE_MISMATCH));
+
+        expect(() => {
+          settings.mode = "NORMAL";
+        }).toThrow(new Scorm2004ValidationError("cmi.mode", scorm2004_errors.TYPE_MISMATCH));
+
+        expect(() => {
+          settings.mode = "";
+        }).toThrow(new Scorm2004ValidationError("cmi.mode", scorm2004_errors.TYPE_MISMATCH));
+
+        expect(() => {
+          settings.mode = "test";
+        }).toThrow(new Scorm2004ValidationError("cmi.mode", scorm2004_errors.TYPE_MISMATCH));
       });
     });
 
@@ -74,6 +149,74 @@ describe("SCORM 2004 CMISettings Tests", () => {
           settings.time_limit_action = "continue,no message";
         }).toThrow(
           new Scorm2004ValidationError("cmi.time_limit_action", scorm2004_errors.READ_ONLY_ELEMENT),
+        );
+      });
+
+      it("should accept valid time_limit_action value 'exit,message'", () => {
+        const settings = new CMISettings();
+
+        settings.time_limit_action = "exit,message";
+        expect(settings.time_limit_action).toBe("exit,message");
+      });
+
+      it("should accept valid time_limit_action value 'exit,no message'", () => {
+        const settings = new CMISettings();
+
+        settings.time_limit_action = "exit,no message";
+        expect(settings.time_limit_action).toBe("exit,no message");
+      });
+
+      it("should accept valid time_limit_action value 'continue,message'", () => {
+        const settings = new CMISettings();
+
+        settings.time_limit_action = "continue,message";
+        expect(settings.time_limit_action).toBe("continue,message");
+      });
+
+      it("should accept valid time_limit_action value 'continue,no message'", () => {
+        const settings = new CMISettings();
+
+        settings.time_limit_action = "continue,no message";
+        expect(settings.time_limit_action).toBe("continue,no message");
+      });
+
+      it("should reject invalid time_limit_action values", () => {
+        const settings = new CMISettings();
+
+        expect(() => {
+          settings.time_limit_action = "invalid";
+        }).toThrow(
+          new Scorm2004ValidationError("cmi.time_limit_action", scorm2004_errors.TYPE_MISMATCH),
+        );
+
+        expect(() => {
+          settings.time_limit_action = "exit";
+        }).toThrow(
+          new Scorm2004ValidationError("cmi.time_limit_action", scorm2004_errors.TYPE_MISMATCH),
+        );
+
+        expect(() => {
+          settings.time_limit_action = "EXIT,MESSAGE";
+        }).toThrow(
+          new Scorm2004ValidationError("cmi.time_limit_action", scorm2004_errors.TYPE_MISMATCH),
+        );
+
+        expect(() => {
+          settings.time_limit_action = "";
+        }).toThrow(
+          new Scorm2004ValidationError("cmi.time_limit_action", scorm2004_errors.TYPE_MISMATCH),
+        );
+
+        expect(() => {
+          settings.time_limit_action = "continue message";
+        }).toThrow(
+          new Scorm2004ValidationError("cmi.time_limit_action", scorm2004_errors.TYPE_MISMATCH),
+        );
+
+        expect(() => {
+          settings.time_limit_action = "exit,no_message";
+        }).toThrow(
+          new Scorm2004ValidationError("cmi.time_limit_action", scorm2004_errors.TYPE_MISMATCH),
         );
       });
     });
