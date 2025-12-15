@@ -2462,6 +2462,69 @@ class Scorm2004API extends BaseAPI {
   }
 
   /**
+   * Helper method to determine the correct cmi.entry value based on the previous session's
+   * cmi.exit value and the presence of suspend data.
+   *
+   * This helper is designed for LMS integrators to correctly set cmi.entry when
+   * initializing a new session based on how the previous session ended.
+   *
+   * SCORM 2004 Rules:
+   * - If no previous exit (or empty): "ab-initio" (first time entry)
+   * - If previous exit was "suspend": "resume" (learner suspended)
+   * - If previous exit was "logout": "resume" (learner logged out)
+   * - If previous exit was "normal" or "time-out":
+   *   - With suspend data: "resume" (resuming from interrupted session)
+   *   - Without suspend data: "ab-initio" (starting fresh)
+   *
+   * @param {string} previousExit - The cmi.exit value from the previous session
+   * @param {boolean} hasSuspendData - Whether suspend data exists from the previous session
+   * @return {string} The appropriate cmi.entry value ("ab-initio" or "resume")
+   *
+   * @example
+   * // First-time learner (no previous session)
+   * api.determineEntryValue("", false); // Returns: "ab-initio"
+   *
+   * @example
+   * // Learner who suspended and is resuming
+   * api.determineEntryValue("suspend", true); // Returns: "resume"
+   *
+   * @example
+   * // Learner who completed normally without suspend data
+   * api.determineEntryValue("normal", false); // Returns: "ab-initio"
+   *
+   * @example
+   * // Learner who timed out but has suspend data
+   * api.determineEntryValue("time-out", true); // Returns: "resume"
+   */
+  public determineEntryValue(previousExit: string, hasSuspendData: boolean): string {
+    // Trim whitespace to handle edge cases
+    const trimmedExit = previousExit?.trim();
+
+    // No previous exit or empty exit means first-time entry
+    if (
+      previousExit === "" ||
+      previousExit === undefined ||
+      previousExit === null ||
+      trimmedExit === ""
+    ) {
+      return "ab-initio";
+    }
+
+    // Suspend and logout always mean resume
+    if (previousExit === "suspend" || previousExit === "logout") {
+      return "resume";
+    }
+
+    // Normal or time-out depend on suspend data
+    if (previousExit === "time-out" || previousExit === "normal") {
+      return hasSuspendData ? "resume" : "ab-initio";
+    }
+
+    // Unknown/invalid exit values default to ab-initio
+    return "ab-initio";
+  }
+
+  /**
    * Serialize current sequencing state to JSON string
    * @return {string} Serialized state
    */
