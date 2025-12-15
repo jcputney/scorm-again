@@ -2,6 +2,7 @@
  * Class representing settings properties for SCORM 2004's cmi object
  */
 import { scorm2004_errors } from "../../constants/error_codes";
+import { scorm2004_regex } from "../../constants/regex";
 import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
 import { BaseCMI } from "../common/base_cmi";
 
@@ -123,9 +124,24 @@ export class CMISettings extends BaseCMI {
         this._cmi_element + ".max_time_allowed",
         scorm2004_errors.READ_ONLY_ELEMENT as number,
       );
-    } else {
-      this._max_time_allowed = max_time_allowed;
     }
+
+    // Allow empty string (undefined value)
+    if (max_time_allowed === "") {
+      this._max_time_allowed = max_time_allowed;
+      return;
+    }
+
+    // Validate format using CMITimespan regex (ISO 8601 duration)
+    const regex = new RegExp(scorm2004_regex.CMITimespan);
+    if (!regex.test(max_time_allowed)) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".max_time_allowed",
+        scorm2004_errors.TYPE_MISMATCH as number,
+      );
+    }
+
+    this._max_time_allowed = max_time_allowed;
   }
 
   /**

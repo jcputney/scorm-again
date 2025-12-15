@@ -37,6 +37,92 @@ describe("SCORM 2004 CMIThresholds Tests", () => {
           ),
         );
       });
+
+      it("should accept empty string (undefined value)", () => {
+        const thresholds = new CMIThresholds();
+
+        thresholds.scaled_passing_score = "";
+        expect(thresholds.scaled_passing_score).toBe("");
+      });
+
+      it("should accept valid decimal values in range -1 to 1", () => {
+        const thresholds = new CMIThresholds();
+
+        thresholds.scaled_passing_score = "-1";
+        expect(thresholds.scaled_passing_score).toBe("-1");
+
+        const thresholds2 = new CMIThresholds();
+        thresholds2.scaled_passing_score = "1";
+        expect(thresholds2.scaled_passing_score).toBe("1");
+
+        const thresholds3 = new CMIThresholds();
+        thresholds3.scaled_passing_score = "0";
+        expect(thresholds3.scaled_passing_score).toBe("0");
+
+        const thresholds4 = new CMIThresholds();
+        thresholds4.scaled_passing_score = "0.5";
+        expect(thresholds4.scaled_passing_score).toBe("0.5");
+
+        const thresholds5 = new CMIThresholds();
+        thresholds5.scaled_passing_score = "-0.5";
+        expect(thresholds5.scaled_passing_score).toBe("-0.5");
+      });
+
+      it("should reject invalid format (non-decimal)", () => {
+        const thresholds = new CMIThresholds();
+
+        expect(() => {
+          thresholds.scaled_passing_score = "abc";
+        }).toThrow(
+          new Scorm2004ValidationError("cmi.scaled_passing_score", scorm2004_errors.TYPE_MISMATCH),
+        );
+
+        expect(() => {
+          thresholds.scaled_passing_score = "0.5.5";
+        }).toThrow(
+          new Scorm2004ValidationError("cmi.scaled_passing_score", scorm2004_errors.TYPE_MISMATCH),
+        );
+      });
+
+      it("should reject values outside range -1 to 1", () => {
+        const thresholds = new CMIThresholds();
+
+        expect(() => {
+          thresholds.scaled_passing_score = "1.1";
+        }).toThrow(
+          new Scorm2004ValidationError(
+            "cmi.scaled_passing_score",
+            scorm2004_errors.VALUE_OUT_OF_RANGE,
+          ),
+        );
+
+        expect(() => {
+          thresholds.scaled_passing_score = "-1.1";
+        }).toThrow(
+          new Scorm2004ValidationError(
+            "cmi.scaled_passing_score",
+            scorm2004_errors.VALUE_OUT_OF_RANGE,
+          ),
+        );
+
+        expect(() => {
+          thresholds.scaled_passing_score = "2";
+        }).toThrow(
+          new Scorm2004ValidationError(
+            "cmi.scaled_passing_score",
+            scorm2004_errors.VALUE_OUT_OF_RANGE,
+          ),
+        );
+
+        expect(() => {
+          thresholds.scaled_passing_score = "-2";
+        }).toThrow(
+          new Scorm2004ValidationError(
+            "cmi.scaled_passing_score",
+            scorm2004_errors.VALUE_OUT_OF_RANGE,
+          ),
+        );
+      });
     });
 
     describe("completion_threshold", () => {
@@ -59,6 +145,92 @@ describe("SCORM 2004 CMIThresholds Tests", () => {
           new Scorm2004ValidationError(
             "cmi.completion_threshold",
             scorm2004_errors.READ_ONLY_ELEMENT,
+          ),
+        );
+      });
+
+      it("should accept empty string (undefined value)", () => {
+        const thresholds = new CMIThresholds();
+
+        thresholds.completion_threshold = "";
+        expect(thresholds.completion_threshold).toBe("");
+      });
+
+      it("should accept valid decimal values in range 0 to 1", () => {
+        const thresholds = new CMIThresholds();
+
+        thresholds.completion_threshold = "0";
+        expect(thresholds.completion_threshold).toBe("0");
+
+        const thresholds2 = new CMIThresholds();
+        thresholds2.completion_threshold = "1";
+        expect(thresholds2.completion_threshold).toBe("1");
+
+        const thresholds3 = new CMIThresholds();
+        thresholds3.completion_threshold = "0.5";
+        expect(thresholds3.completion_threshold).toBe("0.5");
+
+        const thresholds4 = new CMIThresholds();
+        thresholds4.completion_threshold = "0.9999999";
+        expect(thresholds4.completion_threshold).toBe("0.9999999");
+      });
+
+      it("should reject invalid format (non-decimal)", () => {
+        const thresholds = new CMIThresholds();
+
+        expect(() => {
+          thresholds.completion_threshold = "abc";
+        }).toThrow(
+          new Scorm2004ValidationError("cmi.completion_threshold", scorm2004_errors.TYPE_MISMATCH),
+        );
+
+        expect(() => {
+          thresholds.completion_threshold = "0.5.5";
+        }).toThrow(
+          new Scorm2004ValidationError("cmi.completion_threshold", scorm2004_errors.TYPE_MISMATCH),
+        );
+      });
+
+      it("should reject negative values", () => {
+        const thresholds = new CMIThresholds();
+
+        expect(() => {
+          thresholds.completion_threshold = "-0.5";
+        }).toThrow(
+          new Scorm2004ValidationError(
+            "cmi.completion_threshold",
+            scorm2004_errors.VALUE_OUT_OF_RANGE,
+          ),
+        );
+
+        expect(() => {
+          thresholds.completion_threshold = "-1";
+        }).toThrow(
+          new Scorm2004ValidationError(
+            "cmi.completion_threshold",
+            scorm2004_errors.VALUE_OUT_OF_RANGE,
+          ),
+        );
+      });
+
+      it("should reject values greater than 1", () => {
+        const thresholds = new CMIThresholds();
+
+        expect(() => {
+          thresholds.completion_threshold = "1.1";
+        }).toThrow(
+          new Scorm2004ValidationError(
+            "cmi.completion_threshold",
+            scorm2004_errors.VALUE_OUT_OF_RANGE,
+          ),
+        );
+
+        expect(() => {
+          thresholds.completion_threshold = "2";
+        }).toThrow(
+          new Scorm2004ValidationError(
+            "cmi.completion_threshold",
+            scorm2004_errors.VALUE_OUT_OF_RANGE,
           ),
         );
       });
