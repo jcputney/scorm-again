@@ -8,7 +8,7 @@ const api = (settings?: Settings): Scorm2004API => {
 };
 
 describe("SCORM 2004 API - determineEntryValue() Helper", () => {
-  describe("No previous exit or empty exit", () => {
+  describe("No previous exit or empty exit (first-time learner)", () => {
     it("should return 'ab-initio' when previousExit is empty string", () => {
       const apiInstance = api();
       const result = apiInstance.determineEntryValue("", false);
@@ -48,39 +48,39 @@ describe("SCORM 2004 API - determineEntryValue() Helper", () => {
     });
   });
 
-  describe("Previous exit was 'logout'", () => {
-    it("should return 'resume' when previousExit is 'logout'", () => {
+  describe("Previous exit was 'logout' (per SCORM spec: always returns '')", () => {
+    it("should return '' when previousExit is 'logout'", () => {
       const apiInstance = api();
       const result = apiInstance.determineEntryValue("logout", false);
-      expect(result).toBe("resume");
+      expect(result).toBe("");
     });
 
-    it("should return 'resume' when previousExit is 'logout' with suspend data", () => {
+    it("should return '' when previousExit is 'logout' even with suspend data", () => {
       const apiInstance = api();
       const result = apiInstance.determineEntryValue("logout", true);
-      expect(result).toBe("resume");
+      expect(result).toBe("");
     });
   });
 
-  describe("Previous exit was 'normal'", () => {
-    it("should return 'ab-initio' when previousExit is 'normal' with no suspend data", () => {
+  describe("Previous exit was 'normal' (per SCORM spec: always returns '')", () => {
+    it("should return '' when previousExit is 'normal' with no suspend data", () => {
       const apiInstance = api();
       const result = apiInstance.determineEntryValue("normal", false);
-      expect(result).toBe("ab-initio");
+      expect(result).toBe("");
     });
 
-    it("should return 'resume' when previousExit is 'normal' with suspend data", () => {
+    it("should return '' when previousExit is 'normal' even with suspend data", () => {
       const apiInstance = api();
       const result = apiInstance.determineEntryValue("normal", true);
-      expect(result).toBe("resume");
+      expect(result).toBe("");
     });
   });
 
-  describe("Previous exit was 'time-out'", () => {
-    it("should return 'ab-initio' when previousExit is 'time-out' with no suspend data", () => {
+  describe("Previous exit was 'time-out' (per SCORM spec: '' or possibly 'resume' with suspend data)", () => {
+    it("should return '' when previousExit is 'time-out' with no suspend data", () => {
       const apiInstance = api();
       const result = apiInstance.determineEntryValue("time-out", false);
-      expect(result).toBe("ab-initio");
+      expect(result).toBe("");
     });
 
     it("should return 'resume' when previousExit is 'time-out' with suspend data", () => {
@@ -91,26 +91,26 @@ describe("SCORM 2004 API - determineEntryValue() Helper", () => {
   });
 
   describe("Edge cases and invalid values", () => {
-    it("should return 'ab-initio' for an unknown/invalid exit value", () => {
+    it("should return '' for an unknown/invalid exit value (previous session existed)", () => {
       const apiInstance = api();
       const result = apiInstance.determineEntryValue("invalid-exit-value", false);
-      expect(result).toBe("ab-initio");
+      expect(result).toBe("");
     });
 
-    it("should return 'ab-initio' for an unknown exit value even with suspend data", () => {
+    it("should return '' for an unknown exit value even with suspend data", () => {
       const apiInstance = api();
       const result = apiInstance.determineEntryValue("unknown", true);
-      expect(result).toBe("ab-initio");
+      expect(result).toBe("");
     });
 
-    it("should handle whitespace strings as empty", () => {
+    it("should handle whitespace strings as empty (first-time learner)", () => {
       const apiInstance = api();
       const result = apiInstance.determineEntryValue("   ", false);
       expect(result).toBe("ab-initio");
     });
   });
 
-  describe("Use case scenarios", () => {
+  describe("Use case scenarios per SCORM 2004 spec", () => {
     it("should handle first-time learner scenario (no previous session)", () => {
       const apiInstance = api();
       const result = apiInstance.determineEntryValue("", false);
@@ -123,28 +123,28 @@ describe("SCORM 2004 API - determineEntryValue() Helper", () => {
       expect(result).toBe("resume");
     });
 
-    it("should handle learner who completed normally but has suspend data from previous attempt", () => {
+    it("should handle learner who completed normally (per spec: returns '')", () => {
       const apiInstance = api();
       const result = apiInstance.determineEntryValue("normal", true);
-      expect(result).toBe("resume");
+      expect(result).toBe("");
     });
 
-    it("should handle learner who timed out but has suspend data", () => {
+    it("should handle learner who timed out but has suspend data (per spec: may return 'resume')", () => {
       const apiInstance = api();
       const result = apiInstance.determineEntryValue("time-out", true);
       expect(result).toBe("resume");
     });
 
-    it("should handle learner who logged out and is returning", () => {
+    it("should handle learner who logged out and is returning (per spec: returns '')", () => {
       const apiInstance = api();
       const result = apiInstance.determineEntryValue("logout", false);
-      expect(result).toBe("resume");
+      expect(result).toBe("");
     });
 
-    it("should handle learner who completed normally without suspend data (fresh start)", () => {
+    it("should handle learner who completed normally without suspend data (per spec: returns '')", () => {
       const apiInstance = api();
       const result = apiInstance.determineEntryValue("normal", false);
-      expect(result).toBe("ab-initio");
+      expect(result).toBe("");
     });
   });
 });
