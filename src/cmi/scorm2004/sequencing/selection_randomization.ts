@@ -28,6 +28,11 @@ export class SelectionRandomization {
       return children;
     }
 
+    // For non-ONCE timing, Selection Count Status must be True for selection to occur (per SCORM spec)
+    if (controls.selectionTiming !== SelectionTiming.ONCE && !controls.selectionCountStatus) {
+      return children;
+    }
+
     // Check if we need to select children
     const selectCount = controls.selectCount;
     if (selectCount === null || selectCount >= children.length) {
@@ -137,6 +142,12 @@ export class SelectionRandomization {
   ): Activity[] {
     const controls = activity.sequencingControls;
 
+    // Exit if activity is active or suspended AND this is not a new attempt (per SCORM spec SR.1, SR.2)
+    // On a new attempt, we DO apply selection/randomization even though the activity becomes active
+    if (!isNewAttempt && (activity.isActive || activity.isSuspended)) {
+      return activity.children;
+    }
+
     // Check if we should apply selection/randomization
     let shouldApplySelection = false;
     let shouldApplyRandomization = false;
@@ -145,10 +156,11 @@ export class SelectionRandomization {
     if (controls.selectionTiming === SelectionTiming.ON_EACH_NEW_ATTEMPT) {
       shouldApplySelection = isNewAttempt;
       if (isNewAttempt) {
-        controls.selectionCountStatus = false;
+        controls.selectionCountStatus = true; // Enable selection for new attempt
       }
     } else if (controls.selectionTiming === SelectionTiming.ONCE) {
       shouldApplySelection = !controls.selectionCountStatus;
+      // selectionCountStatus will be set to true by selectChildrenProcess after selection
     }
 
     if (controls.randomizationTiming === RandomizationTiming.ON_EACH_NEW_ATTEMPT) {
@@ -186,7 +198,7 @@ export class SelectionRandomization {
    */
   public static isSelectionNeeded(activity: Activity): boolean {
     const controls = activity.sequencingControls;
-    
+
     if (controls.selectionTiming === SelectionTiming.NEVER) {
       return false;
     }
