@@ -181,6 +181,7 @@ describe("SCORM 1.2 API Additional Tests", () => {
     });
 
     // Test all standard SCORM 1.2 error codes return valid strings
+    // Per SCORM 1.2 RTE Section 3.4.3 - all 12 error codes (0, 101, 201-203, 301, 401-405, 407-408)
     it("should return valid error strings for all standard SCORM 1.2 error codes", () => {
       const scorm12API = api();
       const expectedStrings: Record<string, string> = {
@@ -195,6 +196,8 @@ describe("SCORM 1.2 API Additional Tests", () => {
         "403": "Element is read only",
         "404": "Element is write only",
         "405": "Incorrect Data Type",
+        "407": "Element Value Out Of Range",
+        "408": "Data Model Dependency Not Established",
       };
 
       for (const [code, expectedString] of Object.entries(expectedStrings)) {
