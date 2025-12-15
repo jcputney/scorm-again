@@ -10,7 +10,7 @@ import { ADLNav } from "../adl";
 import { RuleActionType } from "./sequencing_rules";
 import { getDurationAsSeconds } from "../../../utilities";
 import { scorm2004_regex } from "../../../constants/regex";
-import { CompletionStatus } from "../../../constants/enums";
+import { CompletionStatus, SuccessStatus } from "../../../constants/enums";
 import {
   AuxiliaryResource,
   HIDE_LMS_UI_TOKENS,
@@ -3638,5 +3638,36 @@ export class OverallSequencingProcess {
    */
   public invalidateNavigationCache(): void {
     this.navigationLookAhead.invalidateCache();
+  }
+
+  /**
+   * Apply delivery controls for auto-completion and auto-satisfaction
+   * This method implements the completionSetByContent and objectiveSetByContent
+   * delivery controls as specified in SCORM 2004 Section 11.
+   *
+   * When completionSetByContent is false and the content doesn't set completion
+   * status, the LMS should automatically mark the activity as completed.
+   *
+   * When objectiveSetByContent is false and the content doesn't set success
+   * status, the LMS should automatically mark the activity as satisfied (passed).
+   *
+   * @param {Activity} activity - The activity to apply delivery controls to
+   */
+  public applyDeliveryControls(activity: Activity): void {
+    // Auto-completion when completionSetByContent is false
+    if (!activity.sequencingControls.completionSetByContent) {
+      if (activity.completionStatus === CompletionStatus.UNKNOWN) {
+        activity.completionStatus = CompletionStatus.COMPLETED;
+        activity.wasAutoCompleted = true;
+      }
+    }
+
+    // Auto-satisfaction when objectiveSetByContent is false
+    if (!activity.sequencingControls.objectiveSetByContent) {
+      if (activity.successStatus === SuccessStatus.UNKNOWN) {
+        activity.successStatus = SuccessStatus.PASSED;
+        activity.wasAutoSatisfied = true;
+      }
+    }
   }
 }
