@@ -122,6 +122,13 @@ export class CMILearnerPreference extends BaseCMI {
         scorm2004_regex.speed_range,
       )
     ) {
+      // SCORM 2004 spec requires delivery_speed > 0 (not >= 0)
+      if (parseFloat(delivery_speed) === 0) {
+        throw new Scorm2004ValidationError(
+          this._cmi_element + ".delivery_speed",
+          scorm2004_errors.VALUE_OUT_OF_RANGE as number,
+        );
+      }
       this._delivery_speed = delivery_speed;
     }
   }
