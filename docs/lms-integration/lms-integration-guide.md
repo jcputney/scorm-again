@@ -2204,6 +2204,170 @@ Shared data bucket for cross-SCO communication:
 
 ---
 
+## Error Codes Reference
+
+When API calls fail, `GetLastError()` returns an error code. Use these tables to understand and handle errors.
+
+### SCORM 1.2 Error Codes
+
+| Code | Name | Meaning | LMS Action |
+|------|------|---------|------------|
+| 0 | No Error | Operation succeeded | None required |
+| 101 | General Exception | Unspecified error | Log and investigate |
+| 201 | Invalid Argument Error | Bad parameter to API call | Check API call syntax |
+| 202 | Element Cannot Have Children | Requested `.children` on leaf element | Fix CMI path |
+| 203 | Element Not An Array | Requested `._count` on non-array | Fix CMI path |
+| 301 | Not Initialized | API call before LMSInitialize() | Initialize first |
+| 401 | Not Implemented | Element not supported | Check element name |
+| 402 | Invalid Set Value | Value doesn't meet requirements | Validate value format |
+| 403 | Element Is Read Only | Tried to write read-only element | Don't write to this element |
+| 404 | Element Is Write Only | Tried to read write-only element | Don't read this element |
+| 405 | Incorrect Data Type | Wrong value type for element | Check value format |
+
+### SCORM 2004 Error Codes
+
+| Code | Name | Meaning | LMS Action |
+|------|------|---------|------------|
+| 0 | No Error | Operation succeeded | None required |
+| 101 | General Exception | Unspecified error | Log and investigate |
+| 102 | General Initialization Failure | Initialize() failed | Check server connectivity |
+| 103 | Already Initialized | Initialize() called twice | Ignore or fix content |
+| 104 | Content Instance Terminated | API used after Terminate() | Session ended, cannot continue |
+| 111 | General Termination Failure | Terminate() failed | Log error, data may be lost |
+| 112 | Termination Before Initialization | Terminate() before Initialize() | Fix content |
+| 113 | Termination After Termination | Terminate() called twice | Ignore |
+| 122 | Retrieve Before Initialization | GetValue() before Initialize() | Initialize first |
+| 123 | Retrieve After Termination | GetValue() after Terminate() | Session ended |
+| 132 | Store Before Initialization | SetValue() before Initialize() | Initialize first |
+| 133 | Store After Termination | SetValue() after Terminate() | Session ended |
+| 142 | Commit Before Initialization | Commit() before Initialize() | Initialize first |
+| 143 | Commit After Termination | Commit() after Terminate() | Session ended |
+| 201 | General Argument Error | Invalid API argument | Check call syntax |
+| 301 | General Get Failure | GetValue() failed | Check element path |
+| 351 | General Set Failure | SetValue() failed | Check element/value |
+| 391 | General Commit Failure | Commit() failed | Check server, retry |
+| 401 | Undefined Data Model Element | Unknown CMI element | Check element spelling |
+| 402 | Unimplemented Data Model Element | Element not supported | Use different element |
+| 403 | Data Model Element Value Not Initialized | Reading unset element | Set value first or handle empty |
+| 404 | Data Model Element Is Read Only | Writing read-only element | Don't write to this element |
+| 405 | Data Model Element Is Write Only | Reading write-only element | Don't read this element |
+| 406 | Data Model Element Type Mismatch | Wrong value type | Check expected format |
+| 407 | Data Model Element Value Out Of Range | Value outside valid range | Check min/max |
+| 408 | Data Model Dependency Not Established | Missing prerequisite | Set required fields first (e.g., ID before score) |
+
+### Error Recovery Strategies
+
+#### Transient Errors (391 - Commit Failure)
+
+```javascript
+api.on("CommitError", function() {
+  const errorCode = api.GetLastError();
+  if (errorCode === "391") {
+    // Retry with exponential backoff
+    retryCommit(attempts + 1);
+  }
+});
+```
+
+#### Session Errors (104, 123, 133, 143)
+
+These indicate the session has ended. Do not retry - inform user or redirect:
+
+```javascript
+if (["104", "123", "133", "143"].includes(errorCode)) {
+  showMessage("Your session has ended. Progress has been saved.");
+  redirectToCourseListing();
+}
+```
+
+#### Content Errors (408 - Dependency)
+
+Common with objectives - ensure ID is set first:
+
+```javascript
+// Error 408 often means: set ID before other properties
+api.SetValue("cmi.objectives.0.id", "obj_1");  // Set ID first!
+api.SetValue("cmi.objectives.0.score.raw", "85");
+```
+
+---
+
+## Offline Support Overview
+
+Enable offline support for mobile or unreliable connectivity scenarios.
+
+### Configuration
+
+```javascript
+const api = new Scorm2004API({
+  enableOfflineSupport: true,
+  courseId: "course_123",        // Required for offline storage key
+  syncOnInitialize: true,        // Sync when SCO starts
+  syncOnTerminate: true,         // Sync when SCO ends
+  maxSyncAttempts: 5             // Retries before giving up
+});
+```
+
+### Events
+
+Listen for sync status:
+
+```javascript
+api.on("OfflineDataSynced", function() {
+  hideOfflineIndicator();
+});
+
+api.on("OfflineDataSyncFailed", function() {
+  showOfflineWarning("Your progress is saved locally and will sync when online.");
+});
+```
+
+### How It Works
+
+1. When offline, commits are stored in IndexedDB
+2. On next Initialize (or when online), queued commits are sent
+3. Failed syncs retry up to `maxSyncAttempts` times
+4. Data persists locally until successfully synced
+
+### Related Documentation
+
+- [Offline Support Guide](../offline_support.md) - Full offline capabilities
+- [API Events Reference](./api-events-reference.md) - Offline events
+
+---
+
+## Data Model Practical Notes
+
+### Session Time vs Total Time
+
+| Field | Persistence | Calculation |
+|-------|-------------|-------------|
+| `session_time` | Don't persist | Calculated by API during session |
+| `total_time` | **Persist** | Accumulated across all sessions |
+
+The API automatically calculates `session_time` from Initialize to Terminate. You persist `total_time` and provide it at launch; the API adds the current session time on commit.
+
+### Credit vs No-Credit Mode
+
+| Mode | `cmi.credit` | Effect |
+|------|--------------|--------|
+| Credit | `"credit"` | Score and status count toward completion |
+| No-Credit | `"no-credit"` | Tracking only, doesn't affect completion |
+
+Set `cmi.credit` at launch based on whether this attempt should count.
+
+### Entry Mode Logic
+
+```
+if (hasSuspendData AND exitWas("suspend")) → entry = "resume"
+else if (hasAttemptRecord) → entry = "" (re-entry)
+else → entry = "ab-initio" (first time)
+```
+
+See [Entry Mode Decision Flowchart](#entry-mode-decision-flowchart) for full logic.
+
+---
+
 ## Additional Resources
 
 - [SCORM 1.2 Multi-SCO Guide](./scorm12-multi-sco-guide.md) - Detailed helper utilities
