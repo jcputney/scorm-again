@@ -186,10 +186,10 @@ export class OfflineStorageService {
       // Process each queue item
       for (const item of syncQueue) {
         // Skip items that have been attempted too many times
-        if (item.syncAttempts >= 5) {
+        if (item.syncAttempts >= (this.settings.maxSyncAttempts ?? 5)) {
           this.apiLog(
             "OfflineStorageService",
-            `Skipping item ${item.id} after 5 failed attempts`,
+            `Skipping item ${item.id} after ${this.settings.maxSyncAttempts ?? 5} failed attempts`,
             LogLevelEnum.WARN,
           );
           continue;
