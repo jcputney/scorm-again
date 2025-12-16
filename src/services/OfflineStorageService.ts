@@ -122,9 +122,14 @@ export class OfflineStorageService {
         errorCode: 0,
       };
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const isQuotaError = errorMessage.includes("storage quota");
+
       this.apiLog(
         "OfflineStorageService",
-        `Error storing offline data: ${error}`,
+        isQuotaError
+          ? `storage quota exceeded - cannot store offline data for course ${courseId}`
+          : `Error storing offline data: ${error}`,
         LogLevelEnum.ERROR,
       );
       return {
@@ -349,9 +354,17 @@ export class OfflineStorageService {
    * @param {string} key - The key to store under
    * @param {any} data - The data to store
    * @returns {Promise<void>}
+   * @throws {Error} Re-throws QuotaExceededError for handling upstream
    */
   private async saveToStorage(key: string, data: any): Promise<void> {
-    localStorage.setItem(key, JSON.stringify(data));
+    try {
+      localStorage.setItem(key, JSON.stringify(data));
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "QuotaExceededError") {
+        throw new Error("storage quota exceeded - localStorage is full");
+      }
+      throw error;
+    }
   }
 
   /**
