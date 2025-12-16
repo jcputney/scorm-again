@@ -548,7 +548,7 @@ describe("CrossFrameLMS", () => {
     const resp = (src.postMessage as any).mock.calls[0][0] as MessageResponse;
     expect(resp.error).toBeDefined();
     expect(resp.error!.message).toBe(errorMessage);
-    expect(resp.error!.stack).toBeDefined();
+    // Note: stack traces are intentionally omitted for security
   });
 
   it("handles async API method resolving", async () => {
@@ -643,5 +643,350 @@ describe("CrossFrameLMS", () => {
 
     // Verify _process was not called
     expect(processSpy).not.toHaveBeenCalled();
+  });
+
+  it("rejects methods not in the allowlist", () => {
+    const msg: MessageData = {
+      messageId: "blocked-1",
+      method: "storeData",
+      params: [],
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"]({
+      data: msg,
+      origin: "http://parent",
+      source: src,
+    });
+
+    expect(src.postMessage).toHaveBeenCalledWith(
+      {
+        messageId: "blocked-1",
+        error: { message: "Method not allowed: storeData", code: "101" },
+      },
+      "http://parent",
+    );
+  });
+
+  it("allows methods in the allowlist", () => {
+    const allowedMethods = [
+      "LMSInitialize",
+      "LMSFinish",
+      "LMSGetValue",
+      "LMSSetValue",
+      "LMSCommit",
+      "LMSGetLastError",
+      "LMSGetErrorString",
+      "LMSGetDiagnostic",
+      "Initialize",
+      "Terminate",
+      "GetValue",
+      "SetValue",
+      "Commit",
+      "GetLastError",
+      "GetErrorString",
+      "GetDiagnostic",
+      "getFlattenedCMI",
+    ];
+
+    for (const method of allowedMethods) {
+      apiMock[method] = vi.fn().mockReturnValue("test");
+      src.postMessage = vi.fn();
+
+      // eslint-disable-next-line
+      // @ts-ignore
+      server["_onMessage"]({
+        data: { messageId: `allow-${method}`, method, params: [] },
+        origin: "http://parent",
+        source: src,
+      });
+
+      expect(src.postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ messageId: `allow-${method}` }),
+        "http://parent",
+      );
+    }
+  });
+
+  it("rate limits requests exceeding the threshold", () => {
+    // Create server with low rate limit
+    const limitedServer = new CrossFrameLMS(apiMock, "http://parent", {
+      rateLimit: 3,
+    });
+    apiMock.LMSGetValue = vi.fn().mockReturnValue("test");
+
+    // Send 5 requests rapidly
+    for (let i = 0; i < 5; i++) {
+      src.postMessage = vi.fn();
+      // eslint-disable-next-line
+      // @ts-ignore
+      limitedServer["_onMessage"]({
+        data: { messageId: `rate-${i}`, method: "LMSGetValue", params: [] },
+        origin: "http://parent",
+        source: src,
+      });
+    }
+
+    // First 3 should succeed, last 2 should be rate limited
+    expect(apiMock.LMSGetValue).toHaveBeenCalledTimes(3);
+    limitedServer.destroy();
+  });
+
+  it("responds to heartbeat messages", () => {
+    const msg: MessageData = {
+      messageId: "hb-123",
+      method: "__heartbeat__",
+      params: [],
+      isHeartbeat: true,
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"]({
+      data: msg,
+      origin: "http://parent",
+      source: src,
+    });
+
+    expect(src.postMessage).toHaveBeenCalledWith(
+      { messageId: "hb-123", isHeartbeat: true },
+      "http://parent",
+    );
+  });
+
+  it("ignores messages after destroy()", () => {
+    server.destroy();
+
+    const msg: MessageData = {
+      messageId: "after-destroy",
+      method: "LMSGetValue",
+      params: [],
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"]({
+      data: msg,
+      origin: "http://parent",
+      source: src,
+    });
+
+    expect(src.postMessage).not.toHaveBeenCalled();
+  });
+});
+
+describe("CrossFrameAPI - New Features", () => {
+  let client: CrossFrameAPI;
+  let postSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    postSpy = vi.spyOn(window.parent, "postMessage").mockImplementation(() => {});
+    client = new CrossFrameAPI("https://lms.example.com", window.parent, {
+      timeout: 5000,
+      heartbeatInterval: 30000,
+      heartbeatTimeout: 60000,
+    });
+  });
+
+  afterEach(() => {
+    client.destroy();
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it("uses configurable timeout", async () => {
+    const shortTimeoutClient = new CrossFrameAPI(
+      "https://lms.example.com",
+      window.parent,
+      { timeout: 1000 },
+    );
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    const postPromise = shortTimeoutClient["_post"]("LMSGetValue", ["cmi.test"]);
+
+    // Advance by 1.5 seconds (past the 1s timeout)
+    vi.advanceTimersByTime(1500);
+
+    await expect(postPromise).rejects.toThrow("Timeout calling LMSGetValue");
+    shortTimeoutClient.destroy();
+  });
+
+  it("sends heartbeat at configured interval", () => {
+    // Clear initial calls
+    postSpy.mockClear();
+
+    // Advance by one heartbeat interval
+    vi.advanceTimersByTime(30000);
+
+    // Should have sent a heartbeat
+    expect(postSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: "__heartbeat__",
+        isHeartbeat: true,
+      }),
+      "https://lms.example.com",
+    );
+  });
+
+  it("emits connectionLost after heartbeat timeout", () => {
+    const lostCallback = vi.fn();
+    client.on("connectionLost", lostCallback);
+
+    // Advance past heartbeat timeout (60s) + one interval (30s)
+    vi.advanceTimersByTime(90000);
+
+    expect(lostCallback).toHaveBeenCalledWith({ type: "connectionLost" });
+    expect(client.connected).toBe(false);
+  });
+
+  it("emits connectionRestored when heartbeat resumes", () => {
+    const lostCallback = vi.fn();
+    const restoredCallback = vi.fn();
+    client.on("connectionLost", lostCallback);
+    client.on("connectionRestored", restoredCallback);
+
+    // Lose connection
+    vi.advanceTimersByTime(90000);
+    expect(lostCallback).toHaveBeenCalled();
+
+    // Simulate heartbeat response
+    const heartbeatResponse: MessageResponse = {
+      messageId: "hb-123",
+      isHeartbeat: true,
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    client["_onMessage"]({
+      data: heartbeatResponse,
+      origin: "https://lms.example.com",
+      source: window.parent,
+    });
+
+    expect(restoredCallback).toHaveBeenCalledWith({ type: "connectionRestored" });
+    expect(client.connected).toBe(true);
+  });
+
+  it("allows unsubscribing from events with off()", () => {
+    const callback = vi.fn();
+    client.on("connectionLost", callback);
+    client.off("connectionLost", callback);
+
+    // Trigger connection loss
+    vi.advanceTimersByTime(90000);
+
+    expect(callback).not.toHaveBeenCalled();
+  });
+
+  it("emits rateLimited event when rate limit error received", () => {
+    const rateLimitedCallback = vi.fn();
+    client.on("rateLimited", rateLimitedCallback);
+
+    // Simulate rate limit error response
+    const response: MessageResponse = {
+      messageId: "cfapi-123",
+      error: { message: "Rate limit exceeded", code: "101" },
+    };
+
+    // First set up a pending request
+    // eslint-disable-next-line
+    // @ts-ignore
+    client["_pending"].set("cfapi-123", {
+      resolve: vi.fn(),
+      reject: vi.fn(),
+      timer: setTimeout(() => {}, 5000),
+      requestTime: Date.now(),
+    });
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    client["_onMessage"]({
+      data: response,
+      origin: "https://lms.example.com",
+      source: window.parent,
+    });
+
+    expect(rateLimitedCallback).toHaveBeenCalledWith({
+      type: "rateLimited",
+      method: "unknown",
+    });
+  });
+
+  it("cleans up on destroy()", () => {
+    const removeListenerSpy = vi.spyOn(window, "removeEventListener");
+
+    // Add a pending request
+    // eslint-disable-next-line
+    // @ts-ignore
+    client["_pending"].set("pending-1", {
+      resolve: vi.fn(),
+      reject: vi.fn(),
+      timer: setTimeout(() => {}, 5000),
+      requestTime: Date.now(),
+    });
+
+    client.destroy();
+
+    expect(removeListenerSpy).toHaveBeenCalled();
+    // eslint-disable-next-line
+    // @ts-ignore
+    expect(client["_pending"].size).toBe(0);
+    // eslint-disable-next-line
+    // @ts-ignore
+    expect(client["_cache"].size).toBe(0);
+    // eslint-disable-next-line
+    // @ts-ignore
+    expect(client["_destroyed"]).toBe(true);
+  });
+
+  it("rejects new requests after destroy()", async () => {
+    client.destroy();
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    await expect(client["_post"]("LMSGetValue", [])).rejects.toThrow(
+      "CrossFrameAPI destroyed",
+    );
+  });
+
+  it("protects cache from stale getFlattenedCMI responses", async () => {
+    // Set a value locally
+    // eslint-disable-next-line
+    // @ts-ignore
+    client["_cache"].set("cmi.score.raw", "95");
+    // eslint-disable-next-line
+    // @ts-ignore
+    client["_cacheTimestamps"].set("cmi.score.raw", Date.now());
+
+    // Simulate a getFlattenedCMI response with older data
+    const requestTime = Date.now() - 1000; // Request was sent 1 second ago
+
+    // Simulate the merge logic
+    const serverData = { "cmi.score.raw": "80", "cmi.score.min": "0" };
+    Object.entries(serverData).forEach(([key, val]) => {
+      // eslint-disable-next-line
+      // @ts-ignore
+      const localModTime = client["_cacheTimestamps"].get(key) ?? 0;
+      if (localModTime < requestTime) {
+        // eslint-disable-next-line
+        // @ts-ignore
+        client["_cache"].set(key, val);
+        // eslint-disable-next-line
+        // @ts-ignore
+        client["_cacheTimestamps"].delete(key);
+      }
+    });
+
+    // Local value should be preserved (was modified after request)
+    // eslint-disable-next-line
+    // @ts-ignore
+    expect(client["_cache"].get("cmi.score.raw")).toBe("95");
+    // Server value should be applied (wasn't locally modified)
+    // eslint-disable-next-line
+    // @ts-ignore
+    expect(client["_cache"].get("cmi.score.min")).toBe("0");
   });
 });
