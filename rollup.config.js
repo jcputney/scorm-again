@@ -21,8 +21,7 @@ import { minify } from "terser";
  */
 const reservedWords = [
   "Scorm12API",
-  "Scorm2004API",
-  "AICC", // public classes
+  "Scorm2004API", // public classes
   "LMSInitialize",
   "LMSFinish",
   "LMSGetValue",
@@ -160,7 +159,6 @@ function createTerserPlugin(overrides = {}) {
 
 // Entry points
 const entries = {
-  aicc: "src/AICC.ts",
   scorm12: "src/Scorm12API.ts",
   scorm2004: "src/Scorm2004API.ts",
   "scorm-again": "src/ScormAgain.ts",
@@ -168,7 +166,6 @@ const entries = {
   "cross-frame-lms": "src/CrossFrameLMS.ts",
 };
 const esmEntries = {
-  aicc: "src/esm/AICC.esm.ts",
   scorm12: "src/esm/Scorm12API.esm.ts",
   scorm2004: "src/esm/Scorm2004API.esm.ts",
   "scorm-again": "src/esm/ScormAgain.esm.ts",
@@ -197,9 +194,6 @@ Object.entries(entries).forEach(([name, input]) => {
       break;
     case "scorm12":
       exportName = "Scorm12API";
-      break;
-    case "aicc":
-      exportName = "AICC";
       break;
     case "cross-frame-api":
       exportName = "CrossFrameAPI";

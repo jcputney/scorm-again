@@ -20,13 +20,6 @@ interface ScormConstants {
   error_descriptions: ErrorDescriptions;
 }
 
-interface AiccConstants extends ScormConstants {
-  student_demographics_children: string;
-  tries_children: string;
-  attempt_records_children: string;
-  paths_children: string;
-}
-
 interface Scorm2004Constants {
   cmi_children: string;
   comments_children: string;
@@ -131,21 +124,6 @@ export const scorm12_constants: ScormConstants = {
       detailMessage:
         "Some data model elements cannot be set until another data model element was set. This error condition indicates that the prerequisite element was not set before the dependent element.",
     },
-  },
-};
-export const aicc_constants: AiccConstants = {
-  ...scorm12_constants,
-  ...{
-    cmi_children:
-      "core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions,evaluation",
-    student_preference_children:
-      "audio,language,lesson_type,speed,text,text_color,text_location,text_size,video,windows",
-    student_data_children: "attempt_number,tries,mastery_score,max_time_allowed,time_limit_action",
-    student_demographics_children:
-      "city,class,company,country,experience,familiar_name,instructor_name,title,native_language,state,street_address,telephone,years_experience",
-    tries_children: "time,status,score",
-    attempt_records_children: "score,lesson_status",
-    paths_children: "location_id,date,time,status,why_left,time_in_element",
   },
 };
 

@@ -30,9 +30,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## High-Level Architecture
 
 ### API Structure
-The project implements three e-learning standards as separate APIs that inherit from a common BaseAPI:
-- **AICC.ts** - AICC standard implementation
-- **Scorm12API.ts** - SCORM 1.2 implementation  
+The project implements two e-learning standards as separate APIs that inherit from a common BaseAPI:
+- **Scorm12API.ts** - SCORM 1.2 implementation
 - **Scorm2004API.ts** - SCORM 2004 implementation with advanced sequencing
 
 ### Cross-Frame Communication

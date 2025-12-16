@@ -1,12 +1,10 @@
 import { describe, it } from "vitest";
 import { ValidationError } from "../../src/exceptions";
-import { aicc_constants, scorm12_constants, scorm2004_constants } from "../../src/";
-import { AICCValidationError } from "../../src/exceptions/aicc_exceptions";
+import { scorm12_constants, scorm2004_constants } from "../../src/";
 import { Scorm12ValidationError } from "../../src/exceptions/scorm12_exceptions";
 import { Scorm2004ValidationError } from "../../src/exceptions/scorm2004_exceptions";
 
 const scorm12_errors = scorm12_constants.error_descriptions;
-const aicc_errors = aicc_constants.error_descriptions;
 const scorm2004_errors = scorm2004_constants.error_descriptions;
 
 type ErrorMessageType = {
@@ -71,11 +69,6 @@ describe("Exception Tests", () => {
   });
   it("ValidationException should return empty string for detailedMessage when not provided", () => {
     expect(new ValidationError("api", 0, "Error Message").detailedMessage).toEqual("");
-  });
-  checkValidationMessage({
-    errorClass: AICCValidationError,
-    errorCodes: [101, 201, 202, 203, 301, 401, 402, 403, 404, 405, 407, 408],
-    error_messages: aicc_errors,
   });
   checkValidationMessage({
     errorClass: Scorm12ValidationError,

@@ -1,7 +1,6 @@
 // Main APIs
 export * from "./Scorm12API";
 export * from "./Scorm2004API";
-export * from "./AICC";
 
 // Facades
 export * from "./CrossFrameAPI";
@@ -16,6 +15,5 @@ export * from "./constants/response_constants";
 export * from "./utilities";
 
 // Type definitions
-export * from "./cmi/aicc/cmi";
 export * from "./cmi/scorm12/nav";
 export * from "./cmi/scorm2004/adl";

@@ -4,7 +4,7 @@ import { scorm12_regex } from "../../constants/regex";
 import { Scorm12ValidationError } from "../../exceptions/scorm12_exceptions";
 import { BaseRootCMI } from "../common/base_cmi";
 import { check12ValidFormat } from "./validation";
-import { CMICore } from "../aicc/core";
+import { CMICore } from "./core";
 import { CMIObjectives } from "./objectives";
 import { CMIStudentData } from "./student_data";
 import { CMIStudentPreference } from "./student_preference";
