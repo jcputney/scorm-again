@@ -471,6 +471,43 @@ describe("OfflineStorageService Tests", () => {
       );
     });
 
+    it("should respect maxSyncAttempts setting instead of hardcoded value", async () => {
+      const customSettings = {
+        ...settings,
+        maxSyncAttempts: 3,
+      } as InternalSettings;
+
+      const service = new OfflineStorageService(customSettings, errorCodes, apiLog);
+      const courseId = "course123";
+
+      // Create a queue with an item that has been attempted 3 times (at custom limit)
+      const queueItem = {
+        id: `${courseId}_${Date.now()}_test`,
+        courseId,
+        timestamp: Date.now(),
+        data: createSampleCommitObject(),
+        syncAttempts: 3, // At custom limit, not hardcoded 5
+      };
+
+      localStorageMock.getItem.mockReturnValueOnce(JSON.stringify([queueItem]));
+
+      // Perform sync
+      const result = await service.syncOfflineData();
+
+      // Verify result
+      expect(result).toBe(true);
+
+      // Verify fetch was NOT called because item is at max attempts
+      expect(fetch).not.toHaveBeenCalled();
+
+      // Verify warning log about skipping
+      expect(apiLog).toHaveBeenCalledWith(
+        "OfflineStorageService",
+        expect.stringContaining("Skipping item"),
+        LogLevelEnum.WARN,
+      );
+    });
+
     it("should handle errors during the sync process", async () => {
       const service = createService();
 
