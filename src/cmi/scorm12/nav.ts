@@ -3,7 +3,7 @@ import { check12ValidFormat } from "./validation";
 import { scorm12_regex } from "../../constants/regex";
 
 /**
- * Class for AICC Navigation object
+ * Class for SCORM 1.2 Navigation object
  */
 export class NAV extends BaseCMI {
   /**

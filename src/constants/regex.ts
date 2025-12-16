@@ -153,23 +153,7 @@ export const scorm12_regex = {
   /** text_range - Text display preference -1 to 1 (RTE 3.4.2.3.3) */
   text_range: "-1#1",
 };
-/**
- * AICC Data Type Definitions
- * Based on SCORM 1.2 with AICC-specific variations
- * Per AICC CMI001 Guidelines for Interoperability
- */
-export const aicc_regex = {
-  ...scorm12_regex,
-  ...{
-    /**
-     * CMIIdentifier - AICC variation
-     * AICC allows: letters, numbers, underscores, periods, hyphens
-     * More restrictive than SCORM 1.2 (no spaces, limited punctuation)
-     * Per AICC CMI001 Section 3.2.1
-     */
-    CMIIdentifier: "^[A-Za-z0-9._-]{1,255}$",
-  },
-};
+
 /**
  * SCORM 2004 Data Type Definitions
  * Per SCORM 2004 4th Edition RTE Appendix C: Data Type Standards

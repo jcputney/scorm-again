@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import Scorm2004API from "../../src/Scorm2004API";
 import Scorm12API from "../../src/Scorm12API";
-import AICC from "../../src/AICC";
 import { scorm12_errors, scorm2004_errors, StringKeyMap } from "../../src";
 import { LogLevelEnum } from "../../src/constants/enums";
 import { Settings } from "../../src/types/api_types";
@@ -17,14 +16,6 @@ const scorm2004Api = (settings?: Settings, startingData: StringKeyMap = {}): Sco
 
 const scorm12Api = (settings?: Settings, startingData: StringKeyMap = {}): Scorm12API => {
   const API = new Scorm12API({ ...settings, logLevel: LogLevelEnum.NONE });
-  if (startingData) {
-    API.startingData = startingData;
-  }
-  return API;
-};
-
-const aiccApi = (settings?: Settings, startingData: StringKeyMap = {}): AICC => {
-  const API = new AICC({ ...settings, logLevel: LogLevelEnum.NONE });
   if (startingData) {
     API.startingData = startingData;
   }
@@ -199,24 +190,6 @@ describe("Error Codes Tests", () => {
       describe(`${errorName} Error Tests`, () => {
         it(`should correctly set and retrieve ${errorName} error code`, () => {
           const api = scorm12Api();
-
-          // Directly set the error code
-          api.throwSCORMError("api", errorCode);
-
-          // Verify the error code can be retrieved
-          expect(api.lmsGetLastError()).toEqual(String(errorCode));
-        });
-      });
-    });
-  });
-
-  describe("AICC Error Codes", () => {
-    // Test each error code by directly setting it and verifying it can be retrieved
-    // AICC uses the same error codes as SCORM 1.2
-    Object.entries(scorm12_errors).forEach(([errorName, errorCode]) => {
-      describe(`${errorName} Error Tests`, () => {
-        it(`should correctly set and retrieve ${errorName} error code`, () => {
-          const api = aiccApi();
 
           // Directly set the error code
           api.throwSCORMError("api", errorCode);
