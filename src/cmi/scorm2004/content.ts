@@ -61,6 +61,9 @@ export class CMIContent extends BaseCMI {
         scorm2004_errors.READ_ONLY_ELEMENT as number,
       );
     } else {
+      // Note: SCORM 2004 3rd Edition specifies SPM of 4000 chars for launch_data.
+      // We intentionally do NOT enforce this limit to maximize LMS compatibility.
+      // Some LMS implementations may provide larger launch_data values.
       this._launch_data = launch_data;
     }
   }

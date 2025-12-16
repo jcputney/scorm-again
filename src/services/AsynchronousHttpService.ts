@@ -179,12 +179,12 @@ export class AsynchronousHttpService implements IHttpService {
       ok: beaconSuccess,
       json: async () => ({
         result: beaconSuccess ? "true" : "false",
-        errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL,
+        errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391,
       }),
       text: async () =>
         JSON.stringify({
           result: beaconSuccess ? "true" : "false",
-          errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL,
+          errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391,
         }),
     } as Response);
   }
@@ -214,7 +214,7 @@ export class AsynchronousHttpService implements IHttpService {
 
       return {
         result: global_constants.SCORM_FALSE,
-        errorCode: this.error_codes.GENERAL || 101,
+        errorCode: this.error_codes.GENERAL_COMMIT_FAILURE || 391,
         errorMessage: `Failed to parse LMS response: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
         errorDetails: JSON.stringify({
           status: response.status,
@@ -228,7 +228,9 @@ export class AsynchronousHttpService implements IHttpService {
 
     // Ensure result has an errorCode property
     if (!Object.hasOwnProperty.call(result, "errorCode")) {
-      result.errorCode = this._isSuccessResponse(response, result) ? 0 : this.error_codes.GENERAL;
+      result.errorCode = this._isSuccessResponse(response, result)
+        ? 0
+        : this.error_codes.GENERAL_COMMIT_FAILURE || 391;
     }
 
     // Add response details for failed requests

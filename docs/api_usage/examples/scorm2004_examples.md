@@ -4,14 +4,314 @@ This document provides comprehensive examples for using the SCORM 2004 API in sc
 
 ## Table of Contents
 
-1. [Basic Setup](#basic-setup)
-2. [Initialization and Termination](#initialization-and-termination)
-3. [Setting and Getting Values](#setting-and-getting-values)
-4. [Tracking Student Progress](#tracking-student-progress)
-5. [Handling Interactions](#handling-interactions)
-6. [Using Event Listeners](#using-event-listeners)
-7. [Sequencing and Navigation](#sequencing-and-navigation)
-8. [Advanced Configuration](#advanced-configuration)
+1. [SCO-Side API Discovery](#sco-side-api-discovery)
+2. [Basic Setup](#basic-setup)
+3. [Initialization and Termination](#initialization-and-termination)
+4. [Setting and Getting Values](#setting-and-getting-values)
+5. [Tracking Student Progress](#tracking-student-progress)
+6. [Handling Interactions](#handling-interactions)
+7. [Using Event Listeners](#using-event-listeners)
+8. [Sequencing and Navigation](#sequencing-and-navigation)
+9. [Advanced Configuration](#advanced-configuration)
+
+## SCO-Side API Discovery
+
+When building SCO content that runs within an LMS, your content must locate the SCORM 2004 API object. Per the SCORM 2004 4th Edition specification, the API must be discovered by traversing the window hierarchy.
+
+### Reference Implementation: findAPI()
+
+The following is the standard API discovery algorithm specified by ADL:
+
+```javascript
+/**
+ * SCORM 2004 API Discovery Function
+ * Per SCORM 2004 4th Edition RTE specification
+ *
+ * Searches for the SCORM 2004 API (API_1484_11) in the window hierarchy.
+ * Traverses up to 7 parent levels (per spec recommendation) and checks
+ * opener windows.
+ *
+ * @param {Window} win - The window to start searching from
+ * @returns {object|null} - The API_1484_11 object or null if not found
+ */
+function findAPI(win) {
+  var findAttempts = 0;
+  var maxAttempts = 7; // SCORM 2004 spec recommends max 7 levels
+
+  // Search up the window hierarchy
+  while (
+    win.API_1484_11 == null &&
+    win.parent != null &&
+    win.parent != win &&
+    findAttempts < maxAttempts
+  ) {
+    findAttempts++;
+    win = win.parent;
+  }
+
+  // Check if found in parent hierarchy
+  if (win.API_1484_11 != null) {
+    return win.API_1484_11;
+  }
+
+  // If not found and there's an opener window, search there
+  if (win.opener != null && typeof win.opener !== "undefined") {
+    return findAPI(win.opener);
+  }
+
+  // API not found
+  return null;
+}
+
+/**
+ * Gets the SCORM 2004 API object
+ * @returns {object|null} - The API_1484_11 object or null if not found
+ */
+function getAPI() {
+  var api = findAPI(window);
+
+  if (api == null) {
+    // Check if we're in the top window with direct access
+    if (window.API_1484_11 != null) {
+      return window.API_1484_11;
+    }
+    console.error("SCORM 2004 API not found in window hierarchy");
+  }
+
+  return api;
+}
+```
+
+### Usage Example
+
+```javascript
+// In your SCO content, first locate the API
+var API = getAPI();
+
+if (API != null) {
+  // Initialize the SCORM session
+  var result = API.Initialize("");
+
+  if (result === "true") {
+    // Session initialized successfully
+    console.log("SCORM session started");
+
+    // Get learner information
+    var learnerId = API.GetValue("cmi.learner_id");
+    var learnerName = API.GetValue("cmi.learner_name");
+
+    // ... your learning content logic ...
+
+    // When done, terminate the session
+    API.Terminate("");
+  } else {
+    // Handle initialization error
+    var errorCode = API.GetLastError();
+    var errorString = API.GetErrorString(errorCode);
+    console.error("SCORM initialization failed:", errorString);
+  }
+} else {
+  console.error("Could not find SCORM 2004 API");
+  // Handle non-LMS environment (e.g., standalone preview mode)
+}
+```
+
+### Complete SCO Wrapper Class
+
+For more robust SCO development, consider using a wrapper class:
+
+```javascript
+/**
+ * SCORM 2004 SCO Wrapper Class
+ * Provides a clean interface for SCO-LMS communication
+ */
+class SCORMWrapper {
+  constructor() {
+    this.api = null;
+    this.initialized = false;
+  }
+
+  /**
+   * Find and store reference to the SCORM API
+   */
+  findAPI() {
+    if (this.api != null) {
+      return this.api;
+    }
+
+    var win = window;
+    var findAttempts = 0;
+    var maxAttempts = 7;
+
+    while (
+      win.API_1484_11 == null &&
+      win.parent != null &&
+      win.parent != win &&
+      findAttempts < maxAttempts
+    ) {
+      findAttempts++;
+      win = win.parent;
+    }
+
+    if (win.API_1484_11 != null) {
+      this.api = win.API_1484_11;
+      return this.api;
+    }
+
+    if (win.opener != null) {
+      win = win.opener;
+      findAttempts = 0;
+      while (
+        win.API_1484_11 == null &&
+        win.parent != null &&
+        win.parent != win &&
+        findAttempts < maxAttempts
+      ) {
+        findAttempts++;
+        win = win.parent;
+      }
+      if (win.API_1484_11 != null) {
+        this.api = win.API_1484_11;
+        return this.api;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Initialize the SCORM session
+   */
+  initialize() {
+    this.findAPI();
+
+    if (this.api == null) {
+      console.error("SCORM API not found");
+      return false;
+    }
+
+    var result = this.api.Initialize("");
+    this.initialized = result === "true";
+
+    if (!this.initialized) {
+      this.logError("Initialize");
+    }
+
+    return this.initialized;
+  }
+
+  /**
+   * Terminate the SCORM session
+   */
+  terminate() {
+    if (!this.initialized || this.api == null) {
+      return false;
+    }
+
+    var result = this.api.Terminate("");
+    this.initialized = false;
+    return result === "true";
+  }
+
+  /**
+   * Get a value from the CMI data model
+   */
+  getValue(element) {
+    if (!this.initialized || this.api == null) {
+      return "";
+    }
+
+    var value = this.api.GetValue(element);
+    var errorCode = this.api.GetLastError();
+
+    if (errorCode !== "0") {
+      this.logError("GetValue", element);
+    }
+
+    return value;
+  }
+
+  /**
+   * Set a value in the CMI data model
+   */
+  setValue(element, value) {
+    if (!this.initialized || this.api == null) {
+      return false;
+    }
+
+    var result = this.api.SetValue(element, value);
+
+    if (result !== "true") {
+      this.logError("SetValue", element);
+    }
+
+    return result === "true";
+  }
+
+  /**
+   * Commit data to the LMS
+   */
+  commit() {
+    if (!this.initialized || this.api == null) {
+      return false;
+    }
+
+    var result = this.api.Commit("");
+
+    if (result !== "true") {
+      this.logError("Commit");
+    }
+
+    return result === "true";
+  }
+
+  /**
+   * Log SCORM errors with diagnostic information
+   */
+  logError(method, element) {
+    if (this.api == null) return;
+
+    var errorCode = this.api.GetLastError();
+    var errorString = this.api.GetErrorString(errorCode);
+    var diagnostic = this.api.GetDiagnostic(errorCode);
+
+    console.error(
+      `SCORM ${method} error${element ? " for " + element : ""}: ` +
+        `[${errorCode}] ${errorString} - ${diagnostic}`
+    );
+  }
+}
+
+// Usage:
+var scorm = new SCORMWrapper();
+
+if (scorm.initialize()) {
+  // Get bookmark to resume
+  var location = scorm.getValue("cmi.location");
+
+  // Set completion status
+  scorm.setValue("cmi.completion_status", "incomplete");
+
+  // Save progress
+  scorm.setValue("cmi.location", "page_3");
+  scorm.commit();
+
+  // On exit
+  scorm.setValue("cmi.completion_status", "completed");
+  scorm.setValue("cmi.success_status", "passed");
+  scorm.terminate();
+}
+```
+
+### Important Notes
+
+1. **Window Hierarchy Limit**: The SCORM 2004 spec recommends searching up to 7 levels in the window hierarchy. This prevents infinite loops in complex frame structures.
+
+2. **Opener Windows**: Always check opener windows, as LMSs may launch SCOs in new windows/tabs.
+
+3. **Error Handling**: Always check for null API before calling methods, and always check `GetLastError()` after API calls.
+
+4. **Timing**: Call `Initialize("")` before any other API methods, and `Terminate("")` when the session ends.
 
 ## Basic Setup
 

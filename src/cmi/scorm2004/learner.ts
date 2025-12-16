@@ -38,6 +38,8 @@ export class CMILearner extends BaseCMI {
         scorm2004_errors.READ_ONLY_ELEMENT as number,
       );
     } else {
+      // Note: SCORM 2004 3rd Edition specifies SPM of 4000 chars (CMILongIdentifier).
+      // We intentionally do NOT enforce this limit to maximize LMS compatibility.
       this._learner_id = learner_id;
     }
   }
@@ -61,6 +63,8 @@ export class CMILearner extends BaseCMI {
         scorm2004_errors.READ_ONLY_ELEMENT as number,
       );
     } else {
+      // Note: SCORM 2004 3rd Edition specifies SPM of 250 chars (CMIString250).
+      // We intentionally do NOT enforce this limit to maximize LMS compatibility.
       this._learner_name = learner_name;
     }
   }
