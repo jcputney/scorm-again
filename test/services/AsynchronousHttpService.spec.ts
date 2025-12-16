@@ -43,6 +43,7 @@ describe("AsynchronousHttpService", () => {
     // Create mock error codes
     errorCodes = {
       GENERAL: 101,
+      GENERAL_COMMIT_FAILURE: 391,
     };
 
     // Stub the global fetch function
@@ -287,7 +288,7 @@ describe("AsynchronousHttpService", () => {
       // Verify the json method returns the expected result for failure
       expect(jsonResult).toEqual({
         result: "false",
-        errorCode: errorCodes.GENERAL,
+        errorCode: errorCodes.GENERAL_COMMIT_FAILURE,
       });
     });
 
@@ -307,7 +308,7 @@ describe("AsynchronousHttpService", () => {
       expect(textResult).toBe(
         JSON.stringify({
           result: "false",
-          errorCode: errorCodes.GENERAL,
+          errorCode: errorCodes.GENERAL_COMMIT_FAILURE,
         }),
       );
     });

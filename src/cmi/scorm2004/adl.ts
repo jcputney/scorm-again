@@ -199,6 +199,8 @@ export class ADLData extends CMIArray {
 export class ADLDataObject extends BaseCMI {
   private _id = "";
   private _store = "";
+  private _idIsSet = false;
+  private _storeIsSet = false;
 
   constructor() {
     super("adl.data.n");
@@ -209,6 +211,8 @@ export class ADLDataObject extends BaseCMI {
    */
   reset() {
     this._initialized = false;
+    this._idIsSet = false;
+    this._storeIsSet = false;
   }
 
   /**
@@ -221,31 +225,59 @@ export class ADLDataObject extends BaseCMI {
 
   /**
    * Setter for _id
+   * Per SCORM 2004 4th Ed: id is read-only after initialization (error 404)
    * @param {string} id
    */
   set id(id: string) {
+    // REQ-ADL-015: id is read-only after initialization
+    if (this.initialized) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".id",
+        scorm2004_errors.READ_ONLY_ELEMENT as number,
+      );
+    }
     if (check2004ValidFormat(this._cmi_element + ".id", id, scorm2004_regex.CMILongIdentifier)) {
       this._id = id;
+      this._idIsSet = true;
     }
   }
 
   /**
    * Getter for _store
+   * Per SCORM 2004 4th Ed: returns error 403 if store not initialized
    * @return {string}
    */
   get store(): string {
+    // REQ-ADL-020: GetValue on uninitialized store returns error 403
+    if (this.initialized && !this._storeIsSet) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".store",
+        scorm2004_errors.VALUE_NOT_INITIALIZED as number,
+      );
+    }
     return this._store;
   }
 
   /**
    * Setter for _store
+   * Per SCORM 2004 4th Ed: store requires id to be set first (error 408)
+   * Per SCORM 2004 4th Ed SPM: store max length is 64000 characters
    * @param {string} store
    */
   set store(store: string) {
+    // REQ-ADL-025: Dependency check - id must be set before store
+    if (this.initialized && !this._idIsSet) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".store",
+        scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED as number,
+      );
+    }
+    // REQ-ADL-017: store SPM is 64000 characters (was incorrectly 4000)
     if (
-      check2004ValidFormat(this._cmi_element + ".store", store, scorm2004_regex.CMILangString4000)
+      check2004ValidFormat(this._cmi_element + ".store", store, scorm2004_regex.CMIString64000)
     ) {
       this._store = store;
+      this._storeIsSet = true;
     }
   }
 

@@ -793,13 +793,14 @@ describe("BaseAPI", () => {
       });
     });
 
-    it("should return SCORM_TRUE and throw error when not initialized", () => {
+    // Per SCORM 2004 3rd Ed RTE 3.1.3.2: return "false" for error 112
+    it("should return SCORM_FALSE and throw error when not initialized", () => {
       api.currentState = global_constants.STATE_NOT_INITIALIZED;
       const throwSCORMErrorSpy = vi.spyOn(api, "throwSCORMError");
 
       const result = api.terminate("Terminate", true);
 
-      expect(result).toBe(global_constants.SCORM_TRUE);
+      expect(result).toBe(global_constants.SCORM_FALSE);
       expect(throwSCORMErrorSpy).toHaveBeenCalledWith("api", errorCodes.TERMINATION_BEFORE_INIT);
     });
 
@@ -988,14 +989,15 @@ describe("BaseAPI", () => {
       });
     });
 
-    it("should return SCORM_TRUE and throw error when not initialized", () => {
+    // Per SCORM 2004 3rd Ed RTE 3.1.4.3: return "false" for error 142
+    it("should return SCORM_FALSE and throw error when not initialized", () => {
       api.currentState = global_constants.STATE_NOT_INITIALIZED;
       const throwSCORMErrorSpy = vi.spyOn(api, "throwSCORMError");
       const clearScheduledCommitSpy = vi.spyOn(api, "clearScheduledCommit");
 
       const result = api.commit("Commit", true);
 
-      expect(result).toBe(global_constants.SCORM_TRUE);
+      expect(result).toBe(global_constants.SCORM_FALSE);
       expect(throwSCORMErrorSpy).toHaveBeenCalledWith("api", errorCodes.COMMIT_BEFORE_INIT);
       expect(clearScheduledCommitSpy).toHaveBeenCalledOnce();
     });

@@ -34,7 +34,7 @@ import { CMIArray } from "./cmi/common/array";
 import { ValidationError } from "./exceptions";
 
 /**
- * Base API class for AICC, SCORM 1.2, and SCORM 2004. Should be considered
+ * Base API class for SCORM 1.2 and SCORM 2004. Should be considered
  * abstract, and never initialized on its own.
  */
 export default abstract class BaseAPI implements IBaseAPI {
@@ -658,21 +658,26 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @return {string}
    */
   terminate(callbackName: string, checkTerminated: boolean): string {
-    // Per SCORM spec: return "true" when called before init or after already terminated
-    // (with error code set)
+    // Per SCORM 2004 3rd Edition RTE Section 3.1.3.2:
+    // Return "false" for all error conditions (112, 113, 111, 201)
     let returnValue = global_constants.SCORM_TRUE;
     let stateCheckPassed = false;
 
     // Check if not initialized first
     if (this.isNotInitialized()) {
-      this.throwSCORMError("api", this._error_codes.TERMINATION_BEFORE_INIT ?? 0);
-      // Return "true" but with error code set per SCORM spec
+      const errorCode = this._error_codes.TERMINATION_BEFORE_INIT ?? 0;
+      this.throwSCORMError("api", errorCode);
+      // Per SCORM 2004 3rd Ed RTE 3.1.3.2: return "false" for error 112
+      // SCORM 1.2 (error 101) returns "true" for error conditions
+      if (errorCode === 112) returnValue = global_constants.SCORM_FALSE;
     } else if (checkTerminated && this.isTerminated()) {
-      this.throwSCORMError("api", this._error_codes.MULTIPLE_TERMINATION ?? 0);
-      // Return "true" but with error code set per SCORM spec
+      const errorCode = this._error_codes.MULTIPLE_TERMINATION ?? 0;
+      this.throwSCORMError("api", errorCode);
+      // Per SCORM 2004 3rd Ed RTE 3.1.3.2: return "false" for error 113
+      // SCORM 1.2 (error 101) returns "true" for error conditions
+      if (errorCode === 113) returnValue = global_constants.SCORM_FALSE;
     } else {
       stateCheckPassed = true;
-      this.currentState = global_constants.STATE_TERMINATED;
 
       // Fire BeforeTerminate event for offline sync
       this.processListeners("BeforeTerminate");
@@ -694,12 +699,17 @@ export default abstract class BaseAPI implements IBaseAPI {
             LogLevelEnum.DEBUG,
           );
         }
+        // Per SCORM spec: on error 111, state remains "Running" and return "false"
         this.throwSCORMError("api", result.errorCode ?? 0);
+        returnValue = global_constants.SCORM_FALSE;
       } else {
+        // Only transition to Terminated state after successful storeData
+        // Per SCORM 2004 3rd Edition RTE Section 3.1.3.2
+        this.currentState = global_constants.STATE_TERMINATED;
         // Only clear error if there was no error
         if (checkTerminated) this.lastErrorCode = "0";
+        returnValue = result?.result ?? global_constants.SCORM_TRUE;
       }
-      returnValue = result?.result ?? global_constants.SCORM_FALSE;
 
       this.processListeners(callbackName);
     }
@@ -831,17 +841,22 @@ export default abstract class BaseAPI implements IBaseAPI {
   commit(callbackName: string, checkTerminated: boolean = false): string {
     this.clearScheduledCommit();
 
-    // Per SCORM spec: return "true" when called before init (with error code set)
-    // But return "false" when called after termination (with error code set)
+    // Per SCORM 2004 3rd Edition RTE Section 3.1.4.3:
+    // Return "false" for all error conditions (142, 143, 391, 201)
     let returnValue = global_constants.SCORM_TRUE;
 
     // Check if not initialized first
     if (this.isNotInitialized()) {
-      this.throwSCORMError("api", this._error_codes.COMMIT_BEFORE_INIT ?? 0);
-      // Return "true" but with error code set per SCORM spec
+      const errorCode = this._error_codes.COMMIT_BEFORE_INIT ?? 0;
+      this.throwSCORMError("api", errorCode);
+      // Per SCORM 2004 3rd Ed RTE 3.1.4.3: return "false" for error 142
+      // SCORM 1.2 (error 301) returns "true" for error conditions
+      if (errorCode === 142) returnValue = global_constants.SCORM_FALSE;
     } else if (checkTerminated && this.isTerminated()) {
-      this.throwSCORMError("api", this._error_codes.COMMIT_AFTER_TERM ?? 0);
-      returnValue = global_constants.SCORM_FALSE;
+      const errorCode = this._error_codes.COMMIT_AFTER_TERM ?? 0;
+      this.throwSCORMError("api", errorCode);
+      // Per SCORM 2004 3rd Ed RTE 3.1.4.3: return "false" for error 143
+      if (errorCode === 143) returnValue = global_constants.SCORM_FALSE;
     } else {
       const result = this.storeData(false);
       if ((result.errorCode ?? 0) > 0) {
@@ -1010,9 +1025,9 @@ export default abstract class BaseAPI implements IBaseAPI {
   protected _checkForDuplicateId(CMIElement: string, value: string): boolean {
     // Match objectives: cmi.objectives.n.id
     const objectivesMatch = CMIElement.match(/^cmi\.objectives\.(\d+)\.id$/);
-    if (objectivesMatch) {
+    if (objectivesMatch && objectivesMatch[1]) {
       const currentIndex = parseInt(objectivesMatch[1], 10);
-      const cmiObj = (this as StringKeyMap).cmi;
+      const cmiObj = (this as any).cmi;
       if (cmiObj?.objectives?.childArray) {
         for (let i = 0; i < cmiObj.objectives.childArray.length; i++) {
           if (i !== currentIndex && cmiObj.objectives.childArray[i]?.id === value) {
@@ -1025,9 +1040,9 @@ export default abstract class BaseAPI implements IBaseAPI {
 
     // Match interactions: cmi.interactions.n.id
     const interactionsMatch = CMIElement.match(/^cmi\.interactions\.(\d+)\.id$/);
-    if (interactionsMatch) {
+    if (interactionsMatch && interactionsMatch[1]) {
       const currentIndex = parseInt(interactionsMatch[1], 10);
-      const cmiObj = (this as StringKeyMap).cmi;
+      const cmiObj = (this as any).cmi;
       if (cmiObj?.interactions?.childArray) {
         for (let i = 0; i < cmiObj.interactions.childArray.length; i++) {
           if (i !== currentIndex && cmiObj.interactions.childArray[i]?.id === value) {
@@ -1042,10 +1057,14 @@ export default abstract class BaseAPI implements IBaseAPI {
     const interactionObjectivesMatch = CMIElement.match(
       /^cmi\.interactions\.(\d+)\.objectives\.(\d+)\.id$/,
     );
-    if (interactionObjectivesMatch) {
+    if (
+      interactionObjectivesMatch &&
+      interactionObjectivesMatch[1] &&
+      interactionObjectivesMatch[2]
+    ) {
       const interactionIndex = parseInt(interactionObjectivesMatch[1], 10);
       const currentObjIndex = parseInt(interactionObjectivesMatch[2], 10);
-      const cmiObj = (this as StringKeyMap).cmi;
+      const cmiObj = (this as any).cmi;
       const interaction = cmiObj?.interactions?.childArray?.[interactionIndex];
       if (interaction?.objectives?.childArray) {
         for (let i = 0; i < interaction.objectives.childArray.length; i++) {
@@ -1231,6 +1250,11 @@ export default abstract class BaseAPI implements IBaseAPI {
                 );
                 break;
               }
+
+              // Note: SCORM 2004 3rd Edition specifies SPM limits for arrays
+              // (objectives: 100, interactions: 250, comments: 250)
+              // We intentionally do NOT enforce these limits to maximize
+              // content compatibility. Real-world content may exceed these limits.
 
               const newChild = this.getChildElement(CMIElement, value, foundFirstIndex);
               foundFirstIndex = true;

@@ -144,8 +144,8 @@ describe("ADL Classes", () => {
       // Set a valid store first
       adlDataObject.store = "data_store";
 
-      // Try to set an invalid store (too long)
-      const longStore = "a".repeat(4001);
+      // Try to set an invalid store (too long - exceeds 64000 char SPM per SCORM 2004 4th Ed)
+      const longStore = "a".repeat(64001);
       try {
         adlDataObject.store = longStore;
       } catch (e) {

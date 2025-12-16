@@ -777,6 +777,11 @@ class Scorm2004API extends BaseAPI {
     }
 
     if (stringMatches(CMIElement, "adl\\.data\\.\\d+")) {
+      // Note: SCORM 2004 4th Edition adl.data extension
+      // Per strict spec, adl.data elements should be LMS-created and
+      // SCOs should only access indices < _count. However, we intentionally
+      // allow dynamic creation for backward compatibility with content that
+      // creates adl.data elements on-the-fly.
       return new ADLDataObject();
     }
 
