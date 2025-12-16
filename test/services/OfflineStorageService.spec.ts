@@ -488,10 +488,10 @@ describe("OfflineStorageService Tests", () => {
       // Verify fetch was not called for this item
       expect(fetch).not.toHaveBeenCalled();
 
-      // Verify warning log about skipping
+      // Verify warning log about removing abandoned item
       expect(apiLog).toHaveBeenCalledWith(
         "OfflineStorageService",
-        expect.stringContaining("Skipping item"),
+        expect.stringContaining("Removing abandoned item"),
         LogLevelEnum.WARN,
       );
     });
@@ -525,10 +525,54 @@ describe("OfflineStorageService Tests", () => {
       // Verify fetch was NOT called because item is at max attempts
       expect(fetch).not.toHaveBeenCalled();
 
-      // Verify warning log about skipping
+      // Verify warning log about removing abandoned item
       expect(apiLog).toHaveBeenCalledWith(
         "OfflineStorageService",
-        expect.stringContaining("Skipping item"),
+        expect.stringContaining("Removing abandoned item"),
+        LogLevelEnum.WARN,
+      );
+    });
+
+    it("should remove items that exceed max sync attempts from the queue", async () => {
+      const service = createService();
+      const courseId = "course123";
+
+      // Create a queue with an item that has exceeded max attempts
+      const abandonedItem = {
+        id: `${courseId}_abandoned_test`,
+        courseId,
+        timestamp: Date.now() - 100000,
+        data: createSampleCommitObject(),
+        syncAttempts: 5, // At default max
+      };
+
+      const validItem = {
+        id: `${courseId}_valid_test`,
+        courseId,
+        timestamp: Date.now(),
+        data: createSampleCommitObject(),
+        syncAttempts: 0,
+      };
+
+      localStorageMock.getItem.mockReturnValueOnce(JSON.stringify([abandonedItem, validItem]));
+
+      // Perform sync
+      await service.syncOfflineData();
+
+      // Verify queue was updated - abandoned item should be REMOVED, not kept
+      const setItemCalls = localStorageMock.setItem.mock.calls;
+      const queueUpdateCall = setItemCalls.find((call) => call[0] === "scorm_again_sync_queue");
+
+      expect(queueUpdateCall).toBeDefined();
+      const updatedQueue = JSON.parse(queueUpdateCall![1]);
+
+      // Should not contain the abandoned item
+      expect(updatedQueue.find((item: any) => item.id === abandonedItem.id)).toBeUndefined();
+
+      // Verify warning log about removing abandoned item
+      expect(apiLog).toHaveBeenCalledWith(
+        "OfflineStorageService",
+        expect.stringContaining("Removing abandoned item"),
         LogLevelEnum.WARN,
       );
     });
