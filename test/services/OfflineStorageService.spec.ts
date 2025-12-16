@@ -211,6 +211,31 @@ describe("OfflineStorageService Tests", () => {
         LogLevelEnum.ERROR,
       );
     });
+
+    it("should handle QuotaExceededError gracefully", async () => {
+      const service = createService();
+      const commitData = createSampleCommitObject();
+      const courseId = "course123";
+
+      // Simulate QuotaExceededError
+      const quotaError = new DOMException("Quota exceeded", "QuotaExceededError");
+      localStorageMock.setItem.mockImplementationOnce(() => {
+        throw quotaError;
+      });
+
+      const result = await service.storeOffline(courseId, commitData);
+
+      // Verify result indicates failure with specific error code
+      expect(result.result).toBe(global_constants.SCORM_FALSE);
+      expect(result.errorCode).toBe(errorCodes.GENERAL);
+
+      // Verify specific error was logged mentioning quota
+      expect(apiLog).toHaveBeenCalledWith(
+        "OfflineStorageService",
+        expect.stringContaining("storage quota"),
+        LogLevelEnum.ERROR,
+      );
+    });
   });
 
   describe("getOfflineData", () => {
