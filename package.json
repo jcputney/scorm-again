@@ -1,7 +1,7 @@
 {
   "name": "scorm-again",
   "version": "3.0.0-alpha.1",
-  "description": "A modern SCORM JavaScript run-time library for AICC, SCORM 1.2, and SCORM 2004",
+  "description": "A modern SCORM JavaScript run-time library for SCORM 1.2 and SCORM 2004",
   "main": "dist/scorm-again.js",
   "types": "index.d.ts",
   "module": "dist/esm/scorm-again.js",
@@ -12,18 +12,6 @@
       "import": "./dist/esm/scorm-again.js",
       "require": "./dist/scorm-again.js",
       "default": "./dist/scorm-again.js"
-    },
-    "./aicc": {
-      "types": "./dist/types/AICC.d.ts",
-      "import": "./dist/esm/aicc.js",
-      "require": "./dist/aicc.js",
-      "default": "./dist/aicc.js"
-    },
-    "./aicc/min": {
-      "types": "./dist/types/AICC.d.ts",
-      "import": "./dist/esm/aicc.min.js",
-      "require": "./dist/aicc.min.js",
-      "default": "./dist/aicc.min.js"
     },
     "./scorm12": {
       "types": "./dist/types/Scorm12API.d.ts",
@@ -196,7 +184,6 @@
   },
   "keywords": [
     "scorm",
-    "aicc",
     "cmi"
   ],
   "author": "Jonathan Putney <jonathan@putney.io>",

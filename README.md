@@ -10,7 +10,7 @@
 # scorm-again
 
 This project was created to modernize the SCORM JavaScript runtime, and to provide a stable, tested
-platform for running AICC, SCORM 1.2, and SCORM 2004 modules. This module is designed to be LMS
+platform for running SCORM 1.2 and SCORM 2004 modules. This module is designed to be LMS
 agnostic, and is written to be able to be run without a backing LMS, logging all function calls and
 data instead of committing, if an LMS endpoint is not configured.
 
@@ -52,11 +52,10 @@ const api = new Scorm12API({
 ## What is this not and what doesn't it do?
 
 1. This is not an LMS
-1. This does not handle the uploading and verification of SCORM/AICC modules (if you need a way to
+1. This does not handle the uploading and verification of SCORM modules (if you need a way to
    verify and parse modules, I have written a library in Java that can be used to
    extract the manifest and other
    metadata: [jcputney/elearning-module-parser](https://github.com/jcputney/elearning-module-parser))
-1. This library does not setup communication between an external AICC module and an LMS.
 
 ## Cross-Frame Communication
 
@@ -195,7 +194,6 @@ our [offline support documentation](docs/offline_support.md).
 ### API Usage Documentation
 
 - **API Examples**
-   - [AICC API Examples](docs/api_usage/examples/aicc_examples.md)
    - [SCORM 1.2 API Examples](docs/api_usage/examples/scorm12_examples.md)
    - [SCORM 2004 API Examples](docs/api_usage/examples/scorm2004_examples.md)
 - [Common Use Cases](docs/api_usage/use_cases/common_use_cases.md)
@@ -253,7 +251,7 @@ launching page:
 <script type="text/javascript" src="/dist/scorm-again.js"></script>
 ```
 
-Or, if you would like to only pull in one API, you include either the `aicc.js`, `scorm12.js` or
+Or, if you would like to only pull in one API, you include either the `scorm12.js` or
 `scorm2004.js` files or their minified versions on your launching page:
 
 ```html
@@ -277,10 +275,9 @@ yarn add scorm-again
 
 ```javascript
 // Full library
-const {AICC, Scorm12API, Scorm2004API} = require('scorm-again');
+const {Scorm12API, Scorm2004API} = require('scorm-again');
 
 // Individual APIs
-const {AICC} = require('scorm-again/aicc');
 const {Scorm12API} = require('scorm-again/scorm12');
 const {Scorm2004API} = require('scorm-again/scorm2004');
 ```
@@ -290,7 +287,7 @@ const {Scorm2004API} = require('scorm-again/scorm2004');
 TypeScript types are included with the package:
 
 ```typescript
-import {AICC, Scorm12API, Scorm2004API} from 'scorm-again';
+import {Scorm12API, Scorm2004API} from 'scorm-again';
 import {Settings} from 'scorm-again'; // Import types
 
 // Create an instance with typed settings
@@ -312,9 +309,6 @@ const settings = {
    autocommit: true,
    lmsCommitUrl: 'https://your-lms.com/commit'
 };
-
-// AICC
-window.API = new AICC(settings);
 
 // SCORM 1.2
 window.API = new Scorm12API(settings);
@@ -643,8 +637,7 @@ The APIs provide a convenience method `getCurrentTotalTime()` that can be used f
 current `total_time`
 value, based on the current `session_time` and the `total_time` supplied when the module was
 launched. This works for
-both ISO 8601 duration time formats in SCORM 2004 as well as the HH:MM:SS format in SCORM 1.2 and
-AICC, and outputs the
+both ISO 8601 duration time formats in SCORM 2004 as well as the HH:MM:SS format in SCORM 1.2, and outputs the
 correct format based on the version used.
 
 ### Completion Status
@@ -767,10 +760,10 @@ See the [Sequencing Configuration documentation](docs/sequencing_configuration.m
 scorm-again is designed with a modular architecture that separates concerns and promotes
 maintainability:
 
-- **Core APIs**: Separate implementations for AICC, SCORM 1.2, and SCORM 2004
+- **Core APIs**: Separate implementations for SCORM 1.2 and SCORM 2004
 - **Service Layer**: Modular services for HTTP communication, validation, logging, and data
   serialization
-- **CMI Data Models**: Structured data models for each SCORM/AICC version
+- **CMI Data Models**: Structured data models for each SCORM version
 - **Event System**: Comprehensive event listeners for tracking API interactions
 
 The project follows object-oriented principles with TypeScript, emphasizing type safety and clear
@@ -797,7 +790,7 @@ scorm-again is compatible with:
 - **Browsers**: All modern browsers (Chrome, Firefox, Safari, Edge)
 - **IE11**: Requires a fetch polyfill
 - **Node.js**: For server-side processing or testing
-- **LMS Systems**: Compatible with any LMS that supports AICC, SCORM 1.2, or SCORM 2004
+- **LMS Systems**: Compatible with any LMS that supports SCORM 1.2 or SCORM 2004
 
 ## Security Considerations
 
@@ -812,7 +805,7 @@ When implementing scorm-again, consider these security best practices:
 
 For optimal performance:
 
-- Use the specific API version you need (aicc.js, scorm12.js, or scorm2004.js) instead of the full
+- Use the specific API version you need (scorm12.js or scorm2004.js) instead of the full
   library
 - Use the minified versions of the bundles (*.min.js) for production environments
 - Import only the specific standard you need to reduce bundle size:

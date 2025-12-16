@@ -1,7 +1,6 @@
 import { describe, expect, it, beforeEach } from "vitest";
 import Scorm12API from "../../src/Scorm12API";
 import Scorm2004API from "../../src/Scorm2004API";
-import AICC from "../../src/AICC";
 import { LogLevelEnum } from "../../src/constants/enums";
 import { scorm12_errors, scorm2004_errors } from "../../src/constants/error_codes";
 
@@ -219,64 +218,6 @@ describe("SCORM 2004 Argument Validation", () => {
       const result = scorm2004API.Commit("\n");
       expect(result).toBe("false");
       expect(scorm2004API.GetLastError()).toBe(String(scorm2004_errors.ARGUMENT_ERROR));
-    });
-  });
-});
-
-describe("AICC Argument Validation (inherits from SCORM 1.2)", () => {
-  let aiccAPI: AICC;
-
-  beforeEach(() => {
-    aiccAPI = new AICC({ logLevel: LogLevelEnum.NONE });
-  });
-
-  describe("LMSInitialize argument validation", () => {
-    it("should succeed when called with empty string", () => {
-      const result = aiccAPI.LMSInitialize("");
-      expect(result).toBe("true");
-      expect(aiccAPI.LMSGetLastError()).toBe("0");
-    });
-
-    it("should fail with error 201 when called with non-empty string", () => {
-      const result = aiccAPI.LMSInitialize("invalid");
-      expect(result).toBe("false");
-      expect(aiccAPI.LMSGetLastError()).toBe(String(scorm12_errors.ARGUMENT_ERROR));
-    });
-  });
-
-  describe("LMSFinish argument validation", () => {
-    beforeEach(() => {
-      aiccAPI.LMSInitialize("");
-    });
-
-    it("should succeed when called with empty string", () => {
-      const result = aiccAPI.LMSFinish("");
-      expect(result).toBe("true");
-      expect(aiccAPI.LMSGetLastError()).toBe("0");
-    });
-
-    it("should fail with error 201 when called with non-empty string", () => {
-      const result = aiccAPI.LMSFinish("invalid");
-      expect(result).toBe("false");
-      expect(aiccAPI.LMSGetLastError()).toBe(String(scorm12_errors.ARGUMENT_ERROR));
-    });
-  });
-
-  describe("LMSCommit argument validation", () => {
-    beforeEach(() => {
-      aiccAPI.LMSInitialize("");
-    });
-
-    it("should succeed when called with empty string", () => {
-      const result = aiccAPI.LMSCommit("");
-      expect(result).toBe("true");
-      expect(aiccAPI.LMSGetLastError()).toBe("0");
-    });
-
-    it("should fail with error 201 when called with non-empty string", () => {
-      const result = aiccAPI.LMSCommit("invalid");
-      expect(result).toBe("false");
-      expect(aiccAPI.LMSGetLastError()).toBe(String(scorm12_errors.ARGUMENT_ERROR));
     });
   });
 });
