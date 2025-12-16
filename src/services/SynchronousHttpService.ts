@@ -68,7 +68,7 @@ export class SynchronousHttpService implements IHttpService {
 
     return {
       result: beaconSuccess ? "true" : "false",
-      errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL || 101,
+      errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391,
     };
   }
 
@@ -110,7 +110,7 @@ export class SynchronousHttpService implements IHttpService {
       const message = e instanceof Error ? e.message : String(e);
       return {
         result: global_constants.SCORM_FALSE,
-        errorCode: this.error_codes.GENERAL || 101,
+        errorCode: this.error_codes.GENERAL_COMMIT_FAILURE || 391,
         errorMessage: message,
       };
     }

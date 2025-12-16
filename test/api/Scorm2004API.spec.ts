@@ -1369,6 +1369,94 @@ describe("SCORM 2004 API Tests", () => {
     });
   });
 
+  describe("completion_status and success_status Evaluation", () => {
+    it("should evaluate completion_status during Terminate when threshold defined", () => {
+      const scorm2004API = api();
+      scorm2004API.cmi.mode = "normal";
+      scorm2004API.cmi.credit = "credit";
+      scorm2004API.cmi.completion_threshold = "0.7";
+      scorm2004API.lmsInitialize();
+
+      // Set progress_measure that meets threshold
+      scorm2004API.lmsSetValue("cmi.progress_measure", "0.8");
+
+      // GetValue should reflect the current value (which may vary by implementation)
+      const completionStatus = scorm2004API.lmsGetValue("cmi.completion_status");
+      // Implementation may evaluate immediately or during Terminate
+      expect(["unknown", "completed"]).toContain(completionStatus);
+
+      // After Terminate, it should be evaluated
+      scorm2004API.lmsFinish();
+      // Note: Can't call GetValue after Terminate, so we verify the internal state was set
+      expect(scorm2004API.cmi.completion_status).toBe("completed");
+    });
+
+    it("should return LMS-evaluated value over SCO-set value for completion_status", () => {
+      const scorm2004API = api();
+      scorm2004API.cmi.mode = "normal";
+      scorm2004API.cmi.credit = "credit";
+      scorm2004API.cmi.completion_threshold = "0.7";
+      scorm2004API.lmsInitialize();
+
+      // SCO sets completion_status to incomplete
+      scorm2004API.lmsSetValue("cmi.completion_status", "incomplete");
+      const currentStatus = scorm2004API.lmsGetValue("cmi.completion_status");
+      // Status may be evaluated immediately or stay as set
+      expect(["incomplete", "unknown"]).toContain(currentStatus);
+
+      // SCO sets progress_measure above threshold
+      scorm2004API.lmsSetValue("cmi.progress_measure", "0.9");
+
+      // After Terminate, LMS evaluation should override SCO value
+      scorm2004API.lmsFinish();
+      expect(scorm2004API.cmi.completion_status).toBe("completed");
+    });
+
+    it("should evaluate success_status on GetValue when scaled_passing_score defined", () => {
+      const scorm2004API = api();
+      // Set LMS-provided values before initialization
+      scorm2004API.cmi.mode = "normal";
+      scorm2004API.cmi.credit = "credit";
+      scorm2004API.cmi.scaled_passing_score = "0.7";
+      scorm2004API.lmsInitialize();
+
+      // Set score that meets passing score after initialization
+      scorm2004API.lmsSetValue("cmi.score.scaled", "0.8");
+
+      // GetValue should reflect the current status before evaluation
+      const successStatus = scorm2004API.lmsGetValue("cmi.success_status");
+      // Note: Some implementations may evaluate immediately, others during Terminate
+      // Just verify it's a valid value
+      expect(["unknown", "passed"]).toContain(successStatus);
+
+      // After Terminate, it should be evaluated
+      scorm2004API.lmsFinish();
+      expect(scorm2004API.cmi.success_status).toBe("passed");
+    });
+
+    it("should return LMS-evaluated value over SCO-set value for success_status", () => {
+      const scorm2004API = api();
+      // Set LMS-provided values before initialization
+      scorm2004API.cmi.mode = "normal";
+      scorm2004API.cmi.credit = "credit";
+      scorm2004API.cmi.scaled_passing_score = "0.7";
+      scorm2004API.lmsInitialize();
+
+      // SCO sets success_status to failed after initialization
+      scorm2004API.lmsSetValue("cmi.success_status", "failed");
+      const currentStatus = scorm2004API.lmsGetValue("cmi.success_status");
+      // Status may be evaluated immediately or stay as set
+      expect(["failed", "unknown"]).toContain(currentStatus);
+
+      // SCO sets score above passing score
+      scorm2004API.lmsSetValue("cmi.score.scaled", "0.85");
+
+      // After Terminate, LMS evaluation should override SCO value
+      scorm2004API.lmsFinish();
+      expect(scorm2004API.cmi.success_status).toBe("passed");
+    });
+  });
+
   describe("Event Handlers", () => {
     it("Should handle SetValue.cmi.learner_id event", () => {
       const scorm2004API = apiInitialized();
@@ -1539,6 +1627,151 @@ describe("SCORM 2004 API Tests", () => {
       await vi.runAllTimersAsync();
 
       expect(callback).toHaveBeenCalled();
+    });
+  });
+
+  // SCORM 2004 4th Edition Compliance Tests - Additional Coverage
+  describe("SCORM 2004 4th Edition Compliance Tests", () => {
+    // REQ-COMMIT-011/012: Cache preservation after commit
+    describe("Commit cache preservation", () => {
+      it("should preserve cache after commit (REQ-COMMIT-011/012)", () => {
+        const scorm2004API = api();
+        scorm2004API.lmsInitialize();
+        scorm2004API.lmsSetValue("cmi.suspend_data", "test_checkpoint_data");
+        scorm2004API.lmsCommit();
+        expect(scorm2004API.lmsGetValue("cmi.suspend_data")).toBe("test_checkpoint_data");
+      });
+
+      it("should preserve multiple values after commit", () => {
+        const scorm2004API = api();
+        scorm2004API.lmsInitialize();
+        scorm2004API.lmsSetValue("cmi.suspend_data", "checkpoint1");
+        scorm2004API.lmsSetValue("cmi.location", "page5");
+        scorm2004API.lmsSetValue("cmi.score.raw", "85");
+        scorm2004API.lmsCommit();
+        expect(scorm2004API.lmsGetValue("cmi.suspend_data")).toBe("checkpoint1");
+        expect(scorm2004API.lmsGetValue("cmi.location")).toBe("page5");
+        expect(scorm2004API.lmsGetValue("cmi.score.raw")).toBe("85");
+      });
+    });
+
+    // REQ-GD-006: GetDiagnostic state independence
+    describe("GetDiagnostic state independence", () => {
+      it("should work in Not Initialized state (REQ-GD-006)", () => {
+        const scorm2004API = api();
+        // Do not call Initialize
+        const diagnostic = scorm2004API.lmsGetDiagnostic("101");
+        expect(diagnostic.length).toBeGreaterThan(0);
+        expect(scorm2004API.lmsGetLastError()).toEqual("0");
+      });
+
+      it("should work in Terminated state (REQ-GD-008)", () => {
+        const scorm2004API = api();
+        scorm2004API.lmsInitialize();
+        scorm2004API.lmsFinish();
+        const diagnostic = scorm2004API.lmsGetDiagnostic("101");
+        expect(diagnostic.length).toBeGreaterThan(0);
+      });
+
+      it("should not change current error state (REQ-GD-010)", () => {
+        const scorm2004API = api();
+        scorm2004API.lmsInitialize();
+        scorm2004API.lmsGetValue("cmi.invalid_element");
+        const originalError = scorm2004API.lmsGetLastError();
+        expect(originalError).not.toEqual("0");
+        scorm2004API.lmsGetDiagnostic("101");
+        expect(scorm2004API.lmsGetLastError()).toEqual(originalError);
+      });
+    });
+
+    // REQ-GD-003: GetDiagnostic truncation
+    describe("GetDiagnostic truncation", () => {
+      it("should truncate diagnostic strings longer than 255 characters (REQ-GD-003)", () => {
+        const scorm2004API = api();
+        const longMessage = "A".repeat(300);
+        vi.spyOn(scorm2004API, "getLmsErrorMessageDetails").mockReturnValue(longMessage);
+        const diagnostic = scorm2004API.lmsGetDiagnostic("101");
+        expect(diagnostic.length).toBeLessThanOrEqual(255);
+      });
+    });
+
+    // REQ-GES-007: GetErrorString for all standard error codes
+    describe("GetErrorString for all standard error codes (REQ-GES-007)", () => {
+      const standardErrorCodes = [
+        "0",
+        "101",
+        "102",
+        "103",
+        "104",
+        "111",
+        "112",
+        "113",
+        "122",
+        "123",
+        "132",
+        "133",
+        "142",
+        "143",
+        "201",
+        "301",
+        "351",
+        "391",
+        "401",
+        "402",
+        "403",
+        "404",
+        "405",
+        "406",
+        "407",
+        "408",
+      ];
+
+      standardErrorCodes.forEach((code) => {
+        it(`should return non-empty string for error code ${code}`, () => {
+          const scorm2004API = api();
+          const errorString = scorm2004API.lmsGetErrorString(code);
+          expect(errorString.length).toBeGreaterThan(0);
+        });
+      });
+    });
+
+    // REQ-GES-008/009/010/011: GetErrorString state independence
+    describe("GetErrorString state independence", () => {
+      it("should work in Not Initialized state (REQ-GES-009)", () => {
+        const scorm2004API = api();
+        const errorString = scorm2004API.lmsGetErrorString("101");
+        expect(errorString).toBe("General Exception");
+      });
+
+      it("should work in Terminated state (REQ-GES-011)", () => {
+        const scorm2004API = api();
+        scorm2004API.lmsInitialize();
+        scorm2004API.lmsFinish();
+        const errorString = scorm2004API.lmsGetErrorString("101");
+        expect(errorString).toBe("General Exception");
+      });
+
+      it("should not change current error state (REQ-GES-008)", () => {
+        const scorm2004API = api();
+        scorm2004API.lmsInitialize();
+        scorm2004API.lmsGetValue("cmi.invalid_element");
+        const originalError = scorm2004API.lmsGetLastError();
+        expect(originalError).not.toEqual("0");
+        scorm2004API.lmsGetErrorString("201");
+        expect(scorm2004API.lmsGetLastError()).toEqual(originalError);
+      });
+    });
+
+    // selfReportSessionTime setting
+    describe("selfReportSessionTime setting", () => {
+      it("should allow setting session_time when selfReportSessionTime is true", () => {
+        const scorm2004API = api({ selfReportSessionTime: true });
+        scorm2004API.lmsInitialize();
+        // cmi.session_time is write-only per SCORM 2004 spec
+        const result = scorm2004API.lmsSetValue("cmi.session_time", "PT1H30M0S");
+        expect(result).toBe("true");
+        expect(scorm2004API.lmsGetLastError()).toBe("0");
+      });
     });
   });
 });
