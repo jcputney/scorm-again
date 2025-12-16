@@ -442,3 +442,237 @@ On `Terminate()`/`LMSFinish()`:
 - **Fire-and-forget**: No response expected
 - **Survives page close**: Ensures data is sent
 - Make endpoint idempotent (may receive duplicates)
+
+---
+
+## Complete Settings Reference
+
+### Core Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `lmsCommitUrl` | `string \| boolean` | `false` | URL for commit endpoint. Set to `false` to disable commits. |
+| `autocommit` | `boolean` | `false` | Automatically commit after SetValue calls |
+| `autocommitSeconds` | `number` | `10` | Seconds between auto-commits when enabled |
+| `sendFullCommit` | `boolean` | `true` | Send all CMI data on commit vs only changed values |
+| `dataCommitFormat` | `string` | `"json"` | Format: `"json"`, `"flattened"`, or `"params"` |
+| `commitRequestDataType` | `string` | `"application/json;charset=UTF-8"` | Content-Type header for commits |
+| `autoProgress` | `boolean` | `false` | Auto-advance through SCOs (SCORM 2004) |
+| `logLevel` | `LogLevel` | `4` (ERROR) | Logging verbosity: 1=DEBUG, 2=INFO, 3=WARN, 4=ERROR, 5=NONE |
+| `strict_errors` | `boolean` | `true` | Strictly validate per SCORM spec |
+
+### HTTP Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `xhrHeaders` | `object` | `{}` | Custom headers for XHR requests |
+| `xhrWithCredentials` | `boolean` | `false` | Include cookies in cross-origin requests |
+| `fetchMode` | `string` | `"cors"` | Fetch mode: `"cors"`, `"no-cors"`, `"same-origin"`, `"navigate"` |
+| `useBeaconInsteadOfFetch` | `string` | `"never"` | Use sendBeacon: `"always"`, `"on-terminate"`, `"never"` |
+| `useAsynchronousCommits` | `boolean` | `false` | Use async HTTP (not SCORM-compliant) |
+| `throttleCommits` | `boolean` | `false` | Throttle rapid commits (only with async) |
+| `httpService` | `IHttpService \| null` | `null` | Custom HTTP service implementation |
+
+### Request/Response Handlers
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `requestHandler` | `function` | identity | Transform commit data before sending |
+| `responseHandler` | `function` | JSON parser | Handle fetch Response objects |
+| `xhrResponseHandler` | `function` | JSON parser | Handle XHR responses |
+| `onLogMessage` | `function` | console methods | Custom log handler |
+
+### Status Calculation Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `mastery_override` | `boolean` | `false` | Override status based on mastery score |
+| `score_overrides_status` | `boolean` | `false` | Score determines pass/fail automatically |
+| `completion_status_on_failed` | `string` | `"completed"` | Completion status when failed: `"completed"` or `"incomplete"` |
+| `autoCompleteLessonStatus` | `boolean` | `false` | Auto-complete lesson_status on finish |
+| `selfReportSessionTime` | `boolean` | `false` | Allow content to set session_time directly |
+| `alwaysSendTotalTime` | `boolean` | `false` | Always include total_time in commits |
+
+### Offline Support Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `enableOfflineSupport` | `boolean` | `false` | Enable offline data storage |
+| `courseId` | `string` | `""` | Course identifier for offline storage |
+| `syncOnInitialize` | `boolean` | `true` | Sync offline data on Initialize |
+| `syncOnTerminate` | `boolean` | `true` | Sync offline data on Terminate |
+| `maxSyncAttempts` | `number` | `5` | Maximum sync retry attempts |
+
+### Multi-SCO Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `scoId` | `string` | `""` | SCO identifier for multi-SCO courses |
+| `scoItemIds` | `string[]` | `[]` | Valid SCO item IDs for navigation validation |
+| `scoItemIdValidator` | `function \| false` | `false` | Custom SCO ID validator, or `false` to disable |
+| `globalObjectiveIds` | `string[]` | `[]` | Global objective IDs shared across SCOs |
+| `globalStudentPreferences` | `boolean` | `false` | Share learner preferences across SCOs |
+
+### Commit Metadata Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `renderCommonCommitFields` | `boolean` | `false` | Add summary fields to commit (successStatus, completionStatus, etc.) |
+| `autoPopulateCommitMetadata` | `boolean` | `false` | Add courseId, scoId, learnerId, sessionId, commitId to commits |
+
+### Sequencing Settings (SCORM 2004)
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `sequencing` | `SequencingSettings` | `undefined` | Full sequencing configuration object |
+| `sequencingStatePersistence` | `object` | `undefined` | State persistence callbacks and options |
+
+#### Sequencing State Persistence Config
+
+```javascript
+{
+  persistence: {
+    saveState: async (stateData, metadata) => { /* save to DB */ return true; },
+    loadState: async (metadata) => { /* load from DB */ return stateString; },
+    clearState: async (metadata) => { /* delete from DB */ return true; }
+  },
+  autoSaveOn: "commit",    // "commit" | "setValue" | "navigate" | "never"
+  compress: true,          // Compress state data
+  maxStateSize: 51200,     // Max 50KB
+  stateVersion: "1.0",     // Version for compatibility
+  debugPersistence: false  // Log persistence operations
+}
+```
+
+---
+
+## Interaction Response Formats
+
+Each interaction type has specific format requirements for `learner_response` and `correct_responses`.
+
+### Format Reference
+
+| Type | learner_response Example | correct_responses Example | Notes |
+|------|-------------------------|--------------------------|-------|
+| `true-false` | `"true"` or `"false"` | `"true"` | Single response only |
+| `choice` | `"a[,]b[,]c"` | `"a[,]b"` | Delimiter: `[,]` |
+| `fill-in` | `"answer text"` | `"{case_matters=false}answer"` | Optional case flag |
+| `long-fill-in` | `"long answer..."` | `"{case_matters=false}expected"` | Same as fill-in |
+| `matching` | `"a[.]1[,]b[.]2"` | `"a[.]1[,]b[.]2"` | Source[.]target pairs |
+| `performance` | `"step1[,]step2"` | `"step1[.]result[,]..."` | Step[.]result pairs |
+| `sequencing` | `"a[,]b[,]c"` | `"a[,]b[,]c"` | Order matters |
+| `likert` | `"strongly_agree"` | `"strongly_agree"` | Single value |
+| `numeric` | `"42.5"` | `"40[:]50"` | Range with `[:]` |
+| `other` | any string | any string | No validation |
+
+### Delimiters
+
+| Delimiter | Usage |
+|-----------|-------|
+| `[,]` | Separate multiple items |
+| `[.]` | Separate pairs (matching, performance) |
+| `[:]` | Define ranges (numeric) |
+| `{case_matters=true}` | Case-sensitive matching |
+| `{order_matters=true}` | Order-sensitive matching |
+
+---
+
+## Objectives Constraints
+
+### Initialization Order
+
+**Critical:** Set the `id` property BEFORE any other objective properties.
+
+```javascript
+// CORRECT
+api.SetValue("cmi.objectives.0.id", "obj_1");
+api.SetValue("cmi.objectives.0.score.raw", "85");
+
+// WRONG - will cause Error 408
+api.SetValue("cmi.objectives.0.score.raw", "85");  // Error! ID not set
+api.SetValue("cmi.objectives.0.id", "obj_1");
+```
+
+### Sequential Indexing
+
+Objectives must be created sequentially (0, 1, 2...). You cannot skip indices.
+
+```javascript
+// CORRECT
+api.SetValue("cmi.objectives.0.id", "obj_1");
+api.SetValue("cmi.objectives.1.id", "obj_2");
+
+// WRONG - index 2 without index 1
+api.SetValue("cmi.objectives.0.id", "obj_1");
+api.SetValue("cmi.objectives.2.id", "obj_3");  // Error!
+```
+
+### Status Vocabulary
+
+Valid values for `cmi.objectives.n.success_status`:
+- `"passed"`
+- `"failed"`
+- `"unknown"`
+
+Valid values for `cmi.objectives.n.completion_status`:
+- `"completed"`
+- `"incomplete"`
+- `"not attempted"`
+- `"unknown"`
+
+### SCORM 1.2 Objective Status
+
+Valid values for `cmi.objectives.n.status`:
+- `"passed"`
+- `"completed"`
+- `"failed"`
+- `"incomplete"`
+- `"browsed"`
+- `"not attempted"`
+
+---
+
+## Field Size Limits
+
+scorm-again is intentionally lenient with field sizes. These are the **actual enforced limits**:
+
+| Field | Spec Limit | scorm-again Limit | Notes |
+|-------|-----------|-------------------|-------|
+| `cmi.suspend_data` | 4096 (1.2) / 64000 (2004) | No limit enforced | Store as much as needed |
+| `cmi.location` | 255 (1.2) / 1000 (2004) | No limit enforced | |
+| `cmi.comments` | 4096 | No limit enforced | |
+| `cmi.objectives.n.id` | 255 (1.2) / 4000 (2004) | No limit enforced | |
+| `cmi.interactions.n.id` | 255 (1.2) / 4000 (2004) | No limit enforced | |
+
+**Note:** While scorm-again doesn't enforce these limits, your LMS database schema should handle the expected sizes. SCORM 2004 `suspend_data` can legitimately be 64KB.
+
+---
+
+## Time Format Reference
+
+### SCORM 1.2 Time Format (CMITimespan)
+
+Format: `HHHH:MM:SS.SS`
+
+```
+0000:00:00.00  - Zero time
+0001:30:00.00  - 1 hour 30 minutes
+0000:05:30.50  - 5 minutes 30.5 seconds
+```
+
+### SCORM 2004 Time Format (ISO 8601 Duration)
+
+Format: `P[yY][mM][dD]T[hH][mM][sS]`
+
+```
+PT0S           - Zero time
+PT1H30M        - 1 hour 30 minutes
+PT5M30.5S      - 5 minutes 30.5 seconds
+P1DT2H         - 1 day 2 hours
+```
+
+### Conversion
+
+scorm-again handles conversion internally. For commit data:
+- `totalTimeSeconds` is always provided as a number (total seconds)
+- Original format preserved in `cmi.total_time` / `cmi.core.total_time`
