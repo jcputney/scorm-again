@@ -190,13 +190,16 @@ export class OfflineStorageService {
 
       // Process each queue item
       for (const item of syncQueue) {
-        // Skip items that have been attempted too many times
-        if (item.syncAttempts >= (this.settings.maxSyncAttempts ?? 5)) {
+        const maxAttempts = this.settings.maxSyncAttempts ?? 5;
+
+        // Remove items that have exceeded max sync attempts (abandon them)
+        if (item.syncAttempts >= maxAttempts) {
           this.apiLog(
             "OfflineStorageService",
-            `Skipping item ${item.id} after ${this.settings.maxSyncAttempts ?? 5} failed attempts`,
+            `Removing abandoned item ${item.id} after ${maxAttempts} failed sync attempts`,
             LogLevelEnum.WARN,
           );
+          // Don't add to remainingQueue - item is abandoned
           continue;
         }
 
