@@ -1,0 +1,18 @@
+{
+  "name": "scorm-again-player-demos",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Demo implementations of SCORM player wrappers using scorm-again",
+  "scripts": {
+    "start": "npx serve -p 3000",
+    "start:scorm12": "npx serve scorm12-multi-sco -p 3001",
+    "start:2004-simple": "npx serve scorm2004-simple -p 3002",
+    "start:2004-sequenced": "npx serve scorm2004-sequenced -p 3003"
+  },
+  "dependencies": {
+    "scorm-again": "^2.0.0"
+  },
+  "devDependencies": {
+    "serve": "^14.2.0"
+  }
+}
