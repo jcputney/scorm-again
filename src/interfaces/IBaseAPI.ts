@@ -24,7 +24,7 @@ export interface IBaseAPI {
 
   lmsGetDiagnostic(CMIErrorCode: string | number): string;
 
-  storeData(_calculateTotalTime: boolean): ResultObject;
+  storeData(_calculateTotalTime: boolean): Promise<ResultObject>;
 
   renderCommitCMI(_terminateCommit: boolean): StringKeyMap | Array<any>;
 

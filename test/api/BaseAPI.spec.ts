@@ -616,6 +616,42 @@ describe("BaseAPI", () => {
         LogLevelEnum.ERROR,
       );
     });
+
+    it("should wait for storeOffline to complete before returning result", async () => {
+      api.settings = { enableOfflineSupport: true };
+      const url = "https://example.com/lms";
+      const params = { cmi: { core: { student_id: "123" } } };
+
+      // Track when storeOffline completes
+      let storeOfflineCompleted = false;
+
+      // Mock the offline storage service with delayed completion
+      const offlineStorageService = {
+        isDeviceOnline: vi.fn().mockReturnValue(false),
+        storeOffline: vi.fn().mockImplementation(async () => {
+          // Add delay to simulate async operation
+          await new Promise((resolve) => setTimeout(resolve, 50));
+          storeOfflineCompleted = true;
+          return {
+            result: global_constants.SCORM_TRUE,
+            errorCode: 0,
+          };
+        }),
+      };
+
+      // eslint-disable-next-line
+      // @ts-ignore - Assign the mock service
+      api["_offlineStorageService"] = offlineStorageService;
+      api["_courseId"] = "course123";
+
+      // Process request - should wait for storeOffline to complete
+      const result = await api.processHttpRequest(url, params);
+
+      // After processHttpRequest returns, storeOffline should have completed
+      expect(storeOfflineCompleted).toBe(true);
+      expect(result).toEqual({ result: global_constants.SCORM_TRUE, errorCode: 0 });
+      expect(offlineStorageService.storeOffline).toHaveBeenCalledWith("course123", params);
+    });
   });
 
   describe("scheduled commit methods", () => {
@@ -794,25 +830,25 @@ describe("BaseAPI", () => {
     });
 
     // Per SCORM 2004 3rd Ed RTE 3.1.3.2: return "false" for error 112
-    it("should return SCORM_FALSE and throw error when not initialized", () => {
+    it("should return SCORM_FALSE and throw error when not initialized", async () => {
       api.currentState = global_constants.STATE_NOT_INITIALIZED;
       const throwSCORMErrorSpy = vi.spyOn(api, "throwSCORMError");
 
-      const result = api.terminate("Terminate", true);
+      const result = await api.terminate("Terminate", true);
 
       expect(result).toBe(global_constants.SCORM_FALSE);
       expect(throwSCORMErrorSpy).toHaveBeenCalledWith("api", errorCodes.TERMINATION_BEFORE_INIT);
     });
 
-    it("should call storeData with calculateTotalTime=true when checkState returns true", () => {
+    it("should call storeData with calculateTotalTime=true when checkState returns true", async () => {
       api.currentState = global_constants.STATE_INITIALIZED;
-      const storeDataSpy = vi.spyOn(api, "storeData").mockReturnValue({
+      const storeDataSpy = vi.spyOn(api, "storeData").mockResolvedValue({
         result: global_constants.SCORM_TRUE,
         errorCode: 0,
       });
       const processListenersSpy = vi.spyOn(api, "processListeners");
 
-      const result = api.terminate("Terminate", true);
+      const result = await api.terminate("Terminate", true);
 
       expect(result).toBe(global_constants.SCORM_TRUE);
       expect(api.currentState).toBe(global_constants.STATE_TERMINATED);
@@ -820,41 +856,41 @@ describe("BaseAPI", () => {
       expect(processListenersSpy).toHaveBeenCalledWith("Terminate");
     });
 
-    it("should throw SCORM error when storeData returns an error code", () => {
+    it("should throw SCORM error when storeData returns an error code", async () => {
       api.currentState = global_constants.STATE_INITIALIZED;
-      vi.spyOn(api, "storeData").mockReturnValue({
+      vi.spyOn(api, "storeData").mockResolvedValue({
         result: global_constants.SCORM_FALSE,
         errorCode: errorCodes.GENERAL,
       });
       const throwSCORMErrorSpy = vi.spyOn(api, "throwSCORMError");
 
-      const result = api.terminate("Terminate", true);
+      const result = await api.terminate("Terminate", true);
 
       expect(result).toBe(global_constants.SCORM_FALSE); // Returns false from storeData
       expect(throwSCORMErrorSpy).toHaveBeenCalledWith("api", errorCodes.GENERAL);
     });
 
-    it("should reset lastErrorCode when checkTerminated is true", () => {
+    it("should reset lastErrorCode when checkTerminated is true", async () => {
       api.currentState = global_constants.STATE_INITIALIZED;
-      vi.spyOn(api, "storeData").mockReturnValue({
+      vi.spyOn(api, "storeData").mockResolvedValue({
         result: global_constants.SCORM_TRUE,
         errorCode: 0,
       });
 
-      api.terminate("Terminate", true);
+      await api.terminate("Terminate", true);
 
       expect(api.lastErrorCode).toBe("0");
     });
 
-    it("should fire BeforeTerminate event for offline sync", () => {
+    it("should fire BeforeTerminate event for offline sync", async () => {
       api.currentState = global_constants.STATE_INITIALIZED;
-      vi.spyOn(api, "storeData").mockReturnValue({
+      vi.spyOn(api, "storeData").mockResolvedValue({
         result: global_constants.SCORM_TRUE,
         errorCode: 0,
       });
       const processListenersSpy = vi.spyOn(api, "processListeners");
 
-      api.terminate("Terminate", true);
+      await api.terminate("Terminate", true);
 
       // BeforeTerminate event is fired before storeData
       expect(processListenersSpy).toHaveBeenCalledWith("BeforeTerminate");
@@ -990,12 +1026,12 @@ describe("BaseAPI", () => {
     });
 
     // Per SCORM 2004 3rd Ed RTE 3.1.4.3: return "false" for error 142
-    it("should return SCORM_FALSE and throw error when not initialized", () => {
+    it("should return SCORM_FALSE and throw error when not initialized", async () => {
       api.currentState = global_constants.STATE_NOT_INITIALIZED;
       const throwSCORMErrorSpy = vi.spyOn(api, "throwSCORMError");
       const clearScheduledCommitSpy = vi.spyOn(api, "clearScheduledCommit");
 
-      const result = api.commit("Commit", true);
+      const result = await api.commit("Commit", true);
 
       expect(result).toBe(global_constants.SCORM_FALSE);
       expect(throwSCORMErrorSpy).toHaveBeenCalledWith("api", errorCodes.COMMIT_BEFORE_INIT);
@@ -1014,16 +1050,16 @@ describe("BaseAPI", () => {
       expect(clearScheduledCommitSpy).toHaveBeenCalledOnce();
     });
 
-    it("should call storeData and process listeners when initialized", () => {
+    it("should call storeData and process listeners when initialized", async () => {
       api.currentState = global_constants.STATE_INITIALIZED;
-      const storeDataSpy = vi.spyOn(api, "storeData").mockReturnValue({
+      const storeDataSpy = vi.spyOn(api, "storeData").mockResolvedValue({
         result: global_constants.SCORM_TRUE,
         errorCode: 0,
       });
       const processListenersSpy = vi.spyOn(api, "processListeners");
       const clearScheduledCommitSpy = vi.spyOn(api, "clearScheduledCommit");
 
-      const result = api.commit("Commit", true);
+      const result = await api.commit("Commit", true);
 
       expect(result).toBe(global_constants.SCORM_TRUE);
       expect(storeDataSpy).toHaveBeenCalledWith(false);
@@ -1031,28 +1067,28 @@ describe("BaseAPI", () => {
       expect(clearScheduledCommitSpy).toHaveBeenCalledOnce();
     });
 
-    it("should throw SCORM error when storeData returns an error code", () => {
+    it("should throw SCORM error when storeData returns an error code", async () => {
       api.currentState = global_constants.STATE_INITIALIZED;
-      vi.spyOn(api, "storeData").mockReturnValue({
+      vi.spyOn(api, "storeData").mockResolvedValue({
         result: global_constants.SCORM_FALSE,
         errorCode: errorCodes.GENERAL,
       });
       const throwSCORMErrorSpy = vi.spyOn(api, "throwSCORMError");
 
-      const result = api.commit("Commit", true);
+      const result = await api.commit("Commit", true);
 
       expect(result).toBe(global_constants.SCORM_FALSE);
       expect(throwSCORMErrorSpy).toHaveBeenCalledWith("api", errorCodes.GENERAL);
     });
 
-    it("should reset lastErrorCode when checkTerminated is true", () => {
+    it("should reset lastErrorCode when checkTerminated is true", async () => {
       api.currentState = global_constants.STATE_INITIALIZED;
-      vi.spyOn(api, "storeData").mockReturnValue({
+      vi.spyOn(api, "storeData").mockResolvedValue({
         result: global_constants.SCORM_TRUE,
         errorCode: 0,
       });
 
-      api.commit("Commit", true);
+      await api.commit("Commit", true);
 
       expect(api.lastErrorCode).toBe("0");
     });
