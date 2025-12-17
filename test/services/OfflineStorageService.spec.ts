@@ -598,6 +598,46 @@ describe("OfflineStorageService Tests", () => {
         LogLevelEnum.ERROR,
       );
     });
+
+    it("should prevent concurrent sync operations", async () => {
+      const service = createService();
+      const commitData = createSampleCommitObject();
+      const courseId = "course123";
+
+      // Store some data (synchronous - no await)
+      service.storeOffline(courseId, commitData);
+      vi.clearAllMocks();
+
+      // Make fetch slow to simulate long sync
+      (fetch as ReturnType<typeof vi.fn>).mockImplementation(
+        () => new Promise(resolve =>
+          setTimeout(() => resolve({
+            ok: true,
+            status: 200,
+            json: () => Promise.resolve({ result: global_constants.SCORM_TRUE, errorCode: 0 }),
+          } as Response), 100)
+        )
+      );
+
+      // Start first sync (don't await)
+      const sync1Promise = service.syncOfflineData();
+
+      // Immediately try second sync
+      const sync2Result = await service.syncOfflineData();
+
+      // Second sync should return false (blocked by first)
+      expect(sync2Result).toBe(false);
+
+      // Wait for first sync to complete
+      const sync1Result = await sync1Promise;
+      expect(sync1Result).toBe(true);
+
+      // Now a third sync should work (first is done)
+      vi.clearAllMocks();
+      localStorageMock.getItem.mockReturnValueOnce(null); // Empty queue
+      const sync3Result = await service.syncOfflineData();
+      expect(sync3Result).toBe(true);
+    });
   });
 
   describe("offline events integration", () => {
