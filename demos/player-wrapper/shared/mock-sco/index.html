@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mock SCO</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background: #f8fafc;
+      min-height: 100vh;
+    }
+
+    .sco-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      padding: 2rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      margin: 0 0 0.5rem;
+      font-size: 1.5rem;
+    }
+
+    .sco-id {
+      color: #64748b;
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .status-display {
+      background: #f1f5f9;
+      border-radius: 4px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      font-family: monospace;
+      font-size: 0.875rem;
+    }
+
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.25rem 0;
+    }
+
+    .status-label {
+      color: #64748b;
+    }
+
+    .status-value {
+      font-weight: 600;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    button:hover {
+      background: #f1f5f9;
+    }
+
+    button:focus {
+      outline: 2px solid #2563eb;
+      outline-offset: 2px;
+    }
+
+    .btn-pass {
+      background: #16a34a;
+      border-color: #16a34a;
+      color: white;
+    }
+
+    .btn-pass:hover {
+      background: #15803d;
+    }
+
+    .btn-fail {
+      background: #dc2626;
+      border-color: #dc2626;
+      color: white;
+    }
+
+    .btn-fail:hover {
+      background: #b91c1c;
+    }
+
+    .btn-incomplete {
+      background: #ca8a04;
+      border-color: #ca8a04;
+      color: white;
+    }
+
+    .btn-incomplete:hover {
+      background: #a16207;
+    }
+
+    .score-input {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .score-input input {
+      width: 80px;
+      padding: 0.5rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      font-size: 0.875rem;
+    }
+
+    .log {
+      background: #1e293b;
+      color: #e2e8f0;
+      border-radius: 4px;
+      padding: 1rem;
+      font-family: monospace;
+      font-size: 0.75rem;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .log-entry {
+      padding: 0.125rem 0;
+    }
+
+    .log-entry.error {
+      color: #fca5a5;
+    }
+
+    .log-entry.success {
+      color: #86efac;
+    }
+  </style>
+</head>
+<body>
+  <div class="sco-container">
+    <h1 id="sco-title">Mock SCO</h1>
+    <p class="sco-id">ID: <span id="sco-id">unknown</span></p>
+
+    <div class="status-display">
+      <div class="status-row">
+        <span class="status-label">Status:</span>
+        <span class="status-value" id="current-status">not attempted</span>
+      </div>
+      <div class="status-row">
+        <span class="status-label">Score:</span>
+        <span class="status-value" id="current-score">--</span>
+      </div>
+      <div class="status-row">
+        <span class="status-label">Location:</span>
+        <span class="status-value" id="current-location">--</span>
+      </div>
+    </div>
+
+    <div class="score-input">
+      <label for="score-value">Score:</label>
+      <input type="number" id="score-value" min="0" max="100" value="85">
+      <button onclick="setScore()">Set Score</button>
+    </div>
+
+    <div class="actions">
+      <button class="btn-pass" onclick="markPassed()">Mark Passed</button>
+      <button class="btn-fail" onclick="markFailed()">Mark Failed</button>
+      <button class="btn-incomplete" onclick="markIncomplete()">Mark Incomplete</button>
+      <button onclick="setLocation('page-2')">Set Location</button>
+      <button onclick="requestNext()">Request Next</button>
+      <button onclick="requestPrevious()">Request Previous</button>
+      <button onclick="exitSco()">Exit</button>
+    </div>
+
+    <div class="log" id="log"></div>
+  </div>
+
+  <script src="./sco.js" type="module"></script>
+</body>
+</html>

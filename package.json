@@ -163,6 +163,7 @@
     "test:integration:all": "npm run build && CI=true npx playwright test",
     "test:integration:ci": "npm run build && npx playwright test --reporter=list",
     "test:integration:video": "npm run build:fast && RECORD_VIDEO=true npx playwright test",
+    "test:demos": "playwright test --project=player-wrapper-demos",
     "test:performance": "tsx test/performance/benchmark.ts",
     "test:ui": "vitest --ui",
     "fix": "eslint ./src --fix",

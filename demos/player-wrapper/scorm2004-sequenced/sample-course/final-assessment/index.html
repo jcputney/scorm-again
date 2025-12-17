@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Final Assessment</title>
+</head>
+<body>
+  <div class="sco-container">
+    <h1>Final Assessment</h1>
+    <p class="sco-id">Course Conclusion</p>
+
+    <div class="content">
+      <p>Congratulations on reaching the final assessment! This covers all concepts from the course.</p>
+      <p>Use the buttons below to set your completion and success status for this assessment.</p>
+    </div>
+
+    <div class="status-display">
+      <div class="status-row">
+        <span class="status-label">Completion:</span>
+        <span class="status-value" id="completion-status">loading...</span>
+      </div>
+      <div class="status-row">
+        <span class="status-label">Success:</span>
+        <span class="status-value" id="success-status">loading...</span>
+      </div>
+      <div class="status-row">
+        <span class="status-label">Score:</span>
+        <span class="status-value" id="current-score">--</span>
+      </div>
+    </div>
+
+    <div class="score-input">
+      <label for="score-value">Score (0-100):</label>
+      <input type="number" id="score-value" min="0" max="100" value="85">
+    </div>
+
+    <div class="actions">
+      <button class="btn-pass" id="btn-pass">Complete &amp; Pass</button>
+      <button class="btn-fail" id="btn-fail">Complete &amp; Fail</button>
+      <button class="btn-incomplete" id="btn-incomplete">Mark Incomplete</button>
+      <button id="btn-next">Continue to Next</button>
+    </div>
+
+    <div class="log" id="log"></div>
+  </div>
+
+  <script>
+    let API = null;
+
+    function findAPI(win) {
+      let attempts = 0;
+      while (win && attempts < 10) {
+        if (win.API_1484_11) return win.API_1484_11;
+        if (win.parent && win.parent !== win) win = win.parent;
+        else if (win.opener) win = win.opener;
+        else break;
+        attempts++;
+      }
+      return null;
+    }
+
+    function log(msg, type) {
+      type = type || 'info';
+      const el = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.className = 'log-entry ' + type;
+      entry.textContent = '[' + new Date().toISOString().slice(11,19) + '] ' + msg;
+      el.insertBefore(entry, el.firstChild);
+    }
+
+    function updateDisplay() {
+      document.getElementById('completion-status').textContent =
+        API.GetValue('cmi.completion_status') || 'unknown';
+      document.getElementById('success-status').textContent =
+        API.GetValue('cmi.success_status') || 'unknown';
+      const scaled = API.GetValue('cmi.score.scaled');
+      document.getElementById('current-score').textContent =
+        scaled ? Math.round(parseFloat(scaled) * 100) + '%' : '--';
+    }
+
+    function markPassed() {
+      const score = document.getElementById('score-value').value;
+      const scaled = (parseFloat(score) / 100).toFixed(2);
+
+      API.SetValue('cmi.completion_status', 'completed');
+      API.SetValue('cmi.success_status', 'passed');
+      API.SetValue('cmi.score.scaled', scaled);
+      API.SetValue('cmi.score.raw', score);
+      API.SetValue('cmi.score.min', '0');
+      API.SetValue('cmi.score.max', '100');
+      API.Commit('');
+      updateDisplay();
+      log('Marked as COMPLETED + PASSED', 'success');
+    }
+
+    function markFailed() {
+      const score = document.getElementById('score-value').value;
+      const scaled = (parseFloat(score) / 100).toFixed(2);
+
+      API.SetValue('cmi.completion_status', 'completed');
+      API.SetValue('cmi.success_status', 'failed');
+      API.SetValue('cmi.score.scaled', scaled);
+      API.SetValue('cmi.score.raw', score);
+      API.Commit('');
+      updateDisplay();
+      log('Marked as COMPLETED + FAILED', 'error');
+    }
+
+    function markIncomplete() {
+      API.SetValue('cmi.completion_status', 'incomplete');
+      API.Commit('');
+      updateDisplay();
+      log('Marked as INCOMPLETE');
+    }
+
+    function requestNext() {
+      API.SetValue('adl.nav.request', 'continue');
+      API.Terminate('');
+      log('Requested continue, terminating');
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('btn-pass').addEventListener('click', markPassed);
+      document.getElementById('btn-fail').addEventListener('click', markFailed);
+      document.getElementById('btn-incomplete').addEventListener('click', markIncomplete);
+      document.getElementById('btn-next').addEventListener('click', requestNext);
+
+      API = findAPI(window);
+      if (API) {
+        API.Initialize('');
+        log('SCORM 2004 API initialized', 'success');
+        updateDisplay();
+      } else {
+        log('SCORM 2004 API not found!', 'error');
+      }
+    });
+  </script>
+
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 2rem; background: #f8fafc; }
+    .sco-container { max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; padding: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    h1 { margin: 0 0 0.5rem; font-size: 1.5rem; }
+    .sco-id { color: #64748b; font-size: 0.875rem; margin-bottom: 1.5rem; }
+    .content { margin-bottom: 1.5rem; line-height: 1.6; }
+    .status-display { background: #f1f5f9; border-radius: 4px; padding: 1rem; margin-bottom: 1rem; font-family: monospace; font-size: 0.875rem; }
+    .status-row { display: flex; justify-content: space-between; padding: 0.25rem 0; }
+    .status-label { color: #64748b; }
+    .status-value { font-weight: 600; }
+    .score-input { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
+    .score-input input { width: 80px; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 4px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
+    button { padding: 0.5rem 1rem; font-size: 0.875rem; border: 1px solid #e2e8f0; border-radius: 4px; background: white; cursor: pointer; }
+    button:hover { background: #f1f5f9; }
+    .btn-pass { background: #16a34a; border-color: #16a34a; color: white; }
+    .btn-pass:hover { background: #15803d; }
+    .btn-fail { background: #dc2626; border-color: #dc2626; color: white; }
+    .btn-fail:hover { background: #b91c1c; }
+    .btn-incomplete { background: #ca8a04; border-color: #ca8a04; color: white; }
+    .log { background: #1e293b; color: #e2e8f0; border-radius: 4px; padding: 1rem; font-family: monospace; font-size: 0.75rem; max-height: 150px; overflow-y: auto; }
+    .log-entry { padding: 0.125rem 0; }
+    .log-entry.error { color: #fca5a5; }
+    .log-entry.success { color: #86efac; }
+  </style>
+</body>
+</html>
