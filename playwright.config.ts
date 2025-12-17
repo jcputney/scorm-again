@@ -48,6 +48,10 @@ export default defineConfig({
       {
         name: "webkit",
         use: { ...devices["Desktop Safari"] }
+      },
+      {
+        name: "player-wrapper-demos",
+        testMatch: "test/integration/demos/player-wrapper.spec.ts"
       }
     ]
     : [
@@ -55,6 +59,10 @@ export default defineConfig({
       {
         name: "chromium",
         use: { ...devices["Desktop Chrome"] }
+      },
+      {
+        name: "player-wrapper-demos",
+        testMatch: "test/integration/demos/player-wrapper.spec.ts"
       }
     ],
   /* Run local server before starting the tests */

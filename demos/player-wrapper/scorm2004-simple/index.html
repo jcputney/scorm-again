@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SCORM 2004 Simple Multi-SCO Player Demo</title>
+  <link rel="stylesheet" href="../shared/player-core.css">
+</head>
+<body>
+  <div class="scorm-player" role="application" aria-label="SCORM 2004 Course Player">
+    <!-- Header -->
+    <header class="player-header">
+      <button class="menu-toggle" aria-expanded="true" aria-controls="menu-list" aria-label="Toggle course menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+      <h1 class="player-title" id="course-title">SCORM 2004 Simple Demo</h1>
+      <div class="player-status" role="status" aria-live="polite">
+        <span class="status-badge" id="course-status" data-status="not-attempted">Not Started</span>
+      </div>
+    </header>
+
+    <!-- Progress Bar -->
+    <div class="player-progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Course progress">
+      <div class="progress-fill" id="progress-fill"></div>
+      <span class="progress-text" id="progress-text">0% Complete</span>
+      <span class="progress-score" id="progress-score">Score: --</span>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="player-main">
+      <!-- Course Menu -->
+      <nav class="player-menu" id="player-menu" aria-label="Course outline">
+        <div class="menu-header">
+          <span>Course Outline</span>
+        </div>
+        <ol class="menu-list" id="menu-list" role="tree" aria-label="SCO list">
+          <!-- Populated by JavaScript -->
+        </ol>
+      </nav>
+
+      <!-- Content Frame -->
+      <main class="player-content" id="player-content">
+        <iframe
+          id="sco-frame"
+          title="Course content"
+          sandbox="allow-scripts allow-same-origin allow-forms"
+          src="about:blank"
+        ></iframe>
+        <div class="content-loading" id="content-loading" hidden>
+          <span>Loading content...</span>
+        </div>
+      </main>
+    </div>
+
+    <!-- Navigation Footer -->
+    <footer class="player-nav">
+      <button class="nav-btn nav-prev" id="btn-prev" disabled aria-label="Previous section">
+        ← Previous
+      </button>
+      <button class="nav-btn nav-exit" id="btn-exit" aria-label="Exit course">
+        Exit
+      </button>
+      <button class="nav-btn nav-next nav-btn--primary" id="btn-next" disabled aria-label="Next section">
+        Next →
+      </button>
+    </footer>
+
+    <!-- Completion Overlay -->
+    <div class="completion-overlay" id="completion-overlay" hidden>
+      <div class="completion-card">
+        <div class="completion-icon" id="completion-icon">🎉</div>
+        <h2 class="completion-title" id="completion-title">Course Complete!</h2>
+        <p class="completion-message" id="completion-message">
+          You have successfully completed this course.
+        </p>
+        <div class="completion-stats">
+          <div class="completion-stat">
+            <div class="completion-stat-value" id="final-score">--</div>
+            <div class="completion-stat-label">Score</div>
+          </div>
+          <div class="completion-stat">
+            <div class="completion-stat-value" id="final-time">--</div>
+            <div class="completion-stat-label">Time</div>
+          </div>
+        </div>
+        <button class="nav-btn nav-btn--primary" onclick="window.close()">
+          Close Course
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./player.js"></script>
+</body>
+</html>

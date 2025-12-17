@@ -1,0 +1,530 @@
+/* =============================================================================
+   SCORM Player Core Styles
+   Shared styles for all demo player implementations
+   ============================================================================= */
+
+/* -----------------------------------------------------------------------------
+   CSS Custom Properties (Theming)
+   ----------------------------------------------------------------------------- */
+.scorm-player {
+  /* Colors */
+  --player-primary: #2563eb;
+  --player-primary-hover: #1d4ed8;
+  --player-success: #16a34a;
+  --player-warning: #ca8a04;
+  --player-error: #dc2626;
+  --player-bg: #ffffff;
+  --player-surface: #f8fafc;
+  --player-text: #1e293b;
+  --player-text-muted: #64748b;
+  --player-border: #e2e8f0;
+
+  /* Sizing */
+  --player-radius: 8px;
+  --player-radius-sm: 4px;
+  --menu-width: 280px;
+  --header-height: 60px;
+  --footer-height: 56px;
+  --progress-height: 8px;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .scorm-player {
+    --player-bg: #0f172a;
+    --player-surface: #1e293b;
+    --player-text: #f1f5f9;
+    --player-text-muted: #94a3b8;
+    --player-border: #334155;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   Base Layout
+   ----------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+.scorm-player {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--player-bg);
+  color: var(--player-text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* -----------------------------------------------------------------------------
+   Header
+   ----------------------------------------------------------------------------- */
+.player-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-height);
+  padding: 0 1rem;
+  background: var(--player-surface);
+  border-bottom: 1px solid var(--player-border);
+  flex-shrink: 0;
+}
+
+.player-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  border-radius: 9999px;
+  background: var(--player-border);
+  color: var(--player-text-muted);
+}
+
+.status-badge[data-status="not-attempted"] {
+  background: var(--player-border);
+  color: var(--player-text-muted);
+}
+
+.status-badge[data-status="incomplete"],
+.status-badge[data-status="browsed"] {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge[data-status="completed"],
+.status-badge[data-status="passed"] {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-badge[data-status="failed"] {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* -----------------------------------------------------------------------------
+   Progress Bar
+   ----------------------------------------------------------------------------- */
+.player-progress {
+  position: relative;
+  height: var(--progress-height);
+  background: var(--player-border);
+  flex-shrink: 0;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--player-primary);
+  transition: width var(--transition-normal);
+  width: 0%;
+}
+
+.progress-text {
+  position: absolute;
+  right: 1rem;
+  top: calc(var(--progress-height) + 0.25rem);
+  font-size: 0.75rem;
+  color: var(--player-text-muted);
+}
+
+.progress-score {
+  position: absolute;
+  left: 1rem;
+  top: calc(var(--progress-height) + 0.25rem);
+  font-size: 0.75rem;
+  color: var(--player-text-muted);
+}
+
+/* -----------------------------------------------------------------------------
+   Main Content Area
+   ----------------------------------------------------------------------------- */
+.player-main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* -----------------------------------------------------------------------------
+   Course Menu (Sidebar)
+   ----------------------------------------------------------------------------- */
+.player-menu {
+  width: var(--menu-width);
+  background: var(--player-surface);
+  border-right: 1px solid var(--player-border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--player-border);
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: var(--player-text);
+}
+
+.menu-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.menu-item {
+  margin: 0;
+  padding: 0;
+}
+
+.menu-item-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  color: var(--player-text);
+  font-size: 0.875rem;
+  transition: background var(--transition-fast);
+}
+
+.menu-item-btn:hover:not(:disabled) {
+  background: var(--player-border);
+}
+
+.menu-item-btn:focus-visible {
+  outline: 2px solid var(--player-primary);
+  outline-offset: -2px;
+}
+
+.menu-item-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.menu-item-btn[aria-current="true"] {
+  background: color-mix(in srgb, var(--player-primary) 10%, transparent);
+  font-weight: 600;
+}
+
+.menu-item-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  background: var(--player-border);
+  color: var(--player-text-muted);
+}
+
+.menu-item-icon[data-status="not-attempted"]::before {
+  content: "";
+}
+
+.menu-item-icon[data-status="incomplete"]::before,
+.menu-item-icon[data-status="browsed"]::before {
+  content: "○";
+  color: var(--player-warning);
+}
+
+.menu-item-icon[data-status="completed"]::before,
+.menu-item-icon[data-status="passed"]::before {
+  content: "✓";
+  color: var(--player-success);
+}
+
+.menu-item-icon[data-status="failed"]::before {
+  content: "✗";
+  color: var(--player-error);
+}
+
+.menu-item-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-item-score {
+  font-size: 0.75rem;
+  color: var(--player-text-muted);
+}
+
+/* Nested menu items (for sequenced content) */
+.menu-item--nested {
+  padding-left: 1rem;
+}
+
+.menu-item--nested .menu-item-btn {
+  padding-left: 1.5rem;
+}
+
+/* -----------------------------------------------------------------------------
+   Content Frame
+   ----------------------------------------------------------------------------- */
+.player-content {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+  background: var(--player-bg);
+}
+
+.player-content iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.content-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--player-bg);
+  color: var(--player-text-muted);
+  font-size: 1rem;
+}
+
+.content-loading[hidden] {
+  display: none;
+}
+
+/* -----------------------------------------------------------------------------
+   Navigation Footer
+   ----------------------------------------------------------------------------- */
+.player-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--footer-height);
+  padding: 0 1rem;
+  background: var(--player-surface);
+  border-top: 1px solid var(--player-border);
+  flex-shrink: 0;
+}
+
+.nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--player-text);
+  background: var(--player-bg);
+  border: 1px solid var(--player-border);
+  border-radius: var(--player-radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.nav-btn:hover:not(:disabled) {
+  background: var(--player-border);
+}
+
+.nav-btn:focus-visible {
+  outline: 2px solid var(--player-primary);
+  outline-offset: 2px;
+}
+
+.nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.nav-btn--primary {
+  background: var(--player-primary);
+  border-color: var(--player-primary);
+  color: white;
+}
+
+.nav-btn--primary:hover:not(:disabled) {
+  background: var(--player-primary-hover);
+  border-color: var(--player-primary-hover);
+}
+
+/* -----------------------------------------------------------------------------
+   Completion Screen Overlay
+   ----------------------------------------------------------------------------- */
+.completion-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.completion-overlay[hidden] {
+  display: none;
+}
+
+.completion-card {
+  background: var(--player-bg);
+  border-radius: var(--player-radius);
+  padding: 2rem;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.completion-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.completion-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+}
+
+.completion-message {
+  margin: 0 0 1.5rem;
+  color: var(--player-text-muted);
+}
+
+.completion-stats {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.completion-stat {
+  text-align: center;
+}
+
+.completion-stat-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.completion-stat-label {
+  font-size: 0.75rem;
+  color: var(--player-text-muted);
+  text-transform: uppercase;
+}
+
+/* -----------------------------------------------------------------------------
+   Responsive Design
+   ----------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .player-menu {
+    position: fixed;
+    left: 0;
+    top: var(--header-height);
+    bottom: var(--footer-height);
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform var(--transition-normal);
+  }
+
+  .player-menu[aria-expanded="true"] {
+    transform: translateX(0);
+  }
+
+  .menu-toggle {
+    display: block;
+  }
+
+  .player-header {
+    padding-left: 0.5rem;
+  }
+
+  .progress-text,
+  .progress-score {
+    display: none;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   Accessibility: Reduced Motion
+   ----------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   Accessibility: Focus Visible
+   ----------------------------------------------------------------------------- */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .scorm-player {
+    --player-border: currentColor;
+  }
+
+  .nav-btn,
+  .menu-item-btn {
+    border-width: 2px;
+  }
+}
