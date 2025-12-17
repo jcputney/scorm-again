@@ -564,7 +564,7 @@ describe("BaseAPI", () => {
       // Mock the offline storage service
       const offlineStorageService = {
         isDeviceOnline: vi.fn().mockReturnValue(false),
-        storeOffline: vi.fn().mockResolvedValue({
+        storeOffline: vi.fn().mockReturnValue({
           result: global_constants.SCORM_TRUE,
           errorCode: 0,
         }),
@@ -587,6 +587,35 @@ describe("BaseAPI", () => {
         "Device is offline, storing data locally",
         LogLevelEnum.INFO,
       );
+    });
+
+    it("should return storage error when offline storage fails", async () => {
+      api.settings = { enableOfflineSupport: true };
+      const url = "https://example.com/lms";
+      const params = { cmi: { core: { student_id: "123" } } };
+
+      // Mock the offline storage service to return a storage error
+      const offlineStorageService = {
+        isDeviceOnline: vi.fn().mockReturnValue(false),
+        storeOffline: vi.fn().mockReturnValue({
+          result: global_constants.SCORM_FALSE,
+          errorCode: errorCodes.GENERAL,
+        }),
+      };
+
+      // eslint-disable-next-line
+      // @ts-ignore - Assign the mock service
+      api["_offlineStorageService"] = offlineStorageService;
+      api["_courseId"] = "course123";
+
+      const result = await api.processHttpRequest(url, params);
+
+      expect(result).toEqual({
+        result: global_constants.SCORM_FALSE,
+        errorCode: errorCodes.GENERAL,
+      });
+      expect(offlineStorageService.isDeviceOnline).toHaveBeenCalled();
+      expect(offlineStorageService.storeOffline).toHaveBeenCalledWith("course123", params);
     });
 
     it("should return error when offline and params format is invalid", async () => {

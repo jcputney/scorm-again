@@ -88,9 +88,9 @@ export class OfflineStorageService {
    * Store commit data offline
    * @param {string} courseId - Identifier for the course
    * @param {CommitObject} commitData - The data to store offline
-   * @returns {Promise<ResultObject>} - Result of the storage operation
+   * @returns {ResultObject} - Result of the storage operation
    */
-  async storeOffline(courseId: string, commitData: CommitObject): Promise<ResultObject> {
+  storeOffline(courseId: string, commitData: CommitObject): ResultObject {
     try {
       // Store the data in the sync queue with timestamp and unique ID
       const queueItem: SyncQueueItem = {
@@ -102,14 +102,14 @@ export class OfflineStorageService {
       };
 
       // Get current queue
-      const currentQueue = (await this.getFromStorage<SyncQueueItem[]>(this.syncQueue)) || [];
+      const currentQueue = this.getFromStorage<SyncQueueItem[]>(this.syncQueue) || [];
       currentQueue.push(queueItem);
 
       // Save updated queue
-      await this.saveToStorage(this.syncQueue, currentQueue);
+      this.saveToStorage(this.syncQueue, currentQueue);
 
       // Also update the current state in the main storage (latest known state)
-      await this.saveToStorage(`${this.storeName}_${courseId}`, commitData);
+      this.saveToStorage(`${this.storeName}_${courseId}`, commitData);
 
       this.apiLog(
         "OfflineStorageService",
@@ -146,7 +146,7 @@ export class OfflineStorageService {
    */
   async getOfflineData(courseId: string): Promise<CommitObject | null> {
     try {
-      const data = await this.getFromStorage<CommitObject>(`${this.storeName}_${courseId}`);
+      const data = this.getFromStorage<CommitObject>(`${this.storeName}_${courseId}`);
       return data || null;
     } catch (error) {
       this.apiLog(
@@ -172,7 +172,7 @@ export class OfflineStorageService {
 
     try {
       // Get the queue of items to sync
-      const syncQueue = (await this.getFromStorage<SyncQueueItem[]>(this.syncQueue)) || [];
+      const syncQueue = this.getFromStorage<SyncQueueItem[]>(this.syncQueue) || [];
 
       if (syncQueue.length === 0) {
         this.syncInProgress = false;
@@ -237,7 +237,7 @@ export class OfflineStorageService {
       }
 
       // Update the queue with remaining items
-      await this.saveToStorage(this.syncQueue, remainingQueue);
+      this.saveToStorage(this.syncQueue, remainingQueue);
 
       this.apiLog(
         "OfflineStorageService",
@@ -338,9 +338,9 @@ export class OfflineStorageService {
   /**
    * Get item from localStorage
    * @param {string} key - The key to retrieve
-   * @returns {Promise<T|null>} - The retrieved data
+   * @returns {T|null} - The retrieved data
    */
-  private async getFromStorage<T>(key: string): Promise<T | null> {
+  private getFromStorage<T>(key: string): T | null {
     const storedData = localStorage.getItem(key);
     if (storedData) {
       try {
@@ -356,10 +356,10 @@ export class OfflineStorageService {
    * Save item to localStorage
    * @param {string} key - The key to store under
    * @param {any} data - The data to store
-   * @returns {Promise<void>}
+   * @returns {void}
    * @throws {Error} Re-throws QuotaExceededError for handling upstream
    */
-  private async saveToStorage(key: string, data: any): Promise<void> {
+  private saveToStorage(key: string, data: any): void {
     try {
       localStorage.setItem(key, JSON.stringify(data));
     } catch (error) {
@@ -376,7 +376,7 @@ export class OfflineStorageService {
    * @returns {Promise<boolean>} - Whether there is pending data
    */
   async hasPendingOfflineData(courseId: string): Promise<boolean> {
-    const queue = (await this.getFromStorage<SyncQueueItem[]>(this.syncQueue)) || [];
+    const queue = this.getFromStorage<SyncQueueItem[]>(this.syncQueue) || [];
     return queue.some((item) => item.courseId === courseId);
   }
 
