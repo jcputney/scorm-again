@@ -166,12 +166,12 @@ describe("OfflineStorageService Tests", () => {
   });
 
   describe("storeOffline", () => {
-    it("should store data offline and return success", async () => {
+    it("should store data offline and return success", () => {
       const service = createService();
       const commitData = createSampleCommitObject();
       const courseId = "course123";
 
-      const result = await service.storeOffline(courseId, commitData);
+      const result = service.storeOffline(courseId, commitData);
 
       // Verify result
       expect(result.result).toBe(global_constants.SCORM_TRUE);
@@ -188,7 +188,7 @@ describe("OfflineStorageService Tests", () => {
       );
     });
 
-    it("should handle errors during storage", async () => {
+    it("should handle errors during storage", () => {
       const service = createService();
       const commitData = createSampleCommitObject();
       const courseId = "course123";
@@ -198,7 +198,7 @@ describe("OfflineStorageService Tests", () => {
         throw new Error("Storage error");
       });
 
-      const result = await service.storeOffline(courseId, commitData);
+      const result = service.storeOffline(courseId, commitData);
 
       // Verify result indicates failure
       expect(result.result).toBe(global_constants.SCORM_FALSE);
@@ -212,7 +212,7 @@ describe("OfflineStorageService Tests", () => {
       );
     });
 
-    it("should handle QuotaExceededError gracefully", async () => {
+    it("should handle QuotaExceededError gracefully", () => {
       const service = createService();
       const commitData = createSampleCommitObject();
       const courseId = "course123";
@@ -223,7 +223,7 @@ describe("OfflineStorageService Tests", () => {
         throw quotaError;
       });
 
-      const result = await service.storeOffline(courseId, commitData);
+      const result = service.storeOffline(courseId, commitData);
 
       // Verify result indicates failure with specific error code
       expect(result.result).toBe(global_constants.SCORM_FALSE);
@@ -245,7 +245,7 @@ describe("OfflineStorageService Tests", () => {
       const courseId = "course123";
 
       // Store data first
-      await service.storeOffline(courseId, commitData);
+      service.storeOffline(courseId, commitData);
 
       // Clear mocks to isolate the get operation
       vi.clearAllMocks();
@@ -303,7 +303,7 @@ describe("OfflineStorageService Tests", () => {
       const courseId = "course123";
 
       // Store data first
-      await service.storeOffline(courseId, commitData);
+      service.storeOffline(courseId, commitData);
 
       // Clear mocks to isolate the check operation
       vi.clearAllMocks();
@@ -379,7 +379,7 @@ describe("OfflineStorageService Tests", () => {
       const courseId = "course123";
 
       // Store data first
-      await service.storeOffline(courseId, commitData);
+      service.storeOffline(courseId, commitData);
 
       // Clear mocks to isolate the sync operation
       vi.clearAllMocks();
@@ -427,7 +427,7 @@ describe("OfflineStorageService Tests", () => {
       const errorCommitData = { ...commitData, courseId };
 
       // Store data first
-      await service.storeOffline(courseId, errorCommitData);
+      service.storeOffline(courseId, errorCommitData);
 
       // Update fetch mock to return error for this specific case
       (fetch as ReturnType<typeof vi.fn>).mockImplementationOnce(() => {
@@ -601,7 +601,7 @@ describe("OfflineStorageService Tests", () => {
   });
 
   describe("updateSettings", () => {
-    it("should update the service settings", () => {
+    it("should update the service settings", async () => {
       const service = createService();
       const newSettings = {
         ...settings,
@@ -614,13 +614,11 @@ describe("OfflineStorageService Tests", () => {
       // the behavior by making a request that uses the settings
 
       // Store and sync data to use the new URL
-      service
-        .storeOffline("course123", createSampleCommitObject())
-        .then(() => service.syncOfflineData())
-        .then(() => {
-          // Verify fetch was called with the new URL
-          expect(fetch).toHaveBeenCalledWith(newSettings.lmsCommitUrl, expect.any(Object));
-        });
+      service.storeOffline("course123", createSampleCommitObject());
+      await service.syncOfflineData();
+
+      // Verify fetch was called with the new URL
+      expect(fetch).toHaveBeenCalledWith(newSettings.lmsCommitUrl, expect.any(Object));
     });
   });
 
@@ -758,27 +756,27 @@ describe("OfflineStorageService Tests", () => {
     });
 
     describe("getFromStorage and saveToStorage", () => {
-      it("should save and retrieve data from localStorage", async () => {
+      it("should save and retrieve data from localStorage", () => {
         const service = createService();
         const testKey = "test_key";
         const testData = { test: "data" };
 
         // eslint-disable-next-line
         // @ts-ignore - Accessing private method for testing
-        await service["saveToStorage"](testKey, testData);
+        service["saveToStorage"](testKey, testData);
 
         // Verify localStorage was called
         expect(localStorageMock.setItem).toHaveBeenCalledWith(testKey, JSON.stringify(testData));
 
         // eslint-disable-next-line
         // @ts-ignore - Accessing private method for testing
-        const retrievedData = await service["getFromStorage"](testKey);
+        const retrievedData = service["getFromStorage"](testKey);
 
         // Verify data was retrieved correctly
         expect(retrievedData).toEqual(testData);
       });
 
-      it("should handle JSON parse errors in getFromStorage", async () => {
+      it("should handle JSON parse errors in getFromStorage", () => {
         const service = createService();
         const testKey = "test_key";
 
@@ -787,7 +785,7 @@ describe("OfflineStorageService Tests", () => {
 
         // eslint-disable-next-line
         // @ts-ignore - Accessing private method for testing
-        const result = await service["getFromStorage"](testKey);
+        const result = service["getFromStorage"](testKey);
 
         // Verify null is returned on parse error
         expect(result).toBeNull();
