@@ -53,17 +53,12 @@ export default class CrossFrameAPI {
       // Otherwise treat prop as a SCORM call
       const methodName = prop;
       const isGet = methodName.endsWith("GetValue");
-      const isSet =
-        methodName.startsWith("LMSSet") || methodName.endsWith("SetValue");
-      const isInit =
-        methodName === "Initialize" || methodName === "LMSInitialize";
-      const isFinish =
-        methodName === "Terminate" || methodName === "LMSFinish";
+      const isSet = methodName.startsWith("LMSSet") || methodName.endsWith("SetValue");
+      const isInit = methodName === "Initialize" || methodName === "LMSInitialize";
+      const isFinish = methodName === "Terminate" || methodName === "LMSFinish";
       const isCommit = methodName === "Commit" || methodName === "LMSCommit";
-      const isErrorString =
-        methodName === "GetErrorString" || methodName === "LMSGetErrorString";
-      const isDiagnostic =
-        methodName === "GetDiagnostic" || methodName === "LMSGetDiagnostic";
+      const isErrorString = methodName === "GetErrorString" || methodName === "LMSGetErrorString";
+      const isDiagnostic = methodName === "GetDiagnostic" || methodName === "LMSGetDiagnostic";
 
       return (...args: unknown[]): string => {
         // Synchronous cache update for setter calls
@@ -99,10 +94,7 @@ export default class CrossFrameAPI {
               const code = String(args[0]);
               target._cache.set(`diag_${code}`, String(res));
             }
-            if (
-              methodName === "GetLastError" ||
-              methodName === "LMSGetLastError"
-            ) {
+            if (methodName === "GetLastError" || methodName === "LMSGetLastError") {
               target._lastError = String(res);
             }
           })
@@ -281,10 +273,7 @@ export default class CrossFrameAPI {
     // Deep-clean params of non-cloneables (e.g. functions)
     const safeParams = params.map((p) => {
       if (typeof p === "function") {
-        console.warn(
-          "Dropping function param when posting SCORM call:",
-          method,
-        );
+        console.warn("Dropping function param when posting SCORM call:", method);
         return undefined;
       }
       return p;

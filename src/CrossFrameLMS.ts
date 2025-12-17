@@ -48,11 +48,7 @@ export default class CrossFrameLMS {
    * @param targetOrigin - Origin to accept messages from. Default "*" accepts all origins.
    * @param options - Configuration options
    */
-  constructor(
-    api: IBaseAPI,
-    targetOrigin: string = "*",
-    options: CrossFrameLMSOptions = {},
-  ) {
+  constructor(api: IBaseAPI, targetOrigin: string = "*", options: CrossFrameLMSOptions = {}) {
     this._api = api;
     this._origin = targetOrigin;
     this._rateLimit = options.rateLimit ?? 100;
@@ -141,10 +137,7 @@ export default class CrossFrameLMS {
    * Processes a validated message by invoking the requested API method.
    */
   private _process(msg: MessageData, source: Window): void {
-    const sendResponse = (
-      result?: unknown,
-      error?: { message: string; code?: string },
-    ) => {
+    const sendResponse = (result?: unknown, error?: { message: string; code?: string }) => {
       const resp: MessageResponse = { messageId: msg.messageId };
       if (result !== undefined) resp.result = result;
       if (error !== undefined) resp.error = error;

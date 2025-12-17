@@ -4,6 +4,18 @@ This directory contains comprehensive documentation for integrating the scorm-ag
 
 ## Documents
 
+### [Player Wrapper Integration Guide](./player-wrapper-guide.md)
+A comprehensive guide to building player UIs that respond to SCORM events:
+- Event-driven UI updates
+- SCORM 1.2 multi-SCO player from scratch
+- SCORM 2004 simple and sequenced players
+- Integration with React, Vue, and Angular
+- Event to UI mapping reference
+- Troubleshooting common issues
+- Working demo setup instructions
+
+**Start here** if you're building a custom SCORM player interface or integrating SCORM into an existing learning platform UI.
+
 ### [Complete LMS Integration Guide](./lms-integration-guide.md)
 The comprehensive guide covering all integration scenarios:
 - Architecture overview
@@ -67,12 +79,13 @@ Detailed guide for multi-SCO SCORM 1.2 courses with helper utilities:
 
 | Scenario | Start With |
 |----------|------------|
+| Building Custom Player UI | [Player Wrapper Integration Guide](./player-wrapper-guide.md) |
 | Single-SCO SCORM 1.2 | [Integration Guide - SCORM 1.2 Single-SCO](./lms-integration-guide.md#scorm-12-single-sco-launches) |
-| Multi-SCO SCORM 1.2 | [SCORM 1.2 Multi-SCO Guide](./scorm12-multi-sco-guide.md) |
+| Multi-SCO SCORM 1.2 | [SCORM 1.2 Multi-SCO Guide](./scorm12-multi-sco-guide.md) or [Player Wrapper Guide](./player-wrapper-guide.md#scorm-12-multi-sco-player) |
 | Single-SCO SCORM 2004 | [Integration Guide - SCORM 2004 Single-SCO](./lms-integration-guide.md#scorm-2004-single-sco-launches) |
-| Sequenced SCORM 2004 | [Integration Guide - Sequenced](./lms-integration-guide.md#scorm-2004-sequenced-modules) + [Sequencing Config](../sequencing_configuration.md) |
+| Sequenced SCORM 2004 | [Integration Guide - Sequenced](./lms-integration-guide.md#scorm-2004-sequenced-modules) + [Player Wrapper Guide](./player-wrapper-guide.md#scorm-2004-sequenced-player) |
 | Sandboxed Iframes | [Cross-Frame Communication Guide](./cross-frame-communication.md) |
-| Event-Driven Integration | [API Events Reference](./api-events-reference.md) |
+| Event-Driven Integration | [API Events Reference](./api-events-reference.md) or [Player Wrapper Guide - Part 2](./player-wrapper-guide.md#part-2-integrating-with-existing-players) |
 | Offline/Mobile | [Integration Guide - Offline](./lms-integration-guide.md#offline-support-overview) + [Offline Support](../offline_support.md) |
 
 ## Related Documentation
