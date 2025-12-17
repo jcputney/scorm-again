@@ -610,13 +610,19 @@ describe("OfflineStorageService Tests", () => {
 
       // Make fetch slow to simulate long sync
       (fetch as ReturnType<typeof vi.fn>).mockImplementation(
-        () => new Promise(resolve =>
-          setTimeout(() => resolve({
-            ok: true,
-            status: 200,
-            json: () => Promise.resolve({ result: global_constants.SCORM_TRUE, errorCode: 0 }),
-          } as Response), 100)
-        )
+        () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  ok: true,
+                  status: 200,
+                  json: () =>
+                    Promise.resolve({ result: global_constants.SCORM_TRUE, errorCode: 0 }),
+                } as Response),
+              100,
+            ),
+          ),
       );
 
       // Start first sync (don't await)
@@ -849,6 +855,91 @@ describe("OfflineStorageService Tests", () => {
         // Verify result
         expect(result.result).toBe(global_constants.SCORM_TRUE);
         expect(result.errorCode).toBe(0);
+      });
+
+      it("should handle HTTP 404 error", async () => {
+        const service = createService();
+
+        (fetch as ReturnType<typeof vi.fn>).mockImplementationOnce(() =>
+          Promise.resolve({
+            ok: false,
+            status: 404,
+            json: () => Promise.resolve({ result: global_constants.SCORM_FALSE, errorCode: 404 }),
+          } as Response),
+        );
+
+        // @ts-ignore - Accessing private method for testing
+        const result = await service["sendDataToLMS"](createSampleCommitObject());
+
+        expect(result.result).toBe(global_constants.SCORM_FALSE);
+      });
+
+      it("should handle HTTP 401 unauthorized error", async () => {
+        const service = createService();
+
+        (fetch as ReturnType<typeof vi.fn>).mockImplementationOnce(() =>
+          Promise.resolve({
+            ok: false,
+            status: 401,
+            json: () => Promise.resolve({ result: global_constants.SCORM_FALSE, errorCode: 401 }),
+          } as Response),
+        );
+
+        // @ts-ignore - Accessing private method for testing
+        const result = await service["sendDataToLMS"](createSampleCommitObject());
+
+        expect(result.result).toBe(global_constants.SCORM_FALSE);
+      });
+
+      it("should handle HTTP 403 forbidden error", async () => {
+        const service = createService();
+
+        (fetch as ReturnType<typeof vi.fn>).mockImplementationOnce(() =>
+          Promise.resolve({
+            ok: false,
+            status: 403,
+            json: () => Promise.resolve({ result: global_constants.SCORM_FALSE, errorCode: 403 }),
+          } as Response),
+        );
+
+        // @ts-ignore - Accessing private method for testing
+        const result = await service["sendDataToLMS"](createSampleCommitObject());
+
+        expect(result.result).toBe(global_constants.SCORM_FALSE);
+      });
+
+      it("should handle HTTP 503 service unavailable error", async () => {
+        const service = createService();
+
+        (fetch as ReturnType<typeof vi.fn>).mockImplementationOnce(() =>
+          Promise.resolve({
+            ok: false,
+            status: 503,
+            json: () => Promise.resolve({ result: global_constants.SCORM_FALSE, errorCode: 503 }),
+          } as Response),
+        );
+
+        // @ts-ignore - Accessing private method for testing
+        const result = await service["sendDataToLMS"](createSampleCommitObject());
+
+        expect(result.result).toBe(global_constants.SCORM_FALSE);
+      });
+
+      it("should handle HTTP 429 rate limit error", async () => {
+        const service = createService();
+
+        (fetch as ReturnType<typeof vi.fn>).mockImplementationOnce(() =>
+          Promise.resolve({
+            ok: false,
+            status: 429,
+            json: () => Promise.resolve({ result: global_constants.SCORM_FALSE, errorCode: 429 }),
+          } as Response),
+        );
+
+        // @ts-ignore - Accessing private method for testing
+        const result = await service["sendDataToLMS"](createSampleCommitObject());
+
+        expect(result.result).toBe(global_constants.SCORM_FALSE);
       });
     });
 
