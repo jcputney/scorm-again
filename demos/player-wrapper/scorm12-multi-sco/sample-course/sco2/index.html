@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Core Concepts</title>
+</head>
+<body>
+  <div class="sco-container">
+    <h1>Core Concepts</h1>
+    <p class="sco-id">SCO 2 of 3</p>
+
+    <div class="content">
+      <p>Welcome to this SCORM 1.2 demo course. This SCO demonstrates basic initialization and status tracking.</p>
+      <p>Click the buttons below to simulate learner interactions.</p>
+    </div>
+
+    <div class="status-display">
+      <div class="status-row">
+        <span class="status-label">Status:</span>
+        <span class="status-value" id="current-status">loading...</span>
+      </div>
+      <div class="status-row">
+        <span class="status-label">Score:</span>
+        <span class="status-value" id="current-score">--</span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-pass" id="btn-pass">Complete (Passed)</button>
+      <button class="btn-incomplete" id="btn-incomplete">Mark Incomplete</button>
+    </div>
+
+    <div class="log" id="log"></div>
+  </div>
+
+  <script>
+    // Simple inline SCORM 1.2 communication
+    let API = null;
+
+    function findAPI(win) {
+      let attempts = 0;
+      while (win && attempts < 10) {
+        if (win.API) return win.API;
+        if (win.parent && win.parent !== win) win = win.parent;
+        else if (win.opener) win = win.opener;
+        else break;
+        attempts++;
+      }
+      return null;
+    }
+
+    function log(msg, type) {
+      type = type || 'info';
+      const el = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.className = 'log-entry ' + type;
+      entry.textContent = '[' + new Date().toISOString().slice(11,19) + '] ' + msg;
+      el.insertBefore(entry, el.firstChild);
+    }
+
+    function updateDisplay() {
+      document.getElementById('current-status').textContent =
+        API.LMSGetValue('cmi.core.lesson_status') || 'unknown';
+      document.getElementById('current-score').textContent =
+        API.LMSGetValue('cmi.core.score.raw') || '--';
+    }
+
+    function markPassed() {
+      API.LMSSetValue('cmi.core.lesson_status', 'passed');
+      API.LMSSetValue('cmi.core.score.raw', '95');
+      API.LMSCommit('');
+      updateDisplay();
+      log('Marked as PASSED with score 95', 'success');
+    }
+
+    function markIncomplete() {
+      API.LMSSetValue('cmi.core.lesson_status', 'incomplete');
+      API.LMSCommit('');
+      updateDisplay();
+      log('Marked as INCOMPLETE');
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('btn-pass').addEventListener('click', markPassed);
+      document.getElementById('btn-incomplete').addEventListener('click', markIncomplete);
+
+      API = findAPI(window);
+      if (API) {
+        API.LMSInitialize('');
+        log('SCORM API found and initialized', 'success');
+        updateDisplay();
+      } else {
+        log('SCORM API not found!', 'error');
+      }
+    });
+  </script>
+
+  <style>
+    /* Inline styles for simplicity */
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 2rem; background: #f8fafc; }
+    .sco-container { max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; padding: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    h1 { margin: 0 0 0.5rem; font-size: 1.5rem; }
+    .sco-id { color: #64748b; font-size: 0.875rem; margin-bottom: 1.5rem; }
+    .content { margin-bottom: 1.5rem; line-height: 1.6; }
+    .status-display { background: #f1f5f9; border-radius: 4px; padding: 1rem; margin-bottom: 1.5rem; font-family: monospace; font-size: 0.875rem; }
+    .status-row { display: flex; justify-content: space-between; padding: 0.25rem 0; }
+    .status-label { color: #64748b; }
+    .status-value { font-weight: 600; }
+    .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
+    button { padding: 0.5rem 1rem; font-size: 0.875rem; border: 1px solid #e2e8f0; border-radius: 4px; background: white; cursor: pointer; }
+    button:hover { background: #f1f5f9; }
+    .btn-pass { background: #16a34a; border-color: #16a34a; color: white; }
+    .btn-pass:hover { background: #15803d; }
+    .btn-incomplete { background: #ca8a04; border-color: #ca8a04; color: white; }
+    .btn-incomplete:hover { background: #a16207; }
+    .log { background: #1e293b; color: #e2e8f0; border-radius: 4px; padding: 1rem; font-family: monospace; font-size: 0.75rem; max-height: 150px; overflow-y: auto; }
+    .log-entry { padding: 0.125rem 0; }
+    .log-entry.error { color: #fca5a5; }
+    .log-entry.success { color: #86efac; }
+  </style>
+</body>
+</html>

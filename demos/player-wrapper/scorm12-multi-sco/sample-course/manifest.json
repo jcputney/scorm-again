@@ -1,0 +1,29 @@
+{
+  "id": "scorm12-demo-course",
+  "title": "SCORM 1.2 Demo Course",
+  "version": "1.0.0",
+  "description": "A demonstration course for the SCORM 1.2 player wrapper",
+  "scos": [
+    {
+      "id": "sco1",
+      "title": "Introduction",
+      "launchUrl": "./sample-course/sco1/index.html",
+      "masteryScore": 80,
+      "sequenceIndex": 0
+    },
+    {
+      "id": "sco2",
+      "title": "Core Concepts",
+      "launchUrl": "./sample-course/sco2/index.html",
+      "masteryScore": 80,
+      "sequenceIndex": 1
+    },
+    {
+      "id": "sco3",
+      "title": "Assessment",
+      "launchUrl": "./sample-course/sco3/index.html",
+      "masteryScore": 70,
+      "sequenceIndex": 2
+    }
+  ]
+}

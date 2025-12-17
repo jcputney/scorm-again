@@ -191,6 +191,19 @@ our [offline support documentation](docs/offline_support.md).
 
 ## Documentation
 
+### LMS Integration Documentation
+
+- **[Player Wrapper Integration Guide](docs/lms-integration/player-wrapper-guide.md)** - Build custom SCORM player UIs
+  - Event-driven UI updates
+  - SCORM 1.2, 2004 simple, and sequenced player implementations
+  - React, Vue, and Angular integration examples
+  - Event to UI mapping reference
+  - Troubleshooting guide
+- **[LMS Integration Guide](docs/lms-integration/lms-integration-guide.md)** - Core LMS integration concepts
+- [API Events Reference](docs/lms-integration/api-events-reference.md) - Complete event system documentation
+- [SCORM 1.2 Multi-SCO Guide](docs/lms-integration/scorm12-multi-sco-guide.md) - Multi-SCO utilities
+- [Cross-Frame Communication](docs/lms-integration/cross-frame-communication.md) - Sandboxed iframe integration
+
 ### API Usage Documentation
 
 - **API Examples**

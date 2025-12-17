@@ -1,0 +1,59 @@
+{
+  "id": "scorm2004-sequenced-demo",
+  "title": "SCORM 2004 Sequenced Demo",
+  "version": "1.0.0",
+  "activities": [
+    {
+      "id": "root",
+      "title": "Course Root",
+      "isContainer": true,
+      "sequencingRules": {
+        "rollupRules": {
+          "rollupObjectiveSatisfied": true,
+          "rollupProgressCompletion": true
+        }
+      },
+      "children": [
+        {
+          "id": "module1",
+          "title": "Module 1: Fundamentals",
+          "isContainer": true,
+          "children": [
+            {
+              "id": "module1-lesson1",
+              "title": "Lesson 1: Introduction",
+              "launchUrl": "./sample-course/module1/lesson1/index.html"
+            },
+            {
+              "id": "module1-lesson2",
+              "title": "Lesson 2: Basics",
+              "launchUrl": "./sample-course/module1/lesson2/index.html"
+            }
+          ]
+        },
+        {
+          "id": "module2",
+          "title": "Module 2: Advanced",
+          "isContainer": true,
+          "children": [
+            {
+              "id": "module2-lesson1",
+              "title": "Lesson 1: Deep Dive",
+              "launchUrl": "./sample-course/module2/lesson1/index.html"
+            },
+            {
+              "id": "module2-quiz",
+              "title": "Module Quiz",
+              "launchUrl": "./sample-course/module2/quiz/index.html"
+            }
+          ]
+        },
+        {
+          "id": "final-assessment",
+          "title": "Final Assessment",
+          "launchUrl": "./sample-course/final-assessment/index.html"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "id": "scorm2004-simple-demo",
+  "title": "SCORM 2004 Simple Demo Course",
+  "version": "1.0.0",
+  "scos": [
+    {
+      "id": "sco1",
+      "title": "Getting Started",
+      "launchUrl": "./sample-course/sco1/index.html",
+      "scaledPassingScore": 0.8
+    },
+    {
+      "id": "sco2",
+      "title": "Main Content",
+      "launchUrl": "./sample-course/sco2/index.html",
+      "scaledPassingScore": 0.8
+    },
+    {
+      "id": "sco3",
+      "title": "Final Quiz",
+      "launchUrl": "./sample-course/sco3/index.html",
+      "scaledPassingScore": 0.7
+    }
+  ]
+}
