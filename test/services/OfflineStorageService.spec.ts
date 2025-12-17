@@ -600,6 +600,63 @@ describe("OfflineStorageService Tests", () => {
     });
   });
 
+  describe("offline events integration", () => {
+    it("should be used by BaseAPI to fire OfflineDataSynced event on successful sync", async () => {
+      // This test documents expected integration behavior
+      // The actual event firing happens in BaseAPI, which calls syncOfflineData
+      const service = createService();
+      const commitData = createSampleCommitObject();
+      const courseId = "course123";
+
+      // Store data (synchronous)
+      service.storeOffline(courseId, commitData);
+
+      // Verify data was stored
+      const hasPending = await service.hasPendingOfflineData(courseId);
+      expect(hasPending).toBe(true);
+
+      // Sync data
+      vi.clearAllMocks();
+      const syncResult = await service.syncOfflineData();
+
+      // Verify sync succeeded
+      expect(syncResult).toBe(true);
+      expect(fetch).toHaveBeenCalled();
+
+      // Verify data was removed from queue
+      const stillPending = await service.hasPendingOfflineData(courseId);
+      expect(stillPending).toBe(false);
+
+      // Verify success log (BaseAPI would fire event based on this return value)
+      expect(apiLog).toHaveBeenCalledWith(
+        "OfflineStorageService",
+        expect.stringContaining("Successfully synced item"),
+        LogLevelEnum.INFO,
+      );
+    });
+
+    it("should return false on sync failure for BaseAPI to fire OfflineDataSyncFailed event", async () => {
+      const service = createService();
+
+      // Simulate catastrophic failure
+      localStorageMock.getItem.mockImplementationOnce(() => {
+        throw new Error("Catastrophic storage failure");
+      });
+
+      const syncResult = await service.syncOfflineData();
+
+      // Verify sync failed (BaseAPI would fire OfflineDataSyncFailed based on this)
+      expect(syncResult).toBe(false);
+
+      // Verify error was logged
+      expect(apiLog).toHaveBeenCalledWith(
+        "OfflineStorageService",
+        expect.stringContaining("Error during sync process"),
+        LogLevelEnum.ERROR,
+      );
+    });
+  });
+
   describe("updateSettings", () => {
     it("should update the service settings", async () => {
       const service = createService();
