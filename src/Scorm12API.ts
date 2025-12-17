@@ -524,9 +524,9 @@ class Scorm12API extends BaseAPI {
    * Attempts to store the data to the LMS
    *
    * @param {boolean} terminateCommit
-   * @return {Promise<ResultObject>}
+   * @return {ResultObject}
    */
-  async storeData(terminateCommit: boolean): Promise<ResultObject> {
+  storeData(terminateCommit: boolean): ResultObject {
     if (terminateCommit) {
       const originalStatus = this.cmi.core.lesson_status;
 
