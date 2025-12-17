@@ -1687,12 +1687,8 @@ export default abstract class BaseAPI implements IBaseAPI {
       );
 
       if (params && typeof params === "object" && "cmi" in params) {
-        // Store offline - fire async but return optimistic success
-        this._offlineStorageService.storeOffline(this._courseId, params as CommitObject);
-        return {
-          result: global_constants.SCORM_TRUE,
-          errorCode: 0,
-        };
+        // Store offline and return actual storage result (localStorage is synchronous)
+        return this._offlineStorageService.storeOffline(this._courseId, params as CommitObject);
       } else {
         this.apiLog(
           "processHttpRequest",

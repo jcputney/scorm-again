@@ -797,11 +797,9 @@ describe("CrossFrameAPI - New Features", () => {
   });
 
   it("uses configurable timeout", async () => {
-    const shortTimeoutClient = new CrossFrameAPI(
-      "https://lms.example.com",
-      window.parent,
-      { timeout: 1000 },
-    );
+    const shortTimeoutClient = new CrossFrameAPI("https://lms.example.com", window.parent, {
+      timeout: 1000,
+    });
 
     // eslint-disable-next-line
     // @ts-ignore
@@ -947,9 +945,7 @@ describe("CrossFrameAPI - New Features", () => {
 
     // eslint-disable-next-line
     // @ts-ignore
-    await expect(client["_post"]("LMSGetValue", [])).rejects.toThrow(
-      "CrossFrameAPI destroyed",
-    );
+    await expect(client["_post"]("LMSGetValue", [])).rejects.toThrow("CrossFrameAPI destroyed");
   });
 
   it("protects cache from stale getFlattenedCMI responses", async () => {
