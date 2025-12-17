@@ -644,6 +644,76 @@ describe("OfflineStorageService Tests", () => {
       const sync3Result = await service.syncOfflineData();
       expect(sync3Result).toBe(true);
     });
+
+    it("should maintain queue integrity when some items succeed and others fail", async () => {
+      const service = createService();
+
+      // Create queue with two items
+      const successItem = {
+        id: "success_item",
+        courseId: "course1",
+        timestamp: Date.now(),
+        data: createSampleCommitObject(),
+        syncAttempts: 0,
+      };
+
+      const failItem = {
+        id: "fail_item",
+        courseId: "course2",
+        timestamp: Date.now() + 1,
+        data: { ...createSampleCommitObject(), courseId: "course2" },
+        syncAttempts: 0,
+      };
+
+      localStorageMock.getItem.mockReturnValueOnce(JSON.stringify([successItem, failItem]));
+
+      // Mock fetch to succeed for first item, fail for second
+      // Using mockResolvedValueOnce to avoid affecting subsequent tests
+      (fetch as ReturnType<typeof vi.fn>)
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ result: global_constants.SCORM_TRUE, errorCode: 0 }),
+        } as Response)
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 500,
+          json: () => Promise.resolve({ result: global_constants.SCORM_FALSE, errorCode: 500 }),
+        } as Response);
+
+      // Perform sync
+      const result = await service.syncOfflineData();
+
+      // Overall sync should succeed (process completed)
+      expect(result).toBe(true);
+
+      // Verify queue was updated correctly
+      const setItemCalls = localStorageMock.setItem.mock.calls;
+      const queueUpdateCall = setItemCalls.find((call) => call[0] === "scorm_again_sync_queue");
+
+      expect(queueUpdateCall).toBeDefined();
+      const updatedQueue = JSON.parse(queueUpdateCall![1]);
+
+      // Success item should be removed
+      expect(updatedQueue.find((item: any) => item.id === "success_item")).toBeUndefined();
+
+      // Fail item should remain with incremented attempts
+      const remainingFailItem = updatedQueue.find((item: any) => item.id === "fail_item");
+      expect(remainingFailItem).toBeDefined();
+      expect(remainingFailItem.syncAttempts).toBe(1);
+
+      // Verify logs
+      expect(apiLog).toHaveBeenCalledWith(
+        "OfflineStorageService",
+        expect.stringContaining("Successfully synced item success_item"),
+        LogLevelEnum.INFO,
+      );
+      expect(apiLog).toHaveBeenCalledWith(
+        "OfflineStorageService",
+        expect.stringContaining("Failed to sync item fail_item"),
+        LogLevelEnum.WARN,
+      );
+    });
   });
 
   describe("offline events integration", () => {
