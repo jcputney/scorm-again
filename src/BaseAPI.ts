@@ -564,7 +564,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @return {ResultObject}
    * @abstract
    */
-  abstract storeData(_calculateTotalTime: boolean): Promise<ResultObject>;
+  abstract storeData(_calculateTotalTime: boolean): ResultObject;
 
   /**
    * Render the cmi object to the proper format for LMS commit
@@ -655,9 +655,9 @@ export default abstract class BaseAPI implements IBaseAPI {
    * Terminates the current run of the API
    * @param {string} callbackName
    * @param {boolean} checkTerminated
-   * @return {Promise<string>}
+   * @return {string}
    */
-  async terminate(callbackName: string, checkTerminated: boolean): Promise<string> {
+  terminate(callbackName: string, checkTerminated: boolean): string {
     // Per SCORM 2004 3rd Edition RTE Section 3.1.3.2:
     // Return "false" for all error conditions (112, 113, 111, 201)
     let returnValue = global_constants.SCORM_TRUE;
@@ -682,7 +682,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       // Fire BeforeTerminate event for offline sync
       this.processListeners("BeforeTerminate");
 
-      const result: ResultObject = await this.storeData(true);
+      const result: ResultObject = this.storeData(true);
       if ((result.errorCode ?? 0) > 0) {
         // Log detailed error information before throwing SCORM error
         if (result.errorMessage) {
@@ -836,9 +836,9 @@ export default abstract class BaseAPI implements IBaseAPI {
    * Orders LMS to store all content parameters
    * @param {string} callbackName
    * @param {boolean} checkTerminated
-   * @return {Promise<string>}
+   * @return {string}
    */
-  async commit(callbackName: string, checkTerminated: boolean = false): Promise<string> {
+  commit(callbackName: string, checkTerminated: boolean = false): string {
     this.clearScheduledCommit();
 
     // Per SCORM 2004 3rd Edition RTE Section 3.1.4.3:
@@ -858,7 +858,7 @@ export default abstract class BaseAPI implements IBaseAPI {
       // Per SCORM 2004 3rd Ed RTE 3.1.4.3: return "false" for error 143
       if (errorCode === 143) returnValue = global_constants.SCORM_FALSE;
     } else {
-      const result = await this.storeData(false);
+      const result = this.storeData(false);
       if ((result.errorCode ?? 0) > 0) {
         // Log detailed error information before throwing SCORM error
         if (result.errorMessage) {
@@ -1666,13 +1666,13 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @param {string} url - The URL to send the request to
    * @param {CommitObject | StringKeyMap | Array<any>} params - The parameters to send
    * @param {boolean} immediate - Whether to send the request immediately without waiting
-   * @returns {Promise<ResultObject>} - The result of the request
+   * @returns {ResultObject} - The result of the request
    */
-  async processHttpRequest(
+  processHttpRequest(
     url: string,
     params: CommitObject | StringKeyMap | Array<any>,
     immediate: boolean = false,
-  ): Promise<ResultObject> {
+  ): ResultObject {
     // If offline support is enabled and device is offline, store data locally instead of sending
     if (
       this.settings.enableOfflineSupport &&
@@ -1687,12 +1687,12 @@ export default abstract class BaseAPI implements IBaseAPI {
       );
 
       if (params && typeof params === "object" && "cmi" in params) {
-        // Store offline and wait for completion before returning
-        const storeResult = await this._offlineStorageService.storeOffline(
-          this._courseId,
-          params as CommitObject,
-        );
-        return storeResult;
+        // Store offline - fire async but return optimistic success
+        this._offlineStorageService.storeOffline(this._courseId, params as CommitObject);
+        return {
+          result: global_constants.SCORM_TRUE,
+          errorCode: 0,
+        };
       } else {
         this.apiLog(
           "processHttpRequest",

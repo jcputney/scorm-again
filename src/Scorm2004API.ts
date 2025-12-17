@@ -1282,9 +1282,9 @@ class Scorm2004API extends BaseAPI {
    * Attempts to store the data to the LMS - delegates to DataSerializationModule
    *
    * @param {boolean} terminateCommit
-   * @return {Promise<ResultObject>}
+   * @return {ResultObject}
    */
-  async storeData(terminateCommit: boolean): Promise<ResultObject> {
+  storeData(terminateCommit: boolean): ResultObject {
     if (terminateCommit) {
       if (this.cmi.mode === "normal") {
         if (this.cmi.credit === "credit") {
