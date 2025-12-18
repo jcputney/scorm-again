@@ -264,7 +264,7 @@ class _ScormPlayerScreenState extends State<ScormPlayerScreen> {
 
          // Load the course from external storage
          final courseUrl = _storageService.getCourseUrl(courseDir);
-         _controller.loadFile(courseUrl);
+         _controller.loadRequest(Uri.parse(courseUrl));
       } catch (e) {
          print('Error setting up WebView: $e');
          setState(() {
@@ -331,6 +331,7 @@ class _ScormPlayerScreenState extends State<ScormPlayerScreen> {
         });
 
         // Store connection status in scorm-again
+        // TODO: This will be replaced with the new event API pattern in a future update
         window.API._offlineStorageService.isDeviceOnline = function() {
           return ${_isOnline};
         };
@@ -395,19 +396,25 @@ class _ScormPlayerScreenState extends State<ScormPlayerScreen> {
 
 ## Key Features of This Implementation
 
-### 1. Offline Support
+### 1. Local HTTP Server (Recommended)
+
+For best compatibility with SCORM packages, serve content through a local HTTP server rather than using `file://` URLs directly. This avoids CORS issues and ensures all JavaScript APIs work correctly.
+
+Use `flutter_inappwebview` with its built-in local server, or the `shelf` package. See the [Troubleshooting Guide](troubleshooting.md#3b-local-web-server-for-scorm-content-recommended) for implementation details.
+
+### 2. Offline Support
 
 - Detects device connectivity status and updates the scorm-again API accordingly
 - Automatically syncs data when the device comes online
 - Provides visual feedback on connectivity status
 
-### 2. Local Content Storage
+### 3. Local Content Storage
 
 - Copies scorm-again API to local storage
 - Extracts SCORM content to local storage
 - Loads content from local files rather than remote URLs
 
-### 3. scorm-again Configuration
+### 4. scorm-again Configuration
 
 The scorm-again API is initialized with these key settings:
 
@@ -426,7 +433,7 @@ The scorm-again API is initialized with these key settings:
 }
 ```
 
-### 4. Communication Bridge
+### 5. Communication Bridge
 
 - Uses JavaScript channels to communicate between Flutter and the WebView
 - Logs SCORM activity in the Flutter app
@@ -472,6 +479,62 @@ Test your implementation with:
 
 4. **Synchronization failures**: Verify your connectivity detection is working correctly and that
    the scorm-again API is properly configured.
+
+### Critical: SCORM API Not Found ("Unable to find an API adapter")
+
+Many SCORM courses use a standard API discovery algorithm that searches `window.parent` for the API. In a WebView, `window.parent === window`, which causes the search to fail. Additionally, many courses declare `var API = null;` at global scope, overwriting any API you've set.
+
+**Solution**: Inject JavaScript early using `onWebViewCreated` to set up APIs and override `window.parent`:
+
+```dart
+await _controller.runJavaScript('''
+  // Initialize both SCORM APIs
+  var apiSettings = { autocommit: true, logLevel: 4 };
+
+  // SCORM 2004
+  window.API_1484_11 = new window.Scorm2004API(apiSettings);
+
+  // SCORM 1.2 with getter protection (prevents 'var API = null' overwrite)
+  var scorm12Instance = new window.Scorm12API(apiSettings);
+  window._scorm12APIInstance = scorm12Instance;
+  Object.defineProperty(window, 'API', {
+    get: function() { return window._scorm12APIInstance; },
+    set: function(val) { /* ignore */ },
+    configurable: false
+  });
+
+  // Override window.parent for API discovery
+  Object.defineProperty(window, 'parent', {
+    get: function() {
+      return {
+        API_1484_11: window.API_1484_11,
+        API: window._scorm12APIInstance,
+        parent: null
+      };
+    },
+    configurable: true
+  });
+''');
+```
+
+**Important**: Use the full `scorm-again.min.js` bundle (not `scorm2004.min.js`) to support both SCORM 1.2 and SCORM 2004 courses.
+
+See [Troubleshooting Guide](troubleshooting.md#3a-scorm-api-not-found-in-webview-critical) for detailed explanation.
+
+### Alerts Not Displaying
+
+WebView dialogs may not show. Forward them to native via JavaScript channels:
+
+```dart
+// In your JavaScript injection
+window.alert = function(msg) {
+  window.ScormBridge.postMessage(JSON.stringify({
+    type: 'alert', message: String(msg)
+  }));
+};
+```
+
+Handle in your `onMessageReceived` callback to show a Flutter dialog.
 
 ## Conclusion
 

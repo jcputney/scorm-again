@@ -1,5 +1,7 @@
 # Using scorm-again with React Native for Offline Learning
 
+> **Note:** A complete working example is available at `examples/react-native-offline/` in the scorm-again repository.
+
 This guide demonstrates how to implement SCORM content in a React Native application with offline
 support using scorm-again.
 
@@ -115,7 +117,9 @@ class ExternalStorageService {
       // Set up base directory path based on platform
       if (Platform.OS === 'android') {
         // Use Download directory on Android
-        this.baseStoragePath = `${RNFS.ExternalStorageDirectoryPath}/Download/ScormContent`;
+        // Note: On Android 10+ (API 29+), use app-specific directory for better compatibility
+        // RNFS.ExternalStorageDirectoryPath may not be accessible on newer Android versions
+        this.baseStoragePath = `${RNFS.DownloadDirectoryPath}/ScormContent`;
       } else if (Platform.OS === 'ios') {
         // Use Documents directory on iOS
         this.baseStoragePath = `${RNFS.DocumentDirectoryPath}/ScormContent`;
@@ -336,7 +340,18 @@ const ScormPlayerScreen = ({ route }) => {
 
       if (!apiJsExists) {
         // Copy the API from the app bundle
-        await RNFS.copyFileAssets('scorm-again/api/scorm-again.js', apiJsPath);
+        // Note: You'll need to use platform-specific code or copy from assets manually
+        // For Android: await RNFS.copyFileAssets('scorm-again/api/scorm-again.js', apiJsPath);
+        // For iOS: The file should be in the app bundle and can be accessed directly
+        const assetPath = Platform.OS === 'android'
+          ? 'scorm-again/api/scorm-again.js'
+          : `${RNFS.MainBundlePath}/scorm-again/api/scorm-again.js`;
+
+        if (Platform.OS === 'android') {
+          await RNFS.copyFileAssets(assetPath, apiJsPath);
+        } else {
+          await RNFS.copyFile(assetPath, apiJsPath);
+        }
       }
 
       setApiPath(`file://${apiJsPath}`);
@@ -373,20 +388,28 @@ const ScormPlayerScreen = ({ route }) => {
   const copyExampleCourseFromAssets = async (targetDir) => {
     try {
       // This is a simplified example - in a real app this would be more robust
-      // Get a list of all course files from assets
-      const courseFiles = await RNFS.readDirAssets(`courses/${courseId}`);
+      // Note: readDirAssets and copyFileAssets are Android-only
+      // For a cross-platform solution, use react-native-fs differently or bundle courses in the app
+      if (Platform.OS === 'android') {
+        // Get a list of all course files from assets
+        const courseFiles = await RNFS.readDirAssets(`courses/${courseId}`);
 
-      // Copy each file to the external storage
-      for (const file of courseFiles) {
-        const relativePath = file.path.split(`courses/${courseId}/`)[1];
-        const targetPath = `${targetDir}/${relativePath}`;
+        // Copy each file to the external storage
+        for (const file of courseFiles) {
+          const relativePath = file.path.split(`courses/${courseId}/`)[1];
+          const targetPath = `${targetDir}/${relativePath}`;
 
-        // Create parent directories if needed
-        const targetParentDir = targetPath.substring(0, targetPath.lastIndexOf('/'));
-        await RNFS.mkdir(targetParentDir, { NSURLIsExcludedFromBackupKey: true });
+          // Create parent directories if needed
+          const targetParentDir = targetPath.substring(0, targetPath.lastIndexOf('/'));
+          await RNFS.mkdir(targetParentDir);
 
-        // Copy the file
-        await RNFS.copyFileAssets(file.path, targetPath);
+          // Copy the file
+          await RNFS.copyFileAssets(file.path, targetPath);
+        }
+      } else {
+        // For iOS, you would need to bundle the course differently
+        // or download it from a remote source
+        throw new Error('Course copying from assets is not implemented for iOS in this example');
       }
     } catch (error) {
       console.error('Error copying example course:', error);
@@ -428,6 +451,7 @@ const ScormPlayerScreen = ({ route }) => {
         });
 
         // Override the isDeviceOnline method to use our React state
+        // TODO: This will be replaced with the new event API pattern in a future update
         window.API._offlineStorageService.isDeviceOnline = function() {
           return ${isOnline};
         };
@@ -997,10 +1021,19 @@ const ScormPlayerScreen = () => {
         await RNFS.mkdir(apiDir, { NSURLIsExcludedFromBackupKey: true });
 
         // Copy scorm-again API from assets to documents directory
-        await RNFS.copyFileAssets(
-          'scorm-again/api/scorm-again.js',
-          `${apiDir}/scorm-again.js`
-        );
+        // Note: Platform-specific implementation needed
+        if (Platform.OS === 'android') {
+          await RNFS.copyFileAssets(
+            'scorm-again/api/scorm-again.js',
+            `${apiDir}/scorm-again.js`
+          );
+        } else {
+          // For iOS, copy from app bundle
+          await RNFS.copyFile(
+            `${RNFS.MainBundlePath}/scorm-again/api/scorm-again.js`,
+            `${apiDir}/scorm-again.js`
+          );
+        }
       }
 
       setApiPath(`file://${apiDir}`);
@@ -1024,11 +1057,17 @@ const ScormPlayerScreen = () => {
         } else {
           // Copy unzipped course files instead
           // This is a simplified example - in a real app you'd need to copy all course files
-          await RNFS.copyFileAssets(
-            `courses/${COURSE_ID}/index.html`,
-            `${courseDir}/index.html`
-          );
-          // Copy other course files as needed
+          // Note: Platform-specific implementation needed
+          if (Platform.OS === 'android') {
+            await RNFS.copyFileAssets(
+              `courses/${COURSE_ID}/index.html`,
+              `${courseDir}/index.html`
+            );
+            // Copy other course files as needed
+          } else {
+            // For iOS, use different approach or download course package
+            throw new Error('Course copying from assets not implemented for iOS in this example');
+          }
         }
       }
 
@@ -1072,6 +1111,7 @@ const ScormPlayerScreen = () => {
         });
 
         // Override the isDeviceOnline method to use our React state
+        // TODO: This will be replaced with the new event API pattern in a future update
         window.API._offlineStorageService.isDeviceOnline = function() {
           return ${isOnline};
         };
@@ -1292,19 +1332,29 @@ Update your `Info.plist` file to allow loading local files:
 
 ## Key Features of This Implementation
 
-### 1. Offline Support
+### 1. Local HTTP Server (Recommended)
+
+For best compatibility with SCORM packages, serve content through a local HTTP server rather than using `file://` URLs directly. This avoids CORS issues and ensures all JavaScript APIs work correctly.
+
+```bash
+npm install @dr.pogodin/react-native-static-server
+```
+
+See `examples/react-native-offline` for a complete implementation, or the [Troubleshooting Guide](troubleshooting.md#3b-local-web-server-for-scorm-content-recommended) for details.
+
+### 2. Offline Support
 
 - Detects device connectivity status and updates the scorm-again API accordingly
 - Automatically syncs data when the device comes online
 - Provides visual feedback on connectivity status
 
-### 2. Local File Management
+### 3. Local File Management
 
 - Uses `react-native-fs` to manage file operations
 - Extracts SCORM course content from zip files if needed
 - Loads content from local filesystem instead of remote URLs
 
-### 3. scorm-again Configuration
+### 4. scorm-again Configuration
 
 The scorm-again API is initialized with these key settings:
 
@@ -1318,7 +1368,7 @@ The scorm-again API is initialized with these key settings:
 }
 ```
 
-### 4. WebView Communication
+### 5. WebView Communication
 
 - Uses `postMessage` to send data from the WebView to React Native
 - Injects JavaScript to initialize scorm-again and handle messages
@@ -1525,6 +1575,65 @@ const retrieveSecureScormData = async (courseId) => {
    - Verify that the app has proper permissions
    - Check that directories are created with proper error handling
    - Ensure file paths are correctly formatted for the platform
+
+### Critical: SCORM API Not Found ("Unable to find an API adapter")
+
+Many SCORM courses use a standard API discovery algorithm that searches `window.parent` for the API. In a WebView, `window.parent === window`, which causes the search to fail. Additionally, many courses declare `var API = null;` at global scope, overwriting any API you've set.
+
+**Solution**: Use `injectedJavaScriptBeforeContentLoaded` to set up APIs and override `window.parent`:
+
+```jsx
+<WebView
+  injectedJavaScriptBeforeContentLoaded={`
+    // Initialize both SCORM APIs
+    var apiSettings = { autocommit: true, logLevel: 4 };
+
+    // SCORM 2004
+    window.API_1484_11 = new window.Scorm2004API(apiSettings);
+
+    // SCORM 1.2 with getter protection (prevents 'var API = null' overwrite)
+    var scorm12Instance = new window.Scorm12API(apiSettings);
+    window._scorm12APIInstance = scorm12Instance;
+    Object.defineProperty(window, 'API', {
+      get: function() { return window._scorm12APIInstance; },
+      set: function(val) { /* ignore */ },
+      configurable: false
+    });
+
+    // Override window.parent for API discovery
+    Object.defineProperty(window, 'parent', {
+      get: function() {
+        return {
+          API_1484_11: window.API_1484_11,
+          API: window._scorm12APIInstance,
+          parent: null
+        };
+      },
+      configurable: true
+    });
+    true;
+  `}
+  // ... other props
+/>
+```
+
+**Important**: Use the full `scorm-again.min.js` bundle (not `scorm2004.min.js`) to support both SCORM 1.2 and SCORM 2004 courses.
+
+See [Troubleshooting Guide](troubleshooting.md#3a-scorm-api-not-found-in-webview-critical) for detailed explanation.
+
+### Alerts Not Displaying
+
+WebView dialogs may not show. Forward them to native:
+
+```javascript
+window.alert = function(msg) {
+  window.ReactNativeWebView.postMessage(JSON.stringify({
+    type: 'alert', message: String(msg)
+  }));
+};
+```
+
+Handle in your `onMessage` callback with React Native's `Alert.alert()`.
 
 ## Conclusion
 

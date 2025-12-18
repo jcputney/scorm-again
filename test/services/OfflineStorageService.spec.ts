@@ -145,9 +145,13 @@ describe("OfflineStorageService Tests", () => {
       const addEventListenerSpy = vi.spyOn(window, "addEventListener");
       createService();
 
-      expect(addEventListenerSpy).toHaveBeenCalledTimes(2);
+      expect(addEventListenerSpy).toHaveBeenCalledTimes(3);
       expect(addEventListenerSpy).toHaveBeenCalledWith("online", expect.any(Function));
       expect(addEventListenerSpy).toHaveBeenCalledWith("offline", expect.any(Function));
+      expect(addEventListenerSpy).toHaveBeenCalledWith(
+        "scorm-again:network-status",
+        expect.any(Function),
+      );
     });
   });
 
@@ -832,6 +836,196 @@ describe("OfflineStorageService Tests", () => {
         expect.stringContaining("Device is offline"),
         LogLevelEnum.INFO,
       );
+    });
+  });
+
+  describe("handleCustomNetworkStatus", () => {
+    it("should update network status and trigger sync when custom event sets online to true", async () => {
+      const service = createService();
+      const syncSpy = vi.spyOn(service, "syncOfflineData").mockResolvedValue(true);
+
+      // Start with device offline
+      vi.clearAllMocks();
+      window.dispatchEvent(
+        new CustomEvent("scorm-again:network-status", {
+          detail: { online: false },
+        }),
+      );
+
+      vi.clearAllMocks();
+
+      // Dispatch custom event with online: true
+      window.dispatchEvent(
+        new CustomEvent("scorm-again:network-status", {
+          detail: { online: true },
+        }),
+      );
+
+      // Wait for async operations
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Verify sync was triggered
+      expect(syncSpy).toHaveBeenCalled();
+
+      // Verify log
+      expect(apiLog).toHaveBeenCalledWith(
+        "OfflineStorageService",
+        expect.stringContaining("Network status updated via custom event: online"),
+        LogLevelEnum.INFO,
+      );
+      expect(apiLog).toHaveBeenCalledWith(
+        "OfflineStorageService",
+        expect.stringContaining("Device is back online"),
+        LogLevelEnum.INFO,
+      );
+    });
+
+    it("should update network status and log when custom event sets online to false", () => {
+      const service = createService();
+      const syncSpy = vi.spyOn(service, "syncOfflineData");
+      vi.clearAllMocks();
+
+      // Dispatch custom event with online: false
+      window.dispatchEvent(
+        new CustomEvent("scorm-again:network-status", {
+          detail: { online: false },
+        }),
+      );
+
+      // Verify sync was NOT triggered
+      expect(syncSpy).not.toHaveBeenCalled();
+
+      // Verify logs
+      expect(apiLog).toHaveBeenCalledWith(
+        "OfflineStorageService",
+        expect.stringContaining("Network status updated via custom event: offline"),
+        LogLevelEnum.INFO,
+      );
+      expect(apiLog).toHaveBeenCalledWith(
+        "OfflineStorageService",
+        expect.stringContaining("Device is offline"),
+        LogLevelEnum.INFO,
+      );
+    });
+
+    it("should handle invalid event type gracefully", () => {
+      createService();
+      vi.clearAllMocks();
+
+      // Dispatch a regular event instead of CustomEvent
+      window.dispatchEvent(new Event("scorm-again:network-status"));
+
+      // Verify warning was logged
+      expect(apiLog).toHaveBeenCalledWith(
+        "OfflineStorageService",
+        expect.stringContaining("Invalid network status event received"),
+        LogLevelEnum.WARN,
+      );
+    });
+
+    it("should handle invalid online value gracefully", () => {
+      createService();
+      vi.clearAllMocks();
+
+      // Dispatch custom event with invalid online value
+      window.dispatchEvent(
+        new CustomEvent("scorm-again:network-status", {
+          detail: { online: "invalid" },
+        }),
+      );
+
+      // Verify warning was logged
+      expect(apiLog).toHaveBeenCalledWith(
+        "OfflineStorageService",
+        expect.stringContaining("Invalid online status value in custom event"),
+        LogLevelEnum.WARN,
+      );
+    });
+
+    it("should handle missing online property gracefully", () => {
+      createService();
+      vi.clearAllMocks();
+
+      // Dispatch custom event with missing online property
+      window.dispatchEvent(
+        new CustomEvent("scorm-again:network-status", {
+          detail: {},
+        }),
+      );
+
+      // Verify warning was logged
+      expect(apiLog).toHaveBeenCalledWith(
+        "OfflineStorageService",
+        expect.stringContaining("Invalid online status value in custom event"),
+        LogLevelEnum.WARN,
+      );
+    });
+
+    it("should transition from offline to online via custom event", () => {
+      const service = createService();
+      const syncSpy = vi.spyOn(service, "syncOfflineData");
+
+      // First set offline
+      vi.clearAllMocks();
+      window.dispatchEvent(
+        new CustomEvent("scorm-again:network-status", {
+          detail: { online: false },
+        }),
+      );
+
+      expect(syncSpy).not.toHaveBeenCalled();
+
+      // Then set online
+      vi.clearAllMocks();
+      window.dispatchEvent(
+        new CustomEvent("scorm-again:network-status", {
+          detail: { online: true },
+        }),
+      );
+
+      // Verify sync was triggered on transition to online
+      expect(syncSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe("destroy", () => {
+    it("should remove all event listeners", () => {
+      const removeEventListenerSpy = vi.spyOn(window, "removeEventListener");
+      const service = createService();
+      vi.clearAllMocks();
+
+      service.destroy();
+
+      expect(removeEventListenerSpy).toHaveBeenCalledTimes(3);
+      expect(removeEventListenerSpy).toHaveBeenCalledWith("online", expect.any(Function));
+      expect(removeEventListenerSpy).toHaveBeenCalledWith("offline", expect.any(Function));
+      expect(removeEventListenerSpy).toHaveBeenCalledWith(
+        "scorm-again:network-status",
+        expect.any(Function),
+      );
+    });
+
+    it("should prevent events from triggering after destroy", () => {
+      // Create a fresh service for this test only
+      const isolatedService = new OfflineStorageService(settings, errorCodes, apiLog);
+      const syncSpy = vi.spyOn(isolatedService, "syncOfflineData");
+
+      // Destroy the service to remove listeners
+      isolatedService.destroy();
+
+      // Clear mocks AFTER destroy to ensure we only track calls after this point
+      vi.clearAllMocks();
+
+      // Try to trigger events after destroy
+      window.dispatchEvent(new Event("online"));
+      window.dispatchEvent(
+        new CustomEvent("scorm-again:network-status", {
+          detail: { online: true },
+        }),
+      );
+
+      // Verify the destroyed service's methods were NOT called
+      expect(syncSpy).not.toHaveBeenCalled();
     });
   });
 

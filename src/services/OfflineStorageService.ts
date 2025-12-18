@@ -24,6 +24,8 @@ export class OfflineStorageService {
   private syncQueue: string = "scorm_again_sync_queue";
   private isOnline: boolean = navigator.onLine;
   private syncInProgress: boolean = false;
+  private boundOnlineStatusChangeHandler: () => void;
+  private boundCustomNetworkStatusHandler: (event: Event) => void;
 
   /**
    * Constructor for OfflineStorageService
@@ -44,9 +46,16 @@ export class OfflineStorageService {
     this.settings = settings;
     this.error_codes = error_codes;
 
+    // Store bound handlers for cleanup
+    this.boundOnlineStatusChangeHandler = this.handleOnlineStatusChange.bind(this);
+    this.boundCustomNetworkStatusHandler = this.handleCustomNetworkStatus.bind(this);
+
     // Initialize listeners for online/offline events
-    window.addEventListener("online", this.handleOnlineStatusChange.bind(this));
-    window.addEventListener("offline", this.handleOnlineStatusChange.bind(this));
+    window.addEventListener("online", this.boundOnlineStatusChangeHandler);
+    window.addEventListener("offline", this.boundOnlineStatusChangeHandler);
+
+    // Initialize listener for custom network status events
+    window.addEventListener("scorm-again:network-status", this.boundCustomNetworkStatusHandler);
   }
 
   /**
@@ -55,6 +64,69 @@ export class OfflineStorageService {
   private handleOnlineStatusChange() {
     const wasOnline = this.isOnline;
     this.isOnline = navigator.onLine;
+
+    // If we've come back online, trigger sync process
+    if (!wasOnline && this.isOnline) {
+      this.apiLog(
+        "OfflineStorageService",
+        "Device is back online, attempting to sync...",
+        LogLevelEnum.INFO,
+      );
+      this.syncOfflineData().then(
+        (success) => {
+          if (success) {
+            this.apiLog("OfflineStorageService", "Sync completed successfully", LogLevelEnum.INFO);
+          } else {
+            this.apiLog("OfflineStorageService", "Sync failed", LogLevelEnum.ERROR);
+          }
+        },
+        (error) => {
+          this.apiLog("OfflineStorageService", `Error during sync: ${error}`, LogLevelEnum.ERROR);
+        },
+      );
+    } else if (wasOnline && !this.isOnline) {
+      this.apiLog(
+        "OfflineStorageService",
+        "Device is offline, data will be stored locally",
+        LogLevelEnum.INFO,
+      );
+    }
+  }
+
+  /**
+   * Handle custom network status events from external code
+   * This allows mobile apps or other external code to programmatically update network status
+   * @param {Event} event - The custom event containing network status
+   */
+  private handleCustomNetworkStatus(event: Event) {
+    if (!(event instanceof CustomEvent)) {
+      this.apiLog(
+        "OfflineStorageService",
+        "Invalid network status event received",
+        LogLevelEnum.WARN,
+      );
+      return;
+    }
+
+    const { online } = event.detail;
+
+    if (typeof online !== "boolean") {
+      this.apiLog(
+        "OfflineStorageService",
+        "Invalid online status value in custom event",
+        LogLevelEnum.WARN,
+      );
+      return;
+    }
+
+    const wasOnline = this.isOnline;
+    this.isOnline = online;
+
+    this.apiLog(
+      "OfflineStorageService",
+      `Network status updated via custom event: ${online ? "online" : "offline"}`,
+      LogLevelEnum.INFO,
+    );
 
     // If we've come back online, trigger sync process
     if (!wasOnline && this.isOnline) {
@@ -386,5 +458,15 @@ export class OfflineStorageService {
    */
   updateSettings(settings: InternalSettings): void {
     this.settings = settings;
+  }
+
+  /**
+   * Clean up event listeners
+   * Should be called when the service is no longer needed
+   */
+  destroy(): void {
+    window.removeEventListener("online", this.boundOnlineStatusChangeHandler);
+    window.removeEventListener("offline", this.boundOnlineStatusChangeHandler);
+    window.removeEventListener("scorm-again:network-status", this.boundCustomNetworkStatusHandler);
   }
 }

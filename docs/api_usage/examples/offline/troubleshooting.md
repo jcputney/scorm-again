@@ -77,6 +77,7 @@ window.addEventListener('online', () => {
   console.log('Device came online');
   if (window.API._offlineStorageService) {
     // Update the API's online status
+    // TODO: This will be replaced with the new event API pattern in a future update
     window.API._offlineStorageService.isDeviceOnline = () => true;
     // Trigger manual sync
     window.API._offlineStorageService.syncOfflineData();
@@ -86,6 +87,7 @@ window.addEventListener('online', () => {
 // ✅ For mobile apps, inject network status
 function updateNetworkStatus(isOnline) {
   if (window.API && window.API._offlineStorageService) {
+    // TODO: This will be replaced with the new event API pattern in a future update
     window.API._offlineStorageService.isDeviceOnline = () => isOnline;
     if (isOnline) {
       window.API._offlineStorageService.syncOfflineData();
@@ -152,6 +154,209 @@ config.websiteDataStore = WKWebsiteDataStore.default()
 
 let webView = WKWebView(frame: view.bounds, configuration: config)
 ```
+
+### 3a. SCORM API Not Found in WebView (Critical)
+
+**Symptoms:**
+- "Unable to find an API adapter" error message
+- "Could not establish a connection with the LMS" error
+- Content works in browser but fails in mobile WebView
+- Standard ADL/SCORM content fails to initialize
+
+**Root Cause:**
+
+Most SCORM content uses a standard API discovery algorithm that searches up the `window.parent` chain to find `window.API` (SCORM 1.2) or `window.API_1484_11` (SCORM 2004). In a WebView, there is no parent frame, so `window.parent === window`. This causes the search algorithm to fail because it looks for an API on `window.parent` rather than `window` itself.
+
+Additionally, many SCORM courses declare `var API = null;` at global scope, which overwrites any `window.API` you've set before the content loads.
+
+**Solution - Override window.parent:**
+
+Inject this JavaScript **before** the content loads (use `injectedJavaScriptBeforeContentLoaded` in React Native, or equivalent in other platforms):
+
+```javascript
+// Step 1: Initialize both SCORM APIs with your settings
+var apiSettings = {
+  // Your scorm-again configuration
+  autocommit: true,
+  logLevel: 4
+};
+
+// Initialize SCORM 2004 API
+window.API_1484_11 = new window.Scorm2004API(apiSettings);
+
+// Step 2: Initialize SCORM 1.2 API with getter protection
+// This prevents 'var API = null;' in content from overwriting our API
+var scorm12Instance = new window.Scorm12API(apiSettings);
+window._scorm12APIInstance = scorm12Instance;
+
+Object.defineProperty(window, 'API', {
+  get: function() { return window._scorm12APIInstance; },
+  set: function(val) {
+    // Silently ignore attempts to overwrite (or log for debugging)
+    console.log('Blocked attempt to overwrite window.API');
+  },
+  configurable: false
+});
+
+// Step 3: Override window.parent to enable API discovery
+// This makes the standard SCORM findAPI/GetAPI algorithms work
+Object.defineProperty(window, 'parent', {
+  get: function() {
+    return {
+      API_1484_11: window.API_1484_11,  // SCORM 2004
+      API: window._scorm12APIInstance,   // SCORM 1.2
+      parent: null  // Terminate the search
+    };
+  },
+  configurable: true
+});
+```
+
+**Why This Works:**
+
+1. **Fake Parent Object**: The standard SCORM API discovery algorithm (`findAPI`, `GetAPI`, `ScanForAPI`) searches `window.parent` for the API. By overriding `window.parent` to return an object containing our APIs, the discovery algorithm finds them.
+
+2. **Getter Protection for window.API**: Many SCORM packages have `var API = null;` at global scope. Using `Object.defineProperty` with a getter ensures our API instance is returned regardless of attempts to overwrite it.
+
+3. **Both APIs**: Using the full `scorm-again.min.js` bundle (not just `scorm2004.min.js`) provides both SCORM 1.2 and SCORM 2004 support, which is essential since courses may use either standard.
+
+**Platform-Specific Implementation:**
+
+- **React Native**: Use `injectedJavaScriptBeforeContentLoaded` prop on WebView
+- **Flutter**: Use `onWebViewCreated` to inject before page load
+- **iOS (WKWebView)**: Use `WKUserScript` with `injectionTime: .atDocumentStart`
+- **Android (WebView)**: Override `onPageStarted` in `WebViewClient`
+
+See the platform-specific documentation for complete implementation examples.
+
+### 3b. Local Web Server for SCORM Content (Recommended)
+
+**Symptoms:**
+- CORS errors when loading SCORM content
+- JavaScript modules fail to load with `file://` URLs
+- Relative paths not resolving correctly
+- Some SCORM content features don't work
+
+**Root Cause:**
+
+While `file://` URLs can work for simple content, many SCORM packages expect to be served over HTTP. Additionally, `file://` URLs have restrictions:
+- No proper origin for CORS
+- Some JavaScript APIs are restricted
+- Relative path resolution can be inconsistent
+- Cross-origin restrictions between `file://` URLs
+
+**Solution - Use a Local HTTP Server:**
+
+Serve your SCORM content through a local HTTP server running on the device. This provides a proper HTTP origin and consistent behavior.
+
+**React Native:**
+```bash
+npm install @dr.pogodin/react-native-static-server
+```
+
+```typescript
+import Server from '@dr.pogodin/react-native-static-server';
+
+// Start server pointing to your documents directory
+const server = new Server({
+  fileDir: '/path/to/documents',
+  port: 0,  // Auto-select available port
+  hostname: '127.0.0.1',
+  stopInBackground: false,
+});
+
+const origin = await server.start();
+// origin = 'http://127.0.0.1:PORT'
+
+// Load course via HTTP instead of file://
+const courseUrl = `${origin}/courses/${courseId}/index.html`;
+```
+
+**Flutter:**
+Use `flutter_inappwebview` with its built-in local server, or `shelf` package:
+```dart
+import 'package:shelf/shelf_io.dart' as shelf_io;
+import 'package:shelf_static/shelf_static.dart';
+
+final handler = createStaticHandler('/path/to/documents');
+final server = await shelf_io.serve(handler, '127.0.0.1', 0);
+final origin = 'http://127.0.0.1:${server.port}';
+```
+
+**iOS (Swift):**
+Use `GCDWebServer` or `Swifter`:
+```swift
+import GCDWebServer
+
+let webServer = GCDWebServer()
+webServer.addGETHandler(forBasePath: "/", directoryPath: documentsPath, indexFilename: nil, cacheAge: 0, allowRangeRequests: true)
+webServer.start(withPort: 0, bonjourName: nil)
+let origin = "http://127.0.0.1:\(webServer.port)"
+```
+
+**Android (Kotlin):**
+Use `NanoHTTPD` or `AndroidAsync`:
+```kotlin
+import fi.iki.elonen.NanoHTTPD
+
+class LocalServer(port: Int, private val rootDir: File) : NanoHTTPD(port) {
+    override fun serve(session: IHTTPSession): Response {
+        val uri = session.uri
+        val file = File(rootDir, uri)
+        return newFixedLengthResponse(Response.Status.OK, getMimeType(uri), FileInputStream(file), file.length())
+    }
+}
+
+val server = LocalServer(0, documentsDir)
+server.start()
+val origin = "http://127.0.0.1:${server.listeningPort}"
+```
+
+**Benefits of Local HTTP Server:**
+- Proper HTTP origin for CORS
+- Consistent path resolution
+- All JavaScript APIs work correctly
+- Better compatibility with complex SCORM packages
+- Easier debugging (can test URLs in browser)
+
+See the `examples/react-native-offline` directory for a complete implementation using `@dr.pogodin/react-native-static-server`.
+
+### 3c. Alerts and Confirmations Not Showing
+
+**Symptoms:**
+- `window.alert()` calls don't display anything
+- `window.confirm()` returns undefined or doesn't show dialog
+- Quiz feedback or course messages aren't visible
+
+**Solution:**
+
+Override dialog functions to forward to native UI:
+
+```javascript
+// Forward alerts to native via postMessage
+window.alert = function(msg) {
+  console.log('[ALERT]', msg);
+  if (window.ReactNativeWebView) {
+    window.ReactNativeWebView.postMessage(JSON.stringify({
+      type: 'alert',
+      message: String(msg)
+    }));
+  }
+};
+
+window.confirm = function(msg) {
+  console.log('[CONFIRM]', msg);
+  if (window.ReactNativeWebView) {
+    window.ReactNativeWebView.postMessage(JSON.stringify({
+      type: 'confirm',
+      message: String(msg)
+    }));
+  }
+  return true; // Default to true for non-blocking behavior
+};
+```
+
+Then handle the message in your native code to display a native alert dialog.
 
 ### 4. External Storage Permission Issues
 
