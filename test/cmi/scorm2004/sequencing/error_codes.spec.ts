@@ -1,17 +1,24 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
-import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
+import {beforeEach, describe, expect, it} from "vitest";
+import {Activity} from "../../../../src/cmi/scorm2004/sequencing/activity";
+import {ActivityTree} from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
 import {
+  DeliveryRequestType,
   SequencingProcess,
   SequencingRequestType,
-  DeliveryRequestType,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import { SequencingControls } from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
-import { OverallSequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
-import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
-import { SequencingRule, RuleActionType, RuleCondition, RuleConditionType } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
+import {SequencingControls} from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
+import {
+  OverallSequencingProcess
+} from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
+import {RollupProcess} from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
+import {
+  RuleActionType,
+  RuleCondition,
+  RuleConditionType,
+  SequencingRule
+} from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
-describe("GAP-22: Missing SCORM 2004 Sequencing Exception Codes", () => {
+describe("Missing SCORM 2004 Sequencing Exception Codes", () => {
   let activityTree: ActivityTree;
   let sequencingProcess: SequencingProcess;
   let overallSequencingProcess: OverallSequencingProcess;
@@ -71,9 +78,9 @@ describe("GAP-22: Missing SCORM 2004 Sequencing Exception Codes", () => {
     sequencingProcess = new SequencingProcess(activityTree);
     rollupProcess = new RollupProcess();
     overallSequencingProcess = new OverallSequencingProcess(
-      activityTree,
-      sequencingProcess,
-      rollupProcess
+        activityTree,
+        sequencingProcess,
+        rollupProcess
     );
   });
 
@@ -183,8 +190,8 @@ describe("GAP-22: Missing SCORM 2004 Sequencing Exception Codes", () => {
       leaf1.isActive = false; // Terminated
 
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.PREVIOUS,
-        null
+          SequencingRequestType.PREVIOUS,
+          null
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
@@ -197,8 +204,8 @@ describe("GAP-22: Missing SCORM 2004 Sequencing Exception Codes", () => {
       leaf2.isActive = false; // Terminated
 
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.PREVIOUS,
-        null
+          SequencingRequestType.PREVIOUS,
+          null
       );
 
       // Should succeed - can go back to leaf1
@@ -216,8 +223,8 @@ describe("GAP-22: Missing SCORM 2004 Sequencing Exception Codes", () => {
       leaf1.isActive = true;
 
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.CONTINUE,
-        null
+          SequencingRequestType.CONTINUE,
+          null
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
@@ -230,8 +237,8 @@ describe("GAP-22: Missing SCORM 2004 Sequencing Exception Codes", () => {
       leaf1.isActive = false;
 
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.CONTINUE,
-        null
+          SequencingRequestType.CONTINUE,
+          null
       );
 
       // Should not fail with SB.2.7-1 (may fail with other codes or succeed)
@@ -249,8 +256,8 @@ describe("GAP-22: Missing SCORM 2004 Sequencing Exception Codes", () => {
       cluster1.sequencingControls.flow = false;
 
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.CONTINUE,
-        null
+          SequencingRequestType.CONTINUE,
+          null
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
@@ -266,8 +273,8 @@ describe("GAP-22: Missing SCORM 2004 Sequencing Exception Codes", () => {
       cluster1.sequencingControls.flow = true;
 
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.CONTINUE,
-        null
+          SequencingRequestType.CONTINUE,
+          null
       );
 
       // Should not fail with SB.2.7-2
@@ -285,8 +292,8 @@ describe("GAP-22: Missing SCORM 2004 Sequencing Exception Codes", () => {
       cluster1.sequencingControls.forwardOnly = true;
 
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.PREVIOUS,
-        null,
+          SequencingRequestType.PREVIOUS,
+          null,
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
@@ -304,8 +311,8 @@ describe("GAP-22: Missing SCORM 2004 Sequencing Exception Codes", () => {
       cluster1.sequencingControls.flow = false;
 
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.PREVIOUS,
-        null
+          SequencingRequestType.PREVIOUS,
+          null
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
@@ -321,8 +328,8 @@ describe("GAP-22: Missing SCORM 2004 Sequencing Exception Codes", () => {
       cluster1.sequencingControls.forwardOnly = false;
 
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.PREVIOUS,
-        null
+          SequencingRequestType.PREVIOUS,
+          null
       );
 
       // Should not fail with SB.2.8-2 due to forwardOnly
@@ -342,8 +349,8 @@ describe("GAP-22: Missing SCORM 2004 Sequencing Exception Codes", () => {
 
       // Try to start
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START,
-        null
+          SequencingRequestType.START,
+          null
       );
 
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
@@ -356,8 +363,8 @@ describe("GAP-22: Missing SCORM 2004 Sequencing Exception Codes", () => {
       leaf1.isAvailable = true;
 
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START,
-        null
+          SequencingRequestType.START,
+          null
       );
 
       // Should succeed
@@ -380,8 +387,8 @@ describe("GAP-22: Missing SCORM 2004 Sequencing Exception Codes", () => {
       cluster1.sequencingControls.flow = false;
 
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.CONTINUE,
-        null
+          SequencingRequestType.CONTINUE,
+          null
       );
 
       // Should fail because flow is disabled
@@ -400,8 +407,8 @@ describe("GAP-22: Missing SCORM 2004 Sequencing Exception Codes", () => {
       leaf3.isAvailable = true;
 
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START,
-        null
+          SequencingRequestType.START,
+          null
       );
 
       // Should deliver leaf2 (skipping unavailable leaf1)
@@ -421,8 +428,8 @@ describe("GAP-22: Missing SCORM 2004 Sequencing Exception Codes", () => {
 
       // Try to continue (should fail with SB.2.7-1, not a generic error)
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.CONTINUE,
-        null
+          SequencingRequestType.CONTINUE,
+          null
       );
 
       expect(result.exception).toBe("SB.2.7-1");
@@ -438,8 +445,8 @@ describe("GAP-22: Missing SCORM 2004 Sequencing Exception Codes", () => {
 
       // Try to continue (should reach end and fail)
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.CONTINUE,
-        null
+          SequencingRequestType.CONTINUE,
+          null
       );
 
       // Should indicate end of sequence

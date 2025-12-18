@@ -1,21 +1,23 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import {beforeEach, describe, expect, it, vi} from "vitest";
 import {
-  OverallSequencingProcess,
   NavigationRequestType,
+  OverallSequencingProcess,
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
-import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
-import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
-import { ADLNav } from "../../../../src/cmi/scorm2004/adl";
+import {SequencingProcess} from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
+import {RollupProcess} from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
+import {ActivityTree} from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
+import {Activity} from "../../../../src/cmi/scorm2004/sequencing/activity";
+import {ADLNav} from "../../../../src/cmi/scorm2004/adl";
 import {
-  SelectionTiming,
   RandomizationTiming,
+  SelectionTiming,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
-import { SelectionRandomization } from "../../../../src/cmi/scorm2004/sequencing/selection_randomization";
+import {
+  SelectionRandomization
+} from "../../../../src/cmi/scorm2004/sequencing/selection_randomization";
 
 /**
- * GAP-17: Add randomization calls at specification-required process points
+ * Add randomization calls at specification-required process points
  *
  * This test suite verifies that randomization is called at the correct process points
  * per SCORM 2004 3rd Edition specification:
@@ -23,7 +25,7 @@ import { SelectionRandomization } from "../../../../src/cmi/scorm2004/sequencing
  * 1. Content Delivery Environment Process (DB.2) - after isActive=true, before initialization
  * 2. End Attempt Process (UP.4) - after rollup processing
  */
-describe("GAP-17: Randomization at Specification-Required Process Points", () => {
+describe("Randomization at Specification-Required Process Points", () => {
   let overallProcess: OverallSequencingProcess;
   let activityTree: ActivityTree;
   let sequencingProcess: SequencingProcess;
@@ -61,10 +63,10 @@ describe("GAP-17: Randomization at Specification-Required Process Points", () =>
     adlNav = new ADLNav();
 
     overallProcess = new OverallSequencingProcess(
-      activityTree,
-      sequencingProcess,
-      rollupProcess,
-      adlNav
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        adlNav
     );
   });
 
@@ -101,7 +103,7 @@ describe("GAP-17: Randomization at Specification-Required Process Points", () =>
       // Find the call for cluster1 during content delivery (isNewAttempt=true)
       // Note: There may be other calls from end attempt process, so we filter for the delivery call
       const cluster1DeliveryCall = spy.mock.calls.find(
-        call => call[0] === cluster1 && call[1] === true
+          call => call[0] === cluster1 && call[1] === true
       );
       expect(cluster1DeliveryCall).toBeDefined();
       expect(cluster1DeliveryCall?.[1]).toBe(true); // isNewAttempt should be true for first attempt
@@ -172,7 +174,7 @@ describe("GAP-17: Randomization at Specification-Required Process Points", () =>
       // Verify randomization was called during end attempt on cluster1
       // The call should have isNewAttempt=false for end attempt process
       const cluster1EndAttemptCall = spy.mock.calls.find(
-        call => call[0] === cluster1 && call[1] === false
+          call => call[0] === cluster1 && call[1] === false
       );
       expect(cluster1EndAttemptCall).toBeDefined();
 
@@ -232,7 +234,7 @@ describe("GAP-17: Randomization at Specification-Required Process Points", () =>
 
       // Verify the function was called with isNewAttempt=true
       const cluster1Call = spy.mock.calls.find(
-        call => call[0] === cluster1 && call[1] === true
+          call => call[0] === cluster1 && call[1] === true
       );
       expect(cluster1Call).toBeDefined();
 
@@ -258,7 +260,7 @@ describe("GAP-17: Randomization at Specification-Required Process Points", () =>
 
       // Verify the function was called with isNewAttempt=false during end attempt
       const endAttemptCall = spy.mock.calls.find(
-        call => call[0] === cluster1 && call[1] === false
+          call => call[0] === cluster1 && call[1] === false
       );
       expect(endAttemptCall).toBeDefined();
 

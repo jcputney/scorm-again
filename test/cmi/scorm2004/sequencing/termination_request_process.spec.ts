@@ -1,22 +1,19 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import {beforeEach, describe, expect, it, vi} from "vitest";
 import {
-  OverallSequencingProcess,
   NavigationRequestType,
+  OverallSequencingProcess,
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
-import {
-  SequencingProcess,
-  SequencingRequestType,
-} from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
-import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
+import {SequencingProcess,} from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
+import {RollupProcess} from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
+import {ActivityTree} from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
+import {Activity} from "../../../../src/cmi/scorm2004/sequencing/activity";
 import {
   RuleActionType,
-  SequencingRule,
   RuleCondition,
-  RuleConditionType
+  RuleConditionType,
+  SequencingRule
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
-import { getExceptionDescription } from "../../../../src/constants/sequencing_exceptions";
+import {getExceptionDescription} from "../../../../src/constants/sequencing_exceptions";
 
 describe("Termination Request Process (TB.2.3)", () => {
   let overallProcess: OverallSequencingProcess;
@@ -51,7 +48,7 @@ describe("Termination Request Process (TB.2.3)", () => {
     child1.sequencingControls.flow = true;
     child2.sequencingControls.flow = true;
 
-    // Disable auto-completion to test termination logic in isolation (GAP-04)
+    // Disable auto-completion to test termination logic in isolation
     root.sequencingControls.completionSetByContent = true;
     child1.sequencingControls.completionSetByContent = true;
     child2.sequencingControls.completionSetByContent = true;
@@ -62,9 +59,9 @@ describe("Termination Request Process (TB.2.3)", () => {
     rollupProcess = new RollupProcess();
 
     overallProcess = new OverallSequencingProcess(
-      activityTree,
-      sequencingProcess,
-      rollupProcess
+        activityTree,
+        sequencingProcess,
+        rollupProcess
     );
   });
 
@@ -73,9 +70,9 @@ describe("Termination Request Process (TB.2.3)", () => {
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
       grandchild1.attemptCount = 1;
-      
+
       const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT);
-      
+
       expect(result.valid).toBe(true);
       expect(grandchild1.isActive).toBe(false);
     });
@@ -84,9 +81,9 @@ describe("Termination Request Process (TB.2.3)", () => {
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
       grandchild1.completionStatus = "unknown";
-      
+
       const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT);
-      
+
       expect(result.valid).toBe(true);
       expect(grandchild1.isActive).toBe(false);
       expect(grandchild1.completionStatus).toBe("incomplete"); // Should be set by UP.4
@@ -97,11 +94,11 @@ describe("Termination Request Process (TB.2.3)", () => {
       grandchild1.isActive = true;
       grandchild1.objectiveSatisfiedStatus = true;
       child1.sequencingControls.rollupObjectiveSatisfied = true;
-      
+
       const rollupSpy = vi.spyOn(rollupProcess, 'overallRollupProcess');
-      
+
       const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT);
-      
+
       expect(result.valid).toBe(true);
       expect(rollupSpy).toHaveBeenCalledWith(grandchild1);
     });
@@ -113,9 +110,9 @@ describe("Termination Request Process (TB.2.3)", () => {
       grandchild1.isActive = true;
       child1.isActive = true;
       root.isActive = true;
-      
+
       const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT_ALL);
-      
+
       expect(result.valid).toBe(true);
       expect(grandchild1.isActive).toBe(false);
       expect(activityTree.currentActivity).toBeNull();
@@ -124,9 +121,9 @@ describe("Termination Request Process (TB.2.3)", () => {
     it("should handle EXIT at root as EXIT_ALL", () => {
       activityTree.currentActivity = root;
       root.isActive = true;
-      
+
       const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT);
-      
+
       expect(result.valid).toBe(true);
       expect(root.isActive).toBe(false);
       expect(activityTree.currentActivity).toBeNull();
@@ -138,9 +135,9 @@ describe("Termination Request Process (TB.2.3)", () => {
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
       grandchild1.completionStatus = "incomplete";
-      
+
       const result = overallProcess.processNavigationRequest(NavigationRequestType.ABANDON);
-      
+
       expect(result.valid).toBe(true);
       expect(grandchild1.isActive).toBe(false);
       expect(grandchild1.completionStatus).toBe("incomplete"); // Should not change
@@ -149,9 +146,9 @@ describe("Termination Request Process (TB.2.3)", () => {
     it("should set parent as current after ABANDON", () => {
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
-      
+
       const result = overallProcess.processNavigationRequest(NavigationRequestType.ABANDON);
-      
+
       expect(result.valid).toBe(true);
       expect(activityTree.currentActivity).toBe(child1);
     });
@@ -162,9 +159,9 @@ describe("Termination Request Process (TB.2.3)", () => {
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
       child1.isActive = true;
-      
+
       const result = overallProcess.processNavigationRequest(NavigationRequestType.ABANDON_ALL);
-      
+
       expect(result.valid).toBe(true);
       expect(grandchild1.isActive).toBe(false);
       expect(activityTree.currentActivity).toBeNull();
@@ -210,13 +207,13 @@ describe("Termination Request Process (TB.2.3)", () => {
       const exitRule = new SequencingRule(RuleActionType.EXIT);
       exitRule.addCondition(new RuleCondition(RuleConditionType.SATISFIED));
       grandchild1.sequencingRules.addExitConditionRule(exitRule);
-      
+
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
       grandchild1.objectiveSatisfiedStatus = true;
-      
+
       const result = overallProcess.processNavigationRequest(NavigationRequestType.CONTINUE);
-      
+
       expect(result.valid).toBe(true);
       // Exit action rules should be evaluated
     });
@@ -226,24 +223,24 @@ describe("Termination Request Process (TB.2.3)", () => {
       const exitRule = new SequencingRule(RuleActionType.EXIT_PARENT);
       exitRule.addCondition(new RuleCondition(RuleConditionType.SATISFIED));
       grandchild1.sequencingRules.addExitConditionRule(exitRule);
-      
+
       // Enable flow controls
       root.sequencingControls.flow = true;
       child1.sequencingControls.flow = true;
       child2.sequencingControls.flow = true;
-      
+
       // Add a sibling to child1 so there's somewhere to continue to
       grandchild1.isActive = true;
       grandchild1.objectiveSatisfiedStatus = true;
       child1.isActive = true;
       child2.isActive = false; // Not active, so we can flow to it
       root.isActive = true;
-      
+
       activityTree.currentActivity = grandchild1;
-      
+
       // Process EXIT request directly (not CONTINUE)
       const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT);
-      
+
       expect(result.valid).toBe(true);
       // After EXIT_PARENT, child1 and its descendants should be terminated
       expect(child1.isActive).toBe(false);
@@ -255,16 +252,16 @@ describe("Termination Request Process (TB.2.3)", () => {
       const exitRule = new SequencingRule(RuleActionType.EXIT_ALL);
       exitRule.addCondition(new RuleCondition(RuleConditionType.SATISFIED));
       grandchild1.sequencingRules.addExitConditionRule(exitRule);
-      
+
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
       grandchild1.objectiveSatisfiedStatus = true;
       root.isActive = true;
       child1.isActive = true;
-      
+
       // Process EXIT request directly (not CONTINUE)
       const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT);
-      
+
       expect(result.valid).toBe(true);
       // After EXIT_ALL, all activities should be terminated
       expect(root.isActive).toBe(false);
@@ -277,8 +274,8 @@ describe("Termination Request Process (TB.2.3)", () => {
   describe("Integration with Post-Condition Rules (TB.2.2)", () => {
     beforeEach(() => {
       // Add post-condition rules
-      const postRule = grandchild1.sequencingRules.postConditionRules[0] = 
-        new SequencingRule(RuleActionType.CONTINUE);
+      const postRule = grandchild1.sequencingRules.postConditionRules[0] =
+          new SequencingRule(RuleActionType.CONTINUE);
       postRule.addCondition(new RuleCondition(RuleConditionType.COMPLETED));
     });
 
@@ -317,7 +314,7 @@ describe("Termination Request Process (TB.2.3)", () => {
 
       const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT);
 
-      // GAP-22: TB.2.3-2 check - cannot terminate an already-terminated activity
+      // TB.2.3-2 check - cannot terminate an already-terminated activity
       expect(result.valid).toBe(false);
       expect(result.exception).toBe("TB.2.3-2");
     });
@@ -365,10 +362,10 @@ describe("Termination Request Process (TB.2.3)", () => {
       child1.isActive = true;
       grandchild1.isActive = true;
       grandchild2.isActive = true;
-      
+
       // Trigger termination that includes descendants
       const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT);
-      
+
       expect(result.valid).toBe(true);
       expect(grandchild1.isActive).toBe(false);
       expect(grandchild2.isActive).toBe(false);
@@ -376,16 +373,16 @@ describe("Termination Request Process (TB.2.3)", () => {
 
     it("should apply exit rules recursively during descendant termination", () => {
       // Set up exit rule on grandchild that exits parent
-      const exitRule = grandchild1.sequencingRules.exitConditionRules[0] = 
-        new SequencingRule(RuleActionType.EXIT_PARENT);
+      const exitRule = grandchild1.sequencingRules.exitConditionRules[0] =
+          new SequencingRule(RuleActionType.EXIT_PARENT);
       exitRule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
-      
+
       activityTree.currentActivity = child1;
       child1.isActive = true;
       grandchild1.isActive = true;
-      
+
       const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT);
-      
+
       expect(result.valid).toBe(true);
       expect(child1.isActive).toBe(false);
       expect(grandchild1.isActive).toBe(false);
@@ -396,9 +393,9 @@ describe("Termination Request Process (TB.2.3)", () => {
     it("should maintain consistent state after EXIT", () => {
       activityTree.currentActivity = grandchild1;
       grandchild1.isActive = true;
-      
+
       const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT);
-      
+
       expect(result.valid).toBe(true);
       expect(grandchild1.isActive).toBe(false);
       expect(grandchild1.isSuspended).toBe(false);
@@ -412,7 +409,7 @@ describe("Termination Request Process (TB.2.3)", () => {
       const result = overallProcess.processNavigationRequest(NavigationRequestType.SUSPEND_ALL);
 
       expect(result.valid).toBe(true);
-      // Per GAP-06 fix: all ancestors are suspended
+      // fix: all ancestors are suspended
       expect(grandchild1.isActive).toBe(false);
       expect(grandchild1.isSuspended).toBe(true);
       expect(child1.isSuspended).toBe(true);
@@ -437,8 +434,8 @@ describe("Termination Request Process (TB.2.3)", () => {
 
       // Now choose a different activity
       const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        "lesson2"
+          NavigationRequestType.CHOICE,
+          "lesson2"
       );
 
       expect(result.valid).toBe(true);
@@ -459,9 +456,9 @@ describe("Termination Request Process (TB.2.3)", () => {
 
       // Process EXIT request with logout exit type
       const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.EXIT,
-        null,
-        "logout"
+          NavigationRequestType.EXIT,
+          null,
+          "logout"
       );
 
       expect(result.valid).toBe(true);
@@ -479,9 +476,9 @@ describe("Termination Request Process (TB.2.3)", () => {
 
       // Process EXIT request with normal exit type
       const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.EXIT,
-        null,
-        "normal"
+          NavigationRequestType.EXIT,
+          null,
+          "normal"
       );
 
       expect(result.valid).toBe(true);
@@ -497,9 +494,9 @@ describe("Termination Request Process (TB.2.3)", () => {
       // Process EXIT request with suspend exit type
       // Note: cmi.exit="suspend" is informational; actual suspension requires SUSPEND_ALL request
       const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.EXIT,
-        null,
-        "suspend"
+          NavigationRequestType.EXIT,
+          null,
+          "suspend"
       );
 
       expect(result.valid).toBe(true);
@@ -515,9 +512,9 @@ describe("Termination Request Process (TB.2.3)", () => {
 
       // Process EXIT request with empty exit type
       const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.EXIT,
-        null,
-        ""
+          NavigationRequestType.EXIT,
+          null,
+          ""
       );
 
       expect(result.valid).toBe(true);
@@ -527,11 +524,11 @@ describe("Termination Request Process (TB.2.3)", () => {
     });
   });
 
-  describe("Post-Condition Return Value (GAP-09)", () => {
+  describe("Post-Condition Return Value", () => {
     it("should return and use CONTINUE sequencing request from post-condition", () => {
       // Set up activity with post-condition CONTINUE rule
       const continueRule = grandchild1.sequencingRules.postConditionRules[0] =
-        new SequencingRule(RuleActionType.CONTINUE);
+          new SequencingRule(RuleActionType.CONTINUE);
       continueRule.addCondition(new RuleCondition(RuleConditionType.COMPLETED));
 
       activityTree.currentActivity = grandchild1;
@@ -556,7 +553,7 @@ describe("Termination Request Process (TB.2.3)", () => {
     it("should use navigation request when no post-condition triggers", () => {
       // Set up activity with post-condition CONTINUE rule that won't trigger
       const continueRule = grandchild1.sequencingRules.postConditionRules[0] =
-        new SequencingRule(RuleActionType.CONTINUE);
+          new SequencingRule(RuleActionType.CONTINUE);
       continueRule.addCondition(new RuleCondition(RuleConditionType.COMPLETED));
 
       activityTree.currentActivity = grandchild1;

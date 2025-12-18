@@ -1,23 +1,23 @@
-import { describe, expect, beforeEach, it } from "vitest";
+import {beforeEach, describe, expect, it} from "vitest";
 
-import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
-import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
+import {Activity} from "../../../../src/cmi/scorm2004/sequencing/activity";
+import {ActivityTree} from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
+import {SequencingProcess} from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
+import {RollupProcess} from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
 import {
-  OverallSequencingProcess,
   NavigationRequestType,
+  OverallSequencingProcess,
   SequencingRequestType,
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 
 /**
- * GAP-07: Incomplete CHOICE Validation in Navigation Request Process
+ * Incomplete CHOICE Validation in Navigation Request Process
  * Tests for the three key issues fixed:
  * 1. isActive check added to choiceExit validation
  * 2. Loop stops at common ancestor (not root)
  * 3. Termination check uses isActive instead of existence
  */
-describe("GAP-07: CHOICE validation with isActive and common ancestor", () => {
+describe("CHOICE validation with isActive and common ancestor", () => {
   let root: Activity;
   let clusterA: Activity;
   let clusterB: Activity;

@@ -1,21 +1,21 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import {beforeEach, describe, expect, it} from "vitest";
 
-import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
-import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
+import {Activity} from "../../../../src/cmi/scorm2004/sequencing/activity";
+import {ActivityTree} from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
+import {SequencingProcess} from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
+import {RollupProcess} from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
 import {
   NavigationRequestType,
   OverallSequencingProcess
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
 
 /**
- * GAP-08: CONTINUE/PREVIOUS Missing Activity Active Check
+ * CONTINUE/PREVIOUS Missing Activity Active Check
  * Tests that CONTINUE and PREVIOUS navigation requests only include a termination
  * request when the current activity is active.
  * Per NB.2.1 Step 3.2.1 (CONTINUE) and Step 4.2.1.1 (PREVIOUS).
  */
-describe("GAP-08: CONTINUE/PREVIOUS Activity Active Check", () => {
+describe("CONTINUE/PREVIOUS Activity Active Check", () => {
   let root: Activity;
   let parent: Activity;
   let activity1: Activity;

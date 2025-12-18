@@ -1,11 +1,17 @@
-import {describe, it, expect, beforeEach} from 'vitest';
+import {beforeEach, describe, expect, it} from 'vitest';
 import {Activity} from '../../../../src/cmi/scorm2004/sequencing/activity';
 import {ActivityTree} from '../../../../src/cmi/scorm2004/sequencing/activity_tree';
-import {SequencingProcess, SequencingRequestType, DeliveryRequestType} from '../../../../src/cmi/scorm2004/sequencing/sequencing_process';
-import {OverallSequencingProcess} from '../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process';
+import {
+  DeliveryRequestType,
+  SequencingProcess,
+  SequencingRequestType
+} from '../../../../src/cmi/scorm2004/sequencing/sequencing_process';
+import {
+  OverallSequencingProcess
+} from '../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process';
 
 /**
- * GAP-18: Fix double-increment bug on RETRY requests
+ * Fix double-increment bug on RETRY requests
  *
  * Problem: On RETRY navigation, the attempt count was incremented twice:
  * 1. In retrySequencingRequestProcess() at line 664 (REMOVED)
@@ -15,7 +21,7 @@ import {OverallSequencingProcess} from '../../../../src/cmi/scorm2004/sequencing
  * and that the increment happens during content delivery, not during
  * retry sequencing request processing.
  */
-describe('GAP-18: RETRY Attempt Count Single-Increment Fix', () => {
+describe('RETRY Attempt Count Single-Increment Fix', () => {
   let activityTree: ActivityTree;
   let sequencingProcess: SequencingProcess;
   let overallSequencingProcess: OverallSequencingProcess;
@@ -50,7 +56,7 @@ describe('GAP-18: RETRY Attempt Count Single-Increment Fix', () => {
     expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
     expect(result.targetActivity).toBe(activity);
 
-    // GAP-18 FIX: Attempt count should NOT be incremented in retrySequencingRequestProcess
+    // FIX: Attempt count should NOT be incremented in retrySequencingRequestProcess
     // It should still be 1 (will be incremented later during content delivery)
     expect(activity.attemptCount).toBe(1);
   });

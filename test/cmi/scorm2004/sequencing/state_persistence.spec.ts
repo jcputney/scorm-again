@@ -1,14 +1,14 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import {beforeEach, describe, expect, it} from "vitest";
 import {
-  OverallSequencingProcess,
   NavigationRequestType,
+  OverallSequencingProcess,
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
-import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
-import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
-import { ADLNav } from "../../../../src/cmi/scorm2004/adl";
-import { SelectionTiming, RandomizationTiming } from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
+import {SequencingProcess} from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
+import {RollupProcess} from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
+import {ActivityTree} from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
+import {Activity} from "../../../../src/cmi/scorm2004/sequencing/activity";
+import {ADLNav} from "../../../../src/cmi/scorm2004/adl";
+import {SelectionTiming} from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
 
 describe("State Persistence (Multi-Session Support)", () => {
   let overallProcess: OverallSequencingProcess;
@@ -45,17 +45,17 @@ describe("State Persistence (Multi-Session Support)", () => {
     root.sequencingControls.flow = true;
     module1.sequencingControls.flow = true;
     module2.sequencingControls.flow = true;
-    // Leaves should NOT have flow=true (GAP-15)
+    // Leaves should NOT have flow=true
 
     sequencingProcess = new SequencingProcess(activityTree);
     rollupProcess = new RollupProcess();
     adlNav = new ADLNav();
 
     overallProcess = new OverallSequencingProcess(
-      activityTree,
-      sequencingProcess,
-      rollupProcess,
-      adlNav
+        activityTree,
+        sequencingProcess,
+        rollupProcess,
+        adlNav
     );
   });
 
@@ -245,17 +245,17 @@ describe("State Persistence (Multi-Session Support)", () => {
       newRoot.sequencingControls.flow = true;
       newModule1.sequencingControls.flow = true;
       newModule2.sequencingControls.flow = true;
-      // Leaves should NOT have flow=true (GAP-15)
+      // Leaves should NOT have flow=true
 
       const newSequencingProcess = new SequencingProcess(newActivityTree);
       const newRollupProcess = new RollupProcess();
       const newAdlNav = new ADLNav();
 
       const newOverallProcess = new OverallSequencingProcess(
-        newActivityTree,
-        newSequencingProcess,
-        newRollupProcess,
-        newAdlNav
+          newActivityTree,
+          newSequencingProcess,
+          newRollupProcess,
+          newAdlNav
       );
 
       // Restore state
@@ -289,13 +289,13 @@ describe("State Persistence (Multi-Session Support)", () => {
       // Enable flow for traversal (only on clusters, not leaves)
       newRoot.sequencingControls.flow = true;
       newModule1.sequencingControls.flow = true;
-      // Leaves should NOT have flow=true (GAP-15)
+      // Leaves should NOT have flow=true
 
       const newOverallProcess = new OverallSequencingProcess(
-        newActivityTree,
-        new SequencingProcess(newActivityTree),
-        new RollupProcess(),
-        new ADLNav()
+          newActivityTree,
+          new SequencingProcess(newActivityTree),
+          new RollupProcess(),
+          new ADLNav()
       );
 
       newOverallProcess.restoreSequencingState(state);
@@ -325,13 +325,13 @@ describe("State Persistence (Multi-Session Support)", () => {
       // Enable flow for traversal (only on clusters, not leaves)
       newRoot.sequencingControls.flow = true;
       newModule1.sequencingControls.flow = true;
-      // Leaves should NOT have flow=true (GAP-15)
+      // Leaves should NOT have flow=true
 
       const newOverallProcess = new OverallSequencingProcess(
-        newActivityTree,
-        new SequencingProcess(newActivityTree),
-        new RollupProcess(),
-        new ADLNav()
+          newActivityTree,
+          new SequencingProcess(newActivityTree),
+          new RollupProcess(),
+          new ADLNav()
       );
 
       newOverallProcess.restoreSequencingState(state);
@@ -360,13 +360,13 @@ describe("State Persistence (Multi-Session Support)", () => {
       // Enable flow for traversal (only on clusters, not leaves)
       newRoot.sequencingControls.flow = true;
       newModule1.sequencingControls.flow = true;
-      // Leaves should NOT have flow=true (GAP-15)
+      // Leaves should NOT have flow=true
 
       const newOverallProcess = new OverallSequencingProcess(
-        newActivityTree,
-        new SequencingProcess(newActivityTree),
-        new RollupProcess(),
-        new ADLNav()
+          newActivityTree,
+          new SequencingProcess(newActivityTree),
+          new RollupProcess(),
+          new ADLNav()
       );
 
       newOverallProcess.restoreSequencingState(state);
@@ -415,13 +415,13 @@ describe("State Persistence (Multi-Session Support)", () => {
       // Enable flow for traversal (only on clusters, not leaves)
       newRoot.sequencingControls.flow = true;
       newModule1.sequencingControls.flow = true;
-      // Leaves should NOT have flow=true (GAP-15)
+      // Leaves should NOT have flow=true
 
       const newOverallProcess = new OverallSequencingProcess(
-        newActivityTree,
-        new SequencingProcess(newActivityTree),
-        new RollupProcess(),
-        new ADLNav()
+          newActivityTree,
+          new SequencingProcess(newActivityTree),
+          new RollupProcess(),
+          new ADLNav()
       );
 
       newOverallProcess.restoreSequencingState(state);
@@ -448,13 +448,13 @@ describe("State Persistence (Multi-Session Support)", () => {
       // Enable flow for traversal (only on clusters, not leaves)
       newRoot.sequencingControls.flow = true;
       newModule1.sequencingControls.flow = true;
-      // Leaves should NOT have flow=true (GAP-15)
+      // Leaves should NOT have flow=true
 
       const newOverallProcess = new OverallSequencingProcess(
-        newActivityTree,
-        new SequencingProcess(newActivityTree),
-        new RollupProcess(),
-        new ADLNav()
+          newActivityTree,
+          new SequencingProcess(newActivityTree),
+          new RollupProcess(),
+          new ADLNav()
       );
 
       newOverallProcess.restoreSequencingState(state);
@@ -483,13 +483,13 @@ describe("State Persistence (Multi-Session Support)", () => {
       // Enable flow for traversal (only on clusters, not leaves)
       newRoot.sequencingControls.flow = true;
       newModule1.sequencingControls.flow = true;
-      // Leaves should NOT have flow=true (GAP-15)
+      // Leaves should NOT have flow=true
 
       const newOverallProcess = new OverallSequencingProcess(
-        newActivityTree,
-        new SequencingProcess(newActivityTree),
-        new RollupProcess(),
-        new ADLNav()
+          newActivityTree,
+          new SequencingProcess(newActivityTree),
+          new RollupProcess(),
+          new ADLNav()
       );
 
       newOverallProcess.restoreSequencingState(state);
@@ -530,13 +530,13 @@ describe("State Persistence (Multi-Session Support)", () => {
       newRoot.sequencingControls.flow = true;
       newModule1.sequencingControls.flow = true;
       newModule2.sequencingControls.flow = true;
-      // Leaves should NOT have flow=true (GAP-15)
+      // Leaves should NOT have flow=true
 
       const newOverallProcess = new OverallSequencingProcess(
-        newActivityTree,
-        new SequencingProcess(newActivityTree),
-        new RollupProcess(),
-        new ADLNav()
+          newActivityTree,
+          new SequencingProcess(newActivityTree),
+          new RollupProcess(),
+          new ADLNav()
       );
 
       newOverallProcess.restoreSequencingState(state);
@@ -592,13 +592,13 @@ describe("State Persistence (Multi-Session Support)", () => {
       newRoot.sequencingControls.flow = true;
       newModule1.sequencingControls.flow = true;
       newModule2.sequencingControls.flow = true;
-      // Leaves should NOT have flow=true (GAP-15)
+      // Leaves should NOT have flow=true
 
       const newOverallProcess = new OverallSequencingProcess(
-        newActivityTree,
-        new SequencingProcess(newActivityTree),
-        new RollupProcess(),
-        new ADLNav()
+          newActivityTree,
+          new SequencingProcess(newActivityTree),
+          new RollupProcess(),
+          new ADLNav()
       );
 
       // Restore state
@@ -649,13 +649,13 @@ describe("State Persistence (Multi-Session Support)", () => {
       // Enable flow for traversal (only on clusters, not leaves)
       newRoot.sequencingControls.flow = true;
       newModule1.sequencingControls.flow = true;
-      // Leaves should NOT have flow=true (GAP-15)
+      // Leaves should NOT have flow=true
 
       const newOverallProcess = new OverallSequencingProcess(
-        newActivityTree,
-        new SequencingProcess(newActivityTree),
-        new RollupProcess(),
-        new ADLNav()
+          newActivityTree,
+          new SequencingProcess(newActivityTree),
+          new RollupProcess(),
+          new ADLNav()
       );
 
       const restoreResult = newOverallProcess.restoreSequencingState(state);
@@ -697,14 +697,14 @@ describe("State Persistence (Multi-Session Support)", () => {
       // Enable flow for traversal (only on clusters, not leaves)
       newRoot.sequencingControls.flow = true;
       newModule1.sequencingControls.flow = true;
-      // Leaves should NOT have flow=true (GAP-15)
+      // Leaves should NOT have flow=true
 
       const newAdlNav = new ADLNav();
       const newOverallProcess = new OverallSequencingProcess(
-        newActivityTree,
-        new SequencingProcess(newActivityTree),
-        new RollupProcess(),
-        newAdlNav
+          newActivityTree,
+          new SequencingProcess(newActivityTree),
+          new RollupProcess(),
+          newAdlNav
       );
 
       newOverallProcess.restoreSequencingState(state);

@@ -1,16 +1,16 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import {beforeEach, describe, expect, it} from "vitest";
 import {
+  DeliveryRequestType,
   SequencingProcess,
   SequencingRequestType,
-  DeliveryRequestType,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
-import { 
-  RuleConditionType,
+import {ActivityTree} from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
+import {Activity} from "../../../../src/cmi/scorm2004/sequencing/activity";
+import {
   RuleActionType,
-  SequencingRule,
   RuleCondition,
+  RuleConditionType,
+  SequencingRule,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
@@ -48,7 +48,7 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
     module2.addChild(lesson2_1);
     module2.addChild(lesson2_2);
     module3.addChild(lesson3_1);
-    
+
     activityTree.root = root;
 
     // Enable flow by default (only on clusters, not leaves)
@@ -57,7 +57,7 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
     module1.sequencingControls.flow = true;
     module2.sequencingControls.flow = true;
     module3.sequencingControls.flow = true;
-    // Leaves should NOT have flow=true (GAP-15)
+    // Leaves should NOT have flow=true
 
     sequencingProcess = new SequencingProcess(activityTree);
   });
@@ -66,7 +66,7 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
     describe("Forward traversal", () => {
       it("should traverse to first child when entering cluster", () => {
         const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START);
-        
+
         expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
         expect(result.targetActivity).toBe(lesson1_1);
       });
@@ -74,27 +74,27 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
       it("should traverse to next sibling", () => {
         activityTree.currentActivity = lesson1_1;
         lesson1_1.isActive = false;
-        
+
         const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
-        
+
         expect(result.targetActivity).toBe(lesson1_2);
       });
 
       it("should traverse from last child to parent's sibling", () => {
         activityTree.currentActivity = lesson1_2;
         lesson1_2.isActive = false;
-        
+
         const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
-        
+
         expect(result.targetActivity).toBe(lesson2_1); // First child of next module
       });
 
       it("should traverse to end of tree", () => {
         activityTree.currentActivity = lesson3_1;
         lesson3_1.isActive = false;
-        
+
         const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
-        
+
         expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
         expect(result.exception).toBe("SB.2.7-2"); // No activity available
       });
@@ -104,18 +104,18 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
       it("should traverse to previous sibling", () => {
         activityTree.currentActivity = lesson1_2;
         lesson1_2.isActive = false;
-        
+
         const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.PREVIOUS);
-        
+
         expect(result.targetActivity).toBe(lesson1_1);
       });
 
       it("should traverse to last child of previous parent sibling", () => {
         activityTree.currentActivity = lesson2_1;
         lesson2_1.isActive = false;
-        
+
         const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.PREVIOUS);
-        
+
         expect(result.targetActivity).toBe(lesson1_2); // Last child of previous module
       });
 
@@ -126,7 +126,7 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
         const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.PREVIOUS);
 
         expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
-        // GAP-22: More specific exception code SB.2.1-3 (reached beginning) takes precedence over SB.2.8-2
+        // More specific exception code SB.2.1-3 (reached beginning) takes precedence over SB.2.8-2
         expect(result.exception).toBe("SB.2.1-3"); // Reached beginning of course
       });
 
@@ -149,9 +149,9 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
       lesson1_2.isAvailable = false;
       activityTree.currentActivity = lesson1_1;
       lesson1_1.isActive = false;
-      
+
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
-      
+
       // Should skip unavailable activity
       expect(result.targetActivity).toBe(lesson2_1);
     });
@@ -160,9 +160,9 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
       module1.sequencingControls.flow = false;
       activityTree.currentActivity = lesson1_1;
       lesson1_1.isActive = false;
-      
+
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
-      
+
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
     });
 
@@ -171,9 +171,9 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
       lesson1_2.attemptCount = 1; // Limit exceeded
       activityTree.currentActivity = lesson1_1;
       lesson1_1.isActive = false;
-      
+
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
-      
+
       // Should skip activity with exceeded limits
       expect(result.targetActivity).toBe(lesson2_1);
     });
@@ -183,12 +183,12 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
       const skipRule = new SequencingRule(RuleActionType.SKIP);
       skipRule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
       lesson1_2.sequencingRules.addPreConditionRule(skipRule);
-      
+
       activityTree.currentActivity = lesson1_1;
       lesson1_1.isActive = false;
-      
+
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
-      
+
       // Should skip activity with skip rule
       expect(result.targetActivity).toBe(lesson2_1);
     });
@@ -198,12 +198,12 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
       const disabledRule = new SequencingRule(RuleActionType.DISABLED);
       disabledRule.addCondition(new RuleCondition(RuleConditionType.ALWAYS));
       lesson1_2.sequencingRules.addPreConditionRule(disabledRule);
-      
+
       activityTree.currentActivity = lesson1_1;
       lesson1_1.isActive = false;
-      
+
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
-      
+
       // Should skip disabled activity
       expect(result.targetActivity).toBe(lesson2_1);
     });
@@ -211,7 +211,7 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
     it("should flow into clusters to find deliverable leaf", () => {
       // Start should flow through root → module1 → lesson1_1
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START);
-      
+
       expect(result.targetActivity).toBe(lesson1_1);
       expect(result.targetActivity?.children.length).toBe(0); // Confirm it's a leaf
     });
@@ -222,11 +222,11 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
       // Test complete forward flow through multiple activities
       activityTree.currentActivity = lesson1_1;
       lesson1_1.isActive = false;
-      
+
       // First continue
       let result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
       expect(result.targetActivity).toBe(lesson1_2);
-      
+
       // Second continue (cross module boundary)
       activityTree.currentActivity = lesson1_2;
       lesson1_2.isActive = false;
@@ -238,7 +238,7 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
       // Test complete backward flow
       activityTree.currentActivity = lesson2_1;
       lesson2_1.isActive = false;
-      
+
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.PREVIOUS);
       expect(result.targetActivity).toBe(lesson1_2);
     });
@@ -247,10 +247,10 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
       // Skip multiple activities
       lesson1_2.isAvailable = false;
       lesson2_1.isAvailable = false;
-      
+
       activityTree.currentActivity = lesson1_1;
       lesson1_1.isActive = false;
-      
+
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
       expect(result.targetActivity).toBe(lesson2_2);
     });
@@ -262,9 +262,9 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
       lesson2_1.isAvailable = false;
       lesson2_2.isAvailable = false;
       lesson3_1.isAvailable = false;
-      
+
       activityTree.currentActivity = null;
-      
+
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START);
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
       expect(result.exception).toBe("SB.2.5-3");
@@ -281,7 +281,7 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
     it("should respect selection during flow", () => {
       // This should trigger selection when flowing into module1
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START);
-      
+
       // Should deliver one of the module1 children
       expect([lesson1_1, lesson1_2]).toContain(result.targetActivity);
     });
@@ -290,9 +290,9 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
       // Enable randomization
       module1.sequencingControls.randomizeChildren = true;
       module1.sequencingControls.randomizationTiming = "onEachNewAttempt";
-      
+
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.START);
-      
+
       // Should deliver one of the randomized children
       expect([lesson1_1, lesson1_2]).toContain(result.targetActivity);
     });
@@ -323,10 +323,10 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
       // This shouldn't happen in valid trees, but test defensive coding
       activityTree.currentActivity = lesson3_1;
       lesson3_1.isActive = false;
-      
+
       // Continue from last activity
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
-      
+
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
       expect(result.exception).toBeDefined();
     });
@@ -354,9 +354,9 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
       // Disable flow at root
       root.sequencingControls.flow = false;
       activityTree.currentActivity = lesson1_1;
-      
+
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
-      
+
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
       expect(result.exception).toBe("SB.2.7-1"); // Current activity not terminated
     });
@@ -364,12 +364,12 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
     it("should handle mixed flow controls", () => {
       // Disable flow for module2 only
       module2.sequencingControls.flow = false;
-      
+
       activityTree.currentActivity = lesson1_2;
       lesson1_2.isActive = false;
-      
+
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.CONTINUE);
-      
+
       // Should skip module2 entirely and go to module3
       expect(result.targetActivity).toBe(lesson3_1);
     });
@@ -377,12 +377,12 @@ describe("Flow Processes (SB.2.1, SB.2.2, SB.2.3)", () => {
     it("should handle forwardOnly at different levels", () => {
       // Set forwardOnly at module level
       module2.sequencingControls.forwardOnly = true;
-      
+
       activityTree.currentActivity = lesson2_2;
       lesson2_2.isActive = false;
-      
+
       const result = sequencingProcess.sequencingRequestProcess(SequencingRequestType.PREVIOUS);
-      
+
       // Should not be able to go back within module2
       expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
     });
