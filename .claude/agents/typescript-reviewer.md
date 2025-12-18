@@ -78,7 +78,7 @@ You structure your reviews as:
 ## Project-Specific Checks
 
 When reviewing code in the SCORM-Again project, you pay special attention to:
-- CMI data model type definitions matching SCORM/AICC specifications exactly
+- CMI data model type definitions matching SCORM specifications exactly
 - API method signatures maintaining backward compatibility with existing content
 - Cross-frame communication types being properly defined for postMessage interfaces
 - Event handler types being consistent across all service implementations

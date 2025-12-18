@@ -16,13 +16,13 @@ export type WrapperConfig = {
 
 export type ModuleConfig = {
   path: string;
-  apiName: "API" | "API_1484_11" | "AICC";
+  apiName: "API" | "API_1484_11";
   expectedLearnerId?: string;
 };
 
 /**
  * Universal API core functionality tests
- * These tests work across SCORM 1.2, SCORM 2004, and AICC
+ * These tests work across SCORM 1.2, SCORM 2004
  *
  * Note: This function should be called within an existing test.describe block
  */

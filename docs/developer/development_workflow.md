@@ -141,7 +141,6 @@ This will create the following files in the `dist` directory:
 
 - `scorm-again.js` - The full library
 - `scorm-again.min.js` - Minified version of the full library
-- `aicc.js` - AICC API only
 - `scorm12.js` - SCORM 1.2 API only
 - `scorm2004.js` - SCORM 2004 API only
 

@@ -1,11 +1,11 @@
 import { Page } from "@playwright/test";
 
 /**
- * Universal SCORM helpers that work across SCORM 1.2, SCORM 2004, and AICC
+ * Universal SCORM helpers that work across SCORM 1.2, SCORM 2004
  * These helpers are version-agnostic and accept the API name as a parameter
  */
 
-export type ScormApiName = "API" | "API_1484_11" | "AICC";
+export type ScormApiName = "API" | "API_1484_11";
 
 /**
  * Configure the SCORM wrapper with settings that must be applied before navigation.
@@ -49,8 +49,6 @@ export async function getCmiValue(
         return api.LMSGetValue(element);
       } else if (apiName === "API_1484_11") {
         return api.lmsGetValue(element);
-      } else if (apiName === "AICC") {
-        return api.GetValue(element);
       }
       throw new Error(`Unknown API name: ${apiName}`);
     },
@@ -78,8 +76,6 @@ export async function setCmiValue(
         return api.LMSSetValue(element, value);
       } else if (apiName === "API_1484_11") {
         return api.lmsSetValue(element, value);
-      } else if (apiName === "AICC") {
-        return api.SetValue(element, value);
       }
       throw new Error(`Unknown API name: ${apiName}`);
     },
@@ -102,8 +98,6 @@ export async function initializeApi(page: Page, apiName: ScormApiName): Promise<
         return api.LMSInitialize("");
       } else if (name === "API_1484_11") {
         return api.lmsInitialize("");
-      } else if (name === "AICC") {
-        return api.Initialize("");
       }
       return "false";
     },
@@ -126,8 +120,6 @@ export async function terminateApi(page: Page, apiName: ScormApiName): Promise<s
         return api.LMSFinish("");
       } else if (name === "API_1484_11") {
         return api.lmsFinish("");
-      } else if (name === "AICC") {
-        return api.Terminate("");
       }
       return "false";
     },
@@ -150,8 +142,6 @@ export async function getLastError(page: Page, apiName: ScormApiName): Promise<s
         return api.LMSGetLastError().toString();
       } else if (name === "API_1484_11") {
         return api.lmsGetLastError().toString();
-      } else if (name === "AICC") {
-        return api.GetLastError().toString();
       }
       return "0";
     },
@@ -178,8 +168,6 @@ export async function getErrorString(
         return api.LMSGetErrorString(code);
       } else if (name === "API_1484_11") {
         return api.lmsGetErrorString(code);
-      } else if (name === "AICC") {
-        return api.GetErrorString(code);
       }
       return "";
     },
@@ -206,8 +194,6 @@ export async function getDiagnostic(
         return api.LMSGetDiagnostic(code);
       } else if (name === "API_1484_11") {
         return api.lmsGetDiagnostic(code);
-      } else if (name === "AICC") {
-        return api.GetDiagnostic(code);
       }
       return "";
     },
@@ -230,8 +216,6 @@ export async function commit(page: Page, apiName: ScormApiName): Promise<string>
         return api.LMSCommit("");
       } else if (name === "API_1484_11") {
         return api.lmsCommit("");
-      } else if (name === "AICC") {
-        return api.Commit("");
       }
       return "false";
     },
@@ -302,8 +286,6 @@ export async function setCmiValueFromModule(
             (api as any).LMSSetValue(element, value);
           } else if (apiName === "API_1484_11") {
             (api as any).lmsSetValue(element, value);
-          } else if (apiName === "AICC") {
-            (api as any).SetValue(element, value);
           }
         }
       }

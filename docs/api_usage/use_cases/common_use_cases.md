@@ -2,7 +2,7 @@
 
 This document provides examples of common use cases and patterns when working with scorm-again.
 These examples are
-applicable across all supported standards (AICC, SCORM 1.2, and SCORM 2004) with minor syntax
+applicable across all supported standards (SCORM 1.2, and SCORM 2004) with minor syntax
 differences.
 
 ## Table of Contents
@@ -31,7 +31,7 @@ function initializeCourse() {
       api = window.API_1484_11;
       api.Initialize("");
    } else if (window.API) {
-      // SCORM 1.2 or AICC
+      // SCORM 1.2
       api = window.API;
       api.LMSInitialize("");
    } else {
@@ -46,7 +46,7 @@ function initializeCourse() {
       learnerId = api.GetValue("cmi.learner_id");
       learnerName = api.GetValue("cmi.learner_name");
    } else {
-      // SCORM 1.2 or AICC
+      // SCORM 1.2
       learnerId = api.LMSGetValue("cmi.core.student_id");
       learnerName = api.LMSGetValue("cmi.core.student_name");
    }
@@ -66,7 +66,7 @@ function detectEntryMode() {
       // SCORM 2004
       entryMode = window.API_1484_11.GetValue("cmi.entry");
    } else if (window.API) {
-      // SCORM 1.2 or AICC
+      // SCORM 1.2
       entryMode = window.API.LMSGetValue("cmi.core.entry");
    }
 
@@ -87,7 +87,7 @@ function loadSavedState() {
       suspendData = window.API_1484_11.GetValue("cmi.suspend_data");
       location = window.API_1484_11.GetValue("cmi.location");
    } else if (window.API) {
-      // SCORM 1.2 or AICC
+      // SCORM 1.2
       suspendData = window.API.LMSGetValue("cmi.suspend_data");
       location = window.API.LMSGetValue("cmi.core.lesson_location");
    }
@@ -121,7 +121,7 @@ function markCourseCompleted() {
       window.API_1484_11.SetValue("cmi.completion_status", "completed");
       window.API_1484_11.Commit("");
    } else if (window.API) {
-      // SCORM 1.2 or AICC
+      // SCORM 1.2
       window.API.LMSSetValue("cmi.core.lesson_status", "completed");
       window.API.LMSCommit("");
    }
@@ -148,7 +148,7 @@ function updateProgress(completedPages, totalPages) {
 
       window.API_1484_11.Commit("");
    } else if (window.API) {
-      // SCORM 1.2 or AICC (no direct progress measure, use suspend_data)
+      // SCORM 1.2 (no direct progress measure, use suspend_data)
       const suspendData = window.API.LMSGetValue("cmi.suspend_data");
       let stateObj = {};
 
@@ -184,7 +184,7 @@ function markCourseCompletedWithSuccess(passed) {
       window.API_1484_11.SetValue("cmi.success_status", passed ? "passed" : "failed");
       window.API_1484_11.Commit("");
    } else if (window.API) {
-      // SCORM 1.2 or AICC
+      // SCORM 1.2
       window.API.LMSSetValue("cmi.core.lesson_status", passed ? "passed" : "failed");
       window.API.LMSCommit("");
    }
@@ -213,7 +213,7 @@ function recordQuizResults(score, maxScore, passed) {
 
       window.API_1484_11.Commit("");
    } else if (window.API) {
-      // SCORM 1.2 or AICC
+      // SCORM 1.2
       window.API.LMSSetValue("cmi.core.score.raw", score.toString());
       window.API.LMSSetValue("cmi.core.score.min", "0");
       window.API.LMSSetValue("cmi.core.score.max", maxScore.toString());
@@ -261,7 +261,7 @@ function recordQuestionResponse(
           new Date().toISOString(),
       );
    } else if (window.API) {
-      // SCORM 1.2 or AICC
+      // SCORM 1.2
       window.API.LMSSetValue(`cmi.interactions.${questionIndex}.id`, questionId);
       window.API.LMSSetValue(`cmi.interactions.${questionIndex}.type`, questionType);
       window.API.LMSSetValue(`cmi.interactions.${questionIndex}.student_response`, userResponse);
@@ -290,7 +290,7 @@ function formatTimeSpent(milliseconds, isScorm2004) {
 
       return `PT${hours}H${remainingMinutes}M${remainingSeconds}S`;
    } else {
-      // HH:MM:SS format for SCORM 1.2 and AICC
+      // HH:MM:SS format for SCORM 1.2
       const seconds = Math.floor(milliseconds / 1000);
       const minutes = Math.floor(seconds / 60);
       const hours = Math.floor(minutes / 60);
@@ -314,7 +314,7 @@ function saveBookmark(location) {
       window.API_1484_11.SetValue("cmi.location", location);
       window.API_1484_11.Commit("");
    } else if (window.API) {
-      // SCORM 1.2 or AICC
+      // SCORM 1.2
       window.API.LMSSetValue("cmi.core.lesson_location", location);
       window.API.LMSCommit("");
    }
@@ -329,7 +329,7 @@ function getBookmark() {
       // SCORM 2004
       bookmark = window.API_1484_11.GetValue("cmi.location");
    } else if (window.API) {
-      // SCORM 1.2 or AICC
+      // SCORM 1.2
       bookmark = window.API.LMSGetValue("cmi.core.lesson_location");
    }
 
@@ -358,7 +358,7 @@ function saveState(currentPage, userProgress, userSelections, quizResults) {
       window.API_1484_11.SetValue("cmi.location", currentPage.toString());
       window.API_1484_11.Commit("");
    } else if (window.API) {
-      // SCORM 1.2 or AICC
+      // SCORM 1.2
       window.API.LMSSetValue("cmi.suspend_data", JSON.stringify(stateObj));
       window.API.LMSSetValue("cmi.core.lesson_location", currentPage.toString());
       window.API.LMSCommit("");
@@ -384,7 +384,7 @@ function loadState() {
          }
       }
    } else if (window.API) {
-      // SCORM 1.2 or AICC
+      // SCORM 1.2
       const suspendData = window.API.LMSGetValue("cmi.suspend_data");
       location = window.API.LMSGetValue("cmi.core.lesson_location");
 
@@ -470,7 +470,7 @@ function saveVisitedPages() {
       window.API_1484_11.SetValue("cmi.suspend_data", JSON.stringify(suspendData));
       window.API_1484_11.Commit("");
    } else if (window.API) {
-      // SCORM 1.2 or AICC
+      // SCORM 1.2
       const existingData = window.API.LMSGetValue("cmi.suspend_data");
       if (existingData) {
          try {
@@ -504,7 +504,7 @@ function loadVisitedPages() {
          }
       }
    } else if (window.API) {
-      // SCORM 1.2 or AICC
+      // SCORM 1.2
       const existingData = window.API.LMSGetValue("cmi.suspend_data");
       if (existingData) {
          try {
@@ -533,7 +533,7 @@ function goToNextPage() {
       // SCORM 2004
       window.API_1484_11.SequenceNext("");
    } else {
-      // For SCORM 1.2 or AICC, implement custom navigation
+      // For SCORM 1.2, implement custom navigation
       const currentPage = getCurrentPage();
       const nextPage = getNextPageId(currentPage);
       navigateToPage(nextPage);
@@ -545,7 +545,7 @@ function goToPreviousPage() {
       // SCORM 2004
       window.API_1484_11.SequencePrevious("");
    } else {
-      // For SCORM 1.2 or AICC, implement custom navigation
+      // For SCORM 1.2, implement custom navigation
       const currentPage = getCurrentPage();
       const prevPage = getPreviousPageId(currentPage);
       navigateToPage(prevPage);
@@ -557,7 +557,7 @@ function jumpToPage(pageId) {
       // SCORM 2004
       window.API_1484_11.SequenceChoice(pageId);
    } else {
-      // For SCORM 1.2 or AICC, implement custom navigation
+      // For SCORM 1.2, implement custom navigation
       navigateToPage(pageId);
    }
 }
@@ -607,7 +607,7 @@ function saveCustomData(dataObject) {
       window.API_1484_11.SetValue("cmi.suspend_data", JSON.stringify(suspendData));
       window.API_1484_11.Commit("");
    } else if (window.API) {
-      // SCORM 1.2 or AICC
+      // SCORM 1.2
       const existingData = window.API.LMSGetValue("cmi.suspend_data");
       if (existingData) {
          try {
@@ -644,7 +644,7 @@ function getCustomData() {
          }
       }
    } else if (window.API) {
-      // SCORM 1.2 or AICC
+      // SCORM 1.2
       const existingData = window.API.LMSGetValue("cmi.suspend_data");
       if (existingData) {
          try {
@@ -703,7 +703,7 @@ function saveChunkedData(dataObject) {
       }
       window.API_1484_11.Commit("");
    } else if (window.API) {
-      // SCORM 1.2 or AICC
+      // SCORM 1.2
       window.API.LMSSetValue("cmi.suspend_data", JSON.stringify(chunkInfo));
       window.API.LMSCommit("");
 
@@ -735,7 +735,7 @@ function loadChunkedData() {
          }
       }
    } else if (window.API) {
-      // SCORM 1.2 or AICC
+      // SCORM 1.2
       const suspendData = window.API.LMSGetValue("cmi.suspend_data");
       if (suspendData) {
          try {
@@ -762,7 +762,7 @@ function loadChunkedData() {
          // SCORM 2004
          chunkData = window.API_1484_11.GetValue(`cmi.interactions.${i}.learner_response`);
       } else if (window.API) {
-         // SCORM 1.2 or AICC
+         // SCORM 1.2
          chunkData = window.API.LMSGetValue(`cmi.interactions.${i}.student_response`);
       }
 
