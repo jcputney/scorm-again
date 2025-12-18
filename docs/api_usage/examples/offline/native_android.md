@@ -66,6 +66,31 @@ Place the scorm-again.js file in your assets folder:
       scorm-again.js
 ```
 
+## Important: Local HTTP Server Recommended
+
+For best compatibility with SCORM packages, serve content through a local HTTP server rather than using `file://` URLs directly. This avoids CORS issues and ensures all JavaScript APIs work correctly.
+
+Use `NanoHTTPD` or `AndroidAsync` to serve content over HTTP:
+
+```kotlin
+import fi.iki.elonen.NanoHTTPD
+
+class LocalServer(port: Int, private val rootDir: File) : NanoHTTPD(port) {
+    override fun serve(session: IHTTPSession): Response {
+        val uri = session.uri
+        val file = File(rootDir, uri)
+        val mimeType = getMimeTypeForFile(uri)
+        return newFixedLengthResponse(Response.Status.OK, mimeType, FileInputStream(file), file.length())
+    }
+}
+
+val server = LocalServer(0, documentsDir)
+server.start()
+val courseUrl = "http://127.0.0.1:${server.listeningPort}/courses/${courseId}/index.html"
+```
+
+See the [Troubleshooting Guide](troubleshooting.md#3b-local-web-server-for-scorm-content-recommended) for more details.
+
 ## Implementation
 
 ### 1. Create a Network Connectivity Monitor
@@ -341,6 +366,7 @@ class ScormWebViewWrapper(
                     }));
                 });
 
+                // TODO: This will be replaced with the new event API pattern in a future update
                 window.API._offlineStorageService.isDeviceOnline = function() {
                     return $isOnline;
                 };
@@ -1020,6 +1046,69 @@ webView.webViewClient = object : WebViewClient() {
    - Check network connectivity monitoring
    - Verify scorm-again configurations
    - Inspect JavaScript console logs for errors
+
+### Critical: SCORM API Not Found ("Unable to find an API adapter")
+
+Many SCORM courses use a standard API discovery algorithm that searches `window.parent` for the API. In a WebView, `window.parent === window`, which causes the search to fail. Additionally, many courses declare `var API = null;` at global scope, overwriting any API you've set.
+
+**Solution**: Override `onPageStarted` in `WebViewClient` to inject JavaScript early:
+
+```kotlin
+webView.webViewClient = object : WebViewClient() {
+    override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+        super.onPageStarted(view, url, favicon)
+
+        val jsCode = """
+        // Initialize both SCORM APIs
+        var apiSettings = { autocommit: true, logLevel: 4 };
+
+        // SCORM 2004
+        window.API_1484_11 = new window.Scorm2004API(apiSettings);
+
+        // SCORM 1.2 with getter protection (prevents 'var API = null' overwrite)
+        var scorm12Instance = new window.Scorm12API(apiSettings);
+        window._scorm12APIInstance = scorm12Instance;
+        Object.defineProperty(window, 'API', {
+          get: function() { return window._scorm12APIInstance; },
+          set: function(val) { /* ignore */ },
+          configurable: false
+        });
+
+        // Override window.parent for API discovery
+        Object.defineProperty(window, 'parent', {
+          get: function() {
+            return {
+              API_1484_11: window.API_1484_11,
+              API: window._scorm12APIInstance,
+              parent: null
+            };
+          },
+          configurable: true
+        });
+        """.trimIndent()
+
+        view?.evaluateJavascript(jsCode, null)
+    }
+}
+```
+
+**Important**: Use the full `scorm-again.min.js` bundle (not `scorm2004.min.js`) to support both SCORM 1.2 and SCORM 2004 courses.
+
+See [Troubleshooting Guide](troubleshooting.md#3a-scorm-api-not-found-in-webview-critical) for detailed explanation.
+
+### Alerts Not Displaying
+
+Android WebView may suppress JavaScript dialogs. Forward them to native:
+
+```javascript
+window.alert = function(msg) {
+  window.AndroidBridge.postMessage(JSON.stringify({
+    type: 'alert', message: String(msg)
+  }));
+};
+```
+
+Handle in your `@JavascriptInterface` method to show a Toast or AlertDialog.
 
 ## Conclusion
 

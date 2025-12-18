@@ -418,6 +418,12 @@ namespace ScormMauiApp.Controls
             if (string.IsNullOrEmpty(ApiPath) || string.IsNullOrEmpty(CourseId))
                 return;
 
+#if IOS
+            var messageHandler = "window.webkit.messageHandlers.csharpBridge.postMessage";
+#else
+            var messageHandler = "window.CSharpBridge.postMessage";
+#endif
+
             var js = @$"
                 var scormAgainScript = document.createElement('script');
                 scormAgainScript.src = '{ApiPath}';
@@ -431,11 +437,7 @@ namespace ScormMauiApp.Controls
                         syncOnTerminate: true,
                         logLevel: 4,
                         onLogMessage: function(message, level) {{
-                            #if IOS
-                            window.webkit.messageHandlers.csharpBridge.postMessage(JSON.stringify({{
-                            #else
-                            window.CSharpBridge.postMessage(JSON.stringify({{
-                            #endif
+                            {messageHandler}(JSON.stringify({{
                                 type: 'log',
                                 message: message,
                                 level: level
@@ -444,16 +446,13 @@ namespace ScormMauiApp.Controls
                     }});
 
                     window.API.on('OfflineDataSynced', function() {{
-                        #if IOS
-                        window.webkit.messageHandlers.csharpBridge.postMessage(JSON.stringify({{
-                        #else
-                        window.CSharpBridge.postMessage(JSON.stringify({{
-                        #endif
+                        {messageHandler}(JSON.stringify({{
                             type: 'sync',
                             status: 'success'
                         }}));
                     }});
 
+                    // TODO: This will be replaced with the new event API pattern in a future update
                     window.API._offlineStorageService.isDeviceOnline = function() {{
                         return {IsOnline.ToString().ToLower()};
                     }};
@@ -469,19 +468,21 @@ namespace ScormMauiApp.Controls
             if (!IsOnline)
                 return;
 
-            var js = @"
-                if (window.API && window.API._offlineStorageService) {
-                    window.API._offlineStorageService.syncOfflineData().then(function(success) {
-                        #if IOS
-                        window.webkit.messageHandlers.csharpBridge.postMessage(JSON.stringify({
-                        #else
-                        window.CSharpBridge.postMessage(JSON.stringify({
-                        #endif
+#if IOS
+            var messageHandler = "window.webkit.messageHandlers.csharpBridge.postMessage";
+#else
+            var messageHandler = "window.CSharpBridge.postMessage";
+#endif
+
+            var js = @$"
+                if (window.API && window.API._offlineStorageService) {{
+                    window.API._offlineStorageService.syncOfflineData().then(function(success) {{
+                        {messageHandler}(JSON.stringify({{
                             type: 'sync',
                             status: success ? 'success' : 'failed'
-                        }));
-                    });
-                }
+                        }}));
+                    }});
+                }}
             ";
 
             EvaluateJavaScriptAsync(js);

@@ -72,6 +72,23 @@ For app groups (shared container), you need to enable app groups capability:
 3. Click "+ Capability" and add "App Groups"
 4. Create a new app group (e.g., "group.com.yourcompany.scormcontent")
 
+## Important: Local HTTP Server Recommended
+
+For best compatibility with SCORM packages, serve content through a local HTTP server rather than using `file://` URLs directly. This avoids CORS issues and ensures all JavaScript APIs work correctly.
+
+Use `GCDWebServer` or `Swifter` to serve content over HTTP:
+
+```swift
+import GCDWebServer
+
+let webServer = GCDWebServer()
+webServer.addGETHandler(forBasePath: "/", directoryPath: documentsPath, indexFilename: nil, cacheAge: 0, allowRangeRequests: true)
+webServer.start(withPort: 0, bonjourName: nil)
+let courseUrl = "http://127.0.0.1:\(webServer.port)/courses/\(courseId)/index.html"
+```
+
+See the [Troubleshooting Guide](troubleshooting.md#3b-local-web-server-for-scorm-content-recommended) for more details.
+
 ## Implementation
 
 ### 1. Create a SCORM Storage Manager
@@ -458,6 +475,7 @@ class ScormPlayerViewController: UIViewController {
             });
 
             // Override the isDeviceOnline method to use our Swift value
+            // TODO: This will be replaced with the new event API pattern in a future update
             window.API._offlineStorageService.isDeviceOnline = function() {
                 return \(isOnline);
             };
@@ -980,6 +998,70 @@ configuration.websiteDataStore = WKWebsiteDataStore.default()
 - Implement background downloading for large SCORM packages
 - Add progress indicators for extraction and loading
 - Implement package validation to prevent loading invalid content
+
+## Troubleshooting
+
+### Critical: SCORM API Not Found ("Unable to find an API adapter")
+
+Many SCORM courses use a standard API discovery algorithm that searches `window.parent` for the API. In a WKWebView, `window.parent === window`, which causes the search to fail. Additionally, many courses declare `var API = null;` at global scope, overwriting any API you've set.
+
+**Solution**: Use `WKUserScript` with `.atDocumentStart` injection time to set up APIs before content loads:
+
+```swift
+let jsCode = """
+// Initialize both SCORM APIs
+var apiSettings = { autocommit: true, logLevel: 4 };
+
+// SCORM 2004
+window.API_1484_11 = new window.Scorm2004API(apiSettings);
+
+// SCORM 1.2 with getter protection (prevents 'var API = null' overwrite)
+var scorm12Instance = new window.Scorm12API(apiSettings);
+window._scorm12APIInstance = scorm12Instance;
+Object.defineProperty(window, 'API', {
+  get: function() { return window._scorm12APIInstance; },
+  set: function(val) { /* ignore */ },
+  configurable: false
+});
+
+// Override window.parent for API discovery
+Object.defineProperty(window, 'parent', {
+  get: function() {
+    return {
+      API_1484_11: window.API_1484_11,
+      API: window._scorm12APIInstance,
+      parent: null
+    };
+  },
+  configurable: true
+});
+"""
+
+let userScript = WKUserScript(
+    source: jsCode,
+    injectionTime: .atDocumentStart,
+    forMainFrameOnly: true
+)
+configuration.userContentController.addUserScript(userScript)
+```
+
+**Important**: Use the full `scorm-again.min.js` bundle (not `scorm2004.min.js`) to support both SCORM 1.2 and SCORM 2004 courses.
+
+See [Troubleshooting Guide](troubleshooting.md#3a-scorm-api-not-found-in-webview-critical) for detailed explanation.
+
+### Alerts Not Displaying
+
+WKWebView may suppress JavaScript dialogs. Forward them to native:
+
+```javascript
+window.alert = function(msg) {
+  window.webkit.messageHandlers.scormBridge.postMessage({
+    type: 'alert', message: String(msg)
+  });
+};
+```
+
+Handle in your `WKScriptMessageHandler` to show a `UIAlertController`.
 
 ## Security Considerations
 
