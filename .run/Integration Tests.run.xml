@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Integration Tests" type="JavaScriptTestRunnerPlaywright">
-    <node-interpreter value="project" />
+    <node-interpreter value="node" />
     <playwright-package value="$PROJECT_DIR$/node_modules/@playwright/test" />
     <working-dir value="$PROJECT_DIR$" />
     <envs />
