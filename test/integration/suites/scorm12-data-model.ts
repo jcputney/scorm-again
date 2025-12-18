@@ -8,7 +8,7 @@ export type WrapperConfig = {
 
 export type ModuleConfig = {
   path: string;
-  apiName: "API" | "API_1484_11" | "AICC";
+  apiName: "API" | "API_1484_11";
   expectedLearnerId?: string;
 };
 

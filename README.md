@@ -447,7 +447,7 @@ var settings = {
 ## Initial Values
 
 If you want to initially load data from your backend API, you must do it before launching your
-SCORM/AICC player. After
+SCORM player. After
 the player has initialized, you will not be able to change any read-only values.
 
 You can initialize your variables on the CMI object individually:
@@ -539,9 +539,9 @@ example, to get the Student Name in SCORM 1.2, you would do the following:
 var studentName = window.API.cmi.core.student_name;
 ```
 
-### SCORM 1.2 and AICC Listeners
+### SCORM 1.2 Listeners
 
-For convenience, hooks are available for all the SCORM 1.2/AICC API Signature functions:
+For convenience, hooks are available for all the SCORM 1.2 API Signature functions:
 `LMSInitialize`,
 `LMSFinish`,
 `LMSGetValue`,

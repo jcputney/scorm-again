@@ -46,7 +46,6 @@ test/
 ├── constants/            # Tests for constants
 ├── services/             # Tests for services
 ├── types/                # Tests for type definitions
-├── AICC.spec.ts          # Tests for AICC API
 ├── BaseAPI.spec.ts       # Tests for BaseAPI
 ├── Scorm12API.spec.ts    # Tests for SCORM 1.2 API
 ├── Scorm2004API.spec.ts  # Tests for SCORM 2004 API

@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `src/` TypeScript source (APIs: `Scorm12API.ts`, `Scorm2004API.ts`, `AICC.ts`; facades: `CrossFrameAPI.ts`, `CrossFrameLMS.ts`; utilities, constants, types).
+- `src/` TypeScript source (APIs: `Scorm12API.ts`, `Scorm2004API.ts`; facades: `CrossFrameAPI.ts`, `CrossFrameLMS.ts`; utilities, constants, types).
 - `test/` Unit tests (`**/*.spec.ts`) and integration tests under `test/integration/`.
 - `dist/` Build output (CJS `dist/*.js` and ESM `dist/esm/*.js`, types in `dist/types/`).
 - `docs/`, `examples/` Documentation and usage examples.
