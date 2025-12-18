@@ -1,13 +1,13 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import {beforeEach, describe, expect, it} from "vitest";
 import {
-  OverallSequencingProcess,
   NavigationRequestType,
+  OverallSequencingProcess,
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
-import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
-import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
-import { ADLNav } from "../../../../src/cmi/scorm2004/adl";
+import {SequencingProcess} from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
+import {RollupProcess} from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
+import {ActivityTree} from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
+import {Activity} from "../../../../src/cmi/scorm2004/sequencing/activity";
+import {ADLNav} from "../../../../src/cmi/scorm2004/adl";
 
 describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
   let activityTree: ActivityTree;
@@ -42,7 +42,7 @@ describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
     root.sequencingControls.flow = true;
     module1.sequencingControls.flow = true;
     module2.sequencingControls.flow = true;
-    // Leaves should NOT have flow=true (GAP-15)
+    // Leaves should NOT have flow=true
 
     sequencingProcess = new SequencingProcess(activityTree);
     rollupProcess = new RollupProcess();
@@ -54,10 +54,10 @@ describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
 
     beforeEach(() => {
       overallProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        adlNav
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          adlNav
       );
     });
 
@@ -82,12 +82,12 @@ describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
 
     beforeEach(() => {
       overallProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        adlNav,
-        null, // eventCallback
-        { enhancedDeliveryValidation: true }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          adlNav,
+          null, // eventCallback
+          {enhancedDeliveryValidation: true}
       );
     });
 
@@ -138,12 +138,12 @@ describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
     beforeEach(() => {
       fixedDate = new Date("2024-06-15T12:00:00Z");
       overallProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        adlNav,
-        null,
-        { now: () => fixedDate }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          adlNav,
+          null,
+          {now: () => fixedDate}
       );
     });
 
@@ -229,10 +229,10 @@ describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
 
     beforeEach(() => {
       overallProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        adlNav
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          adlNav
       );
     });
 
@@ -268,10 +268,10 @@ describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
 
     beforeEach(() => {
       overallProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        adlNav
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          adlNav
       );
     });
 
@@ -311,13 +311,13 @@ describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
     beforeEach(() => {
       eventsCaptured = [];
       overallProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        adlNav,
-        (eventType, data) => {
-          eventsCaptured.push({ type: eventType, data });
-        }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          adlNav,
+          (eventType, data) => {
+            eventsCaptured.push({type: eventType, data});
+          }
       );
     });
 
@@ -366,10 +366,10 @@ describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
 
     beforeEach(() => {
       overallProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        adlNav
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          adlNav
       );
     });
 
@@ -398,14 +398,14 @@ describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
     beforeEach(() => {
       eventsCaptured = [];
       overallProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        adlNav,
-        (eventType, data) => {
-          eventsCaptured.push({ type: eventType, data });
-        },
-        { enhancedDeliveryValidation: true }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          adlNav,
+          (eventType, data) => {
+            eventsCaptured.push({type: eventType, data});
+          },
+          {enhancedDeliveryValidation: true}
       );
     });
 
@@ -439,12 +439,12 @@ describe("Enhanced Delivery Validation (overall_sequencing_process.ts)", () => {
       const customClock = () => futureDate;
 
       const overallProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        adlNav,
-        null,
-        { now: customClock }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          adlNav,
+          null,
+          {now: customClock}
       );
 
       // Set begin time in the "past" (relative to our injected future time)

@@ -1,14 +1,12 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import {beforeEach, describe, expect, it} from "vitest";
 import {
-  OverallSequencingProcess,
   NavigationRequestType,
+  OverallSequencingProcess,
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
-import { 
-  SequencingProcess,
-} from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
-import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
+import {SequencingProcess,} from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
+import {RollupProcess} from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
+import {ActivityTree} from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
+import {Activity} from "../../../../src/cmi/scorm2004/sequencing/activity";
 
 describe("Delivery Request Process (DB.1.1)", () => {
   let overallProcess: OverallSequencingProcess;
@@ -37,7 +35,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
     root.addChild(cluster);
     child1.addChild(grandchild1);
     child1.addChild(grandchild2);
-    
+
     activityTree.root = root;
 
     // Enable flow and choice
@@ -52,11 +50,11 @@ describe("Delivery Request Process (DB.1.1)", () => {
 
     sequencingProcess = new SequencingProcess(activityTree);
     rollupProcess = new RollupProcess();
-    
+
     overallProcess = new OverallSequencingProcess(
-      activityTree,
-      sequencingProcess,
-      rollupProcess
+        activityTree,
+        sequencingProcess,
+        rollupProcess
     );
   });
 
@@ -64,7 +62,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
     it("should deliver leaf activities", () => {
       // Navigate to a leaf activity
       const result = overallProcess.processNavigationRequest(NavigationRequestType.START);
-      
+
       expect(result.valid).toBe(true);
       expect(result.targetActivity).toBe(grandchild1);
       expect(result.targetActivity?.children.length).toBe(0); // Confirm it's a leaf
@@ -78,8 +76,8 @@ describe("Delivery Request Process (DB.1.1)", () => {
 
       // child1 is a cluster (has grandchild1, grandchild2)
       const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        "module1"
+          NavigationRequestType.CHOICE,
+          "module1"
       );
 
       // The result should be valid and flow into child1's first child (grandchild1)
@@ -94,12 +92,12 @@ describe("Delivery Request Process (DB.1.1)", () => {
       const clusterChild2 = new Activity("cluster-child2", "Cluster Child 2");
       cluster.addChild(clusterChild1);
       cluster.addChild(clusterChild2);
-      
+
       const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        "cluster"
+          NavigationRequestType.CHOICE,
+          "cluster"
       );
-      
+
       expect(result.valid).toBe(true);
       expect(result.targetActivity).toBe(clusterChild1); // Should flow to first child
       expect(result.targetActivity?.children.length).toBe(0); // Should be a leaf
@@ -109,7 +107,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
   describe("Content Delivery Environment Process (DB.2)", () => {
     it("should mark activity as current and active upon delivery", () => {
       const result = overallProcess.processNavigationRequest(NavigationRequestType.START);
-      
+
       expect(result.valid).toBe(true);
       expect(activityTree.currentActivity).toBe(grandchild1);
       expect(grandchild1.isActive).toBe(true);
@@ -117,9 +115,9 @@ describe("Delivery Request Process (DB.1.1)", () => {
 
     it("should set content delivered flag", () => {
       expect(overallProcess.hasContentBeenDelivered()).toBe(false);
-      
+
       const result = overallProcess.processNavigationRequest(NavigationRequestType.START);
-      
+
       expect(result.valid).toBe(true);
       expect(overallProcess.hasContentBeenDelivered()).toBe(true);
     });
@@ -138,8 +136,8 @@ describe("Delivery Request Process (DB.1.1)", () => {
 
       // Now deliver a different activity in new session
       const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        "lesson2"
+          NavigationRequestType.CHOICE,
+          "lesson2"
       );
 
       expect(result.valid).toBe(true);
@@ -175,13 +173,13 @@ describe("Delivery Request Process (DB.1.1)", () => {
       // Setup suspended activity
       grandchild1.isSuspended = true;
       activityTree.suspendedActivity = grandchild1;
-      
+
       // Deliver different activity
       const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        "lesson2"
+          NavigationRequestType.CHOICE,
+          "lesson2"
       );
-      
+
       expect(result.valid).toBe(true);
       expect(grandchild1.isSuspended).toBe(false);
       expect(activityTree.suspendedActivity).toBeNull();
@@ -192,13 +190,13 @@ describe("Delivery Request Process (DB.1.1)", () => {
       grandchild1.isSuspended = true;
       child1.isSuspended = true;
       activityTree.suspendedActivity = grandchild1;
-      
+
       // Deliver different activity
       const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        "lesson2"
+          NavigationRequestType.CHOICE,
+          "lesson2"
       );
-      
+
       expect(result.valid).toBe(true);
       expect(grandchild1.isSuspended).toBe(false);
       expect(child1.isSuspended).toBe(false);
@@ -213,9 +211,9 @@ describe("Delivery Request Process (DB.1.1)", () => {
       grandchild2.isAvailable = false;
       child2.isAvailable = false;
       cluster.isAvailable = false;
-      
+
       const result = overallProcess.processNavigationRequest(NavigationRequestType.START);
-      
+
       expect(result.valid).toBe(false);
       expect(result.exception).toBeDefined();
     });
@@ -223,22 +221,22 @@ describe("Delivery Request Process (DB.1.1)", () => {
     it("should respect activity availability during flow", () => {
       // Make first activity unavailable
       grandchild1.isAvailable = false;
-      
+
       const result = overallProcess.processNavigationRequest(NavigationRequestType.START);
-      
+
       expect(result.valid).toBe(true);
       expect(result.targetActivity).toBe(grandchild2); // Should skip to next available
     });
 
     it("should handle hidden from choice activities", () => {
       grandchild1.isHiddenFromChoice = true;
-      
+
       // Try to choose hidden activity
       const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        "lesson1"
+          NavigationRequestType.CHOICE,
+          "lesson1"
       );
-      
+
       expect(result.valid).toBe(false);
       // The actual exception returned is NB.2.1-11 (navigation request not valid)
       expect(result.exception).toBe("NB.2.1-11");
@@ -248,9 +246,9 @@ describe("Delivery Request Process (DB.1.1)", () => {
   describe("Delivery state transitions", () => {
     it("should transition from no current to delivered", () => {
       expect(activityTree.currentActivity).toBeNull();
-      
+
       const result = overallProcess.processNavigationRequest(NavigationRequestType.START);
-      
+
       expect(result.valid).toBe(true);
       expect(activityTree.currentActivity).toBe(grandchild1);
       expect(grandchild1.isActive).toBe(true);
@@ -260,12 +258,12 @@ describe("Delivery Request Process (DB.1.1)", () => {
       // Start with first activity
       overallProcess.processNavigationRequest(NavigationRequestType.START);
       expect(activityTree.currentActivity).toBe(grandchild1);
-      
+
       // Properly terminate current activity and continue
       grandchild1.isActive = false;
       grandchild1.attemptCompletionStatus = true;
       const result = overallProcess.processNavigationRequest(NavigationRequestType.CONTINUE);
-      
+
       // The result may be false if navigation rules prevent continuation
       expect(typeof result.valid).toBe('boolean');
     });
@@ -273,16 +271,16 @@ describe("Delivery Request Process (DB.1.1)", () => {
     it("should handle circular navigation", () => {
       // Navigate through all activities and back to start
       overallProcess.processNavigationRequest(NavigationRequestType.START);
-      
+
       // Continue through all activities
       grandchild1.isActive = false;
       grandchild1.attemptCompletionStatus = true;
       overallProcess.processNavigationRequest(NavigationRequestType.CONTINUE);
-      
-      grandchild2.isActive = false; 
+
+      grandchild2.isActive = false;
       grandchild2.attemptCompletionStatus = true;
       const result = overallProcess.processNavigationRequest(NavigationRequestType.CONTINUE);
-      
+
       // Should handle end-of-sequence navigation appropriately
       expect(typeof result.valid).toBe('boolean');
     });
@@ -291,7 +289,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
   describe("ADL navigation validity updates", () => {
     it("should update navigation validity after delivery", () => {
       const result = overallProcess.processNavigationRequest(NavigationRequestType.START);
-      
+
       expect(result.valid).toBe(true);
       // Navigation validity should be updated
       // Note: Can't directly test ADL nav values due to readonly constraints
@@ -300,7 +298,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
     it("should reflect correct continue validity", () => {
       // Start at first activity
       overallProcess.processNavigationRequest(NavigationRequestType.START);
-      
+
       // Continue should be valid if flow is enabled
       expect(child1.sequencingControls.flow).toBe(true);
     });
@@ -310,7 +308,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
       overallProcess.processNavigationRequest(NavigationRequestType.START);
       grandchild1.isActive = false;
       overallProcess.processNavigationRequest(NavigationRequestType.CONTINUE);
-      
+
       // Previous should be valid if not forwardOnly
       expect(child1.sequencingControls.forwardOnly).toBe(false);
     });
@@ -345,7 +343,7 @@ describe("Delivery Request Process (DB.1.1)", () => {
     });
   });
 
-  describe("GAP-03: Activity Path Validation (DB.1.1)", () => {
+  describe("Activity Path Validation (DB.1.1)", () => {
     it("should validate path includes checking all ancestors, not just target", () => {
       // This test demonstrates that path validation checks ancestors
       // by setting up an ancestor with a duration limit violation
@@ -358,8 +356,8 @@ describe("Delivery Request Process (DB.1.1)", () => {
 
       // Try to deliver grandchild1 (child of child1)
       const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        "lesson1"
+          NavigationRequestType.CHOICE,
+          "lesson1"
       );
 
       // Should fail because ancestor (child1) fails limit condition check
@@ -373,8 +371,8 @@ describe("Delivery Request Process (DB.1.1)", () => {
       child1.isAvailable = false;
 
       const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        "lesson1"
+          NavigationRequestType.CHOICE,
+          "lesson1"
       );
 
       // System correctly rejects - may be navigation or delivery layer
@@ -387,8 +385,8 @@ describe("Delivery Request Process (DB.1.1)", () => {
       root.isAvailable = false;
 
       const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        "lesson1"
+          NavigationRequestType.CHOICE,
+          "lesson1"
       );
 
       // System correctly rejects
@@ -404,8 +402,8 @@ describe("Delivery Request Process (DB.1.1)", () => {
 
       // Try to deliver grandchild1
       const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        "lesson1"
+          NavigationRequestType.CHOICE,
+          "lesson1"
       );
 
       // Should fail because parent has exceeded duration limit
@@ -424,8 +422,8 @@ describe("Delivery Request Process (DB.1.1)", () => {
       child1.attemptCount = 0;
 
       const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        "lesson1"
+          NavigationRequestType.CHOICE,
+          "lesson1"
       );
 
       expect(result.valid).toBe(true);
@@ -440,8 +438,8 @@ describe("Delivery Request Process (DB.1.1)", () => {
       root.isActive = true;
 
       const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        "lesson1"
+          NavigationRequestType.CHOICE,
+          "lesson1"
       );
 
       // Should fail because root (in path) violates duration limit
@@ -461,8 +459,8 @@ describe("Delivery Request Process (DB.1.1)", () => {
       grandchild1.isAvailable = true;
 
       const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        "lesson1"
+          NavigationRequestType.CHOICE,
+          "lesson1"
       );
 
       // Should fail because middle ancestor violates limit
@@ -475,8 +473,8 @@ describe("Delivery Request Process (DB.1.1)", () => {
       child2.isAvailable = true;
 
       const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        "module2"
+          NavigationRequestType.CHOICE,
+          "module2"
       );
 
       // Should validate both root and child2
@@ -495,8 +493,8 @@ describe("Delivery Request Process (DB.1.1)", () => {
       grandchild1.isActive = true;
 
       const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        "lesson1"
+          NavigationRequestType.CHOICE,
+          "lesson1"
       );
 
       // Should fail because target itself fails validation
@@ -517,8 +515,8 @@ describe("Delivery Request Process (DB.1.1)", () => {
 
       // Try to deliver great-grandchild (3 levels deep)
       const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        "great-gc1"
+          NavigationRequestType.CHOICE,
+          "great-gc1"
       );
 
       // Should fail because intermediate ancestor has violation
@@ -538,8 +536,8 @@ describe("Delivery Request Process (DB.1.1)", () => {
       child1.isActive = true;
 
       const result = overallProcess.processNavigationRequest(
-        NavigationRequestType.CHOICE,
-        "lesson1"
+          NavigationRequestType.CHOICE,
+          "lesson1"
       );
 
       // Should fail during delivery path validation

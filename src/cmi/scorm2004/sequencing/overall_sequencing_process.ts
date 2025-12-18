@@ -1,23 +1,19 @@
-import { Activity } from "./activity";
-import { ActivityTree } from "./activity_tree";
-import {
-  DeliveryRequestType,
-  SequencingProcess,
-  SequencingRequestType
-} from "./sequencing_process";
-import { RollupProcess } from "./rollup_process";
-import { ADLNav } from "../adl";
-import { RuleActionType } from "./sequencing_rules";
-import { getDurationAsSeconds } from "../../../utilities";
-import { scorm2004_regex } from "../../../constants/regex";
-import { CompletionStatus, SuccessStatus } from "../../../constants/enums";
+import {Activity} from "./activity";
+import {ActivityTree} from "./activity_tree";
+import {DeliveryRequestType, SequencingProcess, SequencingRequestType} from "./sequencing_process";
+import {RollupProcess} from "./rollup_process";
+import {ADLNav} from "../adl";
+import {RuleActionType} from "./sequencing_rules";
+import {getDurationAsSeconds} from "../../../utilities";
+import {scorm2004_regex} from "../../../constants/regex";
+import {CompletionStatus, SuccessStatus} from "../../../constants/enums";
 import {
   AuxiliaryResource,
   HIDE_LMS_UI_TOKENS,
   HideLmsUiItem
 } from "../../../types/sequencing_types";
-import { SelectionRandomization } from "./selection_randomization";
-import { NavigationLookAhead, NavigationPredictions } from "./navigation_look_ahead";
+import {SelectionRandomization} from "./selection_randomization";
+import {NavigationLookAhead, NavigationPredictions} from "./navigation_look_ahead";
 
 /**
  * Enum for navigation request types
@@ -48,11 +44,11 @@ export class NavigationRequestResult {
   public exception: string | null;
 
   constructor(
-    valid: boolean = false,
-    terminationRequest: SequencingRequestType | null = null,
-    sequencingRequest: SequencingRequestType | null = null,
-    targetActivityId: string | null = null,
-    exception: string | null = null
+      valid: boolean = false,
+      terminationRequest: SequencingRequestType | null = null,
+      sequencingRequest: SequencingRequestType | null = null,
+      targetActivityId: string | null = null,
+      exception: string | null = null
   ) {
     this.valid = valid;
     this.terminationRequest = terminationRequest;
@@ -71,9 +67,9 @@ export class DeliveryRequest {
   public exception: string | null;
 
   constructor(
-    valid: boolean = false,
-    targetActivity: Activity | null = null,
-    exception: string | null = null
+      valid: boolean = false,
+      targetActivity: Activity | null = null,
+      exception: string | null = null
   ) {
     this.valid = valid;
     this.targetActivity = targetActivity;
@@ -142,19 +138,19 @@ export class OverallSequencingProcess {
   private navigationLookAhead: NavigationLookAhead;
 
   constructor(
-    activityTree: ActivityTree,
-    sequencingProcess: SequencingProcess,
-    rollupProcess: RollupProcess,
-    adlNav: ADLNav | null = null,
-    eventCallback: ((eventType: string, data?: any) => void) | null = null,
-    options?: {
-      now?: () => Date;
-      enhancedDeliveryValidation?: boolean;
-      defaultHideLmsUi?: HideLmsUiItem[];
-      defaultAuxiliaryResources?: AuxiliaryResource[];
-      getCMIData?: () => CMIDataForTransfer;
-      is4thEdition?: boolean;
-    }
+      activityTree: ActivityTree,
+      sequencingProcess: SequencingProcess,
+      rollupProcess: RollupProcess,
+      adlNav: ADLNav | null = null,
+      eventCallback: ((eventType: string, data?: any) => void) | null = null,
+      options?: {
+        now?: () => Date;
+        enhancedDeliveryValidation?: boolean;
+        defaultHideLmsUi?: HideLmsUiItem[];
+        defaultAuxiliaryResources?: AuxiliaryResource[];
+        getCMIData?: () => CMIDataForTransfer;
+        is4thEdition?: boolean;
+      }
   ) {
     this.activityTree = activityTree;
     this.sequencingProcess = sequencingProcess;
@@ -165,8 +161,8 @@ export class OverallSequencingProcess {
     this.enhancedDeliveryValidation = options?.enhancedDeliveryValidation === true;
     this.defaultHideLmsUi = options?.defaultHideLmsUi ? [...options.defaultHideLmsUi] : [];
     this.defaultAuxiliaryResources = options?.defaultAuxiliaryResources
-      ? options.defaultAuxiliaryResources.map((resource) => ({ ...resource }))
-      : [];
+        ? options.defaultAuxiliaryResources.map((resource) => ({...resource}))
+        : [];
     this.getCMIData = options?.getCMIData || null;
     this.is4thEdition = options?.is4thEdition || false;
 
@@ -186,9 +182,9 @@ export class OverallSequencingProcess {
    * @return {DeliveryRequest} - The delivery request result
    */
   public processNavigationRequest(
-    navigationRequest: NavigationRequestType,
-    targetActivityId: string | null = null,
-    exitType?: string
+      navigationRequest: NavigationRequestType,
+      targetActivityId: string | null = null,
+      exitType?: string
   ): DeliveryRequest {
     // Step 1: Navigation Request Process (NB.2.1)
     const navResult = this.navigationRequestProcess(navigationRequest, targetActivityId);
@@ -224,8 +220,8 @@ export class OverallSequencingProcess {
     // Step 3: Sequencing Request Process (SB.2.12)
     if (navResult.sequencingRequest) {
       const seqResult = this.sequencingProcess.sequencingRequestProcess(
-        navResult.sequencingRequest,
-        navResult.targetActivityId
+          navResult.sequencingRequest,
+          navResult.targetActivityId
       );
 
       // OP.1 step 1.4.3: Check if sequencing session should end
@@ -292,11 +288,11 @@ export class OverallSequencingProcess {
    * @return {NavigationRequestResult} - The validation result
    */
   private navigationRequestProcess(
-    request: NavigationRequestType,
-    targetActivityId: string | null = null
+      request: NavigationRequestType,
+      targetActivityId: string | null = null
   ): NavigationRequestResult {
     // Enhanced logging for debugging
-    this.fireEvent("onNavigationRequestProcessing", { request, targetActivityId });
+    this.fireEvent("onNavigationRequestProcessing", {request, targetActivityId});
     const currentActivity = this.activityTree.currentActivity;
 
     // Check if navigation request is valid
@@ -306,10 +302,10 @@ export class OverallSequencingProcess {
           return new NavigationRequestResult(false, null, null, null, "NB.2.1-1");
         }
         return new NavigationRequestResult(
-          true,
-          null,
-          SequencingRequestType.START,
-          null
+            true,
+            null,
+            SequencingRequestType.START,
+            null
         );
 
       case NavigationRequestType.RESUME_ALL:
@@ -320,10 +316,10 @@ export class OverallSequencingProcess {
           return new NavigationRequestResult(false, null, null, null, "NB.2.1-3");
         }
         return new NavigationRequestResult(
-          true,
-          null,
-          SequencingRequestType.RESUME_ALL,
-          null
+            true,
+            null,
+            SequencingRequestType.RESUME_ALL,
+            null
         );
 
       case NavigationRequestType.CONTINUE: {
@@ -336,14 +332,14 @@ export class OverallSequencingProcess {
 
         // Per NB.2.1 Step 3.2.1: Only terminate if current activity is active
         const continueTerminationRequest = currentActivity.isActive
-          ? SequencingRequestType.EXIT
-          : null;
+            ? SequencingRequestType.EXIT
+            : null;
 
         return new NavigationRequestResult(
-          true,
-          continueTerminationRequest,
-          SequencingRequestType.CONTINUE,
-          null
+            true,
+            continueTerminationRequest,
+            SequencingRequestType.CONTINUE,
+            null
         );
       }
 
@@ -363,14 +359,14 @@ export class OverallSequencingProcess {
 
         // Per NB.2.1 Step 4.2.1.1: Only terminate if current activity is active
         const previousTerminationRequest = currentActivity.isActive
-          ? SequencingRequestType.EXIT
-          : null;
+            ? SequencingRequestType.EXIT
+            : null;
 
         return new NavigationRequestResult(
-          true,
-          previousTerminationRequest,
-          SequencingRequestType.PREVIOUS,
-          null
+            true,
+            previousTerminationRequest,
+            SequencingRequestType.PREVIOUS,
+            null
         );
       }
 
@@ -391,10 +387,10 @@ export class OverallSequencingProcess {
 
         // Per NB.2.1 Step 7.1.1.4: Only return EXIT if current activity is active
         return new NavigationRequestResult(
-          true,
-          currentActivity?.isActive ? SequencingRequestType.EXIT : null,
-          SequencingRequestType.CHOICE,
-          targetActivityId
+            true,
+            currentActivity?.isActive ? SequencingRequestType.EXIT : null,
+            SequencingRequestType.CHOICE,
+            targetActivityId
         );
       }
 
@@ -403,10 +399,10 @@ export class OverallSequencingProcess {
           return new NavigationRequestResult(false, null, null, null, "NB.2.1-12");
         }
         return new NavigationRequestResult(
-          true,
-          null,
-          SequencingRequestType.JUMP,
-          targetActivityId
+            true,
+            null,
+            SequencingRequestType.JUMP,
+            targetActivityId
         );
 
       case NavigationRequestType.EXIT:
@@ -415,17 +411,17 @@ export class OverallSequencingProcess {
         }
         if (currentActivity === this.activityTree.root) {
           return new NavigationRequestResult(
-            true,
-            SequencingRequestType.EXIT_ALL,
-            null,
-            null
+              true,
+              SequencingRequestType.EXIT_ALL,
+              null,
+              null
           );
         }
         return new NavigationRequestResult(
-          true,
-          SequencingRequestType.EXIT,
-          null,
-          null
+            true,
+            SequencingRequestType.EXIT,
+            null,
+            null
         );
 
       case NavigationRequestType.EXIT_ALL:
@@ -433,10 +429,10 @@ export class OverallSequencingProcess {
           return new NavigationRequestResult(false, null, null, null, "NB.2.1-14");
         }
         return new NavigationRequestResult(
-          true,
-          SequencingRequestType.EXIT_ALL,
-          null,
-          null
+            true,
+            SequencingRequestType.EXIT_ALL,
+            null,
+            null
         );
 
       case NavigationRequestType.ABANDON:
@@ -444,10 +440,10 @@ export class OverallSequencingProcess {
           return new NavigationRequestResult(false, null, null, null, "NB.2.1-15");
         }
         return new NavigationRequestResult(
-          true,
-          SequencingRequestType.ABANDON,
-          null,
-          null
+            true,
+            SequencingRequestType.ABANDON,
+            null,
+            null
         );
 
       case NavigationRequestType.ABANDON_ALL:
@@ -455,10 +451,10 @@ export class OverallSequencingProcess {
           return new NavigationRequestResult(false, null, null, null, "NB.2.1-16");
         }
         return new NavigationRequestResult(
-          true,
-          SequencingRequestType.ABANDON_ALL,
-          null,
-          null
+            true,
+            SequencingRequestType.ABANDON_ALL,
+            null,
+            null
         );
 
       case NavigationRequestType.SUSPEND_ALL:
@@ -466,10 +462,10 @@ export class OverallSequencingProcess {
           return new NavigationRequestResult(false, null, null, null, "NB.2.1-17");
         }
         return new NavigationRequestResult(
-          true,
-          SequencingRequestType.SUSPEND_ALL,
-          null,
-          null
+            true,
+            SequencingRequestType.SUSPEND_ALL,
+            null,
+            null
         );
 
       default:
@@ -480,16 +476,16 @@ export class OverallSequencingProcess {
   /**
    * Enhanced Termination Request Process (TB.2.3)
    * Processes termination requests with post-condition loop for EXIT_PARENT handling
-   * GAP-02: Implements missing post-condition loop per SCORM 2004 3rd Edition TB.2.3
+   * Implements missing post-condition loop per SCORM 2004 3rd Edition TB.2.3
    * @param {SequencingRequestType} request - The termination request
    * @param {boolean} hasSequencingRequest - Whether a sequencing request follows
    * @param {string} exitType - The cmi.exit value (logout, normal, suspend, time-out, or empty)
    * @return {TerminationRequestResult} - Termination result with sequencing request
    */
   private terminationRequestProcess(
-    request: SequencingRequestType,
-    hasSequencingRequest: boolean = false,
-    exitType?: string
+      request: SequencingRequestType,
+      hasSequencingRequest: boolean = false,
+      exitType?: string
   ): TerminationRequestResult {
     const currentActivity = this.activityTree.currentActivity;
 
@@ -504,8 +500,8 @@ export class OverallSequencingProcess {
 
     // TB.2.3-2: Check if trying to terminate already-terminated activity
     if ((request === SequencingRequestType.EXIT ||
-        request === SequencingRequestType.ABANDON) &&
-      !currentActivity.isActive) {
+            request === SequencingRequestType.ABANDON) &&
+        !currentActivity.isActive) {
       return {
         terminationRequest: request,
         sequencingRequest: null,
@@ -560,14 +556,14 @@ export class OverallSequencingProcess {
 
   /**
    * Handle EXIT termination with post-condition loop (TB.2.3 step 3)
-   * GAP-02: Implements the do-while loop for EXIT_PARENT cascading
+   * Implements the do-while loop for EXIT_PARENT cascading
    * @param {Activity} currentActivity - The current activity
    * @param {boolean} hasSequencingRequest - Whether a sequencing request follows
    * @return {TerminationRequestResult} - The termination result
    */
   private handleExitTermination(
-    currentActivity: Activity,
-    hasSequencingRequest: boolean
+      currentActivity: Activity,
+      hasSequencingRequest: boolean
   ): TerminationRequestResult {
     // TB.2.3 step 3.0: For cluster activities, terminate descendant attempts first
     if (currentActivity.children.length > 0) {
@@ -602,7 +598,7 @@ export class OverallSequencingProcess {
 
       // TB.2.3 step 3.3.2: Apply Sequencing Post Condition Rules Subprocess
       postConditionResult = this.integratePostConditionRulesSubprocess(
-        this.activityTree.currentActivity || currentActivity
+          this.activityTree.currentActivity || currentActivity
       );
 
       // TB.2.3 step 3.3.3: If returns EXIT_ALL, change termination type and break
@@ -717,8 +713,8 @@ export class OverallSequencingProcess {
    * @return {TerminationRequestResult} - The termination result
    */
   private handleAbandonTermination(
-    currentActivity: Activity,
-    hasSequencingRequest: boolean
+      currentActivity: Activity,
+      hasSequencingRequest: boolean
   ): TerminationRequestResult {
     // TB.2.3 step 6.1: Set activity as not active (no attempt end)
     currentActivity.isActive = false;
@@ -838,14 +834,14 @@ export class OverallSequencingProcess {
       if (conditionsMet) {
         // Return the action to take with recursion tracking
         if (rule.action === RuleActionType.EXIT_PARENT) {
-          return { action: "EXIT_PARENT", recursionDepth };
+          return {action: "EXIT_PARENT", recursionDepth};
         } else if (rule.action === RuleActionType.EXIT_ALL) {
-          return { action: "EXIT_ALL", recursionDepth };
+          return {action: "EXIT_ALL", recursionDepth};
         }
       }
     }
 
-    return { action: null, recursionDepth };
+    return {action: null, recursionDepth};
   }
 
   /**
@@ -1150,7 +1146,7 @@ export class OverallSequencingProcess {
           pathActivity.isActive = true;
 
           // Step 3.1: Apply selection and randomization per SCORM 2004 3rd Edition DB.2
-          // (GAP-17: Randomization at specification-required process points)
+          // (Randomization at specification-required process points)
           // This occurs after activity.isActive is set and attempt count is incremented
           SelectionRandomization.applySelectionAndRandomization(pathActivity, pathActivity.attemptCount <= 1);
         }
@@ -1312,7 +1308,7 @@ export class OverallSequencingProcess {
       return;
     }
 
-    // GAP-19: Transfer RTE data to activity state BEFORE auto-completion logic
+    // Transfer RTE data to activity state BEFORE auto-completion logic
     // This ensures that CMI data set by content is properly transferred to activity objectives
     this.transferRteDataToActivity(activity);
 
@@ -1415,13 +1411,13 @@ export class OverallSequencingProcess {
     }
 
     // Apply selection and randomization per SCORM 2004 3rd Edition UP.4
-    // (GAP-17: Randomization at specification-required process points)
+    // (Randomization at specification-required process points)
     // This occurs after rollup processing completes
     SelectionRandomization.applySelectionAndRandomization(activity, false);
   }
 
   /**
-   * GAP-19: Transfer RTE Data to Activity (Full Implementation)
+   * Transfer RTE Data to Activity (Full Implementation)
    * Transfers ALL CMI data from runtime environment to activity state
    * Called at the start of endAttemptProcess to ensure proper data transfer
    *
@@ -1589,8 +1585,8 @@ export class OverallSequencingProcess {
 
     // If no scaled score, try to calculate from raw/min/max
     if (score.raw && score.raw !== "" &&
-      score.min && score.min !== "" &&
-      score.max && score.max !== "") {
+        score.min && score.min !== "" &&
+        score.max && score.max !== "") {
       const raw = parseFloat(score.raw);
       const min = parseFloat(score.min);
       const max = parseFloat(score.max);
@@ -1703,7 +1699,7 @@ export class OverallSequencingProcess {
 
     for (const resource of this.defaultAuxiliaryResources) {
       if (resource.resourceId) {
-        merged.set(resource.resourceId, { ...resource });
+        merged.set(resource.resourceId, {...resource});
       }
     }
 
@@ -1717,7 +1713,7 @@ export class OverallSequencingProcess {
     for (const node of lineage.reverse()) {
       for (const resource of node.auxiliaryResources) {
         if (resource.resourceId) {
-          merged.set(resource.resourceId, { ...resource });
+          merged.set(resource.resourceId, {...resource});
         }
       }
     }
@@ -2106,11 +2102,11 @@ export class OverallSequencingProcess {
           reorderChildren: activity.sequencingControls.reorderChildren,
           childOrder: activity.children.map((child) => child.id),
           selectedChildIds: activity.children
-            .filter((child) => child.isAvailable)
-            .map((child) => child.id),
+              .filter((child) => child.isAvailable)
+              .map((child) => child.id),
           hiddenFromChoiceChildIds: activity.children
-            .filter((child) => child.isHiddenFromChoice)
-            .map((child) => child.id)
+              .filter((child) => child.isHiddenFromChoice)
+              .map((child) => child.id)
         }
       };
 
@@ -2186,11 +2182,11 @@ export class OverallSequencingProcess {
         }
 
         const selectedSet = Array.isArray(selectionState.selectedChildIds)
-          ? new Set(selectionState.selectedChildIds)
-          : null;
+            ? new Set(selectionState.selectedChildIds)
+            : null;
         const hiddenSet = Array.isArray(selectionState.hiddenFromChoiceChildIds)
-          ? new Set(selectionState.hiddenFromChoiceChildIds)
-          : null;
+            ? new Set(selectionState.hiddenFromChoiceChildIds)
+            : null;
 
         if (selectedSet || hiddenSet) {
           for (const child of activity.children) {
@@ -2290,18 +2286,18 @@ export class OverallSequencingProcess {
   } {
     // Check if target is hidden from choice or otherwise unavailable
     if (targetActivity.isHiddenFromChoice) {
-      return { valid: false, exception: "NB.2.1-11" };
+      return {valid: false, exception: "NB.2.1-11"};
     }
 
     // Check if target is disabled (pre-condition rules, availability, etc.)
     if (this.isActivityDisabled(targetActivity)) {
-      return { valid: false, exception: "NB.2.1-11" };
+      return {valid: false, exception: "NB.2.1-11"};
     }
 
     if (currentActivity) {
       const commonAncestor = this.findCommonAncestor(currentActivity, targetActivity);
       if (!commonAncestor) {
-        return { valid: false, exception: "NB.2.1-11" };
+        return {valid: false, exception: "NB.2.1-11"};
       }
 
       // Validate choiceExit controls along the current activity path
@@ -2311,7 +2307,7 @@ export class OverallSequencingProcess {
         // Only validate choiceExit if the activity is active
         if (node.isActive === true && node.sequencingControls && node.sequencingControls.choiceExit === false) {
           if (targetActivity !== node && !this.activityContains(node, targetActivity)) {
-            return { valid: false, exception: "NB.2.1-11" };
+            return {valid: false, exception: "NB.2.1-11"};
           }
         }
         node = node.parent;
@@ -2334,12 +2330,12 @@ export class OverallSequencingProcess {
     let activity: Activity | null = targetActivity;
     while (activity) {
       if (activity.parent && !activity.parent.sequencingControls.choice) {
-        return { valid: false, exception: "NB.2.1-11" };
+        return {valid: false, exception: "NB.2.1-11"};
       }
       activity = activity.parent;
     }
 
-    return { valid: true, exception: null };
+    return {valid: true, exception: null};
   }
 
   /**
@@ -2354,7 +2350,7 @@ export class OverallSequencingProcess {
   } {
     // Check forward-only constraint at immediate parent level
     if (currentActivity.parent?.sequencingControls.forwardOnly) {
-      return { valid: false, exception: "NB.2.1-8" };
+      return {valid: false, exception: "NB.2.1-8"};
     }
 
     // Check forward-only constraints at higher cluster levels
@@ -2362,12 +2358,12 @@ export class OverallSequencingProcess {
     while (ancestor) {
       if (ancestor.sequencingControls.forwardOnly) {
         // If any ancestor cluster has forwardOnly=true, previous navigation is blocked
-        return { valid: false, exception: "NB.2.1-8" };
+        return {valid: false, exception: "NB.2.1-8"};
       }
       ancestor = ancestor.parent;
     }
 
-    return { valid: true, exception: null };
+    return {valid: true, exception: null};
   }
 
   /**
@@ -2388,25 +2384,25 @@ export class OverallSequencingProcess {
       if (ancestor.sequencingControls?.constrainChoice || ancestor.sequencingControls?.preventActivation) {
         const currentBranch = this.findChildContaining(ancestor, currentActivity);
         if (!currentBranch) {
-          return { valid: false, exception: "NB.2.1-11" };
+          return {valid: false, exception: "NB.2.1-11"};
         }
 
         if (targetActivity === ancestor) {
-          return { valid: false, exception: "NB.2.1-11" };
+          return {valid: false, exception: "NB.2.1-11"};
         }
 
         const targetBranch = this.findChildContaining(ancestor, targetActivity);
         if (!targetBranch) {
-          return { valid: false, exception: "NB.2.1-11" };
+          return {valid: false, exception: "NB.2.1-11"};
         }
 
         if (ancestor.sequencingControls?.constrainChoice && targetBranch !== currentBranch) {
-          return { valid: false, exception: "NB.2.1-11" };
+          return {valid: false, exception: "NB.2.1-11"};
         }
 
         if (ancestor.sequencingControls?.preventActivation && targetBranch !== currentBranch) {
           if (this.requiresNewActivation(targetBranch, targetActivity)) {
-            return { valid: false, exception: "NB.2.1-11" };
+            return {valid: false, exception: "NB.2.1-11"};
           }
         }
       }
@@ -2432,19 +2428,19 @@ export class OverallSequencingProcess {
     // Check if target is within the valid choice set
     // Ensure the target is contained within the common ancestor's subtree
     if (!this.activityContains(commonAncestor, targetActivity) && targetActivity !== commonAncestor) {
-      return { valid: false, exception: "NB.2.1-11" };
+      return {valid: false, exception: "NB.2.1-11"};
     }
 
     // Walk from target up to (but not including) the common ancestor ensuring availability
     let node: Activity | null = targetActivity;
     while (node && node !== commonAncestor) {
       if (!node.isAvailable || node.isHiddenFromChoice || this.isActivityDisabled(node)) {
-        return { valid: false, exception: "NB.2.1-11" };
+        return {valid: false, exception: "NB.2.1-11"};
       }
       node = node.parent;
     }
 
-    return { valid: true, exception: null };
+    return {valid: true, exception: null};
   }
 
   /**
@@ -2467,12 +2463,12 @@ export class OverallSequencingProcess {
     }
 
     return (
-      preConditionResult === RuleActionType.DISABLED ||
-      preConditionResult === RuleActionType.HIDE_FROM_CHOICE ||
-      preConditionResult === RuleActionType.STOP_FORWARD_TRAVERSAL ||
-      preConditionResult === "DISABLED" ||
-      preConditionResult === "HIDDEN_FROM_CHOICE" ||
-      preConditionResult === "STOP_FORWARD_TRAVERSAL"
+        preConditionResult === RuleActionType.DISABLED ||
+        preConditionResult === RuleActionType.HIDE_FROM_CHOICE ||
+        preConditionResult === RuleActionType.STOP_FORWARD_TRAVERSAL ||
+        preConditionResult === "DISABLED" ||
+        preConditionResult === "HIDDEN_FROM_CHOICE" ||
+        preConditionResult === "STOP_FORWARD_TRAVERSAL"
     );
   }
 
@@ -2525,13 +2521,13 @@ export class OverallSequencingProcess {
     // Enforce forwardOnly and mandatory activity constraints at ancestor level
     const children = ancestor.children;
     if (!children || children.length === 0) {
-      return { valid: true, exception: null };
+      return {valid: true, exception: null};
     }
 
     const currentTop = this.findChildContaining(ancestor, currentActivity);
     const targetTop = this.findChildContaining(ancestor, targetActivity);
     if (!currentTop || !targetTop) {
-      return { valid: false, exception: "NB.2.1-11" };
+      return {valid: false, exception: "NB.2.1-11"};
     }
 
     const currentIndex = children.indexOf(currentTop);
@@ -2539,22 +2535,22 @@ export class OverallSequencingProcess {
 
     // Forward-only prevents backwards choice under this ancestor
     if (ancestor.sequencingControls.forwardOnly && targetIndex < currentIndex) {
-      return { valid: false, exception: "NB.2.1-8" };
+      return {valid: false, exception: "NB.2.1-8"};
     }
 
     const traversalStopIndex = children.findIndex((child) => child?.sequencingControls.stopForwardTraversal);
 
     // Current branch flagged stopForwardTraversal blocks moving past it
     if (
-      currentTop.sequencingControls.stopForwardTraversal &&
-      targetIndex > currentIndex
+        currentTop.sequencingControls.stopForwardTraversal &&
+        targetIndex > currentIndex
     ) {
-      return { valid: false, exception: "NB.2.1-11" };
+      return {valid: false, exception: "NB.2.1-11"};
     }
 
     // Stop forward traversal on siblings earlier than target also blocks progression
     if (traversalStopIndex !== -1 && targetIndex > traversalStopIndex) {
-      return { valid: false, exception: "NB.2.1-11" };
+      return {valid: false, exception: "NB.2.1-11"};
     }
 
     // Do not skip mandatory incomplete siblings when moving forward
@@ -2566,16 +2562,16 @@ export class OverallSequencingProcess {
         }
 
         if (between.sequencingControls.stopForwardTraversal) {
-          return { valid: false, exception: "NB.2.1-11" };
+          return {valid: false, exception: "NB.2.1-11"};
         }
 
         if (this.helperIsActivityMandatory(between) && !this.helperIsActivityCompleted(between)) {
-          return { valid: false, exception: "NB.2.1-11" };
+          return {valid: false, exception: "NB.2.1-11"};
         }
       }
     }
 
-    return { valid: true, exception: null };
+    return {valid: true, exception: null};
   }
 
   private requiresNewActivation(branchRoot: Activity, targetActivity: Activity): boolean {
@@ -2612,14 +2608,14 @@ export class OverallSequencingProcess {
 
     const preConditionResult = this.evaluatePreConditionRulesForChoice(activity);
     if (
-      preConditionResult === RuleActionType.SKIP ||
-      preConditionResult === RuleActionType.DISABLED ||
-      preConditionResult === RuleActionType.HIDE_FROM_CHOICE ||
-      preConditionResult === RuleActionType.STOP_FORWARD_TRAVERSAL ||
-      preConditionResult === "SKIP" ||
-      preConditionResult === "DISABLED" ||
-      preConditionResult === "HIDDEN_FROM_CHOICE" ||
-      preConditionResult === "STOP_FORWARD_TRAVERSAL"
+        preConditionResult === RuleActionType.SKIP ||
+        preConditionResult === RuleActionType.DISABLED ||
+        preConditionResult === RuleActionType.HIDE_FROM_CHOICE ||
+        preConditionResult === RuleActionType.STOP_FORWARD_TRAVERSAL ||
+        preConditionResult === "SKIP" ||
+        preConditionResult === "DISABLED" ||
+        preConditionResult === "HIDDEN_FROM_CHOICE" ||
+        preConditionResult === "STOP_FORWARD_TRAVERSAL"
     ) {
       return false;
     }
@@ -2639,14 +2635,14 @@ export class OverallSequencingProcess {
 
     const preConditionResult = this.evaluatePreConditionRulesForChoice(activity);
     if (
-      preConditionResult === RuleActionType.SKIP ||
-      preConditionResult === RuleActionType.DISABLED ||
-      preConditionResult === RuleActionType.HIDE_FROM_CHOICE ||
-      preConditionResult === RuleActionType.STOP_FORWARD_TRAVERSAL ||
-      preConditionResult === "SKIP" ||
-      preConditionResult === "DISABLED" ||
-      preConditionResult === "HIDDEN_FROM_CHOICE" ||
-      preConditionResult === "STOP_FORWARD_TRAVERSAL"
+        preConditionResult === RuleActionType.SKIP ||
+        preConditionResult === RuleActionType.DISABLED ||
+        preConditionResult === RuleActionType.HIDE_FROM_CHOICE ||
+        preConditionResult === RuleActionType.STOP_FORWARD_TRAVERSAL ||
+        preConditionResult === "SKIP" ||
+        preConditionResult === "DISABLED" ||
+        preConditionResult === "HIDDEN_FROM_CHOICE" ||
+        preConditionResult === "STOP_FORWARD_TRAVERSAL"
     ) {
       return true;
     }
@@ -2656,9 +2652,9 @@ export class OverallSequencingProcess {
     }
 
     return (
-      activity.completionStatus === "completed" ||
-      (activity as any).successStatus === "passed" ||
-      activity.successStatus === "passed"
+        activity.completionStatus === "completed" ||
+        (activity as any).successStatus === "passed" ||
+        activity.successStatus === "passed"
     );
   }
 
@@ -2692,12 +2688,12 @@ export class OverallSequencingProcess {
   } {
     // Check that the activity tree is in a consistent state for delivery
     if (!this.activityTree.root) {
-      return { consistent: false, exception: "DB.1.1-4" }; // No activity tree
+      return {consistent: false, exception: "DB.1.1-4"}; // No activity tree
     }
 
     // Validate activity is part of the current tree
     if (!this.isActivityPartOfTree(activity, this.activityTree.root)) {
-      return { consistent: false, exception: "DB.1.1-5" }; // Activity not in tree
+      return {consistent: false, exception: "DB.1.1-5"}; // Activity not in tree
     }
 
     // Check for conflicting active activities
@@ -2708,19 +2704,19 @@ export class OverallSequencingProcess {
         activeActivities: activeActivities.map(a => a.id),
         targetActivity: activity.id
       });
-      return { consistent: false, exception: "DB.1.1-6" }; // State inconsistency
+      return {consistent: false, exception: "DB.1.1-6"}; // State inconsistency
     }
 
     // Validate parent-child relationships are intact
     let current: Activity | null = activity;
     while (current?.parent) {
       if (!current.parent.children.includes(current)) {
-        return { consistent: false, exception: "DB.1.1-7" }; // Broken parent-child relationship
+        return {consistent: false, exception: "DB.1.1-7"}; // Broken parent-child relationship
       }
       current = current.parent;
     }
 
-    return { consistent: true, exception: null };
+    return {consistent: true, exception: null};
   }
 
   /**
@@ -2762,7 +2758,7 @@ export class OverallSequencingProcess {
       };
     }
 
-    return { available: true, exception: null };
+    return {available: true, exception: null};
   }
 
   /**
@@ -2799,7 +2795,7 @@ export class OverallSequencingProcess {
       };
     }
 
-    return { allowed: true, exception: null };
+    return {allowed: true, exception: null};
   }
 
   /**
@@ -2843,7 +2839,7 @@ export class OverallSequencingProcess {
       };
     }
 
-    return { satisfied: true, exception: null };
+    return {satisfied: true, exception: null};
   }
 
   /**
@@ -2909,7 +2905,7 @@ export class OverallSequencingProcess {
 
     // Check for storage requirements based on duration limits
     if (activity.attemptAbsoluteDurationLimit &&
-      this.parseDurationToMinutes(activity.attemptAbsoluteDurationLimit) > 60) {
+        this.parseDurationToMinutes(activity.attemptAbsoluteDurationLimit) > 60) {
       resources.push("extended-storage"); // Long duration activities need more storage
     }
 
@@ -3010,10 +3006,10 @@ export class OverallSequencingProcess {
         }
       }
 
-      return { adequate };
+      return {adequate};
     } catch (error) {
       // If checks fail, assume resources are adequate
-      return { adequate: true };
+      return {adequate: true};
     }
   }
 
@@ -3087,7 +3083,7 @@ export class OverallSequencingProcess {
             // Look for objectiveStatusKnown, objectiveSatisfied, etc. conditions
             // that reference global objectives which may be satisfied by other activities
             if ((condition as any).referencedObjectiveID &&
-              (condition as any).referencedObjectiveID !== activity.id) {
+                (condition as any).referencedObjectiveID !== activity.id) {
               prerequisites.push((condition as any).referencedObjectiveID);
             }
           }
@@ -3098,7 +3094,7 @@ export class OverallSequencingProcess {
     // Check for sequencing control dependencies
     // Activities with choiceExit=false may depend on completion of siblings
     if (activity.parent && activity.sequencingControls &&
-      !activity.sequencingControls.choiceExit) {
+        !activity.sequencingControls.choiceExit) {
       const siblings = activity.parent.children;
       if (siblings) {
         const activityIndex = siblings.indexOf(activity);
@@ -3166,7 +3162,7 @@ export class OverallSequencingProcess {
         if (rule.conditions && rule.conditions.length > 0) {
           for (const condition of rule.conditions) {
             if ((condition as any).objectiveReference &&
-              (condition as any).objectiveReference !== activity.id) {
+                (condition as any).objectiveReference !== activity.id) {
               dependencies.push((condition as any).objectiveReference);
             }
           }
@@ -3188,7 +3184,7 @@ export class OverallSequencingProcess {
       if (globalObjective) {
         // Check if global objective is satisfied
         return globalObjective.satisfied === true &&
-          globalObjective.statusKnown === true;
+            globalObjective.statusKnown === true;
       }
     }
 
@@ -3202,7 +3198,7 @@ export class OverallSequencingProcess {
         if (globalObjective) {
           // Check if measure is available and within acceptable range
           return globalObjective.measureKnown === true &&
-            globalObjective.normalizedMeasure >= 0;
+              globalObjective.normalizedMeasure >= 0;
         }
       }
     }
@@ -3252,7 +3248,7 @@ export class OverallSequencingProcess {
                 case "timeLimitExceeded":
                   // Depends on time tracking
                   if (!activity.attemptAbsoluteDurationLimit &&
-                    !activity.activityAbsoluteDurationLimit) satisfied = false;
+                      !activity.activityAbsoluteDurationLimit) satisfied = false;
                   break;
 
                 case "always":
@@ -3308,7 +3304,7 @@ export class OverallSequencingProcess {
       satisfied = false;
     }
 
-    return { satisfied };
+    return {satisfied};
   }
 
   /**
@@ -3381,19 +3377,19 @@ export class OverallSequencingProcess {
 
     for (const objective of objectives) {
       const mapInfos = objective.mapInfo.length > 0
-        ? objective.mapInfo
-        : [{
-          targetObjectiveID: objective.id,
-          readSatisfiedStatus: true,
-          writeSatisfiedStatus: true,
-          readNormalizedMeasure: true,
-          writeNormalizedMeasure: true,
-          readProgressMeasure: true,
-          writeProgressMeasure: true,
-          readCompletionStatus: true,
-          writeCompletionStatus: true,
-          updateAttemptData: objective.isPrimary
-        }];
+          ? objective.mapInfo
+          : [{
+            targetObjectiveID: objective.id,
+            readSatisfiedStatus: true,
+            writeSatisfiedStatus: true,
+            readNormalizedMeasure: true,
+            writeNormalizedMeasure: true,
+            readProgressMeasure: true,
+            writeProgressMeasure: true,
+            readCompletionStatus: true,
+            writeCompletionStatus: true,
+            updateAttemptData: objective.isPrimary
+          }];
 
       for (const mapInfo of mapInfos) {
         const targetId = mapInfo.targetObjectiveID || objective.id;
@@ -3494,7 +3490,7 @@ export class OverallSequencingProcess {
   private serializeGlobalObjectiveMap(): Record<string, any> {
     const serialized: Record<string, any> = {};
     this.globalObjectiveMap.forEach((data, id) => {
-      serialized[id] = { ...data };
+      serialized[id] = {...data};
     });
     return serialized;
   }
@@ -3505,7 +3501,7 @@ export class OverallSequencingProcess {
       return;
     }
     for (const [id, data] of Object.entries(mapData)) {
-      this.globalObjectiveMap.set(id, { ...data });
+      this.globalObjectiveMap.set(id, {...data});
     }
   }
 
