@@ -1,0 +1,49 @@
+{
+  "name": "react-native-offline",
+  "main": "expo-router/entry",
+  "version": "1.0.0",
+  "scripts": {
+    "postinstall": "bash scripts/patch-hermes.sh",
+    "start": "expo start --dev-client",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "prebuild": "expo prebuild",
+    "prebuild:clean": "expo prebuild --clean"
+  },
+  "dependencies": {
+    "@dr.pogodin/react-native-fs": "^2.36.2",
+    "@dr.pogodin/react-native-static-server": "^0.25.4",
+    "@expo/vector-icons": "^14.0.0",
+    "@react-native-async-storage/async-storage": "~2.1.0",
+    "@react-native-community/netinfo": "11.x",
+    "@react-navigation/native": "^7.1.8",
+    "expo": "~52.0.0",
+    "expo-build-properties": "^1.0.10",
+    "expo-constants": "~17.0.0",
+    "expo-dev-client": "~5.0.0",
+    "expo-file-system": "~18.0.0",
+    "expo-font": "~13.0.0",
+    "expo-linking": "~7.0.0",
+    "expo-router": "~4.0.0",
+    "expo-screen-orientation": "~8.0.4",
+    "expo-splash-screen": "~0.29.0",
+    "expo-status-bar": "~2.0.0",
+    "expo-web-browser": "~14.0.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-native": "0.76.5",
+    "react-native-reanimated": "~3.16.1",
+    "react-native-safe-area-context": "~4.12.0",
+    "react-native-screens": "~4.2.0",
+    "react-native-web": "~0.19.13",
+    "react-native-webview": "13.x",
+    "react-native-zip-archive": "7.x"
+  },
+  "devDependencies": {
+    "@types/react": "~18.3.12",
+    "react-test-renderer": "18.3.1",
+    "typescript": "~5.6.2"
+  },
+  "private": true
+}

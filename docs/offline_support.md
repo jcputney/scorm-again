@@ -77,6 +77,43 @@ window.addEventListener('offline', () => {
 });
 ```
 
+## Custom Network Status Events
+
+For mobile applications and other environments where the browser's `navigator.onLine` may not accurately reflect network status, scorm-again provides a custom event API to programmatically update network status.
+
+### Using the Custom Event
+
+The recommended way for mobile apps to communicate network status changes is through the `scorm-again:network-status` custom event:
+
+```javascript
+// Notify scorm-again when the device goes online
+window.dispatchEvent(new CustomEvent('scorm-again:network-status', {
+  detail: { online: true }
+}));
+
+// Notify scorm-again when the device goes offline
+window.dispatchEvent(new CustomEvent('scorm-again:network-status', {
+  detail: { online: false }
+}));
+```
+
+### Benefits of the Custom Event API
+
+- **More Reliable**: Mobile network detection APIs are often more accurate than browser `navigator.onLine`
+- **Clean Integration**: No need to access internal service properties
+- **Future-Proof**: Works across all versions and doesn't depend on internal API structure
+- **Standards-Based**: Uses standard DOM CustomEvent API
+
+### Event Details
+
+The custom event accepts a detail object with the following property:
+
+| Property | Type    | Description                                   |
+|----------|---------|-----------------------------------------------|
+| `online` | boolean | `true` if device is online, `false` if offline |
+
+When the event is dispatched with `online: true`, scorm-again will automatically attempt to sync any queued offline data.
+
 ## Mobile Applications Integration
 
 To use offline support in a mobile application:
@@ -84,7 +121,7 @@ To use offline support in a mobile application:
 1. **WebView Integration**: Use a WebView to load your SCORM content and scorm-again
 2. **Configuration**: Set up the API with offline support enabled
 3. **Storage Access**: Ensure your WebView allows localStorage access
-4. **Network Handling**: Configure the app to handle network status changes properly
+4. **Network Handling**: Use the custom event API to communicate network status changes
 
 ### React Native Example
 
@@ -94,28 +131,29 @@ import { WebView } from 'react-native-webview';
 import NetInfo from '@react-native-community/netinfo';
 
 const ScormPlayer = () => {
-  // Inject the network status into the WebView
-  const injectNetworkStatus = (isConnected) => {
+  const webviewRef = React.useRef(null);
+
+  // Update scorm-again's network status using the custom event API
+  const updateNetworkStatus = (isConnected) => {
     const script = `
-      window.navigator.onLine = ${isConnected};
-      const event = new Event('${isConnected ? 'online' : 'offline'}');
-      window.dispatchEvent(event);
+      window.dispatchEvent(new CustomEvent('scorm-again:network-status', {
+        detail: { online: ${isConnected} }
+      }));
+      true; // Required for iOS
     `;
     if (webviewRef.current) {
       webviewRef.current.injectJavaScript(script);
     }
   };
 
-  // Listen for network changes
+  // Listen for network changes from React Native
   React.useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
-      injectNetworkStatus(state.isConnected);
+      updateNetworkStatus(state.isConnected);
     });
 
     return () => unsubscribe();
   }, []);
-
-  const webviewRef = React.useRef(null);
 
   return (
     <WebView
