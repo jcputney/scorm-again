@@ -90,7 +90,7 @@ related to API initialization, data persistence, LMS communication, and more.
 1. **Check Initialization Parameters**:
 
    ```javascript
-   // SCORM 1.2 and AICC
+   // SCORM 1.2
    const result = window.API.LMSInitialize(""); // Empty string is required
 
    // SCORM 2004
