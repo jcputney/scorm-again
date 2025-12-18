@@ -1,5 +1,5 @@
 /**
- * GAP-19: RTE Data Transfer Tests
+ * RTE Data Transfer Tests
  *
  * Tests for full RTE data transfer implementation including:
  * - Primary objective data transfer
@@ -9,15 +9,18 @@
  * - 4th Edition specific behavior
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
-import { Activity, ActivityObjective } from "../../../../src/cmi/scorm2004/sequencing/activity";
-import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import { OverallSequencingProcess, CMIDataForTransfer } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
-import { SequencingProcess } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
-import { CompletionStatus } from "../../../../src/constants/enums";
+import {beforeEach, describe, expect, it} from "vitest";
+import {Activity, ActivityObjective} from "../../../../src/cmi/scorm2004/sequencing/activity";
+import {ActivityTree} from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
+import {
+  CMIDataForTransfer,
+  OverallSequencingProcess
+} from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
+import {SequencingProcess} from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
+import {RollupProcess} from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
+import {CompletionStatus} from "../../../../src/constants/enums";
 
-describe("GAP-19: RTE Data Transfer", () => {
+describe("RTE Data Transfer", () => {
   let activityTree: ActivityTree;
   let sequencingProcess: SequencingProcess;
   let rollupProcess: RollupProcess;
@@ -54,9 +57,9 @@ describe("GAP-19: RTE Data Transfer", () => {
     // Create sequencing processes
     rollupProcess = new RollupProcess();
     sequencingProcess = new SequencingProcess(
-      activityTree,
-      rootActivity.sequencingRules,
-      rootActivity.sequencingControls
+        activityTree,
+        rootActivity.sequencingRules,
+        rootActivity.sequencingControls
     );
   });
 
@@ -68,20 +71,20 @@ describe("GAP-19: RTE Data Transfer", () => {
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        null,
-        null,
-        {
-          getCMIData: () => cmiData
-        }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          null,
+          null,
+          {
+            getCMIData: () => cmiData
+          }
       );
 
       // Trigger data transfer via endAttemptProcess (internal method tested via navigation)
       const navResult = overallSequencingProcess.processNavigationRequest(
-        "exit" as any,
-        null
+          "exit" as any,
+          null
       );
 
       expect(leafActivity.completionStatus).toBe(CompletionStatus.COMPLETED);
@@ -95,14 +98,14 @@ describe("GAP-19: RTE Data Transfer", () => {
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        null,
-        null,
-        {
-          getCMIData: () => cmiData
-        }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          null,
+          null,
+          {
+            getCMIData: () => cmiData
+          }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -123,14 +126,14 @@ describe("GAP-19: RTE Data Transfer", () => {
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        null,
-        null,
-        {
-          getCMIData: () => cmiData
-        }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          null,
+          null,
+          {
+            getCMIData: () => cmiData
+          }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -149,14 +152,14 @@ describe("GAP-19: RTE Data Transfer", () => {
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        null,
-        null,
-        {
-          getCMIData: () => cmiData
-        }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          null,
+          null,
+          {
+            getCMIData: () => cmiData
+          }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -171,8 +174,8 @@ describe("GAP-19: RTE Data Transfer", () => {
   describe("Non-Primary Objective Data Transfer", () => {
     it("should transfer multiple objective data by ID matching", () => {
       // Add additional objectives to activity
-      const objective1 = new ActivityObjective("obj1", { isPrimary: false });
-      const objective2 = new ActivityObjective("obj2", { isPrimary: false });
+      const objective1 = new ActivityObjective("obj1", {isPrimary: false});
+      const objective2 = new ActivityObjective("obj2", {isPrimary: false});
       leafActivity.addObjective(objective1);
       leafActivity.addObjective(objective2);
 
@@ -184,26 +187,26 @@ describe("GAP-19: RTE Data Transfer", () => {
             id: "obj1",
             success_status: "passed",
             completion_status: "completed",
-            score: { scaled: "0.9" },
+            score: {scaled: "0.9"},
           },
           {
             id: "obj2",
             success_status: "failed",
             completion_status: "incomplete",
-            score: { scaled: "0.4" },
+            score: {scaled: "0.4"},
           },
         ],
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        null,
-        null,
-        {
-          getCMIData: () => cmiData
-        }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          null,
+          null,
+          {
+            getCMIData: () => cmiData
+          }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -240,14 +243,14 @@ describe("GAP-19: RTE Data Transfer", () => {
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        null,
-        null,
-        {
-          getCMIData: () => cmiData
-        }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          null,
+          null,
+          {
+            getCMIData: () => cmiData
+          }
       );
 
       // Should not throw error
@@ -270,14 +273,14 @@ describe("GAP-19: RTE Data Transfer", () => {
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        null,
-        null,
-        {
-          getCMIData: () => cmiData
-        }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          null,
+          null,
+          {
+            getCMIData: () => cmiData
+          }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -302,14 +305,14 @@ describe("GAP-19: RTE Data Transfer", () => {
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        null,
-        null,
-        {
-          getCMIData: () => cmiData
-        }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          null,
+          null,
+          {
+            getCMIData: () => cmiData
+          }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -330,14 +333,14 @@ describe("GAP-19: RTE Data Transfer", () => {
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        null,
-        null,
-        {
-          getCMIData: () => cmiData
-        }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          null,
+          null,
+          {
+            getCMIData: () => cmiData
+          }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -359,14 +362,14 @@ describe("GAP-19: RTE Data Transfer", () => {
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        null,
-        null,
-        {
-          getCMIData: () => cmiData
-        }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          null,
+          null,
+          {
+            getCMIData: () => cmiData
+          }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -387,14 +390,14 @@ describe("GAP-19: RTE Data Transfer", () => {
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        null,
-        null,
-        {
-          getCMIData: () => cmiData
-        }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          null,
+          null,
+          {
+            getCMIData: () => cmiData
+          }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -415,14 +418,14 @@ describe("GAP-19: RTE Data Transfer", () => {
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        null,
-        null,
-        {
-          getCMIData: () => cmiData
-        }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          null,
+          null,
+          {
+            getCMIData: () => cmiData
+          }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -432,7 +435,7 @@ describe("GAP-19: RTE Data Transfer", () => {
     });
 
     it("should normalize scores for non-primary objectives", () => {
-      const objective1 = new ActivityObjective("obj1", { isPrimary: false });
+      const objective1 = new ActivityObjective("obj1", {isPrimary: false});
       leafActivity.addObjective(objective1);
 
       const cmiData: CMIDataForTransfer = {
@@ -451,14 +454,14 @@ describe("GAP-19: RTE Data Transfer", () => {
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        null,
-        null,
-        {
-          getCMIData: () => cmiData
-        }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          null,
+          null,
+          {
+            getCMIData: () => cmiData
+          }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -475,7 +478,7 @@ describe("GAP-19: RTE Data Transfer", () => {
       // The current implementation transfers all non-unknown values
       // More sophisticated change tracking could be added in the future
 
-      const objective1 = new ActivityObjective("global_obj", { isPrimary: false });
+      const objective1 = new ActivityObjective("global_obj", {isPrimary: false});
       objective1.satisfiedStatus = true; // Pre-existing global objective status
       leafActivity.addObjective(objective1);
 
@@ -491,14 +494,14 @@ describe("GAP-19: RTE Data Transfer", () => {
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        null,
-        null,
-        {
-          getCMIData: () => cmiData
-        }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          null,
+          null,
+          {
+            getCMIData: () => cmiData
+          }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -520,14 +523,14 @@ describe("GAP-19: RTE Data Transfer", () => {
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        null,
-        null,
-        {
-          getCMIData: () => cmiData
-        }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          null,
+          null,
+          {
+            getCMIData: () => cmiData
+          }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -547,14 +550,14 @@ describe("GAP-19: RTE Data Transfer", () => {
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        null,
-        null,
-        {
-          getCMIData: () => cmiData
-        }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          null,
+          null,
+          {
+            getCMIData: () => cmiData
+          }
       );
 
       overallSequencingProcess.processNavigationRequest("exit" as any, null);
@@ -568,14 +571,14 @@ describe("GAP-19: RTE Data Transfer", () => {
   describe("No CMI Data Provider", () => {
     it("should handle missing getCMIData callback gracefully", () => {
       overallSequencingProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        null,
-        null,
-        {
-          // No getCMIData callback provided
-        }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          null,
+          null,
+          {
+            // No getCMIData callback provided
+          }
       );
 
       // Should not throw error
@@ -594,14 +597,14 @@ describe("GAP-19: RTE Data Transfer", () => {
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        null,
-        null,
-        {
-          getCMIData: () => cmiData
-        }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          null,
+          null,
+          {
+            getCMIData: () => cmiData
+          }
       );
 
       expect(() => {
@@ -617,14 +620,14 @@ describe("GAP-19: RTE Data Transfer", () => {
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        null,
-        null,
-        {
-          getCMIData: () => cmiData
-        }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          null,
+          null,
+          {
+            getCMIData: () => cmiData
+          }
       );
 
       expect(() => {
@@ -645,14 +648,14 @@ describe("GAP-19: RTE Data Transfer", () => {
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        null,
-        null,
-        {
-          getCMIData: () => cmiData
-        }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          null,
+          null,
+          {
+            getCMIData: () => cmiData
+          }
       );
 
       expect(() => {
@@ -674,14 +677,14 @@ describe("GAP-19: RTE Data Transfer", () => {
       };
 
       overallSequencingProcess = new OverallSequencingProcess(
-        activityTree,
-        sequencingProcess,
-        rollupProcess,
-        null,
-        null,
-        {
-          getCMIData: () => cmiData
-        }
+          activityTree,
+          sequencingProcess,
+          rollupProcess,
+          null,
+          null,
+          {
+            getCMIData: () => cmiData
+          }
       );
 
       expect(() => {

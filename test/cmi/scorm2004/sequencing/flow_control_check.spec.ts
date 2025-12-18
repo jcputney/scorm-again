@@ -1,19 +1,19 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import {beforeEach, describe, expect, it} from "vitest";
 import {
+  DeliveryRequestType,
   SequencingProcess,
   SequencingRequestType,
-  DeliveryRequestType,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
+import {ActivityTree} from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
+import {Activity} from "../../../../src/cmi/scorm2004/sequencing/activity";
 
 /**
- * GAP-21: Flow Control Check Location and Logic Tests
+ * Flow Control Check Location and Logic Tests
  *
  * Tests for SB.2.2 Flow Activity Traversal Subprocess
  * Ensures flow control is checked before availability and incorrect logic is removed
  */
-describe("GAP-21: Flow Control Check Location and Logic", () => {
+describe("Flow Control Check Location and Logic", () => {
   let sequencingProcess: SequencingProcess;
   let activityTree: ActivityTree;
   let root: Activity;
@@ -194,7 +194,7 @@ describe("GAP-21: Flow Control Check Location and Logic", () => {
       root.sequencingControls.flow = true;
       parent.sequencingControls.flow = true;
 
-      // Leaf has flow=false (correct per GAP-15 - leaves don't flow)
+      // Leaf has flow=false (which is normal for leaves)
       leaf.sequencingControls.flow = false;
 
       // Try to start

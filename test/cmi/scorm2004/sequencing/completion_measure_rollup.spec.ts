@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
-import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
-import { CompletionStatus } from "../../../../src/constants/enums";
+import {beforeEach, describe, expect, it} from "vitest";
+import {Activity} from "../../../../src/cmi/scorm2004/sequencing/activity";
+import {RollupProcess} from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
+import {CompletionStatus} from "../../../../src/constants/enums";
 
-describe("GAP-27: 4th Edition Completion Measure Rollup Process", () => {
+describe("4th Edition Completion Measure Rollup Process", () => {
   let rollupProcess: RollupProcess;
 
   beforeEach(() => {

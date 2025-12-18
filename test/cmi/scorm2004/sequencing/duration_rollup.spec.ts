@@ -1,13 +1,13 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
-import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
-import { SequencingControls } from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
+import {beforeEach, describe, expect, it} from "vitest";
+import {Activity} from "../../../../src/cmi/scorm2004/sequencing/activity";
+import {RollupProcess} from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
+import {SequencingControls} from "../../../../src/cmi/scorm2004/sequencing/sequencing_controls";
 
 /**
- * GAP-20: Duration Rollup Tests
+ * Duration Rollup Tests
  * Tests for duration rollup functionality in cluster activities
  */
-describe("GAP-20: Duration Rollup Process", () => {
+describe("Duration Rollup Process", () => {
   let rollupProcess: RollupProcess;
 
   beforeEach(() => {

@@ -1,21 +1,21 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import {describe, expect, it} from "vitest";
 import {
+  DeliveryRequestType,
   SequencingProcess,
   SequencingRequestType,
-  DeliveryRequestType,
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
+import {ActivityTree} from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
+import {Activity} from "../../../../src/cmi/scorm2004/sequencing/activity";
 
 /**
- * Tests for GAP-15: START Sequencing Request Process Flow Control
+ * START Sequencing Request Process Flow Control
  *
  * The START request should use flowActivityTraversalSubprocess() which respects
  * flow controls like:
  * - sequencingControls.flow = false (prevents traversal into children)
  * - sequencingControls.stopForwardTraversal = true (prevents forward traversal)
  */
-describe("START Sequencing Request Process - Flow Controls (GAP-15)", () => {
+describe("START Sequencing Request Process - Flow Controls", () => {
   let sequencingProcess: SequencingProcess;
   let activityTree: ActivityTree;
 
@@ -34,7 +34,7 @@ describe("START Sequencing Request Process - Flow Controls (GAP-15)", () => {
 
       // Execute
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
+          SequencingRequestType.START
       );
 
       // Verify - should fail because flow is disabled, cannot traverse into children
@@ -55,7 +55,7 @@ describe("START Sequencing Request Process - Flow Controls (GAP-15)", () => {
 
       // Execute
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
+          SequencingRequestType.START
       );
 
       // Verify - should succeed because root itself is deliverable (leaf)
@@ -90,7 +90,7 @@ describe("START Sequencing Request Process - Flow Controls (GAP-15)", () => {
 
       // Execute
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
+          SequencingRequestType.START
       );
 
       // Verify - should skip module1 (flow=false) and deliver lesson2_1
@@ -123,7 +123,7 @@ describe("START Sequencing Request Process - Flow Controls (GAP-15)", () => {
 
       // Execute
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
+          SequencingRequestType.START
       );
 
       // Verify - should fail because no deliverable activity available
@@ -159,7 +159,7 @@ describe("START Sequencing Request Process - Flow Controls (GAP-15)", () => {
 
       // Execute
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
+          SequencingRequestType.START
       );
 
       // Verify - should skip section1_1 and deliver lesson1_2_1
@@ -195,7 +195,7 @@ describe("START Sequencing Request Process - Flow Controls (GAP-15)", () => {
 
       // Execute
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
+          SequencingRequestType.START
       );
 
       // Verify - stopForwardTraversal should prevent traversal into module1's children
@@ -225,7 +225,7 @@ describe("START Sequencing Request Process - Flow Controls (GAP-15)", () => {
 
       // Execute
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
+          SequencingRequestType.START
       );
 
       // Verify - should fail because stopForwardTraversal blocks access
@@ -255,7 +255,7 @@ describe("START Sequencing Request Process - Flow Controls (GAP-15)", () => {
 
       // Execute
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
+          SequencingRequestType.START
       );
 
       // Verify - should traverse to lesson1_1 as normal
@@ -284,7 +284,7 @@ describe("START Sequencing Request Process - Flow Controls (GAP-15)", () => {
 
       // Execute
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
+          SequencingRequestType.START
       );
 
       // Verify - should deliver first available lesson
@@ -316,7 +316,7 @@ describe("START Sequencing Request Process - Flow Controls (GAP-15)", () => {
 
       // Execute
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
+          SequencingRequestType.START
       );
 
       // Verify - should deliver one of the lessons (may be randomized)
@@ -348,7 +348,7 @@ describe("START Sequencing Request Process - Flow Controls (GAP-15)", () => {
 
       // Execute
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
+          SequencingRequestType.START
       );
 
       // Verify - should deliver one of the lessons
@@ -380,7 +380,7 @@ describe("START Sequencing Request Process - Flow Controls (GAP-15)", () => {
 
       // Execute
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
+          SequencingRequestType.START
       );
 
       // Verify - should fail because no available activity
@@ -409,7 +409,7 @@ describe("START Sequencing Request Process - Flow Controls (GAP-15)", () => {
 
       // Execute
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
+          SequencingRequestType.START
       );
 
       // Verify - leaf activity should be deliverable regardless of flow setting
@@ -440,7 +440,7 @@ describe("START Sequencing Request Process - Flow Controls (GAP-15)", () => {
 
       // Execute
       const result = sequencingProcess.sequencingRequestProcess(
-        SequencingRequestType.START
+          SequencingRequestType.START
       );
 
       // Verify - should deliver lesson3 (first available)

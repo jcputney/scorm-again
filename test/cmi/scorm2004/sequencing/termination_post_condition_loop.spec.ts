@@ -1,26 +1,22 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import {beforeEach, describe, expect, it} from "vitest";
 import {
-  OverallSequencingProcess,
   NavigationRequestType,
-  TerminationRequestResult,
+  OverallSequencingProcess,
 } from "../../../../src/cmi/scorm2004/sequencing/overall_sequencing_process";
-import {
-  SequencingProcess,
-  SequencingRequestType,
-} from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
-import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
-import { ActivityTree } from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
-import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
+import {SequencingProcess,} from "../../../../src/cmi/scorm2004/sequencing/sequencing_process";
+import {RollupProcess} from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
+import {ActivityTree} from "../../../../src/cmi/scorm2004/sequencing/activity_tree";
+import {Activity} from "../../../../src/cmi/scorm2004/sequencing/activity";
 import {
   RuleActionType,
-  SequencingRule,
   RuleCondition,
-  RuleConditionType
+  RuleConditionType,
+  SequencingRule
 } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
-import { CompletionStatus } from "../../../../src/constants/enums";
+import {CompletionStatus} from "../../../../src/constants/enums";
 
 /**
- * GAP-02: Post-Condition Loop in Termination Request Process (TB.2.3)
+ * Post-Condition Loop in Termination Request Process (TB.2.3)
  *
  * Tests the critical do-while loop in handleExitTermination() that repeatedly
  * evaluates post-conditions and handles EXIT_PARENT actions by cascading up
@@ -28,7 +24,7 @@ import { CompletionStatus } from "../../../../src/constants/enums";
  *
  * Reference: /docs/reference-analysis/gaps/02-post-condition-loop.md
  */
-describe("GAP-02: Post-Condition Loop in Termination Request Process", () => {
+describe("Post-Condition Loop in Termination Request Process", () => {
   let overallProcess: OverallSequencingProcess;
   let activityTree: ActivityTree;
   let sequencingProcess: SequencingProcess;
@@ -63,7 +59,7 @@ describe("GAP-02: Post-Condition Loop in Termination Request Process", () => {
     level1.sequencingControls.flow = true;
     level2.sequencingControls.flow = true;
 
-    // Disable auto-completion to test post-condition logic in isolation (GAP-04)
+    // Disable auto-completion to test post-condition logic in isolation
     root.sequencingControls.completionSetByContent = true;
     level1.sequencingControls.completionSetByContent = true;
     level2.sequencingControls.completionSetByContent = true;
@@ -73,9 +69,9 @@ describe("GAP-02: Post-Condition Loop in Termination Request Process", () => {
     rollupProcess = new RollupProcess();
 
     overallProcess = new OverallSequencingProcess(
-      activityTree,
-      sequencingProcess,
-      rollupProcess
+        activityTree,
+        sequencingProcess,
+        rollupProcess
     );
   });
 
@@ -321,7 +317,7 @@ describe("GAP-02: Post-Condition Loop in Termination Request Process", () => {
   describe("Test 5: Post-condition RETRY", () => {
     it("should evaluate RETRY post-condition after termination", () => {
       // Setup: Activity with RETRY post-condition at root level
-      // Testing at root because after GAP-09, post-condition sequencing requests are actually processed
+      // Testing at root, post-condition sequencing requests are actually processed
       // and RETRY from a child would fail because currentActivity moves to parent after termination
       const retryRule = new SequencingRule(RuleActionType.RETRY);
       retryRule.addCondition(new RuleCondition(RuleConditionType.COMPLETED));
@@ -406,7 +402,7 @@ describe("GAP-02: Post-Condition Loop in Termination Request Process", () => {
       // Activity should be terminated
       expect(level3.isActive).toBe(false);
 
-      // After GAP-09, CONTINUE is processed and should deliver the next sibling
+      // CONTINUE is processed and should deliver the next sibling
       const nextSibling = level2.children[1]; // level3_sibling1
       expect(result.targetActivity?.id).toBe(nextSibling.id);
     });
@@ -460,7 +456,7 @@ describe("GAP-02: Post-Condition Loop in Termination Request Process", () => {
       // Activity should be terminated
       expect(level3Sibling1.isActive).toBe(false);
 
-      // After GAP-09, PREVIOUS is processed and should deliver the previous sibling
+      // PREVIOUS is processed and should deliver the previous sibling
       expect(result.targetActivity?.id).toBe(level3.id);
     });
   });
@@ -622,7 +618,7 @@ describe("GAP-02: Post-Condition Loop in Termination Request Process", () => {
       // 4. Evaluated CONTINUE -> stopped cascade, returned CONTINUE sequencing request
       // 5. Navigation processor processes CONTINUE and delivers level1_sibling
 
-      // After GAP-09, CONTINUE is processed and should deliver the sibling
+      // CONTINUE is processed and should deliver the sibling
       expect(result.targetActivity?.id).toBe(level1Sibling.id);
     });
   });

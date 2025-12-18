@@ -2,13 +2,13 @@ import {
   Activity,
   ActivityObjective,
   ObjectiveMapInfo,
-  RollupConsiderationsConfig,
   RollupConsiderationRequirement,
+  RollupConsiderationsConfig,
 } from "./activity";
-import { RollupActionType, RollupConsiderationType, RollupRule } from "./rollup_rules";
-import { CompletionStatus, SuccessStatus } from "../../../constants/enums";
-import { scorm2004_regex } from "../../../constants/regex";
-import { getDurationAsSeconds, getSecondsAsISODuration } from "../../../utilities";
+import {RollupActionType, RollupConsiderationType, RollupRule} from "./rollup_rules";
+import {CompletionStatus, SuccessStatus} from "../../../constants/enums";
+import {scorm2004_regex} from "../../../constants/regex";
+import {getDurationAsSeconds, getSecondsAsISODuration} from "../../../utilities";
 
 /**
  * Enhanced Rollup Process implementation for SCORM 2004 sequencing
@@ -38,7 +38,7 @@ export class RollupProcess {
 
     // Process rollup up the tree from parent to root
     while (currentActivity) {
-      // Duration rollup happens FIRST, ALWAYS for cluster activities (GAP-20)
+      // Duration rollup happens FIRST, ALWAYS for cluster activities
       // This happens even when optimization is active for other rollup types
       if (currentActivity.children.length > 0) {
         this.durationRollupProcess(currentActivity);
@@ -50,12 +50,12 @@ export class RollupProcess {
 
         // Only perform rollup if the activity tracks status
         if (currentActivity.sequencingControls.rollupObjectiveSatisfied ||
-          currentActivity.sequencingControls.rollupProgressCompletion) {
+            currentActivity.sequencingControls.rollupProgressCompletion) {
 
           // Step 1: Measure Rollup Process (RB.1.1)
           if (currentActivity.children.length > 0) {
             this.measureRollupProcess(currentActivity);
-            // Step 1b: Completion Measure Rollup Process (RB.1.1 b - GAP-27)
+            // Step 1b: Completion Measure Rollup Process (RB.1.1 b)
             this.completionMeasureRollupProcess(currentActivity);
           }
 
@@ -137,9 +137,9 @@ export class RollupProcess {
     }
 
     const complexWeightedMeasure = this.calculateComplexWeightedMeasure(
-      activity,
-      contributingChildren,
-      { enableThresholdBias: false },
+        activity,
+        contributingChildren,
+        {enableThresholdBias: false},
     );
     activity.objectiveNormalizedMeasure = complexWeightedMeasure;
     activity.objectiveMeasureStatus = true;
@@ -186,11 +186,11 @@ export class RollupProcess {
   private objectiveRollupUsingRules(activity: Activity, rules: RollupRule[]): boolean | null {
     // Get satisfied and not satisfied rules
     const satisfiedRules = rules.filter(rule =>
-      rule.action === RollupActionType.SATISFIED
+        rule.action === RollupActionType.SATISFIED
     );
 
     const notSatisfiedRules = rules.filter(rule =>
-      rule.action === RollupActionType.NOT_SATISFIED
+        rule.action === RollupActionType.NOT_SATISFIED
     );
 
     // Evaluate satisfied rules first
@@ -276,7 +276,7 @@ export class RollupProcess {
   }
 
   /**
-   * Completion Measure Rollup Process (RB.1.1 b - GAP-27)
+   * Completion Measure Rollup Process (RB.1.1 b)
    * Rolls up attemptCompletionAmount from children to parent using weighted averaging
    * 4th Edition Addition: Supports completion measure rollup for progress tracking
    * @param {Activity} activity - The parent activity
@@ -311,7 +311,7 @@ export class RollupProcess {
   }
 
   /**
-   * Activity Progress Rollup Using Measure (RB.1.3 a - GAP-27)
+   * Activity Progress Rollup Using Measure (RB.1.3 a)
    * Determines completion status using attemptCompletionAmount threshold comparison
    * 4th Edition Addition: Measure-based completion determination
    * @param {Activity} activity - The activity to evaluate
@@ -342,11 +342,11 @@ export class RollupProcess {
   /**
    * Activity Progress Rollup Process (RB.1.3)
    * Determines activity completion status
-   * MODIFIED for GAP-27: Now tries measure-based rollup first
+   * MODIFIED: Now tries measure-based rollup first
    * @param {Activity} activity - The parent activity
    */
   private activityProgressRollupProcess(activity: Activity): void {
-    // GAP-27: Try measure-based rollup first (RB.1.3 a)
+    // Try measure-based rollup first (RB.1.3 a)
     if (this.activityProgressRollupUsingMeasure(activity)) {
       return;
     }
@@ -356,11 +356,11 @@ export class RollupProcess {
 
     // Get completion rules
     const completedRules = rollupRules.rules.filter(rule =>
-      rule.action === RollupActionType.COMPLETED
+        rule.action === RollupActionType.COMPLETED
     );
 
     const incompleteRules = rollupRules.rules.filter(rule =>
-      rule.action === RollupActionType.INCOMPLETE
+        rule.action === RollupActionType.INCOMPLETE
     );
 
     // Evaluate completed rules first
@@ -385,8 +385,8 @@ export class RollupProcess {
     // to contribute to the rollup. This ensures symmetric exclusion.
     const children = activity.getAvailableChildren();
     const contributors = children.filter((child) =>
-      this.checkChildForRollupSubprocess(child, "progress", "completed") &&
-      this.checkChildForRollupSubprocess(child, "progress", "incomplete"),
+        this.checkChildForRollupSubprocess(child, "progress", "completed") &&
+        this.checkChildForRollupSubprocess(child, "progress", "incomplete"),
     );
 
     if (contributors.length === 0) {
@@ -406,7 +406,7 @@ export class RollupProcess {
   }
 
   /**
-   * Duration Rollup Process (GAP-20)
+   * Duration Rollup Process
    * Aggregates duration information from child activities to parent cluster
    * Called ALWAYS for cluster activities, even when other rollup is skipped due to optimization
    * Reference: Overall Rollup Process [RB.1.5] - duration rollup happens before optimization check
@@ -455,21 +455,21 @@ export class RollupProcess {
       // Aggregate activity experienced duration
       // Use Value field if available (for cluster activities), otherwise use regular field (for leaf activities)
       const activityDuration = child.activityExperiencedDurationValue !== "PT0H0M0S"
-        ? child.activityExperiencedDurationValue
-        : child.activityExperiencedDuration;
+          ? child.activityExperiencedDurationValue
+          : child.activityExperiencedDuration;
 
       if (activityDuration && activityDuration !== "PT0H0M0S") {
         childrenActivityExperiencedDurationSeconds += getDurationAsSeconds(
-          activityDuration,
-          scorm2004_regex.CMITimespan
+            activityDuration,
+            scorm2004_regex.CMITimespan
         );
       }
 
       // Check if child is in same attempt as parent
       // (child attempt started after or at same time as parent attempt start)
       const isChildInSameAttempt = !activity.attemptStartTimestampUtc ||
-        (child.attemptStartTimestampUtc &&
-         child.attemptStartTimestampUtc >= activity.attemptStartTimestampUtc);
+          (child.attemptStartTimestampUtc &&
+              child.attemptStartTimestampUtc >= activity.attemptStartTimestampUtc);
 
       if (isChildInSameAttempt) {
         // Track earliest attempt start timestamp
@@ -491,13 +491,13 @@ export class RollupProcess {
         // Aggregate attempt experienced duration
         // Use Value field if available (for cluster activities), otherwise use regular field (for leaf activities)
         const attemptDuration = child.attemptExperiencedDurationValue !== "PT0H0M0S"
-          ? child.attemptExperiencedDurationValue
-          : child.attemptExperiencedDuration;
+            ? child.attemptExperiencedDurationValue
+            : child.attemptExperiencedDuration;
 
         if (attemptDuration && attemptDuration !== "PT0H0M0S") {
           childrenAttemptExperiencedDurationSeconds += getDurationAsSeconds(
-            attemptDuration,
-            scorm2004_regex.CMITimespan
+              attemptDuration,
+              scorm2004_regex.CMITimespan
           );
         }
       }
@@ -532,10 +532,10 @@ export class RollupProcess {
 
       // Set aggregated experienced durations
       activity.activityExperiencedDurationValue = getSecondsAsISODuration(
-        childrenActivityExperiencedDurationSeconds
+          childrenActivityExperiencedDurationSeconds
       );
       activity.attemptExperiencedDurationValue = getSecondsAsISODuration(
-        childrenAttemptExperiencedDurationSeconds
+          childrenAttemptExperiencedDurationSeconds
       );
 
       // Fire event for monitoring
@@ -558,7 +558,7 @@ export class RollupProcess {
    */
   private getTrackableChildren(activity: Activity): Activity[] {
     return activity.children.filter(child =>
-      child.sequencingControls.tracked !== false
+        child.sequencingControls.tracked !== false
     );
   }
 
@@ -572,9 +572,9 @@ export class RollupProcess {
    * @return {boolean} - True if child contributes to rollup
    */
   private checkChildForRollupSubprocess(
-    child: Activity,
-    rollupType: string,
-    rollupAction?: string
+      child: Activity,
+      rollupType: string,
+      rollupAction?: string
   ): boolean {
     // First check if child is tracked
     if (child.sequencingControls.tracked === false) {
@@ -599,8 +599,8 @@ export class RollupProcess {
 
       // Step 2.1.2: Check ifNotSuspended consideration
       if (
-        (rollupAction === "satisfied" && requiredForSatisfied === "ifNotSuspended") ||
-        (rollupAction === "notSatisfied" && requiredForNotSatisfied === "ifNotSuspended")
+          (rollupAction === "satisfied" && requiredForSatisfied === "ifNotSuspended") ||
+          (rollupAction === "notSatisfied" && requiredForNotSatisfied === "ifNotSuspended")
       ) {
         // Step 2.1.2.1: Exclude if not attempted or if attempted and suspended
         if (!child.attemptProgressStatus || (child.attemptCount > 0 && child.isSuspended)) {
@@ -609,8 +609,8 @@ export class RollupProcess {
       }
       // Step 2.1.3: Check ifAttempted consideration
       else if (
-        (rollupAction === "satisfied" && requiredForSatisfied === "ifAttempted") ||
-        (rollupAction === "notSatisfied" && requiredForNotSatisfied === "ifAttempted")
+          (rollupAction === "satisfied" && requiredForSatisfied === "ifAttempted") ||
+          (rollupAction === "notSatisfied" && requiredForNotSatisfied === "ifAttempted")
       ) {
         // Step 2.1.3.1.1: Exclude if not attempted
         if (!child.attemptProgressStatus || child.attemptCount === 0) {
@@ -619,8 +619,8 @@ export class RollupProcess {
       }
       // Step 2.1.3.2: Check ifNotSkipped consideration
       else if (
-        (rollupAction === "satisfied" && requiredForSatisfied === "ifNotSkipped") ||
-        (rollupAction === "notSatisfied" && requiredForNotSatisfied === "ifNotSkipped")
+          (rollupAction === "satisfied" && requiredForSatisfied === "ifNotSkipped") ||
+          (rollupAction === "notSatisfied" && requiredForNotSatisfied === "ifNotSkipped")
       ) {
         // Step 2.1.3.2.1: Exclude if activity is skipped
         if (child.wasSkipped) {
@@ -646,8 +646,8 @@ export class RollupProcess {
 
       // Step 3.1.2: Check ifNotSuspended consideration
       if (
-        (rollupAction === "completed" && requiredForCompleted === "ifNotSuspended") ||
-        (rollupAction === "incomplete" && requiredForIncomplete === "ifNotSuspended")
+          (rollupAction === "completed" && requiredForCompleted === "ifNotSuspended") ||
+          (rollupAction === "incomplete" && requiredForIncomplete === "ifNotSuspended")
       ) {
         // Step 3.1.2.1: Exclude if not attempted or if attempted and suspended
         if (!child.attemptProgressStatus || (child.attemptCount > 0 && child.isSuspended)) {
@@ -656,8 +656,8 @@ export class RollupProcess {
       }
       // Step 3.1.3: Check ifAttempted consideration
       else if (
-        (rollupAction === "completed" && requiredForCompleted === "ifAttempted") ||
-        (rollupAction === "incomplete" && requiredForIncomplete === "ifAttempted")
+          (rollupAction === "completed" && requiredForCompleted === "ifAttempted") ||
+          (rollupAction === "incomplete" && requiredForIncomplete === "ifAttempted")
       ) {
         // Step 3.1.3.1.1: Exclude if not attempted
         if (!child.attemptProgressStatus || child.attemptCount === 0) {
@@ -666,8 +666,8 @@ export class RollupProcess {
       }
       // Step 3.1.3.2: Check ifNotSkipped consideration
       else if (
-        (rollupAction === "completed" && requiredForCompleted === "ifNotSkipped") ||
-        (rollupAction === "incomplete" && requiredForIncomplete === "ifNotSkipped")
+          (rollupAction === "completed" && requiredForCompleted === "ifNotSkipped") ||
+          (rollupAction === "incomplete" && requiredForIncomplete === "ifNotSkipped")
       ) {
         // Step 3.1.3.2.1: Exclude if activity is skipped
         if (child.wasSkipped) {
@@ -686,23 +686,23 @@ export class RollupProcess {
   }
 
   private filterChildrenForRequirement(
-    children: Activity[],
-    requirement: RollupConsiderationRequirement,
-    rollupType: "objective" | "progress",
-    mode: "satisfied" | "notSatisfied" | "completed" | "incomplete",
-    considerations: RollupConsiderationsConfig,
+      children: Activity[],
+      requirement: RollupConsiderationRequirement,
+      rollupType: "objective" | "progress",
+      mode: "satisfied" | "notSatisfied" | "completed" | "incomplete",
+      considerations: RollupConsiderationsConfig,
   ): Activity[] {
     return children.filter((child) =>
-      this.shouldIncludeChildForRollup(child, requirement, rollupType, mode, considerations),
+        this.shouldIncludeChildForRollup(child, requirement, rollupType, mode, considerations),
     );
   }
 
   private shouldIncludeChildForRollup(
-    child: Activity,
-    requirement: RollupConsiderationRequirement,
-    rollupType: "objective" | "progress",
-    mode: "satisfied" | "notSatisfied" | "completed" | "incomplete",
-    considerations: RollupConsiderationsConfig,
+      child: Activity,
+      requirement: RollupConsiderationRequirement,
+      rollupType: "objective" | "progress",
+      mode: "satisfied" | "notSatisfied" | "completed" | "incomplete",
+      considerations: RollupConsiderationsConfig,
   ): boolean {
     // Use the enhanced RB.1.4.2 implementation with rollupAction parameter
     if (!this.checkChildForRollupSubprocess(child, rollupType, mode)) {
@@ -711,9 +711,9 @@ export class RollupProcess {
 
     // Check parent-level measureSatisfactionIfActive setting
     if (
-      rollupType === "objective" &&
-      !considerations.measureSatisfactionIfActive &&
-      (child.activityAttemptActive || child.isActive)
+        rollupType === "objective" &&
+        !considerations.measureSatisfactionIfActive &&
+        (child.activityAttemptActive || child.isActive)
     ) {
       return false;
     }
@@ -929,9 +929,9 @@ export class RollupProcess {
    * @return {number} - Calculated weighted measure
    */
   public calculateComplexWeightedMeasure(
-    activity: Activity,
-    children: Activity[],
-    options?: { enableThresholdBias?: boolean }
+      activity: Activity,
+      children: Activity[],
+      options?: { enableThresholdBias?: boolean }
   ): number {
     let totalWeightedMeasure = 0;
     let totalWeight = 0;
@@ -1030,9 +1030,9 @@ export class RollupProcess {
 
     // Check satisfaction status consistency with measure (only when success status is known)
     if (
-      activity.objectiveMeasureStatus &&
-      activity.scaledPassingScore !== null &&
-      activity.successStatus !== "unknown"
+        activity.objectiveMeasureStatus &&
+        activity.scaledPassingScore !== null &&
+        activity.successStatus !== "unknown"
     ) {
       const expectedSatisfied = activity.objectiveNormalizedMeasure >= activity.scaledPassingScore;
       if (activity.objectiveSatisfiedStatus !== expectedSatisfied) {
@@ -1078,20 +1078,20 @@ export class RollupProcess {
     // Validate parent's rolled-up state matches children's contributions
     if (children.length > 0 && controls.rollupObjectiveSatisfied) {
       const satisfiedChildren = children.filter(child =>
-        this.checkChildForRollupSubprocess(child, "objective", "satisfied") &&
-        this.isChildSatisfiedForRollup(child)
+          this.checkChildForRollupSubprocess(child, "objective", "satisfied") &&
+          this.isChildSatisfiedForRollup(child)
       );
 
       const notSatisfiedChildren = children.filter(child =>
-        this.checkChildForRollupSubprocess(child, "objective", "notSatisfied") &&
-        !this.isChildSatisfiedForRollup(child)
+          this.checkChildForRollupSubprocess(child, "objective", "notSatisfied") &&
+          !this.isChildSatisfiedForRollup(child)
       );
 
       // If all contributing children are satisfied, parent should be satisfied
       if (satisfiedChildren.length > 0 && notSatisfiedChildren.length === 0) {
         if (activity.objectiveSatisfiedStatus === false && activity.rollupRules.rules.length === 0) {
           inconsistencies.push(
-            `Activity ${activityId}: all children satisfied but parent is not satisfied (no rollup rules to override)`
+              `Activity ${activityId}: all children satisfied but parent is not satisfied (no rollup rules to override)`
           );
         }
       }
@@ -1099,20 +1099,20 @@ export class RollupProcess {
 
     if (children.length > 0 && controls.rollupProgressCompletion) {
       const completedChildren = children.filter(child =>
-        this.checkChildForRollupSubprocess(child, "progress", "completed") &&
-        this.isChildCompletedForRollup(child)
+          this.checkChildForRollupSubprocess(child, "progress", "completed") &&
+          this.isChildCompletedForRollup(child)
       );
 
       const incompleteChildren = children.filter(child =>
-        this.checkChildForRollupSubprocess(child, "progress", "incomplete") &&
-        !this.isChildCompletedForRollup(child)
+          this.checkChildForRollupSubprocess(child, "progress", "incomplete") &&
+          !this.isChildCompletedForRollup(child)
       );
 
       // If all contributing children are completed, parent should be completed
       if (completedChildren.length > 0 && incompleteChildren.length === 0) {
         if (activity.completionStatus !== "completed" && activity.rollupRules.rules.length === 0) {
           inconsistencies.push(
-            `Activity ${activityId}: all children completed but parent is incomplete (no rollup rules to override)`
+              `Activity ${activityId}: all children completed but parent is incomplete (no rollup rules to override)`
           );
         }
       }
@@ -1144,8 +1144,8 @@ export class RollupProcess {
 
     for (const objective of objectives) {
       const mapInfos = objective.mapInfo.length > 0
-        ? objective.mapInfo
-        : [this.createDefaultMapInfo(objective)];
+          ? objective.mapInfo
+          : [this.createDefaultMapInfo(objective)];
 
       for (const mapInfo of mapInfos) {
         const targetId = mapInfo.targetObjectiveID || objective.id;
@@ -1215,7 +1215,7 @@ export class RollupProcess {
       if (resolved.includes(id)) return;
       if (resolving.has(id)) {
         // Circular dependency detected - log warning and continue
-        this.eventCallback?.("circular_dependency_detected", { activityId: id });
+        this.eventCallback?.("circular_dependency_detected", {activityId: id});
         return;
       }
 
@@ -1264,10 +1264,10 @@ export class RollupProcess {
    * Synchronize objective state between local and global according to SCORM 2004 specification
    */
   private syncObjectiveState(
-    activity: Activity,
-    objective: ActivityObjective,
-    mapInfo: ObjectiveMapInfo,
-    globalObjective: any,
+      activity: Activity,
+      objective: ActivityObjective,
+      mapInfo: ObjectiveMapInfo,
+      globalObjective: any,
   ): void {
     try {
       const isPrimary = objective.isPrimary;
@@ -1358,9 +1358,9 @@ export class RollupProcess {
    * Update activity attempt data based on global objective state
    */
   private updateActivityAttemptData(
-    activity: Activity,
-    globalObjective: any,
-    objective: ActivityObjective,
+      activity: Activity,
+      globalObjective: any,
+      objective: ActivityObjective,
   ): void {
     try {
       if (!objective.isPrimary && !globalObjective.updateAttemptData) {
@@ -1458,10 +1458,10 @@ export class RollupProcess {
   }
 
   private ensureGlobalObjectiveEntry(
-    globalObjectives: Map<string, any>,
-    targetId: string,
-    objective: ActivityObjective,
-    mapInfo: ObjectiveMapInfo,
+      globalObjectives: Map<string, any>,
+      targetId: string,
+      objective: ActivityObjective,
+      mapInfo: ObjectiveMapInfo,
   ): any {
     if (!globalObjectives.has(targetId)) {
       globalObjectives.set(targetId, {
