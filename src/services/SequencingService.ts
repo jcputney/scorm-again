@@ -1,6 +1,6 @@
-import {Activity} from "../cmi/scorm2004/sequencing/activity";
-import {Sequencing} from "../cmi/scorm2004/sequencing/sequencing";
-import {RollupProcess} from "../cmi/scorm2004/sequencing/rollup_process";
+import { Activity } from "../cmi/scorm2004/sequencing/activity";
+import { Sequencing } from "../cmi/scorm2004/sequencing/sequencing";
+import { RollupProcess } from "../cmi/scorm2004/sequencing/rollup_process";
 import {
   DeliveryRequest,
   NavigationRequestType,
@@ -11,13 +11,13 @@ import {
   SequencingProcess,
   SequencingResult,
 } from "../cmi/scorm2004/sequencing/sequencing_process";
-import {IEventService, ILoggingService} from "../interfaces/services";
-import {ActivityDeliveryCallbacks, ActivityDeliveryService} from "./ActivityDeliveryService";
-import {CMI} from "../cmi/scorm2004/cmi";
-import {ADL} from "../cmi/scorm2004/adl";
-import {global_constants} from "../constants/api_constants";
-import {RuleCondition} from "../cmi/scorm2004/sequencing/sequencing_rules";
-import {AuxiliaryResource, HideLmsUiItem} from "../types/sequencing_types";
+import { IEventService, ILoggingService } from "../interfaces/services";
+import { ActivityDeliveryCallbacks, ActivityDeliveryService } from "./ActivityDeliveryService";
+import { CMI } from "../cmi/scorm2004/cmi";
+import { ADL } from "../cmi/scorm2004/adl";
+import { global_constants } from "../constants/api_constants";
+import { RuleCondition } from "../cmi/scorm2004/sequencing/sequencing_rules";
+import { AuxiliaryResource, HideLmsUiItem } from "../types/sequencing_types";
 
 /**
  * Interface for sequencing event listeners
@@ -77,12 +77,12 @@ export class SequencingService {
   private lastSequencingResult: SequencingResult | null = null;
 
   constructor(
-      sequencing: Sequencing,
-      cmi: CMI,
-      adl: ADL,
-      eventService: IEventService,
-      loggingService: ILoggingService,
-      configuration: SequencingConfiguration = {},
+    sequencing: Sequencing,
+    cmi: CMI,
+    adl: ADL,
+    eventService: IEventService,
+    loggingService: ILoggingService,
+    configuration: SequencingConfiguration = {},
   ) {
     this.sequencing = sequencing;
     this.cmi = cmi;
@@ -110,9 +110,9 @@ export class SequencingService {
     };
 
     this.activityDeliveryService = new ActivityDeliveryService(
-        eventService,
-        loggingService,
-        deliveryCallbacks,
+      eventService,
+      loggingService,
+      deliveryCallbacks,
     );
 
     this.rollupProcess = new RollupProcess();
@@ -153,11 +153,11 @@ export class SequencingService {
           seqOptions.getActivityElapsedSeconds = this.configuration.getActivityElapsedSeconds;
 
         this.sequencingProcess = new SequencingProcess(
-            this.sequencing.activityTree,
-            this.sequencing.sequencingRules,
-            this.sequencing.sequencingControls,
-            this.adl.nav,
-            seqOptions,
+          this.sequencing.activityTree,
+          this.sequencing.sequencingRules,
+          this.sequencing.sequencingControls,
+          this.adl.nav,
+          seqOptions,
         );
 
         const overallOptions: {
@@ -172,10 +172,10 @@ export class SequencingService {
         overallOptions.defaultHideLmsUi = [...this.sequencing.hideLmsUi];
         if (this.sequencing.auxiliaryResources.length > 0) {
           overallOptions.defaultAuxiliaryResources = this.sequencing.auxiliaryResources.map(
-              (resource) => ({
-                resourceId: resource.resourceId,
-                purpose: resource.purpose,
-              }),
+            (resource) => ({
+              resourceId: resource.resourceId,
+              purpose: resource.purpose,
+            }),
           );
         }
 
@@ -183,12 +183,12 @@ export class SequencingService {
         overallOptions.getCMIData = () => this.getCMIDataForTransfer();
 
         this.overallSequencingProcess = new OverallSequencingProcess(
-            this.sequencing.activityTree,
-            this.sequencingProcess,
-            this.rollupProcess,
-            this.adl.nav,
-            (eventType: string, data?: any) => this.handleSequencingProcessEvent(eventType, data),
-            overallOptions,
+          this.sequencing.activityTree,
+          this.sequencingProcess,
+          this.rollupProcess,
+          this.adl.nav,
+          (eventType: string, data?: any) => this.handleSequencingProcessEvent(eventType, data),
+          overallOptions,
         );
 
         // Store reference on sequencing object for access from ADL nav
@@ -254,9 +254,9 @@ export class SequencingService {
    * @param {string} exitType - Optional cmi.exit value (logout, normal, suspend, time-out, or empty)
    */
   public processNavigationRequest(
-      request: string,
-      targetActivityId?: string,
-      exitType?: string,
+    request: string,
+    targetActivityId?: string,
+    exitType?: string,
   ): boolean {
     if (!this.isInitialized || !this.overallSequencingProcess) {
       this.log("warn", `Navigation request '${request}' ignored - sequencing not initialized`);
@@ -265,8 +265,8 @@ export class SequencingService {
 
     try {
       this.log(
-          "info",
-          `Processing navigation request: ${request}${targetActivityId ? ` (target: ${targetActivityId})` : ""}${exitType ? ` (exit: ${exitType})` : ""}`,
+        "info",
+        `Processing navigation request: ${request}${targetActivityId ? ` (target: ${targetActivityId})` : ""}${exitType ? ` (exit: ${exitType})` : ""}`,
       );
 
       // Fire navigation request event
@@ -281,16 +281,16 @@ export class SequencingService {
 
       // Process the navigation request through Overall Sequencing Process
       const deliveryRequest: DeliveryRequest =
-          this.overallSequencingProcess.processNavigationRequest(
-              navRequestType,
-              targetActivityId || null,
-              exitType,
-          );
+        this.overallSequencingProcess.processNavigationRequest(
+          navRequestType,
+          targetActivityId || null,
+          exitType,
+        );
 
       const sequencingResult: SequencingResult = {
         deliveryRequest: deliveryRequest.valid
-            ? DeliveryRequestType.DELIVER
-            : DeliveryRequestType.DO_NOT_DELIVER,
+          ? DeliveryRequestType.DELIVER
+          : DeliveryRequestType.DO_NOT_DELIVER,
         targetActivity: deliveryRequest.targetActivity,
         exception: deliveryRequest.exception || null,
         endSequencingSession: false,
@@ -309,8 +309,8 @@ export class SequencingService {
         this.overallSequencingProcess.updateNavigationValidity();
 
         this.log(
-            "info",
-            `Navigation request '${request}' resulted in activity delivery: ${deliveryRequest.targetActivity.id}`,
+          "info",
+          `Navigation request '${request}' resulted in activity delivery: ${deliveryRequest.targetActivity.id}`,
         );
         return true;
       } else {
@@ -360,8 +360,8 @@ export class SequencingService {
 
     try {
       this.log(
-          "debug",
-          `Triggering rollup due to CMI change: ${cmiElement} = ${newValue} (was ${oldValue})`,
+        "debug",
+        `Triggering rollup due to CMI change: ${cmiElement} = ${newValue} (was ${oldValue})`,
       );
 
       // Get current activity
@@ -401,7 +401,7 @@ export class SequencingService {
    * Set event listeners for sequencing events
    */
   public setEventListeners(listeners: SequencingEventListeners): void {
-    this.eventListeners = {...this.eventListeners, ...listeners};
+    this.eventListeners = { ...this.eventListeners, ...listeners };
     this.log("debug", "Sequencing event listeners updated");
   }
 
@@ -409,7 +409,7 @@ export class SequencingService {
    * Update sequencing configuration
    */
   public updateConfiguration(config: Partial<SequencingConfiguration>): void {
-    this.configuration = {...this.configuration, ...config};
+    this.configuration = { ...this.configuration, ...config };
     this.log("debug", "Sequencing configuration updated");
   }
 
@@ -543,10 +543,10 @@ export class SequencingService {
     // Update completion status
     if (this.cmi.completion_status !== "unknown") {
       activity.completionStatus = this.cmi.completion_status as
-          | "completed"
-          | "incomplete"
-          | "not attempted"
-          | "unknown";
+        | "completed"
+        | "incomplete"
+        | "not attempted"
+        | "unknown";
       // Mark that content has set completion status
       activity.attemptProgressStatus = true;
     }
@@ -719,7 +719,7 @@ export class SequencingService {
 
     // Only fire debug event for non-debug events to prevent recursion
     if (eventType !== "onSequencingDebug") {
-      this.fireDebugEvent(`${eventType} fired`, {eventType, argsLength: args.length});
+      this.fireDebugEvent(`${eventType} fired`, { eventType, argsLength: args.length });
     }
 
     try {
@@ -834,7 +834,7 @@ export class SequencingService {
    */
   public fireNavigationValidityUpdate(validity: any): void {
     this.fireEvent("onNavigationValidityUpdate", validity);
-    this.fireDebugEvent("Navigation validity updated", {validity});
+    this.fireDebugEvent("Navigation validity updated", { validity });
   }
 
   /**
@@ -842,7 +842,7 @@ export class SequencingService {
    */
   public fireSequencingStateChange(state: any): void {
     this.fireEvent("onSequencingStateChange", state);
-    this.fireDebugEvent("Sequencing state changed", {stateKeys: Object.keys(state)});
+    this.fireDebugEvent("Sequencing state changed", { stateKeys: Object.keys(state) });
   }
 
   /**
@@ -886,22 +886,22 @@ export class SequencingService {
       switch (level) {
         case "debug":
           this.loggingService.debug(
-              `[Sequencing] ${message}${data ? ` - ${JSON.stringify(data)}` : ""}`,
+            `[Sequencing] ${message}${data ? ` - ${JSON.stringify(data)}` : ""}`,
           );
           break;
         case "info":
           this.loggingService.info(
-              `[Sequencing] ${message}${data ? ` - ${JSON.stringify(data)}` : ""}`,
+            `[Sequencing] ${message}${data ? ` - ${JSON.stringify(data)}` : ""}`,
           );
           break;
         case "warn":
           this.loggingService.warn(
-              `[Sequencing] ${message}${data ? ` - ${JSON.stringify(data)}` : ""}`,
+            `[Sequencing] ${message}${data ? ` - ${JSON.stringify(data)}` : ""}`,
           );
           break;
         case "error":
           this.loggingService.error(
-              `[Sequencing] ${message}${data ? ` - ${JSON.stringify(data)}` : ""}`,
+            `[Sequencing] ${message}${data ? ` - ${JSON.stringify(data)}` : ""}`,
           );
           break;
       }

@@ -516,6 +516,23 @@ describe("Error Scenario Tests", () => {
         expect(api.lmsGetLastError()).toBe("0");
       });
 
+      it("SetValue on interaction.learner_response without setting interaction.type should fail with 408", () => {
+        // First set the id (required for all interaction properties)
+        api.lmsSetValue("cmi.interactions.0.id", "interaction_1");
+        // Try to set learner_response without type - should fail
+        const result = api.lmsSetValue("cmi.interactions.0.learner_response", "true");
+        expect(result).toBe("false");
+        expect(api.lmsGetLastError()).toBe("408");
+      });
+
+      it("SetValue on interaction.learner_response should succeed after setting both id and type", () => {
+        api.lmsSetValue("cmi.interactions.0.id", "interaction_2");
+        api.lmsSetValue("cmi.interactions.0.type", "true-false");
+        const result = api.lmsSetValue("cmi.interactions.0.learner_response", "true");
+        expect(result).toBe("true");
+        expect(api.lmsGetLastError()).toBe("0");
+      });
+
       it("Should succeed after establishing dependency with objective.id", () => {
         // First set the required id
         let result = api.lmsSetValue("cmi.objectives.0.id", "objective-1");

@@ -1,21 +1,21 @@
 // noinspection DuplicatedCode
 
-import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi} from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import Scorm12API from "../../src/Scorm12API";
 import * as h from "./api_helpers";
-import {scorm12Values} from "../field_values";
-import {Settings} from "../../src/types/api_types";
-import {DefaultSettings} from "../../src/constants/default_settings";
-import {CompletionStatus, LogLevelEnum, SuccessStatus} from "../../src/constants/enums";
-import {StringKeyMap} from "../../src";
+import { scorm12Values } from "../field_values";
+import { Settings } from "../../src/types/api_types";
+import { DefaultSettings } from "../../src/constants/default_settings";
+import { CompletionStatus, LogLevelEnum, SuccessStatus } from "../../src/constants/enums";
+import { StringKeyMap } from "../../src";
 import BaseAPI from "../../src/BaseAPI";
 
 const api = (
-    settings?: Settings,
-    httpService?: any,
-    startingData: StringKeyMap = {},
+  settings?: Settings,
+  httpService?: any,
+  startingData: StringKeyMap = {},
 ): Scorm12API => {
-  const API = new Scorm12API({...settings, logLevel: LogLevelEnum.NONE}, httpService);
+  const API = new Scorm12API({ ...settings, logLevel: LogLevelEnum.NONE }, httpService);
   API.startingData = startingData;
   return API;
 };
@@ -513,7 +513,7 @@ describe("SCORM 1.2 API Tests", () => {
     it("should return flattened format when dataCommitFormat is 'flattened'", function () {
       const scorm12API = api({
         ...DefaultSettings,
-        ...{dataCommitFormat: "flattened"},
+        ...{ dataCommitFormat: "flattened" },
       });
       scorm12API.cmi.core.student_id = "student_1";
       scorm12API.cmi.core.student_name = "Student 1";
@@ -534,7 +534,7 @@ describe("SCORM 1.2 API Tests", () => {
     it("should return params format when dataCommitFormat is 'params'", function () {
       const scorm12API = api({
         ...DefaultSettings,
-        ...{dataCommitFormat: "params"},
+        ...{ dataCommitFormat: "params" },
       });
       scorm12API.cmi.core.student_id = "student_1";
       scorm12API.cmi.core.student_name = "Student 1";
@@ -567,7 +567,7 @@ describe("SCORM 1.2 API Tests", () => {
       const runtimeCore = runtimeCmi.core as StringKeyMap;
       expect(runtimeCore.lesson_status).toEqual("incomplete");
       expect(commitObject.totalTimeSeconds).toEqual(
-          12 * 3600 + 34 * 60 + 56 + (23 * 3600 + 59 * 60 + 59),
+        12 * 3600 + 34 * 60 + 56 + (23 * 3600 + 59 * 60 + 59),
       );
       expect(commitObject.score?.max).toEqual(100);
     });
@@ -744,7 +744,7 @@ describe("SCORM 1.2 API Tests", () => {
         expect(commitObject1.scoId).toEqual("sco-1");
 
         // Simulate multi-SCO transition
-        scorm12API.reset({scoId: "sco-2", autoPopulateCommitMetadata: true});
+        scorm12API.reset({ scoId: "sco-2", autoPopulateCommitMetadata: true });
         scorm12API.cmi.core.student_id = "learner-1"; // Re-set after reset
         const commitObject2 = scorm12API.renderCommitObject(true);
         expect(commitObject2.scoId).toEqual("sco-2");
@@ -781,7 +781,7 @@ describe("SCORM 1.2 API Tests", () => {
     });
     it('should set cmi.core.lesson_status to "browsed" - Initial Status', () => {
       const scorm12API = api();
-      scorm12API.startingData = {cmi: {core: {lesson_status: ""}}};
+      scorm12API.startingData = { cmi: { core: { lesson_status: "" } } };
       scorm12API.cmi.core.lesson_mode = "browse";
       scorm12API.storeData(true);
       expect(scorm12API.cmi.core.lesson_status).toEqual("browsed");
@@ -789,7 +789,7 @@ describe("SCORM 1.2 API Tests", () => {
     it('should set cmi.core.lesson_status to "passed" - mastery_override: true', () => {
       const scorm12API = api({
         ...DefaultSettings,
-        ...{mastery_override: true},
+        ...{ mastery_override: true },
       });
       scorm12API.cmi.core.credit = "credit";
       scorm12API.cmi.student_data.mastery_score = "60.0";
@@ -800,7 +800,7 @@ describe("SCORM 1.2 API Tests", () => {
     it('should set cmi.core.lesson_status to "failed" - mastery_override: true', () => {
       const scorm12API = api({
         ...DefaultSettings,
-        ...{mastery_override: true},
+        ...{ mastery_override: true },
       });
       scorm12API.cmi.core.credit = "credit";
       scorm12API.cmi.student_data.mastery_score = "60.0";
@@ -811,7 +811,7 @@ describe("SCORM 1.2 API Tests", () => {
     it('should set cmi.core.lesson_status to "passed" - mastery_override: false', () => {
       const scorm12API = api({
         ...DefaultSettings,
-        ...{mastery_override: false},
+        ...{ mastery_override: false },
       });
       scorm12API.cmi.core.lesson_status = "failed"; // module author wanted the user to pass, so we don't override
       scorm12API.cmi.core.credit = "credit";
@@ -823,7 +823,7 @@ describe("SCORM 1.2 API Tests", () => {
     it('should set cmi.core.lesson_status to "failed" - mastery_override: false', () => {
       const scorm12API = api({
         ...DefaultSettings,
-        ...{mastery_override: false},
+        ...{ mastery_override: false },
       });
       scorm12API.cmi.core.lesson_status = "passed"; // module author wanted the user to pass, so we don't override
       scorm12API.cmi.core.credit = "credit";
@@ -1054,8 +1054,8 @@ describe("SCORM 1.2 API Tests", () => {
     beforeEach(() => {
       // Override the implementation to be synchronous
       vi.spyOn(BaseAPI.prototype, "commit").mockImplementation(function (
-          this: BaseAPI,
-          callbackName: string,
+        this: BaseAPI,
+        callbackName: string,
       ) {
         if (callbackName === "LMSCommit") {
           // First trigger the original event
@@ -1189,8 +1189,8 @@ describe("SCORM 1.2 API Tests", () => {
     it("Should handle CommitError event", async () => {
       // Override the mock for this specific test
       vi.spyOn(BaseAPI.prototype, "commit").mockImplementation(function (
-          this: BaseAPI,
-          callbackName: string,
+        this: BaseAPI,
+        callbackName: string,
       ) {
         if (callbackName === "LMSCommit") {
           // Directly trigger error event
@@ -1220,8 +1220,8 @@ describe("SCORM 1.2 API Tests", () => {
     it("Should handle CommitError event when offline", async () => {
       // Override the mock for this specific test
       vi.spyOn(BaseAPI.prototype, "commit").mockImplementation(function (
-          this: BaseAPI,
-          callbackName: string,
+        this: BaseAPI,
+        callbackName: string,
       ) {
         if (callbackName === "LMSCommit") {
           // Directly trigger error event for network error
@@ -1260,234 +1260,234 @@ describe("SCORM 1.2 API Tests", () => {
       });
 
       scorm12api.loadFromFlattenedJSON(
-          {
-            "cmi.comments": "",
-            "cmi.comments_from_lms": "",
-            "cmi.core.credit": "",
-            "cmi.core.entry": "",
-            "cmi.core.exit": "",
-            "cmi.core.lesson_location": "topic-nOmtUy",
-            "cmi.core.lesson_mode": "normal",
-            "cmi.core.lesson_status": "completed",
-            "cmi.core.score.max": "100",
-            "cmi.core.score.min": "",
-            "cmi.core.score.raw": "",
-            "cmi.core.session_time": "00:03:50",
-            "cmi.core.student_id": "student1",
-            "cmi.core.student_name": "Student 1",
-            "cmi.core.total_time": "00:03:50",
-            "cmi.interactions": {},
-            "cmi.launch_data": "",
-            "cmi.objectives.0.id": "topic-aMMlFF",
-            "cmi.objectives.0.score.max": "100",
-            "cmi.objectives.0.score.min": "",
-            "cmi.objectives.0.score.raw": "",
-            "cmi.objectives.0.status": "completed",
-            "cmi.objectives.1.id": "topic-6ReD72",
-            "cmi.objectives.1.score.max": "100",
-            "cmi.objectives.1.score.min": "",
-            "cmi.objectives.1.score.raw": "",
-            "cmi.objectives.1.status": "completed",
-            "cmi.objectives.10.id": "topic-MllWvr",
-            "cmi.objectives.10.score.max": "100",
-            "cmi.objectives.10.score.min": "",
-            "cmi.objectives.10.score.raw": "",
-            "cmi.objectives.10.status": "completed",
-            "cmi.objectives.11.id": "topic-m0dnP3",
-            "cmi.objectives.11.score.max": "100",
-            "cmi.objectives.11.score.min": "",
-            "cmi.objectives.11.score.raw": "",
-            "cmi.objectives.11.status": "completed",
-            "cmi.objectives.12.id": "topic-so4hKC",
-            "cmi.objectives.12.score.max": "100",
-            "cmi.objectives.12.score.min": "",
-            "cmi.objectives.12.score.raw": "",
-            "cmi.objectives.12.status": "completed",
-            "cmi.objectives.13.id": "topic-S9p8FE",
-            "cmi.objectives.13.score.max": "100",
-            "cmi.objectives.13.score.min": "",
-            "cmi.objectives.13.score.raw": "",
-            "cmi.objectives.13.status": "completed",
-            "cmi.objectives.14.id": "topic-E97B5s",
-            "cmi.objectives.14.score.max": "100",
-            "cmi.objectives.14.score.min": "",
-            "cmi.objectives.14.score.raw": "",
-            "cmi.objectives.14.status": "completed",
-            "cmi.objectives.15.id": "topic-TTyEf0",
-            "cmi.objectives.15.score.max": "100",
-            "cmi.objectives.15.score.min": "",
-            "cmi.objectives.15.score.raw": "",
-            "cmi.objectives.15.status": "completed",
-            "cmi.objectives.16.id": "topic-Bk8ZLK",
-            "cmi.objectives.16.score.max": "100",
-            "cmi.objectives.16.score.min": "",
-            "cmi.objectives.16.score.raw": "",
-            "cmi.objectives.16.status": "completed",
-            "cmi.objectives.17.id": "topic-5rxzyV",
-            "cmi.objectives.17.score.max": "100",
-            "cmi.objectives.17.score.min": "",
-            "cmi.objectives.17.score.raw": "",
-            "cmi.objectives.17.status": "completed",
-            "cmi.objectives.18.id": "topic-Q3rjln",
-            "cmi.objectives.18.score.max": "100",
-            "cmi.objectives.18.score.min": "",
-            "cmi.objectives.18.score.raw": "",
-            "cmi.objectives.18.status": "completed",
-            "cmi.objectives.19.id": "topic-eIbwi4",
-            "cmi.objectives.19.score.max": "100",
-            "cmi.objectives.19.score.min": "",
-            "cmi.objectives.19.score.raw": "",
-            "cmi.objectives.19.status": "completed",
-            "cmi.objectives.2.id": "topic-sfvmuO",
-            "cmi.objectives.2.score.max": "100",
-            "cmi.objectives.2.score.min": "",
-            "cmi.objectives.2.score.raw": "",
-            "cmi.objectives.2.status": "completed",
-            "cmi.objectives.20.id": "topic-AzAspy",
-            "cmi.objectives.20.score.max": "100",
-            "cmi.objectives.20.score.min": "",
-            "cmi.objectives.20.score.raw": "",
-            "cmi.objectives.20.status": "completed",
-            "cmi.objectives.21.id": "topic-ehMV4A",
-            "cmi.objectives.21.score.max": "100",
-            "cmi.objectives.21.score.min": "",
-            "cmi.objectives.21.score.raw": "",
-            "cmi.objectives.21.status": "completed",
-            "cmi.objectives.22.id": "topic-U52hDp",
-            "cmi.objectives.22.score.max": "100",
-            "cmi.objectives.22.score.min": "",
-            "cmi.objectives.22.score.raw": "",
-            "cmi.objectives.22.status": "completed",
-            "cmi.objectives.23.id": "topic-mmAPuC",
-            "cmi.objectives.23.score.max": "100",
-            "cmi.objectives.23.score.min": "",
-            "cmi.objectives.23.score.raw": "",
-            "cmi.objectives.23.status": "completed",
-            "cmi.objectives.24.id": "topic-UyqqeN",
-            "cmi.objectives.24.score.max": "100",
-            "cmi.objectives.24.score.min": "",
-            "cmi.objectives.24.score.raw": "",
-            "cmi.objectives.24.status": "completed",
-            "cmi.objectives.25.id": "topic-UIALBn",
-            "cmi.objectives.25.score.max": "100",
-            "cmi.objectives.25.score.min": "",
-            "cmi.objectives.25.score.raw": "",
-            "cmi.objectives.25.status": "completed",
-            "cmi.objectives.26.id": "topic-oLGCQE",
-            "cmi.objectives.26.score.max": "100",
-            "cmi.objectives.26.score.min": "",
-            "cmi.objectives.26.score.raw": "",
-            "cmi.objectives.26.status": "completed",
-            "cmi.objectives.27.id": "topic-JhRmY0",
-            "cmi.objectives.27.score.max": "100",
-            "cmi.objectives.27.score.min": "",
-            "cmi.objectives.27.score.raw": "",
-            "cmi.objectives.27.status": "completed",
-            "cmi.objectives.28.id": "topic-677fLH",
-            "cmi.objectives.28.score.max": "100",
-            "cmi.objectives.28.score.min": "",
-            "cmi.objectives.28.score.raw": "",
-            "cmi.objectives.28.status": "completed",
-            "cmi.objectives.29.id": "topic-rKvnIL",
-            "cmi.objectives.29.score.max": "100",
-            "cmi.objectives.29.score.min": "",
-            "cmi.objectives.29.score.raw": "",
-            "cmi.objectives.29.status": "completed",
-            "cmi.objectives.3.id": "topic-IObzTr",
-            "cmi.objectives.3.score.max": "100",
-            "cmi.objectives.3.score.min": "",
-            "cmi.objectives.3.score.raw": "",
-            "cmi.objectives.3.status": "completed",
-            "cmi.objectives.30.id": "topic-Vjd6mO",
-            "cmi.objectives.30.score.max": "100",
-            "cmi.objectives.30.score.min": "",
-            "cmi.objectives.30.score.raw": "",
-            "cmi.objectives.30.status": "completed",
-            "cmi.objectives.31.id": "topic-jUsEtX",
-            "cmi.objectives.31.score.max": "100",
-            "cmi.objectives.31.score.min": "",
-            "cmi.objectives.31.score.raw": "",
-            "cmi.objectives.31.status": "completed",
-            "cmi.objectives.32.id": "topic-SvCWWr",
-            "cmi.objectives.32.score.max": "100",
-            "cmi.objectives.32.score.min": "",
-            "cmi.objectives.32.score.raw": "",
-            "cmi.objectives.32.status": "completed",
-            "cmi.objectives.33.id": "topic-knRFfG",
-            "cmi.objectives.33.score.max": "100",
-            "cmi.objectives.33.score.min": "",
-            "cmi.objectives.33.score.raw": "",
-            "cmi.objectives.33.status": "completed",
-            "cmi.objectives.34.id": "topic-wlFwhf",
-            "cmi.objectives.34.score.max": "100",
-            "cmi.objectives.34.score.min": "",
-            "cmi.objectives.34.score.raw": "",
-            "cmi.objectives.34.status": "completed",
-            "cmi.objectives.35.id": "topic-3b86fq",
-            "cmi.objectives.35.score.max": "100",
-            "cmi.objectives.35.score.min": "",
-            "cmi.objectives.35.score.raw": "",
-            "cmi.objectives.35.status": "completed",
-            "cmi.objectives.36.id": "topic-ZjIFKf",
-            "cmi.objectives.36.score.max": "100",
-            "cmi.objectives.36.score.min": "",
-            "cmi.objectives.36.score.raw": "",
-            "cmi.objectives.36.status": "completed",
-            "cmi.objectives.37.id": "topic-A9spZz",
-            "cmi.objectives.37.score.max": "100",
-            "cmi.objectives.37.score.min": "",
-            "cmi.objectives.37.score.raw": "",
-            "cmi.objectives.37.status": "completed",
-            "cmi.objectives.38.id": "topic-nOmtUy",
-            "cmi.objectives.38.score.max": "100",
-            "cmi.objectives.38.score.min": "",
-            "cmi.objectives.38.score.raw": "",
-            "cmi.objectives.38.status": "completed",
-            "cmi.objectives.39.id": "topic-jxtabl",
-            "cmi.objectives.39.score.max": "100",
-            "cmi.objectives.39.score.min": "",
-            "cmi.objectives.39.score.raw": "",
-            "cmi.objectives.39.status": "completed",
-            "cmi.objectives.4.id": "topic-Bq3O5v",
-            "cmi.objectives.4.score.max": "100",
-            "cmi.objectives.4.score.min": "",
-            "cmi.objectives.4.score.raw": "",
-            "cmi.objectives.4.status": "completed",
-            "cmi.objectives.5.id": "topic-HmnDxg",
-            "cmi.objectives.5.score.max": "100",
-            "cmi.objectives.5.score.min": "",
-            "cmi.objectives.5.score.raw": "",
-            "cmi.objectives.5.status": "completed",
-            "cmi.objectives.6.id": "topic-4YswmY",
-            "cmi.objectives.6.score.max": "100",
-            "cmi.objectives.6.score.min": "",
-            "cmi.objectives.6.score.raw": "",
-            "cmi.objectives.6.status": "completed",
-            "cmi.objectives.7.id": "topic-LuAS5e",
-            "cmi.objectives.7.score.max": "100",
-            "cmi.objectives.7.score.min": "",
-            "cmi.objectives.7.score.raw": "",
-            "cmi.objectives.7.status": "completed",
-            "cmi.objectives.8.id": "topic-K6ECXa",
-            "cmi.objectives.8.score.max": "100",
-            "cmi.objectives.8.score.min": "",
-            "cmi.objectives.8.score.raw": "",
-            "cmi.objectives.8.status": "completed",
-            "cmi.objectives.9.id": "topic-2lpxvN",
-            "cmi.objectives.9.score.max": "100",
-            "cmi.objectives.9.score.min": "",
-            "cmi.objectives.9.score.raw": "",
-            "cmi.objectives.9.status": "completed",
-            "cmi.student_data.mastery_score": "",
-            "cmi.student_data.max_time_allowed": "",
-            "cmi.student_data.time_limit_action": "",
-            "cmi.student_preference.audio": "",
-            "cmi.student_preference.language": "",
-            "cmi.student_preference.speed": "",
-            "cmi.student_preference.text": "",
-            "cmi.suspend_data": "",
-          },
-          "",
+        {
+          "cmi.comments": "",
+          "cmi.comments_from_lms": "",
+          "cmi.core.credit": "",
+          "cmi.core.entry": "",
+          "cmi.core.exit": "",
+          "cmi.core.lesson_location": "topic-nOmtUy",
+          "cmi.core.lesson_mode": "normal",
+          "cmi.core.lesson_status": "completed",
+          "cmi.core.score.max": "100",
+          "cmi.core.score.min": "",
+          "cmi.core.score.raw": "",
+          "cmi.core.session_time": "00:03:50",
+          "cmi.core.student_id": "student1",
+          "cmi.core.student_name": "Student 1",
+          "cmi.core.total_time": "00:03:50",
+          "cmi.interactions": {},
+          "cmi.launch_data": "",
+          "cmi.objectives.0.id": "topic-aMMlFF",
+          "cmi.objectives.0.score.max": "100",
+          "cmi.objectives.0.score.min": "",
+          "cmi.objectives.0.score.raw": "",
+          "cmi.objectives.0.status": "completed",
+          "cmi.objectives.1.id": "topic-6ReD72",
+          "cmi.objectives.1.score.max": "100",
+          "cmi.objectives.1.score.min": "",
+          "cmi.objectives.1.score.raw": "",
+          "cmi.objectives.1.status": "completed",
+          "cmi.objectives.10.id": "topic-MllWvr",
+          "cmi.objectives.10.score.max": "100",
+          "cmi.objectives.10.score.min": "",
+          "cmi.objectives.10.score.raw": "",
+          "cmi.objectives.10.status": "completed",
+          "cmi.objectives.11.id": "topic-m0dnP3",
+          "cmi.objectives.11.score.max": "100",
+          "cmi.objectives.11.score.min": "",
+          "cmi.objectives.11.score.raw": "",
+          "cmi.objectives.11.status": "completed",
+          "cmi.objectives.12.id": "topic-so4hKC",
+          "cmi.objectives.12.score.max": "100",
+          "cmi.objectives.12.score.min": "",
+          "cmi.objectives.12.score.raw": "",
+          "cmi.objectives.12.status": "completed",
+          "cmi.objectives.13.id": "topic-S9p8FE",
+          "cmi.objectives.13.score.max": "100",
+          "cmi.objectives.13.score.min": "",
+          "cmi.objectives.13.score.raw": "",
+          "cmi.objectives.13.status": "completed",
+          "cmi.objectives.14.id": "topic-E97B5s",
+          "cmi.objectives.14.score.max": "100",
+          "cmi.objectives.14.score.min": "",
+          "cmi.objectives.14.score.raw": "",
+          "cmi.objectives.14.status": "completed",
+          "cmi.objectives.15.id": "topic-TTyEf0",
+          "cmi.objectives.15.score.max": "100",
+          "cmi.objectives.15.score.min": "",
+          "cmi.objectives.15.score.raw": "",
+          "cmi.objectives.15.status": "completed",
+          "cmi.objectives.16.id": "topic-Bk8ZLK",
+          "cmi.objectives.16.score.max": "100",
+          "cmi.objectives.16.score.min": "",
+          "cmi.objectives.16.score.raw": "",
+          "cmi.objectives.16.status": "completed",
+          "cmi.objectives.17.id": "topic-5rxzyV",
+          "cmi.objectives.17.score.max": "100",
+          "cmi.objectives.17.score.min": "",
+          "cmi.objectives.17.score.raw": "",
+          "cmi.objectives.17.status": "completed",
+          "cmi.objectives.18.id": "topic-Q3rjln",
+          "cmi.objectives.18.score.max": "100",
+          "cmi.objectives.18.score.min": "",
+          "cmi.objectives.18.score.raw": "",
+          "cmi.objectives.18.status": "completed",
+          "cmi.objectives.19.id": "topic-eIbwi4",
+          "cmi.objectives.19.score.max": "100",
+          "cmi.objectives.19.score.min": "",
+          "cmi.objectives.19.score.raw": "",
+          "cmi.objectives.19.status": "completed",
+          "cmi.objectives.2.id": "topic-sfvmuO",
+          "cmi.objectives.2.score.max": "100",
+          "cmi.objectives.2.score.min": "",
+          "cmi.objectives.2.score.raw": "",
+          "cmi.objectives.2.status": "completed",
+          "cmi.objectives.20.id": "topic-AzAspy",
+          "cmi.objectives.20.score.max": "100",
+          "cmi.objectives.20.score.min": "",
+          "cmi.objectives.20.score.raw": "",
+          "cmi.objectives.20.status": "completed",
+          "cmi.objectives.21.id": "topic-ehMV4A",
+          "cmi.objectives.21.score.max": "100",
+          "cmi.objectives.21.score.min": "",
+          "cmi.objectives.21.score.raw": "",
+          "cmi.objectives.21.status": "completed",
+          "cmi.objectives.22.id": "topic-U52hDp",
+          "cmi.objectives.22.score.max": "100",
+          "cmi.objectives.22.score.min": "",
+          "cmi.objectives.22.score.raw": "",
+          "cmi.objectives.22.status": "completed",
+          "cmi.objectives.23.id": "topic-mmAPuC",
+          "cmi.objectives.23.score.max": "100",
+          "cmi.objectives.23.score.min": "",
+          "cmi.objectives.23.score.raw": "",
+          "cmi.objectives.23.status": "completed",
+          "cmi.objectives.24.id": "topic-UyqqeN",
+          "cmi.objectives.24.score.max": "100",
+          "cmi.objectives.24.score.min": "",
+          "cmi.objectives.24.score.raw": "",
+          "cmi.objectives.24.status": "completed",
+          "cmi.objectives.25.id": "topic-UIALBn",
+          "cmi.objectives.25.score.max": "100",
+          "cmi.objectives.25.score.min": "",
+          "cmi.objectives.25.score.raw": "",
+          "cmi.objectives.25.status": "completed",
+          "cmi.objectives.26.id": "topic-oLGCQE",
+          "cmi.objectives.26.score.max": "100",
+          "cmi.objectives.26.score.min": "",
+          "cmi.objectives.26.score.raw": "",
+          "cmi.objectives.26.status": "completed",
+          "cmi.objectives.27.id": "topic-JhRmY0",
+          "cmi.objectives.27.score.max": "100",
+          "cmi.objectives.27.score.min": "",
+          "cmi.objectives.27.score.raw": "",
+          "cmi.objectives.27.status": "completed",
+          "cmi.objectives.28.id": "topic-677fLH",
+          "cmi.objectives.28.score.max": "100",
+          "cmi.objectives.28.score.min": "",
+          "cmi.objectives.28.score.raw": "",
+          "cmi.objectives.28.status": "completed",
+          "cmi.objectives.29.id": "topic-rKvnIL",
+          "cmi.objectives.29.score.max": "100",
+          "cmi.objectives.29.score.min": "",
+          "cmi.objectives.29.score.raw": "",
+          "cmi.objectives.29.status": "completed",
+          "cmi.objectives.3.id": "topic-IObzTr",
+          "cmi.objectives.3.score.max": "100",
+          "cmi.objectives.3.score.min": "",
+          "cmi.objectives.3.score.raw": "",
+          "cmi.objectives.3.status": "completed",
+          "cmi.objectives.30.id": "topic-Vjd6mO",
+          "cmi.objectives.30.score.max": "100",
+          "cmi.objectives.30.score.min": "",
+          "cmi.objectives.30.score.raw": "",
+          "cmi.objectives.30.status": "completed",
+          "cmi.objectives.31.id": "topic-jUsEtX",
+          "cmi.objectives.31.score.max": "100",
+          "cmi.objectives.31.score.min": "",
+          "cmi.objectives.31.score.raw": "",
+          "cmi.objectives.31.status": "completed",
+          "cmi.objectives.32.id": "topic-SvCWWr",
+          "cmi.objectives.32.score.max": "100",
+          "cmi.objectives.32.score.min": "",
+          "cmi.objectives.32.score.raw": "",
+          "cmi.objectives.32.status": "completed",
+          "cmi.objectives.33.id": "topic-knRFfG",
+          "cmi.objectives.33.score.max": "100",
+          "cmi.objectives.33.score.min": "",
+          "cmi.objectives.33.score.raw": "",
+          "cmi.objectives.33.status": "completed",
+          "cmi.objectives.34.id": "topic-wlFwhf",
+          "cmi.objectives.34.score.max": "100",
+          "cmi.objectives.34.score.min": "",
+          "cmi.objectives.34.score.raw": "",
+          "cmi.objectives.34.status": "completed",
+          "cmi.objectives.35.id": "topic-3b86fq",
+          "cmi.objectives.35.score.max": "100",
+          "cmi.objectives.35.score.min": "",
+          "cmi.objectives.35.score.raw": "",
+          "cmi.objectives.35.status": "completed",
+          "cmi.objectives.36.id": "topic-ZjIFKf",
+          "cmi.objectives.36.score.max": "100",
+          "cmi.objectives.36.score.min": "",
+          "cmi.objectives.36.score.raw": "",
+          "cmi.objectives.36.status": "completed",
+          "cmi.objectives.37.id": "topic-A9spZz",
+          "cmi.objectives.37.score.max": "100",
+          "cmi.objectives.37.score.min": "",
+          "cmi.objectives.37.score.raw": "",
+          "cmi.objectives.37.status": "completed",
+          "cmi.objectives.38.id": "topic-nOmtUy",
+          "cmi.objectives.38.score.max": "100",
+          "cmi.objectives.38.score.min": "",
+          "cmi.objectives.38.score.raw": "",
+          "cmi.objectives.38.status": "completed",
+          "cmi.objectives.39.id": "topic-jxtabl",
+          "cmi.objectives.39.score.max": "100",
+          "cmi.objectives.39.score.min": "",
+          "cmi.objectives.39.score.raw": "",
+          "cmi.objectives.39.status": "completed",
+          "cmi.objectives.4.id": "topic-Bq3O5v",
+          "cmi.objectives.4.score.max": "100",
+          "cmi.objectives.4.score.min": "",
+          "cmi.objectives.4.score.raw": "",
+          "cmi.objectives.4.status": "completed",
+          "cmi.objectives.5.id": "topic-HmnDxg",
+          "cmi.objectives.5.score.max": "100",
+          "cmi.objectives.5.score.min": "",
+          "cmi.objectives.5.score.raw": "",
+          "cmi.objectives.5.status": "completed",
+          "cmi.objectives.6.id": "topic-4YswmY",
+          "cmi.objectives.6.score.max": "100",
+          "cmi.objectives.6.score.min": "",
+          "cmi.objectives.6.score.raw": "",
+          "cmi.objectives.6.status": "completed",
+          "cmi.objectives.7.id": "topic-LuAS5e",
+          "cmi.objectives.7.score.max": "100",
+          "cmi.objectives.7.score.min": "",
+          "cmi.objectives.7.score.raw": "",
+          "cmi.objectives.7.status": "completed",
+          "cmi.objectives.8.id": "topic-K6ECXa",
+          "cmi.objectives.8.score.max": "100",
+          "cmi.objectives.8.score.min": "",
+          "cmi.objectives.8.score.raw": "",
+          "cmi.objectives.8.status": "completed",
+          "cmi.objectives.9.id": "topic-2lpxvN",
+          "cmi.objectives.9.score.max": "100",
+          "cmi.objectives.9.score.min": "",
+          "cmi.objectives.9.score.raw": "",
+          "cmi.objectives.9.status": "completed",
+          "cmi.student_data.mastery_score": "",
+          "cmi.student_data.max_time_allowed": "",
+          "cmi.student_data.time_limit_action": "",
+          "cmi.student_preference.audio": "",
+          "cmi.student_preference.language": "",
+          "cmi.student_preference.speed": "",
+          "cmi.student_preference.text": "",
+          "cmi.suspend_data": "",
+        },
+        "",
       );
       scorm12api.lmsInitialize();
 
@@ -1506,10 +1506,10 @@ describe("SCORM 1.2 API Tests", () => {
       };
 
       const scorm12API = api(
-          {
-            lmsCommitUrl: "http://test.com/commit",
-          },
-          mockService,
+        {
+          lmsCommitUrl: "http://test.com/commit",
+        },
+        mockService,
       );
       scorm12API.lmsInitialize();
 
@@ -1530,10 +1530,10 @@ describe("SCORM 1.2 API Tests", () => {
       };
 
       const scorm12API = api(
-          {
-            lmsCommitUrl: "http://test.com/commit",
-          },
-          mockService,
+        {
+          lmsCommitUrl: "http://test.com/commit",
+        },
+        mockService,
       );
       scorm12API.lmsInitialize();
 
@@ -1553,10 +1553,10 @@ describe("SCORM 1.2 API Tests", () => {
       };
 
       const scorm12API = api(
-          {
-            lmsCommitUrl: "http://test.com/commit",
-          },
-          mockService,
+        {
+          lmsCommitUrl: "http://test.com/commit",
+        },
+        mockService,
       );
       scorm12API.lmsInitialize();
 
