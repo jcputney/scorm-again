@@ -1,12 +1,12 @@
-import {beforeEach, describe, expect, it} from "vitest";
-import {SequencingConfiguration, SequencingService} from "../../src/services/SequencingService";
-import {Sequencing} from "../../src/cmi/scorm2004/sequencing/sequencing";
-import {Activity} from "../../src/cmi/scorm2004/sequencing/activity";
-import {CMI} from "../../src/cmi/scorm2004/cmi";
-import {ADL} from "../../src/cmi/scorm2004/adl";
-import {EventService} from "../../src/services/EventService";
-import {LoggingService} from "../../src/services/LoggingService";
-import {global_constants} from "../../src/constants/api_constants";
+import { beforeEach, describe, expect, it } from "vitest";
+import { SequencingConfiguration, SequencingService } from "../../src/services/SequencingService";
+import { Sequencing } from "../../src/cmi/scorm2004/sequencing/sequencing";
+import { Activity } from "../../src/cmi/scorm2004/sequencing/activity";
+import { CMI } from "../../src/cmi/scorm2004/cmi";
+import { ADL } from "../../src/cmi/scorm2004/adl";
+import { EventService } from "../../src/services/EventService";
+import { LoggingService } from "../../src/services/LoggingService";
+import { global_constants } from "../../src/constants/api_constants";
 
 describe("SequencingService", () => {
   let sequencingService: SequencingService;
@@ -47,12 +47,12 @@ describe("SequencingService", () => {
     sequencing.activityTree.root = rootActivity;
 
     sequencingService = new SequencingService(
-        sequencing,
-        cmi,
-        adl,
-        eventService,
-        loggingService,
-        configuration,
+      sequencing,
+      cmi,
+      adl,
+      eventService,
+      loggingService,
+      configuration,
     );
   });
 
@@ -135,7 +135,7 @@ describe("SequencingService", () => {
     });
 
     it("should not trigger rollup when disabled", () => {
-      sequencingService.updateConfiguration({autoRollupOnCMIChange: false});
+      sequencingService.updateConfiguration({ autoRollupOnCMIChange: false });
 
       expect(() => {
         sequencingService.triggerRollupOnCMIChange("cmi.completion_status", "unknown", "completed");
@@ -155,12 +155,12 @@ describe("SequencingService", () => {
 
     it("should reject navigation requests when not initialized", () => {
       const uninitializedService = new SequencingService(
-          sequencing,
-          cmi,
-          adl,
-          eventService,
-          loggingService,
-          configuration,
+        sequencing,
+        cmi,
+        adl,
+        eventService,
+        loggingService,
+        configuration,
       );
 
       const result = uninitializedService.processNavigationRequest("continue");
@@ -184,12 +184,12 @@ describe("SequencingService", () => {
 
     it("should respect event system configuration", () => {
       const disabledService = new SequencingService(
-          sequencing,
-          cmi,
-          adl,
-          eventService,
-          loggingService,
-          {...configuration, enableEventSystem: false},
+        sequencing,
+        cmi,
+        adl,
+        eventService,
+        loggingService,
+        { ...configuration, enableEventSystem: false },
       );
 
       let eventFired = false;
