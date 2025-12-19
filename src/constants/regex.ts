@@ -151,7 +151,7 @@ export const scorm12_regex = {
   /** weighting_range - Interaction weighting range -100 to 100 (RTE 3.4.2.7.4) */
   weighting_range: "-100#100",
   /** text_range - Text display preference -1 to 1 (RTE 3.4.2.3.3) */
-  text_range: "-1#1"
+  text_range: "-1#1",
 };
 
 /**
@@ -254,5 +254,5 @@ export const scorm2004_regex = {
   /** text_range - Text display preference -1 to 1 (RTE 4.1.7.5) */
   text_range: "-1#1",
   /** progress_range - Progress measure range 0 to 1 (RTE 4.1.8) */
-  progress_range: "0#1"
+  progress_range: "0#1",
 };
