@@ -266,6 +266,7 @@ export class Activity extends BaseCMI {
   private _activityEndedDate: Date | null = null;
 
   private _objectiveSatisfiedStatus: boolean = false;
+  private _objectiveSatisfiedStatusKnown: boolean = false;
   private _objectiveMeasureStatus: boolean = false;
   private _objectiveNormalizedMeasure: number = 0;
   private _scaledPassingScore: number = 0.7; // Default passing score
@@ -370,6 +371,7 @@ export class Activity extends BaseCMI {
     this._attemptStartTimestampUtc = null;
     this._activityEndedDate = null;
     this._objectiveSatisfiedStatus = false;
+    this._objectiveSatisfiedStatusKnown = false;
     this._objectiveMeasureStatus = false;
     this._objectiveNormalizedMeasure = 0;
     this._progressMeasure = 0;
@@ -688,6 +690,7 @@ export class Activity extends BaseCMI {
    */
   set objectiveSatisfiedStatus(objectiveSatisfiedStatus: boolean) {
     this._objectiveSatisfiedStatus = objectiveSatisfiedStatus;
+    this._objectiveSatisfiedStatusKnown = true;  // Mark as known when explicitly set
     // Update success status based on objective satisfaction
     if (objectiveSatisfiedStatus) {
       this._successStatus = SuccessStatus.PASSED;
@@ -695,6 +698,23 @@ export class Activity extends BaseCMI {
       this._successStatus = SuccessStatus.FAILED;
     }
     this.updatePrimaryObjectiveFromActivity();
+  }
+
+  /**
+   * Getter for objectiveSatisfiedStatusKnown
+   * Indicates whether the objective satisfied status has been explicitly set
+   * @return {boolean}
+   */
+  get objectiveSatisfiedStatusKnown(): boolean {
+    return this._objectiveSatisfiedStatusKnown;
+  }
+
+  /**
+   * Setter for objectiveSatisfiedStatusKnown
+   * @param {boolean} value
+   */
+  set objectiveSatisfiedStatusKnown(value: boolean) {
+    this._objectiveSatisfiedStatusKnown = value;
   }
 
   /**
@@ -1525,6 +1545,7 @@ export class Activity extends BaseCMI {
     completionStatus: CompletionStatus
   ): void {
     this._objectiveSatisfiedStatus = satisfiedStatus;
+    this._objectiveSatisfiedStatusKnown = true;  // Mark as known when state is explicitly set
     this._objectiveMeasureStatus = measureStatus;
     this._objectiveNormalizedMeasure = normalizedMeasure;
     this._progressMeasure = progressMeasure;
@@ -1759,6 +1780,7 @@ export class Activity extends BaseCMI {
       activityStartTimestampUtc: this._activityStartTimestampUtc,
       attemptStartTimestampUtc: this._attemptStartTimestampUtc,
       objectiveSatisfiedStatus: this._objectiveSatisfiedStatus,
+      objectiveSatisfiedStatusKnown: this._objectiveSatisfiedStatusKnown,
       objectiveMeasureStatus: this._objectiveMeasureStatus,
       objectiveNormalizedMeasure: this._objectiveNormalizedMeasure,
       scaledPassingScore: this._scaledPassingScore,
@@ -1845,6 +1867,7 @@ export class Activity extends BaseCMI {
 
     // Restore tracking data
     this._objectiveSatisfiedStatus = state.objectiveSatisfiedStatus ?? this._objectiveSatisfiedStatus;
+    this._objectiveSatisfiedStatusKnown = state.objectiveSatisfiedStatusKnown ?? this._objectiveSatisfiedStatusKnown;
     this._objectiveMeasureStatus = state.objectiveMeasureStatus ?? this._objectiveMeasureStatus;
     this._objectiveNormalizedMeasure = state.objectiveNormalizedMeasure ?? this._objectiveNormalizedMeasure;
     this._scaledPassingScore = state.scaledPassingScore ?? this._scaledPassingScore;
@@ -1950,6 +1973,7 @@ export class Activity extends BaseCMI {
       activityAbsoluteDuration: this._activityAbsoluteDuration,
       activityExperiencedDuration: this._activityExperiencedDuration,
       objectiveSatisfiedStatus: this._objectiveSatisfiedStatus,
+      objectiveSatisfiedStatusKnown: this._objectiveSatisfiedStatusKnown,
       objectiveMeasureStatus: this._objectiveMeasureStatus,
       objectiveNormalizedMeasure: this._objectiveNormalizedMeasure,
       rollupConsiderations: { ...this._rollupConsiderations },

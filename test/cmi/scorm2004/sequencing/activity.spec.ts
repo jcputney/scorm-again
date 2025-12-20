@@ -325,6 +325,33 @@ describe("Activity", () => {
     });
   });
 
+  describe("objectiveSatisfiedStatusKnown property", () => {
+    it("should default to false", () => {
+      const activity = new Activity("test");
+      expect(activity.objectiveSatisfiedStatusKnown).toBe(false);
+    });
+
+    it("should be settable to true", () => {
+      const activity = new Activity("test");
+      activity.objectiveSatisfiedStatusKnown = true;
+      expect(activity.objectiveSatisfiedStatusKnown).toBe(true);
+    });
+
+    it("should become true when objectiveSatisfiedStatus is set", () => {
+      const activity = new Activity("test");
+      expect(activity.objectiveSatisfiedStatusKnown).toBe(false);
+      activity.objectiveSatisfiedStatus = true;
+      expect(activity.objectiveSatisfiedStatusKnown).toBe(true);
+    });
+
+    it("should become true when objectiveSatisfiedStatus is set to false explicitly", () => {
+      const activity = new Activity("test");
+      activity.objectiveSatisfiedStatusKnown = false; // Reset
+      activity.objectiveSatisfiedStatus = false;
+      expect(activity.objectiveSatisfiedStatusKnown).toBe(true);
+    });
+  });
+
   describe("toJSON", () => {
     it("should return a JSON representation of the activity", () => {
       const activity = new Activity("activity1", "Activity 1");
