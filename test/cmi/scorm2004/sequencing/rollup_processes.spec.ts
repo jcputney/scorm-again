@@ -850,4 +850,110 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       expect(adlParent.objectiveSatisfiedStatus).toBe(true);
     });
   });
+
+  describe("objectiveMeasureStatus during rollup", () => {
+    it("should NOT set objectiveMeasureStatus when using rule-based rollup", () => {
+      // Setup parent with children, children satisfied but no measures
+      const ruleParent = new Activity("ruleParent", "Rule Parent");
+      const ruleChild1 = new Activity("ruleChild1", "Rule Child 1");
+      const ruleChild2 = new Activity("ruleChild2", "Rule Child 2");
+
+      ruleParent.addChild(ruleChild1);
+      ruleParent.addChild(ruleChild2);
+      ruleParent.sequencingControls.rollupObjectiveSatisfied = true;
+
+      // Create "all satisfied" rule (RB.1.2.b - rule-based rollup)
+      const rule = new RollupRule(
+        RollupActionType.SATISFIED,
+        RollupConsiderationType.ALL
+      );
+      rule.addCondition(new RollupCondition(RollupConditionType.SATISFIED));
+      ruleParent.rollupRules.addRule(rule);
+
+      // Children are satisfied but have NO measures
+      ruleChild1.successStatus = SuccessStatus.PASSED;
+      ruleChild1.objectiveSatisfiedStatus = true;
+      ruleChild1.objectiveMeasureStatus = false; // No measure
+
+      ruleChild2.successStatus = SuccessStatus.PASSED;
+      ruleChild2.objectiveSatisfiedStatus = true;
+      ruleChild2.objectiveMeasureStatus = false; // No measure
+
+      // Trigger rollup
+      rollupProcess.overallRollupProcess(ruleChild1);
+
+      // Verify parent is satisfied by rule
+      expect(ruleParent.objectiveSatisfiedStatus).toBe(true);
+
+      // Verify parent.objectiveMeasureStatus is still false
+      // Rule-based rollup (RB.1.2.b) should NOT set measureStatus
+      expect(ruleParent.objectiveMeasureStatus).toBe(false);
+    });
+
+    it("should NOT set objectiveMeasureStatus when using default rollup", () => {
+      // Setup parent with children, children satisfied but no measures
+      const defaultParent = new Activity("defaultParent", "Default Parent");
+      const defaultChild1 = new Activity("defaultChild1", "Default Child 1");
+      const defaultChild2 = new Activity("defaultChild2", "Default Child 2");
+
+      defaultParent.addChild(defaultChild1);
+      defaultParent.addChild(defaultChild2);
+      defaultParent.sequencingControls.rollupObjectiveSatisfied = true;
+
+      // NO rollup rules defined - will use default rollup (RB.1.2.c)
+
+      // Children are satisfied but have NO measures
+      defaultChild1.objectiveSatisfiedStatus = true;
+      defaultChild1.objectiveMeasureStatus = false; // No measure
+
+      defaultChild2.objectiveSatisfiedStatus = true;
+      defaultChild2.objectiveMeasureStatus = false; // No measure
+
+      // Trigger rollup
+      rollupProcess.overallRollupProcess(defaultChild1);
+
+      // Verify parent is satisfied by default rollup
+      expect(defaultParent.objectiveSatisfiedStatus).toBe(true);
+
+      // Verify parent.objectiveMeasureStatus is still false
+      // Default rollup (RB.1.2.c) should NOT set measureStatus
+      expect(defaultParent.objectiveMeasureStatus).toBe(false);
+    });
+
+    it("should set objectiveMeasureStatus only when measure rollup calculates a value", () => {
+      // Setup parent with children that have actual measures
+      const measureParent = new Activity("measureParent", "Measure Parent");
+      const measureChild1 = new Activity("measureChild1", "Measure Child 1");
+      const measureChild2 = new Activity("measureChild2", "Measure Child 2");
+
+      measureParent.addChild(measureChild1);
+      measureParent.addChild(measureChild2);
+      measureParent.sequencingControls.rollupObjectiveSatisfied = true;
+      measureParent.scaledPassingScore = 0.7;
+
+      // Set weights for measure rollup
+      measureChild1.sequencingControls.objectiveMeasureWeight = 1.0;
+      measureChild2.sequencingControls.objectiveMeasureWeight = 1.0;
+
+      // Children have actual measures
+      measureChild1.objectiveMeasureStatus = true;
+      measureChild1.objectiveNormalizedMeasure = 0.8;
+
+      measureChild2.objectiveMeasureStatus = true;
+      measureChild2.objectiveNormalizedMeasure = 0.9;
+
+      // Trigger rollup
+      rollupProcess.overallRollupProcess(measureChild1);
+
+      // Verify parent.objectiveMeasureStatus is true
+      // Measure rollup (RB.1.1) SHOULD set measureStatus
+      expect(measureParent.objectiveMeasureStatus).toBe(true);
+
+      // Verify parent.objectiveNormalizedMeasure has calculated value
+      expect(measureParent.objectiveNormalizedMeasure).toBeCloseTo(0.85);
+
+      // Verify satisfaction is determined from measure (RB.1.2.a)
+      expect(measureParent.objectiveSatisfiedStatus).toBe(true);
+    });
+  });
 });
