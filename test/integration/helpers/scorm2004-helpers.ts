@@ -192,6 +192,7 @@ export async function injectQuizFunctions(page: Page): Promise<void> {
         api.SetValue("cmi.score.max", "100");
         const scaledScore = score / 100;
         api.SetValue("cmi.score.scaled", scaledScore.toString());
+        api.SetValue("cmi.completion_status", "completed");
         if (score >= 70) {
           api.SetValue("cmi.success_status", "passed");
         } else {
@@ -294,6 +295,7 @@ export async function injectQuizFunctionsIntoModuleFrame(page: Page): Promise<vo
             api.SetValue("cmi.score.max", "100");
             const scaledScore = score / 100;
             api.SetValue("cmi.score.scaled", scaledScore.toString());
+            api.SetValue("cmi.completion_status", "completed");
             if (score >= 70) {
               api.SetValue("cmi.success_status", "passed");
             } else {
@@ -1420,7 +1422,8 @@ export async function requestChoiceNavigation(page: Page, activityId: string): P
     }
     api.lmsSetValue("adl.nav.request", `choice.{target=${target}}`);
     if (typeof api.processNavigationRequest === "function") {
-      api.processNavigationRequest("choice", { target });
+      // Pass target as string, not as object
+      api.processNavigationRequest("choice", target);
     } else if (typeof api.Commit === "function") {
       api.Commit("");
     }
@@ -1458,10 +1461,49 @@ export async function getObjectiveStatus(
       if (id === targetId) {
         return {
           success: api.lmsGetValue(`cmi.objectives.${i}.success_status`),
-          completion: api.lmsGetValue(`cmi.objectives.${i}.completion_status`)
+          completion: api.lmsGetValue(`cmi.objectives.${i}.completion_status`),
         };
       }
     }
+    return null;
+  }, objectiveId);
+}
+
+/**
+ * Get global objective status from the sequencing state.
+ * Global objectives are stored in the sequencing engine's global objective map,
+ * NOT in cmi.objectives (which is per-activity).
+ */
+export async function getGlobalObjectiveStatus(
+  page: Page,
+  objectiveId: string
+): Promise<{
+  satisfiedStatus: boolean | null;
+  normalizedMeasure: number | null;
+  progressStatus: boolean | null;
+} | null> {
+  return await page.evaluate((targetId) => {
+    const api = (window as any).API_1484_11;
+    if (!api) return null;
+
+    // Try to get from sequencing service's overall sequencing process
+    const sequencingService = api._sequencingService;
+    if (sequencingService) {
+      const overallProcess = sequencingService.getOverallSequencingProcess?.();
+      if (overallProcess) {
+        const snapshot = overallProcess.getGlobalObjectiveMapSnapshot?.();
+        if (snapshot && snapshot[targetId]) {
+          return snapshot[targetId];
+        }
+      }
+    }
+
+    // Fallback: try getSequencingState which includes globalObjectiveMap
+    const state = api.getSequencingState?.();
+    if (state?.globalObjectiveMap?.[targetId]) {
+      return state.globalObjectiveMap[targetId];
+    }
+
     return null;
   }, objectiveId);
 }

@@ -205,7 +205,7 @@ export class NavigationLookAhead {
       // Uses full preConditionRule evaluation for forward navigation
       for (let i = currentIndex + 1; i < siblings.length; i++) {
         const sibling = siblings[i];
-        if (this.isActivityPotentiallyDeliverableForward(sibling)) {
+        if (sibling && this.isActivityPotentiallyDeliverableForward(sibling)) {
           return true;
         }
       }
@@ -270,7 +270,7 @@ export class NavigationLookAhead {
       // Uses simpler check for backward navigation (reviewing previously visited content)
       for (let i = currentIndex - 1; i >= 0; i--) {
         const sibling = siblings[i];
-        if (this.isActivityPotentiallyDeliverableBackward(sibling)) {
+        if (sibling && this.isActivityPotentiallyDeliverableBackward(sibling)) {
           return true;
         }
       }
@@ -354,17 +354,23 @@ export class NavigationLookAhead {
    * @private
    */
   private isActivityPotentiallyDeliverableForward(activity: Activity): boolean {
-    // First check basic visibility/availability flags
-    if (!activity.isVisible || activity.isHiddenFromChoice || !activity.isAvailable) {
+    // isHiddenFromChoice blocks both choice and flow navigation
+    if (activity.isHiddenFromChoice || !activity.isAvailable) {
       return false;
     }
 
     // For leaf activities, use the full check that evaluates preConditionRules
+    // isVisible only affects deliverability of leaf activities, not cluster traversal
     if (activity.children.length === 0) {
+      if (!activity.isVisible) {
+        return false;
+      }
       return this.sequencingProcess.canActivityBeDelivered(activity);
     }
 
     // For clusters, check if any child is potentially deliverable
+    // Note: Invisible clusters (isVisible=false) can still be traversed by flow navigation
+    // - they just won't appear in the TOC. This is a common pattern for grouping content.
     for (const child of activity.children) {
       if (this.isActivityPotentiallyDeliverableForward(child)) {
         return true;
@@ -383,19 +389,20 @@ export class NavigationLookAhead {
    * @private
    */
   private isActivityPotentiallyDeliverableBackward(activity: Activity): boolean {
-    // Basic checks for backward deliverability
-    // For backward navigation, we use a simpler check since the activity was likely
-    // already delivered before (the learner is going back to review)
-    if (!activity.isVisible || activity.isHiddenFromChoice || !activity.isAvailable) {
+    // isHiddenFromChoice blocks both choice and flow navigation
+    if (activity.isHiddenFromChoice || !activity.isAvailable) {
       return false;
     }
 
-    // For leaf activities, it's deliverable if basic checks pass
+    // For leaf activities, isVisible must be true to deliver
     if (activity.children.length === 0) {
-      return true;
+      // For backward navigation, we use a simpler check since the activity was likely
+      // already delivered before (the learner is going back to review)
+      return activity.isVisible;
     }
 
     // For clusters, check if any child is potentially deliverable
+    // Note: Invisible clusters can still be traversed by flow navigation
     for (const child of activity.children) {
       if (this.isActivityPotentiallyDeliverableBackward(child)) {
         return true;

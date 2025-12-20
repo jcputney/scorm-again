@@ -62,6 +62,16 @@ export class CMISession extends BaseCMI {
   }
 
   /**
+   * Internal getter for exit value - for use by the API for sequencing purposes.
+   * This bypasses the write-only restriction since the API needs to know the exit
+   * value to properly handle sequencing and navigation.
+   * @return {string}
+   */
+  getExitValueInternal(): string {
+    return this._exit;
+  }
+
+  /**
    * Setter for _exit
    * @param {string} exit
    */

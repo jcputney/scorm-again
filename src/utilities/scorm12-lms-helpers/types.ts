@@ -49,7 +49,7 @@ export interface ScoState {
   /** Session time from current/last attempt */
   sessionTime: string;
   /** Mastery score threshold (0-100) - if set, determines pass/fail */
-  masteryScore?: number;
+  masteryScore?: number | undefined;
   /** Exit action from last LMSFinish */
   exitAction: ExitAction;
   /** Suspend data for resuming */
@@ -59,9 +59,9 @@ export interface ScoState {
   /** Number of attempts on this SCO */
   attemptCount: number;
   /** Timestamp of first launch */
-  firstLaunchTime?: Date;
+  firstLaunchTime?: Date | undefined;
   /** Timestamp of last activity */
-  lastAccessTime?: Date;
+  lastAccessTime?: Date | undefined;
   /** Whether this SCO has ever been launched */
   hasBeenLaunched: boolean;
 }
@@ -125,7 +125,7 @@ export interface RollupOptions {
  */
 export interface CourseRollupResult {
   /** Calculated course score (0-100) */
-  score?: number;
+  score?: number | undefined;
   /** Course completion percentage (0-100) */
   completionPercentage: number;
   /** Overall course status */
@@ -141,7 +141,7 @@ export interface CourseRollupResult {
     id: string;
     title: string;
     status: LessonStatus;
-    score?: number;
+    score?: number | undefined;
     contributedToCompletion: boolean;
   }>;
 }

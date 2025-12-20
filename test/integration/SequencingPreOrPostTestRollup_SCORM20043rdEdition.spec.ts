@@ -16,6 +16,8 @@ import {
   getNavigationValidity,
   requestChoiceNavigation,
   getObjectiveStatus,
+  getGlobalObjectiveStatus,
+  advanceScoPages,
 } from "./helpers/scorm2004-helpers";
 import { scormCommonApiTests } from "./suites/scorm-common-api.js";
 import { scorm2004DataModelTests } from "./suites/scorm2004-data-model.js";
@@ -156,8 +158,7 @@ const ACTIVITY_TREE = {
           rollupRules: {
             rules: [
               {
-                childActivitySet: "all",
-                conditionCombination: "all",
+                consideration: "all",
                 conditions: [
                   {
                     condition: "completed",
@@ -249,8 +250,7 @@ const ACTIVITY_TREE = {
       rollupRules: {
         rules: [
           {
-            childActivitySet: "any",
-            conditionCombination: "all",
+            consideration: "any",
             conditions: [
               {
                 condition: "completed",
@@ -259,8 +259,7 @@ const ACTIVITY_TREE = {
             action: "incomplete",
           },
           {
-            childActivitySet: "all",
-            conditionCombination: "all",
+            consideration: "all",
             conditions: [
               {
                 condition: "completed",
@@ -293,8 +292,7 @@ const ACTIVITY_TREE = {
   rollupRules: {
     rules: [
       {
-        childActivitySet: "any",
-        conditionCombination: "all",
+        consideration: "any",
         conditions: [
           {
             condition: "satisfied",
@@ -361,6 +359,9 @@ wrappers.forEach((wrapper) => {
     };
 
     const completeSequentialContent = async (page: any) => {
+      // Navigate to first content activity - course starts on pretest by default
+      await requestChoiceNavigation(page, CONTENT_ACTIVITIES[0].id);
+
       for (let i = 0; i < CONTENT_ACTIVITIES.length; i++) {
         const { key } = CONTENT_ACTIVITIES[i];
         await waitForScoContent(page, key);
@@ -369,6 +370,12 @@ wrappers.forEach((wrapper) => {
           await clickSequencingButton(page, "continue");
         }
       }
+      // Commit data and allow rollup to process
+      await page.evaluate(() => {
+        const api = (window as any).API_1484_11;
+        api.lmsCommit();
+      });
+      await page.waitForTimeout(500);
     };
     // Compose universal API tests
     scormCommonApiTests(wrapper, moduleConfig);
@@ -500,12 +507,13 @@ wrappers.forEach((wrapper) => {
       await launchSequencedModule(page);
       await completeSequentialContent(page);
 
-      const contentObjective = await getObjectiveStatus(
+      // Query from global objective map in sequencing state
+      const contentObjective = await getGlobalObjectiveStatus(
         page,
         "com.scorm.golfsamples.sequencing.preorposttestrollup.content_completed",
       );
 
-      expect(contentObjective?.success).toBeDefined();
+      expect(contentObjective?.satisfiedStatus).toBe(true);
     });
 
     /**
@@ -548,13 +556,135 @@ wrappers.forEach((wrapper) => {
      * - This allows free form navigation between activities
      */
     test("should allow free form navigation per SCORM 2004 SN Book SB.2.1", async ({ page }) => {
+      // Capture ALL console logs for debugging
+      const consoleLogs: string[] = [];
+      page.on("console", (msg) => {
+        const text = msg.text();
+        consoleLogs.push(text);
+      });
+
       await launchSequencedModule(page);
+      // Navigate to first content activity - course starts on pretest by default
+      await requestChoiceNavigation(page, "playing_item");
+      await waitForScoContent(page, "playing");
       await advanceScoPages(page, 1);
 
       await requestChoiceNavigation(page, "handicapping_item");
       await waitForScoContent(page, "handicapping");
 
+      // Get predict result BEFORE getNavigationValidity
+      const prePredictResult = await page.evaluate(() => {
+        const api = (window as any).API_1484_11;
+        if (!api) return "no-api";
+        const internalSequencing = (api as any)._sequencing;
+        const internalOverallProcess = internalSequencing?.overallSequencingProcess;
+        if (!internalOverallProcess?.predictChoiceEnabled) return "no-predict";
+        return internalOverallProcess.predictChoiceEnabled("havingfun_item") ? "true" : "false";
+      });
+
       const navValid = await getNavigationValidity(page, "choice", "havingfun_item");
+
+      // If test fails, print debug info
+      if (navValid === "false") {
+        console.log("=== PRE-PREDICT RESULT ===", prePredictResult);
+        console.log("=== DEBUG INFO ===");
+        console.log("Navigation validity for havingfun_item:", navValid);
+        consoleLogs.forEach((log) => console.log(log));
+
+        // Get additional debug info from the API
+        const debugInfo = await page.evaluate(() => {
+          const api = (window as any).API_1484_11;
+          if (!api) return "API not found";
+
+          // Get access to sequencing internals
+          const sequencingService = api.sequencingService;
+          const overallProcess = sequencingService?.overallSequencingProcess;
+          const navLookAhead = overallProcess?.navigationLookAhead;
+          const activityTree = overallProcess?.activityTree;
+
+          // Get the current activity
+          const currentActivity = activityTree?.currentActivity;
+
+          // Check if predictChoiceEnabled exists and what it returns
+          let predictResult = "N/A";
+          if (overallProcess?.predictChoiceEnabled) {
+            try {
+              predictResult = overallProcess.predictChoiceEnabled("havingfun_item")
+                ? "true"
+                : "false";
+            } catch (e) {
+              predictResult = `error: ${e}`;
+            }
+          }
+
+          // Check what _isTargetValid returns
+          let isTargetValidResult = "N/A";
+          const choiceObj = api.adl?.nav?.request_valid?.choice;
+          if (choiceObj?._isTargetValid) {
+            try {
+              isTargetValidResult = choiceObj._isTargetValid("havingfun_item");
+            } catch (e) {
+              isTargetValidResult = `error: ${e}`;
+            }
+          }
+
+          // Check internal state directly
+          const internalSequencing = (api as any)._sequencing;
+          const internalOverallProcess = internalSequencing?.overallSequencingProcess;
+          const extractedIds = (api as any)._extractedScoItemIds || [];
+
+          // Check navigation look-ahead
+          const navLookAheadInternal = internalOverallProcess?.navigationLookAhead;
+          let availableChoices: string[] = [];
+          let predictChoiceResult = "N/A";
+          if (navLookAheadInternal?.getAvailableChoices) {
+            availableChoices = navLookAheadInternal.getAvailableChoices();
+          }
+          if (internalOverallProcess?.predictChoiceEnabled) {
+            predictChoiceResult = internalOverallProcess.predictChoiceEnabled("havingfun_item")
+              ? "true"
+              : "false";
+          }
+
+          // Check activity tree state
+          const internalActivityTree = internalOverallProcess?.activityTree;
+          const currentActivityFromTree = internalActivityTree?.currentActivity;
+          const rootActivity = internalActivityTree?.root;
+
+          return {
+            apiType: api.constructor.name,
+            currentActivityId: currentActivity?.id || "null",
+            currentActivityIsActive: currentActivity?.isActive,
+            hasSequencingService: !!sequencingService,
+            hasOverallProcess: !!overallProcess,
+            hasNavLookAhead: !!navLookAhead,
+            predictChoiceExists: !!overallProcess?.predictChoiceEnabled,
+            predictResult: predictResult,
+            isTargetValidResult: isTargetValidResult,
+            continueValid: api.lmsGetValue("adl.nav.request_valid.continue"),
+            previousValid: api.lmsGetValue("adl.nav.request_valid.previous"),
+            havingfunViaGetValue: api.lmsGetValue(
+              "adl.nav.request_valid.choice.{target=havingfun_item}",
+            ),
+            // Internal state checks
+            hasInternalSequencing: !!internalSequencing,
+            hasInternalOverallProcess: !!internalOverallProcess,
+            hasInternalPredictChoice: !!internalOverallProcess?.predictChoiceEnabled,
+            extractedIdsCount: extractedIds.length,
+            extractedIdsIncludesHavingfun: extractedIds.includes("havingfun_item"),
+            extractedIdsSample: extractedIds.slice(0, 5),
+            // Navigation look-ahead checks
+            predictChoiceResultDirect: predictChoiceResult,
+            availableChoices: availableChoices,
+            // Activity tree state
+            currentActivityFromTree: currentActivityFromTree?.id || "null",
+            hasActivityTree: !!internalActivityTree,
+            hasRootActivity: !!rootActivity,
+          };
+        });
+        console.log("Debug info:", JSON.stringify(debugInfo, null, 2));
+      }
+
       expect(["true", "unknown"]).toContain(navValid);
 
       await requestChoiceNavigation(page, "playing_item");
@@ -583,11 +713,12 @@ wrappers.forEach((wrapper) => {
       await completeAssessmentSCO(page, true);
       await clickSequencingButton(page, "continue");
 
-      const assessmentObjective = await getObjectiveStatus(
+      // Query from global objective map in sequencing state
+      const assessmentObjective = await getGlobalObjectiveStatus(
         page,
         "com.scorm.golfsamples.sequencing.preorposttestrollup.assessment_satisfied",
       );
-      expect(assessmentObjective?.success).toBe("passed");
+      expect(assessmentObjective?.satisfiedStatus).toBe(true);
 
       const pretestValidity = await getNavigationValidity(page, "choice", PRETEST_ACTIVITY.id);
       const posttestValidity = await getNavigationValidity(page, "choice", POSTTEST_ACTIVITY.id);
@@ -614,21 +745,25 @@ wrappers.forEach((wrapper) => {
       await launchSequencedModule(page);
       await completeSequentialContent(page);
 
-      const contentObjective = await getObjectiveStatus(
+      // Query from global objective map in sequencing state
+      const contentObjective = await getGlobalObjectiveStatus(
         page,
         "com.scorm.golfsamples.sequencing.preorposttestrollup.content_completed",
       );
-      expect(contentObjective?.success).toBeDefined();
+      expect(contentObjective?.satisfiedStatus).toBe(true);
 
       await startPosttest(page);
       await completeAssessmentSCO(page, true);
-      await clickSequencingButton(page, "continue");
+      // Note: After completing the final activity (posttest), "continue" is correctly disabled
+      // because there's no next activity. We just need to verify the objective is satisfied.
+      await page.waitForTimeout(500); // Allow rollup to process
 
-      const assessmentObjective = await getObjectiveStatus(
+      // Query from global objective map in sequencing state
+      const assessmentObjective = await getGlobalObjectiveStatus(
         page,
         "com.scorm.golfsamples.sequencing.preorposttestrollup.assessment_satisfied",
       );
-      expect(assessmentObjective?.success).toBe("passed");
+      expect(assessmentObjective?.satisfiedStatus).toBe(true);
     });
 
     /**
@@ -753,12 +888,13 @@ wrappers.forEach((wrapper) => {
       await launchSequencedModule(page);
       await completeSequentialContent(page);
 
-      const contentObjective = await getObjectiveStatus(
+      // Query from global objective map in sequencing state
+      const contentObjective = await getGlobalObjectiveStatus(
         page,
         "com.scorm.golfsamples.sequencing.preorposttestrollup.content_completed",
       );
 
-      expect(contentObjective?.success).toBeDefined();
+      expect(contentObjective?.satisfiedStatus).toBe(true);
     });
 
     /**
@@ -791,13 +927,19 @@ wrappers.forEach((wrapper) => {
           );
           return {
             completionStatus: dummyWrapper?.completionStatus || null,
-            successStatus: dummyWrapper?.successStatus || null,
+            objectiveSatisfiedStatus: dummyWrapper?.objectiveSatisfiedStatus || false,
           };
         }
-        return { completionStatus: null, successStatus: null };
+        return { completionStatus: null, objectiveSatisfiedStatus: false };
       });
 
-      expect(dummyStatus.completionStatus).toBe("completed");
+      // After passing the pretest:
+      // - dummy_item reads from global assessment_satisfied → becomes satisfied
+      // - dummy_item's completion rules: "any completed → incomplete", "all completed → completed"
+      // - Since only pretest is complete (not all children), completionStatus = "incomplete"
+      // - But objectiveSatisfiedStatus = true from the global objective sync
+      expect(dummyStatus.objectiveSatisfiedStatus).toBe(true);
+      expect(dummyStatus.completionStatus).toBe("incomplete"); // Only pretest done, not all children
     });
 
     /**

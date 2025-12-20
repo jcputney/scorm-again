@@ -517,19 +517,16 @@ describe("Enhanced Choice Validation (sequencing_process.ts)", () => {
       expect(condition.evaluate(lesson2)).toBe(true);
     });
 
-    it("should evaluate attempt limit exceeded condition with parameter", () => {
-      // ATTEMPT_LIMIT_EXCEEDED uses the condition's attemptLimit parameter from the Map
-      const params = new Map<string, any>();
-      params.set("attemptLimit", 3);
-      const condition = new RuleCondition(
-        RuleConditionType.ATTEMPT_LIMIT_EXCEEDED,
-        null,
-        params
-      );
+    it("should evaluate attempt limit exceeded condition with activity limit", () => {
+      // SCORM 2004 specifies attemptLimit is a property of the activity itself,
+      // not a parameter on the condition
+      const condition = new RuleCondition(RuleConditionType.ATTEMPT_LIMIT_EXCEEDED);
 
+      lesson1.attemptLimit = 3;
       lesson1.attemptCount = 3;
       expect(condition.evaluate(lesson1)).toBe(true);
 
+      lesson2.attemptLimit = 3;
       lesson2.attemptCount = 2;
       expect(condition.evaluate(lesson2)).toBe(false);
     });

@@ -290,7 +290,7 @@ wrappers.forEach((wrapper) => {
         return { value, error };
       });
       expect(sessionTimeCheck.value === "" || sessionTimeCheck.value === "false").toBe(true);
-      expect(sessionTimeCheck.error).toBe("404");
+      expect(sessionTimeCheck.error).toBe("405");
     });
 
     test("should handle previous/next navigation buttons", async ({ page }) => {

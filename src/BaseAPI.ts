@@ -39,7 +39,7 @@ import { ValidationError } from "./exceptions";
  */
 export default abstract class BaseAPI implements IBaseAPI {
   private _timeout?: ScheduledCommit | undefined;
-  private readonly _error_codes: ErrorCode;
+  protected readonly _error_codes: ErrorCode;
   private _settings: InternalSettings = DefaultSettings;
   private readonly _httpService: IHttpService;
   private _eventService: IEventService;
@@ -85,6 +85,22 @@ export default abstract class BaseAPI implements IBaseAPI {
         ...DefaultSettings,
         ...settings,
       } as InternalSettings;
+    }
+
+    // BACKWARDS COMPATIBILITY: Handle deprecated asyncCommit setting
+    if (
+      settings?.asyncCommit !== undefined &&
+      settings.useAsynchronousCommits === undefined &&
+      settings.throttleCommits === undefined
+    ) {
+      console.warn(
+        "DEPRECATED: 'asyncCommit' setting is deprecated and will be removed in a future version. " +
+          "Use 'useAsynchronousCommits: true' and 'throttleCommits: true' instead.",
+      );
+      if (settings.asyncCommit) {
+        this.settings.useAsynchronousCommits = true;
+        this.settings.throttleCommits = true;
+      }
     }
 
     // VALIDATION: Enforce throttleCommits incompatibility with sync commits
@@ -1343,11 +1359,24 @@ export default abstract class BaseAPI implements IBaseAPI {
           }
         }
       } else {
+        // Debug: trace the path for choice targets
+        if (String(attribute).substring(0, 8) === "{target=") {
+          console.log(`[DEBUG BaseAPI] Processing {target=...}: attribute=${attribute}`);
+          console.log(`[DEBUG BaseAPI] refObject type: ${refObject?.constructor?.name}`);
+          console.log(`[DEBUG BaseAPI] _isTargetValid exists: ${typeof refObject._isTargetValid}`);
+          console.log(
+            `[DEBUG BaseAPI] refObject keys: ${Object.keys(refObject || {})
+              .slice(0, 10)
+              .join(",")}`,
+          );
+        }
         if (
           String(attribute).substring(0, 8) === "{target=" &&
           typeof refObject._isTargetValid == "function"
         ) {
-          const target = String(attribute).substring(8, String(attribute).length - 9);
+          // Extract target from {target=X} format: skip "{target=" (8 chars) and "}" (1 char at end)
+          const target = String(attribute).substring(8, String(attribute).length - 1);
+          console.log(`[DEBUG BaseAPI] Calling _isTargetValid with target: ${target}`);
           return refObject._isTargetValid(target);
         } else if (
           typeof attribute === "undefined" ||

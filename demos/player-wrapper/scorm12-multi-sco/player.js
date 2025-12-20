@@ -3,7 +3,7 @@
  * Demonstrates event-driven UI updates using scorm-again
  */
 
-import Scorm12API from 'scorm-again';
+import { Scorm12API } from 'scorm-again';
 import {
   $,
   $$,
@@ -226,12 +226,16 @@ class Scorm12Player {
     window.API = this.api;
 
     // Set up API event handlers
+    this.setupApiListeners();
+
+    log.info('SCORM API initialized and exposed as window.API');
+  }
+
+  setupApiListeners() {
     this.api.on('LMSInitialize', () => this.handleInitialize());
     this.api.on('LMSSetValue', (element, value) => this.handleSetValue(element, value));
     this.api.on('LMSCommit', () => this.handleCommit());
     this.api.on('LMSFinish', () => this.handleFinish());
-
-    log.info('SCORM API initialized and exposed as window.API');
   }
 
   // ---------------------------------------------------------------------------
@@ -327,7 +331,13 @@ class Scorm12Player {
     this.state.updateScoState(scoId, { totalTime: totalTimeStr });
 
     // Check exit action from CMI data
-    const exit = this.api.cmi?.core?.exit || '';
+    // Note: cmi.core.exit is write-only in SCORM 1.2, so we wrap in try-catch
+    let exit = '';
+    try {
+      exit = this.api.cmi?.core?.exit || '';
+    } catch {
+      // cmi.core.exit is write-only, default to empty
+    }
     this.processExitAction(scoId, exit);
   }
 
@@ -397,6 +407,11 @@ class Scorm12Player {
     }
 
     log.info(`Launching SCO: ${scoId}`);
+
+    // Reset API for new SCO session (clears state and listeners)
+    this.api.reset();
+    // Re-register event listeners after reset
+    this.setupApiListeners();
 
     // Get existing state for resume
     const existingState = this.state.getScoState(scoId);

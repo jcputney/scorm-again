@@ -570,7 +570,8 @@ wrappers.forEach((wrapper) => {
       const hasInteractions = await page.evaluate(() => {
         try {
           const id = window.API.LMSGetValue("cmi.interactions.0.id");
-          return id && id !== "";
+          // ID can be an empty string if interaction exists but has no ID set
+          return id !== null && id !== undefined;
         } catch {
           return false;
         }

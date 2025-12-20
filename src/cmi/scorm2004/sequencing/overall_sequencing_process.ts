@@ -213,6 +213,14 @@ export class OverallSequencingProcess {
 
       // If this is a termination-only request (no sequencing request), return success
       if (!navResult.sequencingRequest) {
+        // For EXIT_ALL and ABANDON_ALL, fire session end event
+        if (navResult.terminationRequest === SequencingRequestType.EXIT_ALL ||
+            navResult.terminationRequest === SequencingRequestType.ABANDON_ALL) {
+          this.fireEvent("onSequencingSessionEnd", {
+            reason: navResult.terminationRequest === SequencingRequestType.EXIT_ALL ? "exit_all" : "abandon_all",
+            navigationRequest: navigationRequest
+          });
+        }
         return new DeliveryRequest(true, null);
       }
     }
@@ -1395,12 +1403,20 @@ export class OverallSequencingProcess {
       activity.successStatus = activity.objectiveSatisfiedStatus ? "passed" : "failed";
     }
 
-    // INTEGRATION: Process global objective mapping after activity completion
+    // Sync global objectives then trigger rollup
+    // This reads FROM global objectives INTO activities before rollup,
+    // so rollup can use global objective state when calculating activity status
     const mappingRoot = this.activityTree.root || activity;
     this.rollupProcess.processGlobalObjectiveMapping(mappingRoot, this.globalObjectiveMap);
 
-    // Trigger rollup from this activity
+    // Trigger rollup after global objective sync
+    // Rollup calculates satisfaction and completion based on children and global state
     this.rollupProcess.overallRollupProcess(activity);
+
+    // IMPORTANT: We do NOT sync again after rollup because that would overwrite
+    // the rollup results by reading from stale global objectives.
+    // Global objectives will be updated on the NEXT activity's access when it
+    // reads the parent's status via global objective mapping.
 
     // Invalidate navigation predictions after rollup
     this.navigationLookAhead.invalidateCache();
@@ -1470,10 +1486,15 @@ export class OverallSequencingProcess {
       const successStatus = cmiData.success_status === "passed";
       activity.objectiveSatisfiedStatus = successStatus;
       activity.successStatus = cmiData.success_status as "passed" | "failed" | "unknown";
+      // Set measureStatus to true so global objective mapping can write to global map
+      // Per SCORM 2004 SN Book, when success_status is known, the objective has known status
+      activity.objectiveMeasureStatus = true;
 
       if (activity.primaryObjective) {
         activity.primaryObjective.satisfiedStatus = successStatus;
         activity.primaryObjective.progressStatus = true;
+        // Set measureStatus to true for global objective sync to work
+        activity.primaryObjective.measureStatus = true;
       }
     }
 
@@ -1638,6 +1659,15 @@ export class OverallSequencingProcess {
     for (const act of allActivities) {
       const choiceRes = this.navigationRequestProcess(NavigationRequestType.CHOICE, act.id);
       choiceMap[act.id] = choiceRes.valid ? "true" : "false";
+      // Debug: Log details for failing validity checks
+      if (act.id === "havingfun_item" && !choiceRes.valid) {
+        console.log(`[DEBUG NAV VALIDITY] havingfun_item choice failed: exception=${choiceRes.exception}`);
+        console.log(`[DEBUG NAV VALIDITY] current activity: ${this.activityTree.currentActivity?.id}`);
+        console.log(`[DEBUG NAV VALIDITY] havingfun_item.isAvailable: ${act.isAvailable}`);
+        console.log(`[DEBUG NAV VALIDITY] havingfun_item.isHiddenFromChoice: ${act.isHiddenFromChoice}`);
+        console.log(`[DEBUG NAV VALIDITY] havingfun_item.parent: ${act.parent?.id}`);
+        console.log(`[DEBUG NAV VALIDITY] havingfun_item.parent.sequencingControls.choice: ${act.parent?.sequencingControls?.choice}`);
+      }
       const jumpRes = this.navigationRequestProcess(NavigationRequestType.JUMP, act.id);
       jumpMap[act.id] = jumpRes.valid ? "true" : "false";
     }
@@ -2285,12 +2315,15 @@ export class OverallSequencingProcess {
     exception: string | null
   } {
     // Check if target is hidden from choice or otherwise unavailable
+    // Per NB.2.1 Step 7.1.1.1: Only check static properties here, not preconditions
+    // Preconditions that depend on rollup state are evaluated later in SB.2.3 (Check Activity)
     if (targetActivity.isHiddenFromChoice) {
       return {valid: false, exception: "NB.2.1-11"};
     }
 
-    // Check if target is disabled (pre-condition rules, availability, etc.)
-    if (this.isActivityDisabled(targetActivity)) {
+    // Only check availability, not preconditions - preconditions are evaluated after termination
+    // and rollup in the Sequencing Request Process (SB.2.12 -> SB.2.3)
+    if (!targetActivity.isAvailable) {
       return {valid: false, exception: "NB.2.1-11"};
     }
 
@@ -2432,9 +2465,10 @@ export class OverallSequencingProcess {
     }
 
     // Walk from target up to (but not including) the common ancestor ensuring availability
+    // Per NB.2.1: Only check static properties, not preconditions
     let node: Activity | null = targetActivity;
     while (node && node !== commonAncestor) {
-      if (!node.isAvailable || node.isHiddenFromChoice || this.isActivityDisabled(node)) {
+      if (!node.isAvailable || node.isHiddenFromChoice) {
         return {valid: false, exception: "NB.2.1-11"};
       }
       node = node.parent;
@@ -2465,10 +2499,7 @@ export class OverallSequencingProcess {
     return (
         preConditionResult === RuleActionType.DISABLED ||
         preConditionResult === RuleActionType.HIDE_FROM_CHOICE ||
-        preConditionResult === RuleActionType.STOP_FORWARD_TRAVERSAL ||
-        preConditionResult === "DISABLED" ||
-        preConditionResult === "HIDDEN_FROM_CHOICE" ||
-        preConditionResult === "STOP_FORWARD_TRAVERSAL"
+        preConditionResult === RuleActionType.STOP_FORWARD_TRAVERSAL
     );
   }
 
@@ -2553,8 +2584,10 @@ export class OverallSequencingProcess {
       return {valid: false, exception: "NB.2.1-11"};
     }
 
-    // Do not skip mandatory incomplete siblings when moving forward
-    if (targetIndex > currentIndex) {
+    // Do not skip mandatory incomplete siblings when moving forward ONLY if forwardOnly=true
+    // Per SCORM 2004 spec: When choice=true and forwardOnly=false, learner can select any activity
+    // The mandatory sibling constraint only applies to forced-sequential navigation patterns
+    if (targetIndex > currentIndex && ancestor.sequencingControls.forwardOnly) {
       for (let i = currentIndex + 1; i < targetIndex; i++) {
         const between = children[i];
         if (!between) {
@@ -2611,11 +2644,7 @@ export class OverallSequencingProcess {
         preConditionResult === RuleActionType.SKIP ||
         preConditionResult === RuleActionType.DISABLED ||
         preConditionResult === RuleActionType.HIDE_FROM_CHOICE ||
-        preConditionResult === RuleActionType.STOP_FORWARD_TRAVERSAL ||
-        preConditionResult === "SKIP" ||
-        preConditionResult === "DISABLED" ||
-        preConditionResult === "HIDDEN_FROM_CHOICE" ||
-        preConditionResult === "STOP_FORWARD_TRAVERSAL"
+        preConditionResult === RuleActionType.STOP_FORWARD_TRAVERSAL
     ) {
       return false;
     }
@@ -2638,11 +2667,7 @@ export class OverallSequencingProcess {
         preConditionResult === RuleActionType.SKIP ||
         preConditionResult === RuleActionType.DISABLED ||
         preConditionResult === RuleActionType.HIDE_FROM_CHOICE ||
-        preConditionResult === RuleActionType.STOP_FORWARD_TRAVERSAL ||
-        preConditionResult === "SKIP" ||
-        preConditionResult === "DISABLED" ||
-        preConditionResult === "HIDDEN_FROM_CHOICE" ||
-        preConditionResult === "STOP_FORWARD_TRAVERSAL"
+        preConditionResult === RuleActionType.STOP_FORWARD_TRAVERSAL
     ) {
       return true;
     }

@@ -242,47 +242,33 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
   });
 
   describe("Condition Type: attemptLimitExceeded", () => {
+    // SCORM 2004 specifies attemptLimit is a property of the activity itself,
+    // not a parameter on the condition
     it("should return true when attempt count >= limit", () => {
+      activity.attemptLimit = 3;
       activity.attemptCount = 3;
-      const params = new Map([["attemptLimit", 3]]);
-      const condition = new RuleCondition(
-        RuleConditionType.ATTEMPT_LIMIT_EXCEEDED,
-        null,
-        params,
-      );
+      const condition = new RuleCondition(RuleConditionType.ATTEMPT_LIMIT_EXCEEDED);
       expect(condition.evaluate(activity)).toBe(true);
     });
 
     it("should return false when attempt count < limit", () => {
+      activity.attemptLimit = 3;
       activity.attemptCount = 2;
-      const params = new Map([["attemptLimit", 3]]);
-      const condition = new RuleCondition(
-        RuleConditionType.ATTEMPT_LIMIT_EXCEEDED,
-        null,
-        params,
-      );
+      const condition = new RuleCondition(RuleConditionType.ATTEMPT_LIMIT_EXCEEDED);
       expect(condition.evaluate(activity)).toBe(false);
     });
 
     it("should handle boundary case - exactly at limit", () => {
+      activity.attemptLimit = 5;
       activity.attemptCount = 5;
-      const params = new Map([["attemptLimit", 5]]);
-      const condition = new RuleCondition(
-        RuleConditionType.ATTEMPT_LIMIT_EXCEEDED,
-        null,
-        params,
-      );
+      const condition = new RuleCondition(RuleConditionType.ATTEMPT_LIMIT_EXCEEDED);
       expect(condition.evaluate(activity)).toBe(true); // >= includes equal
     });
 
     it("should return true when exceeded", () => {
+      activity.attemptLimit = 5;
       activity.attemptCount = 6;
-      const params = new Map([["attemptLimit", 5]]);
-      const condition = new RuleCondition(
-        RuleConditionType.ATTEMPT_LIMIT_EXCEEDED,
-        null,
-        params,
-      );
+      const condition = new RuleCondition(RuleConditionType.ATTEMPT_LIMIT_EXCEEDED);
       expect(condition.evaluate(activity)).toBe(true);
     });
   });
@@ -678,13 +664,10 @@ describe("Advanced Rule Conditions - Complete Coverage", () => {
     });
 
     it("should handle zero attempt limit", () => {
+      // SCORM 2004: attemptLimit is a property of the activity itself
+      activity.attemptLimit = 0;
       activity.attemptCount = 0;
-      const params = new Map([["attemptLimit", 0]]);
-      const condition = new RuleCondition(
-        RuleConditionType.ATTEMPT_LIMIT_EXCEEDED,
-        null,
-        params,
-      );
+      const condition = new RuleCondition(RuleConditionType.ATTEMPT_LIMIT_EXCEEDED);
       expect(condition.evaluate(activity)).toBe(true); // 0 >= 0
     });
 

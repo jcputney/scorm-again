@@ -2,7 +2,7 @@ import { BaseCMI } from "../../common/base_cmi";
 import { Activity, ActivityObjective } from "./activity";
 import { Scorm2004ValidationError } from "../../../exceptions/scorm2004_exceptions";
 import { scorm2004_errors } from "../../../constants/error_codes";
-import { SuccessStatus } from "../../../constants/enums";
+import { SuccessStatus, CompletionStatus } from "../../../constants/enums";
 
 /**
  * Enum for rule condition operators
@@ -41,7 +41,7 @@ export enum RuleConditionType {
 export enum RuleActionType {
   SKIP = "skip",
   DISABLED = "disabled",
-  HIDE_FROM_CHOICE = "hideFromChoice",
+  HIDE_FROM_CHOICE = "hiddenFromChoice",
   STOP_FORWARD_TRAVERSAL = "stopForwardTraversal",
   EXIT_PARENT = "exitParent",
   EXIT_ALL = "exitAll",
@@ -222,20 +222,32 @@ export class RuleCondition extends BaseCMI {
       }
       case RuleConditionType.COMPLETED:
       case RuleConditionType.ACTIVITY_COMPLETED:
-        result = activity.isCompleted;
+        // SCORM 2004 4th Edition: When referencedObjective is specified,
+        // check the objective's completion status instead of the activity's
+        if (referencedObjective) {
+          result = referencedObjective.completionStatus === CompletionStatus.COMPLETED;
+        } else {
+          result = activity.isCompleted;
+        }
         break;
       case RuleConditionType.PROGRESS_KNOWN:
       case RuleConditionType.ACTIVITY_PROGRESS_KNOWN:
-        result = activity.completionStatus !== "unknown";
+        // SCORM 2004 4th Edition: When referencedObjective is specified,
+        // check the objective's completion status instead of the activity's
+        if (referencedObjective) {
+          result = referencedObjective.completionStatus !== CompletionStatus.UNKNOWN;
+        } else {
+          result = activity.completionStatus !== "unknown";
+        }
         break;
       case RuleConditionType.ATTEMPTED:
         result = activity.attemptCount > 0;
         break;
-      case RuleConditionType.ATTEMPT_LIMIT_EXCEEDED: {
-        const attemptLimit = this._parameters.get("attemptLimit") || 0;
-        result = activity.attemptCount >= attemptLimit;
+      case RuleConditionType.ATTEMPT_LIMIT_EXCEEDED:
+        // Use activity's hasAttemptLimitExceeded() which properly checks
+        // if the activity has an attempt limit set
+        result = activity.hasAttemptLimitExceeded();
         break;
-      }
       case RuleConditionType.TIME_LIMIT_EXCEEDED:
         result = this.evaluateTimeLimitExceeded(activity);
         break;

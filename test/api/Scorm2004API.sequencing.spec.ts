@@ -1,10 +1,7 @@
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import Scorm2004API from "../../src/Scorm2004API";
 import { LogLevelEnum } from "../../src/constants/enums";
 import { Settings } from "../../src/types/api_types";
-import { Activity } from "../../src/cmi/scorm2004/sequencing/activity";
-import { SequencingRule } from "../../src/cmi/scorm2004/sequencing/sequencing_rules";
-import { RollupRule } from "../../src/cmi/scorm2004/sequencing/rollup_rules";
 
 const api = (settings?: Settings): Scorm2004API => {
   return new Scorm2004API({ ...settings, logLevel: LogLevelEnum.NONE });
@@ -391,7 +388,7 @@ describe("SCORM 2004 API Sequencing Configuration Tests", () => {
       const result = apiInstance.lmsGetValue("adl.nav.request_valid.choice.{target=sco1}");
 
       // The validator should have been called with the target (matches[2] captures last part)
-      expect(validatorSpy).toHaveBeenCalledWith("1");
+      expect(validatorSpy).toHaveBeenCalledWith("sco1");
       expect(result).toBe("true");
     });
 
@@ -446,7 +443,7 @@ describe("SCORM 2004 API Sequencing Configuration Tests", () => {
       apiInstance.lmsInitialize();
       const result = apiInstance.lmsGetValue("adl.nav.request_valid.choice.{target=course}");
 
-      expect(validatorSpy).toHaveBeenCalledWith("e"); // Last character due to regex
+      expect(validatorSpy).toHaveBeenCalledWith("course");
       expect(result).toBe("false"); // Should return false when validation fails
     });
   });

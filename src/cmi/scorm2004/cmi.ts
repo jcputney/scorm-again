@@ -246,6 +246,16 @@ export class CMI extends BaseRootCMI {
   }
 
   /**
+   * Internal getter for exit value - for use by the API for sequencing purposes.
+   * This bypasses the write-only restriction since the API needs to know the exit
+   * value to properly handle sequencing and navigation.
+   * @return {string}
+   */
+  getExitValueInternal(): string {
+    return this.session.getExitValueInternal();
+  }
+
+  /**
    * Getter for _launch_data
    * @return {string}
    */

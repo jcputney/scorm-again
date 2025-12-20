@@ -39,7 +39,7 @@ export class Scorm12Sequencer {
   private _scoList: ScoDefinition[];
   private _stateTracker: ScoStateTracker;
   private _scoById: Map<string, ScoDefinition>;
-  private _availabilityFilter?: ScoAvailabilityFilter;
+  private _availabilityFilter: ScoAvailabilityFilter | undefined;
 
   /**
    * Create a new sequencer
@@ -104,7 +104,7 @@ export class Scorm12Sequencer {
     // Find next available SCO
     for (let i = currentIndex + 1; i < this._scoList.length; i++) {
       const sco = this._scoList[i];
-      if (this._isAvailable(sco)) {
+      if (sco && this._isAvailable(sco)) {
         return sco;
       }
     }
@@ -129,7 +129,7 @@ export class Scorm12Sequencer {
     // Find previous available SCO
     for (let i = currentIndex - 1; i >= 0; i--) {
       const sco = this._scoList[i];
-      if (this._isAvailable(sco)) {
+      if (sco && this._isAvailable(sco)) {
         return sco;
       }
     }
