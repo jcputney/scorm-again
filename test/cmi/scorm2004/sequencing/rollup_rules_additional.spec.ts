@@ -15,26 +15,49 @@ import { CompletionStatus, SuccessStatus } from "../../../../src/constants/enums
 describe("Additional RollupRules Tests", () => {
   describe("RollupCondition", () => {
     describe("evaluate", () => {
-      it("should evaluate OBJECTIVE_STATUS_KNOWN condition", () => {
+      it("should evaluate OBJECTIVE_STATUS_KNOWN condition based on satisfaction status being known", () => {
         const condition = new RollupCondition(RollupConditionType.OBJECTIVE_STATUS_KNOWN);
-        const activity = new Activity();
+        const activity = new Activity({ id: "test" });
 
-        activity.objectiveMeasureStatus = true;
+        // Initially, satisfaction status is not known
+        expect(condition.evaluate(activity)).toBe(false);
+
+        // Setting satisfied status marks it as known
+        activity.objectiveSatisfiedStatus = true;
         expect(condition.evaluate(activity)).toBe(true);
 
-        activity.objectiveMeasureStatus = false;
-        expect(condition.evaluate(activity)).toBe(false);
+        // Even if satisfaction is false, if it's known, condition is true
+        const activity2 = new Activity({ id: "test2" });
+        activity2.objectiveSatisfiedStatus = false;
+        expect(condition.evaluate(activity2)).toBe(true);
       });
 
-      it("should evaluate OBJECTIVE_MEASURE_KNOWN condition", () => {
+      it("should evaluate OBJECTIVE_MEASURE_KNOWN condition based on measure status", () => {
         const condition = new RollupCondition(RollupConditionType.OBJECTIVE_MEASURE_KNOWN);
-        const activity = new Activity();
+        const activity = new Activity({ id: "test" });
 
+        // Measure not known initially
+        expect(condition.evaluate(activity)).toBe(false);
+
+        // Setting measure status marks it as known
         activity.objectiveMeasureStatus = true;
         expect(condition.evaluate(activity)).toBe(true);
+      });
 
-        activity.objectiveMeasureStatus = false;
-        expect(condition.evaluate(activity)).toBe(false);
+      it("should distinguish between OBJECTIVE_STATUS_KNOWN and OBJECTIVE_MEASURE_KNOWN", () => {
+        const statusCondition = new RollupCondition(RollupConditionType.OBJECTIVE_STATUS_KNOWN);
+        const measureCondition = new RollupCondition(RollupConditionType.OBJECTIVE_MEASURE_KNOWN);
+        const activity = new Activity({ id: "test" });
+
+        // Set satisfaction status but not measure status
+        activity.objectiveSatisfiedStatus = true;
+        expect(statusCondition.evaluate(activity)).toBe(true);  // Status IS known
+        expect(measureCondition.evaluate(activity)).toBe(false); // Measure NOT known
+
+        // Now set measure status
+        activity.objectiveMeasureStatus = true;
+        expect(statusCondition.evaluate(activity)).toBe(true);  // Status still known
+        expect(measureCondition.evaluate(activity)).toBe(true); // Measure now known
       });
 
       it("should evaluate OBJECTIVE_MEASURE_LESS_THAN condition", () => {

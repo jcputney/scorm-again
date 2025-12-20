@@ -109,10 +109,19 @@ export class RollupCondition extends BaseCMI {
   evaluate(activity: Activity): boolean {
     switch (this._condition) {
       case RollupConditionType.SATISFIED:
-        return activity.successStatus === SuccessStatus.PASSED;
+        // Per SCORM 2004 SN Book RB.1.4.1, the "satisfied" condition checks the
+        // objective satisfaction status from the activity's tracked objective.
+        // This is populated via global objective mapping (readSatisfiedStatus).
+        // Also check successStatus for backward compatibility with leaf activities.
+        return activity.objectiveSatisfiedStatus === true ||
+               activity.successStatus === SuccessStatus.PASSED;
       case RollupConditionType.OBJECTIVE_STATUS_KNOWN:
-        return activity.objectiveMeasureStatus;
+        // Per SCORM 2004 SN Book RB.1.4.1, objectiveStatusKnown checks if
+        // the objective's satisfaction status has been explicitly determined
+        return activity.objectiveSatisfiedStatusKnown;
       case RollupConditionType.OBJECTIVE_MEASURE_KNOWN:
+        // Per SCORM 2004 SN Book RB.1.4.1, objectiveMeasureKnown checks if
+        // the objective has a valid measure value
         return activity.objectiveMeasureStatus;
       case RollupConditionType.OBJECTIVE_MEASURE_GREATER_THAN: {
         const greaterThanValue = this._parameters.get("threshold") || 0;
