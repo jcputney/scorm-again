@@ -1485,6 +1485,7 @@ export class OverallSequencingProcess {
     if (cmiData.success_status && cmiData.success_status !== "unknown") {
       const successStatus = cmiData.success_status === "passed";
       activity.objectiveSatisfiedStatus = successStatus;
+      activity.objectiveSatisfiedStatusKnown = true;  // Mark as known when transferred from CMI
       activity.successStatus = cmiData.success_status as "passed" | "failed" | "unknown";
       // Set measureStatus to true so global objective mapping can write to global map
       // Per SCORM 2004 SN Book, when success_status is known, the objective has known status
@@ -1492,6 +1493,7 @@ export class OverallSequencingProcess {
 
       if (activity.primaryObjective) {
         activity.primaryObjective.satisfiedStatus = successStatus;
+        activity.primaryObjective.satisfiedStatusKnown = true;  // Mark as known
         activity.primaryObjective.progressStatus = true;
         // Set measureStatus to true for global objective sync to work
         activity.primaryObjective.measureStatus = true;
