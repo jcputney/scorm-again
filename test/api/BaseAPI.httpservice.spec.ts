@@ -60,4 +60,47 @@ describe("BaseAPI HTTP Service Selection", () => {
     });
     expect((api as any).settings.throttleCommits).toBe(true);
   });
+
+  describe("asyncCommit backwards compatibility", () => {
+    it("should enable useAsynchronousCommits and throttleCommits when asyncCommit=true", () => {
+      const warnSpy = vi.spyOn(console, "warn");
+      const api = new Scorm12API({ asyncCommit: true });
+      expect((api as any).settings.useAsynchronousCommits).toBe(true);
+      expect((api as any).settings.throttleCommits).toBe(true);
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("DEPRECATED: 'asyncCommit' setting is deprecated"),
+      );
+      warnSpy.mockRestore();
+    });
+
+    it("should not enable async settings when asyncCommit=false", () => {
+      const warnSpy = vi.spyOn(console, "warn");
+      const api = new Scorm12API({ asyncCommit: false });
+      expect((api as any).settings.useAsynchronousCommits).toBe(false);
+      expect((api as any).settings.throttleCommits).toBe(false);
+      // Should still warn about deprecation
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("DEPRECATED: 'asyncCommit' setting is deprecated"),
+      );
+      warnSpy.mockRestore();
+    });
+
+    it("should prefer explicit new settings over asyncCommit", () => {
+      const warnSpy = vi.spyOn(console, "warn");
+      const api = new Scorm12API({
+        asyncCommit: true,
+        useAsynchronousCommits: false, // Explicit setting takes precedence
+      });
+      expect((api as any).settings.useAsynchronousCommits).toBe(false);
+      // No deprecation warning when new settings are explicitly set
+      expect(warnSpy).not.toHaveBeenCalledWith(expect.stringContaining("DEPRECATED"));
+      warnSpy.mockRestore();
+    });
+
+    it("should use AsynchronousHttpService when asyncCommit=true", () => {
+      const api = new Scorm12API({ asyncCommit: true });
+      const service = (api as any)._httpService;
+      expect(service).toBeInstanceOf(AsynchronousHttpService);
+    });
+  });
 });

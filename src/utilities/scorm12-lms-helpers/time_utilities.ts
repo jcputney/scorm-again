@@ -31,12 +31,12 @@ export function parseScormTime(timeString: string): number {
   let seconds = 0;
 
   if (parts.length === 3) {
-    hours = parseInt(parts[0], 10) || 0;
-    minutes = parseInt(parts[1], 10) || 0;
-    seconds = parseFloat(parts[2]) || 0;
+    hours = parseInt(parts[0] ?? "", 10) || 0;
+    minutes = parseInt(parts[1] ?? "", 10) || 0;
+    seconds = parseFloat(parts[2] ?? "") || 0;
   } else if (parts.length === 2) {
-    minutes = parseInt(parts[0], 10) || 0;
-    seconds = parseFloat(parts[1]) || 0;
+    minutes = parseInt(parts[0] ?? "", 10) || 0;
+    seconds = parseFloat(parts[1] ?? "") || 0;
   }
 
   return hours * 3600 + minutes * 60 + seconds;

@@ -1434,8 +1434,9 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       // Load the posttest assessment SCO directly
+      // Use assessment1 (Playing quiz) as one of the randomized tests
       const posttestPath =
-        "/test/integration/modules/SequencingRandomTest_SCORM20043rdEdition/shared/launchpage.html?content=assessment";
+        "/test/integration/modules/SequencingRandomTest_SCORM20043rdEdition/shared/launchpage.html?content=assessment1";
       await page.goto(`${wrapper.path}?module=${posttestPath}`);
       await page.waitForLoadState("networkidle");
 
@@ -1474,8 +1475,9 @@ wrappers.forEach((wrapper) => {
       page,
     }) => {
       // Load the posttest assessment SCO directly
+      // Use assessment2 (Etiquette quiz) as one of the randomized tests
       const posttestPath =
-        "/test/integration/modules/SequencingRandomTest_SCORM20043rdEdition/shared/launchpage.html?content=assessment";
+        "/test/integration/modules/SequencingRandomTest_SCORM20043rdEdition/shared/launchpage.html?content=assessment2";
       await page.goto(`${wrapper.path}?module=${posttestPath}`);
       await page.waitForLoadState("networkidle");
 

@@ -505,10 +505,6 @@ export class SequencingProcess {
           // choiceExit is false at this active ancestor
           // Check if target is a descendant of this ancestor
           if (!this.isActivity1AParentOfActivity2(currentAncestor, targetActivity)) {
-            this.logger?.debug(
-                `[SequencingProcess] choiceExit blocked: Cannot exit from ${currentAncestor.id} to ${targetActivity.id} (SB.2.9-8). ` +
-                `Ancestor ${currentAncestor.id} is active with choiceExit=false, blocking navigation outside its subtree.`
-            );
             result.exception = "SB.2.9-8";
             return result;
           }
@@ -914,6 +910,14 @@ export class SequencingProcess {
   private checkActivityProcess(activity: Activity): boolean {
     // Check if activity is available
     if (!activity.isAvailable) {
+      return false;
+    }
+
+    // For leaf activities, check visibility
+    // Note: isVisible only affects deliverability of leaf activities, not cluster traversal.
+    // Invisible clusters (isVisible=false) can still be traversed by flow navigation - they
+    // just won't appear in the TOC. This is a common SCORM pattern for grouping content.
+    if (activity.children.length === 0 && !activity.isVisible) {
       return false;
     }
 
@@ -2720,6 +2724,21 @@ export class SequencingProcess {
         if (!choicePathValidation.valid) {
           return choicePathValidation;
         }
+        // Check if target activity is disabled by precondition rules (SB.2.3)
+        // This includes attemptLimitExceeded and other limit conditions
+        if (!this.checkActivityProcess(targetActivity)) {
+          return {valid: false, exception: "SB.2.9-6"}; // Activity is disabled
+        }
+        // Additional check for hiddenFromChoice precondition rule (SB.2.3)
+        // This is separate from checkActivityProcess because hiddenFromChoice
+        // only affects choice navigation, not flow navigation
+        const preConditionResult = this.sequencingRulesCheckProcess(
+            targetActivity,
+            targetActivity.sequencingRules.preConditionRules
+        );
+        if (preConditionResult === RuleActionType.HIDE_FROM_CHOICE) {
+          return {valid: false, exception: "SB.2.9-4"}; // Activity is hidden from choice
+        }
         break;
       }
 
@@ -2767,9 +2786,6 @@ export class SequencingProcess {
     let activity: Activity | null = targetActivity;
     while (activity) {
       if (activity.isHiddenFromChoice) {
-        this.logger?.debug(
-            `[SequencingProcess] Choice blocked: Activity ${activity.id} is hidden from choice (SB.2.9-4)`
-        );
         return {valid: false, exception: "SB.2.9-4"};
       }
 
@@ -2800,10 +2816,6 @@ export class SequencingProcess {
         // choiceExit is false at this active ancestor
         // Check if target is a descendant of this ancestor
         if (!this.isActivity1AParentOfActivity2(currentAncestor, targetActivity)) {
-          this.logger?.debug(
-              `[SequencingProcess] choiceExit blocked: Cannot exit from ${currentAncestor.id} to ${targetActivity.id} (SB.2.9-8). ` +
-              `Ancestor ${currentAncestor.id} is active with choiceExit=false, blocking navigation outside its subtree.`
-          );
           return {valid: false, exception: "SB.2.9-8"};
         }
         // If target is within this subtree, we can stop checking choiceExit at higher levels
@@ -2921,7 +2933,7 @@ export class SequencingProcess {
    */
   public getAvailableChoices(): Activity[] {
     const allActivities = this.activityTree.getAllActivities();
-    const currentActivity = this.currentActivity;
+    const currentActivity = this.activityTree.currentActivity;
     const availableActivities: Activity[] = [];
 
     for (const activity of allActivities) {

@@ -205,19 +205,31 @@ describe("SequencingService", () => {
     });
 
     it("should emit navigation validity updates including hideLmsUi directives", () => {
+      // Set hideLmsUi values BEFORE creating the service since sequencing processes
+      // are now created in the constructor (to enable pre-SCO navigation)
       const rootActivity = sequencing.activityTree.root!;
       rootActivity.hideLmsUi = ["continue"];
       sequencing.hideLmsUi = ["exit"];
 
+      // Create a new service with the updated hideLmsUi configuration
+      const testService = new SequencingService(
+        sequencing,
+        cmi,
+        adl,
+        eventService,
+        loggingService,
+        configuration,
+      );
+
       let captured: any = null;
-      sequencingService.setEventListeners({
+      testService.setEventListeners({
         onNavigationValidityUpdate: (payload: any) => {
           captured = payload;
         },
       });
 
-      sequencingService.initialize();
-      sequencingService.processNavigationRequest("start");
+      testService.initialize();
+      testService.processNavigationRequest("start");
 
       expect(captured).toBeTruthy();
       expect(captured.hideLmsUi).toEqual(["continue", "exit"]);
@@ -245,7 +257,9 @@ describe("SequencingService", () => {
     it("should return correct initial state", () => {
       const state = sequencingService.getSequencingState();
 
-      expect(state.isInitialized).toBe(false);
+      // isInitialized is true after construction because sequencing processes
+      // are created in the constructor to enable pre-SCO navigation
+      expect(state.isInitialized).toBe(true);
       expect(state.isActive).toBe(false);
       expect(state.currentActivity).toBeNull();
       expect(state.rootActivity).toBeDefined();

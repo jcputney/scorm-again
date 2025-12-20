@@ -11,6 +11,11 @@ export type Settings = {
   autocommitSeconds?: number | undefined;
   throttleCommits?: boolean | undefined;
   useAsynchronousCommits?: boolean | undefined;
+  /**
+   * @deprecated Use `useAsynchronousCommits` and `throttleCommits` instead.
+   * Setting this to true will enable both useAsynchronousCommits and throttleCommits.
+   */
+  asyncCommit?: boolean | undefined;
   sendFullCommit?: boolean | undefined;
   lmsCommitUrl?: boolean | string | undefined;
   dataCommitFormat?: string | undefined;

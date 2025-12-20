@@ -145,7 +145,7 @@ export default class CrossFrameLMS {
     };
 
     try {
-      const fn = (this._api as Record<string, unknown>)[msg.method];
+      const fn = (this._api as unknown as Record<string, unknown>)[msg.method];
       if (typeof fn !== "function") {
         sendResponse(undefined, { message: `Method ${msg.method} not found` });
         return;

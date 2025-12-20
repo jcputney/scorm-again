@@ -221,13 +221,14 @@ describe("Post-Condition Rules Subprocess (TB.2.2)", () => {
 
     it("should handle attempt limit conditions", () => {
       // Add post-condition rule based on attempt limit
+      // SCORM 2004 specifies attemptLimit is a property of the activity itself
       const exitRule = new SequencingRule(RuleActionType.EXIT_PARENT);
       const attemptCondition = new RuleCondition(
         RuleConditionType.ATTEMPT_LIMIT_EXCEEDED
       );
-      attemptCondition.parameters.set("attemptLimit", 3);
       exitRule.addCondition(attemptCondition);
       childActivity1.sequencingRules.addPostConditionRule(exitRule);
+      childActivity1.attemptLimit = 3;
 
       // Less than limit
       childActivity1.incrementAttemptCount(); // 1

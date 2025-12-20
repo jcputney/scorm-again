@@ -4,7 +4,7 @@
  * Demonstrates manual navigation control with 2004 events
  */
 
-import Scorm2004API from 'scorm-again/Scorm2004API';
+import { Scorm2004API } from 'scorm-again/Scorm2004API';
 import {
   $,
   createElement,
@@ -161,6 +161,7 @@ class Scorm2004SimplePlayer {
     this.state = new PlayerState();
     this.api = null;
     this.manifest = COURSE_MANIFEST;
+    this.pendingNavigation = null;
 
     this.dom = {
       title: $('#course-title'),
@@ -210,6 +211,13 @@ class Scorm2004SimplePlayer {
     // Expose for SCO discovery
     window.API_1484_11 = this.api;
 
+    // Set up event listeners
+    this.setupApiListeners();
+
+    log.info('SCORM 2004 API initialized as window.API_1484_11');
+  }
+
+  setupApiListeners() {
     // Core API events
     this.api.on('Initialize', () => this.handleInitialize());
     this.api.on('SetValue', (element, value) => this.handleSetValue(element, value));
@@ -219,8 +227,6 @@ class Scorm2004SimplePlayer {
     // Navigation request events (from SCO setting adl.nav.request)
     this.api.on('SequenceNext', () => this.handleSequenceNext());
     this.api.on('SequencePrevious', () => this.handleSequencePrevious());
-
-    log.info('SCORM 2004 API initialized as window.API_1484_11');
   }
 
   // ---------------------------------------------------------------------------
@@ -300,12 +306,26 @@ class Scorm2004SimplePlayer {
 
   handleSequenceNext() {
     log.info('SequenceNext requested');
-    // Will be handled after Terminate
+    const currentScoId = this.state.currentScoId;
+    if (currentScoId) {
+      const next = this.getNextSco(currentScoId);
+      if (next) {
+        // Navigation will happen after termination completes
+        this.pendingNavigation = { type: 'next', scoId: next.id };
+      }
+    }
   }
 
   handleSequencePrevious() {
     log.info('SequencePrevious requested');
-    // Will be handled after Terminate
+    const currentScoId = this.state.currentScoId;
+    if (currentScoId) {
+      const prev = this.getPrevSco(currentScoId);
+      if (prev) {
+        // Navigation will happen after termination completes
+        this.pendingNavigation = { type: 'previous', scoId: prev.id };
+      }
+    }
   }
 
   processTermination(scoId, exit, navRequest) {
@@ -321,21 +341,12 @@ class Scorm2004SimplePlayer {
       return;
     }
 
-    // Handle navigation requests
-    if (navRequest === 'continue' || navRequest === '{target=_none_}continue') {
-      const next = this.getNextSco(scoId);
-      if (next) {
-        setTimeout(() => this.launchSco(next.id), 300);
-        return;
-      }
-    }
-
-    if (navRequest === 'previous') {
-      const prev = this.getPrevSco(scoId);
-      if (prev) {
-        setTimeout(() => this.launchSco(prev.id), 300);
-        return;
-      }
+    // Handle navigation set by SequenceNext/SequencePrevious events
+    if (this.pendingNavigation) {
+      const nav = this.pendingNavigation;
+      this.pendingNavigation = null;
+      setTimeout(() => this.launchSco(nav.scoId), 300);
+      return;
     }
 
     // Default: stay on menu (suspend case)
@@ -379,6 +390,11 @@ class Scorm2004SimplePlayer {
     if (!sco) return;
 
     log.info(`Launching SCO: ${scoId}`);
+
+    // Reset API for new SCO session (clears state and allows new Initialize)
+    this.api.reset();
+    // Re-register event listeners after reset
+    this.setupApiListeners();
 
     const existingState = this.state.getScoState(scoId);
 

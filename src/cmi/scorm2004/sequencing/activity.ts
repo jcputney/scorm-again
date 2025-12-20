@@ -86,6 +86,7 @@ export class ActivityObjective {
   private _isPrimary: boolean;
 
   private _satisfiedStatus: boolean = false;
+  private _satisfiedStatusKnown: boolean = false;
   private _measureStatus: boolean = false;
   private _normalizedMeasure: number = 0;
   private _progressMeasure: number = 0;
@@ -150,6 +151,14 @@ export class ActivityObjective {
     this._satisfiedStatus = value;
   }
 
+  get satisfiedStatusKnown(): boolean {
+    return this._satisfiedStatusKnown;
+  }
+
+  set satisfiedStatusKnown(value: boolean) {
+    this._satisfiedStatusKnown = value;
+  }
+
   get measureStatus(): boolean {
     return this._measureStatus;
   }
@@ -200,6 +209,7 @@ export class ActivityObjective {
 
   resetState(): void {
     this._satisfiedStatus = false;
+    this._satisfiedStatusKnown = false;
     this._measureStatus = false;
     this._normalizedMeasure = 0;
     this._progressMeasure = 0;
@@ -210,6 +220,7 @@ export class ActivityObjective {
 
   updateFromActivity(activity: Activity): void {
     this._satisfiedStatus = activity.objectiveSatisfiedStatus;
+    this._satisfiedStatusKnown = activity.objectiveSatisfiedStatusKnown;
     this._measureStatus = activity.objectiveMeasureStatus;
     this._normalizedMeasure = activity.objectiveNormalizedMeasure;
     this._progressMeasure = activity.progressMeasure;

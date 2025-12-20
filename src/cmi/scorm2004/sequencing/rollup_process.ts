@@ -192,6 +192,7 @@ export class RollupProcess {
   private syncPrimaryObjectiveFromActivity(activity: Activity): void {
     if (activity.primaryObjective) {
       activity.primaryObjective.satisfiedStatus = activity.objectiveSatisfiedStatus;
+      activity.primaryObjective.satisfiedStatusKnown = activity.objectiveSatisfiedStatusKnown;
       activity.primaryObjective.measureStatus = activity.objectiveMeasureStatus;
       activity.primaryObjective.normalizedMeasure = activity.objectiveNormalizedMeasure;
       activity.primaryObjective.progressMeasure = activity.progressMeasure;
@@ -1643,7 +1644,7 @@ export class RollupProcess {
       globalObjectives.set(targetId, {
         id: targetId,
         satisfiedStatus: objective.satisfiedStatus,
-        satisfiedStatusKnown: objective.measureStatus,
+        satisfiedStatusKnown: objective.satisfiedStatusKnown,
         normalizedMeasure: objective.normalizedMeasure,
         normalizedMeasureKnown: objective.measureStatus,
         progressMeasure: objective.progressMeasure,

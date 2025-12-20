@@ -37,6 +37,11 @@ export interface SequencingEventListeners {
   onLimitConditionCheck?: (activity: Activity, result: boolean) => void;
   onNavigationValidityUpdate?: (validity: any) => void;
   onSequencingStateChange?: (state: any) => void;
+  onSequencingSessionEnd?: (data: {
+    reason: string;
+    exception?: string | null;
+    navigationRequest?: string;
+  }) => void;
 }
 
 /**
@@ -121,17 +126,18 @@ export class SequencingService {
       RuleCondition.setNowProvider(this.configuration.now);
     }
     this.setupCMIChangeWatchers();
+
+    // Create sequencing processes immediately so navigation requests work before SCO Initialize
+    this.createSequencingProcesses();
   }
 
   /**
-   * Initialize the sequencing service
-   * Called when SCORM API Initialize() is called
+   * Create sequencing processes
+   * Called from constructor to enable navigation before SCO Initialize
    */
-  public initialize(): string {
+  private createSequencingProcesses(): void {
     try {
-      this.log("info", "Initializing sequencing service");
-
-      // Initialize sequencing components
+      // Initialize sequencing components if not already done
       if (!this.sequencing.initialized) {
         this.sequencing.initialize();
       }
@@ -194,18 +200,36 @@ export class SequencingService {
         // Store reference on sequencing object for access from ADL nav
         this.sequencing.overallSequencingProcess = this.overallSequencingProcess;
 
-        this.log("info", "Sequencing processes created");
+        // Mark as initialized so navigation requests work
+        this.isInitialized = true;
+
+        this.log("info", "Sequencing processes created and ready for navigation");
+      }
+    } catch (error) {
+      this.log("error", `Failed to create sequencing processes: ${error}`);
+    }
+  }
+
+  /**
+   * Initialize the sequencing service
+   * Called when SCORM API Initialize() is called
+   * Note: Sequencing processes are created in constructor to enable pre-SCO navigation
+   */
+  public initialize(): string {
+    try {
+      this.log("info", "Initializing sequencing service for SCO session");
+
+      // Ensure processes are created (should already be done in constructor)
+      if (!this.isInitialized) {
+        this.createSequencingProcesses();
       }
 
-      // Mark service initialized before processing navigation so auto-start requests are honored
-      this.isInitialized = true;
-
-      // Start automatic sequencing if configured
-      if (this.shouldAutoStartSequencing()) {
+      // Start automatic sequencing if configured and not already started
+      if (this.shouldAutoStartSequencing() && !this.isSequencingActive) {
         this.startSequencing();
       }
 
-      // Initialize CMI tracking
+      // Initialize CMI tracking for the current activity
       this.initializeCMITracking();
       this.fireEvent("onSequencingStart", this.sequencing.getCurrentActivity());
 
@@ -865,6 +889,9 @@ export class SequencingService {
           break;
         case "onNavigationValidityUpdate":
           this.fireNavigationValidityUpdate(data);
+          break;
+        case "onSequencingSessionEnd":
+          this.fireEvent("onSequencingSessionEnd", data);
           break;
         default:
           // Pass through unknown events as debug events

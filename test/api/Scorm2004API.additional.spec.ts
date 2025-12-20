@@ -40,7 +40,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       const result = scorm2004API.lmsGetValue("adl.nav.request_valid.choice.{target=sco-1}");
 
       // The API is returning "false" because the regex pattern in lmsGetValue is not matching correctly
-      expect(result).toBe("false");
+      expect(result).toBe("true");
     });
 
     it("should handle adl.nav.request_valid.jump with target", (): void => {
@@ -55,7 +55,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       const result = scorm2004API.lmsGetValue("adl.nav.request_valid.jump.{target=sco-1}");
 
       // The API is returning "false" because the regex pattern in lmsGetValue is not matching correctly
-      expect(result).toBe("false");
+      expect(result).toBe("true");
     });
 
     it("should return false for invalid target in adl.nav.request_valid.choice", (): void => {

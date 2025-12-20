@@ -7,6 +7,11 @@ import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_p
 import { SequencingRule, RuleCondition, RuleActionType, RuleConditionType } from "../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 import { CompletionStatus, SuccessStatus } from "../../../../src/constants/enums";
 import { SequencingService } from "../../../../src/services/SequencingService";
+import { Sequencing } from "../../../../src/cmi/scorm2004/sequencing/sequencing";
+import { CMI } from "../../../../src/cmi/scorm2004/cmi";
+import { ADL } from "../../../../src/cmi/scorm2004/adl";
+import { EventService } from "../../../../src/services/EventService";
+import { LoggingService } from "../../../../src/services/LoggingService";
 
 /**
  * Auto-Progress Integration Tests (REQ-NAV-058)
@@ -148,11 +153,26 @@ describe("Auto-Progress Integration Tests (REQ-NAV-058)", () => {
   });
 
   describe("Auto-Progress Configuration", () => {
+    let sequencing: Sequencing;
+    let cmi: CMI;
+    let adl: ADL;
+    let eventService: EventService;
+    let loggingService: LoggingService;
+
+    beforeEach(() => {
+      sequencing = new Sequencing();
+      sequencing.activityTree.root = rootActivity;
+      cmi = new CMI();
+      adl = new ADL();
+      eventService = new EventService();
+      loggingService = new LoggingService();
+    });
+
     it("should support autoProgressOnCompletion setting in SequencingService", () => {
       // Create sequencing service with auto-progress enabled
       // The configuration is validated at construction time
       expect(() => {
-        new SequencingService(activityTree, {
+        new SequencingService(sequencing, cmi, adl, eventService, loggingService, {
           autoProgressOnCompletion: true,
           autoRollupOnCMIChange: true,
           validateNavigationRequests: true,
@@ -164,13 +184,13 @@ describe("Auto-Progress Integration Tests (REQ-NAV-058)", () => {
       // Create sequencing service without specifying auto-progress
       // The default value for autoProgressOnCompletion is false
       expect(() => {
-        new SequencingService(activityTree, {});
+        new SequencingService(sequencing, cmi, adl, eventService, loggingService, {});
       }).not.toThrow();
     });
 
     it("should allow runtime configuration updates via updateConfiguration", () => {
       // Create sequencing service
-      const sequencingService = new SequencingService(activityTree, {
+      const sequencingService = new SequencingService(sequencing, cmi, adl, eventService, loggingService, {
         autoProgressOnCompletion: false,
       });
 

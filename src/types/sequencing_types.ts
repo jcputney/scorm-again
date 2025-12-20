@@ -280,15 +280,11 @@ export interface SequencingEventListeners {
     currentActivity: string | null;
     validRequests: string[];
   }) => void;
-  onLimitConditionCheck?: (data: {
-    activity: string;
-    limitType: string;
-    exceeded: boolean;
-  }) => void;
+  onLimitConditionCheck?: (activity: any, result: boolean) => void;
   onStateInconsistency?: (data: { activity: string; issue: string }) => void;
   onGlobalObjectiveMapInitialized?: (data: { count: number }) => void;
   onGlobalObjectiveMapError?: (data: { error: string }) => void;
   onGlobalObjectiveUpdated?: (data: { objectiveId: string; field: string; value: any }) => void;
   onGlobalObjectiveUpdateError?: (data: { objectiveId: string; error: string }) => void;
-  onSequencingDebug?: (data: { message: string; context?: any }) => void;
+  onSequencingDebug?: (event: string, data?: any) => void;
 }

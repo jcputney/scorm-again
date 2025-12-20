@@ -29,16 +29,8 @@
       },
       time_limit_action: "exit,message",
       max_time_allowed: "PT1H",
-      objectives: [
-        {
-          id: "obj_playing",
-          score: {
-            raw: 0,
-            min: 0,
-            max: 100,
-          },
-        },
-      ],
+      // Note: Do not pre-load objectives here as it interferes with tests.
+      // Per SCORM 2004 spec, objective IDs cannot be changed once set.
     };
 
     function resolveWrapperConfig() {

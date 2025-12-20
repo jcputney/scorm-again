@@ -250,8 +250,8 @@ class Scorm2004API extends BaseAPI {
     const pendingNavRequest = this.adl?.nav?.request || "_none_";
 
     // Capture the cmi.exit value before termination for sequencing
-    // Note: cmi.exit is write-only, so we access the internal field directly from session
-    const exitType = (this.cmi?.session as any)?._exit || "";
+    // Note: cmi.exit is write-only, so we use the internal getter method
+    const exitType = this.cmi?.getExitValueInternal() || "";
 
     // Check if we were already terminated before calling terminate
     // This handles the case where a SCO's unload handler calls Terminate after
@@ -384,22 +384,34 @@ class Scorm2004API extends BaseAPI {
     }
 
     const adlNavRequestRegex =
-      "^adl\\.nav\\.request_valid\\.(choice|jump)\\.{target=\\S{0,}([a-zA-Z0-9-_]+)}$";
+      "^adl\\.nav\\.request_valid\\.(choice|jump)\\.{target=([a-zA-Z0-9-_]+)}$";
     if (stringMatches(CMIElement, adlNavRequestRegex)) {
       const matches = CMIElement.match(adlNavRequestRegex);
       if (matches) {
         const request = matches[1];
         const target = matches[2]?.replace(/{target=/g, "").replace(/}/g, "") || "";
         if (request === "choice" || request === "jump") {
+          // If sequencing is available with navigation look-ahead, use dynamic evaluation
+          const overallProcess = this._sequencing?.overallSequencingProcess;
+
           if (this.settings.scoItemIdValidator) {
             return String(this.settings.scoItemIdValidator(target));
           }
-          // If we have extracted IDs from sequencing, use those exclusively
-          if (this._extractedScoItemIds.length > 0) {
-            return String(this._extractedScoItemIds.includes(target));
+
+          if (overallProcess?.predictChoiceEnabled && request === "choice") {
+            // Use dynamic sequencing evaluation
+            return overallProcess.predictChoiceEnabled(target) ? "true" : "false";
+          } else if (overallProcess?.predictJumpEnabled && request === "jump") {
+            // Use dynamic sequencing evaluation for jump
+            return overallProcess.predictJumpEnabled(target) ? "true" : "false";
+          } else {
+            // If we have extracted IDs from sequencing, use those exclusively
+            if (this._extractedScoItemIds.length > 0) {
+              return String(this._extractedScoItemIds.includes(target));
+            }
+            // Otherwise use the scoItemIds from settings
+            return String(this.settings?.scoItemIds?.includes(target));
           }
-          // Otherwise use the scoItemIds from settings
-          return String(this.settings?.scoItemIds?.includes(target));
         }
       }
     }
@@ -2339,6 +2351,35 @@ class Scorm2004API extends BaseAPI {
   public resetSequencingState(): void {
     this._sequencing?.reset();
     this._sequencingService?.setEventListeners({});
+  }
+
+  /**
+   * Get tracking data for a specific activity
+   * Useful for players to update UI based on activity status
+   * @param {string} activityId - The activity ID
+   * @return {object | null} Tracking data for the activity or null if not found
+   */
+  public getActivityTrackingData(activityId: string): {
+    completionStatus: string;
+    successStatus: string;
+    progressMeasure: number | null;
+    score: number | null;
+  } | null {
+    if (!this._sequencing?.activityTree) {
+      return null;
+    }
+
+    const activity = this._sequencing.activityTree.getActivity(activityId);
+    if (!activity) {
+      return null;
+    }
+
+    return {
+      completionStatus: activity.completionStatus || "unknown",
+      successStatus: activity.successStatus || "unknown",
+      progressMeasure: activity.progressMeasure ?? null,
+      score: activity.objectiveMeasureStatus ? activity.objectiveNormalizedMeasure : null,
+    };
   }
 
   /**
