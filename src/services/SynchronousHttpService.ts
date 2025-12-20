@@ -62,9 +62,15 @@ export class SynchronousHttpService implements IHttpService {
       | CommitObject
       | StringKeyMap
       | Array<any>;
-    const { body, contentType } = this._prepareRequestBody(requestPayload);
+    const { body } = this._prepareRequestBody(requestPayload);
 
-    const beaconSuccess = navigator.sendBeacon(url, new Blob([body], { type: contentType }));
+    // Use text/plain for sendBeacon to avoid CORS preflight issues.
+    // application/json triggers CORS preflight which sendBeacon can't handle.
+    // The server can still parse the body as JSON.
+    const beaconSuccess = navigator.sendBeacon(
+      url,
+      new Blob([body], { type: "text/plain;charset=UTF-8" }),
+    );
 
     return {
       result: beaconSuccess ? "true" : "false",

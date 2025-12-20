@@ -366,7 +366,7 @@ export class ScoStateTracker {
   }
 
   private _emitChange(event: ScoStateChangeEvent): void {
-    for (const listener of this._listeners) {
+    for (const listener of Array.from(this._listeners)) {
       try {
         listener(event);
       } catch (e) {

@@ -116,30 +116,22 @@ describe("RuleCondition Edge Cases", () => {
     });
 
     it("should handle ATTEMPT_LIMIT_EXCEEDED with edge case values", () => {
-      const parameters = new Map([["attemptLimit", 0]]);
-      const condition = new RuleCondition(
-        RuleConditionType.ATTEMPT_LIMIT_EXCEEDED,
-        null,
-        parameters,
-      );
+      // SCORM 2004 specifies attemptLimit is a property of the activity itself
+      const condition = new RuleCondition(RuleConditionType.ATTEMPT_LIMIT_EXCEEDED);
       const activity = new Activity();
+      activity.attemptLimit = 0;
 
       // Test with attemptCount equal to 0 (should be true since 0 >= 0)
       expect(condition.evaluate(activity)).toBe(true);
 
       // Test with negative attemptLimit (invalid but should be handled)
-      const negativeParams = new Map([["attemptLimit", -1]]);
-      const negativeCondition = new RuleCondition(
-        RuleConditionType.ATTEMPT_LIMIT_EXCEEDED,
-        null,
-        negativeParams,
-      );
+      activity.attemptLimit = -1;
 
       // Any attempt count should exceed a negative limit
-      expect(negativeCondition.evaluate(activity)).toBe(true);
+      expect(condition.evaluate(activity)).toBe(true);
 
       activity.incrementAttemptCount();
-      expect(negativeCondition.evaluate(activity)).toBe(true);
+      expect(condition.evaluate(activity)).toBe(true);
     });
 
     it("should handle missing parameters for conditions that require them", () => {
@@ -163,11 +155,12 @@ describe("RuleCondition Edge Cases", () => {
       // Should use default threshold of 0
       expect(lessThanCondition.evaluate(activity)).toBe(true);
 
-      // Test ATTEMPT_LIMIT_EXCEEDED without attemptLimit parameter
+      // Test ATTEMPT_LIMIT_EXCEEDED without attemptLimit on activity
       const attemptLimitCondition = new RuleCondition(RuleConditionType.ATTEMPT_LIMIT_EXCEEDED);
 
-      // Should use default attemptLimit of 0
-      expect(attemptLimitCondition.evaluate(activity)).toBe(true);
+      // SCORM 2004: When no attemptLimit is set on activity, condition returns false
+      // (Activity.hasAttemptLimitExceeded() returns false when _attemptLimit is null)
+      expect(attemptLimitCondition.evaluate(activity)).toBe(false);
     });
 
     it("should handle non-boolean objectiveMeasureStatus values", () => {

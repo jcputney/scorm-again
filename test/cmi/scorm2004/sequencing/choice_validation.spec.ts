@@ -219,3 +219,173 @@ describe("CHOICE validation with isActive and common ancestor", () => {
     });
   });
 });
+
+/**
+ * PreOrPostTestRollup scenario test
+ * Tests the exact structure from the failing integration test:
+ * - Root with invisible dummy wrapper
+ * - Content wrapper with sibling content activities
+ * - Navigation between siblings under content_wrapper should work
+ */
+describe("PreOrPostTestRollup manifest structure", () => {
+  let root: Activity;
+  let dummyItem: Activity;
+  let pretestItem: Activity;
+  let contentWrapper: Activity;
+  let playingItem: Activity;
+  let etiquetteItem: Activity;
+  let handicappingItem: Activity;
+  let havingfunItem: Activity;
+  let posttestItem: Activity;
+  let activityTree: ActivityTree;
+  let sequencingProcess: SequencingProcess;
+  let rollupProcess: RollupProcess;
+  let overall: OverallSequencingProcess;
+
+  beforeEach(() => {
+    // Create activities matching the manifest structure
+    root = new Activity("golf_sample_default_org", "Golf Explained - Sequencing Pre or Post Test Rollup");
+    dummyItem = new Activity("dummy_item", "Dummy Item");
+    pretestItem = new Activity("pretest_item", "Pre Test");
+    contentWrapper = new Activity("content_wrapper", "Content Wrapper");
+    playingItem = new Activity("playing_item", "Playing the Game");
+    etiquetteItem = new Activity("etuqiette_item", "Etiquette");
+    handicappingItem = new Activity("handicapping_item", "Handicapping");
+    havingfunItem = new Activity("havingfun_item", "Having Fun");
+    posttestItem = new Activity("posttest_item", "Post Test");
+
+    // Build tree structure
+    contentWrapper.addChild(playingItem);
+    contentWrapper.addChild(etiquetteItem);
+    contentWrapper.addChild(handicappingItem);
+    contentWrapper.addChild(havingfunItem);
+
+    dummyItem.addChild(pretestItem);
+    dummyItem.addChild(contentWrapper);
+    dummyItem.addChild(posttestItem);
+
+    root.addChild(dummyItem);
+
+    // Set visibility (isvisible="false" maps to isHiddenFromChoice, but
+    // in the manifest content_wrapper and dummy_item are invisible clusters,
+    // they should still allow choice navigation of their children)
+    // NOTE: isvisible="false" affects UI display, not choice navigation
+    dummyItem.isVisible = false;
+    contentWrapper.isVisible = false;
+
+    // Enable choice controls on all activities per manifest
+    root.sequencingControls.choice = true;
+    root.sequencingControls.flow = true;
+    dummyItem.sequencingControls.choice = true;
+    dummyItem.sequencingControls.flow = true;
+    contentWrapper.sequencingControls.choice = true;
+    contentWrapper.sequencingControls.flow = true;
+    pretestItem.sequencingControls.choice = true;
+    playingItem.sequencingControls.choice = true;
+    etiquetteItem.sequencingControls.choice = true;
+    handicappingItem.sequencingControls.choice = true;
+    havingfunItem.sequencingControls.choice = true;
+    posttestItem.sequencingControls.choice = true;
+
+    // Mark leaf activities as available and not hidden from choice
+    playingItem.isAvailable = true;
+    etiquetteItem.isAvailable = true;
+    handicappingItem.isAvailable = true;
+    havingfunItem.isAvailable = true;
+    pretestItem.isAvailable = true;
+    posttestItem.isAvailable = true;
+    contentWrapper.isAvailable = true;
+    dummyItem.isAvailable = true;
+
+    root.initialize();
+
+    activityTree = new ActivityTree(root);
+    sequencingProcess = new SequencingProcess(activityTree);
+    rollupProcess = new RollupProcess();
+    overall = new OverallSequencingProcess(activityTree, sequencingProcess, rollupProcess);
+  });
+
+  it("should allow choice navigation between siblings under content_wrapper", () => {
+    // Setup: playing_item is current and active
+    playingItem.isActive = true;
+    contentWrapper.isActive = true;
+    dummyItem.isActive = true;
+    root.isActive = true;
+    activityTree.currentActivity = playingItem;
+
+    // Navigate to handicapping_item (sibling under content_wrapper)
+    const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, handicappingItem.id);
+
+    // Should succeed - both are children of content_wrapper which has choice=true
+    expect(result.valid).toBe(true);
+    expect(result.exception).toBeNull();
+  });
+
+  it("should allow navigation from pretest to playing (skipping invisible wrapper)", () => {
+    // Setup: pretest_item is current and active
+    pretestItem.isActive = true;
+    dummyItem.isActive = true;
+    root.isActive = true;
+    activityTree.currentActivity = pretestItem;
+
+    // Navigate to playing_item
+    const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, playingItem.id);
+
+    // Should succeed
+    expect(result.valid).toBe(true);
+    expect(result.exception).toBeNull();
+  });
+
+  it("should verify common ancestor is found correctly", () => {
+    // Setup: playing_item is current
+    playingItem.isActive = true;
+    activityTree.currentActivity = playingItem;
+
+    // Verify the tree structure
+    expect(playingItem.parent).toBe(contentWrapper);
+    expect(handicappingItem.parent).toBe(contentWrapper);
+    expect(contentWrapper.parent).toBe(dummyItem);
+    expect(dummyItem.parent).toBe(root);
+  });
+
+  it("should allow navigation from handicapping to havingfun (after navigation from playing)", () => {
+    // Setup: Simulate the state after navigating from playing to handicapping
+    // This reproduces the exact failing integration test scenario
+    handicappingItem.isActive = true;
+    contentWrapper.isActive = true;
+    dummyItem.isActive = true;
+    root.isActive = true;
+    activityTree.currentActivity = handicappingItem;
+
+    // Check if navigation to havingfun_item is valid (this is what's failing)
+    const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, havingfunItem.id);
+
+    // Should succeed - both are siblings under content_wrapper with choice=true
+    expect(result.valid).toBe(true);
+    expect(result.exception).toBeNull();
+  });
+
+  it("should allow navigation between any siblings under content_wrapper", () => {
+    // Test all sibling combinations
+    const siblings = [playingItem, etiquetteItem, handicappingItem, havingfunItem];
+
+    for (let i = 0; i < siblings.length; i++) {
+      for (let j = 0; j < siblings.length; j++) {
+        if (i === j) continue;
+
+        // Reset state for each test
+        siblings.forEach(s => s.isActive = false);
+        siblings[i].isActive = true;
+        contentWrapper.isActive = true;
+        dummyItem.isActive = true;
+        root.isActive = true;
+        activityTree.currentActivity = siblings[i];
+
+        const result = overall.processNavigationRequest(NavigationRequestType.CHOICE, siblings[j].id);
+
+        expect(result.valid).toBe(true);
+        expect(result.exception).toBeNull();
+      }
+    }
+  });
+});

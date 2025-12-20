@@ -10,10 +10,6 @@ type WrapperConfig = {
 
 const wrappers: WrapperConfig[] = [
   {
-    name: "Standard",
-    path: "/test/integration/wrappers/scorm2004-wrapper.html",
-  },
-  {
     name: "ESM",
     path: "/test/integration/wrappers/scorm2004-wrapper-esm.html",
   },

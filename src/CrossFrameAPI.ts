@@ -38,7 +38,7 @@ export default class CrossFrameAPI {
   private _destroyed = false;
   private _connected = true;
   private _lastHeartbeatResponse = Date.now();
-  private _heartbeatTimer?: ReturnType<typeof setInterval>;
+  private _heartbeatTimer: ReturnType<typeof setInterval> | undefined;
   private _eventListeners = new Map<string, Set<CrossFrameEventCallback>>();
   private readonly _boundOnMessage: (ev: MessageEvent) => void;
 
@@ -181,7 +181,7 @@ export default class CrossFrameAPI {
       this._heartbeatTimer = undefined;
     }
     // Reject all pending requests
-    for (const [, pending] of this._pending) {
+    for (const [, pending] of Array.from(this._pending)) {
       clearTimeout(pending.timer);
       pending.reject(new Error("CrossFrameAPI destroyed"));
     }
@@ -351,7 +351,7 @@ export default class CrossFrameAPI {
 
     console.error(`CrossFrameAPI ${method} error:`, err);
     const match = /\b(\d{3})\b/.exec(errorMessage);
-    const code = match ? match[1] : String(global_errors.GENERAL);
+    const code = match?.[1] ?? String(global_errors.GENERAL);
     this._lastError = code;
     this._cache.set(`error_${code}`, errorMessage);
   }

@@ -9,45 +9,31 @@
 
 # scorm-again
 
-This project was created to modernize the SCORM JavaScript runtime, and to provide a stable, tested
-platform for running SCORM 1.2 and SCORM 2004 modules. This module is designed to be LMS
-agnostic, and is written to be able to be run without a backing LMS, logging all function calls and
-data instead of committing, if an LMS endpoint is not configured.
+A modern, fully-tested JavaScript runtime for SCORM 1.2 and SCORM 2004.
 
-## Breaking Changes in v3.0.0
+> **Upgrading from v2.x?** See the [Migration Guide](MIGRATION.md) for breaking changes and migration steps.
 
-**Setting Renamed: `asyncCommit` → `throttleCommits`**
+## Overview
 
-The `asyncCommit` setting has been renamed to `throttleCommits` to better reflect its actual behavior. This setting throttles commit requests by delaying them 500ms, allowing rapid changes to be batched into a single commit, rather than simply making requests asynchronous.
+This project provides a stable, tested platform for running SCORM 1.2 and SCORM 2004 modules. It is designed to be LMS-agnostic and can run without a backing LMS, logging all function calls and data instead of committing if an LMS endpoint is not configured.
 
-**Migration:** Update your settings object from `asyncCommit: true` to `throttleCommits: true`.
+### Key Features in v3.0.0
 
-## Migration from v3.x to v4.x
+- **SCORM-compliant synchronous commits** - Commits now block and return actual LMS success/failure
+- **SCORM 2004 Sequencing** - Complete implementation of sequencing and navigation
+- **Cross-Frame Communication** - Run SCORM content in sandboxed iframes
+- **Offline Support** - Store and sync data when offline
+- **Improved Validation** - Stricter spec compliance with better error messages
 
-### Breaking Changes
+### Breaking Changes Summary
 
-**Default commit behavior is now synchronous (SCORM-compliant)**
+The most significant breaking changes in v3.0.0:
 
-In v3.x, all commits were asynchronous and always returned success immediately, regardless of actual LMS response. This violated SCORM specifications.
+1. **AICC support removed** - AICC uses HACP, not a JavaScript API
+2. **Commits are synchronous by default** - Better SCORM compliance
+3. **`asyncCommit` renamed** - Now `useAsynchronousCommits` + `throttleCommits`
 
-In v4.x, commits are **synchronous by default** and return actual success/failure from the LMS.
-
-**Impact:**
-- `LMSCommit()` and `LMSFinish()` now block until the LMS responds
-- Actual errors are now reported to the SCO
-- Better data integrity and SCORM compliance
-
-**To preserve legacy async behavior:**
-
-```javascript
-const api = new Scorm12API({
-  lmsCommitUrl: "/commit",
-  useAsynchronousCommits: true  // Opt-in to legacy behavior
-});
-// WARNING will be logged about SCORM non-compliance
-```
-
-**Note:** When using `useAsynchronousCommits=true`, `throttleCommits` can be enabled. With synchronous commits (default), throttling is not supported and will be automatically disabled with a warning.
+See [MIGRATION.md](MIGRATION.md) for the complete list and migration steps.
 
 ## What is this not and what doesn't it do?
 

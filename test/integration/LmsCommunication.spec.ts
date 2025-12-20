@@ -28,7 +28,9 @@ const MODULE_PATH =
   "/test/integration/modules/RuntimeBasicCalls_SCORM20043rdEdition/shared/launchpage.html";
 const WRAPPER_PATH = "/test/integration/wrappers/scorm2004-wrapper.html";
 
-test.describe("LMS Communication", () => {
+// Run these tests serially to avoid race conditions with the shared mock LMS server.
+// Other tests running in parallel could interfere with resetMockLms calls.
+test.describe.serial("LMS Communication", () => {
   test.beforeEach(async () => {
     // Reset mock LMS state before each test
     await resetMockLms(MOCK_LMS_URL);

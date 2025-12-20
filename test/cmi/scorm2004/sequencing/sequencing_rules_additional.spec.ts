@@ -84,13 +84,11 @@ describe("Additional SequencingRules Tests", () => {
       });
 
       it("should evaluate ATTEMPT_LIMIT_EXCEEDED condition", () => {
-        const parameters = new Map([["attemptLimit", 2]]);
-        const condition = new RuleCondition(
-          RuleConditionType.ATTEMPT_LIMIT_EXCEEDED,
-          null,
-          parameters,
-        );
+        // SCORM 2004 specifies that attemptLimit is a property of the activity,
+        // set via <imsss:limitConditions attemptLimit="2"/> in the manifest
+        const condition = new RuleCondition(RuleConditionType.ATTEMPT_LIMIT_EXCEEDED);
         const activity = new Activity();
+        activity.attemptLimit = 2;
 
         expect(condition.evaluate(activity)).toBe(false); // Default attemptCount is 0
 

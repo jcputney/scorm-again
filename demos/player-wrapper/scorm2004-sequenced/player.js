@@ -3,7 +3,7 @@
  * Uses full sequencing engine with event listeners
  */
 
-import Scorm2004API from 'scorm-again/Scorm2004API';
+import { Scorm2004API } from 'scorm-again/Scorm2004API';
 import {
   $,
   createElement,
@@ -81,7 +81,7 @@ class Scorm2004SequencedPlayer {
     this.api = null;
     this.manifest = COURSE_MANIFEST;
     this.currentActivityId = null;
-    this.validRequests = [];
+    this.choiceValidity = {};
 
     this.dom = {
       title: $('#course-title'),
@@ -114,10 +114,54 @@ class Scorm2004SequencedPlayer {
 
     this.setupUiListeners();
 
-    // Start sequencing session
-    this.api.startSequencing();
+    // Start sequencing via the engine (not manual activity launch)
+    // This triggers onActivityDelivery which loads the first activity
+    this.startSequencing();
 
     log.info('Player initialized');
+  }
+
+  startSequencing() {
+    log.info('Starting sequencing engine...');
+    this.dom.loading.hidden = false;
+    const started = this.api.processNavigationRequest('start');
+    if (!started) {
+      log.error('Failed to start sequencing, falling back to manual launch');
+      this.launchFirstActivityManually();
+    }
+  }
+
+  launchFirstActivityManually() {
+    // Fallback: manually launch first activity if sequencing fails
+    const firstLeaf = this.findFirstLeafActivity(this.manifest.activities[0]);
+    if (firstLeaf) {
+      log.info(`Manual fallback - launching first leaf: ${firstLeaf.id}`);
+      this.currentActivityId = firstLeaf.id;
+      const url = `${firstLeaf.launchUrl}?activity=${firstLeaf.id}&title=${encodeURIComponent(firstLeaf.title)}`;
+      this.dom.frame.onload = () => {
+        this.dom.loading.hidden = true;
+      };
+      this.dom.frame.src = url;
+      this.highlightCurrentActivity(firstLeaf.id);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Activity Tree Utilities
+  // ---------------------------------------------------------------------------
+
+  findFirstLeafActivity(activity) {
+    if (!activity) return null;
+    if (!activity.isContainer && activity.launchUrl) {
+      return activity;
+    }
+    if (activity.children) {
+      for (const child of activity.children) {
+        const leaf = this.findFirstLeafActivity(child);
+        if (leaf) return leaf;
+      }
+    }
+    return null;
   }
 
   initApi() {
@@ -128,8 +172,8 @@ class Scorm2004SequencedPlayer {
       sequencing: {
         // Enable sequencing engine
         enabled: true,
-        // Activity tree from manifest
-        activityTree: this.manifest.activities,
+        // Activity tree from manifest (pass root activity, not array)
+        activityTree: this.manifest.activities[0],
         // Event listeners for sequencing events
         eventListeners: {
           onActivityDelivery: (activity) => this.handleActivityDelivery(activity),
@@ -143,12 +187,17 @@ class Scorm2004SequencedPlayer {
 
     window.API_1484_11 = this.api;
 
+    // Set up core API event listeners
+    this.setupApiListeners();
+
+    log.info('SCORM 2004 API with sequencing initialized');
+  }
+
+  setupApiListeners() {
     // Core API events
     this.api.on('Initialize', () => this.handleInitialize());
     this.api.on('SetValue', (el, val) => this.handleSetValue(el, val));
     this.api.on('Terminate', () => this.handleTerminate());
-
-    log.info('SCORM 2004 API with sequencing initialized');
   }
 
   // ---------------------------------------------------------------------------
@@ -164,6 +213,10 @@ class Scorm2004SequencedPlayer {
     // Find activity in tree to get launch URL
     const activityDef = this.findActivity(activity.id);
     if (activityDef?.launchUrl) {
+      // Set up onload handler to hide loading when content loads
+      this.dom.frame.onload = () => {
+        this.dom.loading.hidden = true;
+      };
       const url = `${activityDef.launchUrl}?activity=${activity.id}&title=${encodeURIComponent(activityDef.title)}`;
       this.dom.frame.src = url;
     }
@@ -173,20 +226,20 @@ class Scorm2004SequencedPlayer {
   }
 
   handleNavValidityUpdate(data) {
-    log.info('Navigation validity update:', data.validRequests);
+    log.info('Navigation validity update:', data);
 
-    this.validRequests = data.validRequests || [];
-
-    // Update nav button states based on validity
-    const canContinue = this.validRequests.includes('continue');
-    const canPrevious = this.validRequests.includes('previous');
-    const canExit = this.validRequests.includes('exit') || this.validRequests.includes('exitAll');
+    // Event format: {continue: boolean, previous: boolean, choice: {activityId: boolean}, jump: {...}}
+    const canContinue = data.continue === true;
+    const canPrevious = data.previous === true;
 
     this.dom.btnNext.disabled = !canContinue;
     this.dom.btnNext.dataset.valid = canContinue;
 
     this.dom.btnPrev.disabled = !canPrevious;
     this.dom.btnPrev.dataset.valid = canPrevious;
+
+    // Store choice validity for menu updates
+    this.choiceValidity = data.choice || {};
 
     // Update choice navigation in menu
     this.updateMenuChoiceValidity();
@@ -195,8 +248,8 @@ class Scorm2004SequencedPlayer {
   handleRollupComplete(activity) {
     log.info(`Rollup complete for: ${activity.id}`);
 
-    // Update menu item status after rollup
-    this.updateMenuItemStatus(activity.id);
+    // Update ALL menu item statuses after rollup (including parent activities)
+    this.updateAllMenuStatuses();
 
     // Update overall progress
     this.updateProgress();
@@ -364,8 +417,9 @@ class Scorm2004SequencedPlayer {
 
   handleMenuChoice(activityId) {
     // Check if choice navigation is valid for this activity
-    const choiceTarget = `{target=${activityId}}choice`;
-    if (this.validRequests.includes('choice') || this.validRequests.includes(choiceTarget)) {
+    // Choice validity uses string "true"/"false" not booleans
+    const isValid = this.choiceValidity && this.choiceValidity[activityId] === 'true';
+    if (isValid) {
       this.api.processNavigationRequest('choice', activityId);
     } else {
       log.warn(`Choice navigation not valid for: ${activityId}`);
@@ -382,9 +436,8 @@ class Scorm2004SequencedPlayer {
       // Skip containers
       if (activity?.isContainer) return;
 
-      // Check if choice to this activity is valid
-      const choiceTarget = `{target=${activityId}}choice`;
-      const isValid = this.validRequests.includes('choice') || this.validRequests.includes(choiceTarget);
+      // Check if choice to this activity is valid (uses string "true"/"false")
+      const isValid = this.choiceValidity && this.choiceValidity[activityId] === 'true';
 
       btn.disabled = !isValid;
     });
@@ -413,6 +466,15 @@ class Scorm2004SequencedPlayer {
       });
       icon.dataset.status = status;
     }
+  }
+
+  updateAllMenuStatuses() {
+    // Update status for all menu items (including parent containers)
+    const buttons = this.dom.menuList.querySelectorAll('.menu-item-btn[data-activity-id]');
+    buttons.forEach((btn) => {
+      const activityId = btn.dataset.activityId;
+      this.updateMenuItemStatus(activityId);
+    });
   }
 
   updateProgress() {

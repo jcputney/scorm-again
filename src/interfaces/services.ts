@@ -361,9 +361,9 @@ export interface IOfflineStorageService {
    * Store data offline when LMS is not available
    * @param {string} courseId - Identifier for the course
    * @param {CommitObject} commitData - The data to store offline
-   * @returns {Promise<ResultObject>} - Result of the storage operation
+   * @returns {ResultObject} - Result of the storage operation (synchronous - uses localStorage)
    */
-  storeOffline(courseId: string, commitData: CommitObject): Promise<ResultObject>;
+  storeOffline(courseId: string, commitData: CommitObject): ResultObject;
 
   /**
    * Get stored offline data for a course
