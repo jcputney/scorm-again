@@ -468,8 +468,10 @@ describe("Global Objective Mapping Tests", () => {
       activity1.primaryObjective = obj1;
       obj1.normalizedMeasure = 0.6;
       obj1.measureStatus = true;
+      obj1.satisfiedStatus = false;  // Explicitly set initial status
       activity1.objectiveNormalizedMeasure = 0.6;
       activity1.objectiveMeasureStatus = true;
+      activity1.objectiveSatisfiedStatus = false;
 
       // Activity1 creates the global objective with write permissions
       rollupProcess.processGlobalObjectiveMapping(activity1, globalObjectives);
