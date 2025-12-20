@@ -1660,15 +1660,18 @@ export class RollupProcess {
   }
 
   private createDefaultMapInfo(objective: ActivityObjective): ObjectiveMapInfo {
+    // Default map info should only WRITE to global objectives, not READ
+    // Reading should only happen when explicitly configured via mapInfo
+    // This prevents unintended overwrites of RTE-transferred data
     return {
       targetObjectiveID: objective.id,
-      readSatisfiedStatus: true,
+      readSatisfiedStatus: false,
       writeSatisfiedStatus: true,
-      readNormalizedMeasure: true,
+      readNormalizedMeasure: false,
       writeNormalizedMeasure: true,
-      readCompletionStatus: true,
+      readCompletionStatus: false,
       writeCompletionStatus: true,
-      readProgressMeasure: true,
+      readProgressMeasure: false,
       writeProgressMeasure: true,
       updateAttemptData: objective.isPrimary,
     };

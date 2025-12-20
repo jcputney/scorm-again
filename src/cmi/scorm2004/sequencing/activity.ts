@@ -1538,7 +1538,12 @@ export class Activity extends BaseCMI {
     if (this._primaryObjective) {
       objectives.push(this._primaryObjective);
     }
-    return objectives.concat(this._objectives);
+    // Filter out the primary objective from _objectives to avoid duplicates
+    // since syncPrimaryObjectiveCollection() adds it to _objectives
+    const additionalObjectives = this._objectives.filter(
+      obj => obj !== this._primaryObjective && obj.id !== this._primaryObjective?.id
+    );
+    return objectives.concat(additionalObjectives);
   }
 
   private updatePrimaryObjectiveFromActivity(): void {
