@@ -844,8 +844,10 @@ export class SequencingProcess {
   }
 
   /**
-   * Flow Activity Traversal Subprocess (SB.2.2)
+   * Flow Activity Traversal Subprocess
    * Checks if an activity can be delivered and flows into clusters if needed
+   * @spec SN Book: UP.1 (Utility Process - Flow Activity Traversal Subprocess)
+   * @spec Reference: SB.2.2
    */
   private flowActivityTraversalSubprocess(
       activity: Activity,
@@ -1371,8 +1373,10 @@ export class SequencingProcess {
   }
 
   /**
-   * Flow Subprocess (SB.2.3)
+   * Flow Subprocess
    * Traverses the activity tree in the specified direction to find a deliverable activity
+   * @spec SN Book: UP.2 (Utility Process - Flow Sub-Process)
+   * @spec Reference: SB.2.3
    * @param {Activity} fromActivity - The activity to flow from
    * @param {FlowSubprocessMode} direction - The flow direction
    * @return {FlowSubprocessResult} - Result containing the deliverable activity and session end flag
@@ -1444,8 +1448,10 @@ export class SequencingProcess {
   }
 
   /**
-   * Flow Tree Traversal Subprocess (SB.2.1)
+   * Flow Tree Traversal Subprocess
    * Traverses the activity tree to find the next activity in the specified direction
+   * @spec SN Book: UP.3 (Utility Process - Flow Tree Traversal Subprocess)
+   * @spec Reference: SB.2.1
    * @param {Activity} fromActivity - The activity to traverse from
    * @param {FlowSubprocessMode} direction - The traversal direction
    * @param {boolean} skipChildren - Whether to skip checking children (for continuing from current)

@@ -78,8 +78,9 @@ export class DeliveryRequest {
 }
 
 /**
- * Result of Termination Request Process (TB.2.3)
+ * Result of Termination Request Process
  * Contains the termination result, sequencing request, and validity
+ * @spec SN Book: TB.2.3 (Termination Request Process)
  */
 export interface TerminationRequestResult {
   terminationRequest: SequencingRequestType;
@@ -89,8 +90,9 @@ export interface TerminationRequestResult {
 }
 
 /**
- * Overall Sequencing Process (OP.1)
+ * Overall Sequencing Process
  * Controls the overall execution of the sequencing loop
+ * @spec SN Book: OP.1 (Overall Sequencing Process)
  */
 /**
  * Interface for CMI data provided to sequencing process for RTE data transfer
@@ -174,8 +176,9 @@ export class OverallSequencingProcess {
   }
 
   /**
-   * Overall Sequencing Process (OP.1)
+   * Overall Sequencing Process
    * Main entry point for processing navigation requests
+   * @spec SN Book: OP.1 (Overall Sequencing Process)
    * @param {NavigationRequestType} navigationRequest - The navigation request
    * @param {string | null} targetActivityId - Target activity for choice/jump requests
    * @param {string} exitType - The cmi.exit value (logout, normal, suspend, time-out, or empty)
@@ -289,8 +292,9 @@ export class OverallSequencingProcess {
   }
 
   /**
-   * Navigation Request Process (NB.2.1)
+   * Navigation Request Process
    * Validates navigation requests and converts them to termination/sequencing requests
+   * @spec SN Book: NB.2.1 (Navigation Request Process)
    * @param {NavigationRequestType} request - The navigation request
    * @param {string | null} targetActivityId - Target activity for choice/jump
    * @return {NavigationRequestResult} - The validation result
@@ -482,9 +486,10 @@ export class OverallSequencingProcess {
   }
 
   /**
-   * Enhanced Termination Request Process (TB.2.3)
+   * Enhanced Termination Request Process
    * Processes termination requests with post-condition loop for EXIT_PARENT handling
    * Implements missing post-condition loop per SCORM 2004 3rd Edition TB.2.3
+   * @spec SN Book: TB.2.3 (Termination Request Process)
    * @param {SequencingRequestType} request - The termination request
    * @param {boolean} hasSequencingRequest - Whether a sequencing request follows
    * @param {string} exitType - The cmi.exit value (logout, normal, suspend, time-out, or empty)
@@ -1042,8 +1047,9 @@ export class OverallSequencingProcess {
   }
 
   /**
-   * Enhanced Delivery Request Process (DB.1.1)
+   * Enhanced Delivery Request Process
    * Priority 4 Gap: Comprehensive delivery validation with state consistency checks
+   * @spec SN Book: DB.1.1 (Delivery Request Process)
    * @param {Activity} activity - The activity to deliver
    * @return {DeliveryRequest} - The delivery validation result
    */
@@ -1114,8 +1120,9 @@ export class OverallSequencingProcess {
   }
 
   /**
-   * Content Delivery Environment Process (DB.2)
+   * Content Delivery Environment Process
    * Handles the delivery of content to the learner
+   * @spec SN Book: DB.2 (Content Delivery Environment Process)
    * @param {Activity} activity - The activity to deliver
    */
   private contentDeliveryEnvironmentProcess(activity: Activity): void {
@@ -1307,8 +1314,9 @@ export class OverallSequencingProcess {
   }
 
   /**
-   * End Attempt Process (UP.4)
+   * End Attempt Process
    * Ends an attempt on an activity
+   * @spec SN Book: UP.4 (Utility Process - End Attempt Process)
    * @param {Activity} activity - The activity to end attempt on
    */
   private endAttemptProcess(activity: Activity): void {
