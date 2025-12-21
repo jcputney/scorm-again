@@ -40,6 +40,7 @@ export class ValidationService {
   /**
    * Validates a SCORM 1.2 audio property
    *
+   * @spec SCORM 1.2 RTE 3.4.2.3.1 - Audio preference validation
    * @param {string} CMIElement
    * @param {string} value - The value to validate
    * @return {boolean} - True if validation passes, throws an error otherwise
@@ -54,6 +55,7 @@ export class ValidationService {
   /**
    * Validates a SCORM 1.2 language property
    *
+   * @spec SCORM 1.2 RTE 3.4.2.3.2 - Language preference validation
    * @param {string} CMIElement
    * @param {string} value - The value to validate
    * @return {boolean} - True if validation passes, throws an error otherwise
@@ -65,6 +67,7 @@ export class ValidationService {
   /**
    * Validates a SCORM 1.2 speed property
    *
+   * @spec SCORM 1.2 RTE 3.4.2.3.3 - Speed preference validation
    * @param {string} CMIElement
    * @param {string} value - The value to validate
    * @return {boolean} - True if validation passes, throws an error otherwise
@@ -79,6 +82,7 @@ export class ValidationService {
   /**
    * Validates a SCORM 1.2 text property
    *
+   * @spec SCORM 1.2 RTE 3.4.2.3.4 - Text preference validation
    * @param {string} CMIElement
    * @param {string} value - The value to validate
    * @return {boolean} - True if validation passes, throws an error otherwise

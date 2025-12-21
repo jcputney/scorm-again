@@ -7,6 +7,9 @@ import { StringKeyMap } from "../utilities";
 /**
  * Service for handling synchronous HTTP communication with the LMS
  * Uses synchronous XMLHttpRequest for SCORM-compliant error reporting
+ *
+ * @spec SCORM 2004 RTE 4.1.7 - API calls must be synchronous
+ * @spec SCORM 1.2 RTE 3.1.x - API calls must be synchronous
  */
 export class SynchronousHttpService implements IHttpService {
   private settings: InternalSettings;
@@ -40,10 +43,12 @@ export class SynchronousHttpService implements IHttpService {
   ): ResultObject {
     if (immediate) {
       // Termination: use sendBeacon (fire-and-forget, best effort)
+      // @spec SCORM 2004 RTE 4.1.7 - API calls must be synchronous
       return this._handleImmediateRequest(url, params);
     }
 
     // Standard commit: synchronous XHR (blocks until complete)
+    // @spec SCORM 2004 RTE 4.1.7 - API calls must be synchronous
     return this._performSyncXHR(url, params);
   }
 
@@ -67,6 +72,7 @@ export class SynchronousHttpService implements IHttpService {
     // Use text/plain for sendBeacon to avoid CORS preflight issues.
     // application/json triggers CORS preflight which sendBeacon can't handle.
     // The server can still parse the body as JSON.
+    // @spec W3C Beacon - sendBeacon for reliable unload data transmission
     const beaconSuccess = navigator.sendBeacon(
       url,
       new Blob([body], { type: "text/plain;charset=UTF-8" }),
