@@ -10,6 +10,7 @@
  * - Stricter validation of response formats by type
  * - Correct response patterns support complex formats
  *
+ * @spec RTE 4.2.9 - cmi.interactions
  * @extends CMIArray
  */
 import { BaseCMI } from "../common/base_cmi";
@@ -57,6 +58,16 @@ export class CMIInteractions extends CMIArray {
  * - description: LangString250 with optional language tag
  * - Dependency: id must be set before other elements (except objectives/correct_responses)
  *
+ * @spec RTE 4.2.9.1 - cmi.interactions.n.id
+ * @spec RTE 4.2.9.2 - cmi.interactions.n.type
+ * @spec RTE 4.2.9.3 - cmi.interactions.n.objectives
+ * @spec RTE 4.2.9.4 - cmi.interactions.n.timestamp
+ * @spec RTE 4.2.9.5 - cmi.interactions.n.correct_responses
+ * @spec RTE 4.2.9.6 - cmi.interactions.n.weighting
+ * @spec RTE 4.2.9.7 - cmi.interactions.n.learner_response
+ * @spec RTE 4.2.9.8 - cmi.interactions.n.result
+ * @spec RTE 4.2.9.9 - cmi.interactions.n.latency
+ * @spec RTE 4.2.9.10 - cmi.interactions.n.description
  * @extends BaseCMI
  */
 

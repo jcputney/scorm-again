@@ -18,6 +18,7 @@ import { scorm2004_constants } from "../../constants/api_constants";
  * - Objectives can be mapped to sequencing objectives via manifest
  * - Global objectives persist across SCO sessions
  *
+ * @spec RTE 4.2.6 - cmi.objectives
  * @extends CMIArray
  */
 export class CMIObjectives extends CMIArray {
@@ -68,6 +69,12 @@ export class CMIObjectives extends CMIArray {
  * - Dependency: id must be set before other elements
  * - Global objectives: Persist across SCOs when mapped via manifest
  *
+ * @spec RTE 4.2.6.1 - cmi.objectives.n.id
+ * @spec RTE 4.2.6.2 - cmi.objectives.n.score
+ * @spec RTE 4.2.6.3 - cmi.objectives.n.success_status
+ * @spec RTE 4.2.6.4 - cmi.objectives.n.completion_status
+ * @spec RTE 4.2.6.5 - cmi.objectives.n.progress_measure
+ * @spec RTE 4.2.6.6 - cmi.objectives.n.description
  * @extends BaseCMI
  */
 export class CMIObjectivesObject extends BaseCMI {

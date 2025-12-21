@@ -167,6 +167,7 @@ export class CMI extends BaseRootCMI {
   /**
    * Getter for _completion_status
    * @return {string}
+   * @spec RTE 4.2.8 - cmi.completion_status
    */
   get completion_status(): string {
     return this.status.completion_status;
@@ -183,6 +184,7 @@ export class CMI extends BaseRootCMI {
   /**
    * Getter for _completion_threshold
    * @return {string}
+   * @spec RTE 4.2.9 - cmi.completion_threshold
    */
   get completion_threshold(): string {
     return this.thresholds.completion_threshold;
@@ -199,6 +201,7 @@ export class CMI extends BaseRootCMI {
   /**
    * Getter for _credit
    * @return {string}
+   * @spec RTE 4.2.10 - cmi.credit
    */
   get credit(): string {
     return this.settings.credit;
@@ -215,6 +218,7 @@ export class CMI extends BaseRootCMI {
   /**
    * Getter for _entry
    * @return {string}
+   * @spec RTE 4.2.11 - cmi.entry
    */
   get entry(): string {
     return this.session.entry;
@@ -231,6 +235,7 @@ export class CMI extends BaseRootCMI {
   /**
    * Getter for _exit. Should only be called during JSON export.
    * @return {string}
+   * @spec RTE 4.2.12 - cmi.exit
    */
   get exit(): string {
     this.session.jsonString = this.jsonString;
@@ -258,6 +263,7 @@ export class CMI extends BaseRootCMI {
   /**
    * Getter for _launch_data
    * @return {string}
+   * @spec RTE 4.2.13 - cmi.launch_data
    */
   get launch_data(): string {
     return this.content.launch_data;
@@ -274,6 +280,7 @@ export class CMI extends BaseRootCMI {
   /**
    * Getter for _learner_id
    * @return {string}
+   * @spec RTE 4.2.14 - cmi.learner_id
    */
   get learner_id(): string {
     return this.learner.learner_id;
@@ -290,6 +297,7 @@ export class CMI extends BaseRootCMI {
   /**
    * Getter for _learner_name
    * @return {string}
+   * @spec RTE 4.2.15 - cmi.learner_name
    */
   get learner_name(): string {
     return this.learner.learner_name;
@@ -306,6 +314,7 @@ export class CMI extends BaseRootCMI {
   /**
    * Getter for _location
    * @return {string}
+   * @spec RTE 4.2.17 - cmi.location
    */
   get location(): string {
     return this.content.location;
@@ -322,6 +331,7 @@ export class CMI extends BaseRootCMI {
   /**
    * Getter for _max_time_allowed
    * @return {string}
+   * @spec RTE 4.2.18 - cmi.max_time_allowed
    */
   get max_time_allowed(): string {
     return this.settings.max_time_allowed;
@@ -338,6 +348,7 @@ export class CMI extends BaseRootCMI {
   /**
    * Getter for _mode
    * @return {string}
+   * @spec RTE 4.2.19 - cmi.mode
    */
   get mode(): string {
     return this.settings.mode;
@@ -354,6 +365,7 @@ export class CMI extends BaseRootCMI {
   /**
    * Getter for _progress_measure
    * @return {string}
+   * @spec RTE 4.2.21 - cmi.progress_measure
    */
   get progress_measure(): string {
     return this.status.progress_measure;
@@ -370,6 +382,7 @@ export class CMI extends BaseRootCMI {
   /**
    * Getter for _scaled_passing_score
    * @return {string}
+   * @spec RTE 4.2.22 - cmi.scaled_passing_score
    */
   get scaled_passing_score(): string {
     return this.thresholds.scaled_passing_score;
@@ -386,6 +399,7 @@ export class CMI extends BaseRootCMI {
   /**
    * Getter for _session_time. Should only be called during JSON export.
    * @return {string}
+   * @spec RTE 4.2.24 - cmi.session_time
    */
   get session_time(): string {
     this.session.jsonString = this.jsonString;
@@ -403,6 +417,7 @@ export class CMI extends BaseRootCMI {
   /**
    * Getter for _success_status
    * @return {string}
+   * @spec RTE 4.2.25 - cmi.success_status
    */
   get success_status(): string {
     return this.status.success_status;
@@ -419,6 +434,7 @@ export class CMI extends BaseRootCMI {
   /**
    * Getter for _suspend_data
    * @return {string}
+   * @spec RTE 4.2.26 - cmi.suspend_data
    */
   get suspend_data(): string {
     return this.content.suspend_data;
@@ -435,6 +451,7 @@ export class CMI extends BaseRootCMI {
   /**
    * Getter for _time_limit_action
    * @return {string}
+   * @spec RTE 4.2.27 - cmi.time_limit_action
    */
   get time_limit_action(): string {
     return this.settings.time_limit_action;
@@ -451,6 +468,7 @@ export class CMI extends BaseRootCMI {
   /**
    * Getter for _total_time
    * @return {string}
+   * @spec RTE 4.2.28 - cmi.total_time
    */
   get total_time(): string {
     return this.session.total_time;
