@@ -2995,13 +2995,12 @@ export class OverallSequencingProcess {
           return true; // Assume available if can't detect
 
         case "extended-storage":
-          // Check for sufficient storage (estimate 100MB needed)
-          if ("storage" in navigator && "estimate" in navigator.storage) {
-            navigator.storage.estimate().then(estimate => {
-              return (estimate.quota || 0) > 100 * 1024 * 1024; // 100MB
-            });
-          }
-          return true; // Assume available if can't detect
+          // Cannot perform async storage.estimate() check in synchronous SCORM context.
+          // Making this async would require breaking changes to the public API contract.
+          // Modern browsers provide adequate storage quotas (typically 1GB+) for SCORM content.
+          // Assuming storage is available maintains backward compatibility and aligns with
+          // the optimistic fallback behavior that was already in place.
+          return true;
 
         case "persistent-storage":
           // Check for persistent storage capabilities
