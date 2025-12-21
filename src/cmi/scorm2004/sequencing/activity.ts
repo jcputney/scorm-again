@@ -94,6 +94,12 @@ export class ActivityObjective {
   private _completionStatus: CompletionStatus = CompletionStatus.UNKNOWN;
   private _progressStatus: boolean = false;
 
+  // Dirty flags for tracking which properties have been modified locally
+  private _satisfiedStatusDirty: boolean = false;
+  private _normalizedMeasureDirty: boolean = false;
+  private _completionStatusDirty: boolean = false;
+  private _progressMeasureDirty: boolean = false;
+
   constructor(id: string, options: ActivityObjectiveOptions = {}) {
     this._id = id;
     this._description = options.description ?? null;
@@ -148,7 +154,10 @@ export class ActivityObjective {
   }
 
   set satisfiedStatus(value: boolean) {
-    this._satisfiedStatus = value;
+    if (this._satisfiedStatus !== value) {
+      this._satisfiedStatus = value;
+      this._satisfiedStatusDirty = true;
+    }
   }
 
   get satisfiedStatusKnown(): boolean {
@@ -172,7 +181,10 @@ export class ActivityObjective {
   }
 
   set normalizedMeasure(value: number) {
-    this._normalizedMeasure = value;
+    if (this._normalizedMeasure !== value) {
+      this._normalizedMeasure = value;
+      this._normalizedMeasureDirty = true;
+    }
   }
 
   get progressMeasure(): number {
@@ -180,7 +192,10 @@ export class ActivityObjective {
   }
 
   set progressMeasure(value: number) {
-    this._progressMeasure = value;
+    if (this._progressMeasure !== value) {
+      this._progressMeasure = value;
+      this._progressMeasureDirty = true;
+    }
   }
 
   get progressMeasureStatus(): boolean {
@@ -196,7 +211,10 @@ export class ActivityObjective {
   }
 
   set completionStatus(value: CompletionStatus) {
-    this._completionStatus = value;
+    if (this._completionStatus !== value) {
+      this._completionStatus = value;
+      this._completionStatusDirty = true;
+    }
   }
 
   get progressStatus(): boolean {
@@ -205,6 +223,31 @@ export class ActivityObjective {
 
   set progressStatus(value: boolean) {
     this._progressStatus = value;
+  }
+
+  public isDirty(property: 'satisfiedStatus' | 'normalizedMeasure' | 'completionStatus' | 'progressMeasure'): boolean {
+    switch (property) {
+      case 'satisfiedStatus': return this._satisfiedStatusDirty;
+      case 'normalizedMeasure': return this._normalizedMeasureDirty;
+      case 'completionStatus': return this._completionStatusDirty;
+      case 'progressMeasure': return this._progressMeasureDirty;
+    }
+  }
+
+  public clearDirty(property: 'satisfiedStatus' | 'normalizedMeasure' | 'completionStatus' | 'progressMeasure'): void {
+    switch (property) {
+      case 'satisfiedStatus': this._satisfiedStatusDirty = false; break;
+      case 'normalizedMeasure': this._normalizedMeasureDirty = false; break;
+      case 'completionStatus': this._completionStatusDirty = false; break;
+      case 'progressMeasure': this._progressMeasureDirty = false; break;
+    }
+  }
+
+  public clearAllDirty(): void {
+    this._satisfiedStatusDirty = false;
+    this._normalizedMeasureDirty = false;
+    this._completionStatusDirty = false;
+    this._progressMeasureDirty = false;
   }
 
   resetState(): void {
