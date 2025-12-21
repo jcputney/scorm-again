@@ -500,7 +500,8 @@ export class CMI extends BaseRootCMI {
    *      session_time: string,
    *      success_status: string,
    *      suspend_data: string,
-   *      time_limit_action: string
+   *      time_limit_action: string,
+   *      total_time: string
    *    }
    *  }
    */
@@ -528,6 +529,7 @@ export class CMI extends BaseRootCMI {
     success_status: string;
     suspend_data: string;
     time_limit_action: string;
+    total_time: string;
   } {
     this.jsonString = true;
 
@@ -558,6 +560,7 @@ export class CMI extends BaseRootCMI {
       success_status: this.success_status,
       suspend_data: this.suspend_data,
       time_limit_action: this.time_limit_action,
+      total_time: this.total_time,
     };
 
     // Clean up jsonString flags
