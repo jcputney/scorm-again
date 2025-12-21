@@ -1008,6 +1008,8 @@ export class RollupProcess {
             const threshold = objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
             globalObjective.satisfiedStatus = objective.normalizedMeasure >= threshold;
             globalObjective.satisfiedStatusKnown = true;
+            // Clear satisfiedStatus dirty flag since we've just synchronized the derived value.
+            // When satisfaction is derived from measure, it should always update when measure changes.
             objective.clearDirty('satisfiedStatus');
           }
         }
