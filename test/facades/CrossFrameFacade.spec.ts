@@ -1117,3 +1117,234 @@ describe("CrossFrameLMS - Security Warnings", () => {
     warnSpy.mockRestore();
   });
 });
+
+describe("CrossFrameLMS - ev.source Type Validation", () => {
+  let apiMock: any;
+  let server: CrossFrameLMS;
+
+  beforeEach(() => {
+    // Suppress console warnings during tests
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    apiMock = { LMSGetValue: vi.fn().mockReturnValue("test") };
+    server = new CrossFrameLMS(apiMock, "http://parent");
+  });
+
+  afterEach(() => {
+    server.destroy();
+    vi.restoreAllMocks();
+  });
+
+  it("processes messages from valid Window source", () => {
+    const windowSource = { postMessage: vi.fn() };
+    const msg: MessageData = {
+      messageId: "valid-1",
+      method: "LMSGetValue",
+      params: ["cmi.core.lesson_status"],
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"]({
+      data: msg,
+      origin: "http://parent",
+      source: windowSource,
+    });
+
+    // Should process the message and call the API
+    expect(apiMock.LMSGetValue).toHaveBeenCalledWith("cmi.core.lesson_status");
+    // Should send response back to source
+    expect(windowSource.postMessage).toHaveBeenCalledWith(
+      { messageId: "valid-1", result: "test" },
+      "http://parent",
+    );
+  });
+
+  it("ignores messages from MessagePort source (no postMessage method)", () => {
+    // MessagePort doesn't have postMessage in the same way
+    // Simulate a source without postMessage method
+    const messagePortSource = {
+      start: vi.fn(),
+      close: vi.fn(),
+      // MessagePort has postMessage but we're simulating a non-Window source
+    };
+
+    const msg: MessageData = {
+      messageId: "port-1",
+      method: "LMSGetValue",
+      params: ["cmi.core.lesson_status"],
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"]({
+      data: msg,
+      origin: "http://parent",
+      source: messagePortSource,
+    });
+
+    // Should NOT process the message
+    expect(apiMock.LMSGetValue).not.toHaveBeenCalled();
+  });
+
+  it("ignores messages from object without postMessage", () => {
+    const invalidSource = {
+      someOtherMethod: vi.fn(),
+    };
+
+    const msg: MessageData = {
+      messageId: "invalid-1",
+      method: "LMSGetValue",
+      params: ["cmi.core.lesson_status"],
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"]({
+      data: msg,
+      origin: "http://parent",
+      source: invalidSource,
+    });
+
+    // Should NOT process the message
+    expect(apiMock.LMSGetValue).not.toHaveBeenCalled();
+  });
+
+  it("ignores messages with null source", () => {
+    const msg: MessageData = {
+      messageId: "null-1",
+      method: "LMSGetValue",
+      params: ["cmi.core.lesson_status"],
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"]({
+      data: msg,
+      origin: "http://parent",
+      source: null,
+    });
+
+    // Should NOT process the message (caught by earlier null check)
+    expect(apiMock.LMSGetValue).not.toHaveBeenCalled();
+  });
+
+  it("handles heartbeat messages only from valid Window source", () => {
+    const windowSource = { postMessage: vi.fn() };
+    const msg: MessageData = {
+      messageId: "hb-valid",
+      method: "__heartbeat__",
+      params: [],
+      isHeartbeat: true,
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"]({
+      data: msg,
+      origin: "http://parent",
+      source: windowSource,
+    });
+
+    // Should send heartbeat response
+    expect(windowSource.postMessage).toHaveBeenCalledWith(
+      { messageId: "hb-valid", isHeartbeat: true },
+      "http://parent",
+    );
+  });
+
+  it("ignores heartbeat messages from invalid source", () => {
+    const invalidSource = { otherMethod: vi.fn() };
+    const msg: MessageData = {
+      messageId: "hb-invalid",
+      method: "__heartbeat__",
+      params: [],
+      isHeartbeat: true,
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"]({
+      data: msg,
+      origin: "http://parent",
+      source: invalidSource,
+    });
+
+    // Should NOT process (no postMessage call would be attempted)
+    // If it tried, it would throw TypeError
+    expect(true).toBe(true); // Just verify no error is thrown
+  });
+
+  it("sends rate limit error only to valid Window source", () => {
+    const limitedServer = new CrossFrameLMS(apiMock, "http://parent", {
+      rateLimit: 1,
+    });
+    const windowSource = { postMessage: vi.fn() };
+
+    // Send two requests rapidly to trigger rate limit
+    const msg1: MessageData = {
+      messageId: "rate-1",
+      method: "LMSGetValue",
+      params: [],
+    };
+    const msg2: MessageData = {
+      messageId: "rate-2",
+      method: "LMSGetValue",
+      params: [],
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    limitedServer["_onMessage"]({
+      data: msg1,
+      origin: "http://parent",
+      source: windowSource,
+    });
+
+    windowSource.postMessage.mockClear();
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    limitedServer["_onMessage"]({
+      data: msg2,
+      origin: "http://parent",
+      source: windowSource,
+    });
+
+    // Should send rate limit error
+    expect(windowSource.postMessage).toHaveBeenCalledWith(
+      {
+        messageId: "rate-2",
+        error: { message: "Rate limit exceeded", code: "101" },
+      },
+      "http://parent",
+    );
+
+    limitedServer.destroy();
+  });
+
+  it("sends method not allowed error only to valid Window source", () => {
+    const windowSource = { postMessage: vi.fn() };
+    const msg: MessageData = {
+      messageId: "blocked",
+      method: "unauthorizedMethod",
+      params: [],
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"]({
+      data: msg,
+      origin: "http://parent",
+      source: windowSource,
+    });
+
+    // Should send error response
+    expect(windowSource.postMessage).toHaveBeenCalledWith(
+      {
+        messageId: "blocked",
+        error: { message: "Method not allowed: unauthorizedMethod", code: "101" },
+      },
+      "http://parent",
+    );
+  });
+});
