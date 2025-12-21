@@ -2323,9 +2323,14 @@ export class OverallSequencingProcess {
       return {valid: false, exception: "NB.2.1-11"};
     }
 
-    // Only check availability, not preconditions - preconditions are evaluated after termination
-    // and rollup in the Sequencing Request Process (SB.2.12 -> SB.2.3)
+    // Check availability and precondition rules (DISABLED, HIDE_FROM_CHOICE)
+    // Per NB.2.1: Target activity must be available for choice navigation
     if (!targetActivity.isAvailable) {
+      return {valid: false, exception: "NB.2.1-11"};
+    }
+
+    // Check if target is disabled by precondition rules (e.g., DISABLED action with ALWAYS condition)
+    if (this.isActivityDisabled(targetActivity)) {
       return {valid: false, exception: "NB.2.1-11"};
     }
 
@@ -2467,10 +2472,10 @@ export class OverallSequencingProcess {
     }
 
     // Walk from target up to (but not including) the common ancestor ensuring availability
-    // Per NB.2.1: Only check static properties, not preconditions
+    // Per NB.2.1: Check availability, visibility, and precondition rules
     let node: Activity | null = targetActivity;
     while (node && node !== commonAncestor) {
-      if (!node.isAvailable || node.isHiddenFromChoice) {
+      if (!node.isAvailable || node.isHiddenFromChoice || this.isActivityDisabled(node)) {
         return {valid: false, exception: "NB.2.1-11"};
       }
       node = node.parent;
