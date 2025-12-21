@@ -250,6 +250,26 @@ export class ActivityObjective {
     this._progressMeasureDirty = false;
   }
 
+  /**
+   * Initialize objective values from CMI data transfer
+   * This method always marks values as dirty since CMI data should be written to global objectives,
+   * even if the values match the current defaults (e.g., satisfiedStatus = false, normalizedMeasure = 0)
+   * @param satisfiedStatus - The satisfied status from CMI
+   * @param normalizedMeasure - The normalized measure from CMI
+   * @param measureStatus - Whether measure is valid
+   */
+  public initializeFromCMI(
+    satisfiedStatus: boolean,
+    normalizedMeasure: number,
+    measureStatus: boolean
+  ): void {
+    this._satisfiedStatus = satisfiedStatus;
+    this._satisfiedStatusDirty = true;
+    this._normalizedMeasure = normalizedMeasure;
+    this._normalizedMeasureDirty = true;
+    this._measureStatus = measureStatus;
+  }
+
   resetState(): void {
     this._satisfiedStatus = false;
     this._satisfiedStatusKnown = false;
