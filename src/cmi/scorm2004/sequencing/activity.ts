@@ -475,6 +475,7 @@ export class Activity extends BaseCMI {
     this._minProgressMeasure = 1.0;
     this._progressWeight = 1.0;
     this._attemptCompletionAmountStatus = false;
+    this.clearAllObjectiveDirty();
   }
 
   /**
@@ -764,8 +765,6 @@ export class Activity extends BaseCMI {
     if (this._objectiveSatisfiedStatus !== objectiveSatisfiedStatus) {
       this._objectiveSatisfiedStatus = objectiveSatisfiedStatus;
       this._objectiveSatisfiedStatusDirty = true;
-    } else {
-      this._objectiveSatisfiedStatus = objectiveSatisfiedStatus;
     }
     this._objectiveSatisfiedStatusKnown = true;  // Mark as known when explicitly set
     // Update success status based on objective satisfaction
@@ -810,8 +809,6 @@ export class Activity extends BaseCMI {
     if (this._objectiveMeasureStatus !== objectiveMeasureStatus) {
       this._objectiveMeasureStatus = objectiveMeasureStatus;
       this._objectiveMeasureStatusDirty = true;
-    } else {
-      this._objectiveMeasureStatus = objectiveMeasureStatus;
     }
     this.updatePrimaryObjectiveFromActivity();
   }
@@ -832,8 +829,6 @@ export class Activity extends BaseCMI {
     if (this._objectiveNormalizedMeasure !== objectiveNormalizedMeasure) {
       this._objectiveNormalizedMeasure = objectiveNormalizedMeasure;
       this._objectiveNormalizedMeasureDirty = true;
-    } else {
-      this._objectiveNormalizedMeasure = objectiveNormalizedMeasure;
     }
     this.updatePrimaryObjectiveFromActivity();
   }
@@ -1658,10 +1653,19 @@ export class Activity extends BaseCMI {
     progressMeasureStatus: boolean,
     completionStatus: CompletionStatus
   ): void {
-    this._objectiveSatisfiedStatus = satisfiedStatus;
+    if (this._objectiveSatisfiedStatus !== satisfiedStatus) {
+      this._objectiveSatisfiedStatus = satisfiedStatus;
+      this._objectiveSatisfiedStatusDirty = true;
+    }
     this._objectiveSatisfiedStatusKnown = true;  // Mark as known when state is explicitly set
-    this._objectiveMeasureStatus = measureStatus;
-    this._objectiveNormalizedMeasure = normalizedMeasure;
+    if (this._objectiveMeasureStatus !== measureStatus) {
+      this._objectiveMeasureStatus = measureStatus;
+      this._objectiveMeasureStatusDirty = true;
+    }
+    if (this._objectiveNormalizedMeasure !== normalizedMeasure) {
+      this._objectiveNormalizedMeasure = normalizedMeasure;
+      this._objectiveNormalizedMeasureDirty = true;
+    }
     this._progressMeasure = progressMeasure;
     this._progressMeasureStatus = progressMeasureStatus;
     this._completionStatus = completionStatus;
