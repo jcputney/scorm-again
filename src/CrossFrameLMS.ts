@@ -105,6 +105,9 @@ export default class CrossFrameLMS {
       return;
     }
 
+    // CF-LMS-02: Validate that ev.data is a valid message object before casting
+    if (typeof ev.data !== "object" || ev.data === null) return;
+
     const msg = ev.data as MessageData;
     if (!msg?.messageId || !msg.method || !ev.source) return;
 

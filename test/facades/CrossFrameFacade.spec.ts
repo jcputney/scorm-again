@@ -903,6 +903,7 @@ describe("CrossFrameAPI - New Features", () => {
       reject: vi.fn(),
       timer: setTimeout(() => {}, 5000),
       requestTime: Date.now(),
+      method: "LMSCommit", // CF-API-02: Include method name in pending request
     });
 
     // eslint-disable-next-line
@@ -915,7 +916,7 @@ describe("CrossFrameAPI - New Features", () => {
 
     expect(rateLimitedCallback).toHaveBeenCalledWith({
       type: "rateLimited",
-      method: "unknown",
+      method: "LMSCommit", // CF-API-02: Now expects the actual method name
     });
   });
 
@@ -990,6 +991,75 @@ describe("CrossFrameAPI - New Features", () => {
     // eslint-disable-next-line
     // @ts-ignore
     expect(client["_cache"].get("cmi.score.min")).toBe("0");
+  });
+
+  it("CF-API-01: does not create multiple heartbeat intervals when _startHeartbeat called multiple times", () => {
+    // Clear the initial postMessage calls
+    postSpy.mockClear();
+
+    // Get the current heartbeat timer
+    // eslint-disable-next-line
+    // @ts-ignore
+    const firstTimer = client["_heartbeatTimer"];
+    expect(firstTimer).toBeDefined();
+
+    // Call _startHeartbeat again
+    // eslint-disable-next-line
+    // @ts-ignore
+    client["_startHeartbeat"]();
+
+    // Get the new heartbeat timer
+    // eslint-disable-next-line
+    // @ts-ignore
+    const secondTimer = client["_heartbeatTimer"];
+
+    // Advance time to trigger heartbeats
+    vi.advanceTimersByTime(30000);
+
+    // Count how many heartbeat messages were sent
+    const heartbeatCalls = postSpy.mock.calls.filter(
+      (call: any) => call[0]?.method === "__heartbeat__",
+    );
+
+    // Should only have ONE heartbeat sent, not multiple
+    expect(heartbeatCalls.length).toBe(1);
+  });
+
+  it("CF-API-02: emits rateLimited event with actual method name instead of 'unknown'", () => {
+    const rateLimitedCallback = vi.fn();
+    client.on("rateLimited", rateLimitedCallback);
+
+    // Create a pending request for LMSGetValue
+    const messageId = "cfapi-123";
+    // eslint-disable-next-line
+    // @ts-ignore
+    client["_pending"].set(messageId, {
+      resolve: vi.fn(),
+      reject: vi.fn(),
+      timer: setTimeout(() => {}, 5000),
+      requestTime: Date.now(),
+      method: "LMSGetValue", // This should be included when we fix the issue
+    });
+
+    // Simulate rate limit error response
+    const response: MessageResponse = {
+      messageId: messageId,
+      error: { message: "Rate limit exceeded", code: "101" },
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    client["_onMessage"]({
+      data: response,
+      origin: "https://lms.example.com",
+      source: window.parent,
+    });
+
+    // Should emit with the actual method name
+    expect(rateLimitedCallback).toHaveBeenCalledWith({
+      type: "rateLimited",
+      method: "LMSGetValue",
+    });
   });
 });
 
@@ -1346,5 +1416,58 @@ describe("CrossFrameLMS - ev.source Type Validation", () => {
       },
       "http://parent",
     );
+  });
+
+  it("CF-LMS-02: ignores messages with non-object ev.data", () => {
+    const windowSource = { postMessage: vi.fn() };
+
+    // Test with string data
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"]({
+      data: "invalid string data",
+      origin: "http://parent",
+      source: windowSource,
+    });
+
+    // Test with number data
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"]({
+      data: 12345,
+      origin: "http://parent",
+      source: windowSource,
+    });
+
+    // Test with null data
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"]({
+      data: null,
+      origin: "http://parent",
+      source: windowSource,
+    });
+
+    // Test with undefined data
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"]({
+      data: undefined,
+      origin: "http://parent",
+      source: windowSource,
+    });
+
+    // Test with boolean data
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"]({
+      data: true,
+      origin: "http://parent",
+      source: windowSource,
+    });
+
+    // None of these should trigger any response
+    expect(windowSource.postMessage).not.toHaveBeenCalled();
+    expect(apiMock.LMSGetValue).not.toHaveBeenCalled();
   });
 });

@@ -16,6 +16,7 @@ interface PendingRequest {
   reject: (e: unknown) => void;
   timer: ReturnType<typeof setTimeout>;
   requestTime: number;
+  method: string; // CF-API-02: Track method name for better error reporting
 }
 
 /**
@@ -239,6 +240,11 @@ export default class CrossFrameAPI {
    * Starts the heartbeat mechanism for connection detection.
    */
   private _startHeartbeat(): void {
+    // CF-API-01: Clear any existing heartbeat timer before starting a new one
+    if (this._heartbeatTimer) {
+      clearInterval(this._heartbeatTimer);
+    }
+
     this._heartbeatTimer = setInterval(() => {
       if (this._destroyed) return;
 
@@ -296,7 +302,8 @@ export default class CrossFrameAPI {
         }
       }, this._timeout);
 
-      this._pending.set(messageId, { resolve, reject, timer, requestTime });
+      // CF-API-02: Store method name in pending request for better error reporting
+      this._pending.set(messageId, { resolve, reject, timer, requestTime, method });
       const msg: MessageData = { messageId, method, params: safeParams };
       this._targetWindow.postMessage(msg, this._origin);
     });
@@ -338,8 +345,9 @@ export default class CrossFrameAPI {
 
     if (data.error) {
       // Check if rate limited and emit event
+      // CF-API-02: Use the actual method name from the pending request
       if (data.error.message === "Rate limit exceeded") {
-        this._emit({ type: "rateLimited", method: "unknown" });
+        this._emit({ type: "rateLimited", method: pending.method });
       }
       pending.reject(data.error);
     } else {
