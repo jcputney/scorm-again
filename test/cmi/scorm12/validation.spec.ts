@@ -97,6 +97,15 @@ describe("check12ValidRange", () => {
     expect(result).toBe(true);
   });
 
+  it("should return true immediately for empty string when allowEmptyString is true (VAL-01)", () => {
+    const rangePattern = "0#100";
+    const emptyValue = "";
+
+    // This should return true without calling checkValidRange (which would try to multiply "" by 1.0)
+    const result = check12ValidRange(CMIElement, emptyValue, rangePattern, true);
+    expect(result).toBe(true);
+  });
+
   it("should handle string values within range", () => {
     const rangePattern = "0#100";
     const validValue = "50";
