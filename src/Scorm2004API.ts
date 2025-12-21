@@ -13,6 +13,7 @@ import { CMIObjectivesObject } from "./cmi/scorm2004/objectives";
 import { ADL, ADLDataObject } from "./cmi/scorm2004/adl";
 import {
   CommitObject,
+  GlobalObjectiveMapEntry,
   ResultObject,
   ScoreObject,
   SequencingStateMetadata,
@@ -1156,10 +1157,11 @@ class Scorm2004API extends BaseAPI {
     const cmiExport: StringKeyMap = this.renderCMIToJSONObject();
 
     if (terminateCommit || includeTotalTime) {
-      (cmiExport.cmi as any).total_time = (this.cmi as any).getCurrentTotalTime();
+      // Add total_time to the exported cmi object
+      (cmiExport.cmi as StringKeyMap).total_time = this.cmi.getCurrentTotalTime();
     } else {
       // Remove total_time from export when not terminating
-      delete (cmiExport.cmi as any).total_time;
+      delete (cmiExport.cmi as StringKeyMap).total_time;
     }
 
     const result = [];
@@ -2312,7 +2314,7 @@ class Scorm2004API extends BaseAPI {
         this.cmi,
         this.adl,
         this.eventService || this, // Use eventService if available, fallback to this
-        this.loggingService || (console as any), // Use loggingService if available, fallback to console
+        this.loggingService, // loggingService is always initialized in BaseAPI constructor
         sequencingConfig,
       );
 
@@ -2761,12 +2763,12 @@ class Scorm2004API extends BaseAPI {
    * or the internally managed sequencing service if no process is provided.
    *
    * @param {OverallSequencingProcess | null} [overallProcess] - An optional parameter representing the overall sequencing process. If not provided, it attempts to use the internal sequencing service.
-   * @return {Record<string, any>} A record containing the snapshot of the global objectives, with each objective's identifier as the key and its corresponding data as the value.
+   * @return {Record<string, GlobalObjectiveMapEntry>} A record containing the snapshot of the global objectives, with each objective's identifier as the key and its corresponding data as the value.
    */
   private captureGlobalObjectiveSnapshot(
     overallProcess?: OverallSequencingProcess | null,
-  ): Record<string, any> {
-    const snapshot: Record<string, any> = {};
+  ): Record<string, GlobalObjectiveMapEntry> {
+    const snapshot: Record<string, GlobalObjectiveMapEntry> = {};
 
     const process =
       overallProcess ?? this._sequencingService?.getOverallSequencingProcess() ?? null;
@@ -2790,14 +2792,16 @@ class Scorm2004API extends BaseAPI {
   /**
    * Constructs an array of `CMIObjectivesObject` instances from a given snapshot map.
    *
-   * @param {Record<string, any>} snapshot - A map where each entry represents objective data
+   * @param {Record<string, GlobalObjectiveMapEntry>} snapshot - A map where each entry represents objective data
    *                                         with various properties that may include
    *                                         satisfied status, progress measure, completion status, etc.
    * @return {CMIObjectivesObject[]} An array of `CMIObjectivesObject` instances built
    *                                  from the provided snapshot map. Returns an empty array
    *                                  if the snapshot is invalid or no valid objectives can be created.
    */
-  private buildCMIObjectivesFromMap(snapshot: Record<string, any>): CMIObjectivesObject[] {
+  private buildCMIObjectivesFromMap(
+    snapshot: Record<string, GlobalObjectiveMapEntry>,
+  ): CMIObjectivesObject[] {
     const objectives: CMIObjectivesObject[] = [];
     if (!snapshot || typeof snapshot !== "object") {
       return objectives;
@@ -2808,29 +2812,26 @@ class Scorm2004API extends BaseAPI {
         continue;
       }
       const objective = new CMIObjectivesObject();
-      objective.id = (entry as any).id ?? objectiveId;
+      objective.id = entry.id ?? objectiveId;
 
-      if ((entry as any).satisfiedStatusKnown === true) {
-        objective.success_status = (entry as any).satisfiedStatus
+      if (entry.satisfiedStatusKnown === true) {
+        objective.success_status = entry.satisfiedStatus
           ? SuccessStatus.PASSED
           : SuccessStatus.FAILED;
       }
 
-      const normalizedMeasure = this.parseObjectiveNumber((entry as any).normalizedMeasure);
-      if ((entry as any).normalizedMeasureKnown === true && normalizedMeasure !== null) {
+      const normalizedMeasure = this.parseObjectiveNumber(entry.normalizedMeasure);
+      if (entry.normalizedMeasureKnown === true && normalizedMeasure !== null) {
         objective.score.scaled = String(normalizedMeasure);
       }
 
-      const progressMeasure = this.parseObjectiveNumber((entry as any).progressMeasure);
-      if ((entry as any).progressMeasureKnown === true && progressMeasure !== null) {
+      const progressMeasure = this.parseObjectiveNumber(entry.progressMeasure);
+      if (entry.progressMeasureKnown === true && progressMeasure !== null) {
         objective.progress_measure = String(progressMeasure);
       }
 
-      if (
-        (entry as any).completionStatusKnown === true &&
-        typeof (entry as any).completionStatus === "string"
-      ) {
-        objective.completion_status = (entry as any).completionStatus;
+      if (entry.completionStatusKnown === true && typeof entry.completionStatus === "string") {
+        objective.completion_status = entry.completionStatus;
       }
 
       objectives.push(objective);
@@ -2902,13 +2903,13 @@ class Scorm2004API extends BaseAPI {
   }
 
   /**
-   * Builds a map entry from the given CMI objectives object to a standardized Record object.
+   * Builds a map entry from the given CMI objectives object to a standardized GlobalObjectiveMapEntry.
    *
    * @param {CMIObjectivesObject} objective - The CMI objectives object containing data about a specific learning objective.
-   * @return {Record<string, any>} An object containing mapped properties and their values based on the provided objective.
+   * @return {GlobalObjectiveMapEntry} An object containing mapped properties and their values based on the provided objective.
    */
-  private buildObjectiveMapEntryFromCMI(objective: CMIObjectivesObject): Record<string, any> {
-    const entry: Record<string, any> = {
+  private buildObjectiveMapEntryFromCMI(objective: CMIObjectivesObject): GlobalObjectiveMapEntry {
+    const entry: GlobalObjectiveMapEntry = {
       id: objective.id,
       satisfiedStatusKnown: false,
       normalizedMeasureKnown: false,

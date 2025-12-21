@@ -271,3 +271,48 @@ export type SequencingStatePersistenceConfig = {
   /** Debug logging for persistence operations */
   debugPersistence?: boolean;
 };
+
+/**
+ * Represents an entry in the global objective map used for SCORM 2004 sequencing.
+ * This structure stores objective state information including satisfaction status,
+ * measures, and completion status along with flags indicating which properties
+ * are known and which can be read/written.
+ */
+export type GlobalObjectiveMapEntry = {
+  /** Unique identifier for the objective */
+  id?: string;
+  /** Whether the objective was satisfied (passed) */
+  satisfiedStatus?: boolean;
+  /** Whether the satisfied status is known/set */
+  satisfiedStatusKnown?: boolean;
+  /** Normalized measure value (typically -1 to 1) */
+  normalizedMeasure?: number;
+  /** Whether the normalized measure is known/set */
+  normalizedMeasureKnown?: boolean;
+  /** Progress measure value (typically 0 to 1) */
+  progressMeasure?: number;
+  /** Whether the progress measure is known/set */
+  progressMeasureKnown?: boolean;
+  /** Completion status string (e.g., 'completed', 'incomplete') */
+  completionStatus?: string;
+  /** Whether the completion status is known/set */
+  completionStatusKnown?: boolean;
+  /** Whether satisfied status can be read */
+  readSatisfiedStatus?: boolean;
+  /** Whether satisfied status can be written */
+  writeSatisfiedStatus?: boolean;
+  /** Whether normalized measure can be read */
+  readNormalizedMeasure?: boolean;
+  /** Whether normalized measure can be written */
+  writeNormalizedMeasure?: boolean;
+  /** Whether progress measure can be read */
+  readProgressMeasure?: boolean;
+  /** Whether progress measure can be written */
+  writeProgressMeasure?: boolean;
+  /** Whether completion status can be read */
+  readCompletionStatus?: boolean;
+  /** Whether completion status can be written */
+  writeCompletionStatus?: boolean;
+  /** Timestamp of last update */
+  lastUpdated?: string;
+};
