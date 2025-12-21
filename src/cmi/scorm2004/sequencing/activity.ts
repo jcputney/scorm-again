@@ -259,16 +259,29 @@ export class ActivityObjective {
     this._progressMeasureStatus = false;
     this._completionStatus = CompletionStatus.UNKNOWN;
     this._progressStatus = false;
+    this.clearAllDirty();
   }
 
   updateFromActivity(activity: Activity): void {
-    this._satisfiedStatus = activity.objectiveSatisfiedStatus;
+    if (this._satisfiedStatus !== activity.objectiveSatisfiedStatus) {
+      this._satisfiedStatus = activity.objectiveSatisfiedStatus;
+      this._satisfiedStatusDirty = true;
+    }
     this._satisfiedStatusKnown = activity.objectiveSatisfiedStatusKnown;
     this._measureStatus = activity.objectiveMeasureStatus;
-    this._normalizedMeasure = activity.objectiveNormalizedMeasure;
-    this._progressMeasure = activity.progressMeasure;
+    if (this._normalizedMeasure !== activity.objectiveNormalizedMeasure) {
+      this._normalizedMeasure = activity.objectiveNormalizedMeasure;
+      this._normalizedMeasureDirty = true;
+    }
+    if (this._progressMeasure !== activity.progressMeasure) {
+      this._progressMeasure = activity.progressMeasure;
+      this._progressMeasureDirty = true;
+    }
     this._progressMeasureStatus = activity.progressMeasureStatus;
-    this._completionStatus = activity.completionStatus;
+    if (this._completionStatus !== activity.completionStatus) {
+      this._completionStatus = activity.completionStatus as CompletionStatus;
+      this._completionStatusDirty = true;
+    }
   }
 
   applyToActivity(activity: Activity): void {
