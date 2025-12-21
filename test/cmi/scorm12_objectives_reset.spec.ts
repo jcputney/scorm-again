@@ -29,12 +29,12 @@ describe("SCORM 1.2 Objectives Reset Tests", () => {
       expect(resetJson).toContain('"id":""');
       expect(resetJson).toContain('"status":""');
 
-      // Score values should NOT be reset (intentional - preserves learner data)
-      // See test/cmi/common/score_reset.spec.ts for detailed score reset behavior
+      // Score values should be reset to empty strings (SCORE-01 fix)
+      // raw and min reset to "", max preserves value (has non-trivial default)
       const scoreJson = JSON.stringify(objective.score);
-      expect(scoreJson).toContain('"raw":"85"'); // Retained, not reset
-      expect(scoreJson).toContain('"min":"0"'); // Retained, not reset
-      expect(scoreJson).toContain('"max":"100"'); // Retained, not reset
+      expect(scoreJson).toContain('"raw":""'); // Reset to empty
+      expect(scoreJson).toContain('"min":""'); // Reset to empty
+      expect(scoreJson).toContain('"max":"100"'); // Preserved (non-trivial default)
     });
   });
 });
