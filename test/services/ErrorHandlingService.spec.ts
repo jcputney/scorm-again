@@ -243,4 +243,103 @@ describe("ErrorHandlingService", () => {
       expect(errorHandlingService.errorCodes).toBe(errorCodes);
     });
   });
+
+  describe("lastDiagnostic", () => {
+    it("should return empty string by default", () => {
+      expect(errorHandlingService.lastDiagnostic).toBe("");
+    });
+
+    it("should return custom diagnostic message when set", () => {
+      errorHandlingService.throwSCORMError("cmi.core.score.raw", 101, "Custom diagnostic message");
+      expect(errorHandlingService.lastDiagnostic).toBe("Custom diagnostic message");
+    });
+
+    it("should clear diagnostic message when throwSCORMError is called without message", () => {
+      // First set a diagnostic message
+      errorHandlingService.throwSCORMError("cmi.core.score.raw", 101, "Custom diagnostic message");
+      expect(errorHandlingService.lastDiagnostic).toBe("Custom diagnostic message");
+
+      // Then throw an error without a custom message
+      errorHandlingService.throwSCORMError("cmi.core.score.raw", 102);
+      expect(errorHandlingService.lastDiagnostic).toBe("");
+    });
+
+    it("should persist diagnostic message across multiple error checks", () => {
+      errorHandlingService.throwSCORMError("cmi.core.score.raw", 101, "Persistent diagnostic");
+      expect(errorHandlingService.lastDiagnostic).toBe("Persistent diagnostic");
+
+      // Check error code doesn't clear diagnostic
+      const errorCode = errorHandlingService.lastErrorCode;
+      expect(errorCode).toBe("101");
+      expect(errorHandlingService.lastDiagnostic).toBe("Persistent diagnostic");
+    });
+  });
+
+  describe("JSON.stringify error handling", () => {
+    it("should handle JSON.stringify failure with circular reference", () => {
+      // Create a circular reference object
+      const circularObj: any = { name: "test" };
+      circularObj.self = circularObj;
+
+      const returnValue = errorHandlingService.handleValueAccessException(
+        "cmi.test",
+        circularObj,
+        "",
+      );
+
+      // Should handle the error gracefully
+      expect(returnValue).toBe(global_constants.SCORM_FALSE);
+      expect(errorHandlingService.lastErrorCode).toBe(String(errorCodes.GENERAL));
+
+      // Console.error should be called for both the main error and the "Could not stringify" message
+      expect(consoleErrorStub).toHaveBeenCalled();
+    });
+
+    it("should handle non-Error, non-ValidationError exceptions", () => {
+      const symbolError = Symbol("test error");
+      const returnValue = errorHandlingService.handleValueAccessException(
+        "cmi.test",
+        symbolError,
+        "",
+      );
+
+      expect(returnValue).toBe(global_constants.SCORM_FALSE);
+      expect(errorHandlingService.lastErrorCode).toBe(String(errorCodes.GENERAL));
+      expect(consoleErrorStub).toHaveBeenCalled();
+    });
+
+    it("should handle object with toJSON that throws", () => {
+      const badObject = {
+        name: "test",
+        toJSON: () => {
+          throw new Error("toJSON error");
+        },
+      };
+
+      const returnValue = errorHandlingService.handleValueAccessException(
+        "cmi.test",
+        badObject,
+        "",
+      );
+
+      expect(returnValue).toBe(global_constants.SCORM_FALSE);
+      expect(errorHandlingService.lastErrorCode).toBe(String(errorCodes.GENERAL));
+      expect(consoleErrorStub).toHaveBeenCalled();
+    });
+
+    it("should handle BigInt values that cannot be stringified", () => {
+      // BigInt cannot be directly JSON.stringified
+      const bigIntValue = BigInt(9007199254740991);
+
+      const returnValue = errorHandlingService.handleValueAccessException(
+        "cmi.test",
+        bigIntValue,
+        "",
+      );
+
+      expect(returnValue).toBe(global_constants.SCORM_FALSE);
+      expect(errorHandlingService.lastErrorCode).toBe(String(errorCodes.GENERAL));
+      expect(consoleErrorStub).toHaveBeenCalled();
+    });
+  });
 });
