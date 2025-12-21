@@ -1590,7 +1590,8 @@ export class Activity extends BaseCMI {
         normalizedMeasure: this.objectiveNormalizedMeasure,
         progressMeasure: this.progressMeasure ?? 0,
         progressMeasureStatus: this.progressMeasureStatus,
-        completionStatus: this.completionStatus,
+        progressStatus: this._primaryObjective.progressStatus,
+        completionStatus: this.completionStatus as CompletionStatus,
         satisfiedByMeasure: this._primaryObjective.satisfiedByMeasure,
         minNormalizedMeasure: this._primaryObjective.minNormalizedMeasure
       }
@@ -1603,7 +1604,8 @@ export class Activity extends BaseCMI {
       normalizedMeasure: objective.normalizedMeasure,
       progressMeasure: objective.progressMeasure,
       progressMeasureStatus: objective.progressMeasureStatus,
-      completionStatus: objective.completionStatus,
+      progressStatus: objective.progressStatus,
+      completionStatus: objective.completionStatus as CompletionStatus,
       satisfiedByMeasure: objective.satisfiedByMeasure,
       minNormalizedMeasure: objective.minNormalizedMeasure
     }));
