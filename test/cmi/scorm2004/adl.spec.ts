@@ -318,5 +318,116 @@ describe("ADL Classes", () => {
       // expect(result.choice).toEqual({ "target1": NAVBoolean.TRUE });
       // expect(result.jump).toEqual({ "target2": NAVBoolean.FALSE });
     });
+
+    it("should include exit, exitAll, abandon, abandonAll, and suspendAll in toJSON with default values", () => {
+      const adlNavRequestValid = new ADLNavRequestValid();
+
+      const result = adlNavRequestValid.toJSON();
+
+      expect(result).toHaveProperty("exit");
+      expect(result).toHaveProperty("exitAll");
+      expect(result).toHaveProperty("abandon");
+      expect(result).toHaveProperty("abandonAll");
+      expect(result).toHaveProperty("suspendAll");
+      expect(result.exit).toBe("unknown");
+      expect(result.exitAll).toBe("unknown");
+      expect(result.abandon).toBe("unknown");
+      expect(result.abandonAll).toBe("unknown");
+      expect(result.suspendAll).toBe("unknown");
+    });
+
+    it("should include exit, exitAll, abandon, abandonAll, and suspendAll in toJSON with custom values", () => {
+      const adlNavRequestValid = new ADLNavRequestValid();
+
+      // Set values before initialization (when they're writable)
+      adlNavRequestValid.exit = "true";
+      adlNavRequestValid.exitAll = "false";
+      adlNavRequestValid.abandon = "true";
+      adlNavRequestValid.abandonAll = "false";
+      adlNavRequestValid.suspendAll = "true";
+
+      const result = adlNavRequestValid.toJSON();
+
+      expect(result.exit).toBe("true");
+      expect(result.exitAll).toBe("false");
+      expect(result.abandon).toBe("true");
+      expect(result.abandonAll).toBe("false");
+      expect(result.suspendAll).toBe("true");
+    });
+
+    it("should set exit property when not initialized", () => {
+      const adlNavRequestValid = new ADLNavRequestValid();
+      adlNavRequestValid.exit = "true";
+      expect(adlNavRequestValid.exit).toBe("true");
+    });
+
+    it("should throw error when setting exit property after initialization", () => {
+      const adlNavRequestValid = new ADLNavRequestValid();
+      adlNavRequestValid.initialize();
+
+      expect(() => {
+        adlNavRequestValid.exit = "true";
+      }).toThrow(Scorm2004ValidationError);
+    });
+
+    it("should set exitAll property when not initialized", () => {
+      const adlNavRequestValid = new ADLNavRequestValid();
+      adlNavRequestValid.exitAll = "true";
+      expect(adlNavRequestValid.exitAll).toBe("true");
+    });
+
+    it("should throw error when setting exitAll property after initialization", () => {
+      const adlNavRequestValid = new ADLNavRequestValid();
+      adlNavRequestValid.initialize();
+
+      expect(() => {
+        adlNavRequestValid.exitAll = "true";
+      }).toThrow(Scorm2004ValidationError);
+    });
+
+    it("should set abandon property when not initialized", () => {
+      const adlNavRequestValid = new ADLNavRequestValid();
+      adlNavRequestValid.abandon = "true";
+      expect(adlNavRequestValid.abandon).toBe("true");
+    });
+
+    it("should throw error when setting abandon property after initialization", () => {
+      const adlNavRequestValid = new ADLNavRequestValid();
+      adlNavRequestValid.initialize();
+
+      expect(() => {
+        adlNavRequestValid.abandon = "true";
+      }).toThrow(Scorm2004ValidationError);
+    });
+
+    it("should set abandonAll property when not initialized", () => {
+      const adlNavRequestValid = new ADLNavRequestValid();
+      adlNavRequestValid.abandonAll = "true";
+      expect(adlNavRequestValid.abandonAll).toBe("true");
+    });
+
+    it("should throw error when setting abandonAll property after initialization", () => {
+      const adlNavRequestValid = new ADLNavRequestValid();
+      adlNavRequestValid.initialize();
+
+      expect(() => {
+        adlNavRequestValid.abandonAll = "true";
+      }).toThrow(Scorm2004ValidationError);
+    });
+
+    it("should set suspendAll property when not initialized", () => {
+      const adlNavRequestValid = new ADLNavRequestValid();
+      adlNavRequestValid.suspendAll = "true";
+      expect(adlNavRequestValid.suspendAll).toBe("true");
+    });
+
+    it("should throw error when setting suspendAll property after initialization", () => {
+      const adlNavRequestValid = new ADLNavRequestValid();
+      adlNavRequestValid.initialize();
+
+      expect(() => {
+        adlNavRequestValid.suspendAll = "true";
+      }).toThrow(Scorm2004ValidationError);
+    });
   });
 });
