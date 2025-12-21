@@ -165,11 +165,76 @@ describe("ErrorHandlingService", () => {
       );
     });
 
-    it("should return the provided return value for non-ValidationError instances", () => {
+    it("should return SCORM_FALSE for non-ValidationError instances (was incorrectly returning original value)", () => {
       const error = new Error("General error");
       const returnValue = errorHandlingService.handleValueAccessException("api", error, "test");
 
-      expect(returnValue).toBe("test");
+      // This test was updated as part of SVC-ERR-01 fix
+      // Previously this incorrectly returned "test", now correctly returns SCORM_FALSE
+      expect(returnValue).toBe(global_constants.SCORM_FALSE);
+    });
+
+    // SVC-ERR-01: Test that all error types return SCORM_FALSE
+    it("should return SCORM_FALSE for ValidationError (SVC-ERR-01)", () => {
+      const validationError = new ValidationError("cmi.core.score.raw", 201, "Invalid value");
+      const returnValue = errorHandlingService.handleValueAccessException(
+        "cmi.core.score.raw",
+        validationError,
+        "",
+      );
+
+      expect(returnValue).toBe(global_constants.SCORM_FALSE);
+    });
+
+    it("should return SCORM_FALSE for standard Error instances (SVC-ERR-01)", () => {
+      const error = new Error("Standard JavaScript error");
+      const returnValue = errorHandlingService.handleValueAccessException(
+        "cmi.core.score.raw",
+        error,
+        "",
+      );
+
+      // Should return SCORM_FALSE, not the original empty string
+      expect(returnValue).toBe(global_constants.SCORM_FALSE);
+    });
+
+    it("should return SCORM_FALSE for unknown error types (SVC-ERR-01)", () => {
+      const error = "String error";
+      const returnValue = errorHandlingService.handleValueAccessException(
+        "cmi.core.score.raw",
+        error,
+        "",
+      );
+
+      // Should return SCORM_FALSE, not the original empty string
+      expect(returnValue).toBe(global_constants.SCORM_FALSE);
+    });
+
+    it("should consistently return SCORM_FALSE regardless of original returnValue (SVC-ERR-01)", () => {
+      const error1 = new Error("Error 1");
+      const error2 = "Unknown error";
+      const error3 = new ValidationError("api", 201, "Validation error");
+
+      const returnValue1 = errorHandlingService.handleValueAccessException(
+        "api",
+        error1,
+        "original_value",
+      );
+      const returnValue2 = errorHandlingService.handleValueAccessException(
+        "api",
+        error2,
+        "different_value",
+      );
+      const returnValue3 = errorHandlingService.handleValueAccessException(
+        "api",
+        error3,
+        "yet_another_value",
+      );
+
+      // All should return SCORM_FALSE, not the original values
+      expect(returnValue1).toBe(global_constants.SCORM_FALSE);
+      expect(returnValue2).toBe(global_constants.SCORM_FALSE);
+      expect(returnValue3).toBe(global_constants.SCORM_FALSE);
     });
   });
 

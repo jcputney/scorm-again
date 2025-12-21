@@ -159,6 +159,7 @@ export class ErrorHandlingService implements IErrorHandlingService {
     if (e instanceof ValidationError) {
       const validationError = e as ValidationError;
       this._lastErrorCode = String(validationError.errorCode);
+      this._lastDiagnostic = "";
 
       // Log validation errors at WARN level with context
       const errorMessage = `Validation Error ${validationError.errorCode}: ${validationError.message} [Element: ${CMIElement}]`;
@@ -179,6 +180,9 @@ export class ErrorHandlingService implements IErrorHandlingService {
         this._errorCodes.GENERAL as number,
         `${errorType}: ${e.message}`,
       );
+
+      // SVC-ERR-01: Set returnValue to SCORM_FALSE for all error types
+      returnValue = global_constants.SCORM_FALSE;
     } else {
       // For unknown errors, provide as much context as possible
       const errorMessage = `Unknown error occurred while accessing [Element: ${CMIElement}]`;
@@ -195,6 +199,9 @@ export class ErrorHandlingService implements IErrorHandlingService {
       }
 
       this.throwSCORMError(CMIElement, this._errorCodes.GENERAL as number, "Unknown error");
+
+      // SVC-ERR-01: Set returnValue to SCORM_FALSE for all error types
+      returnValue = global_constants.SCORM_FALSE;
     }
     return returnValue;
   }

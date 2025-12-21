@@ -57,8 +57,10 @@ export class EventService implements IEventService {
    * @returns {ParsedListener|null} - The parsed listener information or null if invalid
    */
   private parseListenerName(listenerName: string): ParsedListener | null {
+    // SVC-EVT-01: Handle empty string input
+    if (!listenerName) return null;
+
     const listenerSplit = listenerName.split(".");
-    if (listenerSplit.length === 0) return null;
 
     const functionName = listenerSplit[0];
     let CMIElement: string | null = null;
@@ -173,8 +175,10 @@ export class EventService implements IEventService {
       if (this.listenerMap.has(functionName)) {
         const listeners = this.listenerMap.get(functionName)!;
 
-        // Filter out listeners that match the criteria
-        const newListeners = listeners.filter((obj) => obj.CMIElement !== CMIElement);
+        // SVC-EVT-02: When CMIElement is null, clear ALL listeners for this function
+        // When CMIElement is specified, only clear listeners matching that CMIElement
+        const newListeners =
+          CMIElement === null ? [] : listeners.filter((obj) => obj.CMIElement !== CMIElement);
 
         // Update the count and map
         this.listenerCount -= listeners.length - newListeners.length;
