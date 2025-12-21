@@ -52,6 +52,16 @@ export default class CrossFrameLMS {
     this._api = api;
     this._origin = targetOrigin;
     this._rateLimit = options.rateLimit ?? 100;
+
+    // Warn about wildcard origin security implications
+    if (targetOrigin === "*") {
+      console.warn(
+        "CrossFrameLMS: Using wildcard origin ('*') allows any origin to send messages. " +
+          "This is insecure for production use. " +
+          "Specify an explicit origin (e.g., 'https://content.example.com') to restrict message sources.",
+      );
+    }
+
     this._boundOnMessage = this._onMessage.bind(this);
     window.addEventListener("message", this._boundOnMessage);
   }

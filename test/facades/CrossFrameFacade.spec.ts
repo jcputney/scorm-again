@@ -9,6 +9,8 @@ describe("CrossFrameAPI (cache-first)", () => {
   let postSpy: any;
 
   beforeEach(() => {
+    // Suppress console warnings during tests
+    vi.spyOn(console, "warn").mockImplementation(() => {});
     client = new CrossFrameAPI("https://lms.example.com");
     postSpy = vi.spyOn(window.parent, "postMessage").mockImplementation(() => {});
     // seed cache & errors
@@ -496,6 +498,8 @@ describe("CrossFrameLMS", () => {
   let src: any;
 
   beforeEach(() => {
+    // Suppress console warnings during tests
+    vi.spyOn(console, "warn").mockImplementation(() => {});
     apiMock = { LMSGetValue: vi.fn().mockReturnValue("completed") };
     server = new CrossFrameLMS(apiMock, "http://parent");
     src = { postMessage: vi.fn() };
@@ -782,6 +786,8 @@ describe("CrossFrameAPI - New Features", () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
+    // Suppress console warnings during tests
+    vi.spyOn(console, "warn").mockImplementation(() => {});
     postSpy = vi.spyOn(window.parent, "postMessage").mockImplementation(() => {});
     client = new CrossFrameAPI("https://lms.example.com", window.parent, {
       timeout: 5000,
@@ -984,5 +990,130 @@ describe("CrossFrameAPI - New Features", () => {
     // eslint-disable-next-line
     // @ts-ignore
     expect(client["_cache"].get("cmi.score.min")).toBe("0");
+  });
+});
+
+describe("CrossFrameAPI - Security Warnings", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("logs warning when using wildcard origin", () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const client = new CrossFrameAPI("*");
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      "CrossFrameAPI: Using wildcard origin ('*') allows any origin to receive messages. " +
+        "This is insecure for production use. " +
+        "Specify an explicit origin (e.g., 'https://lms.example.com') to restrict message recipients.",
+    );
+
+    client.destroy();
+    warnSpy.mockRestore();
+  });
+
+  it("does not log warning when using explicit origin", () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const client = new CrossFrameAPI("https://lms.example.com");
+
+    expect(warnSpy).not.toHaveBeenCalled();
+
+    client.destroy();
+    warnSpy.mockRestore();
+  });
+
+  it("logs warning only once per instantiation", () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const client = new CrossFrameAPI("*");
+
+    // Call a method to ensure warning is not logged again
+    client.LMSInitialize();
+
+    // Should only have been called once (during construction)
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+
+    client.destroy();
+    warnSpy.mockRestore();
+  });
+});
+
+describe("CrossFrameLMS - Security Warnings", () => {
+  let apiMock: any;
+
+  beforeEach(() => {
+    apiMock = { LMSGetValue: vi.fn().mockReturnValue("test") };
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("logs warning when using wildcard origin", () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const server = new CrossFrameLMS(apiMock, "*");
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      "CrossFrameLMS: Using wildcard origin ('*') allows any origin to send messages. " +
+        "This is insecure for production use. " +
+        "Specify an explicit origin (e.g., 'https://content.example.com') to restrict message sources.",
+    );
+
+    server.destroy();
+    warnSpy.mockRestore();
+  });
+
+  it("does not log warning when using explicit origin", () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const server = new CrossFrameLMS(apiMock, "https://content.example.com");
+
+    expect(warnSpy).not.toHaveBeenCalled();
+
+    server.destroy();
+    warnSpy.mockRestore();
+  });
+
+  it("logs warning only once per instantiation", () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const src = { postMessage: vi.fn() };
+
+    const server = new CrossFrameLMS(apiMock, "*");
+
+    // Trigger message processing
+    const msg: MessageData = {
+      messageId: "test",
+      method: "LMSGetValue",
+      params: ["cmi.core.lesson_status"],
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"]({
+      data: msg,
+      origin: "*",
+      source: src,
+    });
+
+    // Should only have been called once (during construction)
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+
+    server.destroy();
+    warnSpy.mockRestore();
+  });
+
+  it("accepts wildcard default when no origin specified", () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    // Should use default wildcard and log warning
+    const server = new CrossFrameLMS(apiMock);
+
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("Using wildcard origin ('*')"));
+
+    server.destroy();
+    warnSpy.mockRestore();
   });
 });
