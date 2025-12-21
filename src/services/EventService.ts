@@ -175,8 +175,8 @@ export class EventService implements IEventService {
       if (this.listenerMap.has(functionName)) {
         const listeners = this.listenerMap.get(functionName)!;
 
-        // SVC-EVT-02: When CMIElement is null, clear ALL listeners for this function
-        // When CMIElement is specified, only clear listeners matching that CMIElement
+        // When CMIElement is null (no specific element provided), clear ALL listeners for this function.
+        // When CMIElement is specified, only clear listeners matching that exact CMIElement.
         const newListeners =
           CMIElement === null ? [] : listeners.filter((obj) => obj.CMIElement !== CMIElement);
 
@@ -210,7 +210,8 @@ export class EventService implements IEventService {
       const listenerHasCMIElement = !!listener.CMIElement;
       let CMIElementsMatch = false;
 
-      // Check if CMI elements match
+      // Match CMI elements: supports wildcard (*) for prefix matching or exact string comparison.
+      // Listeners with no CMIElement (null) match all events for this function.
       if (CMIElement && listener.CMIElement) {
         if (listener.CMIElement.endsWith("*")) {
           // For wildcard matches, check if the CMI element starts with the prefix
