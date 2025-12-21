@@ -235,6 +235,67 @@ describe("EventService", () => {
       expect(callback).toHaveBeenCalledOnce();
       expect(callback).toHaveBeenCalledWith();
     });
+
+    it("should handle SequencePrevious event correctly", () => {
+      const callback = vi.fn();
+      eventService.on("SequencePrevious", callback);
+
+      eventService.processListeners("SequencePrevious", undefined, "previous");
+
+      expect(callback).toHaveBeenCalledOnce();
+      expect(callback).toHaveBeenCalledWith("previous");
+    });
+
+    it("should handle SequenceExit event correctly", () => {
+      const callback = vi.fn();
+      eventService.on("SequenceExit", callback);
+
+      eventService.processListeners("SequenceExit", undefined, "exit");
+
+      expect(callback).toHaveBeenCalledOnce();
+      expect(callback).toHaveBeenCalledWith("exit");
+    });
+
+    it("should handle CommitError with null value", () => {
+      const callback = vi.fn();
+      eventService.on("CommitError", callback);
+
+      eventService.processListeners("CommitError", undefined, null);
+
+      expect(callback).toHaveBeenCalledOnce();
+      expect(callback).toHaveBeenCalledWith(null);
+    });
+
+    it("should handle CommitError with undefined value", () => {
+      const callback = vi.fn();
+      eventService.on("CommitError", callback);
+
+      eventService.processListeners("CommitError", undefined, undefined);
+
+      expect(callback).toHaveBeenCalledOnce();
+      expect(callback).toHaveBeenCalledWith(undefined);
+    });
+
+    it("should handle Sequence event with null value", () => {
+      const callback = vi.fn();
+      eventService.on("SequenceChoice", callback);
+
+      eventService.processListeners("SequenceChoice", undefined, null);
+
+      expect(callback).toHaveBeenCalledOnce();
+      expect(callback).toHaveBeenCalledWith(null);
+    });
+
+    it("should handle CommitSuccess with CMIElement (should ignore it)", () => {
+      const callback = vi.fn();
+      eventService.on("CommitSuccess", callback);
+
+      // CommitSuccess should ignore CMIElement and value
+      eventService.processListeners("CommitSuccess", "cmi.score.scaled", "0.8");
+
+      expect(callback).toHaveBeenCalledOnce();
+      expect(callback).toHaveBeenCalledWith();
+    });
   });
 
   describe("Edge Cases", () => {

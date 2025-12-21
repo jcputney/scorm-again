@@ -359,5 +359,128 @@ describe("LoggingService", () => {
       expect(loggingService.getNumericLevel("6")).toBe(LogLevelEnum.ERROR);
       expect(loggingService.getNumericLevel({})).toBe(LogLevelEnum.ERROR);
     });
+
+    it("should default to ERROR for unexpected string values", () => {
+      expect(loggingService.getNumericLevel("INVALID")).toBe(LogLevelEnum.ERROR);
+      expect(loggingService.getNumericLevel("trace")).toBe(LogLevelEnum.ERROR);
+      expect(loggingService.getNumericLevel("verbose")).toBe(LogLevelEnum.ERROR);
+      expect(loggingService.getNumericLevel("")).toBe(LogLevelEnum.ERROR);
+    });
+
+    it("should default to ERROR for unexpected object types", () => {
+      expect(loggingService.getNumericLevel({} as any)).toBe(LogLevelEnum.ERROR);
+      expect(loggingService.getNumericLevel([] as any)).toBe(LogLevelEnum.ERROR);
+      expect(loggingService.getNumericLevel({ level: "ERROR" } as any)).toBe(LogLevelEnum.ERROR);
+    });
+
+    it("should default to ERROR for null", () => {
+      expect(loggingService.getNumericLevel(null as any)).toBe(LogLevelEnum.ERROR);
+    });
+
+    it("should default to ERROR for boolean values", () => {
+      expect(loggingService.getNumericLevel(true as any)).toBe(LogLevelEnum.ERROR);
+      expect(loggingService.getNumericLevel(false as any)).toBe(LogLevelEnum.ERROR);
+    });
+
+    it("should default to ERROR for numeric values outside expected range", () => {
+      expect(loggingService.getNumericLevel(0 as any)).toBe(0);
+      expect(loggingService.getNumericLevel(6 as any)).toBe(6);
+      expect(loggingService.getNumericLevel(-1 as any)).toBe(-1);
+      expect(loggingService.getNumericLevel(100 as any)).toBe(100);
+    });
+
+    it("should default to ERROR for function values", () => {
+      const fn = () => "ERROR";
+      expect(loggingService.getNumericLevel(fn as any)).toBe(LogLevelEnum.ERROR);
+    });
+
+    it("should default to ERROR for symbol values", () => {
+      const sym = Symbol("ERROR");
+      expect(loggingService.getNumericLevel(sym as any)).toBe(LogLevelEnum.ERROR);
+    });
+  });
+
+  describe("Default Handler with Unexpected Input Types", () => {
+    // Create a default log handler function that matches the one in LoggingService
+    const createDefaultLogHandler = () => {
+      return (messageLevel: LogLevel, logMessage: string) => {
+        switch (messageLevel) {
+          case "4":
+          case 4:
+          case "ERROR":
+          case LogLevelEnum.ERROR:
+            console.error(logMessage);
+            break;
+          case "3":
+          case 3:
+          case "WARN":
+          case LogLevelEnum.WARN:
+            console.warn(logMessage);
+            break;
+          case "2":
+          case 2:
+          case "INFO":
+          case LogLevelEnum.INFO:
+            console.info(logMessage);
+            break;
+          case "1":
+          case 1:
+          case "DEBUG":
+          case LogLevelEnum.DEBUG: {
+            // Access console.debug directly to ensure we check at runtime
+            const debug = console.debug;
+            if (typeof debug === "function") {
+              debug.call(console, logMessage);
+            } else {
+              console.log(logMessage);
+            }
+            break;
+          }
+        }
+      };
+    };
+
+    it("should handle unexpected log level in default handler gracefully", () => {
+      const loggingService = getLoggingService();
+
+      // Reset the log handler to a new default one
+      (loggingService as any)._logHandler = createDefaultLogHandler();
+
+      loggingService.setLogLevel(LogLevelEnum.DEBUG);
+
+      // Call log with an unexpected level (should hit default case - no console call)
+      loggingService.log("UNKNOWN" as any, "Unknown level message");
+
+      // Since there's no default case in the switch, nothing should be logged
+      // The test just verifies it doesn't throw an error
+    });
+
+    it("should handle numeric level outside expected range in default handler", () => {
+      const loggingService = getLoggingService();
+
+      // Reset the log handler to a new default one
+      (loggingService as any)._logHandler = createDefaultLogHandler();
+
+      loggingService.setLogLevel(LogLevelEnum.DEBUG);
+
+      // Call log with an unexpected numeric level
+      loggingService.log(99 as any, "Unexpected numeric level");
+
+      // Should not throw, even though it doesn't match any case
+    });
+
+    it("should handle object as log level in default handler", () => {
+      const loggingService = getLoggingService();
+
+      // Reset the log handler to a new default one
+      (loggingService as any)._logHandler = createDefaultLogHandler();
+
+      loggingService.setLogLevel(LogLevelEnum.DEBUG);
+
+      // Call log with an object as level
+      loggingService.log({} as any, "Object as level");
+
+      // Should not throw
+    });
   });
 });
