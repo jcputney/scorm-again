@@ -2,6 +2,11 @@
  * Base class for API cmi objects
  */
 export abstract class BaseCMI {
+  /**
+   * Flag used during JSON serialization to allow getter access without initialization checks.
+   * When true, getters can be accessed before the API is initialized, which is necessary
+   * for serializing the CMI data structure to JSON format.
+   */
   jsonString = false;
   protected readonly _cmi_element: string;
   protected _initialized = false;
@@ -39,7 +44,7 @@ export abstract class BaseRootCMI extends BaseCMI {
   protected _start_time: number | undefined;
 
   /**
-   * Start time of the course
+   * Start time of the session
    * @type {number | undefined}
    * @protected
    */
