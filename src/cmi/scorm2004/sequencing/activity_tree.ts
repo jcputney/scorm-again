@@ -135,6 +135,55 @@ export class ActivityTree extends BaseCMI {
   }
 
   /**
+   * Set current activity without activating it
+   * This method is used when the sequencing process needs to update the current activity
+   * pointer without triggering the automatic activation behavior (e.g., after termination).
+   * Unlike the normal setter, this method only deactivates the old current activity (and
+   * non-shared ancestors) WITHOUT activating the new current activity.
+   * @param {Activity | null} activity - The activity to set as current
+   */
+  setCurrentActivityWithoutActivation(activity: Activity | null): void {
+    // noinspection SuspiciousTypeOfGuard
+    if (activity !== null && !(activity instanceof Activity)) {
+      throw new Scorm2004ValidationError(
+        this._cmi_element + ".currentActivity",
+        scorm2004_errors.TYPE_MISMATCH as number,
+      );
+    }
+
+    // Deactivate previous current activity, but NOT the new current activity
+    // or any shared ancestors (i.e., don't deactivate shared ancestors)
+    if (this._currentActivity) {
+      // Build set of activities to preserve (new current + its ancestors)
+      const activitiesToPreserve = new Set<Activity>();
+      if (activity) {
+        activitiesToPreserve.add(activity); // Include the new current itself!
+        let ancestor: Activity | null = activity.parent;
+        while (ancestor) {
+          activitiesToPreserve.add(ancestor);
+          ancestor = ancestor.parent;
+        }
+      }
+
+      // Deactivate old current
+      this._currentActivity.isActive = false;
+
+      // Deactivate old current's ancestors that are NOT in the preserve set
+      let ancestor = this._currentActivity.parent;
+      while (ancestor) {
+        if (!activitiesToPreserve.has(ancestor)) {
+          ancestor.isActive = false;
+        }
+        ancestor = ancestor.parent;
+      }
+    }
+
+    // Set new current activity WITHOUT activating it or its ancestors
+    // The caller is responsible for activation if needed
+    this._currentActivity = activity;
+  }
+
+  /**
    * Getter for suspendedActivity
    * @return {Activity | null}
    */
