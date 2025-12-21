@@ -5,7 +5,9 @@ import { defaultLogHandler } from "../constants/default_settings";
 
 /**
  * Centralized logging service implemented as a singleton
- * Provides methods for logging at different levels and configuring the log level
+ * Provides methods for logging at different levels and configuring the log level.
+ * Supports custom log handlers via the `customLogHandler` setting to integrate with
+ * external logging systems or implement custom logging behavior.
  */
 export class LoggingService implements ILoggingService {
   private static _instance: LoggingService;

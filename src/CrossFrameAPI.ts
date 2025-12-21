@@ -15,13 +15,18 @@ interface PendingRequest {
   resolve: (v: unknown) => void;
   reject: (e: unknown) => void;
   timer: ReturnType<typeof setTimeout>;
+  /**
+   * Timestamp when the request was sent, used for cache merge protection.
+   * Ensures local modifications made after the request was sent aren't overwritten
+   * by stale server responses that arrive later.
+   */
   requestTime: number;
   method: string; // CF-API-02: Track method name for better error reporting
 }
 
 /**
  * Client-side SCORM facade running in your content frame.
- * Returns cached/default values synchronously, then fires off an async
+ * Returns cached values synchronously, then fires off an async
  * postMessage to the LMS frame to refresh cache and error state.
  */
 export default class CrossFrameAPI {
