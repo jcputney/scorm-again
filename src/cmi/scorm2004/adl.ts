@@ -86,6 +86,7 @@ export class ADL extends BaseCMI {
 
 /**
  * Class representing SCORM 2004's `adl.nav` object
+ * @spec SN 3 - Navigation Data Model
  */
 
 export class ADLNav extends BaseCMI {
@@ -401,6 +402,7 @@ class ADLNavRequestValidJump {
 
 /**
  * Class representing SCORM 2004's adl.nav.request_valid object
+ * @spec SN 3.1 - Navigation Request Validity Data Model
  */
 
 export class ADLNavRequestValid extends BaseCMI {
