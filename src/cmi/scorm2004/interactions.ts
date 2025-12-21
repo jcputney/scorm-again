@@ -584,6 +584,27 @@ function splitUnescaped(text: string, delim: string): string[] {
 }
 
 /**
+ * Split on the FIRST unescaped delimiter only and unescape the delimiter in resulting parts.
+ * This is needed for patterns where the second part may contain literal delimiters (e.g., decimal numbers with dots).
+ * @param text - the input string
+ * @param delim - the delimiter character, e.g. ',' or '.'
+ * @returns array with exactly 2 parts, or array with 1 part if no unescaped delimiter found
+ */
+function splitFirstUnescaped(text: string, delim: string): string[] {
+  const reDelim = escapeRegex(delim);
+  const splitRe = new RegExp(`(?<!\\\\)${reDelim}`);
+  const unescapeRe = new RegExp(`\\\\${reDelim}`, "g");
+  const parts = text.split(splitRe);
+  if (parts.length === 1) {
+    return [parts[0].replace(unescapeRe, delim)];
+  }
+  // Join everything after the first split back together
+  const part1 = parts[0].replace(unescapeRe, delim);
+  const part2 = parts.slice(1).join(delim).replace(unescapeRe, delim);
+  return [part1, part2];
+}
+
+/**
  * Helper: validate a `pattern` string against its SCORM definition
  */
 function validatePattern(type: string, pattern: string, responseDef: ResponseType) {
@@ -705,7 +726,15 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
       }
 
       case "performance": {
-        // split into parts on unescaped dot
+        // Performance pattern: step_name.step_answer
+        // - step_name must match format (CMIShortIdentifier)
+        // - step_answer can be:
+        //   1. A CMIShortIdentifier (e.g., "answer1")
+        //   2. A decimal number (e.g., "3.14") - contains literal dots!
+        //   3. A numeric range (e.g., "3.5:4.2") - contains literal dots and colon!
+        //
+        // CRITICAL: Must split on FIRST unescaped dot only, because step_answer
+        // may contain literal dots (for decimal numbers like "3.14")
         const delimBracketed = responseDef.delimiter2;
         if (!delimBracketed) {
           throw new Scorm2004ValidationError(
@@ -714,31 +743,38 @@ function validatePattern(type: string, pattern: string, responseDef: ResponseTyp
           );
         }
         const delim = stripBrackets(delimBracketed);
-        // split into parts on unescaped dot
-        const allParts = splitUnescaped(node, delim);
-        if (!node.includes(":") && allParts.length !== 2) {
+
+        // Split on the FIRST unescaped delimiter only
+        const parts = splitFirstUnescaped(node, delim);
+
+        // Must have exactly 2 parts (step_name and step_answer)
+        if (parts.length !== 2) {
           throw new Scorm2004ValidationError(
             "cmi.interactions.n.correct_responses.n.pattern",
             scorm2004_errors.TYPE_MISMATCH as number,
           );
         }
-        // use splitUnescaped to get [part1, part2]
-        const [part1, part2] = splitUnescaped(node, delim);
-        // Validate non-empty
+
+        const [part1, part2] = parts;
+
+        // Validate non-empty and not identical
         if (part1 === "" || part2 === "" || part1 === part2) {
           throw new Scorm2004ValidationError(
             "cmi.interactions.n.correct_responses.n.pattern",
             scorm2004_errors.TYPE_MISMATCH as number,
           );
         }
-        // part1 against format1
+
+        // Validate part1 (step_name) against format (CMIShortIdentifier)
         if (part1 === undefined || !fmt1.test(part1)) {
           throw new Scorm2004ValidationError(
             "cmi.interactions.n.correct_responses.n.pattern",
             scorm2004_errors.TYPE_MISMATCH as number,
           );
         }
-        // part2 against format2
+
+        // Validate part2 (step_answer) against format2
+        // format2 allows: CMIShortIdentifier | decimal | decimal:decimal
         if (fmt2 && part2 !== undefined && !fmt2.test(part2)) {
           throw new Scorm2004ValidationError(
             "cmi.interactions.n.correct_responses.n.pattern",
