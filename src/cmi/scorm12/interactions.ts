@@ -250,6 +250,9 @@ export class CMIInteractionsObject extends BaseCMI {
 
   /**
    * Setter for _result
+   * @spec RTE 3.4.2.7.6 - cmi.interactions.n.result
+   * Per SCORM 1.2 spec, valid values are "correct", "wrong", "unanticipated", "neutral", or a numeric score.
+   * The spec requires "wrong" not "incorrect" for failed interactions.
    * @param {string} result
    */
   set result(result: string) {
