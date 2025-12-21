@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { ADL, ADLData, ADLDataObject, ADLNav, ADLNavRequestValid } from "../../../src";
 import { Scorm2004ValidationError } from "../../../src/exceptions/scorm2004_exceptions";
+import { NAVBoolean } from "../../../src/constants/enums";
 
 describe("ADL Classes", () => {
   describe("ADL", () => {
@@ -297,14 +298,6 @@ describe("ADL Classes", () => {
       adlNavRequestValid.continue = "true";
       adlNavRequestValid.previous = "false";
 
-      // These operations are throwing errors, so we'll skip them
-      // try {
-      //   adlNavRequestValid.choice = { "target1": "true" };
-      //   adlNavRequestValid.jump = { "target2": "false" };
-      // } catch (e) {
-      //   // Expected to throw an error
-      // }
-
       const result = adlNavRequestValid.toJSON();
 
       expect(result).toHaveProperty("continue");
@@ -312,11 +305,11 @@ describe("ADL Classes", () => {
       expect(result.continue).toBe("true");
       expect(result.previous).toBe("false");
 
-      // Skip these assertions since we're not setting the properties
-      // expect(result).toHaveProperty("choice");
-      // expect(result).toHaveProperty("jump");
-      // expect(result.choice).toEqual({ "target1": NAVBoolean.TRUE });
-      // expect(result.jump).toEqual({ "target2": NAVBoolean.FALSE });
+      // Verify choice and jump properties are included (even if empty)
+      expect(result).toHaveProperty("choice");
+      expect(result).toHaveProperty("jump");
+      expect(typeof result.choice).toBe("object");
+      expect(typeof result.jump).toBe("object");
     });
 
     it("should include exit, exitAll, abandon, abandonAll, and suspendAll in toJSON with default values", () => {
@@ -428,6 +421,34 @@ describe("ADL Classes", () => {
       expect(() => {
         adlNavRequestValid.suspendAll = "true";
       }).toThrow(Scorm2004ValidationError);
+    });
+
+    it("should serialize choice and jump properties with values in toJSON", () => {
+      const adlNavRequestValid = new ADLNavRequestValid();
+
+      // Use internal API to set choice and jump values (keys must be in NAVTarget format)
+      adlNavRequestValid.choice = {
+        "{target=target1}": "true",
+        "{target=target2}": "false"
+      };
+      adlNavRequestValid.jump = {
+        "{target=jumpTarget}": "unknown"
+      };
+
+      const result = adlNavRequestValid.toJSON();
+
+      // Verify choice property is serialized
+      expect(result).toHaveProperty("choice");
+      expect(result.choice).toEqual({
+        "{target=target1}": NAVBoolean.TRUE,
+        "{target=target2}": NAVBoolean.FALSE
+      });
+
+      // Verify jump property is serialized
+      expect(result).toHaveProperty("jump");
+      expect(result.jump).toEqual({
+        "{target=jumpTarget}": NAVBoolean.UNKNOWN
+      });
     });
   });
 });

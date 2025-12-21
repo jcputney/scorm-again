@@ -758,13 +758,22 @@ export class ADLNavRequestValid extends BaseCMI {
    * @return {
    *    {
    *      previous: string,
-   *      continue: string
+   *      continue: string,
+   *      choice: { [key: string]: NAVBoolean },
+   *      jump: { [key: string]: NAVBoolean },
+   *      exit: string,
+   *      exitAll: string,
+   *      abandon: string,
+   *      abandonAll: string,
+   *      suspendAll: string
    *    }
    *  }
    */
   toJSON(): {
     previous: string;
     continue: string;
+    choice: { [key: string]: NAVBoolean };
+    jump: { [key: string]: NAVBoolean };
     exit: string;
     exitAll: string;
     abandon: string;
