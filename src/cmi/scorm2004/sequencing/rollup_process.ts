@@ -1008,6 +1008,7 @@ export class RollupProcess {
             const threshold = objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
             globalObjective.satisfiedStatus = objective.normalizedMeasure >= threshold;
             globalObjective.satisfiedStatusKnown = true;
+            objective.clearDirty('satisfiedStatus');
           }
         }
 
