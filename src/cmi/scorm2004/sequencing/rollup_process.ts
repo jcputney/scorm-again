@@ -992,14 +992,17 @@ export class RollupProcess {
         const globalObjective = this.ensureGlobalObjectiveEntry(globalObjectives, targetId, objective, mapInfo);
 
         // Only do WRITE operations in this phase
-        if (mapInfo.writeSatisfiedStatus && objective.measureStatus) {
+        // Only write if the objective property has been modified (dirty flag set)
+        if (mapInfo.writeSatisfiedStatus && objective.measureStatus && objective.isDirty('satisfiedStatus')) {
           globalObjective.satisfiedStatus = objective.satisfiedStatus;
           globalObjective.satisfiedStatusKnown = true;
+          objective.clearDirty('satisfiedStatus');
         }
 
-        if (mapInfo.writeNormalizedMeasure && objective.measureStatus) {
+        if (mapInfo.writeNormalizedMeasure && objective.measureStatus && objective.isDirty('normalizedMeasure')) {
           globalObjective.normalizedMeasure = objective.normalizedMeasure;
           globalObjective.normalizedMeasureKnown = true;
+          objective.clearDirty('normalizedMeasure');
 
           if (globalObjective.satisfiedByMeasure || objective.satisfiedByMeasure) {
             const threshold = objective.minNormalizedMeasure ?? activity.scaledPassingScore ?? 0.7;
@@ -1008,14 +1011,16 @@ export class RollupProcess {
           }
         }
 
-        if (mapInfo.writeCompletionStatus && objective.completionStatus !== CompletionStatus.UNKNOWN) {
+        if (mapInfo.writeCompletionStatus && objective.completionStatus !== CompletionStatus.UNKNOWN && objective.isDirty('completionStatus')) {
           globalObjective.completionStatus = objective.completionStatus;
           globalObjective.completionStatusKnown = true;
+          objective.clearDirty('completionStatus');
         }
 
-        if (mapInfo.writeProgressMeasure && objective.progressMeasureStatus) {
+        if (mapInfo.writeProgressMeasure && objective.progressMeasureStatus && objective.isDirty('progressMeasure')) {
           globalObjective.progressMeasure = objective.progressMeasure;
           globalObjective.progressMeasureKnown = true;
+          objective.clearDirty('progressMeasure');
         }
 
         if (mapInfo.updateAttemptData) {
