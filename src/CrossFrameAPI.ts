@@ -161,6 +161,15 @@ export default class CrossFrameAPI {
     this._heartbeatInterval = options.heartbeatInterval ?? 30000;
     this._heartbeatTimeout = options.heartbeatTimeout ?? 60000;
 
+    // Warn about wildcard origin security implications
+    if (targetOrigin === "*") {
+      console.warn(
+        "CrossFrameAPI: Using wildcard origin ('*') allows any origin to receive messages. " +
+          "This is insecure for production use. " +
+          "Specify an explicit origin (e.g., 'https://lms.example.com') to restrict message recipients.",
+      );
+    }
+
     this._boundOnMessage = this._onMessage.bind(this);
     window.addEventListener("message", this._boundOnMessage);
     this._startHeartbeat();
