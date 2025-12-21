@@ -1508,7 +1508,15 @@ export class SequencingProcess {
       if (previousSibling) {
         // If previous sibling has children, go to the last descendant
         let lastDescendant = previousSibling;
+        let descendIterations = 0;
+        const maxDescendIterations = 10000; // Safety limit for descending
         while (true) {
+          if (++descendIterations > maxDescendIterations) {
+            throw new Error(
+              `[SEQ-PROC] Infinite loop detected in backward traversal (descending to last child). ` +
+              `Exceeded ${maxDescendIterations} iterations. Tree may have circular references.`
+            );
+          }
           this.ensureSelectionAndRandomization(lastDescendant);
           const children = lastDescendant.getAvailableChildren();
           if (children.length === 0) {
@@ -1523,12 +1531,28 @@ export class SequencingProcess {
 
       // No previous sibling at this level, try going up to parent and then its previous sibling
       let current: Activity | null = fromActivity;
+      let ancestorIterations = 0;
+      const maxAncestorIterations = 10000; // Safety limit for ascending
       while (current && current.parent) {
+        if (++ancestorIterations > maxAncestorIterations) {
+          throw new Error(
+            `[SEQ-PROC] Infinite loop detected in backward traversal (ascending to ancestors). ` +
+            `Exceeded ${maxAncestorIterations} iterations. Tree may have circular references.`
+          );
+        }
         const parentPreviousSibling = this.activityTree.getPreviousSibling(current.parent);
         if (parentPreviousSibling) {
           // Found a previous sibling of an ancestor, go to its last descendant
           let lastDescendant = parentPreviousSibling;
+          let descendIterations = 0;
+          const maxDescendIterations = 10000; // Safety limit for descending
           while (true) {
+            if (++descendIterations > maxDescendIterations) {
+              throw new Error(
+                `[SEQ-PROC] Infinite loop detected in backward traversal (descending to last child). ` +
+                `Exceeded ${maxDescendIterations} iterations. Tree may have circular references.`
+              );
+            }
             this.ensureSelectionAndRandomization(lastDescendant);
             const children = lastDescendant.getAvailableChildren();
             if (children.length === 0) {
