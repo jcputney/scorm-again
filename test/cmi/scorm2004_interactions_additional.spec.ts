@@ -248,12 +248,12 @@ describe("SCORM 2004 Additional Interactions Tests", () => {
         }).not.toThrow();
       });
 
-      it("should reject too many components", () => {
+      it("should accept patterns with dots in step_answer", () => {
         const cr = new CMIInteractionsCorrectResponsesObject("performance");
-        // three parts → invalid
-        expect(() => {
-          cr.pattern = "a.b.c";
-        }).toThrow();
+        // "a.b.c" splits to step_name="a" and step_answer="b.c"
+        // "b.c" is valid as a CMIShortIdentifier (dots are allowed)
+        cr.pattern = "a.b.c";
+        expect(cr.pattern).toBe("a.b.c");
       });
 
       it("should reject duplicate performance patterns", () => {
