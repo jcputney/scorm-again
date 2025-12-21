@@ -21,7 +21,8 @@ describe("CMIScore Reset Tests", () => {
       expect((score as any)._initialized).toBe(false);
     });
 
-    it("should not reset raw, min, and max values", () => {
+    it("should reset raw and min to empty strings but preserve max default", () => {
+      // SCORE-01: Base CMIScore.reset() should reset _raw and _min to match subclass behavior
       // Create a score object and set values
       const score = new CMIScore({
         CMIElement: "cmi.core.score",
@@ -36,9 +37,10 @@ describe("CMIScore Reset Tests", () => {
       // Reset the score
       score.reset();
 
-      // Check if values remain unchanged (the reset method doesn't reset these values)
-      expect(score.raw).toBe("90");
-      expect(score.min).toBe("0");
+      // raw and min should be reset to empty strings
+      expect(score.raw).toBe("");
+      expect(score.min).toBe("");
+      // max should preserve its value (has non-trivial default, handled by constructor/reinitialization)
       expect(score.max).toBe("100");
     });
 

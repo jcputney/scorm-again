@@ -77,9 +77,15 @@ export class CMIScore extends BaseCMI {
 
   /**
    * Called when the API has been reset
+   *
+   * SCORE-01: Resets _raw and _min to empty strings to match subclass behavior.
+   * _max is NOT reset here as it has a non-trivial default ("100") that is
+   * handled by the constructor or reinitialization logic.
    */
   reset(): void {
     this._initialized = false;
+    this._raw = "";
+    this._min = "";
   }
 
   /**

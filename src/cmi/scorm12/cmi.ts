@@ -53,6 +53,9 @@ export class CMI extends BaseRootCMI {
 
   /**
    * Called when the API has been reset
+   *
+   * CMI-03: Uses consistent ?.reset() pattern for all child objects.
+   * Objectives and interactions use reset(true) to clear arrays completely.
    */
   reset(): void {
     this._initialized = false;
@@ -60,8 +63,8 @@ export class CMI extends BaseRootCMI {
     this._launch_data = "";
     this._comments = "";
     this.core?.reset();
-    this.objectives = new CMIObjectives();
-    this.interactions = new CMIInteractions();
+    this.objectives?.reset(true);
+    this.interactions?.reset(true);
     this.student_data?.reset();
     this.student_preference?.reset();
   }

@@ -37,7 +37,8 @@ describe("SCORM 1.2 CMI Reset Tests", () => {
 
       // These values are preserved after reset
       expect(cmi.core.lesson_status).toBe("completed");
-      expect(cmi.core.score.raw).toBe("90");
+      // Score values are now reset (SCORE-01 fix)
+      expect(cmi.core.score.raw).toBe("");
       // entry is reset
       expect(cmi.core.entry).toBe("");
     });
@@ -75,6 +76,24 @@ describe("SCORM 1.2 CMI Reset Tests", () => {
       expect(cmi.interactions.childArray).toBeDefined();
       expect(cmi.objectives.childArray.length).toBe(0);
       expect(cmi.interactions.childArray.length).toBe(0);
+    });
+
+    it("should call reset() on objectives and interactions, not create new instances (CMI-03)", () => {
+      // CMI-03: SCORM 1.2 CMI.reset() should use consistent ?.reset() pattern
+      // instead of creating new instances like `this.objectives = new CMIObjectives()`
+      const cmi = new CMI();
+
+      // Store references to original instances
+      const originalObjectives = cmi.objectives;
+      const originalInteractions = cmi.interactions;
+
+      // Reset the CMI
+      cmi.reset();
+
+      // The instances should be the same (reset() was called on them)
+      // not replaced with new instances
+      expect(cmi.objectives).toBe(originalObjectives);
+      expect(cmi.interactions).toBe(originalInteractions);
     });
   });
 });
