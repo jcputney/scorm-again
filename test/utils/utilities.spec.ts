@@ -285,4 +285,193 @@ describe("Utility Tests", () => {
       expect(Utilities.stringMatches(null, "test")).toBe(false);
     });
   });
+
+  describe("parseNavigationRequest() - Security", () => {
+    describe("Valid navigation commands", () => {
+      it("should parse simple navigation commands", () => {
+        const validCommands = [
+          "start",
+          "resumeAll",
+          "continue",
+          "previous",
+          "exit",
+          "exitAll",
+          "abandon",
+          "abandonAll",
+          "suspendAll",
+          "_none_",
+        ];
+
+        validCommands.forEach((command) => {
+          const result = Utilities.parseNavigationRequest(command);
+          expect(result.valid).toBe(true);
+          expect(result.command).toBe(command);
+          expect(result.targetActivityId).toBeNull();
+          expect(result.error).toBeUndefined();
+        });
+      });
+
+      it("should parse choice command with valid target activity ID", () => {
+        const result = Utilities.parseNavigationRequest("choice.activity_123");
+        expect(result.valid).toBe(true);
+        expect(result.command).toBe("choice");
+        expect(result.targetActivityId).toBe("activity_123");
+        expect(result.error).toBeUndefined();
+      });
+
+      it("should parse jump command with valid target activity ID", () => {
+        const result = Utilities.parseNavigationRequest("jump.SCO-456");
+        expect(result.valid).toBe(true);
+        expect(result.command).toBe("jump");
+        expect(result.targetActivityId).toBe("SCO-456");
+        expect(result.error).toBeUndefined();
+      });
+
+      it("should parse target IDs with dots, hyphens, and underscores", () => {
+        const validTargets = [
+          "choice.activity.with.dots",
+          "jump.activity-with-hyphens",
+          "choice.activity_with_underscores",
+          "jump.MixedCase123",
+        ];
+
+        validTargets.forEach((navRequest) => {
+          const result = Utilities.parseNavigationRequest(navRequest);
+          expect(result.valid).toBe(true);
+        });
+      });
+
+      it("should trim whitespace from navigation commands", () => {
+        const result = Utilities.parseNavigationRequest("  continue  ");
+        expect(result.valid).toBe(true);
+        expect(result.command).toBe("continue");
+      });
+    });
+
+    describe("Code injection prevention", () => {
+      it("should block JavaScript function calls", () => {
+        const result = Utilities.parseNavigationRequest("alert('XSS')");
+        expect(result.valid).toBe(false);
+        expect(result.command).toBe("_none_");
+        expect(result.error).toContain("Unrecognized navigation command");
+      });
+
+      it("should block JavaScript with window object access", () => {
+        const result = Utilities.parseNavigationRequest("window.hacked = true");
+        expect(result.valid).toBe(false);
+        expect(result.command).toBe("_none_");
+      });
+
+      it("should block eval attempts", () => {
+        const result = Utilities.parseNavigationRequest("eval('malicious code')");
+        expect(result.valid).toBe(false);
+        expect(result.command).toBe("_none_");
+      });
+
+      it("should block function constructor attempts", () => {
+        const result = Utilities.parseNavigationRequest("Function('return this')()");
+        expect(result.valid).toBe(false);
+        expect(result.command).toBe("_none_");
+      });
+
+      it("should block semicolon-separated commands", () => {
+        const result = Utilities.parseNavigationRequest("continue; alert('XSS')");
+        expect(result.valid).toBe(false);
+        expect(result.command).toBe("_none_");
+      });
+
+      it("should block special characters in target activity IDs", () => {
+        const maliciousTargets = [
+          "choice.'; alert('XSS'); '",
+          "jump.<script>alert('XSS')</script>",
+          "choice.activity'; DROP TABLE students; --",
+          'jump.activity"); window.hacked=true; ("',
+          "choice.activity&param=value",
+          "jump.activity|command",
+          "choice.activity`whoami`",
+        ];
+
+        maliciousTargets.forEach((navRequest) => {
+          const result = Utilities.parseNavigationRequest(navRequest);
+          expect(result.valid).toBe(false);
+          expect(result.error).toContain("Invalid target activity ID");
+        });
+      });
+
+      it("should block empty target activity IDs", () => {
+        const result = Utilities.parseNavigationRequest("choice.");
+        expect(result.valid).toBe(false);
+      });
+
+      it("should block commands other than choice/jump with targets", () => {
+        const result = Utilities.parseNavigationRequest("continue.someTarget");
+        expect(result.valid).toBe(false);
+        expect(result.command).toBe("_none_");
+      });
+    });
+
+    describe("Edge cases", () => {
+      it("should handle empty string", () => {
+        const result = Utilities.parseNavigationRequest("");
+        expect(result.valid).toBe(false);
+        expect(result.command).toBe("_none_");
+        expect(result.error).toContain("Empty navigation request");
+      });
+
+      it("should handle whitespace-only string", () => {
+        const result = Utilities.parseNavigationRequest("   ");
+        expect(result.valid).toBe(false);
+        expect(result.command).toBe("_none_");
+        expect(result.error).toContain("Empty navigation request");
+      });
+
+      it("should be case-sensitive", () => {
+        const result = Utilities.parseNavigationRequest("CONTINUE");
+        expect(result.valid).toBe(false);
+        expect(result.command).toBe("_none_");
+      });
+
+      it("should not allow multiple dots", () => {
+        const result = Utilities.parseNavigationRequest("choice.activity.extra.parts");
+        // This should still be valid - dots are allowed in activity IDs
+        expect(result.valid).toBe(true);
+        expect(result.targetActivityId).toBe("activity.extra.parts");
+      });
+
+      it("should reject commands with only a dot", () => {
+        const result = Utilities.parseNavigationRequest(".");
+        expect(result.valid).toBe(false);
+      });
+    });
+
+    describe("SCORM 2004 compliance", () => {
+      it("should support all SCORM 2004 navigation request types", () => {
+        // Per SCORM 2004 spec, these are all valid navigation request types
+        const scormCommands = [
+          "start",
+          "resumeAll",
+          "continue",
+          "previous",
+          "choice",
+          "jump",
+          "exit",
+          "exitAll",
+          "abandon",
+          "abandonAll",
+          "suspendAll",
+        ];
+
+        scormCommands.forEach((command) => {
+          const result = Utilities.parseNavigationRequest(command);
+          expect(result.valid).toBe(true);
+        });
+      });
+
+      it("should support _none_ as a special no-operation value", () => {
+        const result = Utilities.parseNavigationRequest("_none_");
+        expect(result.valid).toBe(true);
+        expect(result.command).toBe("_none_");
+      });
+    });
+  });
 });

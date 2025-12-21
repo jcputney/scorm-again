@@ -147,7 +147,7 @@ describe("SCORM 2004 API Additional Tests", (): void => {
   });
 
   describe("storeData()", (): void => {
-    it("should execute navigation request JavaScript when navRequest is true and result.navRequest is provided", (): void => {
+    it("should process valid navigation request when navRequest is true and result.navRequest is provided", (): void => {
       const scorm2004API = api({
         lmsCommitUrl: "test-url",
       });
@@ -156,35 +156,28 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       scorm2004API.adl.nav.request = "continue";
       scorm2004API.startingData = { adl: { nav: { request: "_none_" } } };
 
-      // Mock the processHttpRequest method to return a navRequest
+      // Mock the processHttpRequest method to return a valid navRequest
       const processHttpRequestStub = vi
         .spyOn(scorm2004API, "processHttpRequest")
         .mockImplementation(() => {
           return {
             result: global_constants.SCORM_TRUE,
             errorCode: 0,
-            navRequest: "window.testNavRequestExecuted = true;",
+            navRequest: "continue", // Valid SCORM 2004 navigation command
           };
         });
 
-      // Create a global variable to check if the navigation request is executed
-      global.window =
-        (global.window as Window & typeof globalThis) || ({} as Window & typeof globalThis);
-      global.window.testNavRequestExecuted = false;
+      // Spy on processListeners to verify the navigation event is triggered
+      const processListenersSpy = vi.spyOn(scorm2004API, "processListeners");
 
       scorm2004API.storeData(true);
 
       expect(processHttpRequestStub).toHaveBeenCalledOnce();
-      expect(global.window.testNavRequestExecuted).toBe(true);
-
-      // Clean up
-      // processHttpRequestStub.restore() - not needed with vi.restoreAllMocks()
-      // eslint-disable-next-line
-      // @ts-ignore
-      delete global.window.testNavRequestExecuted;
+      // Verify that the correct navigation event was triggered
+      expect(processListenersSpy).toHaveBeenCalledWith("SequenceNext", "adl.nav.request", null);
     });
 
-    it("should not execute navigation request JavaScript when navRequest is false", (): void => {
+    it("should not process navigation request when navRequest is false", (): void => {
       const scorm2004API = api({
         lmsCommitUrl: "test-url",
       });
@@ -193,35 +186,32 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       scorm2004API.adl.nav.request = "_none_";
       scorm2004API.startingData = { adl: { nav: { request: "_none_" } } };
 
-      // Mock the processHttpRequest method to return a navRequest
+      // Mock the processHttpRequest method to return a navRequest (but navRequest flag is false)
       const processHttpRequestStub = vi
         .spyOn(scorm2004API, "processHttpRequest")
         .mockImplementation(() => {
           return {
             result: global_constants.SCORM_TRUE,
             errorCode: 0,
-            navRequest: "window.testNavRequestExecuted = true;",
+            navRequest: "continue", // Valid command, but won't be processed
           };
         });
 
-      // Create a global variable to check if the navigation request is executed
-      global.window =
-        (global.window as Window & typeof globalThis) || ({} as Window & typeof globalThis);
-      global.window.testNavRequestExecuted = false;
+      // Spy on processListeners to verify navigation events are NOT triggered
+      const processListenersSpy = vi.spyOn(scorm2004API, "processListeners");
 
       scorm2004API.storeData(true);
 
       expect(processHttpRequestStub).toHaveBeenCalledOnce();
-      expect(global.window.testNavRequestExecuted).toBe(false);
-
-      // Clean up
-      // processHttpRequestStub.restore() - not needed with vi.restoreAllMocks()
-      // eslint-disable-next-line
-      // @ts-ignore
-      delete global.window.testNavRequestExecuted;
+      // Verify that NO navigation events were triggered (only other events like Commit)
+      expect(processListenersSpy).not.toHaveBeenCalledWith(
+        expect.stringMatching(/^Sequence/),
+        expect.anything(),
+        expect.anything(),
+      );
     });
 
-    it("should not execute navigation request JavaScript when result.navRequest is empty", () => {
+    it("should not process navigation request when result.navRequest is empty", () => {
       const scorm2004API = api({
         lmsCommitUrl: "test-url",
       });
@@ -241,21 +231,162 @@ describe("SCORM 2004 API Additional Tests", (): void => {
           };
         });
 
-      // Create a global variable to check if the navigation request is executed
-      global.window =
-        (global.window as Window & typeof globalThis) || ({} as Window & typeof globalThis);
-      global.window.testNavRequestExecuted = false;
+      // Spy on processListeners
+      const processListenersSpy = vi.spyOn(scorm2004API, "processListeners");
 
       scorm2004API.storeData(true);
 
       expect(processHttpRequestStub).toHaveBeenCalledOnce();
-      expect(global.window.testNavRequestExecuted).toBe(false);
+      // Verify that NO navigation events were triggered
+      expect(processListenersSpy).not.toHaveBeenCalledWith(
+        expect.stringMatching(/^Sequence/),
+        expect.anything(),
+        expect.anything(),
+      );
+    });
 
-      // Clean up
-      // processHttpRequestStub.restore() - not needed with vi.restoreAllMocks()
-      // eslint-disable-next-line
-      // @ts-ignore
-      delete global.window.testNavRequestExecuted;
+    it("should process choice navigation request with target activity ID", () => {
+      const scorm2004API = api({
+        lmsCommitUrl: "test-url",
+      });
+
+      // Set up a navigation request (using proper SCORM 2004 format)
+      scorm2004API.adl.nav.request = "{target=activity_123}choice";
+      scorm2004API.startingData = { adl: { nav: { request: "_none_" } } };
+
+      // Mock the processHttpRequest method to return a choice navRequest
+      // The LMS can use the simpler dot-separated format in the response
+      vi.spyOn(scorm2004API, "processHttpRequest").mockImplementation(() => {
+        return {
+          result: global_constants.SCORM_TRUE,
+          errorCode: 0,
+          navRequest: "choice.activity_123",
+        };
+      });
+
+      // Spy on processListeners
+      const processListenersSpy = vi.spyOn(scorm2004API, "processListeners");
+
+      scorm2004API.storeData(true);
+
+      // Verify that the choice event was triggered with the target activity ID
+      expect(processListenersSpy).toHaveBeenCalledWith(
+        "SequenceChoice",
+        "adl.nav.request",
+        "activity_123",
+      );
+    });
+
+    it("should block JavaScript injection attempts in navigation request", () => {
+      const scorm2004API = api({
+        lmsCommitUrl: "test-url",
+      });
+
+      // Set up a navigation request
+      scorm2004API.adl.nav.request = "continue";
+      scorm2004API.startingData = { adl: { nav: { request: "_none_" } } };
+
+      // Mock the processHttpRequest method to return malicious JavaScript
+      vi.spyOn(scorm2004API, "processHttpRequest").mockImplementation(() => {
+        return {
+          result: global_constants.SCORM_TRUE,
+          errorCode: 0,
+          navRequest: "alert('XSS'); window.hacked = true;",
+        };
+      });
+
+      // Spy on apiLog to verify warning was logged
+      const apiLogSpy = vi.spyOn(scorm2004API, "apiLog");
+
+      // Spy on processListeners to verify NO events were triggered
+      const processListenersSpy = vi.spyOn(scorm2004API, "processListeners");
+
+      scorm2004API.storeData(true);
+
+      // Verify that a warning was logged
+      expect(apiLogSpy).toHaveBeenCalledWith(
+        "storeData",
+        expect.stringContaining("Invalid navigation request from LMS"),
+        expect.anything(),
+      );
+
+      // Verify that NO navigation events were triggered
+      expect(processListenersSpy).not.toHaveBeenCalledWith(
+        expect.stringMatching(/^Sequence/),
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it("should block code injection attempts via target activity ID", () => {
+      const scorm2004API = api({
+        lmsCommitUrl: "test-url",
+      });
+
+      // Set up a navigation request
+      scorm2004API.adl.nav.request = "choice";
+      scorm2004API.startingData = { adl: { nav: { request: "_none_" } } };
+
+      // Mock the processHttpRequest method with injection attempt in target ID
+      vi.spyOn(scorm2004API, "processHttpRequest").mockImplementation(() => {
+        return {
+          result: global_constants.SCORM_TRUE,
+          errorCode: 0,
+          navRequest: "choice.'; alert('XSS'); '",
+        };
+      });
+
+      // Spy on apiLog to verify warning was logged
+      const apiLogSpy = vi.spyOn(scorm2004API, "apiLog");
+
+      // Spy on processListeners to verify NO events were triggered
+      const processListenersSpy = vi.spyOn(scorm2004API, "processListeners");
+
+      scorm2004API.storeData(true);
+
+      // Verify that a warning was logged about invalid target activity ID
+      expect(apiLogSpy).toHaveBeenCalledWith(
+        "storeData",
+        expect.stringContaining("Invalid navigation request from LMS"),
+        expect.anything(),
+      );
+
+      // Verify that NO choice events were triggered
+      expect(processListenersSpy).not.toHaveBeenCalledWith(
+        "SequenceChoice",
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it("should process object-based navigation request when navRequest flag is false", () => {
+      const scorm2004API = api({
+        lmsCommitUrl: "test-url",
+      });
+
+      // No navigation request flag
+      scorm2004API.adl.nav.request = "_none_";
+      scorm2004API.startingData = { adl: { nav: { request: "_none_" } } };
+
+      // Mock the processHttpRequest method to return object-based navRequest
+      vi.spyOn(scorm2004API, "processHttpRequest").mockImplementation(() => {
+        return {
+          result: global_constants.SCORM_TRUE,
+          errorCode: 0,
+          navRequest: {
+            name: "CustomNavigationEvent",
+            data: "customData",
+          },
+        };
+      });
+
+      // Spy on processListeners
+      const processListenersSpy = vi.spyOn(scorm2004API, "processListeners");
+
+      scorm2004API.storeData(true);
+
+      // Verify that the custom event was triggered with object format
+      expect(processListenersSpy).toHaveBeenCalledWith("CustomNavigationEvent", "customData");
     });
   });
 
