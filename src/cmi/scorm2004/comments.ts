@@ -8,6 +8,7 @@ import { scorm2004_regex } from "../../constants/regex";
 
 /**
  * Class representing SCORM 2004's cmi.comments_from_lms object
+ * @spec RTE 4.2.3 - cmi.comments_from_lms
  * @extends CMIArray
  */
 export class CMICommentsFromLMS extends CMIArray {
@@ -26,6 +27,7 @@ export class CMICommentsFromLMS extends CMIArray {
 
 /**
  * Class representing SCORM 2004's cmi.comments_from_learner object
+ * @spec RTE 4.2.2 - cmi.comments_from_learner
  */
 
 export class CMICommentsFromLearner extends CMIArray {
