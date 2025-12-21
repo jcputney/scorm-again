@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, beforeEach } from "vitest";
 import { CMIInteractionsObject } from "../../src/cmi/scorm2004/interactions";
 
 describe("SCORM 2004 Interactions Tests", () => {
@@ -221,5 +221,127 @@ describe("SCORM 2004 Interactions Tests", () => {
     });
 
     // Add more tests for other interaction types as needed
+  });
+
+  describe("Result Property Tests", () => {
+    it("should accept 'correct' as a valid result", () => {
+      const interaction = new CMIInteractionsObject();
+
+      interaction.result = "correct";
+      expect(interaction.result).toBe("correct");
+    });
+
+    it("should accept 'incorrect' as a valid result", () => {
+      const interaction = new CMIInteractionsObject();
+
+      interaction.result = "incorrect";
+      expect(interaction.result).toBe("incorrect");
+    });
+
+    it("should accept 'unanticipated' as a valid result", () => {
+      const interaction = new CMIInteractionsObject();
+
+      interaction.result = "unanticipated";
+      expect(interaction.result).toBe("unanticipated");
+    });
+
+    it("should accept 'neutral' as a valid result", () => {
+      const interaction = new CMIInteractionsObject();
+
+      interaction.result = "neutral";
+      expect(interaction.result).toBe("neutral");
+    });
+
+    it("should accept numeric values as valid result", () => {
+      const interaction = new CMIInteractionsObject();
+
+      interaction.result = "0.85";
+      expect(interaction.result).toBe("0.85");
+    });
+
+    it("should not normalize incorrect to wrong (SCORM 2004 uses incorrect)", () => {
+      const interaction = new CMIInteractionsObject();
+
+      // In SCORM 2004, 'incorrect' is the correct value (not 'wrong' like SCORM 1.2)
+      interaction.result = "incorrect";
+      expect(interaction.result).toBe("incorrect");
+      // Should NOT be normalized to "wrong"
+      expect(interaction.result).not.toBe("wrong");
+    });
+  });
+
+  describe("Latency Property Tests", () => {
+    let interaction: CMIInteractionsObject;
+
+    beforeEach(() => {
+      interaction = new CMIInteractionsObject();
+      interaction.initialize();
+      interaction.id = "interaction-1";
+    });
+
+    it("should accept valid ISO 8601 timespan format", () => {
+      // PT1H2M3S = 1 hour, 2 minutes, 3 seconds
+      interaction.latency = "PT1H2M3S";
+      expect(interaction.latency).toBe("PT1H2M3S");
+    });
+
+    it("should accept various ISO 8601 duration formats", () => {
+      // Test various valid formats
+      const validDurations = [
+        "PT0S", // 0 seconds
+        "PT30S", // 30 seconds
+        "PT1M", // 1 minute
+        "PT5M30S", // 5 minutes 30 seconds
+        "PT1H", // 1 hour
+        "PT2H30M", // 2 hours 30 minutes
+        "PT1H15M30S", // 1 hour 15 minutes 30 seconds
+        "P1DT2H", // 1 day 2 hours
+        "P1DT2H3M4S", // 1 day 2 hours 3 minutes 4 seconds
+      ];
+
+      validDurations.forEach((duration) => {
+        interaction.latency = duration;
+        expect(interaction.latency).toBe(duration);
+      });
+    });
+
+    it("should accept decimal seconds in timespan", () => {
+      // PT0.5S = 0.5 seconds
+      interaction.latency = "PT0.5S";
+      expect(interaction.latency).toBe("PT0.5S");
+    });
+
+    it("should throw error when setting latency without id", () => {
+      const newInteraction = new CMIInteractionsObject();
+      newInteraction.initialize();
+
+      expect(() => {
+        newInteraction.latency = "PT1H";
+      }).toThrow();
+    });
+
+    it("should reject invalid timespan formats", () => {
+      expect(() => {
+        interaction.latency = "1:30:00"; // Not ISO 8601
+      }).toThrow();
+
+      expect(() => {
+        interaction.latency = "90 minutes"; // Not ISO 8601
+      }).toThrow();
+
+      expect(() => {
+        interaction.latency = "invalid";
+      }).toThrow();
+    });
+
+    it("should accept latency before initialization", () => {
+      const newInteraction = new CMIInteractionsObject();
+
+      expect(() => {
+        newInteraction.latency = "PT1H";
+      }).not.toThrow();
+
+      expect(newInteraction.latency).toBe("PT1H");
+    });
   });
 });
