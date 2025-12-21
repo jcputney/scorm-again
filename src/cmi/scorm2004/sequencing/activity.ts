@@ -337,6 +337,11 @@ export class Activity extends BaseCMI {
   private _objectiveMeasureStatus: boolean = false;
   private _objectiveNormalizedMeasure: number = 0;
   private _scaledPassingScore: number = 0.7; // Default passing score
+
+  // Dirty flags for tracking which activity-level objective properties have been modified locally
+  private _objectiveSatisfiedStatusDirty: boolean = false;
+  private _objectiveNormalizedMeasureDirty: boolean = false;
+  private _objectiveMeasureStatusDirty: boolean = false;
   private _progressMeasure: number = 0;
   private _progressMeasureStatus: boolean = false;
   private _location: string = "";
@@ -756,7 +761,12 @@ export class Activity extends BaseCMI {
    * @param {boolean} objectiveSatisfiedStatus
    */
   set objectiveSatisfiedStatus(objectiveSatisfiedStatus: boolean) {
-    this._objectiveSatisfiedStatus = objectiveSatisfiedStatus;
+    if (this._objectiveSatisfiedStatus !== objectiveSatisfiedStatus) {
+      this._objectiveSatisfiedStatus = objectiveSatisfiedStatus;
+      this._objectiveSatisfiedStatusDirty = true;
+    } else {
+      this._objectiveSatisfiedStatus = objectiveSatisfiedStatus;
+    }
     this._objectiveSatisfiedStatusKnown = true;  // Mark as known when explicitly set
     // Update success status based on objective satisfaction
     if (objectiveSatisfiedStatus) {
@@ -797,7 +807,12 @@ export class Activity extends BaseCMI {
    * @param {boolean} objectiveMeasureStatus
    */
   set objectiveMeasureStatus(objectiveMeasureStatus: boolean) {
-    this._objectiveMeasureStatus = objectiveMeasureStatus;
+    if (this._objectiveMeasureStatus !== objectiveMeasureStatus) {
+      this._objectiveMeasureStatus = objectiveMeasureStatus;
+      this._objectiveMeasureStatusDirty = true;
+    } else {
+      this._objectiveMeasureStatus = objectiveMeasureStatus;
+    }
     this.updatePrimaryObjectiveFromActivity();
   }
 
@@ -814,7 +829,12 @@ export class Activity extends BaseCMI {
    * @param {number} objectiveNormalizedMeasure
    */
   set objectiveNormalizedMeasure(objectiveNormalizedMeasure: number) {
-    this._objectiveNormalizedMeasure = objectiveNormalizedMeasure;
+    if (this._objectiveNormalizedMeasure !== objectiveNormalizedMeasure) {
+      this._objectiveNormalizedMeasure = objectiveNormalizedMeasure;
+      this._objectiveNormalizedMeasureDirty = true;
+    } else {
+      this._objectiveNormalizedMeasure = objectiveNormalizedMeasure;
+    }
     this.updatePrimaryObjectiveFromActivity();
   }
 
@@ -1606,6 +1626,28 @@ export class Activity extends BaseCMI {
     if (this._primaryObjective) {
       this._primaryObjective.updateFromActivity(this);
     }
+  }
+
+  public isObjectiveDirty(property: 'satisfiedStatus' | 'normalizedMeasure' | 'measureStatus'): boolean {
+    switch (property) {
+      case 'satisfiedStatus': return this._objectiveSatisfiedStatusDirty;
+      case 'normalizedMeasure': return this._objectiveNormalizedMeasureDirty;
+      case 'measureStatus': return this._objectiveMeasureStatusDirty;
+    }
+  }
+
+  public clearObjectiveDirty(property: 'satisfiedStatus' | 'normalizedMeasure' | 'measureStatus'): void {
+    switch (property) {
+      case 'satisfiedStatus': this._objectiveSatisfiedStatusDirty = false; break;
+      case 'normalizedMeasure': this._objectiveNormalizedMeasureDirty = false; break;
+      case 'measureStatus': this._objectiveMeasureStatusDirty = false; break;
+    }
+  }
+
+  public clearAllObjectiveDirty(): void {
+    this._objectiveSatisfiedStatusDirty = false;
+    this._objectiveNormalizedMeasureDirty = false;
+    this._objectiveMeasureStatusDirty = false;
   }
 
   public setPrimaryObjectiveState(
