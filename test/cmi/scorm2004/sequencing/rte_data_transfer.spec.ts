@@ -696,4 +696,58 @@ describe("RTE Data Transfer", () => {
       expect(leafActivity.progressMeasureStatus).toBe(false);
     });
   });
+
+  describe("ActivityObjective initializeFromCMI method", () => {
+    it("should mark satisfiedStatus as dirty even when set to default value (false)", () => {
+      const objective = new ActivityObjective("test_obj", {isPrimary: false});
+
+      // Initially not dirty
+      expect(objective.isDirty("satisfiedStatus")).toBe(false);
+      expect(objective.satisfiedStatus).toBe(false);
+
+      // Use initializeFromCMI to set to false (the default)
+      objective.initializeFromCMI(false, 0, true);
+
+      // Should be marked dirty even though value matches default
+      expect(objective.isDirty("satisfiedStatus")).toBe(true);
+      expect(objective.satisfiedStatus).toBe(false);
+    });
+
+    it("should mark normalizedMeasure as dirty even when set to default value (0)", () => {
+      const objective = new ActivityObjective("test_obj", {isPrimary: false});
+
+      // Initially not dirty
+      expect(objective.isDirty("normalizedMeasure")).toBe(false);
+      expect(objective.normalizedMeasure).toBe(0);
+
+      // Use initializeFromCMI to set to 0 (the default)
+      objective.initializeFromCMI(false, 0, true);
+
+      // Should be marked dirty even though value matches default
+      expect(objective.isDirty("normalizedMeasure")).toBe(true);
+      expect(objective.normalizedMeasure).toBe(0);
+    });
+
+    it("should set measureStatus from parameter", () => {
+      const objective = new ActivityObjective("test_obj", {isPrimary: false});
+
+      expect(objective.measureStatus).toBe(false);
+
+      objective.initializeFromCMI(true, 0.8, true);
+
+      expect(objective.measureStatus).toBe(true);
+    });
+
+    it("should set both satisfiedStatus and normalizedMeasure together", () => {
+      const objective = new ActivityObjective("test_obj", {isPrimary: false});
+
+      objective.initializeFromCMI(true, 0.75, true);
+
+      expect(objective.satisfiedStatus).toBe(true);
+      expect(objective.normalizedMeasure).toBe(0.75);
+      expect(objective.measureStatus).toBe(true);
+      expect(objective.isDirty("satisfiedStatus")).toBe(true);
+      expect(objective.isDirty("normalizedMeasure")).toBe(true);
+    });
+  });
 });

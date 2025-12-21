@@ -1481,36 +1481,47 @@ export class OverallSequencingProcess {
       activity.attemptProgressStatus = true;
     }
 
+    // Collect values that need to be transferred
+    let hasSuccessStatus = false;
+    let successStatus = false;
+    let hasNormalizedMeasure = false;
+    let normalizedScore = 0;
+
     // Transfer success status
     if (cmiData.success_status && cmiData.success_status !== "unknown") {
-      const successStatus = cmiData.success_status === "passed";
+      successStatus = cmiData.success_status === "passed";
+      hasSuccessStatus = true;
       activity.objectiveSatisfiedStatus = successStatus;
       activity.objectiveSatisfiedStatusKnown = true;  // Mark as known when transferred from CMI
       activity.successStatus = cmiData.success_status as "passed" | "failed" | "unknown";
       // Set measureStatus to true so global objective mapping can write to global map
       // Per SCORM 2004 SN Book, when success_status is known, the objective has known status
       activity.objectiveMeasureStatus = true;
-
-      if (activity.primaryObjective) {
-        activity.primaryObjective.satisfiedStatus = successStatus;
-        activity.primaryObjective.satisfiedStatusKnown = true;  // Mark as known
-        activity.primaryObjective.progressStatus = true;
-        // Set measureStatus to true for global objective sync to work
-        activity.primaryObjective.measureStatus = true;
-      }
     }
 
     // Transfer score (with normalization support)
     if (cmiData.score) {
-      const normalizedScore = this.normalizeScore(cmiData.score);
-      if (normalizedScore !== null) {
+      const normalized = this.normalizeScore(cmiData.score);
+      if (normalized !== null) {
+        normalizedScore = normalized;
+        hasNormalizedMeasure = true;
         activity.objectiveNormalizedMeasure = normalizedScore;
         activity.objectiveMeasureStatus = true;
+      }
+    }
 
-        if (activity.primaryObjective) {
-          activity.primaryObjective.normalizedMeasure = normalizedScore;
-          activity.primaryObjective.measureStatus = true;
-        }
+    // Use initializeFromCMI to ensure dirty flags are set for primary objective
+    // This must be called after collecting both values to avoid overwriting
+    if (activity.primaryObjective && (hasSuccessStatus || hasNormalizedMeasure)) {
+      const finalStatus = hasSuccessStatus ? successStatus : activity.primaryObjective.satisfiedStatus;
+      const finalMeasure = hasNormalizedMeasure ? normalizedScore : activity.primaryObjective.normalizedMeasure;
+      const measureStatus = hasSuccessStatus || hasNormalizedMeasure;
+
+      activity.primaryObjective.initializeFromCMI(finalStatus, finalMeasure, measureStatus);
+
+      if (hasSuccessStatus) {
+        activity.primaryObjective.satisfiedStatusKnown = true;  // Mark as known
+        activity.primaryObjective.progressStatus = true;
       }
     }
 
@@ -1554,10 +1565,16 @@ export class OverallSequencingProcess {
 
       const activityObjective = activityObjectiveMatch.objective;
 
+      // Track whether we need to initialize from CMI
+      let hasSuccessStatus = false;
+      let successStatus = false;
+      let hasNormalizedMeasure = false;
+      let normalizedScore = 0;
+
       // Transfer success status (only if changed during runtime)
       if (cmiObjective.success_status && cmiObjective.success_status !== "unknown") {
-        const successStatus = cmiObjective.success_status === "passed";
-        activityObjective.satisfiedStatus = successStatus;
+        successStatus = cmiObjective.success_status === "passed";
+        hasSuccessStatus = true;
         activityObjective.progressStatus = true;
       }
 
@@ -1568,11 +1585,20 @@ export class OverallSequencingProcess {
 
       // Transfer score (with normalization)
       if (cmiObjective.score) {
-        const normalizedScore = this.normalizeScore(cmiObjective.score);
-        if (normalizedScore !== null) {
-          activityObjective.normalizedMeasure = normalizedScore;
-          activityObjective.measureStatus = true;
+        const normalized = this.normalizeScore(cmiObjective.score);
+        if (normalized !== null) {
+          normalizedScore = normalized;
+          hasNormalizedMeasure = true;
         }
+      }
+
+      // If we have either success status or normalized measure from CMI, use initializeFromCMI
+      // to ensure dirty flags are set even if values match defaults
+      if (hasSuccessStatus || hasNormalizedMeasure) {
+        const finalStatus = hasSuccessStatus ? successStatus : activityObjective.satisfiedStatus;
+        const finalMeasure = hasNormalizedMeasure ? normalizedScore : activityObjective.normalizedMeasure;
+        const measureStatus = hasNormalizedMeasure;
+        activityObjective.initializeFromCMI(finalStatus, finalMeasure, measureStatus);
       }
 
       // Transfer progress measure
