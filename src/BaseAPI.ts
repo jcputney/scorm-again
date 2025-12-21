@@ -1039,17 +1039,46 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @protected
    */
   protected _checkForDuplicateId(CMIElement: string, value: string): boolean {
+    /**
+     * Helper to safely get a CMIArray property from an object
+     * @param obj - Object to check
+     * @param prop - Property name to get
+     * @returns The CMIArray if it exists, undefined otherwise
+     */
+    const getCMIArrayProperty = (obj: unknown, prop: string): CMIArray | undefined => {
+      if (obj && typeof obj === "object" && prop in obj) {
+        const value = (obj as Record<string, unknown>)[prop];
+        return value instanceof CMIArray ? value : undefined;
+      }
+      return undefined;
+    };
+
+    /**
+     * Helper to check for duplicate ID in a CMIArray
+     * @param array - The CMIArray to check
+     * @param currentIndex - Index to skip (the current item being set)
+     * @param idValue - The ID value to check for duplicates
+     * @returns True if a duplicate is found, false otherwise
+     */
+    const hasDuplicateId = (array: CMIArray, currentIndex: number, idValue: string): boolean => {
+      for (let i = 0; i < array.childArray.length; i++) {
+        if (i !== currentIndex) {
+          const child = array.childArray[i];
+          if (child && typeof child === "object" && "id" in child && child.id === idValue) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+
     // Match objectives: cmi.objectives.n.id
     const objectivesMatch = CMIElement.match(/^cmi\.objectives\.(\d+)\.id$/);
     if (objectivesMatch && objectivesMatch[1]) {
       const currentIndex = parseInt(objectivesMatch[1], 10);
-      const cmiObj = (this as any).cmi;
-      if (cmiObj?.objectives?.childArray) {
-        for (let i = 0; i < cmiObj.objectives.childArray.length; i++) {
-          if (i !== currentIndex && cmiObj.objectives.childArray[i]?.id === value) {
-            return true; // Duplicate found
-          }
-        }
+      const objectives = getCMIArrayProperty(this.cmi, "objectives");
+      if (objectives) {
+        return hasDuplicateId(objectives, currentIndex, value);
       }
       return false;
     }
@@ -1058,13 +1087,9 @@ export default abstract class BaseAPI implements IBaseAPI {
     const interactionsMatch = CMIElement.match(/^cmi\.interactions\.(\d+)\.id$/);
     if (interactionsMatch && interactionsMatch[1]) {
       const currentIndex = parseInt(interactionsMatch[1], 10);
-      const cmiObj = (this as any).cmi;
-      if (cmiObj?.interactions?.childArray) {
-        for (let i = 0; i < cmiObj.interactions.childArray.length; i++) {
-          if (i !== currentIndex && cmiObj.interactions.childArray[i]?.id === value) {
-            return true; // Duplicate found
-          }
-        }
+      const interactions = getCMIArrayProperty(this.cmi, "interactions");
+      if (interactions) {
+        return hasDuplicateId(interactions, currentIndex, value);
       }
       return false;
     }
@@ -1080,12 +1105,13 @@ export default abstract class BaseAPI implements IBaseAPI {
     ) {
       const interactionIndex = parseInt(interactionObjectivesMatch[1], 10);
       const currentObjIndex = parseInt(interactionObjectivesMatch[2], 10);
-      const cmiObj = (this as any).cmi;
-      const interaction = cmiObj?.interactions?.childArray?.[interactionIndex];
-      if (interaction?.objectives?.childArray) {
-        for (let i = 0; i < interaction.objectives.childArray.length; i++) {
-          if (i !== currentObjIndex && interaction.objectives.childArray[i]?.id === value) {
-            return true; // Duplicate found
+      const interactions = getCMIArrayProperty(this.cmi, "interactions");
+      if (interactions) {
+        const interaction = interactions.childArray[interactionIndex];
+        if (interaction) {
+          const objectives = getCMIArrayProperty(interaction, "objectives");
+          if (objectives) {
+            return hasDuplicateId(objectives, currentObjIndex, value);
           }
         }
       }
