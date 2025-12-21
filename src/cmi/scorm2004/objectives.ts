@@ -88,7 +88,13 @@ export class CMIObjectivesObject extends BaseCMI {
 
   override reset() {
     this._initialized = false;
+    this._id = "";
     this._idIsSet = false;
+    this._success_status = "unknown";
+    this._completion_status = "unknown";
+    this._progress_measure = "";
+    this._description = "";
+    this.score?.reset();
   }
 
   public score: Scorm2004CMIScore;
