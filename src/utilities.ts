@@ -230,13 +230,19 @@ export const getDurationAsSeconds = memoize(
       return 0;
     }
 
-    const [, years, _, , days, hours, minutes, seconds] =
+    // Extract all duration components from ISO 8601 format
+    // Regex capture groups: [full, years, months, weeks, days, hours, minutes, seconds]
+    const [, years, months, weeks, days, hours, minutes, seconds] =
       new RegExp(durationRegex).exec?.(duration) ?? [];
+
     let result = 0.0;
     result += Number(seconds) || 0.0;
     result += Number(minutes) * 60.0 || 0.0;
     result += Number(hours) * 3600.0 || 0.0;
     result += Number(days) * (60 * 60 * 24.0) || 0.0;
+    result += Number(weeks) * (60 * 60 * 24 * 7.0) || 0.0;
+    // Note: Months are approximate (30 days) as specified in SCORM 2004
+    result += Number(months) * (60 * 60 * 24 * 30.0) || 0.0;
     result += Number(years) * (60 * 60 * 24 * 365.0) || 0.0;
     return result;
   },

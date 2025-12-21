@@ -3,6 +3,8 @@ import { Activity, ActivityObjective } from "./activity";
 import { Scorm2004ValidationError } from "../../../exceptions/scorm2004_exceptions";
 import { scorm2004_errors } from "../../../constants/error_codes";
 import { SuccessStatus, CompletionStatus } from "../../../constants/enums";
+import { getDurationAsSeconds } from "../../../utilities";
+import { scorm2004_regex } from "../../../constants/regex";
 
 /**
  * Enum for rule condition operators
@@ -332,23 +334,18 @@ export class RuleCondition extends BaseCMI {
 
   /**
    * Parse ISO 8601 duration to milliseconds
-   * @param {string} duration - ISO 8601 duration string
+   * Uses the standard getDurationAsSeconds utility which supports full ISO 8601 format
+   * including date components (years, months, weeks, days) and time components (hours, minutes, seconds).
+   * @param {string} duration - ISO 8601 duration string (e.g., "PT1H30M", "P1D", "P1Y2M3DT4H5M6S")
    * @return {number} - Duration in milliseconds
    * @private
    */
   private parseISO8601Duration(duration: string): number {
-    const regex = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?/;
-    const matches = duration.match(regex);
-
-    if (!matches) {
-      return 0;
-    }
-
-    const hours = parseInt(matches[1] || "0", 10);
-    const minutes = parseInt(matches[2] || "0", 10);
-    const seconds = parseFloat(matches[3] || "0");
-
-    return (hours * 3600 + minutes * 60 + seconds) * 1000;
+    // Use the standard utility function which handles full ISO 8601 duration format
+    // including years (Y), months (M), weeks (W), days (D), hours (H), minutes (M), and seconds (S)
+    const seconds = getDurationAsSeconds(duration, scorm2004_regex.CMITimespan);
+    // Convert seconds to milliseconds
+    return seconds * 1000;
   }
 
   /**
