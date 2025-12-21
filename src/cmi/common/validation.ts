@@ -48,6 +48,11 @@ export const checkValidFormat = memoize(
 /**
  * Check if the value matches the proper range. If not, throw proper error code.
  *
+ * Range pattern format per SCORM RTE specifications:
+ * - "min#max": bounded range (e.g., "0#100" = 0 to 100)
+ * - "min#*": unbounded maximum (e.g., "-1#*" = -1 to infinity)
+ * - "#max": no minimum bound (e.g., "#100" = up to 100)
+ *
  * @param {any} value
  * @param {string} rangePattern
  * @param {number} errorCode
