@@ -88,6 +88,56 @@ describe("EventService", () => {
       expect(callback1).not.toHaveBeenCalled();
       expect(callback2).toHaveBeenCalledOnce();
     });
+
+    // SVC-EVT-02: Test clear() should remove ALL listeners when no CMIElement specified
+    it("should clear all listeners for a function name when no CMIElement specified (SVC-EVT-02)", () => {
+      const callback1 = vi.fn();
+      const callback2 = vi.fn();
+      const callback3 = vi.fn();
+
+      // Register listeners: one generic, two with specific CMI elements
+      eventService.on("SetValue", callback1); // null CMIElement
+      eventService.on("SetValue.cmi.score.scaled", callback2); // specific CMIElement
+      eventService.on("SetValue.cmi.score.raw", callback3); // specific CMIElement
+
+      // Clear all "SetValue" listeners (no CMIElement specified)
+      eventService.clear("SetValue");
+
+      // Process listeners - none should be called
+      eventService.processListeners("SetValue", "cmi.score.scaled", "0.8");
+      eventService.processListeners("SetValue", "cmi.score.raw", "80");
+      eventService.processListeners("SetValue", "cmi.other", "value");
+
+      // All callbacks should NOT be called since we cleared all SetValue listeners
+      expect(callback1).not.toHaveBeenCalled();
+      expect(callback2).not.toHaveBeenCalled();
+      expect(callback3).not.toHaveBeenCalled();
+    });
+
+    it("should clear only specific CMIElement listeners when CMIElement is specified", () => {
+      const callback1 = vi.fn();
+      const callback2 = vi.fn();
+      const callback3 = vi.fn();
+
+      // Register listeners
+      eventService.on("SetValue", callback1); // null CMIElement
+      eventService.on("SetValue.cmi.score.scaled", callback2); // specific CMIElement
+      eventService.on("SetValue.cmi.score.raw", callback3); // specific CMIElement
+
+      // Clear only "SetValue.cmi.score.scaled" listeners
+      eventService.clear("SetValue.cmi.score.scaled");
+
+      // Process listeners
+      eventService.processListeners("SetValue", "cmi.score.scaled", "0.8");
+      eventService.processListeners("SetValue", "cmi.score.raw", "80");
+
+      // callback1 should be called for both (null CMIElement matches all)
+      expect(callback1).toHaveBeenCalledTimes(2);
+      // callback2 should NOT be called (it was cleared)
+      expect(callback2).not.toHaveBeenCalled();
+      // callback3 should be called once (for cmi.score.raw)
+      expect(callback3).toHaveBeenCalledOnce();
+    });
   });
 
   describe("Wildcard Event Matching", () => {
@@ -215,6 +265,21 @@ describe("EventService", () => {
 
       expect(callback).toHaveBeenCalledOnce();
       expect(callback).toHaveBeenCalledWith(undefined, "value");
+    });
+
+    // SVC-EVT-01: Test parseListenerName with empty string should return null
+    it("should not register listeners for empty string listener names (SVC-EVT-01)", () => {
+      const callback = vi.fn();
+
+      // Try to register with empty string
+      eventService.on("", callback);
+
+      // Since parseListenerName returns null for empty strings,
+      // the listener should NOT be registered
+      eventService.processListeners("");
+
+      // The callback should NOT be called
+      expect(callback).not.toHaveBeenCalled();
     });
   });
 
