@@ -57,6 +57,7 @@ export class CMIStudentPreference extends BaseCMI {
 
   /**
    * Getter for _audio
+   * @spec RTE 3.4.2.3.1 - cmi.student_preference.audio
    * @return {string}
    */
   get audio(): string {
@@ -65,6 +66,7 @@ export class CMIStudentPreference extends BaseCMI {
 
   /**
    * Setter for _audio
+   * @spec RTE 3.4.2.3.1 - cmi.student_preference.audio
    * @param {string} audio
    */
   set audio(audio: string) {
@@ -75,6 +77,7 @@ export class CMIStudentPreference extends BaseCMI {
 
   /**
    * Getter for _language
+   * @spec RTE 3.4.2.3.2 - cmi.student_preference.language
    * @return {string}
    */
   get language(): string {
@@ -83,6 +86,7 @@ export class CMIStudentPreference extends BaseCMI {
 
   /**
    * Setter for _language
+   * @spec RTE 3.4.2.3.2 - cmi.student_preference.language
    * @param {string} language
    */
   set language(language: string) {
@@ -93,6 +97,7 @@ export class CMIStudentPreference extends BaseCMI {
 
   /**
    * Getter for _speed
+   * @spec RTE 3.4.2.3.3 - cmi.student_preference.speed
    * @return {string}
    */
   get speed(): string {
@@ -101,6 +106,7 @@ export class CMIStudentPreference extends BaseCMI {
 
   /**
    * Setter for _speed
+   * @spec RTE 3.4.2.3.3 - cmi.student_preference.speed
    * @param {string} speed
    */
   set speed(speed: string) {
@@ -111,6 +117,7 @@ export class CMIStudentPreference extends BaseCMI {
 
   /**
    * Getter for _text
+   * @spec RTE 3.4.2.3.4 - cmi.student_preference.text
    * @return {string}
    */
   get text(): string {
@@ -119,6 +126,7 @@ export class CMIStudentPreference extends BaseCMI {
 
   /**
    * Setter for _text
+   * @spec RTE 3.4.2.3.4 - cmi.student_preference.text
    * @param {string} text
    */
   set text(text: string) {

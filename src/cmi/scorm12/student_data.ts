@@ -126,6 +126,10 @@ export class CMIStudentData extends BaseCMI {
       return;
     }
 
+    // @spec RTE 3.4.2.2.3 - cmi.student_data.max_time_allowed
+    // Spec requires CMITimespan format (HH:MM:SS.cc), but some LMS implementations
+    // use ISO 8601 durations in manifests. We support both for interoperability.
+
     // First try SCORM 1.2 HH:MM:SS(.cc) format
     try {
       check12ValidFormat(

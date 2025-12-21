@@ -4,6 +4,8 @@ import { Scorm12ValidationError } from "../../exceptions/scorm12_exceptions";
 
 /**
  * Helper method, no reason to have to pass the same error codes every time
+ *
+ * @spec RTE - Validates CMI element format per SCORM 1.2 data model requirements
  * @param {string} CMIElement
  * @param {string} value
  * @param {string} regexPattern
@@ -28,6 +30,8 @@ export function check12ValidFormat(
 
 /**
  * Helper method, no reason to have to pass the same error codes every time
+ *
+ * @spec RTE - Validates CMI element range per SCORM 1.2 data model requirements
  * @param {string} CMIElement
  * @param {string} value
  * @param {string} rangePattern

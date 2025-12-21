@@ -4,6 +4,10 @@ import { scorm12_regex } from "../../constants/regex";
 
 /**
  * Class for SCORM 1.2 Navigation object
+ *
+ * @spec NON-STANDARD EXTENSION - cmi.nav is not part of the official SCORM 1.2 specification.
+ * This is a common extension supported by some LMS implementations to provide
+ * navigation control. It is not guaranteed to work across all SCORM 1.2 platforms.
  */
 export class NAV extends BaseCMI {
   /**

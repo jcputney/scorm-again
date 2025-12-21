@@ -190,6 +190,7 @@ export class CMICore extends BaseCMI {
 
   /**
    * Getter for _lesson_status
+   * @spec RTE 3.4.2.1.7 - cmi.core.lesson_status
    * @return {string}
    */
   get lesson_status(): string {
@@ -198,6 +199,7 @@ export class CMICore extends BaseCMI {
 
   /**
    * Setter for _lesson_status
+   * @spec RTE 3.4.2.1.7 - cmi.core.lesson_status
    * @param {string} lesson_status
    */
   set lesson_status(lesson_status: string) {
@@ -251,6 +253,7 @@ export class CMICore extends BaseCMI {
 
   /**
    * Getter for _total_time
+   * @spec RTE 3.4.2.1.13 - cmi.core.total_time
    * @return {string}
    */
   get total_time(): string {
@@ -259,6 +262,7 @@ export class CMICore extends BaseCMI {
 
   /**
    * Setter for _total_time. Can only be called before  initialization.
+   * @spec RTE 3.4.2.1.13 - cmi.core.total_time
    * @param {string} total_time
    */
   set total_time(total_time: string) {
@@ -329,6 +333,8 @@ export class CMICore extends BaseCMI {
 
   /**
    * Setter for _exit
+   *
+   * @spec RTE 3.4.2.1.4 - cmi.core.exit
    *
    * SPEC COMPLIANCE NOTE:
    * The SCORM 1.2 specification defines exit vocabulary as: "time-out", "suspend", "logout", or ""
