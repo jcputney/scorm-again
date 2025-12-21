@@ -393,7 +393,7 @@ describe("SCORM 2004 CMI Tests", () => {
         cmiObj.objectives.childArray.push(new CMIObjectivesObject());
         cmiObj.interactions.childArray.push(new CMIInteractionsObject());
         expect(JSON.stringify(cmiObj)).toEqual(
-          '{"comments_from_learner":{},"comments_from_lms":{},"completion_status":"unknown","completion_threshold":"","credit":"credit","entry":"","exit":"","interactions":{"0":{"id":"","type":"","objectives":{},"timestamp":"","weighting":"","learner_response":"","result":"","latency":"","description":"","correct_responses":{}}},"launch_data":"","learner_id":"","learner_name":"","learner_preference":{"audio_level":"1","language":"","delivery_speed":"1","audio_captioning":"0"},"location":"","max_time_allowed":"","mode":"normal","objectives":{"0":{"id":"","success_status":"unknown","completion_status":"unknown","progress_measure":"","description":"","score":{"scaled":"","raw":"","min":"","max":""}}},"progress_measure":"","scaled_passing_score":"","score":{"scaled":"","raw":"","min":"","max":""},"session_time":"PT0H0M0S","success_status":"unknown","suspend_data":"","time_limit_action":"continue,no message"}',
+          '{"comments_from_learner":{},"comments_from_lms":{},"completion_status":"unknown","completion_threshold":"","credit":"credit","entry":"","exit":"","interactions":{"0":{"id":"","type":"","objectives":{},"timestamp":"","weighting":"","learner_response":"","result":"","latency":"","description":"","correct_responses":{}}},"launch_data":"","learner_id":"","learner_name":"","learner_preference":{"audio_level":"1","language":"","delivery_speed":"1","audio_captioning":"0"},"location":"","max_time_allowed":"","mode":"normal","objectives":{"0":{"id":"","success_status":"unknown","completion_status":"unknown","progress_measure":"","description":"","score":{"scaled":"","raw":"","min":"","max":""}}},"progress_measure":"","scaled_passing_score":"","score":{"scaled":"","raw":"","min":"","max":""},"session_time":"PT0H0M0S","success_status":"unknown","suspend_data":"","time_limit_action":"continue,no message","total_time":"PT0S"}',
         );
       });
     });
@@ -691,8 +691,15 @@ describe("SCORM 2004 CMI Tests", () => {
         cmiObj.objectives.childArray.push(new CMIObjectivesObject());
         cmiObj.interactions.childArray.push(new CMIInteractionsObject());
         expect(JSON.stringify(cmiObj)).toEqual(
-          '{"comments_from_learner":{},"comments_from_lms":{},"completion_status":"unknown","completion_threshold":"","credit":"credit","entry":"","exit":"","interactions":{"0":{"id":"","type":"","objectives":{},"timestamp":"","weighting":"","learner_response":"","result":"","latency":"","description":"","correct_responses":{}}},"launch_data":"","learner_id":"","learner_name":"","learner_preference":{"audio_level":"1","language":"","delivery_speed":"1","audio_captioning":"0"},"location":"","max_time_allowed":"","mode":"normal","objectives":{"0":{"id":"","success_status":"unknown","completion_status":"unknown","progress_measure":"","description":"","score":{"scaled":"","raw":"","min":"","max":""}}},"progress_measure":"","scaled_passing_score":"","score":{"scaled":"","raw":"","min":"","max":""},"session_time":"PT0H0M0S","success_status":"unknown","suspend_data":"","time_limit_action":"continue,no message"}',
+          '{"comments_from_learner":{},"comments_from_lms":{},"completion_status":"unknown","completion_threshold":"","credit":"credit","entry":"","exit":"","interactions":{"0":{"id":"","type":"","objectives":{},"timestamp":"","weighting":"","learner_response":"","result":"","latency":"","description":"","correct_responses":{}}},"launch_data":"","learner_id":"","learner_name":"","learner_preference":{"audio_level":"1","language":"","delivery_speed":"1","audio_captioning":"0"},"location":"","max_time_allowed":"","mode":"normal","objectives":{"0":{"id":"","success_status":"unknown","completion_status":"unknown","progress_measure":"","description":"","score":{"scaled":"","raw":"","min":"","max":""}}},"progress_measure":"","scaled_passing_score":"","score":{"scaled":"","raw":"","min":"","max":""},"session_time":"PT0H0M0S","success_status":"unknown","suspend_data":"","time_limit_action":"continue,no message","total_time":"PT0S"}',
         );
+      });
+
+      it("should include total_time in JSON output", () => {
+        const cmiObj = cmi();
+        cmiObj.total_time = "PT1H30M45S";
+        const jsonOutput = JSON.parse(JSON.stringify(cmiObj));
+        expect(jsonOutput.total_time).toEqual("PT1H30M45S");
       });
     });
 

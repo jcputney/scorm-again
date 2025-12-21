@@ -1157,6 +1157,9 @@ class Scorm2004API extends BaseAPI {
 
     if (terminateCommit || includeTotalTime) {
       (cmiExport.cmi as any).total_time = (this.cmi as any).getCurrentTotalTime();
+    } else {
+      // Remove total_time from export when not terminating
+      delete (cmiExport.cmi as any).total_time;
     }
 
     const result = [];
