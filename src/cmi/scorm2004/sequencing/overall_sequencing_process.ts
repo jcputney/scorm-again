@@ -669,9 +669,9 @@ export class OverallSequencingProcess {
     if (!hasSequencingRequest && !postConditionResult.sequencingRequest) {
       const current = this.activityTree.currentActivity || currentActivity;
       if (current.parent) {
-        // Set parent as current without using setter (which would auto-activate)
+        // Set parent as current without activating it
         // The parent should remain inactive if it was terminated by the EXIT_PARENT cascade
-        (this.activityTree as any)._currentActivity = current.parent;
+        this.activityTree.setCurrentActivityWithoutActivation(current.parent);
       }
     }
 
