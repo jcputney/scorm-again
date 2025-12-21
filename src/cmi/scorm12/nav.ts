@@ -19,6 +19,14 @@ export class NAV extends BaseCMI {
 
   /**
    * Called when the API has been reset
+   *
+   * This method is invoked during the following session lifecycle events:
+   * - When the API is reset via LMSFinish() followed by a new LMSInitialize()
+   * - Between SCO transitions in multi-SCO courses (when one SCO ends and another begins)
+   * - When the LMS explicitly resets the API instance
+   * - During API cleanup and reinitialization cycles
+   *
+   * Resets all navigation state to prepare for a new session.
    */
   reset(): void {
     this._event = "";

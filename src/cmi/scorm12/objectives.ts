@@ -118,6 +118,14 @@ export class CMIObjectivesObject extends BaseCMI {
 
   /**
    * toJSON for cmi.objectives.n
+   *
+   * The `jsonString` flag pattern used here serves a specific purpose:
+   * - Setting `jsonString = true` before accessing properties bypasses initialization checks
+   * - This allows JSON serialization to read write-only or uninitialized properties
+   * - Without this flag, accessing certain properties would throw SCORM validation errors
+   * - The flag is reset to `false` after serialization to restore normal validation behavior
+   * - This pattern is used throughout SCORM-Again for controlled property access during export
+   *
    * @return {
    *    {
    *      id: string,
