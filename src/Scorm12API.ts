@@ -443,7 +443,8 @@ class Scorm12API extends BaseAPI {
     const cmiExport: StringKeyMap = this.renderCMIToJSONObject();
 
     if (terminateCommit || includeTotalTime) {
-      ((cmiExport.cmi as StringKeyMap).core as StringKeyMap).total_time = this.cmi.getCurrentTotalTime();
+      ((cmiExport.cmi as StringKeyMap).core as StringKeyMap).total_time =
+        this.cmi.getCurrentTotalTime();
     }
 
     const result = [];
@@ -555,7 +556,8 @@ class Scorm12API extends BaseAPI {
         }
       } else if (this.cmi.core.lesson_mode === "browse") {
         if (
-          (((this.startingData?.cmi as StringKeyMap)?.core as StringKeyMap)?.lesson_status || "") === "" &&
+          (((this.startingData?.cmi as StringKeyMap)?.core as StringKeyMap)?.lesson_status ||
+            "") === "" &&
           originalStatus === "not attempted"
         ) {
           this.cmi.core.lesson_status = "browsed";

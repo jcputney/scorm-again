@@ -24,9 +24,10 @@ export class RollupProcess {
   }
 
   /**
-   * Overall Rollup Process (RB.1.5)
+   * Overall Rollup Process
    * Performs rollup from a given activity up through its ancestors
    * OPTIMIZATION: Stops propagating rollup when status stops changing (SCORM 2004 4.6.1)
+   * @spec SN Book: RB.1.5 (Overall Rollup Process)
    * @param {Activity} activity - The activity to start rollup from
    * @return {Activity[]} - Array of activities that had status changes
    */
@@ -102,9 +103,10 @@ export class RollupProcess {
   }
 
   /**
-   * Measure Rollup Process (RB.1.1)
+   * Measure Rollup Process
    * Rolls up objective measure (score) from children to parent
    * INTEGRATION: Uses complex weighted measure calculation
+   * @spec SN Book: RB.1.1 (Measure Rollup Process)
    * @param {Activity} activity - The parent activity
    */
   private measureRollupProcess(activity: Activity): void {
@@ -152,8 +154,9 @@ export class RollupProcess {
   }
 
   /**
-   * Objective Rollup Process (RB.1.2)
+   * Objective Rollup Process
    * Determines objective satisfaction status using rules, measure, or default
+   * @spec SN Book: RB.1.2 (Objective Rollup Process)
    * @param {Activity} activity - The parent activity
    */
   private objectiveRollupProcess(activity: Activity): void {
@@ -202,7 +205,8 @@ export class RollupProcess {
   }
 
   /**
-   * Objective Rollup Using Rules (RB.1.2.b)
+   * Objective Rollup Using Rules
+   * @spec SN Book: RB.1.2.b (Objective Rollup Using Rules)
    * @param {Activity} activity - The parent activity
    * @param {RollupRule[]} rules - The rollup rules to evaluate
    * @return {boolean | null} - True if satisfied, false if not, null if no rule applies
@@ -235,7 +239,8 @@ export class RollupProcess {
   }
 
   /**
-   * Objective Rollup Using Measure (RB.1.2.a)
+   * Objective Rollup Using Measure
+   * @spec SN Book: RB.1.2.a (Objective Rollup Using Measure)
    * @param {Activity} activity - The parent activity
    * @return {boolean | null} - True if satisfied, false if not, null if no measure
    */
@@ -248,11 +253,12 @@ export class RollupProcess {
   }
 
   /**
-   * Objective Rollup Using Default (RB.1.2.c)
+   * Objective Rollup Using Default
    * For default rollup (no explicit rules), a child is included only if it
    * passes BOTH requiredForSatisfied AND requiredForNotSatisfied considerations.
    * This ensures symmetric exclusion: setting either consideration excludes
    * the child from the entire objective rollup evaluation.
+   * @spec SN Book: RB.1.2.c (Objective Rollup Using Default)
    * @param {Activity} activity - The parent activity
    * @return {boolean} - True if all tracked children are satisfied
    */
@@ -300,9 +306,10 @@ export class RollupProcess {
   }
 
   /**
-   * Completion Measure Rollup Process (RB.1.1 b)
+   * Completion Measure Rollup Process
    * Rolls up attemptCompletionAmount from children to parent using weighted averaging
    * 4th Edition Addition: Supports completion measure rollup for progress tracking
+   * @spec SN Book: RB.1.1.b (Completion Measure Rollup Process)
    * @param {Activity} activity - The parent activity
    */
   private completionMeasureRollupProcess(activity: Activity): void {
@@ -335,9 +342,10 @@ export class RollupProcess {
   }
 
   /**
-   * Activity Progress Rollup Using Measure (RB.1.3 a)
+   * Activity Progress Rollup Using Measure
    * Determines completion status using attemptCompletionAmount threshold comparison
    * 4th Edition Addition: Measure-based completion determination
+   * @spec SN Book: RB.1.3.a (Activity Progress Rollup Using Measure)
    * @param {Activity} activity - The activity to evaluate
    * @return {boolean} - True if measure-based evaluation was applied, false otherwise
    */
@@ -366,9 +374,10 @@ export class RollupProcess {
   }
 
   /**
-   * Activity Progress Rollup Process (RB.1.3)
+   * Activity Progress Rollup Process
    * Determines activity completion status
    * MODIFIED: Now tries measure-based rollup first
+   * @spec SN Book: RB.1.3 (Activity Progress Rollup Process)
    * @param {Activity} activity - The parent activity
    */
   private activityProgressRollupProcess(activity: Activity): void {
@@ -440,8 +449,8 @@ export class RollupProcess {
    * Duration Rollup Process
    * Aggregates duration information from child activities to parent cluster
    * Called ALWAYS for cluster activities, even when other rollup is skipped due to optimization
-   * Reference: Overall Rollup Process [RB.1.5] - duration rollup happens before optimization check
-   *
+   * @spec SN Book: RB.1.4 (Duration Rollup Process)
+   * @spec Reference: Overall Rollup Process [RB.1.5] - duration rollup happens before optimization check
    * @param {Activity} activity - The parent cluster activity
    */
   private durationRollupProcess(activity: Activity): void {
@@ -594,9 +603,10 @@ export class RollupProcess {
   }
 
   /**
-   * Check Child For Rollup Subprocess (RB.1.4.2)
+   * Check Child For Rollup Subprocess
    * Determines if a child activity contributes to rollup based on its individual consideration settings
    * This implements the full SCORM 2004 RB.1.4.2 specification
+   * @spec SN Book: RB.1.4.2 (Check Child For Rollup Subprocess)
    * @param {Activity} child - The child activity to check
    * @param {string} rollupType - Type of rollup ("measure", "objective", "progress")
    * @param {string} [rollupAction] - Specific rollup action (satisfied, notSatisfied, completed, incomplete)
@@ -838,8 +848,9 @@ export class RollupProcess {
   }
 
   /**
-   * Evaluate Rollup Conditions Subprocess (RB.1.4.1)
+   * Evaluate Rollup Conditions Subprocess
    * Evaluates if rollup rule conditions are met for a given activity
+   * @spec SN Book: RB.1.4.1 (Evaluate Rollup Conditions Subprocess)
    * @param {Activity} child - The child activity to evaluate
    * @param {RollupRule} rule - The rollup rule containing conditions to evaluate
    * @return {boolean} - True if all conditions are met, false otherwise
