@@ -189,8 +189,8 @@ export class CMIScore extends BaseCMI {
   }
 
   /**
-   * Getter for _score_range
-   * @return {string | false}
+   * Gets score object with numeric values
+   * @return {ScoreObject}
    */
   public getScoreObject(): ScoreObject {
     const scoreObject: ScoreObject = {};

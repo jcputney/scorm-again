@@ -57,7 +57,7 @@ export class CMIStudentData extends BaseCMI {
   }
 
   /**
-   * Getter for _master_score
+   * Getter for _mastery_score
    * @return {string}
    */
   get mastery_score(): string {
@@ -65,7 +65,7 @@ export class CMIStudentData extends BaseCMI {
   }
 
   /**
-   * Setter for _master_score. Can only be called before  initialization.
+   * Setter for _mastery_score. Can only be called before initialization.
    * @param {string} mastery_score
    */
   set mastery_score(mastery_score: string) {
@@ -109,7 +109,7 @@ export class CMIStudentData extends BaseCMI {
   }
 
   /**
-   * Setter for _max_time_allowed. Can only be called before  initialization.
+   * Setter for _max_time_allowed. Can only be called before initialization.
    * @param {string} max_time_allowed
    */
   set max_time_allowed(max_time_allowed: string) {
@@ -178,7 +178,7 @@ export class CMIStudentData extends BaseCMI {
   }
 
   /**
-   * Setter for _time_limit_action. Can only be called before  initialization.
+   * Setter for _time_limit_action. Can only be called before initialization.
    * @param {string} time_limit_action
    */
   set time_limit_action(time_limit_action: string) {
