@@ -749,5 +749,14 @@ describe("RTE Data Transfer", () => {
       expect(objective.isDirty("satisfiedStatus")).toBe(true);
       expect(objective.isDirty("normalizedMeasure")).toBe(true);
     });
+
+    it("should set measureStatus to false when parameter is false", () => {
+      const objective = new ActivityObjective("test_obj", {isPrimary: false});
+      objective.initializeFromCMI(true, 0.8, true);
+      expect(objective.measureStatus).toBe(true);
+
+      objective.initializeFromCMI(false, 0, false);
+      expect(objective.measureStatus).toBe(false);
+    });
   });
 });

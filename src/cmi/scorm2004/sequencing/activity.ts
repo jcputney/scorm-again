@@ -87,6 +87,8 @@ export class ActivityObjective {
 
   private _satisfiedStatus: boolean = false;
   private _satisfiedStatusKnown: boolean = false;
+  // Note: measureStatus has no dirty flag because it is not synchronized to global
+  // objectives. It serves as a validity gate for other synced properties.
   private _measureStatus: boolean = false;
   private _normalizedMeasure: number = 0;
   private _progressMeasure: number = 0;
@@ -254,6 +256,7 @@ export class ActivityObjective {
    * Initialize objective values from CMI data transfer
    * This method always marks values as dirty since CMI data should be written to global objectives,
    * even if the values match the current defaults (e.g., satisfiedStatus = false, normalizedMeasure = 0)
+   * Note: Callers must separately set satisfiedStatusKnown based on CMI data availability.
    * @param satisfiedStatus - The satisfied status from CMI
    * @param normalizedMeasure - The normalized measure from CMI
    * @param measureStatus - Whether measure is valid
