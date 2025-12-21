@@ -29,7 +29,8 @@ export const checkValidFormat = memoize(
     if (allowEmptyString && value === "") {
       return true;
     }
-    if (value === undefined || !matches || matches[0] === "") {
+    // COM-VAL-01: Removed redundant value === undefined check (already handled by typeof above)
+    if (!matches || matches[0] === "") {
       throw new errorClass(CMIElement, errorCode);
     }
     return true;
@@ -63,15 +64,27 @@ export const checkValidRange = memoize(
   ): boolean => {
     const ranges = rangePattern.split("#");
     value = value * 1.0;
-    if (ranges[0] && value >= ranges[0]) {
-      if (ranges[1] && (ranges[1] === "*" || value <= ranges[1])) {
-        return true;
-      } else {
-        throw new errorClass(CMIElement, errorCode);
-      }
-    } else {
+
+    // If value is not a valid number, throw error
+    if (isNaN(value)) {
       throw new errorClass(CMIElement, errorCode);
     }
+
+    // COM-VAL-02: Handle empty minimum (no lower bound) and empty/wildcard maximum (no upper bound)
+    const hasMinimum = ranges[0] !== "";
+    const hasMaximum = ranges[1] !== "" && ranges[1] !== "*";
+
+    // Check minimum bound if it exists
+    if (hasMinimum && value < ranges[0]) {
+      throw new errorClass(CMIElement, errorCode);
+    }
+
+    // Check maximum bound if it exists
+    if (hasMaximum && value > ranges[1]) {
+      throw new errorClass(CMIElement, errorCode);
+    }
+
+    return true;
   },
   // Custom key function that excludes the error class from the cache key
   // since it can't be stringified and doesn't affect the validation result
