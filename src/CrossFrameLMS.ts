@@ -108,6 +108,11 @@ export default class CrossFrameLMS {
     const msg = ev.data as MessageData;
     if (!msg?.messageId || !msg.method || !ev.source) return;
 
+    // Validate that ev.source is a Window with postMessage capability
+    // ev.source can be Window, MessagePort, ServiceWorker, or null
+    // We only handle Window sources for iframe communication
+    if (!("postMessage" in ev.source)) return;
+
     const source = ev.source as Window;
 
     // Handle heartbeat separately (bypass rate limit and allowlist)
