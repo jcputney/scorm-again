@@ -451,4 +451,189 @@ describe("ADL Classes", () => {
       });
     });
   });
+
+  describe("ADLNavRequestValidChoice", () => {
+    it("should return 'unknown' for targets not in static values", () => {
+      const adlNav = new ADLNav();
+      const choice = adlNav.request_valid.choice;
+
+      // Access internal method via type assertion
+      const result = (choice as any)._isTargetValid("nonexistent_target");
+      expect(result).toBe("unknown");
+    });
+
+    it("should return 'true' for targets with NAVBoolean.TRUE", () => {
+      const adlNav = new ADLNav();
+      const choice = adlNav.request_valid.choice;
+
+      // Set static value
+      (choice as any).setAll({ "target1": NAVBoolean.TRUE });
+
+      const result = (choice as any)._isTargetValid("target1");
+      expect(result).toBe("true");
+    });
+
+    it("should return 'false' for targets with NAVBoolean.FALSE", () => {
+      const adlNav = new ADLNav();
+      const choice = adlNav.request_valid.choice;
+
+      // Set static value
+      (choice as any).setAll({ "target1": NAVBoolean.FALSE });
+
+      const result = (choice as any)._isTargetValid("target1");
+      expect(result).toBe("false");
+    });
+
+    it("should use sequencing when available", () => {
+      const adlNav = new ADLNav();
+      const choice = adlNav.request_valid.choice;
+
+      // Mock sequencing with predictChoiceEnabled
+      const mockSequencing = {
+        overallSequencingProcess: {
+          predictChoiceEnabled: vi.fn().mockReturnValue(true)
+        }
+      };
+
+      adlNav.sequencing = mockSequencing as any;
+
+      const result = (choice as any)._isTargetValid("some_target");
+      expect(result).toBe("true");
+      expect(mockSequencing.overallSequencingProcess.predictChoiceEnabled).toHaveBeenCalledWith("some_target");
+    });
+
+    it("should fall back to static values when sequencing unavailable", () => {
+      const adlNav = new ADLNav();
+      const choice = adlNav.request_valid.choice;
+
+      // Set static value
+      (choice as any).setAll({ "target1": NAVBoolean.TRUE });
+
+      // No sequencing set, should use static value
+      const result = (choice as any)._isTargetValid("target1");
+      expect(result).toBe("true");
+    });
+
+    it("should return all static values with getAll", () => {
+      const adlNav = new ADLNav();
+      const choice = adlNav.request_valid.choice;
+
+      const values = {
+        "target1": NAVBoolean.TRUE,
+        "target2": NAVBoolean.FALSE,
+        "target3": NAVBoolean.UNKNOWN
+      };
+      (choice as any).setAll(values);
+
+      const result = (choice as any).getAll();
+      expect(result).toEqual(values);
+    });
+
+    it("should set parent nav reference", () => {
+      const adlNav = new ADLNav();
+      const choice = adlNav.request_valid.choice;
+
+      expect(() => {
+        (choice as any).setParentNav(adlNav);
+      }).not.toThrow();
+    });
+  });
+
+  describe("ADLNavRequestValidJump", () => {
+    it("should return 'unknown' for targets not in static values", () => {
+      const adlNav = new ADLNav();
+      const jump = adlNav.request_valid.jump;
+
+      const result = (jump as any)._isTargetValid("nonexistent_target");
+      expect(result).toBe("unknown");
+    });
+
+    it("should return 'true' for targets with NAVBoolean.TRUE", () => {
+      const adlNav = new ADLNav();
+      const jump = adlNav.request_valid.jump;
+
+      (jump as any).setAll({ "target1": NAVBoolean.TRUE });
+
+      const result = (jump as any)._isTargetValid("target1");
+      expect(result).toBe("true");
+    });
+
+    it("should return 'false' for targets with NAVBoolean.FALSE", () => {
+      const adlNav = new ADLNav();
+      const jump = adlNav.request_valid.jump;
+
+      (jump as any).setAll({ "target1": NAVBoolean.FALSE });
+
+      const result = (jump as any)._isTargetValid("target1");
+      expect(result).toBe("false");
+    });
+
+    it("should use activity tree when sequencing available", () => {
+      const adlNav = new ADLNav();
+      const jump = adlNav.request_valid.jump;
+
+      // Mock sequencing with activity tree
+      const mockSequencing = {
+        activityTree: {
+          getActivity: vi.fn().mockReturnValue({ id: "target1" })
+        }
+      };
+
+      adlNav.sequencing = mockSequencing as any;
+
+      const result = (jump as any)._isTargetValid("target1");
+      expect(result).toBe("true");
+      expect(mockSequencing.activityTree.getActivity).toHaveBeenCalledWith("target1");
+    });
+
+    it("should return false when activity not found in tree", () => {
+      const adlNav = new ADLNav();
+      const jump = adlNav.request_valid.jump;
+
+      // Mock sequencing with activity tree returning null
+      const mockSequencing = {
+        activityTree: {
+          getActivity: vi.fn().mockReturnValue(null)
+        }
+      };
+
+      adlNav.sequencing = mockSequencing as any;
+
+      const result = (jump as any)._isTargetValid("nonexistent");
+      expect(result).toBe("false");
+    });
+
+    it("should fall back to static values when sequencing unavailable", () => {
+      const adlNav = new ADLNav();
+      const jump = adlNav.request_valid.jump;
+
+      (jump as any).setAll({ "target1": NAVBoolean.TRUE });
+
+      const result = (jump as any)._isTargetValid("target1");
+      expect(result).toBe("true");
+    });
+
+    it("should return all static values with getAll", () => {
+      const adlNav = new ADLNav();
+      const jump = adlNav.request_valid.jump;
+
+      const values = {
+        "target1": NAVBoolean.TRUE,
+        "target2": NAVBoolean.FALSE
+      };
+      (jump as any).setAll(values);
+
+      const result = (jump as any).getAll();
+      expect(result).toEqual(values);
+    });
+
+    it("should set parent nav reference", () => {
+      const adlNav = new ADLNav();
+      const jump = adlNav.request_valid.jump;
+
+      expect(() => {
+        (jump as any).setParentNav(adlNav);
+      }).not.toThrow();
+    });
+  });
 });
