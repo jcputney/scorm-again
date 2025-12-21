@@ -765,6 +765,11 @@ export class ADLNavRequestValid extends BaseCMI {
   toJSON(): {
     previous: string;
     continue: string;
+    exit: string;
+    exitAll: string;
+    abandon: string;
+    abandonAll: string;
+    suspendAll: string;
   } {
     this.jsonString = true;
     const result = {
@@ -772,6 +777,11 @@ export class ADLNavRequestValid extends BaseCMI {
       continue: this.continue,
       choice: this._choice.getAll(),
       jump: this._jump.getAll(),
+      exit: this.exit,
+      exitAll: this.exitAll,
+      abandon: this.abandon,
+      abandonAll: this.abandonAll,
+      suspendAll: this.suspendAll,
     };
     this.jsonString = false;
     return result;
