@@ -78,6 +78,7 @@ export class CMIObjectivesObject extends BaseCMI {
 
   /**
    * Getter for _id
+   * @spec RTE 3.4.2.6.1 - cmi.objectives.n.id
    * @return {string}
    */
   get id(): string {
@@ -86,6 +87,7 @@ export class CMIObjectivesObject extends BaseCMI {
 
   /**
    * Setter for _id
+   * @spec RTE 3.4.2.6.1 - cmi.objectives.n.id
    * @param {string} id
    */
   set id(id: string) {
@@ -96,6 +98,7 @@ export class CMIObjectivesObject extends BaseCMI {
 
   /**
    * Getter for _status
+   * @spec RTE 3.4.2.6.3 - cmi.objectives.n.status
    * @return {string}
    */
   get status(): string {
@@ -104,6 +107,7 @@ export class CMIObjectivesObject extends BaseCMI {
 
   /**
    * Setter for _status
+   * @spec RTE 3.4.2.6.3 - cmi.objectives.n.status
    * @param {string} status
    */
   set status(status: string) {
