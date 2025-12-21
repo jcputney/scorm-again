@@ -46,6 +46,26 @@ describe("BaseCMI", () => {
     vi.restoreAllMocks();
   });
 
+  it("should throw error when setStartTime is called twice", () => {
+    // Mock Date.now
+    const mockDate = new Date(2022, 1, 1, 12, 0, 0);
+    const mockTime = mockDate.getTime();
+    vi.spyOn(Date.prototype, "getTime").mockReturnValue(mockTime);
+
+    // First call should succeed
+    expect(cmi.start_time).toBeUndefined();
+    cmi.setStartTime();
+    expect(cmi.start_time).toBe(mockTime);
+
+    // Second call should throw error
+    expect(() => {
+      cmi.setStartTime();
+    }).toThrow("Start time has already been set.");
+
+    // Restore mock
+    vi.restoreAllMocks();
+  });
+
   it("should have jsonString property set to false by default", () => {
     expect(cmi.jsonString).toBe(false);
   });
