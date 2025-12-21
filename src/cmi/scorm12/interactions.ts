@@ -256,6 +256,10 @@ export class CMIInteractionsObject extends BaseCMI {
    * @param {string} result
    */
   set result(result: string) {
+    // SCORM 1.2 clarification: Normalize 'incorrect' to 'wrong'
+    // The SCORM 1.2 specification (RTE 3.4.2.7.6) defines "wrong" as the valid result value
+    // for incorrect responses, not "incorrect". Some content may use "incorrect" due to
+    // confusion with SCORM 2004 or common language, so we normalize it here for compatibility.
     let normalizedResult = result;
     if (result === "incorrect") {
       normalizedResult = "wrong";
