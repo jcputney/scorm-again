@@ -215,4 +215,278 @@ describe("SynchronousHttpService", () => {
       expect(capturedXhr.withCredentials).toBe(true);
     });
   });
+
+  describe("requestHandler returning null/undefined", () => {
+    it("should use original params when requestHandler returns null in immediate mode", () => {
+      const mockBeacon = vi.fn().mockReturnValue(true);
+      vi.stubGlobal("navigator", { sendBeacon: mockBeacon });
+
+      const customSettings = {
+        ...DefaultSettings,
+        requestHandler: vi.fn().mockReturnValue(null),
+      };
+      service.updateSettings(customSettings);
+
+      const params = { cmi: { core: { score: { raw: "80" } } } };
+      service.processHttpRequest(
+        "http://test.com/commit",
+        params,
+        true,
+        mockApiLog,
+        mockProcessListeners,
+      );
+
+      // Verify beacon was called with the original params
+      expect(mockBeacon).toHaveBeenCalled();
+      const blobArg = mockBeacon.mock.calls[0][1];
+      expect(blobArg).toBeInstanceOf(Blob);
+    });
+
+    it("should use original params when requestHandler returns undefined in immediate mode", () => {
+      const mockBeacon = vi.fn().mockReturnValue(true);
+      vi.stubGlobal("navigator", { sendBeacon: mockBeacon });
+
+      const customSettings = {
+        ...DefaultSettings,
+        requestHandler: vi.fn().mockReturnValue(undefined),
+      };
+      service.updateSettings(customSettings);
+
+      const params = { cmi: { core: { score: { raw: "80" } } } };
+      service.processHttpRequest(
+        "http://test.com/commit",
+        params,
+        true,
+        mockApiLog,
+        mockProcessListeners,
+      );
+
+      // Verify beacon was called
+      expect(mockBeacon).toHaveBeenCalled();
+    });
+
+    it("should use original params when requestHandler returns null in sync mode", () => {
+      const mockXHR = {
+        open: vi.fn(),
+        setRequestHeader: vi.fn(),
+        send: vi.fn(),
+        status: 200,
+        responseText: '{"result":"true","errorCode":0}',
+      };
+      vi.stubGlobal("XMLHttpRequest", createMockXHRConstructor(mockXHR));
+
+      const customSettings = {
+        ...DefaultSettings,
+        requestHandler: vi.fn().mockReturnValue(null),
+      };
+      service.updateSettings(customSettings);
+
+      const params = { cmi: { core: { score: { raw: "80" } } } };
+      service.processHttpRequest(
+        "http://test.com/commit",
+        params,
+        false,
+        mockApiLog,
+        mockProcessListeners,
+      );
+
+      // Verify XHR was called with the original params
+      expect(mockXHR.send).toHaveBeenCalled();
+      const sentData = mockXHR.send.mock.calls[0][0];
+      expect(sentData).toBe(JSON.stringify(params));
+    });
+
+    it("should use original params when requestHandler returns undefined in sync mode", () => {
+      const mockXHR = {
+        open: vi.fn(),
+        setRequestHeader: vi.fn(),
+        send: vi.fn(),
+        status: 200,
+        responseText: '{"result":"true","errorCode":0}',
+      };
+      vi.stubGlobal("XMLHttpRequest", createMockXHRConstructor(mockXHR));
+
+      const customSettings = {
+        ...DefaultSettings,
+        requestHandler: vi.fn().mockReturnValue(undefined),
+      };
+      service.updateSettings(customSettings);
+
+      const params = { cmi: { core: { score: { raw: "80" } } } };
+      service.processHttpRequest(
+        "http://test.com/commit",
+        params,
+        false,
+        mockApiLog,
+        mockProcessListeners,
+      );
+
+      // Verify XHR was called
+      expect(mockXHR.send).toHaveBeenCalled();
+      const sentData = mockXHR.send.mock.calls[0][0];
+      expect(sentData).toBe(JSON.stringify(params));
+    });
+  });
+
+  describe("array parameter encoding", () => {
+    it("should encode array parameters with join('&') for immediate mode", () => {
+      const mockBeacon = vi.fn().mockReturnValue(true);
+      vi.stubGlobal("navigator", { sendBeacon: mockBeacon });
+
+      const arrayParams = ["param1=value1", "param2=value2", "param3=value3"];
+      service.processHttpRequest(
+        "http://test.com/commit",
+        arrayParams,
+        true,
+        mockApiLog,
+        mockProcessListeners,
+      );
+
+      expect(mockBeacon).toHaveBeenCalled();
+      const blobArg = mockBeacon.mock.calls[0][1];
+      expect(blobArg).toBeInstanceOf(Blob);
+      // Verify the blob contains the joined params (case-insensitive check)
+      expect(blobArg.type.toLowerCase()).toBe("text/plain;charset=utf-8");
+    });
+
+    it("should encode array parameters with join('&') for sync mode", () => {
+      const mockXHR = {
+        open: vi.fn(),
+        setRequestHeader: vi.fn(),
+        send: vi.fn(),
+        status: 200,
+        responseText: '{"result":"true","errorCode":0}',
+      };
+      vi.stubGlobal("XMLHttpRequest", createMockXHRConstructor(mockXHR));
+
+      const arrayParams = ["param1=value1", "param2=value2", "param3=value3"];
+      service.processHttpRequest(
+        "http://test.com/commit",
+        arrayParams,
+        false,
+        mockApiLog,
+        mockProcessListeners,
+      );
+
+      expect(mockXHR.send).toHaveBeenCalled();
+      const sentData = mockXHR.send.mock.calls[0][0];
+      expect(sentData).toBe("param1=value1&param2=value2&param3=value3");
+      expect(mockXHR.setRequestHeader).toHaveBeenCalledWith(
+        "Content-Type",
+        "application/x-www-form-urlencoded",
+      );
+    });
+
+    it("should handle empty arrays", () => {
+      const mockXHR = {
+        open: vi.fn(),
+        setRequestHeader: vi.fn(),
+        send: vi.fn(),
+        status: 200,
+        responseText: '{"result":"true","errorCode":0}',
+      };
+      vi.stubGlobal("XMLHttpRequest", createMockXHRConstructor(mockXHR));
+
+      const emptyArray: string[] = [];
+      service.processHttpRequest(
+        "http://test.com/commit",
+        emptyArray,
+        false,
+        mockApiLog,
+        mockProcessListeners,
+      );
+
+      expect(mockXHR.send).toHaveBeenCalled();
+      const sentData = mockXHR.send.mock.calls[0][0];
+      expect(sentData).toBe("");
+    });
+
+    it("should handle nested arrays (flattened via join)", () => {
+      const mockXHR = {
+        open: vi.fn(),
+        setRequestHeader: vi.fn(),
+        send: vi.fn(),
+        status: 200,
+        responseText: '{"result":"true","errorCode":0}',
+      };
+      vi.stubGlobal("XMLHttpRequest", createMockXHRConstructor(mockXHR));
+
+      const nestedArray = ["param1=value1", "param2=value2"];
+      service.processHttpRequest(
+        "http://test.com/commit",
+        nestedArray,
+        false,
+        mockApiLog,
+        mockProcessListeners,
+      );
+
+      expect(mockXHR.send).toHaveBeenCalled();
+      const sentData = mockXHR.send.mock.calls[0][0];
+      expect(sentData).toBe("param1=value1&param2=value2");
+    });
+  });
+
+  describe("custom xhrResponseHandler throwing", () => {
+    it("should handle xhrResponseHandler throwing an error", () => {
+      const mockXHR = {
+        open: vi.fn(),
+        setRequestHeader: vi.fn(),
+        send: vi.fn(),
+        status: 200,
+        responseText: '{"result":"true","errorCode":0}',
+      };
+      vi.stubGlobal("XMLHttpRequest", createMockXHRConstructor(mockXHR));
+
+      const customSettings = {
+        ...DefaultSettings,
+        xhrResponseHandler: vi.fn(() => {
+          throw new Error("Response handler error");
+        }),
+      };
+      service.updateSettings(customSettings);
+
+      const result = service.processHttpRequest(
+        "http://test.com/commit",
+        { cmi: {} },
+        false,
+        mockApiLog,
+        mockProcessListeners,
+      );
+
+      expect(result.result).toBe(global_constants.SCORM_FALSE);
+      expect(result.errorCode).toBe(101);
+      expect(result.errorMessage).toBe("Response handler error");
+    });
+
+    it("should handle xhrResponseHandler throwing a non-Error object", () => {
+      const mockXHR = {
+        open: vi.fn(),
+        setRequestHeader: vi.fn(),
+        send: vi.fn(),
+        status: 200,
+        responseText: '{"result":"true","errorCode":0}',
+      };
+      vi.stubGlobal("XMLHttpRequest", createMockXHRConstructor(mockXHR));
+
+      const customSettings = {
+        ...DefaultSettings,
+        xhrResponseHandler: vi.fn(() => {
+          throw "String error";
+        }),
+      };
+      service.updateSettings(customSettings);
+
+      const result = service.processHttpRequest(
+        "http://test.com/commit",
+        { cmi: {} },
+        false,
+        mockApiLog,
+        mockProcessListeners,
+      );
+
+      expect(result.result).toBe(global_constants.SCORM_FALSE);
+      expect(result.errorCode).toBe(101);
+      expect(result.errorMessage).toBe("String error");
+    });
+  });
 });
