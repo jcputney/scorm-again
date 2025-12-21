@@ -615,3 +615,126 @@ export function memoize<T extends (...args: any[]) => any>(
         })();
   }) as T;
 }
+
+/**
+ * Represents a parsed navigation request from the LMS
+ */
+export type ParsedNavigationRequest = {
+  /**
+   * The navigation request type (one of the valid SCORM 2004 navigation commands)
+   */
+  command: string;
+  /**
+   * The target activity ID for choice/jump commands (null for other commands)
+   */
+  targetActivityId: string | null;
+  /**
+   * Whether the navigation request was valid
+   */
+  valid: boolean;
+  /**
+   * Error message if invalid
+   */
+  error?: string;
+};
+
+/**
+ * Securely parses a navigation request string from the LMS into a validated command and target.
+ * This function implements a whitelist-based approach to prevent code injection attacks.
+ *
+ * Valid SCORM 2004 navigation commands:
+ * - start, resumeAll, continue, previous, exit, exitAll, abandon, abandonAll, suspendAll
+ * - choice.{targetActivityId} - Navigate to specific activity
+ * - jump.{targetActivityId} - Jump to specific activity
+ * - _none_ - No navigation (special case)
+ *
+ * @param {string} navRequest - The navigation request string from the LMS
+ * @return {ParsedNavigationRequest} Parsed command with validation status
+ *
+ * @example
+ * // Simple navigation command
+ * parseNavigationRequest("continue")
+ * // => { command: "continue", targetActivityId: null, valid: true }
+ *
+ * @example
+ * // Choice navigation with target
+ * parseNavigationRequest("choice.activity_123")
+ * // => { command: "choice", targetActivityId: "activity_123", valid: true }
+ *
+ * @example
+ * // Invalid/malicious input
+ * parseNavigationRequest("alert('XSS')")
+ * // => { command: "_none_", targetActivityId: null, valid: false, error: "..." }
+ */
+export function parseNavigationRequest(navRequest: string): ParsedNavigationRequest {
+  // Whitelist of valid navigation commands (SCORM 2004 spec)
+  const validCommands = new Set([
+    "start",
+    "resumeAll",
+    "continue",
+    "previous",
+    "choice",
+    "jump",
+    "exit",
+    "exitAll",
+    "abandon",
+    "abandonAll",
+    "suspendAll",
+    "_none_",
+  ]);
+
+  // Trim and handle empty strings
+  const trimmed = navRequest.trim();
+  if (!trimmed) {
+    return {
+      command: "_none_",
+      targetActivityId: null,
+      valid: false,
+      error: "Empty navigation request",
+    };
+  }
+
+  // Check for simple commands (no target)
+  if (validCommands.has(trimmed)) {
+    return {
+      command: trimmed,
+      targetActivityId: null,
+      valid: true,
+    };
+  }
+
+  // Check for choice/jump commands with target (format: "choice.targetId" or "jump.targetId")
+  const dotIndex = trimmed.indexOf(".");
+  if (dotIndex > 0) {
+    const command = trimmed.substring(0, dotIndex);
+    const targetActivityId = trimmed.substring(dotIndex + 1);
+
+    // Only "choice" and "jump" commands can have targets
+    if ((command === "choice" || command === "jump") && targetActivityId) {
+      // Validate target activity ID: alphanumeric, hyphens, underscores, dots only
+      // This prevents injection via the target ID parameter
+      if (/^[a-zA-Z0-9._-]+$/.test(targetActivityId)) {
+        return {
+          command,
+          targetActivityId,
+          valid: true,
+        };
+      } else {
+        return {
+          command: "_none_",
+          targetActivityId: null,
+          valid: false,
+          error: `Invalid target activity ID: contains disallowed characters`,
+        };
+      }
+    }
+  }
+
+  // If we get here, the navigation request is not recognized
+  return {
+    command: "_none_",
+    targetActivityId: null,
+    valid: false,
+    error: `Unrecognized navigation command: "${trimmed}"`,
+  };
+}

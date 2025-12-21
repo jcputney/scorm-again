@@ -1,7 +1,12 @@
 import BaseAPI from "./BaseAPI";
 import { CMI } from "./cmi/scorm2004/cmi";
 import * as Utilities from "./utilities";
-import { StringKeyMap, stringMatches } from "./utilities";
+import {
+  ParsedNavigationRequest,
+  StringKeyMap,
+  parseNavigationRequest,
+  stringMatches,
+} from "./utilities";
 import { global_constants, scorm2004_constants } from "./constants/api_constants";
 import { scorm2004_errors } from "./constants/error_codes";
 import { CMIObjectivesObject } from "./cmi/scorm2004/objectives";
@@ -1349,15 +1354,47 @@ class Scorm2004API extends BaseAPI {
         terminateCommit,
       );
 
-      // Check if this is a sequencing call, and then call the necessary JS
+      // Check if this is a sequencing call, and then process the navigation request securely
       if (
         navRequest &&
         result.navRequest !== undefined &&
         result.navRequest !== "" &&
         typeof result.navRequest === "string"
       ) {
-        Function(`"use strict";(() => { ${result.navRequest} })()`)();
+        // Parse the navigation request using whitelist-based validation
+        const parsed: ParsedNavigationRequest = parseNavigationRequest(result.navRequest);
+
+        if (!parsed.valid) {
+          // Log warning for invalid navigation requests (potential injection attempts)
+          this.apiLog(
+            "storeData",
+            `Invalid navigation request from LMS: ${parsed.error}`,
+            LogLevelEnum.WARN,
+          );
+        } else {
+          // Dispatch valid navigation command via event system
+          // Map SCORM 2004 navigation commands to event names
+          const navEventMap: { [key: string]: string } = {
+            start: "SequenceStart",
+            resumeAll: "SequenceResumeAll",
+            continue: "SequenceNext",
+            previous: "SequencePrevious",
+            choice: "SequenceChoice",
+            jump: "SequenceJump",
+            exit: "SequenceExit",
+            exitAll: "SequenceExitAll",
+            abandon: "SequenceAbandon",
+            abandonAll: "SequenceAbandonAll",
+            suspendAll: "SequenceSuspendAll",
+          };
+
+          const eventName = navEventMap[parsed.command];
+          if (eventName) {
+            this.processListeners(eventName, "adl.nav.request", parsed.targetActivityId);
+          }
+        }
       } else if (result?.navRequest && !navRequest) {
+        // Support object-based custom event format (safe alternative)
         if (
           typeof result.navRequest === "object" &&
           Object.hasOwnProperty.call(result.navRequest, "name") &&
