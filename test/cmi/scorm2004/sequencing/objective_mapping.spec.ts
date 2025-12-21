@@ -466,12 +466,13 @@ describe("Global Objective Mapping Tests", () => {
         ],
       });
       activity1.primaryObjective = obj1;
-      obj1.normalizedMeasure = 0.6;
-      obj1.measureStatus = true;
-      obj1.satisfiedStatus = false;  // Explicitly set initial status
+      // Initialize from CMI data - marks objective as dirty so first write happens
+      obj1.initializeFromCMI(false, 0.6, true);
+      obj1.satisfiedStatusKnown = true;
       activity1.objectiveNormalizedMeasure = 0.6;
       activity1.objectiveMeasureStatus = true;
       activity1.objectiveSatisfiedStatus = false;
+      activity1.objectiveSatisfiedStatusKnown = true;
 
       // Activity1 creates the global objective with write permissions
       rollupProcess.processGlobalObjectiveMapping(activity1, globalObjectives);
@@ -554,8 +555,9 @@ describe("Global Objective Mapping Tests", () => {
         ],
       });
       root.primaryObjective = rootObj;
-      rootObj.normalizedMeasure = 0.5;
-      rootObj.measureStatus = true;
+      // Initialize from CMI data - marks objective as dirty so first write happens
+      rootObj.initializeFromCMI(false, 0.5, true);
+      rootObj.satisfiedStatusKnown = true;
       root.objectiveNormalizedMeasure = 0.5;
       root.objectiveMeasureStatus = true;
 
