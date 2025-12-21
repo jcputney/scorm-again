@@ -1687,15 +1687,6 @@ export class OverallSequencingProcess {
     for (const act of allActivities) {
       const choiceRes = this.navigationRequestProcess(NavigationRequestType.CHOICE, act.id);
       choiceMap[act.id] = choiceRes.valid ? "true" : "false";
-      // Debug: Log details for failing validity checks
-      if (act.id === "havingfun_item" && !choiceRes.valid) {
-        console.log(`[DEBUG NAV VALIDITY] havingfun_item choice failed: exception=${choiceRes.exception}`);
-        console.log(`[DEBUG NAV VALIDITY] current activity: ${this.activityTree.currentActivity?.id}`);
-        console.log(`[DEBUG NAV VALIDITY] havingfun_item.isAvailable: ${act.isAvailable}`);
-        console.log(`[DEBUG NAV VALIDITY] havingfun_item.isHiddenFromChoice: ${act.isHiddenFromChoice}`);
-        console.log(`[DEBUG NAV VALIDITY] havingfun_item.parent: ${act.parent?.id}`);
-        console.log(`[DEBUG NAV VALIDITY] havingfun_item.parent.sequencingControls.choice: ${act.parent?.sequencingControls?.choice}`);
-      }
       const jumpRes = this.navigationRequestProcess(NavigationRequestType.JUMP, act.id);
       jumpMap[act.id] = jumpRes.valid ? "true" : "false";
     }
