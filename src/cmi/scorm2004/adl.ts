@@ -321,32 +321,22 @@ class ADLNavRequestValidChoice {
    * Called by BaseAPI when accessing adl.nav.request_valid.choice.{target=...}
    */
   _isTargetValid(target: string): string {
-    console.log(`[DEBUG _isTargetValid] target=${target}`);
-    console.log(`[DEBUG _isTargetValid] hasParentNav=${!!this._parentNav}`);
-    console.log(`[DEBUG _isTargetValid] hasSequencing=${!!this._parentNav?.sequencing}`);
-    console.log(`[DEBUG _isTargetValid] hasProcess=${!!this._parentNav?.sequencing?.overallSequencingProcess}`);
-
     // If sequencing is available, evaluate dynamically
     if (this._parentNav?.sequencing?.overallSequencingProcess) {
       const process = this._parentNav.sequencing.overallSequencingProcess;
       if (process.predictChoiceEnabled) {
         const result = process.predictChoiceEnabled(target) ? "true" : "false";
-        console.log(`[DEBUG _isTargetValid] via predictChoiceEnabled: ${result}`);
         return result;
       }
     }
     // Fall back to static value if sequencing not available
     const value = this._staticValues[target];
-    console.log(`[DEBUG _isTargetValid] staticValue=${value}, keys=${Object.keys(this._staticValues).join(",")}`);
     if (value === NAVBoolean.TRUE) {
-      console.log(`[DEBUG _isTargetValid] returning true (static)`);
       return "true";
     }
     if (value === NAVBoolean.FALSE) {
-      console.log(`[DEBUG _isTargetValid] returning false (static)`);
       return "false";
     }
-    console.log(`[DEBUG _isTargetValid] returning unknown`);
     return "unknown";
   }
 
