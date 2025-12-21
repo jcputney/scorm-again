@@ -35,6 +35,37 @@ describe("SCORM 1.2 API Additional Tests", () => {
 
       expect(scorm12API.statusSetByModule).toBe(true);
     });
+
+    it("should return SCORM_FALSE when parameter is not an empty string", () => {
+      const scorm12API = api();
+      const throwSCORMErrorSpy = vi.spyOn(scorm12API, "throwSCORMError");
+
+      const result = scorm12API.lmsInitialize("invalid_parameter");
+
+      expect(result).toBe(global_constants.SCORM_FALSE);
+      expect(throwSCORMErrorSpy).toHaveBeenCalledWith("api", 201); // ARGUMENT_ERROR for SCORM 1.2
+    });
+
+    it("should return SCORM_FALSE when already initialized", () => {
+      const scorm12API = api();
+      scorm12API.lmsInitialize(); // First initialization
+
+      const result = scorm12API.lmsInitialize(); // Second initialization
+
+      expect(result).toBe(global_constants.SCORM_FALSE);
+      expect(scorm12API.lmsGetLastError()).toBe("101");
+    });
+
+    it("should return SCORM_FALSE when already terminated", () => {
+      const scorm12API = api();
+      scorm12API.lmsInitialize();
+      scorm12API.lmsFinish();
+
+      const result = scorm12API.lmsInitialize();
+
+      expect(result).toBe(global_constants.SCORM_FALSE);
+      expect(scorm12API.lmsGetLastError()).toBe("101");
+    });
   });
 
   describe("lmsFinish()", () => {
