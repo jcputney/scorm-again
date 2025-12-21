@@ -10,42 +10,127 @@ describe("SCORM 2004 Interactions Pattern Validation", () => {
       correctResponse = new CMIInteractionsCorrectResponsesObject("performance");
     });
 
-    it("should accept valid performance patterns", () => {
-      // Skip this test for now, since getting the exact format right is challenging
-      // This test is still included for documentation purposes
+    describe("Valid Performance Patterns", () => {
+      it("should accept performance pattern with short identifier answer", () => {
+        // step_answer as CMIShortIdentifier
+        correctResponse.pattern = "step1.answer1";
+        expect(correctResponse.pattern).toBe("step1.answer1");
+      });
+
+      it("should accept performance pattern with decimal number answer (INT-03 bug fix)", () => {
+        // step_answer as decimal number - this was the bug!
+        // Previously rejected because "3.14" contains a dot
+        correctResponse.pattern = "step1.3.14";
+        expect(correctResponse.pattern).toBe("step1.3.14");
+      });
+
+      it("should accept performance pattern with integer answer", () => {
+        // step_answer as integer
+        correctResponse.pattern = "step1.42";
+        expect(correctResponse.pattern).toBe("step1.42");
+      });
+
+      it("should accept performance pattern with numeric range answer", () => {
+        // step_answer as numeric range (decimal:decimal)
+        correctResponse.pattern = "step1.3.5:4.2";
+        expect(correctResponse.pattern).toBe("step1.3.5:4.2");
+      });
+
+      it("should accept performance pattern with integer range answer", () => {
+        // step_answer as integer range
+        correctResponse.pattern = "step1.10:20";
+        expect(correctResponse.pattern).toBe("step1.10:20");
+      });
+
+      it("should accept performance pattern with zero values", () => {
+        correctResponse.pattern = "step1.0";
+        expect(correctResponse.pattern).toBe("step1.0");
+
+        correctResponse.pattern = "step2.0.0";
+        expect(correctResponse.pattern).toBe("step2.0.0");
+      });
+
+      it("should accept multiple performance nodes separated by comma", () => {
+        correctResponse.pattern = "step1.answer1,step2.3.14,step3.10:20";
+        expect(correctResponse.pattern).toBe("step1.answer1,step2.3.14,step3.10:20");
+      });
     });
 
-    it("should reject performance patterns without delimiter", () => {
-      expect(() => {
-        correctResponse.pattern = "step1value1";
-      }).toThrow(Scorm2004ValidationError);
-    });
+    describe("Invalid Performance Patterns", () => {
+      it("should reject performance patterns without delimiter", () => {
+        expect(() => {
+          correctResponse.pattern = "step1value1";
+        }).toThrow(Scorm2004ValidationError);
+      });
 
-    it("should reject performance patterns with empty parts", () => {
-      expect(() => {
-        correctResponse.pattern = "[.]value1";
-      }).toThrow(Scorm2004ValidationError);
+      it("should reject performance patterns with empty parts", () => {
+        expect(() => {
+          correctResponse.pattern = ".value1";
+        }).toThrow(Scorm2004ValidationError);
 
-      expect(() => {
-        correctResponse.pattern = "step1[.]";
-      }).toThrow(Scorm2004ValidationError);
-    });
+        expect(() => {
+          correctResponse.pattern = "step1.";
+        }).toThrow(Scorm2004ValidationError);
+      });
 
-    it("should reject performance patterns with identical parts", () => {
-      expect(() => {
-        correctResponse.pattern = "same[.]same";
-      }).toThrow(Scorm2004ValidationError);
-    });
+      it("should reject performance patterns with identical parts", () => {
+        expect(() => {
+          correctResponse.pattern = "same.same";
+        }).toThrow(Scorm2004ValidationError);
+      });
 
-    it("should validate format for both parts", () => {
-      // Test with incorrect format
-      expect(() => {
-        correctResponse.pattern = "step@1[.]value1";
-      }).toThrow(Scorm2004ValidationError);
+      it("should accept performance patterns with dots in step_answer", () => {
+        // CMIShortIdentifier allows dots, so "b.c" is a valid step_answer
+        correctResponse.pattern = "a.b.c";
+        expect(correctResponse.pattern).toBe("a.b.c");
 
-      expect(() => {
-        correctResponse.pattern = "step1[.]value@1";
-      }).toThrow(Scorm2004ValidationError);
+        // Even multiple dots are allowed in CMIShortIdentifier
+        correctResponse.pattern = "step1.3..14";
+        expect(correctResponse.pattern).toBe("step1.3..14");
+      });
+
+      it("should reject performance patterns with invalid step_name format", () => {
+        // step_name with special characters not allowed in CMIShortIdentifier
+        expect(() => {
+          correctResponse.pattern = "step@1.value1";
+        }).toThrow(Scorm2004ValidationError);
+
+        expect(() => {
+          correctResponse.pattern = "step 1.value1";
+        }).toThrow(Scorm2004ValidationError);
+
+        expect(() => {
+          correctResponse.pattern = "step#1.value1";
+        }).toThrow(Scorm2004ValidationError);
+      });
+
+      it("should reject performance patterns with invalid step_answer format", () => {
+        // step_answer with special characters not allowed in CMIShortIdentifier
+        // and not matching the numeric pattern
+        expect(() => {
+          correctResponse.pattern = "step1.value@1";
+        }).toThrow(Scorm2004ValidationError);
+
+        expect(() => {
+          correctResponse.pattern = "step1.answer 1";
+        }).toThrow(Scorm2004ValidationError);
+
+        expect(() => {
+          correctResponse.pattern = "step1.value#1";
+        }).toThrow(Scorm2004ValidationError);
+      });
+
+      it("should reject performance patterns with invalid numeric range format", () => {
+        // Too many colons in range
+        expect(() => {
+          correctResponse.pattern = "step1.3:4:5";
+        }).toThrow(Scorm2004ValidationError);
+
+        // Colon without numbers
+        expect(() => {
+          correctResponse.pattern = "step1.:";
+        }).toThrow(Scorm2004ValidationError);
+      });
     });
   });
 
