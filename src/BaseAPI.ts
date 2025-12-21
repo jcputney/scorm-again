@@ -1359,24 +1359,12 @@ export default abstract class BaseAPI implements IBaseAPI {
           }
         }
       } else {
-        // Debug: trace the path for choice targets
-        if (String(attribute).substring(0, 8) === "{target=") {
-          console.log(`[DEBUG BaseAPI] Processing {target=...}: attribute=${attribute}`);
-          console.log(`[DEBUG BaseAPI] refObject type: ${refObject?.constructor?.name}`);
-          console.log(`[DEBUG BaseAPI] _isTargetValid exists: ${typeof refObject._isTargetValid}`);
-          console.log(
-            `[DEBUG BaseAPI] refObject keys: ${Object.keys(refObject || {})
-              .slice(0, 10)
-              .join(",")}`,
-          );
-        }
         if (
           String(attribute).substring(0, 8) === "{target=" &&
           typeof refObject._isTargetValid == "function"
         ) {
           // Extract target from {target=X} format: skip "{target=" (8 chars) and "}" (1 char at end)
           const target = String(attribute).substring(8, String(attribute).length - 1);
-          console.log(`[DEBUG BaseAPI] Calling _isTargetValid with target: ${target}`);
           return refObject._isTargetValid(target);
         } else if (
           typeof attribute === "undefined" ||
