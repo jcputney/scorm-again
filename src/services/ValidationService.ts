@@ -34,7 +34,6 @@ export class ValidationService {
       checkValidFormat(CMIElement, value, decimalRegex, invalidTypeCode, errorClass) &&
       (!scoreRange || checkValidRange(CMIElement, value, scoreRange, invalidRangeCode, errorClass))
     );
-    // This line should never be reached due to exceptions being thrown
   }
 
   /**
