@@ -2,25 +2,33 @@ name: Release
 
 on:
   release:
-    types: [ created ]
+    types: [created]
 
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
     steps:
       # Checkout repository
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      # Set up Node.js
+      # Set up Node.js with OIDC
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
           cache: "npm"
+
+      # Ensure latest npm for OIDC support
+      - name: Update npm
+        run: npm install -g npm@latest
 
       # Install dependencies
       - name: Install dependencies
@@ -30,52 +38,165 @@ jobs:
       - name: Build (prod)
         run: npm run build:all:prod
 
+      # Install Playwright browsers
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
       # Run tests
       - name: Run tests
         run: |
           npm run test:min
           npx playwright test --reporter=list
 
-      # Publish to npm
+      # Determine npm tag based on version
+      - name: Determine npm tag
+        id: npm_tag
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          if [[ "$VERSION" == *"-alpha"* ]]; then
+            echo "tag=alpha" >> $GITHUB_OUTPUT
+          elif [[ "$VERSION" == *"-beta"* ]]; then
+            echo "tag=beta" >> $GITHUB_OUTPUT
+          elif [[ "$VERSION" == *"-rc"* ]]; then
+            echo "tag=rc" >> $GITHUB_OUTPUT
+          else
+            echo "tag=latest" >> $GITHUB_OUTPUT
+          fi
+
+          echo "Publishing version $VERSION with tag: $(grep tag= $GITHUB_OUTPUT | cut -d= -f2)"
+
+      # Publish to npm using OIDC (no token needed)
       - name: Publish to npm
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+        run: npm publish --tag ${{ steps.npm_tag.outputs.tag }} --provenance --access public
 
-      # Create GitHub release
-      - name: Update GitHub release
-        uses: actions/github-script@v8
+      # Check if release has manual notes
+      - name: Check for manual release notes
+        id: check_notes
+        uses: actions/github-script@v7
         with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-            const fs = require('fs');
-            const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
-            const version = packageJson.version;
+            const body = context.payload.release.body || '';
+            const hasNotes = body.trim().length > 0;
+            core.setOutput('has_manual_notes', hasNotes.toString());
+            console.log(`Release has manual notes: ${hasNotes}`);
 
-            // Get the release
-            const release = await github.rest.repos.getRelease({
+      # Get previous release for changelog (only if no manual notes)
+      - name: Get previous release tag
+        id: prev_release
+        if: steps.check_notes.outputs.has_manual_notes == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const releases = await github.rest.repos.listReleases({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              release_id: context.payload.release.id
+              per_page: 10
             });
 
-            // Update release body with changelog if it exists
-            let body = release.data.body || '';
-            if (fs.existsSync('./CHANGELOG.md')) {
-              const changelog = fs.readFileSync('./CHANGELOG.md', 'utf8');
-              const versionHeader = `## [${version}]`;
-              const versionRegex = new RegExp(`${versionHeader}[\\s\\S]*?(?=## \\[|$)`, 'm');
-              const match = changelog.match(versionRegex);
+            // Find current release index and get the next one (previous release)
+            const currentTag = context.payload.release.tag_name;
+            const currentIndex = releases.data.findIndex(r => r.tag_name === currentTag);
 
-              if (match && match[0]) {
-                body += '\n\n' + match[0].trim();
-              }
+            if (currentIndex >= 0 && currentIndex < releases.data.length - 1) {
+              const prevTag = releases.data[currentIndex + 1].tag_name;
+              core.setOutput('tag', prevTag);
+              console.log(`Previous release: ${prevTag}`);
+            } else {
+              core.setOutput('tag', '');
+              console.log('No previous release found');
             }
 
-            // Update the release
-            await github.rest.repos.updateRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              release_id: context.payload.release.id,
-              body: body
-            });
+      # Generate changelog from commits (only if no manual notes)
+      - name: Generate changelog
+        id: changelog
+        if: steps.check_notes.outputs.has_manual_notes == 'false'
+        run: |
+          PREV_TAG="${{ steps.prev_release.outputs.tag }}"
+
+          if [ -n "$PREV_TAG" ]; then
+            COMMITS=$(git log ${PREV_TAG}..HEAD --oneline --no-merges | head -50)
+            COMMIT_COUNT=$(git log ${PREV_TAG}..HEAD --oneline --no-merges | wc -l | tr -d ' ')
+          else
+            COMMITS=$(git log --oneline --no-merges -20)
+            COMMIT_COUNT="20+"
+          fi
+
+          # Write to file to preserve newlines
+          echo "## Changes" > changelog.md
+          echo "" >> changelog.md
+          echo "$COMMITS" | while read line; do
+            echo "- $line" >> changelog.md
+          done
+
+          if [ "$COMMIT_COUNT" -gt 50 ] 2>/dev/null; then
+            echo "" >> changelog.md
+            echo "_...and $((COMMIT_COUNT - 50)) more commits_" >> changelog.md
+          fi
+
+          cat changelog.md
+
+      # Update GitHub release with changelog (only if no manual notes)
+      - name: Update GitHub release
+        if: steps.check_notes.outputs.has_manual_notes == 'false'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+
+            // Read generated changelog
+            if (fs.existsSync('./changelog.md')) {
+              const changelog = fs.readFileSync('./changelog.md', 'utf8');
+
+              // Update the release with generated notes
+              await github.rest.repos.updateRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: context.payload.release.id,
+                body: changelog
+              });
+            }
+
+      # Calculate next version
+      - name: Calculate next version
+        id: next_version
+        run: |
+          VERSION="${{ steps.npm_tag.outputs.version }}"
+
+          if [[ "$VERSION" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)-([a-z]+)\.([0-9]+)$ ]]; then
+            # Pre-release version: 3.0.0-alpha.1 -> 3.0.0-alpha.2
+            MAJOR="${BASH_REMATCH[1]}"
+            MINOR="${BASH_REMATCH[2]}"
+            PATCH="${BASH_REMATCH[3]}"
+            PRERELEASE="${BASH_REMATCH[4]}"
+            PRENUM="${BASH_REMATCH[5]}"
+            NEXT_VERSION="${MAJOR}.${MINOR}.${PATCH}-${PRERELEASE}.$((PRENUM + 1))"
+          elif [[ "$VERSION" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            # Stable version: 3.0.0 -> 3.0.1
+            MAJOR="${BASH_REMATCH[1]}"
+            MINOR="${BASH_REMATCH[2]}"
+            PATCH="${BASH_REMATCH[3]}"
+            NEXT_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+          else
+            echo "Unable to parse version: $VERSION"
+            exit 1
+          fi
+
+          echo "next_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+          echo "Bumping version from $VERSION to $NEXT_VERSION"
+
+      # Update package.json with next version
+      - name: Bump version
+        run: |
+          npm version ${{ steps.next_version.outputs.next_version }} --no-git-tag-version
+          echo "Updated package.json to version ${{ steps.next_version.outputs.next_version }}"
+
+      # Commit version bump to master
+      - name: Commit version bump
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "[skip ci] Bump version to ${{ steps.next_version.outputs.next_version }}"
+          file_pattern: "package.json package-lock.json"
+          branch: master
