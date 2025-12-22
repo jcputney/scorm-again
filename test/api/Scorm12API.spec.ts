@@ -786,6 +786,14 @@ describe("SCORM 1.2 API Tests", () => {
       scorm12API.storeData(true);
       expect(scorm12API.cmi.core.lesson_status).toEqual("browsed");
     });
+    it("should set status to 'browsed' when lesson_mode is browse and starting status was empty", () => {
+      const scorm12API = new Scorm12API();
+      scorm12API.cmi.core.lesson_mode = "browse";
+      scorm12API.lmsInitialize();
+      // Don't set lesson_status (statusSetByModule remains false)
+      scorm12API.storeData(true);
+      expect(scorm12API.cmi.core.lesson_status).toBe("browsed");
+    });
     it('should set cmi.core.lesson_status to "passed" - mastery_override: true', () => {
       const scorm12API = api({
         ...DefaultSettings,
