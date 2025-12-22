@@ -81,6 +81,10 @@ coverage-*
 
 # Integration test modules
 /test/integration/modules/
+
+# Demo build artifacts (downloaded/copied at deploy time)
+/demo/modules/
+/demo/dist/
 /playwright-report/
 /playwright/.cache/
 summary.md
