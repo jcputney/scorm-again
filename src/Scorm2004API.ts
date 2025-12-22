@@ -531,17 +531,17 @@ class Scorm2004API extends BaseAPI {
 
           if (!isNaN(scoreValue)) {
             // Evaluate based on threshold comparison
-            return scoreValue >= passingScoreValue ? "passed" : "failed";
+            return scoreValue >= passingScoreValue ? SuccessStatus.PASSED : SuccessStatus.FAILED;
           }
         }
 
         // scaled_passing_score is defined but score.scaled is not set
-        return "unknown";
+        return SuccessStatus.UNKNOWN;
       }
     }
 
     // No scaled_passing_score defined - return stored value
-    return storedStatus || "unknown";
+    return storedStatus || SuccessStatus.UNKNOWN;
   }
 
   /**
