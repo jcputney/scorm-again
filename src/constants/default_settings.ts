@@ -60,11 +60,12 @@ export const DefaultSettings: InternalSettings = {
       } else {
         return {
           result: httpResult.result,
-          errorCode: httpResult.errorCode
-            ? httpResult.errorCode
-            : httpResult.result === global_constants.SCORM_TRUE
-              ? 0
-              : 101,
+          errorCode:
+            typeof httpResult.errorCode === "number"
+              ? httpResult.errorCode
+              : httpResult.result === true || httpResult.result === global_constants.SCORM_TRUE
+                ? 0
+                : 101,
         };
       }
     }
@@ -89,11 +90,12 @@ export const DefaultSettings: InternalSettings = {
         }
         return {
           result: httpResult.result,
-          errorCode: httpResult.errorCode
-            ? httpResult.errorCode
-            : httpResult.result === global_constants.SCORM_TRUE
-              ? 0
-              : 101,
+          errorCode:
+            typeof httpResult.errorCode === "number"
+              ? httpResult.errorCode
+              : httpResult.result === true || httpResult.result === global_constants.SCORM_TRUE
+                ? 0
+                : 101,
         };
       } else {
         return { result: global_constants.SCORM_FALSE, errorCode: 101 };
