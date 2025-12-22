@@ -193,3 +193,52 @@ describe("SCORM 2004 success_status GetValue evaluation", () => {
     });
   });
 });
+
+describe("SCORM 2004 completion_status GetValue evaluation", () => {
+  it("should return 'completed' when progress_measure >= completion_threshold", () => {
+    const api = new Scorm2004API();
+    api.cmi.completion_threshold = "0.8";
+    api.lmsInitialize();
+    api.lmsSetValue("cmi.progress_measure", "0.85");
+    expect(api.lmsGetValue("cmi.completion_status")).toBe("completed");
+  });
+
+  it("should return 'incomplete' when progress_measure < completion_threshold", () => {
+    const api = new Scorm2004API();
+    api.cmi.completion_threshold = "0.8";
+    api.lmsInitialize();
+    api.lmsSetValue("cmi.progress_measure", "0.75");
+    expect(api.lmsGetValue("cmi.completion_status")).toBe("incomplete");
+  });
+
+  it("should return 'unknown' when completion_threshold set but no progress_measure", () => {
+    const api = new Scorm2004API();
+    api.cmi.completion_threshold = "0.8";
+    api.lmsInitialize();
+    expect(api.lmsGetValue("cmi.completion_status")).toBe("unknown");
+  });
+
+  it("should override SCO-set value when threshold and progress available", () => {
+    const api = new Scorm2004API();
+    api.cmi.completion_threshold = "0.8";
+    api.lmsInitialize();
+    api.lmsSetValue("cmi.completion_status", "completed");
+    api.lmsSetValue("cmi.progress_measure", "0.5");
+    expect(api.lmsGetValue("cmi.completion_status")).toBe("incomplete");
+  });
+
+  it("should handle exact threshold value as completed", () => {
+    const api = new Scorm2004API();
+    api.cmi.completion_threshold = "0.8";
+    api.lmsInitialize();
+    api.lmsSetValue("cmi.progress_measure", "0.8");
+    expect(api.lmsGetValue("cmi.completion_status")).toBe("completed");
+  });
+
+  it("should return SCO-set value when no threshold defined", () => {
+    const api = new Scorm2004API();
+    api.lmsInitialize();
+    api.lmsSetValue("cmi.completion_status", "completed");
+    expect(api.lmsGetValue("cmi.completion_status")).toBe("completed");
+  });
+});
