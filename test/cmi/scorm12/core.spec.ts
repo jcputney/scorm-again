@@ -77,7 +77,7 @@ describe("SCORM 1.2 Core Tests", () => {
       core.initialize();
     });
 
-    it("should handle null start_time by using session_time only", () => {
+    it("should handle undefined start_time by using session_time only (with total_time)", () => {
       // Set session_time before calling getCurrentTotalTime
       core.session_time = "00:05:30";
 
@@ -87,8 +87,8 @@ describe("SCORM 1.2 Core Tests", () => {
       core.initialize();
       core.session_time = "00:05:30";
 
-      // Call getCurrentTotalTime with null start_time
-      const result = core.getCurrentTotalTime(null as any);
+      // Call getCurrentTotalTime with undefined start_time
+      const result = core.getCurrentTotalTime(undefined);
 
       // Should add total_time + session_time
       // 01:00:00 + 00:05:30 = 01:05:30
@@ -129,11 +129,11 @@ describe("SCORM 1.2 Core Tests", () => {
       expect(result).toMatch(/^00:15:(0[89]|1[0-2])$/);
     });
 
-    it("should handle zero total_time with null start_time", () => {
+    it("should handle zero total_time with undefined start_time", () => {
       // Default total_time is empty string
       core.session_time = "00:02:00";
 
-      const result = core.getCurrentTotalTime(null as any);
+      const result = core.getCurrentTotalTime(undefined);
 
       // Should just be session_time since total_time is empty
       expect(result).toBe("00:02:00");
