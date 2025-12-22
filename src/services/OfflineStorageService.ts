@@ -279,7 +279,10 @@ export class OfflineStorageService {
           // Attempt to sync this item
           const syncResult = await this.sendDataToLMS(item.data);
 
-          if (syncResult.result === true || syncResult.result === global_constants.SCORM_TRUE) {
+          if (
+            (syncResult.result as unknown) === true ||
+            syncResult.result === global_constants.SCORM_TRUE
+          ) {
             // Sync was successful, no need to keep this item
             this.apiLog(
               "OfflineStorageService",
@@ -373,7 +376,7 @@ export class OfflineStorageService {
       if (
         response.status >= 200 &&
         response.status <= 299 &&
-        (result.result === true || result.result === global_constants.SCORM_TRUE)
+        ((result.result as unknown) === true || result.result === global_constants.SCORM_TRUE)
       ) {
         if (!Object.hasOwnProperty.call(result, "errorCode")) {
           result.errorCode = 0;
