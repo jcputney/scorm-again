@@ -1991,6 +1991,9 @@ class Scorm2004API extends BaseAPI {
               if (condition.parameters) {
                 clonedCondition.parameters = { ...condition.parameters };
               }
+              if (condition.referencedObjective !== undefined) {
+                clonedCondition.referencedObjective = condition.referencedObjective;
+              }
               return clonedCondition;
             }),
           };
