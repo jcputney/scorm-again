@@ -1843,6 +1843,12 @@ class Scorm2004API extends BaseAPI {
     if (settings.reorderChildren !== undefined) {
       target.reorderChildren = settings.reorderChildren;
     }
+    if (settings.completionSetByContent !== undefined) {
+      target.completionSetByContent = settings.completionSetByContent;
+    }
+    if (settings.objectiveSetByContent !== undefined) {
+      target.objectiveSetByContent = settings.objectiveSetByContent;
+    }
   }
 
   /**
