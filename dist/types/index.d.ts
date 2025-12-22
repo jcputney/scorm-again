@@ -1,6 +1,5 @@
 export * from "./Scorm12API";
 export * from "./Scorm2004API";
-export * from "./AICC";
 export * from "./CrossFrameAPI";
 export * from "./CrossFrameLMS";
 export * from "./constants/api_constants";
@@ -9,7 +8,6 @@ export * from "./constants/language_constants";
 export * from "./constants/regex";
 export * from "./constants/response_constants";
 export * from "./utilities";
-export * from "./cmi/aicc/cmi";
 export * from "./cmi/scorm12/nav";
 export * from "./cmi/scorm2004/adl";
 //# sourceMappingURL=index.d.ts.map

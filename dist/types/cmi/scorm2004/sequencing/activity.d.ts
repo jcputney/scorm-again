@@ -39,6 +39,7 @@ export interface ActivityObjectiveState {
     completionStatus: CompletionStatus;
     satisfiedByMeasure?: boolean;
     minNormalizedMeasure?: number | null;
+    progressStatus: boolean;
 }
 export type RollupConsiderationRequirement = "always" | "ifAttempted" | "ifNotSkipped" | "ifNotSuspended";
 export interface RollupConsiderationsConfig {
@@ -48,6 +49,14 @@ export interface RollupConsiderationsConfig {
     requiredForIncomplete: RollupConsiderationRequirement;
     measureSatisfactionIfActive: boolean;
 }
+export interface RollupStatusSnapshot {
+    measureStatus: boolean;
+    normalizedMeasure: number;
+    objectiveProgressStatus: boolean;
+    objectiveSatisfiedStatus: boolean;
+    attemptProgressStatus: boolean;
+    attemptCompletionStatus: boolean;
+}
 export declare class ActivityObjective {
     private _id;
     private _description;
@@ -56,11 +65,17 @@ export declare class ActivityObjective {
     private _mapInfo;
     private _isPrimary;
     private _satisfiedStatus;
+    private _satisfiedStatusKnown;
     private _measureStatus;
     private _normalizedMeasure;
     private _progressMeasure;
     private _progressMeasureStatus;
     private _completionStatus;
+    private _progressStatus;
+    private _satisfiedStatusDirty;
+    private _normalizedMeasureDirty;
+    private _completionStatusDirty;
+    private _progressMeasureDirty;
     constructor(id: string, options?: ActivityObjectiveOptions);
     get id(): string;
     get description(): string | null;
@@ -74,6 +89,8 @@ export declare class ActivityObjective {
     set isPrimary(value: boolean);
     get satisfiedStatus(): boolean;
     set satisfiedStatus(value: boolean);
+    get satisfiedStatusKnown(): boolean;
+    set satisfiedStatusKnown(value: boolean);
     get measureStatus(): boolean;
     set measureStatus(value: boolean);
     get normalizedMeasure(): number;
@@ -84,6 +101,12 @@ export declare class ActivityObjective {
     set progressMeasureStatus(value: boolean);
     get completionStatus(): CompletionStatus;
     set completionStatus(value: CompletionStatus);
+    get progressStatus(): boolean;
+    set progressStatus(value: boolean);
+    isDirty(property: 'satisfiedStatus' | 'normalizedMeasure' | 'completionStatus' | 'progressMeasure'): boolean;
+    clearDirty(property: 'satisfiedStatus' | 'normalizedMeasure' | 'completionStatus' | 'progressMeasure'): void;
+    clearAllDirty(): void;
+    initializeFromCMI(satisfiedStatus: boolean, normalizedMeasure: number, measureStatus: boolean): void;
     resetState(): void;
     updateFromActivity(activity: Activity): void;
     applyToActivity(activity: Activity): void;
@@ -105,10 +128,21 @@ export declare class Activity extends BaseCMI {
     private _attemptExperiencedDuration;
     private _activityAbsoluteDuration;
     private _activityExperiencedDuration;
+    private _attemptAbsoluteDurationValue;
+    private _attemptExperiencedDurationValue;
+    private _activityAbsoluteDurationValue;
+    private _activityExperiencedDurationValue;
+    private _activityStartTimestampUtc;
+    private _attemptStartTimestampUtc;
+    private _activityEndedDate;
     private _objectiveSatisfiedStatus;
+    private _objectiveSatisfiedStatusKnown;
     private _objectiveMeasureStatus;
     private _objectiveNormalizedMeasure;
     private _scaledPassingScore;
+    private _objectiveSatisfiedStatusDirty;
+    private _objectiveNormalizedMeasureDirty;
+    private _objectiveMeasureStatusDirty;
     private _progressMeasure;
     private _progressMeasureStatus;
     private _location;
@@ -126,6 +160,10 @@ export declare class Activity extends BaseCMI {
     private _timeLimitDuration;
     private _beginTimeLimit;
     private _endTimeLimit;
+    private _launchData;
+    private _credit;
+    private _maxTimeAllowed;
+    private _completionThreshold;
     private _sequencingControls;
     private _sequencingRules;
     private _rollupRules;
@@ -134,7 +172,18 @@ export declare class Activity extends BaseCMI {
     private _primaryObjective;
     private _objectives;
     private _rollupConsiderations;
+    private _requiredForSatisfied;
+    private _requiredForNotSatisfied;
+    private _requiredForCompleted;
+    private _requiredForIncomplete;
     private _wasSkipped;
+    private _attemptProgressStatus;
+    private _wasAutoCompleted;
+    private _wasAutoSatisfied;
+    private _completedByMeasure;
+    private _minProgressMeasure;
+    private _progressWeight;
+    private _attemptCompletionAmountStatus;
     constructor(id?: string, title?: string);
     initialize(): void;
     reset(): void;
@@ -166,6 +215,8 @@ export declare class Activity extends BaseCMI {
     incrementAttemptCount(): void;
     get objectiveSatisfiedStatus(): boolean;
     set objectiveSatisfiedStatus(objectiveSatisfiedStatus: boolean);
+    get objectiveSatisfiedStatusKnown(): boolean;
+    set objectiveSatisfiedStatusKnown(value: boolean);
     get objectiveMeasureStatus(): boolean;
     set objectiveMeasureStatus(objectiveMeasureStatus: boolean);
     get objectiveNormalizedMeasure(): number;
@@ -211,6 +262,20 @@ export declare class Activity extends BaseCMI {
     set attemptAbsoluteDuration(duration: string);
     get activityAbsoluteDuration(): string;
     set activityAbsoluteDuration(duration: string);
+    get attemptAbsoluteDurationValue(): string;
+    set attemptAbsoluteDurationValue(duration: string);
+    get attemptExperiencedDurationValue(): string;
+    set attemptExperiencedDurationValue(duration: string);
+    get activityAbsoluteDurationValue(): string;
+    set activityAbsoluteDurationValue(duration: string);
+    get activityExperiencedDurationValue(): string;
+    set activityExperiencedDurationValue(duration: string);
+    get activityStartTimestampUtc(): string | null;
+    set activityStartTimestampUtc(timestamp: string | null);
+    get attemptStartTimestampUtc(): string | null;
+    set attemptStartTimestampUtc(timestamp: string | null);
+    get activityEndedDate(): Date | null;
+    set activityEndedDate(date: Date | null);
     get sequencingControls(): SequencingControls;
     set sequencingControls(sequencingControls: SequencingControls);
     get sequencingRules(): SequencingRules;
@@ -220,19 +285,45 @@ export declare class Activity extends BaseCMI {
     get rollupConsiderations(): RollupConsiderationsConfig;
     set rollupConsiderations(config: RollupConsiderationsConfig);
     applyRollupConsiderations(settings: Partial<RollupConsiderationsConfig>): void;
+    get requiredForSatisfied(): RollupConsiderationRequirement;
+    set requiredForSatisfied(value: RollupConsiderationRequirement);
+    get requiredForNotSatisfied(): RollupConsiderationRequirement;
+    set requiredForNotSatisfied(value: RollupConsiderationRequirement);
+    get requiredForCompleted(): RollupConsiderationRequirement;
+    set requiredForCompleted(value: RollupConsiderationRequirement);
+    get requiredForIncomplete(): RollupConsiderationRequirement;
+    set requiredForIncomplete(value: RollupConsiderationRequirement);
     get wasSkipped(): boolean;
     set wasSkipped(value: boolean);
+    get attemptProgressStatus(): boolean;
+    set attemptProgressStatus(value: boolean);
+    get wasAutoCompleted(): boolean;
+    set wasAutoCompleted(value: boolean);
+    get wasAutoSatisfied(): boolean;
+    set wasAutoSatisfied(value: boolean);
+    get completedByMeasure(): boolean;
+    set completedByMeasure(value: boolean);
+    get minProgressMeasure(): number;
+    set minProgressMeasure(value: number);
+    get progressWeight(): number;
+    set progressWeight(value: number);
+    get attemptCompletionAmountStatus(): boolean;
+    set attemptCompletionAmountStatus(value: boolean);
     get primaryObjective(): ActivityObjective | null;
     set primaryObjective(objective: ActivityObjective | null);
     get objectives(): ActivityObjective[];
     set objectives(objectives: ActivityObjective[]);
     addObjective(objective: ActivityObjective): void;
+    private syncPrimaryObjectiveCollection;
     getObjectiveById(objectiveId: string): {
         objective: ActivityObjective;
         isPrimary: boolean;
     } | null;
     getAllObjectives(): ActivityObjective[];
     private updatePrimaryObjectiveFromActivity;
+    isObjectiveDirty(property: 'satisfiedStatus' | 'normalizedMeasure' | 'measureStatus'): boolean;
+    clearObjectiveDirty(property: 'satisfiedStatus' | 'normalizedMeasure' | 'measureStatus'): void;
+    clearAllObjectiveDirty(): void;
     setPrimaryObjectiveState(satisfiedStatus: boolean, measureStatus: boolean, normalizedMeasure: number, progressMeasure: number, progressMeasureStatus: boolean, completionStatus: CompletionStatus): void;
     getObjectiveStateSnapshot(): {
         primary: ActivityObjectiveState | null;
@@ -247,10 +338,22 @@ export declare class Activity extends BaseCMI {
     resetProcessedChildren(): void;
     get isNewAttempt(): boolean;
     set isNewAttempt(isNewAttempt: boolean);
+    get launchData(): string;
+    set launchData(launchData: string);
+    get credit(): string;
+    set credit(credit: string);
+    get maxTimeAllowed(): string;
+    set maxTimeAllowed(maxTimeAllowed: string);
+    get completionThreshold(): string;
+    set completionThreshold(completionThreshold: string);
+    getSuspensionState(): object;
+    restoreSuspensionState(state: any): void;
     toJSON(): object;
     get auxiliaryResources(): AuxiliaryResource[];
     set auxiliaryResources(resources: AuxiliaryResource[]);
     addAuxiliaryResource(resource: AuxiliaryResource): void;
+    captureRollupStatus(): RollupStatusSnapshot;
+    static compareRollupStatus(prior: RollupStatusSnapshot, current: RollupStatusSnapshot): boolean;
     get hideLmsUi(): HideLmsUiItem[];
     set hideLmsUi(hideLmsUi: HideLmsUiItem[]);
 }

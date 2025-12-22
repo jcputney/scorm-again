@@ -7,22 +7,26 @@ export declare enum RuleConditionOperator {
 }
 export declare enum RuleConditionType {
     SATISFIED = "satisfied",
+    OBJECTIVE_SATISFIED = "objectiveSatisfied",
     OBJECTIVE_STATUS_KNOWN = "objectiveStatusKnown",
     OBJECTIVE_MEASURE_KNOWN = "objectiveMeasureKnown",
     OBJECTIVE_MEASURE_GREATER_THAN = "objectiveMeasureGreaterThan",
     OBJECTIVE_MEASURE_LESS_THAN = "objectiveMeasureLessThan",
     COMPLETED = "completed",
+    ACTIVITY_COMPLETED = "activityCompleted",
     PROGRESS_KNOWN = "progressKnown",
+    ACTIVITY_PROGRESS_KNOWN = "activityProgressKnown",
     ATTEMPTED = "attempted",
     ATTEMPT_LIMIT_EXCEEDED = "attemptLimitExceeded",
     TIME_LIMIT_EXCEEDED = "timeLimitExceeded",
     OUTSIDE_AVAILABLE_TIME_RANGE = "outsideAvailableTimeRange",
-    ALWAYS = "always"
+    ALWAYS = "always",
+    NEVER = "never"
 }
 export declare enum RuleActionType {
     SKIP = "skip",
     DISABLED = "disabled",
-    HIDE_FROM_CHOICE = "hideFromChoice",
+    HIDE_FROM_CHOICE = "hiddenFromChoice",
     STOP_FORWARD_TRAVERSAL = "stopForwardTraversal",
     EXIT_PARENT = "exitParent",
     EXIT_ALL = "exitAll",
@@ -36,6 +40,7 @@ export declare class RuleCondition extends BaseCMI {
     private _condition;
     private _operator;
     private _parameters;
+    private _referencedObjective;
     private static _now;
     constructor(condition?: RuleConditionType, operator?: RuleConditionOperator | null, parameters?: Map<string, any>);
     static setNowProvider(now: () => Date): void;
@@ -46,6 +51,9 @@ export declare class RuleCondition extends BaseCMI {
     set operator(operator: RuleConditionOperator | null);
     get parameters(): Map<string, any>;
     set parameters(parameters: Map<string, any>);
+    get referencedObjective(): string | null;
+    set referencedObjective(objectiveId: string | null);
+    private resolveReferencedObjective;
     evaluate(activity: Activity): boolean;
     private evaluateTimeLimitExceeded;
     private evaluateOutsideAvailableTimeRange;

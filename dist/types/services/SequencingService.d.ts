@@ -19,6 +19,11 @@ export interface SequencingEventListeners {
     onLimitConditionCheck?: (activity: Activity, result: boolean) => void;
     onNavigationValidityUpdate?: (validity: any) => void;
     onSequencingStateChange?: (state: any) => void;
+    onSequencingSessionEnd?: (data: {
+        reason: string;
+        exception?: string | null;
+        navigationRequest?: string;
+    }) => void;
 }
 export interface SequencingConfiguration {
     autoRollupOnCMIChange?: boolean;
@@ -47,9 +52,10 @@ export declare class SequencingService {
     private lastCMIValues;
     private lastSequencingResult;
     constructor(sequencing: Sequencing, cmi: CMI, adl: ADL, eventService: IEventService, loggingService: ILoggingService, configuration?: SequencingConfiguration);
+    private createSequencingProcesses;
     initialize(): string;
     terminate(): string;
-    processNavigationRequest(request: string, targetActivityId?: string): boolean;
+    processNavigationRequest(request: string, targetActivityId?: string, exitType?: string): boolean;
     triggerRollupOnCMIChange(cmiElement: string, oldValue: any, newValue: any): void;
     setEventListeners(listeners: SequencingEventListeners): void;
     updateConfiguration(config: Partial<SequencingConfiguration>): void;
@@ -61,6 +67,7 @@ export declare class SequencingService {
         lastSequencingResult: SequencingResult | null;
     };
     getOverallSequencingProcess(): OverallSequencingProcess | null;
+    isDeliveryInProgress(): boolean;
     private setupCMIChangeWatchers;
     private initializeCMITracking;
     private shouldAutoStartSequencing;
@@ -68,6 +75,7 @@ export declare class SequencingService {
     private endSequencing;
     private triggerFinalRollup;
     private updateActivityFromCMI;
+    private getCMIDataForTransfer;
     private parseNavigationRequest;
     private handleActivityDelivery;
     private handleActivityUnload;

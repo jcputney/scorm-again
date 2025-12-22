@@ -17,12 +17,6 @@ interface ScormConstants {
     interactions_children: string;
     error_descriptions: ErrorDescriptions;
 }
-interface AiccConstants extends ScormConstants {
-    student_demographics_children: string;
-    tries_children: string;
-    attempt_records_children: string;
-    paths_children: string;
-}
 interface Scorm2004Constants {
     cmi_children: string;
     comments_children: string;
@@ -44,7 +38,6 @@ interface GlobalConstants {
 }
 export declare const global_constants: GlobalConstants;
 export declare const scorm12_constants: ScormConstants;
-export declare const aicc_constants: AiccConstants;
 export declare const scorm2004_constants: Scorm2004Constants;
 export {};
 //# sourceMappingURL=api_constants.d.ts.map

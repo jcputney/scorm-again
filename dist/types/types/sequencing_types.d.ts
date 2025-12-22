@@ -65,6 +65,7 @@ export type ObjectiveMapInfoSettings = {
 export type ObjectiveSettings = {
     objectiveID: string;
     description?: string;
+    isPrimary?: boolean;
     satisfiedByMeasure?: boolean;
     minNormalizedMeasure?: number | null;
     mapInfo?: ObjectiveMapInfoSettings[];
@@ -72,6 +73,7 @@ export type ObjectiveSettings = {
 export type RuleConditionSettings = {
     condition: RuleConditionType;
     operator?: RuleConditionOperator;
+    referencedObjective?: string;
     parameters?: Record<string, any>;
 };
 export type SequencingRuleSettings = {
@@ -104,6 +106,8 @@ export type SequencingControlsSettings = {
     randomizationTiming?: RandomizationTiming;
     selectionCountStatus?: boolean;
     reorderChildren?: boolean;
+    completionSetByContent?: boolean;
+    objectiveSetByContent?: boolean;
 };
 export type SelectionRandomizationStateSettings = {
     childOrder?: string[];
@@ -158,5 +162,80 @@ export interface SequencingEventListeners {
     onNavigationRequest?: (request: string, target?: string) => void;
     onRollupComplete?: (activity: any) => void;
     onSequencingError?: (error: string, context?: string) => void;
+    onSequencingSessionEnd?: (data: {
+        reason: string;
+        exception?: string | null;
+        navigationRequest?: string;
+    }) => void;
+    onAutoCompletion?: (data: {
+        activity: string;
+        completionStatus: string;
+    }) => void;
+    onAutoSatisfaction?: (data: {
+        activity: string;
+        satisfiedStatus: boolean;
+    }) => void;
+    onPostConditionExitParent?: (data: {
+        activity: string;
+    }) => void;
+    onPostConditionExitAll?: (data: {
+        activity: string;
+    }) => void;
+    onTerminationRequestProcessing?: (data: {
+        request: string;
+        hasSequencingRequest: boolean;
+        currentActivity: string;
+    }) => void;
+    onNavigationRequestProcessing?: (data: {
+        request: string;
+        targetActivityId: string | null;
+    }) => void;
+    onPostConditionEvaluated?: (data: {
+        activity: string;
+        result: string;
+        iteration: number;
+    }) => void;
+    onMultiLevelExitAction?: (data: {
+        activity: string;
+    }) => void;
+    onSuspendedActivityCleanup?: (data: {
+        activity: string;
+    }) => void;
+    onSuspendError?: (data: {
+        activity: string;
+        error: string;
+    }) => void;
+    onActivitySuspended?: (data: {
+        activity: string;
+    }) => void;
+    onDeliveryRequestProcessing?: (data: {
+        request: string;
+        target: string | null;
+    }) => void;
+    onNavigationValidityUpdate?: (data: {
+        currentActivity: string | null;
+        validRequests: string[];
+    }) => void;
+    onLimitConditionCheck?: (activity: any, result: boolean) => void;
+    onStateInconsistency?: (data: {
+        activity: string;
+        issue: string;
+    }) => void;
+    onGlobalObjectiveMapInitialized?: (data: {
+        count: number;
+    }) => void;
+    onGlobalObjectiveMapError?: (data: {
+        error: string;
+    }) => void;
+    onGlobalObjectiveUpdated?: (data: {
+        objectiveId: string;
+        field: string;
+        value: any;
+    }) => void;
+    onGlobalObjectiveUpdateError?: (data: {
+        objectiveId: string;
+        error: string;
+    }) => void;
+    onSequencingDebug?: (event: string, data?: any) => void;
 }
 //# sourceMappingURL=sequencing_types.d.ts.map

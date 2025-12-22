@@ -13,6 +13,7 @@ export declare class ActivityTree extends BaseCMI {
     private _addActivitiesToMap;
     get currentActivity(): Activity | null;
     set currentActivity(activity: Activity | null);
+    setCurrentActivityWithoutActivation(activity: Activity | null): void;
     get suspendedActivity(): Activity | null;
     set suspendedActivity(activity: Activity | null);
     getActivity(id: string): Activity | null;

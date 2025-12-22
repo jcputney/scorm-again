@@ -11,6 +11,7 @@ export declare enum SequencingRequestType {
     CHOICE = "choice",
     JUMP = "jump",
     EXIT = "exit",
+    EXIT_PARENT = "exitParent",
     EXIT_ALL = "exitAll",
     ABANDON = "abandon",
     ABANDON_ALL = "abandonAll",
@@ -26,7 +27,12 @@ export declare class SequencingResult {
     deliveryRequest: DeliveryRequestType;
     targetActivity: Activity | null;
     exception: string | null;
-    constructor(deliveryRequest?: DeliveryRequestType, targetActivity?: Activity | null, exception?: string | null);
+    endSequencingSession: boolean;
+    constructor(deliveryRequest?: DeliveryRequestType, targetActivity?: Activity | null, exception?: string | null, endSequencingSession?: boolean);
+}
+export interface PostConditionResult {
+    sequencingRequest: SequencingRequestType | null;
+    terminationRequest: SequencingRequestType | null;
 }
 export declare class SequencingProcess {
     private activityTree;
@@ -70,6 +76,7 @@ export declare class SequencingProcess {
     private sequencingRulesCheckProcess;
     private sequencingRulesCheckSubprocess;
     private isActivityInTree;
+    private isActivity1AParentOfActivity2;
     private findCommonAncestor;
     private flowSubprocess;
     private flowTreeTraversalSubprocess;
@@ -77,13 +84,14 @@ export declare class SequencingProcess {
     private choiceFlowTreeTraversalSubprocess;
     private enhancedChoiceActivityTraversalSubprocess;
     private choiceActivityTraversalSubprocess;
-    evaluatePostConditionRules(activity: Activity): SequencingRequestType | null;
+    evaluatePostConditionRules(activity: Activity): PostConditionResult;
     private validateChoiceFlowConstraints;
     private meetsChoiceFlowConstraints;
     private validateChoiceTraversalConstraints;
     private validateConstrainedChoiceBoundaries;
     private validateConstrainChoiceForFlow;
     private evaluateConstrainChoiceForTraversal;
+    private findChildInPathToActivity;
     private evaluateForwardOnlyForChoice;
     private checkConstrainedChoiceBoundary;
     private getCurrentActivity;
@@ -95,5 +103,15 @@ export declare class SequencingProcess {
     private hasChoiceBoundaryViolation;
     private evaluateRuleConditions;
     private getAttemptElapsedSeconds;
+    private isActivityLastOverall;
+    private checkForwardOnlyViolationAtAllLevels;
+    canActivityBeDelivered(activity: Activity): boolean;
+    validateNavigationRequest(request: SequencingRequestType, targetActivityId?: string | null, currentActivity?: Activity | null): {
+        valid: boolean;
+        exception: string | null;
+    };
+    private validateChoicePathConstraints;
+    private validateConstraintsAtAncestorLevel;
+    getAvailableChoices(): Activity[];
 }
 //# sourceMappingURL=sequencing_process.d.ts.map

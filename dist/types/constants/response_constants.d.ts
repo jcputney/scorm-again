@@ -9,7 +9,6 @@ export type ResponseType = {
     format2?: string;
     delimiter2?: string;
     limit?: number;
-    delimiter3?: string;
 };
 export type Responses = {
     [key: string]: ResponseType;
