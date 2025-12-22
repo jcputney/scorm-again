@@ -1806,4 +1806,24 @@ describe("SCORM 2004 API Tests", () => {
       });
     });
   });
+
+  describe("syncCmiToSequencingActivity", () => {
+    it("should set satisfiedStatusKnown when success_status is set", () => {
+      const api = new Scorm2004API();
+      api.configureSequencing({
+        activityTree: {
+          id: "root",
+          primaryObjective: { id: "obj1" },
+        },
+      });
+      api.lmsInitialize();
+      api.lmsSetValue("cmi.success_status", "passed");
+
+      // Check immediately after SetValue, before rollup during commit
+      const state = api.getSequencingService()?.getSequencingState();
+      const currentActivity = state?.currentActivity;
+      expect(currentActivity?.primaryObjective?.satisfiedStatusKnown).toBe(true);
+      expect(currentActivity?.objectiveSatisfiedStatusKnown).toBe(true);
+    });
+  });
 });
