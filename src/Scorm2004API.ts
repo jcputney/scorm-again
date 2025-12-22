@@ -221,6 +221,13 @@ class Scorm2004API extends BaseAPI {
       this._sequencingService.initialize();
     }
 
+    // Restore global objectives to cmi.objectives after successful initialization
+    // Per SCORM 2004 SN Book SB.2.4, global objectives must persist across SCO transitions
+    // and be accessible to the content via cmi.objectives
+    if (result === global_constants.SCORM_TRUE) {
+      this.restoreGlobalObjectivesToCMI();
+    }
+
     // Auto-load sequencing state after successful initialization if configured
     if (result === global_constants.SCORM_TRUE && this.settings.sequencingStatePersistence) {
       this.loadSequencingState().catch(() => {
@@ -1011,7 +1018,10 @@ class Scorm2004API extends BaseAPI {
     const count = correct_response._count;
     for (let i = 0; i < count && !found; i++) {
       if (i !== current_index) {
-        const existingPattern = correct_response.childArray[i]?.pattern;
+        const item = correct_response.childArray[i] as
+          | CMIInteractionsCorrectResponsesObject
+          | undefined;
+        const existingPattern = item?.pattern;
         if (existingPattern === value) {
           found = true;
         }
@@ -2366,10 +2376,163 @@ class Scorm2004API extends BaseAPI {
       if (settings?.sequencing?.eventListeners) {
         this._sequencingService.setEventListeners(settings.sequencing.eventListeners);
       }
+
+      // Sync global objective IDs from sequencing service to settings
+      // This allows setCMIValue to recognize objectives as global based on mapInfo
+      // from the activity tree (SCORM 2004 SN Book SB.2.4)
+      this.syncGlobalObjectiveIdsFromSequencing();
     } catch (error) {
       // If sequencing service initialization fails, log error but continue
       console.warn("Failed to initialize sequencing service:", error);
       this._sequencingService = null;
+    }
+  }
+
+  /**
+   * Syncs global objective IDs from the sequencing service's globalObjectiveMap
+   * to settings.globalObjectiveIds. This ensures that objectives referenced via
+   * mapInfo in the activity tree are recognized as global objectives when
+   * setCMIValue is called.
+   *
+   * Per SCORM 2004 SN Book SB.2.4, global objectives must persist across SCO
+   * transitions and be available for cross-activity objective tracking.
+   */
+  private syncGlobalObjectiveIdsFromSequencing(): void {
+    if (!this._sequencingService) {
+      return;
+    }
+
+    const overallProcess = this._sequencingService.getOverallSequencingProcess();
+    if (!overallProcess) {
+      return;
+    }
+
+    const globalObjectiveMap = overallProcess.getGlobalObjectiveMap();
+    if (!globalObjectiveMap || globalObjectiveMap.size === 0) {
+      return;
+    }
+
+    // Extract global objective IDs from the map
+    const globalIds = Array.from(globalObjectiveMap.keys());
+
+    // Merge with any existing globalObjectiveIds from settings
+    const existingIds = this.settings.globalObjectiveIds || [];
+    const mergedIds = Array.from(new Set(existingIds.concat(globalIds)));
+
+    // Update settings with the merged list
+    this.settings.globalObjectiveIds = mergedIds;
+  }
+
+  /**
+   * Restores global objectives from _globalObjectives to cmi.objectives
+   * This is called after Initialize to ensure global objectives are accessible
+   * to the content via cmi.objectives.n.id, cmi.objectives.n.success_status, etc.
+   *
+   * Per SCORM 2004 SN Book SB.2.4, global objectives must persist across SCO
+   * transitions and be accessible to content via the CMI data model.
+   */
+  private restoreGlobalObjectivesToCMI(): void {
+    if (this._globalObjectives.length === 0) {
+      return;
+    }
+
+    // Restore each global objective to cmi.objectives
+    for (let i = 0; i < this._globalObjectives.length; i++) {
+      const globalObj = this._globalObjectives[i];
+      if (!globalObj || !globalObj.id) {
+        continue;
+      }
+
+      // Check if this objective already exists in cmi.objectives
+      const existingObjective = this.cmi.objectives.findObjectiveById(globalObj.id);
+      if (existingObjective) {
+        // Objective already exists, skip to avoid duplicates
+        continue;
+      }
+
+      // Add the global objective to cmi.objectives
+      const index = this.cmi.objectives.childArray.length;
+
+      // Set the objective ID first (this creates the objective in the array)
+      this._commonSetCMIValue(
+        "RestoreGlobalObjective",
+        true,
+        `cmi.objectives.${index}.id`,
+        globalObj.id,
+      );
+
+      // Restore other properties if they have values
+      if (globalObj.success_status && globalObj.success_status !== "unknown") {
+        this._commonSetCMIValue(
+          "RestoreGlobalObjective",
+          true,
+          `cmi.objectives.${index}.success_status`,
+          globalObj.success_status,
+        );
+      }
+
+      if (globalObj.completion_status && globalObj.completion_status !== "unknown") {
+        this._commonSetCMIValue(
+          "RestoreGlobalObjective",
+          true,
+          `cmi.objectives.${index}.completion_status`,
+          globalObj.completion_status,
+        );
+      }
+
+      if (globalObj.score.scaled !== "" && globalObj.score.scaled !== null) {
+        this._commonSetCMIValue(
+          "RestoreGlobalObjective",
+          true,
+          `cmi.objectives.${index}.score.scaled`,
+          globalObj.score.scaled,
+        );
+      }
+
+      if (globalObj.score.raw !== "" && globalObj.score.raw !== null) {
+        this._commonSetCMIValue(
+          "RestoreGlobalObjective",
+          true,
+          `cmi.objectives.${index}.score.raw`,
+          globalObj.score.raw,
+        );
+      }
+
+      if (globalObj.score.min !== "" && globalObj.score.min !== null) {
+        this._commonSetCMIValue(
+          "RestoreGlobalObjective",
+          true,
+          `cmi.objectives.${index}.score.min`,
+          globalObj.score.min,
+        );
+      }
+
+      if (globalObj.score.max !== "" && globalObj.score.max !== null) {
+        this._commonSetCMIValue(
+          "RestoreGlobalObjective",
+          true,
+          `cmi.objectives.${index}.score.max`,
+          globalObj.score.max,
+        );
+      }
+
+      if (globalObj.progress_measure !== "" && globalObj.progress_measure !== null) {
+        this._commonSetCMIValue(
+          "RestoreGlobalObjective",
+          true,
+          `cmi.objectives.${index}.progress_measure`,
+          globalObj.progress_measure,
+        );
+      }
+
+      if (globalObj.description !== "") {
+        this._commonSetCMIValue(
+          "RestoreGlobalObjective",
+          true,
+          `cmi.objectives.${index}.description`,
+          globalObj.description,
+        );
+      }
     }
   }
 
