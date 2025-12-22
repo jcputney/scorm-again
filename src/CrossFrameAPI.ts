@@ -196,7 +196,7 @@ export default class CrossFrameAPI {
       this._heartbeatTimer = undefined;
     }
     // Reject all pending requests
-    for (const [, pending] of Array.from(this._pending)) {
+    for (const [, pending] of this._pending) {
       clearTimeout(pending.timer);
       pending.reject(new Error("CrossFrameAPI destroyed"));
     }
@@ -364,12 +364,13 @@ export default class CrossFrameAPI {
    * Capture and cache SCORM errors.
    */
   private _capture(method: string, err: unknown): void {
-    const errorMessage =
-      err instanceof Error
-        ? err.message
-        : typeof err === "object" && err !== null && "message" in err
-          ? String((err as { message: unknown }).message)
-          : "Unknown error";
+    let errorMessage = "Unknown error";
+
+    if (err instanceof Error) {
+      errorMessage = err.message;
+    } else if (typeof err === "object" && err !== null && "message" in err) {
+      errorMessage = String((err as { message: unknown }).message);
+    }
 
     console.error(`CrossFrameAPI ${method} error:`, err);
     const match = /\b(\d{3})\b/.exec(errorMessage);

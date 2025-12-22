@@ -75,6 +75,10 @@ export const checkValidRange = memoize(
     }
 
     // COM-VAL-02: Handle empty minimum (no lower bound) and empty/wildcard maximum (no upper bound)
+    // This structure uses independent bound checks rather than nested conditionals to:
+    // 1. Correctly handle all SCORM range patterns ("#max", "min#", "min#*", "min#max")
+    // 2. Make the validation logic explicit and testable for each boundary condition
+    // 3. Avoid the complexity and error-proneness of deeply nested if-else statements
     const hasMinimum = ranges[0] !== "";
     const hasMaximum = ranges[1] !== "" && ranges[1] !== "*";
 

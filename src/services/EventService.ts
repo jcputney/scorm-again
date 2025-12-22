@@ -137,15 +137,14 @@ export class EventService implements IEventService {
       );
 
       if (removeIndex !== -1) {
-        // Remove the listener
+        // Remove the listener (modifies array in-place)
         listeners.splice(removeIndex, 1);
         this.listenerCount--;
 
-        // Update the map or remove the entry if empty
+        // Remove the map entry if no listeners remain
+        // Note: No need to update the map otherwise, as we modified the array by reference
         if (listeners.length === 0) {
           this.listenerMap.delete(functionName);
-        } else {
-          this.listenerMap.set(functionName, listeners);
         }
 
         this.apiLog(
@@ -160,6 +159,11 @@ export class EventService implements IEventService {
 
   /**
    * Provides a mechanism for clearing all listeners from a specific SCORM event
+   *
+   * Note: clear() differs from off() in CMIElement matching behavior:
+   * - clear() with CMIElement=null removes ALL listeners for the function
+   * - off() requires exact CMIElement match AND callback match
+   * This allows clear() to remove all listeners at once, while off() is surgical.
    *
    * @param {string} listenerName - The name of the listener to clear
    */
@@ -232,7 +236,12 @@ export class EventService implements IEventService {
           CMIElement,
         );
 
-        // Handle special event types
+        // Dispatch to callback with appropriate arguments based on event type
+        // Different event types have different callback signatures:
+        // - Sequence events: callback(target)
+        // - CommitError: callback(errorCode)
+        // - CommitSuccess: callback()
+        // - Regular events: callback(CMIElement, value)
         if (functionName.startsWith("Sequence")) {
           // For sequence events, pass the target as the first argument
           listener.callback(value);
