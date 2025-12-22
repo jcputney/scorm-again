@@ -389,4 +389,32 @@ describe("SCORM 2004 sequencing persistence", () => {
     expect(restoredClusterTwo.hideLmsUi).toEqual(["continue"]);
     expect(restoredAvailable2.map((child: any) => child.id)).toEqual([]);
   });
+
+  it("should restore contentDelivered flag from serialized state", () => {
+    const api = new Scorm2004API({ sequencingStatePersistence: { enabled: true } });
+    api.configureSequencing({
+      activityTree: { id: "root" },
+    });
+    api.lmsInitialize();
+
+    // Get state with contentDelivered at top level but NOT in nested sequencing
+    const serialized = api.serializeSequencingState();
+    const state = JSON.parse(serialized);
+    state.contentDelivered = true;
+    // Explicitly remove it from nested sequencing to test top-level restoration
+    if (state.sequencing) {
+      state.sequencing.contentDelivered = false;
+    }
+
+    // Create new API and restore
+    const api2 = new Scorm2004API({ sequencingStatePersistence: { enabled: true } });
+    api2.configureSequencing({
+      activityTree: { id: "root" },
+    });
+    api2.lmsInitialize();
+    api2.deserializeSequencingState(JSON.stringify(state));
+
+    const sequencing = api2.getSequencingService()?.getOverallSequencingProcess();
+    expect(sequencing?.hasContentBeenDelivered()).toBe(true);
+  });
 });

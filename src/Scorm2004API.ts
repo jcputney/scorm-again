@@ -2720,13 +2720,7 @@ class Scorm2004API extends BaseAPI {
 
           // Restore content delivered flag
           if (state.contentDelivered) {
-            // Mark content as delivered (there's no direct setter, so we'll need to add one)
-            // For now, we'll just log it
-            this.apiLog(
-              "deserializeSequencingState",
-              "Content delivery state restored",
-              LogLevelEnum.DEBUG,
-            );
+            overallProcess.setContentDelivered(true);
           }
         }
       }
