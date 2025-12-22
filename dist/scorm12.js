@@ -19,6 +19,10 @@ this.Scorm12API = (function () {
     student_preference_children: "audio,language,speed,text",
     interactions_children: "id,objectives,time,type,correct_responses,weighting,student_response,result,latency",
     error_descriptions: {
+      "0": {
+        basicMessage: "No Error",
+        detailMessage: "No error occurred, the previous API call was successful."
+      },
       "101": {
         basicMessage: "General Exception",
         detailMessage: "No specific error code exists to describe the error."
@@ -120,34 +124,240 @@ this.Scorm12API = (function () {
   };
 
   const scorm12_regex = {
+    /** CMIString256 - Character string, max 255 chars (RTE A.1) */
     CMIString256: "^[\\s\\S]{0,255}$",
+    /** CMIString4096 - Character string, max 4096 chars (RTE A.1) */
     CMIString4096: "^[\\s\\S]{0,4096}$",
-    CMITime: "^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)$",
-    CMITimespan: "^([0-9]{2,}):([0-9]{2}):([0-9]{2})(.[0-9]{1,2})?$",
+    /**
+     * CMIString64000 - Extended character string, max 64000 chars
+     *
+     * SPEC COMPLIANCE NOTE:
+     * The SCORM 1.2 specification defines cmi.suspend_data as CMIString4096 (max 4096 chars).
+     * This implementation intentionally increases the limit to 64000 chars (matching SCORM 2004)
+     * for the following reasons:
+     *
+     * 1. Modern content frequently exceeds 4096 chars due to JSON state serialization,
+     *    base64 encoding, complex bookmark data, and rich interaction tracking
+     * 2. The 4096 limit was set in 2001 when content was simpler; modern authoring tools
+     *    routinely generate larger suspend_data
+     * 3. Most LMS systems can handle larger values - the API shouldn't be the bottleneck
+     * 4. Content that gets rejected has no recovery path, causing data loss
+     * 5. Aligns with SCORM 2004's more practical 64000 char limit
+     *
+     * Used by: cmi.suspend_data (SCORM 1.2)
+     *
+     * Strict spec pattern would be: ^[\s\S]{0,4096}$
+     */
+    CMIString64000: "^[\\s\\S]{0,64000}$",
+    /**
+     * CMITime - Clock time in HH:MM:SS.SS format (RTE A.2)
+     * Optional centiseconds (1-2 decimal digits) per spec.
+     */
+    CMITime: "^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)(\\.\\d{1,2})?$",
+    /**
+     * CMITimespan - Time interval in HHHH:MM:SS.SS format (RTE A.3)
+     * We allow more digits for the hour to support values generated
+     * by getSecondsAsHHMMSS which can produce larger hour values
+     * (e.g., 17496:00:00 for very long durations).
+     * Changed from minimum 2 digits to 1+ digits with no upper limit.
+     */
+    CMITimespan: "^([0-9]+):([0-9]{2}):([0-9]{2})(\\.\\d{1,2})?$",
+    /**
+     * CMIInteger - Non-negative integer (RTE A.4)
+     *
+     * SPEC COMPLIANCE NOTE:
+     * The SCORM 1.2 specification defines CMIInteger as 0-65536 range.
+     * This implementation intentionally omits range validation to support
+     * legacy content that may exceed this limit in _count fields or other
+     * integer values. Real-world content often violates the spec by storing
+     * larger values, and strict enforcement would break compatibility.
+     *
+     * Affected elements:
+     * - cmi.objectives._count
+     * - cmi.interactions._count
+     * - cmi.interactions.n.objectives._count
+     * - cmi.interactions.n.correct_responses._count
+     */
+    CMIInteger: "^\\d+$",
+    /** CMISInteger - Signed integer (RTE A.5) */
     CMISInteger: "^-?([0-9]+)$",
-    CMIDecimal: "^-?([0-9]{0,3})(\\.[0-9]*)?$",
+    /**
+     * CMIDecimal - Signed decimal (RTE A.6)
+     * We set practical limits on decimals to prevent abuse while maintaining
+     * broad compatibility with legacy content.
+     * Increased from 3 to 10 digits before decimal to match SCORM 2004 behavior.
+     */
+    CMIDecimal: "^-?([0-9]{0,10})(\\.[0-9]*)?$",
+    /**
+     * CMIIdentifier - Printable ASCII characters, max 255 chars (RTE A.7)
+     *
+     * SPEC COMPLIANCE NOTE:
+     * The SCORM 1.2 specification defines CMIIdentifier as alphanumeric only:
+     * letters (a-z, A-Z), numbers (0-9), hyphens (-), and underscores (_).
+     * Spaces and periods are explicitly NOT allowed per spec.
+     *
+     * This implementation intentionally relaxes validation to accept all
+     * printable ASCII characters (0x21-0x7E) plus whitespace to support
+     * legacy content. Many real-world LMS systems and content packages use
+     * identifiers that violate the strict spec (e.g., student IDs with spaces,
+     * objective IDs with periods or special characters).
+     *
+     * Strict spec pattern would be: ^[A-Za-z0-9_-]{0,255}$
+     *
+     * Affected elements:
+     * - cmi.core.student_id
+     * - cmi.objectives.n.id
+     * - cmi.interactions.n.id
+     * - cmi.interactions.n.objectives.n.id
+     */
     CMIIdentifier: "^[\\u0021-\\u007E\\s]{0,255}$",
-    // Allow storing larger responses for interactions
-    // Some content packages may exceed the 255 character limit
-    // defined in the SCORM 1.2 specification.  The previous
-    // expression truncated these values which resulted in
-    // a "101: General Exception" being thrown when long
-    // answers were supplied.  To support these packages we
-    // relax the limitation and accept any length string.
+    /** CMICredit - Vocabulary: credit or no-credit (RTE 3.4.2.1.3) */
+    CMICredit: "^(credit|no-credit)$",
+    /** CMIEntry - Vocabulary: ab-initio, resume, or empty (RTE 3.4.2.1.4) */
+    CMIEntry: "^(ab-initio|resume|)$",
+    /** CMILessonMode - Vocabulary: normal, browse, or review (RTE 3.4.2.1.10) */
+    CMILessonMode: "^(normal|browse|review)$",
+    /** CMITimeLimitAction - Vocabulary: action combinations (RTE 3.4.2.1.11) */
+    CMITimeLimitAction: "^(exit,message|exit,no message|continue,message|continue,no message)$",
+    /**
+     * CMIFeedback - Relaxed for compatibility (normally CMIString255)
+     *
+     * SPEC COMPLIANCE NOTE:
+     * The SCORM 1.2 specification defines CMIFeedback as CMIString255 (max 255 chars)
+     * with format varying by interaction type (see RTE 3.4.2.7.5, 3.4.2.7.7).
+     *
+     * This implementation intentionally relaxes validation for two reasons:
+     *
+     * 1. LENGTH: Many legacy content packages store responses exceeding 255 chars,
+     *    especially for fill-in and performance interaction types. Strict enforcement
+     *    would break existing content with no user-facing benefit.
+     *
+     * 2. FORMAT: The spec requires type-specific formats (e.g., true-false accepts
+     *    only "0"/"1"/"t"/"f", choice accepts comma-separated single chars). However:
+     *    - Format validation requires knowing interaction type at validation time
+     *    - Legacy content often uses non-standard formats
+     *    - The SCO is responsible for response evaluation, not the API
+     *    - Strict format validation provides minimal benefit vs. compatibility cost
+     *
+     * Affected elements:
+     * - cmi.interactions.n.student_response
+     * - cmi.interactions.n.correct_responses.n.pattern
+     *
+     * Strict spec pattern would be: ^[\s\S]{0,255}$ with type-specific subpatterns
+     */
     CMIFeedback: "^.*$",
-    // Vocabulary Data Type Definition
+    /** CMIIndex - Pattern for array index extraction */
+    CMIIndex: "[._](\\d+).",
+    /** CMIStatus - Lesson status vocabulary (RTE 3.4.2.2.3) */
     CMIStatus: "^(passed|completed|failed|incomplete|browsed)$",
+    /** CMIStatus2 - Extended status vocabulary with "not attempted" (RTE 3.4.2.6.2) */
     CMIStatus2: "^(passed|completed|failed|incomplete|browsed|not attempted)$",
+    /** CMIExit - Exit vocabulary (RTE 3.4.2.1.5) */
     CMIExit: "^(time-out|suspend|logout|)$",
+    /** CMIType - Interaction type vocabulary (RTE 3.4.2.7.2) */
     CMIType: "^(true-false|choice|fill-in|matching|performance|sequencing|likert|numeric)$",
+    /** CMIResult - Interaction result vocabulary (RTE 3.4.2.7.6) */
     CMIResult: "^(correct|wrong|unanticipated|neutral|([0-9]{0,3})?(\\.[0-9]*)?)$",
-    NAVEvent: "^(previous|continue|start|resumeAll|choice|jump|exit|exitAll|abandon|abandonAll|suspendAll|retry|retryAll|_none_)$",
-    // Data ranges
+    /** NAVEvent - Navigation event vocabulary (SCORM 1.2 extension) */
+    NAVEvent: "^(_?(previous|continue|start|resumeAll|exit|exitAll|abandon|abandonAll|suspendAll|retry|retryAll)|choice|jump|_none_)$",
+    /** score_range - Valid score range 0-100 (RTE 3.4.2.2.2) */
     score_range: "0#100",
+    /** audio_range - Audio level range -1 to 100 (RTE 3.4.2.3.1) */
     audio_range: "-1#100",
+    /** speed_range - Playback speed range -100 to 100 (RTE 3.4.2.3.2) */
     speed_range: "-100#100",
+    /** weighting_range - Interaction weighting range -100 to 100 (RTE 3.4.2.7.4) */
     weighting_range: "-100#100",
+    /** text_range - Text display preference -1 to 1 (RTE 3.4.2.3.3) */
     text_range: "-1#1"
+  };
+  const scorm2004_regex = {
+    /** CMIString200 - Character string, max 200 chars (RTE C.1.1) */
+    CMIString200: "^[\\u0000-\\uFFFF]{0,200}$",
+    /** CMIString250 - Character string, max 250 chars (RTE C.1.1) */
+    CMIString250: "^[\\u0000-\\uFFFF]{0,250}$",
+    /** CMIString1000 - Character string, max 1000 chars (RTE C.1.1) */
+    CMIString1000: "^[\\u0000-\\uFFFF]{0,1000}$",
+    /** CMIString4000 - Character string, max 4000 chars (RTE C.1.1) */
+    CMIString4000: "^[\\u0000-\\uFFFF]{0,4000}$",
+    /** CMIString64000 - Character string, max 64000 chars (RTE C.1.1) */
+    CMIString64000: "^[\\u0000-\\uFFFF]{0,64000}$",
+    /**
+     * CMILang - Language code per RFC 1766/RFC 3066 (RTE C.1.2)
+     * Primary tag: 1-8 characters (ISO 639-1: 2, ISO 639-2: 3, or i/x for IANA/private)
+     * Subtag: 2-8 alphanumeric characters
+     */
+    CMILang: "^([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?$|^$",
+    /** CMILangString250 - String with optional language tag, max 250 chars (RTE C.1.3) */
+    CMILangString250: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,250}$)?$",
+    /** CMILangcr - Language tag pattern with content */
+    CMILangcr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9-]{2,8})?}))(.*?)$",
+    /** CMILangString250cr - String with optional language tag (carriage return variant) */
+    CMILangString250cr: "^(({lang=([a-zA-Z]{1,8}|i|x)?(-[a-zA-Z0-9-]{2,8})?})?(.{0,250})?)?$",
+    /** CMILangString4000 - String with optional language tag, max 4000 chars (RTE C.1.3) */
+    CMILangString4000: "^({lang=([a-zA-Z]{1,8}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,4000}$)?$",
+    /**
+     * CMITime - ISO 8601 timestamp format (RTE C.1.4)
+     * Year range expanded from 1970-2038 to 1970-9999 to support future dates
+     */
+    CMITime: "^(19[7-9][0-9]|[2-9][0-9]{3})((-(0[1-9]|1[0-2]))((-(0[1-9]|[1-2][0-9]|3[0-1]))(T([0-1][0-9]|2[0-3])((:[0-5][0-9])((:[0-5][0-9])((\\.[0-9]{1,6})((Z|([+|-]([0-1][0-9]|2[0-3])))(:[0-5][0-9])?)?)?)?)?)?)?)?$",
+    /** CMITimespan - ISO 8601 duration format (RTE C.1.5) */
+    CMITimespan: "^P(?:([.,\\d]+)Y)?(?:([.,\\d]+)M)?(?:([.,\\d]+)W)?(?:([.,\\d]+)D)?(?:T?(?:([.,\\d]+)H)?(?:([.,\\d]+)M)?(?:(\\d+(?:\\.\\d{1,2})?)S)?)?$",
+    /** CMIInteger - Non-negative integer (RTE C.1.6) */
+    CMIInteger: "^\\d+$",
+    /** CMISInteger - Signed integer (RTE C.1.7) */
+    CMISInteger: "^-?([0-9]+)$",
+    /**
+     * CMIDecimal - Signed decimal (RTE C.1.8)
+     * Spec allows unlimited digits, but we set practical limits to prevent abuse
+     * while maintaining broad compatibility:
+     * - Up to 10 digits before decimal (supports values up to 10 billion)
+     * - Up to 18 digits after decimal (maintains precision for scientific use)
+     */
+    CMIDecimal: "^-?([0-9]{1,10})(\\.[0-9]{1,18})?$",
+    /**
+     * CMIIdentifier - Identifier with alphanumeric ending, max 250 chars (RTE C.1.9)
+     * Must contain at least one word character (\w) and only allow: letters,
+     * numbers, - ( ) + . : = @ ; $ _ ! * ' % / #
+     * URN format is validated separately if string starts with "urn:"
+     */
+    CMIIdentifier: "^(?=.*\\w)[\\w\\-\\(\\)\\+\\.\\:\\=\\@\\;\\$\\_\\!\\*\\'\\%\\/\\#]{1,250}$",
+    /** CMIShortIdentifier - Short identifier with word chars/punctuation, max 250 chars (RTE C.1.10) */
+    CMIShortIdentifier: "^[\\w\\.\\-\\_]{1,250}$",
+    /** CMILongIdentifier - Long identifier supporting URN format, max 4000 chars (RTE C.1.11) */
+    CMILongIdentifier: "^(?:(?!urn:)\\S{1,4000}|urn:[A-Za-z0-9-]{1,31}:\\S{1,4000}|.{1,4000})$",
+    /** CMIFeedback - Unrestricted feedback text (RTE C.1.12) */
+    CMIFeedback: "^.*$",
+    /** CMIIndex - Pattern for array index extraction */
+    CMIIndex: "[._](\\d+).",
+    /** CMIIndexStore - Pattern for stored index notation */
+    CMIIndexStore: ".N(\\d+).",
+    /** CMICStatus - Completion status vocabulary (RTE 4.1.4) */
+    CMICStatus: "^(completed|incomplete|not attempted|unknown)$",
+    /** CMISStatus - Success status vocabulary (RTE 4.1.11) */
+    CMISStatus: "^(passed|failed|unknown)$",
+    /** CMIExit - Exit vocabulary (RTE 4.1.3) */
+    CMIExit: "^(time-out|suspend|logout|normal)$",
+    /** CMIType - Interaction type vocabulary (RTE 4.1.6.2) */
+    CMIType: "^(true-false|choice|fill-in|long-fill-in|matching|performance|sequencing|likert|numeric|other)$",
+    /** CMIResult - Interaction result vocabulary (RTE 4.1.6.8) */
+    CMIResult: "^(correct|incorrect|unanticipated|neutral|-?([0-9]{1,4})(\\.[0-9]{1,18})?)$",
+    /** NAVEvent - Navigation event vocabulary (SN Book Table 4.4.2) */
+    NAVEvent: "^(_?(start|resumeAll|previous|continue|exit|exitAll|abandon|abandonAll|suspendAll|retry|retryAll)|_none_|(\\{target=(?<choice_target>\\S{0,}[a-zA-Z0-9-_]+)})?choice|(\\{target=(?<jump_target>\\S{0,}[a-zA-Z0-9-_]+)})?jump)$",
+    /** NAVBoolean - Navigation boolean vocabulary (SN Book) */
+    NAVBoolean: "^(unknown|true|false)$",
+    /** NAVTarget - Navigation target pattern (SN Book) */
+    NAVTarget: "^{target=\\S{0,}[a-zA-Z0-9-_]+}$",
+    /** scaled_range - Scaled score range -1 to 1 (RTE 4.1.10.1) */
+    scaled_range: "-1#1",
+    /** audio_range - Audio level range 0 to 999.9999999 (RTE 4.1.7.1) */
+    audio_range: "0#999.9999999",
+    /** speed_range - Playback speed range 0 to 999.9999999 (RTE 4.1.7.4) */
+    speed_range: "0#999.9999999",
+    /** text_range - Text display preference -1 to 1 (RTE 4.1.7.5) */
+    text_range: "-1#1",
+    /** progress_range - Progress measure range 0 to 1 (RTE 4.1.8) */
+    progress_range: "0#1"
   };
 
   class BaseScormValidationError extends Error {
@@ -209,7 +419,7 @@ this.Scorm12API = (function () {
       if ({}.hasOwnProperty.call(scorm12_errors, String(errorCode))) {
         super(CMIElement, errorCode, scorm12_errors[String(errorCode)]?.basicMessage || "Unknown error", scorm12_errors[String(errorCode)]?.detailMessage);
       } else {
-        super(CMIElement, 101, scorm12_errors["101"]?.basicMessage ?? "General error", scorm12_errors["101"]?.detailMessage);
+        super(CMIElement, 101, scorm12_errors["101"]?.basicMessage, scorm12_errors["101"]?.detailMessage);
       }
       Object.setPrototypeOf(this, Scorm12ValidationError.prototype);
     }
@@ -221,6 +431,11 @@ this.Scorm12API = (function () {
      * @param {string} cmi_element
      */
     constructor(cmi_element) {
+      /**
+       * Flag used during JSON serialization to allow getter access without initialization checks.
+       * When true, getters can be accessed before the API is initialized, which is necessary
+       * for serializing the CMI data structure to JSON format.
+       */
       this.jsonString = false;
       this._initialized = false;
       this._cmi_element = cmi_element;
@@ -241,7 +456,7 @@ this.Scorm12API = (function () {
   }
   class BaseRootCMI extends BaseCMI {
     /**
-     * Start time of the course
+     * Start time of the session
      * @type {number | undefined}
      * @protected
      */
@@ -310,6 +525,30 @@ this.Scorm12API = (function () {
     const regexStr = typeof timeRegex === "string" ? timeRegex : timeRegex?.toString() ?? "";
     return `${timeStr}:${regexStr}`;
   });
+  const getDurationAsSeconds = memoize((duration, durationRegex) => {
+    if (typeof durationRegex === "string") {
+      durationRegex = new RegExp(durationRegex);
+    }
+    if (!duration || !duration?.match?.(durationRegex)) {
+      return 0;
+    }
+    const [, years, months, weeks, days, hours, minutes, seconds] = new RegExp(durationRegex).exec?.(duration) ?? [];
+    let result = 0;
+    result += Number(seconds) || 0;
+    result += Number(minutes) * 60 || 0;
+    result += Number(hours) * 3600 || 0;
+    result += Number(days) * (60 * 60 * 24) || 0;
+    result += Number(weeks) * (60 * 60 * 24 * 7) || 0;
+    result += Number(months) * (60 * 60 * 24 * 30) || 0;
+    result += Number(years) * (60 * 60 * 24 * 365) || 0;
+    return result;
+  },
+  // Custom key function to handle RegExp objects which can't be stringified
+  (duration, durationRegex) => {
+    const durationStr = duration ?? "";
+    const regexStr = typeof durationRegex === "string" ? durationRegex : durationRegex?.toString() ?? "";
+    return `${durationStr}:${regexStr}`;
+  });
   function addHHMMSSTimeStrings(first, second, timeRegex) {
     if (typeof timeRegex === "string") {
       timeRegex = new RegExp(timeRegex);
@@ -366,8 +605,7 @@ this.Scorm12API = (function () {
   }
   function formatMessage(functionName, message, CMIElement) {
     const baseLength = 20;
-    const paddedFunction = functionName.padEnd(baseLength);
-    let messageString = `${paddedFunction}: `;
+    let messageString = functionName ? `${String(functionName).padEnd(baseLength)}: ` : "";
     if (CMIElement) {
       const CMIElementBaseLength = 70;
       messageString += CMIElement;
@@ -406,7 +644,7 @@ this.Scorm12API = (function () {
     if (allowEmptyString && value === "") {
       return true;
     }
-    if (value === void 0 || !matches || matches[0] === "") {
+    if (!matches || matches[0] === "") {
       throw new errorClass(CMIElement, errorCode);
     }
     return true;
@@ -419,16 +657,21 @@ this.Scorm12API = (function () {
   });
   const checkValidRange = memoize((CMIElement, value, rangePattern, errorCode, errorClass) => {
     const ranges = rangePattern.split("#");
-    value = value * 1;
-    if (ranges[0] && value >= ranges[0]) {
-      if (ranges[1] && (ranges[1] === "*" || value <= ranges[1])) {
-        return true;
-      } else {
-        throw new errorClass(CMIElement, errorCode);
-      }
-    } else {
+    value = Number(value);
+    if (isNaN(value)) {
       throw new errorClass(CMIElement, errorCode);
     }
+    const minBound = ranges[0];
+    const maxBound = ranges[1];
+    const hasMinimum = minBound !== void 0 && minBound !== "";
+    const hasMaximum = maxBound !== void 0 && maxBound !== "" && maxBound !== "*";
+    if (hasMinimum && value < Number(minBound)) {
+      throw new errorClass(CMIElement, errorCode);
+    }
+    if (hasMaximum && value > Number(maxBound)) {
+      throw new errorClass(CMIElement, errorCode);
+    }
+    return true;
   },
   // Custom key function that excludes the error class from the cache key
   // since it can't be stringified and doesn't affect the validation result
@@ -439,7 +682,9 @@ this.Scorm12API = (function () {
   }
   function check12ValidRange(CMIElement, value, rangePattern, allowEmptyString) {
     if (value === "") {
-      throw new Scorm12ValidationError(CMIElement, scorm12_errors$1.VALUE_OUT_OF_RANGE);
+      {
+        throw new Scorm12ValidationError(CMIElement, scorm12_errors$1.VALUE_OUT_OF_RANGE);
+      }
     }
     return checkValidRange(CMIElement, value, rangePattern, scorm12_errors$1.VALUE_OUT_OF_RANGE, Scorm12ValidationError);
   }
@@ -463,6 +708,7 @@ this.Scorm12API = (function () {
     /**
      * Validates a SCORM 1.2 audio property
      *
+     * @spec SCORM 1.2 RTE 3.4.2.3.1 - Audio preference validation
      * @param {string} CMIElement
      * @param {string} value - The value to validate
      * @return {boolean} - True if validation passes, throws an error otherwise
@@ -473,6 +719,7 @@ this.Scorm12API = (function () {
     /**
      * Validates a SCORM 1.2 language property
      *
+     * @spec SCORM 1.2 RTE 3.4.2.3.2 - Language preference validation
      * @param {string} CMIElement
      * @param {string} value - The value to validate
      * @return {boolean} - True if validation passes, throws an error otherwise
@@ -483,6 +730,7 @@ this.Scorm12API = (function () {
     /**
      * Validates a SCORM 1.2 speed property
      *
+     * @spec SCORM 1.2 RTE 3.4.2.3.3 - Speed preference validation
      * @param {string} CMIElement
      * @param {string} value - The value to validate
      * @return {boolean} - True if validation passes, throws an error otherwise
@@ -493,6 +741,7 @@ this.Scorm12API = (function () {
     /**
      * Validates a SCORM 1.2 text property
      *
+     * @spec SCORM 1.2 RTE 3.4.2.3.4 - Text preference validation
      * @param {string} CMIElement
      * @param {string} value - The value to validate
      * @return {boolean} - True if validation passes, throws an error otherwise
@@ -518,16 +767,24 @@ this.Scorm12API = (function () {
   class CMIScore extends BaseCMI {
     /**
      * Constructor for *.score
-     * @param {
-     *     score_children: string,
-     *     score_range: string,
-     *     max: string,
-     *     invalidErrorCode: number,
-     *     invalidTypeCode: number,
-     *     invalidRangeCode: number,
-     *     decimalRegex: string,
-     *     errorClass: typeof BaseScormValidationError
-     * } params
+     *
+     * SPEC COMPLIANCE NOTE for _max default:
+     * The SCORM 1.2 specification defines the default value for score.max as empty string ("").
+     * This implementation defaults to "100" instead for the following reasons:
+     *
+     * 1. Most SCOs expect a 0-100 scale and don't explicitly set max
+     * 2. An empty max creates ambiguity in score interpretation
+     * 3. "100" is the most common expected value and simplifies SCO development
+     * 4. This matches real-world LMS behavior (most default to 100)
+     * 5. SCOs can still explicitly set max="" if needed
+     *
+     * Strict spec default would be: ""
+     *
+     * @param params - Configuration parameters
+     * @param params.score_range - Optional range pattern. When provided, uses scorm12_regex.score_range.
+     *                             When omitted or falsy, disables range validation (sets to false).
+     *                             SCORM 1.2 passes a truthy value to enable "0#100" validation.
+     *                             SCORM 2004 omits this to allow unbounded scores.
      */
     constructor(params) {
       super(params.CMIElement);
@@ -544,9 +801,15 @@ this.Scorm12API = (function () {
     }
     /**
      * Called when the API has been reset
+     *
+     * SCORE-01: Resets _raw and _min to empty strings to match subclass behavior.
+     * _max is NOT reset here as it has a non-trivial default ("100") that is
+     * handled by the constructor or reinitialization logic.
      */
     reset() {
       this._initialized = false;
+      this._raw = "";
+      this._min = "";
     }
     /**
      * Getter for _children
@@ -611,8 +874,8 @@ this.Scorm12API = (function () {
       }
     }
     /**
-     * Getter for _score_range
-     * @return {string | false}
+     * Gets score object with numeric values
+     * @return {ScoreObject}
      */
     getScoreObject() {
       const scoreObject = {};
@@ -777,11 +1040,14 @@ this.Scorm12API = (function () {
       if (this.initialized) {
         throw new Scorm12ValidationError(this._cmi_element + ".credit", scorm12_errors$1.READ_ONLY_ELEMENT);
       } else {
-        this._credit = credit;
+        if (check12ValidFormat(this._cmi_element + ".credit", credit, scorm12_regex.CMICredit, true)) {
+          this._credit = credit;
+        }
       }
     }
     /**
      * Getter for _lesson_status
+     * @spec RTE 3.4.2.1.7 - cmi.core.lesson_status
      * @return {string}
      */
     get lesson_status() {
@@ -789,6 +1055,7 @@ this.Scorm12API = (function () {
     }
     /**
      * Setter for _lesson_status
+     * @spec RTE 3.4.2.1.7 - cmi.core.lesson_status
      * @param {string} lesson_status
      */
     set lesson_status(lesson_status) {
@@ -817,11 +1084,14 @@ this.Scorm12API = (function () {
       if (this.initialized) {
         throw new Scorm12ValidationError(this._cmi_element + ".entry", scorm12_errors$1.READ_ONLY_ELEMENT);
       } else {
-        this._entry = entry;
+        if (check12ValidFormat(this._cmi_element + ".entry", entry, scorm12_regex.CMIEntry, true)) {
+          this._entry = entry;
+        }
       }
     }
     /**
      * Getter for _total_time
+     * @spec RTE 3.4.2.1.13 - cmi.core.total_time
      * @return {string}
      */
     get total_time() {
@@ -829,13 +1099,21 @@ this.Scorm12API = (function () {
     }
     /**
      * Setter for _total_time. Can only be called before  initialization.
+     * @spec RTE 3.4.2.1.13 - cmi.core.total_time
      * @param {string} total_time
      */
     set total_time(total_time) {
       if (this.initialized) {
         throw new Scorm12ValidationError(this._cmi_element + ".total_time", scorm12_errors$1.READ_ONLY_ELEMENT);
       } else {
-        this._total_time = total_time;
+        if (check12ValidFormat(this._cmi_element + ".total_time", total_time, scorm12_regex.CMITimespan, true)) {
+          if (total_time) {
+            const totalSeconds = getTimeAsSeconds(total_time, scorm12_regex.CMITimespan);
+            this._total_time = getSecondsAsHHMMSS(totalSeconds);
+          } else {
+            this._total_time = total_time;
+          }
+        }
       }
     }
     /**
@@ -853,7 +1131,9 @@ this.Scorm12API = (function () {
       if (this.initialized) {
         throw new Scorm12ValidationError(this._cmi_element + ".lesson_mode", scorm12_errors$1.READ_ONLY_ELEMENT);
       } else {
-        this._lesson_mode = lesson_mode;
+        if (check12ValidFormat(this._cmi_element + ".lesson_mode", lesson_mode, scorm12_regex.CMILessonMode)) {
+          this._lesson_mode = lesson_mode;
+        }
       }
     }
     /**
@@ -868,9 +1148,31 @@ this.Scorm12API = (function () {
     }
     /**
      * Setter for _exit
+     *
+     * @spec RTE 3.4.2.1.4 - cmi.core.exit
+     *
+     * SPEC COMPLIANCE NOTE:
+     * The SCORM 1.2 specification defines exit vocabulary as: "time-out", "suspend", "logout", or ""
+     * The value "normal" is NOT part of the SCORM 1.2 vocabulary (it's a SCORM 2004 value).
+     *
+     * This implementation accepts "normal" and normalizes it to "" (empty string) for the
+     * following reasons:
+     *
+     * 1. Legacy content authored for SCORM 2004 sometimes runs in SCORM 1.2 mode
+     * 2. Some authoring tools incorrectly use "normal" for SCORM 1.2 content
+     * 3. Rejecting "normal" would break content with no user benefit
+     * 4. Empty string ("") has the same semantic meaning as "normal" (regular exit)
+     * 5. A console warning is logged to help developers identify the issue
+     *
+     * Strict spec vocabulary: "time-out" | "suspend" | "logout" | ""
+     *
      * @param {string} exit
      */
     set exit(exit) {
+      if (exit === "normal") {
+        console.warn("SCORM 1.2: Received non-standard value 'normal' for cmi.core.exit; normalizing to empty string.");
+        exit = "";
+      }
       if (check12ValidFormat(this._cmi_element + ".exit", exit, scorm12_regex.CMIExit, true)) {
         this._exit = exit;
       }
@@ -891,7 +1193,8 @@ this.Scorm12API = (function () {
      */
     set session_time(session_time) {
       if (check12ValidFormat(this._cmi_element + ".session_time", session_time, scorm12_regex.CMITimespan)) {
-        this._session_time = session_time;
+        const totalSeconds = getTimeAsSeconds(session_time, scorm12_regex.CMITimespan);
+        this._session_time = getSecondsAsHHMMSS(totalSeconds);
       }
     }
     /**
@@ -903,10 +1206,15 @@ this.Scorm12API = (function () {
     }
     /**
      * Setter for _suspend_data
+     *
+     * SPEC COMPLIANCE NOTE:
+     * Uses CMIString64000 (64000 char limit) instead of spec-defined CMIString4096.
+     * See scorm12_regex.CMIString64000 documentation for rationale.
+     *
      * @param {string} suspend_data
      */
     set suspend_data(suspend_data) {
-      if (check12ValidFormat(this._cmi_element + ".suspend_data", suspend_data, scorm12_regex.CMIString4096, true)) {
+      if (check12ValidFormat(this._cmi_element + ".suspend_data", suspend_data, scorm12_regex.CMIString64000, true)) {
         this._suspend_data = suspend_data;
       }
     }
@@ -917,7 +1225,7 @@ this.Scorm12API = (function () {
      */
     getCurrentTotalTime(start_time) {
       let sessionTime = this._session_time;
-      if (typeof start_time !== "undefined" && start_time !== null) {
+      if (typeof start_time !== "undefined") {
         const seconds = (/* @__PURE__ */new Date()).getTime() - start_time;
         sessionTime = getSecondsAsHHMMSS(seconds / 1e3);
       }
@@ -968,7 +1276,7 @@ this.Scorm12API = (function () {
     constructor(params) {
       super(params.CMIElement);
       this.__children = params.children;
-      this._errorCode = params.errorCode || scorm12_errors$1.GENERAL;
+      this._errorCode = params.errorCode ?? scorm12_errors$1.GENERAL;
       this._errorClass = params.errorClass || BaseScormValidationError;
       this.childArray = [];
     }
@@ -982,7 +1290,7 @@ this.Scorm12API = (function () {
         this.childArray = [];
       } else {
         for (let i = 0; i < this.childArray.length; i++) {
-          this.childArray[i].reset();
+          this.childArray[i]?.reset();
         }
       }
     }
@@ -1071,6 +1379,7 @@ this.Scorm12API = (function () {
     }
     /**
      * Getter for _id
+     * @spec RTE 3.4.2.6.1 - cmi.objectives.n.id
      * @return {string}
      */
     get id() {
@@ -1078,6 +1387,7 @@ this.Scorm12API = (function () {
     }
     /**
      * Setter for _id
+     * @spec RTE 3.4.2.6.1 - cmi.objectives.n.id
      * @param {string} id
      */
     set id(id) {
@@ -1087,6 +1397,7 @@ this.Scorm12API = (function () {
     }
     /**
      * Getter for _status
+     * @spec RTE 3.4.2.6.3 - cmi.objectives.n.status
      * @return {string}
      */
     get status() {
@@ -1094,6 +1405,7 @@ this.Scorm12API = (function () {
     }
     /**
      * Setter for _status
+     * @spec RTE 3.4.2.6.3 - cmi.objectives.n.status
      * @param {string} status
      */
     set status(status) {
@@ -1103,6 +1415,14 @@ this.Scorm12API = (function () {
     }
     /**
      * toJSON for cmi.objectives.n
+     *
+     * The `jsonString` flag pattern used here serves a specific purpose:
+     * - Setting `jsonString = true` before accessing properties bypasses initialization checks
+     * - This allows JSON serialization to read write-only or uninitialized properties
+     * - Without this flag, accessing certain properties would throw SCORM validation errors
+     * - The flag is reset to `false` after serialization to restore normal validation behavior
+     * - This pattern is used throughout SCORM-Again for controlled property access during export
+     *
      * @return {
      *    {
      *      id: string,
@@ -1123,6 +1443,19 @@ this.Scorm12API = (function () {
     }
   }
 
+  function parseTimeAllowed(value, fieldName) {
+    try {
+      check12ValidFormat(fieldName, value, scorm12_regex.CMITimespan, true);
+      const totalSeconds = getTimeAsSeconds(value, scorm12_regex.CMITimespan);
+      return getSecondsAsHHMMSS(totalSeconds);
+    } catch (e) {}
+    try {
+      check12ValidFormat(fieldName, value, scorm2004_regex.CMITimespan, true);
+      const totalSeconds = getDurationAsSeconds(value, scorm2004_regex.CMITimespan);
+      return getSecondsAsHHMMSS(totalSeconds);
+    } catch (e) {}
+    throw new Scorm12ValidationError(fieldName, scorm12_errors$1.TYPE_MISMATCH);
+  }
   class CMIStudentData extends BaseCMI {
     /**
      * Constructor for cmi.student_data
@@ -1158,19 +1491,32 @@ this.Scorm12API = (function () {
       throw new Scorm12ValidationError(this._cmi_element + "._children", scorm12_errors$1.INVALID_SET_VALUE);
     }
     /**
-     * Getter for _master_score
+     * Getter for _mastery_score
      * @return {string}
      */
     get mastery_score() {
       return this._mastery_score;
     }
     /**
-     * Setter for _master_score. Can only be called before  initialization.
+     * Setter for _mastery_score. Can only be called before initialization.
      * @param {string} mastery_score
      */
     set mastery_score(mastery_score) {
       validationService.validateReadOnly(this._cmi_element + ".mastery_score", this.initialized);
-      this._mastery_score = mastery_score;
+      if (mastery_score === void 0 || mastery_score === null) {
+        return;
+      }
+      let normalizedMasteryScore = mastery_score;
+      if (typeof normalizedMasteryScore !== "string") {
+        normalizedMasteryScore = String(normalizedMasteryScore);
+      }
+      if (normalizedMasteryScore === "") {
+        this._mastery_score = mastery_score;
+        return;
+      }
+      if (check12ValidFormat(this._cmi_element + ".mastery_score", normalizedMasteryScore, scorm12_regex.CMIDecimal) && check12ValidRange(this._cmi_element + ".mastery_score", normalizedMasteryScore, scorm12_regex.score_range)) {
+        this._mastery_score = normalizedMasteryScore;
+      }
     }
     /**
      * Getter for _max_time_allowed
@@ -1180,12 +1526,20 @@ this.Scorm12API = (function () {
       return this._max_time_allowed;
     }
     /**
-     * Setter for _max_time_allowed. Can only be called before  initialization.
+     * Setter for _max_time_allowed. Can only be called before initialization.
      * @param {string} max_time_allowed
      */
     set max_time_allowed(max_time_allowed) {
       validationService.validateReadOnly(this._cmi_element + ".max_time_allowed", this.initialized);
-      this._max_time_allowed = max_time_allowed;
+      if (max_time_allowed === void 0 || max_time_allowed === null) {
+        return;
+      }
+      const normalizedValue = typeof max_time_allowed === "string" ? max_time_allowed : String(max_time_allowed);
+      if (normalizedValue === "") {
+        this._max_time_allowed = "";
+        return;
+      }
+      this._max_time_allowed = parseTimeAllowed(normalizedValue, this._cmi_element + ".max_time_allowed");
     }
     /**
      * Getter for _time_limit_action
@@ -1195,12 +1549,18 @@ this.Scorm12API = (function () {
       return this._time_limit_action;
     }
     /**
-     * Setter for _time_limit_action. Can only be called before  initialization.
+     * Setter for _time_limit_action. Can only be called before initialization.
      * @param {string} time_limit_action
      */
     set time_limit_action(time_limit_action) {
       validationService.validateReadOnly(this._cmi_element + ".time_limit_action", this.initialized);
-      this._time_limit_action = time_limit_action;
+      if (time_limit_action === void 0 || time_limit_action === null) {
+        return;
+      }
+      const normalizedValue = typeof time_limit_action === "string" ? time_limit_action : String(time_limit_action);
+      if (check12ValidFormat(this._cmi_element + ".time_limit_action", normalizedValue, scorm12_regex.CMITimeLimitAction, true)) {
+        this._time_limit_action = normalizedValue;
+      }
     }
     /**
      * toJSON for cmi.student_data
@@ -1262,6 +1622,7 @@ this.Scorm12API = (function () {
     }
     /**
      * Getter for _audio
+     * @spec RTE 3.4.2.3.1 - cmi.student_preference.audio
      * @return {string}
      */
     get audio() {
@@ -1269,6 +1630,7 @@ this.Scorm12API = (function () {
     }
     /**
      * Setter for _audio
+     * @spec RTE 3.4.2.3.1 - cmi.student_preference.audio
      * @param {string} audio
      */
     set audio(audio) {
@@ -1278,6 +1640,7 @@ this.Scorm12API = (function () {
     }
     /**
      * Getter for _language
+     * @spec RTE 3.4.2.3.2 - cmi.student_preference.language
      * @return {string}
      */
     get language() {
@@ -1285,6 +1648,7 @@ this.Scorm12API = (function () {
     }
     /**
      * Setter for _language
+     * @spec RTE 3.4.2.3.2 - cmi.student_preference.language
      * @param {string} language
      */
     set language(language) {
@@ -1294,6 +1658,7 @@ this.Scorm12API = (function () {
     }
     /**
      * Getter for _speed
+     * @spec RTE 3.4.2.3.3 - cmi.student_preference.speed
      * @return {string}
      */
     get speed() {
@@ -1301,6 +1666,7 @@ this.Scorm12API = (function () {
     }
     /**
      * Setter for _speed
+     * @spec RTE 3.4.2.3.3 - cmi.student_preference.speed
      * @param {string} speed
      */
     set speed(speed) {
@@ -1310,6 +1676,7 @@ this.Scorm12API = (function () {
     }
     /**
      * Getter for _text
+     * @spec RTE 3.4.2.3.4 - cmi.student_preference.text
      * @return {string}
      */
     get text() {
@@ -1317,6 +1684,7 @@ this.Scorm12API = (function () {
     }
     /**
      * Setter for _text
+     * @spec RTE 3.4.2.3.4 - cmi.student_preference.text
      * @param {string} text
      */
     set text(text) {
@@ -1518,11 +1886,19 @@ this.Scorm12API = (function () {
     }
     /**
      * Setter for _result
+     * @spec RTE 3.4.2.7.6 - cmi.interactions.n.result
+     * Per SCORM 1.2 spec, valid values are "correct", "wrong", "unanticipated", "neutral", or a numeric score.
+     * The spec requires "wrong" not "incorrect" for failed interactions.
      * @param {string} result
      */
     set result(result) {
-      if (check12ValidFormat(this._cmi_element + ".result", result, scorm12_regex.CMIResult)) {
-        this._result = result;
+      let normalizedResult = result;
+      if (result === "incorrect") {
+        normalizedResult = "wrong";
+        console.warn("SCORM 1.2: Received non-standard value 'incorrect' for cmi.interactions.n.result; normalizing to 'wrong'.");
+      }
+      if (check12ValidFormat(this._cmi_element + ".result", normalizedResult, scorm12_regex.CMIResult)) {
+        this._result = normalizedResult;
       }
     }
     /**
@@ -1541,7 +1917,8 @@ this.Scorm12API = (function () {
      */
     set latency(latency) {
       if (check12ValidFormat(this._cmi_element + ".latency", latency, scorm12_regex.CMITimespan)) {
-        this._latency = latency;
+        const totalSeconds = getTimeAsSeconds(latency, scorm12_regex.CMITimespan);
+        this._latency = getSecondsAsHHMMSS(totalSeconds);
       }
     }
     /**
@@ -1594,10 +1971,13 @@ this.Scorm12API = (function () {
       this._id = "";
     }
     /**
-     * Getter for _id
+     * Getter for _id. Should only be called during JSON export.
      * @return {string}
      */
     get id() {
+      if (!this.jsonString) {
+        throw new Scorm12ValidationError(this._cmi_element + ".id", scorm12_errors$1.WRITE_ONLY_ELEMENT);
+      }
       return this._id;
     }
     /**
@@ -1682,7 +2062,7 @@ this.Scorm12API = (function () {
     /**
      * Constructor for the SCORM 1.2 cmi object
      * @param {string} cmi_children
-     * @param {(CMIStudentData|AICCCMIStudentData)} student_data
+     * @param {(CMIStudentData)} student_data
      * @param {boolean} initialized
      */
     constructor(cmi_children, student_data, initialized) {
@@ -1702,14 +2082,17 @@ this.Scorm12API = (function () {
     }
     /**
      * Called when the API has been reset
+     *
+     * CMI-03: Uses consistent ?.reset() pattern for all child objects.
+     * Objectives and interactions use reset(true) to clear arrays completely.
      */
     reset() {
       this._initialized = false;
       this._launch_data = "";
       this._comments = "";
       this.core?.reset();
-      this.objectives = new CMIObjectives();
-      this.interactions = new CMIInteractions();
+      this.objectives?.reset(true);
+      this.interactions?.reset(true);
       this.student_data?.reset();
       this.student_preference?.reset();
     }
@@ -1809,7 +2192,22 @@ this.Scorm12API = (function () {
       return this._launch_data;
     }
     /**
-     * Setter for _launch_data. Can only be called before  initialization.
+     * Setter for _launch_data. Can only be called before initialization.
+     *
+     * SPEC COMPLIANCE NOTE:
+     * The SCORM 1.2 specification defines launch_data as CMIString4096 (max 4096 chars).
+     * This implementation intentionally omits length validation because:
+     *
+     * 1. launch_data is LMS-provided data, not SCO-provided - the LMS is responsible
+     *    for ensuring valid data is provided to content
+     * 2. This setter is only callable before API initialization (read-only to SCO)
+     * 3. Real-world LMS systems may provide launch_data exceeding 4096 chars
+     * 4. Rejecting oversized LMS data would break content with no recovery path
+     *
+     * Unlike cmi.suspend_data and cmi.comments (which SCOs write), launch_data
+     * comes from the LMS manifest/configuration, so strict validation here would
+     * penalize content for LMS decisions outside SCO control.
+     *
      * @param {string} launch_data
      */
     set launch_data(launch_data) {
@@ -1873,6 +2271,14 @@ this.Scorm12API = (function () {
     }
     /**
      * Called when the API has been reset
+     *
+     * This method is invoked during the following session lifecycle events:
+     * - When the API is reset via LMSFinish() followed by a new LMSInitialize()
+     * - Between SCO transitions in multi-SCO courses (when one SCO ends and another begins)
+     * - When the LMS explicitly resets the API instance
+     * - During API cleanup and reinitialization cycles
+     *
+     * Resets all navigation state to prepare for a new session.
      */
     reset() {
       this._event = "";
@@ -1934,7 +2340,8 @@ this.Scorm12API = (function () {
   const DefaultSettings = {
     autocommit: false,
     autocommitSeconds: 10,
-    asyncCommit: false,
+    throttleCommits: false,
+    useAsynchronousCommits: false,
     sendFullCommit: true,
     lmsCommitUrl: false,
     dataCommitFormat: "json",
@@ -1944,6 +2351,7 @@ this.Scorm12API = (function () {
     selfReportSessionTime: false,
     alwaysSendTotalTime: false,
     renderCommonCommitFields: false,
+    autoCompleteLessonStatus: false,
     strict_errors: true,
     xhrHeaders: {},
     xhrWithCredentials: false,
@@ -1986,10 +2394,42 @@ this.Scorm12API = (function () {
         errorCode: 101
       };
     },
+    xhrResponseHandler: function (xhr) {
+      if (typeof xhr !== "undefined") {
+        let httpResult = null;
+        if (xhr.status >= 200 && xhr.status <= 299) {
+          try {
+            httpResult = JSON.parse(xhr.responseText);
+          } catch (e) {}
+          if (httpResult === null || !{}.hasOwnProperty.call(httpResult, "result")) {
+            return {
+              result: global_constants.SCORM_TRUE,
+              errorCode: 0
+            };
+          }
+          return {
+            result: httpResult.result,
+            errorCode: httpResult.errorCode ? httpResult.errorCode : httpResult.result === global_constants.SCORM_TRUE ? 0 : 101
+          };
+        } else {
+          return {
+            result: global_constants.SCORM_FALSE,
+            errorCode: 101
+          };
+        }
+      }
+      return {
+        result: global_constants.SCORM_FALSE,
+        errorCode: 101
+      };
+    },
     requestHandler: function (commitObject) {
       return commitObject;
     },
     onLogMessage: defaultLogHandler,
+    mastery_override: false,
+    score_overrides_status: false,
+    completion_status_on_failed: "completed",
     scoItemIds: [],
     scoItemIdValidator: false,
     globalObjectiveIds: [],
@@ -1998,7 +2438,14 @@ this.Scorm12API = (function () {
     courseId: "",
     syncOnInitialize: true,
     syncOnTerminate: true,
-    maxSyncAttempts: 5
+    maxSyncAttempts: 5,
+    // Multi-SCO support settings
+    scoId: "",
+    autoPopulateCommitMetadata: false,
+    // HTTP service settings
+    httpService: null,
+    // Global learner preferences settings
+    globalStudentPreferences: false
   };
   function defaultLogHandler(messageLevel, logMessage) {
     switch (messageLevel) {
@@ -2067,9 +2514,9 @@ this.Scorm12API = (function () {
     }
   }
 
-  class HttpService {
+  class AsynchronousHttpService {
     /**
-     * Constructor for HttpService
+     * Constructor for AsynchronousHttpService
      * @param {Settings} settings - The settings object
      * @param {ErrorCode} error_codes - The error codes object
      */
@@ -2078,124 +2525,59 @@ this.Scorm12API = (function () {
       this.error_codes = error_codes;
     }
     /**
-     * Sends HTTP requests to the LMS with special handling for immediate and standard requests.
+     * Sends HTTP requests asynchronously to the LMS
+     * Returns immediate success - actual result handled via events
      *
-     * This method handles communication with the LMS server, implementing two distinct
-     * request handling strategies based on the context:
-     *
-     * 1. Immediate Mode (used during termination):
-     *    When immediate=true, the method:
-     *    - Initiates the fetch request but doesn't wait for it to complete
-     *    - Returns a success result immediately
-     *    - Processes the response asynchronously when it arrives
-     *
-     *    This is critical for browser compatibility during page unload/termination,
-     *    as some browsers (especially Chrome) may cancel synchronous or awaited
-     *    requests when a page is closing.
-     *
-     * 2. Standard Mode (normal operation):
-     *    When immediate=false, the method:
-     *    - Processes the request parameters through the configured requestHandler
-     *    - Awaits the fetch response completely
-     *    - Transforms the response using the configured responseHandler
-     *    - Triggers appropriate event listeners based on success/failure
-     *    - Returns the complete result with appropriate error codes
-     *
-     * The method also includes error handling to catch network failures or other
-     * exceptions that might occur during the request process.
+     * WARNING: This is NOT SCORM-compliant. Always returns optimistic success immediately.
+     * The actual HTTP request happens in the background, and success/failure is reported
+     * via CommitSuccess/CommitError events, but NOT to the SCO's commit call.
      *
      * @param {string} url - The URL endpoint to send the request to
      * @param {CommitObject|StringKeyMap|Array} params - The data to send to the LMS
-     * @param {boolean} immediate - Whether to send the request immediately without waiting (true) or process normally (false)
+     * @param {boolean} immediate - Whether to send the request immediately without waiting
      * @param {Function} apiLog - Function to log API messages with appropriate levels
      * @param {Function} processListeners - Function to trigger event listeners for commit events
-     * @return {Promise<ResultObject>} - A promise that resolves with the result of the request
-     *
-     * @example
-     * // Standard request (waits for response)
-     * const result = await httpService.processHttpRequest(
-     *   "https://lms.example.com/commit",
-     *   { cmi: { core: { lesson_status: "completed" } } },
-     *   false,
-     *   console.log,
-     *   (event) => dispatchEvent(new CustomEvent(event))
-     * );
-     *
-     * @example
-     * // Immediate request (for termination)
-     * const result = await httpService.processHttpRequest(
-     *   "https://lms.example.com/commit",
-     *   { cmi: { core: { lesson_status: "completed" } } },
-     *   true,
-     *   console.log,
-     *   (event) => dispatchEvent(new CustomEvent(event))
-     * );
-     * // result will be success immediately, regardless of actual HTTP result
+     * @return {ResultObject} - Immediate optimistic success result
      */
-    async processHttpRequest(url, params) {
+    processHttpRequest(url, params) {
       let immediate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
       let apiLog = arguments.length > 3 ? arguments[3] : undefined;
       let processListeners = arguments.length > 4 ? arguments[4] : undefined;
-      const genericError = {
-        result: global_constants.SCORM_FALSE,
-        errorCode: this.error_codes.GENERAL || 101
-      };
-      if (immediate) {
-        return this._handleImmediateRequest(url, params, apiLog, processListeners);
-      }
-      try {
-        const processedParams = this.settings.requestHandler(params);
-        const response = await this.performFetch(url, processedParams);
-        return this.transformResponse(response, processListeners);
-      } catch (e) {
-        const message = e instanceof Error ? e.message : String(e);
-        apiLog("processHttpRequest", `HTTP request failed to ${url}: ${message}`, LogLevelEnum.ERROR);
-        if (e instanceof Error && e.stack) {
-          apiLog("processHttpRequest", `Stack trace: ${e.stack}`, LogLevelEnum.DEBUG);
-        }
-        const enhancedError = {
-          ...genericError,
-          errorMessage: message,
-          errorDetails: JSON.stringify({
-            url,
-            errorType: e instanceof Error ? e.constructor.name : typeof e,
-            originalError: message
-          })
-        };
-        processListeners("CommitError");
-        return enhancedError;
-      }
-    }
-    /**
-     * Handles an immediate request (used during termination)
-     * @param {string} url - The URL to send the request to
-     * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
-     * @param {Function} processListeners - Function to process event listeners
-     * @return {ResultObject} - A success result object
-     * @private
-     */
-    _handleImmediateRequest(url, params, apiLog, processListeners) {
-      if (this.settings.useBeaconInsteadOfFetch !== "never") {
-        const {
-          body,
-          contentType
-        } = this._prepareRequestBody(params);
-        navigator.sendBeacon(url, new Blob([body], {
-          type: contentType
-        }));
-      } else {
-        this.performFetch(url, params).then(async response => {
-          await this.transformResponse(response, processListeners);
-        }).catch(e => {
-          const message = e instanceof Error ? e.message : String(e);
-          apiLog("processHttpRequest", message, LogLevelEnum.ERROR);
-          processListeners("CommitError");
-        });
-      }
+      this._performAsyncRequest(url, params, immediate, apiLog, processListeners);
       return {
         result: global_constants.SCORM_TRUE,
         errorCode: 0
       };
+    }
+    /**
+     * Performs the async request in the background
+     * @param {string} url - The URL to send the request to
+     * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+     * @param {boolean} immediate - Whether this is an immediate request
+     * @param apiLog - Function to log API messages
+     * @param {Function} processListeners - Function to process event listeners
+     * @private
+     */
+    async _performAsyncRequest(url, params, immediate, apiLog, processListeners) {
+      try {
+        const processedParams = this.settings.requestHandler(params);
+        let response;
+        if (immediate && this.settings.useBeaconInsteadOfFetch !== "never") {
+          response = await this.performBeacon(url, processedParams);
+        } else {
+          response = await this.performFetch(url, processedParams);
+        }
+        const result = await this.transformResponse(response, processListeners);
+        if (this._isSuccessResponse(response, result)) {
+          processListeners("CommitSuccess");
+        } else {
+          processListeners("CommitError", void 0, result.errorCode);
+        }
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        apiLog("processHttpRequest", `Async request failed: ${message}`, LogLevelEnum.ERROR);
+        processListeners("CommitError");
+      }
     }
     /**
      * Prepares the request body and content type based on params type
@@ -2261,11 +2643,11 @@ this.Scorm12API = (function () {
         ok: beaconSuccess,
         json: async () => ({
           result: beaconSuccess ? "true" : "false",
-          errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL
+          errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391
         }),
         text: async () => JSON.stringify({
           result: beaconSuccess ? "true" : "false",
-          errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL
+          errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391
         })
       });
     }
@@ -2284,7 +2666,7 @@ this.Scorm12API = (function () {
         const responseText = await response.text().catch(() => "Unable to read response text");
         return {
           result: global_constants.SCORM_FALSE,
-          errorCode: this.error_codes.GENERAL || 101,
+          errorCode: this.error_codes.GENERAL_COMMIT_FAILURE || 391,
           errorMessage: `Failed to parse LMS response: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
           errorDetails: JSON.stringify({
             status: response.status,
@@ -2297,7 +2679,7 @@ this.Scorm12API = (function () {
         };
       }
       if (!Object.hasOwnProperty.call(result, "errorCode")) {
-        result.errorCode = this._isSuccessResponse(response, result) ? 0 : this.error_codes.GENERAL;
+        result.errorCode = this._isSuccessResponse(response, result) ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391;
       }
       if (!this._isSuccessResponse(response, result)) {
         result.errorDetails = {
@@ -2307,11 +2689,6 @@ this.Scorm12API = (function () {
           ...result.errorDetails
           // Preserve any existing error details
         };
-      }
-      if (this._isSuccessResponse(response, result)) {
-        processListeners("CommitSuccess");
-      } else {
-        processListeners("CommitError", void 0, result.errorCode);
       }
       return result;
     }
@@ -2329,6 +2706,117 @@ this.Scorm12API = (function () {
     /**
      * Updates the service settings
      * @param {Settings} settings - The new settings
+     */
+    updateSettings(settings) {
+      this.settings = settings;
+    }
+  }
+
+  class SynchronousHttpService {
+    /**
+     * Constructor for SynchronousHttpService
+     * @param {InternalSettings} settings - The settings object
+     * @param {ErrorCode} error_codes - The error codes object
+     */
+    constructor(settings, error_codes) {
+      this.settings = settings;
+      this.error_codes = error_codes;
+    }
+    /**
+     * Sends synchronous HTTP requests to the LMS
+     * @param {string} url - The URL endpoint to send the request to
+     * @param {CommitObject|StringKeyMap|Array} params - The data to send to the LMS
+     * @param {boolean} immediate - Whether this is a termination commit (use sendBeacon)
+     * @param {Function} _apiLog - Function to log API messages (unused in synchronous mode - errors returned directly)
+     * @param {Function} _processListeners - Function to trigger event listeners (unused in synchronous mode - no async events)
+     * @return {ResultObject} - The result of the request (synchronous)
+     *
+     * @remarks
+     * The apiLog and processListeners parameters are part of the IHttpService interface contract
+     * but are not used by SynchronousHttpService because:
+     * - Synchronous XHR blocks until complete, so errors are returned directly to the caller
+     * - No async events need to be triggered (CommitSuccess/CommitError) since results are synchronous
+     * - AsynchronousHttpService uses these parameters to handle background request results
+     */
+    processHttpRequest(url, params) {
+      let immediate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+      if (immediate) {
+        return this._handleImmediateRequest(url, params);
+      }
+      return this._performSyncXHR(url, params);
+    }
+    /**
+     * Handles an immediate request using sendBeacon
+     * @param {string} url - The URL to send the request to
+     * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+     * @return {ResultObject} - The result based on beacon success
+     * @private
+     */
+    _handleImmediateRequest(url, params) {
+      const requestPayload = this.settings.requestHandler(params) ?? params;
+      const {
+        body
+      } = this._prepareRequestBody(requestPayload);
+      const beaconSuccess = navigator.sendBeacon(url, new Blob([body], {
+        type: "text/plain;charset=UTF-8"
+      }));
+      return {
+        result: beaconSuccess ? "true" : "false",
+        errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391
+      };
+    }
+    /**
+     * Performs a synchronous XMLHttpRequest
+     * @param {string} url - The URL to send the request to
+     * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+     * @return {ResultObject} - The result of the request
+     * @private
+     */
+    _performSyncXHR(url, params) {
+      const requestPayload = this.settings.requestHandler(params) ?? params;
+      const {
+        body,
+        contentType
+      } = this._prepareRequestBody(requestPayload);
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", url, false);
+      xhr.setRequestHeader("Content-Type", contentType);
+      Object.entries(this.settings.xhrHeaders).forEach(_ref => {
+        let [key, value] = _ref;
+        xhr.setRequestHeader(key, String(value));
+      });
+      if (this.settings.xhrWithCredentials) {
+        xhr.withCredentials = true;
+      }
+      try {
+        xhr.send(body);
+        return this.settings.xhrResponseHandler(xhr);
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        return {
+          result: global_constants.SCORM_FALSE,
+          errorCode: this.error_codes.GENERAL_COMMIT_FAILURE || 391,
+          errorMessage: message
+        };
+      }
+    }
+    /**
+     * Prepares the request body and content type based on params type
+     * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+     * @return {Object} - Object containing body and contentType
+     * @private
+     */
+    _prepareRequestBody(params) {
+      const body = params instanceof Array ? params.join("&") : JSON.stringify(params);
+      const contentType = params instanceof Array ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType;
+      return {
+        body,
+        contentType
+      };
+    }
+    /**
+     * Updates the service settings
+     * @param {InternalSettings} settings - The new settings
      */
     updateSettings(settings) {
       this.settings = settings;
@@ -2354,8 +2842,8 @@ this.Scorm12API = (function () {
      * @returns {ParsedListener|null} - The parsed listener information or null if invalid
      */
     parseListenerName(listenerName) {
+      if (!listenerName) return null;
       const listenerSplit = listenerName.split(".");
-      if (listenerSplit.length === 0) return null;
       const functionName = listenerSplit[0];
       let CMIElement = null;
       if (listenerSplit.length > 1) {
@@ -2417,8 +2905,6 @@ this.Scorm12API = (function () {
           this.listenerCount--;
           if (listeners.length === 0) {
             this.listenerMap.delete(functionName);
-          } else {
-            this.listenerMap.set(functionName, listeners);
           }
           this.apiLog("off", `Removed event listener: ${this.listenerCount}`, LogLevelEnum.INFO, functionName);
         }
@@ -2426,6 +2912,11 @@ this.Scorm12API = (function () {
     }
     /**
      * Provides a mechanism for clearing all listeners from a specific SCORM event
+     *
+     * Note: clear() differs from off() in CMIElement matching behavior:
+     * - clear() with CMIElement=null removes ALL listeners for the function
+     * - off() requires exact CMIElement match AND callback match
+     * This allows clear() to remove all listeners at once, while off() is surgical.
      *
      * @param {string} listenerName - The name of the listener to clear
      */
@@ -2440,7 +2931,7 @@ this.Scorm12API = (function () {
         } = parsedListener;
         if (this.listenerMap.has(functionName)) {
           const listeners = this.listenerMap.get(functionName);
-          const newListeners = listeners.filter(obj => obj.CMIElement !== CMIElement);
+          const newListeners = CMIElement === null ? [] : listeners.filter(obj => obj.CMIElement !== CMIElement);
           this.listenerCount -= listeners.length - newListeners.length;
           if (newListeners.length === 0) {
             this.listenerMap.delete(functionName);
@@ -2779,6 +3270,33 @@ this.Scorm12API = (function () {
      *
      * @param {LogLevel} messageLevel - The level of the message
      * @param {string} logMessage - The message to log
+     *
+     * @security LOG-INJECTION
+     * Be aware that logMessage is passed through to the log handler without sanitization.
+     * When logging user-controlled data (e.g., SCORM CMI values from content, URL parameters,
+     * postMessage payloads), consider the following risks:
+     *
+     * 1. Log injection: Malicious input containing newlines or ANSI codes could pollute logs
+     *    or create fake log entries that mislead security monitoring.
+     *
+     * 2. Information disclosure: Sensitive data in logs may be exposed to unauthorized viewers
+     *    with log access (developers, support staff, aggregation systems).
+     *
+     * 3. Log storage exhaustion: Extremely large or repeated values could fill disk space
+     *    or cause performance degradation in log processing systems.
+     *
+     * Defensive patterns:
+     * - Truncate long values before logging (e.g., logMessage.substring(0, 500))
+     * - Strip or escape newlines and control characters
+     * - Redact sensitive fields (PII, credentials, session tokens)
+     * - Implement custom log handlers that sanitize before writing to external systems
+     * - Use structured logging formats (JSON) that escape values properly
+     *
+     * Example of safe logging for user-controlled data:
+     * ```typescript
+     * const sanitized = userInput.replace(/[\r\n\x00-\x1F\x7F]/g, '').substring(0, 200);
+     * loggingService.info(`User input: ${sanitized}`);
+     * ```
      */
     log(messageLevel, logMessage) {
       if (this.shouldLog(messageLevel)) {
@@ -2873,6 +3391,7 @@ this.Scorm12API = (function () {
      */
     constructor(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService) {
       this._lastErrorCode = "0";
+      this._lastDiagnostic = "";
       this._errorCodes = errorCodes;
       this._apiLog = apiLog;
       this._getLmsErrorMessageDetails = getLmsErrorMessageDetails;
@@ -2895,6 +3414,14 @@ this.Scorm12API = (function () {
       this._lastErrorCode = errorCode;
     }
     /**
+     * Get the last custom diagnostic message
+     *
+     * @return {string} - The last custom diagnostic message, or empty string if none
+     */
+    get lastDiagnostic() {
+      return this._lastDiagnostic;
+    }
+    /**
      * Throws a SCORM error
      *
      * @param {string} CMIElement
@@ -2903,6 +3430,7 @@ this.Scorm12API = (function () {
      * @throws {ValidationError} - If throwException is true, throws a ValidationError
      */
     throwSCORMError(CMIElement, errorNumber, message) {
+      this._lastDiagnostic = message || "";
       if (!message) {
         message = this._getLmsErrorMessageDetails(errorNumber, true);
       }
@@ -2966,6 +3494,7 @@ this.Scorm12API = (function () {
       if (e instanceof ValidationError) {
         const validationError = e;
         this._lastErrorCode = String(validationError.errorCode);
+        this._lastDiagnostic = "";
         const errorMessage = `Validation Error ${validationError.errorCode}: ${validationError.message} [Element: ${CMIElement}]`;
         this._loggingService.warn(errorMessage);
         returnValue = global_constants.SCORM_FALSE;
@@ -2976,6 +3505,7 @@ this.Scorm12API = (function () {
         this._loggingService.error(`${errorMessage}
 ${stackTrace}`);
         this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, `${errorType}: ${e.message}`);
+        returnValue = global_constants.SCORM_FALSE;
       } else {
         const errorMessage = `Unknown error occurred while accessing [Element: ${CMIElement}]`;
         this._loggingService.error(errorMessage);
@@ -2986,6 +3516,7 @@ ${stackTrace}`);
           this._loggingService.error("Could not stringify error object for details");
         }
         this.throwSCORMError(CMIElement, this._errorCodes.GENERAL, "Unknown error");
+        returnValue = global_constants.SCORM_FALSE;
       }
       return returnValue;
     }
@@ -3017,8 +3548,11 @@ ${stackTrace}`);
       this.syncInProgress = false;
       this.settings = settings;
       this.error_codes = error_codes;
-      window.addEventListener("online", this.handleOnlineStatusChange.bind(this));
-      window.addEventListener("offline", this.handleOnlineStatusChange.bind(this));
+      this.boundOnlineStatusChangeHandler = this.handleOnlineStatusChange.bind(this);
+      this.boundCustomNetworkStatusHandler = this.handleCustomNetworkStatus.bind(this);
+      window.addEventListener("online", this.boundOnlineStatusChangeHandler);
+      window.addEventListener("offline", this.boundOnlineStatusChangeHandler);
+      window.addEventListener("scorm-again:network-status", this.boundCustomNetworkStatusHandler);
     }
     /**
      * Handle changes in online status
@@ -3042,12 +3576,47 @@ ${stackTrace}`);
       }
     }
     /**
+     * Handle custom network status events from external code
+     * This allows mobile apps or other external code to programmatically update network status
+     * @param {Event} event - The custom event containing network status
+     */
+    handleCustomNetworkStatus(event) {
+      if (!(event instanceof CustomEvent)) {
+        this.apiLog("OfflineStorageService", "Invalid network status event received", LogLevelEnum.WARN);
+        return;
+      }
+      const {
+        online
+      } = event.detail;
+      if (typeof online !== "boolean") {
+        this.apiLog("OfflineStorageService", "Invalid online status value in custom event", LogLevelEnum.WARN);
+        return;
+      }
+      const wasOnline = this.isOnline;
+      this.isOnline = online;
+      this.apiLog("OfflineStorageService", `Network status updated via custom event: ${online ? "online" : "offline"}`, LogLevelEnum.INFO);
+      if (!wasOnline && this.isOnline) {
+        this.apiLog("OfflineStorageService", "Device is back online, attempting to sync...", LogLevelEnum.INFO);
+        this.syncOfflineData().then(success => {
+          if (success) {
+            this.apiLog("OfflineStorageService", "Sync completed successfully", LogLevelEnum.INFO);
+          } else {
+            this.apiLog("OfflineStorageService", "Sync failed", LogLevelEnum.ERROR);
+          }
+        }, error => {
+          this.apiLog("OfflineStorageService", `Error during sync: ${error}`, LogLevelEnum.ERROR);
+        });
+      } else if (wasOnline && !this.isOnline) {
+        this.apiLog("OfflineStorageService", "Device is offline, data will be stored locally", LogLevelEnum.INFO);
+      }
+    }
+    /**
      * Store commit data offline
      * @param {string} courseId - Identifier for the course
      * @param {CommitObject} commitData - The data to store offline
-     * @returns {Promise<ResultObject>} - Result of the storage operation
+     * @returns {ResultObject} - Result of the storage operation
      */
-    async storeOffline(courseId, commitData) {
+    storeOffline(courseId, commitData) {
       try {
         const queueItem = {
           id: `${courseId}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
@@ -3056,17 +3625,19 @@ ${stackTrace}`);
           data: commitData,
           syncAttempts: 0
         };
-        const currentQueue = (await this.getFromStorage(this.syncQueue)) || [];
+        const currentQueue = this.getFromStorage(this.syncQueue) || [];
         currentQueue.push(queueItem);
-        await this.saveToStorage(this.syncQueue, currentQueue);
-        await this.saveToStorage(`${this.storeName}_${courseId}`, commitData);
+        this.saveToStorage(this.syncQueue, currentQueue);
+        this.saveToStorage(`${this.storeName}_${courseId}`, commitData);
         this.apiLog("OfflineStorageService", `Stored data offline for course ${courseId}`, LogLevelEnum.INFO);
         return {
           result: global_constants.SCORM_TRUE,
           errorCode: 0
         };
       } catch (error) {
-        this.apiLog("OfflineStorageService", `Error storing offline data: ${error}`, LogLevelEnum.ERROR);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const isQuotaError = errorMessage.includes("storage quota");
+        this.apiLog("OfflineStorageService", isQuotaError ? `storage quota exceeded - cannot store offline data for course ${courseId}` : `Error storing offline data: ${error}`, LogLevelEnum.ERROR);
         return {
           result: global_constants.SCORM_FALSE,
           errorCode: this.error_codes.GENERAL ?? 0
@@ -3080,7 +3651,7 @@ ${stackTrace}`);
      */
     async getOfflineData(courseId) {
       try {
-        const data = await this.getFromStorage(`${this.storeName}_${courseId}`);
+        const data = this.getFromStorage(`${this.storeName}_${courseId}`);
         return data || null;
       } catch (error) {
         this.apiLog("OfflineStorageService", `Error retrieving offline data: ${error}`, LogLevelEnum.ERROR);
@@ -3097,7 +3668,7 @@ ${stackTrace}`);
       }
       this.syncInProgress = true;
       try {
-        const syncQueue = (await this.getFromStorage(this.syncQueue)) || [];
+        const syncQueue = this.getFromStorage(this.syncQueue) || [];
         if (syncQueue.length === 0) {
           this.syncInProgress = false;
           return true;
@@ -3105,8 +3676,9 @@ ${stackTrace}`);
         this.apiLog("OfflineStorageService", `Found ${syncQueue.length} items to sync`, LogLevelEnum.INFO);
         const remainingQueue = [];
         for (const item of syncQueue) {
-          if (item.syncAttempts >= 5) {
-            this.apiLog("OfflineStorageService", `Skipping item ${item.id} after 5 failed attempts`, LogLevelEnum.WARN);
+          const maxAttempts = this.settings.maxSyncAttempts ?? 5;
+          if (item.syncAttempts >= maxAttempts) {
+            this.apiLog("OfflineStorageService", `Removing abandoned item ${item.id} after ${maxAttempts} failed sync attempts`, LogLevelEnum.WARN);
             continue;
           }
           try {
@@ -3124,7 +3696,7 @@ ${stackTrace}`);
             this.apiLog("OfflineStorageService", `Error syncing item ${item.id}: ${error}`, LogLevelEnum.ERROR);
           }
         }
-        await this.saveToStorage(this.syncQueue, remainingQueue);
+        this.saveToStorage(this.syncQueue, remainingQueue);
         this.apiLog("OfflineStorageService", `Sync completed. ${syncQueue.length - remainingQueue.length} items synced, ${remainingQueue.length} items remaining`, LogLevelEnum.INFO);
         this.syncInProgress = false;
         return true;
@@ -3192,9 +3764,9 @@ ${stackTrace}`);
     /**
      * Get item from localStorage
      * @param {string} key - The key to retrieve
-     * @returns {Promise<T|null>} - The retrieved data
+     * @returns {T|null} - The retrieved data
      */
-    async getFromStorage(key) {
+    getFromStorage(key) {
       const storedData = localStorage.getItem(key);
       if (storedData) {
         try {
@@ -3209,10 +3781,18 @@ ${stackTrace}`);
      * Save item to localStorage
      * @param {string} key - The key to store under
      * @param {any} data - The data to store
-     * @returns {Promise<void>}
+     * @returns {void}
+     * @throws {Error} Re-throws QuotaExceededError for handling upstream
      */
-    async saveToStorage(key, data) {
-      localStorage.setItem(key, JSON.stringify(data));
+    saveToStorage(key, data) {
+      try {
+        localStorage.setItem(key, JSON.stringify(data));
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "QuotaExceededError") {
+          throw new Error("storage quota exceeded - localStorage is full");
+        }
+        throw error;
+      }
     }
     /**
      * Check if there is pending offline data for a course
@@ -3220,7 +3800,7 @@ ${stackTrace}`);
      * @returns {Promise<boolean>} - Whether there is pending data
      */
     async hasPendingOfflineData(courseId) {
-      const queue = (await this.getFromStorage(this.syncQueue)) || [];
+      const queue = this.getFromStorage(this.syncQueue) || [];
       return queue.some(item => item.courseId === courseId);
     }
     /**
@@ -3229,6 +3809,15 @@ ${stackTrace}`);
      */
     updateSettings(settings) {
       this.settings = settings;
+    }
+    /**
+     * Clean up event listeners
+     * Should be called when the service is no longer needed
+     */
+    destroy() {
+      window.removeEventListener("online", this.boundOnlineStatusChangeHandler);
+      window.removeEventListener("offline", this.boundOnlineStatusChangeHandler);
+      window.removeEventListener("scorm-again:network-status", this.boundCustomNetworkStatusHandler);
     }
   }
 
@@ -3260,6 +3849,17 @@ ${stackTrace}`);
           ...settings
         };
       }
+      if (settings?.asyncCommit !== void 0 && settings.useAsynchronousCommits === void 0 && settings.throttleCommits === void 0) {
+        console.warn("DEPRECATED: 'asyncCommit' setting is deprecated and will be removed in a future version. Use 'useAsynchronousCommits: true' and 'throttleCommits: true' instead.");
+        if (settings.asyncCommit) {
+          this.settings.useAsynchronousCommits = true;
+          this.settings.throttleCommits = true;
+        }
+      }
+      if (!this.settings.useAsynchronousCommits && this.settings.throttleCommits) {
+        console.warn("throttleCommits cannot be used with synchronous commits. Setting throttleCommits to false.");
+        this.settings.throttleCommits = false;
+      }
       this._loggingService = loggingService || getLoggingService();
       this._loggingService.setLogLevel(this.settings.logLevel);
       if (this.settings.onLogMessage) {
@@ -3267,7 +3867,18 @@ ${stackTrace}`);
       } else {
         this._loggingService.setLogHandler(defaultLogHandler);
       }
-      this._httpService = httpService || new HttpService(this.settings, this._error_codes);
+      if (httpService) {
+        this._httpService = httpService;
+      } else if (this.settings.httpService) {
+        this._httpService = this.settings.httpService;
+      } else {
+        if (this.settings.useAsynchronousCommits) {
+          console.warn("WARNING: useAsynchronousCommits=true is not SCORM compliant. Commit failures will not be reported to the SCO, which may cause data loss. This setting should only be used for specific legacy compatibility cases.");
+          this._httpService = new AsynchronousHttpService(this.settings, this._error_codes);
+        } else {
+          this._httpService = new SynchronousHttpService(this.settings, this._error_codes);
+        }
+      }
       this._eventService = eventService || new EventService((functionName, message, level, element) => this.apiLog(functionName, message, level, element));
       this._serializationService = serializationService || new SerializationService();
       this._errorHandlingService = errorHandlingService || createErrorHandlingService(this._error_codes, (functionName, message, level, element) => this.apiLog(functionName, message, level || LogLevelEnum.ERROR, element), (errorNumber, detail) => this.getLmsErrorMessageDetails(errorNumber, detail));
@@ -3275,6 +3886,27 @@ ${stackTrace}`);
         this._offlineStorageService = offlineStorageService || new OfflineStorageService(this.settings, this._error_codes, (functionName, message, level, element) => this.apiLog(functionName, message, level, element));
         if (this.settings.courseId) {
           this._courseId = this.settings.courseId;
+        }
+        if (this.settings.syncOnTerminate) {
+          this._eventService.on("BeforeTerminate", () => {
+            if (this._offlineStorageService?.isDeviceOnline() && this._courseId) {
+              this._offlineStorageService.hasPendingOfflineData(this._courseId).then(hasPendingData => {
+                if (hasPendingData) {
+                  this.apiLog("BeforeTerminate", "Syncing pending offline data before termination", LogLevelEnum.INFO);
+                  return this._offlineStorageService?.syncOfflineData();
+                }
+              }).then(syncSuccess => {
+                if (syncSuccess) {
+                  this.processListeners("OfflineDataSynced");
+                } else if (syncSuccess === false) {
+                  this.processListeners("OfflineDataSyncFailed");
+                }
+              }).catch(error => {
+                this.apiLog("BeforeTerminate", `Error syncing offline data: ${error}`, LogLevelEnum.ERROR);
+                this.processListeners("OfflineDataSyncFailed");
+              });
+            }
+          });
         }
         if (this._offlineStorageService && this._courseId) {
           this._offlineStorageService.getOfflineData(this._courseId).then(offlineData => {
@@ -3423,18 +4055,21 @@ ${stackTrace}`);
      * @param {boolean} checkTerminated
      * @return {string}
      */
-    async terminate(callbackName, checkTerminated) {
-      let returnValue = global_constants.SCORM_FALSE;
-      if (this.checkState(checkTerminated, this._error_codes.TERMINATION_BEFORE_INIT ?? 0, this._error_codes.MULTIPLE_TERMINATION ?? 0)) {
-        this.currentState = global_constants.STATE_TERMINATED;
-        if (this.settings.enableOfflineSupport && this._offlineStorageService && this._courseId && this.settings.syncOnTerminate && this._offlineStorageService.isDeviceOnline()) {
-          const hasPendingData = await this._offlineStorageService.hasPendingOfflineData(this._courseId);
-          if (hasPendingData) {
-            this.apiLog(callbackName, "Syncing pending offline data before termination", LogLevelEnum.INFO);
-            await this._offlineStorageService.syncOfflineData();
-          }
-        }
-        const result = await this.storeData(true);
+    terminate(callbackName, checkTerminated) {
+      let returnValue = global_constants.SCORM_TRUE;
+      let stateCheckPassed = false;
+      if (this.isNotInitialized()) {
+        const errorCode = this._error_codes.TERMINATION_BEFORE_INIT ?? 0;
+        this.throwSCORMError("api", errorCode);
+        if (errorCode === 112) returnValue = global_constants.SCORM_FALSE;
+      } else if (checkTerminated && this.isTerminated()) {
+        const errorCode = this._error_codes.MULTIPLE_TERMINATION ?? 0;
+        this.throwSCORMError("api", errorCode);
+        if (errorCode === 113) returnValue = global_constants.SCORM_FALSE;
+      } else {
+        stateCheckPassed = true;
+        this.processListeners("BeforeTerminate");
+        const result = this.storeData(true);
         if ((result.errorCode ?? 0) > 0) {
           if (result.errorMessage) {
             this.apiLog("terminate", `Terminate failed with error: ${result.errorMessage}`, LogLevelEnum.ERROR);
@@ -3443,14 +4078,18 @@ ${stackTrace}`);
             this.apiLog("terminate", `Error details: ${JSON.stringify(result.errorDetails)}`, LogLevelEnum.DEBUG);
           }
           this.throwSCORMError("api", result.errorCode ?? 0);
+          returnValue = global_constants.SCORM_FALSE;
+        } else {
+          this.currentState = global_constants.STATE_TERMINATED;
+          if (checkTerminated) this.lastErrorCode = "0";
+          returnValue = result?.result ?? global_constants.SCORM_TRUE;
         }
-        returnValue = result?.result ?? global_constants.SCORM_FALSE;
-        if (checkTerminated) this.lastErrorCode = "0";
-        returnValue = global_constants.SCORM_TRUE;
         this.processListeners(callbackName);
       }
       this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
-      this.clearSCORMError(returnValue);
+      if (stateCheckPassed) {
+        this.clearSCORMError(returnValue);
+      }
       return returnValue;
     }
     /**
@@ -3523,12 +4162,20 @@ ${stackTrace}`);
      * @param {boolean} checkTerminated
      * @return {string}
      */
-    async commit(callbackName) {
+    commit(callbackName) {
       let checkTerminated = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
       this.clearScheduledCommit();
-      let returnValue = global_constants.SCORM_FALSE;
-      if (this.checkState(checkTerminated, this._error_codes.COMMIT_BEFORE_INIT ?? 0, this._error_codes.COMMIT_AFTER_TERM ?? 0)) {
-        const result = await this.storeData(false);
+      let returnValue = global_constants.SCORM_TRUE;
+      if (this.isNotInitialized()) {
+        const errorCode = this._error_codes.COMMIT_BEFORE_INIT ?? 0;
+        this.throwSCORMError("api", errorCode);
+        if (errorCode === 142) returnValue = global_constants.SCORM_FALSE;
+      } else if (checkTerminated && this.isTerminated()) {
+        const errorCode = this._error_codes.COMMIT_AFTER_TERM ?? 0;
+        this.throwSCORMError("api", errorCode);
+        if (errorCode === 143) returnValue = global_constants.SCORM_FALSE;
+      } else {
+        const result = this.storeData(false);
         if ((result.errorCode ?? 0) > 0) {
           if (result.errorMessage) {
             this.apiLog("commit", `Commit failed with error: ${result.errorMessage}`, LogLevelEnum.ERROR);
@@ -3559,7 +4206,7 @@ ${stackTrace}`);
         }
       }
       this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
-      if (this.lastErrorCode === "0") {
+      if (!this.isNotInitialized() && !(checkTerminated && this.isTerminated())) {
         this.clearSCORMError(returnValue);
       }
       return returnValue;
@@ -3580,13 +4227,16 @@ ${stackTrace}`);
      *
      * @param {string} callbackName
      * @param {(string|number)} CMIErrorCode
-     * @return {string}
+     * @return {string} - Error description string (max 255 chars per spec)
      */
     getErrorString(callbackName, CMIErrorCode) {
       let returnValue = "";
       if (CMIErrorCode !== null && CMIErrorCode !== "") {
         returnValue = this.getLmsErrorMessageDetails(CMIErrorCode);
         this.processListeners(callbackName);
+      }
+      if (returnValue.length > 255) {
+        returnValue = returnValue.substring(0, 255);
       }
       this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
       return returnValue;
@@ -3600,9 +4250,18 @@ ${stackTrace}`);
      */
     getDiagnostic(callbackName, CMIErrorCode) {
       let returnValue = "";
-      if (CMIErrorCode !== null && CMIErrorCode !== "") {
-        returnValue = this.getLmsErrorMessageDetails(CMIErrorCode, true);
+      const errorCode = CMIErrorCode === "" ? String(this.lastErrorCode) : CMIErrorCode;
+      if (errorCode !== null && errorCode !== "") {
+        const customDiagnostic = this._errorHandlingService.lastDiagnostic;
+        if (customDiagnostic && String(errorCode) === String(this.lastErrorCode)) {
+          returnValue = customDiagnostic;
+        } else {
+          returnValue = this.getLmsErrorMessageDetails(errorCode, true);
+        }
         this.processListeners(callbackName);
+      }
+      if (returnValue.length > 255) {
+        returnValue = returnValue.substring(0, 255);
       }
       this.apiLog(callbackName, "returned: " + returnValue, LogLevelEnum.INFO);
       return returnValue;
@@ -3624,6 +4283,70 @@ ${stackTrace}`);
         return false;
       }
       return true;
+    }
+    /**
+     * Checks if setting an ID would create a duplicate in the objectives or interactions array.
+     * Per SCORM 2004 RTE Section 4.1.5/4.1.6: IDs must be unique within their respective arrays.
+     *
+     * @param {string} CMIElement - The element path (e.g., "cmi.objectives.0.id")
+     * @param {string} value - The ID value being set
+     * @return {boolean} - True if a duplicate would be created, false otherwise
+     * @protected
+     */
+    _checkForDuplicateId(CMIElement, value) {
+      const getCMIArrayProperty = (obj, prop) => {
+        if (obj && typeof obj === "object" && prop in obj) {
+          const value2 = obj[prop];
+          return value2 instanceof CMIArray ? value2 : void 0;
+        }
+        return void 0;
+      };
+      const hasDuplicateId = (array, currentIndex, idValue) => {
+        for (let i = 0; i < array.childArray.length; i++) {
+          if (i !== currentIndex) {
+            const child = array.childArray[i];
+            if (child && typeof child === "object" && "id" in child && child.id === idValue) {
+              return true;
+            }
+          }
+        }
+        return false;
+      };
+      const objectivesMatch = CMIElement.match(/^cmi\.objectives\.(\d+)\.id$/);
+      if (objectivesMatch && objectivesMatch[1]) {
+        const currentIndex = parseInt(objectivesMatch[1], 10);
+        const objectives = getCMIArrayProperty(this.cmi, "objectives");
+        if (objectives) {
+          return hasDuplicateId(objectives, currentIndex, value);
+        }
+        return false;
+      }
+      const interactionsMatch = CMIElement.match(/^cmi\.interactions\.(\d+)\.id$/);
+      if (interactionsMatch && interactionsMatch[1]) {
+        const currentIndex = parseInt(interactionsMatch[1], 10);
+        const interactions = getCMIArrayProperty(this.cmi, "interactions");
+        if (interactions) {
+          return hasDuplicateId(interactions, currentIndex, value);
+        }
+        return false;
+      }
+      const interactionObjectivesMatch = CMIElement.match(/^cmi\.interactions\.(\d+)\.objectives\.(\d+)\.id$/);
+      if (interactionObjectivesMatch && interactionObjectivesMatch[1] && interactionObjectivesMatch[2]) {
+        const interactionIndex = parseInt(interactionObjectivesMatch[1], 10);
+        const currentObjIndex = parseInt(interactionObjectivesMatch[2], 10);
+        const interactions = getCMIArrayProperty(this.cmi, "interactions");
+        if (interactions) {
+          const interaction = interactions.childArray[interactionIndex];
+          if (interaction) {
+            const objectives = getCMIArrayProperty(interaction, "objectives");
+            if (objectives) {
+              return hasDuplicateId(objectives, currentObjIndex, value);
+            }
+          }
+        }
+        return false;
+      }
+      return false;
     }
     /**
      * Returns the message that corresponds to errorNumber
@@ -3671,6 +4394,9 @@ ${stackTrace}`);
      */
     _commonSetCMIValue(methodName, scorm2004, CMIElement, value) {
       if (!CMIElement || CMIElement === "") {
+        if (scorm2004) {
+          this.throwSCORMError(CMIElement, this._error_codes.GENERAL_SET_FAILURE, "The data model element was not specified");
+        }
         return global_constants.SCORM_FALSE;
       }
       this.lastErrorCode = "0";
@@ -3709,6 +4435,13 @@ ${stackTrace}`);
                 this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
                 break;
               }
+              if (scorm2004 && attribute === "id" && this.isInitialized()) {
+                const duplicateError = this._checkForDuplicateId(CMIElement, value);
+                if (duplicateError) {
+                  this.throwSCORMError(CMIElement, this._error_codes.GENERAL_SET_FAILURE);
+                  break;
+                }
+              }
               refObject[attribute] = value;
               returnValue = global_constants.SCORM_TRUE;
             }
@@ -3731,6 +4464,11 @@ ${stackTrace}`);
                 refObject = item;
                 foundFirstIndex = true;
               } else {
+                if (index > refObject.childArray.length) {
+                  const errorCode = scorm2004 ? this._error_codes.GENERAL_SET_FAILURE : this._error_codes.INVALID_SET_VALUE || this._error_codes.GENERAL_SET_FAILURE;
+                  this.throwSCORMError(CMIElement, errorCode, `Cannot set array element at index ${index}. Array indices must be sequential. Current array length is ${refObject.childArray.length}, expected index ${refObject.childArray.length}.`);
+                  break;
+                }
                 const newChild = this.getChildElement(CMIElement, value, foundFirstIndex);
                 foundFirstIndex = true;
                 if (!newChild) {
@@ -3764,6 +4502,13 @@ ${stackTrace}`);
      */
     _commonGetCMIValue(methodName, scorm2004, CMIElement) {
       if (!CMIElement || CMIElement === "") {
+        if (scorm2004) {
+          this.throwSCORMError(CMIElement, this._error_codes.GENERAL_GET_FAILURE, "The data model element was not specified");
+        }
+        return "";
+      }
+      if (scorm2004 && CMIElement.endsWith("._version") && CMIElement !== "cmi._version") {
+        this.throwSCORMError(CMIElement, this._error_codes.GENERAL_GET_FAILURE, "The _version keyword was used incorrectly");
         return "";
       }
       const structure = CMIElement.split(".");
@@ -3783,9 +4528,16 @@ ${stackTrace}`);
           }
         } else {
           if (String(attribute).substring(0, 8) === "{target=" && typeof refObject._isTargetValid == "function") {
-            const target = String(attribute).substring(8, String(attribute).length - 9);
+            const target = String(attribute).substring(8, String(attribute).length - 1);
             return refObject._isTargetValid(target);
           } else if (typeof attribute === "undefined" || !this._checkObjectHasProperty(refObject, attribute)) {
+            if (attribute === "_children") {
+              this.throwSCORMError(CMIElement, this._error_codes.GENERAL_GET_FAILURE, "The data model element does not have children");
+              return;
+            } else if (attribute === "_count") {
+              this.throwSCORMError(CMIElement, this._error_codes.GENERAL_GET_FAILURE, "The data model element is not a collection and therefore does not have a count");
+              return;
+            }
             this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
             return;
           }
@@ -3808,7 +4560,7 @@ ${stackTrace}`);
               refObject = item;
             } else {
               this.throwSCORMError(CMIElement, this._error_codes.VALUE_NOT_INITIALIZED, uninitializedErrorMessage);
-              break;
+              return;
             }
             idx++;
           }
@@ -4032,25 +4784,23 @@ ${stackTrace}`);
      * @param {string} url - The URL to send the request to
      * @param {CommitObject | StringKeyMap | Array<any>} params - The parameters to send
      * @param {boolean} immediate - Whether to send the request immediately without waiting
-     * @returns {Promise<ResultObject>} - The result of the request
-     * @async
+     * @returns {ResultObject} - The result of the request
      */
-    async processHttpRequest(url, params) {
+    processHttpRequest(url, params) {
       let immediate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
       if (this.settings.enableOfflineSupport && this._offlineStorageService && !this._offlineStorageService.isDeviceOnline() && this._courseId) {
         this.apiLog("processHttpRequest", "Device is offline, storing data locally", LogLevelEnum.INFO);
         if (params && typeof params === "object" && "cmi" in params) {
-          return await this._offlineStorageService.storeOffline(this._courseId, params);
+          return this._offlineStorageService.storeOffline(this._courseId, params);
         } else {
           this.apiLog("processHttpRequest", "Invalid commit data format for offline storage", LogLevelEnum.ERROR);
           return {
             result: global_constants.SCORM_FALSE,
             errorCode: this._error_codes.GENERAL ?? 101
-            // Fallback to a default error code if GENERAL is undefined
           };
         }
       }
-      return await this._httpService.processHttpRequest(url, params, immediate, (functionName, message, level, element) => this.apiLog(functionName, message, level, element), (functionName, CMIElement, value) => this.processListeners(functionName, CMIElement, value));
+      return this._httpService.processHttpRequest(url, params, immediate, (functionName, message, level, element) => this.apiLog(functionName, message, level, element), (functionName, CMIElement, value) => this.processListeners(functionName, CMIElement, value));
     }
     /**
      * Schedules a commit operation to occur after a specified delay.
@@ -4113,8 +4863,11 @@ ${stackTrace}`);
      * const obj = { name: "John" };
      * this._checkObjectHasProperty(obj, "age"); // Returns false
      */
-    _checkObjectHasProperty(StringKeyMap2, attribute) {
-      return Object.hasOwnProperty.call(StringKeyMap2, attribute) || Object.getOwnPropertyDescriptor(Object.getPrototypeOf(StringKeyMap2), attribute) != null || attribute in StringKeyMap2;
+    _checkObjectHasProperty(obj, attribute) {
+      if (obj === null || obj === void 0 || typeof obj !== "object") {
+        return false;
+      }
+      return Object.hasOwnProperty.call(obj, attribute) || Object.getOwnPropertyDescriptor(Object.getPrototypeOf(obj), attribute) != null || attribute in obj;
     }
     /**
      * Handles exceptions that occur when accessing CMI values.
@@ -4148,7 +4901,9 @@ ${stackTrace}`);
     handleValueAccessException(CMIElement, e, returnValue) {
       if (e instanceof ValidationError) {
         this.lastErrorCode = String(e.errorCode);
-        returnValue = global_constants.SCORM_FALSE;
+        if (returnValue !== "") {
+          returnValue = global_constants.SCORM_FALSE;
+        }
         this.throwSCORMError(CMIElement, e.errorCode, e.errorMessage);
       } else {
         if (e instanceof Error && e.message) {
@@ -4185,21 +4940,39 @@ ${stackTrace}`);
     }
   }
 
-  class Scorm12API extends BaseAPI {
+  const _Scorm12API = class _Scorm12API extends BaseAPI {
     /**
      * Constructor for SCORM 1.2 API
      * @param {object} settings
+     * @param {IHttpService} httpService - Optional HTTP service instance
      */
-    constructor(settings) {
-      if (settings) {
-        if (settings.mastery_override === void 0) {
-          settings.mastery_override = false;
+    constructor(settings, httpService) {
+      const settingsCopy = settings ? {
+        ...settings
+      } : void 0;
+      if (settingsCopy) {
+        if (settingsCopy.mastery_override === void 0) {
+          settingsCopy.mastery_override = true;
         }
       }
-      super(scorm12_errors$1, settings);
+      super(scorm12_errors$1, settingsCopy, httpService);
       this.statusSetByModule = false;
       this.cmi = new CMI();
       this.nav = new NAV();
+      if (this.settings.globalStudentPreferences && _Scorm12API._globalLearnerPrefs) {
+        if (_Scorm12API._globalLearnerPrefs.audio !== "") {
+          this.cmi.student_preference.audio = _Scorm12API._globalLearnerPrefs.audio;
+        }
+        if (_Scorm12API._globalLearnerPrefs.language !== "") {
+          this.cmi.student_preference.language = _Scorm12API._globalLearnerPrefs.language;
+        }
+        if (_Scorm12API._globalLearnerPrefs.speed !== "") {
+          this.cmi.student_preference.speed = _Scorm12API._globalLearnerPrefs.speed;
+        }
+        if (_Scorm12API._globalLearnerPrefs.text !== "") {
+          this.cmi.student_preference.text = _Scorm12API._globalLearnerPrefs.text;
+        }
+      }
       this.LMSInitialize = this.lmsInitialize;
       this.LMSFinish = this.lmsFinish;
       this.LMSGetValue = this.lmsGetValue;
@@ -4210,19 +4983,40 @@ ${stackTrace}`);
       this.LMSGetDiagnostic = this.lmsGetDiagnostic;
     }
     /**
+     * Clear the global learner preferences storage
+     * @public
+     */
+    static clearGlobalPreferences() {
+      _Scorm12API._globalLearnerPrefs = null;
+    }
+    /**
      * Called when the API needs to be reset
      */
     reset(settings) {
       this.commonReset(settings);
       this.cmi?.reset();
       this.nav?.reset();
+      this.statusSetByModule = false;
     }
     /**
-     * lmsInitialize function from SCORM 1.2 Spec
+     * LMSInitialize - Begins a communication session with the LMS
      *
-     * @return {string} bool
+     * Per SCORM 1.2 RTE Section 3.4.3.1:
+     * - Parameter must be empty string ("")
+     * - Returns "true" on success, "false" on failure
+     * - Sets error 101 if already initialized
+     * - Sets error 101 if already terminated
+     * - Initializes cmi.core.lesson_status to "not attempted" if not already set
+     *
+     * @param {string} parameter - Must be an empty string per SCORM 1.2 specification
+     * @return {string} "true" or "false"
      */
     lmsInitialize() {
+      let parameter = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
+      if (parameter !== "") {
+        this.throwSCORMError("api", this._error_codes.ARGUMENT_ERROR);
+        return global_constants.SCORM_FALSE;
+      }
       this.cmi.initialize();
       if (this.cmi.core.lesson_status) {
         this.statusSetByModule = true;
@@ -4232,18 +5026,26 @@ ${stackTrace}`);
       return this.initialize("LMSInitialize", "LMS was already initialized!", "LMS is already finished!");
     }
     /**
-     * LMSFinish function from SCORM 1.2 Spec
+     * LMSFinish - Ends the communication session and persists data
      *
-     * @return {string} bool
+     * Per SCORM 1.2 RTE Section 3.4.3.2:
+     * - Parameter must be empty string ("")
+     * - Returns "true" on success, "false" on failure
+     * - Commits all data to persistent storage
+     * - Sets error 101 if not initialized
+     * - Sets error 101 if already terminated
+     * - Processes navigation events (continue/previous) if nav.event is set
+     *
+     * @param {string} parameter - Must be an empty string per SCORM 1.2 specification
+     * @return {string} "true" or "false"
      */
     lmsFinish() {
-      (async () => {
-        await this.internalFinish();
-      })();
-      return global_constants.SCORM_TRUE;
-    }
-    async internalFinish() {
-      const result = await this.terminate("LMSFinish", true);
+      let parameter = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
+      if (parameter !== "") {
+        this.throwSCORMError("api", this._error_codes.ARGUMENT_ERROR);
+        return global_constants.SCORM_FALSE;
+      }
+      const result = this.terminate("LMSFinish", true);
       if (result === global_constants.SCORM_TRUE) {
         if (this.nav.event !== "") {
           if (this.nav.event === "continue") {
@@ -4258,20 +5060,38 @@ ${stackTrace}`);
       return result;
     }
     /**
-     * LMSGetValue function from SCORM 1.2 Spec
+     * LMSGetValue - Retrieves a value from the CMI data model
      *
-     * @param {string} CMIElement
-     * @return {string}
+     * Per SCORM 1.2 RTE Section 3.4.3.3:
+     * - Returns the value of the specified CMI element
+     * - Returns empty string if element has no value
+     * - Sets error 101 if not initialized
+     * - Sets error 301 if element is not implemented (invalid element)
+     * - Sets error 201 if element is write-only
+     * - Sets error 202 if element is not initialized
+     *
+     * @param {string} CMIElement - The CMI element path (e.g., "cmi.core.score.raw")
+     * @return {string} The value of the element, or empty string
      */
     lmsGetValue(CMIElement) {
       return this.getValue("LMSGetValue", false, CMIElement);
     }
     /**
-     * LMSSetValue function from SCORM 1.2 Spec
+     * LMSSetValue - Sets a value in the CMI data model
      *
-     * @param {string} CMIElement
-     * @param {*} value
-     * @return {string}
+     * Per SCORM 1.2 RTE Section 3.4.3.4:
+     * - Sets the value of the specified CMI element
+     * - Returns "true" on success, "false" on failure
+     * - Sets error 101 if not initialized
+     * - Sets error 301 if element is not implemented (invalid element)
+     * - Sets error 351 if element exceeds maximum length
+     * - Sets error 201 if element is read-only
+     * - Sets error 405 if incorrect data type
+     * - Triggers autocommit if enabled
+     *
+     * @param {string} CMIElement - The CMI element path (e.g., "cmi.core.lesson_status")
+     * @param {any} value - The value to set
+     * @return {string} "true" or "false"
      */
     lmsSetValue(CMIElement, value) {
       if (CMIElement === "cmi.core.lesson_status") {
@@ -4280,42 +5100,76 @@ ${stackTrace}`);
       return this.setValue("LMSSetValue", "LMSCommit", false, CMIElement, value);
     }
     /**
-     * LMSCommit function from SCORM 1.2 Spec
+     * LMSCommit - Requests immediate persistence of data to the LMS
      *
-     * @return {string} bool
+     * Per SCORM 1.2 RTE Section 3.4.4.1:
+     * - Parameter must be empty string ("")
+     * - Requests persistence of all data set since last successful commit
+     * - Returns "true" on success, "false" on failure
+     * - Sets error 101 if not initialized
+     * - Sets error 391 if commit failed
+     * - Does not terminate the communication session
+     *
+     * @param {string} parameter - Must be an empty string per SCORM 1.2 specification
+     * @return {string} "true" or "false"
      */
     lmsCommit() {
-      if (this.settings.asyncCommit) {
-        this.scheduleCommit(500, "LMSCommit");
-      } else {
-        (async () => {
-          await this.commit("LMSCommit", false);
-        })();
+      let parameter = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
+      if (parameter !== "") {
+        this.throwSCORMError("api", this._error_codes.ARGUMENT_ERROR);
+        return global_constants.SCORM_FALSE;
       }
-      return global_constants.SCORM_TRUE;
+      if (this.settings.throttleCommits) {
+        this.scheduleCommit(500, "LMSCommit");
+        return global_constants.SCORM_TRUE;
+      } else {
+        return this.commit("LMSCommit", false);
+      }
     }
     /**
-     * LMSGetLastError function from SCORM 1.2 Spec
+     * LMSGetLastError - Returns the error code from the last API call
      *
-     * @return {string}
+     * Per SCORM 1.2 RTE Section 3.4.4.2:
+     * - Returns the error code that resulted from the last API call
+     * - Returns "0" if no error occurred
+     * - Can be called at any time (even before LMSInitialize)
+     * - Does not change the current error state
+     * - Should be called after each API call to check for errors
+     *
+     * @return {string} Error code as a string (e.g., "0", "101", "301")
      */
     lmsGetLastError() {
       return this.getLastError("LMSGetLastError");
     }
     /**
-     * LMSGetErrorString function from SCORM 1.2 Spec
+     * LMSGetErrorString - Returns a short description for an error code
      *
-     * @param {string} CMIErrorCode
-     * @return {string}
+     * Per SCORM 1.2 RTE Section 3.4.4.3:
+     * - Returns a textual description for the specified error code
+     * - Returns empty string if error code is not recognized
+     * - Can be called at any time (even before LMSInitialize)
+     * - Does not change the current error state
+     * - Used to provide user-friendly error messages
+     *
+     * @param {string} CMIErrorCode - The error code to get the description for
+     * @return {string} Short error description
      */
     lmsGetErrorString(CMIErrorCode) {
       return this.getErrorString("LMSGetErrorString", CMIErrorCode);
     }
     /**
-     * LMSGetDiagnostic function from SCORM 1.2 Spec
+     * LMSGetDiagnostic - Returns detailed diagnostic information for an error
      *
-     * @param {string} CMIErrorCode
-     * @return {string}
+     * Per SCORM 1.2 RTE Section 3.4.4.4:
+     * - Returns detailed diagnostic information for the specified error code
+     * - Implementation-specific; can include additional context or debugging info
+     * - Returns empty string if no diagnostic information is available
+     * - Can be called at any time (even before LMSInitialize)
+     * - Does not change the current error state
+     * - Used for debugging and troubleshooting
+     *
+     * @param {string} CMIErrorCode - The error code to get diagnostic information for
+     * @return {string} Detailed diagnostic information
      */
     lmsGetDiagnostic(CMIErrorCode) {
       return this.getDiagnostic("LMSGetDiagnostic", CMIErrorCode);
@@ -4328,7 +5182,36 @@ ${stackTrace}`);
      * @return {string}
      */
     setCMIValue(CMIElement, value) {
-      return this._commonSetCMIValue("LMSSetValue", false, CMIElement, value);
+      const result = this._commonSetCMIValue("LMSSetValue", false, CMIElement, value);
+      if (this.settings.globalStudentPreferences) {
+        if (CMIElement === "cmi.student_preference.audio") {
+          this._updateGlobalPreference("audio", value);
+        } else if (CMIElement === "cmi.student_preference.language") {
+          this._updateGlobalPreference("language", value);
+        } else if (CMIElement === "cmi.student_preference.speed") {
+          this._updateGlobalPreference("speed", value);
+        } else if (CMIElement === "cmi.student_preference.text") {
+          this._updateGlobalPreference("text", value);
+        }
+      }
+      return result;
+    }
+    /**
+     * Updates a specific field in the global learner preferences storage
+     * @param {string} field - The preference field to update
+     * @param {string} value - The value to set
+     * @private
+     */
+    _updateGlobalPreference(field, value) {
+      if (!_Scorm12API._globalLearnerPrefs) {
+        _Scorm12API._globalLearnerPrefs = {
+          audio: "",
+          language: "",
+          speed: "",
+          text: ""
+        };
+      }
+      _Scorm12API._globalLearnerPrefs[field] = value;
     }
     /**
      * Gets a value from the CMI Object
@@ -4454,6 +5337,20 @@ ${stackTrace}`);
       if (scoreObject) {
         commitObject.score = scoreObject;
       }
+      if (this.settings.autoPopulateCommitMetadata) {
+        if (this.settings.courseId) {
+          commitObject.courseId = this.settings.courseId;
+        }
+        if (this.settings.scoId) {
+          commitObject.scoId = this.settings.scoId;
+        }
+        if (this.cmi.core.student_id) {
+          commitObject.learnerId = this.cmi.core.student_id;
+        }
+        if (this.cmi.core.student_name) {
+          commitObject.learnerName = this.cmi.core.student_name;
+        }
+      }
       return commitObject;
     }
     /**
@@ -4462,27 +5359,48 @@ ${stackTrace}`);
      * @param {boolean} terminateCommit
      * @return {ResultObject}
      */
-    async storeData(terminateCommit) {
+    storeData(terminateCommit) {
       if (terminateCommit) {
         const originalStatus = this.cmi.core.lesson_status;
+        if (this.cmi.core.lesson_mode === "browse") {
+          const startingStatus = this.startingData?.cmi?.core?.lesson_status || "";
+          if (startingStatus === "" && originalStatus === "not attempted") {
+            this.cmi.core.lesson_status = "browsed";
+            return this.processCommitData(terminateCommit);
+          }
+        }
         if (!this.cmi.core.lesson_status || !this.statusSetByModule && this.cmi.core.lesson_status === "not attempted") {
-          this.cmi.core.lesson_status = "completed";
+          this.cmi.core.lesson_status = this.settings.autoCompleteLessonStatus ? "completed" : "incomplete";
         }
         if (this.cmi.core.lesson_mode === "normal") {
           if (this.cmi.core.credit === "credit") {
             if (this.settings.mastery_override && this.cmi.student_data.mastery_score !== "" && this.cmi.core.score.raw !== "") {
-              this.cmi.core.lesson_status = parseFloat(this.cmi.core.score.raw) >= parseFloat(this.cmi.student_data.mastery_score) ? "passed" : "failed";
+              const rawScore = parseFloat(this.cmi.core.score.raw);
+              const masteryScore = parseFloat(this.cmi.student_data.mastery_score);
+              if (!isNaN(rawScore) && !isNaN(masteryScore)) {
+                this.cmi.core.lesson_status = rawScore >= masteryScore ? "passed" : "failed";
+              }
             }
           }
-        } else if (this.cmi.core.lesson_mode === "browse") {
-          if ((this.startingData?.cmi?.core?.lesson_status || "") === "" && originalStatus === "not attempted") {
-            this.cmi.core.lesson_status = "browsed";
+        }
+        if (this.settings.score_overrides_status && this.statusSetByModule && this.cmi.core.lesson_mode === "normal" && this.cmi.core.credit === "credit" && this.cmi.student_data.mastery_score !== "" && this.cmi.core.score.raw !== "") {
+          const rawScore = parseFloat(this.cmi.core.score.raw);
+          const masteryScore = parseFloat(this.cmi.student_data.mastery_score);
+          if (!isNaN(rawScore) && !isNaN(masteryScore)) {
+            if (rawScore >= masteryScore) {
+              this.cmi.core.lesson_status = "passed";
+            } else {
+              this.cmi.core.lesson_status = "failed";
+            }
           }
         }
       }
+      return this.processCommitData(terminateCommit);
+    }
+    processCommitData(terminateCommit) {
       const commitObject = this.getCommitObject(terminateCommit);
       if (typeof this.settings.lmsCommitUrl === "string") {
-        return await this.processHttpRequest(this.settings.lmsCommitUrl, commitObject, terminateCommit);
+        return this.processHttpRequest(this.settings.lmsCommitUrl, commitObject, terminateCommit);
       } else {
         return {
           result: global_constants.SCORM_TRUE,
@@ -4490,7 +5408,14 @@ ${stackTrace}`);
         };
       }
     }
-  }
+  };
+  /**
+   * Static global storage for learner preferences
+   * When globalStudentPreferences is enabled, preferences persist across SCO instances
+   * @private
+   */
+  _Scorm12API._globalLearnerPrefs = null;
+  let Scorm12API = _Scorm12API;
 
   return Scorm12API;
 

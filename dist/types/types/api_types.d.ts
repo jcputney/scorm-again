@@ -1,9 +1,12 @@
 import { CompletionStatus, LogLevelEnum, SuccessStatus } from "../constants/enums";
 import { StringKeyMap } from "../utilities";
 import { SequencingSettings } from "./sequencing_types";
+import type { IHttpService } from "../interfaces/services";
 export type Settings = {
     autocommit?: boolean | undefined;
     autocommitSeconds?: number | undefined;
+    throttleCommits?: boolean | undefined;
+    useAsynchronousCommits?: boolean | undefined;
     asyncCommit?: boolean | undefined;
     sendFullCommit?: boolean | undefined;
     lmsCommitUrl?: boolean | string | undefined;
@@ -18,10 +21,14 @@ export type Settings = {
     xhrWithCredentials?: boolean | undefined;
     fetchMode?: "cors" | "no-cors" | "same-origin" | "navigate" | undefined;
     responseHandler?: ((response: Response) => Promise<ResultObject>) | undefined;
+    xhrResponseHandler?: ((xhr: XMLHttpRequest) => ResultObject) | undefined;
     requestHandler?: ((commitObject: unknown) => unknown) | undefined;
     onLogMessage?: ((messageLevel: LogLevel, logMessage: string) => void) | undefined;
     mastery_override?: boolean | undefined;
+    score_overrides_status?: boolean | undefined;
+    completion_status_on_failed?: "completed" | "incomplete" | undefined;
     renderCommonCommitFields?: boolean | undefined;
+    autoCompleteLessonStatus?: boolean | undefined;
     scoItemIds?: string[] | undefined;
     scoItemIdValidator?: false | ((scoItemId: string) => boolean) | undefined;
     globalObjectiveIds?: string[] | undefined;
@@ -32,12 +39,17 @@ export type Settings = {
     syncOnInitialize?: boolean | undefined;
     syncOnTerminate?: boolean | undefined;
     maxSyncAttempts?: number | undefined;
+    scoId?: string | undefined;
+    autoPopulateCommitMetadata?: boolean | undefined;
     sequencingStatePersistence?: SequencingStatePersistenceConfig | undefined;
+    httpService?: IHttpService | null | undefined;
+    globalStudentPreferences?: boolean | undefined;
 };
 export type InternalSettings = {
     autocommit: boolean;
     autocommitSeconds: number;
-    asyncCommit: boolean;
+    throttleCommits: boolean;
+    useAsynchronousCommits: boolean;
     sendFullCommit: boolean;
     lmsCommitUrl: string | boolean;
     dataCommitFormat: string;
@@ -46,15 +58,19 @@ export type InternalSettings = {
     logLevel: LogLevel;
     selfReportSessionTime: boolean;
     renderCommonCommitFields: boolean;
+    autoCompleteLessonStatus: boolean;
     alwaysSendTotalTime: boolean;
     strict_errors: boolean;
     xhrHeaders: StringKeyMap;
     xhrWithCredentials: boolean;
     fetchMode: "cors" | "no-cors" | "same-origin" | "navigate";
     responseHandler: (response: Response) => Promise<ResultObject>;
+    xhrResponseHandler: (xhr: XMLHttpRequest) => ResultObject;
     requestHandler: (commitObject: unknown) => unknown;
     onLogMessage?: ((messageLevel: LogLevel, logMessage: string) => void) | undefined;
     mastery_override?: boolean | undefined;
+    score_overrides_status?: boolean | undefined;
+    completion_status_on_failed?: "completed" | "incomplete" | undefined;
     scoItemIds?: string[] | undefined;
     scoItemIdValidator?: false | ((scoItemId: string) => boolean) | undefined;
     globalObjectiveIds?: string[] | undefined;
@@ -65,7 +81,11 @@ export type InternalSettings = {
     syncOnInitialize?: boolean | undefined;
     syncOnTerminate?: boolean | undefined;
     maxSyncAttempts?: number | undefined;
+    scoId?: string | undefined;
+    autoPopulateCommitMetadata?: boolean | undefined;
     sequencingStatePersistence?: SequencingStatePersistenceConfig | undefined;
+    httpService: IHttpService | null;
+    globalStudentPreferences?: boolean | undefined;
 };
 export type RefObject = {
     [key: string]: any;
@@ -95,6 +115,7 @@ export type CommitObject = {
     score?: ScoreObject;
     commitId?: string;
     courseId?: string;
+    scoId?: string;
     learnerId?: string;
     learnerName?: string;
     sessionId?: string;
@@ -127,5 +148,25 @@ export type SequencingStatePersistenceConfig = {
     maxStateSize?: number;
     stateVersion?: string;
     debugPersistence?: boolean;
+};
+export type GlobalObjectiveMapEntry = {
+    id?: string;
+    satisfiedStatus?: boolean;
+    satisfiedStatusKnown?: boolean;
+    normalizedMeasure?: number;
+    normalizedMeasureKnown?: boolean;
+    progressMeasure?: number;
+    progressMeasureKnown?: boolean;
+    completionStatus?: string;
+    completionStatusKnown?: boolean;
+    readSatisfiedStatus?: boolean;
+    writeSatisfiedStatus?: boolean;
+    readNormalizedMeasure?: boolean;
+    writeNormalizedMeasure?: boolean;
+    readProgressMeasure?: boolean;
+    writeProgressMeasure?: boolean;
+    readCompletionStatus?: boolean;
+    writeCompletionStatus?: boolean;
+    lastUpdated?: string;
 };
 //# sourceMappingURL=api_types.d.ts.map

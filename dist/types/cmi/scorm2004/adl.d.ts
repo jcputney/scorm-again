@@ -37,6 +37,8 @@ export declare class ADLData extends CMIArray {
 export declare class ADLDataObject extends BaseCMI {
     private _id;
     private _store;
+    private _idIsSet;
+    private _storeIsSet;
     constructor();
     reset(): void;
     get id(): string;
@@ -48,6 +50,30 @@ export declare class ADLDataObject extends BaseCMI {
         store: string;
     };
 }
+declare class ADLNavRequestValidChoice {
+    private _parentNav;
+    private _staticValues;
+    setParentNav(nav: ADLNav): void;
+    _isTargetValid(target: string): string;
+    getAll(): {
+        [key: string]: NAVBoolean;
+    };
+    setAll(values: {
+        [key: string]: NAVBoolean;
+    }): void;
+}
+declare class ADLNavRequestValidJump {
+    private _parentNav;
+    private _staticValues;
+    setParentNav(nav: ADLNav): void;
+    _isTargetValid(target: string): string;
+    getAll(): {
+        [key: string]: NAVBoolean;
+    };
+    setAll(values: {
+        [key: string]: NAVBoolean;
+    }): void;
+}
 export declare class ADLNavRequestValid extends BaseCMI {
     private _continue;
     private _previous;
@@ -58,21 +84,19 @@ export declare class ADLNavRequestValid extends BaseCMI {
     private _abandon;
     private _abandonAll;
     private _suspendAll;
+    private _parentNav;
     constructor();
+    setParentNav(nav: ADLNav): void;
     reset(): void;
     get continue(): string;
     set continue(_continue: string);
     get previous(): string;
     set previous(_previous: string);
-    get choice(): {
-        [key: string]: NAVBoolean;
-    };
+    get choice(): ADLNavRequestValidChoice;
     set choice(choice: {
         [key: string]: string;
     });
-    get jump(): {
-        [key: string]: NAVBoolean;
-    };
+    get jump(): ADLNavRequestValidJump;
     set jump(jump: {
         [key: string]: string;
     });
@@ -89,6 +113,18 @@ export declare class ADLNavRequestValid extends BaseCMI {
     toJSON(): {
         previous: string;
         continue: string;
+        choice: {
+            [key: string]: NAVBoolean;
+        };
+        jump: {
+            [key: string]: NAVBoolean;
+        };
+        exit: string;
+        exitAll: string;
+        abandon: string;
+        abandonAll: string;
+        suspendAll: string;
     };
 }
+export {};
 //# sourceMappingURL=adl.d.ts.map

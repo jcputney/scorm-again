@@ -35,6 +35,7 @@ export declare class CMI extends BaseRootCMI {
     set entry(entry: string);
     get exit(): string;
     set exit(exit: string);
+    getExitValueInternal(): string;
     get launch_data(): string;
     set launch_data(launch_data: string);
     get learner_id(): string;
@@ -86,6 +87,7 @@ export declare class CMI extends BaseRootCMI {
         success_status: string;
         suspend_data: string;
         time_limit_action: string;
+        total_time: string;
     };
 }
 //# sourceMappingURL=cmi.d.ts.map

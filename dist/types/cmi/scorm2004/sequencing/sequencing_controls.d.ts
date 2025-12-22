@@ -29,6 +29,9 @@ export declare class SequencingControls extends BaseCMI {
     private _randomizeChildren;
     private _randomizationTiming;
     private _reorderChildren;
+    private _completionSetByContent;
+    private _objectiveSetByContent;
+    private _tracked;
     constructor();
     reset(): void;
     get enabled(): boolean;
@@ -73,6 +76,12 @@ export declare class SequencingControls extends BaseCMI {
     set randomizationTiming(randomizationTiming: RandomizationTiming);
     get reorderChildren(): boolean;
     set reorderChildren(reorderChildren: boolean);
+    get completionSetByContent(): boolean;
+    set completionSetByContent(completionSetByContent: boolean);
+    get objectiveSetByContent(): boolean;
+    set objectiveSetByContent(objectiveSetByContent: boolean);
+    get tracked(): boolean;
+    set tracked(tracked: boolean);
     toJSON(): object;
 }
 //# sourceMappingURL=sequencing_controls.d.ts.map

@@ -4,11 +4,12 @@ import { Scorm2004CMIScore } from "./score";
 export declare class CMIObjectives extends CMIArray {
     constructor();
     findObjectiveById(id: string): CMIObjectivesObject | undefined;
-    findObjectiveByIndex(index: number): CMIObjectivesObject;
+    findObjectiveByIndex(index: number): CMIObjectivesObject | undefined;
     setObjectiveByIndex(index: number, objective: CMIObjectivesObject): void;
 }
 export declare class CMIObjectivesObject extends BaseCMI {
     private _id;
+    private _idIsSet;
     private _success_status;
     private _completion_status;
     private _progress_measure;

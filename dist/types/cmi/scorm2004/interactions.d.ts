@@ -5,6 +5,7 @@ export declare class CMIInteractions extends CMIArray {
 }
 export declare class CMIInteractionsObject extends BaseCMI {
     private _id;
+    private _idIsSet;
     private _type;
     private _timestamp;
     private _weighting;

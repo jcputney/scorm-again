@@ -3,13 +3,18 @@ export declare class RollupProcess {
     private rollupStateLog;
     private eventCallback;
     constructor(eventCallback?: (eventType: string, data?: any) => void);
-    overallRollupProcess(activity: Activity): void;
+    overallRollupProcess(activity: Activity): Activity[];
     private measureRollupProcess;
     private objectiveRollupProcess;
+    private syncPrimaryObjectiveFromActivity;
     private objectiveRollupUsingRules;
     private objectiveRollupUsingMeasure;
     private objectiveRollupUsingDefault;
+    private completionMeasureRollupProcess;
+    private activityProgressRollupUsingMeasure;
     private activityProgressRollupProcess;
+    private durationRollupProcess;
+    private getTrackableChildren;
     private checkChildForRollupSubprocess;
     private filterChildrenForRequirement;
     private shouldIncludeChildForRollup;
@@ -19,6 +24,9 @@ export declare class RollupProcess {
     private evaluateRollupConditionsSubprocess;
     validateRollupStateConsistency(rootActivity: Activity): boolean;
     processGlobalObjectiveMapping(activity: Activity, globalObjectives: Map<string, any>): void;
+    private collectActivitiesRecursive;
+    private syncGlobalObjectivesWritePhase;
+    private syncGlobalObjectivesReadPhase;
     calculateComplexWeightedMeasure(activity: Activity, children: Activity[], options?: {
         enableThresholdBias?: boolean;
     }): number;
