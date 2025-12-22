@@ -785,4 +785,38 @@ describe("Sequencing Configuration", () => {
       }).not.toThrow();
     });
   });
+
+  describe("Sequencing Collections - referencedObjective cloning", () => {
+    it("should preserve referencedObjective in sequencing collection rules", () => {
+      const api = new Scorm2004API();
+      api.configureSequencing({
+        collections: {
+          myCollection: {
+            sequencingRules: {
+              preConditionRules: [
+                {
+                  action: "skip",
+                  conditions: [
+                    {
+                      condition: "objectiveSatisfied",
+                      referencedObjective: "obj-1",
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+        activityTree: {
+          id: "root",
+          sequencingCollectionRefs: "myCollection",
+        },
+      });
+
+      const sequencing = (api as any)._sequencing;
+      const root = sequencing.activityTree.root;
+      const rule = root?.sequencingRules?.preConditionRules?.[0];
+      expect(rule?.conditions?.[0]?.referencedObjective).toBe("obj-1");
+    });
+  });
 });
