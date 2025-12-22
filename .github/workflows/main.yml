@@ -65,7 +65,7 @@ jobs:
 
       # Create required directories
       - name: Create directories
-        run: mkdir -p reports dist docs test-results
+        run: mkdir -p reports dist docs test-results coverage/unit coverage/e2e coverage/merged
 
       # Run Vitest once: coverage + JUnit
       - name: Run unit tests with Vitest (coverage + JUnit)
@@ -87,6 +87,9 @@ jobs:
       - name: 'Report Coverage'
         if: always()
         uses: davelosert/vitest-coverage-report-action@v2
+        with:
+          json-summary-path: './coverage/unit/coverage-summary.json'
+          json-final-path: './coverage/unit/coverage-final.json'
 
       # Install Playwright browsers
       - name: Install Playwright browsers
@@ -96,9 +99,32 @@ jobs:
       - name: Build (prod)
         run: npm run build:all:prod
 
-      # Run integration tests
-      - name: Run integration tests
-        run: npx playwright test --reporter=list
+      # Run integration tests with coverage (Chromium only for V8 coverage)
+      - name: Run integration tests with coverage
+        run: COVERAGE=true npx playwright test --project=chromium --reporter=list
+
+      # Merge unit + E2E coverage reports
+      - name: Merge coverage reports
+        run: npx tsx scripts/merge-coverage.ts
+
+      # Upload combined coverage to Codecov
+      - name: Upload combined coverage to Codecov
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/merged/lcov.info
+          flags: combined
+          name: combined-coverage
+
+      # Upload combined coverage report as artifact
+      - name: Upload combined coverage report
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions/upload-artifact@v5
+        with:
+          name: combined-coverage-report
+          path: coverage/merged/
+          retention-days: 30
 
       # Upload Playwright report
       - name: Upload Playwright report
