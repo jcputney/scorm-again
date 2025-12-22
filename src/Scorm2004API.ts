@@ -816,15 +816,33 @@ class Scorm2004API extends BaseAPI {
   private createCorrectResponsesObject(CMIElement: string, value: any): BaseCMI | null {
     const parts = CMIElement.split(".");
     const index = Number(parts[2]);
-    const interaction = this.cmi.interactions.childArray[index];
+    const interaction = this.cmi.interactions.childArray[index] as
+      | CMIInteractionsObject
+      | undefined;
 
     if (this.isInitialized()) {
       if (typeof interaction === "undefined" || !interaction.type) {
         this.throwSCORMError(CMIElement, scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED, CMIElement);
         return null;
       } else {
-        this.checkDuplicateChoiceResponse(CMIElement, interaction, value);
+        const interaction_count = interaction.correct_responses._count;
         const response_type = CorrectResponses[interaction.type];
+
+        // Check if limit is exceeded
+        if (
+          response_type &&
+          typeof response_type.limit !== "undefined" &&
+          interaction_count >= response_type.limit
+        ) {
+          this.throwSCORMError(
+            CMIElement,
+            scorm2004_errors.GENERAL_SET_FAILURE,
+            `Data Model Element Collection Limit Reached: ${CMIElement}`,
+          );
+          return null;
+        }
+
+        this.checkDuplicateChoiceResponse(CMIElement, interaction, value);
         if (response_type) {
           this.checkValidResponseType(CMIElement, response_type, value, interaction.type);
         } else {
@@ -839,7 +857,7 @@ class Scorm2004API extends BaseAPI {
     }
 
     if (this.lastErrorCode === "0") {
-      return new CMIInteractionsCorrectResponsesObject(interaction);
+      return new CMIInteractionsCorrectResponsesObject(interaction?.type);
     }
 
     return null;
@@ -886,8 +904,10 @@ class Scorm2004API extends BaseAPI {
     const interaction_count = interaction.correct_responses._count;
     if (interaction.type === "choice") {
       for (let i = 0; i < interaction_count && this.lastErrorCode === "0"; i++) {
-        const response = interaction.correct_responses.childArray[i];
-        if (response.pattern === value) {
+        const response = interaction.correct_responses.childArray[i] as
+          | CMIInteractionsCorrectResponsesObject
+          | undefined;
+        if (response?.pattern === value) {
           this.throwSCORMError(CMIElement, scorm2004_errors.GENERAL_SET_FAILURE, `${value}`);
         }
       }
@@ -903,7 +923,14 @@ class Scorm2004API extends BaseAPI {
     const parts = CMIElement.split(".");
     const index = Number(parts[2]);
     const pattern_index = Number(parts[4]);
-    const interaction = this.cmi.interactions.childArray[index];
+    const interaction = this.cmi.interactions.childArray[index] as
+      | CMIInteractionsObject
+      | undefined;
+
+    if (!interaction) {
+      this.throwSCORMError(CMIElement, scorm2004_errors.DEPENDENCY_NOT_ESTABLISHED, CMIElement);
+      return;
+    }
 
     const interaction_count = interaction.correct_responses._count;
     this.checkDuplicateChoiceResponse(CMIElement, interaction, value);
@@ -911,7 +938,7 @@ class Scorm2004API extends BaseAPI {
     const response_type = CorrectResponses[interaction.type];
     if (
       response_type &&
-      (typeof response_type.limit === "undefined" || interaction_count <= response_type.limit)
+      (typeof response_type.limit === "undefined" || interaction_count < response_type.limit)
     ) {
       this.checkValidResponseType(CMIElement, response_type, value, interaction.type);
 

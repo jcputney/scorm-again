@@ -891,19 +891,18 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       scorm2004API.lmsSetValue("cmi.interactions.0.id", "likert-test");
       scorm2004API.lmsSetValue("cmi.interactions.0.type", "likert");
 
-      // Test basic likert values
+      // First correct_response should succeed (limit=1)
       expect(
         scorm2004API.lmsSetValue(
           "cmi.interactions.0.correct_responses.0.pattern",
           "strongly_agree",
         ),
       ).toBe("true");
+
+      // Second correct_response should FAIL - limit exceeded
       expect(
         scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.1.pattern", "agree"),
-      ).toBe("true");
-      expect(
-        scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.2.pattern", "neutral"),
-      ).toBe("true");
+      ).toBe("false");
     });
 
     it("should validate numeric interactions", (): void => {
@@ -912,13 +911,15 @@ describe("SCORM 2004 API Additional Tests", (): void => {
       scorm2004API.lmsSetValue("cmi.interactions.0.id", "numeric-test");
       scorm2004API.lmsSetValue("cmi.interactions.0.type", "numeric");
 
-      // Test basic numeric values
+      // First correct_response should succeed (limit=1)
       expect(scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.0.pattern", "42")).toBe(
         "true",
       );
+
+      // Second correct_response should FAIL - limit exceeded
       expect(
-        scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.1.pattern", "1[:]10"),
-      ).toBe("true");
+        scorm2004API.lmsSetValue("cmi.interactions.0.correct_responses.1.pattern", "1:10"),
+      ).toBe("false");
     });
   });
 
