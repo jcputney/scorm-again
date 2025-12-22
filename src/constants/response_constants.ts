@@ -109,7 +109,6 @@ export const CorrectResponses: Responses = {
     max: 250,
     delimiter: "[,]",
     delimiter2: "[.]",
-    delimiter3: "[:]",
     unique: false,
     duplicate: false,
     // step_name must be a non-empty short identifier
@@ -159,7 +158,6 @@ export type ResponseType = {
   format2?: string;
   delimiter2?: string;
   limit?: number;
-  delimiter3?: string;
 };
 
 export type Responses = {
