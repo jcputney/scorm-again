@@ -118,6 +118,7 @@ jobs:
   integration-tests:
     name: Integration Tests (Shard ${{ matrix.shard }}/${{ strategy.job-total }})
     needs: build-and-unit
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
