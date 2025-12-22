@@ -158,8 +158,15 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps
 
+      - name: Create coverage directories
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: mkdir -p coverage/e2e/shard-${{ matrix.shard }}
+
       - name: Run integration tests (shard ${{ matrix.shard }}/4)
-        run: npx playwright test --project=chromium --shard=${{ matrix.shard }}/4 --reporter=list
+        env:
+          COVERAGE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && 'true' || 'false' }}
+          SHARD_INDEX: ${{ matrix.shard }}
+        run: npx playwright test --project=chromium --shard=${{ matrix.shard }}/4
 
       - name: Upload test results
         if: always()
@@ -169,10 +176,18 @@ jobs:
           path: test-results/
           retention-days: 7
 
-  # Coverage job runs only on master - single run with coverage enabled
-  integration-coverage:
-    name: Integration Coverage
-    needs: build-and-unit
+      - name: Upload coverage artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions/upload-artifact@v6
+        with:
+          name: coverage-shard-${{ matrix.shard }}
+          path: coverage/e2e/shard-${{ matrix.shard }}/
+          retention-days: 1
+
+  # Merge coverage from all shards - runs only on master after integration tests complete
+  merge-integration-coverage:
+    name: Merge Coverage Reports
+    needs: [build-and-unit, integration-tests]
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
@@ -188,31 +203,45 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Download build artifacts
+      - name: Download unit test coverage
         uses: actions/download-artifact@v4
         with:
           name: build-output
+          path: .
 
-      - name: Create directories
+      - name: Create coverage directories
         run: mkdir -p coverage/e2e coverage/merged
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        id: playwright-cache
+      - name: Download coverage shard 1
+        uses: actions/download-artifact@v4
         with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          name: coverage-shard-1
+          path: coverage/e2e/shard-1
 
-      - name: Install Playwright browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps
+      - name: Download coverage shard 2
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-shard-2
+          path: coverage/e2e/shard-2
 
-      - name: Install Playwright deps only
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: npx playwright install-deps
+      - name: Download coverage shard 3
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-shard-3
+          path: coverage/e2e/shard-3
 
-      - name: Run integration tests with coverage
-        run: COVERAGE=true npx playwright test --project=chromium --reporter=list
+      - name: Download coverage shard 4
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-shard-4
+          path: coverage/e2e/shard-4
+
+      - name: List coverage files
+        run: |
+          echo "Unit coverage:"
+          ls -la coverage/unit/ || echo "No unit coverage"
+          echo "E2E coverage shards:"
+          ls -laR coverage/e2e/ || echo "No e2e coverage"
 
       - name: Merge coverage reports
         run: npx tsx scripts/merge-coverage.ts
@@ -226,17 +255,10 @@ jobs:
           name: combined-coverage
 
       - name: Upload combined coverage report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: combined-coverage-report
           path: coverage/merged/
-          retention-days: 30
-
-      - name: Upload Playwright report
-        uses: actions/upload-artifact@v5
-        with:
-          name: playwright-report
-          path: playwright-report/
           retention-days: 30
 
   performance-tests:
@@ -304,7 +326,7 @@ jobs:
 
   finalize:
     name: Finalize & Commit
-    needs: [ build-and-unit, integration-tests, integration-coverage, performance-tests ]
+    needs: [ build-and-unit, integration-tests, merge-integration-coverage, performance-tests ]
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:

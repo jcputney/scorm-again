@@ -1,9 +1,39 @@
 import { defineConfig, devices } from "@playwright/test";
+import path from "path";
 
 /**
  * See https://playwright.dev/docs/test-configuration
  */
 const skipWebServer = process.env.PLAYWRIGHT_SKIP_WEBSERVER === "true";
+const collectCoverage = process.env.COVERAGE === "true";
+const shardIndex = process.env.SHARD_INDEX || "1";
+
+// Configure reporters based on coverage mode
+const reporters: any[] = [["list"]];
+if (collectCoverage) {
+  const coverageDir = path.resolve(__dirname, `./coverage/e2e/shard-${shardIndex}`);
+  reporters.push([
+    "monocart-reporter",
+    {
+      name: `E2E Coverage Report (Shard ${shardIndex})`,
+      outputFile: path.join(coverageDir, "report.html"),
+      coverage: {
+        entryFilter: (entry: { url: string }) => {
+          // Only collect coverage for our source files
+          return entry.url.includes("/dist/") && entry.url.endsWith(".js");
+        },
+        sourceFilter: (sourcePath: string) => {
+          // Include only src files, exclude node_modules
+          return sourcePath.includes("/src/") && !sourcePath.includes("node_modules");
+        },
+        reports: [
+          ["lcovonly", { file: path.join(coverageDir, "lcov.info") }],
+          ["v8"]
+        ]
+      }
+    }
+  ]);
+}
 
 export default defineConfig({
   testDir: "./test/integration",
@@ -18,7 +48,7 @@ export default defineConfig({
   /* Maximize parallel workers - defaults to 50% of CPU cores, this uses all cores */
   workers: process.env.CI ? "50%" : "100%",
   /* Reporter to use */
-  reporter: "html",
+  reporter: reporters,
   /* Shared settings for all the projects below */
   use: {
     /* Base URL to use in actions like `await page.goto('/')` */

@@ -2,7 +2,8 @@
  * Coverage Merge Script
  *
  * Merges LCOV coverage data from Vitest (unit tests) and Playwright (E2E tests)
- * into a unified report.
+ * into a unified report. Supports merging multiple shard coverage files from
+ * parallel CI runs.
  *
  * Usage: npx tsx scripts/merge-coverage.ts
  */
@@ -11,9 +12,9 @@ import * as path from "path";
 
 const rootDir = process.cwd();
 
-// Input LCOV files
+// Input directories
 const unitLcov = path.resolve(rootDir, "./coverage/unit/lcov.info");
-const e2eLcov = path.resolve(rootDir, "./coverage/e2e/lcov.info");
+const e2eDir = path.resolve(rootDir, "./coverage/e2e");
 const mergedDir = path.resolve(rootDir, "./coverage/merged");
 const mergedLcov = path.resolve(mergedDir, "lcov.info");
 
@@ -22,8 +23,39 @@ if (!fs.existsSync(mergedDir)) {
   fs.mkdirSync(mergedDir, { recursive: true });
 }
 
+/**
+ * Find all E2E coverage files, including shard-specific ones
+ */
+function findE2eCoverageFiles(): string[] {
+  const files: string[] = [];
+
+  // Check for single lcov.info (legacy non-sharded)
+  const singleLcov = path.join(e2eDir, "lcov.info");
+  if (fs.existsSync(singleLcov)) {
+    files.push(singleLcov);
+    console.log("Found E2E coverage: coverage/e2e/lcov.info");
+  }
+
+  // Check for sharded coverage files (shard-1, shard-2, etc.)
+  if (fs.existsSync(e2eDir)) {
+    const entries = fs.readdirSync(e2eDir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (entry.isDirectory() && entry.name.startsWith("shard-")) {
+        const shardLcov = path.join(e2eDir, entry.name, "lcov.info");
+        if (fs.existsSync(shardLcov)) {
+          files.push(shardLcov);
+          console.log(`Found E2E coverage: coverage/e2e/${entry.name}/lcov.info`);
+        }
+      }
+    }
+  }
+
+  return files;
+}
+
 // Check which files exist
 const existingFiles: string[] = [];
+
 if (fs.existsSync(unitLcov)) {
   existingFiles.push(unitLcov);
   console.log("Found unit test coverage: coverage/unit/lcov.info");
@@ -31,11 +63,11 @@ if (fs.existsSync(unitLcov)) {
   console.log("No unit test coverage found");
 }
 
-if (fs.existsSync(e2eLcov)) {
-  existingFiles.push(e2eLcov);
-  console.log("Found E2E test coverage: coverage/e2e/lcov.info");
-} else {
+const e2eFiles = findE2eCoverageFiles();
+if (e2eFiles.length === 0) {
   console.log("No E2E test coverage found");
+} else {
+  existingFiles.push(...e2eFiles);
 }
 
 if (existingFiles.length === 0) {
