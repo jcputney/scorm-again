@@ -66,6 +66,33 @@ export class LoggingService implements ILoggingService {
    *
    * @param {LogLevel} messageLevel - The level of the message
    * @param {string} logMessage - The message to log
+   *
+   * @security LOG-INJECTION
+   * Be aware that logMessage is passed through to the log handler without sanitization.
+   * When logging user-controlled data (e.g., SCORM CMI values from content, URL parameters,
+   * postMessage payloads), consider the following risks:
+   *
+   * 1. Log injection: Malicious input containing newlines or ANSI codes could pollute logs
+   *    or create fake log entries that mislead security monitoring.
+   *
+   * 2. Information disclosure: Sensitive data in logs may be exposed to unauthorized viewers
+   *    with log access (developers, support staff, aggregation systems).
+   *
+   * 3. Log storage exhaustion: Extremely large or repeated values could fill disk space
+   *    or cause performance degradation in log processing systems.
+   *
+   * Defensive patterns:
+   * - Truncate long values before logging (e.g., logMessage.substring(0, 500))
+   * - Strip or escape newlines and control characters
+   * - Redact sensitive fields (PII, credentials, session tokens)
+   * - Implement custom log handlers that sanitize before writing to external systems
+   * - Use structured logging formats (JSON) that escape values properly
+   *
+   * Example of safe logging for user-controlled data:
+   * ```typescript
+   * const sanitized = userInput.replace(/[\r\n\x00-\x1F\x7F]/g, '').substring(0, 200);
+   * loggingService.info(`User input: ${sanitized}`);
+   * ```
    */
   public log(messageLevel: LogLevel, logMessage: string): void {
     if (this.shouldLog(messageLevel)) {

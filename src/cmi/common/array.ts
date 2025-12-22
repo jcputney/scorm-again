@@ -9,7 +9,7 @@ export class CMIArray extends BaseCMI {
   private readonly _errorCode: number;
   private readonly _errorClass: typeof BaseScormValidationError;
   private readonly __children: string;
-  public childArray: any[];
+  public childArray: BaseCMI[];
 
   /**
    * Constructor cmi *.n arrays
@@ -23,7 +23,7 @@ export class CMIArray extends BaseCMI {
   }) {
     super(params.CMIElement);
     this.__children = params.children;
-    this._errorCode = params.errorCode || (scorm12_errors.GENERAL as number);
+    this._errorCode = params.errorCode ?? scorm12_errors.GENERAL;
     this._errorClass = params.errorClass || BaseScormValidationError;
     this.childArray = [];
   }
@@ -38,7 +38,7 @@ export class CMIArray extends BaseCMI {
     } else {
       // Reset all children
       for (let i = 0; i < this.childArray.length; i++) {
-        this.childArray[i].reset();
+        this.childArray[i]?.reset();
       }
     }
   }

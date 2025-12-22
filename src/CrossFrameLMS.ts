@@ -94,6 +94,27 @@ export default class CrossFrameLMS {
   }
 
   /**
+   * Type guard to validate MessageData structure
+   */
+  private static _isValidMessageData(data: unknown): data is MessageData {
+    if (typeof data !== "object" || data === null) return false;
+
+    const msg = data as Partial<MessageData>;
+
+    // Required fields
+    if (typeof msg.messageId !== "string" || msg.messageId.length === 0) return false;
+    if (typeof msg.method !== "string" || msg.method.length === 0) return false;
+
+    // params must be an array if present (required for apply())
+    if (msg.params !== undefined && !Array.isArray(msg.params)) return false;
+
+    // isHeartbeat must be boolean if present
+    if (msg.isHeartbeat !== undefined && typeof msg.isHeartbeat !== "boolean") return false;
+
+    return true;
+  }
+
+  /**
    * Handles incoming postMessage events from child frames.
    */
   private _onMessage(ev: MessageEvent): void {
@@ -105,11 +126,11 @@ export default class CrossFrameLMS {
       return;
     }
 
-    // CF-LMS-02: Validate that ev.data is a valid message object before casting
-    if (typeof ev.data !== "object" || ev.data === null) return;
+    // CF-LMS-02: Validate that ev.data has the expected MessageData structure
+    if (!CrossFrameLMS._isValidMessageData(ev.data)) return;
 
-    const msg = ev.data as MessageData;
-    if (!msg?.messageId || !msg.method || !ev.source) return;
+    const msg = ev.data;
+    if (!ev.source) return;
 
     // Validate that ev.source is a Window with postMessage capability
     // ev.source can be Window, MessagePort, ServiceWorker, or null
@@ -130,6 +151,21 @@ export default class CrossFrameLMS {
 
     // Check rate limit
     if (this._isRateLimited()) {
+      // SCORM ERROR CODE USAGE: Using error code "101" for rate limiting
+      //
+      // While not a standard SCORM error code, "101" is used here to signal rate limiting
+      // in cross-frame communication. Standard SCORM error codes are:
+      // - SCORM 1.2: 0, 101, 201, 202, 203, 301, 401, 402, 403, 404, 405
+      // - SCORM 2004: 0, 101, 102, 103, 201, 301, 351, 391, 401-408
+      //
+      // Using "101" (General Exception) is appropriate here because:
+      // 1. It indicates a general error condition without exposing security details
+      // 2. It's recognized by SCORM content as a non-zero error code
+      // 3. It doesn't conflict with specific SCORM error semantics
+      // 4. The actual error message "Rate limit exceeded" provides debug context
+      //
+      // The CrossFrameAPI detects this specific message to emit a "rateLimited" event,
+      // allowing content to react appropriately (e.g., back off, show user message).
       const resp: MessageResponse = {
         messageId: msg.messageId,
         error: { message: "Rate limit exceeded", code: "101" },
@@ -169,21 +205,39 @@ export default class CrossFrameLMS {
         return;
       }
 
-      const result = fn.apply(this._api, msg.params);
+      // CF-LMS-01: Validate params is an array before apply()
+      // This should never fail due to _isValidMessageData check, but defense in depth
+      const params = Array.isArray(msg.params) ? msg.params : [];
+
+      const result = fn.apply(this._api, params);
 
       if (result && typeof (result as Promise<unknown>).then === "function") {
         (result as Promise<unknown>)
           .then((r) => sendResponse(r))
           .catch((e: unknown) => {
+            // ERROR CODE PRESERVATION: Extract error code from Error objects
+            // SCORM API errors may include a numeric code property for specific error conditions.
+            // We preserve this code to maintain proper error semantics across the cross-frame boundary.
             const message = e instanceof Error ? e.message : "Unknown error";
-            sendResponse(undefined, { message });
+            const code =
+              e && typeof e === "object" && "code" in e && typeof e.code === "string"
+                ? e.code
+                : undefined;
+            sendResponse(undefined, { message, code });
           });
       } else {
         sendResponse(result);
       }
     } catch (e: unknown) {
+      // ERROR CODE PRESERVATION: Extract error code from Error objects
+      // SCORM API errors may include a numeric code property for specific error conditions.
+      // We preserve this code to maintain proper error semantics across the cross-frame boundary.
       const message = e instanceof Error ? e.message : "Unknown error";
-      sendResponse(undefined, { message });
+      const code =
+        e && typeof e === "object" && "code" in e && typeof e.code === "string"
+          ? e.code
+          : undefined;
+      sendResponse(undefined, { message, code });
     }
   }
 }
