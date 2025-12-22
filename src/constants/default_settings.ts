@@ -47,9 +47,9 @@ export const DefaultSettings: InternalSettings = {
       } else {
         return {
           result: httpResult.result,
-          errorCode: httpResult.errorCode
+          errorCode: typeof httpResult.errorCode === "number"
             ? httpResult.errorCode
-            : httpResult.result === global_constants.SCORM_TRUE
+            : httpResult.result === true || httpResult.result === global_constants.SCORM_TRUE
               ? 0
               : 101
         };
