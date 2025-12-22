@@ -48,15 +48,16 @@ class Scorm12API extends BaseAPI {
    * @param {IHttpService} httpService - Optional HTTP service instance
    */
   constructor(settings?: Settings, httpService?: IHttpService) {
-    if (settings) {
+    const settingsCopy = settings ? { ...settings } : undefined;
+    if (settingsCopy) {
       // Per SCORM 1.2 spec, LMS may override lesson_status based on mastery score
       // Default to true for spec compliance; set to false for conservative behavior
-      if (settings.mastery_override === undefined) {
-        settings.mastery_override = true;
+      if (settingsCopy.mastery_override === undefined) {
+        settingsCopy.mastery_override = true;
       }
     }
 
-    super(scorm12_errors, settings, httpService);
+    super(scorm12_errors, settingsCopy, httpService);
 
     this.cmi = new CMI();
     this.nav = new NAV();
