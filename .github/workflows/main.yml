@@ -138,13 +138,13 @@ jobs:
         run: npm install
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: build-output
 
       # Cache Playwright browsers
       - name: Cache Playwright browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
@@ -204,7 +204,7 @@ jobs:
         run: npm install
 
       - name: Download unit test coverage
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: build-output
           path: .
@@ -213,25 +213,25 @@ jobs:
         run: mkdir -p coverage/e2e coverage/merged
 
       - name: Download coverage shard 1
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: coverage-shard-1
           path: coverage/e2e/shard-1
 
       - name: Download coverage shard 2
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: coverage-shard-2
           path: coverage/e2e/shard-2
 
       - name: Download coverage shard 3
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: coverage-shard-3
           path: coverage/e2e/shard-3
 
       - name: Download coverage shard 4
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: coverage-shard-4
           path: coverage/e2e/shard-4
@@ -280,7 +280,7 @@ jobs:
         run: npm install
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: build-output
 
@@ -343,7 +343,7 @@ jobs:
         run: npm install
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: build-output
 
