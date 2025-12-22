@@ -2173,23 +2173,26 @@ class Scorm2004API extends BaseAPI {
       return [];
     }
 
-    const sanitized: AuxiliaryResource[] = [];
     const seen = new Set<string>();
+    const sanitized: AuxiliaryResource[] = [];
 
     for (const resource of resources) {
-      if (!resource) {
-        continue;
-      }
+      if (!resource) continue;
+
+      // Type-safe null/undefined checks before calling trim()
+      if (!resource.resourceId || typeof resource.resourceId !== "string") continue;
+      if (!resource.purpose || typeof resource.purpose !== "string") continue;
+
       const resourceId = resource.resourceId.trim();
       const purpose = resource.purpose.trim();
-      if (!resourceId || !purpose) {
-        continue;
+
+      if (!resourceId || !purpose) continue;
+
+      const key = `${resourceId}::${purpose}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        sanitized.push({ resourceId, purpose });
       }
-      if (seen.has(resourceId)) {
-        continue;
-      }
-      seen.add(resourceId);
-      sanitized.push({ resourceId, purpose });
     }
 
     return sanitized;

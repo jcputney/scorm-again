@@ -755,4 +755,34 @@ describe("Sequencing Configuration", () => {
       expect(rollupRules.rules[1].conditions[0].condition).toBe(RollupConditionType.SATISFIED);
     });
   });
+
+  describe("sanitizeAuxiliaryResources", () => {
+    it("should handle null/undefined resourceId gracefully", () => {
+      const api = new Scorm2004API();
+      // This should not throw
+      expect(() => {
+        api.configureSequencing({
+          activityTree: {
+            id: "root",
+            auxiliaryResources: [
+              { resourceId: null as any, purpose: "test" },
+              { resourceId: "valid", purpose: "test" },
+            ],
+          },
+        });
+      }).not.toThrow();
+    });
+
+    it("should handle null/undefined purpose gracefully", () => {
+      const api = new Scorm2004API();
+      expect(() => {
+        api.configureSequencing({
+          activityTree: {
+            id: "root",
+            auxiliaryResources: [{ resourceId: "test", purpose: null as any }],
+          },
+        });
+      }).not.toThrow();
+    });
+  });
 });
