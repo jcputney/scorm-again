@@ -1495,6 +1495,15 @@ describe("SCORM 1.2 API Tests", () => {
     });
   });
 
+  describe("Constructor Tests", () => {
+    it("should not mutate caller's settings object", () => {
+      const userSettings = { autocommit: true };
+      const scorm12API = new Scorm12API(userSettings);
+      expect(userSettings).toEqual({ autocommit: true });
+      expect((userSettings as any).mastery_override).toBeUndefined();
+    });
+  });
+
   describe("Synchronous Commit Tests", () => {
     it("should return actual commit failure synchronously", () => {
       const mockService = {
