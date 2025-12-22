@@ -1,15 +1,698 @@
 /******/ var __webpack_modules__ = ({
 
+/***/ 56:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   CompletionStatus: function() { return /* binding */ CompletionStatus; },
+/* harmony export */   LogLevelEnum: function() { return /* binding */ LogLevelEnum; },
+/* harmony export */   NAVBoolean: function() { return /* binding */ NAVBoolean; },
+/* harmony export */   SuccessStatus: function() { return /* binding */ SuccessStatus; }
+/* harmony export */ });
+var NAVBoolean;
+(function (NAVBoolean) {
+    NAVBoolean["unknown"] = "unknown";
+    NAVBoolean["true"] = "true";
+    NAVBoolean["false"] = "false";
+})(NAVBoolean || (NAVBoolean = {}));
+var SuccessStatus;
+(function (SuccessStatus) {
+    SuccessStatus["passed"] = "passed";
+    SuccessStatus["failed"] = "failed";
+    SuccessStatus["unknown"] = "unknown";
+})(SuccessStatus || (SuccessStatus = {}));
+var CompletionStatus;
+(function (CompletionStatus) {
+    CompletionStatus["completed"] = "completed";
+    CompletionStatus["incomplete"] = "incomplete";
+    CompletionStatus["unknown"] = "unknown";
+})(CompletionStatus || (CompletionStatus = {}));
+var LogLevelEnum;
+(function (LogLevelEnum) {
+    LogLevelEnum[LogLevelEnum["_"] = 0] = "_";
+    LogLevelEnum[LogLevelEnum["DEBUG"] = 1] = "DEBUG";
+    LogLevelEnum[LogLevelEnum["INFO"] = 2] = "INFO";
+    LogLevelEnum[LogLevelEnum["WARN"] = 3] = "WARN";
+    LogLevelEnum[LogLevelEnum["ERROR"] = 4] = "ERROR";
+    LogLevelEnum[LogLevelEnum["NONE"] = 5] = "NONE";
+})(LogLevelEnum || (LogLevelEnum = {}));
+
+
+/***/ }),
+
+/***/ 176:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   CMIObjectives: function() { return /* binding */ CMIObjectives; },
+/* harmony export */   CMIObjectivesObject: function() { return /* binding */ CMIObjectivesObject; }
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(319);
+/* harmony import */ var _common_score__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(434);
+/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(340);
+/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(417);
+/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(797);
+/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(179);
+/* harmony import */ var _validation__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(915);
+/* harmony import */ var _common_array__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(589);
+
+
+
+
+
+
+
+
+
+var CMIObjectives = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIObjectives, _super);
+    function CMIObjectives() {
+        return _super.call(this, {
+            children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_3__.scorm12_constants.objectives_children,
+            errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_5__.scorm12_errors.INVALID_SET_VALUE,
+            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_6__.Scorm12ValidationError,
+        }) || this;
+    }
+    return CMIObjectives;
+}(_common_array__WEBPACK_IMPORTED_MODULE_8__.CMIArray));
+
+var CMIObjectivesObject = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIObjectivesObject, _super);
+    function CMIObjectivesObject() {
+        var _this = _super.call(this) || this;
+        _this._id = "";
+        _this._status = "";
+        _this.score = new _common_score__WEBPACK_IMPORTED_MODULE_2__.CMIScore({
+            score_children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_3__.scorm12_constants.score_children,
+            score_range: _constants_regex__WEBPACK_IMPORTED_MODULE_4__.scorm12_regex.score_range,
+            invalidErrorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_5__.scorm12_errors.INVALID_SET_VALUE,
+            invalidTypeCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_5__.scorm12_errors.TYPE_MISMATCH,
+            invalidRangeCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_5__.scorm12_errors.VALUE_OUT_OF_RANGE,
+            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_6__.Scorm12ValidationError,
+        });
+        return _this;
+    }
+    CMIObjectivesObject.prototype.reset = function () {
+        var _a;
+        this._initialized = false;
+        this._id = "";
+        this._status = "";
+        (_a = this.score) === null || _a === void 0 ? void 0 : _a.reset();
+    };
+    Object.defineProperty(CMIObjectivesObject.prototype, "id", {
+        get: function () {
+            return this._id;
+        },
+        set: function (id) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_7__.check12ValidFormat)(id, _constants_regex__WEBPACK_IMPORTED_MODULE_4__.scorm12_regex.CMIIdentifier)) {
+                this._id = id;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(CMIObjectivesObject.prototype, "status", {
+        get: function () {
+            return this._status;
+        },
+        set: function (status) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_7__.check12ValidFormat)(status, _constants_regex__WEBPACK_IMPORTED_MODULE_4__.scorm12_regex.CMIStatus2)) {
+                this._status = status;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    CMIObjectivesObject.prototype.toJSON = function () {
+        this.jsonString = true;
+        var result = {
+            id: this.id,
+            status: this.status,
+            score: this.score,
+        };
+        delete this.jsonString;
+        return result;
+    };
+    return CMIObjectivesObject;
+}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_1__.BaseCMI));
+
+
+
+/***/ }),
+
+/***/ 179:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   Scorm12ValidationError: function() { return /* binding */ Scorm12ValidationError; }
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+/* harmony import */ var _exceptions__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(784);
+/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(340);
+
+
+
+var scorm12_errors = _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__.scorm12_constants.error_descriptions;
+var Scorm12ValidationError = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(Scorm12ValidationError, _super);
+    function Scorm12ValidationError(errorCode) {
+        var _this = this;
+        var _a, _b, _c, _d, _e;
+        if ({}.hasOwnProperty.call(scorm12_errors, String(errorCode))) {
+            _this = _super.call(this, errorCode, ((_a = scorm12_errors[String(errorCode)]) === null || _a === void 0 ? void 0 : _a.basicMessage) || "Unknown error", (_b = scorm12_errors[String(errorCode)]) === null || _b === void 0 ? void 0 : _b.detailMessage) || this;
+        }
+        else {
+            _this = _super.call(this, 101, (_d = (_c = scorm12_errors["101"]) === null || _c === void 0 ? void 0 : _c.basicMessage) !== null && _d !== void 0 ? _d : "General error", (_e = scorm12_errors["101"]) === null || _e === void 0 ? void 0 : _e.detailMessage) || this;
+        }
+        return _this;
+    }
+    return Scorm12ValidationError;
+}(_exceptions__WEBPACK_IMPORTED_MODULE_1__.ValidationError));
+
+
+
+/***/ }),
+
+/***/ 181:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   CMIStudentPreference: function() { return /* binding */ CMIStudentPreference; }
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(319);
+/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(340);
+/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(179);
+/* harmony import */ var _validation__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(915);
+/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(417);
+/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(797);
+
+
+
+
+
+
+
+var CMIStudentPreference = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIStudentPreference, _super);
+    function CMIStudentPreference(student_preference_children) {
+        var _this = _super.call(this) || this;
+        _this._audio = "";
+        _this._language = "";
+        _this._speed = "";
+        _this._text = "";
+        _this.__children = student_preference_children
+            ? student_preference_children
+            : _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__.scorm12_constants.student_preference_children;
+        return _this;
+    }
+    CMIStudentPreference.prototype.reset = function () {
+        this._initialized = false;
+    };
+    Object.defineProperty(CMIStudentPreference.prototype, "_children", {
+        get: function () {
+            return this.__children;
+        },
+        set: function (_children) {
+            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_6__.scorm12_errors.INVALID_SET_VALUE);
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(CMIStudentPreference.prototype, "audio", {
+        get: function () {
+            return this._audio;
+        },
+        set: function (audio) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_4__.check12ValidFormat)(audio, _constants_regex__WEBPACK_IMPORTED_MODULE_5__.scorm12_regex.CMISInteger) &&
+                (0,_validation__WEBPACK_IMPORTED_MODULE_4__.check12ValidRange)(audio, _constants_regex__WEBPACK_IMPORTED_MODULE_5__.scorm12_regex.audio_range)) {
+                this._audio = audio;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(CMIStudentPreference.prototype, "language", {
+        get: function () {
+            return this._language;
+        },
+        set: function (language) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_4__.check12ValidFormat)(language, _constants_regex__WEBPACK_IMPORTED_MODULE_5__.scorm12_regex.CMIString256)) {
+                this._language = language;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(CMIStudentPreference.prototype, "speed", {
+        get: function () {
+            return this._speed;
+        },
+        set: function (speed) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_4__.check12ValidFormat)(speed, _constants_regex__WEBPACK_IMPORTED_MODULE_5__.scorm12_regex.CMISInteger) &&
+                (0,_validation__WEBPACK_IMPORTED_MODULE_4__.check12ValidRange)(speed, _constants_regex__WEBPACK_IMPORTED_MODULE_5__.scorm12_regex.speed_range)) {
+                this._speed = speed;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(CMIStudentPreference.prototype, "text", {
+        get: function () {
+            return this._text;
+        },
+        set: function (text) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_4__.check12ValidFormat)(text, _constants_regex__WEBPACK_IMPORTED_MODULE_5__.scorm12_regex.CMISInteger) &&
+                (0,_validation__WEBPACK_IMPORTED_MODULE_4__.check12ValidRange)(text, _constants_regex__WEBPACK_IMPORTED_MODULE_5__.scorm12_regex.text_range)) {
+                this._text = text;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    CMIStudentPreference.prototype.toJSON = function () {
+        this.jsonString = true;
+        var result = {
+            audio: this.audio,
+            language: this.language,
+            speed: this.speed,
+            text: this.text,
+        };
+        delete this.jsonString;
+        return result;
+    };
+    return CMIStudentPreference;
+}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_1__.BaseCMI));
+
+
+
+/***/ }),
+
+/***/ 319:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   BaseCMI: function() { return /* binding */ BaseCMI; },
+/* harmony export */   BaseRootCMI: function() { return /* binding */ BaseRootCMI; }
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+
+var BaseCMI = (function () {
+    function BaseCMI() {
+        this.jsonString = false;
+        this._initialized = false;
+    }
+    Object.defineProperty(BaseCMI.prototype, "initialized", {
+        get: function () {
+            return this._initialized;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(BaseCMI.prototype, "start_time", {
+        get: function () {
+            return this._start_time;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    BaseCMI.prototype.initialize = function () {
+        this._initialized = true;
+    };
+    BaseCMI.prototype.setStartTime = function () {
+        this._start_time = new Date().getTime();
+    };
+    return BaseCMI;
+}());
+
+var BaseRootCMI = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(BaseRootCMI, _super);
+    function BaseRootCMI() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return BaseRootCMI;
+}(BaseCMI));
+
+
+
+/***/ }),
+
+/***/ 331:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   NAV: function() { return /* binding */ NAV; }
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(319);
+/* harmony import */ var _validation__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(915);
+/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(417);
+
+
+
+
+var NAV = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(NAV, _super);
+    function NAV() {
+        var _this = _super.call(this) || this;
+        _this._event = "";
+        return _this;
+    }
+    NAV.prototype.reset = function () {
+        this._event = "";
+        this._initialized = false;
+    };
+    Object.defineProperty(NAV.prototype, "event", {
+        get: function () {
+            return this._event;
+        },
+        set: function (event) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_2__.check12ValidFormat)(event, _constants_regex__WEBPACK_IMPORTED_MODULE_3__.scorm12_regex.NAVEvent)) {
+                this._event = event;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    NAV.prototype.toJSON = function () {
+        this.jsonString = true;
+        var result = {
+            event: this.event,
+        };
+        delete this.jsonString;
+        return result;
+    };
+    return NAV;
+}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_1__.BaseCMI));
+
+
+
+/***/ }),
+
+/***/ 340:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   aicc_constants: function() { return /* binding */ aicc_constants; },
+/* harmony export */   global_constants: function() { return /* binding */ global_constants; },
+/* harmony export */   scorm12_constants: function() { return /* binding */ scorm12_constants; },
+/* harmony export */   scorm2004_constants: function() { return /* binding */ scorm2004_constants; }
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+
+var global_constants = {
+    SCORM_TRUE: "true",
+    SCORM_FALSE: "false",
+    STATE_NOT_INITIALIZED: 0,
+    STATE_INITIALIZED: 1,
+    STATE_TERMINATED: 2,
+};
+var scorm12_constants = {
+    cmi_children: "core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions",
+    core_children: "student_id,student_name,lesson_location,credit,lesson_status,entry,score,total_time,lesson_mode,exit,session_time",
+    score_children: "raw,min,max",
+    comments_children: "content,location,time",
+    objectives_children: "id,score,status",
+    correct_responses_children: "pattern",
+    student_data_children: "mastery_score,max_time_allowed,time_limit_action",
+    student_preference_children: "audio,language,speed,text",
+    interactions_children: "id,objectives,time,type,correct_responses,weighting,student_response,result,latency",
+    error_descriptions: {
+        "101": {
+            basicMessage: "General Exception",
+            detailMessage: "No specific error code exists to describe the error. Use LMSGetDiagnostic for more information",
+        },
+        "201": {
+            basicMessage: "Invalid argument error",
+            detailMessage: "Indicates that an argument represents an invalid data model element or is otherwise incorrect.",
+        },
+        "202": {
+            basicMessage: "Element cannot have children",
+            detailMessage: 'Indicates that LMSGetValue was called with a data model element name that ends in "_children" for a data model element that does not support the "_children" suffix.',
+        },
+        "203": {
+            basicMessage: "Element not an array - cannot have count",
+            detailMessage: 'Indicates that LMSGetValue was called with a data model element name that ends in "_count" for a data model element that does not support the "_count" suffix.',
+        },
+        "301": {
+            basicMessage: "Not initialized",
+            detailMessage: "Indicates that an API call was made before the call to lmsInitialize.",
+        },
+        "401": {
+            basicMessage: "Not implemented error",
+            detailMessage: "The data model element indicated in a call to LMSGetValue or LMSSetValue is valid, but was not implemented by this LMS. SCORM 1.2 defines a set of data model elements as being optional for an LMS to implement.",
+        },
+        "402": {
+            basicMessage: "Invalid set value, element is a keyword",
+            detailMessage: 'Indicates that LMSSetValue was called on a data model element that represents a keyword (elements that end in "_children" and "_count").',
+        },
+        "403": {
+            basicMessage: "Element is read only",
+            detailMessage: "LMSSetValue was called with a data model element that can only be read.",
+        },
+        "404": {
+            basicMessage: "Element is write only",
+            detailMessage: "LMSGetValue was called on a data model element that can only be written to.",
+        },
+        "405": {
+            basicMessage: "Incorrect Data Type",
+            detailMessage: "LMSSetValue was called with a value that is not consistent with the data format of the supplied data model element.",
+        },
+        "407": {
+            basicMessage: "Element Value Out Of Range",
+            detailMessage: "The numeric value supplied to a LMSSetValue call is outside of the numeric range allowed for the supplied data model element.",
+        },
+        "408": {
+            basicMessage: "Data Model Dependency Not Established",
+            detailMessage: "Some data model elements cannot be set until another data model element was set. This error condition indicates that the prerequisite element was not set before the dependent element.",
+        },
+    },
+};
+var aicc_constants = (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)((0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)({}, scorm12_constants), {
+    cmi_children: "core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions,evaluation",
+    student_preference_children: "audio,language,lesson_type,speed,text,text_color,text_location,text_size,video,windows",
+    student_data_children: "attempt_number,tries,mastery_score,max_time_allowed,time_limit_action",
+    student_demographics_children: "city,class,company,country,experience,familiar_name,instructor_name,title,native_language,state,street_address,telephone,years_experience",
+    tries_children: "time,status,score",
+    attempt_records_children: "score,lesson_status",
+    paths_children: "location_id,date,time,status,why_left,time_in_element",
+});
+var scorm2004_constants = {
+    cmi_children: "_version,comments_from_learner,comments_from_lms,completion_status,credit,entry,exit,interactions,launch_data,learner_id,learner_name,learner_preference,location,max_time_allowed,mode,objectives,progress_measure,scaled_passing_score,score,session_time,success_status,suspend_data,time_limit_action,total_time",
+    comments_children: "comment,timestamp,location",
+    score_children: "max,raw,scaled,min",
+    objectives_children: "progress_measure,completion_status,success_status,description,score,id",
+    correct_responses_children: "pattern",
+    student_data_children: "mastery_score,max_time_allowed,time_limit_action",
+    student_preference_children: "audio_level,audio_captioning,delivery_speed,language",
+    interactions_children: "id,type,objectives,timestamp,correct_responses,weighting,learner_response,result,latency,description",
+    adl_data_children: "id,store",
+    error_descriptions: {
+        "0": {
+            basicMessage: "No Error",
+            detailMessage: "No error occurred, the previous API call was successful.",
+        },
+        "101": {
+            basicMessage: "General Exception",
+            detailMessage: "No specific error code exists to describe the error. Use GetDiagnostic for more information.",
+        },
+        "102": {
+            basicMessage: "General Initialization Failure",
+            detailMessage: "Call to Initialize failed for an unknown reason.",
+        },
+        "103": {
+            basicMessage: "Already Initialized",
+            detailMessage: "Call to Initialize failed because Initialize was already called.",
+        },
+        "104": {
+            basicMessage: "Content Instance Terminated",
+            detailMessage: "Call to Initialize failed because Terminate was already called.",
+        },
+        "111": {
+            basicMessage: "General Termination Failure",
+            detailMessage: "Call to Terminate failed for an unknown reason.",
+        },
+        "112": {
+            basicMessage: "Termination Before Initialization",
+            detailMessage: "Call to Terminate failed because it was made before the call to Initialize.",
+        },
+        "113": {
+            basicMessage: "Termination After Termination",
+            detailMessage: "Call to Terminate failed because Terminate was already called.",
+        },
+        "122": {
+            basicMessage: "Retrieve Data Before Initialization",
+            detailMessage: "Call to GetValue failed because it was made before the call to Initialize.",
+        },
+        "123": {
+            basicMessage: "Retrieve Data After Termination",
+            detailMessage: "Call to GetValue failed because it was made after the call to Terminate.",
+        },
+        "132": {
+            basicMessage: "Store Data Before Initialization",
+            detailMessage: "Call to SetValue failed because it was made before the call to Initialize.",
+        },
+        "133": {
+            basicMessage: "Store Data After Termination",
+            detailMessage: "Call to SetValue failed because it was made after the call to Terminate.",
+        },
+        "142": {
+            basicMessage: "Commit Before Initialization",
+            detailMessage: "Call to Commit failed because it was made before the call to Initialize.",
+        },
+        "143": {
+            basicMessage: "Commit After Termination",
+            detailMessage: "Call to Commit failed because it was made after the call to Terminate.",
+        },
+        "201": {
+            basicMessage: "General Argument Error",
+            detailMessage: "An invalid argument was passed to an API method (usually indicates that Initialize, Commit or Terminate did not receive the expected empty string argument.",
+        },
+        "301": {
+            basicMessage: "General Get Failure",
+            detailMessage: "Indicates a failed GetValue call where no other specific error code is applicable. Use GetDiagnostic for more information.",
+        },
+        "351": {
+            basicMessage: "General Set Failure",
+            detailMessage: "Indicates a failed SetValue call where no other specific error code is applicable. Use GetDiagnostic for more information.",
+        },
+        "391": {
+            basicMessage: "General Commit Failure",
+            detailMessage: "Indicates a failed Commit call where no other specific error code is applicable. Use GetDiagnostic for more information.",
+        },
+        "401": {
+            basicMessage: "Undefined Data Model Element",
+            detailMessage: "The data model element name passed to GetValue or SetValue is not a valid SCORM data model element.",
+        },
+        "402": {
+            basicMessage: "Unimplemented Data Model Element",
+            detailMessage: "The data model element indicated in a call to GetValue or SetValue is valid, but was not implemented by this LMS. In SCORM 2004, this error would indicate an LMS that is not fully SCORM conformant.",
+        },
+        "403": {
+            basicMessage: "Data Model Element Value Not Initialized",
+            detailMessage: "Attempt to read a data model element that has not been initialized by the LMS or through a SetValue call. This error condition is often reached during normal execution of a SCO.",
+        },
+        "404": {
+            basicMessage: "Data Model Element Is Read Only",
+            detailMessage: "SetValue was called with a data model element that can only be read.",
+        },
+        "405": {
+            basicMessage: "Data Model Element Is Write Only",
+            detailMessage: "GetValue was called on a data model element that can only be written to.",
+        },
+        "406": {
+            basicMessage: "Data Model Element Type Mismatch",
+            detailMessage: "SetValue was called with a value that is not consistent with the data format of the supplied data model element.",
+        },
+        "407": {
+            basicMessage: "Data Model Element Value Out Of Range",
+            detailMessage: "The numeric value supplied to a SetValue call is outside of the numeric range allowed for the supplied data model element.",
+        },
+        "408": {
+            basicMessage: "Data Model Dependency Not Established",
+            detailMessage: "Some data model elements cannot be set until another data model element was set. This error condition indicates that the prerequisite element was not set before the dependent element.",
+        },
+    },
+};
+
+
+/***/ }),
+
+/***/ 417:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   aicc_regex: function() { return /* binding */ aicc_regex; },
+/* harmony export */   scorm12_regex: function() { return /* binding */ scorm12_regex; },
+/* harmony export */   scorm2004_regex: function() { return /* binding */ scorm2004_regex; }
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+
+var scorm12_regex = {
+    CMIString256: "^.{0,255}$",
+    CMIString4096: "^.{0,4096}$",
+    CMITime: "^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)$",
+    CMITimespan: "^([0-9]{2,}):([0-9]{2}):([0-9]{2})(.[0-9]{1,2})?$",
+    CMIInteger: "^\\d+$",
+    CMISInteger: "^-?([0-9]+)$",
+    CMIDecimal: "^-?([0-9]{0,3})(.[0-9]*)?$",
+    CMIIdentifier: "^[\\u0021-\\u007E\\s]{0,255}$",
+    CMIFeedback: "^.*$",
+    CMIIndex: "[._](\\d+).",
+    CMIStatus: "^(passed|completed|failed|incomplete|browsed)$",
+    CMIStatus2: "^(passed|completed|failed|incomplete|browsed|not attempted)$",
+    CMIExit: "^(time-out|suspend|logout|)$",
+    CMIType: "^(true-false|choice|fill-in|matching|performance|sequencing|likert|numeric)$",
+    CMIResult: "^(correct|wrong|unanticipated|neutral|([0-9]{0,3})?(\\.[0-9]*)?)$",
+    NAVEvent: "^(previous|continue)$",
+    score_range: "0#100",
+    audio_range: "-1#100",
+    speed_range: "-100#100",
+    weighting_range: "-100#100",
+    text_range: "-1#1",
+};
+var aicc_regex = (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)((0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)({}, scorm12_regex), {
+    CMIIdentifier: "^\\w{1,255}$",
+});
+var scorm2004_regex = {
+    CMIString200: "^[\\u0000-\\uFFFF]{0,200}$",
+    CMIString250: "^[\\u0000-\\uFFFF]{0,250}$",
+    CMIString1000: "^[\\u0000-\\uFFFF]{0,1000}$",
+    CMIString4000: "^[\\u0000-\\uFFFF]{0,4000}$",
+    CMIString64000: "^[\\u0000-\\uFFFF]{0,64000}$",
+    CMILang: "^([a-zA-Z]{2,3}|i|x)(-[a-zA-Z0-9-]{2,8})?$|^$",
+    CMILangString250: "^({lang=([a-zA-Z]{2,3}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,250}$)?$",
+    CMILangcr: "^(({lang=([a-zA-Z]{2,3}|i|x)?(-[a-zA-Z0-9-]{2,8})?}))(.*?)$",
+    CMILangString250cr: "^(({lang=([a-zA-Z]{2,3}|i|x)?(-[a-zA-Z0-9-]{2,8})?})?(.{0,250})?)?$",
+    CMILangString4000: "^({lang=([a-zA-Z]{2,3}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,4000}$)?$",
+    CMITime: "^(19[7-9]{1}[0-9]{1}|20[0-2]{1}[0-9]{1}|203[0-8]{1})((-(0[1-9]{1}|1[0-2]{1}))((-(0[1-9]{1}|[1-2]{1}[0-9]{1}|3[0-1]{1}))(T([0-1]{1}[0-9]{1}|2[0-3]{1})((:[0-5]{1}[0-9]{1})((:[0-5]{1}[0-9]{1})((\\.[0-9]{1,2})((Z|([+|-]([0-1]{1}[0-9]{1}|2[0-3]{1})))(:[0-5]{1}[0-9]{1})?)?)?)?)?)?)?)?$",
+    CMITimespan: "^P(?:([.,\\d]+)Y)?(?:([.,\\d]+)M)?(?:([.,\\d]+)W)?(?:([.,\\d]+)D)?(?:T?(?:([.,\\d]+)H)?(?:([.,\\d]+)M)?(?:([.,\\d]+)S)?)?$",
+    CMIInteger: "^\\d+$",
+    CMISInteger: "^-?([0-9]+)$",
+    CMIDecimal: "^-?([0-9]{1,5})(\\.[0-9]{1,18})?$",
+    CMIIdentifier: "^\\S{1,250}[a-zA-Z0-9]$",
+    CMIShortIdentifier: "^[\\w\\.\\-\\_]{1,250}$",
+    CMILongIdentifier: "^(?:(?!urn:)\\S{1,4000}|urn:[A-Za-z0-9-]{1,31}:\\S{1,4000}|.{1,4000})$",
+    CMIFeedback: "^.*$",
+    CMIIndex: "[._](\\d+).",
+    CMIIndexStore: ".N(\\d+).",
+    CMICStatus: "^(completed|incomplete|not attempted|unknown)$",
+    CMISStatus: "^(passed|failed|unknown)$",
+    CMIExit: "^(time-out|suspend|logout|normal)$",
+    CMIType: "^(true-false|choice|fill-in|long-fill-in|matching|performance|sequencing|likert|numeric|other)$",
+    CMIResult: "^(correct|incorrect|unanticipated|neutral|-?([0-9]{1,4})(\\.[0-9]{1,18})?)$",
+    NAVEvent: "^(previous|continue|exit|exitAll|abandon|abandonAll|suspendAll|_none_|(\\{target=(?<choice_target>\\S{0,}[a-zA-Z0-9-_]+)})?choice|(\\{target=(?<jump_target>\\S{0,}[a-zA-Z0-9-_]+)})?jump)$",
+    NAVBoolean: "^(unknown|true|false$)",
+    NAVTarget: "^{target=\\S{0,}[a-zA-Z0-9-_]+}$",
+    scaled_range: "-1#1",
+    audio_range: "0#*",
+    speed_range: "0#*",
+    text_range: "-1#1",
+    progress_range: "0#1",
+};
+
+
+/***/ }),
+
 /***/ 429:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-// ESM COMPAT FLAG
-__webpack_require__.r(__webpack_exports__);
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
   "default": function() { return /* binding */ src_BaseAPI; }
 });
+// ESM COMPAT FLAG
+__webpack_require__.r(__webpack_exports__);
 
 // EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
 var tslib_es6 = __webpack_require__(635);
@@ -76,14 +759,15 @@ var DefaultSettings = {
                         else {
                             return [2, {
                                     result: httpResult.result,
-                                    errorCode: httpResult.errorCode
+                                    errorCode: typeof httpResult.errorCode === "number"
                                         ? httpResult.errorCode
-                                        : httpResult.result === api_constants.global_constants.SCORM_TRUE
+                                        : httpResult.result === true || httpResult.result === api_constants.global_constants.SCORM_TRUE
                                             ? 0
                                             : 101
                                 }];
                         }
-                        _a.label = 2;
+                        // removed by dead control flow
+
                     case 2: return [2, {
                             result: api_constants.global_constants.SCORM_FALSE,
                             errorCode: 101
@@ -932,129 +1616,6 @@ var BaseAPI = (function () {
 
 /***/ }),
 
-/***/ 589:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CMIArray: function() { return /* binding */ CMIArray; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-/* harmony import */ var _base_cmi__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(319);
-/* harmony import */ var _exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(784);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(797);
-
-
-
-
-var CMIArray = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIArray, _super);
-    function CMIArray(params) {
-        var _this = _super.call(this) || this;
-        _this.__children = params.children;
-        _this._errorCode = params.errorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__.scorm12_errors.GENERAL;
-        _this._errorClass = params.errorClass || _exceptions__WEBPACK_IMPORTED_MODULE_2__.BaseScormValidationError;
-        _this.childArray = [];
-        return _this;
-    }
-    CMIArray.prototype.reset = function (wipe) {
-        if (wipe === void 0) { wipe = false; }
-        this._initialized = false;
-        if (wipe) {
-            this.childArray = [];
-        }
-        else {
-            for (var i = 0; i < this.childArray.length; i++) {
-                this.childArray[i].reset();
-            }
-        }
-    };
-    Object.defineProperty(CMIArray.prototype, "_children", {
-        get: function () {
-            return this.__children;
-        },
-        set: function (_children) {
-            throw new this._errorClass(this._errorCode);
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIArray.prototype, "_count", {
-        get: function () {
-            return this.childArray.length;
-        },
-        set: function (_count) {
-            throw new this._errorClass(this._errorCode);
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIArray.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {};
-        for (var i = 0; i < this.childArray.length; i++) {
-            result[i + ""] = this.childArray[i];
-        }
-        delete this.jsonString;
-        return result;
-    };
-    return CMIArray;
-}(_base_cmi__WEBPACK_IMPORTED_MODULE_3__.BaseCMI));
-
-
-
-/***/ }),
-
-/***/ 319:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   BaseCMI: function() { return /* binding */ BaseCMI; },
-/* harmony export */   BaseRootCMI: function() { return /* binding */ BaseRootCMI; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-
-var BaseCMI = (function () {
-    function BaseCMI() {
-        this.jsonString = false;
-        this._initialized = false;
-    }
-    Object.defineProperty(BaseCMI.prototype, "initialized", {
-        get: function () {
-            return this._initialized;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(BaseCMI.prototype, "start_time", {
-        get: function () {
-            return this._start_time;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    BaseCMI.prototype.initialize = function () {
-        this._initialized = true;
-    };
-    BaseCMI.prototype.setStartTime = function () {
-        this._start_time = new Date().getTime();
-    };
-    return BaseCMI;
-}());
-
-var BaseRootCMI = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(BaseRootCMI, _super);
-    function BaseRootCMI() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    return BaseRootCMI;
-}(BaseCMI));
-
-
-
-/***/ }),
-
 /***/ 434:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
@@ -1065,9 +1626,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
 /* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(340);
 /* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(417);
-/* harmony import */ var _base_cmi__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(319);
+/* harmony import */ var _base_cmi__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(319);
 /* harmony import */ var _validation__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(449);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(797);
+/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(797);
 
 
 
@@ -1086,11 +1647,11 @@ var CMIScore = (function (_super) {
             : _constants_regex__WEBPACK_IMPORTED_MODULE_2__.scorm12_regex.score_range;
         _this._max = params.max || params.max === "" ? params.max : "100";
         _this.__invalid_error_code =
-            params.invalidErrorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.INVALID_SET_VALUE;
+            params.invalidErrorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_5__.scorm12_errors.INVALID_SET_VALUE;
         _this.__invalid_type_code =
-            params.invalidTypeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.TYPE_MISMATCH;
+            params.invalidTypeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_5__.scorm12_errors.TYPE_MISMATCH;
         _this.__invalid_range_code =
-            params.invalidRangeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.VALUE_OUT_OF_RANGE;
+            params.invalidRangeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_5__.scorm12_errors.VALUE_OUT_OF_RANGE;
         _this.__decimal_regex = params.decimalRegex || _constants_regex__WEBPACK_IMPORTED_MODULE_2__.scorm12_regex.CMIDecimal;
         _this.__error_class = params.errorClass;
         return _this;
@@ -1161,7 +1722,7 @@ var CMIScore = (function (_super) {
         return result;
     };
     return CMIScore;
-}(_base_cmi__WEBPACK_IMPORTED_MODULE_5__.BaseCMI));
+}(_base_cmi__WEBPACK_IMPORTED_MODULE_3__.BaseCMI));
 
 
 
@@ -1208,16 +1769,1260 @@ function checkValidRange(value, rangePattern, errorCode, errorClass) {
 
 /***/ }),
 
+/***/ 532:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   CMIStudentData: function() { return /* binding */ CMIStudentData; }
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(319);
+/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(340);
+/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(179);
+/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(797);
+
+
+
+
+
+var CMIStudentData = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIStudentData, _super);
+    function CMIStudentData(student_data_children) {
+        var _this = _super.call(this) || this;
+        _this._mastery_score = "";
+        _this._max_time_allowed = "";
+        _this._time_limit_action = "";
+        _this.__children = student_data_children
+            ? student_data_children
+            : _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__.scorm12_constants.student_data_children;
+        return _this;
+    }
+    CMIStudentData.prototype.reset = function () {
+        this._initialized = false;
+    };
+    Object.defineProperty(CMIStudentData.prototype, "_children", {
+        get: function () {
+            return this.__children;
+        },
+        set: function (_children) {
+            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_4__.scorm12_errors.INVALID_SET_VALUE);
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(CMIStudentData.prototype, "mastery_score", {
+        get: function () {
+            return this._mastery_score;
+        },
+        set: function (mastery_score) {
+            if (this.initialized) {
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_4__.scorm12_errors.READ_ONLY_ELEMENT);
+            }
+            else {
+                this._mastery_score = mastery_score;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(CMIStudentData.prototype, "max_time_allowed", {
+        get: function () {
+            return this._max_time_allowed;
+        },
+        set: function (max_time_allowed) {
+            if (this.initialized) {
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_4__.scorm12_errors.READ_ONLY_ELEMENT);
+            }
+            else {
+                this._max_time_allowed = max_time_allowed;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(CMIStudentData.prototype, "time_limit_action", {
+        get: function () {
+            return this._time_limit_action;
+        },
+        set: function (time_limit_action) {
+            if (this.initialized) {
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_4__.scorm12_errors.READ_ONLY_ELEMENT);
+            }
+            else {
+                this._time_limit_action = time_limit_action;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    CMIStudentData.prototype.toJSON = function () {
+        this.jsonString = true;
+        var result = {
+            mastery_score: this.mastery_score,
+            max_time_allowed: this.max_time_allowed,
+            time_limit_action: this.time_limit_action,
+        };
+        delete this.jsonString;
+        return result;
+    };
+    return CMIStudentData;
+}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_1__.BaseCMI));
+
+
+
+/***/ }),
+
+/***/ 589:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   CMIArray: function() { return /* binding */ CMIArray; }
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+/* harmony import */ var _base_cmi__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(319);
+/* harmony import */ var _exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(784);
+/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(797);
+
+
+
+
+var CMIArray = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIArray, _super);
+    function CMIArray(params) {
+        var _this = _super.call(this) || this;
+        _this.__children = params.children;
+        _this._errorCode = params.errorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.GENERAL;
+        _this._errorClass = params.errorClass || _exceptions__WEBPACK_IMPORTED_MODULE_2__.BaseScormValidationError;
+        _this.childArray = [];
+        return _this;
+    }
+    CMIArray.prototype.reset = function (wipe) {
+        if (wipe === void 0) { wipe = false; }
+        this._initialized = false;
+        if (wipe) {
+            this.childArray = [];
+        }
+        else {
+            for (var i = 0; i < this.childArray.length; i++) {
+                this.childArray[i].reset();
+            }
+        }
+    };
+    Object.defineProperty(CMIArray.prototype, "_children", {
+        get: function () {
+            return this.__children;
+        },
+        set: function (_children) {
+            throw new this._errorClass(this._errorCode);
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(CMIArray.prototype, "_count", {
+        get: function () {
+            return this.childArray.length;
+        },
+        set: function (_count) {
+            throw new this._errorClass(this._errorCode);
+        },
+        enumerable: false,
+        configurable: true
+    });
+    CMIArray.prototype.toJSON = function () {
+        this.jsonString = true;
+        var result = {};
+        for (var i = 0; i < this.childArray.length; i++) {
+            result[i + ""] = this.childArray[i];
+        }
+        delete this.jsonString;
+        return result;
+    };
+    return CMIArray;
+}(_base_cmi__WEBPACK_IMPORTED_MODULE_1__.BaseCMI));
+
+
+
+/***/ }),
+
+/***/ 635:
+/***/ (function(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   __addDisposableResource: function() { return /* binding */ __addDisposableResource; },
+/* harmony export */   __assign: function() { return /* binding */ __assign; },
+/* harmony export */   __asyncDelegator: function() { return /* binding */ __asyncDelegator; },
+/* harmony export */   __asyncGenerator: function() { return /* binding */ __asyncGenerator; },
+/* harmony export */   __asyncValues: function() { return /* binding */ __asyncValues; },
+/* harmony export */   __await: function() { return /* binding */ __await; },
+/* harmony export */   __awaiter: function() { return /* binding */ __awaiter; },
+/* harmony export */   __classPrivateFieldGet: function() { return /* binding */ __classPrivateFieldGet; },
+/* harmony export */   __classPrivateFieldIn: function() { return /* binding */ __classPrivateFieldIn; },
+/* harmony export */   __classPrivateFieldSet: function() { return /* binding */ __classPrivateFieldSet; },
+/* harmony export */   __createBinding: function() { return /* binding */ __createBinding; },
+/* harmony export */   __decorate: function() { return /* binding */ __decorate; },
+/* harmony export */   __disposeResources: function() { return /* binding */ __disposeResources; },
+/* harmony export */   __esDecorate: function() { return /* binding */ __esDecorate; },
+/* harmony export */   __exportStar: function() { return /* binding */ __exportStar; },
+/* harmony export */   __extends: function() { return /* binding */ __extends; },
+/* harmony export */   __generator: function() { return /* binding */ __generator; },
+/* harmony export */   __importDefault: function() { return /* binding */ __importDefault; },
+/* harmony export */   __importStar: function() { return /* binding */ __importStar; },
+/* harmony export */   __makeTemplateObject: function() { return /* binding */ __makeTemplateObject; },
+/* harmony export */   __metadata: function() { return /* binding */ __metadata; },
+/* harmony export */   __param: function() { return /* binding */ __param; },
+/* harmony export */   __propKey: function() { return /* binding */ __propKey; },
+/* harmony export */   __read: function() { return /* binding */ __read; },
+/* harmony export */   __rest: function() { return /* binding */ __rest; },
+/* harmony export */   __rewriteRelativeImportExtension: function() { return /* binding */ __rewriteRelativeImportExtension; },
+/* harmony export */   __runInitializers: function() { return /* binding */ __runInitializers; },
+/* harmony export */   __setFunctionName: function() { return /* binding */ __setFunctionName; },
+/* harmony export */   __spread: function() { return /* binding */ __spread; },
+/* harmony export */   __spreadArray: function() { return /* binding */ __spreadArray; },
+/* harmony export */   __spreadArrays: function() { return /* binding */ __spreadArrays; },
+/* harmony export */   __values: function() { return /* binding */ __values; }
+/* harmony export */ });
+/******************************************************************************
+Copyright (c) Microsoft Corporation.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
+/* global Reflect, Promise, SuppressedError, Symbol, Iterator */
+
+var extendStatics = function(d, b) {
+  extendStatics = Object.setPrototypeOf ||
+      ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+      function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+  return extendStatics(d, b);
+};
+
+function __extends(d, b) {
+  if (typeof b !== "function" && b !== null)
+      throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+  extendStatics(d, b);
+  function __() { this.constructor = d; }
+  d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+}
+
+var __assign = function() {
+  __assign = Object.assign || function __assign(t) {
+      for (var s, i = 1, n = arguments.length; i < n; i++) {
+          s = arguments[i];
+          for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+      }
+      return t;
+  }
+  return __assign.apply(this, arguments);
+}
+
+function __rest(s, e) {
+  var t = {};
+  for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+      t[p] = s[p];
+  if (s != null && typeof Object.getOwnPropertySymbols === "function")
+      for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+          if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+              t[p[i]] = s[p[i]];
+      }
+  return t;
+}
+
+function __decorate(decorators, target, key, desc) {
+  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+  else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+  return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+
+function __param(paramIndex, decorator) {
+  return function (target, key) { decorator(target, key, paramIndex); }
+}
+
+function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
+  function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
+  var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
+  var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
+  var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
+  var _, done = false;
+  for (var i = decorators.length - 1; i >= 0; i--) {
+      var context = {};
+      for (var p in contextIn) context[p] = p === "access" ? {} : contextIn[p];
+      for (var p in contextIn.access) context.access[p] = contextIn.access[p];
+      context.addInitializer = function (f) { if (done) throw new TypeError("Cannot add initializers after decoration has completed"); extraInitializers.push(accept(f || null)); };
+      var result = (0, decorators[i])(kind === "accessor" ? { get: descriptor.get, set: descriptor.set } : descriptor[key], context);
+      if (kind === "accessor") {
+          if (result === void 0) continue;
+          if (result === null || typeof result !== "object") throw new TypeError("Object expected");
+          if (_ = accept(result.get)) descriptor.get = _;
+          if (_ = accept(result.set)) descriptor.set = _;
+          if (_ = accept(result.init)) initializers.unshift(_);
+      }
+      else if (_ = accept(result)) {
+          if (kind === "field") initializers.unshift(_);
+          else descriptor[key] = _;
+      }
+  }
+  if (target) Object.defineProperty(target, contextIn.name, descriptor);
+  done = true;
+};
+
+function __runInitializers(thisArg, initializers, value) {
+  var useValue = arguments.length > 2;
+  for (var i = 0; i < initializers.length; i++) {
+      value = useValue ? initializers[i].call(thisArg, value) : initializers[i].call(thisArg);
+  }
+  return useValue ? value : void 0;
+};
+
+function __propKey(x) {
+  return typeof x === "symbol" ? x : "".concat(x);
+};
+
+function __setFunctionName(f, name, prefix) {
+  if (typeof name === "symbol") name = name.description ? "[".concat(name.description, "]") : "";
+  return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
+};
+
+function __metadata(metadataKey, metadataValue) {
+  if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(metadataKey, metadataValue);
+}
+
+function __awaiter(thisArg, _arguments, P, generator) {
+  function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+  return new (P || (P = Promise))(function (resolve, reject) {
+      function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+      function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+      function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+      step((generator = generator.apply(thisArg, _arguments || [])).next());
+  });
+}
+
+function __generator(thisArg, body) {
+  var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+  function verb(n) { return function (v) { return step([n, v]); }; }
+  function step(op) {
+      if (f) throw new TypeError("Generator is already executing.");
+      while (g && (g = 0, op[0] && (_ = 0)), _) try {
+          if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+          if (y = 0, t) op = [op[0] & 2, t.value];
+          switch (op[0]) {
+              case 0: case 1: t = op; break;
+              case 4: _.label++; return { value: op[1], done: false };
+              case 5: _.label++; y = op[1]; op = [0]; continue;
+              case 7: op = _.ops.pop(); _.trys.pop(); continue;
+              default:
+                  if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                  if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                  if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                  if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                  if (t[2]) _.ops.pop();
+                  _.trys.pop(); continue;
+          }
+          op = body.call(thisArg, _);
+      } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+      if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+  }
+}
+
+var __createBinding = Object.create ? (function(o, m, k, k2) {
+  if (k2 === undefined) k2 = k;
+  var desc = Object.getOwnPropertyDescriptor(m, k);
+  if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+  }
+  Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+  if (k2 === undefined) k2 = k;
+  o[k2] = m[k];
+});
+
+function __exportStar(m, o) {
+  for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(o, p)) __createBinding(o, m, p);
+}
+
+function __values(o) {
+  var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+  if (m) return m.call(o);
+  if (o && typeof o.length === "number") return {
+      next: function () {
+          if (o && i >= o.length) o = void 0;
+          return { value: o && o[i++], done: !o };
+      }
+  };
+  throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+}
+
+function __read(o, n) {
+  var m = typeof Symbol === "function" && o[Symbol.iterator];
+  if (!m) return o;
+  var i = m.call(o), r, ar = [], e;
+  try {
+      while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+  }
+  catch (error) { e = { error: error }; }
+  finally {
+      try {
+          if (r && !r.done && (m = i["return"])) m.call(i);
+      }
+      finally { if (e) throw e.error; }
+  }
+  return ar;
+}
+
+/** @deprecated */
+function __spread() {
+  for (var ar = [], i = 0; i < arguments.length; i++)
+      ar = ar.concat(__read(arguments[i]));
+  return ar;
+}
+
+/** @deprecated */
+function __spreadArrays() {
+  for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+  for (var r = Array(s), k = 0, i = 0; i < il; i++)
+      for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+          r[k] = a[j];
+  return r;
+}
+
+function __spreadArray(to, from, pack) {
+  if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+      if (ar || !(i in from)) {
+          if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+          ar[i] = from[i];
+      }
+  }
+  return to.concat(ar || Array.prototype.slice.call(from));
+}
+
+function __await(v) {
+  return this instanceof __await ? (this.v = v, this) : new __await(v);
+}
+
+function __asyncGenerator(thisArg, _arguments, generator) {
+  if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+  var g = generator.apply(thisArg, _arguments || []), i, q = [];
+  return i = Object.create((typeof AsyncIterator === "function" ? AsyncIterator : Object).prototype), verb("next"), verb("throw"), verb("return", awaitReturn), i[Symbol.asyncIterator] = function () { return this; }, i;
+  function awaitReturn(f) { return function (v) { return Promise.resolve(v).then(f, reject); }; }
+  function verb(n, f) { if (g[n]) { i[n] = function (v) { return new Promise(function (a, b) { q.push([n, v, a, b]) > 1 || resume(n, v); }); }; if (f) i[n] = f(i[n]); } }
+  function resume(n, v) { try { step(g[n](v)); } catch (e) { settle(q[0][3], e); } }
+  function step(r) { r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r); }
+  function fulfill(value) { resume("next", value); }
+  function reject(value) { resume("throw", value); }
+  function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }
+}
+
+function __asyncDelegator(o) {
+  var i, p;
+  return i = {}, verb("next"), verb("throw", function (e) { throw e; }), verb("return"), i[Symbol.iterator] = function () { return this; }, i;
+  function verb(n, f) { i[n] = o[n] ? function (v) { return (p = !p) ? { value: __await(o[n](v)), done: false } : f ? f(v) : v; } : f; }
+}
+
+function __asyncValues(o) {
+  if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+  var m = o[Symbol.asyncIterator], i;
+  return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+  function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+  function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+}
+
+function __makeTemplateObject(cooked, raw) {
+  if (Object.defineProperty) { Object.defineProperty(cooked, "raw", { value: raw }); } else { cooked.raw = raw; }
+  return cooked;
+};
+
+var __setModuleDefault = Object.create ? (function(o, v) {
+  Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+  o["default"] = v;
+};
+
+var ownKeys = function(o) {
+  ownKeys = Object.getOwnPropertyNames || function (o) {
+    var ar = [];
+    for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+    return ar;
+  };
+  return ownKeys(o);
+};
+
+function __importStar(mod) {
+  if (mod && mod.__esModule) return mod;
+  var result = {};
+  if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+  __setModuleDefault(result, mod);
+  return result;
+}
+
+function __importDefault(mod) {
+  return (mod && mod.__esModule) ? mod : { default: mod };
+}
+
+function __classPrivateFieldGet(receiver, state, kind, f) {
+  if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+  return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+}
+
+function __classPrivateFieldSet(receiver, state, value, kind, f) {
+  if (kind === "m") throw new TypeError("Private method is not writable");
+  if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+  return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
+}
+
+function __classPrivateFieldIn(state, receiver) {
+  if (receiver === null || (typeof receiver !== "object" && typeof receiver !== "function")) throw new TypeError("Cannot use 'in' operator on non-object");
+  return typeof state === "function" ? receiver === state : state.has(receiver);
+}
+
+function __addDisposableResource(env, value, async) {
+  if (value !== null && value !== void 0) {
+    if (typeof value !== "object" && typeof value !== "function") throw new TypeError("Object expected.");
+    var dispose, inner;
+    if (async) {
+      if (!Symbol.asyncDispose) throw new TypeError("Symbol.asyncDispose is not defined.");
+      dispose = value[Symbol.asyncDispose];
+    }
+    if (dispose === void 0) {
+      if (!Symbol.dispose) throw new TypeError("Symbol.dispose is not defined.");
+      dispose = value[Symbol.dispose];
+      if (async) inner = dispose;
+    }
+    if (typeof dispose !== "function") throw new TypeError("Object not disposable.");
+    if (inner) dispose = function() { try { inner.call(this); } catch (e) { return Promise.reject(e); } };
+    env.stack.push({ value: value, dispose: dispose, async: async });
+  }
+  else if (async) {
+    env.stack.push({ async: true });
+  }
+  return value;
+}
+
+var _SuppressedError = typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
+  var e = new Error(message);
+  return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
+};
+
+function __disposeResources(env) {
+  function fail(e) {
+    env.error = env.hasError ? new _SuppressedError(e, env.error, "An error was suppressed during disposal.") : e;
+    env.hasError = true;
+  }
+  var r, s = 0;
+  function next() {
+    while (r = env.stack.pop()) {
+      try {
+        if (!r.async && s === 1) return s = 0, env.stack.push(r), Promise.resolve().then(next);
+        if (r.dispose) {
+          var result = r.dispose.call(r.value);
+          if (r.async) return s |= 2, Promise.resolve(result).then(next, function(e) { fail(e); return next(); });
+        }
+        else s |= 1;
+      }
+      catch (e) {
+        fail(e);
+      }
+    }
+    if (s === 1) return env.hasError ? Promise.reject(env.error) : Promise.resolve();
+    if (env.hasError) throw env.error;
+  }
+  return next();
+}
+
+function __rewriteRelativeImportExtension(path, preserveJsx) {
+  if (typeof path === "string" && /^\.\.?\//.test(path)) {
+      return path.replace(/\.(tsx)$|((?:\.d)?)((?:\.[^./]+?)?)\.([cm]?)ts$/i, function (m, tsx, d, ext, cm) {
+          return tsx ? preserveJsx ? ".jsx" : ".js" : d && (!ext || !cm) ? m : (d + ext + "." + cm.toLowerCase() + "js");
+      });
+  }
+  return path;
+}
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+  __extends,
+  __assign,
+  __rest,
+  __decorate,
+  __param,
+  __esDecorate,
+  __runInitializers,
+  __propKey,
+  __setFunctionName,
+  __metadata,
+  __awaiter,
+  __generator,
+  __createBinding,
+  __exportStar,
+  __values,
+  __read,
+  __spread,
+  __spreadArrays,
+  __spreadArray,
+  __await,
+  __asyncGenerator,
+  __asyncDelegator,
+  __asyncValues,
+  __makeTemplateObject,
+  __importStar,
+  __importDefault,
+  __classPrivateFieldGet,
+  __classPrivateFieldSet,
+  __classPrivateFieldIn,
+  __addDisposableResource,
+  __disposeResources,
+  __rewriteRelativeImportExtension,
+});
+
+
+/***/ }),
+
+/***/ 784:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   BaseScormValidationError: function() { return /* binding */ BaseScormValidationError; },
+/* harmony export */   ValidationError: function() { return /* binding */ ValidationError; }
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+
+var BaseScormValidationError = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(BaseScormValidationError, _super);
+    function BaseScormValidationError(errorCode) {
+        var _this = _super.call(this, errorCode.toString()) || this;
+        _this._errorCode = errorCode;
+        _this.name = "ScormValidationError";
+        return _this;
+    }
+    Object.defineProperty(BaseScormValidationError.prototype, "errorCode", {
+        get: function () {
+            return this._errorCode;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    return BaseScormValidationError;
+}(Error));
+
+var ValidationError = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(ValidationError, _super);
+    function ValidationError(errorCode, errorMessage, detailedMessage) {
+        var _this = _super.call(this, errorCode) || this;
+        _this._detailedMessage = "";
+        _this.message = errorMessage;
+        _this._errorMessage = errorMessage;
+        if (detailedMessage) {
+            _this._detailedMessage = detailedMessage;
+        }
+        return _this;
+    }
+    Object.defineProperty(ValidationError.prototype, "errorMessage", {
+        get: function () {
+            return this._errorMessage;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(ValidationError.prototype, "detailedMessage", {
+        get: function () {
+            return this._detailedMessage;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    return ValidationError;
+}(BaseScormValidationError));
+
+
+
+/***/ }),
+
+/***/ 797:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   global_errors: function() { return /* binding */ global_errors; },
+/* harmony export */   scorm12_errors: function() { return /* binding */ scorm12_errors; },
+/* harmony export */   scorm2004_errors: function() { return /* binding */ scorm2004_errors; }
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+
+var global_errors = {
+    GENERAL: 101,
+    INITIALIZATION_FAILED: 101,
+    INITIALIZED: 101,
+    TERMINATED: 101,
+    TERMINATION_FAILURE: 101,
+    TERMINATION_BEFORE_INIT: 101,
+    MULTIPLE_TERMINATION: 101,
+    RETRIEVE_BEFORE_INIT: 101,
+    RETRIEVE_AFTER_TERM: 101,
+    STORE_BEFORE_INIT: 101,
+    STORE_AFTER_TERM: 101,
+    COMMIT_BEFORE_INIT: 101,
+    COMMIT_AFTER_TERM: 101,
+    ARGUMENT_ERROR: 101,
+    CHILDREN_ERROR: 101,
+    COUNT_ERROR: 101,
+    GENERAL_GET_FAILURE: 101,
+    GENERAL_SET_FAILURE: 101,
+    GENERAL_COMMIT_FAILURE: 101,
+    UNDEFINED_DATA_MODEL: 101,
+    UNIMPLEMENTED_ELEMENT: 101,
+    VALUE_NOT_INITIALIZED: 101,
+    INVALID_SET_VALUE: 101,
+    READ_ONLY_ELEMENT: 101,
+    WRITE_ONLY_ELEMENT: 101,
+    TYPE_MISMATCH: 101,
+    VALUE_OUT_OF_RANGE: 101,
+    DEPENDENCY_NOT_ESTABLISHED: 101,
+};
+var scorm12_errors = (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)((0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)({}, global_errors), { RETRIEVE_BEFORE_INIT: 301, STORE_BEFORE_INIT: 301, COMMIT_BEFORE_INIT: 301, ARGUMENT_ERROR: 201, CHILDREN_ERROR: 202, COUNT_ERROR: 203, UNDEFINED_DATA_MODEL: 401, UNIMPLEMENTED_ELEMENT: 401, VALUE_NOT_INITIALIZED: 301, INVALID_SET_VALUE: 402, READ_ONLY_ELEMENT: 403, WRITE_ONLY_ELEMENT: 404, TYPE_MISMATCH: 405, VALUE_OUT_OF_RANGE: 407, DEPENDENCY_NOT_ESTABLISHED: 408 });
+var scorm2004_errors = (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)((0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)({}, global_errors), { INITIALIZATION_FAILED: 102, INITIALIZED: 103, TERMINATED: 104, TERMINATION_FAILURE: 111, TERMINATION_BEFORE_INIT: 112, MULTIPLE_TERMINATIONS: 113, RETRIEVE_BEFORE_INIT: 122, RETRIEVE_AFTER_TERM: 123, STORE_BEFORE_INIT: 132, STORE_AFTER_TERM: 133, COMMIT_BEFORE_INIT: 142, COMMIT_AFTER_TERM: 143, ARGUMENT_ERROR: 201, GENERAL_GET_FAILURE: 301, GENERAL_SET_FAILURE: 351, GENERAL_COMMIT_FAILURE: 391, UNDEFINED_DATA_MODEL: 401, UNIMPLEMENTED_ELEMENT: 402, VALUE_NOT_INITIALIZED: 403, READ_ONLY_ELEMENT: 404, WRITE_ONLY_ELEMENT: 405, TYPE_MISMATCH: 406, VALUE_OUT_OF_RANGE: 407, DEPENDENCY_NOT_ESTABLISHED: 408 });
+
+
+/***/ }),
+
+/***/ 833:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   CMIInteractions: function() { return /* binding */ CMIInteractions; },
+/* harmony export */   CMIInteractionsCorrectResponsesObject: function() { return /* binding */ CMIInteractionsCorrectResponsesObject; },
+/* harmony export */   CMIInteractionsObject: function() { return /* binding */ CMIInteractionsObject; },
+/* harmony export */   CMIInteractionsObjectivesObject: function() { return /* binding */ CMIInteractionsObjectivesObject; }
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+/* harmony import */ var _common_array__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(589);
+/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(340);
+/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(797);
+/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(179);
+/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(319);
+/* harmony import */ var _validation__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(915);
+/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(417);
+
+
+
+
+
+
+
+
+var CMIInteractions = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIInteractions, _super);
+    function CMIInteractions() {
+        return _super.call(this, {
+            children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__.scorm12_constants.interactions_children,
+            errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.INVALID_SET_VALUE,
+            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_4__.Scorm12ValidationError,
+        }) || this;
+    }
+    return CMIInteractions;
+}(_common_array__WEBPACK_IMPORTED_MODULE_1__.CMIArray));
+
+var CMIInteractionsObject = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIInteractionsObject, _super);
+    function CMIInteractionsObject() {
+        var _this = _super.call(this) || this;
+        _this._id = "";
+        _this._time = "";
+        _this._type = "";
+        _this._weighting = "";
+        _this._student_response = "";
+        _this._result = "";
+        _this._latency = "";
+        _this.objectives = new _common_array__WEBPACK_IMPORTED_MODULE_1__.CMIArray({
+            errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.INVALID_SET_VALUE,
+            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_4__.Scorm12ValidationError,
+            children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__.scorm12_constants.objectives_children,
+        });
+        _this.correct_responses = new _common_array__WEBPACK_IMPORTED_MODULE_1__.CMIArray({
+            errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.INVALID_SET_VALUE,
+            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_4__.Scorm12ValidationError,
+            children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_2__.scorm12_constants.correct_responses_children,
+        });
+        return _this;
+    }
+    CMIInteractionsObject.prototype.initialize = function () {
+        var _a, _b;
+        _super.prototype.initialize.call(this);
+        (_a = this.objectives) === null || _a === void 0 ? void 0 : _a.initialize();
+        (_b = this.correct_responses) === null || _b === void 0 ? void 0 : _b.initialize();
+    };
+    CMIInteractionsObject.prototype.reset = function () {
+        var _a, _b;
+        this._initialized = false;
+        this._id = "";
+        this._time = "";
+        this._type = "";
+        this._weighting = "";
+        this._student_response = "";
+        this._result = "";
+        this._latency = "";
+        (_a = this.objectives) === null || _a === void 0 ? void 0 : _a.reset();
+        (_b = this.correct_responses) === null || _b === void 0 ? void 0 : _b.reset();
+    };
+    Object.defineProperty(CMIInteractionsObject.prototype, "id", {
+        get: function () {
+            if (!this.jsonString) {
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_4__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.WRITE_ONLY_ELEMENT);
+            }
+            return this._id;
+        },
+        set: function (id) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_6__.check12ValidFormat)(id, _constants_regex__WEBPACK_IMPORTED_MODULE_7__.scorm12_regex.CMIIdentifier)) {
+                this._id = id;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(CMIInteractionsObject.prototype, "time", {
+        get: function () {
+            if (!this.jsonString) {
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_4__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.WRITE_ONLY_ELEMENT);
+            }
+            return this._time;
+        },
+        set: function (time) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_6__.check12ValidFormat)(time, _constants_regex__WEBPACK_IMPORTED_MODULE_7__.scorm12_regex.CMITime)) {
+                this._time = time;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(CMIInteractionsObject.prototype, "type", {
+        get: function () {
+            if (!this.jsonString) {
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_4__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.WRITE_ONLY_ELEMENT);
+            }
+            return this._type;
+        },
+        set: function (type) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_6__.check12ValidFormat)(type, _constants_regex__WEBPACK_IMPORTED_MODULE_7__.scorm12_regex.CMIType)) {
+                this._type = type;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(CMIInteractionsObject.prototype, "weighting", {
+        get: function () {
+            if (!this.jsonString) {
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_4__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.WRITE_ONLY_ELEMENT);
+            }
+            return this._weighting;
+        },
+        set: function (weighting) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_6__.check12ValidFormat)(weighting, _constants_regex__WEBPACK_IMPORTED_MODULE_7__.scorm12_regex.CMIDecimal) &&
+                (0,_validation__WEBPACK_IMPORTED_MODULE_6__.check12ValidRange)(weighting, _constants_regex__WEBPACK_IMPORTED_MODULE_7__.scorm12_regex.weighting_range)) {
+                this._weighting = weighting;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(CMIInteractionsObject.prototype, "student_response", {
+        get: function () {
+            if (!this.jsonString) {
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_4__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.WRITE_ONLY_ELEMENT);
+            }
+            return this._student_response;
+        },
+        set: function (student_response) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_6__.check12ValidFormat)(student_response, _constants_regex__WEBPACK_IMPORTED_MODULE_7__.scorm12_regex.CMIFeedback, true)) {
+                this._student_response = student_response;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(CMIInteractionsObject.prototype, "result", {
+        get: function () {
+            if (!this.jsonString) {
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_4__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.WRITE_ONLY_ELEMENT);
+            }
+            return this._result;
+        },
+        set: function (result) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_6__.check12ValidFormat)(result, _constants_regex__WEBPACK_IMPORTED_MODULE_7__.scorm12_regex.CMIResult)) {
+                this._result = result;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(CMIInteractionsObject.prototype, "latency", {
+        get: function () {
+            if (!this.jsonString) {
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_4__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.WRITE_ONLY_ELEMENT);
+            }
+            return this._latency;
+        },
+        set: function (latency) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_6__.check12ValidFormat)(latency, _constants_regex__WEBPACK_IMPORTED_MODULE_7__.scorm12_regex.CMITimespan)) {
+                this._latency = latency;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    CMIInteractionsObject.prototype.toJSON = function () {
+        this.jsonString = true;
+        var result = {
+            id: this.id,
+            time: this.time,
+            type: this.type,
+            weighting: this.weighting,
+            student_response: this.student_response,
+            result: this.result,
+            latency: this.latency,
+            objectives: this.objectives,
+            correct_responses: this.correct_responses,
+        };
+        delete this.jsonString;
+        return result;
+    };
+    return CMIInteractionsObject;
+}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_5__.BaseCMI));
+
+var CMIInteractionsObjectivesObject = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIInteractionsObjectivesObject, _super);
+    function CMIInteractionsObjectivesObject() {
+        var _this = _super.call(this) || this;
+        _this._id = "";
+        return _this;
+    }
+    CMIInteractionsObjectivesObject.prototype.reset = function () {
+        this._initialized = false;
+        this._id = "";
+    };
+    Object.defineProperty(CMIInteractionsObjectivesObject.prototype, "id", {
+        get: function () {
+            return this._id;
+        },
+        set: function (id) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_6__.check12ValidFormat)(id, _constants_regex__WEBPACK_IMPORTED_MODULE_7__.scorm12_regex.CMIIdentifier)) {
+                this._id = id;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    CMIInteractionsObjectivesObject.prototype.toJSON = function () {
+        this.jsonString = true;
+        var result = {
+            id: this.id,
+        };
+        delete this.jsonString;
+        return result;
+    };
+    return CMIInteractionsObjectivesObject;
+}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_5__.BaseCMI));
+
+var CMIInteractionsCorrectResponsesObject = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIInteractionsCorrectResponsesObject, _super);
+    function CMIInteractionsCorrectResponsesObject() {
+        var _this = _super.call(this) || this;
+        _this._pattern = "";
+        return _this;
+    }
+    CMIInteractionsCorrectResponsesObject.prototype.reset = function () {
+        this._initialized = false;
+        this._pattern = "";
+    };
+    Object.defineProperty(CMIInteractionsCorrectResponsesObject.prototype, "pattern", {
+        get: function () {
+            if (!this.jsonString) {
+                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_4__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.WRITE_ONLY_ELEMENT);
+            }
+            return this._pattern;
+        },
+        set: function (pattern) {
+            if ((0,_validation__WEBPACK_IMPORTED_MODULE_6__.check12ValidFormat)(pattern, _constants_regex__WEBPACK_IMPORTED_MODULE_7__.scorm12_regex.CMIFeedback, true)) {
+                this._pattern = pattern;
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    CMIInteractionsCorrectResponsesObject.prototype.toJSON = function () {
+        this.jsonString = true;
+        var result = {
+            pattern: this._pattern,
+        };
+        delete this.jsonString;
+        return result;
+    };
+    return CMIInteractionsCorrectResponsesObject;
+}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_5__.BaseCMI));
+
+
+
+/***/ }),
+
+/***/ 864:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   SECONDS_PER_DAY: function() { return /* binding */ SECONDS_PER_DAY; },
+/* harmony export */   SECONDS_PER_HOUR: function() { return /* binding */ SECONDS_PER_HOUR; },
+/* harmony export */   SECONDS_PER_MINUTE: function() { return /* binding */ SECONDS_PER_MINUTE; },
+/* harmony export */   SECONDS_PER_SECOND: function() { return /* binding */ SECONDS_PER_SECOND; },
+/* harmony export */   addHHMMSSTimeStrings: function() { return /* binding */ addHHMMSSTimeStrings; },
+/* harmony export */   addTwoDurations: function() { return /* binding */ addTwoDurations; },
+/* harmony export */   countDecimals: function() { return /* binding */ countDecimals; },
+/* harmony export */   flatten: function() { return /* binding */ flatten; },
+/* harmony export */   formatMessage: function() { return /* binding */ formatMessage; },
+/* harmony export */   getDurationAsSeconds: function() { return /* binding */ getDurationAsSeconds; },
+/* harmony export */   getSecondsAsHHMMSS: function() { return /* binding */ getSecondsAsHHMMSS; },
+/* harmony export */   getSecondsAsISODuration: function() { return /* binding */ getSecondsAsISODuration; },
+/* harmony export */   getTimeAsSeconds: function() { return /* binding */ getTimeAsSeconds; },
+/* harmony export */   stringMatches: function() { return /* binding */ stringMatches; },
+/* harmony export */   unflatten: function() { return /* binding */ unflatten; }
+/* harmony export */ });
+var SECONDS_PER_SECOND = 1.0;
+var SECONDS_PER_MINUTE = 60;
+var SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
+var SECONDS_PER_DAY = 24 * SECONDS_PER_HOUR;
+var designations = {
+    D: SECONDS_PER_DAY,
+    H: SECONDS_PER_HOUR,
+    M: SECONDS_PER_MINUTE,
+    S: SECONDS_PER_SECOND,
+};
+function getSecondsAsHHMMSS(totalSeconds) {
+    if (!totalSeconds || totalSeconds <= 0) {
+        return "00:00:00";
+    }
+    var hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
+    var dateObj = new Date(totalSeconds * 1000);
+    var minutes = dateObj.getUTCMinutes();
+    var seconds = dateObj.getSeconds();
+    var ms = totalSeconds % 1.0;
+    var msStr = "";
+    if (countDecimals(ms) > 0) {
+        if (countDecimals(ms) > 2) {
+            msStr = ms.toFixed(2);
+        }
+        else {
+            msStr = String(ms);
+        }
+        msStr = "." + msStr.split(".")[1];
+    }
+    return ((hours + ":" + minutes + ":" + seconds).replace(/\b\d\b/g, "0$&") + msStr);
+}
+function getSecondsAsISODuration(seconds) {
+    if (!seconds || seconds <= 0) {
+        return "PT0S";
+    }
+    var duration = "P";
+    var remainder = seconds;
+    for (var designationsKey in designations) {
+        var current_seconds = designations[designationsKey] || 1;
+        var value = Math.floor(remainder / current_seconds);
+        remainder = remainder % current_seconds;
+        if (countDecimals(remainder) > 2) {
+            remainder = Number(Number(remainder).toFixed(2));
+        }
+        if (designationsKey === "S" && remainder > 0) {
+            value += remainder;
+        }
+        if (value) {
+            if ((duration.indexOf("D") > 0 ||
+                designationsKey === "H" ||
+                designationsKey === "M" ||
+                designationsKey === "S") &&
+                duration.indexOf("T") === -1) {
+                duration += "T";
+            }
+            duration += "".concat(value).concat(designationsKey);
+        }
+    }
+    return duration;
+}
+function getTimeAsSeconds(timeString, timeRegex) {
+    if (typeof timeString === "number" || typeof timeString === "boolean") {
+        timeString = String(timeString);
+    }
+    if (typeof timeRegex === "string") {
+        timeRegex = new RegExp(timeRegex);
+    }
+    if (!timeString || !timeString.match(timeRegex)) {
+        return 0;
+    }
+    var parts = timeString.split(":");
+    var hours = Number(parts[0]);
+    var minutes = Number(parts[1]);
+    var seconds = Number(parts[2]);
+    return hours * 3600 + minutes * 60 + seconds;
+}
+function getDurationAsSeconds(duration, durationRegex) {
+    if (typeof durationRegex === "string") {
+        durationRegex = new RegExp(durationRegex);
+    }
+    if (!duration || !duration.match(durationRegex)) {
+        return 0;
+    }
+    var _a = new RegExp(durationRegex).exec(duration) || [], years = _a[1], _ = _a[2], days = _a[4], hours = _a[5], minutes = _a[6], seconds = _a[7];
+    var result = 0.0;
+    result += Number(seconds) || 0.0;
+    result += Number(minutes) * 60.0 || 0.0;
+    result += Number(hours) * 3600.0 || 0.0;
+    result += Number(days) * (60 * 60 * 24.0) || 0.0;
+    result += Number(years) * (60 * 60 * 24 * 365.0) || 0.0;
+    return result;
+}
+function addTwoDurations(first, second, durationRegex) {
+    var regex = typeof durationRegex === "string"
+        ? new RegExp(durationRegex)
+        : durationRegex;
+    return getSecondsAsISODuration(getDurationAsSeconds(first, regex) + getDurationAsSeconds(second, regex));
+}
+function addHHMMSSTimeStrings(first, second, timeRegex) {
+    if (typeof timeRegex === "string") {
+        timeRegex = new RegExp(timeRegex);
+    }
+    return getSecondsAsHHMMSS(getTimeAsSeconds(first, timeRegex) + getTimeAsSeconds(second, timeRegex));
+}
+function flatten(data) {
+    var result = {};
+    function recurse(cur, prop) {
+        if (Object(cur) !== cur) {
+            result[prop] = cur;
+        }
+        else if (Array.isArray(cur)) {
+            for (var i = 0, l = cur.length; i < l; i++) {
+                recurse(cur[i], prop + "[" + i + "]");
+                if (l === 0)
+                    result[prop] = [];
+            }
+        }
+        else {
+            var isEmpty = true;
+            for (var p in cur) {
+                if ({}.hasOwnProperty.call(cur, p)) {
+                    isEmpty = false;
+                    recurse(cur[p], prop ? prop + "." + p : p);
+                }
+            }
+            if (isEmpty && prop)
+                result[prop] = {};
+        }
+    }
+    recurse(data, "");
+    return result;
+}
+function unflatten(data) {
+    "use strict";
+    if (Object(data) !== data || Array.isArray(data))
+        return data;
+    var regex = /\.?([^.[\]]+)|\[(\d+)]/g;
+    var result = {};
+    for (var p in data) {
+        if ({}.hasOwnProperty.call(data, p)) {
+            var cur = result;
+            var prop = "";
+            var m = regex.exec(p);
+            while (m) {
+                cur = cur[prop] || (cur[prop] = m[2] ? [] : {});
+                prop = m[2] || m[1] || "";
+                m = regex.exec(p);
+            }
+            cur[prop] = data[p];
+        }
+    }
+    return result[""] || result;
+}
+function countDecimals(num) {
+    if (Math.floor(num) === num || String(num).indexOf(".") < 0)
+        return 0;
+    var parts = num.toString().split(".")[1];
+    return (parts === null || parts === void 0 ? void 0 : parts.length) || 0;
+}
+function formatMessage(functionName, message, CMIElement) {
+    var baseLength = 20;
+    var messageString = "";
+    messageString += functionName;
+    var fillChars = baseLength - messageString.length;
+    for (var i = 0; i < fillChars; i++) {
+        messageString += " ";
+    }
+    messageString += ": ";
+    if (CMIElement) {
+        var CMIElementBaseLength = 70;
+        messageString += CMIElement;
+        fillChars = CMIElementBaseLength - messageString.length;
+        for (var j = 0; j < fillChars; j++) {
+            messageString += " ";
+        }
+    }
+    if (message) {
+        messageString += message;
+    }
+    return messageString;
+}
+function stringMatches(str, tester) {
+    return (str === null || str === void 0 ? void 0 : str.match(tester)) !== null;
+}
+
+
+/***/ }),
+
+/***/ 915:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   check12ValidFormat: function() { return /* binding */ check12ValidFormat; },
+/* harmony export */   check12ValidRange: function() { return /* binding */ check12ValidRange; }
+/* harmony export */ });
+/* harmony import */ var _common_validation__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(449);
+/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(797);
+/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(179);
+
+
+
+function check12ValidFormat(value, regexPattern, allowEmptyString) {
+    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_0__.checkValidFormat)(value, regexPattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__.scorm12_errors.TYPE_MISMATCH, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError, allowEmptyString);
+}
+function check12ValidRange(value, rangePattern, allowEmptyString) {
+    if (!allowEmptyString && value === "") {
+        throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_1__.scorm12_errors.VALUE_OUT_OF_RANGE);
+    }
+    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_0__.checkValidRange)(value, rangePattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__.scorm12_errors.VALUE_OUT_OF_RANGE, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError);
+}
+
+
+/***/ }),
+
 /***/ 989:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-// ESM COMPAT FLAG
-__webpack_require__.r(__webpack_exports__);
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
   CMI: function() { return /* binding */ CMI; }
 });
+// ESM COMPAT FLAG
+__webpack_require__.r(__webpack_exports__);
 
 // EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
 var tslib_es6 = __webpack_require__(635);
@@ -1650,1786 +3455,6 @@ var CMI = (function (_super) {
 
 
 
-/***/ }),
-
-/***/ 833:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CMIInteractions: function() { return /* binding */ CMIInteractions; },
-/* harmony export */   CMIInteractionsCorrectResponsesObject: function() { return /* binding */ CMIInteractionsCorrectResponsesObject; },
-/* harmony export */   CMIInteractionsObject: function() { return /* binding */ CMIInteractionsObject; },
-/* harmony export */   CMIInteractionsObjectivesObject: function() { return /* binding */ CMIInteractionsObjectivesObject; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-/* harmony import */ var _common_array__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(589);
-/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(340);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(797);
-/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(179);
-/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(319);
-/* harmony import */ var _validation__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(915);
-/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(417);
-
-
-
-
-
-
-
-
-var CMIInteractions = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIInteractions, _super);
-    function CMIInteractions() {
-        return _super.call(this, {
-            children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__.scorm12_constants.interactions_children,
-            errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.INVALID_SET_VALUE,
-            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError,
-        }) || this;
-    }
-    return CMIInteractions;
-}(_common_array__WEBPACK_IMPORTED_MODULE_4__.CMIArray));
-
-var CMIInteractionsObject = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIInteractionsObject, _super);
-    function CMIInteractionsObject() {
-        var _this = _super.call(this) || this;
-        _this._id = "";
-        _this._time = "";
-        _this._type = "";
-        _this._weighting = "";
-        _this._student_response = "";
-        _this._result = "";
-        _this._latency = "";
-        _this.objectives = new _common_array__WEBPACK_IMPORTED_MODULE_4__.CMIArray({
-            errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.INVALID_SET_VALUE,
-            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError,
-            children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__.scorm12_constants.objectives_children,
-        });
-        _this.correct_responses = new _common_array__WEBPACK_IMPORTED_MODULE_4__.CMIArray({
-            errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.INVALID_SET_VALUE,
-            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError,
-            children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__.scorm12_constants.correct_responses_children,
-        });
-        return _this;
-    }
-    CMIInteractionsObject.prototype.initialize = function () {
-        var _a, _b;
-        _super.prototype.initialize.call(this);
-        (_a = this.objectives) === null || _a === void 0 ? void 0 : _a.initialize();
-        (_b = this.correct_responses) === null || _b === void 0 ? void 0 : _b.initialize();
-    };
-    CMIInteractionsObject.prototype.reset = function () {
-        var _a, _b;
-        this._initialized = false;
-        this._id = "";
-        this._time = "";
-        this._type = "";
-        this._weighting = "";
-        this._student_response = "";
-        this._result = "";
-        this._latency = "";
-        (_a = this.objectives) === null || _a === void 0 ? void 0 : _a.reset();
-        (_b = this.correct_responses) === null || _b === void 0 ? void 0 : _b.reset();
-    };
-    Object.defineProperty(CMIInteractionsObject.prototype, "id", {
-        get: function () {
-            if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.WRITE_ONLY_ELEMENT);
-            }
-            return this._id;
-        },
-        set: function (id) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__.check12ValidFormat)(id, _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.CMIIdentifier)) {
-                this._id = id;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIInteractionsObject.prototype, "time", {
-        get: function () {
-            if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.WRITE_ONLY_ELEMENT);
-            }
-            return this._time;
-        },
-        set: function (time) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__.check12ValidFormat)(time, _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.CMITime)) {
-                this._time = time;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIInteractionsObject.prototype, "type", {
-        get: function () {
-            if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.WRITE_ONLY_ELEMENT);
-            }
-            return this._type;
-        },
-        set: function (type) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__.check12ValidFormat)(type, _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.CMIType)) {
-                this._type = type;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIInteractionsObject.prototype, "weighting", {
-        get: function () {
-            if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.WRITE_ONLY_ELEMENT);
-            }
-            return this._weighting;
-        },
-        set: function (weighting) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__.check12ValidFormat)(weighting, _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.CMIDecimal) &&
-                (0,_validation__WEBPACK_IMPORTED_MODULE_5__.check12ValidRange)(weighting, _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.weighting_range)) {
-                this._weighting = weighting;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIInteractionsObject.prototype, "student_response", {
-        get: function () {
-            if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.WRITE_ONLY_ELEMENT);
-            }
-            return this._student_response;
-        },
-        set: function (student_response) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__.check12ValidFormat)(student_response, _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.CMIFeedback, true)) {
-                this._student_response = student_response;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIInteractionsObject.prototype, "result", {
-        get: function () {
-            if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.WRITE_ONLY_ELEMENT);
-            }
-            return this._result;
-        },
-        set: function (result) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__.check12ValidFormat)(result, _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.CMIResult)) {
-                this._result = result;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIInteractionsObject.prototype, "latency", {
-        get: function () {
-            if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.WRITE_ONLY_ELEMENT);
-            }
-            return this._latency;
-        },
-        set: function (latency) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__.check12ValidFormat)(latency, _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.CMITimespan)) {
-                this._latency = latency;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIInteractionsObject.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            id: this.id,
-            time: this.time,
-            type: this.type,
-            weighting: this.weighting,
-            student_response: this.student_response,
-            result: this.result,
-            latency: this.latency,
-            objectives: this.objectives,
-            correct_responses: this.correct_responses,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMIInteractionsObject;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_7__.BaseCMI));
-
-var CMIInteractionsObjectivesObject = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIInteractionsObjectivesObject, _super);
-    function CMIInteractionsObjectivesObject() {
-        var _this = _super.call(this) || this;
-        _this._id = "";
-        return _this;
-    }
-    CMIInteractionsObjectivesObject.prototype.reset = function () {
-        this._initialized = false;
-        this._id = "";
-    };
-    Object.defineProperty(CMIInteractionsObjectivesObject.prototype, "id", {
-        get: function () {
-            return this._id;
-        },
-        set: function (id) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__.check12ValidFormat)(id, _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.CMIIdentifier)) {
-                this._id = id;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIInteractionsObjectivesObject.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            id: this.id,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMIInteractionsObjectivesObject;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_7__.BaseCMI));
-
-var CMIInteractionsCorrectResponsesObject = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIInteractionsCorrectResponsesObject, _super);
-    function CMIInteractionsCorrectResponsesObject() {
-        var _this = _super.call(this) || this;
-        _this._pattern = "";
-        return _this;
-    }
-    CMIInteractionsCorrectResponsesObject.prototype.reset = function () {
-        this._initialized = false;
-        this._pattern = "";
-    };
-    Object.defineProperty(CMIInteractionsCorrectResponsesObject.prototype, "pattern", {
-        get: function () {
-            if (!this.jsonString) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.WRITE_ONLY_ELEMENT);
-            }
-            return this._pattern;
-        },
-        set: function (pattern) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_5__.check12ValidFormat)(pattern, _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.CMIFeedback, true)) {
-                this._pattern = pattern;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIInteractionsCorrectResponsesObject.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            pattern: this._pattern,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMIInteractionsCorrectResponsesObject;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_7__.BaseCMI));
-
-
-
-/***/ }),
-
-/***/ 331:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   NAV: function() { return /* binding */ NAV; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(319);
-/* harmony import */ var _validation__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(915);
-/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(417);
-
-
-
-
-var NAV = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(NAV, _super);
-    function NAV() {
-        var _this = _super.call(this) || this;
-        _this._event = "";
-        return _this;
-    }
-    NAV.prototype.reset = function () {
-        this._event = "";
-        this._initialized = false;
-    };
-    Object.defineProperty(NAV.prototype, "event", {
-        get: function () {
-            return this._event;
-        },
-        set: function (event) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_1__.check12ValidFormat)(event, _constants_regex__WEBPACK_IMPORTED_MODULE_2__.scorm12_regex.NAVEvent)) {
-                this._event = event;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    NAV.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            event: this.event,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return NAV;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_3__.BaseCMI));
-
-
-
-/***/ }),
-
-/***/ 176:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CMIObjectives: function() { return /* binding */ CMIObjectives; },
-/* harmony export */   CMIObjectivesObject: function() { return /* binding */ CMIObjectivesObject; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(319);
-/* harmony import */ var _common_score__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(434);
-/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(340);
-/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(417);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(797);
-/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(179);
-/* harmony import */ var _validation__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(915);
-/* harmony import */ var _common_array__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(589);
-
-
-
-
-
-
-
-
-
-var CMIObjectives = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIObjectives, _super);
-    function CMIObjectives() {
-        return _super.call(this, {
-            children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__.scorm12_constants.objectives_children,
-            errorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.INVALID_SET_VALUE,
-            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError,
-        }) || this;
-    }
-    return CMIObjectives;
-}(_common_array__WEBPACK_IMPORTED_MODULE_4__.CMIArray));
-
-var CMIObjectivesObject = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIObjectivesObject, _super);
-    function CMIObjectivesObject() {
-        var _this = _super.call(this) || this;
-        _this._id = "";
-        _this._status = "";
-        _this.score = new _common_score__WEBPACK_IMPORTED_MODULE_5__.CMIScore({
-            score_children: _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__.scorm12_constants.score_children,
-            score_range: _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.score_range,
-            invalidErrorCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.INVALID_SET_VALUE,
-            invalidTypeCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.TYPE_MISMATCH,
-            invalidRangeCode: _constants_error_codes__WEBPACK_IMPORTED_MODULE_2__.scorm12_errors.VALUE_OUT_OF_RANGE,
-            errorClass: _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_3__.Scorm12ValidationError,
-        });
-        return _this;
-    }
-    CMIObjectivesObject.prototype.reset = function () {
-        var _a;
-        this._initialized = false;
-        this._id = "";
-        this._status = "";
-        (_a = this.score) === null || _a === void 0 ? void 0 : _a.reset();
-    };
-    Object.defineProperty(CMIObjectivesObject.prototype, "id", {
-        get: function () {
-            return this._id;
-        },
-        set: function (id) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_7__.check12ValidFormat)(id, _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.CMIIdentifier)) {
-                this._id = id;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIObjectivesObject.prototype, "status", {
-        get: function () {
-            return this._status;
-        },
-        set: function (status) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_7__.check12ValidFormat)(status, _constants_regex__WEBPACK_IMPORTED_MODULE_6__.scorm12_regex.CMIStatus2)) {
-                this._status = status;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIObjectivesObject.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            id: this.id,
-            status: this.status,
-            score: this.score,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMIObjectivesObject;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_8__.BaseCMI));
-
-
-
-/***/ }),
-
-/***/ 532:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CMIStudentData: function() { return /* binding */ CMIStudentData; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(319);
-/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(340);
-/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(179);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(797);
-
-
-
-
-
-var CMIStudentData = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIStudentData, _super);
-    function CMIStudentData(student_data_children) {
-        var _this = _super.call(this) || this;
-        _this._mastery_score = "";
-        _this._max_time_allowed = "";
-        _this._time_limit_action = "";
-        _this.__children = student_data_children
-            ? student_data_children
-            : _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__.scorm12_constants.student_data_children;
-        return _this;
-    }
-    CMIStudentData.prototype.reset = function () {
-        this._initialized = false;
-    };
-    Object.defineProperty(CMIStudentData.prototype, "_children", {
-        get: function () {
-            return this.__children;
-        },
-        set: function (_children) {
-            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.INVALID_SET_VALUE);
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentData.prototype, "mastery_score", {
-        get: function () {
-            return this._mastery_score;
-        },
-        set: function (mastery_score) {
-            if (this.initialized) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._mastery_score = mastery_score;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentData.prototype, "max_time_allowed", {
-        get: function () {
-            return this._max_time_allowed;
-        },
-        set: function (max_time_allowed) {
-            if (this.initialized) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._max_time_allowed = max_time_allowed;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentData.prototype, "time_limit_action", {
-        get: function () {
-            return this._time_limit_action;
-        },
-        set: function (time_limit_action) {
-            if (this.initialized) {
-                throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.READ_ONLY_ELEMENT);
-            }
-            else {
-                this._time_limit_action = time_limit_action;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIStudentData.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            mastery_score: this.mastery_score,
-            max_time_allowed: this.max_time_allowed,
-            time_limit_action: this.time_limit_action,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMIStudentData;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_4__.BaseCMI));
-
-
-
-/***/ }),
-
-/***/ 181:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CMIStudentPreference: function() { return /* binding */ CMIStudentPreference; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-/* harmony import */ var _common_base_cmi__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(319);
-/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(340);
-/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(179);
-/* harmony import */ var _validation__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(915);
-/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(417);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(797);
-
-
-
-
-
-
-
-var CMIStudentPreference = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIStudentPreference, _super);
-    function CMIStudentPreference(student_preference_children) {
-        var _this = _super.call(this) || this;
-        _this._audio = "";
-        _this._language = "";
-        _this._speed = "";
-        _this._text = "";
-        _this.__children = student_preference_children
-            ? student_preference_children
-            : _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__.scorm12_constants.student_preference_children;
-        return _this;
-    }
-    CMIStudentPreference.prototype.reset = function () {
-        this._initialized = false;
-    };
-    Object.defineProperty(CMIStudentPreference.prototype, "_children", {
-        get: function () {
-            return this.__children;
-        },
-        set: function (_children) {
-            throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.INVALID_SET_VALUE);
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentPreference.prototype, "audio", {
-        get: function () {
-            return this._audio;
-        },
-        set: function (audio) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_4__.check12ValidFormat)(audio, _constants_regex__WEBPACK_IMPORTED_MODULE_5__.scorm12_regex.CMISInteger) &&
-                (0,_validation__WEBPACK_IMPORTED_MODULE_4__.check12ValidRange)(audio, _constants_regex__WEBPACK_IMPORTED_MODULE_5__.scorm12_regex.audio_range)) {
-                this._audio = audio;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentPreference.prototype, "language", {
-        get: function () {
-            return this._language;
-        },
-        set: function (language) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_4__.check12ValidFormat)(language, _constants_regex__WEBPACK_IMPORTED_MODULE_5__.scorm12_regex.CMIString256)) {
-                this._language = language;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentPreference.prototype, "speed", {
-        get: function () {
-            return this._speed;
-        },
-        set: function (speed) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_4__.check12ValidFormat)(speed, _constants_regex__WEBPACK_IMPORTED_MODULE_5__.scorm12_regex.CMISInteger) &&
-                (0,_validation__WEBPACK_IMPORTED_MODULE_4__.check12ValidRange)(speed, _constants_regex__WEBPACK_IMPORTED_MODULE_5__.scorm12_regex.speed_range)) {
-                this._speed = speed;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIStudentPreference.prototype, "text", {
-        get: function () {
-            return this._text;
-        },
-        set: function (text) {
-            if ((0,_validation__WEBPACK_IMPORTED_MODULE_4__.check12ValidFormat)(text, _constants_regex__WEBPACK_IMPORTED_MODULE_5__.scorm12_regex.CMISInteger) &&
-                (0,_validation__WEBPACK_IMPORTED_MODULE_4__.check12ValidRange)(text, _constants_regex__WEBPACK_IMPORTED_MODULE_5__.scorm12_regex.text_range)) {
-                this._text = text;
-            }
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIStudentPreference.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {
-            audio: this.audio,
-            language: this.language,
-            speed: this.speed,
-            text: this.text,
-        };
-        delete this.jsonString;
-        return result;
-    };
-    return CMIStudentPreference;
-}(_common_base_cmi__WEBPACK_IMPORTED_MODULE_6__.BaseCMI));
-
-
-
-/***/ }),
-
-/***/ 915:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   check12ValidFormat: function() { return /* binding */ check12ValidFormat; },
-/* harmony export */   check12ValidRange: function() { return /* binding */ check12ValidRange; }
-/* harmony export */ });
-/* harmony import */ var _common_validation__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(449);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(797);
-/* harmony import */ var _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(179);
-
-
-
-function check12ValidFormat(value, regexPattern, allowEmptyString) {
-    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_0__.checkValidFormat)(value, regexPattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__.scorm12_errors.TYPE_MISMATCH, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError, allowEmptyString);
-}
-function check12ValidRange(value, rangePattern, allowEmptyString) {
-    if (!allowEmptyString && value === "") {
-        throw new _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError(_constants_error_codes__WEBPACK_IMPORTED_MODULE_1__.scorm12_errors.VALUE_OUT_OF_RANGE);
-    }
-    return (0,_common_validation__WEBPACK_IMPORTED_MODULE_0__.checkValidRange)(value, rangePattern, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__.scorm12_errors.VALUE_OUT_OF_RANGE, _exceptions_scorm12_exceptions__WEBPACK_IMPORTED_MODULE_2__.Scorm12ValidationError);
-}
-
-
-/***/ }),
-
-/***/ 340:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   aicc_constants: function() { return /* binding */ aicc_constants; },
-/* harmony export */   global_constants: function() { return /* binding */ global_constants; },
-/* harmony export */   scorm12_constants: function() { return /* binding */ scorm12_constants; },
-/* harmony export */   scorm2004_constants: function() { return /* binding */ scorm2004_constants; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-
-var global_constants = {
-    SCORM_TRUE: "true",
-    SCORM_FALSE: "false",
-    STATE_NOT_INITIALIZED: 0,
-    STATE_INITIALIZED: 1,
-    STATE_TERMINATED: 2,
-};
-var scorm12_constants = {
-    cmi_children: "core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions",
-    core_children: "student_id,student_name,lesson_location,credit,lesson_status,entry,score,total_time,lesson_mode,exit,session_time",
-    score_children: "raw,min,max",
-    comments_children: "content,location,time",
-    objectives_children: "id,score,status",
-    correct_responses_children: "pattern",
-    student_data_children: "mastery_score,max_time_allowed,time_limit_action",
-    student_preference_children: "audio,language,speed,text",
-    interactions_children: "id,objectives,time,type,correct_responses,weighting,student_response,result,latency",
-    error_descriptions: {
-        "101": {
-            basicMessage: "General Exception",
-            detailMessage: "No specific error code exists to describe the error. Use LMSGetDiagnostic for more information",
-        },
-        "201": {
-            basicMessage: "Invalid argument error",
-            detailMessage: "Indicates that an argument represents an invalid data model element or is otherwise incorrect.",
-        },
-        "202": {
-            basicMessage: "Element cannot have children",
-            detailMessage: 'Indicates that LMSGetValue was called with a data model element name that ends in "_children" for a data model element that does not support the "_children" suffix.',
-        },
-        "203": {
-            basicMessage: "Element not an array - cannot have count",
-            detailMessage: 'Indicates that LMSGetValue was called with a data model element name that ends in "_count" for a data model element that does not support the "_count" suffix.',
-        },
-        "301": {
-            basicMessage: "Not initialized",
-            detailMessage: "Indicates that an API call was made before the call to lmsInitialize.",
-        },
-        "401": {
-            basicMessage: "Not implemented error",
-            detailMessage: "The data model element indicated in a call to LMSGetValue or LMSSetValue is valid, but was not implemented by this LMS. SCORM 1.2 defines a set of data model elements as being optional for an LMS to implement.",
-        },
-        "402": {
-            basicMessage: "Invalid set value, element is a keyword",
-            detailMessage: 'Indicates that LMSSetValue was called on a data model element that represents a keyword (elements that end in "_children" and "_count").',
-        },
-        "403": {
-            basicMessage: "Element is read only",
-            detailMessage: "LMSSetValue was called with a data model element that can only be read.",
-        },
-        "404": {
-            basicMessage: "Element is write only",
-            detailMessage: "LMSGetValue was called on a data model element that can only be written to.",
-        },
-        "405": {
-            basicMessage: "Incorrect Data Type",
-            detailMessage: "LMSSetValue was called with a value that is not consistent with the data format of the supplied data model element.",
-        },
-        "407": {
-            basicMessage: "Element Value Out Of Range",
-            detailMessage: "The numeric value supplied to a LMSSetValue call is outside of the numeric range allowed for the supplied data model element.",
-        },
-        "408": {
-            basicMessage: "Data Model Dependency Not Established",
-            detailMessage: "Some data model elements cannot be set until another data model element was set. This error condition indicates that the prerequisite element was not set before the dependent element.",
-        },
-    },
-};
-var aicc_constants = (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)((0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)({}, scorm12_constants), {
-    cmi_children: "core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions,evaluation",
-    student_preference_children: "audio,language,lesson_type,speed,text,text_color,text_location,text_size,video,windows",
-    student_data_children: "attempt_number,tries,mastery_score,max_time_allowed,time_limit_action",
-    student_demographics_children: "city,class,company,country,experience,familiar_name,instructor_name,title,native_language,state,street_address,telephone,years_experience",
-    tries_children: "time,status,score",
-    attempt_records_children: "score,lesson_status",
-    paths_children: "location_id,date,time,status,why_left,time_in_element",
-});
-var scorm2004_constants = {
-    cmi_children: "_version,comments_from_learner,comments_from_lms,completion_status,credit,entry,exit,interactions,launch_data,learner_id,learner_name,learner_preference,location,max_time_allowed,mode,objectives,progress_measure,scaled_passing_score,score,session_time,success_status,suspend_data,time_limit_action,total_time",
-    comments_children: "comment,timestamp,location",
-    score_children: "max,raw,scaled,min",
-    objectives_children: "progress_measure,completion_status,success_status,description,score,id",
-    correct_responses_children: "pattern",
-    student_data_children: "mastery_score,max_time_allowed,time_limit_action",
-    student_preference_children: "audio_level,audio_captioning,delivery_speed,language",
-    interactions_children: "id,type,objectives,timestamp,correct_responses,weighting,learner_response,result,latency,description",
-    adl_data_children: "id,store",
-    error_descriptions: {
-        "0": {
-            basicMessage: "No Error",
-            detailMessage: "No error occurred, the previous API call was successful.",
-        },
-        "101": {
-            basicMessage: "General Exception",
-            detailMessage: "No specific error code exists to describe the error. Use GetDiagnostic for more information.",
-        },
-        "102": {
-            basicMessage: "General Initialization Failure",
-            detailMessage: "Call to Initialize failed for an unknown reason.",
-        },
-        "103": {
-            basicMessage: "Already Initialized",
-            detailMessage: "Call to Initialize failed because Initialize was already called.",
-        },
-        "104": {
-            basicMessage: "Content Instance Terminated",
-            detailMessage: "Call to Initialize failed because Terminate was already called.",
-        },
-        "111": {
-            basicMessage: "General Termination Failure",
-            detailMessage: "Call to Terminate failed for an unknown reason.",
-        },
-        "112": {
-            basicMessage: "Termination Before Initialization",
-            detailMessage: "Call to Terminate failed because it was made before the call to Initialize.",
-        },
-        "113": {
-            basicMessage: "Termination After Termination",
-            detailMessage: "Call to Terminate failed because Terminate was already called.",
-        },
-        "122": {
-            basicMessage: "Retrieve Data Before Initialization",
-            detailMessage: "Call to GetValue failed because it was made before the call to Initialize.",
-        },
-        "123": {
-            basicMessage: "Retrieve Data After Termination",
-            detailMessage: "Call to GetValue failed because it was made after the call to Terminate.",
-        },
-        "132": {
-            basicMessage: "Store Data Before Initialization",
-            detailMessage: "Call to SetValue failed because it was made before the call to Initialize.",
-        },
-        "133": {
-            basicMessage: "Store Data After Termination",
-            detailMessage: "Call to SetValue failed because it was made after the call to Terminate.",
-        },
-        "142": {
-            basicMessage: "Commit Before Initialization",
-            detailMessage: "Call to Commit failed because it was made before the call to Initialize.",
-        },
-        "143": {
-            basicMessage: "Commit After Termination",
-            detailMessage: "Call to Commit failed because it was made after the call to Terminate.",
-        },
-        "201": {
-            basicMessage: "General Argument Error",
-            detailMessage: "An invalid argument was passed to an API method (usually indicates that Initialize, Commit or Terminate did not receive the expected empty string argument.",
-        },
-        "301": {
-            basicMessage: "General Get Failure",
-            detailMessage: "Indicates a failed GetValue call where no other specific error code is applicable. Use GetDiagnostic for more information.",
-        },
-        "351": {
-            basicMessage: "General Set Failure",
-            detailMessage: "Indicates a failed SetValue call where no other specific error code is applicable. Use GetDiagnostic for more information.",
-        },
-        "391": {
-            basicMessage: "General Commit Failure",
-            detailMessage: "Indicates a failed Commit call where no other specific error code is applicable. Use GetDiagnostic for more information.",
-        },
-        "401": {
-            basicMessage: "Undefined Data Model Element",
-            detailMessage: "The data model element name passed to GetValue or SetValue is not a valid SCORM data model element.",
-        },
-        "402": {
-            basicMessage: "Unimplemented Data Model Element",
-            detailMessage: "The data model element indicated in a call to GetValue or SetValue is valid, but was not implemented by this LMS. In SCORM 2004, this error would indicate an LMS that is not fully SCORM conformant.",
-        },
-        "403": {
-            basicMessage: "Data Model Element Value Not Initialized",
-            detailMessage: "Attempt to read a data model element that has not been initialized by the LMS or through a SetValue call. This error condition is often reached during normal execution of a SCO.",
-        },
-        "404": {
-            basicMessage: "Data Model Element Is Read Only",
-            detailMessage: "SetValue was called with a data model element that can only be read.",
-        },
-        "405": {
-            basicMessage: "Data Model Element Is Write Only",
-            detailMessage: "GetValue was called on a data model element that can only be written to.",
-        },
-        "406": {
-            basicMessage: "Data Model Element Type Mismatch",
-            detailMessage: "SetValue was called with a value that is not consistent with the data format of the supplied data model element.",
-        },
-        "407": {
-            basicMessage: "Data Model Element Value Out Of Range",
-            detailMessage: "The numeric value supplied to a SetValue call is outside of the numeric range allowed for the supplied data model element.",
-        },
-        "408": {
-            basicMessage: "Data Model Dependency Not Established",
-            detailMessage: "Some data model elements cannot be set until another data model element was set. This error condition indicates that the prerequisite element was not set before the dependent element.",
-        },
-    },
-};
-
-
-/***/ }),
-
-/***/ 56:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CompletionStatus: function() { return /* binding */ CompletionStatus; },
-/* harmony export */   LogLevelEnum: function() { return /* binding */ LogLevelEnum; },
-/* harmony export */   NAVBoolean: function() { return /* binding */ NAVBoolean; },
-/* harmony export */   SuccessStatus: function() { return /* binding */ SuccessStatus; }
-/* harmony export */ });
-var NAVBoolean;
-(function (NAVBoolean) {
-    NAVBoolean["unknown"] = "unknown";
-    NAVBoolean["true"] = "true";
-    NAVBoolean["false"] = "false";
-})(NAVBoolean || (NAVBoolean = {}));
-var SuccessStatus;
-(function (SuccessStatus) {
-    SuccessStatus["passed"] = "passed";
-    SuccessStatus["failed"] = "failed";
-    SuccessStatus["unknown"] = "unknown";
-})(SuccessStatus || (SuccessStatus = {}));
-var CompletionStatus;
-(function (CompletionStatus) {
-    CompletionStatus["completed"] = "completed";
-    CompletionStatus["incomplete"] = "incomplete";
-    CompletionStatus["unknown"] = "unknown";
-})(CompletionStatus || (CompletionStatus = {}));
-var LogLevelEnum;
-(function (LogLevelEnum) {
-    LogLevelEnum[LogLevelEnum["_"] = 0] = "_";
-    LogLevelEnum[LogLevelEnum["DEBUG"] = 1] = "DEBUG";
-    LogLevelEnum[LogLevelEnum["INFO"] = 2] = "INFO";
-    LogLevelEnum[LogLevelEnum["WARN"] = 3] = "WARN";
-    LogLevelEnum[LogLevelEnum["ERROR"] = 4] = "ERROR";
-    LogLevelEnum[LogLevelEnum["NONE"] = 5] = "NONE";
-})(LogLevelEnum || (LogLevelEnum = {}));
-
-
-/***/ }),
-
-/***/ 797:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   global_errors: function() { return /* binding */ global_errors; },
-/* harmony export */   scorm12_errors: function() { return /* binding */ scorm12_errors; },
-/* harmony export */   scorm2004_errors: function() { return /* binding */ scorm2004_errors; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-
-var global_errors = {
-    GENERAL: 101,
-    INITIALIZATION_FAILED: 101,
-    INITIALIZED: 101,
-    TERMINATED: 101,
-    TERMINATION_FAILURE: 101,
-    TERMINATION_BEFORE_INIT: 101,
-    MULTIPLE_TERMINATION: 101,
-    RETRIEVE_BEFORE_INIT: 101,
-    RETRIEVE_AFTER_TERM: 101,
-    STORE_BEFORE_INIT: 101,
-    STORE_AFTER_TERM: 101,
-    COMMIT_BEFORE_INIT: 101,
-    COMMIT_AFTER_TERM: 101,
-    ARGUMENT_ERROR: 101,
-    CHILDREN_ERROR: 101,
-    COUNT_ERROR: 101,
-    GENERAL_GET_FAILURE: 101,
-    GENERAL_SET_FAILURE: 101,
-    GENERAL_COMMIT_FAILURE: 101,
-    UNDEFINED_DATA_MODEL: 101,
-    UNIMPLEMENTED_ELEMENT: 101,
-    VALUE_NOT_INITIALIZED: 101,
-    INVALID_SET_VALUE: 101,
-    READ_ONLY_ELEMENT: 101,
-    WRITE_ONLY_ELEMENT: 101,
-    TYPE_MISMATCH: 101,
-    VALUE_OUT_OF_RANGE: 101,
-    DEPENDENCY_NOT_ESTABLISHED: 101,
-};
-var scorm12_errors = (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)((0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)({}, global_errors), { RETRIEVE_BEFORE_INIT: 301, STORE_BEFORE_INIT: 301, COMMIT_BEFORE_INIT: 301, ARGUMENT_ERROR: 201, CHILDREN_ERROR: 202, COUNT_ERROR: 203, UNDEFINED_DATA_MODEL: 401, UNIMPLEMENTED_ELEMENT: 401, VALUE_NOT_INITIALIZED: 301, INVALID_SET_VALUE: 402, READ_ONLY_ELEMENT: 403, WRITE_ONLY_ELEMENT: 404, TYPE_MISMATCH: 405, VALUE_OUT_OF_RANGE: 407, DEPENDENCY_NOT_ESTABLISHED: 408 });
-var scorm2004_errors = (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)((0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)({}, global_errors), { INITIALIZATION_FAILED: 102, INITIALIZED: 103, TERMINATED: 104, TERMINATION_FAILURE: 111, TERMINATION_BEFORE_INIT: 112, MULTIPLE_TERMINATIONS: 113, RETRIEVE_BEFORE_INIT: 122, RETRIEVE_AFTER_TERM: 123, STORE_BEFORE_INIT: 132, STORE_AFTER_TERM: 133, COMMIT_BEFORE_INIT: 142, COMMIT_AFTER_TERM: 143, ARGUMENT_ERROR: 201, GENERAL_GET_FAILURE: 301, GENERAL_SET_FAILURE: 351, GENERAL_COMMIT_FAILURE: 391, UNDEFINED_DATA_MODEL: 401, UNIMPLEMENTED_ELEMENT: 402, VALUE_NOT_INITIALIZED: 403, READ_ONLY_ELEMENT: 404, WRITE_ONLY_ELEMENT: 405, TYPE_MISMATCH: 406, VALUE_OUT_OF_RANGE: 407, DEPENDENCY_NOT_ESTABLISHED: 408 });
-
-
-/***/ }),
-
-/***/ 417:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   aicc_regex: function() { return /* binding */ aicc_regex; },
-/* harmony export */   scorm12_regex: function() { return /* binding */ scorm12_regex; },
-/* harmony export */   scorm2004_regex: function() { return /* binding */ scorm2004_regex; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-
-var scorm12_regex = {
-    CMIString256: "^.{0,255}$",
-    CMIString4096: "^.{0,4096}$",
-    CMITime: "^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)$",
-    CMITimespan: "^([0-9]{2,}):([0-9]{2}):([0-9]{2})(.[0-9]{1,2})?$",
-    CMIInteger: "^\\d+$",
-    CMISInteger: "^-?([0-9]+)$",
-    CMIDecimal: "^-?([0-9]{0,3})(.[0-9]*)?$",
-    CMIIdentifier: "^[\\u0021-\\u007E\\s]{0,255}$",
-    CMIFeedback: "^.*$",
-    CMIIndex: "[._](\\d+).",
-    CMIStatus: "^(passed|completed|failed|incomplete|browsed)$",
-    CMIStatus2: "^(passed|completed|failed|incomplete|browsed|not attempted)$",
-    CMIExit: "^(time-out|suspend|logout|)$",
-    CMIType: "^(true-false|choice|fill-in|matching|performance|sequencing|likert|numeric)$",
-    CMIResult: "^(correct|wrong|unanticipated|neutral|([0-9]{0,3})?(\\.[0-9]*)?)$",
-    NAVEvent: "^(previous|continue)$",
-    score_range: "0#100",
-    audio_range: "-1#100",
-    speed_range: "-100#100",
-    weighting_range: "-100#100",
-    text_range: "-1#1",
-};
-var aicc_regex = (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)((0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)({}, scorm12_regex), {
-    CMIIdentifier: "^\\w{1,255}$",
-});
-var scorm2004_regex = {
-    CMIString200: "^[\\u0000-\\uFFFF]{0,200}$",
-    CMIString250: "^[\\u0000-\\uFFFF]{0,250}$",
-    CMIString1000: "^[\\u0000-\\uFFFF]{0,1000}$",
-    CMIString4000: "^[\\u0000-\\uFFFF]{0,4000}$",
-    CMIString64000: "^[\\u0000-\\uFFFF]{0,64000}$",
-    CMILang: "^([a-zA-Z]{2,3}|i|x)(-[a-zA-Z0-9-]{2,8})?$|^$",
-    CMILangString250: "^({lang=([a-zA-Z]{2,3}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,250}$)?$",
-    CMILangcr: "^(({lang=([a-zA-Z]{2,3}|i|x)?(-[a-zA-Z0-9-]{2,8})?}))(.*?)$",
-    CMILangString250cr: "^(({lang=([a-zA-Z]{2,3}|i|x)?(-[a-zA-Z0-9-]{2,8})?})?(.{0,250})?)?$",
-    CMILangString4000: "^({lang=([a-zA-Z]{2,3}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,4000}$)?$",
-    CMITime: "^(19[7-9]{1}[0-9]{1}|20[0-2]{1}[0-9]{1}|203[0-8]{1})((-(0[1-9]{1}|1[0-2]{1}))((-(0[1-9]{1}|[1-2]{1}[0-9]{1}|3[0-1]{1}))(T([0-1]{1}[0-9]{1}|2[0-3]{1})((:[0-5]{1}[0-9]{1})((:[0-5]{1}[0-9]{1})((\\.[0-9]{1,2})((Z|([+|-]([0-1]{1}[0-9]{1}|2[0-3]{1})))(:[0-5]{1}[0-9]{1})?)?)?)?)?)?)?)?$",
-    CMITimespan: "^P(?:([.,\\d]+)Y)?(?:([.,\\d]+)M)?(?:([.,\\d]+)W)?(?:([.,\\d]+)D)?(?:T?(?:([.,\\d]+)H)?(?:([.,\\d]+)M)?(?:([.,\\d]+)S)?)?$",
-    CMIInteger: "^\\d+$",
-    CMISInteger: "^-?([0-9]+)$",
-    CMIDecimal: "^-?([0-9]{1,5})(\\.[0-9]{1,18})?$",
-    CMIIdentifier: "^\\S{1,250}[a-zA-Z0-9]$",
-    CMIShortIdentifier: "^[\\w\\.\\-\\_]{1,250}$",
-    CMILongIdentifier: "^(?:(?!urn:)\\S{1,4000}|urn:[A-Za-z0-9-]{1,31}:\\S{1,4000}|.{1,4000})$",
-    CMIFeedback: "^.*$",
-    CMIIndex: "[._](\\d+).",
-    CMIIndexStore: ".N(\\d+).",
-    CMICStatus: "^(completed|incomplete|not attempted|unknown)$",
-    CMISStatus: "^(passed|failed|unknown)$",
-    CMIExit: "^(time-out|suspend|logout|normal)$",
-    CMIType: "^(true-false|choice|fill-in|long-fill-in|matching|performance|sequencing|likert|numeric|other)$",
-    CMIResult: "^(correct|incorrect|unanticipated|neutral|-?([0-9]{1,4})(\\.[0-9]{1,18})?)$",
-    NAVEvent: "^(previous|continue|exit|exitAll|abandon|abandonAll|suspendAll|_none_|(\\{target=(?<choice_target>\\S{0,}[a-zA-Z0-9-_]+)})?choice|(\\{target=(?<jump_target>\\S{0,}[a-zA-Z0-9-_]+)})?jump)$",
-    NAVBoolean: "^(unknown|true|false$)",
-    NAVTarget: "^{target=\\S{0,}[a-zA-Z0-9-_]+}$",
-    scaled_range: "-1#1",
-    audio_range: "0#*",
-    speed_range: "0#*",
-    text_range: "-1#1",
-    progress_range: "0#1",
-};
-
-
-/***/ }),
-
-/***/ 784:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   BaseScormValidationError: function() { return /* binding */ BaseScormValidationError; },
-/* harmony export */   ValidationError: function() { return /* binding */ ValidationError; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-
-var BaseScormValidationError = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(BaseScormValidationError, _super);
-    function BaseScormValidationError(errorCode) {
-        var _this = _super.call(this, errorCode.toString()) || this;
-        _this._errorCode = errorCode;
-        _this.name = "ScormValidationError";
-        return _this;
-    }
-    Object.defineProperty(BaseScormValidationError.prototype, "errorCode", {
-        get: function () {
-            return this._errorCode;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    return BaseScormValidationError;
-}(Error));
-
-var ValidationError = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(ValidationError, _super);
-    function ValidationError(errorCode, errorMessage, detailedMessage) {
-        var _this = _super.call(this, errorCode) || this;
-        _this._detailedMessage = "";
-        _this.message = errorMessage;
-        _this._errorMessage = errorMessage;
-        if (detailedMessage) {
-            _this._detailedMessage = detailedMessage;
-        }
-        return _this;
-    }
-    Object.defineProperty(ValidationError.prototype, "errorMessage", {
-        get: function () {
-            return this._errorMessage;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(ValidationError.prototype, "detailedMessage", {
-        get: function () {
-            return this._detailedMessage;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    return ValidationError;
-}(BaseScormValidationError));
-
-
-
-/***/ }),
-
-/***/ 179:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Scorm12ValidationError: function() { return /* binding */ Scorm12ValidationError; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(635);
-/* harmony import */ var _exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(784);
-/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(340);
-
-
-
-var scorm12_errors = _constants_api_constants__WEBPACK_IMPORTED_MODULE_0__.scorm12_constants.error_descriptions;
-var Scorm12ValidationError = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_1__.__extends)(Scorm12ValidationError, _super);
-    function Scorm12ValidationError(errorCode) {
-        var _this = this;
-        var _a, _b, _c, _d, _e;
-        if ({}.hasOwnProperty.call(scorm12_errors, String(errorCode))) {
-            _this = _super.call(this, errorCode, ((_a = scorm12_errors[String(errorCode)]) === null || _a === void 0 ? void 0 : _a.basicMessage) || "Unknown error", (_b = scorm12_errors[String(errorCode)]) === null || _b === void 0 ? void 0 : _b.detailMessage) || this;
-        }
-        else {
-            _this = _super.call(this, 101, (_d = (_c = scorm12_errors["101"]) === null || _c === void 0 ? void 0 : _c.basicMessage) !== null && _d !== void 0 ? _d : "General error", (_e = scorm12_errors["101"]) === null || _e === void 0 ? void 0 : _e.detailMessage) || this;
-        }
-        return _this;
-    }
-    return Scorm12ValidationError;
-}(_exceptions__WEBPACK_IMPORTED_MODULE_2__.ValidationError));
-
-
-
-/***/ }),
-
-/***/ 864:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   SECONDS_PER_DAY: function() { return /* binding */ SECONDS_PER_DAY; },
-/* harmony export */   SECONDS_PER_HOUR: function() { return /* binding */ SECONDS_PER_HOUR; },
-/* harmony export */   SECONDS_PER_MINUTE: function() { return /* binding */ SECONDS_PER_MINUTE; },
-/* harmony export */   SECONDS_PER_SECOND: function() { return /* binding */ SECONDS_PER_SECOND; },
-/* harmony export */   addHHMMSSTimeStrings: function() { return /* binding */ addHHMMSSTimeStrings; },
-/* harmony export */   addTwoDurations: function() { return /* binding */ addTwoDurations; },
-/* harmony export */   countDecimals: function() { return /* binding */ countDecimals; },
-/* harmony export */   flatten: function() { return /* binding */ flatten; },
-/* harmony export */   formatMessage: function() { return /* binding */ formatMessage; },
-/* harmony export */   getDurationAsSeconds: function() { return /* binding */ getDurationAsSeconds; },
-/* harmony export */   getSecondsAsHHMMSS: function() { return /* binding */ getSecondsAsHHMMSS; },
-/* harmony export */   getSecondsAsISODuration: function() { return /* binding */ getSecondsAsISODuration; },
-/* harmony export */   getTimeAsSeconds: function() { return /* binding */ getTimeAsSeconds; },
-/* harmony export */   stringMatches: function() { return /* binding */ stringMatches; },
-/* harmony export */   unflatten: function() { return /* binding */ unflatten; }
-/* harmony export */ });
-var SECONDS_PER_SECOND = 1.0;
-var SECONDS_PER_MINUTE = 60;
-var SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
-var SECONDS_PER_DAY = 24 * SECONDS_PER_HOUR;
-var designations = {
-    D: SECONDS_PER_DAY,
-    H: SECONDS_PER_HOUR,
-    M: SECONDS_PER_MINUTE,
-    S: SECONDS_PER_SECOND,
-};
-function getSecondsAsHHMMSS(totalSeconds) {
-    if (!totalSeconds || totalSeconds <= 0) {
-        return "00:00:00";
-    }
-    var hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
-    var dateObj = new Date(totalSeconds * 1000);
-    var minutes = dateObj.getUTCMinutes();
-    var seconds = dateObj.getSeconds();
-    var ms = totalSeconds % 1.0;
-    var msStr = "";
-    if (countDecimals(ms) > 0) {
-        if (countDecimals(ms) > 2) {
-            msStr = ms.toFixed(2);
-        }
-        else {
-            msStr = String(ms);
-        }
-        msStr = "." + msStr.split(".")[1];
-    }
-    return ((hours + ":" + minutes + ":" + seconds).replace(/\b\d\b/g, "0$&") + msStr);
-}
-function getSecondsAsISODuration(seconds) {
-    if (!seconds || seconds <= 0) {
-        return "PT0S";
-    }
-    var duration = "P";
-    var remainder = seconds;
-    for (var designationsKey in designations) {
-        var current_seconds = designations[designationsKey] || 1;
-        var value = Math.floor(remainder / current_seconds);
-        remainder = remainder % current_seconds;
-        if (countDecimals(remainder) > 2) {
-            remainder = Number(Number(remainder).toFixed(2));
-        }
-        if (designationsKey === "S" && remainder > 0) {
-            value += remainder;
-        }
-        if (value) {
-            if ((duration.indexOf("D") > 0 ||
-                designationsKey === "H" ||
-                designationsKey === "M" ||
-                designationsKey === "S") &&
-                duration.indexOf("T") === -1) {
-                duration += "T";
-            }
-            duration += "".concat(value).concat(designationsKey);
-        }
-    }
-    return duration;
-}
-function getTimeAsSeconds(timeString, timeRegex) {
-    if (typeof timeString === "number" || typeof timeString === "boolean") {
-        timeString = String(timeString);
-    }
-    if (typeof timeRegex === "string") {
-        timeRegex = new RegExp(timeRegex);
-    }
-    if (!timeString || !timeString.match(timeRegex)) {
-        return 0;
-    }
-    var parts = timeString.split(":");
-    var hours = Number(parts[0]);
-    var minutes = Number(parts[1]);
-    var seconds = Number(parts[2]);
-    return hours * 3600 + minutes * 60 + seconds;
-}
-function getDurationAsSeconds(duration, durationRegex) {
-    if (typeof durationRegex === "string") {
-        durationRegex = new RegExp(durationRegex);
-    }
-    if (!duration || !duration.match(durationRegex)) {
-        return 0;
-    }
-    var _a = new RegExp(durationRegex).exec(duration) || [], years = _a[1], _ = _a[2], days = _a[4], hours = _a[5], minutes = _a[6], seconds = _a[7];
-    var result = 0.0;
-    result += Number(seconds) || 0.0;
-    result += Number(minutes) * 60.0 || 0.0;
-    result += Number(hours) * 3600.0 || 0.0;
-    result += Number(days) * (60 * 60 * 24.0) || 0.0;
-    result += Number(years) * (60 * 60 * 24 * 365.0) || 0.0;
-    return result;
-}
-function addTwoDurations(first, second, durationRegex) {
-    var regex = typeof durationRegex === "string"
-        ? new RegExp(durationRegex)
-        : durationRegex;
-    return getSecondsAsISODuration(getDurationAsSeconds(first, regex) + getDurationAsSeconds(second, regex));
-}
-function addHHMMSSTimeStrings(first, second, timeRegex) {
-    if (typeof timeRegex === "string") {
-        timeRegex = new RegExp(timeRegex);
-    }
-    return getSecondsAsHHMMSS(getTimeAsSeconds(first, timeRegex) + getTimeAsSeconds(second, timeRegex));
-}
-function flatten(data) {
-    var result = {};
-    function recurse(cur, prop) {
-        if (Object(cur) !== cur) {
-            result[prop] = cur;
-        }
-        else if (Array.isArray(cur)) {
-            for (var i = 0, l = cur.length; i < l; i++) {
-                recurse(cur[i], prop + "[" + i + "]");
-                if (l === 0)
-                    result[prop] = [];
-            }
-        }
-        else {
-            var isEmpty = true;
-            for (var p in cur) {
-                if ({}.hasOwnProperty.call(cur, p)) {
-                    isEmpty = false;
-                    recurse(cur[p], prop ? prop + "." + p : p);
-                }
-            }
-            if (isEmpty && prop)
-                result[prop] = {};
-        }
-    }
-    recurse(data, "");
-    return result;
-}
-function unflatten(data) {
-    "use strict";
-    if (Object(data) !== data || Array.isArray(data))
-        return data;
-    var regex = /\.?([^.[\]]+)|\[(\d+)]/g;
-    var result = {};
-    for (var p in data) {
-        if ({}.hasOwnProperty.call(data, p)) {
-            var cur = result;
-            var prop = "";
-            var m = regex.exec(p);
-            while (m) {
-                cur = cur[prop] || (cur[prop] = m[2] ? [] : {});
-                prop = m[2] || m[1] || "";
-                m = regex.exec(p);
-            }
-            cur[prop] = data[p];
-        }
-    }
-    return result[""] || result;
-}
-function countDecimals(num) {
-    if (Math.floor(num) === num || String(num).indexOf(".") < 0)
-        return 0;
-    var parts = num.toString().split(".")[1];
-    return (parts === null || parts === void 0 ? void 0 : parts.length) || 0;
-}
-function formatMessage(functionName, message, CMIElement) {
-    var baseLength = 20;
-    var messageString = "";
-    messageString += functionName;
-    var fillChars = baseLength - messageString.length;
-    for (var i = 0; i < fillChars; i++) {
-        messageString += " ";
-    }
-    messageString += ": ";
-    if (CMIElement) {
-        var CMIElementBaseLength = 70;
-        messageString += CMIElement;
-        fillChars = CMIElementBaseLength - messageString.length;
-        for (var j = 0; j < fillChars; j++) {
-            messageString += " ";
-        }
-    }
-    if (message) {
-        messageString += message;
-    }
-    return messageString;
-}
-function stringMatches(str, tester) {
-    return (str === null || str === void 0 ? void 0 : str.match(tester)) !== null;
-}
-
-
-/***/ }),
-
-/***/ 635:
-/***/ (function(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   __addDisposableResource: function() { return /* binding */ __addDisposableResource; },
-/* harmony export */   __assign: function() { return /* binding */ __assign; },
-/* harmony export */   __asyncDelegator: function() { return /* binding */ __asyncDelegator; },
-/* harmony export */   __asyncGenerator: function() { return /* binding */ __asyncGenerator; },
-/* harmony export */   __asyncValues: function() { return /* binding */ __asyncValues; },
-/* harmony export */   __await: function() { return /* binding */ __await; },
-/* harmony export */   __awaiter: function() { return /* binding */ __awaiter; },
-/* harmony export */   __classPrivateFieldGet: function() { return /* binding */ __classPrivateFieldGet; },
-/* harmony export */   __classPrivateFieldIn: function() { return /* binding */ __classPrivateFieldIn; },
-/* harmony export */   __classPrivateFieldSet: function() { return /* binding */ __classPrivateFieldSet; },
-/* harmony export */   __createBinding: function() { return /* binding */ __createBinding; },
-/* harmony export */   __decorate: function() { return /* binding */ __decorate; },
-/* harmony export */   __disposeResources: function() { return /* binding */ __disposeResources; },
-/* harmony export */   __esDecorate: function() { return /* binding */ __esDecorate; },
-/* harmony export */   __exportStar: function() { return /* binding */ __exportStar; },
-/* harmony export */   __extends: function() { return /* binding */ __extends; },
-/* harmony export */   __generator: function() { return /* binding */ __generator; },
-/* harmony export */   __importDefault: function() { return /* binding */ __importDefault; },
-/* harmony export */   __importStar: function() { return /* binding */ __importStar; },
-/* harmony export */   __makeTemplateObject: function() { return /* binding */ __makeTemplateObject; },
-/* harmony export */   __metadata: function() { return /* binding */ __metadata; },
-/* harmony export */   __param: function() { return /* binding */ __param; },
-/* harmony export */   __propKey: function() { return /* binding */ __propKey; },
-/* harmony export */   __read: function() { return /* binding */ __read; },
-/* harmony export */   __rest: function() { return /* binding */ __rest; },
-/* harmony export */   __runInitializers: function() { return /* binding */ __runInitializers; },
-/* harmony export */   __setFunctionName: function() { return /* binding */ __setFunctionName; },
-/* harmony export */   __spread: function() { return /* binding */ __spread; },
-/* harmony export */   __spreadArray: function() { return /* binding */ __spreadArray; },
-/* harmony export */   __spreadArrays: function() { return /* binding */ __spreadArrays; },
-/* harmony export */   __values: function() { return /* binding */ __values; }
-/* harmony export */ });
-/******************************************************************************
-Copyright (c) Microsoft Corporation.
-
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-PERFORMANCE OF THIS SOFTWARE.
-***************************************************************************** */
-/* global Reflect, Promise, SuppressedError, Symbol, Iterator */
-
-var extendStatics = function(d, b) {
-  extendStatics = Object.setPrototypeOf ||
-      ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-      function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-  return extendStatics(d, b);
-};
-
-function __extends(d, b) {
-  if (typeof b !== "function" && b !== null)
-      throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
-  extendStatics(d, b);
-  function __() { this.constructor = d; }
-  d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-}
-
-var __assign = function() {
-  __assign = Object.assign || function __assign(t) {
-      for (var s, i = 1, n = arguments.length; i < n; i++) {
-          s = arguments[i];
-          for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
-      }
-      return t;
-  }
-  return __assign.apply(this, arguments);
-}
-
-function __rest(s, e) {
-  var t = {};
-  for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-      t[p] = s[p];
-  if (s != null && typeof Object.getOwnPropertySymbols === "function")
-      for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-          if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-              t[p[i]] = s[p[i]];
-      }
-  return t;
-}
-
-function __decorate(decorators, target, key, desc) {
-  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-  if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-  else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-  return c > 3 && r && Object.defineProperty(target, key, r), r;
-}
-
-function __param(paramIndex, decorator) {
-  return function (target, key) { decorator(target, key, paramIndex); }
-}
-
-function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
-  function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
-  var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
-  var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
-  var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
-  var _, done = false;
-  for (var i = decorators.length - 1; i >= 0; i--) {
-      var context = {};
-      for (var p in contextIn) context[p] = p === "access" ? {} : contextIn[p];
-      for (var p in contextIn.access) context.access[p] = contextIn.access[p];
-      context.addInitializer = function (f) { if (done) throw new TypeError("Cannot add initializers after decoration has completed"); extraInitializers.push(accept(f || null)); };
-      var result = (0, decorators[i])(kind === "accessor" ? { get: descriptor.get, set: descriptor.set } : descriptor[key], context);
-      if (kind === "accessor") {
-          if (result === void 0) continue;
-          if (result === null || typeof result !== "object") throw new TypeError("Object expected");
-          if (_ = accept(result.get)) descriptor.get = _;
-          if (_ = accept(result.set)) descriptor.set = _;
-          if (_ = accept(result.init)) initializers.unshift(_);
-      }
-      else if (_ = accept(result)) {
-          if (kind === "field") initializers.unshift(_);
-          else descriptor[key] = _;
-      }
-  }
-  if (target) Object.defineProperty(target, contextIn.name, descriptor);
-  done = true;
-};
-
-function __runInitializers(thisArg, initializers, value) {
-  var useValue = arguments.length > 2;
-  for (var i = 0; i < initializers.length; i++) {
-      value = useValue ? initializers[i].call(thisArg, value) : initializers[i].call(thisArg);
-  }
-  return useValue ? value : void 0;
-};
-
-function __propKey(x) {
-  return typeof x === "symbol" ? x : "".concat(x);
-};
-
-function __setFunctionName(f, name, prefix) {
-  if (typeof name === "symbol") name = name.description ? "[".concat(name.description, "]") : "";
-  return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
-};
-
-function __metadata(metadataKey, metadataValue) {
-  if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(metadataKey, metadataValue);
-}
-
-function __awaiter(thisArg, _arguments, P, generator) {
-  function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-  return new (P || (P = Promise))(function (resolve, reject) {
-      function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-      function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-      function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-      step((generator = generator.apply(thisArg, _arguments || [])).next());
-  });
-}
-
-function __generator(thisArg, body) {
-  var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-  return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-  function verb(n) { return function (v) { return step([n, v]); }; }
-  function step(op) {
-      if (f) throw new TypeError("Generator is already executing.");
-      while (g && (g = 0, op[0] && (_ = 0)), _) try {
-          if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-          if (y = 0, t) op = [op[0] & 2, t.value];
-          switch (op[0]) {
-              case 0: case 1: t = op; break;
-              case 4: _.label++; return { value: op[1], done: false };
-              case 5: _.label++; y = op[1]; op = [0]; continue;
-              case 7: op = _.ops.pop(); _.trys.pop(); continue;
-              default:
-                  if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                  if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                  if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                  if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                  if (t[2]) _.ops.pop();
-                  _.trys.pop(); continue;
-          }
-          op = body.call(thisArg, _);
-      } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-      if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-  }
-}
-
-var __createBinding = Object.create ? (function(o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  var desc = Object.getOwnPropertyDescriptor(m, k);
-  if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-  }
-  Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-function __exportStar(m, o) {
-  for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(o, p)) __createBinding(o, m, p);
-}
-
-function __values(o) {
-  var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
-  if (m) return m.call(o);
-  if (o && typeof o.length === "number") return {
-      next: function () {
-          if (o && i >= o.length) o = void 0;
-          return { value: o && o[i++], done: !o };
-      }
-  };
-  throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
-}
-
-function __read(o, n) {
-  var m = typeof Symbol === "function" && o[Symbol.iterator];
-  if (!m) return o;
-  var i = m.call(o), r, ar = [], e;
-  try {
-      while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-  }
-  catch (error) { e = { error: error }; }
-  finally {
-      try {
-          if (r && !r.done && (m = i["return"])) m.call(i);
-      }
-      finally { if (e) throw e.error; }
-  }
-  return ar;
-}
-
-/** @deprecated */
-function __spread() {
-  for (var ar = [], i = 0; i < arguments.length; i++)
-      ar = ar.concat(__read(arguments[i]));
-  return ar;
-}
-
-/** @deprecated */
-function __spreadArrays() {
-  for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-  for (var r = Array(s), k = 0, i = 0; i < il; i++)
-      for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
-          r[k] = a[j];
-  return r;
-}
-
-function __spreadArray(to, from, pack) {
-  if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-      if (ar || !(i in from)) {
-          if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-          ar[i] = from[i];
-      }
-  }
-  return to.concat(ar || Array.prototype.slice.call(from));
-}
-
-function __await(v) {
-  return this instanceof __await ? (this.v = v, this) : new __await(v);
-}
-
-function __asyncGenerator(thisArg, _arguments, generator) {
-  if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-  var g = generator.apply(thisArg, _arguments || []), i, q = [];
-  return i = Object.create((typeof AsyncIterator === "function" ? AsyncIterator : Object).prototype), verb("next"), verb("throw"), verb("return", awaitReturn), i[Symbol.asyncIterator] = function () { return this; }, i;
-  function awaitReturn(f) { return function (v) { return Promise.resolve(v).then(f, reject); }; }
-  function verb(n, f) { if (g[n]) { i[n] = function (v) { return new Promise(function (a, b) { q.push([n, v, a, b]) > 1 || resume(n, v); }); }; if (f) i[n] = f(i[n]); } }
-  function resume(n, v) { try { step(g[n](v)); } catch (e) { settle(q[0][3], e); } }
-  function step(r) { r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r); }
-  function fulfill(value) { resume("next", value); }
-  function reject(value) { resume("throw", value); }
-  function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }
-}
-
-function __asyncDelegator(o) {
-  var i, p;
-  return i = {}, verb("next"), verb("throw", function (e) { throw e; }), verb("return"), i[Symbol.iterator] = function () { return this; }, i;
-  function verb(n, f) { i[n] = o[n] ? function (v) { return (p = !p) ? { value: __await(o[n](v)), done: false } : f ? f(v) : v; } : f; }
-}
-
-function __asyncValues(o) {
-  if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-  var m = o[Symbol.asyncIterator], i;
-  return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
-  function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
-  function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
-}
-
-function __makeTemplateObject(cooked, raw) {
-  if (Object.defineProperty) { Object.defineProperty(cooked, "raw", { value: raw }); } else { cooked.raw = raw; }
-  return cooked;
-};
-
-var __setModuleDefault = Object.create ? (function(o, v) {
-  Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-  o["default"] = v;
-};
-
-function __importStar(mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-  __setModuleDefault(result, mod);
-  return result;
-}
-
-function __importDefault(mod) {
-  return (mod && mod.__esModule) ? mod : { default: mod };
-}
-
-function __classPrivateFieldGet(receiver, state, kind, f) {
-  if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-  return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-}
-
-function __classPrivateFieldSet(receiver, state, value, kind, f) {
-  if (kind === "m") throw new TypeError("Private method is not writable");
-  if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
-  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
-  return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-}
-
-function __classPrivateFieldIn(state, receiver) {
-  if (receiver === null || (typeof receiver !== "object" && typeof receiver !== "function")) throw new TypeError("Cannot use 'in' operator on non-object");
-  return typeof state === "function" ? receiver === state : state.has(receiver);
-}
-
-function __addDisposableResource(env, value, async) {
-  if (value !== null && value !== void 0) {
-    if (typeof value !== "object" && typeof value !== "function") throw new TypeError("Object expected.");
-    var dispose, inner;
-    if (async) {
-      if (!Symbol.asyncDispose) throw new TypeError("Symbol.asyncDispose is not defined.");
-      dispose = value[Symbol.asyncDispose];
-    }
-    if (dispose === void 0) {
-      if (!Symbol.dispose) throw new TypeError("Symbol.dispose is not defined.");
-      dispose = value[Symbol.dispose];
-      if (async) inner = dispose;
-    }
-    if (typeof dispose !== "function") throw new TypeError("Object not disposable.");
-    if (inner) dispose = function() { try { inner.call(this); } catch (e) { return Promise.reject(e); } };
-    env.stack.push({ value: value, dispose: dispose, async: async });
-  }
-  else if (async) {
-    env.stack.push({ async: true });
-  }
-  return value;
-}
-
-var _SuppressedError = typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
-  var e = new Error(message);
-  return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
-};
-
-function __disposeResources(env) {
-  function fail(e) {
-    env.error = env.hasError ? new _SuppressedError(e, env.error, "An error was suppressed during disposal.") : e;
-    env.hasError = true;
-  }
-  var r, s = 0;
-  function next() {
-    while (r = env.stack.pop()) {
-      try {
-        if (!r.async && s === 1) return s = 0, env.stack.push(r), Promise.resolve().then(next);
-        if (r.dispose) {
-          var result = r.dispose.call(r.value);
-          if (r.async) return s |= 2, Promise.resolve(result).then(next, function(e) { fail(e); return next(); });
-        }
-        else s |= 1;
-      }
-      catch (e) {
-        fail(e);
-      }
-    }
-    if (s === 1) return env.hasError ? Promise.reject(env.error) : Promise.resolve();
-    if (env.hasError) throw env.error;
-  }
-  return next();
-}
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-  __extends,
-  __assign,
-  __rest,
-  __decorate,
-  __param,
-  __metadata,
-  __awaiter,
-  __generator,
-  __createBinding,
-  __exportStar,
-  __values,
-  __read,
-  __spread,
-  __spreadArrays,
-  __spreadArray,
-  __await,
-  __asyncGenerator,
-  __asyncDelegator,
-  __asyncValues,
-  __makeTemplateObject,
-  __importStar,
-  __importDefault,
-  __classPrivateFieldGet,
-  __classPrivateFieldSet,
-  __classPrivateFieldIn,
-  __addDisposableResource,
-  __disposeResources,
-});
-
-
 /***/ })
 
 /******/ });
@@ -3494,16 +3519,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   Scorm12API: function() { return /* binding */ Scorm12Impl; }
 /* harmony export */ });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-/* harmony import */ var _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(989);
-/* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(864);
-/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(340);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(797);
-/* harmony import */ var _cmi_scorm12_objectives__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(176);
-/* harmony import */ var _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(833);
-/* harmony import */ var _cmi_scorm12_nav__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(331);
-/* harmony import */ var _constants_enums__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(56);
-/* harmony import */ var _BaseAPI__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(429);
-/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(417);
+/* harmony import */ var _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(989);
+/* harmony import */ var _utilities__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(864);
+/* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(340);
+/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(797);
+/* harmony import */ var _cmi_scorm12_objectives__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(176);
+/* harmony import */ var _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(833);
+/* harmony import */ var _cmi_scorm12_nav__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(331);
+/* harmony import */ var _constants_enums__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(56);
+/* harmony import */ var _BaseAPI__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(429);
+/* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(417);
 
 
 
@@ -3525,10 +3550,10 @@ var Scorm12Impl = (function (_super) {
                 settings.mastery_override = false;
             }
         }
-        _this = _super.call(this, _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__.scorm12_errors, settings) || this;
+        _this = _super.call(this, _constants_error_codes__WEBPACK_IMPORTED_MODULE_4__.scorm12_errors, settings) || this;
         _this.statusSetByModule = false;
-        _this.cmi = new _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_2__.CMI();
-        _this.nav = new _cmi_scorm12_nav__WEBPACK_IMPORTED_MODULE_3__.NAV();
+        _this.cmi = new _cmi_scorm12_cmi__WEBPACK_IMPORTED_MODULE_1__.CMI();
+        _this.nav = new _cmi_scorm12_nav__WEBPACK_IMPORTED_MODULE_7__.NAV();
         _this.LMSInitialize = _this.lmsInitialize;
         _this.LMSFinish = _this.lmsFinish;
         _this.LMSGetValue = _this.lmsGetValue;
@@ -3567,7 +3592,7 @@ var Scorm12Impl = (function (_super) {
                 }
             });
         }); })();
-        return _constants_api_constants__WEBPACK_IMPORTED_MODULE_4__.global_constants.SCORM_TRUE;
+        return _constants_api_constants__WEBPACK_IMPORTED_MODULE_3__.global_constants.SCORM_TRUE;
     };
     Scorm12Impl.prototype.internalFinish = function () {
         return (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__awaiter)(this, void 0, void 0, function () {
@@ -3577,7 +3602,7 @@ var Scorm12Impl = (function (_super) {
                     case 0: return [4, this.terminate("LMSFinish", true)];
                     case 1:
                         result = _a.sent();
-                        if (result === _constants_api_constants__WEBPACK_IMPORTED_MODULE_4__.global_constants.SCORM_TRUE) {
+                        if (result === _constants_api_constants__WEBPACK_IMPORTED_MODULE_3__.global_constants.SCORM_TRUE) {
                             if (this.nav.event !== "") {
                                 if (this.nav.event === "continue") {
                                     this.processListeners("SequenceNext");
@@ -3621,7 +3646,7 @@ var Scorm12Impl = (function (_super) {
                 });
             }); })();
         }
-        return _constants_api_constants__WEBPACK_IMPORTED_MODULE_4__.global_constants.SCORM_TRUE;
+        return _constants_api_constants__WEBPACK_IMPORTED_MODULE_3__.global_constants.SCORM_TRUE;
     };
     Scorm12Impl.prototype.lmsGetLastError = function () {
         return this.getLastError("LMSGetLastError");
@@ -3639,20 +3664,20 @@ var Scorm12Impl = (function (_super) {
         return this._commonGetCMIValue("getCMIValue", false, CMIElement);
     };
     Scorm12Impl.prototype.getChildElement = function (CMIElement, _value, foundFirstIndex) {
-        if ((0,_utilities__WEBPACK_IMPORTED_MODULE_5__.stringMatches)(CMIElement, "cmi\\.objectives\\.\\d+")) {
-            return new _cmi_scorm12_objectives__WEBPACK_IMPORTED_MODULE_6__.CMIObjectivesObject();
+        if ((0,_utilities__WEBPACK_IMPORTED_MODULE_2__.stringMatches)(CMIElement, "cmi\\.objectives\\.\\d+")) {
+            return new _cmi_scorm12_objectives__WEBPACK_IMPORTED_MODULE_5__.CMIObjectivesObject();
         }
         else if (foundFirstIndex &&
-            (0,_utilities__WEBPACK_IMPORTED_MODULE_5__.stringMatches)(CMIElement, "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+")) {
-            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_7__.CMIInteractionsCorrectResponsesObject();
+            (0,_utilities__WEBPACK_IMPORTED_MODULE_2__.stringMatches)(CMIElement, "cmi\\.interactions\\.\\d+\\.correct_responses\\.\\d+")) {
+            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_6__.CMIInteractionsCorrectResponsesObject();
         }
         else if (foundFirstIndex &&
-            (0,_utilities__WEBPACK_IMPORTED_MODULE_5__.stringMatches)(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")) {
-            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_7__.CMIInteractionsObjectivesObject();
+            (0,_utilities__WEBPACK_IMPORTED_MODULE_2__.stringMatches)(CMIElement, "cmi\\.interactions\\.\\d+\\.objectives\\.\\d+")) {
+            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_6__.CMIInteractionsObjectivesObject();
         }
         else if (!foundFirstIndex &&
-            (0,_utilities__WEBPACK_IMPORTED_MODULE_5__.stringMatches)(CMIElement, "cmi\\.interactions\\.\\d+")) {
-            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_7__.CMIInteractionsObject();
+            (0,_utilities__WEBPACK_IMPORTED_MODULE_2__.stringMatches)(CMIElement, "cmi\\.interactions\\.\\d+")) {
+            return new _cmi_scorm12_interactions__WEBPACK_IMPORTED_MODULE_6__.CMIInteractionsObject();
         }
         return null;
     };
@@ -3663,12 +3688,12 @@ var Scorm12Impl = (function (_super) {
         var basicMessage = "No Error";
         var detailMessage = "No Error";
         errorNumber = String(errorNumber);
-        if (_constants_api_constants__WEBPACK_IMPORTED_MODULE_4__.scorm12_constants.error_descriptions[errorNumber]) {
+        if (_constants_api_constants__WEBPACK_IMPORTED_MODULE_3__.scorm12_constants.error_descriptions[errorNumber]) {
             basicMessage =
-                ((_a = _constants_api_constants__WEBPACK_IMPORTED_MODULE_4__.scorm12_constants.error_descriptions[errorNumber]) === null || _a === void 0 ? void 0 : _a.basicMessage) ||
+                ((_a = _constants_api_constants__WEBPACK_IMPORTED_MODULE_3__.scorm12_constants.error_descriptions[errorNumber]) === null || _a === void 0 ? void 0 : _a.basicMessage) ||
                     "General Error";
             detailMessage =
-                ((_b = _constants_api_constants__WEBPACK_IMPORTED_MODULE_4__.scorm12_constants.error_descriptions[errorNumber]) === null || _b === void 0 ? void 0 : _b.detailMessage) || "";
+                ((_b = _constants_api_constants__WEBPACK_IMPORTED_MODULE_3__.scorm12_constants.error_descriptions[errorNumber]) === null || _b === void 0 ? void 0 : _b.detailMessage) || "";
         }
         return detail ? detailMessage : basicMessage;
     };
@@ -3681,10 +3706,10 @@ var Scorm12Impl = (function (_super) {
             cmiExport.cmi.core.total_time = this.cmi.getCurrentTotalTime();
         }
         var result = [];
-        var flattened = _utilities__WEBPACK_IMPORTED_MODULE_5__.flatten(cmiExport);
+        var flattened = _utilities__WEBPACK_IMPORTED_MODULE_2__.flatten(cmiExport);
         switch (this.settings.dataCommitFormat) {
             case "flattened":
-                return _utilities__WEBPACK_IMPORTED_MODULE_5__.flatten(cmiExport);
+                return _utilities__WEBPACK_IMPORTED_MODULE_2__.flatten(cmiExport);
             case "params":
                 for (var item in flattened) {
                     if ({}.hasOwnProperty.call(flattened, item)) {
@@ -3700,20 +3725,20 @@ var Scorm12Impl = (function (_super) {
     Scorm12Impl.prototype.renderCommitObject = function (terminateCommit) {
         var cmiExport = this.renderCommitCMI(terminateCommit);
         var totalTimeHHMMSS = this.cmi.getCurrentTotalTime();
-        var totalTimeSeconds = _utilities__WEBPACK_IMPORTED_MODULE_5__.getTimeAsSeconds(totalTimeHHMMSS, _constants_regex__WEBPACK_IMPORTED_MODULE_8__.scorm12_regex.CMITimespan);
+        var totalTimeSeconds = _utilities__WEBPACK_IMPORTED_MODULE_2__.getTimeAsSeconds(totalTimeHHMMSS, _constants_regex__WEBPACK_IMPORTED_MODULE_10__.scorm12_regex.CMITimespan);
         var lessonStatus = this.cmi.core.lesson_status;
-        var completionStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_9__.CompletionStatus.unknown;
-        var successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_9__.SuccessStatus.unknown;
+        var completionStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_8__.CompletionStatus.unknown;
+        var successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_8__.SuccessStatus.unknown;
         if (lessonStatus) {
             completionStatus =
                 lessonStatus === "completed" || lessonStatus === "passed"
-                    ? _constants_enums__WEBPACK_IMPORTED_MODULE_9__.CompletionStatus.completed
-                    : _constants_enums__WEBPACK_IMPORTED_MODULE_9__.CompletionStatus.incomplete;
+                    ? _constants_enums__WEBPACK_IMPORTED_MODULE_8__.CompletionStatus.completed
+                    : _constants_enums__WEBPACK_IMPORTED_MODULE_8__.CompletionStatus.incomplete;
             if (lessonStatus === "passed") {
-                successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_9__.SuccessStatus.passed;
+                successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_8__.SuccessStatus.passed;
             }
             else if (lessonStatus === "failed") {
-                successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_9__.SuccessStatus.failed;
+                successStatus = _constants_enums__WEBPACK_IMPORTED_MODULE_8__.SuccessStatus.failed;
             }
         }
         var score = this.cmi.core.score;
@@ -3779,7 +3804,7 @@ var Scorm12Impl = (function (_super) {
                         return [4, this.processHttpRequest(this.settings.lmsCommitUrl, commitObject, terminateCommit)];
                     case 1: return [2, _d.sent()];
                     case 2: return [2, {
-                            result: _constants_api_constants__WEBPACK_IMPORTED_MODULE_4__.global_constants.SCORM_TRUE,
+                            result: _constants_api_constants__WEBPACK_IMPORTED_MODULE_3__.global_constants.SCORM_TRUE,
                             errorCode: 0,
                         }];
                 }
@@ -3787,7 +3812,7 @@ var Scorm12Impl = (function (_super) {
         });
     };
     return Scorm12Impl;
-}(_BaseAPI__WEBPACK_IMPORTED_MODULE_10__["default"]));
+}(_BaseAPI__WEBPACK_IMPORTED_MODULE_9__["default"]));
 
 
 var __webpack_exports__Scorm12API = __webpack_exports__.Scorm12API;

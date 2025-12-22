@@ -1,15 +1,393 @@
 /******/ var __webpack_modules__ = ({
 
+/***/ 56:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   CompletionStatus: function() { return /* binding */ CompletionStatus; },
+/* harmony export */   LogLevelEnum: function() { return /* binding */ LogLevelEnum; },
+/* harmony export */   NAVBoolean: function() { return /* binding */ NAVBoolean; },
+/* harmony export */   SuccessStatus: function() { return /* binding */ SuccessStatus; }
+/* harmony export */ });
+var NAVBoolean;
+(function (NAVBoolean) {
+    NAVBoolean["unknown"] = "unknown";
+    NAVBoolean["true"] = "true";
+    NAVBoolean["false"] = "false";
+})(NAVBoolean || (NAVBoolean = {}));
+var SuccessStatus;
+(function (SuccessStatus) {
+    SuccessStatus["passed"] = "passed";
+    SuccessStatus["failed"] = "failed";
+    SuccessStatus["unknown"] = "unknown";
+})(SuccessStatus || (SuccessStatus = {}));
+var CompletionStatus;
+(function (CompletionStatus) {
+    CompletionStatus["completed"] = "completed";
+    CompletionStatus["incomplete"] = "incomplete";
+    CompletionStatus["unknown"] = "unknown";
+})(CompletionStatus || (CompletionStatus = {}));
+var LogLevelEnum;
+(function (LogLevelEnum) {
+    LogLevelEnum[LogLevelEnum["_"] = 0] = "_";
+    LogLevelEnum[LogLevelEnum["DEBUG"] = 1] = "DEBUG";
+    LogLevelEnum[LogLevelEnum["INFO"] = 2] = "INFO";
+    LogLevelEnum[LogLevelEnum["WARN"] = 3] = "WARN";
+    LogLevelEnum[LogLevelEnum["ERROR"] = 4] = "ERROR";
+    LogLevelEnum[LogLevelEnum["NONE"] = 5] = "NONE";
+})(LogLevelEnum || (LogLevelEnum = {}));
+
+
+/***/ }),
+
+/***/ 319:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   BaseCMI: function() { return /* binding */ BaseCMI; },
+/* harmony export */   BaseRootCMI: function() { return /* binding */ BaseRootCMI; }
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+
+var BaseCMI = (function () {
+    function BaseCMI() {
+        this.jsonString = false;
+        this._initialized = false;
+    }
+    Object.defineProperty(BaseCMI.prototype, "initialized", {
+        get: function () {
+            return this._initialized;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(BaseCMI.prototype, "start_time", {
+        get: function () {
+            return this._start_time;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    BaseCMI.prototype.initialize = function () {
+        this._initialized = true;
+    };
+    BaseCMI.prototype.setStartTime = function () {
+        this._start_time = new Date().getTime();
+    };
+    return BaseCMI;
+}());
+
+var BaseRootCMI = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(BaseRootCMI, _super);
+    function BaseRootCMI() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return BaseRootCMI;
+}(BaseCMI));
+
+
+
+/***/ }),
+
+/***/ 340:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   aicc_constants: function() { return /* binding */ aicc_constants; },
+/* harmony export */   global_constants: function() { return /* binding */ global_constants; },
+/* harmony export */   scorm12_constants: function() { return /* binding */ scorm12_constants; },
+/* harmony export */   scorm2004_constants: function() { return /* binding */ scorm2004_constants; }
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+
+var global_constants = {
+    SCORM_TRUE: "true",
+    SCORM_FALSE: "false",
+    STATE_NOT_INITIALIZED: 0,
+    STATE_INITIALIZED: 1,
+    STATE_TERMINATED: 2,
+};
+var scorm12_constants = {
+    cmi_children: "core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions",
+    core_children: "student_id,student_name,lesson_location,credit,lesson_status,entry,score,total_time,lesson_mode,exit,session_time",
+    score_children: "raw,min,max",
+    comments_children: "content,location,time",
+    objectives_children: "id,score,status",
+    correct_responses_children: "pattern",
+    student_data_children: "mastery_score,max_time_allowed,time_limit_action",
+    student_preference_children: "audio,language,speed,text",
+    interactions_children: "id,objectives,time,type,correct_responses,weighting,student_response,result,latency",
+    error_descriptions: {
+        "101": {
+            basicMessage: "General Exception",
+            detailMessage: "No specific error code exists to describe the error. Use LMSGetDiagnostic for more information",
+        },
+        "201": {
+            basicMessage: "Invalid argument error",
+            detailMessage: "Indicates that an argument represents an invalid data model element or is otherwise incorrect.",
+        },
+        "202": {
+            basicMessage: "Element cannot have children",
+            detailMessage: 'Indicates that LMSGetValue was called with a data model element name that ends in "_children" for a data model element that does not support the "_children" suffix.',
+        },
+        "203": {
+            basicMessage: "Element not an array - cannot have count",
+            detailMessage: 'Indicates that LMSGetValue was called with a data model element name that ends in "_count" for a data model element that does not support the "_count" suffix.',
+        },
+        "301": {
+            basicMessage: "Not initialized",
+            detailMessage: "Indicates that an API call was made before the call to lmsInitialize.",
+        },
+        "401": {
+            basicMessage: "Not implemented error",
+            detailMessage: "The data model element indicated in a call to LMSGetValue or LMSSetValue is valid, but was not implemented by this LMS. SCORM 1.2 defines a set of data model elements as being optional for an LMS to implement.",
+        },
+        "402": {
+            basicMessage: "Invalid set value, element is a keyword",
+            detailMessage: 'Indicates that LMSSetValue was called on a data model element that represents a keyword (elements that end in "_children" and "_count").',
+        },
+        "403": {
+            basicMessage: "Element is read only",
+            detailMessage: "LMSSetValue was called with a data model element that can only be read.",
+        },
+        "404": {
+            basicMessage: "Element is write only",
+            detailMessage: "LMSGetValue was called on a data model element that can only be written to.",
+        },
+        "405": {
+            basicMessage: "Incorrect Data Type",
+            detailMessage: "LMSSetValue was called with a value that is not consistent with the data format of the supplied data model element.",
+        },
+        "407": {
+            basicMessage: "Element Value Out Of Range",
+            detailMessage: "The numeric value supplied to a LMSSetValue call is outside of the numeric range allowed for the supplied data model element.",
+        },
+        "408": {
+            basicMessage: "Data Model Dependency Not Established",
+            detailMessage: "Some data model elements cannot be set until another data model element was set. This error condition indicates that the prerequisite element was not set before the dependent element.",
+        },
+    },
+};
+var aicc_constants = (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)((0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)({}, scorm12_constants), {
+    cmi_children: "core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions,evaluation",
+    student_preference_children: "audio,language,lesson_type,speed,text,text_color,text_location,text_size,video,windows",
+    student_data_children: "attempt_number,tries,mastery_score,max_time_allowed,time_limit_action",
+    student_demographics_children: "city,class,company,country,experience,familiar_name,instructor_name,title,native_language,state,street_address,telephone,years_experience",
+    tries_children: "time,status,score",
+    attempt_records_children: "score,lesson_status",
+    paths_children: "location_id,date,time,status,why_left,time_in_element",
+});
+var scorm2004_constants = {
+    cmi_children: "_version,comments_from_learner,comments_from_lms,completion_status,credit,entry,exit,interactions,launch_data,learner_id,learner_name,learner_preference,location,max_time_allowed,mode,objectives,progress_measure,scaled_passing_score,score,session_time,success_status,suspend_data,time_limit_action,total_time",
+    comments_children: "comment,timestamp,location",
+    score_children: "max,raw,scaled,min",
+    objectives_children: "progress_measure,completion_status,success_status,description,score,id",
+    correct_responses_children: "pattern",
+    student_data_children: "mastery_score,max_time_allowed,time_limit_action",
+    student_preference_children: "audio_level,audio_captioning,delivery_speed,language",
+    interactions_children: "id,type,objectives,timestamp,correct_responses,weighting,learner_response,result,latency,description",
+    adl_data_children: "id,store",
+    error_descriptions: {
+        "0": {
+            basicMessage: "No Error",
+            detailMessage: "No error occurred, the previous API call was successful.",
+        },
+        "101": {
+            basicMessage: "General Exception",
+            detailMessage: "No specific error code exists to describe the error. Use GetDiagnostic for more information.",
+        },
+        "102": {
+            basicMessage: "General Initialization Failure",
+            detailMessage: "Call to Initialize failed for an unknown reason.",
+        },
+        "103": {
+            basicMessage: "Already Initialized",
+            detailMessage: "Call to Initialize failed because Initialize was already called.",
+        },
+        "104": {
+            basicMessage: "Content Instance Terminated",
+            detailMessage: "Call to Initialize failed because Terminate was already called.",
+        },
+        "111": {
+            basicMessage: "General Termination Failure",
+            detailMessage: "Call to Terminate failed for an unknown reason.",
+        },
+        "112": {
+            basicMessage: "Termination Before Initialization",
+            detailMessage: "Call to Terminate failed because it was made before the call to Initialize.",
+        },
+        "113": {
+            basicMessage: "Termination After Termination",
+            detailMessage: "Call to Terminate failed because Terminate was already called.",
+        },
+        "122": {
+            basicMessage: "Retrieve Data Before Initialization",
+            detailMessage: "Call to GetValue failed because it was made before the call to Initialize.",
+        },
+        "123": {
+            basicMessage: "Retrieve Data After Termination",
+            detailMessage: "Call to GetValue failed because it was made after the call to Terminate.",
+        },
+        "132": {
+            basicMessage: "Store Data Before Initialization",
+            detailMessage: "Call to SetValue failed because it was made before the call to Initialize.",
+        },
+        "133": {
+            basicMessage: "Store Data After Termination",
+            detailMessage: "Call to SetValue failed because it was made after the call to Terminate.",
+        },
+        "142": {
+            basicMessage: "Commit Before Initialization",
+            detailMessage: "Call to Commit failed because it was made before the call to Initialize.",
+        },
+        "143": {
+            basicMessage: "Commit After Termination",
+            detailMessage: "Call to Commit failed because it was made after the call to Terminate.",
+        },
+        "201": {
+            basicMessage: "General Argument Error",
+            detailMessage: "An invalid argument was passed to an API method (usually indicates that Initialize, Commit or Terminate did not receive the expected empty string argument.",
+        },
+        "301": {
+            basicMessage: "General Get Failure",
+            detailMessage: "Indicates a failed GetValue call where no other specific error code is applicable. Use GetDiagnostic for more information.",
+        },
+        "351": {
+            basicMessage: "General Set Failure",
+            detailMessage: "Indicates a failed SetValue call where no other specific error code is applicable. Use GetDiagnostic for more information.",
+        },
+        "391": {
+            basicMessage: "General Commit Failure",
+            detailMessage: "Indicates a failed Commit call where no other specific error code is applicable. Use GetDiagnostic for more information.",
+        },
+        "401": {
+            basicMessage: "Undefined Data Model Element",
+            detailMessage: "The data model element name passed to GetValue or SetValue is not a valid SCORM data model element.",
+        },
+        "402": {
+            basicMessage: "Unimplemented Data Model Element",
+            detailMessage: "The data model element indicated in a call to GetValue or SetValue is valid, but was not implemented by this LMS. In SCORM 2004, this error would indicate an LMS that is not fully SCORM conformant.",
+        },
+        "403": {
+            basicMessage: "Data Model Element Value Not Initialized",
+            detailMessage: "Attempt to read a data model element that has not been initialized by the LMS or through a SetValue call. This error condition is often reached during normal execution of a SCO.",
+        },
+        "404": {
+            basicMessage: "Data Model Element Is Read Only",
+            detailMessage: "SetValue was called with a data model element that can only be read.",
+        },
+        "405": {
+            basicMessage: "Data Model Element Is Write Only",
+            detailMessage: "GetValue was called on a data model element that can only be written to.",
+        },
+        "406": {
+            basicMessage: "Data Model Element Type Mismatch",
+            detailMessage: "SetValue was called with a value that is not consistent with the data format of the supplied data model element.",
+        },
+        "407": {
+            basicMessage: "Data Model Element Value Out Of Range",
+            detailMessage: "The numeric value supplied to a SetValue call is outside of the numeric range allowed for the supplied data model element.",
+        },
+        "408": {
+            basicMessage: "Data Model Dependency Not Established",
+            detailMessage: "Some data model elements cannot be set until another data model element was set. This error condition indicates that the prerequisite element was not set before the dependent element.",
+        },
+    },
+};
+
+
+/***/ }),
+
+/***/ 417:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   aicc_regex: function() { return /* binding */ aicc_regex; },
+/* harmony export */   scorm12_regex: function() { return /* binding */ scorm12_regex; },
+/* harmony export */   scorm2004_regex: function() { return /* binding */ scorm2004_regex; }
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+
+var scorm12_regex = {
+    CMIString256: "^.{0,255}$",
+    CMIString4096: "^.{0,4096}$",
+    CMITime: "^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)$",
+    CMITimespan: "^([0-9]{2,}):([0-9]{2}):([0-9]{2})(.[0-9]{1,2})?$",
+    CMIInteger: "^\\d+$",
+    CMISInteger: "^-?([0-9]+)$",
+    CMIDecimal: "^-?([0-9]{0,3})(.[0-9]*)?$",
+    CMIIdentifier: "^[\\u0021-\\u007E\\s]{0,255}$",
+    CMIFeedback: "^.*$",
+    CMIIndex: "[._](\\d+).",
+    CMIStatus: "^(passed|completed|failed|incomplete|browsed)$",
+    CMIStatus2: "^(passed|completed|failed|incomplete|browsed|not attempted)$",
+    CMIExit: "^(time-out|suspend|logout|)$",
+    CMIType: "^(true-false|choice|fill-in|matching|performance|sequencing|likert|numeric)$",
+    CMIResult: "^(correct|wrong|unanticipated|neutral|([0-9]{0,3})?(\\.[0-9]*)?)$",
+    NAVEvent: "^(previous|continue)$",
+    score_range: "0#100",
+    audio_range: "-1#100",
+    speed_range: "-100#100",
+    weighting_range: "-100#100",
+    text_range: "-1#1",
+};
+var aicc_regex = (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)((0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)({}, scorm12_regex), {
+    CMIIdentifier: "^\\w{1,255}$",
+});
+var scorm2004_regex = {
+    CMIString200: "^[\\u0000-\\uFFFF]{0,200}$",
+    CMIString250: "^[\\u0000-\\uFFFF]{0,250}$",
+    CMIString1000: "^[\\u0000-\\uFFFF]{0,1000}$",
+    CMIString4000: "^[\\u0000-\\uFFFF]{0,4000}$",
+    CMIString64000: "^[\\u0000-\\uFFFF]{0,64000}$",
+    CMILang: "^([a-zA-Z]{2,3}|i|x)(-[a-zA-Z0-9-]{2,8})?$|^$",
+    CMILangString250: "^({lang=([a-zA-Z]{2,3}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,250}$)?$",
+    CMILangcr: "^(({lang=([a-zA-Z]{2,3}|i|x)?(-[a-zA-Z0-9-]{2,8})?}))(.*?)$",
+    CMILangString250cr: "^(({lang=([a-zA-Z]{2,3}|i|x)?(-[a-zA-Z0-9-]{2,8})?})?(.{0,250})?)?$",
+    CMILangString4000: "^({lang=([a-zA-Z]{2,3}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,4000}$)?$",
+    CMITime: "^(19[7-9]{1}[0-9]{1}|20[0-2]{1}[0-9]{1}|203[0-8]{1})((-(0[1-9]{1}|1[0-2]{1}))((-(0[1-9]{1}|[1-2]{1}[0-9]{1}|3[0-1]{1}))(T([0-1]{1}[0-9]{1}|2[0-3]{1})((:[0-5]{1}[0-9]{1})((:[0-5]{1}[0-9]{1})((\\.[0-9]{1,2})((Z|([+|-]([0-1]{1}[0-9]{1}|2[0-3]{1})))(:[0-5]{1}[0-9]{1})?)?)?)?)?)?)?)?$",
+    CMITimespan: "^P(?:([.,\\d]+)Y)?(?:([.,\\d]+)M)?(?:([.,\\d]+)W)?(?:([.,\\d]+)D)?(?:T?(?:([.,\\d]+)H)?(?:([.,\\d]+)M)?(?:([.,\\d]+)S)?)?$",
+    CMIInteger: "^\\d+$",
+    CMISInteger: "^-?([0-9]+)$",
+    CMIDecimal: "^-?([0-9]{1,5})(\\.[0-9]{1,18})?$",
+    CMIIdentifier: "^\\S{1,250}[a-zA-Z0-9]$",
+    CMIShortIdentifier: "^[\\w\\.\\-\\_]{1,250}$",
+    CMILongIdentifier: "^(?:(?!urn:)\\S{1,4000}|urn:[A-Za-z0-9-]{1,31}:\\S{1,4000}|.{1,4000})$",
+    CMIFeedback: "^.*$",
+    CMIIndex: "[._](\\d+).",
+    CMIIndexStore: ".N(\\d+).",
+    CMICStatus: "^(completed|incomplete|not attempted|unknown)$",
+    CMISStatus: "^(passed|failed|unknown)$",
+    CMIExit: "^(time-out|suspend|logout|normal)$",
+    CMIType: "^(true-false|choice|fill-in|long-fill-in|matching|performance|sequencing|likert|numeric|other)$",
+    CMIResult: "^(correct|incorrect|unanticipated|neutral|-?([0-9]{1,4})(\\.[0-9]{1,18})?)$",
+    NAVEvent: "^(previous|continue|exit|exitAll|abandon|abandonAll|suspendAll|_none_|(\\{target=(?<choice_target>\\S{0,}[a-zA-Z0-9-_]+)})?choice|(\\{target=(?<jump_target>\\S{0,}[a-zA-Z0-9-_]+)})?jump)$",
+    NAVBoolean: "^(unknown|true|false$)",
+    NAVTarget: "^{target=\\S{0,}[a-zA-Z0-9-_]+}$",
+    scaled_range: "-1#1",
+    audio_range: "0#*",
+    speed_range: "0#*",
+    text_range: "-1#1",
+    progress_range: "0#1",
+};
+
+
+/***/ }),
+
 /***/ 429:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-// ESM COMPAT FLAG
-__webpack_require__.r(__webpack_exports__);
 
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
   "default": function() { return /* binding */ src_BaseAPI; }
 });
+// ESM COMPAT FLAG
+__webpack_require__.r(__webpack_exports__);
 
 // EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
 var tslib_es6 = __webpack_require__(635);
@@ -76,14 +454,15 @@ var DefaultSettings = {
                         else {
                             return [2, {
                                     result: httpResult.result,
-                                    errorCode: httpResult.errorCode
+                                    errorCode: typeof httpResult.errorCode === "number"
                                         ? httpResult.errorCode
-                                        : httpResult.result === api_constants.global_constants.SCORM_TRUE
+                                        : httpResult.result === true || httpResult.result === api_constants.global_constants.SCORM_TRUE
                                             ? 0
                                             : 101
                                 }];
                         }
-                        _a.label = 2;
+                        // removed by dead control flow
+
                     case 2: return [2, {
                             result: api_constants.global_constants.SCORM_FALSE,
                             errorCode: 101
@@ -932,129 +1311,6 @@ var BaseAPI = (function () {
 
 /***/ }),
 
-/***/ 589:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CMIArray: function() { return /* binding */ CMIArray; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-/* harmony import */ var _base_cmi__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(319);
-/* harmony import */ var _exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(784);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(797);
-
-
-
-
-var CMIArray = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIArray, _super);
-    function CMIArray(params) {
-        var _this = _super.call(this) || this;
-        _this.__children = params.children;
-        _this._errorCode = params.errorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_1__.scorm12_errors.GENERAL;
-        _this._errorClass = params.errorClass || _exceptions__WEBPACK_IMPORTED_MODULE_2__.BaseScormValidationError;
-        _this.childArray = [];
-        return _this;
-    }
-    CMIArray.prototype.reset = function (wipe) {
-        if (wipe === void 0) { wipe = false; }
-        this._initialized = false;
-        if (wipe) {
-            this.childArray = [];
-        }
-        else {
-            for (var i = 0; i < this.childArray.length; i++) {
-                this.childArray[i].reset();
-            }
-        }
-    };
-    Object.defineProperty(CMIArray.prototype, "_children", {
-        get: function () {
-            return this.__children;
-        },
-        set: function (_children) {
-            throw new this._errorClass(this._errorCode);
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(CMIArray.prototype, "_count", {
-        get: function () {
-            return this.childArray.length;
-        },
-        set: function (_count) {
-            throw new this._errorClass(this._errorCode);
-        },
-        enumerable: false,
-        configurable: true
-    });
-    CMIArray.prototype.toJSON = function () {
-        this.jsonString = true;
-        var result = {};
-        for (var i = 0; i < this.childArray.length; i++) {
-            result[i + ""] = this.childArray[i];
-        }
-        delete this.jsonString;
-        return result;
-    };
-    return CMIArray;
-}(_base_cmi__WEBPACK_IMPORTED_MODULE_3__.BaseCMI));
-
-
-
-/***/ }),
-
-/***/ 319:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   BaseCMI: function() { return /* binding */ BaseCMI; },
-/* harmony export */   BaseRootCMI: function() { return /* binding */ BaseRootCMI; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-
-var BaseCMI = (function () {
-    function BaseCMI() {
-        this.jsonString = false;
-        this._initialized = false;
-    }
-    Object.defineProperty(BaseCMI.prototype, "initialized", {
-        get: function () {
-            return this._initialized;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(BaseCMI.prototype, "start_time", {
-        get: function () {
-            return this._start_time;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    BaseCMI.prototype.initialize = function () {
-        this._initialized = true;
-    };
-    BaseCMI.prototype.setStartTime = function () {
-        this._start_time = new Date().getTime();
-    };
-    return BaseCMI;
-}());
-
-var BaseRootCMI = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(BaseRootCMI, _super);
-    function BaseRootCMI() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    return BaseRootCMI;
-}(BaseCMI));
-
-
-
-/***/ }),
-
 /***/ 434:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
@@ -1065,9 +1321,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
 /* harmony import */ var _constants_api_constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(340);
 /* harmony import */ var _constants_regex__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(417);
-/* harmony import */ var _base_cmi__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(319);
+/* harmony import */ var _base_cmi__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(319);
 /* harmony import */ var _validation__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(449);
-/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(797);
+/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(797);
 
 
 
@@ -1086,11 +1342,11 @@ var CMIScore = (function (_super) {
             : _constants_regex__WEBPACK_IMPORTED_MODULE_2__.scorm12_regex.score_range;
         _this._max = params.max || params.max === "" ? params.max : "100";
         _this.__invalid_error_code =
-            params.invalidErrorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.INVALID_SET_VALUE;
+            params.invalidErrorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_5__.scorm12_errors.INVALID_SET_VALUE;
         _this.__invalid_type_code =
-            params.invalidTypeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.TYPE_MISMATCH;
+            params.invalidTypeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_5__.scorm12_errors.TYPE_MISMATCH;
         _this.__invalid_range_code =
-            params.invalidRangeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.VALUE_OUT_OF_RANGE;
+            params.invalidRangeCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_5__.scorm12_errors.VALUE_OUT_OF_RANGE;
         _this.__decimal_regex = params.decimalRegex || _constants_regex__WEBPACK_IMPORTED_MODULE_2__.scorm12_regex.CMIDecimal;
         _this.__error_class = params.errorClass;
         return _this;
@@ -1161,7 +1417,7 @@ var CMIScore = (function (_super) {
         return result;
     };
     return CMIScore;
-}(_base_cmi__WEBPACK_IMPORTED_MODULE_5__.BaseCMI));
+}(_base_cmi__WEBPACK_IMPORTED_MODULE_3__.BaseCMI));
 
 
 
@@ -1208,647 +1464,75 @@ function checkValidRange(value, rangePattern, errorCode, errorClass) {
 
 /***/ }),
 
-/***/ 340:
+/***/ 589:
 /***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   aicc_constants: function() { return /* binding */ aicc_constants; },
-/* harmony export */   global_constants: function() { return /* binding */ global_constants; },
-/* harmony export */   scorm12_constants: function() { return /* binding */ scorm12_constants; },
-/* harmony export */   scorm2004_constants: function() { return /* binding */ scorm2004_constants; }
+/* harmony export */   CMIArray: function() { return /* binding */ CMIArray; }
 /* harmony export */ });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-
-var global_constants = {
-    SCORM_TRUE: "true",
-    SCORM_FALSE: "false",
-    STATE_NOT_INITIALIZED: 0,
-    STATE_INITIALIZED: 1,
-    STATE_TERMINATED: 2,
-};
-var scorm12_constants = {
-    cmi_children: "core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions",
-    core_children: "student_id,student_name,lesson_location,credit,lesson_status,entry,score,total_time,lesson_mode,exit,session_time",
-    score_children: "raw,min,max",
-    comments_children: "content,location,time",
-    objectives_children: "id,score,status",
-    correct_responses_children: "pattern",
-    student_data_children: "mastery_score,max_time_allowed,time_limit_action",
-    student_preference_children: "audio,language,speed,text",
-    interactions_children: "id,objectives,time,type,correct_responses,weighting,student_response,result,latency",
-    error_descriptions: {
-        "101": {
-            basicMessage: "General Exception",
-            detailMessage: "No specific error code exists to describe the error. Use LMSGetDiagnostic for more information",
-        },
-        "201": {
-            basicMessage: "Invalid argument error",
-            detailMessage: "Indicates that an argument represents an invalid data model element or is otherwise incorrect.",
-        },
-        "202": {
-            basicMessage: "Element cannot have children",
-            detailMessage: 'Indicates that LMSGetValue was called with a data model element name that ends in "_children" for a data model element that does not support the "_children" suffix.',
-        },
-        "203": {
-            basicMessage: "Element not an array - cannot have count",
-            detailMessage: 'Indicates that LMSGetValue was called with a data model element name that ends in "_count" for a data model element that does not support the "_count" suffix.',
-        },
-        "301": {
-            basicMessage: "Not initialized",
-            detailMessage: "Indicates that an API call was made before the call to lmsInitialize.",
-        },
-        "401": {
-            basicMessage: "Not implemented error",
-            detailMessage: "The data model element indicated in a call to LMSGetValue or LMSSetValue is valid, but was not implemented by this LMS. SCORM 1.2 defines a set of data model elements as being optional for an LMS to implement.",
-        },
-        "402": {
-            basicMessage: "Invalid set value, element is a keyword",
-            detailMessage: 'Indicates that LMSSetValue was called on a data model element that represents a keyword (elements that end in "_children" and "_count").',
-        },
-        "403": {
-            basicMessage: "Element is read only",
-            detailMessage: "LMSSetValue was called with a data model element that can only be read.",
-        },
-        "404": {
-            basicMessage: "Element is write only",
-            detailMessage: "LMSGetValue was called on a data model element that can only be written to.",
-        },
-        "405": {
-            basicMessage: "Incorrect Data Type",
-            detailMessage: "LMSSetValue was called with a value that is not consistent with the data format of the supplied data model element.",
-        },
-        "407": {
-            basicMessage: "Element Value Out Of Range",
-            detailMessage: "The numeric value supplied to a LMSSetValue call is outside of the numeric range allowed for the supplied data model element.",
-        },
-        "408": {
-            basicMessage: "Data Model Dependency Not Established",
-            detailMessage: "Some data model elements cannot be set until another data model element was set. This error condition indicates that the prerequisite element was not set before the dependent element.",
-        },
-    },
-};
-var aicc_constants = (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)((0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)({}, scorm12_constants), {
-    cmi_children: "core,suspend_data,launch_data,comments,objectives,student_data,student_preference,interactions,evaluation",
-    student_preference_children: "audio,language,lesson_type,speed,text,text_color,text_location,text_size,video,windows",
-    student_data_children: "attempt_number,tries,mastery_score,max_time_allowed,time_limit_action",
-    student_demographics_children: "city,class,company,country,experience,familiar_name,instructor_name,title,native_language,state,street_address,telephone,years_experience",
-    tries_children: "time,status,score",
-    attempt_records_children: "score,lesson_status",
-    paths_children: "location_id,date,time,status,why_left,time_in_element",
-});
-var scorm2004_constants = {
-    cmi_children: "_version,comments_from_learner,comments_from_lms,completion_status,credit,entry,exit,interactions,launch_data,learner_id,learner_name,learner_preference,location,max_time_allowed,mode,objectives,progress_measure,scaled_passing_score,score,session_time,success_status,suspend_data,time_limit_action,total_time",
-    comments_children: "comment,timestamp,location",
-    score_children: "max,raw,scaled,min",
-    objectives_children: "progress_measure,completion_status,success_status,description,score,id",
-    correct_responses_children: "pattern",
-    student_data_children: "mastery_score,max_time_allowed,time_limit_action",
-    student_preference_children: "audio_level,audio_captioning,delivery_speed,language",
-    interactions_children: "id,type,objectives,timestamp,correct_responses,weighting,learner_response,result,latency,description",
-    adl_data_children: "id,store",
-    error_descriptions: {
-        "0": {
-            basicMessage: "No Error",
-            detailMessage: "No error occurred, the previous API call was successful.",
-        },
-        "101": {
-            basicMessage: "General Exception",
-            detailMessage: "No specific error code exists to describe the error. Use GetDiagnostic for more information.",
-        },
-        "102": {
-            basicMessage: "General Initialization Failure",
-            detailMessage: "Call to Initialize failed for an unknown reason.",
-        },
-        "103": {
-            basicMessage: "Already Initialized",
-            detailMessage: "Call to Initialize failed because Initialize was already called.",
-        },
-        "104": {
-            basicMessage: "Content Instance Terminated",
-            detailMessage: "Call to Initialize failed because Terminate was already called.",
-        },
-        "111": {
-            basicMessage: "General Termination Failure",
-            detailMessage: "Call to Terminate failed for an unknown reason.",
-        },
-        "112": {
-            basicMessage: "Termination Before Initialization",
-            detailMessage: "Call to Terminate failed because it was made before the call to Initialize.",
-        },
-        "113": {
-            basicMessage: "Termination After Termination",
-            detailMessage: "Call to Terminate failed because Terminate was already called.",
-        },
-        "122": {
-            basicMessage: "Retrieve Data Before Initialization",
-            detailMessage: "Call to GetValue failed because it was made before the call to Initialize.",
-        },
-        "123": {
-            basicMessage: "Retrieve Data After Termination",
-            detailMessage: "Call to GetValue failed because it was made after the call to Terminate.",
-        },
-        "132": {
-            basicMessage: "Store Data Before Initialization",
-            detailMessage: "Call to SetValue failed because it was made before the call to Initialize.",
-        },
-        "133": {
-            basicMessage: "Store Data After Termination",
-            detailMessage: "Call to SetValue failed because it was made after the call to Terminate.",
-        },
-        "142": {
-            basicMessage: "Commit Before Initialization",
-            detailMessage: "Call to Commit failed because it was made before the call to Initialize.",
-        },
-        "143": {
-            basicMessage: "Commit After Termination",
-            detailMessage: "Call to Commit failed because it was made after the call to Terminate.",
-        },
-        "201": {
-            basicMessage: "General Argument Error",
-            detailMessage: "An invalid argument was passed to an API method (usually indicates that Initialize, Commit or Terminate did not receive the expected empty string argument.",
-        },
-        "301": {
-            basicMessage: "General Get Failure",
-            detailMessage: "Indicates a failed GetValue call where no other specific error code is applicable. Use GetDiagnostic for more information.",
-        },
-        "351": {
-            basicMessage: "General Set Failure",
-            detailMessage: "Indicates a failed SetValue call where no other specific error code is applicable. Use GetDiagnostic for more information.",
-        },
-        "391": {
-            basicMessage: "General Commit Failure",
-            detailMessage: "Indicates a failed Commit call where no other specific error code is applicable. Use GetDiagnostic for more information.",
-        },
-        "401": {
-            basicMessage: "Undefined Data Model Element",
-            detailMessage: "The data model element name passed to GetValue or SetValue is not a valid SCORM data model element.",
-        },
-        "402": {
-            basicMessage: "Unimplemented Data Model Element",
-            detailMessage: "The data model element indicated in a call to GetValue or SetValue is valid, but was not implemented by this LMS. In SCORM 2004, this error would indicate an LMS that is not fully SCORM conformant.",
-        },
-        "403": {
-            basicMessage: "Data Model Element Value Not Initialized",
-            detailMessage: "Attempt to read a data model element that has not been initialized by the LMS or through a SetValue call. This error condition is often reached during normal execution of a SCO.",
-        },
-        "404": {
-            basicMessage: "Data Model Element Is Read Only",
-            detailMessage: "SetValue was called with a data model element that can only be read.",
-        },
-        "405": {
-            basicMessage: "Data Model Element Is Write Only",
-            detailMessage: "GetValue was called on a data model element that can only be written to.",
-        },
-        "406": {
-            basicMessage: "Data Model Element Type Mismatch",
-            detailMessage: "SetValue was called with a value that is not consistent with the data format of the supplied data model element.",
-        },
-        "407": {
-            basicMessage: "Data Model Element Value Out Of Range",
-            detailMessage: "The numeric value supplied to a SetValue call is outside of the numeric range allowed for the supplied data model element.",
-        },
-        "408": {
-            basicMessage: "Data Model Dependency Not Established",
-            detailMessage: "Some data model elements cannot be set until another data model element was set. This error condition indicates that the prerequisite element was not set before the dependent element.",
-        },
-    },
-};
+/* harmony import */ var _base_cmi__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(319);
+/* harmony import */ var _exceptions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(784);
+/* harmony import */ var _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(797);
 
 
-/***/ }),
-
-/***/ 56:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CompletionStatus: function() { return /* binding */ CompletionStatus; },
-/* harmony export */   LogLevelEnum: function() { return /* binding */ LogLevelEnum; },
-/* harmony export */   NAVBoolean: function() { return /* binding */ NAVBoolean; },
-/* harmony export */   SuccessStatus: function() { return /* binding */ SuccessStatus; }
-/* harmony export */ });
-var NAVBoolean;
-(function (NAVBoolean) {
-    NAVBoolean["unknown"] = "unknown";
-    NAVBoolean["true"] = "true";
-    NAVBoolean["false"] = "false";
-})(NAVBoolean || (NAVBoolean = {}));
-var SuccessStatus;
-(function (SuccessStatus) {
-    SuccessStatus["passed"] = "passed";
-    SuccessStatus["failed"] = "failed";
-    SuccessStatus["unknown"] = "unknown";
-})(SuccessStatus || (SuccessStatus = {}));
-var CompletionStatus;
-(function (CompletionStatus) {
-    CompletionStatus["completed"] = "completed";
-    CompletionStatus["incomplete"] = "incomplete";
-    CompletionStatus["unknown"] = "unknown";
-})(CompletionStatus || (CompletionStatus = {}));
-var LogLevelEnum;
-(function (LogLevelEnum) {
-    LogLevelEnum[LogLevelEnum["_"] = 0] = "_";
-    LogLevelEnum[LogLevelEnum["DEBUG"] = 1] = "DEBUG";
-    LogLevelEnum[LogLevelEnum["INFO"] = 2] = "INFO";
-    LogLevelEnum[LogLevelEnum["WARN"] = 3] = "WARN";
-    LogLevelEnum[LogLevelEnum["ERROR"] = 4] = "ERROR";
-    LogLevelEnum[LogLevelEnum["NONE"] = 5] = "NONE";
-})(LogLevelEnum || (LogLevelEnum = {}));
 
 
-/***/ }),
-
-/***/ 797:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   global_errors: function() { return /* binding */ global_errors; },
-/* harmony export */   scorm12_errors: function() { return /* binding */ scorm12_errors; },
-/* harmony export */   scorm2004_errors: function() { return /* binding */ scorm2004_errors; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-
-var global_errors = {
-    GENERAL: 101,
-    INITIALIZATION_FAILED: 101,
-    INITIALIZED: 101,
-    TERMINATED: 101,
-    TERMINATION_FAILURE: 101,
-    TERMINATION_BEFORE_INIT: 101,
-    MULTIPLE_TERMINATION: 101,
-    RETRIEVE_BEFORE_INIT: 101,
-    RETRIEVE_AFTER_TERM: 101,
-    STORE_BEFORE_INIT: 101,
-    STORE_AFTER_TERM: 101,
-    COMMIT_BEFORE_INIT: 101,
-    COMMIT_AFTER_TERM: 101,
-    ARGUMENT_ERROR: 101,
-    CHILDREN_ERROR: 101,
-    COUNT_ERROR: 101,
-    GENERAL_GET_FAILURE: 101,
-    GENERAL_SET_FAILURE: 101,
-    GENERAL_COMMIT_FAILURE: 101,
-    UNDEFINED_DATA_MODEL: 101,
-    UNIMPLEMENTED_ELEMENT: 101,
-    VALUE_NOT_INITIALIZED: 101,
-    INVALID_SET_VALUE: 101,
-    READ_ONLY_ELEMENT: 101,
-    WRITE_ONLY_ELEMENT: 101,
-    TYPE_MISMATCH: 101,
-    VALUE_OUT_OF_RANGE: 101,
-    DEPENDENCY_NOT_ESTABLISHED: 101,
-};
-var scorm12_errors = (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)((0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)({}, global_errors), { RETRIEVE_BEFORE_INIT: 301, STORE_BEFORE_INIT: 301, COMMIT_BEFORE_INIT: 301, ARGUMENT_ERROR: 201, CHILDREN_ERROR: 202, COUNT_ERROR: 203, UNDEFINED_DATA_MODEL: 401, UNIMPLEMENTED_ELEMENT: 401, VALUE_NOT_INITIALIZED: 301, INVALID_SET_VALUE: 402, READ_ONLY_ELEMENT: 403, WRITE_ONLY_ELEMENT: 404, TYPE_MISMATCH: 405, VALUE_OUT_OF_RANGE: 407, DEPENDENCY_NOT_ESTABLISHED: 408 });
-var scorm2004_errors = (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)((0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)({}, global_errors), { INITIALIZATION_FAILED: 102, INITIALIZED: 103, TERMINATED: 104, TERMINATION_FAILURE: 111, TERMINATION_BEFORE_INIT: 112, MULTIPLE_TERMINATIONS: 113, RETRIEVE_BEFORE_INIT: 122, RETRIEVE_AFTER_TERM: 123, STORE_BEFORE_INIT: 132, STORE_AFTER_TERM: 133, COMMIT_BEFORE_INIT: 142, COMMIT_AFTER_TERM: 143, ARGUMENT_ERROR: 201, GENERAL_GET_FAILURE: 301, GENERAL_SET_FAILURE: 351, GENERAL_COMMIT_FAILURE: 391, UNDEFINED_DATA_MODEL: 401, UNIMPLEMENTED_ELEMENT: 402, VALUE_NOT_INITIALIZED: 403, READ_ONLY_ELEMENT: 404, WRITE_ONLY_ELEMENT: 405, TYPE_MISMATCH: 406, VALUE_OUT_OF_RANGE: 407, DEPENDENCY_NOT_ESTABLISHED: 408 });
-
-
-/***/ }),
-
-/***/ 417:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   aicc_regex: function() { return /* binding */ aicc_regex; },
-/* harmony export */   scorm12_regex: function() { return /* binding */ scorm12_regex; },
-/* harmony export */   scorm2004_regex: function() { return /* binding */ scorm2004_regex; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-
-var scorm12_regex = {
-    CMIString256: "^.{0,255}$",
-    CMIString4096: "^.{0,4096}$",
-    CMITime: "^(?:[01]\\d|2[0123]):(?:[012345]\\d):(?:[012345]\\d)$",
-    CMITimespan: "^([0-9]{2,}):([0-9]{2}):([0-9]{2})(.[0-9]{1,2})?$",
-    CMIInteger: "^\\d+$",
-    CMISInteger: "^-?([0-9]+)$",
-    CMIDecimal: "^-?([0-9]{0,3})(.[0-9]*)?$",
-    CMIIdentifier: "^[\\u0021-\\u007E\\s]{0,255}$",
-    CMIFeedback: "^.*$",
-    CMIIndex: "[._](\\d+).",
-    CMIStatus: "^(passed|completed|failed|incomplete|browsed)$",
-    CMIStatus2: "^(passed|completed|failed|incomplete|browsed|not attempted)$",
-    CMIExit: "^(time-out|suspend|logout|)$",
-    CMIType: "^(true-false|choice|fill-in|matching|performance|sequencing|likert|numeric)$",
-    CMIResult: "^(correct|wrong|unanticipated|neutral|([0-9]{0,3})?(\\.[0-9]*)?)$",
-    NAVEvent: "^(previous|continue)$",
-    score_range: "0#100",
-    audio_range: "-1#100",
-    speed_range: "-100#100",
-    weighting_range: "-100#100",
-    text_range: "-1#1",
-};
-var aicc_regex = (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)((0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)({}, scorm12_regex), {
-    CMIIdentifier: "^\\w{1,255}$",
-});
-var scorm2004_regex = {
-    CMIString200: "^[\\u0000-\\uFFFF]{0,200}$",
-    CMIString250: "^[\\u0000-\\uFFFF]{0,250}$",
-    CMIString1000: "^[\\u0000-\\uFFFF]{0,1000}$",
-    CMIString4000: "^[\\u0000-\\uFFFF]{0,4000}$",
-    CMIString64000: "^[\\u0000-\\uFFFF]{0,64000}$",
-    CMILang: "^([a-zA-Z]{2,3}|i|x)(-[a-zA-Z0-9-]{2,8})?$|^$",
-    CMILangString250: "^({lang=([a-zA-Z]{2,3}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,250}$)?$",
-    CMILangcr: "^(({lang=([a-zA-Z]{2,3}|i|x)?(-[a-zA-Z0-9-]{2,8})?}))(.*?)$",
-    CMILangString250cr: "^(({lang=([a-zA-Z]{2,3}|i|x)?(-[a-zA-Z0-9-]{2,8})?})?(.{0,250})?)?$",
-    CMILangString4000: "^({lang=([a-zA-Z]{2,3}|i|x)(-[a-zA-Z0-9-]{2,8})?})?((?!{.*$).{0,4000}$)?$",
-    CMITime: "^(19[7-9]{1}[0-9]{1}|20[0-2]{1}[0-9]{1}|203[0-8]{1})((-(0[1-9]{1}|1[0-2]{1}))((-(0[1-9]{1}|[1-2]{1}[0-9]{1}|3[0-1]{1}))(T([0-1]{1}[0-9]{1}|2[0-3]{1})((:[0-5]{1}[0-9]{1})((:[0-5]{1}[0-9]{1})((\\.[0-9]{1,2})((Z|([+|-]([0-1]{1}[0-9]{1}|2[0-3]{1})))(:[0-5]{1}[0-9]{1})?)?)?)?)?)?)?)?$",
-    CMITimespan: "^P(?:([.,\\d]+)Y)?(?:([.,\\d]+)M)?(?:([.,\\d]+)W)?(?:([.,\\d]+)D)?(?:T?(?:([.,\\d]+)H)?(?:([.,\\d]+)M)?(?:([.,\\d]+)S)?)?$",
-    CMIInteger: "^\\d+$",
-    CMISInteger: "^-?([0-9]+)$",
-    CMIDecimal: "^-?([0-9]{1,5})(\\.[0-9]{1,18})?$",
-    CMIIdentifier: "^\\S{1,250}[a-zA-Z0-9]$",
-    CMIShortIdentifier: "^[\\w\\.\\-\\_]{1,250}$",
-    CMILongIdentifier: "^(?:(?!urn:)\\S{1,4000}|urn:[A-Za-z0-9-]{1,31}:\\S{1,4000}|.{1,4000})$",
-    CMIFeedback: "^.*$",
-    CMIIndex: "[._](\\d+).",
-    CMIIndexStore: ".N(\\d+).",
-    CMICStatus: "^(completed|incomplete|not attempted|unknown)$",
-    CMISStatus: "^(passed|failed|unknown)$",
-    CMIExit: "^(time-out|suspend|logout|normal)$",
-    CMIType: "^(true-false|choice|fill-in|long-fill-in|matching|performance|sequencing|likert|numeric|other)$",
-    CMIResult: "^(correct|incorrect|unanticipated|neutral|-?([0-9]{1,4})(\\.[0-9]{1,18})?)$",
-    NAVEvent: "^(previous|continue|exit|exitAll|abandon|abandonAll|suspendAll|_none_|(\\{target=(?<choice_target>\\S{0,}[a-zA-Z0-9-_]+)})?choice|(\\{target=(?<jump_target>\\S{0,}[a-zA-Z0-9-_]+)})?jump)$",
-    NAVBoolean: "^(unknown|true|false$)",
-    NAVTarget: "^{target=\\S{0,}[a-zA-Z0-9-_]+}$",
-    scaled_range: "-1#1",
-    audio_range: "0#*",
-    speed_range: "0#*",
-    text_range: "-1#1",
-    progress_range: "0#1",
-};
-
-
-/***/ }),
-
-/***/ 784:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   BaseScormValidationError: function() { return /* binding */ BaseScormValidationError; },
-/* harmony export */   ValidationError: function() { return /* binding */ ValidationError; }
-/* harmony export */ });
-/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
-
-var BaseScormValidationError = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(BaseScormValidationError, _super);
-    function BaseScormValidationError(errorCode) {
-        var _this = _super.call(this, errorCode.toString()) || this;
-        _this._errorCode = errorCode;
-        _this.name = "ScormValidationError";
+var CMIArray = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(CMIArray, _super);
+    function CMIArray(params) {
+        var _this = _super.call(this) || this;
+        _this.__children = params.children;
+        _this._errorCode = params.errorCode || _constants_error_codes__WEBPACK_IMPORTED_MODULE_3__.scorm12_errors.GENERAL;
+        _this._errorClass = params.errorClass || _exceptions__WEBPACK_IMPORTED_MODULE_2__.BaseScormValidationError;
+        _this.childArray = [];
         return _this;
     }
-    Object.defineProperty(BaseScormValidationError.prototype, "errorCode", {
-        get: function () {
-            return this._errorCode;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    return BaseScormValidationError;
-}(Error));
-
-var ValidationError = (function (_super) {
-    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(ValidationError, _super);
-    function ValidationError(errorCode, errorMessage, detailedMessage) {
-        var _this = _super.call(this, errorCode) || this;
-        _this._detailedMessage = "";
-        _this.message = errorMessage;
-        _this._errorMessage = errorMessage;
-        if (detailedMessage) {
-            _this._detailedMessage = detailedMessage;
-        }
-        return _this;
-    }
-    Object.defineProperty(ValidationError.prototype, "errorMessage", {
-        get: function () {
-            return this._errorMessage;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(ValidationError.prototype, "detailedMessage", {
-        get: function () {
-            return this._detailedMessage;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    return ValidationError;
-}(BaseScormValidationError));
-
-
-
-/***/ }),
-
-/***/ 864:
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   SECONDS_PER_DAY: function() { return /* binding */ SECONDS_PER_DAY; },
-/* harmony export */   SECONDS_PER_HOUR: function() { return /* binding */ SECONDS_PER_HOUR; },
-/* harmony export */   SECONDS_PER_MINUTE: function() { return /* binding */ SECONDS_PER_MINUTE; },
-/* harmony export */   SECONDS_PER_SECOND: function() { return /* binding */ SECONDS_PER_SECOND; },
-/* harmony export */   addHHMMSSTimeStrings: function() { return /* binding */ addHHMMSSTimeStrings; },
-/* harmony export */   addTwoDurations: function() { return /* binding */ addTwoDurations; },
-/* harmony export */   countDecimals: function() { return /* binding */ countDecimals; },
-/* harmony export */   flatten: function() { return /* binding */ flatten; },
-/* harmony export */   formatMessage: function() { return /* binding */ formatMessage; },
-/* harmony export */   getDurationAsSeconds: function() { return /* binding */ getDurationAsSeconds; },
-/* harmony export */   getSecondsAsHHMMSS: function() { return /* binding */ getSecondsAsHHMMSS; },
-/* harmony export */   getSecondsAsISODuration: function() { return /* binding */ getSecondsAsISODuration; },
-/* harmony export */   getTimeAsSeconds: function() { return /* binding */ getTimeAsSeconds; },
-/* harmony export */   stringMatches: function() { return /* binding */ stringMatches; },
-/* harmony export */   unflatten: function() { return /* binding */ unflatten; }
-/* harmony export */ });
-var SECONDS_PER_SECOND = 1.0;
-var SECONDS_PER_MINUTE = 60;
-var SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
-var SECONDS_PER_DAY = 24 * SECONDS_PER_HOUR;
-var designations = {
-    D: SECONDS_PER_DAY,
-    H: SECONDS_PER_HOUR,
-    M: SECONDS_PER_MINUTE,
-    S: SECONDS_PER_SECOND,
-};
-function getSecondsAsHHMMSS(totalSeconds) {
-    if (!totalSeconds || totalSeconds <= 0) {
-        return "00:00:00";
-    }
-    var hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
-    var dateObj = new Date(totalSeconds * 1000);
-    var minutes = dateObj.getUTCMinutes();
-    var seconds = dateObj.getSeconds();
-    var ms = totalSeconds % 1.0;
-    var msStr = "";
-    if (countDecimals(ms) > 0) {
-        if (countDecimals(ms) > 2) {
-            msStr = ms.toFixed(2);
+    CMIArray.prototype.reset = function (wipe) {
+        if (wipe === void 0) { wipe = false; }
+        this._initialized = false;
+        if (wipe) {
+            this.childArray = [];
         }
         else {
-            msStr = String(ms);
-        }
-        msStr = "." + msStr.split(".")[1];
-    }
-    return ((hours + ":" + minutes + ":" + seconds).replace(/\b\d\b/g, "0$&") + msStr);
-}
-function getSecondsAsISODuration(seconds) {
-    if (!seconds || seconds <= 0) {
-        return "PT0S";
-    }
-    var duration = "P";
-    var remainder = seconds;
-    for (var designationsKey in designations) {
-        var current_seconds = designations[designationsKey] || 1;
-        var value = Math.floor(remainder / current_seconds);
-        remainder = remainder % current_seconds;
-        if (countDecimals(remainder) > 2) {
-            remainder = Number(Number(remainder).toFixed(2));
-        }
-        if (designationsKey === "S" && remainder > 0) {
-            value += remainder;
-        }
-        if (value) {
-            if ((duration.indexOf("D") > 0 ||
-                designationsKey === "H" ||
-                designationsKey === "M" ||
-                designationsKey === "S") &&
-                duration.indexOf("T") === -1) {
-                duration += "T";
-            }
-            duration += "".concat(value).concat(designationsKey);
-        }
-    }
-    return duration;
-}
-function getTimeAsSeconds(timeString, timeRegex) {
-    if (typeof timeString === "number" || typeof timeString === "boolean") {
-        timeString = String(timeString);
-    }
-    if (typeof timeRegex === "string") {
-        timeRegex = new RegExp(timeRegex);
-    }
-    if (!timeString || !timeString.match(timeRegex)) {
-        return 0;
-    }
-    var parts = timeString.split(":");
-    var hours = Number(parts[0]);
-    var minutes = Number(parts[1]);
-    var seconds = Number(parts[2]);
-    return hours * 3600 + minutes * 60 + seconds;
-}
-function getDurationAsSeconds(duration, durationRegex) {
-    if (typeof durationRegex === "string") {
-        durationRegex = new RegExp(durationRegex);
-    }
-    if (!duration || !duration.match(durationRegex)) {
-        return 0;
-    }
-    var _a = new RegExp(durationRegex).exec(duration) || [], years = _a[1], _ = _a[2], days = _a[4], hours = _a[5], minutes = _a[6], seconds = _a[7];
-    var result = 0.0;
-    result += Number(seconds) || 0.0;
-    result += Number(minutes) * 60.0 || 0.0;
-    result += Number(hours) * 3600.0 || 0.0;
-    result += Number(days) * (60 * 60 * 24.0) || 0.0;
-    result += Number(years) * (60 * 60 * 24 * 365.0) || 0.0;
-    return result;
-}
-function addTwoDurations(first, second, durationRegex) {
-    var regex = typeof durationRegex === "string"
-        ? new RegExp(durationRegex)
-        : durationRegex;
-    return getSecondsAsISODuration(getDurationAsSeconds(first, regex) + getDurationAsSeconds(second, regex));
-}
-function addHHMMSSTimeStrings(first, second, timeRegex) {
-    if (typeof timeRegex === "string") {
-        timeRegex = new RegExp(timeRegex);
-    }
-    return getSecondsAsHHMMSS(getTimeAsSeconds(first, timeRegex) + getTimeAsSeconds(second, timeRegex));
-}
-function flatten(data) {
-    var result = {};
-    function recurse(cur, prop) {
-        if (Object(cur) !== cur) {
-            result[prop] = cur;
-        }
-        else if (Array.isArray(cur)) {
-            for (var i = 0, l = cur.length; i < l; i++) {
-                recurse(cur[i], prop + "[" + i + "]");
-                if (l === 0)
-                    result[prop] = [];
+            for (var i = 0; i < this.childArray.length; i++) {
+                this.childArray[i].reset();
             }
         }
-        else {
-            var isEmpty = true;
-            for (var p in cur) {
-                if ({}.hasOwnProperty.call(cur, p)) {
-                    isEmpty = false;
-                    recurse(cur[p], prop ? prop + "." + p : p);
-                }
-            }
-            if (isEmpty && prop)
-                result[prop] = {};
+    };
+    Object.defineProperty(CMIArray.prototype, "_children", {
+        get: function () {
+            return this.__children;
+        },
+        set: function (_children) {
+            throw new this._errorClass(this._errorCode);
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(CMIArray.prototype, "_count", {
+        get: function () {
+            return this.childArray.length;
+        },
+        set: function (_count) {
+            throw new this._errorClass(this._errorCode);
+        },
+        enumerable: false,
+        configurable: true
+    });
+    CMIArray.prototype.toJSON = function () {
+        this.jsonString = true;
+        var result = {};
+        for (var i = 0; i < this.childArray.length; i++) {
+            result[i + ""] = this.childArray[i];
         }
-    }
-    recurse(data, "");
-    return result;
-}
-function unflatten(data) {
-    "use strict";
-    if (Object(data) !== data || Array.isArray(data))
-        return data;
-    var regex = /\.?([^.[\]]+)|\[(\d+)]/g;
-    var result = {};
-    for (var p in data) {
-        if ({}.hasOwnProperty.call(data, p)) {
-            var cur = result;
-            var prop = "";
-            var m = regex.exec(p);
-            while (m) {
-                cur = cur[prop] || (cur[prop] = m[2] ? [] : {});
-                prop = m[2] || m[1] || "";
-                m = regex.exec(p);
-            }
-            cur[prop] = data[p];
-        }
-    }
-    return result[""] || result;
-}
-function countDecimals(num) {
-    if (Math.floor(num) === num || String(num).indexOf(".") < 0)
-        return 0;
-    var parts = num.toString().split(".")[1];
-    return (parts === null || parts === void 0 ? void 0 : parts.length) || 0;
-}
-function formatMessage(functionName, message, CMIElement) {
-    var baseLength = 20;
-    var messageString = "";
-    messageString += functionName;
-    var fillChars = baseLength - messageString.length;
-    for (var i = 0; i < fillChars; i++) {
-        messageString += " ";
-    }
-    messageString += ": ";
-    if (CMIElement) {
-        var CMIElementBaseLength = 70;
-        messageString += CMIElement;
-        fillChars = CMIElementBaseLength - messageString.length;
-        for (var j = 0; j < fillChars; j++) {
-            messageString += " ";
-        }
-    }
-    if (message) {
-        messageString += message;
-    }
-    return messageString;
-}
-function stringMatches(str, tester) {
-    return (str === null || str === void 0 ? void 0 : str.match(tester)) !== null;
-}
+        delete this.jsonString;
+        return result;
+    };
+    return CMIArray;
+}(_base_cmi__WEBPACK_IMPORTED_MODULE_1__.BaseCMI));
+
 
 
 /***/ }),
@@ -1883,6 +1567,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   __propKey: function() { return /* binding */ __propKey; },
 /* harmony export */   __read: function() { return /* binding */ __read; },
 /* harmony export */   __rest: function() { return /* binding */ __rest; },
+/* harmony export */   __rewriteRelativeImportExtension: function() { return /* binding */ __rewriteRelativeImportExtension; },
 /* harmony export */   __runInitializers: function() { return /* binding */ __runInitializers; },
 /* harmony export */   __setFunctionName: function() { return /* binding */ __setFunctionName; },
 /* harmony export */   __spread: function() { return /* binding */ __spread; },
@@ -2155,10 +1840,19 @@ var __setModuleDefault = Object.create ? (function(o, v) {
   o["default"] = v;
 };
 
+var ownKeys = function(o) {
+  ownKeys = Object.getOwnPropertyNames || function (o) {
+    var ar = [];
+    for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+    return ar;
+  };
+  return ownKeys(o);
+};
+
 function __importStar(mod) {
   if (mod && mod.__esModule) return mod;
   var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+  if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
   __setModuleDefault(result, mod);
   return result;
 }
@@ -2239,12 +1933,25 @@ function __disposeResources(env) {
   return next();
 }
 
+function __rewriteRelativeImportExtension(path, preserveJsx) {
+  if (typeof path === "string" && /^\.\.?\//.test(path)) {
+      return path.replace(/\.(tsx)$|((?:\.d)?)((?:\.[^./]+?)?)\.([cm]?)ts$/i, function (m, tsx, d, ext, cm) {
+          return tsx ? preserveJsx ? ".jsx" : ".js" : d && (!ext || !cm) ? m : (d + ext + "." + cm.toLowerCase() + "js");
+      });
+  }
+  return path;
+}
+
 /* harmony default export */ __webpack_exports__["default"] = ({
   __extends,
   __assign,
   __rest,
   __decorate,
   __param,
+  __esDecorate,
+  __runInitializers,
+  __propKey,
+  __setFunctionName,
   __metadata,
   __awaiter,
   __generator,
@@ -2267,7 +1974,325 @@ function __disposeResources(env) {
   __classPrivateFieldIn,
   __addDisposableResource,
   __disposeResources,
+  __rewriteRelativeImportExtension,
 });
+
+
+/***/ }),
+
+/***/ 784:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   BaseScormValidationError: function() { return /* binding */ BaseScormValidationError; },
+/* harmony export */   ValidationError: function() { return /* binding */ ValidationError; }
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+
+var BaseScormValidationError = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(BaseScormValidationError, _super);
+    function BaseScormValidationError(errorCode) {
+        var _this = _super.call(this, errorCode.toString()) || this;
+        _this._errorCode = errorCode;
+        _this.name = "ScormValidationError";
+        return _this;
+    }
+    Object.defineProperty(BaseScormValidationError.prototype, "errorCode", {
+        get: function () {
+            return this._errorCode;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    return BaseScormValidationError;
+}(Error));
+
+var ValidationError = (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(ValidationError, _super);
+    function ValidationError(errorCode, errorMessage, detailedMessage) {
+        var _this = _super.call(this, errorCode) || this;
+        _this._detailedMessage = "";
+        _this.message = errorMessage;
+        _this._errorMessage = errorMessage;
+        if (detailedMessage) {
+            _this._detailedMessage = detailedMessage;
+        }
+        return _this;
+    }
+    Object.defineProperty(ValidationError.prototype, "errorMessage", {
+        get: function () {
+            return this._errorMessage;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(ValidationError.prototype, "detailedMessage", {
+        get: function () {
+            return this._detailedMessage;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    return ValidationError;
+}(BaseScormValidationError));
+
+
+
+/***/ }),
+
+/***/ 797:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   global_errors: function() { return /* binding */ global_errors; },
+/* harmony export */   scorm12_errors: function() { return /* binding */ scorm12_errors; },
+/* harmony export */   scorm2004_errors: function() { return /* binding */ scorm2004_errors; }
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(635);
+
+var global_errors = {
+    GENERAL: 101,
+    INITIALIZATION_FAILED: 101,
+    INITIALIZED: 101,
+    TERMINATED: 101,
+    TERMINATION_FAILURE: 101,
+    TERMINATION_BEFORE_INIT: 101,
+    MULTIPLE_TERMINATION: 101,
+    RETRIEVE_BEFORE_INIT: 101,
+    RETRIEVE_AFTER_TERM: 101,
+    STORE_BEFORE_INIT: 101,
+    STORE_AFTER_TERM: 101,
+    COMMIT_BEFORE_INIT: 101,
+    COMMIT_AFTER_TERM: 101,
+    ARGUMENT_ERROR: 101,
+    CHILDREN_ERROR: 101,
+    COUNT_ERROR: 101,
+    GENERAL_GET_FAILURE: 101,
+    GENERAL_SET_FAILURE: 101,
+    GENERAL_COMMIT_FAILURE: 101,
+    UNDEFINED_DATA_MODEL: 101,
+    UNIMPLEMENTED_ELEMENT: 101,
+    VALUE_NOT_INITIALIZED: 101,
+    INVALID_SET_VALUE: 101,
+    READ_ONLY_ELEMENT: 101,
+    WRITE_ONLY_ELEMENT: 101,
+    TYPE_MISMATCH: 101,
+    VALUE_OUT_OF_RANGE: 101,
+    DEPENDENCY_NOT_ESTABLISHED: 101,
+};
+var scorm12_errors = (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)((0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)({}, global_errors), { RETRIEVE_BEFORE_INIT: 301, STORE_BEFORE_INIT: 301, COMMIT_BEFORE_INIT: 301, ARGUMENT_ERROR: 201, CHILDREN_ERROR: 202, COUNT_ERROR: 203, UNDEFINED_DATA_MODEL: 401, UNIMPLEMENTED_ELEMENT: 401, VALUE_NOT_INITIALIZED: 301, INVALID_SET_VALUE: 402, READ_ONLY_ELEMENT: 403, WRITE_ONLY_ELEMENT: 404, TYPE_MISMATCH: 405, VALUE_OUT_OF_RANGE: 407, DEPENDENCY_NOT_ESTABLISHED: 408 });
+var scorm2004_errors = (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)((0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)({}, global_errors), { INITIALIZATION_FAILED: 102, INITIALIZED: 103, TERMINATED: 104, TERMINATION_FAILURE: 111, TERMINATION_BEFORE_INIT: 112, MULTIPLE_TERMINATIONS: 113, RETRIEVE_BEFORE_INIT: 122, RETRIEVE_AFTER_TERM: 123, STORE_BEFORE_INIT: 132, STORE_AFTER_TERM: 133, COMMIT_BEFORE_INIT: 142, COMMIT_AFTER_TERM: 143, ARGUMENT_ERROR: 201, GENERAL_GET_FAILURE: 301, GENERAL_SET_FAILURE: 351, GENERAL_COMMIT_FAILURE: 391, UNDEFINED_DATA_MODEL: 401, UNIMPLEMENTED_ELEMENT: 402, VALUE_NOT_INITIALIZED: 403, READ_ONLY_ELEMENT: 404, WRITE_ONLY_ELEMENT: 405, TYPE_MISMATCH: 406, VALUE_OUT_OF_RANGE: 407, DEPENDENCY_NOT_ESTABLISHED: 408 });
+
+
+/***/ }),
+
+/***/ 864:
+/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   SECONDS_PER_DAY: function() { return /* binding */ SECONDS_PER_DAY; },
+/* harmony export */   SECONDS_PER_HOUR: function() { return /* binding */ SECONDS_PER_HOUR; },
+/* harmony export */   SECONDS_PER_MINUTE: function() { return /* binding */ SECONDS_PER_MINUTE; },
+/* harmony export */   SECONDS_PER_SECOND: function() { return /* binding */ SECONDS_PER_SECOND; },
+/* harmony export */   addHHMMSSTimeStrings: function() { return /* binding */ addHHMMSSTimeStrings; },
+/* harmony export */   addTwoDurations: function() { return /* binding */ addTwoDurations; },
+/* harmony export */   countDecimals: function() { return /* binding */ countDecimals; },
+/* harmony export */   flatten: function() { return /* binding */ flatten; },
+/* harmony export */   formatMessage: function() { return /* binding */ formatMessage; },
+/* harmony export */   getDurationAsSeconds: function() { return /* binding */ getDurationAsSeconds; },
+/* harmony export */   getSecondsAsHHMMSS: function() { return /* binding */ getSecondsAsHHMMSS; },
+/* harmony export */   getSecondsAsISODuration: function() { return /* binding */ getSecondsAsISODuration; },
+/* harmony export */   getTimeAsSeconds: function() { return /* binding */ getTimeAsSeconds; },
+/* harmony export */   stringMatches: function() { return /* binding */ stringMatches; },
+/* harmony export */   unflatten: function() { return /* binding */ unflatten; }
+/* harmony export */ });
+var SECONDS_PER_SECOND = 1.0;
+var SECONDS_PER_MINUTE = 60;
+var SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
+var SECONDS_PER_DAY = 24 * SECONDS_PER_HOUR;
+var designations = {
+    D: SECONDS_PER_DAY,
+    H: SECONDS_PER_HOUR,
+    M: SECONDS_PER_MINUTE,
+    S: SECONDS_PER_SECOND,
+};
+function getSecondsAsHHMMSS(totalSeconds) {
+    if (!totalSeconds || totalSeconds <= 0) {
+        return "00:00:00";
+    }
+    var hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
+    var dateObj = new Date(totalSeconds * 1000);
+    var minutes = dateObj.getUTCMinutes();
+    var seconds = dateObj.getSeconds();
+    var ms = totalSeconds % 1.0;
+    var msStr = "";
+    if (countDecimals(ms) > 0) {
+        if (countDecimals(ms) > 2) {
+            msStr = ms.toFixed(2);
+        }
+        else {
+            msStr = String(ms);
+        }
+        msStr = "." + msStr.split(".")[1];
+    }
+    return ((hours + ":" + minutes + ":" + seconds).replace(/\b\d\b/g, "0$&") + msStr);
+}
+function getSecondsAsISODuration(seconds) {
+    if (!seconds || seconds <= 0) {
+        return "PT0S";
+    }
+    var duration = "P";
+    var remainder = seconds;
+    for (var designationsKey in designations) {
+        var current_seconds = designations[designationsKey] || 1;
+        var value = Math.floor(remainder / current_seconds);
+        remainder = remainder % current_seconds;
+        if (countDecimals(remainder) > 2) {
+            remainder = Number(Number(remainder).toFixed(2));
+        }
+        if (designationsKey === "S" && remainder > 0) {
+            value += remainder;
+        }
+        if (value) {
+            if ((duration.indexOf("D") > 0 ||
+                designationsKey === "H" ||
+                designationsKey === "M" ||
+                designationsKey === "S") &&
+                duration.indexOf("T") === -1) {
+                duration += "T";
+            }
+            duration += "".concat(value).concat(designationsKey);
+        }
+    }
+    return duration;
+}
+function getTimeAsSeconds(timeString, timeRegex) {
+    if (typeof timeString === "number" || typeof timeString === "boolean") {
+        timeString = String(timeString);
+    }
+    if (typeof timeRegex === "string") {
+        timeRegex = new RegExp(timeRegex);
+    }
+    if (!timeString || !timeString.match(timeRegex)) {
+        return 0;
+    }
+    var parts = timeString.split(":");
+    var hours = Number(parts[0]);
+    var minutes = Number(parts[1]);
+    var seconds = Number(parts[2]);
+    return hours * 3600 + minutes * 60 + seconds;
+}
+function getDurationAsSeconds(duration, durationRegex) {
+    if (typeof durationRegex === "string") {
+        durationRegex = new RegExp(durationRegex);
+    }
+    if (!duration || !duration.match(durationRegex)) {
+        return 0;
+    }
+    var _a = new RegExp(durationRegex).exec(duration) || [], years = _a[1], _ = _a[2], days = _a[4], hours = _a[5], minutes = _a[6], seconds = _a[7];
+    var result = 0.0;
+    result += Number(seconds) || 0.0;
+    result += Number(minutes) * 60.0 || 0.0;
+    result += Number(hours) * 3600.0 || 0.0;
+    result += Number(days) * (60 * 60 * 24.0) || 0.0;
+    result += Number(years) * (60 * 60 * 24 * 365.0) || 0.0;
+    return result;
+}
+function addTwoDurations(first, second, durationRegex) {
+    var regex = typeof durationRegex === "string"
+        ? new RegExp(durationRegex)
+        : durationRegex;
+    return getSecondsAsISODuration(getDurationAsSeconds(first, regex) + getDurationAsSeconds(second, regex));
+}
+function addHHMMSSTimeStrings(first, second, timeRegex) {
+    if (typeof timeRegex === "string") {
+        timeRegex = new RegExp(timeRegex);
+    }
+    return getSecondsAsHHMMSS(getTimeAsSeconds(first, timeRegex) + getTimeAsSeconds(second, timeRegex));
+}
+function flatten(data) {
+    var result = {};
+    function recurse(cur, prop) {
+        if (Object(cur) !== cur) {
+            result[prop] = cur;
+        }
+        else if (Array.isArray(cur)) {
+            for (var i = 0, l = cur.length; i < l; i++) {
+                recurse(cur[i], prop + "[" + i + "]");
+                if (l === 0)
+                    result[prop] = [];
+            }
+        }
+        else {
+            var isEmpty = true;
+            for (var p in cur) {
+                if ({}.hasOwnProperty.call(cur, p)) {
+                    isEmpty = false;
+                    recurse(cur[p], prop ? prop + "." + p : p);
+                }
+            }
+            if (isEmpty && prop)
+                result[prop] = {};
+        }
+    }
+    recurse(data, "");
+    return result;
+}
+function unflatten(data) {
+    "use strict";
+    if (Object(data) !== data || Array.isArray(data))
+        return data;
+    var regex = /\.?([^.[\]]+)|\[(\d+)]/g;
+    var result = {};
+    for (var p in data) {
+        if ({}.hasOwnProperty.call(data, p)) {
+            var cur = result;
+            var prop = "";
+            var m = regex.exec(p);
+            while (m) {
+                cur = cur[prop] || (cur[prop] = m[2] ? [] : {});
+                prop = m[2] || m[1] || "";
+                m = regex.exec(p);
+            }
+            cur[prop] = data[p];
+        }
+    }
+    return result[""] || result;
+}
+function countDecimals(num) {
+    if (Math.floor(num) === num || String(num).indexOf(".") < 0)
+        return 0;
+    var parts = num.toString().split(".")[1];
+    return (parts === null || parts === void 0 ? void 0 : parts.length) || 0;
+}
+function formatMessage(functionName, message, CMIElement) {
+    var baseLength = 20;
+    var messageString = "";
+    messageString += functionName;
+    var fillChars = baseLength - messageString.length;
+    for (var i = 0; i < fillChars; i++) {
+        messageString += " ";
+    }
+    messageString += ": ";
+    if (CMIElement) {
+        var CMIElementBaseLength = 70;
+        messageString += CMIElement;
+        fillChars = CMIElementBaseLength - messageString.length;
+        for (var j = 0; j < fillChars; j++) {
+            messageString += " ";
+        }
+    }
+    if (message) {
+        messageString += message;
+    }
+    return messageString;
+}
+function stringMatches(str, tester) {
+    return (str === null || str === void 0 ? void 0 : str.match(tester)) !== null;
+}
 
 
 /***/ })
@@ -2331,11 +2356,6 @@ function __disposeResources(env) {
 var __webpack_exports__ = {};
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
-
-// EXPORTS
-__webpack_require__.d(__webpack_exports__, {
-  Scorm2004API: function() { return /* binding */ Scorm2004Impl; }
-});
 
 // EXTERNAL MODULE: ./node_modules/tslib/tslib.es6.mjs
 var tslib_es6 = __webpack_require__(635);
@@ -4504,13 +4524,13 @@ var Scorm2004Impl = (function (_super) {
     Scorm2004Impl.prototype.lmsCommit = function () {
         var _this = this;
         if (this.settings.asyncCommit) {
-            this.scheduleCommit(500, "LMSCommit");
+            this.scheduleCommit(500, "Commit");
         }
         else {
             (function () { return (0,tslib_es6.__awaiter)(_this, void 0, void 0, function () {
                 return (0,tslib_es6.__generator)(this, function (_a) {
                     switch (_a.label) {
-                        case 0: return [4, this.commit("LMSCommit", false)];
+                        case 0: return [4, this.commit("Commit", false)];
                         case 1:
                             _a.sent();
                             return [2];
@@ -4919,7 +4939,6 @@ var Scorm2004Impl = (function (_super) {
 }(BaseAPI["default"]));
 
 
-var __webpack_exports__Scorm2004API = __webpack_exports__.Scorm2004API;
-export { __webpack_exports__Scorm2004API as Scorm2004API };
+export { Scorm2004Impl as Scorm2004API };
 
 //# sourceMappingURL=scorm2004.js.map
