@@ -67,7 +67,7 @@ export const checkValidRange = memoize(
     errorClass: typeof BaseScormValidationError,
   ): boolean => {
     const ranges = rangePattern.split("#");
-    value = value * 1.0;
+    value = Number(value);
 
     // If value is not a valid number, throw error
     if (isNaN(value)) {

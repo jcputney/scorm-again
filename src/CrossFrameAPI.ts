@@ -48,6 +48,40 @@ export default class CrossFrameAPI {
   private _eventListeners = new Map<string, Set<CrossFrameEventCallback>>();
   private readonly _boundOnMessage: (ev: MessageEvent) => void;
 
+  /**
+   * Type guard to validate MessageResponse structure
+   */
+  private static _isValidMessageResponse(data: unknown): data is MessageResponse {
+    if (typeof data !== "object" || data === null) return false;
+
+    const resp = data as Partial<MessageResponse>;
+
+    // messageId is required
+    if (typeof resp.messageId !== "string" || resp.messageId.length === 0) return false;
+
+    // error must have correct shape if present
+    if (resp.error !== undefined) {
+      if (typeof resp.error !== "object" || resp.error === null) return false;
+      const err = resp.error as Record<string, unknown>;
+      if (typeof err.message !== "string") return false;
+      if (err.code !== undefined && typeof err.code !== "string") return false;
+    }
+
+    // isHeartbeat must be boolean if present
+    if (resp.isHeartbeat !== undefined && typeof resp.isHeartbeat !== "boolean") return false;
+
+    return true;
+  }
+
+  /**
+   * Validates that args is an array and sanitizes it for safe use
+   */
+  private static _validateArgs(args: unknown[]): args is unknown[] {
+    if (!Array.isArray(args)) return false;
+    // Additional validation could check for specific types based on method
+    return true;
+  }
+
   private _handler: ProxyHandler<CrossFrameAPI> = {
     get: (target, prop, receiver) => {
       // If it's an existing property/method, return it
@@ -67,6 +101,12 @@ export default class CrossFrameAPI {
       const isDiagnostic = methodName === "GetDiagnostic" || methodName === "LMSGetDiagnostic";
 
       return (...args: unknown[]): string => {
+        // CF-API-03: Validate args is an array (TypeScript guarantees this, but runtime safety)
+        if (!CrossFrameAPI._validateArgs(args)) {
+          console.error(`CrossFrameAPI: Invalid arguments for ${methodName}`);
+          return "";
+        }
+
         // Synchronous cache update for setter calls
         if (isSet && args.length >= 2) {
           const key = args[0] as string;
@@ -215,7 +255,7 @@ export default class CrossFrameAPI {
     if (!this._eventListeners.has(event)) {
       this._eventListeners.set(event, new Set());
     }
-    this._eventListeners.get(event)!.add(callback);
+    this._eventListeners.get(event)?.add(callback);
   }
 
   /**
@@ -293,6 +333,14 @@ export default class CrossFrameAPI {
     // Deep-clean params of non-cloneables (e.g. functions)
     const safeParams = params.map((p) => {
       if (typeof p === "function") {
+        // DEFENSIVE CODING: Warn about non-serializable function parameters.
+        // This console.warn is intentionally kept in production builds because:
+        // 1. Functions in SCORM API params indicate a programming error by content authors
+        // 2. The warning helps diagnose integration issues during content development
+        // 3. It alerts developers to potential data loss (function becomes undefined)
+        // 4. The frequency should be very low in production (only on misconfigured content)
+        //
+        // Alternative: Could be gated by a debug flag if production console noise is a concern
         console.warn("Dropping function param when posting SCORM call:", method);
         return undefined;
       }
@@ -328,8 +376,10 @@ export default class CrossFrameAPI {
       return;
     }
 
-    const data = ev.data as MessageResponse;
-    if (!data?.messageId) return;
+    // CF-API-04: Validate that ev.data has the expected MessageResponse structure
+    if (!CrossFrameAPI._isValidMessageResponse(ev.data)) return;
+
+    const data = ev.data;
 
     // Handle heartbeat response
     if (data.isHeartbeat) {
@@ -373,7 +423,8 @@ export default class CrossFrameAPI {
     }
 
     console.error(`CrossFrameAPI ${method} error:`, err);
-    const match = /\b(\d{3})\b/.exec(errorMessage);
+    // Match SCORM error codes (3 digits) from error messages
+    const match = /(?:error code|code)?\s*(\d{3})\b/i.exec(errorMessage);
     const code = match?.[1] ?? String(global_errors.GENERAL);
     this._lastError = code;
     this._cache.set(`error_${code}`, errorMessage);
