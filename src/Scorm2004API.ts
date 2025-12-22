@@ -1313,9 +1313,11 @@ class Scorm2004API extends BaseAPI {
     // Update primary objective satisfied status based on cmi.success_status
     if (successStatus !== SuccessStatus.UNKNOWN) {
       primaryObjective.satisfiedStatus = successStatus === SuccessStatus.PASSED;
+      primaryObjective.satisfiedStatusKnown = true;
       primaryObjective.measureStatus = true;
       currentActivity.objectiveMeasureStatus = true;
       currentActivity.objectiveSatisfiedStatus = successStatus === SuccessStatus.PASSED;
+      currentActivity.objectiveSatisfiedStatusKnown = true;
     }
 
     // Update primary objective completion status based on cmi.completion_status
