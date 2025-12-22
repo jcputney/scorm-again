@@ -819,4 +819,24 @@ describe("Sequencing Configuration", () => {
       expect(rule?.conditions?.[0]?.referencedObjective).toBe("obj-1");
     });
   });
+
+  describe("completionSetByContent and objectiveSetByContent configuration", () => {
+    it("should apply completionSetByContent and objectiveSetByContent settings", () => {
+      const api = new Scorm2004API();
+      api.configureSequencing({
+        activityTree: {
+          id: "root",
+          sequencingControls: {
+            completionSetByContent: true,
+            objectiveSetByContent: false,
+          },
+        },
+      });
+
+      const sequencing = (api as any)._sequencing;
+      const root = sequencing.activityTree.root;
+      expect(root?.sequencingControls?.completionSetByContent).toBe(true);
+      expect(root?.sequencingControls?.objectiveSetByContent).toBe(false);
+    });
+  });
 });
