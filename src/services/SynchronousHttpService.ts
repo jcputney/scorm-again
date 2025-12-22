@@ -30,16 +30,28 @@ export class SynchronousHttpService implements IHttpService {
    * @param {string} url - The URL endpoint to send the request to
    * @param {CommitObject|StringKeyMap|Array} params - The data to send to the LMS
    * @param {boolean} immediate - Whether this is a termination commit (use sendBeacon)
-   * @param {Function} apiLog - Function to log API messages with appropriate levels
-   * @param {Function} processListeners - Function to trigger event listeners for commit events
+   * @param {Function} _apiLog - Function to log API messages (unused in synchronous mode - errors returned directly)
+   * @param {Function} _processListeners - Function to trigger event listeners (unused in synchronous mode - no async events)
    * @return {ResultObject} - The result of the request (synchronous)
+   *
+   * @remarks
+   * The apiLog and processListeners parameters are part of the IHttpService interface contract
+   * but are not used by SynchronousHttpService because:
+   * - Synchronous XHR blocks until complete, so errors are returned directly to the caller
+   * - No async events need to be triggered (CommitSuccess/CommitError) since results are synchronous
+   * - AsynchronousHttpService uses these parameters to handle background request results
    */
   processHttpRequest(
     url: string,
     params: CommitObject | StringKeyMap | Array<any>,
     immediate: boolean = false,
-    apiLog: (functionName: string, message: any, messageLevel: number, CMIElement?: string) => void,
-    processListeners: (functionName: string, CMIElement?: string, value?: any) => void,
+    _apiLog: (
+      functionName: string,
+      message: any,
+      messageLevel: number,
+      CMIElement?: string,
+    ) => void,
+    _processListeners: (functionName: string, CMIElement?: string, value?: any) => void,
   ): ResultObject {
     if (immediate) {
       // Termination: use sendBeacon (fire-and-forget, best effort)

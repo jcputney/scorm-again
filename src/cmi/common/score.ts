@@ -11,6 +11,11 @@ import { ScoreObject } from "../../types/api_types";
  */
 export class CMIScore extends BaseCMI {
   private readonly __children: string;
+  /**
+   * Score range validation pattern (e.g., "0#100" for SCORM 1.2).
+   * Set to `false` to disable range validation (e.g., for SCORM 2004 where scores have no upper bound).
+   * This property is intentionally unused in the base class but provides subclass flexibility.
+   */
   private readonly __score_range: string | false;
   private readonly __invalid_error_code: number;
   private readonly __invalid_type_code: number;
@@ -21,19 +26,6 @@ export class CMIScore extends BaseCMI {
   protected _min = "";
   protected _max: string;
 
-  /**
-   * Constructor for *.score
-   * @param {
-   *     score_children: string,
-   *     score_range: string,
-   *     max: string,
-   *     invalidErrorCode: number,
-   *     invalidTypeCode: number,
-   *     invalidRangeCode: number,
-   *     decimalRegex: string,
-   *     errorClass: typeof BaseScormValidationError
-   * } params
-   */
   /**
    * Constructor for *.score
    *
@@ -48,6 +40,12 @@ export class CMIScore extends BaseCMI {
    * 5. SCOs can still explicitly set max="" if needed
    *
    * Strict spec default would be: ""
+   *
+   * @param params - Configuration parameters
+   * @param params.score_range - Optional range pattern. When provided, uses scorm12_regex.score_range.
+   *                             When omitted or falsy, disables range validation (sets to false).
+   *                             SCORM 1.2 passes a truthy value to enable "0#100" validation.
+   *                             SCORM 2004 omits this to allow unbounded scores.
    */
   constructor(params: {
     CMIElement: string;
@@ -63,6 +61,9 @@ export class CMIScore extends BaseCMI {
     super(params.CMIElement);
 
     this.__children = params.score_children || scorm12_constants.score_children;
+    // score_range parameter controls whether range validation is enabled:
+    // - Truthy value (e.g., "0#100"): enables range validation using scorm12_regex.score_range
+    // - Falsy/omitted: disables range validation by setting to false
     this.__score_range = !params.score_range ? false : scorm12_regex.score_range;
     // See SPEC COMPLIANCE NOTE above for why default is "100" instead of ""
     this._max = params.max || params.max === "" ? params.max : "100";
