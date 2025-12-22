@@ -44,30 +44,26 @@ jobs:
               const list = changedInDist.map(f => `- ${f.status}: ${f.filename}`).join('\n');
               core.setFailed(`Changes in dist/ are not allowed in PRs.\n${list}`);
             }
-  build:
-    runs-on: ubuntu-latest
 
+  build-and-unit:
+    name: Build & Unit Tests
+    runs-on: ubuntu-latest
     steps:
-      # Checkout repository
       - name: Checkout code
         uses: actions/checkout@v6
 
-      # Set up Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: "npm"
 
-      # Install dependencies
       - name: Install dependencies
         run: npm install
 
-      # Create required directories
       - name: Create directories
         run: mkdir -p reports dist docs test-results coverage/unit coverage/e2e coverage/merged
 
-      # Run Vitest once: coverage + JUnit
       - name: Run unit tests with Vitest (coverage + JUnit)
         run: npx vitest run --coverage --reporter=default --reporter=junit --outputFile=test-report.junit.xml
 
@@ -83,7 +79,6 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
-      # Upload unit test results to GitHub
       - name: 'Report Coverage'
         if: always()
         uses: davelosert/vitest-coverage-report-action@v2
@@ -91,25 +86,137 @@ jobs:
           json-summary-path: './coverage/unit/coverage-summary.json'
           json-final-path: './coverage/unit/coverage-final.json'
 
-      # Install Playwright browsers
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
-
-      # Build once (prod) to reuse for integration tests and analysis
       - name: Build (prod)
         run: npm run build:all:prod
 
-      # Run integration tests with coverage (Chromium only for V8 coverage)
+      - name: Run ESLint
+        run: |
+          ./node_modules/.bin/eslint ./src --format junit --output-file ./reports/eslint/eslint.xml
+
+      - name: Code complexity analysis
+        run: |
+          mkdir -p reports/complexity
+          ./node_modules/.bin/eslint ./src --config eslint.config.js --rule 'complexity/complexity: ["error", { max: 15 }]' --format json > reports/complexity/complexity-report.json || true
+          echo "Complexity report generated at reports/complexity/complexity-report.json"
+
+      - name: TypeScript type checking
+        run: npx tsc --noEmit
+
+      - name: Dependency vulnerability scanning
+        run: npm audit --level=moderate
+
+      # Upload build artifacts for integration tests
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: |
+            dist/
+            coverage/unit/
+          retention-days: 1
+
+  integration-tests:
+    name: Integration Tests (Shard ${{ matrix.shard }}/${{ strategy.job-total }})
+    needs: build-and-unit
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+
+      # Cache Playwright browsers
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps
+
+      - name: Install Playwright deps only
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps
+
+      - name: Run integration tests (shard ${{ matrix.shard }}/4)
+        run: npx playwright test --project=chromium --shard=${{ matrix.shard }}/4 --reporter=list
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results-shard-${{ matrix.shard }}
+          path: test-results/
+          retention-days: 7
+
+  # Coverage job runs only on master - single run with coverage enabled
+  integration-coverage:
+    name: Integration Coverage
+    needs: build-and-unit
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+
+      - name: Create directories
+        run: mkdir -p coverage/e2e coverage/merged
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps
+
+      - name: Install Playwright deps only
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps
+
       - name: Run integration tests with coverage
         run: COVERAGE=true npx playwright test --project=chromium --reporter=list
 
-      # Merge unit + E2E coverage reports
       - name: Merge coverage reports
         run: npx tsx scripts/merge-coverage.ts
 
-      # Upload combined coverage to Codecov
       - name: Upload combined coverage to Codecov
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -117,42 +224,57 @@ jobs:
           flags: combined
           name: combined-coverage
 
-      # Upload combined coverage report as artifact
       - name: Upload combined coverage report
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: actions/upload-artifact@v5
         with:
           name: combined-coverage-report
           path: coverage/merged/
           retention-days: 30
 
-      # Upload Playwright report
       - name: Upload Playwright report
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: actions/upload-artifact@v5
         with:
           name: playwright-report
           path: playwright-report/
           retention-days: 30
 
-      # Run performance regression tests
+  performance-tests:
+    name: Performance Tests
+    needs: build-and-unit
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+
       - name: Run performance regression tests
         id: performance_test
         run: npm run test:performance
         continue-on-error: true
 
-      # Upload performance benchmark results
       - name: Upload performance benchmark results
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: actions/upload-artifact@v4
         with:
           name: performance-benchmark
           path: reports/performance-benchmark.json
           retention-days: 30
 
-      # Create GitHub issue for performance regressions
       - name: Create issue for performance regression
-        if: steps.performance_test.outcome == 'failure' && github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: steps.performance_test.outcome == 'failure'
         uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -179,45 +301,42 @@ jobs:
               console.error('Error creating issue:', error);
             }
 
-      # Run ESLint
-      - name: Run ESLint
-        run: |
-          ./node_modules/.bin/eslint ./src --format junit --output-file ./reports/eslint/eslint.xml
+  finalize:
+    name: Finalize & Commit
+    needs: [build-and-unit, integration-tests, integration-coverage, performance-tests]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
 
-      # Run code complexity analysis
-      - name: Code complexity analysis
-        run: |
-          mkdir -p reports/complexity
-          ./node_modules/.bin/eslint ./src --config eslint.config.js --rule 'complexity/complexity: ["error", { max: 15 }]' --format json > reports/complexity/complexity-report.json || true
-          echo "Complexity report generated at reports/complexity/complexity-report.json"
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: "npm"
 
-      # Run TypeScript type checking
-      - name: TypeScript type checking
-        run: npx tsc --noEmit
+      - name: Install dependencies
+        run: npm install
 
-      # Run dependency vulnerability scanning
-      - name: Dependency vulnerability scanning
-        run: npm audit --level=moderate
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
 
-      # Analyze bundle size (reuse existing prod build)
       - name: Analyze bundle size
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: |
           ls -la dist/*.js | awk '{print $5, $9}' > bundle-size.txt
           cat bundle-size.txt
 
       - name: Bundle analysis
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: npx @codecov/bundle-analyzer ./dist --bundle-name=scorm-again --upload-token=${{ secrets.CODECOV_TOKEN }}
         working-directory: ./
 
-      # Format code with Prettier
       - name: Format code with Prettier
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: npm run prettier
 
       - name: Commit and Push Changes
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: "[skip ci] Add changes during build"
