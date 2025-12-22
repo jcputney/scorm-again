@@ -606,11 +606,12 @@ function splitFirstUnescaped(text: string, delim: string): string[] {
   const splitRe = new RegExp(`(?<!\\\\)${reDelim}`);
   const unescapeRe = new RegExp(`\\\\${reDelim}`, "g");
   const parts = text.split(splitRe);
+  const firstPart = parts[0] ?? "";
   if (parts.length === 1) {
-    return [parts[0].replace(unescapeRe, delim)];
+    return [firstPart.replace(unescapeRe, delim)];
   }
   // Join everything after the first split back together
-  const part1 = parts[0].replace(unescapeRe, delim);
+  const part1 = firstPart.replace(unescapeRe, delim);
   const part2 = parts.slice(1).join(delim).replace(unescapeRe, delim);
   return [part1, part2];
 }

@@ -38,14 +38,16 @@ export class CMIObjectives extends CMIArray {
    * Find an objective by its ID
    */
   public findObjectiveById(id: string): CMIObjectivesObject | undefined {
-    return this.childArray.find((objective) => objective.id === id);
+    return (this.childArray as CMIObjectivesObject[]).find(
+      (objective) => objective.id === id,
+    );
   }
 
   /**
    * Find objective by its index
    */
-  public findObjectiveByIndex(index: number): CMIObjectivesObject {
-    return this.childArray[index];
+  public findObjectiveByIndex(index: number): CMIObjectivesObject | undefined {
+    return (this.childArray as CMIObjectivesObject[])[index];
   }
 
   /**

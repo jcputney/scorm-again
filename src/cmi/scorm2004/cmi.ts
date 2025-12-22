@@ -118,9 +118,10 @@ export class CMI extends BaseRootCMI {
     this.thresholds?.reset();
 
     // Reset original complex objects
-    // objectives.reset(false) - false means keep array structure, reset individual objectives
-    // This allows global objectives to persist while SCO-specific objectives are reset
-    this.objectives?.reset(false);
+    // objectives.reset(true) - wipe the array completely so restoreGlobalObjectivesToCMI
+    // can repopulate it from _globalObjectives. The global objectives are persisted in
+    // Scorm2004API._globalObjectives and restored during lmsInitialize().
+    this.objectives?.reset(true);
     this.interactions?.reset(true);
     this.score?.reset();
     this.comments_from_learner?.reset();

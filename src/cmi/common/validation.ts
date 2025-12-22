@@ -79,16 +79,18 @@ export const checkValidRange = memoize(
     // 1. Correctly handle all SCORM range patterns ("#max", "min#", "min#*", "min#max")
     // 2. Make the validation logic explicit and testable for each boundary condition
     // 3. Avoid the complexity and error-proneness of deeply nested if-else statements
-    const hasMinimum = ranges[0] !== "";
-    const hasMaximum = ranges[1] !== "" && ranges[1] !== "*";
+    const minBound = ranges[0];
+    const maxBound = ranges[1];
+    const hasMinimum = minBound !== undefined && minBound !== "";
+    const hasMaximum = maxBound !== undefined && maxBound !== "" && maxBound !== "*";
 
     // Check minimum bound if it exists
-    if (hasMinimum && value < ranges[0]) {
+    if (hasMinimum && value < Number(minBound)) {
       throw new errorClass(CMIElement, errorCode);
     }
 
     // Check maximum bound if it exists
-    if (hasMaximum && value > ranges[1]) {
+    if (hasMaximum && value > Number(maxBound)) {
       throw new errorClass(CMIElement, errorCode);
     }
 

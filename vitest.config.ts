@@ -1,6 +1,12 @@
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  poolOptions: {
+    threads: {
+      minWorkers: 1,
+      maxWorkers: 1
+    }
+  },
   test: {
     include: ["test/**/*.spec.ts"],
     exclude: ["test/integration/*"],
@@ -8,12 +14,6 @@ export default defineConfig({
     globals: true,
     // Use a single worker thread to avoid process kill restrictions
     pool: "threads",
-    poolOptions: {
-      threads: {
-        minWorkers: 1,
-        maxWorkers: 1,
-      },
-    },
     coverage: {
       provider: "v8",
       reportsDirectory: "./coverage/unit",
@@ -25,8 +25,8 @@ export default defineConfig({
         "src/exports/*.*",
         "src/interfaces/*.*",
         "src/types/*.*",
-        "src/ScormAgain.ts",
-      ],
-    },
-  },
+        "src/ScormAgain.ts"
+      ]
+    }
+  }
 });

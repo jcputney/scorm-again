@@ -223,7 +223,11 @@ export default class CrossFrameLMS {
               e && typeof e === "object" && "code" in e && typeof e.code === "string"
                 ? e.code
                 : undefined;
-            sendResponse(undefined, { message, code });
+            const errorObj: { message: string; code?: string } = { message };
+            if (code !== undefined) {
+              errorObj.code = code;
+            }
+            sendResponse(undefined, errorObj);
           });
       } else {
         sendResponse(result);
@@ -237,7 +241,11 @@ export default class CrossFrameLMS {
         e && typeof e === "object" && "code" in e && typeof e.code === "string"
           ? e.code
           : undefined;
-      sendResponse(undefined, { message, code });
+      const errorObj: { message: string; code?: string } = { message };
+      if (code !== undefined) {
+        errorObj.code = code;
+      }
+      sendResponse(undefined, errorObj);
     }
   }
 }
