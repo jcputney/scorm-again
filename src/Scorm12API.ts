@@ -560,10 +560,11 @@ class Scorm12API extends BaseAPI {
             this.cmi.student_data.mastery_score !== "" &&
             this.cmi.core.score.raw !== ""
           ) {
-            this.cmi.core.lesson_status =
-              parseFloat(this.cmi.core.score.raw) >= parseFloat(this.cmi.student_data.mastery_score)
-                ? "passed"
-                : "failed";
+            const rawScore = parseFloat(this.cmi.core.score.raw);
+            const masteryScore = parseFloat(this.cmi.student_data.mastery_score);
+            if (!isNaN(rawScore) && !isNaN(masteryScore)) {
+              this.cmi.core.lesson_status = rawScore >= masteryScore ? "passed" : "failed";
+            }
           }
         }
       }
@@ -577,12 +578,14 @@ class Scorm12API extends BaseAPI {
         this.cmi.student_data.mastery_score !== "" &&
         this.cmi.core.score.raw !== ""
       ) {
-        if (
-          parseFloat(this.cmi.core.score.raw) >= parseFloat(this.cmi.student_data.mastery_score)
-        ) {
-          this.cmi.core.lesson_status = "passed";
-        } else {
-          this.cmi.core.lesson_status = "failed";
+        const rawScore = parseFloat(this.cmi.core.score.raw);
+        const masteryScore = parseFloat(this.cmi.student_data.mastery_score);
+        if (!isNaN(rawScore) && !isNaN(masteryScore)) {
+          if (rawScore >= masteryScore) {
+            this.cmi.core.lesson_status = "passed";
+          } else {
+            this.cmi.core.lesson_status = "failed";
+          }
         }
       }
     }

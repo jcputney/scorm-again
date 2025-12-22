@@ -986,6 +986,47 @@ describe("SCORM 1.2 API Tests", () => {
         expect(scorm12API.cmi.core.lesson_status).toEqual("incomplete");
       });
     });
+
+    describe("storeData mastery evaluation", () => {
+      it("should not crash when score.raw is non-numeric", () => {
+        const scorm12API = api({
+          ...DefaultSettings,
+          ...{ mastery_override: true },
+        });
+        scorm12API.cmi.student_data.mastery_score = "80";
+        // Set a non-numeric score that bypasses validation
+        (scorm12API.cmi.core.score as any)._raw = "invalid";
+        expect(() => scorm12API.storeData(true)).not.toThrow();
+      });
+
+      it("should skip mastery evaluation when score.raw is NaN", () => {
+        const scorm12API = api({
+          ...DefaultSettings,
+          ...{ mastery_override: true },
+        });
+        scorm12API.cmi.core.credit = "credit";
+        scorm12API.cmi.student_data.mastery_score = "80";
+        // Set a non-numeric score that bypasses validation
+        (scorm12API.cmi.core.score as any)._raw = "invalid";
+        scorm12API.storeData(true);
+        // Should not set passed/failed, should leave as incomplete
+        expect(scorm12API.cmi.core.lesson_status).toBe("incomplete");
+      });
+
+      it("should skip mastery evaluation when mastery_score is NaN", () => {
+        const scorm12API = api({
+          ...DefaultSettings,
+          ...{ mastery_override: true },
+        });
+        scorm12API.cmi.core.credit = "credit";
+        // Set a non-numeric mastery_score that bypasses validation
+        (scorm12API.cmi.student_data as any)._mastery_score = "not-a-number";
+        scorm12API.cmi.core.score.raw = "80";
+        scorm12API.storeData(true);
+        // Should not set passed/failed, should leave as incomplete
+        expect(scorm12API.cmi.core.lesson_status).toBe("incomplete");
+      });
+    });
   });
 
   describe("LMSCommit Throttle Tests", () => {
