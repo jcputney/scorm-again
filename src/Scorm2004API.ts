@@ -1010,8 +1010,11 @@ class Scorm2004API extends BaseAPI {
     let found = false;
     const count = correct_response._count;
     for (let i = 0; i < count && !found; i++) {
-      if (i !== current_index && correct_response.childArray[i] === value) {
-        found = true;
+      if (i !== current_index) {
+        const existingPattern = correct_response.childArray[i]?.pattern;
+        if (existingPattern === value) {
+          found = true;
+        }
       }
     }
     return found;

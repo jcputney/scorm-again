@@ -469,6 +469,17 @@ describe("SCORM 2004 API Tests", () => {
         );
         expect(result).toBe("false");
       });
+      it("should detect duplicate patterns across correct_responses", (): void => {
+        const api = new Scorm2004API();
+        api.lmsInitialize();
+        api.lmsSetValue("cmi.interactions.0.id", "test");
+        api.lmsSetValue("cmi.interactions.0.type", "choice");
+        api.lmsSetValue("cmi.interactions.0.correct_responses.0.pattern", "a[,]b");
+        // This should fail - duplicate pattern
+        const result = api.lmsSetValue("cmi.interactions.0.correct_responses.1.pattern", "a[,]b");
+        expect(result).toBe("false");
+        expect(api.lmsGetLastError()).toBe("351"); // General Set Failure
+      });
       it("should allow cmi.interactions.0.objectives.0.id to be set", (): void => {
         const scorm2004API = apiInitialized();
         scorm2004API.setCMIValue("cmi.interactions.0.objectives.0.id", "ID of the Obj - ID 2");
