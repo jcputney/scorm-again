@@ -38,6 +38,9 @@ export interface IHttpService {
 
   /**
    * Updates the service settings
+   *
+   * Optional: May be called when API settings are changed during runtime
+   *
    * @param {Settings} settings - The new settings
    */
   updateSettings(settings: Settings): void;
@@ -146,11 +149,14 @@ export interface ISerializationService {
    *
    * @param {boolean} terminateCommit - Whether this is a termination commit
    * @param {boolean} alwaysSendTotalTime - Whether to always send total time
-   * @param {Function|boolean} renderCommonCommitFields - Function to render common commit fields
+   * @param {Function|boolean} renderCommonCommitFields - Function to render common commit fields or boolean flag
    * @param {Function} renderCommitObject - Function to render the commit object
    * @param {Function} renderCommitCMI - Function to render the commit CMI
    * @param {LogLevel} apiLogLevel - The API log level
    * @return {CommitObject|StringKeyMap|Array<any>} - The commit object
+   *
+   * Note: The includeTotalTime parameter on the callback functions is optional and
+   * may be omitted when always sending total time or during termination commits.
    */
   getCommitObject(
     terminateCommit: boolean,
@@ -374,6 +380,9 @@ export interface IOfflineStorageService {
 
   /**
    * Synchronize offline data with the LMS when connection is available
+   *
+   * Optional: Can be called without courseId to sync all pending data
+   *
    * @returns {Promise<boolean>} - Success status of synchronization
    */
   syncOfflineData(): Promise<boolean>;
@@ -393,6 +402,9 @@ export interface IOfflineStorageService {
 
   /**
    * Update the service settings
+   *
+   * Optional: May be called during API reset or settings changes
+   *
    * @param {Settings} settings - The new settings
    */
   updateSettings(settings: Settings): void;

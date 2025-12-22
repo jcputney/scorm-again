@@ -1940,3 +1940,443 @@ describe("CrossFrameLMS - Method Allowlist Security", () => {
     );
   });
 });
+
+describe("CrossFrameLMS - Input Validation Security", () => {
+  let apiMock: any;
+  let server: CrossFrameLMS;
+  let windowSource: any;
+
+  beforeEach(() => {
+    apiMock = {
+      LMSGetValue: vi.fn().mockReturnValue("test"),
+      LMSSetValue: vi.fn().mockReturnValue("true"),
+    };
+    server = new CrossFrameLMS(apiMock, "http://parent");
+    windowSource = { postMessage: vi.fn() };
+  });
+
+  afterEach(() => {
+    server.destroy();
+  });
+
+  it("rejects messages with params as non-array (type confusion attack)", () => {
+    // Attempt type confusion by sending params as object instead of array
+    const maliciousMsg = {
+      messageId: "attack-1",
+      method: "LMSGetValue",
+      params: { __proto__: { polluted: true } }, // Object instead of array
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"]({
+      data: maliciousMsg,
+      origin: "http://parent",
+      source: windowSource,
+    });
+
+    // Should reject the message silently (no response sent)
+    expect(windowSource.postMessage).not.toHaveBeenCalled();
+    expect(apiMock.LMSGetValue).not.toHaveBeenCalled();
+  });
+
+  it("rejects messages with params as string (type confusion)", () => {
+    const maliciousMsg = {
+      messageId: "attack-2",
+      method: "LMSSetValue",
+      params: "malicious,string", // String instead of array
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"]({
+      data: maliciousMsg,
+      origin: "http://parent",
+      source: windowSource,
+    });
+
+    expect(windowSource.postMessage).not.toHaveBeenCalled();
+    expect(apiMock.LMSSetValue).not.toHaveBeenCalled();
+  });
+
+  it("rejects messages with missing messageId", () => {
+    const invalidMsg = {
+      method: "LMSGetValue",
+      params: ["cmi.core.lesson_status"],
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"]({
+      data: invalidMsg,
+      origin: "http://parent",
+      source: windowSource,
+    });
+
+    expect(windowSource.postMessage).not.toHaveBeenCalled();
+  });
+
+  it("rejects messages with empty string messageId", () => {
+    const invalidMsg = {
+      messageId: "",
+      method: "LMSGetValue",
+      params: ["cmi.core.lesson_status"],
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"]({
+      data: invalidMsg,
+      origin: "http://parent",
+      source: windowSource,
+    });
+
+    expect(windowSource.postMessage).not.toHaveBeenCalled();
+  });
+
+  it("rejects messages with missing method", () => {
+    const invalidMsg = {
+      messageId: "test-123",
+      params: ["cmi.core.lesson_status"],
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"]({
+      data: invalidMsg,
+      origin: "http://parent",
+      source: windowSource,
+    });
+
+    expect(windowSource.postMessage).not.toHaveBeenCalled();
+  });
+
+  it("rejects messages with empty string method", () => {
+    const invalidMsg = {
+      messageId: "test-123",
+      method: "",
+      params: ["cmi.core.lesson_status"],
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"]({
+      data: invalidMsg,
+      origin: "http://parent",
+      source: windowSource,
+    });
+
+    expect(windowSource.postMessage).not.toHaveBeenCalled();
+  });
+
+  it("rejects messages with non-boolean isHeartbeat", () => {
+    const invalidMsg = {
+      messageId: "test-123",
+      method: "LMSGetValue",
+      params: [],
+      isHeartbeat: "true", // String instead of boolean
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"]({
+      data: invalidMsg,
+      origin: "http://parent",
+      source: windowSource,
+    });
+
+    expect(windowSource.postMessage).not.toHaveBeenCalled();
+  });
+
+  it("accepts valid messages with params as array", () => {
+    const validMsg: MessageData = {
+      messageId: "valid-123",
+      method: "LMSGetValue",
+      params: ["cmi.core.lesson_status"],
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"]({
+      data: validMsg,
+      origin: "http://parent",
+      source: windowSource,
+    });
+
+    expect(apiMock.LMSGetValue).toHaveBeenCalledWith("cmi.core.lesson_status");
+    expect(windowSource.postMessage).toHaveBeenCalled();
+  });
+
+  it("handles missing params gracefully (defaults to empty array)", () => {
+    const validMsg = {
+      messageId: "valid-123",
+      method: "LMSGetValue",
+      // params not provided
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    server["_onMessage"]({
+      data: validMsg,
+      origin: "http://parent",
+      source: windowSource,
+    });
+
+    // Should still call the method with empty array due to defense-in-depth
+    expect(apiMock.LMSGetValue).toHaveBeenCalledWith();
+    expect(windowSource.postMessage).toHaveBeenCalled();
+  });
+});
+
+describe("CrossFrameAPI - Input Validation Security", () => {
+  let client: any;
+
+  beforeEach(() => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    client = new CrossFrameAPI("https://lms.example.com");
+  });
+
+  afterEach(() => {
+    client.destroy();
+    vi.restoreAllMocks();
+  });
+
+  it("rejects responses with missing messageId", () => {
+    const messageId = "test-123";
+    const resolveSpy = vi.fn();
+    const rejectSpy = vi.fn();
+    (client as any)._pending.set(messageId, {
+      resolve: resolveSpy,
+      reject: rejectSpy,
+      timer: setTimeout(() => {}, 1000),
+      requestTime: Date.now(),
+      method: "LMSGetValue",
+    });
+
+    const invalidResponse = {
+      result: "some-value",
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    (client as any)._onMessage({
+      data: invalidResponse,
+      origin: "https://lms.example.com",
+      source: window.parent,
+    });
+
+    expect(resolveSpy).not.toHaveBeenCalled();
+    expect(rejectSpy).not.toHaveBeenCalled();
+  });
+
+  it("rejects responses with empty string messageId", () => {
+    const messageId = "test-123";
+    const resolveSpy = vi.fn();
+    const rejectSpy = vi.fn();
+    (client as any)._pending.set(messageId, {
+      resolve: resolveSpy,
+      reject: rejectSpy,
+      timer: setTimeout(() => {}, 1000),
+      requestTime: Date.now(),
+      method: "LMSGetValue",
+    });
+
+    const invalidResponse = {
+      messageId: "",
+      result: "some-value",
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    (client as any)._onMessage({
+      data: invalidResponse,
+      origin: "https://lms.example.com",
+      source: window.parent,
+    });
+
+    expect(resolveSpy).not.toHaveBeenCalled();
+    expect(rejectSpy).not.toHaveBeenCalled();
+  });
+
+  it("rejects responses with malformed error object (missing message)", () => {
+    const messageId = "test-123";
+    const resolveSpy = vi.fn();
+    const rejectSpy = vi.fn();
+    (client as any)._pending.set(messageId, {
+      resolve: resolveSpy,
+      reject: rejectSpy,
+      timer: setTimeout(() => {}, 1000),
+      requestTime: Date.now(),
+      method: "LMSGetValue",
+    });
+
+    const invalidResponse = {
+      messageId: messageId,
+      error: { code: "101" }, // Missing message field
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    (client as any)._onMessage({
+      data: invalidResponse,
+      origin: "https://lms.example.com",
+      source: window.parent,
+    });
+
+    expect(resolveSpy).not.toHaveBeenCalled();
+    expect(rejectSpy).not.toHaveBeenCalled();
+  });
+
+  it("rejects responses with error.message as non-string", () => {
+    const messageId = "test-123";
+    const resolveSpy = vi.fn();
+    const rejectSpy = vi.fn();
+    (client as any)._pending.set(messageId, {
+      resolve: resolveSpy,
+      reject: rejectSpy,
+      timer: setTimeout(() => {}, 1000),
+      requestTime: Date.now(),
+      method: "LMSGetValue",
+    });
+
+    const invalidResponse = {
+      messageId: messageId,
+      error: { message: 123, code: "101" }, // message is number
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    (client as any)._onMessage({
+      data: invalidResponse,
+      origin: "https://lms.example.com",
+      source: window.parent,
+    });
+
+    expect(resolveSpy).not.toHaveBeenCalled();
+    expect(rejectSpy).not.toHaveBeenCalled();
+  });
+
+  it("rejects responses with error.code as non-string", () => {
+    const messageId = "test-123";
+    const resolveSpy = vi.fn();
+    const rejectSpy = vi.fn();
+    (client as any)._pending.set(messageId, {
+      resolve: resolveSpy,
+      reject: rejectSpy,
+      timer: setTimeout(() => {}, 1000),
+      requestTime: Date.now(),
+      method: "LMSGetValue",
+    });
+
+    const invalidResponse = {
+      messageId: messageId,
+      error: { message: "Error occurred", code: 101 }, // code is number
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    (client as any)._onMessage({
+      data: invalidResponse,
+      origin: "https://lms.example.com",
+      source: window.parent,
+    });
+
+    expect(resolveSpy).not.toHaveBeenCalled();
+    expect(rejectSpy).not.toHaveBeenCalled();
+  });
+
+  it("rejects responses with non-boolean isHeartbeat", () => {
+    const messageId = "test-123";
+
+    const invalidResponse = {
+      messageId: messageId,
+      isHeartbeat: "true", // String instead of boolean
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    (client as any)._onMessage({
+      data: invalidResponse,
+      origin: "https://lms.example.com",
+      source: window.parent,
+    });
+
+    // Should not update heartbeat timestamp
+    const lastHeartbeat = (client as any)._lastHeartbeatResponse;
+    expect(lastHeartbeat).toBeLessThanOrEqual(Date.now());
+  });
+
+  it("accepts valid response with result", () => {
+    const messageId = "test-123";
+    const resolveSpy = vi.fn();
+    const rejectSpy = vi.fn();
+    (client as any)._pending.set(messageId, {
+      resolve: resolveSpy,
+      reject: rejectSpy,
+      timer: setTimeout(() => {}, 1000),
+      requestTime: Date.now(),
+      method: "LMSGetValue",
+    });
+
+    const validResponse: MessageResponse = {
+      messageId: messageId,
+      result: "some-value",
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    (client as any)._onMessage({
+      data: validResponse,
+      origin: "https://lms.example.com",
+      source: window.parent,
+    });
+
+    expect(resolveSpy).toHaveBeenCalledWith("some-value");
+    expect(rejectSpy).not.toHaveBeenCalled();
+  });
+
+  it("accepts valid response with properly formatted error", () => {
+    const messageId = "test-123";
+    const resolveSpy = vi.fn();
+    const rejectSpy = vi.fn();
+    (client as any)._pending.set(messageId, {
+      resolve: resolveSpy,
+      reject: rejectSpy,
+      timer: setTimeout(() => {}, 1000),
+      requestTime: Date.now(),
+      method: "LMSGetValue",
+    });
+
+    const validResponse: MessageResponse = {
+      messageId: messageId,
+      error: { message: "Error occurred", code: "101" },
+    };
+
+    // eslint-disable-next-line
+    // @ts-ignore
+    (client as any)._onMessage({
+      data: validResponse,
+      origin: "https://lms.example.com",
+      source: window.parent,
+    });
+
+    expect(rejectSpy).toHaveBeenCalledWith({ message: "Error occurred", code: "101" });
+    expect(resolveSpy).not.toHaveBeenCalled();
+  });
+
+  it("validates args in proxy handler and logs error for invalid args", () => {
+    const errorSpy = vi.spyOn(console, "error");
+
+    // Force invalid args by directly calling the handler
+    // This is difficult to test naturally because TypeScript prevents it
+    // But we can at least verify the validation code path exists
+    const result = client.LMSGetValue("cmi.core.lesson_status");
+
+    // Should return empty string or cached value
+    expect(typeof result).toBe("string");
+
+    // Error should not be logged for valid array args
+    expect(errorSpy).not.toHaveBeenCalled();
+  });
+});

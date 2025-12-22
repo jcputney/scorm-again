@@ -212,6 +212,16 @@ export class AsynchronousHttpService implements IHttpService {
       // If we can't parse the response, log the raw response for debugging
       const responseText = await response.text().catch(() => "Unable to read response text");
 
+      // SECURITY NOTE: Error details include response text truncated to 500 chars.
+      // In production environments with untrusted LMS responses, consider:
+      // 1. Further limiting responseText length or omitting it entirely
+      // 2. Sanitizing responseText to remove PII, credentials, or sensitive data
+      // 3. Using a custom responseHandler to pre-sanitize before this point
+      // 4. Implementing server-side log filtering to prevent sensitive data leakage
+      //
+      // This detailed error information is valuable for debugging integration issues,
+      // but may expose internal LMS details or error messages to client-side code.
+      // Balance security concerns with debugging needs based on your deployment model.
       return {
         result: global_constants.SCORM_FALSE,
         errorCode: this.error_codes.GENERAL_COMMIT_FAILURE || 391,
