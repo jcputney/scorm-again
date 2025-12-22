@@ -8,6 +8,41 @@ import { scorm12_regex, scorm2004_regex } from "../../constants/regex";
 import * as Util from "../../utilities";
 
 /**
+ * Parses time values in either SCORM 1.2 (HH:MM:SS) or ISO 8601 (PT...) format
+ * and converts them to normalized SCORM 1.2 format.
+ *
+ * @param {string} value - The time value to parse
+ * @param {string} fieldName - The CMI element name for error messages
+ * @returns {string} Normalized time in HH:MM:SS format
+ * @throws {Scorm12ValidationError} If value doesn't match either format
+ */
+function parseTimeAllowed(value: string, fieldName: string): string {
+  // @spec RTE 3.4.2.2.3 - cmi.student_data.max_time_allowed
+  // Spec requires CMITimespan format (HH:MM:SS.cc), but some LMS implementations
+  // use ISO 8601 durations in manifests. We support both for interoperability.
+
+  // First try SCORM 1.2 HH:MM:SS(.cc) format
+  try {
+    check12ValidFormat(fieldName, value, scorm12_regex.CMITimespan, true);
+    const totalSeconds = Util.getTimeAsSeconds(value, scorm12_regex.CMITimespan);
+    return Util.getSecondsAsHHMMSS(totalSeconds);
+  } catch (e) {
+    // fall through and attempt other encodings
+  }
+
+  // Next try ISO 8601 durations (common in legacy manifests)
+  try {
+    check12ValidFormat(fieldName, value, scorm2004_regex.CMITimespan, true);
+    const totalSeconds = Util.getDurationAsSeconds(value, scorm2004_regex.CMITimespan);
+    return Util.getSecondsAsHHMMSS(totalSeconds);
+  } catch (e) {
+    // fall through to error
+  }
+
+  throw new Scorm12ValidationError(fieldName, scorm12_errors.TYPE_MISMATCH as number);
+}
+
+/**
  * Class representing the SCORM 1.2 cmi.student_data object
  * @extends BaseCMI
  */
@@ -126,46 +161,9 @@ export class CMIStudentData extends BaseCMI {
       return;
     }
 
-    // @spec RTE 3.4.2.2.3 - cmi.student_data.max_time_allowed
-    // Spec requires CMITimespan format (HH:MM:SS.cc), but some LMS implementations
-    // use ISO 8601 durations in manifests. We support both for interoperability.
-
-    // First try SCORM 1.2 HH:MM:SS(.cc) format
-    try {
-      check12ValidFormat(
-        this._cmi_element + ".max_time_allowed",
-        normalizedValue,
-        scorm12_regex.CMITimespan,
-        true,
-      );
-      const totalSeconds = Util.getTimeAsSeconds(normalizedValue, scorm12_regex.CMITimespan);
-      this._max_time_allowed = Util.getSecondsAsHHMMSS(totalSeconds);
-      return;
-    } catch (e) {
-      // fall through and attempt other encodings
-    }
-
-    // Next try ISO 8601 durations (common in legacy manifests)
-    try {
-      check12ValidFormat(
-        this._cmi_element + ".max_time_allowed",
-        normalizedValue,
-        scorm2004_regex.CMITimespan,
-        true,
-      );
-      const totalSeconds = Util.getDurationAsSeconds(
-        normalizedValue,
-        scorm2004_regex.CMITimespan,
-      );
-      this._max_time_allowed = Util.getSecondsAsHHMMSS(totalSeconds);
-      return;
-    } catch (e) {
-      // fall back to storing raw value
-    }
-
-    throw new Scorm12ValidationError(
+    this._max_time_allowed = parseTimeAllowed(
+      normalizedValue,
       this._cmi_element + ".max_time_allowed",
-      scorm12_errors.TYPE_MISMATCH as number,
     );
   }
 
