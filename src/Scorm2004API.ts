@@ -2592,39 +2592,20 @@ class Scorm2004API extends BaseAPI {
   }
 
   /**
-   * Helper method to determine the correct cmi.entry value based on the previous session's
-   * cmi.exit value and the presence of suspend data.
+   * Determines the appropriate cmi.entry value based on previous exit state.
+   * Per SCORM 2004 RTE 4.2.11 (cmi.entry) and 4.2.12 (cmi.exit):
    *
-   * This helper is designed for LMS integrators to correctly set cmi.entry when
-   * initializing a new session based on how the previous session ended.
-   *
-   * SCORM 2004 Rules:
-   * - If no previous exit (or empty): "ab-initio" (first time entry)
-   * - If previous exit was "suspend": "resume" (learner suspended)
-   * - If previous exit was "logout": "resume" (learner logged out)
-   * - If previous exit was "normal" or "time-out":
+   * - If previous exit was "suspend": "resume" (learner suspended, wants to continue)
+   * - If previous exit was "logout": "" (deprecated, attempt ended)
+   * - If previous exit was "normal": "" (attempt completed normally)
+   * - If previous exit was "time-out":
    *   - With suspend data: "resume" (resuming from interrupted session)
-   *   - Without suspend data: "ab-initio" (starting fresh)
+   *   - Without suspend data: "" (session ended)
+   * - If no previous exit or unrecognized: "ab-initio" (fresh start)
    *
    * @param {string} previousExit - The cmi.exit value from the previous session
-   * @param {boolean} hasSuspendData - Whether suspend data exists from the previous session
-   * @return {string} The appropriate cmi.entry value ("ab-initio" or "resume")
-   *
-   * @example
-   * // First-time learner (no previous session)
-   * api.determineEntryValue("", false); // Returns: "ab-initio"
-   *
-   * @example
-   * // Learner who suspended and is resuming
-   * api.determineEntryValue("suspend", true); // Returns: "resume"
-   *
-   * @example
-   * // Learner who completed normally (not a new attempt, but not resume)
-   * api.determineEntryValue("normal", false); // Returns: ""
-   *
-   * @example
-   * // Learner who timed out but has suspend data
-   * api.determineEntryValue("time-out", true); // Returns: "resume"
+   * @param {boolean} hasSuspendData - Whether suspend_data exists from previous session
+   * @return {string} The appropriate cmi.entry value ("ab-initio", "resume", or "")
    */
   public determineEntryValue(previousExit: string, hasSuspendData: boolean): string {
     // Trim whitespace to handle edge cases
