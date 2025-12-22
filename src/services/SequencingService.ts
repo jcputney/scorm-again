@@ -14,6 +14,7 @@ import {
 import { IEventService, ILoggingService } from "../interfaces/services";
 import { ActivityDeliveryCallbacks, ActivityDeliveryService } from "./ActivityDeliveryService";
 import { CMI } from "../cmi/scorm2004/cmi";
+import { CMIObjectivesObject } from "../cmi/scorm2004/objectives";
 import { ADL } from "../cmi/scorm2004/adl";
 import { global_constants } from "../constants/api_constants";
 import { RuleCondition } from "../cmi/scorm2004/sequencing/sequencing_rules";
@@ -636,7 +637,8 @@ export class SequencingService {
 
     // Transfer all CMI objectives
     if (this.cmi.objectives && this.cmi.objectives.childArray) {
-      for (const cmiObjective of this.cmi.objectives.childArray) {
+      for (const baseCmiObj of this.cmi.objectives.childArray) {
+        const cmiObjective = baseCmiObj as CMIObjectivesObject;
         if (cmiObjective.id) {
           cmiData.objectives.push({
             id: cmiObjective.id,

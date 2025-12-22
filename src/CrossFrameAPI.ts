@@ -236,7 +236,7 @@ export default class CrossFrameAPI {
       this._heartbeatTimer = undefined;
     }
     // Reject all pending requests
-    for (const [, pending] of this._pending) {
+    for (const pending of Array.from(this._pending.values())) {
       clearTimeout(pending.timer);
       pending.reject(new Error("CrossFrameAPI destroyed"));
     }

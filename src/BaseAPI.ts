@@ -1436,7 +1436,7 @@ export default abstract class BaseAPI implements IBaseAPI {
           const item = refObject.childArray[index];
 
           if (item) {
-            refObject = item;
+            refObject = item as unknown as StringKeyMap;
           } else {
             this.throwSCORMError(
               CMIElement,
