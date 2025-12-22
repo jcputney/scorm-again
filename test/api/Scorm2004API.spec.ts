@@ -68,6 +68,15 @@ describe("SCORM 2004 API Tests", () => {
     vi.restoreAllMocks();
   });
 
+  describe("Constructor", () => {
+    it("should not mutate caller's settings object", () => {
+      const userSettings = { autocommit: true };
+      const api = new Scorm2004API(userSettings);
+      expect(userSettings).toEqual({ autocommit: true });
+      expect((userSettings as any).mastery_override).toBeUndefined();
+    });
+  });
+
   describe("SetValue()", () => {
     h.checkValidValues({
       api: apiInitialized(),
