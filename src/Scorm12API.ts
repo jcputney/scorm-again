@@ -532,6 +532,17 @@ class Scorm12API extends BaseAPI {
     if (terminateCommit) {
       const originalStatus = this.cmi.core.lesson_status;
 
+      // Check browse mode FIRST (before Stage 1)
+      if (this.cmi.core.lesson_mode === "browse") {
+        const startingStatus =
+          ((this.startingData?.cmi as StringKeyMap)?.core as StringKeyMap)?.lesson_status || "";
+        if (startingStatus === "" && originalStatus === "not attempted") {
+          this.cmi.core.lesson_status = "browsed";
+          // Skip Stage 1 and Stage 2 for browse mode
+          return this.processCommitData(terminateCommit);
+        }
+      }
+
       // Stage 1: Apply mastery when status is unset/not-attempted
       if (
         !this.cmi.core.lesson_status ||
@@ -555,14 +566,6 @@ class Scorm12API extends BaseAPI {
                 : "failed";
           }
         }
-      } else if (this.cmi.core.lesson_mode === "browse") {
-        if (
-          (((this.startingData?.cmi as StringKeyMap)?.core as StringKeyMap)?.lesson_status ||
-            "") === "" &&
-          originalStatus === "not attempted"
-        ) {
-          this.cmi.core.lesson_status = "browsed";
-        }
       }
 
       // Stage 2: Override SCO-set status if score_overrides_status is enabled
@@ -584,6 +587,10 @@ class Scorm12API extends BaseAPI {
       }
     }
 
+    return this.processCommitData(terminateCommit);
+  }
+
+  private processCommitData(terminateCommit: boolean): ResultObject {
     const commitObject = this.getCommitObject(terminateCommit);
     if (typeof this.settings.lmsCommitUrl === "string") {
       return this.processHttpRequest(this.settings.lmsCommitUrl, commitObject, terminateCommit);
