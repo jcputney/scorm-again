@@ -1825,6 +1825,14 @@ export class OverallSequencingProcess {
   }
 
   /**
+   * Set content delivered flag
+   * @param {boolean} value - The value to set
+   */
+  public setContentDelivered(value: boolean): void {
+    this.contentDelivered = value;
+  }
+
+  /**
    * Exit Action Rules Subprocess (TB.2.1)
    * Evaluates exit action rules for the current activity
    * @param {Activity} activity - The activity to evaluate
