@@ -80,13 +80,13 @@ class Scorm2004API extends BaseAPI {
    * @param {IHttpService} httpService - Optional HTTP service instance
    */
   constructor(settings?: Settings, httpService?: IHttpService) {
-    if (settings) {
-      if (settings.mastery_override === undefined) {
-        settings.mastery_override = false;
+    const settingsCopy = settings ? { ...settings } : undefined;
+    if (settingsCopy) {
+      if (settingsCopy.mastery_override === undefined) {
+        settingsCopy.mastery_override = false;
       }
     }
-
-    super(scorm2004_errors, settings, httpService);
+    super(scorm2004_errors, settingsCopy, httpService);
 
     this.cmi = new CMI();
     this.adl = new ADL();
@@ -98,12 +98,12 @@ class Scorm2004API extends BaseAPI {
     this.adl.sequencing = this._sequencing;
 
     // Configure sequencing if settings are provided
-    if (settings?.sequencing) {
-      this.configureSequencing(settings.sequencing);
+    if (settingsCopy?.sequencing) {
+      this.configureSequencing(settingsCopy.sequencing);
     }
 
     // Initialize sequencing service
-    this.initializeSequencingService(settings);
+    this.initializeSequencingService(settingsCopy);
 
     // Rename functions to match 2004 Spec and expose to modules
     this.Initialize = this.lmsInitialize;
