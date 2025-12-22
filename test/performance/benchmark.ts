@@ -22,7 +22,7 @@ async function runPerformanceTests(): Promise<Record<string, number>> {
       "test/performance/PerformanceTests.spec.ts",
       "test/performance/StressTests.spec.ts",
       "--reporter",
-      "basic",
+      "default",
     ]);
 
     vitestProcess.stdout.on("data", (data) => {
