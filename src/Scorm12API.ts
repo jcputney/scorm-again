@@ -112,6 +112,7 @@ class Scorm12API extends BaseAPI {
 
     this.cmi?.reset();
     this.nav?.reset();
+    this.statusSetByModule = false;
   }
 
   /**
