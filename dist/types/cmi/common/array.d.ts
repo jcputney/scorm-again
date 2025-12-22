@@ -4,7 +4,7 @@ export declare class CMIArray extends BaseCMI {
     private readonly _errorCode;
     private readonly _errorClass;
     private readonly __children;
-    childArray: any[];
+    childArray: BaseCMI[];
     constructor(params: {
         CMIElement: string;
         children: string;

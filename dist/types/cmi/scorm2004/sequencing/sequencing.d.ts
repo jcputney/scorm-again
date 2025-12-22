@@ -6,6 +6,7 @@ import { SequencingControls } from "./sequencing_controls";
 import { RollupRules } from "./rollup_rules";
 import { ADLNav } from "../adl";
 import { AuxiliaryResource, HideLmsUiItem } from "../../../types/sequencing_types";
+type OverallSequencingProcessType = any;
 export declare class Sequencing extends BaseCMI {
     private _activityTree;
     private _sequencingRules;
@@ -14,6 +15,7 @@ export declare class Sequencing extends BaseCMI {
     private _adlNav;
     private _hideLmsUi;
     private _auxiliaryResources;
+    private _overallSequencingProcess;
     constructor();
     initialize(): void;
     reset(): void;
@@ -31,10 +33,13 @@ export declare class Sequencing extends BaseCMI {
     set rollupRules(rollupRules: RollupRules);
     get adlNav(): ADLNav | null;
     set adlNav(adlNav: ADLNav | null);
+    get overallSequencingProcess(): OverallSequencingProcessType | null;
+    set overallSequencingProcess(process: OverallSequencingProcessType | null);
     processRollup(): void;
     private _processRollupRecursive;
     getCurrentActivity(): Activity | null;
     getRootActivity(): Activity | null;
     toJSON(): object;
 }
+export {};
 //# sourceMappingURL=sequencing.d.ts.map

@@ -5,7 +5,7 @@ import { BaseCMI } from "../cmi/common/base_cmi";
 import { ValidationError } from "../exceptions";
 import { StringKeyMap } from "../utilities";
 export interface IHttpService {
-    processHttpRequest(url: string, params: CommitObject | StringKeyMap | Array<any>, immediate: boolean, apiLog: (functionName: string, message: any, messageLevel: LogLevelEnum, CMIElement?: string) => void, processListeners: (functionName: string, CMIElement?: string, value?: any) => void): Promise<ResultObject>;
+    processHttpRequest(url: string, params: CommitObject | StringKeyMap | Array<any>, immediate: boolean, apiLog: (functionName: string, message: any, messageLevel: LogLevelEnum, CMIElement?: string) => void, processListeners: (functionName: string, CMIElement?: string, value?: any) => void): ResultObject;
     updateSettings(settings: Settings): void;
 }
 export interface IEventService {
@@ -31,6 +31,7 @@ export interface ICMIDataService {
 export interface IErrorHandlingService {
     get lastErrorCode(): string;
     set lastErrorCode(errorCode: string);
+    get lastDiagnostic(): string;
     throwSCORMError(CMIElement: string | undefined, errorNumber: number, message?: string): void;
     clearSCORMError(success: string): void;
     handleValueAccessException(CMIElement: string, e: ValidationError | Error | unknown, returnValue: string): string;
@@ -47,7 +48,7 @@ export interface ILoggingService {
     debug(logMessage: string): void;
 }
 export interface IOfflineStorageService {
-    storeOffline(courseId: string, commitData: CommitObject): Promise<ResultObject>;
+    storeOffline(courseId: string, commitData: CommitObject): ResultObject;
     getOfflineData(courseId: string): Promise<CommitObject | null>;
     syncOfflineData(): Promise<boolean>;
     hasPendingOfflineData(courseId: string): Promise<boolean>;

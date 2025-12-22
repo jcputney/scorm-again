@@ -1,5 +1,5 @@
 import { BaseRootCMI } from "../common/base_cmi";
-import { CMICore } from "../aicc/core";
+import { CMICore } from "./core";
 import { CMIObjectives } from "./objectives";
 import { CMIStudentData } from "./student_data";
 import { CMIStudentPreference } from "./student_preference";
