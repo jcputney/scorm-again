@@ -225,14 +225,14 @@ jobs:
           name: combined-coverage
 
       - name: Upload combined coverage report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: combined-coverage-report
           path: coverage/merged/
           retention-days: 30
 
       - name: Upload Playwright report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: playwright-report
           path: playwright-report/
