@@ -457,6 +457,18 @@ describe("SCORM 2004 API Tests", () => {
         );
         expect(String(scorm2004API.lmsGetLastError())).toEqual(String(0));
       });
+      it("should reject second correct_response when limit is 1", (): void => {
+        const scorm2004API = apiInitialized();
+        scorm2004API.setCMIValue("cmi.interactions.0.id", "test");
+        scorm2004API.setCMIValue("cmi.interactions.0.type", "true-false");
+        scorm2004API.setCMIValue("cmi.interactions.0.correct_responses.0.pattern", "true");
+        // This should fail - true-false has limit of 1
+        const result = scorm2004API.setCMIValue(
+          "cmi.interactions.0.correct_responses.1.pattern",
+          "false",
+        );
+        expect(result).toBe("false");
+      });
       it("should allow cmi.interactions.0.objectives.0.id to be set", (): void => {
         const scorm2004API = apiInitialized();
         scorm2004API.setCMIValue("cmi.interactions.0.objectives.0.id", "ID of the Obj - ID 2");
