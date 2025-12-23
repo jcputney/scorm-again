@@ -35,14 +35,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
+      - name: Build scorm-again library
         run: npm run build:all:prod
 
       - name: Download test modules
         run: |
-          mkdir -p demo/modules
-          curl -L -o demo/modules/AllGolfExamples.zip https://cdn.noverant.com/AllGolfExamples.zip
-          cd demo/modules
+          mkdir -p docs-site/static/demo/modules
+          curl -L -o docs-site/static/demo/modules/AllGolfExamples.zip https://cdn.noverant.com/AllGolfExamples.zip
+          cd docs-site/static/demo/modules
           unzip -q AllGolfExamples.zip
           # Extract nested zip files
           for zipfile in *.zip; do
@@ -54,7 +54,13 @@ jobs:
           done
 
       - name: Copy dist to demo
-        run: cp -r dist demo/
+        run: cp -r dist docs-site/static/demo/
+
+      - name: Build documentation site
+        run: |
+          cd docs-site
+          npm ci
+          npm run build
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -62,7 +68,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: demo
+          path: docs-site/build
 
   deploy:
     environment:
