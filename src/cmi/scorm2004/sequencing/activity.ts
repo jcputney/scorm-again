@@ -7,321 +7,36 @@ import { CompletionStatus, SuccessStatus } from "../../../constants/enums";
 import { SequencingControls } from "./sequencing_controls";
 import { SequencingRules } from "./sequencing_rules";
 import { RollupRules } from "./rollup_rules";
-import { validateISO8601Duration } from "../../../utilities";
 import { AuxiliaryResource, HideLmsUiItem, HIDE_LMS_UI_TOKENS } from "../../../types/sequencing_types";
+import {
+  ActivityObjective,
+  ActivityObjectiveState,
+  ObjectiveMapInfo,
+  ActivityObjectiveOptions,
+} from "./activity_objective";
+import { ActivityDurationTracker } from "./duration/activity_duration_tracker";
+import { ActivityObjectiveManager, ObjectiveStateSnapshot } from "./objectives/activity_objective_manager";
+import {
+  ActivityRollupStatus,
+  RollupConsiderationsConfig,
+  RollupConsiderationRequirement,
+  RollupStatusSnapshot,
+} from "./rollup/activity_rollup_status";
 
-export interface ObjectiveMapInfo {
-  targetObjectiveID: string;
-  readSatisfiedStatus?: boolean;
-  readNormalizedMeasure?: boolean;
-  writeSatisfiedStatus?: boolean;
-  writeNormalizedMeasure?: boolean;
-  readCompletionStatus?: boolean;
-  writeCompletionStatus?: boolean;
-  readProgressMeasure?: boolean;
-  writeProgressMeasure?: boolean;
-  readRawScore?: boolean;
-  writeRawScore?: boolean;
-  readMinScore?: boolean;
-  writeMinScore?: boolean;
-  readMaxScore?: boolean;
-  writeMaxScore?: boolean;
-  updateAttemptData?: boolean;
-}
+// Re-export types from activity_objective for backwards compatibility
+export {
+  ActivityObjective,
+  ActivityObjectiveState,
+  ObjectiveMapInfo,
+  ActivityObjectiveOptions,
+} from "./activity_objective";
 
-export interface ActivityObjectiveOptions {
-  description?: string | null;
-  satisfiedByMeasure?: boolean;
-  minNormalizedMeasure?: number | null;
-  mapInfo?: ObjectiveMapInfo[];
-  isPrimary?: boolean;
-}
-
-export interface ActivityObjectiveState {
-  id: string;
-  satisfiedStatus: boolean;
-  measureStatus: boolean;
-  normalizedMeasure: number;
-  progressMeasure: number;
-  progressMeasureStatus: boolean;
-  completionStatus: CompletionStatus;
-  satisfiedByMeasure?: boolean;
-  minNormalizedMeasure?: number | null;
-  progressStatus: boolean;
-}
-
-export type RollupConsiderationRequirement =
-  | "always"
-  | "ifAttempted"
-  | "ifNotSkipped"
-  | "ifNotSuspended";
-
-export interface RollupConsiderationsConfig {
-  requiredForSatisfied: RollupConsiderationRequirement;
-  requiredForNotSatisfied: RollupConsiderationRequirement;
-  requiredForCompleted: RollupConsiderationRequirement;
-  requiredForIncomplete: RollupConsiderationRequirement;
-  measureSatisfactionIfActive: boolean;
-}
-
-/**
- * Snapshot of rollup status for optimization comparison
- * Used by Overall Rollup Process (RB.1.5) to detect when status stops changing
- */
-export interface RollupStatusSnapshot {
-  measureStatus: boolean;
-  normalizedMeasure: number;
-  objectiveProgressStatus: boolean;
-  objectiveSatisfiedStatus: boolean;
-  attemptProgressStatus: boolean;
-  attemptCompletionStatus: boolean;
-}
-
-export class ActivityObjective {
-  private _id: string;
-  private _description: string | null;
-  private _satisfiedByMeasure: boolean;
-  private _minNormalizedMeasure: number | null;
-  private _mapInfo: ObjectiveMapInfo[];
-  private _isPrimary: boolean;
-
-  private _satisfiedStatus: boolean = false;
-  private _satisfiedStatusKnown: boolean = false;
-  // Note: measureStatus has no dirty flag because it is not synchronized to global
-  // objectives. It serves as a validity gate for other synced properties.
-  private _measureStatus: boolean = false;
-  private _normalizedMeasure: number = 0;
-  private _progressMeasure: number = 0;
-  private _progressMeasureStatus: boolean = false;
-  private _completionStatus: CompletionStatus = CompletionStatus.UNKNOWN;
-  private _progressStatus: boolean = false;
-
-  // Dirty flags for tracking which properties have been modified locally
-  private _satisfiedStatusDirty: boolean = false;
-  private _normalizedMeasureDirty: boolean = false;
-  private _completionStatusDirty: boolean = false;
-  private _progressMeasureDirty: boolean = false;
-
-  constructor(id: string, options: ActivityObjectiveOptions = {}) {
-    this._id = id;
-    this._description = options.description ?? null;
-    this._satisfiedByMeasure = options.satisfiedByMeasure ?? false;
-    this._minNormalizedMeasure = options.minNormalizedMeasure ?? null;
-    this._mapInfo = options.mapInfo ? [...options.mapInfo] : [];
-    this._isPrimary = options.isPrimary ?? false;
-  }
-
-  get id(): string {
-    return this._id;
-  }
-
-  get description(): string | null {
-    return this._description;
-  }
-
-  get satisfiedByMeasure(): boolean {
-    return this._satisfiedByMeasure;
-  }
-
-  set satisfiedByMeasure(value: boolean) {
-    this._satisfiedByMeasure = value;
-  }
-
-  get minNormalizedMeasure(): number | null {
-    return this._minNormalizedMeasure;
-  }
-
-  set minNormalizedMeasure(value: number | null) {
-    this._minNormalizedMeasure = value;
-  }
-
-  get mapInfo(): ObjectiveMapInfo[] {
-    return this._mapInfo;
-  }
-
-  set mapInfo(mapInfo: ObjectiveMapInfo[]) {
-    this._mapInfo = [...mapInfo];
-  }
-
-  get isPrimary(): boolean {
-    return this._isPrimary;
-  }
-
-  set isPrimary(value: boolean) {
-    this._isPrimary = value;
-  }
-
-  get satisfiedStatus(): boolean {
-    return this._satisfiedStatus;
-  }
-
-  set satisfiedStatus(value: boolean) {
-    if (this._satisfiedStatus !== value) {
-      this._satisfiedStatus = value;
-      this._satisfiedStatusDirty = true;
-    }
-  }
-
-  get satisfiedStatusKnown(): boolean {
-    return this._satisfiedStatusKnown;
-  }
-
-  set satisfiedStatusKnown(value: boolean) {
-    this._satisfiedStatusKnown = value;
-  }
-
-  get measureStatus(): boolean {
-    return this._measureStatus;
-  }
-
-  set measureStatus(value: boolean) {
-    this._measureStatus = value;
-  }
-
-  get normalizedMeasure(): number {
-    return this._normalizedMeasure;
-  }
-
-  set normalizedMeasure(value: number) {
-    if (this._normalizedMeasure !== value) {
-      this._normalizedMeasure = value;
-      this._normalizedMeasureDirty = true;
-    }
-  }
-
-  get progressMeasure(): number {
-    return this._progressMeasure;
-  }
-
-  set progressMeasure(value: number) {
-    if (this._progressMeasure !== value) {
-      this._progressMeasure = value;
-      this._progressMeasureDirty = true;
-    }
-  }
-
-  get progressMeasureStatus(): boolean {
-    return this._progressMeasureStatus;
-  }
-
-  set progressMeasureStatus(value: boolean) {
-    this._progressMeasureStatus = value;
-  }
-
-  get completionStatus(): CompletionStatus {
-    return this._completionStatus;
-  }
-
-  set completionStatus(value: CompletionStatus) {
-    if (this._completionStatus !== value) {
-      this._completionStatus = value;
-      this._completionStatusDirty = true;
-    }
-  }
-
-  get progressStatus(): boolean {
-    return this._progressStatus;
-  }
-
-  set progressStatus(value: boolean) {
-    this._progressStatus = value;
-  }
-
-  public isDirty(property: 'satisfiedStatus' | 'normalizedMeasure' | 'completionStatus' | 'progressMeasure'): boolean {
-    switch (property) {
-      case 'satisfiedStatus': return this._satisfiedStatusDirty;
-      case 'normalizedMeasure': return this._normalizedMeasureDirty;
-      case 'completionStatus': return this._completionStatusDirty;
-      case 'progressMeasure': return this._progressMeasureDirty;
-    }
-  }
-
-  public clearDirty(property: 'satisfiedStatus' | 'normalizedMeasure' | 'completionStatus' | 'progressMeasure'): void {
-    switch (property) {
-      case 'satisfiedStatus': this._satisfiedStatusDirty = false; break;
-      case 'normalizedMeasure': this._normalizedMeasureDirty = false; break;
-      case 'completionStatus': this._completionStatusDirty = false; break;
-      case 'progressMeasure': this._progressMeasureDirty = false; break;
-    }
-  }
-
-  public clearAllDirty(): void {
-    this._satisfiedStatusDirty = false;
-    this._normalizedMeasureDirty = false;
-    this._completionStatusDirty = false;
-    this._progressMeasureDirty = false;
-  }
-
-  /**
-   * Initialize objective values from CMI data transfer
-   * This method always marks values as dirty since CMI data should be written to global objectives,
-   * even if the values match the current defaults (e.g., satisfiedStatus = false, normalizedMeasure = 0)
-   * Note: Callers must separately set satisfiedStatusKnown based on CMI data availability.
-   * @param satisfiedStatus - The satisfied status from CMI
-   * @param normalizedMeasure - The normalized measure from CMI
-   * @param measureStatus - Whether measure is valid
-   */
-  public initializeFromCMI(
-    satisfiedStatus: boolean,
-    normalizedMeasure: number,
-    measureStatus: boolean
-  ): void {
-    this._satisfiedStatus = satisfiedStatus;
-    this._satisfiedStatusDirty = true;
-    this._normalizedMeasure = normalizedMeasure;
-    this._normalizedMeasureDirty = true;
-    this._measureStatus = measureStatus;
-  }
-
-  resetState(): void {
-    this._satisfiedStatus = false;
-    this._satisfiedStatusKnown = false;
-    this._measureStatus = false;
-    this._normalizedMeasure = 0;
-    this._progressMeasure = 0;
-    this._progressMeasureStatus = false;
-    this._completionStatus = CompletionStatus.UNKNOWN;
-    this._progressStatus = false;
-    this.clearAllDirty();
-  }
-
-  updateFromActivity(activity: Activity): void {
-    if (this._satisfiedStatus !== activity.objectiveSatisfiedStatus) {
-      this._satisfiedStatus = activity.objectiveSatisfiedStatus;
-      this._satisfiedStatusDirty = true;
-    }
-    this._satisfiedStatusKnown = activity.objectiveSatisfiedStatusKnown;
-    this._measureStatus = activity.objectiveMeasureStatus;
-    if (this._normalizedMeasure !== activity.objectiveNormalizedMeasure) {
-      this._normalizedMeasure = activity.objectiveNormalizedMeasure;
-      this._normalizedMeasureDirty = true;
-    }
-    if (this._progressMeasure !== activity.progressMeasure) {
-      this._progressMeasure = activity.progressMeasure;
-      this._progressMeasureDirty = true;
-    }
-    this._progressMeasureStatus = activity.progressMeasureStatus;
-    if (this._completionStatus !== activity.completionStatus) {
-      this._completionStatus = activity.completionStatus as CompletionStatus;
-      this._completionStatusDirty = true;
-    }
-  }
-
-  applyToActivity(activity: Activity): void {
-    if (!this._isPrimary) {
-      return;
-    }
-
-    activity.setPrimaryObjectiveState(
-      this._satisfiedStatus,
-      this._measureStatus,
-      this._normalizedMeasure,
-      this._progressMeasure,
-      this._progressMeasureStatus,
-      this._completionStatus
-    );
-  }
-}
+// Re-export types from activity_rollup_status for backwards compatibility
+export {
+  RollupConsiderationRequirement,
+  RollupConsiderationsConfig,
+  RollupStatusSnapshot,
+} from "./rollup/activity_rollup_status";
 
 /**
  * Class representing a single activity in the SCORM 2004 activity tree
@@ -339,21 +54,9 @@ export class Activity extends BaseCMI {
   private _successStatus: SuccessStatus = SuccessStatus.UNKNOWN;
   private _attemptCount: number = 0;
   private _attemptCompletionAmount: number = 0;
-  private _attemptAbsoluteDuration: string = "PT0H0M0S";
-  private _attemptExperiencedDuration: string = "PT0H0M0S";
-  private _activityAbsoluteDuration: string = "PT0H0M0S";
-  private _activityExperiencedDuration: string = "PT0H0M0S";
 
-  // Duration tracking fields (separate from limits) - actual calculated values
-  private _attemptAbsoluteDurationValue: string = "PT0H0M0S";
-  private _attemptExperiencedDurationValue: string = "PT0H0M0S";
-  private _activityAbsoluteDurationValue: string = "PT0H0M0S";
-  private _activityExperiencedDurationValue: string = "PT0H0M0S";
-
-  // Timestamp tracking for duration calculation
-  private _activityStartTimestampUtc: string | null = null;
-  private _attemptStartTimestampUtc: string | null = null;
-  private _activityEndedDate: Date | null = null;
+  // Duration tracking delegated to ActivityDurationTracker
+  private _durationTracker: ActivityDurationTracker;
 
   private _objectiveSatisfiedStatus: boolean = false;
   private _objectiveSatisfiedStatusKnown: boolean = false;
@@ -376,8 +79,6 @@ export class Activity extends BaseCMI {
   private _hideLmsUi: HideLmsUiItem[] = [];
   private _auxiliaryResources: AuxiliaryResource[] = [];
   private _attemptLimit: number | null = null;
-  private _attemptAbsoluteDurationLimit: string | null = null;
-  private _activityAbsoluteDurationLimit: string | null = null;
   private _timeLimitAction: string | null = null;
   private _timeLimitDuration: string | null = null;
   private _beginTimeLimit: string | null = null;
@@ -391,29 +92,10 @@ export class Activity extends BaseCMI {
   private _rollupRules: RollupRules;
   private _processedChildren: Activity[] | null = null;
   private _isNewAttempt: boolean = false;
-  private _primaryObjective: ActivityObjective | null = null;
-  private _objectives: ActivityObjective[] = [];
-  private _rollupConsiderations: RollupConsiderationsConfig = {
-    requiredForSatisfied: "always",
-    requiredForNotSatisfied: "always",
-    requiredForCompleted: "always",
-    requiredForIncomplete: "always",
-    measureSatisfactionIfActive: true
-  };
-  // Individual rollup consideration properties for this activity (RB.1.4.2)
-  // These determine when THIS activity is included in parent rollup calculations
-  private _requiredForSatisfied: RollupConsiderationRequirement = "always";
-  private _requiredForNotSatisfied: RollupConsiderationRequirement = "always";
-  private _requiredForCompleted: RollupConsiderationRequirement = "always";
-  private _requiredForIncomplete: RollupConsiderationRequirement = "always";
-  private _wasSkipped: boolean = false;
-  private _attemptProgressStatus: boolean = false;
-  private _wasAutoCompleted: boolean = false;
-  private _wasAutoSatisfied: boolean = false;
-  private _completedByMeasure: boolean = false;
-  private _minProgressMeasure: number = 1.0;
-  private _progressWeight: number = 1.0;
-  private _attemptCompletionAmountStatus: boolean = false;
+  // Objective management delegated to ActivityObjectiveManager
+  private _objectiveManager: ActivityObjectiveManager;
+  // Rollup status delegated to ActivityRollupStatus
+  private _rollupStatus: ActivityRollupStatus;
 
   /**
    * Constructor for Activity
@@ -424,11 +106,18 @@ export class Activity extends BaseCMI {
     super("activity");
     this._id = id;
     this._title = title;
+    this._durationTracker = new ActivityDurationTracker("activity");
+    this._objectiveManager = new ActivityObjectiveManager();
+    this._objectiveManager.setOnPrimaryObjectiveSet((objective) => {
+      if (objective?.minNormalizedMeasure !== null && objective?.minNormalizedMeasure !== undefined) {
+        this._scaledPassingScore = objective.minNormalizedMeasure;
+      }
+      objective?.updateFromActivity(this);
+    });
+    this._rollupStatus = new ActivityRollupStatus("activity");
     this._sequencingControls = new SequencingControls();
     this._sequencingRules = new SequencingRules();
     this._rollupRules = new RollupRules();
-    this._primaryObjective = null;
-    this._objectives = [];
   }
 
   /**
@@ -454,17 +143,7 @@ export class Activity extends BaseCMI {
     this._successStatus = SuccessStatus.UNKNOWN;
     this._attemptCount = 0;
     this._attemptCompletionAmount = 0;
-    this._attemptAbsoluteDuration = "PT0H0M0S";
-    this._attemptExperiencedDuration = "PT0H0M0S";
-    this._activityAbsoluteDuration = "PT0H0M0S";
-    this._activityExperiencedDuration = "PT0H0M0S";
-    this._attemptAbsoluteDurationValue = "PT0H0M0S";
-    this._attemptExperiencedDurationValue = "PT0H0M0S";
-    this._activityAbsoluteDurationValue = "PT0H0M0S";
-    this._activityExperiencedDurationValue = "PT0H0M0S";
-    this._activityStartTimestampUtc = null;
-    this._attemptStartTimestampUtc = null;
-    this._activityEndedDate = null;
+    this._durationTracker.reset();
     this._objectiveSatisfiedStatus = false;
     this._objectiveSatisfiedStatusKnown = false;
     this._objectiveMeasureStatus = false;
@@ -476,28 +155,15 @@ export class Activity extends BaseCMI {
     this._learnerPrefs = null;
     this._activityAttemptActive = false;
 
-    if (this._primaryObjective) {
-      this._primaryObjective.resetState();
-      this._primaryObjective.updateFromActivity(this);
-    }
-
-    for (const objective of this._objectives) {
-      objective.resetState();
-    }
+    this._objectiveManager.reset();
+    this._objectiveManager.updatePrimaryObjectiveFromActivity(this);
 
     // Reset children
     for (const child of this._children) {
       child.reset();
     }
 
-    this._wasSkipped = false;
-    this._attemptProgressStatus = false;
-    this._wasAutoCompleted = false;
-    this._wasAutoSatisfied = false;
-    this._completedByMeasure = false;
-    this._minProgressMeasure = 1.0;
-    this._progressWeight = 1.0;
-    this._attemptCompletionAmountStatus = false;
+    this._rollupStatus.reset();
     this.clearAllObjectiveDirty();
   }
 
@@ -1101,7 +767,7 @@ export class Activity extends BaseCMI {
    * @return {string | null}
    */
   get attemptAbsoluteDurationLimit(): string | null {
-    return this._attemptAbsoluteDurationLimit;
+    return this._durationTracker.attemptAbsoluteDurationLimit;
   }
 
   /**
@@ -1109,15 +775,7 @@ export class Activity extends BaseCMI {
    * @param {string | null} attemptAbsoluteDurationLimit
    */
   set attemptAbsoluteDurationLimit(attemptAbsoluteDurationLimit: string | null) {
-    if (attemptAbsoluteDurationLimit !== null) {
-      if (!validateISO8601Duration(attemptAbsoluteDurationLimit, scorm2004_regex.CMITimespan)) {
-        throw new Scorm2004ValidationError(
-          this._cmi_element + ".attemptAbsoluteDurationLimit",
-          scorm2004_errors.TYPE_MISMATCH as number
-        );
-      }
-    }
-    this._attemptAbsoluteDurationLimit = attemptAbsoluteDurationLimit;
+    this._durationTracker.attemptAbsoluteDurationLimit = attemptAbsoluteDurationLimit;
   }
 
   /**
@@ -1125,7 +783,7 @@ export class Activity extends BaseCMI {
    * @return {string}
    */
   get attemptExperiencedDuration(): string {
-    return this._attemptExperiencedDuration;
+    return this._durationTracker.attemptExperiencedDuration;
   }
 
   /**
@@ -1133,13 +791,7 @@ export class Activity extends BaseCMI {
    * @param {string} attemptExperiencedDuration
    */
   set attemptExperiencedDuration(attemptExperiencedDuration: string) {
-    if (!validateISO8601Duration(attemptExperiencedDuration, scorm2004_regex.CMITimespan)) {
-      throw new Scorm2004ValidationError(
-        this._cmi_element + ".attemptExperiencedDuration",
-        scorm2004_errors.TYPE_MISMATCH as number
-      );
-    }
-    this._attemptExperiencedDuration = attemptExperiencedDuration;
+    this._durationTracker.attemptExperiencedDuration = attemptExperiencedDuration;
   }
 
   /**
@@ -1147,7 +799,7 @@ export class Activity extends BaseCMI {
    * @return {string | null}
    */
   get activityAbsoluteDurationLimit(): string | null {
-    return this._activityAbsoluteDurationLimit;
+    return this._durationTracker.activityAbsoluteDurationLimit;
   }
 
   /**
@@ -1155,15 +807,7 @@ export class Activity extends BaseCMI {
    * @param {string | null} activityAbsoluteDurationLimit
    */
   set activityAbsoluteDurationLimit(activityAbsoluteDurationLimit: string | null) {
-    if (activityAbsoluteDurationLimit !== null) {
-      if (!validateISO8601Duration(activityAbsoluteDurationLimit, scorm2004_regex.CMITimespan)) {
-        throw new Scorm2004ValidationError(
-          this._cmi_element + ".activityAbsoluteDurationLimit",
-          scorm2004_errors.TYPE_MISMATCH as number
-        );
-      }
-    }
-    this._activityAbsoluteDurationLimit = activityAbsoluteDurationLimit;
+    this._durationTracker.activityAbsoluteDurationLimit = activityAbsoluteDurationLimit;
   }
 
   /**
@@ -1171,7 +815,7 @@ export class Activity extends BaseCMI {
    * @return {string}
    */
   get activityExperiencedDuration(): string {
-    return this._activityExperiencedDuration;
+    return this._durationTracker.activityExperiencedDuration;
   }
 
   /**
@@ -1179,13 +823,7 @@ export class Activity extends BaseCMI {
    * @param {string} activityExperiencedDuration
    */
   set activityExperiencedDuration(activityExperiencedDuration: string) {
-    if (!validateISO8601Duration(activityExperiencedDuration, scorm2004_regex.CMITimespan)) {
-      throw new Scorm2004ValidationError(
-        this._cmi_element + ".activityExperiencedDuration",
-        scorm2004_errors.TYPE_MISMATCH as number
-      );
-    }
-    this._activityExperiencedDuration = activityExperiencedDuration;
+    this._durationTracker.activityExperiencedDuration = activityExperiencedDuration;
   }
 
   /**
@@ -1193,7 +831,7 @@ export class Activity extends BaseCMI {
    * @return {string}
    */
   get attemptAbsoluteDuration(): string {
-    return this._attemptAbsoluteDurationLimit || "PT0H0M0S";
+    return this._durationTracker.attemptAbsoluteDuration;
   }
 
   /**
@@ -1201,7 +839,7 @@ export class Activity extends BaseCMI {
    * @param {string} duration
    */
   set attemptAbsoluteDuration(duration: string) {
-    this._attemptAbsoluteDurationLimit = duration;
+    this._durationTracker.attemptAbsoluteDuration = duration;
   }
 
   /**
@@ -1209,7 +847,7 @@ export class Activity extends BaseCMI {
    * @return {string}
    */
   get activityAbsoluteDuration(): string {
-    return this._activityAbsoluteDurationLimit || "PT0H0M0S";
+    return this._durationTracker.activityAbsoluteDuration;
   }
 
   /**
@@ -1217,7 +855,7 @@ export class Activity extends BaseCMI {
    * @param {string} duration
    */
   set activityAbsoluteDuration(duration: string) {
-    this._activityAbsoluteDurationLimit = duration;
+    this._durationTracker.activityAbsoluteDuration = duration;
   }
 
   /**
@@ -1225,7 +863,7 @@ export class Activity extends BaseCMI {
    * @return {string}
    */
   get attemptAbsoluteDurationValue(): string {
-    return this._attemptAbsoluteDurationValue;
+    return this._durationTracker.attemptAbsoluteDurationValue;
   }
 
   /**
@@ -1233,13 +871,7 @@ export class Activity extends BaseCMI {
    * @param {string} duration
    */
   set attemptAbsoluteDurationValue(duration: string) {
-    if (!validateISO8601Duration(duration, scorm2004_regex.CMITimespan)) {
-      throw new Scorm2004ValidationError(
-        this._cmi_element + ".attemptAbsoluteDurationValue",
-        scorm2004_errors.TYPE_MISMATCH as number
-      );
-    }
-    this._attemptAbsoluteDurationValue = duration;
+    this._durationTracker.attemptAbsoluteDurationValue = duration;
   }
 
   /**
@@ -1247,7 +879,7 @@ export class Activity extends BaseCMI {
    * @return {string}
    */
   get attemptExperiencedDurationValue(): string {
-    return this._attemptExperiencedDurationValue;
+    return this._durationTracker.attemptExperiencedDurationValue;
   }
 
   /**
@@ -1255,13 +887,7 @@ export class Activity extends BaseCMI {
    * @param {string} duration
    */
   set attemptExperiencedDurationValue(duration: string) {
-    if (!validateISO8601Duration(duration, scorm2004_regex.CMITimespan)) {
-      throw new Scorm2004ValidationError(
-        this._cmi_element + ".attemptExperiencedDurationValue",
-        scorm2004_errors.TYPE_MISMATCH as number
-      );
-    }
-    this._attemptExperiencedDurationValue = duration;
+    this._durationTracker.attemptExperiencedDurationValue = duration;
   }
 
   /**
@@ -1269,7 +895,7 @@ export class Activity extends BaseCMI {
    * @return {string}
    */
   get activityAbsoluteDurationValue(): string {
-    return this._activityAbsoluteDurationValue;
+    return this._durationTracker.activityAbsoluteDurationValue;
   }
 
   /**
@@ -1277,13 +903,7 @@ export class Activity extends BaseCMI {
    * @param {string} duration
    */
   set activityAbsoluteDurationValue(duration: string) {
-    if (!validateISO8601Duration(duration, scorm2004_regex.CMITimespan)) {
-      throw new Scorm2004ValidationError(
-        this._cmi_element + ".activityAbsoluteDurationValue",
-        scorm2004_errors.TYPE_MISMATCH as number
-      );
-    }
-    this._activityAbsoluteDurationValue = duration;
+    this._durationTracker.activityAbsoluteDurationValue = duration;
   }
 
   /**
@@ -1291,7 +911,7 @@ export class Activity extends BaseCMI {
    * @return {string}
    */
   get activityExperiencedDurationValue(): string {
-    return this._activityExperiencedDurationValue;
+    return this._durationTracker.activityExperiencedDurationValue;
   }
 
   /**
@@ -1299,13 +919,7 @@ export class Activity extends BaseCMI {
    * @param {string} duration
    */
   set activityExperiencedDurationValue(duration: string) {
-    if (!validateISO8601Duration(duration, scorm2004_regex.CMITimespan)) {
-      throw new Scorm2004ValidationError(
-        this._cmi_element + ".activityExperiencedDurationValue",
-        scorm2004_errors.TYPE_MISMATCH as number
-      );
-    }
-    this._activityExperiencedDurationValue = duration;
+    this._durationTracker.activityExperiencedDurationValue = duration;
   }
 
   /**
@@ -1313,7 +927,7 @@ export class Activity extends BaseCMI {
    * @return {string | null}
    */
   get activityStartTimestampUtc(): string | null {
-    return this._activityStartTimestampUtc;
+    return this._durationTracker.activityStartTimestampUtc;
   }
 
   /**
@@ -1321,7 +935,7 @@ export class Activity extends BaseCMI {
    * @param {string | null} timestamp
    */
   set activityStartTimestampUtc(timestamp: string | null) {
-    this._activityStartTimestampUtc = timestamp;
+    this._durationTracker.activityStartTimestampUtc = timestamp;
   }
 
   /**
@@ -1329,7 +943,7 @@ export class Activity extends BaseCMI {
    * @return {string | null}
    */
   get attemptStartTimestampUtc(): string | null {
-    return this._attemptStartTimestampUtc;
+    return this._durationTracker.attemptStartTimestampUtc;
   }
 
   /**
@@ -1337,7 +951,7 @@ export class Activity extends BaseCMI {
    * @param {string | null} timestamp
    */
   set attemptStartTimestampUtc(timestamp: string | null) {
-    this._attemptStartTimestampUtc = timestamp;
+    this._durationTracker.attemptStartTimestampUtc = timestamp;
   }
 
   /**
@@ -1345,7 +959,7 @@ export class Activity extends BaseCMI {
    * @return {Date | null}
    */
   get activityEndedDate(): Date | null {
-    return this._activityEndedDate;
+    return this._durationTracker.activityEndedDate;
   }
 
   /**
@@ -1353,7 +967,7 @@ export class Activity extends BaseCMI {
    * @param {Date | null} date
    */
   set activityEndedDate(date: Date | null) {
-    this._activityEndedDate = date;
+    this._durationTracker.activityEndedDate = date;
   }
 
 
@@ -1406,18 +1020,15 @@ export class Activity extends BaseCMI {
   }
 
   get rollupConsiderations(): RollupConsiderationsConfig {
-    return { ...this._rollupConsiderations };
+    return this._rollupStatus.rollupConsiderations;
   }
 
   set rollupConsiderations(config: RollupConsiderationsConfig) {
-    this._rollupConsiderations = { ...config };
+    this._rollupStatus.rollupConsiderations = config;
   }
 
   applyRollupConsiderations(settings: Partial<RollupConsiderationsConfig>): void {
-    this._rollupConsiderations = {
-      ...this._rollupConsiderations,
-      ...settings
-    };
+    this._rollupStatus.applyRollupConsiderations(settings);
   }
 
   /**
@@ -1425,111 +1036,99 @@ export class Activity extends BaseCMI {
    * These control when THIS activity is included in parent rollup
    */
   get requiredForSatisfied(): RollupConsiderationRequirement {
-    return this._requiredForSatisfied;
+    return this._rollupStatus.requiredForSatisfied;
   }
 
   set requiredForSatisfied(value: RollupConsiderationRequirement) {
-    this._requiredForSatisfied = value;
+    this._rollupStatus.requiredForSatisfied = value;
   }
 
   get requiredForNotSatisfied(): RollupConsiderationRequirement {
-    return this._requiredForNotSatisfied;
+    return this._rollupStatus.requiredForNotSatisfied;
   }
 
   set requiredForNotSatisfied(value: RollupConsiderationRequirement) {
-    this._requiredForNotSatisfied = value;
+    this._rollupStatus.requiredForNotSatisfied = value;
   }
 
   get requiredForCompleted(): RollupConsiderationRequirement {
-    return this._requiredForCompleted;
+    return this._rollupStatus.requiredForCompleted;
   }
 
   set requiredForCompleted(value: RollupConsiderationRequirement) {
-    this._requiredForCompleted = value;
+    this._rollupStatus.requiredForCompleted = value;
   }
 
   get requiredForIncomplete(): RollupConsiderationRequirement {
-    return this._requiredForIncomplete;
+    return this._rollupStatus.requiredForIncomplete;
   }
 
   set requiredForIncomplete(value: RollupConsiderationRequirement) {
-    this._requiredForIncomplete = value;
+    this._rollupStatus.requiredForIncomplete = value;
   }
 
   get wasSkipped(): boolean {
-    return this._wasSkipped;
+    return this._rollupStatus.wasSkipped;
   }
 
   set wasSkipped(value: boolean) {
-    this._wasSkipped = value;
+    this._rollupStatus.wasSkipped = value;
   }
 
   get attemptProgressStatus(): boolean {
-    return this._attemptProgressStatus;
+    return this._rollupStatus.attemptProgressStatus;
   }
 
   set attemptProgressStatus(value: boolean) {
-    this._attemptProgressStatus = value;
+    this._rollupStatus.attemptProgressStatus = value;
   }
 
   get wasAutoCompleted(): boolean {
-    return this._wasAutoCompleted;
+    return this._rollupStatus.wasAutoCompleted;
   }
 
   set wasAutoCompleted(value: boolean) {
-    this._wasAutoCompleted = value;
+    this._rollupStatus.wasAutoCompleted = value;
   }
 
   get wasAutoSatisfied(): boolean {
-    return this._wasAutoSatisfied;
+    return this._rollupStatus.wasAutoSatisfied;
   }
 
   set wasAutoSatisfied(value: boolean) {
-    this._wasAutoSatisfied = value;
+    this._rollupStatus.wasAutoSatisfied = value;
   }
 
   get completedByMeasure(): boolean {
-    return this._completedByMeasure;
+    return this._rollupStatus.completedByMeasure;
   }
 
   set completedByMeasure(value: boolean) {
-    this._completedByMeasure = value;
+    this._rollupStatus.completedByMeasure = value;
   }
 
   get minProgressMeasure(): number {
-    return this._minProgressMeasure;
+    return this._rollupStatus.minProgressMeasure;
   }
 
   set minProgressMeasure(value: number) {
-    if (value < 0.0 || value > 1.0) {
-      throw new Scorm2004ValidationError(
-        this._cmi_element + ".minProgressMeasure",
-        scorm2004_errors.TYPE_MISMATCH as number
-      );
-    }
-    this._minProgressMeasure = value;
+    this._rollupStatus.minProgressMeasure = value;
   }
 
   get progressWeight(): number {
-    return this._progressWeight;
+    return this._rollupStatus.progressWeight;
   }
 
   set progressWeight(value: number) {
-    if (value < 0.0) {
-      throw new Scorm2004ValidationError(
-        this._cmi_element + ".progressWeight",
-        scorm2004_errors.TYPE_MISMATCH as number
-      );
-    }
-    this._progressWeight = value;
+    this._rollupStatus.progressWeight = value;
   }
 
   get attemptCompletionAmountStatus(): boolean {
-    return this._attemptCompletionAmountStatus;
+    return this._rollupStatus.attemptCompletionAmountStatus;
   }
 
   set attemptCompletionAmountStatus(value: boolean) {
-    this._attemptCompletionAmountStatus = value;
+    this._rollupStatus.attemptCompletionAmountStatus = value;
   }
 
   /**
@@ -1537,7 +1136,7 @@ export class Activity extends BaseCMI {
    * @return {ActivityObjective | null}
    */
   get primaryObjective(): ActivityObjective | null {
-    return this._primaryObjective;
+    return this._objectiveManager.primaryObjective;
   }
 
   /**
@@ -1545,15 +1144,7 @@ export class Activity extends BaseCMI {
    * @param {ActivityObjective | null} objective
   */
   set primaryObjective(objective: ActivityObjective | null) {
-    this._primaryObjective = objective;
-    if (this._primaryObjective) {
-      this._primaryObjective.isPrimary = true;
-      if (this._primaryObjective.minNormalizedMeasure !== null) {
-        this._scaledPassingScore = this._primaryObjective.minNormalizedMeasure ?? this._scaledPassingScore;
-      }
-      this._primaryObjective.updateFromActivity(this);
-    }
-    this.syncPrimaryObjectiveCollection();
+    this._objectiveManager.primaryObjective = objective;
   }
 
   /**
@@ -1561,7 +1152,7 @@ export class Activity extends BaseCMI {
    * @return {ActivityObjective[]}
    */
   get objectives(): ActivityObjective[] {
-    return this._objectives.filter((obj) => obj.id !== this._primaryObjective?.id);
+    return this._objectiveManager.objectives;
   }
 
   /**
@@ -1569,8 +1160,7 @@ export class Activity extends BaseCMI {
    * @param {ActivityObjective[]} objectives
   */
   set objectives(objectives: ActivityObjective[]) {
-    this._objectives = [...objectives];
-    this.syncPrimaryObjectiveCollection();
+    this._objectiveManager.objectives = objectives;
   }
 
   /**
@@ -1578,30 +1168,7 @@ export class Activity extends BaseCMI {
    * @param {ActivityObjective} objective
    */
   addObjective(objective: ActivityObjective): void {
-    if (!this._objectives.find((obj) => obj.id === objective.id)) {
-      this._objectives.push(objective);
-    }
-  }
-
-  /**
-   * Ensure the primary objective is represented within the objectives collection.
-   */
-  private syncPrimaryObjectiveCollection(): void {
-    if (!this._primaryObjective) {
-      this._objectives = this._objectives.filter((objective) => !objective.isPrimary);
-      return;
-    }
-
-    const existingIndex = this._objectives.findIndex(
-      (objective) => objective.id === this._primaryObjective?.id
-    );
-
-    if (existingIndex >= 0) {
-      this._objectives[existingIndex] = this._primaryObjective;
-      return;
-    }
-
-    this._objectives = [this._primaryObjective, ...this._objectives];
+    this._objectiveManager.addObjective(objective);
   }
 
   /**
@@ -1613,14 +1180,7 @@ export class Activity extends BaseCMI {
     objective: ActivityObjective;
     isPrimary: boolean
   } | null {
-    if (this._primaryObjective?.id === objectiveId) {
-      return { objective: this._primaryObjective, isPrimary: true };
-    }
-    const additional = this._objectives.find((obj) => obj.id === objectiveId);
-    if (additional) {
-      return { objective: additional, isPrimary: false };
-    }
-    return null;
+    return this._objectiveManager.getObjectiveById(objectiveId);
   }
 
   /**
@@ -1628,22 +1188,11 @@ export class Activity extends BaseCMI {
    * @return {ActivityObjective[]}
    */
   getAllObjectives(): ActivityObjective[] {
-    const objectives: ActivityObjective[] = [];
-    if (this._primaryObjective) {
-      objectives.push(this._primaryObjective);
-    }
-    // Filter out the primary objective from _objectives to avoid duplicates
-    // since syncPrimaryObjectiveCollection() adds it to _objectives
-    const additionalObjectives = this._objectives.filter(
-      obj => obj !== this._primaryObjective && obj.id !== this._primaryObjective?.id
-    );
-    return objectives.concat(additionalObjectives);
+    return this._objectiveManager.getAllObjectives();
   }
 
   private updatePrimaryObjectiveFromActivity(): void {
-    if (this._primaryObjective) {
-      this._primaryObjective.updateFromActivity(this);
-    }
+    this._objectiveManager.updatePrimaryObjectiveFromActivity(this);
   }
 
   public isObjectiveDirty(property: 'satisfiedStatus' | 'normalizedMeasure' | 'measureStatus'): boolean {
@@ -1693,91 +1242,23 @@ export class Activity extends BaseCMI {
     this._progressMeasureStatus = progressMeasureStatus;
     this._completionStatus = completionStatus;
 
-    if (this._primaryObjective) {
-      this._primaryObjective.satisfiedStatus = satisfiedStatus;
-      this._primaryObjective.measureStatus = measureStatus;
-      this._primaryObjective.normalizedMeasure = normalizedMeasure;
-      this._primaryObjective.progressMeasure = progressMeasure;
-      this._primaryObjective.progressMeasureStatus = progressMeasureStatus;
-      this._primaryObjective.completionStatus = completionStatus;
+    const primaryObj = this.primaryObjective;
+    if (primaryObj) {
+      primaryObj.satisfiedStatus = satisfiedStatus;
+      primaryObj.measureStatus = measureStatus;
+      primaryObj.normalizedMeasure = normalizedMeasure;
+      primaryObj.progressMeasure = progressMeasure;
+      primaryObj.progressMeasureStatus = progressMeasureStatus;
+      primaryObj.completionStatus = completionStatus;
     }
   }
 
-  public getObjectiveStateSnapshot(): {
-    primary: ActivityObjectiveState | null;
-    objectives: ActivityObjectiveState[];
-  } {
-    const primarySnapshot: ActivityObjectiveState | null = this._primaryObjective
-      ? {
-        id: this._primaryObjective.id,
-        satisfiedStatus: this.objectiveSatisfiedStatus,
-        measureStatus: this.objectiveMeasureStatus,
-        normalizedMeasure: this.objectiveNormalizedMeasure,
-        progressMeasure: this.progressMeasure ?? 0,
-        progressMeasureStatus: this.progressMeasureStatus,
-        progressStatus: this._primaryObjective.progressStatus,
-        completionStatus: this.completionStatus as CompletionStatus,
-        satisfiedByMeasure: this._primaryObjective.satisfiedByMeasure,
-        minNormalizedMeasure: this._primaryObjective.minNormalizedMeasure
-      }
-      : null;
-
-    const additionalSnapshots: ActivityObjectiveState[] = this._objectives.map((objective) => ({
-      id: objective.id,
-      satisfiedStatus: objective.satisfiedStatus,
-      measureStatus: objective.measureStatus,
-      normalizedMeasure: objective.normalizedMeasure,
-      progressMeasure: objective.progressMeasure,
-      progressMeasureStatus: objective.progressMeasureStatus,
-      progressStatus: objective.progressStatus,
-      completionStatus: objective.completionStatus as CompletionStatus,
-      satisfiedByMeasure: objective.satisfiedByMeasure,
-      minNormalizedMeasure: objective.minNormalizedMeasure
-    }));
-
-    return {
-      primary: primarySnapshot,
-      objectives: additionalSnapshots
-    };
+  public getObjectiveStateSnapshot(): ObjectiveStateSnapshot {
+    return this._objectiveManager.getObjectiveStateSnapshot(this);
   }
 
-  public applyObjectiveStateSnapshot(snapshot: {
-    primary: ActivityObjectiveState | null;
-    objectives: ActivityObjectiveState[];
-  }): void {
-    if (snapshot.primary) {
-      const primary = this.getObjectiveById(snapshot.primary.id);
-      if (primary && primary.isPrimary) {
-        const state = snapshot.primary;
-        primary.objective.satisfiedByMeasure = state.satisfiedByMeasure ?? primary.objective.satisfiedByMeasure;
-        primary.objective.minNormalizedMeasure =
-          state.minNormalizedMeasure !== undefined ? state.minNormalizedMeasure : primary.objective.minNormalizedMeasure;
-        this.setPrimaryObjectiveState(
-          state.satisfiedStatus,
-          state.measureStatus,
-          state.normalizedMeasure,
-          state.progressMeasure,
-          state.progressMeasureStatus,
-          state.completionStatus
-        );
-      }
-    }
-
-    for (const state of snapshot.objectives) {
-      const match = this.getObjectiveById(state.id);
-      if (match && !match.isPrimary) {
-        const objective = match.objective;
-        objective.satisfiedStatus = state.satisfiedStatus;
-        objective.measureStatus = state.measureStatus;
-        objective.normalizedMeasure = state.normalizedMeasure;
-        objective.progressMeasure = state.progressMeasure;
-        objective.progressMeasureStatus = state.progressMeasureStatus;
-        objective.completionStatus = state.completionStatus;
-        objective.satisfiedByMeasure = state.satisfiedByMeasure ?? objective.satisfiedByMeasure;
-        objective.minNormalizedMeasure =
-          state.minNormalizedMeasure !== undefined ? state.minNormalizedMeasure : objective.minNormalizedMeasure;
-      }
-    }
+  public applyObjectiveStateSnapshot(snapshot: ObjectiveStateSnapshot): void {
+    this._objectiveManager.applyObjectiveStateSnapshot(snapshot, this);
   }
 
   /**
@@ -1901,6 +1382,7 @@ export class Activity extends BaseCMI {
    * @return {object} - Complete suspension state
    */
   getSuspensionState(): object {
+    const durationState = this._durationTracker.getState();
     return {
       id: this._id,
       title: this._title,
@@ -1912,16 +1394,16 @@ export class Activity extends BaseCMI {
       successStatus: this._successStatus,
       attemptCount: this._attemptCount,
       attemptCompletionAmount: this._attemptCompletionAmount,
-      attemptAbsoluteDuration: this._attemptAbsoluteDuration,
-      attemptExperiencedDuration: this._attemptExperiencedDuration,
-      activityAbsoluteDuration: this._activityAbsoluteDuration,
-      activityExperiencedDuration: this._activityExperiencedDuration,
-      attemptAbsoluteDurationValue: this._attemptAbsoluteDurationValue,
-      attemptExperiencedDurationValue: this._attemptExperiencedDurationValue,
-      activityAbsoluteDurationValue: this._activityAbsoluteDurationValue,
-      activityExperiencedDurationValue: this._activityExperiencedDurationValue,
-      activityStartTimestampUtc: this._activityStartTimestampUtc,
-      attemptStartTimestampUtc: this._attemptStartTimestampUtc,
+      attemptAbsoluteDuration: durationState.attemptAbsoluteDuration,
+      attemptExperiencedDuration: durationState.attemptExperiencedDuration,
+      activityAbsoluteDuration: durationState.activityAbsoluteDuration,
+      activityExperiencedDuration: durationState.activityExperiencedDuration,
+      attemptAbsoluteDurationValue: durationState.attemptAbsoluteDurationValue,
+      attemptExperiencedDurationValue: durationState.attemptExperiencedDurationValue,
+      activityAbsoluteDurationValue: durationState.activityAbsoluteDurationValue,
+      activityExperiencedDurationValue: durationState.activityExperiencedDurationValue,
+      activityStartTimestampUtc: durationState.activityStartTimestampUtc,
+      attemptStartTimestampUtc: durationState.attemptStartTimestampUtc,
       objectiveSatisfiedStatus: this._objectiveSatisfiedStatus,
       objectiveSatisfiedStatusKnown: this._objectiveSatisfiedStatusKnown,
       objectiveMeasureStatus: this._objectiveMeasureStatus,
@@ -1934,35 +1416,35 @@ export class Activity extends BaseCMI {
       activityAttemptActive: this._activityAttemptActive,
       isHiddenFromChoice: this._isHiddenFromChoice,
       isAvailable: this._isAvailable,
-      rollupConsiderations: { ...this._rollupConsiderations },
-      wasSkipped: this._wasSkipped,
-      attemptProgressStatus: this._attemptProgressStatus,
-      wasAutoCompleted: this._wasAutoCompleted,
-      wasAutoSatisfied: this._wasAutoSatisfied,
-      completedByMeasure: this._completedByMeasure,
-      minProgressMeasure: this._minProgressMeasure,
-      progressWeight: this._progressWeight,
-      attemptCompletionAmountStatus: this._attemptCompletionAmountStatus,
+      rollupConsiderations: this._rollupStatus.rollupConsiderations,
+      wasSkipped: this._rollupStatus.wasSkipped,
+      attemptProgressStatus: this._rollupStatus.attemptProgressStatus,
+      wasAutoCompleted: this._rollupStatus.wasAutoCompleted,
+      wasAutoSatisfied: this._rollupStatus.wasAutoSatisfied,
+      completedByMeasure: this._rollupStatus.completedByMeasure,
+      minProgressMeasure: this._rollupStatus.minProgressMeasure,
+      progressWeight: this._rollupStatus.progressWeight,
+      attemptCompletionAmountStatus: this._rollupStatus.attemptCompletionAmountStatus,
       // Selection/randomization state preservation
       processedChildren: this._processedChildren ? this._processedChildren.map(c => c.id) : null,
       isNewAttempt: this._isNewAttempt,
       selectionCountStatus: this._sequencingControls.selectionCountStatus,
       reorderChildren: this._sequencingControls.reorderChildren,
       // Objective state preservation
-      primaryObjective: this._primaryObjective ? {
-        id: this._primaryObjective.id,
-        satisfiedStatus: this._primaryObjective.satisfiedStatus,
-        measureStatus: this._primaryObjective.measureStatus,
-        normalizedMeasure: this._primaryObjective.normalizedMeasure,
-        progressMeasure: this._primaryObjective.progressMeasure,
-        progressMeasureStatus: this._primaryObjective.progressMeasureStatus,
-        completionStatus: this._primaryObjective.completionStatus,
-        satisfiedByMeasure: this._primaryObjective.satisfiedByMeasure,
-        minNormalizedMeasure: this._primaryObjective.minNormalizedMeasure,
-        progressStatus: this._primaryObjective.progressStatus,
-        mapInfo: this._primaryObjective.mapInfo
+      primaryObjective: this.primaryObjective ? {
+        id: this.primaryObjective.id,
+        satisfiedStatus: this.primaryObjective.satisfiedStatus,
+        measureStatus: this.primaryObjective.measureStatus,
+        normalizedMeasure: this.primaryObjective.normalizedMeasure,
+        progressMeasure: this.primaryObjective.progressMeasure,
+        progressMeasureStatus: this.primaryObjective.progressMeasureStatus,
+        completionStatus: this.primaryObjective.completionStatus,
+        satisfiedByMeasure: this.primaryObjective.satisfiedByMeasure,
+        minNormalizedMeasure: this.primaryObjective.minNormalizedMeasure,
+        progressStatus: this.primaryObjective.progressStatus,
+        mapInfo: this.primaryObjective.mapInfo
       } : null,
-      objectives: this._objectives.map(obj => ({
+      objectives: this.getAllObjectives().map(obj => ({
         id: obj.id,
         satisfiedStatus: obj.satisfiedStatus,
         measureStatus: obj.measureStatus,
@@ -1997,16 +1479,21 @@ export class Activity extends BaseCMI {
     this._successStatus = state.successStatus ?? this._successStatus;
     this._attemptCount = state.attemptCount ?? this._attemptCount;
     this._attemptCompletionAmount = state.attemptCompletionAmount ?? this._attemptCompletionAmount;
-    this._attemptAbsoluteDuration = state.attemptAbsoluteDuration ?? this._attemptAbsoluteDuration;
-    this._attemptExperiencedDuration = state.attemptExperiencedDuration ?? this._attemptExperiencedDuration;
-    this._activityAbsoluteDuration = state.activityAbsoluteDuration ?? this._activityAbsoluteDuration;
-    this._activityExperiencedDuration = state.activityExperiencedDuration ?? this._activityExperiencedDuration;
-    this._attemptAbsoluteDurationValue = state.attemptAbsoluteDurationValue ?? this._attemptAbsoluteDurationValue;
-    this._attemptExperiencedDurationValue = state.attemptExperiencedDurationValue ?? this._attemptExperiencedDurationValue;
-    this._activityAbsoluteDurationValue = state.activityAbsoluteDurationValue ?? this._activityAbsoluteDurationValue;
-    this._activityExperiencedDurationValue = state.activityExperiencedDurationValue ?? this._activityExperiencedDurationValue;
-    this._activityStartTimestampUtc = state.activityStartTimestampUtc ?? this._activityStartTimestampUtc;
-    this._attemptStartTimestampUtc = state.attemptStartTimestampUtc ?? this._attemptStartTimestampUtc;
+
+    // Restore duration state via tracker
+    const currentDuration = this._durationTracker.getState();
+    this._durationTracker.setState({
+      attemptAbsoluteDuration: state.attemptAbsoluteDuration ?? currentDuration.attemptAbsoluteDuration,
+      attemptExperiencedDuration: state.attemptExperiencedDuration ?? currentDuration.attemptExperiencedDuration,
+      activityAbsoluteDuration: state.activityAbsoluteDuration ?? currentDuration.activityAbsoluteDuration,
+      activityExperiencedDuration: state.activityExperiencedDuration ?? currentDuration.activityExperiencedDuration,
+      attemptAbsoluteDurationValue: state.attemptAbsoluteDurationValue ?? currentDuration.attemptAbsoluteDurationValue,
+      attemptExperiencedDurationValue: state.attemptExperiencedDurationValue ?? currentDuration.attemptExperiencedDurationValue,
+      activityAbsoluteDurationValue: state.activityAbsoluteDurationValue ?? currentDuration.activityAbsoluteDurationValue,
+      activityExperiencedDurationValue: state.activityExperiencedDurationValue ?? currentDuration.activityExperiencedDurationValue,
+      activityStartTimestampUtc: state.activityStartTimestampUtc ?? currentDuration.activityStartTimestampUtc,
+      attemptStartTimestampUtc: state.attemptStartTimestampUtc ?? currentDuration.attemptStartTimestampUtc,
+    });
 
     // Restore tracking data
     this._objectiveSatisfiedStatus = state.objectiveSatisfiedStatus ?? this._objectiveSatisfiedStatus;
@@ -2022,20 +1509,19 @@ export class Activity extends BaseCMI {
     this._isHiddenFromChoice = state.isHiddenFromChoice ?? this._isHiddenFromChoice;
     this._isAvailable = state.isAvailable ?? this._isAvailable;
 
-    // Restore rollup considerations
-    if (state.rollupConsiderations) {
-      this._rollupConsiderations = { ...state.rollupConsiderations };
-    }
-
-    // Restore other tracking state
-    this._wasSkipped = state.wasSkipped ?? this._wasSkipped;
-    this._attemptProgressStatus = state.attemptProgressStatus ?? this._attemptProgressStatus;
-    this._wasAutoCompleted = state.wasAutoCompleted ?? this._wasAutoCompleted;
-    this._wasAutoSatisfied = state.wasAutoSatisfied ?? this._wasAutoSatisfied;
-    this._completedByMeasure = state.completedByMeasure ?? this._completedByMeasure;
-    this._minProgressMeasure = state.minProgressMeasure ?? this._minProgressMeasure;
-    this._progressWeight = state.progressWeight ?? this._progressWeight;
-    this._attemptCompletionAmountStatus = state.attemptCompletionAmountStatus ?? this._attemptCompletionAmountStatus;
+    // Restore rollup state via tracker
+    const currentRollupState = this._rollupStatus.getState();
+    this._rollupStatus.setState({
+      rollupConsiderations: state.rollupConsiderations ?? currentRollupState.rollupConsiderations,
+      wasSkipped: state.wasSkipped ?? currentRollupState.wasSkipped,
+      attemptProgressStatus: state.attemptProgressStatus ?? currentRollupState.attemptProgressStatus,
+      wasAutoCompleted: state.wasAutoCompleted ?? currentRollupState.wasAutoCompleted,
+      wasAutoSatisfied: state.wasAutoSatisfied ?? currentRollupState.wasAutoSatisfied,
+      completedByMeasure: state.completedByMeasure ?? currentRollupState.completedByMeasure,
+      minProgressMeasure: state.minProgressMeasure ?? currentRollupState.minProgressMeasure,
+      progressWeight: state.progressWeight ?? currentRollupState.progressWeight,
+      attemptCompletionAmountStatus: state.attemptCompletionAmountStatus ?? currentRollupState.attemptCompletionAmountStatus,
+    });
 
     // Restore selection/randomization state
     this._isNewAttempt = state.isNewAttempt ?? this._isNewAttempt;
@@ -2057,20 +1543,22 @@ export class Activity extends BaseCMI {
     }
 
     // Restore objective state
-    if (state.primaryObjective && this._primaryObjective) {
-      this._primaryObjective.satisfiedStatus = state.primaryObjective.satisfiedStatus ?? this._primaryObjective.satisfiedStatus;
-      this._primaryObjective.measureStatus = state.primaryObjective.measureStatus ?? this._primaryObjective.measureStatus;
-      this._primaryObjective.normalizedMeasure = state.primaryObjective.normalizedMeasure ?? this._primaryObjective.normalizedMeasure;
-      this._primaryObjective.progressMeasure = state.primaryObjective.progressMeasure ?? this._primaryObjective.progressMeasure;
-      this._primaryObjective.progressMeasureStatus = state.primaryObjective.progressMeasureStatus ?? this._primaryObjective.progressMeasureStatus;
-      this._primaryObjective.completionStatus = state.primaryObjective.completionStatus ?? this._primaryObjective.completionStatus;
-      this._primaryObjective.progressStatus = state.primaryObjective.progressStatus ?? this._primaryObjective.progressStatus;
+    const primaryObj = this.primaryObjective;
+    if (state.primaryObjective && primaryObj) {
+      primaryObj.satisfiedStatus = state.primaryObjective.satisfiedStatus ?? primaryObj.satisfiedStatus;
+      primaryObj.measureStatus = state.primaryObjective.measureStatus ?? primaryObj.measureStatus;
+      primaryObj.normalizedMeasure = state.primaryObjective.normalizedMeasure ?? primaryObj.normalizedMeasure;
+      primaryObj.progressMeasure = state.primaryObjective.progressMeasure ?? primaryObj.progressMeasure;
+      primaryObj.progressMeasureStatus = state.primaryObjective.progressMeasureStatus ?? primaryObj.progressMeasureStatus;
+      primaryObj.completionStatus = state.primaryObjective.completionStatus ?? primaryObj.completionStatus;
+      primaryObj.progressStatus = state.primaryObjective.progressStatus ?? primaryObj.progressStatus;
     }
 
     if (state.objectives) {
       for (const objState of state.objectives) {
-        const objective = this._objectives.find(o => o.id === objState.id);
-        if (objective) {
+        const match = this.getObjectiveById(objState.id);
+        if (match) {
+          const objective = match.objective;
           objective.satisfiedStatus = objState.satisfiedStatus ?? objective.satisfiedStatus;
           objective.measureStatus = objState.measureStatus ?? objective.measureStatus;
           objective.normalizedMeasure = objState.normalizedMeasure ?? objective.normalizedMeasure;
@@ -2100,6 +1588,7 @@ export class Activity extends BaseCMI {
    */
   toJSON(): object {
     this.jsonString = true;
+    const durationState = this._durationTracker.getState();
     const result = {
       id: this._id,
       title: this._title,
@@ -2111,20 +1600,20 @@ export class Activity extends BaseCMI {
       successStatus: this._successStatus,
       attemptCount: this._attemptCount,
       attemptCompletionAmount: this._attemptCompletionAmount,
-      attemptAbsoluteDuration: this._attemptAbsoluteDuration,
-      attemptExperiencedDuration: this._attemptExperiencedDuration,
-      activityAbsoluteDuration: this._activityAbsoluteDuration,
-      activityExperiencedDuration: this._activityExperiencedDuration,
+      attemptAbsoluteDuration: durationState.attemptAbsoluteDuration,
+      attemptExperiencedDuration: durationState.attemptExperiencedDuration,
+      activityAbsoluteDuration: durationState.activityAbsoluteDuration,
+      activityExperiencedDuration: durationState.activityExperiencedDuration,
       objectiveSatisfiedStatus: this._objectiveSatisfiedStatus,
       objectiveSatisfiedStatusKnown: this._objectiveSatisfiedStatusKnown,
       objectiveMeasureStatus: this._objectiveMeasureStatus,
       objectiveNormalizedMeasure: this._objectiveNormalizedMeasure,
-      rollupConsiderations: { ...this._rollupConsiderations },
-      wasSkipped: this._wasSkipped,
-      completedByMeasure: this._completedByMeasure,
-      minProgressMeasure: this._minProgressMeasure,
-      progressWeight: this._progressWeight,
-      attemptCompletionAmountStatus: this._attemptCompletionAmountStatus,
+      rollupConsiderations: this._rollupStatus.rollupConsiderations,
+      wasSkipped: this._rollupStatus.wasSkipped,
+      completedByMeasure: this._rollupStatus.completedByMeasure,
+      minProgressMeasure: this._rollupStatus.minProgressMeasure,
+      progressWeight: this._rollupStatus.progressWeight,
+      attemptCompletionAmountStatus: this._rollupStatus.attemptCompletionAmountStatus,
       hideLmsUi: [...this._hideLmsUi],
       auxiliaryResources: this._auxiliaryResources.map((resource) => ({ ...resource })),
       children: this._children.map((child) => child.toJSON())
@@ -2185,14 +1674,7 @@ export class Activity extends BaseCMI {
     prior: RollupStatusSnapshot,
     current: RollupStatusSnapshot
   ): boolean {
-    const EPSILON = 0.0001; // Floating point comparison tolerance
-
-    return prior.measureStatus === current.measureStatus &&
-           Math.abs(prior.normalizedMeasure - current.normalizedMeasure) < EPSILON &&
-           prior.objectiveProgressStatus === current.objectiveProgressStatus &&
-           prior.objectiveSatisfiedStatus === current.objectiveSatisfiedStatus &&
-           prior.attemptProgressStatus === current.attemptProgressStatus &&
-           prior.attemptCompletionStatus === current.attemptCompletionStatus;
+    return ActivityRollupStatus.compareRollupStatus(prior, current);
   }
 
   /**
