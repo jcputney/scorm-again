@@ -21,10 +21,6 @@ component_management:
       name: cmi_common
       paths:
         - src/cmi/common/**
-    - component_id: cmi_aicc
-      name: cmi_aicc
-      paths:
-        - src/cmi/aicc/**
     - component_id: cmi_scorm12
       name: cmi_scorm12
       paths:
@@ -37,9 +33,6 @@ component_management:
       name: services
       paths:
         - src/services/**
-    - component_id: aicc
-      paths:
-        - src/AICC.ts
     - component_id: scorm12
       paths:
         - src/Scorm12API.ts

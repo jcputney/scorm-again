@@ -39,9 +39,9 @@ window.API = new Scorm12API({ lmsCommitUrl: '/commit' });
 ```
 
 **Options:**
-- Pin to v2.6.5 for continued AICC support
+- Pin to v2.6.8 for continued AICC support
 - Migrate AICC content to SCORM 1.2 or SCORM 2004
-- Fork v2.6.5 for custom AICC maintenance
+- Fork v2.6.8 for custom AICC maintenance
 
 ---
 
