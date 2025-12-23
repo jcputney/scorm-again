@@ -1242,6 +1242,101 @@ describe("OfflineStorageService Tests", () => {
         // Verify null is returned on parse error
         expect(result).toBeNull();
       });
+
+      it("should handle xhrWithCredentials setting in sendDataToLMS", async () => {
+        const service = createService();
+
+        // Update settings with xhrWithCredentials = true
+        const settingsWithCredentials = {
+          ...settings,
+          xhrWithCredentials: true,
+        } as InternalSettings;
+        service.updateSettings(settingsWithCredentials);
+
+        // eslint-disable-next-line
+        // @ts-ignore - Accessing private method for testing
+        await service["sendDataToLMS"](createSampleCommitObject());
+
+        // Verify fetch was called with credentials: "include"
+        expect(fetch).toHaveBeenCalled();
+        const fetchCall = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+        expect(fetchCall[1].credentials).toBe("include");
+      });
+
+      it("should handle response without errorCode property in success case", async () => {
+        const service = createService();
+
+        // Mock fetch to return success without errorCode
+        (fetch as ReturnType<typeof vi.fn>).mockImplementationOnce(() =>
+          Promise.resolve({
+            ok: true,
+            status: 200,
+            json: () => Promise.resolve({ result: global_constants.SCORM_TRUE }), // No errorCode
+          } as Response),
+        );
+
+        // @ts-ignore - Accessing private method for testing
+        const result = await service["sendDataToLMS"](createSampleCommitObject());
+
+        // Verify errorCode was added
+        expect(result.errorCode).toBe(0);
+      });
+
+      it("should handle response without errorCode property in failure case", async () => {
+        const service = createService();
+
+        // Mock fetch to return failure without errorCode
+        (fetch as ReturnType<typeof vi.fn>).mockImplementationOnce(() =>
+          Promise.resolve({
+            ok: false,
+            status: 400,
+            json: () => Promise.resolve({ result: global_constants.SCORM_FALSE }), // No errorCode
+          } as Response),
+        );
+
+        // @ts-ignore - Accessing private method for testing
+        const result = await service["sendDataToLMS"](createSampleCommitObject());
+
+        // Verify errorCode was added with GENERAL error
+        expect(result.errorCode).toBe(errorCodes.GENERAL);
+      });
+
+      it("should handle sync errors with error catching", async () => {
+        const service = createService();
+        const commitData = createSampleCommitObject();
+        const courseId = "course123";
+
+        // Store data first
+        service.storeOffline(courseId, commitData);
+
+        // Make sendDataToLMS throw an error by making fetch fail
+        (fetch as ReturnType<typeof vi.fn>).mockImplementationOnce(() => {
+          throw new Error("Network failure");
+        });
+
+        // Clear mocks to isolate the sync operation
+        vi.clearAllMocks();
+
+        // Perform sync
+        const result = await service.syncOfflineData();
+
+        // Verify result indicates overall success (process completed even though item failed)
+        expect(result).toBe(true);
+
+        // Verify error was logged - the error message is from sendDataToLMS
+        expect(apiLog).toHaveBeenCalledWith(
+          "OfflineStorageService",
+          expect.stringContaining("Error sending data to LMS"),
+          LogLevelEnum.ERROR,
+        );
+
+        // Also verify that the sync process logged the failure
+        expect(apiLog).toHaveBeenCalledWith(
+          "OfflineStorageService",
+          expect.stringContaining("Failed to sync item"),
+          LogLevelEnum.WARN,
+        );
+      });
     });
   });
 });

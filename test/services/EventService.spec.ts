@@ -342,6 +342,65 @@ describe("EventService", () => {
       // The callback should NOT be called
       expect(callback).not.toHaveBeenCalled();
     });
+
+    it("should handle off() when no listeners exist for the function", () => {
+      const callback = vi.fn();
+
+      // Try to remove a listener that was never added
+      eventService.off("NonExistentEvent", callback);
+
+      // Should not throw an error
+      expect(() => {
+        eventService.processListeners("NonExistentEvent");
+      }).not.toThrow();
+    });
+
+    it("should handle off() when listener does not exist in the array", () => {
+      const callback1 = vi.fn();
+      const callback2 = vi.fn();
+
+      // Add only callback1
+      eventService.on("TestEvent", callback1);
+
+      // Try to remove callback2 which was never added
+      eventService.off("TestEvent", callback2);
+
+      // callback1 should still be registered
+      eventService.processListeners("TestEvent");
+      expect(callback1).toHaveBeenCalledOnce();
+    });
+
+    it("should handle clear() with empty listener name in space-separated list", () => {
+      const callback = vi.fn();
+
+      // Register a listener
+      eventService.on("TestEvent", callback);
+
+      // Try to clear with an empty string in the list (should be skipped by parseListenerName)
+      eventService.clear("TestEvent ");
+
+      // The listener should still be cleared
+      eventService.processListeners("TestEvent");
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it("should handle clear() when function name does not exist in map", () => {
+      // Try to clear a function that has no listeners
+      eventService.clear("NonExistentFunction");
+
+      // Should not throw an error
+      expect(() => {
+        eventService.processListeners("NonExistentFunction");
+      }).not.toThrow();
+    });
+
+    it("should process listeners when no listeners are registered for the function", () => {
+      // Try to process listeners for a function that has no listeners
+      eventService.processListeners("NonExistentFunction", "cmi.element", "value");
+
+      // Should not throw an error and apiLog should be called
+      expect(apiLogSpy).toHaveBeenCalled();
+    });
   });
 
   describe("Reset Functionality", () => {
