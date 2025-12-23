@@ -83,7 +83,7 @@ const config: Config = {
           label: 'Docs',
         },
         {
-          href: '/scorm-again/demo/',
+          to: '/demo',
           label: 'Demo',
           position: 'left',
         },
