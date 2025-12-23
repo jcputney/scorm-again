@@ -110,7 +110,7 @@ Use a descriptive branch name that reflects the changes you're making. Common pr
 
 scorm-again follows specific coding conventions to maintain consistency across the codebase:
 
-1. Use the TypeScript style guide in `.junie/guidelines.md`
+1. Use the TypeScript style guide in `typescript_guidelines.md`
 2. Run Prettier to automatically format your code:
    ```bash
    npm run prettier

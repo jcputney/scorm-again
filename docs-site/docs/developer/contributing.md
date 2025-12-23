@@ -58,7 +58,7 @@ scorm-again follows strict coding standards to maintain a high-quality, consiste
 
 ### TypeScript Guidelines
 
-- Follow the TypeScript style guide in `.junie/guidelines.md`
+- Follow the TypeScript style guide in `typescript_guidelines.md`
 - Use TypeScript's strict mode
 - Provide explicit types for all parameters and return values
 - Avoid using `any` type when possible

@@ -238,7 +238,7 @@ To reduce the bundle size for production deployments:
 
 ### Style Guide
 
-- [TypeScript Style Guide](.junie/guidelines.md)
+- [TypeScript Style Guide](typescript_guidelines.md)
 
 ### Setup
 
