@@ -82,7 +82,7 @@ window.API_1484_11 = new Scorm2004API(settings);
 | `scoItemIds` | `[]` | string[] | A list of valid SCO IDs to be used for choice/jump sequence validation. If a `sequencing` configuration is provided with an activity tree, this list will be automatically populated with all activity IDs from the tree. |
 | `scoItemIdValidator` | `false` | false \| function | A function to be called during choice/jump sequence checks to determine if a SCO ID is valid. Could be used to call an API to check validity. |
 | `globalObjectiveIds` | `[]` | string[] | A list of objective IDs that are considered "global" and should be shared across SCOs. **Global objectives must be stored separately by the LMS and synchronized across all SCOs in the package.** The LMS extracts these from `<imsss:mapInfo>` elements in the manifest. |
-| `sequencing` | `null` | SequencingSettings \| null | Configuration for SCORM 2004 sequencing, including activity tree, sequencing rules, sequencing controls, and rollup rules. **This data must be extracted by the LMS from the package's imsmanifest.xml file.** See the [Sequencing Configuration documentation](https://github.com/jcputney/scorm-again/blob/master/docs/sequencing_configuration.md) for details on the required format and LMS integration requirements. |
+| `sequencing` | `null` | SequencingSettings \| null | Configuration for SCORM 2004 sequencing, including activity tree, sequencing rules, sequencing controls, and rollup rules. **This data must be extracted by the LMS from the package's imsmanifest.xml file.** See the [Sequencing Configuration documentation](../advanced/sequencing.md) for details on the required format and LMS integration requirements. |
 
 ### Offline Support Settings
 
@@ -178,4 +178,4 @@ const api = new Scorm2004API({
 
 - [Data Formats](./data-formats.md) - Details on data commit formats
 - [Event Listeners](./event-listeners.md) - Event system documentation
-- [Sequencing Configuration](https://github.com/jcputney/scorm-again/blob/master/docs/sequencing_configuration.md) - SCORM 2004 sequencing setup
+- [Sequencing Configuration](../advanced/sequencing.md) - SCORM 2004 sequencing setup

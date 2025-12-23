@@ -33,7 +33,7 @@
 ## Checklist
 <!-- Verify that you have completed the following items -->
 - [ ] This PR does not include changes to files under `dist/` (CI will build and commit `dist/` on the default branch)
-- [ ] I have read the [Contribution Guidelines](docs/developer/contribution_guidelines.md)
+- [ ] I have read the [Contribution Guidelines](https://jcputney.github.io/scorm-again/docs/developer/contributing)
 - [ ] My code follows the [TypeScript Style Guide](typescript_guidelines.md)
 - [ ] I have added tests that prove my fix is effective or that my feature works
 - [ ] I have updated the documentation to reflect my changes

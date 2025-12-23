@@ -173,22 +173,22 @@ scorm-again provides detailed implementation examples for various mobile framewo
 - Kotlin Multiplatform
 
 For detailed implementation guides and examples, see
-our [offline support documentation](docs/offline_support.md).
+our [offline support documentation](https://jcputney.github.io/scorm-again/docs/advanced/offline-support).
 
 ## Documentation
 
 ### LMS Integration Documentation
 
-- **[Player Wrapper Integration Guide](docs/lms-integration/player-wrapper-guide.md)** - Build custom SCORM player UIs
+- **[Player Wrapper Integration Guide](https://jcputney.github.io/scorm-again/docs/lms-integration/player-wrapper-guide)** - Build custom SCORM player UIs
   - Event-driven UI updates
   - SCORM 1.2, 2004 simple, and sequenced player implementations
   - React, Vue, and Angular integration examples
   - Event to UI mapping reference
   - Troubleshooting guide
-- **[LMS Integration Guide](docs/lms-integration/lms-integration-guide.md)** - Core LMS integration concepts
-- [API Events Reference](docs/lms-integration/api-events-reference.md) - Complete event system documentation
-- [SCORM 1.2 Multi-SCO Guide](docs/lms-integration/scorm12-multi-sco-guide.md) - Multi-SCO utilities
-- [Cross-Frame Communication](docs/lms-integration/cross-frame-communication.md) - Sandboxed iframe integration
+- **[LMS Integration Guide](https://jcputney.github.io/scorm-again/docs/lms-integration/integration-guide)** - Core LMS integration concepts
+- [API Events Reference](https://jcputney.github.io/scorm-again/docs/lms-integration/api-events-reference) - Complete event system documentation
+- [SCORM 1.2 Multi-SCO Guide](https://jcputney.github.io/scorm-again/docs/lms-integration/multi-sco-support) - Multi-SCO utilities
+- [Cross-Frame Communication](https://jcputney.github.io/scorm-again/docs/lms-integration/cross-frame-communication) - Sandboxed iframe integration
 
 ### API Usage Documentation
 
@@ -200,9 +200,9 @@ our [offline support documentation](docs/offline_support.md).
 
 ### Developer Documentation
 
-- [Development Workflow](docs/developer/development_workflow.md)
-- [Contribution Guidelines](docs/developer/contribution_guidelines.md)
-- [Testing Strategy](docs/developer/testing_strategy.md)
+- [Development Workflow](https://jcputney.github.io/scorm-again/docs/developer/development-workflow)
+- [Contribution Guidelines](https://jcputney.github.io/scorm-again/docs/developer/contributing)
+- [Testing Strategy](https://jcputney.github.io/scorm-again/docs/developer/testing)
 - [Method Standards](docs/method_standards.md)
 
 ### Bundle Size Optimization
@@ -380,7 +380,7 @@ The APIs include several settings to customize the functionality of each API:
 | `scoItemIds`               |                []                |                                                     string[]                                                      | A list of valid SCO IDs to be used for choice/jump sequence validation. If a `sequencing` configuration is provided with an activity tree, this list will be automatically populated with all activity IDs from the tree.                                                                                                                                                                                                                               |
 | `scoItemIdValidator`       |              false               |                                                 false / function                                                  | A function to be called during choice/jump sequence checks to determine if a SCO ID is valid. Could be used to call an API to check validity.                                                                                                                                                                                                                                                                                                           |
 | `globalObjectiveIds`       |                []                |                                                     string[]                                                      | (SCORM 2004) A list of objective IDs that are considered "global" and should be shared across SCOs. **Global objectives must be stored separately by the LMS and synchronized across all SCOs in the package.** The LMS extracts these from `<imsss:mapInfo>` elements in the manifest.                                                                                                                                                               |
-| `sequencing`               |               null               |                                                SequencingSettings                                                 | (SCORM 2004) Configuration for SCORM 2004 sequencing, including activity tree, sequencing rules, sequencing controls, and rollup rules. **This data must be extracted by the LMS from the package's imsmanifest.xml file.** See the [Sequencing Configuration documentation](docs/sequencing_configuration.md) for details on the required format and LMS integration requirements.                                                                   |
+| `sequencing`               |               null               |                                                SequencingSettings                                                 | (SCORM 2004) Configuration for SCORM 2004 sequencing, including activity tree, sequencing rules, sequencing controls, and rollup rules. **This data must be extracted by the LMS from the package's imsmanifest.xml file.** See the [Sequencing Configuration documentation](https://jcputney.github.io/scorm-again/docs/advanced/sequencing) for details on the required format and LMS integration requirements.                                                                   |
 
 ## Settings Function Examples
 
@@ -716,7 +716,7 @@ sequencing = {
 ```
 
 For more detailed information and examples, see
-the [Sequencing Configuration documentation](docs/sequencing_configuration.md).
+the [Sequencing Configuration documentation](https://jcputney.github.io/scorm-again/docs/advanced/sequencing).
 
 #### Navigation Events
 
@@ -752,7 +752,7 @@ When using sequencing, the API will emit navigation events that the LMS should h
 
 4. **API Reset**: When navigating between SCOs, the API should be reset to provide a clean state for each SCO. The LMS must preserve and reload global objectives and other shared state.
 
-See the [Sequencing Configuration documentation](docs/sequencing_configuration.md#runtime-data-storage-considerations) for detailed implementation guidance.
+See the [Sequencing Configuration documentation](https://jcputney.github.io/scorm-again/docs/advanced/sequencing#runtime-data-storage-considerations) for detailed implementation guidance.
 
 ## Project Architecture
 
@@ -827,7 +827,7 @@ For optimal performance:
 
 - **GitHub Issues**: For bug reports and feature requests
 - **Pull Requests**: Contributions are welcome following
-  the [contribution guidelines](docs/developer/contribution_guidelines.md)
+  the [contribution guidelines](https://jcputney.github.io/scorm-again/docs/developer/contributing)
 - **Discussions**: Use GitHub Discussions for questions and community support
 
 ## Version History
@@ -861,11 +861,11 @@ copying their code because it is...not very clean.
 I welcome any and all feedback and contributions to this project! The project has comprehensive
 documentation for contributors:
 
-- [Development Workflow](docs/developer/development_workflow.md): Setting up your environment and
+- [Development Workflow](https://jcputney.github.io/scorm-again/docs/developer/development-workflow): Setting up your environment and
   development process
-- [Contribution Guidelines](docs/developer/contribution_guidelines.md): Standards and expectations
+- [Contribution Guidelines](https://jcputney.github.io/scorm-again/docs/developer/contributing): Standards and expectations
   for contributions
-- [Testing Strategy](docs/developer/testing_strategy.md): How to write and run tests
+- [Testing Strategy](https://jcputney.github.io/scorm-again/docs/developer/testing): How to write and run tests
 - [CONTRIBUTING.md](CONTRIBUTING.md): Quick start guide for contributors
 
 ### dist/ policy

@@ -336,7 +336,7 @@ New feature for sandboxed iframe SCORM content:
 - Heartbeat monitoring for connection status
 - Event system for connection/rate limit events
 
-See [Cross-Frame Communication](docs/lms-integration/cross-frame-communication.md) for details.
+See [Cross-Frame Communication](https://jcputney.github.io/scorm-again/docs/lms-integration/cross-frame-communication) for details.
 
 ### 19. SCORM 2004 Sequencing Engine
 
