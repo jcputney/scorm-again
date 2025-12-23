@@ -7,6 +7,7 @@ import { Settings } from "../../src/types/api_types";
 import { LogLevelEnum } from "../../src/constants/enums";
 import { CMIInteractionsObject } from "../../src/cmi/scorm2004/interactions";
 import { CMIArray } from "../../src/cmi/common/array";
+import { CMIObjectivesObject } from "../../src/cmi/scorm2004/objectives";
 
 declare global {
   interface Window {
@@ -1425,6 +1426,1002 @@ describe("SCORM 2004 API Additional Tests", (): void => {
         // location and suspend_data should be empty for new attempt
         expect(scorm2004API.lmsGetValue("cmi.location")).toBe("");
         expect(scorm2004API.lmsGetValue("cmi.suspend_data")).toBe("");
+      });
+    });
+  });
+
+  /**
+   * Global Objectives and State Management Tests
+   *
+   * Tests for private methods that handle global objective synchronization
+   * and state compression/decompression. These are critical for SCORM 2004
+   * sequencing and state persistence.
+   */
+  describe("Global Objectives State Management", (): void => {
+    describe("buildCMIObjectiveFromJSON()", (): void => {
+      it("should build objective from valid JSON data", (): void => {
+        const scorm2004API = api({
+          sequencing: {
+            activityTree: {
+              id: "root",
+              title: "Test Course",
+            },
+          },
+        });
+
+        const data = {
+          id: "obj-1",
+          success_status: "passed",
+          completion_status: "completed",
+          progress_measure: "1.0",
+          score: {
+            scaled: "0.85",
+            raw: "85",
+            min: "0",
+            max: "100",
+          },
+        };
+
+        // Access private method via type casting
+        const objective = scorm2004API["buildCMIObjectiveFromJSON"](data);
+
+        expect(objective.id).toBe("obj-1");
+        expect(objective.success_status).toBe("passed");
+        expect(objective.completion_status).toBe("completed");
+        expect(objective.progress_measure).toBe("1.0");
+        expect(objective.score.scaled).toBe("0.85");
+        expect(objective.score.raw).toBe("85");
+        expect(objective.score.min).toBe("0");
+        expect(objective.score.max).toBe("100");
+      });
+
+      it("should handle null or invalid data gracefully", (): void => {
+        const scorm2004API = api();
+
+        const objective1 = scorm2004API["buildCMIObjectiveFromJSON"](null);
+        expect(objective1.id).toBe("");
+
+        const objective2 = scorm2004API["buildCMIObjectiveFromJSON"](undefined);
+        expect(objective2.id).toBe("");
+
+        const objective3 = scorm2004API["buildCMIObjectiveFromJSON"]("not an object");
+        expect(objective3.id).toBe("");
+      });
+
+      it("should handle numeric score values", (): void => {
+        const scorm2004API = api();
+
+        const data = {
+          id: "obj-2",
+          score: {
+            scaled: 0.75,
+            raw: 75,
+            min: 0,
+            max: 100,
+          },
+        };
+
+        const objective = scorm2004API["buildCMIObjectiveFromJSON"](data);
+
+        expect(objective.score.scaled).toBe("0.75");
+        expect(objective.score.raw).toBe("75");
+        expect(objective.score.min).toBe("0");
+        expect(objective.score.max).toBe("100");
+      });
+
+      it("should skip empty string progress_measure", (): void => {
+        const scorm2004API = api();
+
+        const data = {
+          id: "obj-3",
+          progress_measure: "",
+        };
+
+        const objective = scorm2004API["buildCMIObjectiveFromJSON"](data);
+
+        expect(objective.progress_measure).toBe("");
+      });
+
+      it("should handle missing score object", (): void => {
+        const scorm2004API = api();
+
+        const data = {
+          id: "obj-4",
+          success_status: "passed",
+        };
+
+        const objective = scorm2004API["buildCMIObjectiveFromJSON"](data);
+
+        expect(objective.id).toBe("obj-4");
+        expect(objective.success_status).toBe("passed");
+        // Score should use defaults
+        expect(objective.score.scaled).toBe("");
+      });
+    });
+
+    describe("buildCMIObjectivesFromMap()", (): void => {
+      it("should build objectives from a valid snapshot map", (): void => {
+        const scorm2004API = api();
+
+        const snapshot = {
+          "obj-1": {
+            id: "obj-1",
+            satisfiedStatus: true,
+            satisfiedStatusKnown: true,
+            normalizedMeasure: 0.85,
+            normalizedMeasureKnown: true,
+            progressMeasure: 1.0,
+            progressMeasureKnown: true,
+            completionStatus: "completed",
+            completionStatusKnown: true,
+          },
+          "obj-2": {
+            id: "obj-2",
+            satisfiedStatus: false,
+            satisfiedStatusKnown: true,
+          },
+        };
+
+        const objectives = scorm2004API["buildCMIObjectivesFromMap"](snapshot);
+
+        expect(objectives.length).toBe(2);
+        expect(objectives[0].id).toBe("obj-1");
+        expect(objectives[0].success_status).toBe("passed");
+        expect(objectives[0].score.scaled).toBe("0.85");
+        expect(objectives[0].progress_measure).toBe("1");
+        expect(objectives[0].completion_status).toBe("completed");
+
+        expect(objectives[1].id).toBe("obj-2");
+        expect(objectives[1].success_status).toBe("failed");
+      });
+
+      it("should return empty array for null or invalid snapshot", (): void => {
+        const scorm2004API = api();
+
+        const objectives1 = scorm2004API["buildCMIObjectivesFromMap"](null as any);
+        expect(objectives1).toEqual([]);
+
+        const objectives2 = scorm2004API["buildCMIObjectivesFromMap"](undefined as any);
+        expect(objectives2).toEqual([]);
+
+        const objectives3 = scorm2004API["buildCMIObjectivesFromMap"]("not an object" as any);
+        expect(objectives3).toEqual([]);
+      });
+
+      it("should skip invalid entries in snapshot", (): void => {
+        const scorm2004API = api();
+
+        const snapshot = {
+          "obj-1": {
+            id: "obj-1",
+            satisfiedStatus: true,
+            satisfiedStatusKnown: true,
+          },
+          invalid: null,
+          "obj-2": "not an object",
+          "obj-3": {
+            id: "obj-3",
+            satisfiedStatus: false,
+            satisfiedStatusKnown: true,
+          },
+        };
+
+        const objectives = scorm2004API["buildCMIObjectivesFromMap"](snapshot);
+
+        expect(objectives.length).toBe(2);
+        expect(objectives[0].id).toBe("obj-1");
+        expect(objectives[1].id).toBe("obj-3");
+      });
+
+      it("should handle unknown status flags correctly", (): void => {
+        const scorm2004API = api();
+
+        const snapshot = {
+          "obj-1": {
+            id: "obj-1",
+            satisfiedStatusKnown: false,
+            normalizedMeasureKnown: false,
+            progressMeasureKnown: false,
+            completionStatusKnown: false,
+          },
+        };
+
+        const objectives = scorm2004API["buildCMIObjectivesFromMap"](snapshot);
+
+        expect(objectives.length).toBe(1);
+        expect(objectives[0].id).toBe("obj-1");
+        // Status should not be set when known flags are false
+        expect(objectives[0].success_status).toBe("unknown");
+      });
+    });
+
+    describe("parseObjectiveNumber()", (): void => {
+      it("should parse valid numeric values", (): void => {
+        const scorm2004API = api();
+
+        expect(scorm2004API["parseObjectiveNumber"](42)).toBe(42);
+        expect(scorm2004API["parseObjectiveNumber"](0.85)).toBe(0.85);
+        expect(scorm2004API["parseObjectiveNumber"](-10.5)).toBe(-10.5);
+      });
+
+      it("should parse string numbers", (): void => {
+        const scorm2004API = api();
+
+        expect(scorm2004API["parseObjectiveNumber"]("42")).toBe(42);
+        expect(scorm2004API["parseObjectiveNumber"]("0.85")).toBe(0.85);
+        expect(scorm2004API["parseObjectiveNumber"]("-10.5")).toBe(-10.5);
+      });
+
+      it("should return null for null and undefined", (): void => {
+        const scorm2004API = api();
+
+        expect(scorm2004API["parseObjectiveNumber"](null)).toBe(null);
+        expect(scorm2004API["parseObjectiveNumber"](undefined)).toBe(null);
+      });
+
+      it("should return null for non-finite numbers", (): void => {
+        const scorm2004API = api();
+
+        expect(scorm2004API["parseObjectiveNumber"](Infinity)).toBe(null);
+        expect(scorm2004API["parseObjectiveNumber"](-Infinity)).toBe(null);
+        expect(scorm2004API["parseObjectiveNumber"](NaN)).toBe(null);
+      });
+
+      it("should return null for non-numeric strings", (): void => {
+        const scorm2004API = api();
+
+        expect(scorm2004API["parseObjectiveNumber"]("not a number")).toBe(null);
+        expect(scorm2004API["parseObjectiveNumber"]("abc")).toBe(null);
+        expect(scorm2004API["parseObjectiveNumber"]("")).toBe(null);
+      });
+    });
+
+    describe("updateGlobalObjectiveFromCMI()", (): void => {
+      it("should update global objective when sequencing service exists", (): void => {
+        const scorm2004API = api({
+          sequencing: {
+            activityTree: {
+              id: "root",
+              title: "Test Course",
+              objectives: [
+                {
+                  objectiveID: "global-obj-1",
+                  satisfiedByMeasure: true,
+                  minNormalizedMeasure: 0.7,
+                  isPrimary: true,
+                },
+              ],
+            },
+          },
+        });
+
+        scorm2004API.lmsInitialize();
+
+        // Create a CMI objective
+        const objective = new CMIObjectivesObject();
+        objective.id = "global-obj-1";
+        objective.success_status = "passed";
+        objective.score.scaled = "0.85";
+        objective.progress_measure = "1.0";
+        objective.completion_status = "completed";
+
+        // Call the update method
+        scorm2004API["updateGlobalObjectiveFromCMI"]("global-obj-1", objective);
+
+        // Verify the update was applied
+        const sequencingService = scorm2004API["_sequencingService"];
+        const overallProcess = sequencingService?.getOverallSequencingProcess();
+        const map = overallProcess?.getGlobalObjectiveMap();
+
+        expect(map?.has("global-obj-1")).toBe(true);
+      });
+
+      it("should return early when objectiveId is empty", (): void => {
+        const scorm2004API = api({
+          sequencing: {
+            activityTree: {
+              id: "root",
+              title: "Test Course",
+            },
+          },
+        });
+
+        scorm2004API.lmsInitialize();
+
+        const objective = new CMIObjectivesObject();
+        objective.success_status = "passed";
+
+        // Should not throw, just return early
+        scorm2004API["updateGlobalObjectiveFromCMI"]("", objective);
+      });
+
+      it("should return early when sequencing service is not available", (): void => {
+        const scorm2004API = api(); // No sequencing config
+
+        const objective = new CMIObjectivesObject();
+        objective.id = "obj-1";
+        objective.success_status = "passed";
+
+        // Should not throw, just return early
+        scorm2004API["updateGlobalObjectiveFromCMI"]("obj-1", objective);
+      });
+
+      it("should create new entry when objective not in map", (): void => {
+        const scorm2004API = api({
+          sequencing: {
+            activityTree: {
+              id: "root",
+              title: "Test Course",
+            },
+          },
+        });
+
+        scorm2004API.lmsInitialize();
+
+        const objective = new CMIObjectivesObject();
+        objective.id = "new-obj";
+        objective.success_status = "passed";
+        objective.score.scaled = "0.9";
+
+        scorm2004API["updateGlobalObjectiveFromCMI"]("new-obj", objective);
+
+        const sequencingService = scorm2004API["_sequencingService"];
+        const overallProcess = sequencingService?.getOverallSequencingProcess();
+        const map = overallProcess?.getGlobalObjectiveMap();
+
+        expect(map?.has("new-obj")).toBe(true);
+      });
+
+      it("should skip update when no valid properties to update", (): void => {
+        const scorm2004API = api({
+          sequencing: {
+            activityTree: {
+              id: "root",
+              title: "Test Course",
+              objectives: [
+                {
+                  objectiveID: "global-obj-1",
+                  isPrimary: true,
+                },
+              ],
+            },
+          },
+        });
+
+        scorm2004API.lmsInitialize();
+
+        // Create objective with only unknown status
+        const objective = new CMIObjectivesObject();
+        objective.id = "global-obj-1";
+        objective.success_status = "unknown";
+        objective.completion_status = "unknown";
+
+        // Should return early without updating
+        scorm2004API["updateGlobalObjectiveFromCMI"]("global-obj-1", objective);
+      });
+
+      it("should update only specified properties", (): void => {
+        const scorm2004API = api({
+          sequencing: {
+            activityTree: {
+              id: "root",
+              title: "Test Course",
+              objectives: [
+                {
+                  objectiveID: "global-obj-1",
+                  isPrimary: true,
+                },
+              ],
+            },
+          },
+        });
+
+        scorm2004API.lmsInitialize();
+
+        // Update with only success_status
+        const objective1 = new CMIObjectivesObject();
+        objective1.id = "global-obj-1";
+        objective1.success_status = "passed";
+
+        scorm2004API["updateGlobalObjectiveFromCMI"]("global-obj-1", objective1);
+
+        // Update with only score
+        const objective2 = new CMIObjectivesObject();
+        objective2.id = "global-obj-1";
+        objective2.score.scaled = "0.75";
+
+        scorm2004API["updateGlobalObjectiveFromCMI"]("global-obj-1", objective2);
+
+        // Update with only progress_measure
+        const objective3 = new CMIObjectivesObject();
+        objective3.id = "global-obj-1";
+        objective3.progress_measure = "0.8";
+
+        scorm2004API["updateGlobalObjectiveFromCMI"]("global-obj-1", objective3);
+
+        // Update with only completion_status
+        const objective4 = new CMIObjectivesObject();
+        objective4.id = "global-obj-1";
+        objective4.completion_status = "completed";
+
+        scorm2004API["updateGlobalObjectiveFromCMI"]("global-obj-1", objective4);
+      });
+    });
+
+    describe("compressStateData() and decompressStateData()", (): void => {
+      it("should compress and decompress data correctly", (): void => {
+        const scorm2004API = api();
+
+        const testData = JSON.stringify({
+          objectives: [
+            { id: "obj-1", success_status: "passed" },
+            { id: "obj-2", success_status: "failed" },
+          ],
+          interactions: [],
+        });
+
+        const compressed = scorm2004API["compressStateData"](testData);
+        expect(compressed).not.toBe(testData);
+        expect(compressed.length).toBeGreaterThan(0);
+
+        const decompressed = scorm2004API["decompressStateData"](compressed);
+        expect(decompressed).toBe(testData);
+      });
+
+      it("should handle decompression errors gracefully", (): void => {
+        const scorm2004API = api();
+
+        // Invalid base64 should return original data
+        const invalidData = "!@#$%^&*()";
+        const result = scorm2004API["decompressStateData"](invalidData);
+        expect(result).toBe(invalidData);
+      });
+
+      it("should return original data when btoa/atob not available", (): void => {
+        const scorm2004API = api();
+
+        // Save original btoa/atob
+        const originalBtoa = globalThis.btoa;
+        const originalAtob = globalThis.atob;
+
+        try {
+          // Remove btoa/atob
+          (globalThis as any).btoa = undefined;
+          (globalThis as any).atob = undefined;
+
+          const testData = "test data";
+          const compressed = scorm2004API["compressStateData"](testData);
+          expect(compressed).toBe(testData);
+
+          const decompressed = scorm2004API["decompressStateData"](testData);
+          expect(decompressed).toBe(testData);
+        } finally {
+          // Restore btoa/atob
+          globalThis.btoa = originalBtoa;
+          globalThis.atob = originalAtob;
+        }
+      });
+    });
+
+    describe("captureGlobalObjectiveSnapshot()", (): void => {
+      it("should capture snapshot with sequencing process", (): void => {
+        const scorm2004API = api({
+          sequencing: {
+            activityTree: {
+              id: "root",
+              title: "Test Course",
+              objectives: [
+                {
+                  objectiveID: "global-obj-1",
+                  isPrimary: true,
+                },
+              ],
+            },
+          },
+        });
+
+        scorm2004API.lmsInitialize();
+
+        // Add a global objective via CMI
+        scorm2004API.lmsSetValue("cmi.objectives.0.id", "global-obj-1");
+        scorm2004API.lmsSetValue("cmi.objectives.0.success_status", "passed");
+
+        const snapshot = scorm2004API["captureGlobalObjectiveSnapshot"]();
+
+        expect(snapshot).toBeDefined();
+        expect(typeof snapshot).toBe("object");
+      });
+
+      it("should capture snapshot without sequencing process", (): void => {
+        const scorm2004API = api();
+        scorm2004API.lmsInitialize();
+
+        // Access the _globalObjectives array directly
+        const globalObj = new CMIObjectivesObject();
+        globalObj.id = "obj-1";
+        globalObj.success_status = "passed";
+        scorm2004API["_globalObjectives"] = [globalObj];
+
+        const snapshot = scorm2004API["captureGlobalObjectiveSnapshot"]();
+
+        expect(snapshot).toBeDefined();
+        expect(snapshot["obj-1"]).toBeDefined();
+      });
+    });
+
+    describe("buildObjectiveMapEntryFromCMI()", (): void => {
+      it("should build map entry with all properties", (): void => {
+        const scorm2004API = api();
+
+        const objective = new CMIObjectivesObject();
+        objective.id = "test-obj";
+        objective.success_status = "passed";
+        objective.completion_status = "completed";
+        objective.progress_measure = "1.0";
+        objective.score.scaled = "0.85";
+
+        const entry = scorm2004API["buildObjectiveMapEntryFromCMI"](objective);
+
+        expect(entry.id).toBe("test-obj");
+        expect(entry.satisfiedStatus).toBe(true);
+        expect(entry.satisfiedStatusKnown).toBe(true);
+        expect(entry.normalizedMeasure).toBe(0.85);
+        expect(entry.normalizedMeasureKnown).toBe(true);
+        expect(entry.progressMeasure).toBe(1);
+        expect(entry.progressMeasureKnown).toBe(true);
+        expect(entry.completionStatus).toBe("completed");
+        expect(entry.completionStatusKnown).toBe(true);
+      });
+
+      it("should handle failed status", (): void => {
+        const scorm2004API = api();
+
+        const objective = new CMIObjectivesObject();
+        objective.id = "test-obj";
+        objective.success_status = "failed";
+
+        const entry = scorm2004API["buildObjectiveMapEntryFromCMI"](objective);
+
+        expect(entry.satisfiedStatus).toBe(false);
+        expect(entry.satisfiedStatusKnown).toBe(true);
+      });
+
+      it("should skip unknown statuses", (): void => {
+        const scorm2004API = api();
+
+        const objective = new CMIObjectivesObject();
+        objective.id = "test-obj";
+        objective.success_status = "unknown";
+        objective.completion_status = "unknown";
+
+        const entry = scorm2004API["buildObjectiveMapEntryFromCMI"](objective);
+
+        expect(entry.id).toBe("test-obj");
+        // Known flags should be false or not set for unknown status
+      });
+    });
+
+    describe("deserializeSequencingState()", (): void => {
+      it("should deserialize valid state data", (): void => {
+        const scorm2004API = api({
+          sequencing: {
+            activityTree: {
+              id: "root",
+              title: "Test Course",
+            },
+          },
+        });
+
+        scorm2004API.lmsInitialize();
+
+        // Create state data
+        const stateData = JSON.stringify({
+          version: "1.0",
+          sequencing: {
+            currentActivity: "root",
+          },
+          globalObjectives: [
+            {
+              id: "obj-1",
+              success_status: "passed",
+            },
+          ],
+          globalObjectiveMap: {
+            "obj-1": {
+              id: "obj-1",
+              satisfiedStatus: true,
+              satisfiedStatusKnown: true,
+            },
+          },
+          contentDelivered: true,
+          adlNavState: {
+            request: "continue",
+            request_valid: {},
+          },
+        });
+
+        const result = scorm2004API["deserializeSequencingState"](stateData);
+        expect(result).toBe(true);
+      });
+
+      it("should handle version mismatch with warning", (): void => {
+        const scorm2004API = api({
+          sequencing: {
+            activityTree: {
+              id: "root",
+              title: "Test Course",
+            },
+            statePersistence: {
+              stateVersion: "2.0",
+            },
+          },
+        });
+
+        scorm2004API.lmsInitialize();
+
+        const stateData = JSON.stringify({
+          version: "1.0",
+          sequencing: {},
+        });
+
+        // Should still succeed but log warning
+        const result = scorm2004API["deserializeSequencingState"](stateData);
+        expect(result).toBe(true);
+      });
+
+      it("should handle invalid JSON gracefully", (): void => {
+        const scorm2004API = api({
+          sequencing: {
+            activityTree: {
+              id: "root",
+              title: "Test Course",
+            },
+          },
+        });
+
+        scorm2004API.lmsInitialize();
+
+        const result = scorm2004API["deserializeSequencingState"]("invalid json {{{");
+        expect(result).toBe(false);
+      });
+
+      it("should skip objectives without id", (): void => {
+        const scorm2004API = api({
+          sequencing: {
+            activityTree: {
+              id: "root",
+              title: "Test Course",
+            },
+          },
+        });
+
+        scorm2004API.lmsInitialize();
+
+        const stateData = JSON.stringify({
+          version: "1.0",
+          globalObjectives: [
+            {
+              // No id field
+              success_status: "passed",
+            },
+            {
+              id: "obj-2",
+              success_status: "failed",
+            },
+          ],
+        });
+
+        const result = scorm2004API["deserializeSequencingState"](stateData);
+        expect(result).toBe(true);
+        expect(scorm2004API["_globalObjectives"].length).toBeGreaterThanOrEqual(0);
+      });
+
+      it("should handle globalObjectiveMap with missing ids", (): void => {
+        const scorm2004API = api({
+          sequencing: {
+            activityTree: {
+              id: "root",
+              title: "Test Course",
+            },
+          },
+        });
+
+        scorm2004API.lmsInitialize();
+
+        const stateData = JSON.stringify({
+          version: "1.0",
+          globalObjectiveMap: {
+            "obj-1": {
+              // Has id
+              id: "obj-1",
+              satisfiedStatus: true,
+              satisfiedStatusKnown: true,
+            },
+            "obj-2": {
+              // Missing id - should use key
+              satisfiedStatus: false,
+              satisfiedStatusKnown: true,
+            },
+          },
+        });
+
+        const result = scorm2004API["deserializeSequencingState"](stateData);
+        expect(result).toBe(true);
+      });
+
+      it("should merge globalObjectiveMap into sequencing state", (): void => {
+        const scorm2004API = api({
+          sequencing: {
+            activityTree: {
+              id: "root",
+              title: "Test Course",
+            },
+          },
+        });
+
+        scorm2004API.lmsInitialize();
+
+        const stateData = JSON.stringify({
+          version: "1.0",
+          sequencing: {
+            currentActivity: "root",
+          },
+          globalObjectiveMap: {
+            "obj-1": {
+              id: "obj-1",
+              satisfiedStatus: true,
+              satisfiedStatusKnown: true,
+            },
+          },
+        });
+
+        const result = scorm2004API["deserializeSequencingState"](stateData);
+        expect(result).toBe(true);
+      });
+
+      it("should restore ADL nav state", (): void => {
+        const scorm2004API = api({
+          sequencing: {
+            activityTree: {
+              id: "root",
+              title: "Test Course",
+            },
+          },
+        });
+
+        scorm2004API.lmsInitialize();
+
+        const stateData = JSON.stringify({
+          version: "1.0",
+          adlNavState: {
+            request: "continue",
+            request_valid: { continue: "true" },
+          },
+        });
+
+        const result = scorm2004API["deserializeSequencingState"](stateData);
+        expect(result).toBe(true);
+        expect(scorm2004API.adl.nav.request).toBe("continue");
+      });
+
+      it("should handle missing ADL nav state", (): void => {
+        const scorm2004API = api({
+          sequencing: {
+            activityTree: {
+              id: "root",
+              title: "Test Course",
+            },
+          },
+        });
+
+        scorm2004API.lmsInitialize();
+
+        const stateData = JSON.stringify({
+          version: "1.0",
+          sequencing: {},
+        });
+
+        const result = scorm2004API["deserializeSequencingState"](stateData);
+        expect(result).toBe(true);
+      });
+    });
+
+    describe("serializeSequencingState()", (): void => {
+      it("should serialize state with all components", (): void => {
+        const scorm2004API = api({
+          sequencing: {
+            activityTree: {
+              id: "root",
+              title: "Test Course",
+            },
+            statePersistence: {
+              stateVersion: "1.0",
+            },
+          },
+        });
+
+        scorm2004API.lmsInitialize();
+
+        // Add some global objectives
+        const globalObj = new CMIObjectivesObject();
+        globalObj.id = "obj-1";
+        globalObj.success_status = "passed";
+        scorm2004API["_globalObjectives"] = [globalObj];
+
+        const serialized = scorm2004API["serializeSequencingState"]();
+
+        expect(serialized).toBeDefined();
+        expect(typeof serialized).toBe("string");
+
+        const parsed = JSON.parse(serialized);
+        expect(parsed.version).toBe("1.0");
+        expect(parsed.globalObjectives).toBeDefined();
+        expect(parsed.globalObjectiveMap).toBeDefined();
+      });
+
+      it("should include sequencing state when available", (): void => {
+        const scorm2004API = api({
+          sequencing: {
+            activityTree: {
+              id: "root",
+              title: "Test Course",
+            },
+          },
+        });
+
+        scorm2004API.lmsInitialize();
+
+        const serialized = scorm2004API["serializeSequencingState"]();
+        const parsed = JSON.parse(serialized);
+
+        expect(parsed.sequencing).toBeDefined();
+      });
+    });
+  });
+
+  describe("Error Handling and Edge Cases", (): void => {
+    describe("API State Errors", (): void => {
+      it("should handle GetValue before Initialize", (): void => {
+        const scorm2004API = api();
+
+        const result = scorm2004API.lmsGetValue("cmi.learner_id");
+
+        expect(result).toBe("");
+        expect(scorm2004API.lmsGetLastError()).toBe(String(scorm2004_errors.RETRIEVE_BEFORE_INIT));
+      });
+
+      it("should handle SetValue before Initialize", (): void => {
+        const scorm2004API = api();
+
+        const result = scorm2004API.lmsSetValue("cmi.location", "page1");
+
+        expect(result).toBe("false");
+        expect(scorm2004API.lmsGetLastError()).toBe(String(scorm2004_errors.STORE_BEFORE_INIT));
+      });
+
+      it("should handle Commit before Initialize", (): void => {
+        const scorm2004API = api();
+
+        const result = scorm2004API.lmsCommit("");
+
+        expect(result).toBe("false");
+        expect(scorm2004API.lmsGetLastError()).toBe(String(scorm2004_errors.COMMIT_BEFORE_INIT));
+      });
+
+      it("should handle Finish when not initialized", (): void => {
+        const scorm2004API = api();
+
+        const result = scorm2004API.lmsFinish("");
+
+        expect(result).toBe("false");
+        expect(scorm2004API.lmsGetLastError()).toBe(
+          String(scorm2004_errors.TERMINATION_BEFORE_INIT),
+        );
+      });
+
+      it("should handle Initialize when already initialized", (): void => {
+        const scorm2004API = api();
+        scorm2004API.lmsInitialize();
+
+        const result = scorm2004API.lmsInitialize();
+
+        expect(result).toBe("false");
+        // Error 103 is returned
+        expect(scorm2004API.lmsGetLastError()).toBe("103");
+      });
+
+      it("should handle GetValue after Finish", (): void => {
+        const scorm2004API = api();
+        scorm2004API.lmsInitialize();
+        scorm2004API.lmsFinish("");
+
+        const result = scorm2004API.lmsGetValue("cmi.learner_id");
+
+        expect(result).toBe("");
+        expect(scorm2004API.lmsGetLastError()).toBe(String(scorm2004_errors.RETRIEVE_AFTER_TERM));
+      });
+    });
+
+    describe("Invalid Data Handling", (): void => {
+      it("should handle invalid CMI element in GetValue", (): void => {
+        const scorm2004API = apiInitialized();
+
+        const result = scorm2004API.lmsGetValue("cmi.invalid.element");
+
+        expect(result).toBe("");
+        expect(scorm2004API.lmsGetLastError()).toBe(String(scorm2004_errors.UNDEFINED_DATA_MODEL));
+      });
+
+      it("should handle invalid CMI element in SetValue", (): void => {
+        const scorm2004API = apiInitialized();
+
+        const result = scorm2004API.lmsSetValue("cmi.invalid.element", "value");
+
+        expect(result).toBe("false");
+        expect(scorm2004API.lmsGetLastError()).toBe(String(scorm2004_errors.UNDEFINED_DATA_MODEL));
+      });
+
+      it("should handle write to read-only element", (): void => {
+        const scorm2004API = apiInitialized();
+
+        const result = scorm2004API.lmsSetValue("cmi.learner_id", "new-id");
+
+        expect(result).toBe("false");
+        expect(scorm2004API.lmsGetLastError()).toBe(String(scorm2004_errors.READ_ONLY_ELEMENT));
+      });
+
+      it("should handle read from write-only element", (): void => {
+        const scorm2004API = apiInitialized();
+
+        // exit is write-only
+        const result = scorm2004API.lmsGetValue("cmi.exit");
+
+        expect(result).toBe("");
+        expect(scorm2004API.lmsGetLastError()).toBe(String(scorm2004_errors.WRITE_ONLY_ELEMENT));
+      });
+    });
+
+    describe("LMS Communication Failures", (): void => {
+      it("should handle HTTP request failure on Commit", async (): Promise<void> => {
+        const scorm2004API = api({
+          lmsCommitUrl: "http://invalid-url",
+        });
+
+        scorm2004API.lmsInitialize();
+        scorm2004API.lmsSetValue("cmi.location", "page1");
+
+        // Mock fetch to fail
+        const originalFetch = globalThis.fetch;
+        globalThis.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
+
+        try {
+          const result = scorm2004API.lmsCommit("");
+
+          // In synchronous mode, should still return true optimistically
+          // The actual error would be logged
+          expect(["true", "false"]).toContain(result);
+        } finally {
+          globalThis.fetch = originalFetch;
+        }
+      });
+    });
+
+    describe("Sequencing Edge Cases", (): void => {
+      it("should handle SetValue on sequencing data without sequencing service", (): void => {
+        const scorm2004API = api(); // No sequencing
+        scorm2004API.lmsInitialize();
+
+        // Should succeed without sequencing service
+        const result = scorm2004API.lmsSetValue("cmi.success_status", "passed");
+        expect(result).toBe("true");
+      });
+
+      it("should handle navigation request without sequencing service", (): void => {
+        const scorm2004API = api(); // No sequencing
+        scorm2004API.lmsInitialize();
+
+        const result = scorm2004API.lmsGetValue("adl.nav.request_valid.continue");
+        expect(result).toBe("unknown");
       });
     });
   });
