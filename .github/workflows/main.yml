@@ -75,9 +75,11 @@ jobs:
 
       - name: Upload test results to Codecov
         if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
-        uses: codecov/test-results-action@v1
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          report_type: test_results
+          files: test-report.junit.xml
 
       - name: 'Report Coverage'
         if: always()
@@ -175,6 +177,7 @@ jobs:
           name: playwright-results-shard-${{ matrix.shard }}
           path: test-results/
           retention-days: 7
+          if-no-files-found: ignore
 
       - name: Upload coverage artifact
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
