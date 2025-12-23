@@ -452,7 +452,7 @@ this.Scorm2004API = (function () {
         } else {
           return {
             result: httpResult.result,
-            errorCode: httpResult.errorCode ? httpResult.errorCode : httpResult.result === global_constants.SCORM_TRUE ? 0 : 101
+            errorCode: typeof httpResult.errorCode === "number" ? httpResult.errorCode : httpResult.result === true || httpResult.result === global_constants.SCORM_TRUE ? 0 : 101
           };
         }
       }
@@ -476,7 +476,7 @@ this.Scorm2004API = (function () {
           }
           return {
             result: httpResult.result,
-            errorCode: httpResult.errorCode ? httpResult.errorCode : httpResult.result === global_constants.SCORM_TRUE ? 0 : 101
+            errorCode: typeof httpResult.errorCode === "number" ? httpResult.errorCode : httpResult.result === true || httpResult.result === global_constants.SCORM_TRUE ? 0 : 101
           };
         } else {
           return {
@@ -1798,7 +1798,7 @@ ${stackTrace}`);
           }
           try {
             const syncResult = await this.sendDataToLMS(item.data);
-            if (syncResult.result === global_constants.SCORM_TRUE) {
+            if (syncResult.result === true || syncResult.result === global_constants.SCORM_TRUE) {
               this.apiLog("OfflineStorageService", `Successfully synced item ${item.id}`, LogLevelEnum.INFO);
             } else {
               item.syncAttempts++;

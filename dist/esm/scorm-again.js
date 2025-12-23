@@ -2832,7 +2832,7 @@ const DefaultSettings = {
       } else {
         return {
           result: httpResult.result,
-          errorCode: httpResult.errorCode ? httpResult.errorCode : httpResult.result === global_constants.SCORM_TRUE ? 0 : 101
+          errorCode: typeof httpResult.errorCode === "number" ? httpResult.errorCode : httpResult.result === true || httpResult.result === global_constants.SCORM_TRUE ? 0 : 101
         };
       }
     }
@@ -2854,7 +2854,7 @@ const DefaultSettings = {
         }
         return {
           result: httpResult.result,
-          errorCode: httpResult.errorCode ? httpResult.errorCode : httpResult.result === global_constants.SCORM_TRUE ? 0 : 101
+          errorCode: typeof httpResult.errorCode === "number" ? httpResult.errorCode : httpResult.result === true || httpResult.result === global_constants.SCORM_TRUE ? 0 : 101
         };
       } else {
         return { result: global_constants.SCORM_FALSE, errorCode: 101 };
@@ -4163,7 +4163,7 @@ class OfflineStorageService {
         }
         try {
           const syncResult = await this.sendDataToLMS(item.data);
-          if (syncResult.result === global_constants.SCORM_TRUE) {
+          if (syncResult.result === true || syncResult.result === global_constants.SCORM_TRUE) {
             this.apiLog(
               "OfflineStorageService",
               `Successfully synced item ${item.id}`,
