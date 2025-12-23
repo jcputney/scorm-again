@@ -11,6 +11,12 @@
   background-color: var(--ifm-background-color);
 }
 
+.heroLogo {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 1.5rem;
+}
+
 .heroTitle {
   font-size: 3.5rem;
   font-weight: 700;
@@ -53,6 +59,12 @@
 @media screen and (max-width: 996px) {
   .heroBanner {
     padding: 4rem 1rem;
+  }
+
+  .heroLogo {
+    width: 90px;
+    height: 90px;
+    margin-bottom: 1rem;
   }
 
   .heroTitle {
