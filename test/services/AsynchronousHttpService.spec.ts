@@ -614,6 +614,77 @@ describe("AsynchronousHttpService", () => {
         expect(httpServiceAny._isSuccessResponse(response, result)).toBe(expected);
       }
     });
+
+    it("should handle response parsing errors with detailed error info", async () => {
+      const url = "https://example.com/api";
+      const params = { data: "test" };
+
+      // Create a mock response that will fail to parse
+      const mockResponse = {
+        status: 200,
+        statusText: "OK",
+        url: url,
+        text: vi
+          .fn()
+          .mockResolvedValue("This is a very long response text that should be truncated"),
+        json: vi.fn().mockRejectedValue(new Error("Unexpected token < in JSON")),
+      } as unknown as Response;
+
+      fetchStub.mockResolvedValue(mockResponse);
+      processListenersStub.mockClear();
+      apiLogStub.mockClear();
+
+      httpService.processHttpRequest(url, params, false, apiLogStub, processListenersStub);
+
+      // Wait for async operation to complete - the parsing error is caught and handled
+      // The service will call text() to get the response text for error details
+      await vi.waitFor(
+        () => {
+          expect(mockResponse.text).toHaveBeenCalled();
+        },
+        { timeout: 2000 },
+      );
+
+      // Since the response fails to parse, CommitError should be triggered
+      await vi.waitFor(
+        () => {
+          expect(processListenersStub).toHaveBeenCalledWith(
+            "CommitError",
+            undefined,
+            errorCodes.GENERAL_COMMIT_FAILURE,
+          );
+        },
+        { timeout: 2000 },
+      );
+    });
+
+    it("should handle response.text() error when parsing fails", async () => {
+      const url = "https://example.com/api";
+      const params = { data: "test" };
+
+      // Create a mock response where both json() and text() fail
+      const mockResponse = {
+        status: 500,
+        statusText: "Internal Server Error",
+        url: url,
+        text: vi.fn().mockRejectedValue(new Error("Unable to read response")),
+        json: vi.fn().mockRejectedValue(new Error("Invalid JSON")),
+      } as unknown as Response;
+
+      fetchStub.mockResolvedValue(mockResponse);
+      processListenersStub.mockClear();
+
+      httpService.processHttpRequest(url, params, false, apiLogStub, processListenersStub);
+
+      // Wait for async operation to complete
+      await vi.waitFor(() => {
+        expect(processListenersStub).toHaveBeenCalledWith(
+          "CommitError",
+          undefined,
+          errorCodes.GENERAL_COMMIT_FAILURE,
+        );
+      });
+    });
   });
 
   describe("updateSettings", () => {

@@ -335,4 +335,259 @@ describe("Scorm12Sequencer", () => {
       expect(sequencer.isScoAvailable("module2")).toBe(false);
     });
   });
+
+  describe("edge cases", () => {
+    it("should handle getNextSco with invalid current ID", () => {
+      const next = sequencer.getNextSco("invalid-id");
+      expect(next).toBeNull();
+    });
+
+    it("should handle getPreviousSco with invalid current ID", () => {
+      const prev = sequencer.getPreviousSco("invalid-id");
+      expect(prev).toBeNull();
+    });
+
+    it("should handle processExitAction with unknown SCO", () => {
+      const suggestion = sequencer.processExitAction("unknown-sco", "");
+      expect(suggestion.action).toBe("exit");
+      expect(suggestion.reason).toBe("Unknown SCO");
+    });
+
+    it("should handle normal exit with incomplete status", () => {
+      tracker.updateFromCmiData("module1", {
+        core: { lesson_status: "incomplete" },
+      });
+
+      const suggestion = sequencer.processExitAction("module1", "");
+      expect(suggestion.action).toBe("exit");
+      expect(suggestion.reason).toContain("incomplete");
+    });
+
+    it("should handle time-out with continue action", () => {
+      // Create SCO with continue action
+      const continueTracker = new ScoStateTracker();
+      const continueDefs: ScoDefinition[] = [
+        {
+          id: "quiz",
+          title: "Quiz",
+          launchUrl: "quiz.html",
+          timeLimitAction: "continue,message",
+          sequenceIndex: 0,
+        },
+      ];
+
+      const continueSequencer = new Scorm12Sequencer(
+        continueDefs,
+        continueTracker,
+      );
+
+      continueTracker.updateFromCmiData("quiz", {
+        core: { lesson_status: "incomplete" },
+      });
+
+      const suggestion = continueSequencer.processExitAction("quiz", "time-out");
+      expect(suggestion.action).toBe("continue");
+      expect(suggestion.targetScoId).toBe("quiz");
+      expect(suggestion.reason).toContain("continue allowed");
+    });
+
+    it("should handle time-out with exit action when completed and has next", () => {
+      tracker.updateFromCmiData("assessment", {
+        core: { lesson_status: "passed" },
+      });
+
+      // Add another SCO after assessment
+      const extendedDefs: ScoDefinition[] = [
+        ...scoDefinitions,
+        {
+          id: "final",
+          title: "Final",
+          launchUrl: "final.html",
+          sequenceIndex: 4,
+        },
+      ];
+
+      const extendedSequencer = new Scorm12Sequencer(
+        extendedDefs,
+        new ScoStateTracker(),
+      );
+
+      // Update with exit,message on assessment
+      const assessmentWithExit = extendedDefs.find(
+        (s) => s.id === "assessment",
+      )!;
+      extendedSequencer["_stateTracker"].updateFromCmiData("assessment", {
+        core: { lesson_status: "passed" },
+      });
+
+      const suggestion = extendedSequencer.processExitAction(
+        "assessment",
+        "time-out",
+      );
+      expect(suggestion.action).toBe("continue");
+      expect(suggestion.targetScoId).toBe("final");
+      expect(suggestion.reason).toContain("moving to next SCO");
+    });
+
+    it("should handle completed status in normal exit", () => {
+      tracker.updateFromCmiData("module1", {
+        core: { lesson_status: "completed" },
+      });
+
+      const suggestion = sequencer.processExitAction("module1", "");
+      expect(suggestion.action).toBe("continue");
+      expect(suggestion.targetScoId).toBe("module2");
+    });
+
+    it("should return null when no SCOs available with filter", () => {
+      sequencer.setAvailabilityFilter(() => false);
+      const next = sequencer.getNextSco(null);
+      expect(next).toBeNull();
+    });
+
+    it("should skip all unavailable SCOs in getNextSco", () => {
+      // Make module1 and module2 unavailable
+      sequencer.setAvailabilityFilter(
+        (sco) => sco.id !== "module1" && sco.id !== "module2",
+      );
+
+      const next = sequencer.getNextSco("intro");
+      expect(next?.id).toBe("assessment");
+    });
+
+    it("should skip all unavailable SCOs in getPreviousSco", () => {
+      // Make intro and module1 unavailable
+      sequencer.setAvailabilityFilter(
+        (sco) => sco.id !== "intro" && sco.id !== "module1",
+      );
+
+      const prev = sequencer.getPreviousSco("assessment");
+      expect(prev?.id).toBe("module2");
+    });
+
+    it("should return null from getPreviousSco when all previous are unavailable", () => {
+      // Make all SCOs before module2 unavailable
+      sequencer.setAvailabilityFilter(
+        (sco) => sco.id === "module2" || sco.id === "assessment",
+      );
+
+      const prev = sequencer.getPreviousSco("module2");
+      expect(prev).toBeNull();
+    });
+
+    it("should return null from getNextSco when all next are unavailable", () => {
+      // Make all SCOs after intro unavailable
+      sequencer.setAvailabilityFilter((sco) => sco.id === "intro");
+
+      const next = sequencer.getNextSco("intro");
+      expect(next).toBeNull();
+    });
+
+    it("should handle suspended SCO that is not available", () => {
+      tracker.updateFromCmiData("module1", {
+        core: { lesson_status: "incomplete", exit: "suspend" },
+      });
+
+      // Make suspended SCO unavailable
+      sequencer.setAvailabilityFilter((sco) => sco.id !== "module1");
+
+      const starting = sequencer.getStartingSco();
+      // Should fall back to first incomplete
+      expect(starting?.id).not.toBe("module1");
+    });
+
+    it("should handle default case in processExitAction", () => {
+      tracker.updateFromCmiData("module1", {
+        core: { lesson_status: "browsed" },
+      });
+
+      const suggestion = sequencer.processExitAction("module1", "custom-exit");
+      expect(suggestion.action).toBe("exit");
+      expect(suggestion.reason).toContain("incomplete");
+    });
+
+    it("should handle getProgress with empty course", () => {
+      const emptySequencer = new Scorm12Sequencer([], new ScoStateTracker());
+      const progress = emptySequencer.getProgress();
+
+      expect(progress.completed).toBe(0);
+      expect(progress.total).toBe(0);
+      expect(progress.percentage).toBe(0);
+    });
+
+    it("should use default timeLimitAction when not specified", () => {
+      // Create SCO without timeLimitAction
+      const noActionTracker = new ScoStateTracker();
+      const noActionDefs: ScoDefinition[] = [
+        {
+          id: "quiz",
+          title: "Quiz",
+          launchUrl: "quiz.html",
+          sequenceIndex: 0,
+          // timeLimitAction not specified
+        },
+      ];
+
+      const noActionSequencer = new Scorm12Sequencer(
+        noActionDefs,
+        noActionTracker,
+      );
+
+      noActionTracker.updateFromCmiData("quiz", {
+        core: { lesson_status: "incomplete" },
+      });
+
+      const suggestion = noActionSequencer.processExitAction("quiz", "time-out");
+      expect(suggestion.action).toBe("continue");
+      expect(suggestion.reason).toContain("continue allowed");
+    });
+
+    it("should handle time-out with exit action when incomplete and no next", () => {
+      // Create single SCO with exit action
+      const singleTracker = new ScoStateTracker();
+      const singleDefs: ScoDefinition[] = [
+        {
+          id: "final",
+          title: "Final",
+          launchUrl: "final.html",
+          timeLimitAction: "exit,message",
+          sequenceIndex: 0,
+        },
+      ];
+
+      const singleSequencer = new Scorm12Sequencer(singleDefs, singleTracker);
+
+      singleTracker.updateFromCmiData("final", {
+        core: { lesson_status: "incomplete" },
+      });
+
+      const suggestion = singleSequencer.processExitAction("final", "time-out");
+      expect(suggestion.action).toBe("exit");
+      expect(suggestion.reason).toContain("Time limit exceeded");
+    });
+
+    it("should handle time-out with exit action when completed but no next SCO", () => {
+      // Create single SCO with exit action
+      const singleTracker = new ScoStateTracker();
+      const singleDefs: ScoDefinition[] = [
+        {
+          id: "only",
+          title: "Only SCO",
+          launchUrl: "only.html",
+          timeLimitAction: "exit,message",
+          sequenceIndex: 0,
+        },
+      ];
+
+      const singleSequencer = new Scorm12Sequencer(singleDefs, singleTracker);
+
+      singleTracker.updateFromCmiData("only", {
+        core: { lesson_status: "completed" },
+      });
+
+      const suggestion = singleSequencer.processExitAction("only", "time-out");
+      expect(suggestion.action).toBe("exit");
+      expect(suggestion.reason).toContain("Time limit exceeded");
+    });
+  });
 });
