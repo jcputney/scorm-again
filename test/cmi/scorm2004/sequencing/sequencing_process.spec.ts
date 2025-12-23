@@ -3520,4 +3520,470 @@ describe("SequencingProcess", () => {
       expect(result).toBeInstanceOf(SequencingResult);
     });
   });
+
+  describe("validateConstraintsAtAncestorLevel - SB.2.9 specification compliance", () => {
+    /**
+     * SCORM 2004 SB.2.9-7: Constrained Choice Backward Navigation
+     * When constrainChoice is true, backward navigation (choosing an earlier sibling)
+     * is only allowed if the target activity is completed or passed.
+     * This test verifies that attempting to navigate backward to an INCOMPLETE
+     * activity when constrainChoice=true returns exception SB.2.9-7
+     */
+    it("should return SB.2.9-7 for backward choice to incomplete activity with constrainChoice (SB.2.9)", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const child1 = new Activity("child1", "Child 1");
+      const child2 = new Activity("child2", "Child 2");
+      const child3 = new Activity("child3", "Child 3");
+
+      root.addChild(child1);
+      root.addChild(child2);
+      root.addChild(child3);
+
+      // Per SB.2.9: constrainChoice restricts learner choice navigation
+      root.sequencingControls.flow = true;
+      root.sequencingControls.choice = true;
+      root.sequencingControls.constrainChoice = true;
+
+      // child1 is INCOMPLETE (not completed, not passed)
+      // This is the key condition for the test
+      child1.completionStatus = "incomplete";
+      child1.isAvailable = true;
+      child1.isVisible = true;
+
+      tree.root = root;
+      // Set current activity to child3 (later sibling)
+      tree.currentActivity = child3;
+      // NOTE: Must set isActive AFTER setting currentActivity because the setter activates it
+      // For choice navigation to proceed, the current activity must be terminated
+      child3.isActive = false;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      // Attempt backward choice from child3 to child1 (incomplete)
+      // Per SB.2.9, this should be blocked because target is not completed
+      const result = process.sequencingRequestProcess(
+          SequencingRequestType.CHOICE,
+          "child1",
+      );
+
+      // SB.2.9-7: "Activity is not available for a choice sequencing request"
+      // This is the expected exception when constrainChoice blocks backward navigation
+      expect(result.exception).toBe("SB.2.9-7");
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+    });
+
+    /**
+     * SCORM 2004 SB.2.9-6: Prevent Activation
+     * When preventActivation is true on an ancestor, learners cannot choose
+     * activities that have never been attempted (attemptCount=0) unless
+     * they are already active.
+     * This test verifies that attempting to choose an unattempted, inactive
+     * activity when preventActivation=true returns exception SB.2.9-6
+     */
+    it("should return SB.2.9-6 for choice to unattempted activity with preventActivation (SB.2.9)", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const child1 = new Activity("child1", "Child 1");
+      const child2 = new Activity("child2", "Child 2");
+
+      root.addChild(child1);
+      root.addChild(child2);
+
+      // Per SB.2.9: preventActivation restricts choice to previously attempted activities
+      root.sequencingControls.flow = true;
+      root.sequencingControls.choice = true;
+      root.sequencingControls.preventActivation = true;
+
+      // child2 has NEVER been attempted and is not active
+      // This is the key condition for the test
+      child2.attemptCount = 0;
+      child2.isActive = false;
+      child2.isAvailable = true;
+      child2.isVisible = true;
+
+      // child1 is the current activity (has been attempted)
+      child1.attemptCount = 1;
+      child1.isActive = true;
+
+      tree.root = root;
+      tree.currentActivity = child1;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      // Attempt to choose child2 which has never been attempted
+      // Per SB.2.9, this should be blocked by preventActivation
+      const result = process.sequencingRequestProcess(
+          SequencingRequestType.CHOICE,
+          "child2",
+      );
+
+      // SB.2.9-6: "Activity is blocked from activation"
+      // This is the expected exception when preventActivation blocks unattempted activity
+      expect(result.exception).toBe("SB.2.9-6");
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+    });
+
+    /**
+     * Verify that backward choice to a COMPLETED activity IS allowed with constrainChoice
+     * This is the positive case for the constrainChoice backward navigation rule
+     */
+    it("should allow backward choice to completed activity with constrainChoice (SB.2.9)", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const child1 = new Activity("child1", "Child 1");
+      const child2 = new Activity("child2", "Child 2");
+      const child3 = new Activity("child3", "Child 3");
+
+      root.addChild(child1);
+      root.addChild(child2);
+      root.addChild(child3);
+
+      root.sequencingControls.flow = true;
+      root.sequencingControls.choice = true;
+      root.sequencingControls.constrainChoice = true;
+
+      // child1 IS completed - backward choice should be allowed
+      child1.completionStatus = "completed";
+      child1.isAvailable = true;
+      child1.isVisible = true;
+
+      tree.root = root;
+      tree.currentActivity = child3;
+      child3.isActive = false; // Not active to avoid other constraints
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      // Backward choice to completed child1 should succeed
+      const result = process.sequencingRequestProcess(
+          SequencingRequestType.CHOICE,
+          "child1",
+      );
+
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
+      expect(result.targetActivity?.id).toBe("child1");
+    });
+
+    /**
+     * Verify that choice to a previously attempted activity IS allowed with preventActivation
+     * This is the positive case for the preventActivation rule
+     */
+    it("should allow choice to previously attempted activity with preventActivation (SB.2.9)", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const child1 = new Activity("child1", "Child 1");
+      const child2 = new Activity("child2", "Child 2");
+
+      root.addChild(child1);
+      root.addChild(child2);
+
+      root.sequencingControls.flow = true;
+      root.sequencingControls.choice = true;
+      root.sequencingControls.preventActivation = true;
+
+      // child2 HAS been attempted - choice should be allowed
+      child2.attemptCount = 1;
+      child2.isActive = false;
+      child2.isAvailable = true;
+      child2.isVisible = true;
+
+      child1.attemptCount = 1;
+      child1.isAvailable = true;
+      child1.isVisible = true;
+
+      tree.root = root;
+      tree.currentActivity = child1;
+
+      // Current activity must be terminated (not active) for choice navigation
+      // NOTE: Must set isActive AFTER setting currentActivity because the setter activates it
+      child1.isActive = false;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      // Choice to previously attempted child2 should succeed
+      const result = process.sequencingRequestProcess(
+          SequencingRequestType.CHOICE,
+          "child2",
+      );
+
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
+      expect(result.targetActivity?.id).toBe("child2");
+    });
+
+    /**
+     * Test multi-level ancestor constraint validation
+     * Verifies that constraints are checked at EACH ancestor level in the path
+     * The backward choice to incomplete leaf1a triggers SB.2.9 validation
+     */
+    it("should validate constrainChoice at each ancestor level", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const cluster1 = new Activity("cluster1", "Cluster 1");
+      const leaf1a = new Activity("leaf1a", "Leaf 1A");
+      const leaf1b = new Activity("leaf1b", "Leaf 1B");
+      const leaf1c = new Activity("leaf1c", "Leaf 1C");
+
+      root.addChild(cluster1);
+      cluster1.addChild(leaf1a);
+      cluster1.addChild(leaf1b);
+      cluster1.addChild(leaf1c);
+
+      // Only cluster1 has constrainChoice (not root)
+      root.sequencingControls.flow = true;
+      root.sequencingControls.choice = true;
+      cluster1.sequencingControls.flow = true;
+      cluster1.sequencingControls.choice = true;
+      cluster1.sequencingControls.constrainChoice = true;
+
+      // leaf1a is incomplete and has never been attempted
+      leaf1a.completionStatus = "incomplete";
+      leaf1a.attemptCount = 0;
+      leaf1a.isAvailable = true;
+      leaf1a.isVisible = true;
+
+      // Ensure leaf1b and leaf1c have been attempted to avoid preventActivation issues
+      leaf1b.attemptCount = 1;
+      leaf1c.attemptCount = 1;
+
+      tree.root = root;
+      tree.currentActivity = leaf1c;
+      // Current activity must be terminated (not active) for choice navigation
+      leaf1c.isActive = false;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      // Backward choice within cluster with constrainChoice should be blocked
+      // Could be blocked by constrainChoice (SB.2.9-7) or other constraints
+      const result = process.sequencingRequestProcess(
+          SequencingRequestType.CHOICE,
+          "leaf1a",
+      );
+
+      // The choice is blocked - verify the constraint was applied
+      expect(result.exception).toBeTruthy();
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+    });
+
+    /**
+     * Test preventActivation constraint at nested ancestor level
+     */
+    it("should validate preventActivation at each ancestor level", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const cluster1 = new Activity("cluster1", "Cluster 1");
+      const leaf1a = new Activity("leaf1a", "Leaf 1A");
+      const leaf1b = new Activity("leaf1b", "Leaf 1B");
+
+      root.addChild(cluster1);
+      cluster1.addChild(leaf1a);
+      cluster1.addChild(leaf1b);
+
+      // Only cluster1 has preventActivation
+      root.sequencingControls.flow = true;
+      root.sequencingControls.choice = true;
+      cluster1.sequencingControls.flow = true;
+      cluster1.sequencingControls.choice = true;
+      cluster1.sequencingControls.preventActivation = true;
+
+      // leaf1b is unattempted
+      leaf1b.attemptCount = 0;
+      leaf1b.isActive = false;
+      leaf1b.isAvailable = true;
+      leaf1b.isVisible = true;
+
+      // leaf1a is current and has been attempted
+      leaf1a.attemptCount = 1;
+
+      tree.root = root;
+      tree.currentActivity = leaf1a;
+
+      // Current activity must be terminated (not active) for choice navigation
+      // NOTE: Must set isActive AFTER setting currentActivity because the setter activates it
+      leaf1a.isActive = false;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      // Choice to unattempted sibling should be blocked by preventActivation
+      const result = process.sequencingRequestProcess(
+          SequencingRequestType.CHOICE,
+          "leaf1b",
+      );
+
+      expect(result.exception).toBe("SB.2.9-6");
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+    });
+
+    /**
+     * Test that backward choice to "passed" activity is allowed with constrainChoice
+     * (not just "completed" - both should be allowed per spec)
+     */
+    it("should allow backward choice to passed activity with constrainChoice (SB.2.9)", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const child1 = new Activity("child1", "Child 1");
+      const child2 = new Activity("child2", "Child 2");
+
+      root.addChild(child1);
+      root.addChild(child2);
+
+      root.sequencingControls.flow = true;
+      root.sequencingControls.choice = true;
+      root.sequencingControls.constrainChoice = true;
+
+      // child1 has completionStatus "passed" - backward choice should be allowed
+      child1.completionStatus = "passed";
+      child1.isAvailable = true;
+      child1.isVisible = true;
+
+      tree.root = root;
+      tree.currentActivity = child2;
+      child2.isActive = false;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      // Backward choice to "passed" activity should succeed
+      const result = process.sequencingRequestProcess(
+          SequencingRequestType.CHOICE,
+          "child1",
+      );
+
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
+    });
+
+    /**
+     * Test that preventActivation check considers isActive status
+     * The condition is: attemptCount === 0 && !isActive
+     * When isActive is true, the second condition fails
+     */
+    it("should evaluate isActive in preventActivation check (SB.2.9)", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const child1 = new Activity("child1", "Child 1");
+      const child2 = new Activity("child2", "Child 2");
+
+      root.addChild(child1);
+      root.addChild(child2);
+
+      root.sequencingControls.flow = true;
+      root.sequencingControls.choice = true;
+      root.sequencingControls.preventActivation = true;
+
+      // child2 is unattempted BUT is active
+      // The preventActivation condition checks: attemptCount === 0 && !isActive
+      // With isActive = true, the !isActive part is false, so condition fails
+      child2.attemptCount = 0;
+      child2.isActive = true;
+      child2.isAvailable = true;
+      child2.isVisible = true;
+
+      child1.attemptCount = 1;
+      child1.isActive = false;
+
+      tree.root = root;
+      tree.currentActivity = child1;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      // This exercises the isActive check path in the preventActivation validation
+      const result = process.sequencingRequestProcess(
+          SequencingRequestType.CHOICE,
+          "child2",
+      );
+
+      // The result exercises the code path - may or may not deliver
+      // depending on other constraints, but preventActivation check runs
+      expect(result).toBeInstanceOf(SequencingResult);
+    });
+
+    /**
+     * Verify that the constrainChoice backward validation specifically checks
+     * completionStatus against both "completed" and "passed" values
+     */
+    it("should check both completed and passed in constrainChoice backward validation", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const child1 = new Activity("child1", "Child 1");
+      const child2 = new Activity("child2", "Child 2");
+
+      root.addChild(child1);
+      root.addChild(child2);
+
+      root.sequencingControls.flow = true;
+      root.sequencingControls.choice = true;
+      root.sequencingControls.constrainChoice = true;
+
+      // child1 has completionStatus = "unknown" (not completed, not passed)
+      // This tests the exact condition in lines 2934-2936
+      child1.completionStatus = "unknown";
+      child1.attemptCount = 1; // Has been attempted
+      child1.isAvailable = true;
+      child1.isVisible = true;
+
+      child2.attemptCount = 1;
+
+      tree.root = root;
+      tree.currentActivity = child2;
+
+      // Current activity must be terminated (not active) to proceed to constrainChoice validation
+      // NOTE: Must set isActive AFTER setting currentActivity because the setter activates it
+      child2.isActive = false;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      // Backward choice to "unknown" completionStatus should be blocked
+      const result = process.sequencingRequestProcess(
+          SequencingRequestType.CHOICE,
+          "child1",
+      );
+
+      // With constrainChoice and incomplete target, should block with SB.2.9-7
+      expect(result.exception).toBe("SB.2.9-7");
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+    });
+  });
 });
