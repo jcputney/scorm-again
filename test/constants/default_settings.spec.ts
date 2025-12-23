@@ -92,6 +92,116 @@ describe("DefaultSettings", () => {
       expect(result.result).toBe(global_constants.SCORM_FALSE);
       expect(result.errorCode).toBe(101);
     });
+
+    it("should handle response with only text() method available", async () => {
+      // Create a mock response with only text() method (no json() method)
+      const mockResponse = {
+        status: 200,
+        text: async () => JSON.stringify({ result: global_constants.SCORM_TRUE, errorCode: 0 }),
+      } as any;
+
+      const result = await DefaultSettings.responseHandler(mockResponse);
+
+      expect(result.result).toBe(global_constants.SCORM_TRUE);
+      expect(result.errorCode).toBe(0);
+    });
+
+    it("should handle response with text() returning empty string", async () => {
+      // Create a mock response with text() returning empty string
+      const mockResponse = {
+        status: 200,
+        text: async () => "",
+      } as any;
+
+      const result = await DefaultSettings.responseHandler(mockResponse);
+
+      expect(result.result).toBe(global_constants.SCORM_TRUE);
+      expect(result.errorCode).toBe(0);
+    });
+
+    it("should handle response with text() returning invalid JSON", async () => {
+      // Create a mock response with text() returning invalid JSON
+      const mockResponse = {
+        status: 200,
+        text: async () => "not valid json",
+      } as any;
+
+      const result = await DefaultSettings.responseHandler(mockResponse);
+
+      expect(result.result).toBe(global_constants.SCORM_TRUE);
+      expect(result.errorCode).toBe(0);
+    });
+
+    it("should handle response with json() method that returns valid result", async () => {
+      // Create a mock response with json() method explicitly
+      const mockResponse = {
+        status: 200,
+        json: async () => ({ result: global_constants.SCORM_TRUE, errorCode: 5 }),
+      } as any;
+
+      const result = await DefaultSettings.responseHandler(mockResponse);
+
+      expect(result.result).toBe(global_constants.SCORM_TRUE);
+      expect(result.errorCode).toBe(5);
+    });
+
+    it("should handle response with json() method that throws an error", async () => {
+      // Create a mock response where json() throws an error
+      const mockResponse = {
+        status: 200,
+        json: async () => {
+          throw new Error("JSON parsing failed");
+        },
+      } as any;
+
+      const result = await DefaultSettings.responseHandler(mockResponse);
+
+      // Should fall back to default behavior for status 200 with no result
+      expect(result.result).toBe(global_constants.SCORM_TRUE);
+      expect(result.errorCode).toBe(0);
+    });
+
+    it("should handle response with text() method that throws an error", async () => {
+      // Create a mock response where text() throws an error
+      const mockResponse = {
+        status: 200,
+        text: async () => {
+          throw new Error("Text parsing failed");
+        },
+      } as any;
+
+      const result = await DefaultSettings.responseHandler(mockResponse);
+
+      // Should fall back to default behavior for status 200 with no result
+      expect(result.result).toBe(global_constants.SCORM_TRUE);
+      expect(result.errorCode).toBe(0);
+    });
+
+    it("should handle response with neither json() nor text() methods", async () => {
+      // Create a mock response without json() or text() methods
+      const mockResponse = {
+        status: 200,
+      } as any;
+
+      const result = await DefaultSettings.responseHandler(mockResponse);
+
+      // Should fall back to default behavior for status 200 with no result
+      expect(result.result).toBe(global_constants.SCORM_TRUE);
+      expect(result.errorCode).toBe(0);
+    });
+
+    it("should handle response with non-200 status and neither json() nor text() methods", async () => {
+      // Create a mock response with error status and no methods
+      const mockResponse = {
+        status: 500,
+      } as any;
+
+      const result = await DefaultSettings.responseHandler(mockResponse);
+
+      // Should return SCORM_FALSE for error status
+      expect(result.result).toBe(global_constants.SCORM_FALSE);
+      expect(result.errorCode).toBe(101);
+    });
   });
 
   describe("requestHandler", () => {
@@ -147,10 +257,42 @@ describe("DefaultSettings", () => {
       expect(consoleErrorStub).toHaveBeenCalledWith("Error message");
     });
 
+    it("should call console.error for string 'ERROR' level", () => {
+      // eslint-disable-next-line
+      // @ts-ignore
+      DefaultSettings.onLogMessage("ERROR", "Error message");
+      expect(consoleErrorStub).toHaveBeenCalledOnce();
+      expect(consoleErrorStub).toHaveBeenCalledWith("Error message");
+    });
+
     it("should call console.warn for WARN level", () => {
       // eslint-disable-next-line
       // @ts-ignore
       DefaultSettings.onLogMessage(LogLevelEnum.WARN, "Warn message");
+      expect(consoleWarnStub).toHaveBeenCalledOnce();
+      expect(consoleWarnStub).toHaveBeenCalledWith("Warn message");
+    });
+
+    it("should call console.warn for string '3' level", () => {
+      // eslint-disable-next-line
+      // @ts-ignore
+      DefaultSettings.onLogMessage("3", "Warn message");
+      expect(consoleWarnStub).toHaveBeenCalledOnce();
+      expect(consoleWarnStub).toHaveBeenCalledWith("Warn message");
+    });
+
+    it("should call console.warn for numeric 3 level", () => {
+      // eslint-disable-next-line
+      // @ts-ignore
+      DefaultSettings.onLogMessage(3, "Warn message");
+      expect(consoleWarnStub).toHaveBeenCalledOnce();
+      expect(consoleWarnStub).toHaveBeenCalledWith("Warn message");
+    });
+
+    it("should call console.warn for string 'WARN' level", () => {
+      // eslint-disable-next-line
+      // @ts-ignore
+      DefaultSettings.onLogMessage("WARN", "Warn message");
       expect(consoleWarnStub).toHaveBeenCalledOnce();
       expect(consoleWarnStub).toHaveBeenCalledWith("Warn message");
     });
@@ -163,10 +305,58 @@ describe("DefaultSettings", () => {
       expect(consoleInfoStub).toHaveBeenCalledWith("Info message");
     });
 
+    it("should call console.info for string '2' level", () => {
+      // eslint-disable-next-line
+      // @ts-ignore
+      DefaultSettings.onLogMessage("2", "Info message");
+      expect(consoleInfoStub).toHaveBeenCalledOnce();
+      expect(consoleInfoStub).toHaveBeenCalledWith("Info message");
+    });
+
+    it("should call console.info for numeric 2 level", () => {
+      // eslint-disable-next-line
+      // @ts-ignore
+      DefaultSettings.onLogMessage(2, "Info message");
+      expect(consoleInfoStub).toHaveBeenCalledOnce();
+      expect(consoleInfoStub).toHaveBeenCalledWith("Info message");
+    });
+
+    it("should call console.info for string 'INFO' level", () => {
+      // eslint-disable-next-line
+      // @ts-ignore
+      DefaultSettings.onLogMessage("INFO", "Info message");
+      expect(consoleInfoStub).toHaveBeenCalledOnce();
+      expect(consoleInfoStub).toHaveBeenCalledWith("Info message");
+    });
+
     it("should call console.debug for DEBUG level when available", () => {
       // eslint-disable-next-line
       // @ts-ignore
       DefaultSettings.onLogMessage(LogLevelEnum.DEBUG, "Debug message");
+      expect(consoleDebugStub).toHaveBeenCalledOnce();
+      expect(consoleDebugStub).toHaveBeenCalledWith("Debug message");
+    });
+
+    it("should call console.debug for string '1' level when available", () => {
+      // eslint-disable-next-line
+      // @ts-ignore
+      DefaultSettings.onLogMessage("1", "Debug message");
+      expect(consoleDebugStub).toHaveBeenCalledOnce();
+      expect(consoleDebugStub).toHaveBeenCalledWith("Debug message");
+    });
+
+    it("should call console.debug for numeric 1 level when available", () => {
+      // eslint-disable-next-line
+      // @ts-ignore
+      DefaultSettings.onLogMessage(1, "Debug message");
+      expect(consoleDebugStub).toHaveBeenCalledOnce();
+      expect(consoleDebugStub).toHaveBeenCalledWith("Debug message");
+    });
+
+    it("should call console.debug for string 'DEBUG' level when available", () => {
+      // eslint-disable-next-line
+      // @ts-ignore
+      DefaultSettings.onLogMessage("DEBUG", "Debug message");
       expect(consoleDebugStub).toHaveBeenCalledOnce();
       expect(consoleDebugStub).toHaveBeenCalledWith("Debug message");
     });
