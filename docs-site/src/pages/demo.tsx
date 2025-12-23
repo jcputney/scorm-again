@@ -11,16 +11,40 @@ type DemoItem = {
 
 const DemoList: DemoItem[] = [
   {
-    title: 'SCORM 1.2 Demo',
+    title: 'SCORM 1.2 - Basic',
     description:
       'Test the SCORM 1.2 API implementation with the Golf Examples content package. Includes full CMI data model support and lesson tracking.',
     href: '/scorm-again/demo/scorm12.html',
   },
   {
-    title: 'SCORM 2004 Demo',
+    title: 'SCORM 1.2 - Previously Launched',
+    description:
+      'Simulates a learner returning to continue a previously started course. Demonstrates how scorm-again restores CMI data from prior sessions.',
+    href: '/scorm-again/demo/scorm12.html?existing=true',
+  },
+  {
+    title: 'SCORM 1.2 - Flattened Format',
+    description:
+      'Uses the "flattened" data commit format where CMI elements are sent as flat key-value pairs instead of nested JSON objects.',
+    href: '/scorm-again/demo/scorm12.html?dataCommitFormat=flattened',
+  },
+  {
+    title: 'SCORM 2004 - Basic',
     description:
       'Test the SCORM 2004 API implementation with sequencing and navigation support. Includes the complete CMI data model for SCORM 2004 4th Edition.',
     href: '/scorm-again/demo/scorm2004.html',
+  },
+  {
+    title: 'SCORM 2004 - Previously Launched',
+    description:
+      'Simulates a learner returning to continue a previously started course. Demonstrates how scorm-again restores CMI data from prior sessions.',
+    href: '/scorm-again/demo/scorm2004.html?existing=true',
+  },
+  {
+    title: 'SCORM 2004 - Flattened Format',
+    description:
+      'Uses the "flattened" data commit format where CMI elements are sent as flat key-value pairs instead of nested JSON objects.',
+    href: '/scorm-again/demo/scorm2004.html?dataCommitFormat=flattened',
   },
 ];
 
