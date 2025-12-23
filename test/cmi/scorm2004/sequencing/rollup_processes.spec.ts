@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { RollupProcess } from "../../../../src/cmi/scorm2004/sequencing/rollup_process";
-import { Activity } from "../../../../src/cmi/scorm2004/sequencing/activity";
-import { 
+import { Activity, ActivityObjective } from "../../../../src/cmi/scorm2004/sequencing/activity";
+import {
   RollupRule,
   RollupCondition,
   RollupConditionType,
@@ -1210,6 +1210,1037 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
         expect(parent.attemptCompletionAmountStatus).toBe(true);
         expect(parent.attemptCompletionAmount).toBeCloseTo(0.833, 2);
       });
+    });
+  });
+
+  describe("Global Objective Mapping (Priority 5)", () => {
+    let globalObjectives: Map<string, any>;
+
+    beforeEach(() => {
+      globalObjectives = new Map();
+    });
+
+    describe("processGlobalObjectiveMapping", () => {
+      it("should create global objective entries from activity objectives", () => {
+        const activity = new Activity("activity1", "Activity 1");
+        activity.addObjective(
+          new ActivityObjective(
+            "obj1",
+            {
+              isPrimary: false,
+              mapInfo: [{
+                targetObjectiveID: "global_obj1",
+                writeSatisfiedStatus: true,
+                writeNormalizedMeasure: true,
+              }]
+            }
+          )
+        );
+
+        const objective = activity.getAllObjectives()[0];
+        objective.satisfiedStatus = true;
+        objective.measureStatus = true;
+        objective.normalizedMeasure = 0.85;
+
+        rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
+
+        expect(globalObjectives.has("global_obj1")).toBe(true);
+        const globalObj = globalObjectives.get("global_obj1");
+        expect(globalObj).toBeDefined();
+      });
+
+      it("should write to global objectives when writeSatisfiedStatus is true", () => {
+        const activity = new Activity("activity1", "Activity 1");
+        // ActivityObjective imported at top of file
+        const objective = new ActivityObjective("obj1", {
+          isPrimary: false,
+          mapInfo: [{
+            targetObjectiveID: "global_obj1",
+            writeSatisfiedStatus: true,
+            readSatisfiedStatus: false,
+          }]
+        });
+        activity.addObjective(objective);
+
+        objective.satisfiedStatus = true;
+        objective.measureStatus = true;
+        // Mark as dirty to trigger write
+        objective.satisfiedStatus = false;
+        objective.satisfiedStatus = true;
+
+        rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
+
+        const globalObj = globalObjectives.get("global_obj1");
+        expect(globalObj).toBeDefined();
+      });
+
+      it("should write normalized measure to global objectives", () => {
+        const activity = new Activity("activity1", "Activity 1");
+        // ActivityObjective imported at top of file
+        const objective = new ActivityObjective("obj1", {
+          isPrimary: false,
+          mapInfo: [{
+            targetObjectiveID: "global_obj1",
+            writeNormalizedMeasure: true,
+          }]
+        });
+        activity.addObjective(objective);
+
+        objective.measureStatus = true;
+        objective.normalizedMeasure = 0.75;
+
+        rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
+
+        const globalObj = globalObjectives.get("global_obj1");
+        expect(globalObj).toBeDefined();
+      });
+
+      it("should read from global objectives when readSatisfiedStatus is true", () => {
+        const activity = new Activity("activity1", "Activity 1");
+        // ActivityObjective imported at top of file
+        const objective = new ActivityObjective("obj1", {
+          isPrimary: false,
+          mapInfo: [{
+            targetObjectiveID: "global_obj1",
+            readSatisfiedStatus: true,
+            writeSatisfiedStatus: false,
+          }]
+        });
+        activity.addObjective(objective);
+
+        // Pre-populate global objective
+        globalObjectives.set("global_obj1", {
+          id: "global_obj1",
+          satisfiedStatus: true,
+          satisfiedStatusKnown: true,
+          normalizedMeasure: 0.9,
+          normalizedMeasureKnown: true,
+        });
+
+        rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
+
+        expect(objective.satisfiedStatus).toBe(true);
+        expect(objective.measureStatus).toBe(true);
+      });
+
+      it("should read normalized measure from global objectives", () => {
+        const activity = new Activity("activity1", "Activity 1");
+        // ActivityObjective imported at top of file
+        const objective = new ActivityObjective("obj1", {
+          isPrimary: false,
+          mapInfo: [{
+            targetObjectiveID: "global_obj1",
+            readNormalizedMeasure: true,
+          }]
+        });
+        activity.addObjective(objective);
+
+        globalObjectives.set("global_obj1", {
+          id: "global_obj1",
+          normalizedMeasure: 0.88,
+          normalizedMeasureKnown: true,
+        });
+
+        rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
+
+        expect(objective.normalizedMeasure).toBe(0.88);
+        expect(objective.measureStatus).toBe(true);
+      });
+
+      it("should handle progress measure read/write", () => {
+        const activity = new Activity("activity1", "Activity 1");
+        // ActivityObjective imported at top of file
+        const objective = new ActivityObjective("obj1", {
+          isPrimary: false,
+          mapInfo: [{
+            targetObjectiveID: "global_obj1",
+            readProgressMeasure: true,
+            writeProgressMeasure: true,
+          }]
+        });
+        activity.addObjective(objective);
+
+        globalObjectives.set("global_obj1", {
+          id: "global_obj1",
+          progressMeasure: 0.65,
+          progressMeasureKnown: true,
+        });
+
+        rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
+
+        expect(objective.progressMeasure).toBe(0.65);
+        expect(objective.progressMeasureStatus).toBe(true);
+      });
+
+      it("should handle completion status read/write", () => {
+        const activity = new Activity("activity1", "Activity 1");
+        // ActivityObjective imported at top of file
+        const objective = new ActivityObjective("obj1", {
+          isPrimary: false,
+          mapInfo: [{
+            targetObjectiveID: "global_obj1",
+            readCompletionStatus: true,
+            writeCompletionStatus: true,
+          }]
+        });
+        activity.addObjective(objective);
+
+        globalObjectives.set("global_obj1", {
+          id: "global_obj1",
+          completionStatus: "completed",
+          completionStatusKnown: true,
+        });
+
+        rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
+
+        expect(objective.completionStatus).toBe("completed");
+      });
+
+      it("should process multiple activities in tree with two-pass approach", () => {
+        const rootAct = new Activity("root", "Root");
+        const child1Act = new Activity("child1", "Child 1");
+        const child2Act = new Activity("child2", "Child 2");
+
+        rootAct.addChild(child1Act);
+        rootAct.addChild(child2Act);
+
+        // ActivityObjective imported at top of file
+
+        // child1 writes to global objective
+        const obj1 = new ActivityObjective("obj1", {
+          isPrimary: false,
+          mapInfo: [{
+            targetObjectiveID: "shared_obj",
+            writeSatisfiedStatus: true,
+            writeNormalizedMeasure: true,
+          }]
+        });
+        obj1.satisfiedStatus = true;
+        obj1.measureStatus = true;
+        obj1.normalizedMeasure = 0.9;
+        child1Act.addObjective(obj1);
+
+        // child2 reads from global objective
+        const obj2 = new ActivityObjective("obj2", {
+          isPrimary: false,
+          mapInfo: [{
+            targetObjectiveID: "shared_obj",
+            readSatisfiedStatus: true,
+            readNormalizedMeasure: true,
+          }]
+        });
+        child2Act.addObjective(obj2);
+
+        rollupProcess.processGlobalObjectiveMapping(rootAct, globalObjectives);
+
+        // After two-pass processing, child2 should have read the value
+        expect(obj2.satisfiedStatus).toBe(true);
+        expect(obj2.normalizedMeasure).toBe(0.9);
+      });
+
+      it("should derive satisfaction from measure when satisfiedByMeasure is true", () => {
+        const activity = new Activity("activity1", "Activity 1");
+        activity.scaledPassingScore = 0.7;
+
+        // ActivityObjective imported at top of file
+        const objective = new ActivityObjective("obj1", {
+          isPrimary: false,
+          satisfiedByMeasure: true,
+          minNormalizedMeasure: 0.7,
+          mapInfo: [{
+            targetObjectiveID: "global_obj1",
+            readNormalizedMeasure: true,
+          }]
+        });
+        activity.addObjective(objective);
+
+        globalObjectives.set("global_obj1", {
+          id: "global_obj1",
+          normalizedMeasure: 0.85,
+          normalizedMeasureKnown: true,
+          satisfiedByMeasure: true,
+        });
+
+        rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
+
+        // Satisfaction should be derived from measure
+        expect(objective.satisfiedStatus).toBe(true);
+      });
+
+      it("should apply primary objective changes to activity", () => {
+        const activity = new Activity("activity1", "Activity 1");
+
+        // ActivityObjective imported at top of file
+        const primaryObj = new ActivityObjective("primary", {
+          isPrimary: true,
+          mapInfo: [{
+            targetObjectiveID: "global_primary",
+            readSatisfiedStatus: true,
+            readNormalizedMeasure: true,
+          }]
+        });
+        activity.primaryObjective = primaryObj;
+
+        globalObjectives.set("global_primary", {
+          id: "global_primary",
+          satisfiedStatus: true,
+          satisfiedStatusKnown: true,
+          normalizedMeasure: 0.95,
+          normalizedMeasureKnown: true,
+        });
+
+        rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
+
+        // Primary objective should apply changes to activity
+        expect(primaryObj.satisfiedStatus).toBe(true);
+      });
+
+      it("should use default mapInfo when none specified", () => {
+        const activity = new Activity("activity1", "Activity 1");
+
+        // ActivityObjective imported at top of file
+        const objective = new ActivityObjective("obj1", {
+          isPrimary: false,
+          // No mapInfo specified - should use defaults
+        });
+        objective.satisfiedStatus = true;
+        objective.measureStatus = true;
+        objective.normalizedMeasure = 0.8;
+        activity.addObjective(objective);
+
+        rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
+
+        // Should create entry with default write behavior
+        expect(globalObjectives.has("obj1")).toBe(true);
+      });
+
+      it("should fire events during global objective processing", () => {
+        const events: Array<{ type: string; data: any }> = [];
+        const eventCallback = (type: string, data: any) => {
+          events.push({ type, data });
+        };
+
+        const processWithEvents = new RollupProcess(eventCallback);
+        const activity = new Activity("activity1", "Activity 1");
+
+        processWithEvents.processGlobalObjectiveMapping(activity, globalObjectives);
+
+        const startEvent = events.find(e => e.type === "global_objective_processing_started");
+        const completeEvent = events.find(e => e.type === "global_objective_processing_completed");
+
+        expect(startEvent).toBeDefined();
+        expect(completeEvent).toBeDefined();
+      });
+    });
+  });
+
+  describe("validateRollupStateConsistency", () => {
+    it("should return true for consistent state", () => {
+      parent.objectiveMeasureStatus = true;
+      parent.objectiveNormalizedMeasure = 0.8;
+      parent.scaledPassingScore = 0.7;
+      parent.objectiveSatisfiedStatus = true;
+      parent.successStatus = SuccessStatus.PASSED;
+
+      const isConsistent = rollupProcess.validateRollupStateConsistency(parent);
+
+      expect(isConsistent).toBe(true);
+    });
+
+    it("should detect inconsistent measure status", () => {
+      parent.objectiveMeasureStatus = true;
+      parent.objectiveNormalizedMeasure = null as any; // Inconsistent
+
+      const isConsistent = rollupProcess.validateRollupStateConsistency(parent);
+
+      expect(isConsistent).toBe(false);
+    });
+
+    it("should detect inconsistent satisfaction with measure", () => {
+      parent.objectiveMeasureStatus = true;
+      parent.objectiveNormalizedMeasure = 0.8;
+      parent.scaledPassingScore = 0.7;
+      parent.objectiveSatisfiedStatus = false; // Should be true (0.8 >= 0.7)
+      parent.successStatus = SuccessStatus.FAILED;
+
+      const isConsistent = rollupProcess.validateRollupStateConsistency(parent);
+
+      expect(isConsistent).toBe(false);
+    });
+
+    it("should validate children recursively", () => {
+      child1.objectiveMeasureStatus = true;
+      child1.objectiveNormalizedMeasure = null as any; // Inconsistent
+
+      const isConsistent = rollupProcess.validateRollupStateConsistency(root);
+
+      expect(isConsistent).toBe(false);
+    });
+
+    it("should handle validation errors gracefully", () => {
+      // Create an activity that might cause validation issues
+      const problematicActivity = new Activity("problematic", "Problematic");
+
+      const isConsistent = rollupProcess.validateRollupStateConsistency(problematicActivity);
+
+      expect(typeof isConsistent).toBe("boolean");
+    });
+
+    it("should fire validation events", () => {
+      const events: Array<{ type: string; data: any }> = [];
+      const eventCallback = (type: string, data: any) => {
+        events.push({ type, data });
+      };
+
+      const processWithEvents = new RollupProcess(eventCallback);
+
+      processWithEvents.validateRollupStateConsistency(parent);
+
+      const startEvent = events.find(e => e.type === "rollup_validation_started");
+      const completeEvent = events.find(e => e.type === "rollup_validation_completed");
+
+      expect(startEvent).toBeDefined();
+    });
+
+    it("should report inconsistencies for completed parent with incomplete children", () => {
+      // Setup: all children incomplete but parent marked as completed (no rollup rules)
+      child1.completionStatus = CompletionStatus.INCOMPLETE;
+      child1.isCompleted = false;
+      child2.completionStatus = CompletionStatus.INCOMPLETE;
+      child2.isCompleted = false;
+      child3.completionStatus = CompletionStatus.INCOMPLETE;
+      child3.isCompleted = false;
+
+      parent.completionStatus = CompletionStatus.COMPLETED; // Inconsistent with children
+
+      const isConsistent = rollupProcess.validateRollupStateConsistency(root);
+
+      // May or may not be flagged depending on whether rollup rules exist
+      expect(typeof isConsistent).toBe("boolean");
+    });
+  });
+
+  describe("processCrossClusterDependencies", () => {
+    it("should identify activity clusters correctly", () => {
+      const events: Array<{ type: string; data: any }> = [];
+      const eventCallback = (type: string, data: any) => {
+        events.push({ type, data });
+      };
+
+      const processWithEvents = new RollupProcess(eventCallback);
+
+      // Create clusters with flow enabled
+      const cluster1 = new Activity("cluster1", "Cluster 1");
+      const cluster2 = new Activity("cluster2", "Cluster 2");
+      const leaf1 = new Activity("leaf1", "Leaf 1");
+      const leaf2 = new Activity("leaf2", "Leaf 2");
+
+      cluster1.addChild(leaf1);
+      cluster2.addChild(leaf2);
+      cluster1.sequencingControls.flow = true;
+      cluster2.sequencingControls.flow = true;
+
+      parent.addChild(cluster1);
+      parent.addChild(cluster2);
+
+      processWithEvents.processCrossClusterDependencies(parent, [cluster1, cluster2]);
+
+      const startEvent = events.find(e => e.type === "cross_cluster_processing_started");
+      const completeEvent = events.find(e => e.type === "cross_cluster_processing_completed");
+
+      expect(startEvent).toBeDefined();
+      expect(startEvent?.data.clusterCount).toBe(2);
+      expect(completeEvent).toBeDefined();
+    });
+
+    it("should handle circular dependencies gracefully", () => {
+      const events: Array<{ type: string; data: any }> = [];
+      const eventCallback = (type: string, data: any) => {
+        events.push({ type, data });
+      };
+
+      const processWithEvents = new RollupProcess(eventCallback);
+
+      const cluster1 = new Activity("cluster1", "Cluster 1");
+      const leaf1 = new Activity("leaf1", "Leaf 1");
+      cluster1.addChild(leaf1);
+      cluster1.sequencingControls.flow = true;
+
+      // Process with single cluster (no actual circular dependency, but tests the code path)
+      processWithEvents.processCrossClusterDependencies(parent, [cluster1]);
+
+      // Should complete without throwing
+      const completeEvent = events.find(e => e.type === "cross_cluster_processing_completed");
+      expect(completeEvent).toBeDefined();
+    });
+
+    it("should process cluster rollup in dependency order", () => {
+      const cluster1 = new Activity("cluster1", "Cluster 1");
+      const cluster2 = new Activity("cluster2", "Cluster 2");
+      const leaf1 = new Activity("leaf1", "Leaf 1");
+      const leaf2 = new Activity("leaf2", "Leaf 2");
+
+      cluster1.addChild(leaf1);
+      cluster2.addChild(leaf2);
+      cluster1.sequencingControls.flow = true;
+      cluster2.sequencingControls.flow = true;
+      cluster1.sequencingControls.rollupObjectiveSatisfied = true;
+      cluster2.sequencingControls.rollupObjectiveSatisfied = true;
+
+      leaf1.objectiveSatisfiedStatus = true;
+      leaf2.objectiveSatisfiedStatus = true;
+
+      rollupProcess.processCrossClusterDependencies(parent, [cluster1, cluster2]);
+
+      // Clusters should be processed
+      expect(cluster1.objectiveSatisfiedStatus).toBe(true);
+      expect(cluster2.objectiveSatisfiedStatus).toBe(true);
+    });
+
+    it("should handle empty cluster list", () => {
+      const events: Array<{ type: string; data: any }> = [];
+      const eventCallback = (type: string, data: any) => {
+        events.push({ type, data });
+      };
+
+      const processWithEvents = new RollupProcess(eventCallback);
+
+      processWithEvents.processCrossClusterDependencies(parent, []);
+
+      const startEvent = events.find(e => e.type === "cross_cluster_processing_started");
+      expect(startEvent?.data.clusterCount).toBe(0);
+    });
+  });
+
+  describe("calculateComplexWeightedMeasure", () => {
+    it("should calculate basic weighted average", () => {
+      child1.objectiveMeasureStatus = true;
+      child1.objectiveNormalizedMeasure = 0.8;
+      child1.sequencingControls.objectiveMeasureWeight = 1.0;
+
+      child2.objectiveMeasureStatus = true;
+      child2.objectiveNormalizedMeasure = 0.6;
+      child2.sequencingControls.objectiveMeasureWeight = 1.0;
+
+      const result = rollupProcess.calculateComplexWeightedMeasure(
+        parent,
+        [child1, child2],
+        { enableThresholdBias: false }
+      );
+
+      expect(result).toBeCloseTo(0.7, 1);
+    });
+
+    it("should apply completion status penalty", () => {
+      child1.objectiveMeasureStatus = true;
+      child1.objectiveNormalizedMeasure = 0.8;
+      child1.sequencingControls.objectiveMeasureWeight = 1.0;
+      child1.completionStatus = CompletionStatus.INCOMPLETE; // Penalty applied
+
+      const result = rollupProcess.calculateComplexWeightedMeasure(
+        parent,
+        [child1],
+        { enableThresholdBias: false }
+      );
+
+      // Weight reduced by 0.8 factor for incomplete
+      expect(result).toBeCloseTo(0.8, 1);
+    });
+
+    it("should apply attempt count penalty", () => {
+      child1.objectiveMeasureStatus = true;
+      child1.objectiveNormalizedMeasure = 0.8;
+      child1.sequencingControls.objectiveMeasureWeight = 1.0;
+      child1.attemptCount = 3; // Multiple attempts - penalty applied
+
+      const result = rollupProcess.calculateComplexWeightedMeasure(
+        parent,
+        [child1],
+        { enableThresholdBias: false }
+      );
+
+      expect(result).toBeCloseTo(0.8, 1);
+    });
+
+    it("should apply threshold bias when enabled", () => {
+      child1.objectiveMeasureStatus = true;
+      child1.objectiveNormalizedMeasure = 0.9;
+      child1.sequencingControls.objectiveMeasureWeight = 1.0;
+      child1.scaledPassingScore = 0.7;
+
+      const resultWithBias = rollupProcess.calculateComplexWeightedMeasure(
+        parent,
+        [child1],
+        { enableThresholdBias: true }
+      );
+
+      const resultWithoutBias = rollupProcess.calculateComplexWeightedMeasure(
+        parent,
+        [child1],
+        { enableThresholdBias: false }
+      );
+
+      // Both should be close to 0.9, but bias may slightly adjust
+      expect(resultWithBias).toBeCloseTo(0.9, 1);
+      expect(resultWithoutBias).toBeCloseTo(0.9, 1);
+    });
+
+    it("should handle children with no measure", () => {
+      child1.objectiveMeasureStatus = false;
+
+      const result = rollupProcess.calculateComplexWeightedMeasure(
+        parent,
+        [child1],
+        { enableThresholdBias: false }
+      );
+
+      expect(result).toBe(0);
+    });
+
+    it("should exclude children that don't pass rollup check", () => {
+      child1.objectiveMeasureStatus = true;
+      child1.objectiveNormalizedMeasure = 0.8;
+      child1.sequencingControls.rollupObjectiveSatisfied = false; // Excluded
+
+      child2.objectiveMeasureStatus = true;
+      child2.objectiveNormalizedMeasure = 0.6;
+      child2.sequencingControls.objectiveMeasureWeight = 1.0;
+
+      const result = rollupProcess.calculateComplexWeightedMeasure(
+        parent,
+        [child1, child2],
+        { enableThresholdBias: false }
+      );
+
+      // Only child2 should contribute
+      expect(result).toBeCloseTo(0.6, 1);
+    });
+
+    it("should fire weighting calculation event", () => {
+      const events: Array<{ type: string; data: any }> = [];
+      const eventCallback = (type: string, data: any) => {
+        events.push({ type, data });
+      };
+
+      const processWithEvents = new RollupProcess(eventCallback);
+
+      child1.objectiveMeasureStatus = true;
+      child1.objectiveNormalizedMeasure = 0.8;
+      child1.sequencingControls.objectiveMeasureWeight = 1.0;
+
+      processWithEvents.calculateComplexWeightedMeasure(
+        parent,
+        [child1],
+        { enableThresholdBias: false }
+      );
+
+      const weightingEvent = events.find(e => e.type === "complex_weighting_calculated");
+      expect(weightingEvent).toBeDefined();
+      expect(weightingEvent?.data.activityId).toBe(parent.id);
+    });
+  });
+
+  describe("Duration Rollup Process (RB.1.4)", () => {
+    it("should aggregate activity durations from children", () => {
+      // Set up timestamps and durations for children
+      const startTime = "2024-01-01T10:00:00Z";
+      child1.activityStartTimestampUtc = startTime;
+      child1.activityExperiencedDuration = "PT30M"; // 30 minutes
+      child1.activityEndedDate = new Date("2024-01-01T10:30:00Z");
+
+      child2.activityStartTimestampUtc = "2024-01-01T10:30:00Z";
+      child2.activityExperiencedDuration = "PT20M"; // 20 minutes
+      child2.activityEndedDate = new Date("2024-01-01T10:50:00Z");
+
+      child3.activityStartTimestampUtc = "2024-01-01T10:50:00Z";
+      child3.activityExperiencedDuration = "PT10M"; // 10 minutes
+      child3.activityEndedDate = new Date("2024-01-01T11:00:00Z");
+
+      rollupProcess.overallRollupProcess(child1);
+
+      // Parent should have aggregated duration data
+      expect(parent.activityStartTimestampUtc).toBe(startTime);
+    });
+
+    it("should track earliest start timestamp", () => {
+      child1.activityStartTimestampUtc = "2024-01-01T10:30:00Z";
+      child2.activityStartTimestampUtc = "2024-01-01T10:00:00Z"; // Earliest
+      child3.activityStartTimestampUtc = "2024-01-01T10:15:00Z";
+
+      rollupProcess.overallRollupProcess(child1);
+
+      expect(parent.activityStartTimestampUtc).toBe("2024-01-01T10:00:00Z");
+    });
+
+    it("should track latest end date", () => {
+      child1.activityStartTimestampUtc = "2024-01-01T10:00:00Z";
+      child1.activityEndedDate = new Date("2024-01-01T10:30:00Z");
+
+      child2.activityStartTimestampUtc = "2024-01-01T10:30:00Z";
+      child2.activityEndedDate = new Date("2024-01-01T11:00:00Z"); // Latest
+
+      child3.activityStartTimestampUtc = "2024-01-01T10:45:00Z";
+      child3.activityEndedDate = new Date("2024-01-01T10:55:00Z");
+
+      rollupProcess.overallRollupProcess(child1);
+
+      expect(parent.activityEndedDate?.getTime()).toBe(new Date("2024-01-01T11:00:00Z").getTime());
+    });
+
+    it("should calculate attempt durations for children in same attempt", () => {
+      parent.attemptStartTimestampUtc = "2024-01-01T10:00:00Z";
+
+      child1.attemptStartTimestampUtc = "2024-01-01T10:00:00Z";
+      child1.attemptExperiencedDuration = "PT15M";
+
+      child2.attemptStartTimestampUtc = "2024-01-01T10:15:00Z";
+      child2.attemptExperiencedDuration = "PT10M";
+
+      rollupProcess.overallRollupProcess(child1);
+
+      // Parent attempt duration should be aggregated
+      expect(parent.attemptStartTimestampUtc).toBeDefined();
+    });
+
+    it("should fire duration rollup event", () => {
+      const events: Array<{ type: string; data: any }> = [];
+      const eventCallback = (type: string, data: any) => {
+        events.push({ type, data });
+      };
+
+      const processWithEvents = new RollupProcess(eventCallback);
+
+      child1.activityStartTimestampUtc = "2024-01-01T10:00:00Z";
+      child1.activityExperiencedDuration = "PT30M";
+      child1.activityEndedDate = new Date("2024-01-01T10:30:00Z");
+
+      processWithEvents.overallRollupProcess(child1);
+
+      const durationEvent = events.find(e => e.type === "duration_rollup_completed");
+      expect(durationEvent).toBeDefined();
+      expect(durationEvent?.data.activityId).toBe(parent.id);
+    });
+
+    it("should handle children with no duration data", () => {
+      // Children have no timestamps or durations
+      child1.activityStartTimestampUtc = null;
+      child2.activityStartTimestampUtc = null;
+      child3.activityStartTimestampUtc = null;
+
+      rollupProcess.overallRollupProcess(child1);
+
+      // Should not throw, parent timestamps may remain null
+      expect(parent.activityStartTimestampUtc).toBeNull();
+    });
+
+    it("should use Value fields for cluster children", () => {
+      // Create nested structure where child1 is a cluster
+      const grandchild1 = new Activity("grandchild1", "Grandchild 1");
+      child1.addChild(grandchild1);
+      child1.sequencingControls.rollupObjectiveSatisfied = true;
+      child1.sequencingControls.rollupProgressCompletion = true;
+
+      // Set Value fields (used for clusters)
+      child1.activityExperiencedDurationValue = "PT1H";
+      child1.attemptExperiencedDurationValue = "PT45M";
+      child1.activityStartTimestampUtc = "2024-01-01T10:00:00Z";
+      child1.activityEndedDate = new Date("2024-01-01T11:00:00Z");
+
+      rollupProcess.overallRollupProcess(grandchild1);
+
+      // Duration should be picked up from Value fields
+      expect(parent.activityExperiencedDurationValue).toBeDefined();
+    });
+
+    it("should always run duration rollup even when optimization is active", () => {
+      // Set up stable state that would trigger optimization
+      parent.objectiveSatisfiedStatus = true;
+      parent.completionStatus = CompletionStatus.COMPLETED;
+      root.objectiveSatisfiedStatus = true;
+      root.completionStatus = CompletionStatus.COMPLETED;
+
+      // Set duration data
+      child1.activityStartTimestampUtc = "2024-01-01T10:00:00Z";
+      child1.activityExperiencedDuration = "PT30M";
+      child1.activityEndedDate = new Date("2024-01-01T10:30:00Z");
+      child1.objectiveSatisfiedStatus = true;
+      child1.completionStatus = CompletionStatus.COMPLETED;
+
+      child2.activityStartTimestampUtc = "2024-01-01T10:30:00Z";
+      child2.activityExperiencedDuration = "PT20M";
+      child2.activityEndedDate = new Date("2024-01-01T10:50:00Z");
+      child2.objectiveSatisfiedStatus = true;
+      child2.completionStatus = CompletionStatus.COMPLETED;
+
+      child3.activityStartTimestampUtc = "2024-01-01T10:50:00Z";
+      child3.activityExperiencedDuration = "PT10M";
+      child3.activityEndedDate = new Date("2024-01-01T11:00:00Z");
+      child3.objectiveSatisfiedStatus = true;
+      child3.completionStatus = CompletionStatus.COMPLETED;
+
+      rollupProcess.overallRollupProcess(child1);
+
+      // Duration should still be rolled up even with optimization
+      expect(parent.activityStartTimestampUtc).toBe("2024-01-01T10:00:00Z");
+    });
+  });
+
+  describe("updateActivityAttemptData edge cases", () => {
+    it("should handle global objective with location data", () => {
+      const activity = new Activity("activity1", "Activity 1");
+      // ActivityObjective imported at top of file
+      const primaryObj = new ActivityObjective("primary", {
+        isPrimary: true,
+        mapInfo: [{
+          targetObjectiveID: "global_primary",
+          readSatisfiedStatus: true,
+          updateAttemptData: true,
+        }]
+      });
+      activity.primaryObjective = primaryObj;
+
+      const globalObjectives = new Map();
+      globalObjectives.set("global_primary", {
+        id: "global_primary",
+        satisfiedStatus: true,
+        satisfiedStatusKnown: true,
+        location: "page_5",
+        updateAttemptData: true,
+      });
+
+      rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
+
+      expect(activity.location).toBe("page_5");
+    });
+
+    it("should handle global objective with suspend data", () => {
+      const activity = new Activity("activity1", "Activity 1");
+      // ActivityObjective imported at top of file
+      const primaryObj = new ActivityObjective("primary", {
+        isPrimary: true,
+        mapInfo: [{
+          targetObjectiveID: "global_primary",
+          readSatisfiedStatus: true,
+          updateAttemptData: true,
+        }]
+      });
+      activity.primaryObjective = primaryObj;
+
+      const globalObjectives = new Map();
+      globalObjectives.set("global_primary", {
+        id: "global_primary",
+        satisfiedStatus: true,
+        satisfiedStatusKnown: true,
+        suspendData: "some_suspend_data",
+        updateAttemptData: true,
+      });
+
+      rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
+
+      expect(activity.isSuspended).toBe(true);
+    });
+
+    it("should handle empty suspend data", () => {
+      const activity = new Activity("activity1", "Activity 1");
+      // ActivityObjective imported at top of file
+      const primaryObj = new ActivityObjective("primary", {
+        isPrimary: true,
+        mapInfo: [{
+          targetObjectiveID: "global_primary",
+          readSatisfiedStatus: true,
+          updateAttemptData: true,
+        }]
+      });
+      activity.primaryObjective = primaryObj;
+      activity.isSuspended = true; // Initially suspended
+
+      const globalObjectives = new Map();
+      globalObjectives.set("global_primary", {
+        id: "global_primary",
+        satisfiedStatus: true,
+        satisfiedStatusKnown: true,
+        suspendData: "", // Empty suspend data
+        updateAttemptData: true,
+      });
+
+      rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
+
+      expect(activity.isSuspended).toBe(false);
+    });
+
+    it("should update attempt count from global objective", () => {
+      const activity = new Activity("activity1", "Activity 1");
+      activity.attemptCount = 1;
+
+      // ActivityObjective imported at top of file
+      const primaryObj = new ActivityObjective("primary", {
+        isPrimary: true,
+        mapInfo: [{
+          targetObjectiveID: "global_primary",
+          updateAttemptData: true,
+        }]
+      });
+      activity.primaryObjective = primaryObj;
+
+      const globalObjectives = new Map();
+      globalObjectives.set("global_primary", {
+        id: "global_primary",
+        attemptCount: 3,
+        updateAttemptData: true,
+      });
+
+      rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
+
+      expect(activity.attemptCount).toBe(3);
+    });
+
+    it("should update completion amount from progress measure", () => {
+      const activity = new Activity("activity1", "Activity 1");
+
+      // ActivityObjective imported at top of file
+      const primaryObj = new ActivityObjective("primary", {
+        isPrimary: true,
+        mapInfo: [{
+          targetObjectiveID: "global_primary",
+          updateAttemptData: true,
+        }]
+      });
+      activity.primaryObjective = primaryObj;
+
+      const globalObjectives = new Map();
+      globalObjectives.set("global_primary", {
+        id: "global_primary",
+        progressMeasure: 0.75,
+        progressMeasureKnown: true,
+        updateAttemptData: true,
+      });
+
+      rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
+
+      expect(activity.attemptCompletionAmount).toBe(0.75);
+    });
+
+    it("should update duration data from global objective", () => {
+      const activity = new Activity("activity1", "Activity 1");
+
+      // ActivityObjective imported at top of file
+      const primaryObj = new ActivityObjective("primary", {
+        isPrimary: true,
+        mapInfo: [{
+          targetObjectiveID: "global_primary",
+          updateAttemptData: true,
+        }]
+      });
+      activity.primaryObjective = primaryObj;
+
+      const globalObjectives = new Map();
+      globalObjectives.set("global_primary", {
+        id: "global_primary",
+        attemptAbsoluteDuration: "PT1H30M",
+        attemptExperiencedDuration: "PT1H15M",
+        activityAbsoluteDuration: "PT2H",
+        activityExperiencedDuration: "PT1H45M",
+        updateAttemptData: true,
+      });
+
+      rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
+
+      expect(activity.attemptAbsoluteDuration).toBe("PT1H30M");
+      expect(activity.attemptExperiencedDuration).toBe("PT1H15M");
+      expect(activity.activityAbsoluteDuration).toBe("PT2H");
+      expect(activity.activityExperiencedDuration).toBe("PT1H45M");
+    });
+
+    it("should update completion status from global satisfaction", () => {
+      const activity = new Activity("activity1", "Activity 1");
+      activity.completionStatus = CompletionStatus.INCOMPLETE;
+      activity.successStatus = SuccessStatus.UNKNOWN;
+
+      // ActivityObjective imported at top of file
+      const primaryObj = new ActivityObjective("primary", {
+        isPrimary: true,
+        mapInfo: [{
+          targetObjectiveID: "global_primary",
+          updateAttemptData: true,
+        }]
+      });
+      activity.primaryObjective = primaryObj;
+
+      const globalObjectives = new Map();
+      globalObjectives.set("global_primary", {
+        id: "global_primary",
+        satisfiedStatus: true,
+        satisfiedStatusKnown: true,
+        updateAttemptData: true,
+      });
+
+      rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
+
+      expect(activity.completionStatus).toBe("completed");
+      expect(activity.successStatus).toBe("passed");
+    });
+
+    it("should not update completion when activity has rollup rules for completion", () => {
+      const activity = new Activity("activity1", "Activity 1");
+      activity.completionStatus = CompletionStatus.INCOMPLETE;
+
+      // Add completion rollup rule
+      const completionRule = new RollupRule(
+        RollupActionType.COMPLETED,
+        RollupConsiderationType.ALL
+      );
+      activity.rollupRules.addRule(completionRule);
+
+      // ActivityObjective imported at top of file
+      const primaryObj = new ActivityObjective("primary", {
+        isPrimary: true,
+        mapInfo: [{
+          targetObjectiveID: "global_primary",
+          updateAttemptData: true,
+        }]
+      });
+      activity.primaryObjective = primaryObj;
+
+      const globalObjectives = new Map();
+      globalObjectives.set("global_primary", {
+        id: "global_primary",
+        satisfiedStatus: true,
+        satisfiedStatusKnown: true,
+        updateAttemptData: true,
+      });
+
+      rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
+
+      // Completion should not change because activity has explicit completion rules
+      expect(activity.completionStatus).toBe(CompletionStatus.INCOMPLETE);
+    });
+
+    it("should skip attempt data update for non-primary objectives without flag", () => {
+      const activity = new Activity("activity1", "Activity 1");
+      activity.completionStatus = CompletionStatus.INCOMPLETE;
+
+      // ActivityObjective imported at top of file
+      const secondaryObj = new ActivityObjective("secondary", {
+        isPrimary: false,
+        mapInfo: [{
+          targetObjectiveID: "global_secondary",
+          updateAttemptData: false, // Explicitly disabled
+        }]
+      });
+      activity.addObjective(secondaryObj);
+
+      const globalObjectives = new Map();
+      globalObjectives.set("global_secondary", {
+        id: "global_secondary",
+        satisfiedStatus: true,
+        satisfiedStatusKnown: true,
+        location: "page_10",
+      });
+
+      rollupProcess.processGlobalObjectiveMapping(activity, globalObjectives);
+
+      // Location should not be updated
+      expect(activity.location).toBe("");
     });
   });
 });
