@@ -956,4 +956,260 @@ describe("Rollup Processes (RB.1.1-1.5)", () => {
       expect(measureParent.objectiveSatisfiedStatus).toBe(true);
     });
   });
+
+  describe("Additional edge case coverage", () => {
+    describe("Completion by measure edge cases", () => {
+      it("should mark incomplete when completion measure below threshold", () => {
+        // Test RB.1.3.a - completion by measure when threshold not met
+        parent.completedByMeasure = true;
+        parent.minProgressMeasure = 0.8;
+        parent.attemptCompletionAmountStatus = true;
+        parent.attemptCompletionAmount = 0.6; // Below threshold
+
+        child1.attemptCompletionAmountStatus = true;
+        child1.attemptCompletionAmount = 0.6;
+        child1.progressWeight = 1.0;
+
+        rollupProcess.overallRollupProcess(child1);
+
+        // Should be incomplete since 0.6 < 0.8
+        expect(parent.completionStatus).toBe(CompletionStatus.INCOMPLETE);
+      });
+
+      it("should mark complete when completion measure meets threshold", () => {
+        parent.completedByMeasure = true;
+        parent.minProgressMeasure = 0.7;
+        parent.attemptCompletionAmountStatus = true;
+        parent.attemptCompletionAmount = 0.75;
+
+        child1.attemptCompletionAmountStatus = true;
+        child1.attemptCompletionAmount = 0.75;
+        child1.progressWeight = 1.0;
+
+        rollupProcess.overallRollupProcess(child1);
+
+        // Should be complete since 0.75 >= 0.7
+        expect(parent.completionStatus).toBe(CompletionStatus.COMPLETED);
+      });
+
+      it("should mark unknown when completion measure not available", () => {
+        parent.completedByMeasure = true;
+        parent.minProgressMeasure = 0.7;
+        parent.attemptCompletionAmountStatus = false; // No measure available
+
+        child1.attemptCompletionAmountStatus = false;
+
+        rollupProcess.overallRollupProcess(child1);
+
+        // Should be unknown since no completion amount data
+        expect(parent.completionStatus).toBe(CompletionStatus.UNKNOWN);
+      });
+    });
+
+    describe("Objective rollup with non-contributing children", () => {
+      it("should handle all children not contributing to objective rollup", () => {
+        // All children have rollupObjectiveSatisfied = false
+        child1.sequencingControls.rollupObjectiveSatisfied = false;
+        child2.sequencingControls.rollupObjectiveSatisfied = false;
+        child3.sequencingControls.rollupObjectiveSatisfied = false;
+
+        child1.objectiveSatisfiedStatus = true;
+        child2.objectiveSatisfiedStatus = true;
+        child3.objectiveSatisfiedStatus = true;
+
+        rollupProcess.overallRollupProcess(child1);
+
+        // Parent should not be satisfied since no children contribute
+        expect(parent.objectiveSatisfiedStatus).toBe(false);
+      });
+
+      it("should handle mix of contributing and non-contributing children", () => {
+        // Only child1 contributes
+        child1.sequencingControls.rollupObjectiveSatisfied = true;
+        child1.objectiveSatisfiedStatus = true;
+
+        child2.sequencingControls.rollupObjectiveSatisfied = false; // Don't contribute
+        child2.objectiveSatisfiedStatus = false;
+
+        child3.sequencingControls.rollupObjectiveSatisfied = false; // Don't contribute
+        child3.objectiveSatisfiedStatus = false;
+
+        rollupProcess.overallRollupProcess(child1);
+
+        // Only child1 contributes, and it's satisfied
+        expect(parent.objectiveSatisfiedStatus).toBe(true);
+      });
+    });
+
+    describe("Completion rollup with no tracking data", () => {
+      it("should handle children with unknown completion status", () => {
+        child1.completionStatus = CompletionStatus.UNKNOWN;
+        child2.completionStatus = CompletionStatus.UNKNOWN;
+        child3.completionStatus = CompletionStatus.UNKNOWN;
+
+        rollupProcess.overallRollupProcess(child1);
+
+        // Parent should be incomplete when all children unknown
+        expect(parent.completionStatus).toBe(CompletionStatus.INCOMPLETE);
+      });
+
+      it("should handle mix of completed and unknown children", () => {
+        child1.completionStatus = CompletionStatus.COMPLETED;
+        child1.isCompleted = true;
+        child2.completionStatus = CompletionStatus.UNKNOWN;
+        child2.isCompleted = false;
+        child3.completionStatus = CompletionStatus.COMPLETED;
+        child3.isCompleted = true;
+
+        rollupProcess.overallRollupProcess(child1);
+
+        // Any unknown or incomplete should make parent incomplete
+        expect(parent.completionStatus).toBe(CompletionStatus.INCOMPLETE);
+      });
+    });
+
+    describe("Objective satisfaction by measure edge cases", () => {
+      it("should return null when no measure status available", () => {
+        parent.objectiveMeasureStatus = false; // No measure
+        parent.scaledPassingScore = 0.7;
+
+        child1.objectiveMeasureStatus = false;
+
+        rollupProcess.overallRollupProcess(child1);
+
+        // Without measure, should fall through to default rollup
+        expect(parent.objectiveMeasureStatus).toBe(false);
+      });
+
+      it("should return null when no passing score defined", () => {
+        parent.objectiveMeasureStatus = true;
+        parent.objectiveNormalizedMeasure = 0.8;
+        parent.scaledPassingScore = null; // No passing score
+
+        child1.objectiveMeasureStatus = true;
+        child1.objectiveNormalizedMeasure = 0.8;
+        child1.sequencingControls.objectiveMeasureWeight = 1.0;
+
+        rollupProcess.overallRollupProcess(child1);
+
+        // Without passing score, should use default rollup
+        // Parent will not be satisfied by measure
+        expect(parent.objectiveSatisfiedStatus).toBe(false);
+      });
+
+      it("should satisfy when measure exactly equals passing score", () => {
+        parent.scaledPassingScore = 0.75;
+
+        child1.objectiveMeasureStatus = true;
+        child1.objectiveNormalizedMeasure = 0.75;
+        child1.sequencingControls.objectiveMeasureWeight = 1.0;
+        child2.objectiveMeasureStatus = true;
+        child2.objectiveNormalizedMeasure = 0.75;
+        child2.sequencingControls.objectiveMeasureWeight = 1.0;
+        child3.objectiveMeasureStatus = true;
+        child3.objectiveNormalizedMeasure = 0.75;
+        child3.sequencingControls.objectiveMeasureWeight = 1.0;
+
+        rollupProcess.overallRollupProcess(child1);
+
+        // Measure 0.75 >= passing score 0.75 (equality satisfies)
+        expect(parent.objectiveSatisfiedStatus).toBe(true);
+      });
+    });
+
+    describe("Default objective rollup edge cases", () => {
+      it("should handle no available children", () => {
+        const emptyParent = new Activity("emptyParent", "Empty Parent");
+        emptyParent.sequencingControls.rollupObjectiveSatisfied = true;
+
+        rollupProcess.overallRollupProcess(emptyParent);
+
+        // No children means not satisfied
+        expect(emptyParent.objectiveSatisfiedStatus).toBe(false);
+      });
+
+      it("should handle all children unavailable", () => {
+        child1.isAvailable = false;
+        child2.isAvailable = false;
+        child3.isAvailable = false;
+
+        child1.objectiveSatisfiedStatus = true;
+        child2.objectiveSatisfiedStatus = true;
+        child3.objectiveSatisfiedStatus = true;
+
+        rollupProcess.overallRollupProcess(child1);
+
+        // No available children means not satisfied
+        expect(parent.objectiveSatisfiedStatus).toBe(false);
+      });
+
+      it("should handle children with mixed satisfaction and unknown status", () => {
+        child1.objectiveSatisfiedStatus = true;
+        child2.objectiveSatisfiedStatus = false; // Explicitly not satisfied
+        child3.successStatus = SuccessStatus.UNKNOWN;
+        child3.objectiveSatisfiedStatus = false;
+
+        rollupProcess.overallRollupProcess(child1);
+
+        // Any child not satisfied means parent not satisfied
+        expect(parent.objectiveSatisfiedStatus).toBe(false);
+      });
+    });
+
+    describe("Measure rollup with zero contributing children", () => {
+      it("should set objectiveMeasureStatus to false when no children have measures", () => {
+        child1.objectiveMeasureStatus = false;
+        child2.objectiveMeasureStatus = false;
+        child3.objectiveMeasureStatus = false;
+
+        rollupProcess.overallRollupProcess(child1);
+
+        expect(parent.objectiveMeasureStatus).toBe(false);
+      });
+
+      it("should set objectiveMeasureStatus to false when children excluded by considerations", () => {
+        child1.objectiveMeasureStatus = true;
+        child1.objectiveNormalizedMeasure = 0.8;
+        child1.sequencingControls.rollupObjectiveSatisfied = false; // Excluded
+
+        child2.objectiveMeasureStatus = true;
+        child2.objectiveNormalizedMeasure = 0.9;
+        child2.sequencingControls.rollupObjectiveSatisfied = false; // Excluded
+
+        rollupProcess.overallRollupProcess(child1);
+
+        expect(parent.objectiveMeasureStatus).toBe(false);
+      });
+    });
+
+    describe("Completion measure rollup edge cases", () => {
+      it("should handle no children with completion amount status", () => {
+        child1.attemptCompletionAmountStatus = false;
+        child2.attemptCompletionAmountStatus = false;
+        child3.attemptCompletionAmountStatus = false;
+
+        rollupProcess.overallRollupProcess(child1);
+
+        expect(parent.attemptCompletionAmountStatus).toBe(false);
+      });
+
+      it("should calculate weighted average with different weights", () => {
+        child1.attemptCompletionAmountStatus = true;
+        child1.attemptCompletionAmount = 1.0;
+        child1.progressWeight = 2.0;
+
+        child2.attemptCompletionAmountStatus = true;
+        child2.attemptCompletionAmount = 0.5;
+        child2.progressWeight = 1.0;
+
+        child3.attemptCompletionAmountStatus = false; // Not contributing
+
+        rollupProcess.overallRollupProcess(child1);
+
+        // (1.0*2 + 0.5*1) / (2+1) = 2.5 / 3 = 0.833...
+        expect(parent.attemptCompletionAmountStatus).toBe(true);
+        expect(parent.attemptCompletionAmount).toBeCloseTo(0.833, 2);
+      });
+    });
+  });
 });
