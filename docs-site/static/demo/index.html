@@ -2,76 +2,89 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="@jcputney">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="@jcputney">
 
-    <title>SCORM Again</title>
+  <title>SCORM Again</title>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 
-    <!-- Bootstrap -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
-          integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-            integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-            crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
-            integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
-            crossorigin="anonymous"></script>
+  <!-- Bootstrap -->
+  <link rel="stylesheet"
+        href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+        integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk"
+        crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+          integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+          crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+          integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
+          crossorigin="anonymous"></script>
 
-    <!-- Prettify -->
-    <link rel="stylesheet" href="https://cdn.rawgit.com/google/code-prettify/master/styles/desert.css">
-    <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+  <!-- Prettify -->
+  <link rel="stylesheet"
+        href="https://cdn.rawgit.com/google/code-prettify/master/styles/desert.css">
+  <script
+      src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
 
-    <!-- Pretender for API Mocking -->
-    <script src="https://cdn.jsdelivr.net/gh/pretenderjs/FakeXMLHttpRequest@v2.1.1/fake_xml_http_request.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/route-recognizer/0.3.4/route-recognizer.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/pretender@3.4.3/dist/pretender.js"></script>
+  <!-- Pretender for API Mocking -->
+  <script
+      src="https://cdn.jsdelivr.net/gh/pretenderjs/FakeXMLHttpRequest@v2.1.1/fake_xml_http_request.js"></script>
+  <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/route-recognizer/0.3.4/route-recognizer.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pretender@3.4.3/dist/pretender.js"></script>
 
-    <!-- lodash -->
-    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.15/lodash.min.js"></script>
+  <!-- lodash -->
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.15/lodash.min.js"></script>
 
-    <!-- scorm-again - loaded from local build -->
-    <script src="./dist/scorm-again.js"></script>
+  <!-- scorm-again - loaded from local build -->
+  <script src="./dist/scorm-again.js"></script>
 </head>
 <body>
 <div class="jumbotron jumbotron-fluid">
-    <div class="container">
-        <h1 class="display-4">SCORM Again Examples</h1>
-        <p class="lead">Each of the examples below displays the current state of the CMI, along with all console log messages. Fake LMS endpoints have been setup in JS so that you can see what would be sent to the LMS based on current settings.</p>
-        <span class="subtitle">Source: <a href="https://github.com/jcputney/scorm-again/tree/master/demo">https://github.com/jcputney/scorm-again/tree/master/demo</a></span>
-    </div>
+  <div class="container">
+    <h1 class="display-4">SCORM Again Examples</h1>
+    <p class="lead">Each of the examples below displays the current state of the CMI, along with all
+      console log messages. Fake LMS endpoints have been setup in JS so that you can see what would
+      be sent to the LMS based on current settings.</p>
+    <span class="subtitle">Source: <a
+        href="https://github.com/jcputney/scorm-again/tree/master/docs-site/static/demo">https://github.com/jcputney/scorm-again/tree/master/docs-site/static/demo</a></span>
+  </div>
 </div>
 <!-- Page Content -->
 <div class="container-lg">
-    <div class="row row-cols-2">
-        <div class="col text-center">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">SCORM 1.2 Examples</h5>
-                </div>
-                <div class="list-group list-group-flush">
-                    <a href="scorm12.html" class="list-group-item" target="_blank">Basic Example</a>
-                    <a href="scorm12.html?existing=true" class="list-group-item" target="_blank">Previously Launched</a>
-                    <a href="scorm12.html?dataCommitFormat=flattened" class="list-group-item" target="_blank">"Flattened" Data Format</a>
-                </div>
-            </div>
+  <div class="row row-cols-2">
+    <div class="col text-center">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">SCORM 1.2 Examples</h5>
         </div>
-        <div class="col text-center">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">SCORM 2004 Examples</h5>
-                </div>
-                <div class="list-group list-group-flush">
-                    <a href="scorm2004.html" class="list-group-item" target="_blank">Basic Example</a>
-                    <a href="scorm2004.html?existing=true" class="list-group-item" target="_blank">Previously Launched</a>
-                    <a href="scorm2004.html?dataCommitFormat=flattened" class="list-group-item" target="_blank">"Flattened" Data Format</a>
-                </div>
-            </div>
+        <div class="list-group list-group-flush">
+          <a href="scorm12.html" class="list-group-item" target="_blank">Basic Example</a>
+          <a href="scorm12.html?existing=true" class="list-group-item" target="_blank">Previously
+            Launched</a>
+          <a href="scorm12.html?dataCommitFormat=flattened" class="list-group-item" target="_blank">"Flattened"
+            Data Format</a>
         </div>
+      </div>
     </div>
+    <div class="col text-center">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">SCORM 2004 Examples</h5>
+        </div>
+        <div class="list-group list-group-flush">
+          <a href="scorm2004.html" class="list-group-item" target="_blank">Basic Example</a>
+          <a href="scorm2004.html?existing=true" class="list-group-item" target="_blank">Previously
+            Launched</a>
+          <a href="scorm2004.html?dataCommitFormat=flattened" class="list-group-item"
+             target="_blank">"Flattened" Data Format</a>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 </body>
 </html>
