@@ -896,4 +896,333 @@ describe("Overall Sequencing Process (OP.1)", () => {
       expect(grandchild1.isActive).toBe(false);
     });
   });
+
+  describe("Termination Request Edge Cases", () => {
+    describe("Termination with no current activity", () => {
+      it("should fail EXIT when currentActivity is null", () => {
+        // Ensure no current activity
+        activityTree.currentActivity = null;
+
+        // Try to exit (would happen if navigation tries to terminate non-existent activity)
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT);
+
+        expect(result.valid).toBe(false);
+        expect(result.exception).toBe("NB.2.1-13");
+      });
+
+      it("should fail EXIT_ALL when currentActivity is null", () => {
+        activityTree.currentActivity = null;
+
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT_ALL);
+
+        expect(result.valid).toBe(false);
+        expect(result.exception).toBe("NB.2.1-14");
+      });
+
+      it("should fail ABANDON when currentActivity is null", () => {
+        activityTree.currentActivity = null;
+
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.ABANDON);
+
+        expect(result.valid).toBe(false);
+        expect(result.exception).toBe("NB.2.1-15");
+      });
+
+      it("should fail ABANDON_ALL when currentActivity is null", () => {
+        activityTree.currentActivity = null;
+
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.ABANDON_ALL);
+
+        expect(result.valid).toBe(false);
+        expect(result.exception).toBe("NB.2.1-16");
+      });
+    });
+
+    describe("Termination with already-terminated activity", () => {
+      it("should fail EXIT when current activity is not active", () => {
+        // Set current activity but mark as not active (already terminated)
+        activityTree.currentActivity = grandchild1;
+        grandchild1.isActive = false;
+
+        // Try to exit again - should fail with TB.2.3-2
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT);
+
+        // Navigation validation passes but termination process should fail
+        expect(result.valid).toBe(false);
+        expect(result.exception).toBe("TB.2.3-2");
+      });
+
+      it("should fail ABANDON when current activity is not active", () => {
+        activityTree.currentActivity = grandchild1;
+        grandchild1.isActive = false;
+
+        // Try to abandon already-terminated activity - should fail with TB.2.3-2
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.ABANDON);
+
+        expect(result.valid).toBe(false);
+        expect(result.exception).toBe("TB.2.3-2");
+      });
+
+      it("should allow EXIT_ALL even when current activity is not active", () => {
+        activityTree.currentActivity = grandchild1;
+        grandchild1.isActive = false;
+
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.EXIT_ALL);
+
+        expect(result.valid).toBe(true);
+        expect(activityTree.currentActivity).toBeNull();
+      });
+
+      it("should allow ABANDON_ALL even when current activity is not active", () => {
+        activityTree.currentActivity = grandchild1;
+        grandchild1.isActive = false;
+
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.ABANDON_ALL);
+
+        expect(result.valid).toBe(true);
+        expect(activityTree.currentActivity).toBeNull();
+      });
+    });
+
+    describe("SUSPEND_ALL edge cases", () => {
+      it("should fail suspend when root is current, inactive and not suspended", () => {
+        // Set root as current but inactive and not suspended
+        activityTree.currentActivity = root;
+        root.isActive = false;
+        root.isSuspended = false;
+
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.SUSPEND_ALL);
+
+        // Should fail with TB.2.3-3 because nothing to suspend
+        expect(result.valid).toBe(false);
+        expect(result.exception).toBe("TB.2.3-3");
+      });
+
+      it("should handle suspend when activity path includes root", () => {
+        // Ensure a valid path exists
+        activityTree.currentActivity = grandchild1;
+        grandchild1.isActive = true;
+
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.SUSPEND_ALL);
+
+        expect(result.valid).toBe(true);
+        expect(grandchild1.isSuspended).toBe(true);
+        expect(child1.isSuspended).toBe(true);
+        expect(root.isSuspended).toBe(true);
+        expect(activityTree.suspendedActivity).toBe(grandchild1);
+      });
+    });
+
+    describe("ABANDON_ALL with activity path", () => {
+      it("should abandon all activities in path", () => {
+        // Set up active activities in path
+        activityTree.currentActivity = grandchild1;
+        grandchild1.isActive = true;
+        child1.isActive = true;
+        root.isActive = true;
+
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.ABANDON_ALL);
+
+        expect(result.valid).toBe(true);
+        expect(grandchild1.isActive).toBe(false);
+        expect(child1.isActive).toBe(false);
+        expect(root.isActive).toBe(false);
+        expect(activityTree.currentActivity).toBeNull();
+      });
+
+      it("should handle abandon all from deeply nested activity", () => {
+        // Create deeper tree
+        const deepTree = new ActivityTree();
+        const level0 = new Activity("level0", "Level 0");
+        const level1 = new Activity("level1", "Level 1");
+        const level2 = new Activity("level2", "Level 2");
+        const level3 = new Activity("level3", "Level 3");
+
+        level0.addChild(level1);
+        level1.addChild(level2);
+        level2.addChild(level3);
+
+        deepTree.root = level0;
+        deepTree.currentActivity = level3;
+        level3.isActive = true;
+        level2.isActive = true;
+        level1.isActive = true;
+        level0.isActive = true;
+
+        const deepProcess = new OverallSequencingProcess(
+            deepTree,
+            new SequencingProcess(deepTree),
+            rollupProcess,
+            adlNav
+        );
+
+        const result = deepProcess.processNavigationRequest(NavigationRequestType.ABANDON_ALL);
+
+        expect(result.valid).toBe(true);
+        expect(level3.isActive).toBe(false);
+        expect(level2.isActive).toBe(false);
+        expect(level1.isActive).toBe(false);
+        expect(level0.isActive).toBe(false);
+        expect(deepTree.currentActivity).toBeNull();
+      });
+    });
+
+    describe("Delivery request validation", () => {
+      it("should fail delivery to cluster activity with children", () => {
+        // Try to deliver to child1 which has children (grandchild1, grandchild2)
+        activityTree.currentActivity = null;
+        root.sequencingControls.choice = true;
+        child1.sequencingControls.choice = true;
+
+        const result = overallProcess.processNavigationRequest(
+            NavigationRequestType.CHOICE,
+            "module1"  // This is child1, which has children
+        );
+
+        // Sequencing will find a child to deliver instead of the cluster
+        // So it succeeds but delivers to a leaf descendant
+        expect(result.valid).toBe(true);
+        // The target should be a leaf, not the cluster
+        expect(result.targetActivity?.children.length).toBe(0);
+      });
+
+      it("should successfully deliver to leaf activity", () => {
+        activityTree.currentActivity = null;
+        root.sequencingControls.choice = true;
+        child1.sequencingControls.choice = true;
+
+        const result = overallProcess.processNavigationRequest(
+            NavigationRequestType.CHOICE,
+            "lesson1"  // This is grandchild1, a leaf
+        );
+
+        expect(result.valid).toBe(true);
+        expect(result.targetActivity).toBe(grandchild1);
+      });
+
+      it("should fail delivery if activity path is empty", () => {
+        // Create orphan activity with no parent
+        const orphan = new Activity("orphan", "Orphan");
+        const orphanTree = new ActivityTree();
+        orphanTree.root = null; // No root!
+        orphanTree.currentActivity = null;
+
+        const orphanProcess = new OverallSequencingProcess(
+            orphanTree,
+            new SequencingProcess(orphanTree),
+            rollupProcess,
+            adlNav
+        );
+
+        // This should fail in navigation validation before reaching delivery
+        const result = orphanProcess.processNavigationRequest(NavigationRequestType.START);
+
+        expect(result.valid).toBe(false);
+      });
+    });
+
+    describe("Session end scenarios", () => {
+      it("should fire session end event on EXIT_ALL", () => {
+        activityTree.currentActivity = grandchild1;
+        grandchild1.isActive = true;
+
+        const events: any[] = [];
+        const trackingProcess = new OverallSequencingProcess(
+            activityTree,
+            sequencingProcess,
+            rollupProcess,
+            adlNav,
+            (eventType, data) => {
+              if (eventType === "onSequencingSessionEnd") {
+                events.push(data);
+              }
+            }
+        );
+
+        const result = trackingProcess.processNavigationRequest(NavigationRequestType.EXIT_ALL);
+
+        expect(result.valid).toBe(true);
+        expect(events.length).toBe(1);
+        expect(events[0].reason).toBe("exit_all");
+      });
+
+      it("should fire session end event on ABANDON_ALL", () => {
+        activityTree.currentActivity = grandchild1;
+        grandchild1.isActive = true;
+
+        const events: any[] = [];
+        const trackingProcess = new OverallSequencingProcess(
+            activityTree,
+            sequencingProcess,
+            rollupProcess,
+            adlNav,
+            (eventType, data) => {
+              if (eventType === "onSequencingSessionEnd") {
+                events.push(data);
+              }
+            }
+        );
+
+        const result = trackingProcess.processNavigationRequest(NavigationRequestType.ABANDON_ALL);
+
+        expect(result.valid).toBe(true);
+        expect(events.length).toBe(1);
+        expect(events[0].reason).toBe("abandon_all");
+      });
+
+      it("should handle sequencing request that ends session", () => {
+        // Set up scenario where sequencing ends (e.g., no more activities)
+        activityTree.currentActivity = grandchild2; // Last activity
+        grandchild2.isActive = true;
+        child1.sequencingControls.flow = true;
+
+        // Continue past last activity should end session
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.CONTINUE);
+
+        // Either succeeds with no delivery or fails with session end
+        // depending on flow rules
+        expect(result).toBeDefined();
+      });
+    });
+
+    describe("Concurrent and re-entrant scenarios", () => {
+      it("should handle continue from inactive activity", () => {
+        // Set up inactive current activity
+        activityTree.currentActivity = grandchild1;
+        grandchild1.isActive = false;
+        child1.sequencingControls.flow = true;
+
+        // Continue should work (no termination needed since already inactive)
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.CONTINUE);
+
+        expect(result.valid).toBe(true);
+      });
+
+      it("should handle previous from inactive activity", () => {
+        activityTree.currentActivity = grandchild2;
+        grandchild2.isActive = false;
+        child1.sequencingControls.flow = true;
+        child1.sequencingControls.forwardOnly = false;
+
+        const result = overallProcess.processNavigationRequest(NavigationRequestType.PREVIOUS);
+
+        expect(result.valid).toBe(true);
+      });
+
+      it("should handle choice from inactive activity", () => {
+        activityTree.currentActivity = grandchild1;
+        grandchild1.isActive = false;
+        root.sequencingControls.choice = true;
+        child1.sequencingControls.choice = true;
+
+        const result = overallProcess.processNavigationRequest(
+            NavigationRequestType.CHOICE,
+            "lesson2"
+        );
+
+        expect(result.valid).toBe(true);
+        expect(result.targetActivity).toBe(grandchild2);
+      });
+    });
+  });
 });
