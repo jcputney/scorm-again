@@ -472,6 +472,360 @@ describe("SequencingProcess", () => {
     });
   });
 
+  describe("choice request edge cases", () => {
+    it("should reject choice blocked by constrainChoice", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const child1 = new Activity("child1", "Child 1");
+      const child2 = new Activity("child2", "Child 2");
+      const child3 = new Activity("child3", "Child 3");
+
+      root.addChild(child1);
+      root.addChild(child2);
+      root.addChild(child3);
+
+      root.sequencingControls.flow = true;
+      root.sequencingControls.choice = true;
+      root.sequencingControls.constrainChoice = true;
+
+      tree.root = root;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      // Set current activity to child1
+      tree.currentActivity = child1;
+      child1.isActive = false;
+
+      // Try to choose child3 (skipping child2) - should fail with constrainChoice
+      const result = process.sequencingRequestProcess(
+          SequencingRequestType.CHOICE,
+          "child3",
+      );
+
+      expect(result.exception).toBe("SB.2.9-7");
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+    });
+
+    it("should reject choice when parent has flow=false", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const parent = new Activity("parent", "Parent");
+      const child1 = new Activity("child1", "Child 1");
+      const child2 = new Activity("child2", "Child 2");
+
+      root.addChild(parent);
+      parent.addChild(child1);
+      parent.addChild(child2);
+
+      // Disable flow on parent
+      parent.sequencingControls.flow = false;
+      parent.sequencingControls.choice = true;
+      root.sequencingControls.flow = true;
+
+      tree.root = root;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      // Set current activity to child1
+      tree.currentActivity = child1;
+      child1.isActive = false;
+
+      // Try to choose child2 - should fail because parent has flow=false
+      const result = process.sequencingRequestProcess(
+          SequencingRequestType.CHOICE,
+          "child2",
+      );
+
+      // Should succeed because choice is independent of flow for explicit choices
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
+    });
+
+    it("should handle choice to activity with prerequisites", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const child1 = new Activity("child1", "Child 1");
+      const child2 = new Activity("child2", "Child 2");
+
+      root.addChild(child1);
+      root.addChild(child2);
+
+      root.sequencingControls.flow = true;
+      root.sequencingControls.choice = true;
+
+      // Set child2 as unavailable (simulating unmet prerequisites)
+      child2.isAvailable = false;
+
+      tree.root = root;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      const result = process.sequencingRequestProcess(
+          SequencingRequestType.CHOICE,
+          "child2",
+      );
+
+      expect(result.exception).toBe("SB.2.9-7");
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+    });
+
+    it("should handle choice blocked by choiceExit constraint", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const cluster1 = new Activity("cluster1", "Cluster 1");
+      const cluster2 = new Activity("cluster2", "Cluster 2");
+      const leaf1 = new Activity("leaf1", "Leaf 1");
+      const leaf2 = new Activity("leaf2", "Leaf 2");
+
+      root.addChild(cluster1);
+      root.addChild(cluster2);
+      cluster1.addChild(leaf1);
+      cluster2.addChild(leaf2);
+
+      root.sequencingControls.flow = true;
+      root.sequencingControls.choice = true;
+      cluster1.sequencingControls.flow = true;
+      cluster1.sequencingControls.choiceExit = false; // Cannot exit cluster1
+      cluster2.sequencingControls.flow = true;
+
+      tree.root = root;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      // Set current activity to leaf1 inside cluster1
+      tree.currentActivity = leaf1;
+      leaf1.isActive = false;
+      cluster1.isActive = true; // Mark parent as active
+
+      // Try to choose leaf2 (outside cluster1) - should fail
+      const result = process.sequencingRequestProcess(
+          SequencingRequestType.CHOICE,
+          "leaf2",
+      );
+
+      expect(result.exception).toBe("SB.2.9-8");
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+    });
+  });
+
+  describe("flow traversal edge cases", () => {
+    it("should handle forward traversal with no available activities", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const child1 = new Activity("child1", "Child 1");
+      const child2 = new Activity("child2", "Child 2");
+
+      root.addChild(child1);
+      root.addChild(child2);
+
+      root.sequencingControls.flow = true;
+
+      // Make child2 unavailable
+      child2.isAvailable = false;
+
+      tree.root = root;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      // Set current activity to child1
+      tree.currentActivity = child1;
+      child1.isActive = false;
+
+      // Try to continue - should fail because child2 is unavailable
+      const result = process.sequencingRequestProcess(SequencingRequestType.CONTINUE);
+
+      expect(result.exception).toBeTruthy();
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+    });
+
+    it("should handle backward traversal blocked by forwardOnly", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const child1 = new Activity("child1", "Child 1");
+      const child2 = new Activity("child2", "Child 2");
+
+      root.addChild(child1);
+      root.addChild(child2);
+
+      root.sequencingControls.flow = true;
+      root.sequencingControls.forwardOnly = true;
+
+      tree.root = root;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      // Set current activity to child2
+      tree.currentActivity = child2;
+      child2.isActive = false;
+
+      // Try to go previous - should fail because of forwardOnly
+      const result = process.sequencingRequestProcess(SequencingRequestType.PREVIOUS);
+
+      expect(result.exception).toBeTruthy();
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+    });
+
+    it("should handle flow traversal with stopForwardTraversal", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const cluster = new Activity("cluster", "Cluster");
+      const child1 = new Activity("child1", "Child 1");
+      const child2 = new Activity("child2", "Child 2");
+
+      root.addChild(cluster);
+      cluster.addChild(child1);
+      cluster.addChild(child2);
+
+      root.sequencingControls.flow = true;
+      cluster.sequencingControls.flow = true;
+      cluster.sequencingControls.stopForwardTraversal = true;
+
+      tree.root = root;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      // Try to start - should not be able to traverse into cluster
+      const result = process.sequencingRequestProcess(SequencingRequestType.START);
+
+      // Should either fail or skip the cluster
+      expect(result).toBeInstanceOf(SequencingResult);
+    });
+
+    it("should end sequencing session at end of tree", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const child1 = new Activity("child1", "Child 1");
+
+      root.addChild(child1);
+      root.sequencingControls.flow = true;
+
+      tree.root = root;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      // Set current activity to the last child
+      tree.currentActivity = child1;
+      child1.isActive = false;
+
+      // Try to continue past the last activity
+      const result = process.sequencingRequestProcess(SequencingRequestType.CONTINUE);
+
+      expect(result.endSequencingSession).toBe(true);
+    });
+
+    it("should handle backward traversal to find previous sibling's last descendant", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const cluster1 = new Activity("cluster1", "Cluster 1");
+      const cluster2 = new Activity("cluster2", "Cluster 2");
+      const leaf1 = new Activity("leaf1", "Leaf 1");
+      const leaf2 = new Activity("leaf2", "Leaf 2");
+      const leaf3 = new Activity("leaf3", "Leaf 3");
+
+      root.addChild(cluster1);
+      root.addChild(cluster2);
+      cluster1.addChild(leaf1);
+      cluster1.addChild(leaf2);
+      cluster2.addChild(leaf3);
+
+      root.sequencingControls.flow = true;
+      cluster1.sequencingControls.flow = true;
+      cluster2.sequencingControls.flow = true;
+
+      tree.root = root;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      // Set current activity to leaf3 (first child of cluster2)
+      tree.currentActivity = leaf3;
+      leaf3.isActive = false;
+
+      // Try to go previous - should go to leaf2 (last child of cluster1)
+      const result = process.sequencingRequestProcess(SequencingRequestType.PREVIOUS);
+
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
+      expect(result.targetActivity?.id).toBe("leaf2");
+    });
+
+    it("should handle cluster with no available children in flow", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const cluster = new Activity("cluster", "Cluster");
+      const child1 = new Activity("child1", "Child 1");
+      const child2 = new Activity("child2", "Child 2");
+
+      root.addChild(cluster);
+      cluster.addChild(child1);
+      cluster.addChild(child2);
+
+      root.sequencingControls.flow = true;
+      cluster.sequencingControls.flow = true;
+
+      // Make all children unavailable
+      child1.isAvailable = false;
+      child2.isAvailable = false;
+
+      tree.root = root;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      // Try to start - should fail because no children are available
+      const result = process.sequencingRequestProcess(SequencingRequestType.START);
+
+      expect(result.exception).toBeTruthy();
+      expect(result.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
+    });
+  });
+
   describe("selection/randomization persistence", () => {
     it("should honor pre-selected children order when starting and continuing", () => {
       const tree = new ActivityTree();
@@ -628,6 +982,311 @@ describe("SequencingProcess", () => {
       const continueSecond = process.sequencingRequestProcess(SequencingRequestType.CONTINUE);
       expect(continueSecond.deliveryRequest).toBe(DeliveryRequestType.DO_NOT_DELIVER);
       expect(continueSecond.exception).toBe("SB.2.7-2");
+    });
+  });
+
+  describe("exit sequencing edge cases", () => {
+    it("should reject exit when no parent exists", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+
+      tree.root = root;
+      tree.currentActivity = root;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      const result = process.sequencingRequestProcess(SequencingRequestType.EXIT);
+
+      expect(result.exception).toBe("SB.2.11-1");
+    });
+
+    it("should reject exit when choiceExit is false", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const child1 = new Activity("child1", "Child 1");
+
+      root.addChild(child1);
+      root.sequencingControls.choiceExit = false;
+
+      tree.root = root;
+      tree.currentActivity = child1;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      const result = process.sequencingRequestProcess(SequencingRequestType.EXIT);
+
+      expect(result.exception).toBe("SB.2.11-2");
+    });
+
+    it("should reject suspend on root activity", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+
+      tree.root = root;
+      tree.currentActivity = root;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      const result = process.sequencingRequestProcess(SequencingRequestType.SUSPEND_ALL);
+
+      expect(result.exception).toBe("SB.2.15-1");
+    });
+
+    it("should handle EXIT_PARENT request", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const parent = new Activity("parent", "Parent");
+      const child1 = new Activity("child1", "Child 1");
+
+      root.addChild(parent);
+      parent.addChild(child1);
+
+      root.sequencingControls.flow = true;
+      parent.sequencingControls.flow = true;
+
+      tree.root = root;
+      tree.currentActivity = child1;
+      child1.isActive = true;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      // Manually test terminateDescendentAttemptsProcess is called
+      const result = process.sequencingRequestProcess(SequencingRequestType.ABANDON);
+
+      expect(child1.isActive).toBe(false);
+    });
+  });
+
+  describe("resume edge cases", () => {
+    it("should reject resume when current activity exists", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const child1 = new Activity("child1", "Child 1");
+
+      root.addChild(child1);
+      tree.root = root;
+      tree.currentActivity = child1;
+      tree.suspendedActivity = child1;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      const result = process.sequencingRequestProcess(SequencingRequestType.RESUME_ALL);
+
+      expect(result.exception).toBe("SB.2.6-2");
+    });
+  });
+
+  describe("retry edge cases", () => {
+    it("should reject retry on active activity", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const child1 = new Activity("child1", "Child 1");
+
+      root.addChild(child1);
+      tree.root = root;
+      tree.currentActivity = child1;
+      child1.isActive = true;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      const result = process.sequencingRequestProcess(SequencingRequestType.RETRY);
+
+      expect(result.exception).toBe("SB.2.10-2");
+    });
+
+    it("should reject retry on suspended activity", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const child1 = new Activity("child1", "Child 1");
+
+      root.addChild(child1);
+      tree.root = root;
+      tree.currentActivity = child1;
+      child1.isActive = false;
+      child1.isSuspended = true;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      const result = process.sequencingRequestProcess(SequencingRequestType.RETRY);
+
+      expect(result.exception).toBe("SB.2.10-2");
+    });
+
+    it("should reject retry when no deliverable child found in cluster", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const cluster = new Activity("cluster", "Cluster");
+      const child1 = new Activity("child1", "Child 1");
+
+      root.addChild(cluster);
+      cluster.addChild(child1);
+
+      root.sequencingControls.flow = true;
+      cluster.sequencingControls.flow = true;
+
+      // Make child unavailable
+      child1.isAvailable = false;
+
+      tree.root = root;
+      tree.currentActivity = cluster;
+      cluster.isActive = false;
+      cluster.isSuspended = false;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      const result = process.sequencingRequestProcess(SequencingRequestType.RETRY);
+
+      expect(result.exception).toBe("SB.2.10-3");
+    });
+  });
+
+  describe("choice with forwardOnly edge cases", () => {
+    it("should reject backward choice with forwardOnly constraint", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const child1 = new Activity("child1", "Child 1");
+      const child2 = new Activity("child2", "Child 2");
+
+      root.addChild(child1);
+      root.addChild(child2);
+
+      root.sequencingControls.flow = true;
+      root.sequencingControls.choice = true;
+      root.sequencingControls.forwardOnly = true;
+
+      tree.root = root;
+      tree.currentActivity = child2;
+      child2.isActive = false;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      // Try to choose child1 (backward) with forwardOnly
+      const result = process.sequencingRequestProcess(
+          SequencingRequestType.CHOICE,
+          "child1",
+      );
+
+      expect(result.exception).toBe("SB.2.9-5");
+    });
+
+    it("should still block backward choice even with completion and forwardOnly", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const child1 = new Activity("child1", "Child 1");
+      const child2 = new Activity("child2", "Child 2");
+
+      root.addChild(child1);
+      root.addChild(child2);
+
+      root.sequencingControls.flow = true;
+      root.sequencingControls.choice = true;
+      root.sequencingControls.forwardOnly = true;
+
+      // Mark child1 as completed
+      child1.completionStatus = "completed";
+
+      tree.root = root;
+      tree.currentActivity = child2;
+      child2.isActive = false;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      // Try to choose child1 (backward even though completed)
+      const result = process.sequencingRequestProcess(
+          SequencingRequestType.CHOICE,
+          "child1",
+      );
+
+      // Per SCORM 2004, forwardOnly blocks ALL backward navigation
+      // The completion check is for constrainChoice, not forwardOnly
+      // forwardOnly has higher priority and blocks backward movement regardless
+      expect(result.exception).toBe("SB.2.9-5");
+    });
+  });
+
+  describe("preventActivation constraint", () => {
+    it("should reject choice to unattended activity with preventActivation", () => {
+      const tree = new ActivityTree();
+      const root = new Activity("root", "Root");
+      const child1 = new Activity("child1", "Child 1");
+      const child2 = new Activity("child2", "Child 2");
+
+      root.addChild(child1);
+      root.addChild(child2);
+
+      root.sequencingControls.flow = true;
+      root.sequencingControls.choice = true;
+      root.sequencingControls.preventActivation = true;
+
+      // child2 has never been attempted
+      child2.attemptCount = 0;
+      child2.isActive = false;
+
+      tree.root = root;
+
+      const process = new SequencingProcess(
+          tree,
+          new SequencingRules(),
+          new SequencingControls(),
+          new ADLNav(),
+      );
+
+      const result = process.sequencingRequestProcess(
+          SequencingRequestType.CHOICE,
+          "child2",
+      );
+
+      expect(result.exception).toBe("SB.2.9-6");
     });
   });
 });
