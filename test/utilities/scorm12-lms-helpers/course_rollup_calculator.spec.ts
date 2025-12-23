@@ -400,4 +400,339 @@ describe("CourseRollupCalculator", () => {
       expect(calculator.calculateScore()).toBe(75);
     });
   });
+
+  describe("score calculation edge cases", () => {
+    it("should handle division by zero when min equals max", () => {
+      tracker.updateFromCmiData("sco1", {
+        core: { score: { raw: 50, min: 50, max: 50 } },
+      });
+
+      const result = calculator.calculateScore();
+      expect(result).toBe(0); // Should return 0 when max === min
+    });
+
+    it("should handle weighted score with zero total weight", () => {
+      tracker.updateFromCmiData("sco1", {
+        core: { score: { raw: 80 } },
+      });
+      tracker.updateFromCmiData("sco2", {
+        core: { score: { raw: 90 } },
+      });
+
+      // Provide weights that sum to zero (edge case)
+      const weights = new Map([
+        ["sco1", 0],
+        ["sco2", 0],
+      ]);
+
+      calculator.setOptions({ scoreMethod: "weighted", weights });
+      const result = calculator.calculateScore();
+
+      expect(result).toBeUndefined(); // Should return undefined when totalWeight is 0
+    });
+
+    it("should handle weighted score with partial weights", () => {
+      tracker.updateFromCmiData("sco1", {
+        core: { score: { raw: 80 } },
+      });
+      tracker.updateFromCmiData("sco2", {
+        core: { score: { raw: 90 } },
+      });
+      tracker.updateFromCmiData("sco3", {
+        core: { score: { raw: 70 } },
+      });
+
+      // Only provide weights for some SCOs
+      const weights = new Map([
+        ["sco1", 0.5],
+        // sco2 not specified, should default to 1
+        ["sco3", 0.5],
+      ]);
+
+      calculator.setOptions({ scoreMethod: "weighted", weights });
+      const result = calculator.calculateScore();
+
+      // (80*0.5 + 90*1 + 70*0.5) / (0.5 + 1 + 0.5) = (40 + 90 + 35) / 2 = 82.5
+      expect(result).toBe(82.5);
+    });
+
+    it("should handle negative scores", () => {
+      tracker.updateFromCmiData("sco1", {
+        core: { score: { raw: -10, min: -50, max: 50 } },
+      });
+      tracker.updateFromCmiData("sco2", {
+        core: { score: { raw: 0, min: -50, max: 50 } },
+      });
+
+      calculator.setOptions({ scoreMethod: "average" });
+      const result = calculator.calculateScore();
+
+      // Normalized: (-10-(-50))/(50-(-50)) = 40/100 = 40%
+      // Normalized: (0-(-50))/(50-(-50)) = 50/100 = 50%
+      // Average: (40 + 50) / 2 = 45
+      expect(result).toBe(45);
+    });
+
+    it("should handle boundary score values (0 and 100)", () => {
+      tracker.updateFromCmiData("sco1", {
+        core: { score: { raw: 0 } },
+      });
+      tracker.updateFromCmiData("sco2", {
+        core: { score: { raw: 100 } },
+      });
+      tracker.updateFromCmiData("sco3", {
+        core: { score: { raw: 50 } },
+      });
+
+      calculator.setOptions({ scoreMethod: "average" });
+      expect(calculator.calculateScore()).toBe(50);
+
+      calculator.setOptions({ scoreMethod: "highest" });
+      expect(calculator.calculateScore()).toBe(100);
+
+      calculator.setOptions({ scoreMethod: "lowest" });
+      expect(calculator.calculateScore()).toBe(0);
+    });
+
+    it("should handle last score method with access times", () => {
+      // updateFromCmiData sets lastAccessTime automatically
+      tracker.updateFromCmiData("sco1", {
+        core: { score: { raw: 80 } },
+      });
+
+      tracker.updateFromCmiData("sco2", {
+        core: { score: { raw: 90 } },
+      });
+
+      tracker.updateFromCmiData("sco3", {
+        core: { score: { raw: 70 } },
+      });
+
+      calculator.setOptions({ scoreMethod: "last" });
+      const result = calculator.calculateScore();
+
+      // Should return a valid score from one of the SCOs
+      // Due to same-millisecond timestamps, we can't guarantee order
+      expect([70, 80, 90]).toContain(result);
+      expect(result).toBeDefined();
+    });
+
+    it("should handle single SCO with score", () => {
+      const singleTracker = new ScoStateTracker();
+      singleTracker.initializeSco("sco1", "Single SCO");
+      singleTracker.updateFromCmiData("sco1", {
+        core: { score: { raw: 85 } },
+      });
+
+      const singleCalc = new CourseRollupCalculator(singleTracker);
+
+      expect(singleCalc.calculateScore()).toBe(85);
+    });
+
+    it("should handle empty score arrays with different methods", () => {
+      // No scores set
+      calculator.setOptions({ scoreMethod: "average" });
+      expect(calculator.calculateScore()).toBeUndefined();
+
+      calculator.setOptions({ scoreMethod: "highest" });
+      expect(calculator.calculateScore()).toBeUndefined();
+
+      calculator.setOptions({ scoreMethod: "lowest" });
+      expect(calculator.calculateScore()).toBeUndefined();
+
+      calculator.setOptions({ scoreMethod: "weighted" });
+      expect(calculator.calculateScore()).toBeUndefined();
+
+      calculator.setOptions({ scoreMethod: "sum" });
+      expect(calculator.calculateScore()).toBeUndefined();
+
+      calculator.setOptions({ scoreMethod: "last" });
+      expect(calculator.calculateScore()).toBeUndefined();
+    });
+
+    it("should handle different score ranges", () => {
+      // SCO with standard 0-100 range
+      tracker.updateFromCmiData("sco1", {
+        core: { score: { raw: 80, min: 0, max: 100 } },
+      });
+      // SCO with non-standard range (50-100)
+      tracker.updateFromCmiData("sco2", {
+        core: { score: { raw: 90, min: 50, max: 100 } },
+      });
+
+      calculator.setOptions({ scoreMethod: "average" });
+      const result = calculator.calculateScore();
+
+      // sco1: 80% (80/100), sco2: 80% ((90-50)/(100-50))
+      // Average: (80 + 80) / 2 = 80
+      expect(result).toBe(80);
+    });
+
+    it("should normalize scores correctly across different ranges", () => {
+      tracker.updateFromCmiData("sco1", {
+        core: { score: { raw: 100, min: 0, max: 100 } }, // 100%
+      });
+      tracker.updateFromCmiData("sco2", {
+        core: { score: { raw: 75, min: 50, max: 100 } }, // 50%
+      });
+      tracker.updateFromCmiData("sco3", {
+        core: { score: { raw: 50, min: 0, max: 200 } }, // 25%
+      });
+
+      calculator.setOptions({ scoreMethod: "average" });
+      const result = calculator.calculateScore();
+
+      // (100 + 50 + 25) / 3 = 58.33...
+      expect(Math.round(result!)).toBe(58);
+    });
+
+    it("should handle very large sum scores (capped at 100)", () => {
+      tracker.updateFromCmiData("sco1", {
+        core: { score: { raw: 50 } },
+      });
+      tracker.updateFromCmiData("sco2", {
+        core: { score: { raw: 60 } },
+      });
+      tracker.updateFromCmiData("sco3", {
+        core: { score: { raw: 70 } },
+      });
+
+      calculator.setOptions({ scoreMethod: "sum" });
+      const result = calculator.calculateScore();
+
+      // 50 + 60 + 70 = 180, but should be capped at 100
+      expect(result).toBe(100);
+    });
+
+    it("should handle small sum scores (not capped)", () => {
+      tracker.updateFromCmiData("sco1", {
+        core: { score: { raw: 10 } },
+      });
+      tracker.updateFromCmiData("sco2", {
+        core: { score: { raw: 20 } },
+      });
+
+      calculator.setOptions({ scoreMethod: "sum" });
+      const result = calculator.calculateScore();
+
+      // 10 + 20 = 30, should not be modified
+      expect(result).toBe(30);
+    });
+  });
+
+  describe("status determination edge cases", () => {
+    it("should handle score_threshold with undefined score and incomplete", () => {
+      calculator.setOptions({
+        statusMethod: "score_threshold",
+        passingScore: 80,
+      });
+
+      // Mark as incomplete but no scores
+      tracker.updateFromCmiData("sco1", {
+        core: { lesson_status: "incomplete" },
+      });
+      tracker.markLaunched("sco1");
+
+      const result = calculator.calculate();
+
+      // Should be incomplete when no score and not complete
+      expect(result.status).toBe("incomplete");
+      expect(result.score).toBeUndefined();
+    });
+
+    it("should handle default status method with mixed statuses", () => {
+      // Don't specify statusMethod, should use default
+      tracker.updateFromCmiData("sco1", {
+        core: { lesson_status: "completed" },
+      });
+      tracker.updateFromCmiData("sco2", {
+        core: { lesson_status: "completed" },
+      });
+      tracker.updateFromCmiData("sco3", {
+        core: { lesson_status: "completed" },
+      });
+      tracker.markLaunched("sco1");
+
+      const result = calculator.calculate();
+
+      // All completed but none passed, should be "completed"
+      expect(result.status).toBe("completed");
+    });
+
+    it("should handle default status method with all passed", () => {
+      tracker.updateFromCmiData("sco1", {
+        core: { lesson_status: "passed" },
+      });
+      tracker.updateFromCmiData("sco2", {
+        core: { lesson_status: "passed" },
+      });
+      tracker.updateFromCmiData("sco3", {
+        core: { lesson_status: "passed" },
+      });
+      tracker.markLaunched("sco1");
+
+      const result = calculator.calculate();
+
+      // All passed and complete, should be "passed"
+      expect(result.status).toBe("passed");
+    });
+
+    it("should handle default status method with any failed", () => {
+      tracker.updateFromCmiData("sco1", {
+        core: { lesson_status: "completed" },
+      });
+      tracker.updateFromCmiData("sco2", {
+        core: { lesson_status: "failed" },
+      });
+      tracker.updateFromCmiData("sco3", {
+        core: { lesson_status: "completed" },
+      });
+      tracker.markLaunched("sco1");
+
+      const result = calculator.calculate();
+
+      // Complete with any failed should be "failed"
+      expect(result.status).toBe("failed");
+    });
+
+    it("should handle any_passed with only incomplete statuses", () => {
+      calculator.setOptions({ statusMethod: "any_passed" });
+
+      tracker.updateFromCmiData("sco1", {
+        core: { lesson_status: "incomplete" },
+      });
+      tracker.updateFromCmiData("sco2", {
+        core: { lesson_status: "incomplete" },
+      });
+      tracker.updateFromCmiData("sco3", {
+        core: { lesson_status: "incomplete" },
+      });
+      tracker.markLaunched("sco1");
+
+      const result = calculator.calculate();
+
+      // No passes, not complete, should be incomplete
+      expect(result.status).toBe("incomplete");
+    });
+
+    it("should handle any_passed with failed but no incomplete", () => {
+      calculator.setOptions({ statusMethod: "any_passed" });
+
+      tracker.updateFromCmiData("sco1", {
+        core: { lesson_status: "failed" },
+      });
+      tracker.updateFromCmiData("sco2", {
+        core: { lesson_status: "failed" },
+      });
+      tracker.updateFromCmiData("sco3", {
+        core: { lesson_status: "failed" },
+      });
+      tracker.markLaunched("sco1");
+
+      const result = calculator.calculate();
+
+      // All failed, no incomplete, should be failed
+      expect(result.status).toBe("failed");
+    });
+  });
 });
