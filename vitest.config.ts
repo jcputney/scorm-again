@@ -25,7 +25,12 @@ export default defineConfig({
         "src/exports/*.*",
         "src/interfaces/*.*",
         "src/types/*.*",
-        "src/ScormAgain.ts"
+        "src/ScormAgain.ts",
+        "src/index.ts",
+        "src/esm/**/*.ts",
+        "src/utilities/index.ts",
+        "src/scorm12-lms-helpers/index.ts",
+        "src/global.d.ts"
       ]
     }
   }
