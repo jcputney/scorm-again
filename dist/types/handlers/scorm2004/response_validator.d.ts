@@ -1,6 +1,6 @@
 import { CMIArray } from "../../cmi/common/array";
 import { CMIInteractionsObject } from "../../cmi/scorm2004/interactions";
-import { ResponseType } from "../../constants/response_constants";
+import { ResponseType } from "../../constants";
 export interface ValidationContext {
     throwSCORMError: (element: string, errorCode: number, message?: string) => void;
     getLastErrorCode: () => string;

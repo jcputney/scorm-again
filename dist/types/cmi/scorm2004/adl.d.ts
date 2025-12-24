@@ -1,7 +1,7 @@
 import { BaseCMI } from "../common/base_cmi";
-import { NAVBoolean } from "../../constants/enums";
 import { CMIArray } from "../common/array";
 import { Sequencing } from "./sequencing/sequencing";
+import { NAVBoolean } from "../../constants";
 export declare class ADL extends BaseCMI {
     constructor();
     nav: ADLNav;

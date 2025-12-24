@@ -1,5 +1,5 @@
-import { CMI } from "../../cmi/scorm2004/cmi";
 import { BaseCMI } from "../../cmi/common/base_cmi";
+import { CMI } from "../../cmi/scorm2004/cmi";
 import { Scorm2004ResponseValidator } from "./response_validator";
 export interface CMIHandlerContext {
     cmi: CMI;

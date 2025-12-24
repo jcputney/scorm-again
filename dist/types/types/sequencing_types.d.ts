@@ -1,3 +1,4 @@
+import { IActivity } from "./activity_types";
 import { RuleActionType, RuleConditionOperator, RuleConditionType } from "../cmi/scorm2004/sequencing/sequencing_rules";
 import { RollupActionType, RollupConditionType, RollupConsiderationType } from "../cmi/scorm2004/sequencing/rollup_rules";
 import { RandomizationTiming, SelectionTiming } from "../cmi/scorm2004/sequencing/sequencing_controls";
@@ -155,12 +156,12 @@ export type SequencingSettings = {
     eventListeners?: SequencingEventListeners;
 };
 export interface SequencingEventListeners {
-    onSequencingStart?: (activity: any) => void;
+    onSequencingStart?: (activity: IActivity) => void;
     onSequencingEnd?: () => void;
-    onActivityDelivery?: (activity: any) => void;
-    onActivityUnload?: (activity: any) => void;
+    onActivityDelivery?: (activity: IActivity) => void;
+    onActivityUnload?: (activity: IActivity) => void;
     onNavigationRequest?: (request: string, target?: string) => void;
-    onRollupComplete?: (activity: any) => void;
+    onRollupComplete?: (activity: IActivity) => void;
     onSequencingError?: (error: string, context?: string) => void;
     onSequencingSessionEnd?: (data: {
         reason: string;
@@ -216,7 +217,7 @@ export interface SequencingEventListeners {
         currentActivity: string | null;
         validRequests: string[];
     }) => void;
-    onLimitConditionCheck?: (activity: any, result: boolean) => void;
+    onLimitConditionCheck?: (activity: IActivity, result: boolean) => void;
     onStateInconsistency?: (data: {
         activity: string;
         issue: string;
@@ -237,5 +238,8 @@ export interface SequencingEventListeners {
         error: string;
     }) => void;
     onSequencingDebug?: (event: string, data?: any) => void;
+    onActivityAttemptStart?: (activity: IActivity) => void;
+    onActivityAttemptEnd?: (activity: IActivity) => void;
+    onSequencingStateChange?: (state: any) => void;
 }
 //# sourceMappingURL=sequencing_types.d.ts.map

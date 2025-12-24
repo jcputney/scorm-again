@@ -1,9 +1,8 @@
-import { ErrorCode } from "./constants/error_codes";
 import { StringKeyMap } from "./utilities";
 import { BaseCMI } from "./cmi/common/base_cmi";
-import { CommitObject, InternalSettings, LogLevel, ResultObject, Settings } from "./types/api_types";
-import { IBaseAPI } from "./interfaces/IBaseAPI";
-import { ICMIDataService, IErrorHandlingService, IEventService, IHttpService, ILoggingService, IOfflineStorageService, ISerializationService } from "./interfaces/services";
+import { ErrorCode } from "./constants";
+import { CommitObject, InternalSettings, LogLevel, ResultObject, Settings } from "./types";
+import { IBaseAPI, ICMIDataService, IErrorHandlingService, IEventService, IHttpService, ILoggingService, IOfflineStorageService, ISerializationService } from "./interfaces";
 export default abstract class BaseAPI implements IBaseAPI {
     private _timeout?;
     protected readonly _error_codes: ErrorCode;

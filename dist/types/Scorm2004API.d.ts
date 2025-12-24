@@ -1,14 +1,13 @@
 import BaseAPI from "./BaseAPI";
-import { CMI } from "./cmi/scorm2004/cmi";
 import { StringKeyMap } from "./utilities";
-import { CMIObjectivesObject } from "./cmi/scorm2004/objectives";
-import { ADL } from "./cmi/scorm2004/adl";
-import { CommitObject, ResultObject, SequencingStateMetadata, Settings } from "./types/api_types";
-import { SequencingEventListeners } from "./types/sequencing_types";
 import { BaseCMI } from "./cmi/common/base_cmi";
+import { CMI } from "./cmi/scorm2004/cmi";
+import { CMIObjectivesObject } from "./cmi/scorm2004/objectives";
 import { CMIInteractionsObject } from "./cmi/scorm2004/interactions";
-import { SequencingConfiguration, SequencingService } from "./services/SequencingService";
-import { IHttpService } from "./interfaces/services";
+import { ADL } from "./cmi/scorm2004/adl";
+import { CommitObject, ResultObject, SequencingStateMetadata, Settings } from "./types";
+import { IHttpService } from "./interfaces";
+import { SequencingConfiguration, SequencingEventListeners, SequencingService } from "./services";
 declare class Scorm2004API extends BaseAPI {
     private _version;
     private readonly _sequencing;

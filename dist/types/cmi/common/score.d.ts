@@ -1,6 +1,6 @@
 import { BaseCMI } from "./base_cmi";
 import { BaseScormValidationError } from "../../exceptions";
-import { ScoreObject } from "../../types/api_types";
+import { ScoreObject } from "../../types";
 export declare class CMIScore extends BaseCMI {
     private readonly __children;
     private readonly __score_range;

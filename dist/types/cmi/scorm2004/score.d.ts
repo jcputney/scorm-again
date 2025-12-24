@@ -1,5 +1,5 @@
 import { CMIScore } from "../common/score";
-import { ScoreObject } from "../../types/api_types";
+import { ScoreObject } from "../../types";
 export declare class Scorm2004CMIScore extends CMIScore {
     private _scaled;
     constructor();

@@ -1,3 +1,264 @@
+const SECONDS_PER_MINUTE = 60;
+const SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
+const getSecondsAsHHMMSS = memoize((totalSeconds) => {
+  if (!totalSeconds || totalSeconds <= 0) {
+    return "00:00:00";
+  }
+  const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
+  const dateObj = new Date(totalSeconds * 1e3);
+  const minutes = dateObj.getUTCMinutes();
+  const seconds = dateObj.getSeconds();
+  const ms = totalSeconds % 1;
+  let msStr = "";
+  if (countDecimals(ms) > 0) {
+    if (countDecimals(ms) > 2) {
+      msStr = ms.toFixed(2);
+    } else {
+      msStr = String(ms);
+    }
+    msStr = "." + msStr.split(".")[1];
+  }
+  return (hours + ":" + minutes + ":" + seconds).replace(/\b\d\b/g, "0$&") + msStr;
+});
+const getTimeAsSeconds = memoize(
+  (timeString, timeRegex) => {
+    if (typeof timeString === "number" || typeof timeString === "boolean") {
+      timeString = String(timeString);
+    }
+    if (typeof timeRegex === "string") {
+      timeRegex = new RegExp(timeRegex);
+    }
+    if (!timeString) {
+      return 0;
+    }
+    if (!timeString.match(timeRegex)) {
+      if (/^\d+(?:\.\d+)?$/.test(timeString)) {
+        return Number(timeString);
+      }
+      return 0;
+    }
+    const parts = timeString.split(":");
+    const hours = Number(parts[0]);
+    const minutes = Number(parts[1]);
+    const seconds = Number(parts[2]);
+    return hours * 3600 + minutes * 60 + seconds;
+  },
+  // Custom key function to handle RegExp objects which can't be stringified
+  (timeString, timeRegex) => {
+    const timeStr = typeof timeString === "string" ? timeString : String(timeString ?? "");
+    const regexStr = typeof timeRegex === "string" ? timeRegex : timeRegex?.toString() ?? "";
+    return `${timeStr}:${regexStr}`;
+  }
+);
+const getDurationAsSeconds = memoize(
+  (duration, durationRegex) => {
+    if (typeof durationRegex === "string") {
+      durationRegex = new RegExp(durationRegex);
+    }
+    if (!duration || !duration?.match?.(durationRegex)) {
+      return 0;
+    }
+    const [, years, months, weeks, days, hours, minutes, seconds] = new RegExp(durationRegex).exec?.(duration) ?? [];
+    let result = 0;
+    result += Number(seconds) || 0;
+    result += Number(minutes) * 60 || 0;
+    result += Number(hours) * 3600 || 0;
+    result += Number(days) * (60 * 60 * 24) || 0;
+    result += Number(weeks) * (60 * 60 * 24 * 7) || 0;
+    result += Number(months) * (60 * 60 * 24 * 30) || 0;
+    result += Number(years) * (60 * 60 * 24 * 365) || 0;
+    return result;
+  },
+  // Custom key function to handle RegExp objects which can't be stringified
+  (duration, durationRegex) => {
+    const durationStr = duration ?? "";
+    const regexStr = typeof durationRegex === "string" ? durationRegex : durationRegex?.toString() ?? "";
+    return `${durationStr}:${regexStr}`;
+  }
+);
+function addHHMMSSTimeStrings(first, second, timeRegex) {
+  if (typeof timeRegex === "string") {
+    timeRegex = new RegExp(timeRegex);
+  }
+  return getSecondsAsHHMMSS(
+    getTimeAsSeconds(first, timeRegex) + getTimeAsSeconds(second, timeRegex)
+  );
+}
+function flatten(data) {
+  const result = {};
+  function recurse(cur, prop) {
+    if (Object(cur) !== cur) {
+      result[prop] = cur;
+    } else if (Array.isArray(cur)) {
+      cur.forEach((item, i) => {
+        recurse(item, `${prop}[${i}]`);
+      });
+      if (cur.length === 0) result[prop] = [];
+    } else {
+      const keys = Object.keys(cur).filter((p) => Object.prototype.hasOwnProperty.call(cur, p));
+      const isEmpty = keys.length === 0;
+      keys.forEach((p) => {
+        recurse(cur[p], prop ? `${prop}.${p}` : p);
+      });
+      if (isEmpty && prop) result[prop] = {};
+    }
+  }
+  recurse(data, "");
+  return result;
+}
+function unflatten(data) {
+  if (Object(data) !== data || Array.isArray(data)) return data;
+  const result = {};
+  const pattern = /\.?([^.[\]]+)|\[(\d+)]/g;
+  Object.keys(data).filter((p) => Object.prototype.hasOwnProperty.call(data, p)).forEach((p) => {
+    let cur = result;
+    let prop = "";
+    const regex = new RegExp(pattern);
+    Array.from(
+      { length: p.match(new RegExp(pattern, "g"))?.length ?? 0 },
+      () => regex.exec(p)
+    ).forEach((m) => {
+      if (m) {
+        cur = cur[prop] ?? (cur[prop] = m[2] ? [] : {});
+        prop = m[2] || m[1] || "";
+      }
+    });
+    cur[prop] = data[p];
+  });
+  return result[""] ?? result;
+}
+function countDecimals(num) {
+  if (Math.floor(num) === num || String(num)?.indexOf?.(".") < 0) return 0;
+  const parts = num.toString().split(".")?.[1];
+  return parts?.length ?? 0;
+}
+function formatMessage(functionName, message, CMIElement) {
+  const baseLength = 20;
+  let messageString = functionName ? `${String(functionName).padEnd(baseLength)}: ` : "";
+  if (CMIElement) {
+    const CMIElementBaseLength = 70;
+    messageString += CMIElement;
+    messageString = messageString.padEnd(CMIElementBaseLength);
+  }
+  messageString += message ?? "";
+  return messageString;
+}
+function stringMatches(str, tester) {
+  if (typeof str !== "string") {
+    return false;
+  }
+  return new RegExp(tester).test(str);
+}
+function memoize(fn, keyFn) {
+  const cache = /* @__PURE__ */ new Map();
+  return ((...args) => {
+    const key = keyFn ? keyFn(...args) : JSON.stringify(args);
+    return cache.has(key) ? cache.get(key) : (() => {
+      const result = fn(...args);
+      cache.set(key, result);
+      return result;
+    })();
+  });
+}
+
+class BaseCMI {
+  /**
+   * Constructor for BaseCMI
+   * @param {string} cmi_element
+   */
+  constructor(cmi_element) {
+    /**
+     * Flag used during JSON serialization to allow getter access without initialization checks.
+     * When true, getters can be accessed before the API is initialized, which is necessary
+     * for serializing the CMI data structure to JSON format.
+     */
+    this.jsonString = false;
+    this._initialized = false;
+    this._cmi_element = cmi_element;
+  }
+  /**
+   * Getter for _initialized
+   * @return {boolean}
+   */
+  get initialized() {
+    return this._initialized;
+  }
+  /**
+   * Called when the API has been initialized after the CMI has been created
+   */
+  initialize() {
+    this._initialized = true;
+  }
+}
+class BaseRootCMI extends BaseCMI {
+  /**
+   * Start time of the session
+   * @type {number | undefined}
+   * @protected
+   */
+  get start_time() {
+    return this._start_time;
+  }
+  /**
+   * Setter for start_time. Can only be called once.
+   */
+  setStartTime() {
+    if (this._start_time === void 0) {
+      this._start_time = (/* @__PURE__ */ new Date()).getTime();
+    } else {
+      throw new Error("Start time has already been set.");
+    }
+  }
+}
+
+class BaseScormValidationError extends Error {
+  constructor(CMIElement, errorCode) {
+    super(`${CMIElement} : ${errorCode.toString()}`);
+    this._errorCode = errorCode;
+    Object.setPrototypeOf(this, BaseScormValidationError.prototype);
+  }
+  /**
+   * Getter for _errorCode
+   * @return {number}
+   */
+  get errorCode() {
+    return this._errorCode;
+  }
+}
+class ValidationError extends BaseScormValidationError {
+  /**
+   * Constructor to take in an error message and code
+   * @param {string} CMIElement
+   * @param {number} errorCode
+   * @param {string} errorMessage
+   * @param {string} detailedMessage
+   */
+  constructor(CMIElement, errorCode, errorMessage, detailedMessage) {
+    super(CMIElement, errorCode);
+    this._detailedMessage = "";
+    this.message = `${CMIElement} : ${errorMessage}`;
+    this._errorMessage = errorMessage;
+    if (detailedMessage) {
+      this._detailedMessage = detailedMessage;
+    }
+    Object.setPrototypeOf(this, ValidationError.prototype);
+  }
+  /**
+   * Getter for _errorMessage
+   * @return {string}
+   */
+  get errorMessage() {
+    return this._errorMessage;
+  }
+  /**
+   * Getter for _detailedMessage
+   * @return {string}
+   */
+  get detailedMessage() {
+    return this._detailedMessage;
+  }
+}
+
 const global_constants = {
   SCORM_TRUE: "true",
   SCORM_FALSE: "false",
@@ -71,6 +332,33 @@ const scorm12_constants = {
   }
 };
 
+const scorm12_errors$1 = scorm12_constants.error_descriptions;
+class Scorm12ValidationError extends ValidationError {
+  /**
+   * Constructor to take in an error code
+   * @param {string} CMIElement
+   * @param {number} errorCode
+   */
+  constructor(CMIElement, errorCode) {
+    if ({}.hasOwnProperty.call(scorm12_errors$1, String(errorCode))) {
+      super(
+        CMIElement,
+        errorCode,
+        scorm12_errors$1[String(errorCode)]?.basicMessage || "Unknown error",
+        scorm12_errors$1[String(errorCode)]?.detailMessage
+      );
+    } else {
+      super(
+        CMIElement,
+        101,
+        scorm12_errors$1["101"]?.basicMessage,
+        scorm12_errors$1["101"]?.detailMessage
+      );
+    }
+    Object.setPrototypeOf(this, Scorm12ValidationError.prototype);
+  }
+}
+
 const global_errors = {
   GENERAL: 101,
   INITIALIZATION_FAILED: 101,
@@ -101,7 +389,7 @@ const global_errors = {
   VALUE_OUT_OF_RANGE: 101,
   DEPENDENCY_NOT_ESTABLISHED: 101
 };
-const scorm12_errors$1 = {
+const scorm12_errors = {
   ...global_errors,
   RETRIEVE_BEFORE_INIT: 301,
   STORE_BEFORE_INIT: 301,
@@ -119,6 +407,229 @@ const scorm12_errors$1 = {
   VALUE_OUT_OF_RANGE: 407,
   DEPENDENCY_NOT_ESTABLISHED: 408
 };
+
+class CMIArray extends BaseCMI {
+  /**
+   * Constructor cmi *.n arrays
+   * @param {object} params
+   */
+  constructor(params) {
+    super(params.CMIElement);
+    this.__children = params.children;
+    this._errorCode = params.errorCode ?? scorm12_errors.GENERAL;
+    this._errorClass = params.errorClass || BaseScormValidationError;
+    this.childArray = [];
+  }
+  /**
+   * Called when the API has been reset
+   */
+  reset(wipe = false) {
+    this._initialized = false;
+    if (wipe) {
+      this.childArray = [];
+    } else {
+      for (let i = 0; i < this.childArray.length; i++) {
+        this.childArray[i]?.reset();
+      }
+    }
+  }
+  /**
+   * Getter for _children
+   * @return {string}
+   */
+  get _children() {
+    return this.__children;
+  }
+  /**
+   * Setter for _children. Just throws an error.
+   * @param {string} _children
+   */
+  set _children(_children) {
+    throw new this._errorClass(this._cmi_element + "._children", this._errorCode);
+  }
+  /**
+   * Getter for _count
+   * @return {number}
+   */
+  get _count() {
+    return this.childArray.length;
+  }
+  /**
+   * Setter for _count. Just throws an error.
+   * @param {number} _count
+   */
+  set _count(_count) {
+    throw new this._errorClass(this._cmi_element + "._count", this._errorCode);
+  }
+  /**
+   * toJSON for *.n arrays
+   * @return {object}
+   */
+  toJSON() {
+    this.jsonString = true;
+    const result = {};
+    for (let i = 0; i < this.childArray.length; i++) {
+      result[i + ""] = this.childArray[i];
+    }
+    this.jsonString = false;
+    return result;
+  }
+}
+
+const SuccessStatus = {
+  PASSED: "passed",
+  FAILED: "failed",
+  UNKNOWN: "unknown"
+};
+const CompletionStatus = {
+  COMPLETED: "completed",
+  INCOMPLETE: "incomplete",
+  UNKNOWN: "unknown"
+};
+const LogLevelEnum = {
+  _: 0,
+  DEBUG: 1,
+  INFO: 2,
+  WARN: 3,
+  ERROR: 4,
+  NONE: 5
+};
+
+const DefaultSettings = {
+  autocommit: false,
+  autocommitSeconds: 10,
+  throttleCommits: false,
+  useAsynchronousCommits: false,
+  sendFullCommit: true,
+  lmsCommitUrl: false,
+  dataCommitFormat: "json",
+  commitRequestDataType: "application/json;charset=UTF-8",
+  autoProgress: false,
+  logLevel: LogLevelEnum.ERROR,
+  selfReportSessionTime: false,
+  alwaysSendTotalTime: false,
+  renderCommonCommitFields: false,
+  autoCompleteLessonStatus: false,
+  strict_errors: true,
+  xhrHeaders: {},
+  xhrWithCredentials: false,
+  fetchMode: "cors",
+  useBeaconInsteadOfFetch: "never",
+  responseHandler: async function(response) {
+    if (typeof response !== "undefined") {
+      let httpResult = null;
+      try {
+        if (typeof response.json === "function") {
+          httpResult = await response.json();
+        } else if (typeof response.text === "function") {
+          const responseText = await response.text();
+          if (responseText) {
+            httpResult = JSON.parse(responseText);
+          }
+        }
+      } catch (e) {
+      }
+      if (httpResult === null || !{}.hasOwnProperty.call(httpResult, "result")) {
+        if (response.status === 200) {
+          return {
+            result: global_constants.SCORM_TRUE,
+            errorCode: 0
+          };
+        } else {
+          return {
+            result: global_constants.SCORM_FALSE,
+            errorCode: 101
+          };
+        }
+      } else {
+        return {
+          result: httpResult.result,
+          errorCode: typeof httpResult.errorCode === "number" ? httpResult.errorCode : httpResult.result === true || httpResult.result === global_constants.SCORM_TRUE ? 0 : 101
+        };
+      }
+    }
+    return {
+      result: global_constants.SCORM_FALSE,
+      errorCode: 101
+    };
+  },
+  xhrResponseHandler: function(xhr) {
+    if (typeof xhr !== "undefined") {
+      let httpResult = null;
+      if (xhr.status >= 200 && xhr.status <= 299) {
+        try {
+          httpResult = JSON.parse(xhr.responseText);
+        } catch (e) {
+        }
+        if (httpResult === null || !{}.hasOwnProperty.call(httpResult, "result")) {
+          return { result: global_constants.SCORM_TRUE, errorCode: 0 };
+        }
+        return {
+          result: httpResult.result,
+          errorCode: typeof httpResult.errorCode === "number" ? httpResult.errorCode : httpResult.result === true || httpResult.result === global_constants.SCORM_TRUE ? 0 : 101
+        };
+      } else {
+        return { result: global_constants.SCORM_FALSE, errorCode: 101 };
+      }
+    }
+    return { result: global_constants.SCORM_FALSE, errorCode: 101 };
+  },
+  requestHandler: function(commitObject) {
+    return commitObject;
+  },
+  onLogMessage: defaultLogHandler,
+  mastery_override: false,
+  score_overrides_status: false,
+  completion_status_on_failed: "completed",
+  scoItemIds: [],
+  scoItemIdValidator: false,
+  globalObjectiveIds: [],
+  // Offline support settings
+  enableOfflineSupport: false,
+  courseId: "",
+  syncOnInitialize: true,
+  syncOnTerminate: true,
+  maxSyncAttempts: 5,
+  // Multi-SCO support settings
+  scoId: "",
+  autoPopulateCommitMetadata: false,
+  // HTTP service settings
+  httpService: null,
+  // Global learner preferences settings
+  globalStudentPreferences: false
+};
+function defaultLogHandler(messageLevel, logMessage) {
+  switch (messageLevel) {
+    case "4":
+    case 4:
+    case "ERROR":
+    case LogLevelEnum.ERROR:
+      console.error(logMessage);
+      break;
+    case "3":
+    case 3:
+    case "WARN":
+    case LogLevelEnum.WARN:
+      console.warn(logMessage);
+      break;
+    case "2":
+    case 2:
+    case "INFO":
+    case LogLevelEnum.INFO:
+      console.info(logMessage);
+      break;
+    case "1":
+    case 1:
+    case "DEBUG":
+    case LogLevelEnum.DEBUG:
+      if (console.debug) {
+        console.debug(logMessage);
+      } else {
+        console.log(logMessage);
+      }
+      break;
+  }
+}
 
 const scorm12_regex = {
   /** CMIString256 - Character string, max 255 chars (RTE A.1) */
@@ -357,2311 +868,6 @@ const scorm2004_regex = {
   progress_range: "0#1"
 };
 
-class BaseScormValidationError extends Error {
-  constructor(CMIElement, errorCode) {
-    super(`${CMIElement} : ${errorCode.toString()}`);
-    this._errorCode = errorCode;
-    Object.setPrototypeOf(this, BaseScormValidationError.prototype);
-  }
-  /**
-   * Getter for _errorCode
-   * @return {number}
-   */
-  get errorCode() {
-    return this._errorCode;
-  }
-}
-class ValidationError extends BaseScormValidationError {
-  /**
-   * Constructor to take in an error message and code
-   * @param {string} CMIElement
-   * @param {number} errorCode
-   * @param {string} errorMessage
-   * @param {string} detailedMessage
-   */
-  constructor(CMIElement, errorCode, errorMessage, detailedMessage) {
-    super(CMIElement, errorCode);
-    this._detailedMessage = "";
-    this.message = `${CMIElement} : ${errorMessage}`;
-    this._errorMessage = errorMessage;
-    if (detailedMessage) {
-      this._detailedMessage = detailedMessage;
-    }
-    Object.setPrototypeOf(this, ValidationError.prototype);
-  }
-  /**
-   * Getter for _errorMessage
-   * @return {string}
-   */
-  get errorMessage() {
-    return this._errorMessage;
-  }
-  /**
-   * Getter for _detailedMessage
-   * @return {string}
-   */
-  get detailedMessage() {
-    return this._detailedMessage;
-  }
-}
-
-const scorm12_errors = scorm12_constants.error_descriptions;
-class Scorm12ValidationError extends ValidationError {
-  /**
-   * Constructor to take in an error code
-   * @param {string} CMIElement
-   * @param {number} errorCode
-   */
-  constructor(CMIElement, errorCode) {
-    if ({}.hasOwnProperty.call(scorm12_errors, String(errorCode))) {
-      super(
-        CMIElement,
-        errorCode,
-        scorm12_errors[String(errorCode)]?.basicMessage || "Unknown error",
-        scorm12_errors[String(errorCode)]?.detailMessage
-      );
-    } else {
-      super(
-        CMIElement,
-        101,
-        scorm12_errors["101"]?.basicMessage,
-        scorm12_errors["101"]?.detailMessage
-      );
-    }
-    Object.setPrototypeOf(this, Scorm12ValidationError.prototype);
-  }
-}
-
-class BaseCMI {
-  /**
-   * Constructor for BaseCMI
-   * @param {string} cmi_element
-   */
-  constructor(cmi_element) {
-    /**
-     * Flag used during JSON serialization to allow getter access without initialization checks.
-     * When true, getters can be accessed before the API is initialized, which is necessary
-     * for serializing the CMI data structure to JSON format.
-     */
-    this.jsonString = false;
-    this._initialized = false;
-    this._cmi_element = cmi_element;
-  }
-  /**
-   * Getter for _initialized
-   * @return {boolean}
-   */
-  get initialized() {
-    return this._initialized;
-  }
-  /**
-   * Called when the API has been initialized after the CMI has been created
-   */
-  initialize() {
-    this._initialized = true;
-  }
-}
-class BaseRootCMI extends BaseCMI {
-  /**
-   * Start time of the session
-   * @type {number | undefined}
-   * @protected
-   */
-  get start_time() {
-    return this._start_time;
-  }
-  /**
-   * Setter for start_time. Can only be called once.
-   */
-  setStartTime() {
-    if (this._start_time === void 0) {
-      this._start_time = (/* @__PURE__ */ new Date()).getTime();
-    } else {
-      throw new Error("Start time has already been set.");
-    }
-  }
-}
-
-const SECONDS_PER_MINUTE = 60;
-const SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
-const getSecondsAsHHMMSS = memoize((totalSeconds) => {
-  if (!totalSeconds || totalSeconds <= 0) {
-    return "00:00:00";
-  }
-  const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
-  const dateObj = new Date(totalSeconds * 1e3);
-  const minutes = dateObj.getUTCMinutes();
-  const seconds = dateObj.getSeconds();
-  const ms = totalSeconds % 1;
-  let msStr = "";
-  if (countDecimals(ms) > 0) {
-    if (countDecimals(ms) > 2) {
-      msStr = ms.toFixed(2);
-    } else {
-      msStr = String(ms);
-    }
-    msStr = "." + msStr.split(".")[1];
-  }
-  return (hours + ":" + minutes + ":" + seconds).replace(/\b\d\b/g, "0$&") + msStr;
-});
-const getTimeAsSeconds = memoize(
-  (timeString, timeRegex) => {
-    if (typeof timeString === "number" || typeof timeString === "boolean") {
-      timeString = String(timeString);
-    }
-    if (typeof timeRegex === "string") {
-      timeRegex = new RegExp(timeRegex);
-    }
-    if (!timeString) {
-      return 0;
-    }
-    if (!timeString.match(timeRegex)) {
-      if (/^\d+(?:\.\d+)?$/.test(timeString)) {
-        return Number(timeString);
-      }
-      return 0;
-    }
-    const parts = timeString.split(":");
-    const hours = Number(parts[0]);
-    const minutes = Number(parts[1]);
-    const seconds = Number(parts[2]);
-    return hours * 3600 + minutes * 60 + seconds;
-  },
-  // Custom key function to handle RegExp objects which can't be stringified
-  (timeString, timeRegex) => {
-    const timeStr = typeof timeString === "string" ? timeString : String(timeString ?? "");
-    const regexStr = typeof timeRegex === "string" ? timeRegex : timeRegex?.toString() ?? "";
-    return `${timeStr}:${regexStr}`;
-  }
-);
-const getDurationAsSeconds = memoize(
-  (duration, durationRegex) => {
-    if (typeof durationRegex === "string") {
-      durationRegex = new RegExp(durationRegex);
-    }
-    if (!duration || !duration?.match?.(durationRegex)) {
-      return 0;
-    }
-    const [, years, months, weeks, days, hours, minutes, seconds] = new RegExp(durationRegex).exec?.(duration) ?? [];
-    let result = 0;
-    result += Number(seconds) || 0;
-    result += Number(minutes) * 60 || 0;
-    result += Number(hours) * 3600 || 0;
-    result += Number(days) * (60 * 60 * 24) || 0;
-    result += Number(weeks) * (60 * 60 * 24 * 7) || 0;
-    result += Number(months) * (60 * 60 * 24 * 30) || 0;
-    result += Number(years) * (60 * 60 * 24 * 365) || 0;
-    return result;
-  },
-  // Custom key function to handle RegExp objects which can't be stringified
-  (duration, durationRegex) => {
-    const durationStr = duration ?? "";
-    const regexStr = typeof durationRegex === "string" ? durationRegex : durationRegex?.toString() ?? "";
-    return `${durationStr}:${regexStr}`;
-  }
-);
-function addHHMMSSTimeStrings(first, second, timeRegex) {
-  if (typeof timeRegex === "string") {
-    timeRegex = new RegExp(timeRegex);
-  }
-  return getSecondsAsHHMMSS(
-    getTimeAsSeconds(first, timeRegex) + getTimeAsSeconds(second, timeRegex)
-  );
-}
-function flatten(data) {
-  const result = {};
-  function recurse(cur, prop) {
-    if (Object(cur) !== cur) {
-      result[prop] = cur;
-    } else if (Array.isArray(cur)) {
-      cur.forEach((item, i) => {
-        recurse(item, `${prop}[${i}]`);
-      });
-      if (cur.length === 0) result[prop] = [];
-    } else {
-      const keys = Object.keys(cur).filter((p) => Object.prototype.hasOwnProperty.call(cur, p));
-      const isEmpty = keys.length === 0;
-      keys.forEach((p) => {
-        recurse(cur[p], prop ? `${prop}.${p}` : p);
-      });
-      if (isEmpty && prop) result[prop] = {};
-    }
-  }
-  recurse(data, "");
-  return result;
-}
-function unflatten(data) {
-  if (Object(data) !== data || Array.isArray(data)) return data;
-  const result = {};
-  const pattern = /\.?([^.[\]]+)|\[(\d+)]/g;
-  Object.keys(data).filter((p) => Object.prototype.hasOwnProperty.call(data, p)).forEach((p) => {
-    let cur = result;
-    let prop = "";
-    const regex = new RegExp(pattern);
-    Array.from(
-      { length: p.match(new RegExp(pattern, "g"))?.length ?? 0 },
-      () => regex.exec(p)
-    ).forEach((m) => {
-      if (m) {
-        cur = cur[prop] ?? (cur[prop] = m[2] ? [] : {});
-        prop = m[2] || m[1] || "";
-      }
-    });
-    cur[prop] = data[p];
-  });
-  return result[""] ?? result;
-}
-function countDecimals(num) {
-  if (Math.floor(num) === num || String(num)?.indexOf?.(".") < 0) return 0;
-  const parts = num.toString().split(".")?.[1];
-  return parts?.length ?? 0;
-}
-function formatMessage(functionName, message, CMIElement) {
-  const baseLength = 20;
-  let messageString = functionName ? `${String(functionName).padEnd(baseLength)}: ` : "";
-  if (CMIElement) {
-    const CMIElementBaseLength = 70;
-    messageString += CMIElement;
-    messageString = messageString.padEnd(CMIElementBaseLength);
-  }
-  messageString += message ?? "";
-  return messageString;
-}
-function stringMatches(str, tester) {
-  if (typeof str !== "string") {
-    return false;
-  }
-  return new RegExp(tester).test(str);
-}
-function memoize(fn, keyFn) {
-  const cache = /* @__PURE__ */ new Map();
-  return ((...args) => {
-    const key = keyFn ? keyFn(...args) : JSON.stringify(args);
-    return cache.has(key) ? cache.get(key) : (() => {
-      const result = fn(...args);
-      cache.set(key, result);
-      return result;
-    })();
-  });
-}
-
-const checkValidFormat = memoize(
-  (CMIElement, value, regexPattern, errorCode, errorClass, allowEmptyString) => {
-    if (typeof value !== "string") {
-      return false;
-    }
-    const formatRegex = new RegExp(regexPattern);
-    const matches = value.match(formatRegex);
-    if (allowEmptyString && value === "") {
-      return true;
-    }
-    if (!matches || matches[0] === "") {
-      throw new errorClass(CMIElement, errorCode);
-    }
-    return true;
-  },
-  // Custom key function that excludes the error class from the cache key
-  // since it can't be stringified and doesn't affect the validation result
-  (CMIElement, value, regexPattern, errorCode, _errorClass, allowEmptyString) => {
-    const valueKey = typeof value === "string" ? value : `[${typeof value}]`;
-    return `${CMIElement}:${valueKey}:${regexPattern}:${errorCode}:${allowEmptyString || false}`;
-  }
-);
-const checkValidRange = memoize(
-  (CMIElement, value, rangePattern, errorCode, errorClass) => {
-    const ranges = rangePattern.split("#");
-    value = Number(value);
-    if (isNaN(value)) {
-      throw new errorClass(CMIElement, errorCode);
-    }
-    const minBound = ranges[0];
-    const maxBound = ranges[1];
-    const hasMinimum = minBound !== void 0 && minBound !== "";
-    const hasMaximum = maxBound !== void 0 && maxBound !== "" && maxBound !== "*";
-    if (hasMinimum && value < Number(minBound)) {
-      throw new errorClass(CMIElement, errorCode);
-    }
-    if (hasMaximum && value > Number(maxBound)) {
-      throw new errorClass(CMIElement, errorCode);
-    }
-    return true;
-  },
-  // Custom key function that excludes the error class from the cache key
-  // since it can't be stringified and doesn't affect the validation result
-  (CMIElement, value, rangePattern, errorCode, _errorClass) => `${CMIElement}:${value}:${rangePattern}:${errorCode}`
-);
-
-function check12ValidFormat(CMIElement, value, regexPattern, allowEmptyString) {
-  return checkValidFormat(
-    CMIElement,
-    value,
-    regexPattern,
-    scorm12_errors$1.TYPE_MISMATCH,
-    Scorm12ValidationError,
-    allowEmptyString
-  );
-}
-function check12ValidRange(CMIElement, value, rangePattern, allowEmptyString) {
-  if (value === "") {
-    {
-      throw new Scorm12ValidationError(CMIElement, scorm12_errors$1.VALUE_OUT_OF_RANGE);
-    }
-  }
-  return checkValidRange(
-    CMIElement,
-    value,
-    rangePattern,
-    scorm12_errors$1.VALUE_OUT_OF_RANGE,
-    Scorm12ValidationError
-  );
-}
-
-class ValidationService {
-  /**
-   * Validates a score property (raw, min, max)
-   *
-   * @param {string} CMIElement
-   * @param {string} value - The value to validate
-   * @param {string} decimalRegex - The regex pattern for decimal validation
-   * @param {string | false} scoreRange - The range pattern for score validation, or false if no range validation is needed
-   * @param {number} invalidTypeCode - The error code for invalid type
-   * @param {number} invalidRangeCode - The error code for invalid range
-   * @param {typeof BaseScormValidationError} errorClass - The error class to use for validation errors
-   * @return {boolean} - True if validation passes, throws an error otherwise
-   */
-  validateScore(CMIElement, value, decimalRegex, scoreRange, invalidTypeCode, invalidRangeCode, errorClass) {
-    return checkValidFormat(CMIElement, value, decimalRegex, invalidTypeCode, errorClass) && (!scoreRange || checkValidRange(CMIElement, value, scoreRange, invalidRangeCode, errorClass));
-  }
-  /**
-   * Validates a SCORM 1.2 audio property
-   *
-   * @spec SCORM 1.2 RTE 3.4.2.3.1 - Audio preference validation
-   * @param {string} CMIElement
-   * @param {string} value - The value to validate
-   * @return {boolean} - True if validation passes, throws an error otherwise
-   */
-  validateScorm12Audio(CMIElement, value) {
-    return check12ValidFormat(CMIElement, value, scorm12_regex.CMISInteger) && check12ValidRange(CMIElement, value, scorm12_regex.audio_range);
-  }
-  /**
-   * Validates a SCORM 1.2 language property
-   *
-   * @spec SCORM 1.2 RTE 3.4.2.3.2 - Language preference validation
-   * @param {string} CMIElement
-   * @param {string} value - The value to validate
-   * @return {boolean} - True if validation passes, throws an error otherwise
-   */
-  validateScorm12Language(CMIElement, value) {
-    return check12ValidFormat(CMIElement, value, scorm12_regex.CMIString256);
-  }
-  /**
-   * Validates a SCORM 1.2 speed property
-   *
-   * @spec SCORM 1.2 RTE 3.4.2.3.3 - Speed preference validation
-   * @param {string} CMIElement
-   * @param {string} value - The value to validate
-   * @return {boolean} - True if validation passes, throws an error otherwise
-   */
-  validateScorm12Speed(CMIElement, value) {
-    return check12ValidFormat(CMIElement, value, scorm12_regex.CMISInteger) && check12ValidRange(CMIElement, value, scorm12_regex.speed_range);
-  }
-  /**
-   * Validates a SCORM 1.2 text property
-   *
-   * @spec SCORM 1.2 RTE 3.4.2.3.4 - Text preference validation
-   * @param {string} CMIElement
-   * @param {string} value - The value to validate
-   * @return {boolean} - True if validation passes, throws an error otherwise
-   */
-  validateScorm12Text(CMIElement, value) {
-    return check12ValidFormat(CMIElement, value, scorm12_regex.CMISInteger) && check12ValidRange(CMIElement, value, scorm12_regex.text_range);
-  }
-  /**
-   * Validates if a property is read-only
-   *
-   * @param {string} CMIElement
-   * @param {boolean} initialized - Whether the object is initialized
-   * @throws {BaseScormValidationError} - Throws an error if the object is initialized
-   */
-  validateReadOnly(CMIElement, initialized) {
-    if (initialized) {
-      throw new Scorm12ValidationError(CMIElement, scorm12_errors$1.READ_ONLY_ELEMENT);
-    }
-  }
-}
-const validationService = new ValidationService();
-
-class CMIScore extends BaseCMI {
-  /**
-   * Constructor for *.score
-   *
-   * SPEC COMPLIANCE NOTE for _max default:
-   * The SCORM 1.2 specification defines the default value for score.max as empty string ("").
-   * This implementation defaults to "100" instead for the following reasons:
-   *
-   * 1. Most SCOs expect a 0-100 scale and don't explicitly set max
-   * 2. An empty max creates ambiguity in score interpretation
-   * 3. "100" is the most common expected value and simplifies SCO development
-   * 4. This matches real-world LMS behavior (most default to 100)
-   * 5. SCOs can still explicitly set max="" if needed
-   *
-   * Strict spec default would be: ""
-   *
-   * @param params - Configuration parameters
-   * @param params.score_range - Optional range pattern. When provided, uses scorm12_regex.score_range.
-   *                             When omitted or falsy, disables range validation (sets to false).
-   *                             SCORM 1.2 passes a truthy value to enable "0#100" validation.
-   *                             SCORM 2004 omits this to allow unbounded scores.
-   */
-  constructor(params) {
-    super(params.CMIElement);
-    this._raw = "";
-    this._min = "";
-    this.__children = params.score_children || scorm12_constants.score_children;
-    this.__score_range = !params.score_range ? false : scorm12_regex.score_range;
-    this._max = params.max || params.max === "" ? params.max : "100";
-    this.__invalid_error_code = params.invalidErrorCode || scorm12_errors$1.INVALID_SET_VALUE;
-    this.__invalid_type_code = params.invalidTypeCode || scorm12_errors$1.TYPE_MISMATCH;
-    this.__invalid_range_code = params.invalidRangeCode || scorm12_errors$1.VALUE_OUT_OF_RANGE;
-    this.__decimal_regex = params.decimalRegex || scorm12_regex.CMIDecimal;
-    this.__error_class = params.errorClass;
-  }
-  /**
-   * Called when the API has been reset
-   *
-   * SCORE-01: Resets _raw and _min to empty strings to match subclass behavior.
-   * _max is NOT reset here as it has a non-trivial default ("100") that is
-   * handled by the constructor or reinitialization logic.
-   */
-  reset() {
-    this._initialized = false;
-    this._raw = "";
-    this._min = "";
-  }
-  /**
-   * Getter for _children
-   * @return {string}
-   */
-  get _children() {
-    return this.__children;
-  }
-  /**
-   * Setter for _children. Just throws an error.
-   * @param {string} _children
-   */
-  set _children(_children) {
-    throw new this.__error_class(this._cmi_element + "._children", this.__invalid_error_code);
-  }
-  /**
-   * Getter for _raw
-   * @return {string}
-   */
-  get raw() {
-    return this._raw;
-  }
-  /**
-   * Setter for _raw
-   * @param {string} raw
-   */
-  set raw(raw) {
-    if (validationService.validateScore(
-      this._cmi_element + ".raw",
-      raw,
-      this.__decimal_regex,
-      this.__score_range,
-      this.__invalid_type_code,
-      this.__invalid_range_code,
-      this.__error_class
-    )) {
-      this._raw = raw;
-    }
-  }
-  /**
-   * Getter for _min
-   * @return {string}
-   */
-  get min() {
-    return this._min;
-  }
-  /**
-   * Setter for _min
-   * @param {string} min
-   */
-  set min(min) {
-    if (validationService.validateScore(
-      this._cmi_element + ".min",
-      min,
-      this.__decimal_regex,
-      this.__score_range,
-      this.__invalid_type_code,
-      this.__invalid_range_code,
-      this.__error_class
-    )) {
-      this._min = min;
-    }
-  }
-  /**
-   * Getter for _max
-   * @return {string}
-   */
-  get max() {
-    return this._max;
-  }
-  /**
-   * Setter for _max
-   * @param {string} max
-   */
-  set max(max) {
-    if (validationService.validateScore(
-      this._cmi_element + ".max",
-      max,
-      this.__decimal_regex,
-      this.__score_range,
-      this.__invalid_type_code,
-      this.__invalid_range_code,
-      this.__error_class
-    )) {
-      this._max = max;
-    }
-  }
-  /**
-   * Gets score object with numeric values
-   * @return {ScoreObject}
-   */
-  getScoreObject() {
-    const scoreObject = {};
-    if (!Number.isNaN(Number.parseFloat(this.raw))) {
-      scoreObject.raw = Number.parseFloat(this.raw);
-    }
-    if (!Number.isNaN(Number.parseFloat(this.min))) {
-      scoreObject.min = Number.parseFloat(this.min);
-    }
-    if (!Number.isNaN(Number.parseFloat(this.max))) {
-      scoreObject.max = Number.parseFloat(this.max);
-    }
-    return scoreObject;
-  }
-  /**
-   * toJSON for *.score
-   * @return {
-   *    {
-   *      min: string,
-   *      max: string,
-   *      raw: string
-   *    }
-   *    }
-   */
-  toJSON() {
-    this.jsonString = true;
-    const result = {
-      raw: this.raw,
-      min: this.min,
-      max: this.max
-    };
-    this.jsonString = false;
-    return result;
-  }
-}
-
-class CMICore extends BaseCMI {
-  /**
-   * Constructor for `cmi.core`
-   */
-  constructor() {
-    super("cmi.core");
-    this.__children = scorm12_constants.core_children;
-    this._student_id = "";
-    this._student_name = "";
-    this._lesson_location = "";
-    this._credit = "";
-    this._lesson_status = "not attempted";
-    this._entry = "";
-    this._total_time = "";
-    this._lesson_mode = "normal";
-    this._exit = "";
-    this._session_time = "00:00:00";
-    this._suspend_data = "";
-    this.score = new CMIScore({
-      CMIElement: "cmi.core.score",
-      score_children: scorm12_constants.score_children,
-      score_range: scorm12_regex.score_range,
-      invalidErrorCode: scorm12_errors$1.INVALID_SET_VALUE,
-      invalidTypeCode: scorm12_errors$1.TYPE_MISMATCH,
-      invalidRangeCode: scorm12_errors$1.VALUE_OUT_OF_RANGE,
-      errorClass: Scorm12ValidationError
-    });
-  }
-  /**
-   * Called when the API has been initialized after the CMI has been created
-   */
-  initialize() {
-    super.initialize();
-    this.score?.initialize();
-  }
-  /**
-   * Called when the API has been reset
-   */
-  reset() {
-    this._initialized = false;
-    this._exit = "";
-    this._entry = "";
-    this._session_time = "00:00:00";
-    this.score?.reset();
-  }
-  /**
-   * Getter for __children
-   * @return {string}
-   * @private
-   */
-  get _children() {
-    return this.__children;
-  }
-  /**
-   * Setter for __children. Just throws an error.
-   * @param {string} _children
-   * @private
-   */
-  set _children(_children) {
-    throw new Scorm12ValidationError(
-      this._cmi_element + "._children",
-      scorm12_errors$1.INVALID_SET_VALUE
-    );
-  }
-  /**
-   * Getter for _student_id
-   * @return {string}
-   */
-  get student_id() {
-    return this._student_id;
-  }
-  /**
-   * Setter for _student_id. Can only be called before  initialization.
-   * @param {string} student_id
-   */
-  set student_id(student_id) {
-    if (this.initialized) {
-      throw new Scorm12ValidationError(
-        this._cmi_element + ".student_id",
-        scorm12_errors$1.READ_ONLY_ELEMENT
-      );
-    } else {
-      this._student_id = student_id;
-    }
-  }
-  /**
-   * Getter for _student_name
-   * @return {string}
-   */
-  get student_name() {
-    return this._student_name;
-  }
-  /**
-   * Setter for _student_name. Can only be called before  initialization.
-   * @param {string} student_name
-   */
-  set student_name(student_name) {
-    if (this.initialized) {
-      throw new Scorm12ValidationError(
-        this._cmi_element + ".student_name",
-        scorm12_errors$1.READ_ONLY_ELEMENT
-      );
-    } else {
-      this._student_name = student_name;
-    }
-  }
-  /**
-   * Getter for _lesson_location
-   * @return {string}
-   */
-  get lesson_location() {
-    return this._lesson_location;
-  }
-  /**
-   * Setter for _lesson_location
-   * @param {string} lesson_location
-   */
-  set lesson_location(lesson_location) {
-    if (check12ValidFormat(
-      this._cmi_element + ".lesson_location",
-      lesson_location,
-      scorm12_regex.CMIString256,
-      true
-    )) {
-      this._lesson_location = lesson_location;
-    }
-  }
-  /**
-   * Getter for _credit
-   * @return {string}
-   */
-  get credit() {
-    return this._credit;
-  }
-  /**
-   * Setter for _credit. Can only be called before  initialization.
-   * @param {string} credit
-   */
-  set credit(credit) {
-    if (this.initialized) {
-      throw new Scorm12ValidationError(
-        this._cmi_element + ".credit",
-        scorm12_errors$1.READ_ONLY_ELEMENT
-      );
-    } else {
-      if (check12ValidFormat(this._cmi_element + ".credit", credit, scorm12_regex.CMICredit, true)) {
-        this._credit = credit;
-      }
-    }
-  }
-  /**
-   * Getter for _lesson_status
-   * @spec RTE 3.4.2.1.7 - cmi.core.lesson_status
-   * @return {string}
-   */
-  get lesson_status() {
-    return this._lesson_status;
-  }
-  /**
-   * Setter for _lesson_status
-   * @spec RTE 3.4.2.1.7 - cmi.core.lesson_status
-   * @param {string} lesson_status
-   */
-  set lesson_status(lesson_status) {
-    if (this.initialized) {
-      if (check12ValidFormat(
-        this._cmi_element + ".lesson_status",
-        lesson_status,
-        scorm12_regex.CMIStatus
-      )) {
-        this._lesson_status = lesson_status;
-      }
-    } else {
-      if (check12ValidFormat(
-        this._cmi_element + ".lesson_status",
-        lesson_status,
-        scorm12_regex.CMIStatus2
-      )) {
-        this._lesson_status = lesson_status;
-      }
-    }
-  }
-  /**
-   * Getter for _entry
-   * @return {string}
-   */
-  get entry() {
-    return this._entry;
-  }
-  /**
-   * Setter for _entry. Can only be called before  initialization.
-   * @param {string} entry
-   */
-  set entry(entry) {
-    if (this.initialized) {
-      throw new Scorm12ValidationError(
-        this._cmi_element + ".entry",
-        scorm12_errors$1.READ_ONLY_ELEMENT
-      );
-    } else {
-      if (check12ValidFormat(this._cmi_element + ".entry", entry, scorm12_regex.CMIEntry, true)) {
-        this._entry = entry;
-      }
-    }
-  }
-  /**
-   * Getter for _total_time
-   * @spec RTE 3.4.2.1.13 - cmi.core.total_time
-   * @return {string}
-   */
-  get total_time() {
-    return this._total_time;
-  }
-  /**
-   * Setter for _total_time. Can only be called before  initialization.
-   * @spec RTE 3.4.2.1.13 - cmi.core.total_time
-   * @param {string} total_time
-   */
-  set total_time(total_time) {
-    if (this.initialized) {
-      throw new Scorm12ValidationError(
-        this._cmi_element + ".total_time",
-        scorm12_errors$1.READ_ONLY_ELEMENT
-      );
-    } else {
-      if (check12ValidFormat(
-        this._cmi_element + ".total_time",
-        total_time,
-        scorm12_regex.CMITimespan,
-        true
-      )) {
-        if (total_time) {
-          const totalSeconds = getTimeAsSeconds(total_time, scorm12_regex.CMITimespan);
-          this._total_time = getSecondsAsHHMMSS(totalSeconds);
-        } else {
-          this._total_time = total_time;
-        }
-      }
-    }
-  }
-  /**
-   * Getter for _lesson_mode
-   * @return {string}
-   */
-  get lesson_mode() {
-    return this._lesson_mode;
-  }
-  /**
-   * Setter for _lesson_mode. Can only be called before  initialization.
-   * @param {string} lesson_mode
-   */
-  set lesson_mode(lesson_mode) {
-    if (this.initialized) {
-      throw new Scorm12ValidationError(
-        this._cmi_element + ".lesson_mode",
-        scorm12_errors$1.READ_ONLY_ELEMENT
-      );
-    } else {
-      if (check12ValidFormat(this._cmi_element + ".lesson_mode", lesson_mode, scorm12_regex.CMILessonMode)) {
-        this._lesson_mode = lesson_mode;
-      }
-    }
-  }
-  /**
-   * Getter for _exit. Should only be called during JSON export.
-   * @return {string}
-   */
-  get exit() {
-    if (!this.jsonString) {
-      throw new Scorm12ValidationError(
-        this._cmi_element + ".exit",
-        scorm12_errors$1.WRITE_ONLY_ELEMENT
-      );
-    }
-    return this._exit;
-  }
-  /**
-   * Setter for _exit
-   *
-   * @spec RTE 3.4.2.1.4 - cmi.core.exit
-   *
-   * SPEC COMPLIANCE NOTE:
-   * The SCORM 1.2 specification defines exit vocabulary as: "time-out", "suspend", "logout", or ""
-   * The value "normal" is NOT part of the SCORM 1.2 vocabulary (it's a SCORM 2004 value).
-   *
-   * This implementation accepts "normal" and normalizes it to "" (empty string) for the
-   * following reasons:
-   *
-   * 1. Legacy content authored for SCORM 2004 sometimes runs in SCORM 1.2 mode
-   * 2. Some authoring tools incorrectly use "normal" for SCORM 1.2 content
-   * 3. Rejecting "normal" would break content with no user benefit
-   * 4. Empty string ("") has the same semantic meaning as "normal" (regular exit)
-   * 5. A console warning is logged to help developers identify the issue
-   *
-   * Strict spec vocabulary: "time-out" | "suspend" | "logout" | ""
-   *
-   * @param {string} exit
-   */
-  set exit(exit) {
-    if (exit === "normal") {
-      console.warn(
-        "SCORM 1.2: Received non-standard value 'normal' for cmi.core.exit; normalizing to empty string."
-      );
-      exit = "";
-    }
-    if (check12ValidFormat(this._cmi_element + ".exit", exit, scorm12_regex.CMIExit, true)) {
-      this._exit = exit;
-    }
-  }
-  /**
-   * Getter for _session_time. Should only be called during JSON export.
-   * @return {string}
-   */
-  get session_time() {
-    if (!this.jsonString) {
-      throw new Scorm12ValidationError(
-        this._cmi_element + ".session_time",
-        scorm12_errors$1.WRITE_ONLY_ELEMENT
-      );
-    }
-    return this._session_time;
-  }
-  /**
-   * Setter for _session_time
-   * @param {string} session_time
-   */
-  set session_time(session_time) {
-    if (check12ValidFormat(
-      this._cmi_element + ".session_time",
-      session_time,
-      scorm12_regex.CMITimespan
-    )) {
-      const totalSeconds = getTimeAsSeconds(session_time, scorm12_regex.CMITimespan);
-      this._session_time = getSecondsAsHHMMSS(totalSeconds);
-    }
-  }
-  /**
-   * Getter for _suspend_data
-   * @return {string}
-   */
-  get suspend_data() {
-    return this._suspend_data;
-  }
-  /**
-   * Setter for _suspend_data
-   *
-   * SPEC COMPLIANCE NOTE:
-   * Uses CMIString64000 (64000 char limit) instead of spec-defined CMIString4096.
-   * See scorm12_regex.CMIString64000 documentation for rationale.
-   *
-   * @param {string} suspend_data
-   */
-  set suspend_data(suspend_data) {
-    if (check12ValidFormat(
-      this._cmi_element + ".suspend_data",
-      suspend_data,
-      scorm12_regex.CMIString64000,
-      true
-    )) {
-      this._suspend_data = suspend_data;
-    }
-  }
-  /**
-   * Adds the current session time to the existing total time.
-   * @param {number} start_time
-   * @return {string}
-   */
-  getCurrentTotalTime(start_time) {
-    let sessionTime = this._session_time;
-    if (typeof start_time !== "undefined") {
-      const seconds = (/* @__PURE__ */ new Date()).getTime() - start_time;
-      sessionTime = getSecondsAsHHMMSS(seconds / 1e3);
-    }
-    return addHHMMSSTimeStrings(
-      this._total_time,
-      sessionTime,
-      new RegExp(scorm12_regex.CMITimespan)
-    );
-  }
-  /**
-   * toJSON for cmi.core
-   *
-   * @return {
-   *    {
-   *      student_name: string,
-   *      entry: string,
-   *      exit: string,
-   *      score: CMIScore,
-   *      student_id: string,
-   *      lesson_mode: string,
-   *      lesson_location: string,
-   *      lesson_status: string,
-   *      credit: string,
-   *      session_time: string
-   *    }
-   *  }
-   */
-  toJSON() {
-    this.jsonString = true;
-    const result = {
-      student_id: this.student_id,
-      student_name: this.student_name,
-      lesson_location: this.lesson_location,
-      credit: this.credit,
-      lesson_status: this.lesson_status,
-      entry: this.entry,
-      lesson_mode: this.lesson_mode,
-      exit: this.exit,
-      session_time: this.session_time,
-      score: this.score
-    };
-    this.jsonString = false;
-    return result;
-  }
-}
-
-class CMIArray extends BaseCMI {
-  /**
-   * Constructor cmi *.n arrays
-   * @param {object} params
-   */
-  constructor(params) {
-    super(params.CMIElement);
-    this.__children = params.children;
-    this._errorCode = params.errorCode ?? scorm12_errors$1.GENERAL;
-    this._errorClass = params.errorClass || BaseScormValidationError;
-    this.childArray = [];
-  }
-  /**
-   * Called when the API has been reset
-   */
-  reset(wipe = false) {
-    this._initialized = false;
-    if (wipe) {
-      this.childArray = [];
-    } else {
-      for (let i = 0; i < this.childArray.length; i++) {
-        this.childArray[i]?.reset();
-      }
-    }
-  }
-  /**
-   * Getter for _children
-   * @return {string}
-   */
-  get _children() {
-    return this.__children;
-  }
-  /**
-   * Setter for _children. Just throws an error.
-   * @param {string} _children
-   */
-  set _children(_children) {
-    throw new this._errorClass(this._cmi_element + "._children", this._errorCode);
-  }
-  /**
-   * Getter for _count
-   * @return {number}
-   */
-  get _count() {
-    return this.childArray.length;
-  }
-  /**
-   * Setter for _count. Just throws an error.
-   * @param {number} _count
-   */
-  set _count(_count) {
-    throw new this._errorClass(this._cmi_element + "._count", this._errorCode);
-  }
-  /**
-   * toJSON for *.n arrays
-   * @return {object}
-   */
-  toJSON() {
-    this.jsonString = true;
-    const result = {};
-    for (let i = 0; i < this.childArray.length; i++) {
-      result[i + ""] = this.childArray[i];
-    }
-    this.jsonString = false;
-    return result;
-  }
-}
-
-class CMIObjectives extends CMIArray {
-  /**
-   * Constructor for `cmi.objectives`
-   */
-  constructor() {
-    super({
-      CMIElement: "cmi.objectives",
-      children: scorm12_constants.objectives_children,
-      errorCode: scorm12_errors$1.INVALID_SET_VALUE,
-      errorClass: Scorm12ValidationError
-    });
-  }
-}
-class CMIObjectivesObject extends BaseCMI {
-  /**
-   * Constructor for cmi.objectives.n
-   */
-  constructor() {
-    super("cmi.objectives.n");
-    this._id = "";
-    this._status = "";
-    this.score = new CMIScore({
-      CMIElement: "cmi.objectives.n.score",
-      score_children: scorm12_constants.score_children,
-      score_range: scorm12_regex.score_range,
-      invalidErrorCode: scorm12_errors$1.INVALID_SET_VALUE,
-      invalidTypeCode: scorm12_errors$1.TYPE_MISMATCH,
-      invalidRangeCode: scorm12_errors$1.VALUE_OUT_OF_RANGE,
-      errorClass: Scorm12ValidationError
-    });
-  }
-  /**
-   * Called when the API has been reset
-   */
-  reset() {
-    this._initialized = false;
-    this._id = "";
-    this._status = "";
-    this.score?.reset();
-  }
-  /**
-   * Getter for _id
-   * @spec RTE 3.4.2.6.1 - cmi.objectives.n.id
-   * @return {string}
-   */
-  get id() {
-    return this._id;
-  }
-  /**
-   * Setter for _id
-   * @spec RTE 3.4.2.6.1 - cmi.objectives.n.id
-   * @param {string} id
-   */
-  set id(id) {
-    if (check12ValidFormat(this._cmi_element + ".id", id, scorm12_regex.CMIIdentifier)) {
-      this._id = id;
-    }
-  }
-  /**
-   * Getter for _status
-   * @spec RTE 3.4.2.6.3 - cmi.objectives.n.status
-   * @return {string}
-   */
-  get status() {
-    return this._status;
-  }
-  /**
-   * Setter for _status
-   * @spec RTE 3.4.2.6.3 - cmi.objectives.n.status
-   * @param {string} status
-   */
-  set status(status) {
-    if (check12ValidFormat(this._cmi_element + ".status", status, scorm12_regex.CMIStatus2)) {
-      this._status = status;
-    }
-  }
-  /**
-   * toJSON for cmi.objectives.n
-   *
-   * The `jsonString` flag pattern used here serves a specific purpose:
-   * - Setting `jsonString = true` before accessing properties bypasses initialization checks
-   * - This allows JSON serialization to read write-only or uninitialized properties
-   * - Without this flag, accessing certain properties would throw SCORM validation errors
-   * - The flag is reset to `false` after serialization to restore normal validation behavior
-   * - This pattern is used throughout SCORM-Again for controlled property access during export
-   *
-   * @return {
-   *    {
-   *      id: string,
-   *      status: string,
-   *      score: CMIScore
-   *    }
-   *  }
-   */
-  toJSON() {
-    this.jsonString = true;
-    const result = {
-      id: this.id,
-      status: this.status,
-      score: this.score
-    };
-    this.jsonString = false;
-    return result;
-  }
-}
-
-function parseTimeAllowed(value, fieldName) {
-  try {
-    check12ValidFormat(fieldName, value, scorm12_regex.CMITimespan, true);
-    const totalSeconds = getTimeAsSeconds(value, scorm12_regex.CMITimespan);
-    return getSecondsAsHHMMSS(totalSeconds);
-  } catch (e) {
-  }
-  try {
-    check12ValidFormat(fieldName, value, scorm2004_regex.CMITimespan, true);
-    const totalSeconds = getDurationAsSeconds(value, scorm2004_regex.CMITimespan);
-    return getSecondsAsHHMMSS(totalSeconds);
-  } catch (e) {
-  }
-  throw new Scorm12ValidationError(fieldName, scorm12_errors$1.TYPE_MISMATCH);
-}
-class CMIStudentData extends BaseCMI {
-  /**
-   * Constructor for cmi.student_data
-   * @param {string} student_data_children
-   */
-  constructor(student_data_children) {
-    super("cmi.student_data");
-    this._mastery_score = "";
-    this._max_time_allowed = "";
-    this._time_limit_action = "";
-    this.__children = student_data_children ? student_data_children : scorm12_constants.student_data_children;
-  }
-  /**
-   * Called when the API has been reset
-   */
-  reset() {
-    this._initialized = false;
-  }
-  /**
-   * Getter for __children
-   * @return {string}
-   * @private
-   */
-  get _children() {
-    return this.__children;
-  }
-  /**
-   * Setter for __children. Just throws an error.
-   * @param {string} _children
-   * @private
-   */
-  set _children(_children) {
-    throw new Scorm12ValidationError(
-      this._cmi_element + "._children",
-      scorm12_errors$1.INVALID_SET_VALUE
-    );
-  }
-  /**
-   * Getter for _mastery_score
-   * @return {string}
-   */
-  get mastery_score() {
-    return this._mastery_score;
-  }
-  /**
-   * Setter for _mastery_score. Can only be called before initialization.
-   * @param {string} mastery_score
-   */
-  set mastery_score(mastery_score) {
-    validationService.validateReadOnly(this._cmi_element + ".mastery_score", this.initialized);
-    if (mastery_score === void 0 || mastery_score === null) {
-      return;
-    }
-    let normalizedMasteryScore = mastery_score;
-    if (typeof normalizedMasteryScore !== "string") {
-      normalizedMasteryScore = String(normalizedMasteryScore);
-    }
-    if (normalizedMasteryScore === "") {
-      this._mastery_score = mastery_score;
-      return;
-    }
-    if (check12ValidFormat(
-      this._cmi_element + ".mastery_score",
-      normalizedMasteryScore,
-      scorm12_regex.CMIDecimal
-    ) && check12ValidRange(
-      this._cmi_element + ".mastery_score",
-      normalizedMasteryScore,
-      scorm12_regex.score_range
-    )) {
-      this._mastery_score = normalizedMasteryScore;
-    }
-  }
-  /**
-   * Getter for _max_time_allowed
-   * @return {string}
-   */
-  get max_time_allowed() {
-    return this._max_time_allowed;
-  }
-  /**
-   * Setter for _max_time_allowed. Can only be called before initialization.
-   * @param {string} max_time_allowed
-   */
-  set max_time_allowed(max_time_allowed) {
-    validationService.validateReadOnly(this._cmi_element + ".max_time_allowed", this.initialized);
-    if (max_time_allowed === void 0 || max_time_allowed === null) {
-      return;
-    }
-    const normalizedValue = typeof max_time_allowed === "string" ? max_time_allowed : String(max_time_allowed);
-    if (normalizedValue === "") {
-      this._max_time_allowed = "";
-      return;
-    }
-    this._max_time_allowed = parseTimeAllowed(
-      normalizedValue,
-      this._cmi_element + ".max_time_allowed"
-    );
-  }
-  /**
-   * Getter for _time_limit_action
-   * @return {string}
-   */
-  get time_limit_action() {
-    return this._time_limit_action;
-  }
-  /**
-   * Setter for _time_limit_action. Can only be called before initialization.
-   * @param {string} time_limit_action
-   */
-  set time_limit_action(time_limit_action) {
-    validationService.validateReadOnly(this._cmi_element + ".time_limit_action", this.initialized);
-    if (time_limit_action === void 0 || time_limit_action === null) {
-      return;
-    }
-    const normalizedValue = typeof time_limit_action === "string" ? time_limit_action : String(time_limit_action);
-    if (check12ValidFormat(
-      this._cmi_element + ".time_limit_action",
-      normalizedValue,
-      scorm12_regex.CMITimeLimitAction,
-      true
-    )) {
-      this._time_limit_action = normalizedValue;
-    }
-  }
-  /**
-   * toJSON for cmi.student_data
-   *
-   * @return {
-   *    {
-   *      max_time_allowed: string,
-   *      time_limit_action: string,
-   *      mastery_score: string
-   *    }
-   *  }
-   */
-  toJSON() {
-    this.jsonString = true;
-    const result = {
-      mastery_score: this.mastery_score,
-      max_time_allowed: this.max_time_allowed,
-      time_limit_action: this.time_limit_action
-    };
-    this.jsonString = false;
-    return result;
-  }
-}
-
-class CMIStudentPreference extends BaseCMI {
-  /**
-   * Constructor for cmi.student_preference
-   * @param {string} student_preference_children
-   */
-  constructor(student_preference_children) {
-    super("cmi.student_preference");
-    this._audio = "";
-    this._language = "";
-    this._speed = "";
-    this._text = "";
-    this.__children = student_preference_children ? student_preference_children : scorm12_constants.student_preference_children;
-  }
-  /**
-   * Called when the API has been reset
-   */
-  reset() {
-    this._initialized = false;
-  }
-  /**
-   * Getter for __children
-   * @return {string}
-   * @private
-   */
-  get _children() {
-    return this.__children;
-  }
-  /**
-   * Setter for __children. Just throws an error.
-   * @param {string} _children
-   * @private
-   */
-  set _children(_children) {
-    throw new Scorm12ValidationError(
-      this._cmi_element + "._children",
-      scorm12_errors$1.INVALID_SET_VALUE
-    );
-  }
-  /**
-   * Getter for _audio
-   * @spec RTE 3.4.2.3.1 - cmi.student_preference.audio
-   * @return {string}
-   */
-  get audio() {
-    return this._audio;
-  }
-  /**
-   * Setter for _audio
-   * @spec RTE 3.4.2.3.1 - cmi.student_preference.audio
-   * @param {string} audio
-   */
-  set audio(audio) {
-    if (validationService.validateScorm12Audio(this._cmi_element + ".audio", audio)) {
-      this._audio = audio;
-    }
-  }
-  /**
-   * Getter for _language
-   * @spec RTE 3.4.2.3.2 - cmi.student_preference.language
-   * @return {string}
-   */
-  get language() {
-    return this._language;
-  }
-  /**
-   * Setter for _language
-   * @spec RTE 3.4.2.3.2 - cmi.student_preference.language
-   * @param {string} language
-   */
-  set language(language) {
-    if (validationService.validateScorm12Language(this._cmi_element + ".language", language)) {
-      this._language = language;
-    }
-  }
-  /**
-   * Getter for _speed
-   * @spec RTE 3.4.2.3.3 - cmi.student_preference.speed
-   * @return {string}
-   */
-  get speed() {
-    return this._speed;
-  }
-  /**
-   * Setter for _speed
-   * @spec RTE 3.4.2.3.3 - cmi.student_preference.speed
-   * @param {string} speed
-   */
-  set speed(speed) {
-    if (validationService.validateScorm12Speed(this._cmi_element + ".speed", speed)) {
-      this._speed = speed;
-    }
-  }
-  /**
-   * Getter for _text
-   * @spec RTE 3.4.2.3.4 - cmi.student_preference.text
-   * @return {string}
-   */
-  get text() {
-    return this._text;
-  }
-  /**
-   * Setter for _text
-   * @spec RTE 3.4.2.3.4 - cmi.student_preference.text
-   * @param {string} text
-   */
-  set text(text) {
-    if (validationService.validateScorm12Text(this._cmi_element + ".text", text)) {
-      this._text = text;
-    }
-  }
-  /**
-   * toJSON for cmi.student_preference
-   *
-   * @return {
-   *    {
-   *      audio: string,
-   *      language: string,
-   *      speed: string,
-   *      text: string
-   *    }
-   *  }
-   */
-  toJSON() {
-    this.jsonString = true;
-    const result = {
-      audio: this.audio,
-      language: this.language,
-      speed: this.speed,
-      text: this.text
-    };
-    this.jsonString = false;
-    return result;
-  }
-}
-
-class CMIInteractions extends CMIArray {
-  /**
-   * Constructor for `cmi.interactions`
-   */
-  constructor() {
-    super({
-      CMIElement: "cmi.interactions",
-      children: scorm12_constants.interactions_children,
-      errorCode: scorm12_errors$1.INVALID_SET_VALUE,
-      errorClass: Scorm12ValidationError
-    });
-  }
-}
-class CMIInteractionsObject extends BaseCMI {
-  /**
-   * Constructor for cmi.interactions.n object
-   */
-  constructor() {
-    super("cmi.interactions.n");
-    this._id = "";
-    this._time = "";
-    this._type = "";
-    this._weighting = "";
-    this._student_response = "";
-    this._result = "";
-    this._latency = "";
-    this.objectives = new CMIArray({
-      CMIElement: "cmi.interactions.n.objectives",
-      errorCode: scorm12_errors$1.INVALID_SET_VALUE,
-      errorClass: Scorm12ValidationError,
-      children: scorm12_constants.objectives_children
-    });
-    this.correct_responses = new CMIArray({
-      CMIElement: "cmi.interactions.correct_responses",
-      errorCode: scorm12_errors$1.INVALID_SET_VALUE,
-      errorClass: Scorm12ValidationError,
-      children: scorm12_constants.correct_responses_children
-    });
-  }
-  /**
-   * Called when the API has been initialized after the CMI has been created
-   */
-  initialize() {
-    super.initialize();
-    this.objectives?.initialize();
-    this.correct_responses?.initialize();
-  }
-  /**
-   * Called when the API has been reset
-   */
-  reset() {
-    this._initialized = false;
-    this._id = "";
-    this._time = "";
-    this._type = "";
-    this._weighting = "";
-    this._student_response = "";
-    this._result = "";
-    this._latency = "";
-    this.objectives?.reset();
-    this.correct_responses?.reset();
-  }
-  /**
-   * Getter for _id. Should only be called during JSON export.
-   * @return {string}
-   */
-  get id() {
-    if (!this.jsonString) {
-      throw new Scorm12ValidationError(
-        this._cmi_element + ".id",
-        scorm12_errors$1.WRITE_ONLY_ELEMENT
-      );
-    }
-    return this._id;
-  }
-  /**
-   * Setter for _id
-   * @param {string} id
-   */
-  set id(id) {
-    if (check12ValidFormat(this._cmi_element + ".id", id, scorm12_regex.CMIIdentifier)) {
-      this._id = id;
-    }
-  }
-  /**
-   * Getter for _time. Should only be called during JSON export.
-   * @return {string}
-   */
-  get time() {
-    if (!this.jsonString) {
-      throw new Scorm12ValidationError(
-        this._cmi_element + ".time",
-        scorm12_errors$1.WRITE_ONLY_ELEMENT
-      );
-    }
-    return this._time;
-  }
-  /**
-   * Setter for _time
-   * @param {string} time
-   */
-  set time(time) {
-    if (check12ValidFormat(this._cmi_element + ".time", time, scorm12_regex.CMITime)) {
-      this._time = time;
-    }
-  }
-  /**
-   * Getter for _type. Should only be called during JSON export.
-   * @return {string}
-   */
-  get type() {
-    if (!this.jsonString) {
-      throw new Scorm12ValidationError(
-        this._cmi_element + ".type",
-        scorm12_errors$1.WRITE_ONLY_ELEMENT
-      );
-    }
-    return this._type;
-  }
-  /**
-   * Setter for _type
-   * @param {string} type
-   */
-  set type(type) {
-    if (check12ValidFormat(this._cmi_element + ".type", type, scorm12_regex.CMIType)) {
-      this._type = type;
-    }
-  }
-  /**
-   * Getter for _weighting. Should only be called during JSON export.
-   * @return {string}
-   */
-  get weighting() {
-    if (!this.jsonString) {
-      throw new Scorm12ValidationError(
-        this._cmi_element + ".weighting",
-        scorm12_errors$1.WRITE_ONLY_ELEMENT
-      );
-    }
-    return this._weighting;
-  }
-  /**
-   * Setter for _weighting
-   * @param {string} weighting
-   */
-  set weighting(weighting) {
-    if (check12ValidFormat(this._cmi_element + ".weighting", weighting, scorm12_regex.CMIDecimal) && check12ValidRange(this._cmi_element + ".weighting", weighting, scorm12_regex.weighting_range)) {
-      this._weighting = weighting;
-    }
-  }
-  /**
-   * Getter for _student_response. Should only be called during JSON export.
-   * @return {string}
-   */
-  get student_response() {
-    if (!this.jsonString) {
-      throw new Scorm12ValidationError(
-        this._cmi_element + ".student_response",
-        scorm12_errors$1.WRITE_ONLY_ELEMENT
-      );
-    }
-    return this._student_response;
-  }
-  /**
-   * Setter for _student_response
-   * @param {string} student_response
-   */
-  set student_response(student_response) {
-    if (check12ValidFormat(
-      this._cmi_element + ".student_response",
-      student_response,
-      scorm12_regex.CMIFeedback,
-      true
-    )) {
-      this._student_response = student_response;
-    }
-  }
-  /**
-   * Getter for _result. Should only be called during JSON export.
-   * @return {string}
-   */
-  get result() {
-    if (!this.jsonString) {
-      throw new Scorm12ValidationError(
-        this._cmi_element + ".result",
-        scorm12_errors$1.WRITE_ONLY_ELEMENT
-      );
-    }
-    return this._result;
-  }
-  /**
-   * Setter for _result
-   * @spec RTE 3.4.2.7.6 - cmi.interactions.n.result
-   * Per SCORM 1.2 spec, valid values are "correct", "wrong", "unanticipated", "neutral", or a numeric score.
-   * The spec requires "wrong" not "incorrect" for failed interactions.
-   * @param {string} result
-   */
-  set result(result) {
-    let normalizedResult = result;
-    if (result === "incorrect") {
-      normalizedResult = "wrong";
-      console.warn(
-        "SCORM 1.2: Received non-standard value 'incorrect' for cmi.interactions.n.result; normalizing to 'wrong'."
-      );
-    }
-    if (check12ValidFormat(
-      this._cmi_element + ".result",
-      normalizedResult,
-      scorm12_regex.CMIResult
-    )) {
-      this._result = normalizedResult;
-    }
-  }
-  /**
-   * Getter for _latency. Should only be called during JSON export.
-   * @return {string}
-   */
-  get latency() {
-    if (!this.jsonString) {
-      throw new Scorm12ValidationError(
-        this._cmi_element + ".latency",
-        scorm12_errors$1.WRITE_ONLY_ELEMENT
-      );
-    }
-    return this._latency;
-  }
-  /**
-   * Setter for _latency
-   * @param {string} latency
-   */
-  set latency(latency) {
-    if (check12ValidFormat(this._cmi_element + ".latency", latency, scorm12_regex.CMITimespan)) {
-      const totalSeconds = getTimeAsSeconds(latency, scorm12_regex.CMITimespan);
-      this._latency = getSecondsAsHHMMSS(totalSeconds);
-    }
-  }
-  /**
-   * toJSON for cmi.interactions.n
-   *
-   * @return {
-   *    {
-   *      id: string,
-   *      time: string,
-   *      type: string,
-   *      weighting: string,
-   *      student_response: string,
-   *      result: string,
-   *      latency: string,
-   *      objectives: CMIArray,
-   *      correct_responses: CMIArray
-   *    }
-   *  }
-   */
-  toJSON() {
-    this.jsonString = true;
-    const result = {
-      id: this.id,
-      time: this.time,
-      type: this.type,
-      weighting: this.weighting,
-      student_response: this.student_response,
-      result: this.result,
-      latency: this.latency,
-      objectives: this.objectives,
-      correct_responses: this.correct_responses
-    };
-    this.jsonString = false;
-    return result;
-  }
-}
-class CMIInteractionsObjectivesObject extends BaseCMI {
-  /**
-   * Constructor for cmi.interactions.n.objectives.n
-   */
-  constructor() {
-    super("cmi.interactions.n.objectives.n");
-    this._id = "";
-  }
-  /**
-   * Called when the API has been reset
-   */
-  reset() {
-    this._initialized = false;
-    this._id = "";
-  }
-  /**
-   * Getter for _id. Should only be called during JSON export.
-   * @return {string}
-   */
-  get id() {
-    if (!this.jsonString) {
-      throw new Scorm12ValidationError(
-        this._cmi_element + ".id",
-        scorm12_errors$1.WRITE_ONLY_ELEMENT
-      );
-    }
-    return this._id;
-  }
-  /**
-   * Setter for _id
-   * @param {string} id
-   */
-  set id(id) {
-    if (check12ValidFormat(this._cmi_element + ".id", id, scorm12_regex.CMIIdentifier)) {
-      this._id = id;
-    }
-  }
-  /**
-   * toJSON for cmi.interactions.n.objectives.n
-   * @return {
-   *    {
-   *      id: string
-   *    }
-   *  }
-   */
-  toJSON() {
-    this.jsonString = true;
-    const result = {
-      id: this.id
-    };
-    this.jsonString = false;
-    return result;
-  }
-}
-class CMIInteractionsCorrectResponsesObject extends BaseCMI {
-  /**
-   * Constructor for cmi.interactions.correct_responses.n
-   */
-  constructor() {
-    super("cmi.interactions.correct_responses.n");
-    this._pattern = "";
-  }
-  /**
-   * Called when the API has been reset
-   */
-  reset() {
-    this._initialized = false;
-    this._pattern = "";
-  }
-  /**
-   * Getter for _pattern
-   * @return {string}
-   */
-  get pattern() {
-    if (!this.jsonString) {
-      throw new Scorm12ValidationError(
-        this._cmi_element + ".pattern",
-        scorm12_errors$1.WRITE_ONLY_ELEMENT
-      );
-    }
-    return this._pattern;
-  }
-  /**
-   * Setter for _pattern
-   * @param {string} pattern
-   */
-  set pattern(pattern) {
-    if (check12ValidFormat(this._cmi_element + ".pattern", pattern, scorm12_regex.CMIFeedback, true)) {
-      this._pattern = pattern;
-    }
-  }
-  /**
-   * toJSON for cmi.interactions.correct_responses.n
-   * @return {
-   *    {
-   *      pattern: string
-   *    }
-   *  }
-   */
-  toJSON() {
-    this.jsonString = true;
-    const result = {
-      pattern: this._pattern
-    };
-    this.jsonString = false;
-    return result;
-  }
-}
-
-class CMI extends BaseRootCMI {
-  /**
-   * Constructor for the SCORM 1.2 cmi object
-   * @param {string} cmi_children
-   * @param {(CMIStudentData)} student_data
-   * @param {boolean} initialized
-   */
-  constructor(cmi_children, student_data, initialized) {
-    super("cmi");
-    this.__children = "";
-    this.__version = "3.4";
-    this._launch_data = "";
-    this._comments = "";
-    this._comments_from_lms = "";
-    if (initialized) this.initialize();
-    this.__children = cmi_children ? cmi_children : scorm12_constants.cmi_children;
-    this.core = new CMICore();
-    this.objectives = new CMIObjectives();
-    this.student_data = student_data ? student_data : new CMIStudentData();
-    this.student_preference = new CMIStudentPreference();
-    this.interactions = new CMIInteractions();
-  }
-  /**
-   * Called when the API has been reset
-   *
-   * CMI-03: Uses consistent ?.reset() pattern for all child objects.
-   * Objectives and interactions use reset(true) to clear arrays completely.
-   */
-  reset() {
-    this._initialized = false;
-    this._launch_data = "";
-    this._comments = "";
-    this.core?.reset();
-    this.objectives?.reset(true);
-    this.interactions?.reset(true);
-    this.student_data?.reset();
-    this.student_preference?.reset();
-  }
-  /**
-   * Called when the API has been initialized after the CMI has been created
-   */
-  initialize() {
-    super.initialize();
-    this.core?.initialize();
-    this.objectives?.initialize();
-    this.student_data?.initialize();
-    this.student_preference?.initialize();
-    this.interactions?.initialize();
-  }
-  /**
-   * toJSON for cmi
-   *
-   * @return {
-   *    {
-   *      suspend_data: string,
-   *      launch_data: string,
-   *      comments: string,
-   *      comments_from_lms: string,
-   *      core: CMICore,
-   *      objectives: CMIObjectives,
-   *      student_data: CMIStudentData,
-   *      student_preference: CMIStudentPreference,
-   *      interactions: CMIInteractions
-   *    }
-   *  }
-   */
-  toJSON() {
-    this.jsonString = true;
-    const result = {
-      suspend_data: this.suspend_data,
-      launch_data: this.launch_data,
-      comments: this.comments,
-      comments_from_lms: this.comments_from_lms,
-      core: this.core,
-      objectives: this.objectives,
-      student_data: this.student_data,
-      student_preference: this.student_preference,
-      interactions: this.interactions
-    };
-    this.jsonString = false;
-    return result;
-  }
-  /**
-   * Getter for __version
-   * @return {string}
-   */
-  get _version() {
-    return this.__version;
-  }
-  /**
-   * Setter for __version. Just throws an error.
-   * @param {string} _version
-   */
-  set _version(_version) {
-    throw new Scorm12ValidationError(
-      this._cmi_element + "._version",
-      scorm12_errors$1.INVALID_SET_VALUE
-    );
-  }
-  /**
-   * Getter for __children
-   * @return {string}
-   */
-  get _children() {
-    return this.__children;
-  }
-  /**
-   * Setter for __version. Just throws an error.
-   * @param {string} _children
-   */
-  set _children(_children) {
-    throw new Scorm12ValidationError(
-      this._cmi_element + "._children",
-      scorm12_errors$1.INVALID_SET_VALUE
-    );
-  }
-  /**
-   * Getter for _suspend_data
-   * @return {string}
-   */
-  get suspend_data() {
-    return this.core?.suspend_data;
-  }
-  /**
-   * Setter for _suspend_data
-   * @param {string} suspend_data
-   */
-  set suspend_data(suspend_data) {
-    if (this.core) {
-      this.core.suspend_data = suspend_data;
-    }
-  }
-  /**
-   * Getter for _launch_data
-   * @return {string}
-   */
-  get launch_data() {
-    return this._launch_data;
-  }
-  /**
-   * Setter for _launch_data. Can only be called before initialization.
-   *
-   * SPEC COMPLIANCE NOTE:
-   * The SCORM 1.2 specification defines launch_data as CMIString4096 (max 4096 chars).
-   * This implementation intentionally omits length validation because:
-   *
-   * 1. launch_data is LMS-provided data, not SCO-provided - the LMS is responsible
-   *    for ensuring valid data is provided to content
-   * 2. This setter is only callable before API initialization (read-only to SCO)
-   * 3. Real-world LMS systems may provide launch_data exceeding 4096 chars
-   * 4. Rejecting oversized LMS data would break content with no recovery path
-   *
-   * Unlike cmi.suspend_data and cmi.comments (which SCOs write), launch_data
-   * comes from the LMS manifest/configuration, so strict validation here would
-   * penalize content for LMS decisions outside SCO control.
-   *
-   * @param {string} launch_data
-   */
-  set launch_data(launch_data) {
-    if (this.initialized) {
-      throw new Scorm12ValidationError(
-        this._cmi_element + ".launch_data",
-        scorm12_errors$1.READ_ONLY_ELEMENT
-      );
-    } else {
-      this._launch_data = launch_data;
-    }
-  }
-  /**
-   * Getter for _comments
-   * @return {string}
-   */
-  get comments() {
-    return this._comments;
-  }
-  /**
-   * Setter for _comments
-   * @param {string} comments
-   */
-  set comments(comments) {
-    if (check12ValidFormat(
-      this._cmi_element + ".comments",
-      comments,
-      scorm12_regex.CMIString4096,
-      true
-    )) {
-      this._comments = comments;
-    }
-  }
-  /**
-   * Getter for _comments_from_lms
-   * @return {string}
-   */
-  get comments_from_lms() {
-    return this._comments_from_lms;
-  }
-  /**
-   * Setter for _comments_from_lms. Can only be called before  initialization.
-   * @param {string} comments_from_lms
-   */
-  set comments_from_lms(comments_from_lms) {
-    if (this.initialized) {
-      throw new Scorm12ValidationError(
-        this._cmi_element + ".comments_from_lms",
-        scorm12_errors$1.READ_ONLY_ELEMENT
-      );
-    } else {
-      this._comments_from_lms = comments_from_lms;
-    }
-  }
-  /**
-   * Adds the current session time to the existing total time.
-   *
-   * @return {string}
-   */
-  getCurrentTotalTime() {
-    return this.core.getCurrentTotalTime(this.start_time);
-  }
-}
-
-class NAV extends BaseCMI {
-  /**
-   * Constructor for NAV object
-   */
-  constructor() {
-    super("cmi.nav");
-    this._event = "";
-  }
-  /**
-   * Called when the API has been reset
-   *
-   * This method is invoked during the following session lifecycle events:
-   * - When the API is reset via LMSFinish() followed by a new LMSInitialize()
-   * - Between SCO transitions in multi-SCO courses (when one SCO ends and another begins)
-   * - When the LMS explicitly resets the API instance
-   * - During API cleanup and reinitialization cycles
-   *
-   * Resets all navigation state to prepare for a new session.
-   */
-  reset() {
-    this._event = "";
-    this._initialized = false;
-  }
-  /**
-   * Getter for _event
-   * @return {string}
-   */
-  get event() {
-    return this._event;
-  }
-  /**
-   * Setter for _event
-   * @param {string} event
-   */
-  set event(event) {
-    if (event === "" || check12ValidFormat(this._cmi_element + ".event", event, scorm12_regex.NAVEvent)) {
-      this._event = event;
-    }
-  }
-  /**
-   * toJSON for nav object
-   * @return {
-   *    {
-   *      event: string
-   *    }
-   *  }
-   */
-  toJSON() {
-    this.jsonString = true;
-    const result = {
-      event: this.event
-    };
-    this.jsonString = false;
-    return result;
-  }
-}
-
-const SuccessStatus = {
-  PASSED: "passed",
-  FAILED: "failed",
-  UNKNOWN: "unknown"
-};
-const CompletionStatus = {
-  COMPLETED: "completed",
-  INCOMPLETE: "incomplete",
-  UNKNOWN: "unknown"
-};
-const LogLevelEnum = {
-  _: 0,
-  DEBUG: 1,
-  INFO: 2,
-  WARN: 3,
-  ERROR: 4,
-  NONE: 5
-};
-
-const DefaultSettings = {
-  autocommit: false,
-  autocommitSeconds: 10,
-  throttleCommits: false,
-  useAsynchronousCommits: false,
-  sendFullCommit: true,
-  lmsCommitUrl: false,
-  dataCommitFormat: "json",
-  commitRequestDataType: "application/json;charset=UTF-8",
-  autoProgress: false,
-  logLevel: LogLevelEnum.ERROR,
-  selfReportSessionTime: false,
-  alwaysSendTotalTime: false,
-  renderCommonCommitFields: false,
-  autoCompleteLessonStatus: false,
-  strict_errors: true,
-  xhrHeaders: {},
-  xhrWithCredentials: false,
-  fetchMode: "cors",
-  useBeaconInsteadOfFetch: "never",
-  responseHandler: async function(response) {
-    if (typeof response !== "undefined") {
-      let httpResult = null;
-      try {
-        if (typeof response.json === "function") {
-          httpResult = await response.json();
-        } else if (typeof response.text === "function") {
-          const responseText = await response.text();
-          if (responseText) {
-            httpResult = JSON.parse(responseText);
-          }
-        }
-      } catch (e) {
-      }
-      if (httpResult === null || !{}.hasOwnProperty.call(httpResult, "result")) {
-        if (response.status === 200) {
-          return {
-            result: global_constants.SCORM_TRUE,
-            errorCode: 0
-          };
-        } else {
-          return {
-            result: global_constants.SCORM_FALSE,
-            errorCode: 101
-          };
-        }
-      } else {
-        return {
-          result: httpResult.result,
-          errorCode: typeof httpResult.errorCode === "number" ? httpResult.errorCode : httpResult.result === true || httpResult.result === global_constants.SCORM_TRUE ? 0 : 101
-        };
-      }
-    }
-    return {
-      result: global_constants.SCORM_FALSE,
-      errorCode: 101
-    };
-  },
-  xhrResponseHandler: function(xhr) {
-    if (typeof xhr !== "undefined") {
-      let httpResult = null;
-      if (xhr.status >= 200 && xhr.status <= 299) {
-        try {
-          httpResult = JSON.parse(xhr.responseText);
-        } catch (e) {
-        }
-        if (httpResult === null || !{}.hasOwnProperty.call(httpResult, "result")) {
-          return { result: global_constants.SCORM_TRUE, errorCode: 0 };
-        }
-        return {
-          result: httpResult.result,
-          errorCode: typeof httpResult.errorCode === "number" ? httpResult.errorCode : httpResult.result === true || httpResult.result === global_constants.SCORM_TRUE ? 0 : 101
-        };
-      } else {
-        return { result: global_constants.SCORM_FALSE, errorCode: 101 };
-      }
-    }
-    return { result: global_constants.SCORM_FALSE, errorCode: 101 };
-  },
-  requestHandler: function(commitObject) {
-    return commitObject;
-  },
-  onLogMessage: defaultLogHandler,
-  mastery_override: false,
-  score_overrides_status: false,
-  completion_status_on_failed: "completed",
-  scoItemIds: [],
-  scoItemIdValidator: false,
-  globalObjectiveIds: [],
-  // Offline support settings
-  enableOfflineSupport: false,
-  courseId: "",
-  syncOnInitialize: true,
-  syncOnTerminate: true,
-  maxSyncAttempts: 5,
-  // Multi-SCO support settings
-  scoId: "",
-  autoPopulateCommitMetadata: false,
-  // HTTP service settings
-  httpService: null,
-  // Global learner preferences settings
-  globalStudentPreferences: false
-};
-function defaultLogHandler(messageLevel, logMessage) {
-  switch (messageLevel) {
-    case "4":
-    case 4:
-    case "ERROR":
-    case LogLevelEnum.ERROR:
-      console.error(logMessage);
-      break;
-    case "3":
-    case 3:
-    case "WARN":
-    case LogLevelEnum.WARN:
-      console.warn(logMessage);
-      break;
-    case "2":
-    case 2:
-    case "INFO":
-    case LogLevelEnum.INFO:
-      console.info(logMessage);
-      break;
-    case "1":
-    case 1:
-    case "DEBUG":
-    case LogLevelEnum.DEBUG:
-      if (console.debug) {
-        console.debug(logMessage);
-      } else {
-        console.log(logMessage);
-      }
-      break;
-  }
-}
-
 class ScheduledCommit {
   /**
    * Constructor for ScheduledCommit
@@ -2693,6 +899,298 @@ class ScheduledCommit {
         (async () => await this._API.commit(this._callback))();
       }
     }
+  }
+}
+
+class RuleCondition extends BaseCMI {
+  /**
+   * Constructor for RuleCondition
+   * @param {RuleConditionType} condition - The condition type
+   * @param {RuleConditionOperator | null} operator - The operator (null for no operator)
+   * @param {Map<string, any>} parameters - Additional parameters for the condition
+   */
+  constructor(condition = "always" /* ALWAYS */, operator = null, parameters = /* @__PURE__ */ new Map()) {
+    super("ruleCondition");
+    this._condition = "always" /* ALWAYS */;
+    this._operator = null;
+    this._parameters = /* @__PURE__ */ new Map();
+    this._referencedObjective = null;
+    this._condition = condition;
+    this._operator = operator;
+    this._parameters = parameters;
+  }
+  static {
+    // Optional, overridable provider for current time (LMS may set via SequencingService)
+    this._now = () => /* @__PURE__ */ new Date();
+  }
+  static {
+    // Optional, overridable hook for getting elapsed seconds
+    this._getElapsedSecondsHook = void 0;
+  }
+  /**
+   * Allow integrators to override the clock used for time-based rules.
+   */
+  static setNowProvider(now) {
+    if (typeof now === "function") {
+      RuleCondition._now = now;
+    }
+  }
+  /**
+   * Allow integrators to set an elapsed seconds hook for time limit calculations
+   */
+  static setElapsedSecondsHook(hook) {
+    RuleCondition._getElapsedSecondsHook = hook;
+  }
+  /**
+   * Called when the API needs to be reset
+   */
+  reset() {
+    this._initialized = false;
+    this._condition = "always" /* ALWAYS */;
+    this._operator = null;
+    this._parameters = /* @__PURE__ */ new Map();
+  }
+  /**
+   * Getter for condition
+   * @return {RuleConditionType}
+   */
+  get condition() {
+    return this._condition;
+  }
+  /**
+   * Setter for condition
+   * @param {RuleConditionType} condition
+   */
+  set condition(condition) {
+    this._condition = condition;
+  }
+  /**
+   * Getter for operator
+   * @return {RuleConditionOperator | null}
+   */
+  get operator() {
+    return this._operator;
+  }
+  /**
+   * Setter for operator
+   * @param {RuleConditionOperator | null} operator
+   */
+  set operator(operator) {
+    this._operator = operator;
+  }
+  /**
+   * Getter for parameters
+   * @return {Map<string, any>}
+   */
+  get parameters() {
+    return this._parameters;
+  }
+  /**
+   * Setter for parameters
+   * @param {Map<string, any>} parameters
+   */
+  set parameters(parameters) {
+    this._parameters = parameters;
+  }
+  get referencedObjective() {
+    return this._referencedObjective;
+  }
+  set referencedObjective(objectiveId) {
+    this._referencedObjective = objectiveId;
+  }
+  resolveReferencedObjective(activity) {
+    if (!this._referencedObjective) {
+      return null;
+    }
+    if (activity.primaryObjective?.id === this._referencedObjective) {
+      return activity.primaryObjective;
+    }
+    const objectives = activity.objectives || [];
+    return objectives.find((obj) => obj.id === this._referencedObjective) || null;
+  }
+  /**
+   * Evaluate the condition for an activity
+   * @param {Activity} activity - The activity to evaluate the condition for
+   * @return {boolean} - True if the condition is met, false otherwise
+   */
+  evaluate(activity) {
+    let result;
+    const referencedObjective = this.resolveReferencedObjective(activity);
+    switch (this._condition) {
+      case "satisfied" /* SATISFIED */:
+      case "objectiveSatisfied" /* OBJECTIVE_SATISFIED */:
+        if (referencedObjective) {
+          result = referencedObjective.satisfiedStatus === true;
+        } else {
+          result = activity.successStatus === SuccessStatus.PASSED || activity.objectiveSatisfiedStatus === true;
+        }
+        break;
+      case "objectiveStatusKnown" /* OBJECTIVE_STATUS_KNOWN */:
+        result = referencedObjective ? !!referencedObjective.measureStatus : !!activity.objectiveMeasureStatus;
+        break;
+      case "objectiveMeasureKnown" /* OBJECTIVE_MEASURE_KNOWN */:
+        result = referencedObjective ? !!referencedObjective.measureStatus : !!activity.objectiveMeasureStatus;
+        break;
+      case "objectiveMeasureGreaterThan" /* OBJECTIVE_MEASURE_GREATER_THAN */: {
+        const greaterThanValue = this._parameters.get("threshold") || 0;
+        const measureStatus = referencedObjective ? referencedObjective.measureStatus : activity.objectiveMeasureStatus;
+        const measureValue = referencedObjective ? referencedObjective.normalizedMeasure : activity.objectiveNormalizedMeasure;
+        result = !!measureStatus && measureValue > greaterThanValue;
+        break;
+      }
+      case "objectiveMeasureLessThan" /* OBJECTIVE_MEASURE_LESS_THAN */: {
+        const lessThanValue = this._parameters.get("threshold") || 0;
+        const measureStatus = referencedObjective ? referencedObjective.measureStatus : activity.objectiveMeasureStatus;
+        const measureValue = referencedObjective ? referencedObjective.normalizedMeasure : activity.objectiveNormalizedMeasure;
+        result = !!measureStatus && measureValue < lessThanValue;
+        break;
+      }
+      case "completed" /* COMPLETED */:
+      case "activityCompleted" /* ACTIVITY_COMPLETED */:
+        if (referencedObjective) {
+          result = referencedObjective.completionStatus === CompletionStatus.COMPLETED;
+        } else {
+          result = activity.isCompleted;
+        }
+        break;
+      case "progressKnown" /* PROGRESS_KNOWN */:
+      case "activityProgressKnown" /* ACTIVITY_PROGRESS_KNOWN */:
+        if (referencedObjective) {
+          result = referencedObjective.completionStatus !== CompletionStatus.UNKNOWN;
+        } else {
+          result = activity.completionStatus !== "unknown";
+        }
+        break;
+      case "attempted" /* ATTEMPTED */:
+        result = activity.attemptCount > 0;
+        break;
+      case "attemptLimitExceeded" /* ATTEMPT_LIMIT_EXCEEDED */:
+        result = activity.hasAttemptLimitExceeded();
+        break;
+      case "timeLimitExceeded" /* TIME_LIMIT_EXCEEDED */:
+        result = this.evaluateTimeLimitExceeded(activity);
+        break;
+      case "outsideAvailableTimeRange" /* OUTSIDE_AVAILABLE_TIME_RANGE */:
+        result = this.evaluateOutsideAvailableTimeRange(activity);
+        break;
+      case "always" /* ALWAYS */:
+        result = true;
+        break;
+      case "never" /* NEVER */:
+        result = false;
+        break;
+      default:
+        result = false;
+        break;
+    }
+    if (this._operator === "not" /* NOT */) {
+      result = !result;
+    }
+    return result;
+  }
+  /**
+   * Evaluate if time limit has been exceeded
+   * @param {Activity} activity - The activity to evaluate
+   * @return {boolean}
+   * @private
+   */
+  evaluateTimeLimitExceeded(activity) {
+    let limit = activity.timeLimitDuration;
+    if (!limit && activity.attemptAbsoluteDurationLimit) {
+      limit = activity.attemptAbsoluteDurationLimit;
+    }
+    if (!limit) {
+      return false;
+    }
+    const limitSeconds = getDurationAsSeconds(limit, scorm2004_regex.CMITimespan);
+    if (limitSeconds <= 0) {
+      return false;
+    }
+    let elapsedSeconds = 0;
+    if (RuleCondition._getElapsedSecondsHook) {
+      try {
+        const hookResult = RuleCondition._getElapsedSecondsHook(activity);
+        if (typeof hookResult === "number" && !Number.isNaN(hookResult) && hookResult >= 0) {
+          elapsedSeconds = hookResult;
+        }
+      } catch {
+        elapsedSeconds = 0;
+      }
+    }
+    if (elapsedSeconds === 0 && activity.attemptExperiencedDuration) {
+      const attemptDurationSeconds = getDurationAsSeconds(
+        activity.attemptExperiencedDuration,
+        scorm2004_regex.CMITimespan
+      );
+      if (attemptDurationSeconds > 0) {
+        elapsedSeconds = attemptDurationSeconds;
+      }
+    }
+    if (elapsedSeconds === 0 && activity.attemptAbsoluteStartTime) {
+      try {
+        const start = new Date(activity.attemptAbsoluteStartTime).getTime();
+        const nowMs = RuleCondition._now().getTime();
+        if (!Number.isNaN(start) && !Number.isNaN(nowMs) && nowMs >= start) {
+          elapsedSeconds = (nowMs - start) / 1e3;
+        }
+      } catch {
+        elapsedSeconds = 0;
+      }
+    }
+    return elapsedSeconds > limitSeconds;
+  }
+  /**
+   * Evaluate if activity is outside available time range
+   * @param {Activity} activity - The activity to evaluate
+   * @return {boolean}
+   * @private
+   */
+  evaluateOutsideAvailableTimeRange(activity) {
+    const beginTime = activity.beginTimeLimit;
+    const endTime = activity.endTimeLimit;
+    if (!beginTime && !endTime) {
+      return false;
+    }
+    const now = RuleCondition._now();
+    if (beginTime) {
+      const beginDate = new Date(beginTime);
+      if (now < beginDate) {
+        return true;
+      }
+    }
+    if (endTime) {
+      const endDate = new Date(endTime);
+      if (now > endDate) {
+        return true;
+      }
+    }
+    return false;
+  }
+  /**
+   * Parse ISO 8601 duration to milliseconds
+   * Uses the standard getDurationAsSeconds utility which supports full ISO 8601 format
+   * including date components (years, months, weeks, days) and time components (hours, minutes, seconds).
+   * @param {string} duration - ISO 8601 duration string (e.g., "PT1H30M", "P1D", "P1Y2M3DT4H5M6S")
+   * @return {number} - Duration in milliseconds
+   * @private
+   */
+  parseISO8601Duration(duration) {
+    const seconds = getDurationAsSeconds(duration, scorm2004_regex.CMITimespan);
+    return seconds * 1e3;
+  }
+  /**
+   * toJSON for RuleCondition
+   * @return {object}
+   */
+  toJSON() {
+    this.jsonString = true;
+    const result = {
+      condition: this._condition,
+      operator: this._operator,
+      parameters: Object.fromEntries(this._parameters)
+    };
+    this.jsonString = false;
+    return result;
   }
 }
 
@@ -2877,515 +1375,6 @@ class AsynchronousHttpService {
    */
   updateSettings(settings) {
     this.settings = settings;
-  }
-}
-
-class SynchronousHttpService {
-  /**
-   * Constructor for SynchronousHttpService
-   * @param {InternalSettings} settings - The settings object
-   * @param {ErrorCode} error_codes - The error codes object
-   */
-  constructor(settings, error_codes) {
-    this.settings = settings;
-    this.error_codes = error_codes;
-  }
-  /**
-   * Sends synchronous HTTP requests to the LMS
-   * @param {string} url - The URL endpoint to send the request to
-   * @param {CommitObject|StringKeyMap|Array} params - The data to send to the LMS
-   * @param {boolean} immediate - Whether this is a termination commit (use sendBeacon)
-   * @param {Function} _apiLog - Function to log API messages (unused in synchronous mode - errors returned directly)
-   * @param {Function} _processListeners - Function to trigger event listeners (unused in synchronous mode - no async events)
-   * @return {ResultObject} - The result of the request (synchronous)
-   *
-   * @remarks
-   * The apiLog and processListeners parameters are part of the IHttpService interface contract
-   * but are not used by SynchronousHttpService because:
-   * - Synchronous XHR blocks until complete, so errors are returned directly to the caller
-   * - No async events need to be triggered (CommitSuccess/CommitError) since results are synchronous
-   * - AsynchronousHttpService uses these parameters to handle background request results
-   */
-  processHttpRequest(url, params, immediate = false, _apiLog, _processListeners) {
-    if (immediate) {
-      return this._handleImmediateRequest(url, params);
-    }
-    return this._performSyncXHR(url, params);
-  }
-  /**
-   * Handles an immediate request using sendBeacon
-   * @param {string} url - The URL to send the request to
-   * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
-   * @return {ResultObject} - The result based on beacon success
-   * @private
-   */
-  _handleImmediateRequest(url, params) {
-    const requestPayload = this.settings.requestHandler(params) ?? params;
-    const { body } = this._prepareRequestBody(requestPayload);
-    const beaconSuccess = navigator.sendBeacon(
-      url,
-      new Blob([body], { type: "text/plain;charset=UTF-8" })
-    );
-    return {
-      result: beaconSuccess ? "true" : "false",
-      errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391
-    };
-  }
-  /**
-   * Performs a synchronous XMLHttpRequest
-   * @param {string} url - The URL to send the request to
-   * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
-   * @return {ResultObject} - The result of the request
-   * @private
-   */
-  _performSyncXHR(url, params) {
-    const requestPayload = this.settings.requestHandler(params) ?? params;
-    const { body, contentType } = this._prepareRequestBody(requestPayload);
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", url, false);
-    xhr.setRequestHeader("Content-Type", contentType);
-    Object.entries(this.settings.xhrHeaders).forEach(([key, value]) => {
-      xhr.setRequestHeader(key, String(value));
-    });
-    if (this.settings.xhrWithCredentials) {
-      xhr.withCredentials = true;
-    }
-    try {
-      xhr.send(body);
-      return this.settings.xhrResponseHandler(xhr);
-    } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      return {
-        result: global_constants.SCORM_FALSE,
-        errorCode: this.error_codes.GENERAL_COMMIT_FAILURE || 391,
-        errorMessage: message
-      };
-    }
-  }
-  /**
-   * Prepares the request body and content type based on params type
-   * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
-   * @return {Object} - Object containing body and contentType
-   * @private
-   */
-  _prepareRequestBody(params) {
-    const body = params instanceof Array ? params.join("&") : JSON.stringify(params);
-    const contentType = params instanceof Array ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType;
-    return { body, contentType };
-  }
-  /**
-   * Updates the service settings
-   * @param {InternalSettings} settings - The new settings
-   */
-  updateSettings(settings) {
-    this.settings = settings;
-  }
-}
-
-class EventService {
-  /**
-   * Constructor for EventService
-   * @param {Function} apiLog - Function to log API messages
-   */
-  constructor(apiLog) {
-    // Map of function names to listeners for faster lookups
-    this.listenerMap = /* @__PURE__ */ new Map();
-    // Total count of listeners for logging
-    this.listenerCount = 0;
-    this.apiLog = apiLog;
-  }
-  /**
-   * Parses a listener name into its components
-   *
-   * @param {string} listenerName - The name of the listener
-   * @returns {ParsedListener|null} - The parsed listener information or null if invalid
-   */
-  parseListenerName(listenerName) {
-    if (!listenerName) return null;
-    const listenerSplit = listenerName.split(".");
-    const functionName = listenerSplit[0];
-    let CMIElement = null;
-    if (listenerSplit.length > 1) {
-      CMIElement = listenerName.replace(`${functionName}.`, "");
-    }
-    return { functionName: functionName ?? listenerName, CMIElement };
-  }
-  /**
-   * Provides a mechanism for attaching to a specific SCORM event
-   *
-   * @param {string} listenerName - The name of the listener
-   * @param {Function} callback - The callback function to execute when the event occurs
-   */
-  on(listenerName, callback) {
-    if (!callback) return;
-    const listenerFunctions = listenerName.split(" ");
-    for (const listenerFunction of listenerFunctions) {
-      const parsedListener = this.parseListenerName(listenerFunction);
-      if (!parsedListener) continue;
-      const { functionName, CMIElement } = parsedListener;
-      const listeners = this.listenerMap.get(functionName) ?? [];
-      listeners.push({
-        functionName,
-        CMIElement,
-        callback
-      });
-      this.listenerMap.set(functionName, listeners);
-      this.listenerCount++;
-      this.apiLog(
-        "on",
-        `Added event listener: ${this.listenerCount}`,
-        LogLevelEnum.INFO,
-        functionName
-      );
-    }
-  }
-  /**
-   * Provides a mechanism for detaching a specific SCORM event listener
-   *
-   * @param {string} listenerName - The name of the listener to remove
-   * @param {Function} callback - The callback function to remove
-   */
-  off(listenerName, callback) {
-    if (!callback) return;
-    const listenerFunctions = listenerName.split(" ");
-    for (const listenerFunction of listenerFunctions) {
-      const parsedListener = this.parseListenerName(listenerFunction);
-      if (!parsedListener) continue;
-      const { functionName, CMIElement } = parsedListener;
-      const listeners = this.listenerMap.get(functionName);
-      if (!listeners) continue;
-      const removeIndex = listeners.findIndex(
-        (obj) => obj.CMIElement === CMIElement && obj.callback === callback
-      );
-      if (removeIndex !== -1) {
-        listeners.splice(removeIndex, 1);
-        this.listenerCount--;
-        if (listeners.length === 0) {
-          this.listenerMap.delete(functionName);
-        }
-        this.apiLog(
-          "off",
-          `Removed event listener: ${this.listenerCount}`,
-          LogLevelEnum.INFO,
-          functionName
-        );
-      }
-    }
-  }
-  /**
-   * Provides a mechanism for clearing all listeners from a specific SCORM event
-   *
-   * Note: clear() differs from off() in CMIElement matching behavior:
-   * - clear() with CMIElement=null removes ALL listeners for the function
-   * - off() requires exact CMIElement match AND callback match
-   * This allows clear() to remove all listeners at once, while off() is surgical.
-   *
-   * @param {string} listenerName - The name of the listener to clear
-   */
-  clear(listenerName) {
-    const listenerFunctions = listenerName.split(" ");
-    for (const listenerFunction of listenerFunctions) {
-      const parsedListener = this.parseListenerName(listenerFunction);
-      if (!parsedListener) continue;
-      const { functionName, CMIElement } = parsedListener;
-      if (this.listenerMap.has(functionName)) {
-        const listeners = this.listenerMap.get(functionName);
-        const newListeners = CMIElement === null ? [] : listeners.filter((obj) => obj.CMIElement !== CMIElement);
-        this.listenerCount -= listeners.length - newListeners.length;
-        if (newListeners.length === 0) {
-          this.listenerMap.delete(functionName);
-        } else {
-          this.listenerMap.set(functionName, newListeners);
-        }
-      }
-    }
-  }
-  /**
-   * Processes any 'on' listeners that have been created
-   *
-   * @param {string} functionName - The name of the function that triggered the event
-   * @param {string} CMIElement - The CMI element that was affected
-   * @param {any} value - The value that was set
-   */
-  processListeners(functionName, CMIElement, value) {
-    this.apiLog(functionName, value, LogLevelEnum.INFO, CMIElement);
-    const listeners = this.listenerMap.get(functionName);
-    if (!listeners) return;
-    for (const listener of listeners) {
-      const listenerHasCMIElement = !!listener.CMIElement;
-      let CMIElementsMatch = false;
-      if (CMIElement && listener.CMIElement) {
-        if (listener.CMIElement.endsWith("*")) {
-          const prefix = listener.CMIElement.slice(0, -1);
-          CMIElementsMatch = CMIElement.startsWith(prefix);
-        } else {
-          CMIElementsMatch = listener.CMIElement === CMIElement;
-        }
-      }
-      if (!listenerHasCMIElement || CMIElementsMatch) {
-        this.apiLog(
-          "processListeners",
-          `Processing listener: ${listener.functionName}`,
-          LogLevelEnum.DEBUG,
-          CMIElement
-        );
-        if (functionName.startsWith("Sequence")) {
-          listener.callback(value);
-        } else if (functionName === "CommitError") {
-          listener.callback(value);
-        } else if (functionName === "CommitSuccess") {
-          listener.callback();
-        } else {
-          listener.callback(CMIElement, value);
-        }
-      }
-    }
-  }
-  /**
-   * Resets the event service by clearing all listeners
-   */
-  reset() {
-    this.listenerMap.clear();
-    this.listenerCount = 0;
-  }
-}
-
-class SerializationService {
-  /**
-   * Loads CMI data from a flattened JSON object with special handling for arrays and ordering.
-   *
-   * This method implements a complex algorithm for loading flattened JSON data into the CMI
-   * object structure. It handles several key challenges:
-   *
-   * 1. Ordering dependencies: Some CMI elements (like interactions and objectives) must be
-   *    loaded in a specific order to ensure proper initialization.
-   *
-   * 2. Array handling: Interactions and objectives are stored as arrays, and their properties
-   *    must be loaded in the correct order (e.g., 'id' and 'type' must be set before other properties).
-   *
-   * 3. Unflattening: The method converts flattened dot notation (e.g., "cmi.objectives.0.id")
-   *    back into nested objects before loading.
-   *
-   * The algorithm works by:
-   * - Categorizing keys into interactions, objectives, and other properties
-   * - Sorting interactions to prioritize 'id' and 'type' fields within each index
-   * - Sorting objectives to prioritize 'id' fields within each index
-   * - Processing each category in order: interactions, objectives, then other properties
-   *
-   * @param {StringKeyMap} json - The flattened JSON object with dot notation keys
-   * @param {string} CMIElement - The CMI element to start from (usually empty or "cmi")
-   * @param {Function} setCMIValue - Function to set CMI value
-   * @param {Function} isNotInitialized - Function to check if API is not initialized
-   *
-   * @param setStartingData
-   * @example
-   * // Example of flattened JSON input:
-   * // {
-   * //   "cmi.objectives.0.id": "obj1",
-   * //   "cmi.objectives.0.score.raw": "80",
-   * //   "cmi.interactions.0.id": "int1",
-   * //   "cmi.interactions.0.type": "choice",
-   * //   "cmi.interactions.0.result": "correct"
-   * // }
-   */
-  loadFromFlattenedJSON(json, CMIElement = "", setCMIValue, isNotInitialized, setStartingData) {
-    if (!isNotInitialized()) {
-      console.error("loadFromFlattenedJSON can only be called before the call to lmsInitialize.");
-      return;
-    }
-    const int_pattern = /^(cmi\.interactions\.)(\d+)\.(.*)$/;
-    const obj_pattern = /^(cmi\.objectives\.)(\d+)\.(.*)$/;
-    const interactions = [];
-    const objectives = [];
-    const others = [];
-    for (const key in json) {
-      if (Object.prototype.hasOwnProperty.call(json, key)) {
-        const intMatch = key.match(int_pattern);
-        if (intMatch) {
-          interactions.push({
-            key,
-            value: json[key],
-            index: Number(intMatch[2]),
-            field: intMatch[3] || ""
-          });
-          continue;
-        }
-        const objMatch = key.match(obj_pattern);
-        if (objMatch) {
-          objectives.push({
-            key,
-            value: json[key],
-            index: Number(objMatch[2]),
-            field: objMatch[3] || ""
-          });
-          continue;
-        }
-        others.push({ key, value: json[key] });
-      }
-    }
-    interactions.sort((a, b) => {
-      if (a.index !== b.index) {
-        return a.index - b.index;
-      }
-      if (a.field === "id") return -1;
-      if (b.field === "id") return 1;
-      if (a.field === "type") return -1;
-      if (b.field === "type") return 1;
-      return a.field.localeCompare(b.field);
-    });
-    objectives.sort((a, b) => {
-      if (a.index !== b.index) {
-        return a.index - b.index;
-      }
-      if (a.field === "id") return -1;
-      if (b.field === "id") return 1;
-      return a.field.localeCompare(b.field);
-    });
-    others.sort((a, b) => a.key.localeCompare(b.key));
-    const processItems = (items) => {
-      items.forEach((item) => {
-        const obj = {};
-        obj[item.key] = item.value;
-        this.loadFromJSON(
-          unflatten(obj),
-          CMIElement,
-          setCMIValue,
-          isNotInitialized,
-          setStartingData
-        );
-      });
-    };
-    processItems(interactions);
-    processItems(objectives);
-    processItems(others);
-  }
-  /**
-   * Loads CMI data from a nested JSON object with recursive traversal.
-   *
-   * This method implements a recursive algorithm for loading nested JSON data into the CMI
-   * object structure. It handles several key aspects:
-   *
-   * 1. Recursive traversal: The method recursively traverses the nested JSON structure,
-   *    building CMI element paths as it goes (e.g., "cmi.core.student_id").
-   *
-   * 2. Type-specific handling: Different data types are handled differently:
-   *    - Arrays: Each array element is processed individually with its index in the path
-   *    - Objects: Recursively processed with updated path
-   *    - Primitives: Set directly using setCMIValue
-   *
-   * 3. Initialization check: Ensures the method is only called before API initialization
-   *
-   * 4. Starting data storage: Stores the original JSON data for potential future use
-   *
-   * The algorithm works by:
-   * - First storing the complete JSON object via setStartingData
-   * - Iterating through each property in the JSON object
-   * - For each property, determining its type and handling it accordingly
-   * - Building the CMI element path as it traverses the structure
-   * - Setting values at the appropriate paths using setCMIValue
-   *
-   * @param {{[key: string]: any}} json - The nested JSON object to load
-   * @param {string} CMIElement - The CMI element to start from (usually empty or "cmi")
-   * @param {Function} setCMIValue - Function to set CMI value at a specific path
-   * @param {Function} isNotInitialized - Function to check if API is not initialized
-   * @param {Function} setStartingData - Function to store the original JSON data
-   *
-   * @example
-   * // Example of nested JSON input:
-   * // {
-   * //   "core": {
-   * //     "student_id": "12345",
-   * //     "student_name": "John Doe"
-   * //   },
-   * //   "objectives": [
-   * //     { "id": "obj1", "score": { "raw": 80 } },
-   * //     { "id": "obj2", "score": { "raw": 90 } }
-   * //   ]
-   * // }
-   */
-  loadFromJSON(json, CMIElement = "", setCMIValue, isNotInitialized, setStartingData) {
-    if (!isNotInitialized()) {
-      console.error("loadFromJSON can only be called before the call to lmsInitialize.");
-      return;
-    }
-    CMIElement = CMIElement !== void 0 ? CMIElement : "cmi";
-    setStartingData(json);
-    for (const key in json) {
-      if (Object.prototype.hasOwnProperty.call(json, key) && json[key]) {
-        const currentCMIElement = (CMIElement ? CMIElement + "." : "") + key;
-        const value = json[key];
-        if (value.constructor === Array) {
-          for (let i = 0; i < value.length; i++) {
-            if (value[i]) {
-              const item = value[i];
-              const tempCMIElement = `${currentCMIElement}.${i}`;
-              if (item.constructor === Object) {
-                this.loadFromJSON(
-                  item,
-                  tempCMIElement,
-                  setCMIValue,
-                  isNotInitialized,
-                  setStartingData
-                );
-              } else {
-                setCMIValue(tempCMIElement, item);
-              }
-            }
-          }
-        } else if (value.constructor === Object) {
-          this.loadFromJSON(
-            value,
-            currentCMIElement,
-            setCMIValue,
-            isNotInitialized,
-            setStartingData
-          );
-        } else {
-          setCMIValue(currentCMIElement, value);
-        }
-      }
-    }
-  }
-  /**
-   * Render the CMI object to JSON for sending to an LMS.
-   *
-   * @param {BaseCMI|StringKeyMap} cmi - The CMI object
-   * @param {boolean} sendFullCommit - Whether to send the full commit
-   * @return {string}
-   */
-  renderCMIToJSONString(cmi, sendFullCommit) {
-    if (sendFullCommit) {
-      return JSON.stringify({ cmi });
-    }
-    return JSON.stringify({ cmi }, (k, v) => v === void 0 ? null : v, 2);
-  }
-  /**
-   * Returns a JS object representing the current cmi
-   * @param {BaseCMI|StringKeyMap} cmi - The CMI object
-   * @param {boolean} sendFullCommit - Whether to send the full commit
-   * @return {object}
-   */
-  renderCMIToJSONObject(cmi, sendFullCommit) {
-    return JSON.parse(this.renderCMIToJSONString(cmi, sendFullCommit));
-  }
-  /**
-   * Builds the commit object to be sent to the LMS
-   * @param {boolean} terminateCommit - Whether this is a termination commit
-   * @param {boolean} alwaysSendTotalTime - Whether to always send total time
-   * @param {boolean|Function} renderCommonCommitFields - Whether to render common commit fields
-   * @param {Function} renderCommitObject - Function to render commit object
-   * @param {Function} renderCommitCMI - Function to render commit CMI
-   * @param {LogLevel} apiLogLevel - The API log level
-   * @return {CommitObject|StringKeyMap|Array<any>}
-   */
-  getCommitObject(terminateCommit, alwaysSendTotalTime, renderCommonCommitFields, renderCommitObject, renderCommitCMI, apiLogLevel) {
-    const includeTotalTime = alwaysSendTotalTime || terminateCommit;
-    const commitObject = renderCommonCommitFields ? renderCommitObject(terminateCommit, includeTotalTime) : renderCommitCMI(terminateCommit, includeTotalTime);
-    if ([LogLevelEnum.DEBUG, "1", 1, "DEBUG"].includes(apiLogLevel)) {
-      console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");
-      console.debug(commitObject);
-    }
-    return commitObject;
   }
 }
 
@@ -3702,6 +1691,174 @@ ${stackTrace}`);
 }
 function createErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService) {
   return new ErrorHandlingService(errorCodes, apiLog, getLmsErrorMessageDetails, loggingService);
+}
+
+class EventService {
+  /**
+   * Constructor for EventService
+   * @param {Function} apiLog - Function to log API messages
+   */
+  constructor(apiLog) {
+    // Map of function names to listeners for faster lookups
+    this.listenerMap = /* @__PURE__ */ new Map();
+    // Total count of listeners for logging
+    this.listenerCount = 0;
+    this.apiLog = apiLog;
+  }
+  /**
+   * Parses a listener name into its components
+   *
+   * @param {string} listenerName - The name of the listener
+   * @returns {ParsedListener|null} - The parsed listener information or null if invalid
+   */
+  parseListenerName(listenerName) {
+    if (!listenerName) return null;
+    const listenerSplit = listenerName.split(".");
+    const functionName = listenerSplit[0];
+    let CMIElement = null;
+    if (listenerSplit.length > 1) {
+      CMIElement = listenerName.replace(`${functionName}.`, "");
+    }
+    return { functionName: functionName ?? listenerName, CMIElement };
+  }
+  /**
+   * Provides a mechanism for attaching to a specific SCORM event
+   *
+   * @param {string} listenerName - The name of the listener
+   * @param {Function} callback - The callback function to execute when the event occurs
+   */
+  on(listenerName, callback) {
+    if (!callback) return;
+    const listenerFunctions = listenerName.split(" ");
+    for (const listenerFunction of listenerFunctions) {
+      const parsedListener = this.parseListenerName(listenerFunction);
+      if (!parsedListener) continue;
+      const { functionName, CMIElement } = parsedListener;
+      const listeners = this.listenerMap.get(functionName) ?? [];
+      listeners.push({
+        functionName,
+        CMIElement,
+        callback
+      });
+      this.listenerMap.set(functionName, listeners);
+      this.listenerCount++;
+      this.apiLog(
+        "on",
+        `Added event listener: ${this.listenerCount}`,
+        LogLevelEnum.INFO,
+        functionName
+      );
+    }
+  }
+  /**
+   * Provides a mechanism for detaching a specific SCORM event listener
+   *
+   * @param {string} listenerName - The name of the listener to remove
+   * @param {Function} callback - The callback function to remove
+   */
+  off(listenerName, callback) {
+    if (!callback) return;
+    const listenerFunctions = listenerName.split(" ");
+    for (const listenerFunction of listenerFunctions) {
+      const parsedListener = this.parseListenerName(listenerFunction);
+      if (!parsedListener) continue;
+      const { functionName, CMIElement } = parsedListener;
+      const listeners = this.listenerMap.get(functionName);
+      if (!listeners) continue;
+      const removeIndex = listeners.findIndex(
+        (obj) => obj.CMIElement === CMIElement && obj.callback === callback
+      );
+      if (removeIndex !== -1) {
+        listeners.splice(removeIndex, 1);
+        this.listenerCount--;
+        if (listeners.length === 0) {
+          this.listenerMap.delete(functionName);
+        }
+        this.apiLog(
+          "off",
+          `Removed event listener: ${this.listenerCount}`,
+          LogLevelEnum.INFO,
+          functionName
+        );
+      }
+    }
+  }
+  /**
+   * Provides a mechanism for clearing all listeners from a specific SCORM event
+   *
+   * Note: clear() differs from off() in CMIElement matching behavior:
+   * - clear() with CMIElement=null removes ALL listeners for the function
+   * - off() requires exact CMIElement match AND callback match
+   * This allows clear() to remove all listeners at once, while off() is surgical.
+   *
+   * @param {string} listenerName - The name of the listener to clear
+   */
+  clear(listenerName) {
+    const listenerFunctions = listenerName.split(" ");
+    for (const listenerFunction of listenerFunctions) {
+      const parsedListener = this.parseListenerName(listenerFunction);
+      if (!parsedListener) continue;
+      const { functionName, CMIElement } = parsedListener;
+      if (this.listenerMap.has(functionName)) {
+        const listeners = this.listenerMap.get(functionName);
+        const newListeners = CMIElement === null ? [] : listeners.filter((obj) => obj.CMIElement !== CMIElement);
+        this.listenerCount -= listeners.length - newListeners.length;
+        if (newListeners.length === 0) {
+          this.listenerMap.delete(functionName);
+        } else {
+          this.listenerMap.set(functionName, newListeners);
+        }
+      }
+    }
+  }
+  /**
+   * Processes any 'on' listeners that have been created
+   *
+   * @param {string} functionName - The name of the function that triggered the event
+   * @param {string} CMIElement - The CMI element that was affected
+   * @param {any} value - The value that was set
+   */
+  processListeners(functionName, CMIElement, value) {
+    this.apiLog(functionName, value, LogLevelEnum.INFO, CMIElement);
+    const listeners = this.listenerMap.get(functionName);
+    if (!listeners) return;
+    for (const listener of listeners) {
+      const listenerHasCMIElement = !!listener.CMIElement;
+      let CMIElementsMatch = false;
+      if (CMIElement && listener.CMIElement) {
+        if (listener.CMIElement.endsWith("*")) {
+          const prefix = listener.CMIElement.slice(0, -1);
+          CMIElementsMatch = CMIElement.startsWith(prefix);
+        } else {
+          CMIElementsMatch = listener.CMIElement === CMIElement;
+        }
+      }
+      if (!listenerHasCMIElement || CMIElementsMatch) {
+        this.apiLog(
+          "processListeners",
+          `Processing listener: ${listener.functionName}`,
+          LogLevelEnum.DEBUG,
+          CMIElement
+        );
+        if (functionName.startsWith("Sequence")) {
+          listener.callback(value);
+        } else if (functionName === "CommitError") {
+          listener.callback(value);
+        } else if (functionName === "CommitSuccess") {
+          listener.callback();
+        } else {
+          listener.callback(CMIElement, value);
+        }
+      }
+    }
+  }
+  /**
+   * Resets the event service by clearing all listeners
+   */
+  reset() {
+    this.listenerMap.clear();
+    this.listenerCount = 0;
+  }
 }
 
 class OfflineStorageService {
@@ -4067,6 +2224,493 @@ class OfflineStorageService {
     window.removeEventListener("scorm-again:network-status", this.boundCustomNetworkStatusHandler);
   }
 }
+
+const checkValidFormat = memoize(
+  (CMIElement, value, regexPattern, errorCode, errorClass, allowEmptyString) => {
+    if (typeof value !== "string") {
+      return false;
+    }
+    const formatRegex = new RegExp(regexPattern);
+    const matches = value.match(formatRegex);
+    if (allowEmptyString && value === "") {
+      return true;
+    }
+    if (!matches || matches[0] === "") {
+      throw new errorClass(CMIElement, errorCode);
+    }
+    return true;
+  },
+  // Custom key function that excludes the error class from the cache key
+  // since it can't be stringified and doesn't affect the validation result
+  (CMIElement, value, regexPattern, errorCode, _errorClass, allowEmptyString) => {
+    const valueKey = typeof value === "string" ? value : `[${typeof value}]`;
+    return `${CMIElement}:${valueKey}:${regexPattern}:${errorCode}:${allowEmptyString || false}`;
+  }
+);
+const checkValidRange = memoize(
+  (CMIElement, value, rangePattern, errorCode, errorClass) => {
+    const ranges = rangePattern.split("#");
+    value = Number(value);
+    if (isNaN(value)) {
+      throw new errorClass(CMIElement, errorCode);
+    }
+    const minBound = ranges[0];
+    const maxBound = ranges[1];
+    const hasMinimum = minBound !== void 0 && minBound !== "";
+    const hasMaximum = maxBound !== void 0 && maxBound !== "" && maxBound !== "*";
+    if (hasMinimum && value < Number(minBound)) {
+      throw new errorClass(CMIElement, errorCode);
+    }
+    if (hasMaximum && value > Number(maxBound)) {
+      throw new errorClass(CMIElement, errorCode);
+    }
+    return true;
+  },
+  // Custom key function that excludes the error class from the cache key
+  // since it can't be stringified and doesn't affect the validation result
+  (CMIElement, value, rangePattern, errorCode, _errorClass) => `${CMIElement}:${value}:${rangePattern}:${errorCode}`
+);
+
+class SerializationService {
+  /**
+   * Loads CMI data from a flattened JSON object with special handling for arrays and ordering.
+   *
+   * This method implements a complex algorithm for loading flattened JSON data into the CMI
+   * object structure. It handles several key challenges:
+   *
+   * 1. Ordering dependencies: Some CMI elements (like interactions and objectives) must be
+   *    loaded in a specific order to ensure proper initialization.
+   *
+   * 2. Array handling: Interactions and objectives are stored as arrays, and their properties
+   *    must be loaded in the correct order (e.g., 'id' and 'type' must be set before other properties).
+   *
+   * 3. Unflattening: The method converts flattened dot notation (e.g., "cmi.objectives.0.id")
+   *    back into nested objects before loading.
+   *
+   * The algorithm works by:
+   * - Categorizing keys into interactions, objectives, and other properties
+   * - Sorting interactions to prioritize 'id' and 'type' fields within each index
+   * - Sorting objectives to prioritize 'id' fields within each index
+   * - Processing each category in order: interactions, objectives, then other properties
+   *
+   * @param {StringKeyMap} json - The flattened JSON object with dot notation keys
+   * @param {string} CMIElement - The CMI element to start from (usually empty or "cmi")
+   * @param {Function} setCMIValue - Function to set CMI value
+   * @param {Function} isNotInitialized - Function to check if API is not initialized
+   *
+   * @param setStartingData
+   * @example
+   * // Example of flattened JSON input:
+   * // {
+   * //   "cmi.objectives.0.id": "obj1",
+   * //   "cmi.objectives.0.score.raw": "80",
+   * //   "cmi.interactions.0.id": "int1",
+   * //   "cmi.interactions.0.type": "choice",
+   * //   "cmi.interactions.0.result": "correct"
+   * // }
+   */
+  loadFromFlattenedJSON(json, CMIElement = "", setCMIValue, isNotInitialized, setStartingData) {
+    if (!isNotInitialized()) {
+      console.error("loadFromFlattenedJSON can only be called before the call to lmsInitialize.");
+      return;
+    }
+    const int_pattern = /^(cmi\.interactions\.)(\d+)\.(.*)$/;
+    const obj_pattern = /^(cmi\.objectives\.)(\d+)\.(.*)$/;
+    const interactions = [];
+    const objectives = [];
+    const others = [];
+    for (const key in json) {
+      if (Object.prototype.hasOwnProperty.call(json, key)) {
+        const intMatch = key.match(int_pattern);
+        if (intMatch) {
+          interactions.push({
+            key,
+            value: json[key],
+            index: Number(intMatch[2]),
+            field: intMatch[3] || ""
+          });
+          continue;
+        }
+        const objMatch = key.match(obj_pattern);
+        if (objMatch) {
+          objectives.push({
+            key,
+            value: json[key],
+            index: Number(objMatch[2]),
+            field: objMatch[3] || ""
+          });
+          continue;
+        }
+        others.push({ key, value: json[key] });
+      }
+    }
+    interactions.sort((a, b) => {
+      if (a.index !== b.index) {
+        return a.index - b.index;
+      }
+      if (a.field === "id") return -1;
+      if (b.field === "id") return 1;
+      if (a.field === "type") return -1;
+      if (b.field === "type") return 1;
+      return a.field.localeCompare(b.field);
+    });
+    objectives.sort((a, b) => {
+      if (a.index !== b.index) {
+        return a.index - b.index;
+      }
+      if (a.field === "id") return -1;
+      if (b.field === "id") return 1;
+      return a.field.localeCompare(b.field);
+    });
+    others.sort((a, b) => a.key.localeCompare(b.key));
+    const processItems = (items) => {
+      items.forEach((item) => {
+        const obj = {};
+        obj[item.key] = item.value;
+        this.loadFromJSON(
+          unflatten(obj),
+          CMIElement,
+          setCMIValue,
+          isNotInitialized,
+          setStartingData
+        );
+      });
+    };
+    processItems(interactions);
+    processItems(objectives);
+    processItems(others);
+  }
+  /**
+   * Loads CMI data from a nested JSON object with recursive traversal.
+   *
+   * This method implements a recursive algorithm for loading nested JSON data into the CMI
+   * object structure. It handles several key aspects:
+   *
+   * 1. Recursive traversal: The method recursively traverses the nested JSON structure,
+   *    building CMI element paths as it goes (e.g., "cmi.core.student_id").
+   *
+   * 2. Type-specific handling: Different data types are handled differently:
+   *    - Arrays: Each array element is processed individually with its index in the path
+   *    - Objects: Recursively processed with updated path
+   *    - Primitives: Set directly using setCMIValue
+   *
+   * 3. Initialization check: Ensures the method is only called before API initialization
+   *
+   * 4. Starting data storage: Stores the original JSON data for potential future use
+   *
+   * The algorithm works by:
+   * - First storing the complete JSON object via setStartingData
+   * - Iterating through each property in the JSON object
+   * - For each property, determining its type and handling it accordingly
+   * - Building the CMI element path as it traverses the structure
+   * - Setting values at the appropriate paths using setCMIValue
+   *
+   * @param {{[key: string]: any}} json - The nested JSON object to load
+   * @param {string} CMIElement - The CMI element to start from (usually empty or "cmi")
+   * @param {Function} setCMIValue - Function to set CMI value at a specific path
+   * @param {Function} isNotInitialized - Function to check if API is not initialized
+   * @param {Function} setStartingData - Function to store the original JSON data
+   *
+   * @example
+   * // Example of nested JSON input:
+   * // {
+   * //   "core": {
+   * //     "student_id": "12345",
+   * //     "student_name": "John Doe"
+   * //   },
+   * //   "objectives": [
+   * //     { "id": "obj1", "score": { "raw": 80 } },
+   * //     { "id": "obj2", "score": { "raw": 90 } }
+   * //   ]
+   * // }
+   */
+  loadFromJSON(json, CMIElement = "", setCMIValue, isNotInitialized, setStartingData) {
+    if (!isNotInitialized()) {
+      console.error("loadFromJSON can only be called before the call to lmsInitialize.");
+      return;
+    }
+    CMIElement = CMIElement !== void 0 ? CMIElement : "cmi";
+    setStartingData(json);
+    for (const key in json) {
+      if (Object.prototype.hasOwnProperty.call(json, key) && json[key]) {
+        const currentCMIElement = (CMIElement ? CMIElement + "." : "") + key;
+        const value = json[key];
+        if (value.constructor === Array) {
+          for (let i = 0; i < value.length; i++) {
+            if (value[i]) {
+              const item = value[i];
+              const tempCMIElement = `${currentCMIElement}.${i}`;
+              if (item.constructor === Object) {
+                this.loadFromJSON(
+                  item,
+                  tempCMIElement,
+                  setCMIValue,
+                  isNotInitialized,
+                  setStartingData
+                );
+              } else {
+                setCMIValue(tempCMIElement, item);
+              }
+            }
+          }
+        } else if (value.constructor === Object) {
+          this.loadFromJSON(
+            value,
+            currentCMIElement,
+            setCMIValue,
+            isNotInitialized,
+            setStartingData
+          );
+        } else {
+          setCMIValue(currentCMIElement, value);
+        }
+      }
+    }
+  }
+  /**
+   * Render the CMI object to JSON for sending to an LMS.
+   *
+   * @param {BaseCMI|StringKeyMap} cmi - The CMI object
+   * @param {boolean} sendFullCommit - Whether to send the full commit
+   * @return {string}
+   */
+  renderCMIToJSONString(cmi, sendFullCommit) {
+    if (sendFullCommit) {
+      return JSON.stringify({ cmi });
+    }
+    return JSON.stringify({ cmi }, (k, v) => v === void 0 ? null : v, 2);
+  }
+  /**
+   * Returns a JS object representing the current cmi
+   * @param {BaseCMI|StringKeyMap} cmi - The CMI object
+   * @param {boolean} sendFullCommit - Whether to send the full commit
+   * @return {object}
+   */
+  renderCMIToJSONObject(cmi, sendFullCommit) {
+    return JSON.parse(this.renderCMIToJSONString(cmi, sendFullCommit));
+  }
+  /**
+   * Builds the commit object to be sent to the LMS
+   * @param {boolean} terminateCommit - Whether this is a termination commit
+   * @param {boolean} alwaysSendTotalTime - Whether to always send total time
+   * @param {boolean|Function} renderCommonCommitFields - Whether to render common commit fields
+   * @param {Function} renderCommitObject - Function to render commit object
+   * @param {Function} renderCommitCMI - Function to render commit CMI
+   * @param {LogLevel} apiLogLevel - The API log level
+   * @return {CommitObject|StringKeyMap|Array<any>}
+   */
+  getCommitObject(terminateCommit, alwaysSendTotalTime, renderCommonCommitFields, renderCommitObject, renderCommitCMI, apiLogLevel) {
+    const includeTotalTime = alwaysSendTotalTime || terminateCommit;
+    const commitObject = renderCommonCommitFields ? renderCommitObject(terminateCommit, includeTotalTime) : renderCommitCMI(terminateCommit, includeTotalTime);
+    if ([LogLevelEnum.DEBUG, "1", 1, "DEBUG"].includes(apiLogLevel)) {
+      console.debug("Commit (terminated: " + (terminateCommit ? "yes" : "no") + "): ");
+      console.debug(commitObject);
+    }
+    return commitObject;
+  }
+}
+
+class SynchronousHttpService {
+  /**
+   * Constructor for SynchronousHttpService
+   * @param {InternalSettings} settings - The settings object
+   * @param {ErrorCode} error_codes - The error codes object
+   */
+  constructor(settings, error_codes) {
+    this.settings = settings;
+    this.error_codes = error_codes;
+  }
+  /**
+   * Sends synchronous HTTP requests to the LMS
+   * @param {string} url - The URL endpoint to send the request to
+   * @param {CommitObject|StringKeyMap|Array} params - The data to send to the LMS
+   * @param {boolean} immediate - Whether this is a termination commit (use sendBeacon)
+   * @param {Function} _apiLog - Function to log API messages (unused in synchronous mode - errors returned directly)
+   * @param {Function} _processListeners - Function to trigger event listeners (unused in synchronous mode - no async events)
+   * @return {ResultObject} - The result of the request (synchronous)
+   *
+   * @remarks
+   * The apiLog and processListeners parameters are part of the IHttpService interface contract
+   * but are not used by SynchronousHttpService because:
+   * - Synchronous XHR blocks until complete, so errors are returned directly to the caller
+   * - No async events need to be triggered (CommitSuccess/CommitError) since results are synchronous
+   * - AsynchronousHttpService uses these parameters to handle background request results
+   */
+  processHttpRequest(url, params, immediate = false, _apiLog, _processListeners) {
+    if (immediate) {
+      return this._handleImmediateRequest(url, params);
+    }
+    return this._performSyncXHR(url, params);
+  }
+  /**
+   * Handles an immediate request using sendBeacon
+   * @param {string} url - The URL to send the request to
+   * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+   * @return {ResultObject} - The result based on beacon success
+   * @private
+   */
+  _handleImmediateRequest(url, params) {
+    const requestPayload = this.settings.requestHandler(params) ?? params;
+    const { body } = this._prepareRequestBody(requestPayload);
+    const beaconSuccess = navigator.sendBeacon(
+      url,
+      new Blob([body], { type: "text/plain;charset=UTF-8" })
+    );
+    return {
+      result: beaconSuccess ? "true" : "false",
+      errorCode: beaconSuccess ? 0 : this.error_codes.GENERAL_COMMIT_FAILURE || 391
+    };
+  }
+  /**
+   * Performs a synchronous XMLHttpRequest
+   * @param {string} url - The URL to send the request to
+   * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+   * @return {ResultObject} - The result of the request
+   * @private
+   */
+  _performSyncXHR(url, params) {
+    const requestPayload = this.settings.requestHandler(params) ?? params;
+    const { body, contentType } = this._prepareRequestBody(requestPayload);
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", url, false);
+    xhr.setRequestHeader("Content-Type", contentType);
+    Object.entries(this.settings.xhrHeaders).forEach(([key, value]) => {
+      xhr.setRequestHeader(key, String(value));
+    });
+    if (this.settings.xhrWithCredentials) {
+      xhr.withCredentials = true;
+    }
+    try {
+      xhr.send(body);
+      return this.settings.xhrResponseHandler(xhr);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      return {
+        result: global_constants.SCORM_FALSE,
+        errorCode: this.error_codes.GENERAL_COMMIT_FAILURE || 391,
+        errorMessage: message
+      };
+    }
+  }
+  /**
+   * Prepares the request body and content type based on params type
+   * @param {CommitObject|StringKeyMap|Array} params - The parameters to include in the request
+   * @return {Object} - Object containing body and contentType
+   * @private
+   */
+  _prepareRequestBody(params) {
+    const body = params instanceof Array ? params.join("&") : JSON.stringify(params);
+    const contentType = params instanceof Array ? "application/x-www-form-urlencoded" : this.settings.commitRequestDataType;
+    return { body, contentType };
+  }
+  /**
+   * Updates the service settings
+   * @param {InternalSettings} settings - The new settings
+   */
+  updateSettings(settings) {
+    this.settings = settings;
+  }
+}
+
+function check12ValidFormat(CMIElement, value, regexPattern, allowEmptyString) {
+  return checkValidFormat(
+    CMIElement,
+    value,
+    regexPattern,
+    scorm12_errors.TYPE_MISMATCH,
+    Scorm12ValidationError,
+    allowEmptyString
+  );
+}
+function check12ValidRange(CMIElement, value, rangePattern, allowEmptyString) {
+  if (value === "") {
+    {
+      throw new Scorm12ValidationError(CMIElement, scorm12_errors.VALUE_OUT_OF_RANGE);
+    }
+  }
+  return checkValidRange(
+    CMIElement,
+    value,
+    rangePattern,
+    scorm12_errors.VALUE_OUT_OF_RANGE,
+    Scorm12ValidationError
+  );
+}
+
+class ValidationService {
+  /**
+   * Validates a score property (raw, min, max)
+   *
+   * @param {string} CMIElement
+   * @param {string} value - The value to validate
+   * @param {string} decimalRegex - The regex pattern for decimal validation
+   * @param {string | false} scoreRange - The range pattern for score validation, or false if no range validation is needed
+   * @param {number} invalidTypeCode - The error code for invalid type
+   * @param {number} invalidRangeCode - The error code for invalid range
+   * @param {typeof BaseScormValidationError} errorClass - The error class to use for validation errors
+   * @return {boolean} - True if validation passes, throws an error otherwise
+   */
+  validateScore(CMIElement, value, decimalRegex, scoreRange, invalidTypeCode, invalidRangeCode, errorClass) {
+    return checkValidFormat(CMIElement, value, decimalRegex, invalidTypeCode, errorClass) && (!scoreRange || checkValidRange(CMIElement, value, scoreRange, invalidRangeCode, errorClass));
+  }
+  /**
+   * Validates a SCORM 1.2 audio property
+   *
+   * @spec SCORM 1.2 RTE 3.4.2.3.1 - Audio preference validation
+   * @param {string} CMIElement
+   * @param {string} value - The value to validate
+   * @return {boolean} - True if validation passes, throws an error otherwise
+   */
+  validateScorm12Audio(CMIElement, value) {
+    return check12ValidFormat(CMIElement, value, scorm12_regex.CMISInteger) && check12ValidRange(CMIElement, value, scorm12_regex.audio_range);
+  }
+  /**
+   * Validates a SCORM 1.2 language property
+   *
+   * @spec SCORM 1.2 RTE 3.4.2.3.2 - Language preference validation
+   * @param {string} CMIElement
+   * @param {string} value - The value to validate
+   * @return {boolean} - True if validation passes, throws an error otherwise
+   */
+  validateScorm12Language(CMIElement, value) {
+    return check12ValidFormat(CMIElement, value, scorm12_regex.CMIString256);
+  }
+  /**
+   * Validates a SCORM 1.2 speed property
+   *
+   * @spec SCORM 1.2 RTE 3.4.2.3.3 - Speed preference validation
+   * @param {string} CMIElement
+   * @param {string} value - The value to validate
+   * @return {boolean} - True if validation passes, throws an error otherwise
+   */
+  validateScorm12Speed(CMIElement, value) {
+    return check12ValidFormat(CMIElement, value, scorm12_regex.CMISInteger) && check12ValidRange(CMIElement, value, scorm12_regex.speed_range);
+  }
+  /**
+   * Validates a SCORM 1.2 text property
+   *
+   * @spec SCORM 1.2 RTE 3.4.2.3.4 - Text preference validation
+   * @param {string} CMIElement
+   * @param {string} value - The value to validate
+   * @return {boolean} - True if validation passes, throws an error otherwise
+   */
+  validateScorm12Text(CMIElement, value) {
+    return check12ValidFormat(CMIElement, value, scorm12_regex.CMISInteger) && check12ValidRange(CMIElement, value, scorm12_regex.text_range);
+  }
+  /**
+   * Validates if a property is read-only
+   *
+   * @param {string} CMIElement
+   * @param {boolean} initialized - Whether the object is initialized
+   * @throws {BaseScormValidationError} - Throws an error if the object is initialized
+   */
+  validateReadOnly(CMIElement, initialized) {
+    if (initialized) {
+      throw new Scorm12ValidationError(CMIElement, scorm12_errors.READ_ONLY_ELEMENT);
+    }
+  }
+}
+const validationService = new ValidationService();
 
 class BaseAPI {
   /**
@@ -5306,6 +3950,1654 @@ class BaseAPI {
   }
 }
 
+class CMIScore extends BaseCMI {
+  /**
+   * Constructor for *.score
+   *
+   * SPEC COMPLIANCE NOTE for _max default:
+   * The SCORM 1.2 specification defines the default value for score.max as empty string ("").
+   * This implementation defaults to "100" instead for the following reasons:
+   *
+   * 1. Most SCOs expect a 0-100 scale and don't explicitly set max
+   * 2. An empty max creates ambiguity in score interpretation
+   * 3. "100" is the most common expected value and simplifies SCO development
+   * 4. This matches real-world LMS behavior (most default to 100)
+   * 5. SCOs can still explicitly set max="" if needed
+   *
+   * Strict spec default would be: ""
+   *
+   * @param params - Configuration parameters
+   * @param params.score_range - Optional range pattern. When provided, uses scorm12_regex.score_range.
+   *                             When omitted or falsy, disables range validation (sets to false).
+   *                             SCORM 1.2 passes a truthy value to enable "0#100" validation.
+   *                             SCORM 2004 omits this to allow unbounded scores.
+   */
+  constructor(params) {
+    super(params.CMIElement);
+    this._raw = "";
+    this._min = "";
+    this.__children = params.score_children || scorm12_constants.score_children;
+    this.__score_range = !params.score_range ? false : scorm12_regex.score_range;
+    this._max = params.max || params.max === "" ? params.max : "100";
+    this.__invalid_error_code = params.invalidErrorCode || scorm12_errors.INVALID_SET_VALUE;
+    this.__invalid_type_code = params.invalidTypeCode || scorm12_errors.TYPE_MISMATCH;
+    this.__invalid_range_code = params.invalidRangeCode || scorm12_errors.VALUE_OUT_OF_RANGE;
+    this.__decimal_regex = params.decimalRegex || scorm12_regex.CMIDecimal;
+    this.__error_class = params.errorClass;
+  }
+  /**
+   * Called when the API has been reset
+   *
+   * SCORE-01: Resets _raw and _min to empty strings to match subclass behavior.
+   * _max is NOT reset here as it has a non-trivial default ("100") that is
+   * handled by the constructor or reinitialization logic.
+   */
+  reset() {
+    this._initialized = false;
+    this._raw = "";
+    this._min = "";
+  }
+  /**
+   * Getter for _children
+   * @return {string}
+   */
+  get _children() {
+    return this.__children;
+  }
+  /**
+   * Setter for _children. Just throws an error.
+   * @param {string} _children
+   */
+  set _children(_children) {
+    throw new this.__error_class(this._cmi_element + "._children", this.__invalid_error_code);
+  }
+  /**
+   * Getter for _raw
+   * @return {string}
+   */
+  get raw() {
+    return this._raw;
+  }
+  /**
+   * Setter for _raw
+   * @param {string} raw
+   */
+  set raw(raw) {
+    if (validationService.validateScore(
+      this._cmi_element + ".raw",
+      raw,
+      this.__decimal_regex,
+      this.__score_range,
+      this.__invalid_type_code,
+      this.__invalid_range_code,
+      this.__error_class
+    )) {
+      this._raw = raw;
+    }
+  }
+  /**
+   * Getter for _min
+   * @return {string}
+   */
+  get min() {
+    return this._min;
+  }
+  /**
+   * Setter for _min
+   * @param {string} min
+   */
+  set min(min) {
+    if (validationService.validateScore(
+      this._cmi_element + ".min",
+      min,
+      this.__decimal_regex,
+      this.__score_range,
+      this.__invalid_type_code,
+      this.__invalid_range_code,
+      this.__error_class
+    )) {
+      this._min = min;
+    }
+  }
+  /**
+   * Getter for _max
+   * @return {string}
+   */
+  get max() {
+    return this._max;
+  }
+  /**
+   * Setter for _max
+   * @param {string} max
+   */
+  set max(max) {
+    if (validationService.validateScore(
+      this._cmi_element + ".max",
+      max,
+      this.__decimal_regex,
+      this.__score_range,
+      this.__invalid_type_code,
+      this.__invalid_range_code,
+      this.__error_class
+    )) {
+      this._max = max;
+    }
+  }
+  /**
+   * Gets score object with numeric values
+   * @return {ScoreObject}
+   */
+  getScoreObject() {
+    const scoreObject = {};
+    if (!Number.isNaN(Number.parseFloat(this.raw))) {
+      scoreObject.raw = Number.parseFloat(this.raw);
+    }
+    if (!Number.isNaN(Number.parseFloat(this.min))) {
+      scoreObject.min = Number.parseFloat(this.min);
+    }
+    if (!Number.isNaN(Number.parseFloat(this.max))) {
+      scoreObject.max = Number.parseFloat(this.max);
+    }
+    return scoreObject;
+  }
+  /**
+   * toJSON for *.score
+   * @return {
+   *    {
+   *      min: string,
+   *      max: string,
+   *      raw: string
+   *    }
+   *    }
+   */
+  toJSON() {
+    this.jsonString = true;
+    const result = {
+      raw: this.raw,
+      min: this.min,
+      max: this.max
+    };
+    this.jsonString = false;
+    return result;
+  }
+}
+
+class CMICore extends BaseCMI {
+  /**
+   * Constructor for `cmi.core`
+   */
+  constructor() {
+    super("cmi.core");
+    this.__children = scorm12_constants.core_children;
+    this._student_id = "";
+    this._student_name = "";
+    this._lesson_location = "";
+    this._credit = "";
+    this._lesson_status = "not attempted";
+    this._entry = "";
+    this._total_time = "";
+    this._lesson_mode = "normal";
+    this._exit = "";
+    this._session_time = "00:00:00";
+    this._suspend_data = "";
+    this.score = new CMIScore({
+      CMIElement: "cmi.core.score",
+      score_children: scorm12_constants.score_children,
+      score_range: scorm12_regex.score_range,
+      invalidErrorCode: scorm12_errors.INVALID_SET_VALUE,
+      invalidTypeCode: scorm12_errors.TYPE_MISMATCH,
+      invalidRangeCode: scorm12_errors.VALUE_OUT_OF_RANGE,
+      errorClass: Scorm12ValidationError
+    });
+  }
+  /**
+   * Called when the API has been initialized after the CMI has been created
+   */
+  initialize() {
+    super.initialize();
+    this.score?.initialize();
+  }
+  /**
+   * Called when the API has been reset
+   */
+  reset() {
+    this._initialized = false;
+    this._exit = "";
+    this._entry = "";
+    this._session_time = "00:00:00";
+    this.score?.reset();
+  }
+  /**
+   * Getter for __children
+   * @return {string}
+   * @private
+   */
+  get _children() {
+    return this.__children;
+  }
+  /**
+   * Setter for __children. Just throws an error.
+   * @param {string} _children
+   * @private
+   */
+  set _children(_children) {
+    throw new Scorm12ValidationError(
+      this._cmi_element + "._children",
+      scorm12_errors.INVALID_SET_VALUE
+    );
+  }
+  /**
+   * Getter for _student_id
+   * @return {string}
+   */
+  get student_id() {
+    return this._student_id;
+  }
+  /**
+   * Setter for _student_id. Can only be called before  initialization.
+   * @param {string} student_id
+   */
+  set student_id(student_id) {
+    if (this.initialized) {
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".student_id",
+        scorm12_errors.READ_ONLY_ELEMENT
+      );
+    } else {
+      this._student_id = student_id;
+    }
+  }
+  /**
+   * Getter for _student_name
+   * @return {string}
+   */
+  get student_name() {
+    return this._student_name;
+  }
+  /**
+   * Setter for _student_name. Can only be called before  initialization.
+   * @param {string} student_name
+   */
+  set student_name(student_name) {
+    if (this.initialized) {
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".student_name",
+        scorm12_errors.READ_ONLY_ELEMENT
+      );
+    } else {
+      this._student_name = student_name;
+    }
+  }
+  /**
+   * Getter for _lesson_location
+   * @return {string}
+   */
+  get lesson_location() {
+    return this._lesson_location;
+  }
+  /**
+   * Setter for _lesson_location
+   * @param {string} lesson_location
+   */
+  set lesson_location(lesson_location) {
+    if (check12ValidFormat(
+      this._cmi_element + ".lesson_location",
+      lesson_location,
+      scorm12_regex.CMIString256,
+      true
+    )) {
+      this._lesson_location = lesson_location;
+    }
+  }
+  /**
+   * Getter for _credit
+   * @return {string}
+   */
+  get credit() {
+    return this._credit;
+  }
+  /**
+   * Setter for _credit. Can only be called before  initialization.
+   * @param {string} credit
+   */
+  set credit(credit) {
+    if (this.initialized) {
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".credit",
+        scorm12_errors.READ_ONLY_ELEMENT
+      );
+    } else {
+      if (check12ValidFormat(this._cmi_element + ".credit", credit, scorm12_regex.CMICredit, true)) {
+        this._credit = credit;
+      }
+    }
+  }
+  /**
+   * Getter for _lesson_status
+   * @spec RTE 3.4.2.1.7 - cmi.core.lesson_status
+   * @return {string}
+   */
+  get lesson_status() {
+    return this._lesson_status;
+  }
+  /**
+   * Setter for _lesson_status
+   * @spec RTE 3.4.2.1.7 - cmi.core.lesson_status
+   * @param {string} lesson_status
+   */
+  set lesson_status(lesson_status) {
+    if (this.initialized) {
+      if (check12ValidFormat(
+        this._cmi_element + ".lesson_status",
+        lesson_status,
+        scorm12_regex.CMIStatus
+      )) {
+        this._lesson_status = lesson_status;
+      }
+    } else {
+      if (check12ValidFormat(
+        this._cmi_element + ".lesson_status",
+        lesson_status,
+        scorm12_regex.CMIStatus2
+      )) {
+        this._lesson_status = lesson_status;
+      }
+    }
+  }
+  /**
+   * Getter for _entry
+   * @return {string}
+   */
+  get entry() {
+    return this._entry;
+  }
+  /**
+   * Setter for _entry. Can only be called before  initialization.
+   * @param {string} entry
+   */
+  set entry(entry) {
+    if (this.initialized) {
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".entry",
+        scorm12_errors.READ_ONLY_ELEMENT
+      );
+    } else {
+      if (check12ValidFormat(this._cmi_element + ".entry", entry, scorm12_regex.CMIEntry, true)) {
+        this._entry = entry;
+      }
+    }
+  }
+  /**
+   * Getter for _total_time
+   * @spec RTE 3.4.2.1.13 - cmi.core.total_time
+   * @return {string}
+   */
+  get total_time() {
+    return this._total_time;
+  }
+  /**
+   * Setter for _total_time. Can only be called before  initialization.
+   * @spec RTE 3.4.2.1.13 - cmi.core.total_time
+   * @param {string} total_time
+   */
+  set total_time(total_time) {
+    if (this.initialized) {
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".total_time",
+        scorm12_errors.READ_ONLY_ELEMENT
+      );
+    } else {
+      if (check12ValidFormat(
+        this._cmi_element + ".total_time",
+        total_time,
+        scorm12_regex.CMITimespan,
+        true
+      )) {
+        if (total_time) {
+          const totalSeconds = getTimeAsSeconds(total_time, scorm12_regex.CMITimespan);
+          this._total_time = getSecondsAsHHMMSS(totalSeconds);
+        } else {
+          this._total_time = total_time;
+        }
+      }
+    }
+  }
+  /**
+   * Getter for _lesson_mode
+   * @return {string}
+   */
+  get lesson_mode() {
+    return this._lesson_mode;
+  }
+  /**
+   * Setter for _lesson_mode. Can only be called before  initialization.
+   * @param {string} lesson_mode
+   */
+  set lesson_mode(lesson_mode) {
+    if (this.initialized) {
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".lesson_mode",
+        scorm12_errors.READ_ONLY_ELEMENT
+      );
+    } else {
+      if (check12ValidFormat(this._cmi_element + ".lesson_mode", lesson_mode, scorm12_regex.CMILessonMode)) {
+        this._lesson_mode = lesson_mode;
+      }
+    }
+  }
+  /**
+   * Getter for _exit. Should only be called during JSON export.
+   * @return {string}
+   */
+  get exit() {
+    if (!this.jsonString) {
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".exit",
+        scorm12_errors.WRITE_ONLY_ELEMENT
+      );
+    }
+    return this._exit;
+  }
+  /**
+   * Setter for _exit
+   *
+   * @spec RTE 3.4.2.1.4 - cmi.core.exit
+   *
+   * SPEC COMPLIANCE NOTE:
+   * The SCORM 1.2 specification defines exit vocabulary as: "time-out", "suspend", "logout", or ""
+   * The value "normal" is NOT part of the SCORM 1.2 vocabulary (it's a SCORM 2004 value).
+   *
+   * This implementation accepts "normal" and normalizes it to "" (empty string) for the
+   * following reasons:
+   *
+   * 1. Legacy content authored for SCORM 2004 sometimes runs in SCORM 1.2 mode
+   * 2. Some authoring tools incorrectly use "normal" for SCORM 1.2 content
+   * 3. Rejecting "normal" would break content with no user benefit
+   * 4. Empty string ("") has the same semantic meaning as "normal" (regular exit)
+   * 5. A console warning is logged to help developers identify the issue
+   *
+   * Strict spec vocabulary: "time-out" | "suspend" | "logout" | ""
+   *
+   * @param {string} exit
+   */
+  set exit(exit) {
+    if (exit === "normal") {
+      console.warn(
+        "SCORM 1.2: Received non-standard value 'normal' for cmi.core.exit; normalizing to empty string."
+      );
+      exit = "";
+    }
+    if (check12ValidFormat(this._cmi_element + ".exit", exit, scorm12_regex.CMIExit, true)) {
+      this._exit = exit;
+    }
+  }
+  /**
+   * Getter for _session_time. Should only be called during JSON export.
+   * @return {string}
+   */
+  get session_time() {
+    if (!this.jsonString) {
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".session_time",
+        scorm12_errors.WRITE_ONLY_ELEMENT
+      );
+    }
+    return this._session_time;
+  }
+  /**
+   * Setter for _session_time
+   * @param {string} session_time
+   */
+  set session_time(session_time) {
+    if (check12ValidFormat(
+      this._cmi_element + ".session_time",
+      session_time,
+      scorm12_regex.CMITimespan
+    )) {
+      const totalSeconds = getTimeAsSeconds(session_time, scorm12_regex.CMITimespan);
+      this._session_time = getSecondsAsHHMMSS(totalSeconds);
+    }
+  }
+  /**
+   * Getter for _suspend_data
+   * @return {string}
+   */
+  get suspend_data() {
+    return this._suspend_data;
+  }
+  /**
+   * Setter for _suspend_data
+   *
+   * SPEC COMPLIANCE NOTE:
+   * Uses CMIString64000 (64000 char limit) instead of spec-defined CMIString4096.
+   * See scorm12_regex.CMIString64000 documentation for rationale.
+   *
+   * @param {string} suspend_data
+   */
+  set suspend_data(suspend_data) {
+    if (check12ValidFormat(
+      this._cmi_element + ".suspend_data",
+      suspend_data,
+      scorm12_regex.CMIString64000,
+      true
+    )) {
+      this._suspend_data = suspend_data;
+    }
+  }
+  /**
+   * Adds the current session time to the existing total time.
+   * @param {number} start_time
+   * @return {string}
+   */
+  getCurrentTotalTime(start_time) {
+    let sessionTime = this._session_time;
+    if (typeof start_time !== "undefined") {
+      const seconds = (/* @__PURE__ */ new Date()).getTime() - start_time;
+      sessionTime = getSecondsAsHHMMSS(seconds / 1e3);
+    }
+    return addHHMMSSTimeStrings(
+      this._total_time,
+      sessionTime,
+      new RegExp(scorm12_regex.CMITimespan)
+    );
+  }
+  /**
+   * toJSON for cmi.core
+   *
+   * @return {
+   *    {
+   *      student_name: string,
+   *      entry: string,
+   *      exit: string,
+   *      score: CMIScore,
+   *      student_id: string,
+   *      lesson_mode: string,
+   *      lesson_location: string,
+   *      lesson_status: string,
+   *      credit: string,
+   *      session_time: string
+   *    }
+   *  }
+   */
+  toJSON() {
+    this.jsonString = true;
+    const result = {
+      student_id: this.student_id,
+      student_name: this.student_name,
+      lesson_location: this.lesson_location,
+      credit: this.credit,
+      lesson_status: this.lesson_status,
+      entry: this.entry,
+      lesson_mode: this.lesson_mode,
+      exit: this.exit,
+      session_time: this.session_time,
+      score: this.score
+    };
+    this.jsonString = false;
+    return result;
+  }
+}
+
+class CMIObjectives extends CMIArray {
+  /**
+   * Constructor for `cmi.objectives`
+   */
+  constructor() {
+    super({
+      CMIElement: "cmi.objectives",
+      children: scorm12_constants.objectives_children,
+      errorCode: scorm12_errors.INVALID_SET_VALUE,
+      errorClass: Scorm12ValidationError
+    });
+  }
+}
+class CMIObjectivesObject extends BaseCMI {
+  /**
+   * Constructor for cmi.objectives.n
+   */
+  constructor() {
+    super("cmi.objectives.n");
+    this._id = "";
+    this._status = "";
+    this.score = new CMIScore({
+      CMIElement: "cmi.objectives.n.score",
+      score_children: scorm12_constants.score_children,
+      score_range: scorm12_regex.score_range,
+      invalidErrorCode: scorm12_errors.INVALID_SET_VALUE,
+      invalidTypeCode: scorm12_errors.TYPE_MISMATCH,
+      invalidRangeCode: scorm12_errors.VALUE_OUT_OF_RANGE,
+      errorClass: Scorm12ValidationError
+    });
+  }
+  /**
+   * Called when the API has been reset
+   */
+  reset() {
+    this._initialized = false;
+    this._id = "";
+    this._status = "";
+    this.score?.reset();
+  }
+  /**
+   * Getter for _id
+   * @spec RTE 3.4.2.6.1 - cmi.objectives.n.id
+   * @return {string}
+   */
+  get id() {
+    return this._id;
+  }
+  /**
+   * Setter for _id
+   * @spec RTE 3.4.2.6.1 - cmi.objectives.n.id
+   * @param {string} id
+   */
+  set id(id) {
+    if (check12ValidFormat(this._cmi_element + ".id", id, scorm12_regex.CMIIdentifier)) {
+      this._id = id;
+    }
+  }
+  /**
+   * Getter for _status
+   * @spec RTE 3.4.2.6.3 - cmi.objectives.n.status
+   * @return {string}
+   */
+  get status() {
+    return this._status;
+  }
+  /**
+   * Setter for _status
+   * @spec RTE 3.4.2.6.3 - cmi.objectives.n.status
+   * @param {string} status
+   */
+  set status(status) {
+    if (check12ValidFormat(this._cmi_element + ".status", status, scorm12_regex.CMIStatus2)) {
+      this._status = status;
+    }
+  }
+  /**
+   * toJSON for cmi.objectives.n
+   *
+   * The `jsonString` flag pattern used here serves a specific purpose:
+   * - Setting `jsonString = true` before accessing properties bypasses initialization checks
+   * - This allows JSON serialization to read write-only or uninitialized properties
+   * - Without this flag, accessing certain properties would throw SCORM validation errors
+   * - The flag is reset to `false` after serialization to restore normal validation behavior
+   * - This pattern is used throughout SCORM-Again for controlled property access during export
+   *
+   * @return {
+   *    {
+   *      id: string,
+   *      status: string,
+   *      score: CMIScore
+   *    }
+   *  }
+   */
+  toJSON() {
+    this.jsonString = true;
+    const result = {
+      id: this.id,
+      status: this.status,
+      score: this.score
+    };
+    this.jsonString = false;
+    return result;
+  }
+}
+
+function parseTimeAllowed(value, fieldName) {
+  try {
+    check12ValidFormat(fieldName, value, scorm12_regex.CMITimespan, true);
+    const totalSeconds = getTimeAsSeconds(value, scorm12_regex.CMITimespan);
+    return getSecondsAsHHMMSS(totalSeconds);
+  } catch (e) {
+  }
+  try {
+    check12ValidFormat(fieldName, value, scorm2004_regex.CMITimespan, true);
+    const totalSeconds = getDurationAsSeconds(value, scorm2004_regex.CMITimespan);
+    return getSecondsAsHHMMSS(totalSeconds);
+  } catch (e) {
+  }
+  throw new Scorm12ValidationError(fieldName, scorm12_errors.TYPE_MISMATCH);
+}
+class CMIStudentData extends BaseCMI {
+  /**
+   * Constructor for cmi.student_data
+   * @param {string} student_data_children
+   */
+  constructor(student_data_children) {
+    super("cmi.student_data");
+    this._mastery_score = "";
+    this._max_time_allowed = "";
+    this._time_limit_action = "";
+    this.__children = student_data_children ? student_data_children : scorm12_constants.student_data_children;
+  }
+  /**
+   * Called when the API has been reset
+   */
+  reset() {
+    this._initialized = false;
+  }
+  /**
+   * Getter for __children
+   * @return {string}
+   * @private
+   */
+  get _children() {
+    return this.__children;
+  }
+  /**
+   * Setter for __children. Just throws an error.
+   * @param {string} _children
+   * @private
+   */
+  set _children(_children) {
+    throw new Scorm12ValidationError(
+      this._cmi_element + "._children",
+      scorm12_errors.INVALID_SET_VALUE
+    );
+  }
+  /**
+   * Getter for _mastery_score
+   * @return {string}
+   */
+  get mastery_score() {
+    return this._mastery_score;
+  }
+  /**
+   * Setter for _mastery_score. Can only be called before initialization.
+   * @param {string} mastery_score
+   */
+  set mastery_score(mastery_score) {
+    validationService.validateReadOnly(this._cmi_element + ".mastery_score", this.initialized);
+    if (mastery_score === void 0 || mastery_score === null) {
+      return;
+    }
+    let normalizedMasteryScore = mastery_score;
+    if (typeof normalizedMasteryScore !== "string") {
+      normalizedMasteryScore = String(normalizedMasteryScore);
+    }
+    if (normalizedMasteryScore === "") {
+      this._mastery_score = mastery_score;
+      return;
+    }
+    if (check12ValidFormat(
+      this._cmi_element + ".mastery_score",
+      normalizedMasteryScore,
+      scorm12_regex.CMIDecimal
+    ) && check12ValidRange(
+      this._cmi_element + ".mastery_score",
+      normalizedMasteryScore,
+      scorm12_regex.score_range
+    )) {
+      this._mastery_score = normalizedMasteryScore;
+    }
+  }
+  /**
+   * Getter for _max_time_allowed
+   * @return {string}
+   */
+  get max_time_allowed() {
+    return this._max_time_allowed;
+  }
+  /**
+   * Setter for _max_time_allowed. Can only be called before initialization.
+   * @param {string} max_time_allowed
+   */
+  set max_time_allowed(max_time_allowed) {
+    validationService.validateReadOnly(this._cmi_element + ".max_time_allowed", this.initialized);
+    if (max_time_allowed === void 0 || max_time_allowed === null) {
+      return;
+    }
+    const normalizedValue = typeof max_time_allowed === "string" ? max_time_allowed : String(max_time_allowed);
+    if (normalizedValue === "") {
+      this._max_time_allowed = "";
+      return;
+    }
+    this._max_time_allowed = parseTimeAllowed(
+      normalizedValue,
+      this._cmi_element + ".max_time_allowed"
+    );
+  }
+  /**
+   * Getter for _time_limit_action
+   * @return {string}
+   */
+  get time_limit_action() {
+    return this._time_limit_action;
+  }
+  /**
+   * Setter for _time_limit_action. Can only be called before initialization.
+   * @param {string} time_limit_action
+   */
+  set time_limit_action(time_limit_action) {
+    validationService.validateReadOnly(this._cmi_element + ".time_limit_action", this.initialized);
+    if (time_limit_action === void 0 || time_limit_action === null) {
+      return;
+    }
+    const normalizedValue = typeof time_limit_action === "string" ? time_limit_action : String(time_limit_action);
+    if (check12ValidFormat(
+      this._cmi_element + ".time_limit_action",
+      normalizedValue,
+      scorm12_regex.CMITimeLimitAction,
+      true
+    )) {
+      this._time_limit_action = normalizedValue;
+    }
+  }
+  /**
+   * toJSON for cmi.student_data
+   *
+   * @return {
+   *    {
+   *      max_time_allowed: string,
+   *      time_limit_action: string,
+   *      mastery_score: string
+   *    }
+   *  }
+   */
+  toJSON() {
+    this.jsonString = true;
+    const result = {
+      mastery_score: this.mastery_score,
+      max_time_allowed: this.max_time_allowed,
+      time_limit_action: this.time_limit_action
+    };
+    this.jsonString = false;
+    return result;
+  }
+}
+
+class CMIStudentPreference extends BaseCMI {
+  /**
+   * Constructor for cmi.student_preference
+   * @param {string} student_preference_children
+   */
+  constructor(student_preference_children) {
+    super("cmi.student_preference");
+    this._audio = "";
+    this._language = "";
+    this._speed = "";
+    this._text = "";
+    this.__children = student_preference_children ? student_preference_children : scorm12_constants.student_preference_children;
+  }
+  /**
+   * Called when the API has been reset
+   */
+  reset() {
+    this._initialized = false;
+  }
+  /**
+   * Getter for __children
+   * @return {string}
+   * @private
+   */
+  get _children() {
+    return this.__children;
+  }
+  /**
+   * Setter for __children. Just throws an error.
+   * @param {string} _children
+   * @private
+   */
+  set _children(_children) {
+    throw new Scorm12ValidationError(
+      this._cmi_element + "._children",
+      scorm12_errors.INVALID_SET_VALUE
+    );
+  }
+  /**
+   * Getter for _audio
+   * @spec RTE 3.4.2.3.1 - cmi.student_preference.audio
+   * @return {string}
+   */
+  get audio() {
+    return this._audio;
+  }
+  /**
+   * Setter for _audio
+   * @spec RTE 3.4.2.3.1 - cmi.student_preference.audio
+   * @param {string} audio
+   */
+  set audio(audio) {
+    if (validationService.validateScorm12Audio(this._cmi_element + ".audio", audio)) {
+      this._audio = audio;
+    }
+  }
+  /**
+   * Getter for _language
+   * @spec RTE 3.4.2.3.2 - cmi.student_preference.language
+   * @return {string}
+   */
+  get language() {
+    return this._language;
+  }
+  /**
+   * Setter for _language
+   * @spec RTE 3.4.2.3.2 - cmi.student_preference.language
+   * @param {string} language
+   */
+  set language(language) {
+    if (validationService.validateScorm12Language(this._cmi_element + ".language", language)) {
+      this._language = language;
+    }
+  }
+  /**
+   * Getter for _speed
+   * @spec RTE 3.4.2.3.3 - cmi.student_preference.speed
+   * @return {string}
+   */
+  get speed() {
+    return this._speed;
+  }
+  /**
+   * Setter for _speed
+   * @spec RTE 3.4.2.3.3 - cmi.student_preference.speed
+   * @param {string} speed
+   */
+  set speed(speed) {
+    if (validationService.validateScorm12Speed(this._cmi_element + ".speed", speed)) {
+      this._speed = speed;
+    }
+  }
+  /**
+   * Getter for _text
+   * @spec RTE 3.4.2.3.4 - cmi.student_preference.text
+   * @return {string}
+   */
+  get text() {
+    return this._text;
+  }
+  /**
+   * Setter for _text
+   * @spec RTE 3.4.2.3.4 - cmi.student_preference.text
+   * @param {string} text
+   */
+  set text(text) {
+    if (validationService.validateScorm12Text(this._cmi_element + ".text", text)) {
+      this._text = text;
+    }
+  }
+  /**
+   * toJSON for cmi.student_preference
+   *
+   * @return {
+   *    {
+   *      audio: string,
+   *      language: string,
+   *      speed: string,
+   *      text: string
+   *    }
+   *  }
+   */
+  toJSON() {
+    this.jsonString = true;
+    const result = {
+      audio: this.audio,
+      language: this.language,
+      speed: this.speed,
+      text: this.text
+    };
+    this.jsonString = false;
+    return result;
+  }
+}
+
+class CMIInteractions extends CMIArray {
+  /**
+   * Constructor for `cmi.interactions`
+   */
+  constructor() {
+    super({
+      CMIElement: "cmi.interactions",
+      children: scorm12_constants.interactions_children,
+      errorCode: scorm12_errors.INVALID_SET_VALUE,
+      errorClass: Scorm12ValidationError
+    });
+  }
+}
+class CMIInteractionsObject extends BaseCMI {
+  /**
+   * Constructor for cmi.interactions.n object
+   */
+  constructor() {
+    super("cmi.interactions.n");
+    this._id = "";
+    this._time = "";
+    this._type = "";
+    this._weighting = "";
+    this._student_response = "";
+    this._result = "";
+    this._latency = "";
+    this.objectives = new CMIArray({
+      CMIElement: "cmi.interactions.n.objectives",
+      errorCode: scorm12_errors.INVALID_SET_VALUE,
+      errorClass: Scorm12ValidationError,
+      children: scorm12_constants.objectives_children
+    });
+    this.correct_responses = new CMIArray({
+      CMIElement: "cmi.interactions.correct_responses",
+      errorCode: scorm12_errors.INVALID_SET_VALUE,
+      errorClass: Scorm12ValidationError,
+      children: scorm12_constants.correct_responses_children
+    });
+  }
+  /**
+   * Called when the API has been initialized after the CMI has been created
+   */
+  initialize() {
+    super.initialize();
+    this.objectives?.initialize();
+    this.correct_responses?.initialize();
+  }
+  /**
+   * Called when the API has been reset
+   */
+  reset() {
+    this._initialized = false;
+    this._id = "";
+    this._time = "";
+    this._type = "";
+    this._weighting = "";
+    this._student_response = "";
+    this._result = "";
+    this._latency = "";
+    this.objectives?.reset();
+    this.correct_responses?.reset();
+  }
+  /**
+   * Getter for _id. Should only be called during JSON export.
+   * @return {string}
+   */
+  get id() {
+    if (!this.jsonString) {
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".id",
+        scorm12_errors.WRITE_ONLY_ELEMENT
+      );
+    }
+    return this._id;
+  }
+  /**
+   * Setter for _id
+   * @param {string} id
+   */
+  set id(id) {
+    if (check12ValidFormat(this._cmi_element + ".id", id, scorm12_regex.CMIIdentifier)) {
+      this._id = id;
+    }
+  }
+  /**
+   * Getter for _time. Should only be called during JSON export.
+   * @return {string}
+   */
+  get time() {
+    if (!this.jsonString) {
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".time",
+        scorm12_errors.WRITE_ONLY_ELEMENT
+      );
+    }
+    return this._time;
+  }
+  /**
+   * Setter for _time
+   * @param {string} time
+   */
+  set time(time) {
+    if (check12ValidFormat(this._cmi_element + ".time", time, scorm12_regex.CMITime)) {
+      this._time = time;
+    }
+  }
+  /**
+   * Getter for _type. Should only be called during JSON export.
+   * @return {string}
+   */
+  get type() {
+    if (!this.jsonString) {
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".type",
+        scorm12_errors.WRITE_ONLY_ELEMENT
+      );
+    }
+    return this._type;
+  }
+  /**
+   * Setter for _type
+   * @param {string} type
+   */
+  set type(type) {
+    if (check12ValidFormat(this._cmi_element + ".type", type, scorm12_regex.CMIType)) {
+      this._type = type;
+    }
+  }
+  /**
+   * Getter for _weighting. Should only be called during JSON export.
+   * @return {string}
+   */
+  get weighting() {
+    if (!this.jsonString) {
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".weighting",
+        scorm12_errors.WRITE_ONLY_ELEMENT
+      );
+    }
+    return this._weighting;
+  }
+  /**
+   * Setter for _weighting
+   * @param {string} weighting
+   */
+  set weighting(weighting) {
+    if (check12ValidFormat(this._cmi_element + ".weighting", weighting, scorm12_regex.CMIDecimal) && check12ValidRange(this._cmi_element + ".weighting", weighting, scorm12_regex.weighting_range)) {
+      this._weighting = weighting;
+    }
+  }
+  /**
+   * Getter for _student_response. Should only be called during JSON export.
+   * @return {string}
+   */
+  get student_response() {
+    if (!this.jsonString) {
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".student_response",
+        scorm12_errors.WRITE_ONLY_ELEMENT
+      );
+    }
+    return this._student_response;
+  }
+  /**
+   * Setter for _student_response
+   * @param {string} student_response
+   */
+  set student_response(student_response) {
+    if (check12ValidFormat(
+      this._cmi_element + ".student_response",
+      student_response,
+      scorm12_regex.CMIFeedback,
+      true
+    )) {
+      this._student_response = student_response;
+    }
+  }
+  /**
+   * Getter for _result. Should only be called during JSON export.
+   * @return {string}
+   */
+  get result() {
+    if (!this.jsonString) {
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".result",
+        scorm12_errors.WRITE_ONLY_ELEMENT
+      );
+    }
+    return this._result;
+  }
+  /**
+   * Setter for _result
+   * @spec RTE 3.4.2.7.6 - cmi.interactions.n.result
+   * Per SCORM 1.2 spec, valid values are "correct", "wrong", "unanticipated", "neutral", or a numeric score.
+   * The spec requires "wrong" not "incorrect" for failed interactions.
+   * @param {string} result
+   */
+  set result(result) {
+    let normalizedResult = result;
+    if (result === "incorrect") {
+      normalizedResult = "wrong";
+      console.warn(
+        "SCORM 1.2: Received non-standard value 'incorrect' for cmi.interactions.n.result; normalizing to 'wrong'."
+      );
+    }
+    if (check12ValidFormat(
+      this._cmi_element + ".result",
+      normalizedResult,
+      scorm12_regex.CMIResult
+    )) {
+      this._result = normalizedResult;
+    }
+  }
+  /**
+   * Getter for _latency. Should only be called during JSON export.
+   * @return {string}
+   */
+  get latency() {
+    if (!this.jsonString) {
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".latency",
+        scorm12_errors.WRITE_ONLY_ELEMENT
+      );
+    }
+    return this._latency;
+  }
+  /**
+   * Setter for _latency
+   * @param {string} latency
+   */
+  set latency(latency) {
+    if (check12ValidFormat(this._cmi_element + ".latency", latency, scorm12_regex.CMITimespan)) {
+      const totalSeconds = getTimeAsSeconds(latency, scorm12_regex.CMITimespan);
+      this._latency = getSecondsAsHHMMSS(totalSeconds);
+    }
+  }
+  /**
+   * toJSON for cmi.interactions.n
+   *
+   * @return {
+   *    {
+   *      id: string,
+   *      time: string,
+   *      type: string,
+   *      weighting: string,
+   *      student_response: string,
+   *      result: string,
+   *      latency: string,
+   *      objectives: CMIArray,
+   *      correct_responses: CMIArray
+   *    }
+   *  }
+   */
+  toJSON() {
+    this.jsonString = true;
+    const result = {
+      id: this.id,
+      time: this.time,
+      type: this.type,
+      weighting: this.weighting,
+      student_response: this.student_response,
+      result: this.result,
+      latency: this.latency,
+      objectives: this.objectives,
+      correct_responses: this.correct_responses
+    };
+    this.jsonString = false;
+    return result;
+  }
+}
+class CMIInteractionsObjectivesObject extends BaseCMI {
+  /**
+   * Constructor for cmi.interactions.n.objectives.n
+   */
+  constructor() {
+    super("cmi.interactions.n.objectives.n");
+    this._id = "";
+  }
+  /**
+   * Called when the API has been reset
+   */
+  reset() {
+    this._initialized = false;
+    this._id = "";
+  }
+  /**
+   * Getter for _id. Should only be called during JSON export.
+   * @return {string}
+   */
+  get id() {
+    if (!this.jsonString) {
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".id",
+        scorm12_errors.WRITE_ONLY_ELEMENT
+      );
+    }
+    return this._id;
+  }
+  /**
+   * Setter for _id
+   * @param {string} id
+   */
+  set id(id) {
+    if (check12ValidFormat(this._cmi_element + ".id", id, scorm12_regex.CMIIdentifier)) {
+      this._id = id;
+    }
+  }
+  /**
+   * toJSON for cmi.interactions.n.objectives.n
+   * @return {
+   *    {
+   *      id: string
+   *    }
+   *  }
+   */
+  toJSON() {
+    this.jsonString = true;
+    const result = {
+      id: this.id
+    };
+    this.jsonString = false;
+    return result;
+  }
+}
+class CMIInteractionsCorrectResponsesObject extends BaseCMI {
+  /**
+   * Constructor for cmi.interactions.correct_responses.n
+   */
+  constructor() {
+    super("cmi.interactions.correct_responses.n");
+    this._pattern = "";
+  }
+  /**
+   * Called when the API has been reset
+   */
+  reset() {
+    this._initialized = false;
+    this._pattern = "";
+  }
+  /**
+   * Getter for _pattern
+   * @return {string}
+   */
+  get pattern() {
+    if (!this.jsonString) {
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".pattern",
+        scorm12_errors.WRITE_ONLY_ELEMENT
+      );
+    }
+    return this._pattern;
+  }
+  /**
+   * Setter for _pattern
+   * @param {string} pattern
+   */
+  set pattern(pattern) {
+    if (check12ValidFormat(this._cmi_element + ".pattern", pattern, scorm12_regex.CMIFeedback, true)) {
+      this._pattern = pattern;
+    }
+  }
+  /**
+   * toJSON for cmi.interactions.correct_responses.n
+   * @return {
+   *    {
+   *      pattern: string
+   *    }
+   *  }
+   */
+  toJSON() {
+    this.jsonString = true;
+    const result = {
+      pattern: this._pattern
+    };
+    this.jsonString = false;
+    return result;
+  }
+}
+
+class CMI extends BaseRootCMI {
+  /**
+   * Constructor for the SCORM 1.2 cmi object
+   * @param {string} cmi_children
+   * @param {(CMIStudentData)} student_data
+   * @param {boolean} initialized
+   */
+  constructor(cmi_children, student_data, initialized) {
+    super("cmi");
+    this.__children = "";
+    this.__version = "3.4";
+    this._launch_data = "";
+    this._comments = "";
+    this._comments_from_lms = "";
+    if (initialized) this.initialize();
+    this.__children = cmi_children ? cmi_children : scorm12_constants.cmi_children;
+    this.core = new CMICore();
+    this.objectives = new CMIObjectives();
+    this.student_data = student_data ? student_data : new CMIStudentData();
+    this.student_preference = new CMIStudentPreference();
+    this.interactions = new CMIInteractions();
+  }
+  /**
+   * Called when the API has been reset
+   *
+   * CMI-03: Uses consistent ?.reset() pattern for all child objects.
+   * Objectives and interactions use reset(true) to clear arrays completely.
+   */
+  reset() {
+    this._initialized = false;
+    this._launch_data = "";
+    this._comments = "";
+    this.core?.reset();
+    this.objectives?.reset(true);
+    this.interactions?.reset(true);
+    this.student_data?.reset();
+    this.student_preference?.reset();
+  }
+  /**
+   * Called when the API has been initialized after the CMI has been created
+   */
+  initialize() {
+    super.initialize();
+    this.core?.initialize();
+    this.objectives?.initialize();
+    this.student_data?.initialize();
+    this.student_preference?.initialize();
+    this.interactions?.initialize();
+  }
+  /**
+   * toJSON for cmi
+   *
+   * @return {
+   *    {
+   *      suspend_data: string,
+   *      launch_data: string,
+   *      comments: string,
+   *      comments_from_lms: string,
+   *      core: CMICore,
+   *      objectives: CMIObjectives,
+   *      student_data: CMIStudentData,
+   *      student_preference: CMIStudentPreference,
+   *      interactions: CMIInteractions
+   *    }
+   *  }
+   */
+  toJSON() {
+    this.jsonString = true;
+    const result = {
+      suspend_data: this.suspend_data,
+      launch_data: this.launch_data,
+      comments: this.comments,
+      comments_from_lms: this.comments_from_lms,
+      core: this.core,
+      objectives: this.objectives,
+      student_data: this.student_data,
+      student_preference: this.student_preference,
+      interactions: this.interactions
+    };
+    this.jsonString = false;
+    return result;
+  }
+  /**
+   * Getter for __version
+   * @return {string}
+   */
+  get _version() {
+    return this.__version;
+  }
+  /**
+   * Setter for __version. Just throws an error.
+   * @param {string} _version
+   */
+  set _version(_version) {
+    throw new Scorm12ValidationError(
+      this._cmi_element + "._version",
+      scorm12_errors.INVALID_SET_VALUE
+    );
+  }
+  /**
+   * Getter for __children
+   * @return {string}
+   */
+  get _children() {
+    return this.__children;
+  }
+  /**
+   * Setter for __version. Just throws an error.
+   * @param {string} _children
+   */
+  set _children(_children) {
+    throw new Scorm12ValidationError(
+      this._cmi_element + "._children",
+      scorm12_errors.INVALID_SET_VALUE
+    );
+  }
+  /**
+   * Getter for _suspend_data
+   * @return {string}
+   */
+  get suspend_data() {
+    return this.core?.suspend_data;
+  }
+  /**
+   * Setter for _suspend_data
+   * @param {string} suspend_data
+   */
+  set suspend_data(suspend_data) {
+    if (this.core) {
+      this.core.suspend_data = suspend_data;
+    }
+  }
+  /**
+   * Getter for _launch_data
+   * @return {string}
+   */
+  get launch_data() {
+    return this._launch_data;
+  }
+  /**
+   * Setter for _launch_data. Can only be called before initialization.
+   *
+   * SPEC COMPLIANCE NOTE:
+   * The SCORM 1.2 specification defines launch_data as CMIString4096 (max 4096 chars).
+   * This implementation intentionally omits length validation because:
+   *
+   * 1. launch_data is LMS-provided data, not SCO-provided - the LMS is responsible
+   *    for ensuring valid data is provided to content
+   * 2. This setter is only callable before API initialization (read-only to SCO)
+   * 3. Real-world LMS systems may provide launch_data exceeding 4096 chars
+   * 4. Rejecting oversized LMS data would break content with no recovery path
+   *
+   * Unlike cmi.suspend_data and cmi.comments (which SCOs write), launch_data
+   * comes from the LMS manifest/configuration, so strict validation here would
+   * penalize content for LMS decisions outside SCO control.
+   *
+   * @param {string} launch_data
+   */
+  set launch_data(launch_data) {
+    if (this.initialized) {
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".launch_data",
+        scorm12_errors.READ_ONLY_ELEMENT
+      );
+    } else {
+      this._launch_data = launch_data;
+    }
+  }
+  /**
+   * Getter for _comments
+   * @return {string}
+   */
+  get comments() {
+    return this._comments;
+  }
+  /**
+   * Setter for _comments
+   * @param {string} comments
+   */
+  set comments(comments) {
+    if (check12ValidFormat(
+      this._cmi_element + ".comments",
+      comments,
+      scorm12_regex.CMIString4096,
+      true
+    )) {
+      this._comments = comments;
+    }
+  }
+  /**
+   * Getter for _comments_from_lms
+   * @return {string}
+   */
+  get comments_from_lms() {
+    return this._comments_from_lms;
+  }
+  /**
+   * Setter for _comments_from_lms. Can only be called before  initialization.
+   * @param {string} comments_from_lms
+   */
+  set comments_from_lms(comments_from_lms) {
+    if (this.initialized) {
+      throw new Scorm12ValidationError(
+        this._cmi_element + ".comments_from_lms",
+        scorm12_errors.READ_ONLY_ELEMENT
+      );
+    } else {
+      this._comments_from_lms = comments_from_lms;
+    }
+  }
+  /**
+   * Adds the current session time to the existing total time.
+   *
+   * @return {string}
+   */
+  getCurrentTotalTime() {
+    return this.core.getCurrentTotalTime(this.start_time);
+  }
+}
+
+class NAV extends BaseCMI {
+  /**
+   * Constructor for NAV object
+   */
+  constructor() {
+    super("cmi.nav");
+    this._event = "";
+  }
+  /**
+   * Called when the API has been reset
+   *
+   * This method is invoked during the following session lifecycle events:
+   * - When the API is reset via LMSFinish() followed by a new LMSInitialize()
+   * - Between SCO transitions in multi-SCO courses (when one SCO ends and another begins)
+   * - When the LMS explicitly resets the API instance
+   * - During API cleanup and reinitialization cycles
+   *
+   * Resets all navigation state to prepare for a new session.
+   */
+  reset() {
+    this._event = "";
+    this._initialized = false;
+  }
+  /**
+   * Getter for _event
+   * @return {string}
+   */
+  get event() {
+    return this._event;
+  }
+  /**
+   * Setter for _event
+   * @param {string} event
+   */
+  set event(event) {
+    if (event === "" || check12ValidFormat(this._cmi_element + ".event", event, scorm12_regex.NAVEvent)) {
+      this._event = event;
+    }
+  }
+  /**
+   * toJSON for nav object
+   * @return {
+   *    {
+   *      event: string
+   *    }
+   *  }
+   */
+  toJSON() {
+    this.jsonString = true;
+    const result = {
+      event: this.event
+    };
+    this.jsonString = false;
+    return result;
+  }
+}
+
 class Scorm12API extends BaseAPI {
   /**
    * Constructor for SCORM 1.2 API
@@ -5319,7 +5611,7 @@ class Scorm12API extends BaseAPI {
         settingsCopy.mastery_override = true;
       }
     }
-    super(scorm12_errors$1, settingsCopy, httpService);
+    super(scorm12_errors, settingsCopy, httpService);
     this.statusSetByModule = false;
     this.cmi = new CMI();
     this.nav = new NAV();
