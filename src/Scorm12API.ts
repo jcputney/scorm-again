@@ -1,10 +1,7 @@
-import { CMI } from "./cmi/scorm12/cmi";
-import * as Utilities from "./utilities";
-import { StringKeyMap, stringMatches } from "./utilities";
-import { global_constants, scorm12_constants } from "./constants/api_constants";
-import { scorm12_errors } from "./constants/error_codes";
-
+import BaseAPI from "./BaseAPI";
+import { flatten, getTimeAsSeconds, StringKeyMap, stringMatches } from "./utilities";
 import { BaseCMI } from "./cmi/common/base_cmi";
+import { CMI } from "./cmi/scorm12/cmi";
 import { CMIObjectivesObject } from "./cmi/scorm12/objectives";
 import {
   CMIInteractionsCorrectResponsesObject,
@@ -12,11 +9,16 @@ import {
   CMIInteractionsObjectivesObject,
 } from "./cmi/scorm12/interactions";
 import { NAV } from "./cmi/scorm12/nav";
-import { CommitObject, ResultObject, ScoreObject, Settings } from "./types/api_types";
-import { CompletionStatus, SuccessStatus } from "./constants/enums";
-import BaseAPI from "./BaseAPI";
-import { scorm12_regex } from "./constants/regex";
-import { IHttpService } from "./interfaces/services";
+import {
+  CompletionStatus,
+  global_constants,
+  scorm12_constants,
+  scorm12_errors,
+  scorm12_regex,
+  SuccessStatus,
+} from "./constants";
+import { CommitObject, ResultObject, ScoreObject, Settings } from "./types";
+import { IHttpService } from "./interfaces";
 
 /**
  * API class for SCORM 1.2
@@ -450,10 +452,10 @@ class Scorm12API extends BaseAPI {
     }
 
     const result = [];
-    const flattened: StringKeyMap = Utilities.flatten(cmiExport);
+    const flattened: StringKeyMap = flatten(cmiExport);
     switch (this.settings.dataCommitFormat) {
       case "flattened":
-        return Utilities.flatten(cmiExport);
+        return flatten(cmiExport);
       case "params":
         for (const item in flattened) {
           if ({}.hasOwnProperty.call(flattened, item)) {
@@ -477,7 +479,7 @@ class Scorm12API extends BaseAPI {
     const cmiExport = this.renderCommitCMI(terminateCommit, includeTotalTime);
     const calculateTotalTime = terminateCommit || includeTotalTime;
     const totalTimeHHMMSS = calculateTotalTime ? this.cmi.getCurrentTotalTime() : "";
-    const totalTimeSeconds = Utilities.getTimeAsSeconds(totalTimeHHMMSS, scorm12_regex.CMITimespan);
+    const totalTimeSeconds = getTimeAsSeconds(totalTimeHHMMSS, scorm12_regex.CMITimespan);
     const lessonStatus = this.cmi.core.lesson_status;
     let completionStatus = CompletionStatus.UNKNOWN;
     let successStatus = SuccessStatus.UNKNOWN;

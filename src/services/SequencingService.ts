@@ -18,32 +18,11 @@ import { CMIObjectivesObject } from "../cmi/scorm2004/objectives";
 import { ADL } from "../cmi/scorm2004/adl";
 import { global_constants } from "../constants/api_constants";
 import { RuleCondition } from "../cmi/scorm2004/sequencing/sequencing_rules";
-import { AuxiliaryResource, HideLmsUiItem } from "../types/sequencing_types";
-
-/**
- * Interface for sequencing event listeners
- */
-export interface SequencingEventListeners {
-  onSequencingStart?: (activity: Activity) => void;
-  onSequencingEnd?: () => void;
-  onActivityDelivery?: (activity: Activity) => void;
-  onActivityUnload?: (activity: Activity) => void;
-  onNavigationRequest?: (request: string, target?: string) => void;
-  onRollupComplete?: (activity: Activity) => void;
-  onSequencingError?: (error: string, context?: string) => void;
-  // Enhanced debugging events
-  onSequencingDebug?: (event: string, data?: any) => void;
-  onActivityAttemptStart?: (activity: Activity) => void;
-  onActivityAttemptEnd?: (activity: Activity) => void;
-  onLimitConditionCheck?: (activity: Activity, result: boolean) => void;
-  onNavigationValidityUpdate?: (validity: any) => void;
-  onSequencingStateChange?: (state: any) => void;
-  onSequencingSessionEnd?: (data: {
-    reason: string;
-    exception?: string | null;
-    navigationRequest?: string;
-  }) => void;
-}
+import {
+  AuxiliaryResource,
+  HideLmsUiItem,
+  SequencingEventListeners,
+} from "../types/sequencing_types";
 
 /**
  * Interface for sequencing configuration

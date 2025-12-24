@@ -2,11 +2,13 @@
  * Class for SCORM 2004's cmi.learner_preference object
  */
 import { BaseCMI } from "../common/base_cmi";
-import { scorm2004_constants } from "../../constants/api_constants";
 import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
-import { scorm2004_errors } from "../../constants/error_codes";
 import { check2004ValidFormat, check2004ValidRange } from "./validation";
-import { scorm2004_regex } from "../../constants/regex";
+import {
+  scorm2004_constants,
+  scorm2004_errors,
+  scorm2004_regex,
+} from "../../constants";
 
 export class CMILearnerPreference extends BaseCMI {
   private __children = scorm2004_constants.student_preference_children;

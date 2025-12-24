@@ -15,16 +15,16 @@
  */
 import { BaseCMI } from "../common/base_cmi";
 import { CMIArray } from "../common/array";
-import { scorm2004_errors } from "../../constants/error_codes";
 import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
-import { scorm2004_constants } from "../../constants/api_constants";
 import { check2004ValidFormat } from "./validation";
-import { scorm2004_regex } from "../../constants/regex";
 import {
   CorrectResponses,
   LearnerResponses,
   ResponseType,
-} from "../../constants/response_constants";
+  scorm2004_constants,
+  scorm2004_errors,
+  scorm2004_regex,
+} from "../../constants";
 
 export class CMIInteractions extends CMIArray {
   /**

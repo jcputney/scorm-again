@@ -1,6 +1,6 @@
 import { BaseCMI } from "../common/base_cmi";
 import { check12ValidFormat } from "./validation";
-import { scorm12_regex } from "../../constants/regex";
+import { scorm12_regex } from "../../constants";
 
 /**
  * Class for SCORM 1.2 Navigation object

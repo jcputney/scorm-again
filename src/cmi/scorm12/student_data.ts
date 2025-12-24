@@ -1,11 +1,18 @@
 import { BaseCMI } from "../common/base_cmi";
-import { scorm12_constants } from "../../constants/api_constants";
 import { Scorm12ValidationError } from "../../exceptions/scorm12_exceptions";
-import { scorm12_errors } from "../../constants/error_codes";
-import { validationService } from "../../services/ValidationService";
 import { check12ValidFormat, check12ValidRange } from "./validation";
-import { scorm12_regex, scorm2004_regex } from "../../constants/regex";
-import * as Util from "../../utilities";
+import {
+  scorm12_constants,
+  scorm12_errors,
+  scorm12_regex,
+  scorm2004_regex,
+} from "../../constants";
+import { validationService } from "../../services";
+import {
+  getDurationAsSeconds,
+  getSecondsAsHHMMSS,
+  getTimeAsSeconds,
+} from "../../utilities";
 
 /**
  * Parses time values in either SCORM 1.2 (HH:MM:SS) or ISO 8601 (PT...) format
@@ -24,8 +31,8 @@ function parseTimeAllowed(value: string, fieldName: string): string {
   // First try SCORM 1.2 HH:MM:SS(.cc) format
   try {
     check12ValidFormat(fieldName, value, scorm12_regex.CMITimespan, true);
-    const totalSeconds = Util.getTimeAsSeconds(value, scorm12_regex.CMITimespan);
-    return Util.getSecondsAsHHMMSS(totalSeconds);
+    const totalSeconds = getTimeAsSeconds(value, scorm12_regex.CMITimespan);
+    return getSecondsAsHHMMSS(totalSeconds);
   } catch (e) {
     // fall through and attempt other encodings
   }
@@ -33,8 +40,8 @@ function parseTimeAllowed(value: string, fieldName: string): string {
   // Next try ISO 8601 durations (common in legacy manifests)
   try {
     check12ValidFormat(fieldName, value, scorm2004_regex.CMITimespan, true);
-    const totalSeconds = Util.getDurationAsSeconds(value, scorm2004_regex.CMITimespan);
-    return Util.getSecondsAsHHMMSS(totalSeconds);
+    const totalSeconds = getDurationAsSeconds(value, scorm2004_regex.CMITimespan);
+    return getSecondsAsHHMMSS(totalSeconds);
   } catch (e) {
     // fall through to error
   }

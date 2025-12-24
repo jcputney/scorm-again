@@ -1,9 +1,8 @@
 import { CMI } from "../cmi/scorm2004/cmi";
 import { CommitObject, ScoreObject, Settings } from "../types/api_types";
-import { StringKeyMap } from "../utilities";
+import { flatten, getDurationAsSeconds, StringKeyMap } from "../utilities";
 import { CompletionStatus, SuccessStatus } from "../constants/enums";
 import { scorm2004_regex } from "../constants/regex";
-import * as Utilities from "../utilities";
 import { SequencingService } from "../services/SequencingService";
 import { GlobalObjectiveManager } from "../objectives/global_objective_manager";
 
@@ -82,11 +81,11 @@ export class Scorm2004DataSerializer {
     }
 
     const result = [];
-    const flattened: StringKeyMap = Utilities.flatten(cmiExport);
+    const flattened: StringKeyMap = flatten(cmiExport);
     const settings = this.context.getSettings();
     switch (settings.dataCommitFormat) {
       case "flattened":
-        return Utilities.flatten(cmiExport);
+        return flatten(cmiExport);
       case "params":
         for (const item in flattened) {
           if ({}.hasOwnProperty.call(flattened, item)) {
@@ -110,10 +109,7 @@ export class Scorm2004DataSerializer {
     const cmiExport = this.renderCommitCMI(terminateCommit, includeTotalTime);
     const calculateTotalTime = terminateCommit || includeTotalTime;
     const totalTimeDuration = calculateTotalTime ? this.context.cmi.getCurrentTotalTime() : "";
-    const totalTimeSeconds = Utilities.getDurationAsSeconds(
-      totalTimeDuration,
-      scorm2004_regex.CMITimespan,
-    );
+    const totalTimeSeconds = getDurationAsSeconds(totalTimeDuration, scorm2004_regex.CMITimespan);
 
     let completionStatus = CompletionStatus.UNKNOWN;
     let successStatus = SuccessStatus.UNKNOWN;

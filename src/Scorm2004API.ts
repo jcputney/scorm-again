@@ -1,33 +1,39 @@
 import BaseAPI from "./BaseAPI";
-import { CMI } from "./cmi/scorm2004/cmi";
-import * as Utilities from "./utilities";
 import {
   ParsedNavigationRequest,
   StringKeyMap,
   parseNavigationRequest,
   stringMatches,
 } from "./utilities";
-import { global_constants, scorm2004_constants } from "./constants/api_constants";
-import { scorm2004_errors } from "./constants/error_codes";
+import { BaseCMI } from "./cmi/common/base_cmi";
+import { CMI } from "./cmi/scorm2004/cmi";
 import { CMIObjectivesObject } from "./cmi/scorm2004/objectives";
+import { CMIInteractionsObject } from "./cmi/scorm2004/interactions";
 import { ADL } from "./cmi/scorm2004/adl";
-import { CommitObject, ResultObject, SequencingStateMetadata, Settings } from "./types/api_types";
+import { Sequencing } from "./cmi/scorm2004/sequencing/sequencing";
+import {
+  CompletionStatus,
+  global_constants,
+  LogLevelEnum,
+  scorm2004_constants,
+  scorm2004_errors,
+  scorm2004_regex,
+  SuccessStatus,
+} from "./constants";
 import {
   ActivitySettings,
+  CommitObject,
+  ResultObject,
+  RollupRulesSettings,
   SequencingCollectionSettings,
   SequencingControlsSettings,
-  SequencingEventListeners,
   SequencingRulesSettings,
   SequencingSettings,
-  RollupRulesSettings,
-} from "./types/sequencing_types";
-import { scorm2004_regex } from "./constants/regex";
-import { BaseCMI } from "./cmi/common/base_cmi";
-import { CMIInteractionsObject } from "./cmi/scorm2004/interactions";
-import { CompletionStatus, LogLevelEnum, SuccessStatus } from "./constants/enums";
-import { Sequencing } from "./cmi/scorm2004/sequencing/sequencing";
-import { SequencingConfiguration, SequencingService } from "./services/SequencingService";
-import { IHttpService } from "./interfaces/services";
+  SequencingStateMetadata,
+  Settings,
+} from "./types";
+import { IHttpService } from "./interfaces";
+import { SequencingConfiguration, SequencingEventListeners, SequencingService } from "./services";
 
 // Import extracted classes
 import {

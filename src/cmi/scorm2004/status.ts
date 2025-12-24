@@ -1,9 +1,9 @@
 /**
  * Class representing status properties for SCORM 2004's cmi object
  */
-import { scorm2004_regex } from "../../constants/regex";
 import { BaseCMI } from "../common/base_cmi";
 import { check2004ValidFormat, check2004ValidRange } from "./validation";
+import { scorm2004_regex } from "../../constants";
 
 /**
  * Class representing status properties for SCORM 2004's cmi object

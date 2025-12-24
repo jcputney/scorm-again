@@ -1,27 +1,24 @@
-import { ErrorCode } from "./constants/error_codes";
-import { global_constants } from "./constants/api_constants";
-import * as Utilities from "./utilities";
-import { formatMessage, StringKeyMap, stringMatches } from "./utilities";
+import { flatten, formatMessage, StringKeyMap, stringMatches } from "./utilities";
 import { BaseCMI, BaseRootCMI } from "./cmi/common/base_cmi";
+import { CMIArray } from "./cmi/common/array";
+import { ValidationError } from "./exceptions";
+import {
+  DefaultSettings,
+  defaultLogHandler,
+  ErrorCode,
+  global_constants,
+  LogLevelEnum,
+} from "./constants";
 import {
   CommitObject,
   InternalSettings,
   LogLevel,
   ResultObject,
+  ScheduledCommit,
   Settings,
-} from "./types/api_types";
-import { defaultLogHandler, DefaultSettings } from "./constants/default_settings";
-import { IBaseAPI } from "./interfaces/IBaseAPI";
-import { ScheduledCommit } from "./types/scheduled_commit";
-import { LogLevelEnum } from "./constants/enums";
-import { AsynchronousHttpService } from "./services/AsynchronousHttpService";
-import { SynchronousHttpService } from "./services/SynchronousHttpService";
-import { EventService } from "./services/EventService";
-import { SerializationService } from "./services/SerializationService";
-import { createErrorHandlingService } from "./services/ErrorHandlingService";
-import { getLoggingService } from "./services/LoggingService";
-import { OfflineStorageService } from "./services/OfflineStorageService";
+} from "./types";
 import {
+  IBaseAPI,
   ICMIDataService,
   IErrorHandlingService,
   IEventService,
@@ -29,9 +26,16 @@ import {
   ILoggingService,
   IOfflineStorageService,
   ISerializationService,
-} from "./interfaces/services";
-import { CMIArray } from "./cmi/common/array";
-import { ValidationError } from "./exceptions";
+} from "./interfaces";
+import {
+  AsynchronousHttpService,
+  createErrorHandlingService,
+  EventService,
+  getLoggingService,
+  OfflineStorageService,
+  SerializationService,
+  SynchronousHttpService,
+} from "./services";
 
 /**
  * Base API class for SCORM 1.2 and SCORM 2004. Should be considered
@@ -1630,7 +1634,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * Returns a flattened JSON object representing the current CMI data.
    */
   getFlattenedCMI(): StringKeyMap {
-    return Utilities.flatten(this.renderCMIToJSONObject());
+    return flatten(this.renderCMIToJSONObject());
   }
 
   /**
