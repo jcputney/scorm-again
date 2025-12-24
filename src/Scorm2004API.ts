@@ -100,7 +100,8 @@ class Scorm2004API extends BaseAPI {
     this._sequencingConfigBuilder = new SequencingConfigurationBuilder();
     this._activityTreeBuilder = new ActivityTreeBuilder({}, this._sequencingConfigBuilder);
 
-    // Create validation context - use arrow functions to ensure spies work correctly
+    // Create validation context - use arrow functions to ensure lazy evaluation
+    // Note: checkCorrectResponseValue calls the validator directly since it's a pass-through
     const validationContext: ValidationContext = {
       throwSCORMError: (element: string, errorCode: number, message?: string) =>
         this.throwSCORMError(element, errorCode, message),
@@ -110,7 +111,13 @@ class Scorm2004API extends BaseAPI {
         interaction_type: string,
         nodes: Array<any>,
         value: any,
-      ) => this.checkCorrectResponseValue(CMIElement, interaction_type, nodes, value),
+      ) =>
+        this._responseValidator.checkCorrectResponseValue(
+          CMIElement,
+          interaction_type,
+          nodes,
+          value,
+        ),
     };
     this._responseValidator = new Scorm2004ResponseValidator(validationContext);
 
@@ -219,69 +226,6 @@ class Scorm2004API extends BaseAPI {
    */
   get _globalObjectives(): CMIObjectivesObject[] {
     return this._globalObjectiveManager.globalObjectives;
-  }
-
-  /**
-   * Build an objective map entry from a CMI objectives object
-   * @param {CMIObjectivesObject} objective - The CMI objectives object
-   * @return {object} The objective map entry
-   */
-  buildObjectiveMapEntryFromCMI(objective: CMIObjectivesObject): any {
-    return this._globalObjectiveManager.buildObjectiveMapEntryFromCMI(objective);
-  }
-
-  /**
-   * Capture a snapshot of global objectives
-   * @return {object} The global objectives snapshot
-   */
-  captureGlobalObjectiveSnapshot(): any {
-    return this._globalObjectiveManager.captureGlobalObjectiveSnapshot();
-  }
-
-  /**
-   * Update a global objective from CMI data
-   * @param {string} objectiveId - The objective ID
-   * @param {CMIObjectivesObject} objective - The CMI objectives object
-   */
-  updateGlobalObjectiveFromCMI(objectiveId: string, objective: CMIObjectivesObject): void {
-    this._globalObjectiveManager.updateGlobalObjectiveFromCMI(objectiveId, objective);
-  }
-
-  /**
-   * Parse an objective number value
-   * @param {any} value - The value to parse
-   * @return {number | null} The parsed number or null
-   */
-  parseObjectiveNumber(value: any): number | null {
-    return this._globalObjectiveManager.parseObjectiveNumber(value);
-  }
-
-  /**
-   * Build a CMI objectives object from JSON data
-   * @param {any} data - The JSON data
-   * @return {CMIObjectivesObject} The CMI objectives object
-   */
-  buildCMIObjectiveFromJSON(data: any): CMIObjectivesObject {
-    return this._globalObjectiveManager.buildCMIObjectiveFromJSON(data);
-  }
-
-  /**
-   * Build CMI objectives from a snapshot map
-   * @param {Record<string, any>} snapshot - The snapshot map
-   * @return {CMIObjectivesObject[]} Array of CMI objectives objects
-   */
-  buildCMIObjectivesFromMap(snapshot: Record<string, any>): CMIObjectivesObject[] {
-    return this._globalObjectiveManager.buildCMIObjectivesFromMap(snapshot);
-  }
-
-  /**
-   * Creates a correct responses object for an interaction
-   * @param {string} CMIElement - The CMI element path
-   * @param {any} value - The value being set
-   * @return {BaseCMI|null} The correct responses object or null
-   */
-  createCorrectResponsesObject(CMIElement: string, value: any): BaseCMI | null {
-    return this._cmiHandler.createCorrectResponsesObject(CMIElement, value);
   }
 
   /**
@@ -696,78 +640,6 @@ class Scorm2004API extends BaseAPI {
     }
 
     this._responseValidator.validateCorrectResponse(CMIElement, interaction, value);
-  }
-
-  /**
-   * Checks for valid response types (delegated to response validator)
-   * @param {string} CMIElement
-   * @param {ResponseType} response_type
-   * @param {any} value
-   * @param {string} interaction_type
-   */
-  checkValidResponseType(
-    CMIElement: string,
-    response_type: any,
-    value: any,
-    interaction_type: string,
-  ): void {
-    this._responseValidator.checkValidResponseType(
-      CMIElement,
-      response_type,
-      value,
-      interaction_type,
-    );
-  }
-
-  /**
-   * Checks for duplicate 'choice' responses (delegated to response validator)
-   * @param {string} CMIElement
-   * @param {CMIInteractionsObject} interaction
-   * @param {any} value
-   */
-  checkDuplicateChoiceResponse(
-    CMIElement: string,
-    interaction: CMIInteractionsObject,
-    value: any,
-  ): void {
-    this._responseValidator.checkDuplicateChoiceResponse(CMIElement, interaction, value);
-  }
-
-  /**
-   * Check to see if a correct_response value has been duplicated (delegated to response validator)
-   * @param {CMIArray} correct_response
-   * @param {number} current_index
-   * @param {*} value
-   * @return {boolean}
-   */
-  checkDuplicatedPattern(correct_response: any, current_index: number, value: any): boolean {
-    return this._responseValidator.checkDuplicatedPattern(correct_response, current_index, value);
-  }
-
-  /**
-   * Checks for a valid correct_response value (delegated to response validator)
-   * @param {string} CMIElement
-   * @param {string} interaction_type
-   * @param {Array} nodes
-   * @param {*} value
-   */
-  checkCorrectResponseValue(
-    CMIElement: string,
-    interaction_type: string,
-    nodes: Array<any>,
-    value: any,
-  ): void {
-    this._responseValidator.checkCorrectResponseValue(CMIElement, interaction_type, nodes, value);
-  }
-
-  /**
-   * Remove prefixes from correct_response (delegated to response validator)
-   * @param {string} CMIElement
-   * @param {string} node
-   * @return {any}
-   */
-  removeCorrectResponsePrefixes(CMIElement: string, node: string): any {
-    return this._responseValidator.removeCorrectResponsePrefixes(CMIElement, node);
   }
 
   /**

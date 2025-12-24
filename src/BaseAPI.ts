@@ -29,6 +29,8 @@ import {
 } from "./interfaces";
 import {
   AsynchronousHttpService,
+  CMIValueAccessService,
+  CMIValueAccessContext,
   createErrorHandlingService,
   EventService,
   getLoggingService,
@@ -51,6 +53,7 @@ export default abstract class BaseAPI implements IBaseAPI {
   private readonly _errorHandlingService: IErrorHandlingService;
   private readonly _loggingService: ILoggingService;
   private readonly _offlineStorageService?: IOfflineStorageService;
+  private readonly _cmiValueAccessService: CMIValueAccessService;
   private _courseId: string = "";
 
   /**
@@ -237,6 +240,30 @@ export default abstract class BaseAPI implements IBaseAPI {
           });
       }
     }
+
+    // Initialize CMI Value Access service
+    const cmiValueAccessContext: CMIValueAccessContext = {
+      errorCodes: this._error_codes,
+      getLastErrorCode: () => this.lastErrorCode,
+      setLastErrorCode: (errorCode: string) => {
+        this.lastErrorCode = errorCode;
+      },
+      throwSCORMError: (element: string, errorCode: number, message?: string) =>
+        this.throwSCORMError(element, errorCode, message),
+      isInitialized: () => this.isInitialized(),
+      validateCorrectResponse: (CMIElement: string, value: string) =>
+        this.validateCorrectResponse(CMIElement, value),
+      checkForDuplicateId: (CMIElement: string, value: string) =>
+        this._checkForDuplicateId(CMIElement, value),
+      getChildElement: (CMIElement: string, value: string, foundFirstIndex: boolean) =>
+        this.getChildElement(CMIElement, value, foundFirstIndex),
+      apiLog: (methodName: string, message: string, level: LogLevelEnum) =>
+        this.apiLog(methodName, message, level),
+      checkObjectHasProperty: (obj: StringKeyMap, attr: string) =>
+        this._checkObjectHasProperty(obj, attr),
+      getDataModel: () => this as unknown as StringKeyMap,
+    };
+    this._cmiValueAccessService = new CMIValueAccessService(cmiValueAccessContext);
   }
 
   public abstract cmi: BaseCMI;
@@ -1164,7 +1191,8 @@ export default abstract class BaseAPI implements IBaseAPI {
   }
 
   /**
-   * Shared API method to set a valid for a given element.
+   * Shared API method to set a value for a given element.
+   * Delegates to CMIValueAccessService for the complex traversal logic.
    *
    * @param {string} methodName
    * @param {boolean} scorm2004
@@ -1178,165 +1206,12 @@ export default abstract class BaseAPI implements IBaseAPI {
     CMIElement: string,
     value: any,
   ): string {
-    if (!CMIElement || CMIElement === "") {
-      if (scorm2004) {
-        this.throwSCORMError(
-          CMIElement,
-          this._error_codes.GENERAL_SET_FAILURE,
-          "The data model element was not specified",
-        );
-      }
-      return global_constants.SCORM_FALSE;
-    }
-
-    this.lastErrorCode = "0";
-
-    const structure = CMIElement.split(".");
-    let refObject: StringKeyMap | BaseCMI = this as StringKeyMap;
-    let returnValue = global_constants.SCORM_FALSE;
-    let foundFirstIndex = false;
-
-    const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
-    const invalidErrorCode = scorm2004
-      ? this._error_codes.UNDEFINED_DATA_MODEL
-      : this._error_codes.GENERAL;
-
-    for (let idx = 0; idx < structure.length; idx++) {
-      const attribute = structure[idx];
-
-      if (idx === structure.length - 1) {
-        if (scorm2004 && attribute && attribute.substring(0, 8) === "{target=") {
-          if (this.isInitialized()) {
-            this.throwSCORMError(CMIElement, this._error_codes.READ_ONLY_ELEMENT);
-            break;
-          } else {
-            refObject = {
-              ...refObject,
-              attribute: value,
-            };
-          }
-        } else if (
-          typeof attribute === "undefined" ||
-          !this._checkObjectHasProperty(refObject as StringKeyMap, attribute)
-        ) {
-          this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-          break;
-        } else {
-          if (
-            stringMatches(CMIElement, "\\.correct_responses\\.\\d+$") &&
-            this.isInitialized() &&
-            attribute !== "pattern"
-          ) {
-            this.validateCorrectResponse(CMIElement, value);
-            if (this.lastErrorCode !== "0") {
-              this.throwSCORMError(CMIElement, this._error_codes.TYPE_MISMATCH);
-              break;
-            }
-          }
-
-          if (!scorm2004 || this._errorHandlingService.lastErrorCode === "0") {
-            if (
-              typeof attribute === "undefined" ||
-              attribute === "__proto__" ||
-              attribute === "constructor"
-            ) {
-              this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-              break;
-            }
-
-            // SCORM 2004: Check for duplicate IDs in objectives and interactions arrays
-            // Per SCORM 2004 RTE Section 4.1.5/4.1.6: IDs must be unique within their respective arrays
-            if (scorm2004 && attribute === "id" && this.isInitialized()) {
-              const duplicateError = this._checkForDuplicateId(CMIElement, value);
-              if (duplicateError) {
-                this.throwSCORMError(CMIElement, this._error_codes.GENERAL_SET_FAILURE);
-                break;
-              }
-            }
-
-            (refObject as StringKeyMap)[attribute] = value;
-            returnValue = global_constants.SCORM_TRUE;
-          }
-        }
-      } else {
-        if (
-          typeof attribute === "undefined" ||
-          !this._checkObjectHasProperty(refObject as StringKeyMap, attribute)
-        ) {
-          this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-          break;
-        }
-        refObject = (refObject as StringKeyMap)[attribute] as StringKeyMap;
-        if (!refObject) {
-          this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-          break;
-        }
-
-        if (refObject instanceof CMIArray) {
-          const index = parseInt(structure[idx + 1] || "0", 10);
-
-          // SCO is trying to set an item on an array
-          if (!isNaN(index)) {
-            const item = refObject.childArray[index];
-
-            if (item) {
-              refObject = item;
-              foundFirstIndex = true;
-            } else {
-              // SCORM spec requires sequential array indices (0, 1, 2, ...)
-              // Cannot skip indices when adding to arrays
-              if (index > refObject.childArray.length) {
-                const errorCode = scorm2004
-                  ? this._error_codes.GENERAL_SET_FAILURE
-                  : this._error_codes.INVALID_SET_VALUE || this._error_codes.GENERAL_SET_FAILURE;
-                this.throwSCORMError(
-                  CMIElement,
-                  errorCode,
-                  `Cannot set array element at index ${index}. Array indices must be sequential. Current array length is ${refObject.childArray.length}, expected index ${refObject.childArray.length}.`,
-                );
-                break;
-              }
-
-              // Note: SCORM 2004 3rd Edition specifies SPM limits for arrays
-              // (objectives: 100, interactions: 250, comments: 250)
-              // We intentionally do NOT enforce these limits to maximize
-              // content compatibility. Real-world content may exceed these limits.
-
-              const newChild = this.getChildElement(CMIElement, value, foundFirstIndex);
-              foundFirstIndex = true;
-
-              if (!newChild) {
-                if (this.lastErrorCode === "0") {
-                  this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-                }
-                break;
-              } else {
-                if (refObject.initialized) newChild.initialize();
-                refObject.childArray[index] = newChild;
-                refObject = newChild;
-              }
-            }
-
-            // Have to update idx value to skip the array position
-            idx++;
-          }
-        }
-      }
-    }
-
-    if (returnValue === global_constants.SCORM_FALSE) {
-      this.apiLog(
-        methodName,
-        `There was an error setting the value for: ${CMIElement}, value of: ${value}`,
-        LogLevelEnum.WARN,
-      );
-    }
-
-    return returnValue;
+    return this._cmiValueAccessService.setCMIValue(methodName, scorm2004, CMIElement, value);
   }
 
   /**
-   * Gets a value from the CMI Object
+   * Gets a value from the CMI Object.
+   * Delegates to CMIValueAccessService for the complex traversal logic.
    *
    * @param {string} methodName
    * @param {boolean} scorm2004
@@ -1344,131 +1219,7 @@ export default abstract class BaseAPI implements IBaseAPI {
    * @return {any}
    */
   _commonGetCMIValue(methodName: string, scorm2004: boolean, CMIElement: string): any {
-    if (!CMIElement || CMIElement === "") {
-      if (scorm2004) {
-        this.throwSCORMError(
-          CMIElement,
-          this._error_codes.GENERAL_GET_FAILURE,
-          "The data model element was not specified",
-        );
-      }
-      return "";
-    }
-
-    // SCORM 2004: Validate ._version keyword usage - only valid on cmi._version
-    if (scorm2004 && CMIElement.endsWith("._version") && CMIElement !== "cmi._version") {
-      this.throwSCORMError(
-        CMIElement,
-        this._error_codes.GENERAL_GET_FAILURE,
-        "The _version keyword was used incorrectly",
-      );
-      return "";
-    }
-
-    const structure = CMIElement.split(".");
-    let refObject: StringKeyMap = this as StringKeyMap;
-    let attribute = null;
-
-    const uninitializedErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) has not been initialized.`;
-    const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
-    const invalidErrorCode = scorm2004
-      ? this._error_codes.UNDEFINED_DATA_MODEL
-      : this._error_codes.GENERAL;
-
-    for (let idx = 0; idx < structure.length; idx++) {
-      attribute = structure[idx];
-
-      if (!scorm2004) {
-        if (idx === structure.length - 1) {
-          if (
-            typeof attribute === "undefined" ||
-            !this._checkObjectHasProperty(refObject, attribute)
-          ) {
-            this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-            return;
-          }
-        }
-      } else {
-        if (
-          String(attribute).substring(0, 8) === "{target=" &&
-          typeof refObject._isTargetValid == "function"
-        ) {
-          // Extract target from {target=X} format: skip "{target=" (8 chars) and "}" (1 char at end)
-          const target = String(attribute).substring(8, String(attribute).length - 1);
-          return refObject._isTargetValid(target);
-        } else if (
-          typeof attribute === "undefined" ||
-          !this._checkObjectHasProperty(refObject, attribute)
-        ) {
-          // SCORM 2004: Check for keyword errors with specific diagnostics
-          if (attribute === "_children") {
-            this.throwSCORMError(
-              CMIElement,
-              this._error_codes.GENERAL_GET_FAILURE,
-              "The data model element does not have children",
-            );
-            return;
-          } else if (attribute === "_count") {
-            this.throwSCORMError(
-              CMIElement,
-              this._error_codes.GENERAL_GET_FAILURE,
-              "The data model element is not a collection and therefore does not have a count",
-            );
-            return;
-          }
-          this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-          return;
-        }
-      }
-
-      if (attribute !== undefined && attribute !== null) {
-        refObject = refObject[attribute] as StringKeyMap;
-        if (refObject === undefined) {
-          this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-          break;
-        }
-      } else {
-        this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-        break;
-      }
-
-      if (refObject instanceof CMIArray) {
-        const index = parseInt(structure[idx + 1] || "", 10);
-
-        // SCO is trying to set an item on an array
-        if (!isNaN(index)) {
-          const item = refObject.childArray[index];
-
-          if (item) {
-            refObject = item as unknown as StringKeyMap;
-          } else {
-            this.throwSCORMError(
-              CMIElement,
-              this._error_codes.VALUE_NOT_INITIALIZED,
-              uninitializedErrorMessage,
-            );
-            return;
-          }
-
-          // Have to update idx value to skip the array position
-          idx++;
-        }
-      }
-    }
-
-    if (refObject === null || refObject === undefined) {
-      if (!scorm2004) {
-        // SCORM 1.2: Use specific keyword error codes
-        if (attribute === "_children") {
-          this.throwSCORMError(CMIElement, this._error_codes.CHILDREN_ERROR, undefined);
-        } else if (attribute === "_count") {
-          this.throwSCORMError(CMIElement, this._error_codes.COUNT_ERROR, undefined);
-        }
-      }
-      // SCORM 2004 keyword errors are handled during traversal (lines 1318-1333)
-    } else {
-      return refObject;
-    }
+    return this._cmiValueAccessService.getCMIValue(methodName, scorm2004, CMIElement);
   }
 
   /**
