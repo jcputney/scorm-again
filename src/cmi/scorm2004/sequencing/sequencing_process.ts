@@ -12,6 +12,12 @@ import {getDurationAsSeconds} from "../../../utilities";
 import {scorm2004_regex} from "../../../constants/regex";
 import {SelectionRandomization} from "./selection_randomization";
 
+// Extracted modules for improved testability and maintainability
+// These modules can be used independently or to gradually replace internal methods
+import {ActivityTreeQueries} from "./utils/activity_tree_queries";
+import {ChoiceConstraintValidator} from "./validators/choice_constraint_validator";
+import {RuleEvaluationEngine} from "./rules/rule_evaluation_engine";
+
 /**
  * Enum for sequencing request types
  */
@@ -120,6 +126,11 @@ export class SequencingProcess {
   private getAttemptElapsedSecondsHook: ((activity: Activity) => number) | undefined;
   private getActivityElapsedSecondsHook: ((activity: Activity) => number) | undefined;
 
+  // Extracted modules for improved testability (used for delegation in specific areas)
+  private _treeQueries: ActivityTreeQueries;
+  private _constraintValidator: ChoiceConstraintValidator;
+  private _ruleEngine: RuleEvaluationEngine;
+
   constructor(
       activityTree: ActivityTree,
       sequencingRules?: SequencingRules | null,
@@ -142,6 +153,14 @@ export class SequencingProcess {
     this.getActivityElapsedSecondsHook = options?.getActivityElapsedSeconds as
         | ((activity: Activity) => number)
         | undefined;
+
+    // Initialize extracted modules
+    this._treeQueries = new ActivityTreeQueries(activityTree);
+    this._ruleEngine = new RuleEvaluationEngine({
+      now: this.now,
+      getAttemptElapsedSecondsHook: this.getAttemptElapsedSecondsHook
+    });
+    this._constraintValidator = new ChoiceConstraintValidator(activityTree, this._treeQueries);
   }
 
   /**
@@ -3024,6 +3043,34 @@ export class SequencingProcess {
     }
 
     return availableActivities;
+  }
+
+  // ========================================================================
+  // Extracted Module Accessors
+  // These provide access to the extracted modules for advanced use cases
+  // and testing. The modules can be used independently for unit testing
+  // specific functionality without instantiating the full SequencingProcess.
+  // ========================================================================
+
+  /**
+   * Get the ActivityTreeQueries utility for tree traversal operations
+   */
+  public getTreeQueries(): ActivityTreeQueries {
+    return this._treeQueries;
+  }
+
+  /**
+   * Get the ChoiceConstraintValidator for choice constraint validation
+   */
+  public getConstraintValidator(): ChoiceConstraintValidator {
+    return this._constraintValidator;
+  }
+
+  /**
+   * Get the RuleEvaluationEngine for sequencing rule evaluation
+   */
+  public getRuleEngine(): RuleEvaluationEngine {
+    return this._ruleEngine;
   }
 }
 
