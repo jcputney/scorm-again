@@ -11,13 +11,7 @@ import { global_constants, scorm2004_constants } from "./constants/api_constants
 import { scorm2004_errors } from "./constants/error_codes";
 import { CMIObjectivesObject } from "./cmi/scorm2004/objectives";
 import { ADL } from "./cmi/scorm2004/adl";
-import {
-  CommitObject,
-  ResultObject,
-  ScoreObject,
-  SequencingStateMetadata,
-  Settings,
-} from "./types/api_types";
+import { CommitObject, ResultObject, SequencingStateMetadata, Settings } from "./types/api_types";
 import {
   ActivitySettings,
   SequencingCollectionSettings,
@@ -124,9 +118,9 @@ class Scorm2004API extends BaseAPI {
     };
     this._cmiHandler = new Scorm2004CMIHandler(cmiHandlerContext, this._responseValidator);
 
-    // Initialize global objective manager context
+    // Initialize global objective manager context - use getter to always get current settings
     const globalObjectiveContext: GlobalObjectiveContext = {
-      settings: this.settings,
+      getSettings: () => this.settings,
       cmi: this.cmi,
       sequencing: this._sequencing,
       sequencingService: this._sequencingService,
@@ -1067,10 +1061,10 @@ class Scorm2004API extends BaseAPI {
       this._globalObjectiveManager.updateSequencingService(this._sequencingService);
       this._dataSerializer.updateSequencingService(this._sequencingService);
 
-      // Initialize state persistence
+      // Initialize state persistence - use getter to always get current settings
       if (settings?.sequencingStatePersistence) {
         const persistenceContext: PersistenceContext = {
-          settings: this.settings,
+          getSettings: () => this.settings,
           apiLog: this.apiLog.bind(this),
           adl: this.adl,
           sequencing: this._sequencing,
@@ -1203,9 +1197,9 @@ class Scorm2004API extends BaseAPI {
       return false;
     }
 
-    // Fallback: create persistence on the fly
+    // Fallback: create persistence on the fly - use getter to always get current settings
     const persistenceContext: PersistenceContext = {
-      settings: this.settings,
+      getSettings: () => this.settings,
       apiLog: this.apiLog.bind(this),
       adl: this.adl,
       sequencing: this._sequencing,
@@ -1238,9 +1232,9 @@ class Scorm2004API extends BaseAPI {
       return false;
     }
 
-    // Fallback: create persistence on the fly
+    // Fallback: create persistence on the fly - use getter to always get current settings
     const persistenceContext: PersistenceContext = {
-      settings: this.settings,
+      getSettings: () => this.settings,
       apiLog: this.apiLog.bind(this),
       adl: this.adl,
       sequencing: this._sequencing,
@@ -1263,9 +1257,9 @@ class Scorm2004API extends BaseAPI {
       return this._statePersistence.serializeSequencingState();
     }
 
-    // Fallback: create persistence on the fly
+    // Fallback: create persistence on the fly - use getter to always get current settings
     const persistenceContext: PersistenceContext = {
-      settings: this.settings,
+      getSettings: () => this.settings,
       apiLog: this.apiLog.bind(this),
       adl: this.adl,
       sequencing: this._sequencing,
@@ -1289,9 +1283,9 @@ class Scorm2004API extends BaseAPI {
       return this._statePersistence.deserializeSequencingState(stateData);
     }
 
-    // Fallback: create persistence on the fly
+    // Fallback: create persistence on the fly - use getter to always get current settings
     const persistenceContext: PersistenceContext = {
-      settings: this.settings,
+      getSettings: () => this.settings,
       apiLog: this.apiLog.bind(this),
       adl: this.adl,
       sequencing: this._sequencing,

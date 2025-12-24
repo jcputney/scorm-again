@@ -20,7 +20,7 @@ export type CommonSetCMIValueFn = (
  * Context interface for global objective operations
  */
 export interface GlobalObjectiveContext {
-  settings: Settings;
+  getSettings: () => Settings;
   cmi: CMI;
   sequencing: Sequencing | null;
   sequencingService: SequencingService | null;
@@ -102,11 +102,12 @@ export class GlobalObjectiveManager {
     const globalIds = Array.from(globalObjectiveMap.keys());
 
     // Merge with any existing globalObjectiveIds from settings
-    const existingIds = this.context.settings.globalObjectiveIds || [];
+    const settings = this.context.getSettings();
+    const existingIds = settings.globalObjectiveIds || [];
     const mergedIds = Array.from(new Set(existingIds.concat(globalIds)));
 
     // Update settings with the merged list
-    this.context.settings.globalObjectiveIds = mergedIds;
+    settings.globalObjectiveIds = mergedIds;
   }
 
   /**

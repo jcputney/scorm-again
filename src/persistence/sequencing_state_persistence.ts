@@ -15,7 +15,7 @@ export type ApiLogFn = (method: string, message: string, level: number) => void;
  * Context interface for persistence operations
  */
 export interface PersistenceContext {
-  settings: Settings;
+  getSettings: () => Settings;
   apiLog: ApiLogFn;
   adl: ADL;
   sequencing: Sequencing;
@@ -48,7 +48,8 @@ export class SequencingStatePersistence {
    * @return {Promise<boolean>} Promise resolving to success status
    */
   async saveSequencingState(metadata?: Partial<SequencingStateMetadata>): Promise<boolean> {
-    if (!this.context.settings.sequencingStatePersistence) {
+    const settings = this.context.getSettings();
+    if (!settings.sequencingStatePersistence) {
       this.context.apiLog(
         "saveSequencingState",
         "No persistence configuration provided",
@@ -61,14 +62,14 @@ export class SequencingStatePersistence {
       const stateData = this.serializeSequencingState();
       const fullMetadata: SequencingStateMetadata = {
         learnerId: this.context.learnerId || "unknown",
-        courseId: this.context.settings.courseId || "unknown",
+        courseId: settings.courseId || "unknown",
         attemptNumber: 1,
         lastUpdated: new Date().toISOString(),
-        version: this.context.settings.sequencingStatePersistence.stateVersion || "1.0",
+        version: settings.sequencingStatePersistence.stateVersion || "1.0",
         ...metadata,
       };
 
-      const config = this.context.settings.sequencingStatePersistence;
+      const config = settings.sequencingStatePersistence;
       let dataToSave = stateData;
 
       // Compress if enabled (using simple base64 encoding for now)
@@ -108,7 +109,8 @@ export class SequencingStatePersistence {
    * @return {Promise<boolean>} Promise resolving to success status
    */
   async loadSequencingState(metadata?: Partial<SequencingStateMetadata>): Promise<boolean> {
-    if (!this.context.settings.sequencingStatePersistence) {
+    const settings = this.context.getSettings();
+    if (!settings.sequencingStatePersistence) {
       this.context.apiLog(
         "loadSequencingState",
         "No persistence configuration provided",
@@ -120,13 +122,13 @@ export class SequencingStatePersistence {
     try {
       const fullMetadata: SequencingStateMetadata = {
         learnerId: this.context.learnerId || "unknown",
-        courseId: this.context.settings.courseId || "unknown",
+        courseId: settings.courseId || "unknown",
         attemptNumber: 1,
-        version: this.context.settings.sequencingStatePersistence.stateVersion || "1.0",
+        version: settings.sequencingStatePersistence.stateVersion || "1.0",
         ...metadata,
       };
 
-      const config = this.context.settings.sequencingStatePersistence;
+      const config = settings.sequencingStatePersistence;
       const stateData = await config.persistence.loadState(fullMetadata);
 
       if (!stateData) {
@@ -172,8 +174,9 @@ export class SequencingStatePersistence {
    * @return {string} Serialized state
    */
   serializeSequencingState(): string {
+    const settings = this.context.getSettings();
     const state: any = {
-      version: this.context.settings.sequencingStatePersistence?.stateVersion || "1.0",
+      version: settings.sequencingStatePersistence?.stateVersion || "1.0",
       timestamp: new Date().toISOString(),
       sequencing: null,
       currentActivityId: null,
@@ -220,10 +223,10 @@ export class SequencingStatePersistence {
   deserializeSequencingState(stateData: string): boolean {
     try {
       const state = JSON.parse(stateData);
+      const settings = this.context.getSettings();
 
       // Version compatibility check
-      const expectedVersion =
-        this.context.settings.sequencingStatePersistence?.stateVersion || "1.0";
+      const expectedVersion = settings.sequencingStatePersistence?.stateVersion || "1.0";
       if (state.version !== expectedVersion) {
         this.context.apiLog(
           "deserializeSequencingState",
