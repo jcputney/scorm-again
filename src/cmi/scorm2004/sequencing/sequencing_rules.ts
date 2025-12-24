@@ -64,6 +64,10 @@ export class RuleCondition extends BaseCMI {
   private _referencedObjective: string | null = null;
   // Optional, overridable provider for current time (LMS may set via SequencingService)
   private static _now: () => Date = () => new Date();
+  // Optional, overridable hook for getting elapsed seconds
+  private static _getElapsedSecondsHook:
+    | ((activity: Activity) => number)
+    | undefined = undefined;
 
   /**
    * Constructor for RuleCondition
@@ -89,6 +93,13 @@ export class RuleCondition extends BaseCMI {
     if (typeof now === "function") {
       RuleCondition._now = now;
     }
+  }
+
+  /**
+   * Allow integrators to set an elapsed seconds hook for time limit calculations
+   */
+  public static setElapsedSecondsHook(hook: ((activity: Activity) => number) | undefined) {
+    RuleCondition._getElapsedSecondsHook = hook;
   }
 
   /**
@@ -281,22 +292,73 @@ export class RuleCondition extends BaseCMI {
    * @private
    */
   private evaluateTimeLimitExceeded(activity: Activity): boolean {
-    const timeLimitDuration = activity.timeLimitDuration;
-    if (!timeLimitDuration) {
+    // Check timeLimitDuration (primary time limit)
+    let limit = activity.timeLimitDuration;
+
+    // Fallback to attemptAbsoluteDurationLimit if timeLimitDuration is not set
+    if (!limit && activity.attemptAbsoluteDurationLimit) {
+      limit = activity.attemptAbsoluteDurationLimit;
+    }
+
+    // No limit means condition is false
+    if (!limit) {
       return false;
     }
 
-    // Parse ISO 8601 duration to milliseconds
-    const durationMs = this.parseISO8601Duration(timeLimitDuration);
-    if (durationMs === 0) {
+    // Parse limit to seconds
+    const limitSeconds = getDurationAsSeconds(limit, scorm2004_regex.CMITimespan);
+
+    // Invalid or zero limit means condition is false
+    if (limitSeconds <= 0) {
       return false;
     }
 
-    // Get current attempt duration
-    const attemptDuration = activity.attemptExperiencedDuration;
-    const attemptDurationMs = this.parseISO8601Duration(attemptDuration);
+    let elapsedSeconds = 0;
 
-    return attemptDurationMs > durationMs;
+    // Strategy 1: Use hook if available (preferred for LMS integration)
+    if (RuleCondition._getElapsedSecondsHook) {
+      try {
+        const hookResult = RuleCondition._getElapsedSecondsHook(activity);
+        if (
+          typeof hookResult === "number" &&
+          !Number.isNaN(hookResult) &&
+          hookResult >= 0
+        ) {
+          elapsedSeconds = hookResult;
+        }
+      } catch {
+        elapsedSeconds = 0;
+      }
+    }
+
+    // Strategy 2: Try to use attemptExperiencedDuration if hook not available
+    if (elapsedSeconds === 0 && activity.attemptExperiencedDuration) {
+      const attemptDurationSeconds = getDurationAsSeconds(
+        activity.attemptExperiencedDuration,
+        scorm2004_regex.CMITimespan
+      );
+      if (attemptDurationSeconds > 0) {
+        elapsedSeconds = attemptDurationSeconds;
+      }
+    }
+
+    // Strategy 3: Calculate from attemptAbsoluteStartTime if duration not available
+    if (elapsedSeconds === 0 && activity.attemptAbsoluteStartTime) {
+      try {
+        const start = new Date(activity.attemptAbsoluteStartTime).getTime();
+        const nowMs = RuleCondition._now().getTime();
+
+        // Validate timestamps before calculating
+        if (!Number.isNaN(start) && !Number.isNaN(nowMs) && nowMs >= start) {
+          elapsedSeconds = (nowMs - start) / 1000;
+        }
+      } catch {
+        elapsedSeconds = 0;
+      }
+    }
+
+    // Time limit is exceeded if elapsed time is strictly greater than limit
+    return elapsedSeconds > limitSeconds;
   }
 
   /**
