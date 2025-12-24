@@ -12,8 +12,7 @@
 }
 
 .heroLogo {
-  width: 120px;
-  height: 120px;
+  height: 10rem;
   margin-bottom: 1.5rem;
 }
 
@@ -62,8 +61,7 @@
   }
 
   .heroLogo {
-    width: 90px;
-    height: 90px;
+    height: 7rem;
     margin-bottom: 1rem;
   }
 
