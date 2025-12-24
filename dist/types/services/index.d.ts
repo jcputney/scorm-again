@@ -1,5 +1,6 @@
 export * from "./ActivityDeliveryService";
 export * from "./AsynchronousHttpService";
+export * from "./CMIValueAccessService";
 export * from "./ErrorHandlingService";
 export * from "./EventService";
 export * from "./LoggingService";

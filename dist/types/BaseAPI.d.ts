@@ -13,6 +13,7 @@ export default abstract class BaseAPI implements IBaseAPI {
     private readonly _errorHandlingService;
     private readonly _loggingService;
     private readonly _offlineStorageService?;
+    private readonly _cmiValueAccessService;
     private _courseId;
     protected constructor(error_codes: ErrorCode, settings?: Settings, httpService?: IHttpService, eventService?: IEventService, serializationService?: ISerializationService, cmiDataService?: ICMIDataService, errorHandlingService?: IErrorHandlingService, loggingService?: ILoggingService, offlineStorageService?: IOfflineStorageService);
     abstract cmi: BaseCMI;

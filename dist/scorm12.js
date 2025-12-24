@@ -1388,6 +1388,346 @@ this.Scorm12API = (function () {
     }
   }
 
+  const TARGET_ATTRIBUTE_PREFIX = "{target=";
+  function getErrorCode(errorCodes, key) {
+    const code = errorCodes[key];
+    if (code === void 0) {
+      if (typeof console !== "undefined" && console.warn) {
+        console.warn(`CMIValueAccessService: Unknown error code key: ${key}`);
+      }
+      return errorCodes["GENERAL"] ?? 0;
+    }
+    return code;
+  }
+  class CMIValueAccessService {
+    constructor(context) {
+      this.context = context;
+    }
+    /**
+     * Gets the appropriate error code for undefined data model elements.
+     * SCORM 2004 uses UNDEFINED_DATA_MODEL, SCORM 1.2 uses GENERAL.
+     */
+    getUndefinedDataModelErrorCode(scorm2004) {
+      return scorm2004 ? getErrorCode(this.context.errorCodes, "UNDEFINED_DATA_MODEL") : getErrorCode(this.context.errorCodes, "GENERAL");
+    }
+    /**
+     * Sets a value on a CMI element path
+     *
+     * @param {string} methodName - The API method name for logging
+     * @param {boolean} scorm2004 - Whether this is SCORM 2004
+     * @param {string} CMIElement - The CMI element path
+     * @param {string} value - The value to set (all SCORM values are strings)
+     * @return {string} "true" or "false"
+     */
+    setCMIValue(methodName, scorm2004, CMIElement, value) {
+      if (!CMIElement || CMIElement === "") {
+        if (scorm2004) {
+          this.context.throwSCORMError(CMIElement, getErrorCode(this.context.errorCodes, "GENERAL_SET_FAILURE"), "The data model element was not specified");
+        }
+        return global_constants.SCORM_FALSE;
+      }
+      this.context.setLastErrorCode("0");
+      const structure = CMIElement.split(".");
+      let refObject = this.context.getDataModel();
+      let returnValue = global_constants.SCORM_FALSE;
+      let foundFirstIndex = false;
+      const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
+      const invalidErrorCode = this.getUndefinedDataModelErrorCode(scorm2004);
+      for (let idx = 0; idx < structure.length; idx++) {
+        const attribute = structure[idx];
+        if (idx === structure.length - 1) {
+          returnValue = this.setFinalAttribute(refObject, attribute, value, CMIElement, scorm2004, invalidErrorCode, invalidErrorMessage);
+          break;
+        } else {
+          const traverseResult = this.traverseToNextLevel(refObject, structure, idx, value, CMIElement, scorm2004, foundFirstIndex, invalidErrorCode, invalidErrorMessage);
+          if (traverseResult.error) {
+            break;
+          }
+          refObject = traverseResult.refObject;
+          idx = traverseResult.idx;
+          foundFirstIndex = traverseResult.foundFirstIndex;
+        }
+      }
+      if (returnValue === global_constants.SCORM_FALSE) {
+        this.context.apiLog(methodName, `There was an error setting the value for: ${CMIElement}, value of: ${value}`, LogLevelEnum.WARN);
+      }
+      return returnValue;
+    }
+    /**
+     * Gets a value from a CMI element path
+     *
+     * @param {string} methodName - The API method name for logging
+     * @param {boolean} scorm2004 - Whether this is SCORM 2004
+     * @param {string} CMIElement - The CMI element path
+     * @return The value at the element path, or empty string on error (per SCORM spec)
+     */
+    getCMIValue(methodName, scorm2004, CMIElement) {
+      if (!CMIElement || CMIElement === "") {
+        if (scorm2004) {
+          this.context.throwSCORMError(CMIElement, getErrorCode(this.context.errorCodes, "GENERAL_GET_FAILURE"), "The data model element was not specified");
+        }
+        return "";
+      }
+      if (scorm2004 && CMIElement.endsWith("._version") && CMIElement !== "cmi._version") {
+        this.context.throwSCORMError(CMIElement, getErrorCode(this.context.errorCodes, "GENERAL_GET_FAILURE"), "The _version keyword was used incorrectly");
+        return "";
+      }
+      const structure = CMIElement.split(".");
+      let refObject = this.context.getDataModel();
+      let attribute = null;
+      const uninitializedErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) has not been initialized.`;
+      const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
+      const invalidErrorCode = this.getUndefinedDataModelErrorCode(scorm2004);
+      for (let idx = 0; idx < structure.length; idx++) {
+        attribute = structure[idx];
+        const validationResult = this.validateGetAttribute(refObject, attribute, CMIElement, scorm2004, invalidErrorCode, invalidErrorMessage, idx === structure.length - 1);
+        if (validationResult.returnValue !== void 0) {
+          return validationResult.returnValue;
+        }
+        if (validationResult.error) {
+          return "";
+        }
+        if (attribute !== void 0 && attribute !== null) {
+          refObject = refObject[attribute];
+          if (refObject === void 0) {
+            this.context.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+            break;
+          }
+        } else {
+          this.context.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+          break;
+        }
+        if (refObject instanceof CMIArray) {
+          const arrayResult = this.handleGetArrayAccess(refObject, structure, idx, CMIElement, uninitializedErrorMessage);
+          if (arrayResult.error) {
+            return "";
+          }
+          refObject = arrayResult.refObject;
+          idx = arrayResult.idx;
+        }
+      }
+      if (refObject === null || refObject === void 0) {
+        if (!scorm2004) {
+          if (attribute === "_children") {
+            this.context.throwSCORMError(CMIElement, getErrorCode(this.context.errorCodes, "CHILDREN_ERROR"), void 0);
+          } else if (attribute === "_count") {
+            this.context.throwSCORMError(CMIElement, getErrorCode(this.context.errorCodes, "COUNT_ERROR"), void 0);
+          }
+        }
+        return "";
+      }
+      return refObject;
+    }
+    /**
+     * Sets the final attribute value in the CMI path
+     */
+    setFinalAttribute(refObject, attribute, value, CMIElement, scorm2004, invalidErrorCode, invalidErrorMessage) {
+      if (scorm2004 && attribute?.startsWith(TARGET_ATTRIBUTE_PREFIX)) {
+        if (this.context.isInitialized()) {
+          this.context.throwSCORMError(CMIElement, getErrorCode(this.context.errorCodes, "READ_ONLY_ELEMENT"));
+          return global_constants.SCORM_FALSE;
+        }
+        return global_constants.SCORM_TRUE;
+      }
+      if (typeof attribute === "undefined" || !this.context.checkObjectHasProperty(refObject, attribute)) {
+        this.context.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+        return global_constants.SCORM_FALSE;
+      }
+      if (stringMatches(CMIElement, "\\.correct_responses\\.\\d+$") && this.context.isInitialized() && attribute !== "pattern") {
+        this.context.validateCorrectResponse(CMIElement, value);
+        if (this.context.getLastErrorCode() !== "0") {
+          this.context.throwSCORMError(CMIElement, getErrorCode(this.context.errorCodes, "TYPE_MISMATCH"));
+          return global_constants.SCORM_FALSE;
+        }
+      }
+      if (!scorm2004 || this.context.getLastErrorCode() === "0") {
+        if (typeof attribute === "undefined" || attribute === "__proto__" || attribute === "constructor") {
+          this.context.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+          return global_constants.SCORM_FALSE;
+        }
+        if (scorm2004 && attribute === "id" && this.context.isInitialized()) {
+          const duplicateError = this.context.checkForDuplicateId(CMIElement, value);
+          if (duplicateError) {
+            this.context.throwSCORMError(CMIElement, getErrorCode(this.context.errorCodes, "GENERAL_SET_FAILURE"));
+            return global_constants.SCORM_FALSE;
+          }
+        }
+        refObject[attribute] = value;
+        return global_constants.SCORM_TRUE;
+      }
+      return global_constants.SCORM_FALSE;
+    }
+    /**
+     * Traverses to the next level in the CMI path
+     */
+    traverseToNextLevel(refObject, structure, idx, value, CMIElement, scorm2004, foundFirstIndex, invalidErrorCode, invalidErrorMessage) {
+      const attribute = structure[idx];
+      if (typeof attribute === "undefined" || !this.context.checkObjectHasProperty(refObject, attribute)) {
+        this.context.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+        return {
+          refObject,
+          idx,
+          foundFirstIndex,
+          error: true
+        };
+      }
+      refObject = refObject[attribute];
+      if (!refObject) {
+        this.context.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+        return {
+          refObject,
+          idx,
+          foundFirstIndex,
+          error: true
+        };
+      }
+      if (refObject instanceof CMIArray) {
+        const arrayResult = this.handleSetArrayAccess(refObject, structure, idx, value, CMIElement, scorm2004, foundFirstIndex, invalidErrorCode, invalidErrorMessage);
+        if (arrayResult.error) {
+          return {
+            refObject,
+            idx,
+            foundFirstIndex,
+            error: true
+          };
+        }
+        return arrayResult;
+      }
+      return {
+        refObject,
+        idx,
+        foundFirstIndex,
+        error: false
+      };
+    }
+    /**
+     * Handles array access during set operations
+     */
+    handleSetArrayAccess(refObject, structure, idx, value, CMIElement, scorm2004, foundFirstIndex, invalidErrorCode, invalidErrorMessage) {
+      const index = parseInt(structure[idx + 1] || "0", 10);
+      if (!isNaN(index)) {
+        const item = refObject.childArray[index];
+        if (item) {
+          return {
+            refObject: item,
+            idx: idx + 1,
+            foundFirstIndex: true,
+            error: false
+          };
+        } else {
+          if (index > refObject.childArray.length) {
+            const errorCode = scorm2004 ? getErrorCode(this.context.errorCodes, "GENERAL_SET_FAILURE") : getErrorCode(this.context.errorCodes, "INVALID_SET_VALUE") || getErrorCode(this.context.errorCodes, "GENERAL_SET_FAILURE");
+            this.context.throwSCORMError(CMIElement, errorCode, `Cannot set array element at index ${index}. Array indices must be sequential. Current array length is ${refObject.childArray.length}, expected index ${refObject.childArray.length}.`);
+            return {
+              refObject,
+              idx,
+              foundFirstIndex,
+              error: true
+            };
+          }
+          const newChild = this.context.getChildElement(CMIElement, value, foundFirstIndex);
+          if (!newChild) {
+            if (this.context.getLastErrorCode() === "0") {
+              this.context.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+            }
+            return {
+              refObject,
+              idx,
+              foundFirstIndex,
+              error: true
+            };
+          } else {
+            if (refObject.initialized) newChild.initialize();
+            refObject.childArray[index] = newChild;
+            return {
+              refObject: newChild,
+              idx: idx + 1,
+              foundFirstIndex: true,
+              error: false
+            };
+          }
+        }
+      }
+      return {
+        refObject,
+        idx,
+        foundFirstIndex,
+        error: false
+      };
+    }
+    /**
+     * Validates an attribute during get operations
+     */
+    validateGetAttribute(refObject, attribute, CMIElement, scorm2004, invalidErrorCode, invalidErrorMessage, isFinalAttribute) {
+      if (!scorm2004) {
+        if (isFinalAttribute) {
+          if (typeof attribute === "undefined" || !this.context.checkObjectHasProperty(refObject, attribute)) {
+            this.context.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+            return {
+              error: true
+            };
+          }
+        }
+      } else {
+        const attrStr = String(attribute);
+        if (attrStr.startsWith(TARGET_ATTRIBUTE_PREFIX) && typeof refObject._isTargetValid == "function") {
+          const target = attrStr.substring(TARGET_ATTRIBUTE_PREFIX.length, attrStr.length - 1);
+          return {
+            error: false,
+            returnValue: refObject._isTargetValid(target)
+          };
+        } else if (typeof attribute === "undefined" || !this.context.checkObjectHasProperty(refObject, attribute)) {
+          if (attribute === "_children") {
+            this.context.throwSCORMError(CMIElement, getErrorCode(this.context.errorCodes, "GENERAL_GET_FAILURE"), "The data model element does not have children");
+            return {
+              error: true
+            };
+          } else if (attribute === "_count") {
+            this.context.throwSCORMError(CMIElement, getErrorCode(this.context.errorCodes, "GENERAL_GET_FAILURE"), "The data model element is not a collection and therefore does not have a count");
+            return {
+              error: true
+            };
+          }
+          this.context.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
+          return {
+            error: true
+          };
+        }
+      }
+      return {
+        error: false
+      };
+    }
+    /**
+     * Handles array access during get operations
+     */
+    handleGetArrayAccess(refObject, structure, idx, CMIElement, uninitializedErrorMessage) {
+      const index = parseInt(structure[idx + 1] || "", 10);
+      if (!isNaN(index)) {
+        const item = refObject.childArray[index];
+        if (item) {
+          return {
+            refObject: item,
+            idx: idx + 1,
+            error: false
+          };
+        } else {
+          this.context.throwSCORMError(CMIElement, getErrorCode(this.context.errorCodes, "VALUE_NOT_INITIALIZED"), uninitializedErrorMessage);
+          return {
+            refObject,
+            idx,
+            error: true
+          };
+        }
+      }
+      return {
+        refObject,
+        idx,
+        error: false
+      };
+    }
+  }
+
   class LoggingService {
     /**
      * Private constructor to prevent direct instantiation
@@ -2724,6 +3064,22 @@ ${stackTrace}`);
           });
         }
       }
+      const cmiValueAccessContext = {
+        errorCodes: this._error_codes,
+        getLastErrorCode: () => this.lastErrorCode,
+        setLastErrorCode: errorCode => {
+          this.lastErrorCode = errorCode;
+        },
+        throwSCORMError: (element, errorCode, message) => this.throwSCORMError(element, errorCode, message),
+        isInitialized: () => this.isInitialized(),
+        validateCorrectResponse: (CMIElement, value) => this.validateCorrectResponse(CMIElement, value),
+        checkForDuplicateId: (CMIElement, value) => this._checkForDuplicateId(CMIElement, value),
+        getChildElement: (CMIElement, value, foundFirstIndex) => this.getChildElement(CMIElement, value, foundFirstIndex),
+        apiLog: (methodName, message, level) => this.apiLog(methodName, message, level),
+        checkObjectHasProperty: (obj, attr) => this._checkObjectHasProperty(obj, attr),
+        getDataModel: () => this
+      };
+      this._cmiValueAccessService = new CMIValueAccessService(cmiValueAccessContext);
     }
     /**
      * Get the last error code
@@ -3189,7 +3545,8 @@ ${stackTrace}`);
       throw new Error("The setCMIValue method has not been implemented");
     }
     /**
-     * Shared API method to set a valid for a given element.
+     * Shared API method to set a value for a given element.
+     * Delegates to CMIValueAccessService for the complex traversal logic.
      *
      * @param {string} methodName
      * @param {boolean} scorm2004
@@ -3198,107 +3555,11 @@ ${stackTrace}`);
      * @return {string}
      */
     _commonSetCMIValue(methodName, scorm2004, CMIElement, value) {
-      if (!CMIElement || CMIElement === "") {
-        if (scorm2004) {
-          this.throwSCORMError(CMIElement, this._error_codes.GENERAL_SET_FAILURE, "The data model element was not specified");
-        }
-        return global_constants.SCORM_FALSE;
-      }
-      this.lastErrorCode = "0";
-      const structure = CMIElement.split(".");
-      let refObject = this;
-      let returnValue = global_constants.SCORM_FALSE;
-      let foundFirstIndex = false;
-      const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
-      const invalidErrorCode = scorm2004 ? this._error_codes.UNDEFINED_DATA_MODEL : this._error_codes.GENERAL;
-      for (let idx = 0; idx < structure.length; idx++) {
-        const attribute = structure[idx];
-        if (idx === structure.length - 1) {
-          if (scorm2004 && attribute && attribute.substring(0, 8) === "{target=") {
-            if (this.isInitialized()) {
-              this.throwSCORMError(CMIElement, this._error_codes.READ_ONLY_ELEMENT);
-              break;
-            } else {
-              refObject = {
-                ...refObject,
-                attribute: value
-              };
-            }
-          } else if (typeof attribute === "undefined" || !this._checkObjectHasProperty(refObject, attribute)) {
-            this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-            break;
-          } else {
-            if (stringMatches(CMIElement, "\\.correct_responses\\.\\d+$") && this.isInitialized() && attribute !== "pattern") {
-              this.validateCorrectResponse(CMIElement, value);
-              if (this.lastErrorCode !== "0") {
-                this.throwSCORMError(CMIElement, this._error_codes.TYPE_MISMATCH);
-                break;
-              }
-            }
-            if (!scorm2004 || this._errorHandlingService.lastErrorCode === "0") {
-              if (typeof attribute === "undefined" || attribute === "__proto__" || attribute === "constructor") {
-                this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-                break;
-              }
-              if (scorm2004 && attribute === "id" && this.isInitialized()) {
-                const duplicateError = this._checkForDuplicateId(CMIElement, value);
-                if (duplicateError) {
-                  this.throwSCORMError(CMIElement, this._error_codes.GENERAL_SET_FAILURE);
-                  break;
-                }
-              }
-              refObject[attribute] = value;
-              returnValue = global_constants.SCORM_TRUE;
-            }
-          }
-        } else {
-          if (typeof attribute === "undefined" || !this._checkObjectHasProperty(refObject, attribute)) {
-            this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-            break;
-          }
-          refObject = refObject[attribute];
-          if (!refObject) {
-            this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-            break;
-          }
-          if (refObject instanceof CMIArray) {
-            const index = parseInt(structure[idx + 1] || "0", 10);
-            if (!isNaN(index)) {
-              const item = refObject.childArray[index];
-              if (item) {
-                refObject = item;
-                foundFirstIndex = true;
-              } else {
-                if (index > refObject.childArray.length) {
-                  const errorCode = scorm2004 ? this._error_codes.GENERAL_SET_FAILURE : this._error_codes.INVALID_SET_VALUE || this._error_codes.GENERAL_SET_FAILURE;
-                  this.throwSCORMError(CMIElement, errorCode, `Cannot set array element at index ${index}. Array indices must be sequential. Current array length is ${refObject.childArray.length}, expected index ${refObject.childArray.length}.`);
-                  break;
-                }
-                const newChild = this.getChildElement(CMIElement, value, foundFirstIndex);
-                foundFirstIndex = true;
-                if (!newChild) {
-                  if (this.lastErrorCode === "0") {
-                    this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-                  }
-                  break;
-                } else {
-                  if (refObject.initialized) newChild.initialize();
-                  refObject.childArray[index] = newChild;
-                  refObject = newChild;
-                }
-              }
-              idx++;
-            }
-          }
-        }
-      }
-      if (returnValue === global_constants.SCORM_FALSE) {
-        this.apiLog(methodName, `There was an error setting the value for: ${CMIElement}, value of: ${value}`, LogLevelEnum.WARN);
-      }
-      return returnValue;
+      return this._cmiValueAccessService.setCMIValue(methodName, scorm2004, CMIElement, value);
     }
     /**
-     * Gets a value from the CMI Object
+     * Gets a value from the CMI Object.
+     * Delegates to CMIValueAccessService for the complex traversal logic.
      *
      * @param {string} methodName
      * @param {boolean} scorm2004
@@ -3306,82 +3567,7 @@ ${stackTrace}`);
      * @return {any}
      */
     _commonGetCMIValue(methodName, scorm2004, CMIElement) {
-      if (!CMIElement || CMIElement === "") {
-        if (scorm2004) {
-          this.throwSCORMError(CMIElement, this._error_codes.GENERAL_GET_FAILURE, "The data model element was not specified");
-        }
-        return "";
-      }
-      if (scorm2004 && CMIElement.endsWith("._version") && CMIElement !== "cmi._version") {
-        this.throwSCORMError(CMIElement, this._error_codes.GENERAL_GET_FAILURE, "The _version keyword was used incorrectly");
-        return "";
-      }
-      const structure = CMIElement.split(".");
-      let refObject = this;
-      let attribute = null;
-      const uninitializedErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) has not been initialized.`;
-      const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
-      const invalidErrorCode = scorm2004 ? this._error_codes.UNDEFINED_DATA_MODEL : this._error_codes.GENERAL;
-      for (let idx = 0; idx < structure.length; idx++) {
-        attribute = structure[idx];
-        if (!scorm2004) {
-          if (idx === structure.length - 1) {
-            if (typeof attribute === "undefined" || !this._checkObjectHasProperty(refObject, attribute)) {
-              this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-              return;
-            }
-          }
-        } else {
-          if (String(attribute).substring(0, 8) === "{target=" && typeof refObject._isTargetValid == "function") {
-            const target = String(attribute).substring(8, String(attribute).length - 1);
-            return refObject._isTargetValid(target);
-          } else if (typeof attribute === "undefined" || !this._checkObjectHasProperty(refObject, attribute)) {
-            if (attribute === "_children") {
-              this.throwSCORMError(CMIElement, this._error_codes.GENERAL_GET_FAILURE, "The data model element does not have children");
-              return;
-            } else if (attribute === "_count") {
-              this.throwSCORMError(CMIElement, this._error_codes.GENERAL_GET_FAILURE, "The data model element is not a collection and therefore does not have a count");
-              return;
-            }
-            this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-            return;
-          }
-        }
-        if (attribute !== void 0 && attribute !== null) {
-          refObject = refObject[attribute];
-          if (refObject === void 0) {
-            this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-            break;
-          }
-        } else {
-          this.throwSCORMError(CMIElement, invalidErrorCode, invalidErrorMessage);
-          break;
-        }
-        if (refObject instanceof CMIArray) {
-          const index = parseInt(structure[idx + 1] || "", 10);
-          if (!isNaN(index)) {
-            const item = refObject.childArray[index];
-            if (item) {
-              refObject = item;
-            } else {
-              this.throwSCORMError(CMIElement, this._error_codes.VALUE_NOT_INITIALIZED, uninitializedErrorMessage);
-              return;
-            }
-            idx++;
-          }
-        }
-      }
-      if (refObject === null || refObject === void 0) {
-        if (!scorm2004) {
-          if (attribute === "_children") {
-            this.throwSCORMError(CMIElement, this._error_codes.CHILDREN_ERROR, void 0);
-          } else if (attribute === "_count") {
-            this.throwSCORMError(CMIElement, this._error_codes.COUNT_ERROR, void 0);
-          }
-        }
-      } else {
-        return refObject;
-      }
+      return this._cmiValueAccessService.getCMIValue(methodName, scorm2004, CMIElement);
     }
     /**
      * Returns true if the API's current state is STATE_INITIALIZED
