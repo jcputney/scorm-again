@@ -121,39 +121,16 @@ export class RollupStateValidator {
 
     // Check rollup controls consistency
     const controls = activity.sequencingControls;
-    // Note: Having rollup data without rollup controls enabled is valid (data from content)
-    // We only flag it as inconsistent if the data seems to be from rollup
-    if (!controls.rollupObjectiveSatisfied && !controls.rollupProgressCompletion) {
-      // Only flag as inconsistent if this is a cluster with children
-      // (leaf activities can have data set by content)
-      if (activity.children.length > 0) {
-        if (activity.objectiveMeasureStatus && activity.objectiveNormalizedMeasure !== 0) {
-          // Cluster has measure data but rollup is disabled - this could be inconsistent
-          // unless it was set explicitly by content (which is unusual but valid)
-        }
-      }
-    }
-
-    // Check rollup consideration consistency (RB.1.4 enhancement)
-    // Validate that consideration settings are appropriate for activity state
-    if (activity.requiredForSatisfied === "ifAttempted" && activity.attemptCount === 0) {
-      // Activity requires being attempted but hasn't been attempted
-      // This is valid - just means it won't contribute to rollup yet
-    }
-
-    if (
-      activity.requiredForSatisfied === "ifNotSuspended" &&
-      activity.isSuspended &&
-      activity.attemptCount > 0
-    ) {
-      // Activity is suspended and won't contribute to satisfied rollup
-      // This is valid - just means it's temporarily excluded
-    }
-
-    if (activity.requiredForSatisfied === "ifNotSkipped" && activity.wasSkipped) {
-      // Activity was skipped and won't contribute to satisfied rollup
-      // This is valid - just means it's excluded
-    }
+    // Note: Having rollup data without rollup controls enabled is valid (data from content).
+    // Clusters with measure data but rollup disabled could indicate an inconsistency,
+    // but this is unusual yet valid if set explicitly by content. We don't flag this
+    // as an error since it may be intentional.
+    //
+    // Rollup consideration states (RB.1.4 enhancement) are also valid and don't need
+    // flagging as inconsistencies:
+    // - "ifAttempted" with attemptCount=0: Activity will contribute once attempted
+    // - "ifNotSuspended" with isSuspended=true: Activity is temporarily excluded
+    // - "ifNotSkipped" with wasSkipped=true: Activity is excluded from rollup
 
     // Check children consistency and their rollup contributions
     const children = activity.getAvailableChildren();

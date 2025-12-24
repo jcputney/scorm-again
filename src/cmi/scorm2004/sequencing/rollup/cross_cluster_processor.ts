@@ -18,11 +18,17 @@ export type EventCallback = (eventType: string, data?: unknown) => void;
  *
  * @spec Priority 5 Gap: Cross-cluster dependency processing
  */
+/**
+ * Maximum recursion depth for cross-cluster processing to prevent infinite loops
+ */
+const MAX_CLUSTER_DEPTH = 10;
+
 export class CrossClusterProcessor {
   private measureProcessor: MeasureRollupProcessor;
   private objectiveProcessor: ObjectiveRollupProcessor;
   private progressProcessor: ProgressRollupProcessor;
   private eventCallback: EventCallback | null;
+  private processingClusters: Set<string> = new Set();
 
   /**
    * Create a new CrossClusterProcessor
@@ -50,12 +56,38 @@ export class CrossClusterProcessor {
    *
    * @param activity - The activity to process
    * @param clusters - Related activity clusters
+   * @param depth - Current recursion depth (default 0)
    */
-  public processCrossClusterDependencies(activity: Activity, clusters: Activity[]): void {
+  public processCrossClusterDependencies(
+    activity: Activity,
+    clusters: Activity[],
+    depth: number = 0,
+  ): void {
+    // Prevent infinite recursion with depth limit
+    if (depth >= MAX_CLUSTER_DEPTH) {
+      this.eventCallback?.("cross_cluster_max_depth_reached", {
+        activityId: activity.id,
+        depth,
+        maxDepth: MAX_CLUSTER_DEPTH,
+      });
+      return;
+    }
+
+    // Skip if we're already processing this activity (prevents re-entrant calls)
+    if (this.processingClusters.has(activity.id)) {
+      this.eventCallback?.("cross_cluster_skip_reentrant", {
+        activityId: activity.id,
+      });
+      return;
+    }
+
     try {
+      this.processingClusters.add(activity.id);
+
       this.eventCallback?.("cross_cluster_processing_started", {
         activityId: activity.id,
         clusterCount: clusters.length,
+        depth,
       });
 
       const dependencyMap = new Map<string, string[]>();
@@ -71,7 +103,7 @@ export class CrossClusterProcessor {
       for (const clusterId of processOrder) {
         const cluster = clusters.find((c) => c.id === clusterId);
         if (cluster) {
-          this.processClusterRollup(cluster);
+          this.processClusterRollup(cluster, depth);
         }
       }
 
@@ -85,6 +117,8 @@ export class CrossClusterProcessor {
         activityId: activity.id,
         error: error instanceof Error ? error.message : String(error),
       });
+    } finally {
+      this.processingClusters.delete(activity.id);
     }
   }
 
@@ -122,10 +156,15 @@ export class CrossClusterProcessor {
     // Build dependency relationships based on sequencing rules and prerequisites
     const dependencies: string[] = [];
 
-    // Check sequencing rules for dependencies
-    // Note: Implementation would analyze rules to identify dependencies
-    // For now, we just track the cluster as having no dependencies
-    const _sequencingRules = cluster.sequencingRules;
+    // Analyze sequencing rules for potential cross-cluster dependencies
+    // TODO: Implement rule analysis to identify dependencies between clusters
+    // based on precondition rules, objective mappings, and prerequisite relationships.
+    // Currently, clusters are treated as independent for processing order.
+    const sequencingRules = cluster.sequencingRules;
+    if (sequencingRules && sequencingRules.preConditionRules.length > 0) {
+      // Future: Extract target activity references from precondition rules
+      // and add them to dependencies array if they reference other clusters
+    }
 
     dependencyMap.set(cluster.id, dependencies);
   }
@@ -172,10 +211,11 @@ export class CrossClusterProcessor {
    * Performs standard rollup process for the cluster
    *
    * @param cluster - The cluster to process
+   * @param depth - Current recursion depth for nested cluster handling
    */
-  public processClusterRollup(cluster: Activity): void {
+  public processClusterRollup(cluster: Activity, depth: number = 0): void {
     // Perform standard rollup process for the cluster
-    this.measureProcessor.measureRollupProcess(cluster);
+    const nestedClusters = this.measureProcessor.measureRollupProcess(cluster);
 
     if (cluster.sequencingControls.rollupObjectiveSatisfied) {
       this.objectiveProcessor.objectiveRollupProcess(cluster);
@@ -183,6 +223,11 @@ export class CrossClusterProcessor {
 
     if (cluster.sequencingControls.rollupProgressCompletion) {
       this.progressProcessor.activityProgressRollupProcess(cluster);
+    }
+
+    // Handle nested clusters with increased depth to prevent infinite recursion
+    if (nestedClusters.length > 1) {
+      this.processCrossClusterDependencies(cluster, nestedClusters, depth + 1);
     }
   }
 }

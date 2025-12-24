@@ -159,7 +159,6 @@ export class GlobalObjectiveSynchronizer {
           globalObjectives,
           targetId,
           objective,
-          mapInfo,
         );
 
         // Only do WRITE operations in this phase
@@ -314,7 +313,6 @@ export class GlobalObjectiveSynchronizer {
           globalObjectives,
           targetId,
           objective,
-          mapInfo,
         );
         this.syncObjectiveState(activity, objective, mapInfo, globalObjective);
       }
@@ -433,14 +431,12 @@ export class GlobalObjectiveSynchronizer {
    * @param globalObjectives - Global objectives map
    * @param targetId - Target objective ID
    * @param objective - Source objective
-   * @param _mapInfo - Map info (unused but kept for API compatibility)
    * @returns The global objective entry
    */
   public ensureGlobalObjectiveEntry(
     globalObjectives: Map<string, GlobalObjective>,
     targetId: string,
     objective: ActivityObjective,
-    _mapInfo: ObjectiveMapInfo,
   ): GlobalObjective {
     if (!globalObjectives.has(targetId)) {
       // Create new entry if global objective doesn't exist

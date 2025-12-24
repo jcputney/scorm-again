@@ -1,8 +1,4 @@
-import {
-  Activity,
-  RollupConsiderationRequirement,
-  RollupConsiderationsConfig,
-} from "../activity";
+import { Activity, RollupConsiderationsConfig } from "../activity";
 import { SuccessStatus } from "../../../../constants/enums";
 
 /**
@@ -152,10 +148,9 @@ export class RollupChildFilter {
   }
 
   /**
-   * Filter children based on rollup requirement
+   * Filter children based on rollup type and mode
    *
    * @param children - Child activities to filter
-   * @param _requirement - The rollup requirement (not directly used but kept for API compatibility)
    * @param rollupType - Type of rollup ("objective" | "progress")
    * @param mode - Rollup action mode
    * @param considerations - Parent-level rollup considerations config
@@ -163,13 +158,12 @@ export class RollupChildFilter {
    */
   public filterChildrenForRequirement(
     children: Activity[],
-    _requirement: RollupConsiderationRequirement,
     rollupType: "objective" | "progress",
     mode: RollupAction,
     considerations: RollupConsiderationsConfig,
   ): Activity[] {
     return children.filter((child) =>
-      this.shouldIncludeChildForRollup(child, _requirement, rollupType, mode, considerations),
+      this.shouldIncludeChildForRollup(child, rollupType, mode, considerations),
     );
   }
 
@@ -177,7 +171,6 @@ export class RollupChildFilter {
    * Check if a specific child should be included in rollup
    *
    * @param child - Child activity to check
-   * @param _requirement - The rollup requirement (not directly used but kept for API compatibility)
    * @param rollupType - Type of rollup ("objective" | "progress")
    * @param mode - Rollup action mode
    * @param considerations - Parent-level rollup considerations config
@@ -185,7 +178,6 @@ export class RollupChildFilter {
    */
   public shouldIncludeChildForRollup(
     child: Activity,
-    _requirement: RollupConsiderationRequirement,
     rollupType: "objective" | "progress",
     mode: RollupAction,
     considerations: RollupConsiderationsConfig,

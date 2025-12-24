@@ -191,6 +191,10 @@ export class ObjectiveRollupProcessor {
    * Sync primary objective status from activity properties
    * Ensures the primary objective reflects the activity's rollup-derived status
    *
+   * Note: This method is intentionally public as it is used by other rollup
+   * processors (e.g., ProgressRollupProcessor) to synchronize primary objective
+   * state after modifying activity completion status.
+   *
    * @param activity - The activity to sync
    */
   public syncPrimaryObjectiveFromActivity(activity: Activity): void {
