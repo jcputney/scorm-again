@@ -16923,6 +16923,1048 @@ class SequencingProcess {
   }
 }
 
+class TerminationHandler {
+  constructor(activityTree, sequencingProcess, rollupProcess, globalObjectiveMap, eventCallback = null, options) {
+    this.invalidateCacheCallback = null;
+    this.activityTree = activityTree;
+    this.sequencingProcess = sequencingProcess;
+    this.rollupProcess = rollupProcess;
+    this.globalObjectiveMap = globalObjectiveMap;
+    this.eventCallback = eventCallback;
+    this.getCMIData = options?.getCMIData || null;
+    this.is4thEdition = options?.is4thEdition || false;
+  }
+  /**
+   * Set callback to invalidate navigation cache after state changes
+   */
+  setInvalidateCacheCallback(callback) {
+    this.invalidateCacheCallback = callback;
+  }
+  /**
+   * Enhanced Termination Request Process
+   * Processes termination requests with post-condition loop for EXIT_PARENT handling
+   * Implements missing post-condition loop per SCORM 2004 3rd Edition TB.2.3
+   * @spec SN Book: TB.2.3 (Termination Request Process)
+   * @param {SequencingRequestType} request - The termination request
+   * @param {boolean} hasSequencingRequest - Whether a sequencing request follows
+   * @param {string} exitType - The cmi.exit value (logout, normal, suspend, time-out, or empty)
+   * @return {TerminationResult} - Termination result with sequencing request
+   */
+  processTerminationRequest(request, hasSequencingRequest = false, exitType) {
+    const currentActivity = this.activityTree.currentActivity;
+    if (!currentActivity) {
+      return {
+        terminationRequest: request,
+        sequencingRequest: null,
+        exception: "TB.2.3-1",
+        valid: false
+      };
+    }
+    if ((request === SequencingRequestType.EXIT || request === SequencingRequestType.ABANDON) && !currentActivity.isActive) {
+      return {
+        terminationRequest: request,
+        sequencingRequest: null,
+        exception: "TB.2.3-2",
+        valid: false
+      };
+    }
+    this.fireEvent("onTerminationRequestProcessing", {
+      request,
+      hasSequencingRequest,
+      currentActivity: currentActivity.id,
+      exitType
+    });
+    if (exitType === "logout") {
+      this.fireEvent("onSequencingDebug", {
+        message: "cmi.exit='logout' detected, treating as EXIT_ALL",
+        activityId: currentActivity.id
+      });
+      return this.handleExitAll(currentActivity);
+    }
+    switch (request) {
+      case SequencingRequestType.EXIT:
+        return this.handleExit(currentActivity, hasSequencingRequest);
+      case SequencingRequestType.EXIT_ALL:
+        return this.handleExitAll(currentActivity);
+      case SequencingRequestType.ABANDON:
+        return this.handleAbandon(currentActivity, hasSequencingRequest);
+      case SequencingRequestType.ABANDON_ALL:
+        return this.handleAbandonAll(currentActivity);
+      case SequencingRequestType.SUSPEND_ALL:
+        return this.handleSuspendAll(currentActivity);
+      default:
+        return {
+          terminationRequest: request,
+          sequencingRequest: null,
+          exception: "TB.2.3-7",
+          valid: false
+        };
+    }
+  }
+  /**
+   * Handle EXIT termination with post-condition loop (TB.2.3 step 3)
+   * Implements the do-while loop for EXIT_PARENT cascading
+   * @param {Activity} currentActivity - The current activity
+   * @param {boolean} hasSequencingRequest - Whether a sequencing request follows
+   * @return {TerminationResult} - The termination result
+   */
+  /**
+   * Handle EXIT termination for an activity
+   * Made public for backward compatibility with tests
+   * @param {Activity} currentActivity - The activity being terminated
+   * @param {boolean} hasSequencingRequest - Whether a sequencing request follows
+   * @return {TerminationResult} - The termination result
+   */
+  handleExitTermination(currentActivity, hasSequencingRequest) {
+    return this.handleExit(currentActivity, hasSequencingRequest);
+  }
+  handleExit(currentActivity, hasSequencingRequest) {
+    if (currentActivity.children.length > 0) {
+      this.terminateDescendants(currentActivity);
+    }
+    this.endAttempt(currentActivity);
+    const exitActionResult = this.evaluateExitRules(currentActivity);
+    if (exitActionResult.action === "EXIT_ALL") {
+      return this.handleExitAll(currentActivity);
+    } else if (exitActionResult.action === "EXIT_PARENT") {
+      if (currentActivity.parent) {
+        this.activityTree.currentActivity = currentActivity.parent;
+        this.endAttempt(this.activityTree.currentActivity);
+      }
+    }
+    let processedExit = false;
+    let postConditionResult;
+    do {
+      processedExit = false;
+      postConditionResult = this.evaluatePostConditions(
+        this.activityTree.currentActivity || currentActivity
+      );
+      if (postConditionResult.terminationRequest === SequencingRequestType.EXIT_ALL) {
+        this.fireEvent("onPostConditionExitAll", {
+          activity: (this.activityTree.currentActivity || currentActivity).id
+        });
+        return this.handleExitAll(this.activityTree.root);
+      }
+      if (postConditionResult.terminationRequest === SequencingRequestType.EXIT_PARENT) {
+        const current = this.activityTree.currentActivity || currentActivity;
+        if (!current.parent) {
+          return {
+            terminationRequest: SequencingRequestType.EXIT_PARENT,
+            sequencingRequest: null,
+            exception: "TB.2.3-4",
+            valid: false
+          };
+        } else {
+          this.activityTree.currentActivity = current.parent;
+          this.endAttempt(this.activityTree.currentActivity);
+          processedExit = true;
+          this.fireEvent("onPostConditionExitParent", {
+            fromActivity: current.id,
+            toActivity: this.activityTree.currentActivity.id
+          });
+        }
+      }
+      if (!processedExit) {
+        const atRoot = (this.activityTree.currentActivity || currentActivity) === this.activityTree.root;
+        if (atRoot && postConditionResult.sequencingRequest !== SequencingRequestType.RETRY) {
+          return {
+            terminationRequest: SequencingRequestType.EXIT,
+            sequencingRequest: SequencingRequestType.EXIT,
+            exception: null,
+            valid: true
+          };
+        }
+      }
+    } while (processedExit);
+    if (!hasSequencingRequest && !postConditionResult.sequencingRequest) {
+      const current = this.activityTree.currentActivity || currentActivity;
+      if (current.parent) {
+        this.activityTree.setCurrentActivityWithoutActivation(current.parent);
+      }
+    }
+    return {
+      terminationRequest: SequencingRequestType.EXIT,
+      sequencingRequest: postConditionResult.sequencingRequest,
+      exception: null,
+      valid: true
+    };
+  }
+  /**
+   * Handle EXIT_ALL termination (TB.2.3 step 4)
+   * @param {Activity} _currentActivity - The current activity (unused but kept for consistency)
+   * @return {TerminationResult} - The termination result
+   */
+  handleExitAll(_currentActivity) {
+    if (this.activityTree.root) {
+      this.handleMultiLevelExit(this.activityTree.root);
+    }
+    if (this.activityTree.root) {
+      this.endAttempt(this.activityTree.root);
+    }
+    this.activityTree.currentActivity = null;
+    this.cleanupSuspendedActivity();
+    return {
+      terminationRequest: SequencingRequestType.EXIT_ALL,
+      sequencingRequest: SequencingRequestType.EXIT,
+      exception: null,
+      valid: true
+    };
+  }
+  /**
+   * Handle ABANDON termination (TB.2.3 step 6)
+   * @param {Activity} currentActivity - The current activity
+   * @param {boolean} hasSequencingRequest - Whether a sequencing request follows
+   * @return {TerminationResult} - The termination result
+   */
+  handleAbandon(currentActivity, hasSequencingRequest) {
+    currentActivity.isActive = false;
+    if (!hasSequencingRequest) {
+      this.activityTree.currentActivity = currentActivity.parent;
+    }
+    return {
+      terminationRequest: SequencingRequestType.ABANDON,
+      sequencingRequest: null,
+      exception: null,
+      valid: true
+    };
+  }
+  /**
+   * Handle ABANDON_ALL termination (TB.2.3 step 7)
+   * @param {Activity} currentActivity - The current activity
+   * @return {TerminationResult} - The termination result
+   */
+  handleAbandonAll(currentActivity) {
+    const activityPath = [];
+    let current = currentActivity;
+    while (current !== null) {
+      activityPath.push(current);
+      current = current.parent;
+    }
+    if (activityPath.length === 0) {
+      return {
+        terminationRequest: SequencingRequestType.ABANDON_ALL,
+        sequencingRequest: null,
+        exception: "TB.2.3-6",
+        valid: false
+      };
+    }
+    for (const activity of activityPath) {
+      activity.isActive = false;
+    }
+    this.activityTree.currentActivity = null;
+    this.cleanupSuspendedActivity();
+    return {
+      terminationRequest: SequencingRequestType.ABANDON_ALL,
+      sequencingRequest: null,
+      exception: null,
+      valid: true
+    };
+  }
+  /**
+   * Handle SUSPEND_ALL termination (TB.2.3 step 5)
+   * Implements TB.2.3 steps 5.1-5.7 for SUSPEND_ALL processing
+   * @param {Activity} currentActivity - The current activity
+   * @return {TerminationResult} - The termination result
+   */
+  handleSuspendAll(currentActivity) {
+    const suspendResult = this.processSuspendAllRequest(currentActivity);
+    if (!suspendResult.valid) {
+      return suspendResult;
+    }
+    return {
+      terminationRequest: SequencingRequestType.SUSPEND_ALL,
+      sequencingRequest: SequencingRequestType.EXIT,
+      exception: null,
+      valid: true
+    };
+  }
+  /**
+   * Handle Suspend All Request
+   * Implements TB.2.3 steps 5.1-5.6 from SCORM 2004 reference
+   * Suspends all activities in the path from current activity to root
+   * @param {Activity} currentActivity - Current activity to suspend
+   * @return {TerminationResult} - Result with validation status
+   */
+  processSuspendAllRequest(currentActivity) {
+    const rootActivity = this.activityTree.root;
+    if (!currentActivity || !rootActivity) {
+      this.fireEvent("onSuspendError", {
+        exception: "TB.2.3-1",
+        message: "No current activity to suspend",
+        activity: currentActivity?.id
+      });
+      return {
+        terminationRequest: SequencingRequestType.SUSPEND_ALL,
+        sequencingRequest: null,
+        exception: "TB.2.3-1",
+        valid: false
+      };
+    }
+    if (currentActivity === rootActivity && !currentActivity.isActive && !currentActivity.isSuspended) {
+      this.fireEvent("onSuspendError", {
+        exception: "TB.2.3-3",
+        message: "Nothing to suspend (root activity)",
+        activity: currentActivity.id
+      });
+      return {
+        terminationRequest: SequencingRequestType.SUSPEND_ALL,
+        sequencingRequest: null,
+        exception: "TB.2.3-3",
+        valid: false
+      };
+    }
+    this.activityTree.suspendedActivity = currentActivity;
+    const suspendedActivity = currentActivity;
+    const activityPath = [];
+    let current = suspendedActivity;
+    while (current !== null) {
+      activityPath.push(current);
+      current = current.parent;
+    }
+    if (activityPath.length === 0) {
+      this.fireEvent("onSuspendError", {
+        exception: "TB.2.3-5",
+        message: "Activity path is empty",
+        activity: suspendedActivity?.id
+      });
+      return {
+        terminationRequest: SequencingRequestType.SUSPEND_ALL,
+        sequencingRequest: null,
+        exception: "TB.2.3-5",
+        valid: false
+      };
+    }
+    for (const activity of activityPath) {
+      activity.isActive = false;
+      activity.isSuspended = true;
+    }
+    this.activityTree.currentActivity = rootActivity;
+    rootActivity.isActive = false;
+    this.fireEvent("onActivitySuspended", {
+      activity: suspendedActivity?.id,
+      suspendedPath: activityPath.map((a) => a.id),
+      pathLength: activityPath.length,
+      timestamp: (/* @__PURE__ */ new Date()).toISOString()
+    });
+    return {
+      terminationRequest: SequencingRequestType.SUSPEND_ALL,
+      sequencingRequest: null,
+      exception: null,
+      valid: true
+    };
+  }
+  /**
+   * Enhanced Exit Action Rules Subprocess with recursion detection
+   * @param {Activity} activity - Activity to evaluate
+   * @param {number} recursionDepth - Current recursion depth
+   * @return {{action: string | null, recursionDepth: number}} - Exit action result
+   */
+  evaluateExitRules(activity, recursionDepth = 0) {
+    recursionDepth++;
+    const exitRules = activity.sequencingRules.exitConditionRules;
+    for (const rule of exitRules) {
+      let conditionsMet;
+      if (rule.conditionCombination === "all") {
+        conditionsMet = rule.conditions.every(
+          (condition) => condition.evaluate(activity)
+        );
+      } else {
+        conditionsMet = rule.conditions.some(
+          (condition) => condition.evaluate(activity)
+        );
+      }
+      if (conditionsMet) {
+        if (rule.action === RuleActionType.EXIT_PARENT) {
+          return { action: "EXIT_PARENT", recursionDepth };
+        } else if (rule.action === RuleActionType.EXIT_ALL) {
+          return { action: "EXIT_ALL", recursionDepth };
+        }
+      }
+    }
+    return { action: null, recursionDepth };
+  }
+  /**
+   * Integrate Post-Condition Rules Subprocess
+   * @param {Activity} activity - Activity to evaluate post-conditions for
+   * @return {PostConditionResult} - Post-condition result with sequencing and termination requests
+   */
+  evaluatePostConditions(activity) {
+    const postResult = this.sequencingProcess.evaluatePostConditionRules(activity);
+    if (postResult.sequencingRequest || postResult.terminationRequest) {
+      this.fireEvent("onPostConditionEvaluated", {
+        activity: activity.id,
+        sequencingRequest: postResult.sequencingRequest,
+        terminationRequest: postResult.terminationRequest,
+        timestamp: (/* @__PURE__ */ new Date()).toISOString()
+      });
+    }
+    return postResult;
+  }
+  /**
+   * Handle Multi-Level Exit Actions
+   * @param {Activity} rootActivity - Root activity to start from
+   */
+  handleMultiLevelExit(rootActivity) {
+    this.processExitAtLevel(rootActivity, 0);
+    this.terminateAll(rootActivity);
+  }
+  /**
+   * Process exit actions at specific level
+   * @param {Activity} activity - Activity to process
+   * @param {number} level - Current level in hierarchy
+   */
+  processExitAtLevel(activity, level) {
+    const exitAction = this.evaluateExitRules(activity, 0);
+    if (exitAction.action) {
+      this.fireEvent("onMultiLevelExitAction", {
+        activity: activity.id,
+        level,
+        action: exitAction.action
+      });
+    }
+    for (const child of activity.children) {
+      this.processExitAtLevel(child, level + 1);
+    }
+  }
+  /**
+   * Perform Complex Suspended Activity Cleanup
+   */
+  cleanupSuspendedActivity() {
+    const suspendedActivity = this.activityTree.suspendedActivity;
+    if (suspendedActivity) {
+      let current = suspendedActivity;
+      const cleanedActivities = [];
+      while (current) {
+        if (current.isSuspended) {
+          current.isSuspended = false;
+          cleanedActivities.push(current.id);
+        }
+        current = current.parent;
+      }
+      this.activityTree.suspendedActivity = null;
+      this.fireEvent("onSuspendedActivityCleanup", {
+        cleanedActivities,
+        originalSuspendedActivity: suspendedActivity.id
+      });
+    }
+  }
+  /**
+   * Terminate all activities in the tree
+   * @param {Activity} activity - The activity to start from (usually root)
+   */
+  terminateAll(activity) {
+    for (const child of activity.children) {
+      this.terminateAll(child);
+    }
+    if (activity.isActive) {
+      this.endAttempt(activity);
+    }
+  }
+  /**
+   * Terminate Descendent Attempts Process (UP.3)
+   * Recursively terminates all active descendant attempts
+   * @param {Activity} activity - The activity whose descendants to terminate
+   */
+  terminateDescendants(activity) {
+    for (const child of activity.children) {
+      if (child.children.length > 0) {
+        this.terminateDescendants(child);
+      }
+      const exitAction = this.exitActionRulesSubprocess(child);
+      if (child.isActive) {
+        if (exitAction === "EXIT_ALL") {
+          this.terminateDescendants(child);
+        }
+        this.endAttempt(child);
+      }
+    }
+  }
+  /**
+   * Exit Action Rules Subprocess (TB.2.1)
+   * Evaluates exit action rules for the current activity
+   * @param {Activity} activity - The activity to evaluate
+   * @return {string | null} - The exit action to take, or null if none
+   */
+  exitActionRulesSubprocess(activity) {
+    const exitRules = activity.sequencingRules.exitConditionRules;
+    for (const rule of exitRules) {
+      let conditionsMet;
+      if (rule.conditionCombination === "all") {
+        conditionsMet = rule.conditions.every(
+          (condition) => condition.evaluate(activity)
+        );
+      } else {
+        conditionsMet = rule.conditions.some(
+          (condition) => condition.evaluate(activity)
+        );
+      }
+      if (conditionsMet) {
+        if (rule.action === RuleActionType.EXIT_PARENT) {
+          return "EXIT_PARENT";
+        } else if (rule.action === RuleActionType.EXIT_ALL) {
+          return "EXIT_ALL";
+        }
+      }
+    }
+    return null;
+  }
+  /**
+   * Clear Suspended Activity Subprocess (DB.2.1)
+   * Clears the suspended activity state
+   */
+  clearSuspendedActivity() {
+    if (this.activityTree.suspendedActivity) {
+      let current = this.activityTree.suspendedActivity;
+      while (current) {
+        current.isSuspended = false;
+        current = current.parent;
+      }
+      this.activityTree.suspendedActivity = null;
+    }
+  }
+  /**
+   * End Attempt Process
+   * Ends an attempt on an activity
+   * @spec SN Book: UP.4 (Utility Process - End Attempt Process)
+   * @param {Activity} activity - The activity to end attempt on
+   */
+  endAttempt(activity) {
+    if (!activity.isActive) {
+      return;
+    }
+    this.transferRteData(activity);
+    activity.isActive = false;
+    activity.activityAttemptActive = false;
+    if (activity.children.length === 0) {
+      {
+        if (!activity.isSuspended) {
+          if (!activity.sequencingControls.completionSetByContent) {
+            if (!activity.attemptProgressStatus) {
+              activity.attemptProgressStatus = true;
+              activity.completionStatus = "completed";
+              activity.wasAutoCompleted = true;
+              this.fireEvent("onAutoCompletion", {
+                activityId: activity.id,
+                timestamp: (/* @__PURE__ */ new Date()).toISOString()
+              });
+            }
+          }
+          if (!activity.sequencingControls.objectiveSetByContent) {
+            const primaryObjective = activity.primaryObjective;
+            if (primaryObjective) {
+              if (!primaryObjective.progressStatus) {
+                primaryObjective.progressStatus = true;
+                primaryObjective.satisfiedStatus = true;
+                activity.objectiveSatisfiedStatus = true;
+                activity.successStatus = "passed";
+                activity.wasAutoSatisfied = true;
+                this.fireEvent("onAutoSatisfaction", {
+                  activityId: activity.id,
+                  timestamp: (/* @__PURE__ */ new Date()).toISOString()
+                });
+              }
+            }
+          }
+        }
+      }
+    } else {
+      const hasSuspendedChildren = activity.children.some((child) => child.isSuspended);
+      activity.isSuspended = hasSuspendedChildren;
+    }
+    if (activity.completionStatus === "unknown") {
+      activity.completionStatus = "incomplete";
+    }
+    if (activity.successStatus === "unknown" && activity.objectiveSatisfiedStatus) {
+      activity.successStatus = activity.objectiveSatisfiedStatus ? "passed" : "failed";
+    }
+    const mappingRoot = this.activityTree.root || activity;
+    this.rollupProcess.processGlobalObjectiveMapping(mappingRoot, this.globalObjectiveMap);
+    this.rollupProcess.overallRollupProcess(activity);
+    if (this.invalidateCacheCallback) {
+      this.invalidateCacheCallback();
+    }
+    if (this.activityTree.root) {
+      this.rollupProcess.validateRollupStateConsistency(this.activityTree.root);
+    }
+    SelectionRandomization.applySelectionAndRandomization(activity, false);
+  }
+  /**
+   * Transfer RTE Data to Activity
+   * Transfers CMI data from runtime environment to activity state
+   * Called at the start of endAttemptProcess to ensure proper data transfer
+   * @param {Activity} activity - The activity to transfer data to
+   */
+  transferRteData(activity) {
+    if (!this.getCMIData) {
+      return;
+    }
+    const cmiData = this.getCMIData();
+    if (!cmiData) {
+      return;
+    }
+    this.transferPrimaryObjective(activity, cmiData);
+    this.transferNonPrimaryObjectives(activity, cmiData);
+    this.fireEvent("onRteDataTransfer", {
+      activityId: activity.id,
+      timestamp: (/* @__PURE__ */ new Date()).toISOString()
+    });
+  }
+  /**
+   * Transfer primary objective data from CMI to activity
+   * @param {Activity} activity - The activity to transfer data to
+   * @param {CMIDataForTransfer} cmiData - CMI data from runtime
+   */
+  transferPrimaryObjective(activity, cmiData) {
+    if (cmiData.completion_status && cmiData.completion_status !== "unknown") {
+      activity.completionStatus = cmiData.completion_status;
+      activity.attemptProgressStatus = true;
+    }
+    let hasSuccessStatus = false;
+    let successStatus = false;
+    let hasNormalizedMeasure = false;
+    let normalizedScore = 0;
+    if (cmiData.success_status && cmiData.success_status !== "unknown") {
+      successStatus = cmiData.success_status === "passed";
+      hasSuccessStatus = true;
+      activity.objectiveSatisfiedStatus = successStatus;
+      activity.objectiveSatisfiedStatusKnown = true;
+      activity.successStatus = cmiData.success_status;
+      activity.objectiveMeasureStatus = true;
+    }
+    if (cmiData.score) {
+      const normalized = this.normalizeScore(cmiData.score);
+      if (normalized !== null) {
+        normalizedScore = normalized;
+        hasNormalizedMeasure = true;
+        activity.objectiveNormalizedMeasure = normalizedScore;
+        activity.objectiveMeasureStatus = true;
+      }
+    }
+    if (activity.primaryObjective && (hasSuccessStatus || hasNormalizedMeasure)) {
+      const finalStatus = hasSuccessStatus ? successStatus : activity.primaryObjective.satisfiedStatus;
+      const finalMeasure = hasNormalizedMeasure ? normalizedScore : activity.primaryObjective.normalizedMeasure;
+      const measureStatus = hasSuccessStatus || hasNormalizedMeasure;
+      activity.primaryObjective.initializeFromCMI(finalStatus, finalMeasure, measureStatus);
+      if (hasSuccessStatus) {
+        activity.primaryObjective.satisfiedStatusKnown = true;
+        activity.primaryObjective.progressStatus = true;
+      }
+    }
+    if (cmiData.progress_measure && cmiData.progress_measure !== "") {
+      const progressMeasure = parseFloat(cmiData.progress_measure);
+      if (!isNaN(progressMeasure)) {
+        activity.progressMeasure = progressMeasure;
+        activity.progressMeasureStatus = true;
+        if (activity.primaryObjective) {
+          activity.primaryObjective.progressMeasure = progressMeasure;
+          activity.primaryObjective.progressMeasureStatus = true;
+        }
+      }
+    }
+  }
+  /**
+   * Transfer non-primary objective data from CMI to activity objectives
+   * Only transfers changed values to protect global objectives
+   * @param {Activity} activity - The activity to transfer data to
+   * @param {CMIDataForTransfer} cmiData - CMI data from runtime
+   */
+  transferNonPrimaryObjectives(activity, cmiData) {
+    if (!cmiData.objectives || cmiData.objectives.length === 0) {
+      return;
+    }
+    for (const cmiObjective of cmiData.objectives) {
+      if (!cmiObjective.id) {
+        continue;
+      }
+      const activityObjectiveMatch = activity.getObjectiveById(cmiObjective.id);
+      if (!activityObjectiveMatch || activityObjectiveMatch.isPrimary) {
+        continue;
+      }
+      const activityObjective = activityObjectiveMatch.objective;
+      let hasSuccessStatus = false;
+      let successStatus = false;
+      let hasNormalizedMeasure = false;
+      let normalizedScore = 0;
+      if (cmiObjective.success_status && cmiObjective.success_status !== "unknown") {
+        successStatus = cmiObjective.success_status === "passed";
+        hasSuccessStatus = true;
+        activityObjective.progressStatus = true;
+      }
+      if (cmiObjective.completion_status && cmiObjective.completion_status !== "unknown") {
+        activityObjective.completionStatus = cmiObjective.completion_status;
+      }
+      if (cmiObjective.score) {
+        const normalized = this.normalizeScore(cmiObjective.score);
+        if (normalized !== null) {
+          normalizedScore = normalized;
+          hasNormalizedMeasure = true;
+        }
+      }
+      if (hasSuccessStatus || hasNormalizedMeasure) {
+        const finalStatus = hasSuccessStatus ? successStatus : activityObjective.satisfiedStatus;
+        const finalMeasure = hasNormalizedMeasure ? normalizedScore : activityObjective.normalizedMeasure;
+        const measureStatus = hasNormalizedMeasure;
+        activityObjective.initializeFromCMI(finalStatus, finalMeasure, measureStatus);
+      }
+      if (cmiObjective.progress_measure && cmiObjective.progress_measure !== "") {
+        const progressMeasure = parseFloat(cmiObjective.progress_measure);
+        if (!isNaN(progressMeasure)) {
+          activityObjective.progressMeasure = progressMeasure;
+          activityObjective.progressMeasureStatus = true;
+        }
+      }
+    }
+  }
+  /**
+   * Normalize score from raw/min/max if scaled is not available
+   * Implements ScaleRawScore process
+   * @param {Object} score - Score object with scaled, raw, min, max
+   * @return {number | null} - Normalized score or null if cannot normalize
+   */
+  normalizeScore(score) {
+    if (score.scaled && score.scaled !== "") {
+      const scaled = parseFloat(score.scaled);
+      if (!isNaN(scaled)) {
+        return scaled;
+      }
+    }
+    if (score.raw && score.raw !== "" && score.min && score.min !== "" && score.max && score.max !== "") {
+      const raw = parseFloat(score.raw);
+      const min = parseFloat(score.min);
+      const max = parseFloat(score.max);
+      if (!isNaN(raw) && !isNaN(min) && !isNaN(max) && max > min) {
+        const normalized = (raw - min) / (max - min);
+        return Math.max(-1, Math.min(1, normalized));
+      }
+    }
+    return null;
+  }
+  /**
+   * Fire a sequencing event
+   * @param {string} eventType - The type of event
+   * @param {any} data - Event data
+   */
+  fireEvent(eventType, data) {
+    try {
+      if (this.eventCallback) {
+        this.eventCallback(eventType, data);
+      }
+    } catch (error) {
+      console.warn(`Failed to fire sequencing event ${eventType}: ${error}`);
+    }
+  }
+}
+
+class DeliveryRequest {
+  constructor(valid = false, targetActivity = null, exception = null) {
+    this.valid = valid;
+    this.targetActivity = targetActivity;
+    this.exception = exception;
+  }
+}
+class DeliveryHandler {
+  constructor(activityTree, rollupProcess, globalObjectiveMap, adlNav = null, eventCallback = null, options) {
+    this._deliveryInProgress = false;
+    this.contentDelivered = false;
+    this.checkActivityCallback = null;
+    this.invalidateCacheCallback = null;
+    this.updateNavigationValidityCallback = null;
+    this.clearSuspendedActivityCallback = null;
+    this.activityTree = activityTree;
+    this.rollupProcess = rollupProcess;
+    this.globalObjectiveMap = globalObjectiveMap;
+    this.adlNav = adlNav;
+    this.eventCallback = eventCallback;
+    this.now = options?.now || (() => /* @__PURE__ */ new Date());
+    this.defaultHideLmsUi = options?.defaultHideLmsUi ? [...options.defaultHideLmsUi] : [];
+    this.defaultAuxiliaryResources = options?.defaultAuxiliaryResources ? options.defaultAuxiliaryResources.map((resource) => ({ ...resource })) : [];
+  }
+  static {
+    this.HIDE_LMS_UI_ORDER = [...HIDE_LMS_UI_TOKENS];
+  }
+  /**
+   * Set callback to check activity validity
+   */
+  setCheckActivityCallback(callback) {
+    this.checkActivityCallback = callback;
+  }
+  /**
+   * Set callback to invalidate navigation cache after state changes
+   */
+  setInvalidateCacheCallback(callback) {
+    this.invalidateCacheCallback = callback;
+  }
+  /**
+   * Set callback to update navigation validity
+   */
+  setUpdateNavigationValidityCallback(callback) {
+    this.updateNavigationValidityCallback = callback;
+  }
+  /**
+   * Set callback to clear suspended activity
+   */
+  setClearSuspendedActivityCallback(callback) {
+    this.clearSuspendedActivityCallback = callback;
+  }
+  /**
+   * Check if content delivery is currently in progress
+   * Used to prevent re-entrant termination requests during delivery
+   */
+  isDeliveryInProgress() {
+    return this._deliveryInProgress;
+  }
+  /**
+   * Check if content has been delivered
+   */
+  hasContentBeenDelivered() {
+    return this.contentDelivered;
+  }
+  /**
+   * Reset content delivered flag
+   */
+  resetContentDelivered() {
+    this.contentDelivered = false;
+  }
+  /**
+   * Set content delivered flag
+   * @param {boolean} value - The value to set
+   */
+  setContentDelivered(value) {
+    this.contentDelivered = value;
+  }
+  /**
+   * Delivery Request Process
+   * Validates if an activity can be delivered
+   * @spec SN Book: DB.1.1 (Delivery Request Process)
+   * @param {Activity} activity - The activity to deliver
+   * @return {DeliveryRequest} - The delivery validation result
+   */
+  processDeliveryRequest(activity) {
+    this.fireEvent("onDeliveryRequestProcessing", {
+      activity: activity.id,
+      timestamp: (/* @__PURE__ */ new Date()).toISOString()
+    });
+    if (activity.children.length > 0) {
+      return new DeliveryRequest(false, null, "DB.1.1-1");
+    }
+    const activityPath = this.getActivityPath(activity, true);
+    if (activityPath.length === 0) {
+      return new DeliveryRequest(false, null, "DB.1.1-2");
+    }
+    for (const pathActivity of activityPath) {
+      const checkResult = this.checkActivityCallback ? this.checkActivityCallback(pathActivity) : true;
+      if (!checkResult) {
+        return new DeliveryRequest(false, null, "DB.1.1-3");
+      }
+    }
+    return new DeliveryRequest(true, activity);
+  }
+  /**
+   * Content Delivery Environment Process
+   * Handles the delivery of content to the learner
+   * @spec SN Book: DB.2 (Content Delivery Environment Process)
+   * @param {Activity} activity - The activity to deliver
+   */
+  contentDeliveryEnvironmentProcess(activity) {
+    this._deliveryInProgress = true;
+    try {
+      const isResuming = activity.isSuspended;
+      if (this.activityTree.suspendedActivity) {
+        if (this.clearSuspendedActivityCallback) {
+          this.clearSuspendedActivityCallback();
+        }
+      }
+      const activityPath = this.getActivityPath(activity, true);
+      for (const pathActivity of activityPath) {
+        if (!pathActivity.isActive) {
+          if (isResuming || pathActivity.isSuspended) {
+            pathActivity.isSuspended = false;
+          } else {
+            pathActivity.incrementAttemptCount();
+          }
+          pathActivity.isActive = true;
+          SelectionRandomization.applySelectionAndRandomization(
+            pathActivity,
+            pathActivity.attemptCount <= 1
+          );
+        }
+      }
+      this.activityTree.currentActivity = activity;
+      this.initializeForDelivery(activity);
+      this.setupAttemptTracking(activity);
+      this.contentDelivered = true;
+      if (this.adlNav && this.updateNavigationValidityCallback) {
+        this.updateNavigationValidityCallback();
+      }
+      this.fireDeliveryEvent(activity);
+    } finally {
+      this._deliveryInProgress = false;
+    }
+  }
+  /**
+   * Initialize Activity For Delivery (DB.2.2)
+   * Set up initial tracking states for a delivered activity
+   * @param {Activity} activity - The activity being delivered
+   */
+  initializeForDelivery(activity) {
+    if (activity.completionStatus === "unknown") {
+      if (activity.children.length === 0) {
+        activity.completionStatus = "not attempted";
+      }
+    }
+    if (activity.objectiveSatisfiedStatus === null) {
+      activity.objectiveSatisfiedStatus = false;
+    }
+    if (activity.progressMeasure === null) {
+      activity.progressMeasure = 0;
+      activity.progressMeasureStatus = false;
+    }
+    if (activity.objectiveNormalizedMeasure === null) {
+      activity.objectiveNormalizedMeasure = 0;
+      activity.objectiveMeasureStatus = false;
+    }
+    activity.attemptAbsoluteDuration = "PT0H0M0S";
+    activity.attemptExperiencedDuration = "PT0H0M0S";
+    activity.isAvailable = true;
+  }
+  /**
+   * Setup Activity Attempt Tracking
+   * Initialize attempt tracking information per SCORM 2004 4th Edition
+   * @param {Activity} activity - The activity being delivered
+   */
+  setupAttemptTracking(activity) {
+    activity.wasSkipped = false;
+    activity.attemptAbsoluteStartTime = this.now().toISOString();
+    if (!activity.location) {
+      activity.location = "";
+    }
+    activity.activityAttemptActive = true;
+    if (!activity.learnerPrefs) {
+      activity.learnerPrefs = {
+        audioCaptioning: "0",
+        audioLevel: "1",
+        deliverySpeed: "1",
+        language: ""
+      };
+    }
+  }
+  /**
+   * Fire Activity Delivery Event
+   * Notify listeners that an activity has been delivered
+   * @param {Activity} activity - The activity that was delivered
+   */
+  fireDeliveryEvent(activity) {
+    try {
+      if (this.eventCallback) {
+        this.eventCallback("onActivityDelivery", activity);
+      }
+      console.debug(`Activity delivered: ${activity.id} - ${activity.title}`);
+    } catch (error) {
+      console.warn(`Failed to fire activity delivery event: ${error}`);
+    }
+  }
+  /**
+   * Get effective hideLmsUi for an activity
+   * Merges default and activity-specific hideLmsUi directives
+   * @param {Activity | null} activity - The activity
+   * @return {HideLmsUiItem[]} - Ordered list of hideLmsUi directives
+   */
+  getEffectiveHideLmsUi(activity) {
+    const seen = /* @__PURE__ */ new Set();
+    for (const directive of this.defaultHideLmsUi) {
+      seen.add(directive);
+    }
+    let current = activity;
+    while (current) {
+      for (const directive of current.hideLmsUi) {
+        seen.add(directive);
+      }
+      current = current.parent;
+    }
+    return DeliveryHandler.HIDE_LMS_UI_ORDER.filter(
+      (directive) => seen.has(directive)
+    );
+  }
+  /**
+   * Get effective auxiliary resources for an activity
+   * Merges default and activity-specific resources
+   * @param {Activity | null} activity - The activity
+   * @return {AuxiliaryResource[]} - Merged auxiliary resources
+   */
+  getEffectiveAuxiliaryResources(activity) {
+    const merged = /* @__PURE__ */ new Map();
+    for (const resource of this.defaultAuxiliaryResources) {
+      if (resource.resourceId) {
+        merged.set(resource.resourceId, { ...resource });
+      }
+    }
+    const lineage = [];
+    let current = activity;
+    while (current) {
+      lineage.push(current);
+      current = current.parent;
+    }
+    for (const node of lineage.reverse()) {
+      for (const resource of node.auxiliaryResources) {
+        if (resource.resourceId) {
+          merged.set(resource.resourceId, { ...resource });
+        }
+      }
+    }
+    return Array.from(merged.values());
+  }
+  /**
+   * Get content activity data for a delivered activity
+   * @param {Activity} activity - The activity
+   * @return {ContentActivityData} - Content activity data
+   */
+  getContentActivityData(activity) {
+    return {
+      hideLmsUi: this.getEffectiveHideLmsUi(activity),
+      auxiliaryResources: this.getEffectiveAuxiliaryResources(activity),
+      location: activity.location || "",
+      credit: activity.credit || "credit",
+      launchData: activity.launchData || "",
+      maxTimeAllowed: activity.attemptAbsoluteDurationLimit || "",
+      completionThreshold: activity.completionThreshold?.toString() || "",
+      timeLimitAction: activity.timeLimitAction || "continue,no message"
+    };
+  }
+  /**
+   * Get Activity Path (Helper for DB.1.1)
+   * Forms the activity path from root to target activity, inclusive
+   * @param {Activity} activity - The target activity
+   * @param {boolean} includeActivity - Whether to include the target in the path
+   * @return {Activity[]} - Array of activities from root to target
+   */
+  getActivityPath(activity, includeActivity = true) {
+    const path = [];
+    let current = activity;
+    while (current !== null) {
+      path.unshift(current);
+      current = current.parent;
+    }
+    if (!includeActivity && path.length > 0) {
+      path.pop();
+    }
+    return path;
+  }
+  /**
+   * Fire a sequencing event
+   * @param {string} eventType - The type of event
+   * @param {any} data - Event data
+   */
+  fireEvent(eventType, data) {
+    try {
+      if (this.eventCallback) {
+        this.eventCallback(eventType, data);
+      }
+    } catch (error) {
+      console.warn(`Failed to fire sequencing event ${eventType}: ${error}`);
+    }
+  }
+}
+
 class NavigationLookAhead {
   constructor(activityTree, sequencingProcess) {
     this.cache = null;
@@ -17285,114 +18327,26 @@ class NavigationRequestResult {
     this.exception = exception;
   }
 }
-class DeliveryRequest {
-  constructor(valid = false, targetActivity = null, exception = null) {
-    this.valid = valid;
-    this.targetActivity = targetActivity;
-    this.exception = exception;
-  }
-}
-class OverallSequencingProcess {
-  constructor(activityTree, sequencingProcess, rollupProcess, adlNav = null, eventCallback = null, options) {
-    this.contentDelivered = false;
-    this._deliveryInProgress = false;
-    // Tracks when we're in contentDeliveryEnvironmentProcess
-    this.eventCallback = null;
-    this.globalObjectiveMap = /* @__PURE__ */ new Map();
-    this.getCMIData = null;
-    this.is4thEdition = false;
+class NavigationValidityService {
+  constructor(activityTree, sequencingProcess, adlNav = null, eventCallback = null) {
+    this.getEffectiveHideLmsUiCallback = null;
     this.activityTree = activityTree;
     this.sequencingProcess = sequencingProcess;
-    this.rollupProcess = rollupProcess;
     this.adlNav = adlNav;
     this.eventCallback = eventCallback;
-    this.now = options?.now || (() => /* @__PURE__ */ new Date());
-    this.enhancedDeliveryValidation = options?.enhancedDeliveryValidation === true;
-    this.defaultHideLmsUi = options?.defaultHideLmsUi ? [...options.defaultHideLmsUi] : [];
-    this.defaultAuxiliaryResources = options?.defaultAuxiliaryResources ? options.defaultAuxiliaryResources.map((resource) => ({ ...resource })) : [];
-    this.getCMIData = options?.getCMIData || null;
-    this.is4thEdition = options?.is4thEdition || false;
-    this.initializeGlobalObjectiveMap();
-    this.navigationLookAhead = new NavigationLookAhead(this.activityTree, this.sequencingProcess);
-  }
-  static {
-    this.HIDE_LMS_UI_ORDER = [...HIDE_LMS_UI_TOKENS];
+    this.navigationLookAhead = new NavigationLookAhead(activityTree, sequencingProcess);
   }
   /**
-   * Overall Sequencing Process
-   * Main entry point for processing navigation requests
-   * @spec SN Book: OP.1 (Overall Sequencing Process)
-   * @param {NavigationRequestType} navigationRequest - The navigation request
-   * @param {string | null} targetActivityId - Target activity for choice/jump requests
-   * @param {string} exitType - The cmi.exit value (logout, normal, suspend, time-out, or empty)
-   * @return {DeliveryRequest} - The delivery request result
+   * Set callback to get effective hideLmsUi
    */
-  processNavigationRequest(navigationRequest, targetActivityId = null, exitType) {
-    const navResult = this.navigationRequestProcess(navigationRequest, targetActivityId);
-    if (!navResult.valid) {
-      return new DeliveryRequest(false, null, navResult.exception);
-    }
-    if (navResult.terminationRequest) {
-      const hadSequencingRequest = !!navResult.sequencingRequest;
-      const termResult = this.terminationRequestProcess(navResult.terminationRequest, hadSequencingRequest, exitType);
-      if (!termResult.valid) {
-        return new DeliveryRequest(false, null, termResult.exception || "TB.2.3-1");
-      }
-      if (termResult.sequencingRequest !== null) {
-        if (hadSequencingRequest || termResult.sequencingRequest !== SequencingRequestType.EXIT) {
-          navResult.sequencingRequest = termResult.sequencingRequest;
-        }
-      }
-      if (!navResult.sequencingRequest) {
-        if (navResult.terminationRequest === SequencingRequestType.EXIT_ALL || navResult.terminationRequest === SequencingRequestType.ABANDON_ALL) {
-          this.fireEvent("onSequencingSessionEnd", {
-            reason: navResult.terminationRequest === SequencingRequestType.EXIT_ALL ? "exit_all" : "abandon_all",
-            navigationRequest
-          });
-        }
-        return new DeliveryRequest(true, null);
-      }
-    }
-    if (navResult.sequencingRequest) {
-      const seqResult = this.sequencingProcess.sequencingRequestProcess(
-        navResult.sequencingRequest,
-        navResult.targetActivityId
-      );
-      if (seqResult.endSequencingSession) {
-        this.fireEvent("onSequencingSessionEnd", {
-          reason: "end_of_content",
-          exception: seqResult.exception,
-          navigationRequest
-        });
-        return new DeliveryRequest(false, null, seqResult.exception || "SESSION_ENDED");
-      }
-      if (seqResult.exception) {
-        return new DeliveryRequest(false, null, seqResult.exception);
-      }
-      if (seqResult.deliveryRequest === DeliveryRequestType.DELIVER && seqResult.targetActivity) {
-        if (this.activityTree.root) {
-          const isConsistent = this.rollupProcess.validateRollupStateConsistency(this.activityTree.root);
-          if (!isConsistent) {
-            this.fireEvent("onSequencingDebug", {
-              message: "Rollup state inconsistency detected before delivery",
-              activityId: this.activityTree.root.id
-            });
-          }
-        }
-        this.rollupProcess.processGlobalObjectiveMapping(seqResult.targetActivity, this.globalObjectiveMap);
-        const deliveryResult = this.deliveryRequestProcess(seqResult.targetActivity);
-        if (deliveryResult.valid) {
-          this.contentDeliveryEnvironmentProcess(deliveryResult.targetActivity);
-          this.navigationLookAhead.invalidateCache();
-          if (this.activityTree.root) {
-            this.rollupProcess.validateRollupStateConsistency(this.activityTree.root);
-          }
-          return deliveryResult;
-        }
-        return deliveryResult;
-      }
-    }
-    return new DeliveryRequest(false, null, "OP.1-1");
+  setGetEffectiveHideLmsUiCallback(callback) {
+    this.getEffectiveHideLmsUiCallback = callback;
+  }
+  /**
+   * Get the navigation look-ahead instance
+   */
+  getNavigationLookAhead() {
+    return this.navigationLookAhead;
   }
   /**
    * Navigation Request Process
@@ -17402,1489 +18356,235 @@ class OverallSequencingProcess {
    * @param {string | null} targetActivityId - Target activity for choice/jump
    * @return {NavigationRequestResult} - The validation result
    */
-  navigationRequestProcess(request, targetActivityId = null) {
+  validateRequest(request, targetActivityId = null) {
     this.fireEvent("onNavigationRequestProcessing", { request, targetActivityId });
     const currentActivity = this.activityTree.currentActivity;
     switch (request) {
       case "start" /* START */:
-        if (currentActivity !== null) {
-          return new NavigationRequestResult(false, null, null, null, "NB.2.1-1");
-        }
-        return new NavigationRequestResult(
-          true,
-          null,
-          SequencingRequestType.START,
-          null
-        );
+        return this.validateStartRequest(currentActivity);
       case "resumeAll" /* RESUME_ALL */:
-        if (currentActivity !== null) {
-          return new NavigationRequestResult(false, null, null, null, "NB.2.1-2");
-        }
-        if (this.activityTree.suspendedActivity === null) {
-          return new NavigationRequestResult(false, null, null, null, "NB.2.1-3");
-        }
-        return new NavigationRequestResult(
-          true,
-          null,
-          SequencingRequestType.RESUME_ALL,
-          null
-        );
-      case "continue" /* CONTINUE */: {
-        if (!currentActivity) {
-          return new NavigationRequestResult(false, null, null, null, "NB.2.1-4");
-        }
-        if (!currentActivity.parent || !currentActivity.parent.sequencingControls.flow) {
-          return new NavigationRequestResult(false, null, null, null, "NB.2.1-5");
-        }
-        const continueTerminationRequest = currentActivity.isActive ? SequencingRequestType.EXIT : null;
-        return new NavigationRequestResult(
-          true,
-          continueTerminationRequest,
-          SequencingRequestType.CONTINUE,
-          null
-        );
-      }
-      case "previous" /* PREVIOUS */: {
-        if (!currentActivity) {
-          return new NavigationRequestResult(false, null, null, null, "NB.2.1-6");
-        }
-        if (!currentActivity.parent || !currentActivity.parent.sequencingControls.flow) {
-          return new NavigationRequestResult(false, null, null, null, "NB.2.1-7");
-        }
-        const forwardOnlyValidation = this.validateForwardOnlyConstraints(currentActivity);
-        if (!forwardOnlyValidation.valid) {
-          return new NavigationRequestResult(false, null, null, null, forwardOnlyValidation.exception);
-        }
-        const previousTerminationRequest = currentActivity.isActive ? SequencingRequestType.EXIT : null;
-        return new NavigationRequestResult(
-          true,
-          previousTerminationRequest,
-          SequencingRequestType.PREVIOUS,
-          null
-        );
-      }
-      case "choice" /* CHOICE */: {
-        if (!targetActivityId) {
-          return new NavigationRequestResult(false, null, null, null, "NB.2.1-9");
-        }
-        const targetActivity = this.activityTree.getActivity(targetActivityId);
-        if (!targetActivity) {
-          return new NavigationRequestResult(false, null, null, null, "NB.2.1-10");
-        }
-        const choiceValidation = this.validateComplexChoicePath(currentActivity, targetActivity);
-        if (!choiceValidation.valid) {
-          return new NavigationRequestResult(false, null, null, null, choiceValidation.exception);
-        }
-        return new NavigationRequestResult(
-          true,
-          currentActivity?.isActive ? SequencingRequestType.EXIT : null,
-          SequencingRequestType.CHOICE,
-          targetActivityId
-        );
-      }
+        return this.validateResumeRequest(currentActivity);
+      case "continue" /* CONTINUE */:
+        return this.validateContinueRequest(currentActivity);
+      case "previous" /* PREVIOUS */:
+        return this.validatePreviousRequest(currentActivity);
+      case "choice" /* CHOICE */:
+        return this.validateChoiceRequest(currentActivity, targetActivityId);
       case "jump" /* JUMP */:
-        if (!targetActivityId) {
-          return new NavigationRequestResult(false, null, null, null, "NB.2.1-12");
-        }
-        return new NavigationRequestResult(
-          true,
-          null,
-          SequencingRequestType.JUMP,
-          targetActivityId
-        );
+        return this.validateJumpRequest(targetActivityId);
       case "exit" /* EXIT */:
-        if (!currentActivity) {
-          return new NavigationRequestResult(false, null, null, null, "NB.2.1-13");
-        }
-        if (currentActivity === this.activityTree.root) {
-          return new NavigationRequestResult(
-            true,
-            SequencingRequestType.EXIT_ALL,
-            null,
-            null
-          );
-        }
-        return new NavigationRequestResult(
-          true,
-          SequencingRequestType.EXIT,
-          null,
-          null
-        );
+        return this.validateExitRequest(currentActivity);
       case "exitAll" /* EXIT_ALL */:
-        if (!currentActivity) {
-          return new NavigationRequestResult(false, null, null, null, "NB.2.1-14");
-        }
-        return new NavigationRequestResult(
-          true,
-          SequencingRequestType.EXIT_ALL,
-          null,
-          null
-        );
+        return this.validateExitAllRequest(currentActivity);
       case "abandon" /* ABANDON */:
-        if (!currentActivity) {
-          return new NavigationRequestResult(false, null, null, null, "NB.2.1-15");
-        }
-        return new NavigationRequestResult(
-          true,
-          SequencingRequestType.ABANDON,
-          null,
-          null
-        );
+        return this.validateAbandonRequest(currentActivity);
       case "abandonAll" /* ABANDON_ALL */:
-        if (!currentActivity) {
-          return new NavigationRequestResult(false, null, null, null, "NB.2.1-16");
-        }
-        return new NavigationRequestResult(
-          true,
-          SequencingRequestType.ABANDON_ALL,
-          null,
-          null
-        );
+        return this.validateAbandonAllRequest(currentActivity);
       case "suspendAll" /* SUSPEND_ALL */:
-        if (!currentActivity) {
-          return new NavigationRequestResult(false, null, null, null, "NB.2.1-17");
-        }
-        return new NavigationRequestResult(
-          true,
-          SequencingRequestType.SUSPEND_ALL,
-          null,
-          null
-        );
+        return this.validateSuspendAllRequest(currentActivity);
       default:
         return new NavigationRequestResult(false, null, null, null, "NB.2.1-18");
     }
   }
   /**
-   * Enhanced Termination Request Process
-   * Processes termination requests with post-condition loop for EXIT_PARENT handling
-   * Implements missing post-condition loop per SCORM 2004 3rd Edition TB.2.3
-   * @spec SN Book: TB.2.3 (Termination Request Process)
-   * @param {SequencingRequestType} request - The termination request
-   * @param {boolean} hasSequencingRequest - Whether a sequencing request follows
-   * @param {string} exitType - The cmi.exit value (logout, normal, suspend, time-out, or empty)
-   * @return {TerminationRequestResult} - Termination result with sequencing request
+   * Validate START request
    */
-  terminationRequestProcess(request, hasSequencingRequest = false, exitType) {
-    const currentActivity = this.activityTree.currentActivity;
+  validateStartRequest(currentActivity) {
+    if (currentActivity !== null) {
+      return new NavigationRequestResult(false, null, null, null, "NB.2.1-1");
+    }
+    return new NavigationRequestResult(
+      true,
+      null,
+      SequencingRequestType.START,
+      null
+    );
+  }
+  /**
+   * Validate RESUME_ALL request
+   */
+  validateResumeRequest(currentActivity) {
+    if (currentActivity !== null) {
+      return new NavigationRequestResult(false, null, null, null, "NB.2.1-2");
+    }
+    if (this.activityTree.suspendedActivity === null) {
+      return new NavigationRequestResult(false, null, null, null, "NB.2.1-3");
+    }
+    return new NavigationRequestResult(
+      true,
+      null,
+      SequencingRequestType.RESUME_ALL,
+      null
+    );
+  }
+  /**
+   * Validate CONTINUE request
+   */
+  validateContinueRequest(currentActivity) {
     if (!currentActivity) {
-      return {
-        terminationRequest: request,
-        sequencingRequest: null,
-        exception: "TB.2.3-1",
-        valid: false
-      };
+      return new NavigationRequestResult(false, null, null, null, "NB.2.1-4");
     }
-    if ((request === SequencingRequestType.EXIT || request === SequencingRequestType.ABANDON) && !currentActivity.isActive) {
-      return {
-        terminationRequest: request,
-        sequencingRequest: null,
-        exception: "TB.2.3-2",
-        valid: false
-      };
+    if (!currentActivity.parent || !currentActivity.parent.sequencingControls.flow) {
+      return new NavigationRequestResult(false, null, null, null, "NB.2.1-5");
     }
-    this.fireEvent("onTerminationRequestProcessing", {
-      request,
-      hasSequencingRequest,
-      currentActivity: currentActivity.id,
-      exitType
-    });
-    if (exitType === "logout") {
-      this.fireEvent("onSequencingDebug", {
-        message: "cmi.exit='logout' detected, treating as EXIT_ALL",
-        activityId: currentActivity.id
-      });
-      return this.handleExitAllTermination(currentActivity);
-    }
-    switch (request) {
-      case SequencingRequestType.EXIT:
-        return this.handleExitTermination(currentActivity, hasSequencingRequest);
-      case SequencingRequestType.EXIT_ALL:
-        return this.handleExitAllTermination(currentActivity);
-      case SequencingRequestType.ABANDON:
-        return this.handleAbandonTermination(currentActivity, hasSequencingRequest);
-      case SequencingRequestType.ABANDON_ALL:
-        return this.handleAbandonAllTermination(currentActivity);
-      case SequencingRequestType.SUSPEND_ALL:
-        return this.handleSuspendAllTermination(currentActivity);
-      default:
-        return {
-          terminationRequest: request,
-          sequencingRequest: null,
-          exception: "TB.2.3-7",
-          valid: false
-        };
-    }
+    const continueTerminationRequest = currentActivity.isActive ? SequencingRequestType.EXIT : null;
+    return new NavigationRequestResult(
+      true,
+      continueTerminationRequest,
+      SequencingRequestType.CONTINUE,
+      null
+    );
   }
   /**
-   * Handle EXIT termination with post-condition loop (TB.2.3 step 3)
-   * Implements the do-while loop for EXIT_PARENT cascading
-   * @param {Activity} currentActivity - The current activity
-   * @param {boolean} hasSequencingRequest - Whether a sequencing request follows
-   * @return {TerminationRequestResult} - The termination result
+   * Validate PREVIOUS request
    */
-  handleExitTermination(currentActivity, hasSequencingRequest) {
-    if (currentActivity.children.length > 0) {
-      this.terminateDescendentAttemptsProcess(currentActivity);
+  validatePreviousRequest(currentActivity) {
+    if (!currentActivity) {
+      return new NavigationRequestResult(false, null, null, null, "NB.2.1-6");
     }
-    this.endAttemptProcess(currentActivity);
-    const exitActionResult = this.enhancedExitActionRulesSubprocess(currentActivity);
-    if (exitActionResult.action === "EXIT_ALL") {
-      return this.handleExitAllTermination(currentActivity);
-    } else if (exitActionResult.action === "EXIT_PARENT") {
-      if (currentActivity.parent) {
-        this.activityTree.currentActivity = currentActivity.parent;
-        this.endAttemptProcess(this.activityTree.currentActivity);
-      }
+    if (!currentActivity.parent || !currentActivity.parent.sequencingControls.flow) {
+      return new NavigationRequestResult(false, null, null, null, "NB.2.1-7");
     }
-    let processedExit = false;
-    let postConditionResult;
-    do {
-      processedExit = false;
-      postConditionResult = this.integratePostConditionRulesSubprocess(
-        this.activityTree.currentActivity || currentActivity
+    const forwardOnlyValidation = this.validateForwardOnlyConstraints(currentActivity);
+    if (!forwardOnlyValidation.valid) {
+      return new NavigationRequestResult(
+        false,
+        null,
+        null,
+        null,
+        forwardOnlyValidation.exception
       );
-      if (postConditionResult.terminationRequest === SequencingRequestType.EXIT_ALL) {
-        this.fireEvent("onPostConditionExitAll", {
-          activity: (this.activityTree.currentActivity || currentActivity).id
-        });
-        return this.handleExitAllTermination(this.activityTree.root);
-      }
-      if (postConditionResult.terminationRequest === SequencingRequestType.EXIT_PARENT) {
-        const current = this.activityTree.currentActivity || currentActivity;
-        if (!current.parent) {
-          return {
-            terminationRequest: SequencingRequestType.EXIT_PARENT,
-            sequencingRequest: null,
-            exception: "TB.2.3-4",
-            valid: false
-          };
-        } else {
-          this.activityTree.currentActivity = current.parent;
-          this.endAttemptProcess(this.activityTree.currentActivity);
-          processedExit = true;
-          this.fireEvent("onPostConditionExitParent", {
-            fromActivity: current.id,
-            toActivity: this.activityTree.currentActivity.id
-          });
-        }
-      }
-      if (!processedExit) {
-        const atRoot = (this.activityTree.currentActivity || currentActivity) === this.activityTree.root;
-        if (atRoot && postConditionResult.sequencingRequest !== SequencingRequestType.RETRY) {
-          return {
-            terminationRequest: SequencingRequestType.EXIT,
-            sequencingRequest: SequencingRequestType.EXIT,
-            exception: null,
-            valid: true
-          };
-        }
-      }
-    } while (processedExit);
-    if (!hasSequencingRequest && !postConditionResult.sequencingRequest) {
-      const current = this.activityTree.currentActivity || currentActivity;
-      if (current.parent) {
-        this.activityTree.setCurrentActivityWithoutActivation(current.parent);
-      }
     }
-    return {
-      terminationRequest: SequencingRequestType.EXIT,
-      sequencingRequest: postConditionResult.sequencingRequest,
-      exception: null,
-      valid: true
-    };
+    const previousTerminationRequest = currentActivity.isActive ? SequencingRequestType.EXIT : null;
+    return new NavigationRequestResult(
+      true,
+      previousTerminationRequest,
+      SequencingRequestType.PREVIOUS,
+      null
+    );
   }
   /**
-   * Handle EXIT_ALL termination (TB.2.3 step 4)
-   * @param {Activity} currentActivity - The current activity
-   * @return {TerminationRequestResult} - The termination result
+   * Validate CHOICE request
    */
-  handleExitAllTermination(currentActivity) {
-    if (this.activityTree.root) {
-      this.handleMultiLevelExitActions(this.activityTree.root);
+  validateChoiceRequest(currentActivity, targetActivityId) {
+    if (!targetActivityId) {
+      return new NavigationRequestResult(false, null, null, null, "NB.2.1-9");
     }
-    if (this.activityTree.root) {
-      this.endAttemptProcess(this.activityTree.root);
+    const targetActivity = this.activityTree.getActivity(targetActivityId);
+    if (!targetActivity) {
+      return new NavigationRequestResult(false, null, null, null, "NB.2.1-10");
     }
-    this.activityTree.currentActivity = null;
-    this.performComplexSuspendedActivityCleanup();
-    return {
-      terminationRequest: SequencingRequestType.EXIT_ALL,
-      sequencingRequest: SequencingRequestType.EXIT,
-      exception: null,
-      valid: true
-    };
+    const choiceValidation = this.validateChoicePath(
+      currentActivity,
+      targetActivity
+    );
+    if (!choiceValidation.valid) {
+      return new NavigationRequestResult(
+        false,
+        null,
+        null,
+        null,
+        choiceValidation.exception
+      );
+    }
+    return new NavigationRequestResult(
+      true,
+      currentActivity?.isActive ? SequencingRequestType.EXIT : null,
+      SequencingRequestType.CHOICE,
+      targetActivityId
+    );
   }
   /**
-   * Handle ABANDON termination (TB.2.3 step 6)
-   * @param {Activity} currentActivity - The current activity
-   * @param {boolean} hasSequencingRequest - Whether a sequencing request follows
-   * @return {TerminationRequestResult} - The termination result
+   * Validate JUMP request
    */
-  handleAbandonTermination(currentActivity, hasSequencingRequest) {
-    currentActivity.isActive = false;
-    if (!hasSequencingRequest) {
-      this.activityTree.currentActivity = currentActivity.parent;
+  validateJumpRequest(targetActivityId) {
+    if (!targetActivityId) {
+      return new NavigationRequestResult(false, null, null, null, "NB.2.1-12");
     }
-    return {
-      terminationRequest: SequencingRequestType.ABANDON,
-      sequencingRequest: null,
-      exception: null,
-      valid: true
-    };
+    return new NavigationRequestResult(
+      true,
+      null,
+      SequencingRequestType.JUMP,
+      targetActivityId
+    );
   }
   /**
-   * Handle ABANDON_ALL termination (TB.2.3 step 7)
-   * @param {Activity} currentActivity - The current activity
-   * @return {TerminationRequestResult} - The termination result
+   * Validate EXIT request
    */
-  handleAbandonAllTermination(currentActivity) {
-    const activityPath = [];
-    let current = currentActivity;
-    while (current !== null) {
-      activityPath.push(current);
-      current = current.parent;
+  validateExitRequest(currentActivity) {
+    if (!currentActivity) {
+      return new NavigationRequestResult(false, null, null, null, "NB.2.1-13");
     }
-    if (activityPath.length === 0) {
-      return {
-        terminationRequest: SequencingRequestType.ABANDON_ALL,
-        sequencingRequest: null,
-        exception: "TB.2.3-6",
-        valid: false
-      };
+    if (currentActivity === this.activityTree.root) {
+      return new NavigationRequestResult(
+        true,
+        SequencingRequestType.EXIT_ALL,
+        null,
+        null
+      );
     }
-    for (const activity of activityPath) {
-      activity.isActive = false;
-    }
-    this.activityTree.currentActivity = null;
-    this.performComplexSuspendedActivityCleanup();
-    return {
-      terminationRequest: SequencingRequestType.ABANDON_ALL,
-      sequencingRequest: null,
-      exception: null,
-      valid: true
-    };
+    return new NavigationRequestResult(
+      true,
+      SequencingRequestType.EXIT,
+      null,
+      null
+    );
   }
   /**
-   * Handle SUSPEND_ALL termination (TB.2.3 step 5)
-   * Implements TB.2.3 steps 5.1-5.7 for SUSPEND_ALL processing
-   * @param {Activity} currentActivity - The current activity
-   * @return {TerminationRequestResult} - The termination result
+   * Validate EXIT_ALL request
    */
-  handleSuspendAllTermination(currentActivity) {
-    const suspendResult = this.handleSuspendAllRequest(currentActivity);
-    if (!suspendResult.valid) {
-      return suspendResult;
+  validateExitAllRequest(currentActivity) {
+    if (!currentActivity) {
+      return new NavigationRequestResult(false, null, null, null, "NB.2.1-14");
     }
-    return {
-      terminationRequest: SequencingRequestType.SUSPEND_ALL,
-      sequencingRequest: SequencingRequestType.EXIT,
-      exception: null,
-      valid: true
-    };
+    return new NavigationRequestResult(
+      true,
+      SequencingRequestType.EXIT_ALL,
+      null,
+      null
+    );
   }
   /**
-   * Enhanced Exit Action Rules Subprocess with recursion detection
-   * Priority 2 Gap: Exit Action Rule Recursion
-   * @param {Activity} activity - Activity to evaluate
-   * @param {number} recursionDepth - Current recursion depth
-   * @return {{action: string | null, recursionDepth: number}} - Exit action result
+   * Validate ABANDON request
    */
-  enhancedExitActionRulesSubprocess(activity, recursionDepth = 0) {
-    recursionDepth++;
-    const exitRules = activity.sequencingRules.exitConditionRules;
-    for (const rule of exitRules) {
-      let conditionsMet = true;
-      if (rule.conditionCombination === "all") {
-        conditionsMet = rule.conditions.every((condition) => condition.evaluate(activity));
-      } else {
-        conditionsMet = rule.conditions.some((condition) => condition.evaluate(activity));
-      }
-      if (conditionsMet) {
-        if (rule.action === RuleActionType.EXIT_PARENT) {
-          return { action: "EXIT_PARENT", recursionDepth };
-        } else if (rule.action === RuleActionType.EXIT_ALL) {
-          return { action: "EXIT_ALL", recursionDepth };
-        }
-      }
+  validateAbandonRequest(currentActivity) {
+    if (!currentActivity) {
+      return new NavigationRequestResult(false, null, null, null, "NB.2.1-15");
     }
-    return { action: null, recursionDepth };
+    return new NavigationRequestResult(
+      true,
+      SequencingRequestType.ABANDON,
+      null,
+      null
+    );
   }
   /**
-   * Integrate Post-Condition Rules Subprocess
-   * Priority 2 Gap: Post-Condition Rule Evaluation Integration
-   * @param {Activity} activity - Activity to evaluate post-conditions for
-   * @return {import("./sequencing_process").PostConditionResult} - Post-condition result with sequencing and termination requests
+   * Validate ABANDON_ALL request
    */
-  integratePostConditionRulesSubprocess(activity) {
-    const postResult = this.sequencingProcess.evaluatePostConditionRules(activity);
-    if (postResult.sequencingRequest || postResult.terminationRequest) {
-      this.fireEvent("onPostConditionEvaluated", {
-        activity: activity.id,
-        sequencingRequest: postResult.sequencingRequest,
-        terminationRequest: postResult.terminationRequest,
-        timestamp: (/* @__PURE__ */ new Date()).toISOString()
-      });
+  validateAbandonAllRequest(currentActivity) {
+    if (!currentActivity) {
+      return new NavigationRequestResult(false, null, null, null, "NB.2.1-16");
     }
-    return postResult;
+    return new NavigationRequestResult(
+      true,
+      SequencingRequestType.ABANDON_ALL,
+      null,
+      null
+    );
   }
   /**
-   * Handle Multi-Level Exit Actions
-   * Priority 2 Gap: Multi-Level Exit Actions
-   * @param {Activity} rootActivity - Root activity to start from
+   * Validate SUSPEND_ALL request
    */
-  handleMultiLevelExitActions(rootActivity) {
-    this.processExitActionsAtLevel(rootActivity, 0);
-    this.terminateAllActivities(rootActivity);
-  }
-  /**
-   * Process exit actions at specific level
-   * @param {Activity} activity - Activity to process
-   * @param {number} level - Current level in hierarchy
-   */
-  processExitActionsAtLevel(activity, level) {
-    const exitAction = this.enhancedExitActionRulesSubprocess(activity, 0);
-    if (exitAction.action) {
-      this.fireEvent("onMultiLevelExitAction", {
-        activity: activity.id,
-        level,
-        action: exitAction.action
-      });
-    }
-    for (const child of activity.children) {
-      this.processExitActionsAtLevel(child, level + 1);
-    }
-  }
-  /**
-   * Perform Complex Suspended Activity Cleanup
-   * Priority 2 Gap: Complex Suspended Activity Cleanup
-   */
-  performComplexSuspendedActivityCleanup() {
-    const suspendedActivity = this.activityTree.suspendedActivity;
-    if (suspendedActivity) {
-      let current = suspendedActivity;
-      const cleanedActivities = [];
-      while (current) {
-        if (current.isSuspended) {
-          current.isSuspended = false;
-          cleanedActivities.push(current.id);
-        }
-        current = current.parent;
-      }
-      this.activityTree.suspendedActivity = null;
-      this.fireEvent("onSuspendedActivityCleanup", {
-        cleanedActivities,
-        originalSuspendedActivity: suspendedActivity.id
-      });
-    }
-  }
-  /**
-   * Handle Suspend All Request
-   * Implements TB.2.3 steps 5.1-5.6 from SCORM 2004 reference
-   * Suspends all activities in the path from current activity to root
-   * @param {Activity} currentActivity - Current activity to suspend
-   * @return {TerminationRequestResult} - Result with validation status
-   */
-  handleSuspendAllRequest(currentActivity) {
-    const rootActivity = this.activityTree.root;
-    if (!currentActivity || !rootActivity) {
-      this.fireEvent("onSuspendError", {
-        exception: "TB.2.3-1",
-        message: "No current activity to suspend",
-        activity: currentActivity?.id
-      });
-      return {
-        terminationRequest: SequencingRequestType.SUSPEND_ALL,
-        sequencingRequest: null,
-        exception: "TB.2.3-1",
-        valid: false
-      };
-    }
-    if (currentActivity === rootActivity && !currentActivity.isActive && !currentActivity.isSuspended) {
-      this.fireEvent("onSuspendError", {
-        exception: "TB.2.3-3",
-        message: "Nothing to suspend (root activity)",
-        activity: currentActivity.id
-      });
-      return {
-        terminationRequest: SequencingRequestType.SUSPEND_ALL,
-        sequencingRequest: null,
-        exception: "TB.2.3-3",
-        valid: false
-      };
-    }
-    this.activityTree.suspendedActivity = currentActivity;
-    const suspendedActivity = currentActivity;
-    const activityPath = [];
-    let current = suspendedActivity;
-    while (current !== null) {
-      activityPath.push(current);
-      current = current.parent;
-    }
-    if (activityPath.length === 0) {
-      this.fireEvent("onSuspendError", {
-        exception: "TB.2.3-5",
-        message: "Activity path is empty",
-        activity: suspendedActivity?.id
-      });
-      return {
-        terminationRequest: SequencingRequestType.SUSPEND_ALL,
-        sequencingRequest: null,
-        exception: "TB.2.3-5",
-        valid: false
-      };
-    }
-    for (const activity of activityPath) {
-      activity.isActive = false;
-      activity.isSuspended = true;
-    }
-    this.activityTree.currentActivity = rootActivity;
-    rootActivity.isActive = false;
-    this.fireEvent("onActivitySuspended", {
-      activity: suspendedActivity?.id,
-      suspendedPath: activityPath.map((a) => a.id),
-      pathLength: activityPath.length,
-      timestamp: (/* @__PURE__ */ new Date()).toISOString()
-    });
-    return {
-      terminationRequest: SequencingRequestType.SUSPEND_ALL,
-      sequencingRequest: null,
-      exception: null,
-      valid: true
-    };
-  }
-  /**
-   * Enhanced Delivery Request Process
-   * Priority 4 Gap: Comprehensive delivery validation with state consistency checks
-   * @spec SN Book: DB.1.1 (Delivery Request Process)
-   * @param {Activity} activity - The activity to deliver
-   * @return {DeliveryRequest} - The delivery validation result
-   */
-  deliveryRequestProcess(activity) {
-    this.fireEvent("onDeliveryRequestProcessing", {
-      activity: activity.id,
-      timestamp: (/* @__PURE__ */ new Date()).toISOString()
-    });
-    if (this.enhancedDeliveryValidation) {
-      const stateConsistencyCheck = this.validateActivityTreeStateConsistency(activity);
-      if (!stateConsistencyCheck.consistent) {
-        return new DeliveryRequest(false, null, stateConsistencyCheck.exception);
-      }
-    }
-    if (activity.children.length > 0) {
-      return new DeliveryRequest(false, null, "DB.1.1-1");
-    }
-    if (this.enhancedDeliveryValidation) {
-      const resourceConstraintCheck = this.validateResourceConstraints(activity);
-      if (!resourceConstraintCheck.available) {
-        return new DeliveryRequest(false, null, resourceConstraintCheck.exception);
-      }
-    }
-    if (this.enhancedDeliveryValidation) {
-      const concurrentDeliveryCheck = this.validateConcurrentDeliveryPrevention(activity);
-      if (!concurrentDeliveryCheck.allowed) {
-        return new DeliveryRequest(false, null, concurrentDeliveryCheck.exception);
-      }
-    }
-    if (this.enhancedDeliveryValidation) {
-      const dependencyCheck = this.validateActivityDependencies(activity);
-      if (!dependencyCheck.satisfied) {
-        return new DeliveryRequest(false, null, dependencyCheck.exception);
-      }
-    }
-    const activityPath = this.getActivityPath(activity, true);
-    if (activityPath.length === 0) {
-      return new DeliveryRequest(false, null, "DB.1.1-2");
-    }
-    for (const pathActivity of activityPath) {
-      if (!this.checkActivityProcess(pathActivity)) {
-        return new DeliveryRequest(false, null, "DB.1.1-3");
-      }
-    }
-    return new DeliveryRequest(true, activity);
-  }
-  /**
-   * Content Delivery Environment Process
-   * Handles the delivery of content to the learner
-   * @spec SN Book: DB.2 (Content Delivery Environment Process)
-   * @param {Activity} activity - The activity to deliver
-   */
-  contentDeliveryEnvironmentProcess(activity) {
-    this._deliveryInProgress = true;
-    try {
-      const isResuming = activity.isSuspended;
-      if (this.activityTree.suspendedActivity) {
-        this.clearSuspendedActivitySubprocess();
-      }
-      const activityPath = this.getActivityPath(activity, true);
-      for (const pathActivity of activityPath) {
-        if (!pathActivity.isActive) {
-          if (isResuming || pathActivity.isSuspended) {
-            pathActivity.isSuspended = false;
-          } else {
-            pathActivity.incrementAttemptCount();
-          }
-          pathActivity.isActive = true;
-          SelectionRandomization.applySelectionAndRandomization(pathActivity, pathActivity.attemptCount <= 1);
-        }
-      }
-      this.activityTree.currentActivity = activity;
-      this.initializeActivityForDelivery(activity);
-      this.setupActivityAttemptTracking(activity);
-      this.contentDelivered = true;
-      if (this.adlNav) {
-        this.updateNavigationValidity();
-      }
-      this.fireActivityDeliveryEvent(activity);
-    } finally {
-      this._deliveryInProgress = false;
-    }
-  }
-  /**
-   * Initialize Activity For Delivery (DB.2.2)
-   * Set up initial tracking states for a delivered activity
-   * @param {Activity} activity - The activity being delivered
-   */
-  initializeActivityForDelivery(activity) {
-    if (activity.completionStatus === "unknown") {
-      if (activity.children.length === 0) {
-        activity.completionStatus = "not attempted";
-      }
-    }
-    if (activity.objectiveSatisfiedStatus === null) {
-      activity.objectiveSatisfiedStatus = false;
-    }
-    if (activity.progressMeasure === null) {
-      activity.progressMeasure = 0;
-      activity.progressMeasureStatus = false;
-    }
-    if (activity.objectiveNormalizedMeasure === null) {
-      activity.objectiveNormalizedMeasure = 0;
-      activity.objectiveMeasureStatus = false;
-    }
-    activity.attemptAbsoluteDuration = "PT0H0M0S";
-    activity.attemptExperiencedDuration = "PT0H0M0S";
-    activity.isAvailable = true;
-  }
-  /**
-   * Setup Activity Attempt Tracking
-   * Initialize attempt tracking information per SCORM 2004 4th Edition
-   * @param {Activity} activity - The activity being delivered
-   */
-  setupActivityAttemptTracking(activity) {
-    activity.wasSkipped = false;
-    activity.attemptAbsoluteStartTime = this.now().toISOString();
-    if (!activity.location) {
-      activity.location = "";
-    }
-    activity.activityAttemptActive = true;
-    if (!activity.learnerPrefs) {
-      activity.learnerPrefs = {
-        audioCaptioning: "0",
-        audioLevel: "1",
-        deliverySpeed: "1",
-        language: ""
-      };
-    }
-  }
-  /**
-   * Fire Activity Delivery Event
-   * Notify listeners that an activity has been delivered
-   * @param {Activity} activity - The activity that was delivered
-   */
-  fireActivityDeliveryEvent(activity) {
-    try {
-      if (this.eventCallback) {
-        this.eventCallback("onActivityDelivery", activity);
-      }
-      console.debug(`Activity delivered: ${activity.id} - ${activity.title}`);
-    } catch (error) {
-      console.warn(`Failed to fire activity delivery event: ${error}`);
-    }
-  }
-  /**
-   * Fire a sequencing event
-   * @param {string} eventType - The type of event
-   * @param {any} data - Event data
-   */
-  fireEvent(eventType, data) {
-    try {
-      if (this.eventCallback) {
-        this.eventCallback(eventType, data);
-      }
-    } catch (error) {
-      console.warn(`Failed to fire sequencing event ${eventType}: ${error}`);
-    }
-  }
-  /**
-   * Clear Suspended Activity Subprocess (DB.2.1)
-   * Clears the suspended activity state
-   */
-  clearSuspendedActivitySubprocess() {
-    if (this.activityTree.suspendedActivity) {
-      let current = this.activityTree.suspendedActivity;
-      while (current) {
-        current.isSuspended = false;
-        current = current.parent;
-      }
-      this.activityTree.suspendedActivity = null;
-    }
-  }
-  /**
-   * End Attempt Process
-   * Ends an attempt on an activity
-   * @spec SN Book: UP.4 (Utility Process - End Attempt Process)
-   * @param {Activity} activity - The activity to end attempt on
-   */
-  endAttemptProcess(activity) {
-    if (!activity.isActive) {
-      return;
-    }
-    this.transferRteDataToActivity(activity);
-    activity.isActive = false;
-    activity.activityAttemptActive = false;
-    if (activity.children.length === 0) {
-      {
-        if (!activity.isSuspended) {
-          if (!activity.sequencingControls.completionSetByContent) {
-            if (!activity.attemptProgressStatus) {
-              activity.attemptProgressStatus = true;
-              activity.completionStatus = "completed";
-              activity.wasAutoCompleted = true;
-              this.fireEvent("onAutoCompletion", {
-                activityId: activity.id,
-                timestamp: (/* @__PURE__ */ new Date()).toISOString()
-              });
-            }
-          }
-          if (!activity.sequencingControls.objectiveSetByContent) {
-            const primaryObjective = activity.primaryObjective;
-            if (primaryObjective) {
-              if (!primaryObjective.progressStatus) {
-                primaryObjective.progressStatus = true;
-                primaryObjective.satisfiedStatus = true;
-                activity.objectiveSatisfiedStatus = true;
-                activity.successStatus = "passed";
-                activity.wasAutoSatisfied = true;
-                this.fireEvent("onAutoSatisfaction", {
-                  activityId: activity.id,
-                  timestamp: (/* @__PURE__ */ new Date()).toISOString()
-                });
-              }
-            }
-          }
-        }
-      }
-    } else {
-      const hasSuspendedChildren = activity.children.some((child) => child.isSuspended);
-      activity.isSuspended = hasSuspendedChildren;
-    }
-    if (activity.completionStatus === "unknown") {
-      activity.completionStatus = "incomplete";
-    }
-    if (activity.successStatus === "unknown" && activity.objectiveSatisfiedStatus) {
-      activity.successStatus = activity.objectiveSatisfiedStatus ? "passed" : "failed";
-    }
-    const mappingRoot = this.activityTree.root || activity;
-    this.rollupProcess.processGlobalObjectiveMapping(mappingRoot, this.globalObjectiveMap);
-    this.rollupProcess.overallRollupProcess(activity);
-    this.navigationLookAhead.invalidateCache();
-    if (this.activityTree.root) {
-      this.rollupProcess.validateRollupStateConsistency(this.activityTree.root);
-    }
-    SelectionRandomization.applySelectionAndRandomization(activity, false);
-  }
-  /**
-   * Transfer RTE Data to Activity (Full Implementation)
-   * Transfers ALL CMI data from runtime environment to activity state
-   * Called at the start of endAttemptProcess to ensure proper data transfer
-   *
-   * This implements:
-   * - Primary objective data transfer (completion, success, score)
-   * - Non-primary objective data transfer by ID matching
-   * - Change tracking to prevent overwriting global objectives
-   * - Score normalization (ScaleRawScore)
-   * - 4th Edition specific handling
-   *
-   * @param {Activity} activity - The activity to transfer data to
-   */
-  transferRteDataToActivity(activity) {
-    if (!this.getCMIData) {
-      return;
-    }
-    const cmiData = this.getCMIData();
-    if (!cmiData) {
-      return;
-    }
-    this.transferPrimaryObjectiveData(activity, cmiData);
-    this.transferNonPrimaryObjectiveData(activity, cmiData);
-    this.fireEvent("onRteDataTransfer", {
-      activityId: activity.id,
-      timestamp: (/* @__PURE__ */ new Date()).toISOString()
-    });
-  }
-  /**
-   * Transfer primary objective data from CMI to activity
-   * @param {Activity} activity - The activity to transfer data to
-   * @param {CMIDataForTransfer} cmiData - CMI data from runtime
-   */
-  transferPrimaryObjectiveData(activity, cmiData) {
-    if (cmiData.completion_status && cmiData.completion_status !== "unknown") {
-      activity.completionStatus = cmiData.completion_status;
-      activity.attemptProgressStatus = true;
-    }
-    let hasSuccessStatus = false;
-    let successStatus = false;
-    let hasNormalizedMeasure = false;
-    let normalizedScore = 0;
-    if (cmiData.success_status && cmiData.success_status !== "unknown") {
-      successStatus = cmiData.success_status === "passed";
-      hasSuccessStatus = true;
-      activity.objectiveSatisfiedStatus = successStatus;
-      activity.objectiveSatisfiedStatusKnown = true;
-      activity.successStatus = cmiData.success_status;
-      activity.objectiveMeasureStatus = true;
-    }
-    if (cmiData.score) {
-      const normalized = this.normalizeScore(cmiData.score);
-      if (normalized !== null) {
-        normalizedScore = normalized;
-        hasNormalizedMeasure = true;
-        activity.objectiveNormalizedMeasure = normalizedScore;
-        activity.objectiveMeasureStatus = true;
-      }
-    }
-    if (activity.primaryObjective && (hasSuccessStatus || hasNormalizedMeasure)) {
-      const finalStatus = hasSuccessStatus ? successStatus : activity.primaryObjective.satisfiedStatus;
-      const finalMeasure = hasNormalizedMeasure ? normalizedScore : activity.primaryObjective.normalizedMeasure;
-      const measureStatus = hasSuccessStatus || hasNormalizedMeasure;
-      activity.primaryObjective.initializeFromCMI(finalStatus, finalMeasure, measureStatus);
-      if (hasSuccessStatus) {
-        activity.primaryObjective.satisfiedStatusKnown = true;
-        activity.primaryObjective.progressStatus = true;
-      }
-    }
-    if (cmiData.progress_measure && cmiData.progress_measure !== "") {
-      const progressMeasure = parseFloat(cmiData.progress_measure);
-      if (!isNaN(progressMeasure)) {
-        activity.progressMeasure = progressMeasure;
-        activity.progressMeasureStatus = true;
-        if (activity.primaryObjective) {
-          activity.primaryObjective.progressMeasure = progressMeasure;
-          activity.primaryObjective.progressMeasureStatus = true;
-        }
-      }
-    }
-  }
-  /**
-   * Transfer non-primary objective data from CMI to activity objectives
-   * Only transfers changed values to protect global objectives
-   * @param {Activity} activity - The activity to transfer data to
-   * @param {CMIDataForTransfer} cmiData - CMI data from runtime
-   */
-  transferNonPrimaryObjectiveData(activity, cmiData) {
-    if (!cmiData.objectives || cmiData.objectives.length === 0) {
-      return;
-    }
-    for (const cmiObjective of cmiData.objectives) {
-      if (!cmiObjective.id) {
-        continue;
-      }
-      const activityObjectiveMatch = activity.getObjectiveById(cmiObjective.id);
-      if (!activityObjectiveMatch || activityObjectiveMatch.isPrimary) {
-        continue;
-      }
-      const activityObjective = activityObjectiveMatch.objective;
-      let hasSuccessStatus = false;
-      let successStatus = false;
-      let hasNormalizedMeasure = false;
-      let normalizedScore = 0;
-      if (cmiObjective.success_status && cmiObjective.success_status !== "unknown") {
-        successStatus = cmiObjective.success_status === "passed";
-        hasSuccessStatus = true;
-        activityObjective.progressStatus = true;
-      }
-      if (cmiObjective.completion_status && cmiObjective.completion_status !== "unknown") {
-        activityObjective.completionStatus = cmiObjective.completion_status;
-      }
-      if (cmiObjective.score) {
-        const normalized = this.normalizeScore(cmiObjective.score);
-        if (normalized !== null) {
-          normalizedScore = normalized;
-          hasNormalizedMeasure = true;
-        }
-      }
-      if (hasSuccessStatus || hasNormalizedMeasure) {
-        const finalStatus = hasSuccessStatus ? successStatus : activityObjective.satisfiedStatus;
-        const finalMeasure = hasNormalizedMeasure ? normalizedScore : activityObjective.normalizedMeasure;
-        const measureStatus = hasNormalizedMeasure;
-        activityObjective.initializeFromCMI(finalStatus, finalMeasure, measureStatus);
-      }
-      if (cmiObjective.progress_measure && cmiObjective.progress_measure !== "") {
-        const progressMeasure = parseFloat(cmiObjective.progress_measure);
-        if (!isNaN(progressMeasure)) {
-          activityObjective.progressMeasure = progressMeasure;
-          activityObjective.progressMeasureStatus = true;
-        }
-      }
-    }
-  }
-  /**
-   * Normalize score from raw/min/max if scaled is not available
-   * Implements ScaleRawScore process
-   * @param {Object} score - Score object with scaled, raw, min, max
-   * @return {number | null} - Normalized score or null if cannot normalize
-   */
-  normalizeScore(score) {
-    if (score.scaled && score.scaled !== "") {
-      const scaled = parseFloat(score.scaled);
-      if (!isNaN(scaled)) {
-        return scaled;
-      }
-    }
-    if (score.raw && score.raw !== "" && score.min && score.min !== "" && score.max && score.max !== "") {
-      const raw = parseFloat(score.raw);
-      const min = parseFloat(score.min);
-      const max = parseFloat(score.max);
-      if (!isNaN(raw) && !isNaN(min) && !isNaN(max) && max > min) {
-        const normalized = (raw - min) / (max - min);
-        return Math.max(-1, Math.min(1, normalized));
-      }
-    }
-    return null;
-  }
-  /**
-   * Update navigation validity in ADL nav
-   * Called after activity delivery and after rollup to update navigation button states
-   */
-  updateNavigationValidity() {
-    if (!this.adlNav || !this.activityTree.currentActivity) {
-      return;
-    }
-    this.navigationLookAhead.invalidateCache();
-    const continueValid = this.navigationLookAhead.predictContinueEnabled();
-    try {
-      this.adlNav.request_valid.continue = continueValid ? "true" : "false";
-    } catch (e) {
-    }
-    const previousValid = this.navigationLookAhead.predictPreviousEnabled();
-    try {
-      this.adlNav.request_valid.previous = previousValid ? "true" : "false";
-    } catch (e) {
-    }
-    const allActivities = this.activityTree.getAllActivities();
-    const choiceMap = {};
-    const jumpMap = {};
-    for (const act of allActivities) {
-      const choiceRes = this.navigationRequestProcess("choice" /* CHOICE */, act.id);
-      choiceMap[act.id] = choiceRes.valid ? "true" : "false";
-      const jumpRes = this.navigationRequestProcess("jump" /* JUMP */, act.id);
-      jumpMap[act.id] = jumpRes.valid ? "true" : "false";
-    }
-    try {
-      this.adlNav.request_valid.choice = choiceMap;
-    } catch (e) {
-    }
-    try {
-      this.adlNav.request_valid.jump = jumpMap;
-    } catch (e) {
-    }
-    this.fireEvent("onNavigationValidityUpdate", {
-      continue: continueValid,
-      previous: previousValid,
-      choice: choiceMap,
-      jump: jumpMap,
-      hideLmsUi: this.getEffectiveHideLmsUi(this.activityTree.currentActivity)
-    });
-  }
-  /**
-   * Synchronize global objectives from activity states
-   * Called after CMI changes that affect objective status to update global objective mappings
-   * This ensures that preconditions based on global objectives are properly evaluated
-   */
-  synchronizeGlobalObjectives() {
-    if (!this.activityTree.root) {
-      return;
-    }
-    this.rollupProcess.processGlobalObjectiveMapping(this.activityTree.root, this.globalObjectiveMap);
-  }
-  getEffectiveHideLmsUi(activity) {
-    const seen = /* @__PURE__ */ new Set();
-    for (const directive of this.defaultHideLmsUi) {
-      seen.add(directive);
-    }
-    let current = activity;
-    while (current) {
-      for (const directive of current.hideLmsUi) {
-        seen.add(directive);
-      }
-      current = current.parent;
-    }
-    return OverallSequencingProcess.HIDE_LMS_UI_ORDER.filter((directive) => seen.has(directive));
-  }
-  getEffectiveAuxiliaryResources(activity) {
-    const merged = /* @__PURE__ */ new Map();
-    for (const resource of this.defaultAuxiliaryResources) {
-      if (resource.resourceId) {
-        merged.set(resource.resourceId, { ...resource });
-      }
-    }
-    const lineage = [];
-    let current = activity;
-    while (current) {
-      lineage.push(current);
-      current = current.parent;
-    }
-    for (const node of lineage.reverse()) {
-      for (const resource of node.auxiliaryResources) {
-        if (resource.resourceId) {
-          merged.set(resource.resourceId, { ...resource });
-        }
-      }
-    }
-    return Array.from(merged.values());
-  }
-  /**
-   * Find common ancestor between two activities
-   */
-  findCommonAncestor(activity1, activity2) {
-    const ancestors1 = [];
-    let current = activity1;
-    while (current) {
-      ancestors1.push(current);
-      current = current.parent;
-    }
-    current = activity2;
-    while (current) {
-      if (ancestors1.includes(current)) {
-        return current;
-      }
-      current = current.parent;
-    }
-    return null;
-  }
-  /**
-   * Check if content has been delivered
-   */
-  hasContentBeenDelivered() {
-    return this.contentDelivered;
-  }
-  /**
-   * Check if content delivery is currently in progress
-   * Used to prevent re-entrant termination requests during delivery
-   */
-  isDeliveryInProgress() {
-    return this._deliveryInProgress;
-  }
-  /**
-   * Reset content delivered flag
-   */
-  resetContentDelivered() {
-    this.contentDelivered = false;
-  }
-  /**
-   * Set content delivered flag
-   * @param {boolean} value - The value to set
-   */
-  setContentDelivered(value) {
-    this.contentDelivered = value;
-  }
-  /**
-   * Exit Action Rules Subprocess (TB.2.1)
-   * Evaluates exit action rules for the current activity
-   * @param {Activity} activity - The activity to evaluate
-   * @return {string | null} - The exit action to take, or null if none
-   */
-  exitActionRulesSubprocess(activity) {
-    const exitRules = activity.sequencingRules.exitConditionRules;
-    for (const rule of exitRules) {
-      let conditionsMet = true;
-      if (rule.conditionCombination === "all") {
-        conditionsMet = rule.conditions.every((condition) => condition.evaluate(activity));
-      } else {
-        conditionsMet = rule.conditions.some((condition) => condition.evaluate(activity));
-      }
-      if (conditionsMet) {
-        if (rule.action === RuleActionType.EXIT_PARENT) {
-          return "EXIT_PARENT";
-        } else if (rule.action === RuleActionType.EXIT_ALL) {
-          return "EXIT_ALL";
-        }
-      }
-    }
-    return null;
-  }
-  /**
-   * Terminate all activities in the tree
-   * @param {Activity} activity - The activity to start from (usually root)
-   */
-  terminateAllActivities(activity) {
-    for (const child of activity.children) {
-      this.terminateAllActivities(child);
-    }
-    if (activity.isActive) {
-      this.endAttemptProcess(activity);
-    }
-  }
-  /**
-   * Limit Conditions Check Process (UP.1)
-   * Checks if any limit conditions are violated for the activity
-   * @param {Activity} activity - The activity to check limit conditions for
-   * @return {boolean} - True if limit conditions are met, false if violated
-   */
-  limitConditionsCheckProcess(activity) {
-    let result = true;
-    let failureReason = "";
-    if (activity.attemptLimit !== null && activity.attemptLimit > 0) {
-      if (activity.attemptCount >= activity.attemptLimit) {
-        result = false;
-        failureReason = "Attempt limit exceeded";
-      }
-    }
-    if (result && activity.attemptAbsoluteDurationLimit) {
-      const limitDuration = getDurationAsSeconds(activity.attemptAbsoluteDurationLimit, scorm2004_regex.CMITimespan);
-      if (limitDuration > 0) {
-        const currentDuration = getDurationAsSeconds(activity.attemptAbsoluteDuration || "PT0H0M0S", scorm2004_regex.CMITimespan);
-        if (currentDuration >= limitDuration) {
-          result = false;
-          failureReason = "Attempt duration limit exceeded";
-        }
-      }
-    }
-    if (result && activity.activityAbsoluteDurationLimit) {
-      const limitDuration = getDurationAsSeconds(activity.activityAbsoluteDurationLimit, scorm2004_regex.CMITimespan);
-      if (limitDuration > 0) {
-        const currentDuration = getDurationAsSeconds(activity.activityAbsoluteDuration || "PT0H0M0S", scorm2004_regex.CMITimespan);
-        if (currentDuration >= limitDuration) {
-          result = false;
-          failureReason = "Activity duration limit exceeded";
-        }
-      }
-    }
-    if (result && activity.beginTimeLimit) {
-      const currentTime = this.now();
-      const beginTime = new Date(activity.beginTimeLimit);
-      if (currentTime < beginTime) {
-        result = false;
-        failureReason = "Not yet time to begin";
-      }
-    }
-    if (result && activity.endTimeLimit) {
-      const currentTime = this.now();
-      const endTime = new Date(activity.endTimeLimit);
-      if (currentTime > endTime) {
-        result = false;
-        failureReason = "Time limit expired";
-      }
-    }
-    this.fireEvent("onLimitConditionCheck", {
-      activity,
-      result,
-      failureReason,
-      checks: {
-        attemptLimit: activity.attemptLimit,
-        attemptCount: activity.attemptCount,
-        attemptDurationLimit: activity.attemptAbsoluteDurationLimit,
-        activityDurationLimit: activity.activityAbsoluteDurationLimit,
-        beginTimeLimit: activity.beginTimeLimit,
-        endTimeLimit: activity.endTimeLimit
-      }
-    });
-    return result;
-  }
-  /**
-   * Get Activity Path (Helper for DB.1.1)
-   * Forms the activity path from root to target activity, inclusive
-   * @param {Activity} activity - The target activity
-   * @param {boolean} includeActivity - Whether to include the target in the path
-   * @return {Activity[]} - Array of activities from root to target
-   */
-  getActivityPath(activity, includeActivity = true) {
-    const path = [];
-    let current = activity;
-    while (current !== null) {
-      path.unshift(current);
-      current = current.parent;
-    }
-    if (!includeActivity && path.length > 0) {
-      path.pop();
-    }
-    return path;
-  }
-  /**
-   * Check Activity Process (UP.5)
-   * Validates if an activity can be delivered based on sequencing rules and limit conditions
-   * Note: Cluster/leaf validation is handled in DB.1.1 Step 1, not here
-   * @param {Activity} activity - The activity to check
-   * @return {boolean} - True if activity is valid (not disabled, limits not violated)
-   */
-  checkActivityProcess(activity) {
-    if (!activity.isAvailable) {
-      return false;
-    }
-    if (!this.limitConditionsCheckProcess(activity)) {
-      return false;
-    }
-    return true;
-  }
-  /**
-   * Terminate Descendent Attempts Process (UP.3)
-   * Recursively terminates all active descendant attempts
-   * @param {Activity} activity - The activity whose descendants to terminate
-   */
-  terminateDescendentAttemptsProcess(activity) {
-    for (const child of activity.children) {
-      if (child.children.length > 0) {
-        this.terminateDescendentAttemptsProcess(child);
-      }
-      const exitAction = this.exitActionRulesSubprocess(child);
-      if (child.isActive) {
-        if (exitAction === "EXIT_ALL") {
-          this.terminateDescendentAttemptsProcess(child);
-        }
-        this.endAttemptProcess(child);
-      }
-    }
-  }
-  /**
-   * Get Sequencing State for Persistence
-   * Returns the current state of the sequencing engine for multi-session support
-   * @return {object} - Serializable sequencing state
-   */
-  getSequencingState() {
-    return {
-      version: "1.0",
-      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-      contentDelivered: this.contentDelivered,
-      currentActivity: this.activityTree.currentActivity?.id || null,
-      suspendedActivity: this.activityTree.suspendedActivity?.id || null,
-      activityStates: this.serializeActivityStates(),
-      navigationState: this.getNavigationState(),
-      globalObjectiveMap: this.serializeGlobalObjectiveMap()
-    };
-  }
-  /**
-   * Restore Sequencing State from Persistence
-   * Restores the sequencing engine state from a previous session
-   * @param {any} state - Previously saved sequencing state
-   * @return {boolean} - True if restoration was successful
-   */
-  restoreSequencingState(state) {
-    try {
-      if (!state || state.version !== "1.0") {
-        console.warn("Incompatible sequencing state version");
-        return false;
-      }
-      this.contentDelivered = state.contentDelivered || false;
-      if (state.globalObjectiveMap) {
-        this.restoreGlobalObjectiveMap(state.globalObjectiveMap);
-      }
-      if (state.activityStates) {
-        this.deserializeActivityStates(state.activityStates);
-      }
-      if (state.currentActivity) {
-        const currentActivity = this.activityTree.getActivity(state.currentActivity);
-        if (currentActivity) {
-          this.activityTree.currentActivity = currentActivity;
-          currentActivity.isActive = true;
-        }
-      }
-      if (state.suspendedActivity) {
-        const suspendedActivity = this.activityTree.getActivity(state.suspendedActivity);
-        if (suspendedActivity) {
-          this.activityTree.suspendedActivity = suspendedActivity;
-          suspendedActivity.isSuspended = true;
-        }
-      }
-      if (state.navigationState) {
-        this.restoreNavigationState(state.navigationState);
-      }
-      if (this.activityTree.root) {
-        this.rollupProcess.processGlobalObjectiveMapping(this.activityTree.root, this.globalObjectiveMap);
-      }
-      console.debug("Sequencing state restored successfully");
-      return true;
-    } catch (error) {
-      console.error(`Failed to restore sequencing state: ${error}`);
-      return false;
-    }
-  }
-  /**
-   * Serialize Activity States
-   * Creates a serializable representation of all activity states
-   * @return {object} - Serialized activity states
-   */
-  serializeActivityStates() {
-    const states = {};
-    const serializeActivity = (activity) => {
-      states[activity.id] = {
-        id: activity.id,
-        title: activity.title,
-        isActive: activity.isActive,
-        isSuspended: activity.isSuspended,
-        isCompleted: activity.isCompleted,
-        completionStatus: activity.completionStatus,
-        successStatus: activity.successStatus,
-        attemptCount: activity.attemptCount,
-        attemptCompletionAmount: activity.attemptCompletionAmount,
-        attemptAbsoluteDuration: activity.attemptAbsoluteDuration,
-        attemptExperiencedDuration: activity.attemptExperiencedDuration,
-        activityAbsoluteDuration: activity.activityAbsoluteDuration,
-        activityExperiencedDuration: activity.activityExperiencedDuration,
-        objectiveSatisfiedStatus: activity.objectiveSatisfiedStatus,
-        objectiveMeasureStatus: activity.objectiveMeasureStatus,
-        objectiveNormalizedMeasure: activity.objectiveNormalizedMeasure,
-        progressMeasure: activity.progressMeasure,
-        progressMeasureStatus: activity.progressMeasureStatus,
-        isAvailable: activity.isAvailable,
-        isHiddenFromChoice: activity.isHiddenFromChoice,
-        location: activity.location,
-        attemptAbsoluteStartTime: activity.attemptAbsoluteStartTime,
-        objectives: activity.getObjectiveStateSnapshot(),
-        auxiliaryResources: activity.auxiliaryResources,
-        selectionRandomizationState: {
-          selectionCountStatus: activity.sequencingControls.selectionCountStatus,
-          reorderChildren: activity.sequencingControls.reorderChildren,
-          childOrder: activity.children.map((child) => child.id),
-          selectedChildIds: activity.children.filter((child) => child.isAvailable).map((child) => child.id),
-          hiddenFromChoiceChildIds: activity.children.filter((child) => child.isHiddenFromChoice).map((child) => child.id)
-        }
-      };
-      for (const child of activity.children) {
-        serializeActivity(child);
-      }
-    };
-    if (this.activityTree.root) {
-      serializeActivity(this.activityTree.root);
-    }
-    return states;
-  }
-  /**
-   * Deserialize Activity States
-   * Restores activity states from serialized data
-   * @param {any} states - Serialized activity states
-   */
-  deserializeActivityStates(states) {
-    const restoreActivity = (activity) => {
-      const state = states[activity.id];
-      if (state) {
-        activity.isActive = state.isActive || false;
-        activity.isSuspended = state.isSuspended || false;
-        activity.isCompleted = state.isCompleted || false;
-        activity.completionStatus = state.completionStatus || "unknown";
-        activity.successStatus = state.successStatus || "unknown";
-        activity.attemptCount = state.attemptCount || 0;
-        activity.attemptCompletionAmount = state.attemptCompletionAmount || 0;
-        activity.attemptAbsoluteDuration = state.attemptAbsoluteDuration || "PT0H0M0S";
-        activity.attemptExperiencedDuration = state.attemptExperiencedDuration || "PT0H0M0S";
-        activity.activityAbsoluteDuration = state.activityAbsoluteDuration || "PT0H0M0S";
-        activity.activityExperiencedDuration = state.activityExperiencedDuration || "PT0H0M0S";
-        activity.objectiveSatisfiedStatus = state.objectiveSatisfiedStatus || false;
-        activity.objectiveMeasureStatus = state.objectiveMeasureStatus || false;
-        activity.objectiveNormalizedMeasure = state.objectiveNormalizedMeasure || 0;
-        activity.progressMeasure = state.progressMeasure || null;
-        activity.progressMeasureStatus = state.progressMeasureStatus || false;
-        activity.isAvailable = state.isAvailable !== false;
-        activity.isHiddenFromChoice = state.isHiddenFromChoice === true;
-        activity.location = state.location || "";
-        activity.attemptAbsoluteStartTime = state.attemptAbsoluteStartTime || null;
-        if (Array.isArray(state.auxiliaryResources)) {
-          activity.auxiliaryResources = state.auxiliaryResources;
-        }
-        if (state.objectives) {
-          activity.applyObjectiveStateSnapshot(state.objectives);
-        }
-      }
-      for (const child of activity.children) {
-        restoreActivity(child);
-      }
-      if (state?.selectionRandomizationState) {
-        const selectionState = state.selectionRandomizationState;
-        const sequencingControls = activity.sequencingControls;
-        if (selectionState.selectionCountStatus !== void 0) {
-          sequencingControls.selectionCountStatus = selectionState.selectionCountStatus;
-        }
-        if (selectionState.reorderChildren !== void 0) {
-          sequencingControls.reorderChildren = selectionState.reorderChildren;
-        }
-        if (selectionState.childOrder && selectionState.childOrder.length > 0) {
-          activity.setChildOrder(selectionState.childOrder);
-        }
-        const selectedSet = Array.isArray(selectionState.selectedChildIds) ? new Set(selectionState.selectedChildIds) : null;
-        const hiddenSet = Array.isArray(selectionState.hiddenFromChoiceChildIds) ? new Set(selectionState.hiddenFromChoiceChildIds) : null;
-        if (selectedSet || hiddenSet) {
-          for (const child of activity.children) {
-            if (selectedSet) {
-              const isSelected = selectedSet.has(child.id);
-              child.isAvailable = isSelected;
-              if (!hiddenSet) {
-                child.isHiddenFromChoice = !isSelected;
-              }
-            }
-            if (hiddenSet) {
-              child.isHiddenFromChoice = hiddenSet.has(child.id);
-            }
-          }
-        }
-        activity.setProcessedChildren(activity.children.filter((child) => child.isAvailable));
-      } else {
-        activity.resetProcessedChildren();
-      }
-    };
-    if (this.activityTree.root) {
-      restoreActivity(this.activityTree.root);
-    }
-  }
-  /**
-   * Get Navigation State
-   * Returns current navigation validity and ADL nav state
-   * @return {any} - Navigation state
-   */
-  getNavigationState() {
-    if (!this.adlNav) {
-      return null;
-    }
-    return {
-      request: this.adlNav.request || "_none_",
-      requestValid: {
-        continue: this.adlNav.request_valid?.continue || "false",
-        previous: this.adlNav.request_valid?.previous || "false",
-        choice: this.adlNav.request_valid?.choice || "false",
-        jump: this.adlNav.request_valid?.jump || "false",
-        exit: this.adlNav.request_valid?.exit || "false",
-        exitAll: this.adlNav.request_valid?.exitAll || "false",
-        abandon: this.adlNav.request_valid?.abandon || "false",
-        abandonAll: this.adlNav.request_valid?.abandonAll || "false",
-        suspendAll: this.adlNav.request_valid?.suspendAll || "false"
-      },
-      hideLmsUi: this.getEffectiveHideLmsUi(this.activityTree.currentActivity),
-      auxiliaryResources: this.getEffectiveAuxiliaryResources(this.activityTree.currentActivity)
-    };
-  }
-  /**
-   * Restore Navigation State
-   * Restores ADL navigation state
-   * @param {any} navState - Navigation state to restore
-   */
-  restoreNavigationState(navState) {
-    if (!this.adlNav || !navState) {
-      return;
-    }
-    try {
-      if (navState.requestValid) {
-        const requestValid = navState.requestValid;
-        this.adlNav.request_valid.continue = requestValid.continue || "false";
-        this.adlNav.request_valid.previous = requestValid.previous || "false";
-        this.adlNav.request_valid.choice = requestValid.choice || "false";
-        this.adlNav.request_valid.jump = requestValid.jump || "false";
-        this.adlNav.request_valid.exit = requestValid.exit || "false";
-        this.adlNav.request_valid.exitAll = requestValid.exitAll || "false";
-        this.adlNav.request_valid.abandon = requestValid.abandon || "false";
-        this.adlNav.request_valid.abandonAll = requestValid.abandonAll || "false";
-        this.adlNav.request_valid.suspendAll = requestValid.suspendAll || "false";
-      }
-    } catch (error) {
-      console.warn(`Could not fully restore navigation state: ${error}`);
-    }
+  validateSuspendAllRequest(currentActivity) {
+    if (!currentActivity) {
+      return new NavigationRequestResult(false, null, null, null, "NB.2.1-17");
+    }
+    return new NavigationRequestResult(
+      true,
+      SequencingRequestType.SUSPEND_ALL,
+      null,
+      null
+    );
   }
   /**
    * Enhanced Complex Choice Path Validation
@@ -18893,7 +18593,7 @@ class OverallSequencingProcess {
    * @param {Activity} targetActivity - Target activity for choice
    * @return {{valid: boolean, exception: string | null}} - Validation result
    */
-  validateComplexChoicePath(currentActivity, targetActivity) {
+  validateChoicePath(currentActivity, targetActivity) {
     if (targetActivity.isHiddenFromChoice) {
       return { valid: false, exception: "NB.2.1-11" };
     }
@@ -18904,7 +18604,10 @@ class OverallSequencingProcess {
       return { valid: false, exception: "NB.2.1-11" };
     }
     if (currentActivity) {
-      const commonAncestor = this.findCommonAncestor(currentActivity, targetActivity);
+      const commonAncestor = this.findCommonAncestor(
+        currentActivity,
+        targetActivity
+      );
       if (!commonAncestor) {
         return { valid: false, exception: "NB.2.1-11" };
       }
@@ -18917,11 +18620,19 @@ class OverallSequencingProcess {
         }
         node = node.parent;
       }
-      const constrainChoiceValidation = this.validateConstrainChoiceControls(currentActivity, targetActivity, commonAncestor);
+      const constrainChoiceValidation = this.validateConstrainChoice(
+        currentActivity,
+        targetActivity,
+        commonAncestor
+      );
       if (!constrainChoiceValidation.valid) {
         return constrainChoiceValidation;
       }
-      const choiceSetValidation = this.validateChoiceSetConstraints(currentActivity, targetActivity, commonAncestor);
+      const choiceSetValidation = this.validateChoiceSet(
+        currentActivity,
+        targetActivity,
+        commonAncestor
+      );
       if (!choiceSetValidation.valid) {
         return choiceSetValidation;
       }
@@ -18962,11 +18673,14 @@ class OverallSequencingProcess {
    * @param {Activity} commonAncestor - Common ancestor
    * @return {{valid: boolean, exception: string | null}} - Validation result
    */
-  validateConstrainChoiceControls(currentActivity, targetActivity, commonAncestor) {
+  validateConstrainChoice(currentActivity, targetActivity, commonAncestor) {
     let ancestor = commonAncestor;
     while (ancestor) {
       if (ancestor.sequencingControls?.constrainChoice || ancestor.sequencingControls?.preventActivation) {
-        const currentBranch = this.findChildContaining(ancestor, currentActivity);
+        const currentBranch = this.findChildContaining(
+          ancestor,
+          currentActivity
+        );
         if (!currentBranch) {
           return { valid: false, exception: "NB.2.1-11" };
         }
@@ -18988,17 +18702,17 @@ class OverallSequencingProcess {
       }
       ancestor = ancestor.parent;
     }
-    return this.validateAncestorConstraints(commonAncestor, currentActivity, targetActivity);
+    return this.validateAncestors(commonAncestor, currentActivity, targetActivity);
   }
   /**
    * Validate Choice Set Constraints
    * Validates choice sets with multiple targets
-   * @param {Activity} currentActivity - Current activity
+   * @param {Activity} _currentActivity - Current activity (unused but part of interface)
    * @param {Activity} targetActivity - Target activity
    * @param {Activity} commonAncestor - Common ancestor
    * @return {{valid: boolean, exception: string | null}} - Validation result
    */
-  validateChoiceSetConstraints(currentActivity, targetActivity, commonAncestor) {
+  validateChoiceSet(_currentActivity, targetActivity, commonAncestor) {
     if (!this.activityContains(commonAncestor, targetActivity) && targetActivity !== commonAncestor) {
       return { valid: false, exception: "NB.2.1-11" };
     }
@@ -19063,13 +18777,32 @@ class OverallSequencingProcess {
     return false;
   }
   /**
+   * Find common ancestor between two activities
+   */
+  findCommonAncestor(activity1, activity2) {
+    const ancestors1 = [];
+    let current = activity1;
+    while (current) {
+      ancestors1.push(current);
+      current = current.parent;
+    }
+    current = activity2;
+    while (current) {
+      if (ancestors1.includes(current)) {
+        return current;
+      }
+      current = current.parent;
+    }
+    return null;
+  }
+  /**
    * Validate ancestor-level constraints
    * @param {Activity} ancestor - Ancestor activity
    * @param {Activity} currentActivity - Current activity
    * @param {Activity} targetActivity - Target activity
    * @return {{valid: boolean, exception: string | null}} - Validation result
    */
-  validateAncestorConstraints(ancestor, currentActivity, targetActivity) {
+  validateAncestors(ancestor, currentActivity, targetActivity) {
     const children = ancestor.children;
     if (!children || children.length === 0) {
       return { valid: true, exception: null };
@@ -19084,7 +18817,9 @@ class OverallSequencingProcess {
     if (ancestor.sequencingControls.forwardOnly && targetIndex < currentIndex) {
       return { valid: false, exception: "NB.2.1-8" };
     }
-    const traversalStopIndex = children.findIndex((child) => child?.sequencingControls.stopForwardTraversal);
+    const traversalStopIndex = children.findIndex(
+      (child) => child?.sequencingControls.stopForwardTraversal
+    );
     if (currentTop.sequencingControls.stopForwardTraversal && targetIndex > currentIndex) {
       return { valid: false, exception: "NB.2.1-11" };
     }
@@ -19100,7 +18835,7 @@ class OverallSequencingProcess {
         if (between.sequencingControls.stopForwardTraversal) {
           return { valid: false, exception: "NB.2.1-11" };
         }
-        if (this.helperIsActivityMandatory(between) && !this.helperIsActivityCompleted(between)) {
+        if (this.isActivityMandatory(between) && !this.isActivityCompleted(between)) {
           return { valid: false, exception: "NB.2.1-11" };
         }
       }
@@ -19128,7 +18863,7 @@ class OverallSequencingProcess {
     return false;
   }
   /** Helper: mandatory activity detection (mirrors SequencingProcess behavior) */
-  helperIsActivityMandatory(activity) {
+  isActivityMandatory(activity) {
     if (!activity.isAvailable || activity.isHiddenFromChoice) {
       return false;
     }
@@ -19142,7 +18877,7 @@ class OverallSequencingProcess {
     return activity.mandatory !== false;
   }
   /** Helper: completed-state check (mirrors SequencingProcess behavior) */
-  helperIsActivityCompleted(activity) {
+  isActivityCompleted(activity) {
     if (!activity.isAvailable || activity.isHiddenFromChoice) {
       return true;
     }
@@ -19171,12 +18906,764 @@ class OverallSequencingProcess {
     return null;
   }
   /**
-   * Validate Activity Tree State Consistency
-   * Priority 4 Gap: Activity Tree State Consistency
-   * @param {Activity} activity - Activity to validate
-   * @return {{consistent: boolean, exception: string | null}} - Consistency result
+   * Update navigation validity in ADL nav
+   * Called after activity delivery and after rollup to update navigation button states
    */
-  validateActivityTreeStateConsistency(activity) {
+  updateNavigationValidity() {
+    if (!this.adlNav || !this.activityTree.currentActivity) {
+      return;
+    }
+    this.navigationLookAhead.invalidateCache();
+    const continueValid = this.navigationLookAhead.predictContinueEnabled();
+    try {
+      this.adlNav.request_valid.continue = continueValid ? "true" : "false";
+    } catch (e) {
+    }
+    const previousValid = this.navigationLookAhead.predictPreviousEnabled();
+    try {
+      this.adlNav.request_valid.previous = previousValid ? "true" : "false";
+    } catch (e) {
+    }
+    const allActivities = this.activityTree.getAllActivities();
+    const choiceMap = {};
+    const jumpMap = {};
+    for (const act of allActivities) {
+      const choiceRes = this.validateRequest(
+        "choice" /* CHOICE */,
+        act.id
+      );
+      choiceMap[act.id] = choiceRes.valid ? "true" : "false";
+      const jumpRes = this.validateRequest("jump" /* JUMP */, act.id);
+      jumpMap[act.id] = jumpRes.valid ? "true" : "false";
+    }
+    try {
+      this.adlNav.request_valid.choice = choiceMap;
+    } catch (e) {
+    }
+    try {
+      this.adlNav.request_valid.jump = jumpMap;
+    } catch (e) {
+    }
+    const hideLmsUi = this.getEffectiveHideLmsUiCallback ? this.getEffectiveHideLmsUiCallback(this.activityTree.currentActivity) : [];
+    this.fireEvent("onNavigationValidityUpdate", {
+      continue: continueValid,
+      previous: previousValid,
+      choice: choiceMap,
+      jump: jumpMap,
+      hideLmsUi
+    });
+  }
+  /**
+   * Get navigation look-ahead predictions
+   * Provides UI with navigation button states before user interaction
+   * @return {NavigationPredictions} - Current navigation predictions
+   */
+  getAllPredictions() {
+    return this.navigationLookAhead.getAllPredictions();
+  }
+  /**
+   * Predict if Continue navigation would succeed
+   * @return {boolean} - True if Continue would succeed
+   */
+  predictContinueEnabled() {
+    return this.navigationLookAhead.predictContinueEnabled();
+  }
+  /**
+   * Predict if Previous navigation would succeed
+   * @return {boolean} - True if Previous would succeed
+   */
+  predictPreviousEnabled() {
+    return this.navigationLookAhead.predictPreviousEnabled();
+  }
+  /**
+   * Predict if choice to specific activity would succeed
+   * @param {string} activityId - Target activity ID
+   * @return {boolean} - True if choice would succeed
+   */
+  predictChoiceEnabled(activityId) {
+    return this.navigationLookAhead.predictChoiceEnabled(activityId);
+  }
+  /**
+   * Get list of all activities that can be chosen
+   * @return {string[]} - Array of activity IDs available for choice
+   */
+  getAvailableChoices() {
+    return this.navigationLookAhead.getAvailableChoices();
+  }
+  /**
+   * Invalidate navigation prediction cache
+   * Called when state changes that affect navigation
+   */
+  invalidateCache() {
+    this.navigationLookAhead.invalidateCache();
+  }
+  /**
+   * Fire a sequencing event
+   * @param {string} eventType - The type of event
+   * @param {any} data - Event data
+   */
+  fireEvent(eventType, data) {
+    try {
+      if (this.eventCallback) {
+        this.eventCallback(eventType, data);
+      }
+    } catch (error) {
+      console.warn(`Failed to fire sequencing event ${eventType}: ${error}`);
+    }
+  }
+}
+
+class GlobalObjectiveService {
+  constructor(eventCallback) {
+    this.globalObjectiveMap = /* @__PURE__ */ new Map();
+    this.eventCallback = null;
+    this.eventCallback = eventCallback || null;
+  }
+  /**
+   * Initialize Global Objective Map
+   * Sets up the global objective map for cross-activity objective synchronization
+   * @param {Activity | null} root - Root activity to initialize from
+   */
+  initialize(root) {
+    try {
+      this.globalObjectiveMap.clear();
+      if (root) {
+        this.collectObjectives(root);
+      }
+      this.fireEvent("onGlobalObjectiveMapInitialized", {
+        objectiveCount: this.globalObjectiveMap.size,
+        timestamp: (/* @__PURE__ */ new Date()).toISOString()
+      });
+    } catch (error) {
+      this.fireEvent("onGlobalObjectiveMapError", {
+        error: error instanceof Error ? error.message : String(error),
+        timestamp: (/* @__PURE__ */ new Date()).toISOString()
+      });
+    }
+  }
+  /**
+   * Collect Global Objectives
+   * Recursively collects global objectives from the activity tree
+   * @param {Activity} activity - Activity to collect objectives from
+   */
+  collectObjectives(activity) {
+    const objectives = activity.getAllObjectives();
+    if (objectives.length === 0) {
+      const defaultId = `${activity.id}_default_objective`;
+      if (!this.globalObjectiveMap.has(defaultId)) {
+        this.globalObjectiveMap.set(defaultId, {
+          id: defaultId,
+          satisfiedStatus: activity.objectiveSatisfiedStatus,
+          satisfiedStatusKnown: activity.objectiveMeasureStatus,
+          normalizedMeasure: activity.objectiveNormalizedMeasure,
+          normalizedMeasureKnown: activity.objectiveMeasureStatus,
+          progressMeasure: activity.progressMeasure,
+          progressMeasureKnown: activity.progressMeasureStatus,
+          completionStatus: activity.completionStatus,
+          completionStatusKnown: activity.completionStatus !== CompletionStatus.UNKNOWN,
+          readSatisfiedStatus: true,
+          writeSatisfiedStatus: true,
+          readNormalizedMeasure: true,
+          writeNormalizedMeasure: true,
+          readCompletionStatus: true,
+          writeCompletionStatus: true,
+          readProgressMeasure: true,
+          writeProgressMeasure: true,
+          satisfiedByMeasure: activity.scaledPassingScore !== null,
+          minNormalizedMeasure: activity.scaledPassingScore,
+          updateAttemptData: true
+        });
+      }
+    }
+    for (const objective of objectives) {
+      const mapInfos = objective.mapInfo.length > 0 ? objective.mapInfo : [
+        {
+          targetObjectiveID: objective.id,
+          readSatisfiedStatus: true,
+          writeSatisfiedStatus: true,
+          readNormalizedMeasure: true,
+          writeNormalizedMeasure: true,
+          readProgressMeasure: true,
+          writeProgressMeasure: true,
+          readCompletionStatus: true,
+          writeCompletionStatus: true,
+          updateAttemptData: objective.isPrimary
+        }
+      ];
+      for (const mapInfo of mapInfos) {
+        const targetId = mapInfo.targetObjectiveID || objective.id;
+        if (!this.globalObjectiveMap.has(targetId)) {
+          this.globalObjectiveMap.set(targetId, {
+            id: targetId,
+            satisfiedStatus: objective.satisfiedStatus,
+            satisfiedStatusKnown: objective.measureStatus,
+            normalizedMeasure: objective.normalizedMeasure,
+            normalizedMeasureKnown: objective.measureStatus,
+            progressMeasure: objective.progressMeasure,
+            progressMeasureKnown: objective.progressMeasureStatus,
+            completionStatus: objective.completionStatus,
+            completionStatusKnown: objective.completionStatus !== CompletionStatus.UNKNOWN,
+            readSatisfiedStatus: mapInfo.readSatisfiedStatus ?? false,
+            writeSatisfiedStatus: mapInfo.writeSatisfiedStatus ?? false,
+            readNormalizedMeasure: mapInfo.readNormalizedMeasure ?? false,
+            writeNormalizedMeasure: mapInfo.writeNormalizedMeasure ?? false,
+            readProgressMeasure: mapInfo.readProgressMeasure ?? false,
+            writeProgressMeasure: mapInfo.writeProgressMeasure ?? false,
+            readCompletionStatus: mapInfo.readCompletionStatus ?? false,
+            writeCompletionStatus: mapInfo.writeCompletionStatus ?? false,
+            readRawScore: mapInfo.readRawScore ?? false,
+            writeRawScore: mapInfo.writeRawScore ?? false,
+            readMinScore: mapInfo.readMinScore ?? false,
+            writeMinScore: mapInfo.writeMinScore ?? false,
+            readMaxScore: mapInfo.readMaxScore ?? false,
+            writeMaxScore: mapInfo.writeMaxScore ?? false,
+            satisfiedByMeasure: objective.satisfiedByMeasure,
+            minNormalizedMeasure: objective.minNormalizedMeasure,
+            updateAttemptData: mapInfo.updateAttemptData ?? objective.isPrimary
+          });
+        }
+      }
+    }
+    for (const child of activity.children) {
+      this.collectObjectives(child);
+    }
+  }
+  /**
+   * Get Global Objective Map
+   * Returns the current global objective map for external access
+   * @return {Map<string, any>} - Current global objective map
+   */
+  getMap() {
+    return this.globalObjectiveMap;
+  }
+  /**
+   * Snapshot the Global Objective Map
+   * Provides a serializable copy for persistence consumers
+   * @return {Record<string, any>} - Plain-object snapshot of global objectives
+   */
+  getSnapshot() {
+    return this.serialize();
+  }
+  /**
+   * Restore Global Objective Map
+   * Replaces the current map contents with persisted data
+   * @param {Record<string, any>} snapshot - Serialized global objective map
+   */
+  restoreSnapshot(snapshot) {
+    this.restore(snapshot);
+  }
+  /**
+   * Update Global Objective
+   * Updates a specific global objective with new data
+   * @param {string} objectiveId - Objective ID to update
+   * @param {any} objectiveData - New objective data
+   */
+  updateObjective(objectiveId, objectiveData) {
+    try {
+      this.globalObjectiveMap.set(objectiveId, {
+        ...this.globalObjectiveMap.get(objectiveId),
+        ...objectiveData,
+        lastUpdated: (/* @__PURE__ */ new Date()).toISOString()
+      });
+      this.fireEvent("onGlobalObjectiveUpdated", {
+        objectiveId,
+        data: objectiveData,
+        timestamp: (/* @__PURE__ */ new Date()).toISOString()
+      });
+    } catch (error) {
+      this.fireEvent("onGlobalObjectiveUpdateError", {
+        objectiveId,
+        error: error instanceof Error ? error.message : String(error),
+        timestamp: (/* @__PURE__ */ new Date()).toISOString()
+      });
+    }
+  }
+  /**
+   * Synchronize global objectives from activity states
+   * Called after CMI changes that affect objective status to update global objective mappings
+   * This ensures that preconditions based on global objectives are properly evaluated
+   * @param {Activity | null} root - Root activity to synchronize from
+   * @param {RollupProcess} rollupProcess - Rollup process for mapping
+   */
+  synchronize(root, rollupProcess) {
+    if (!root) {
+      return;
+    }
+    rollupProcess.processGlobalObjectiveMapping(root, this.globalObjectiveMap);
+  }
+  /**
+   * Get a specific global objective by ID
+   * @param {string} objectiveId - The objective ID
+   * @return {any | undefined} - The objective data or undefined
+   */
+  getObjective(objectiveId) {
+    return this.globalObjectiveMap.get(objectiveId);
+  }
+  /**
+   * Check if a global objective exists
+   * @param {string} objectiveId - The objective ID
+   * @return {boolean} - True if exists
+   */
+  hasObjective(objectiveId) {
+    return this.globalObjectiveMap.has(objectiveId);
+  }
+  /**
+   * Get all global objective IDs
+   * @return {string[]} - Array of objective IDs
+   */
+  getObjectiveIds() {
+    return Array.from(this.globalObjectiveMap.keys());
+  }
+  /**
+   * Get the count of global objectives
+   * @return {number} - Number of global objectives
+   */
+  getObjectiveCount() {
+    return this.globalObjectiveMap.size;
+  }
+  /**
+   * Clear all global objectives
+   */
+  clear() {
+    this.globalObjectiveMap.clear();
+    this.fireEvent("onGlobalObjectiveMapCleared", {
+      timestamp: (/* @__PURE__ */ new Date()).toISOString()
+    });
+  }
+  /**
+   * Serialize the global objective map
+   * @return {Record<string, any>} - Serialized global objectives
+   */
+  serialize() {
+    const serialized = {};
+    this.globalObjectiveMap.forEach((data, id) => {
+      serialized[id] = { ...data };
+    });
+    return serialized;
+  }
+  /**
+   * Restore the global objective map from serialized data
+   * @param {Record<string, any>} mapData - Serialized global objective map
+   */
+  restore(mapData) {
+    this.globalObjectiveMap.clear();
+    if (!mapData) {
+      return;
+    }
+    for (const [id, data] of Object.entries(mapData)) {
+      this.globalObjectiveMap.set(id, { ...data });
+    }
+    this.fireEvent("onGlobalObjectiveMapRestored", {
+      objectiveCount: this.globalObjectiveMap.size,
+      timestamp: (/* @__PURE__ */ new Date()).toISOString()
+    });
+  }
+  /**
+   * Fire a sequencing event
+   * @param {string} eventType - The type of event
+   * @param {any} data - Event data
+   */
+  fireEvent(eventType, data) {
+    try {
+      if (this.eventCallback) {
+        this.eventCallback(eventType, data);
+      }
+    } catch (error) {
+      console.warn(`Failed to fire global objective event ${eventType}: ${error}`);
+    }
+  }
+}
+
+class SequencingStateManager {
+  constructor(activityTree, globalObjectiveService, rollupProcess, adlNav = null, eventCallback = null) {
+    this.getEffectiveHideLmsUiCallback = null;
+    this.getEffectiveAuxiliaryResourcesCallback = null;
+    this.contentDeliveredGetter = null;
+    this.contentDeliveredSetter = null;
+    this.activityTree = activityTree;
+    this.globalObjectiveService = globalObjectiveService;
+    this.rollupProcess = rollupProcess;
+    this.adlNav = adlNav;
+    this.eventCallback = eventCallback;
+  }
+  /**
+   * Set callback to get effective hideLmsUi
+   */
+  setGetEffectiveHideLmsUiCallback(callback) {
+    this.getEffectiveHideLmsUiCallback = callback;
+  }
+  /**
+   * Set callback to get effective auxiliary resources
+   */
+  setGetEffectiveAuxiliaryResourcesCallback(callback) {
+    this.getEffectiveAuxiliaryResourcesCallback = callback;
+  }
+  /**
+   * Set getter/setter for content delivered flag
+   */
+  setContentDeliveredAccessors(getter, setter) {
+    this.contentDeliveredGetter = getter;
+    this.contentDeliveredSetter = setter;
+  }
+  /**
+   * Get Sequencing State for Persistence
+   * Returns the current state of the sequencing engine for multi-session support
+   * @return {SequencingState} - Serializable sequencing state
+   */
+  getState() {
+    return {
+      version: "1.0",
+      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+      contentDelivered: this.contentDeliveredGetter ? this.contentDeliveredGetter() : false,
+      currentActivity: this.activityTree.currentActivity?.id || null,
+      suspendedActivity: this.activityTree.suspendedActivity?.id || null,
+      activityStates: this.serializeActivities(),
+      navigationState: this.getNavigationState(),
+      globalObjectiveMap: this.globalObjectiveService.getSnapshot()
+    };
+  }
+  /**
+   * Restore Sequencing State from Persistence
+   * Restores the sequencing engine state from a previous session
+   * @param {SequencingState} state - Previously saved sequencing state
+   * @return {boolean} - True if restoration was successful
+   */
+  restoreState(state) {
+    try {
+      if (!state || state.version !== "1.0") {
+        console.warn("Incompatible sequencing state version");
+        return false;
+      }
+      if (this.contentDeliveredSetter) {
+        this.contentDeliveredSetter(state.contentDelivered || false);
+      }
+      if (state.globalObjectiveMap) {
+        this.globalObjectiveService.restoreSnapshot(state.globalObjectiveMap);
+      }
+      if (state.activityStates) {
+        this.deserializeActivities(state.activityStates);
+      }
+      if (state.currentActivity) {
+        const currentActivity = this.activityTree.getActivity(state.currentActivity);
+        if (currentActivity) {
+          this.activityTree.currentActivity = currentActivity;
+          currentActivity.isActive = true;
+        }
+      }
+      if (state.suspendedActivity) {
+        const suspendedActivity = this.activityTree.getActivity(state.suspendedActivity);
+        if (suspendedActivity) {
+          this.activityTree.suspendedActivity = suspendedActivity;
+          suspendedActivity.isSuspended = true;
+        }
+      }
+      if (state.navigationState) {
+        this.restoreNavigationState(state.navigationState);
+      }
+      if (this.activityTree.root) {
+        this.globalObjectiveService.synchronize(
+          this.activityTree.root,
+          this.rollupProcess
+        );
+      }
+      console.debug("Sequencing state restored successfully");
+      return true;
+    } catch (error) {
+      console.error(`Failed to restore sequencing state: ${error}`);
+      return false;
+    }
+  }
+  /**
+   * Serialize Activity States
+   * Creates a serializable representation of all activity states
+   * @return {Record<string, ActivityStateData>} - Serialized activity states
+   */
+  serializeActivities() {
+    const states = {};
+    const serializeActivity = (activity) => {
+      states[activity.id] = {
+        id: activity.id,
+        title: activity.title,
+        isActive: activity.isActive,
+        isSuspended: activity.isSuspended,
+        isCompleted: activity.isCompleted,
+        completionStatus: activity.completionStatus,
+        successStatus: activity.successStatus,
+        attemptCount: activity.attemptCount,
+        attemptCompletionAmount: activity.attemptCompletionAmount,
+        attemptAbsoluteDuration: activity.attemptAbsoluteDuration,
+        attemptExperiencedDuration: activity.attemptExperiencedDuration,
+        activityAbsoluteDuration: activity.activityAbsoluteDuration,
+        activityExperiencedDuration: activity.activityExperiencedDuration,
+        objectiveSatisfiedStatus: activity.objectiveSatisfiedStatus,
+        objectiveMeasureStatus: activity.objectiveMeasureStatus,
+        objectiveNormalizedMeasure: activity.objectiveNormalizedMeasure,
+        progressMeasure: activity.progressMeasure,
+        progressMeasureStatus: activity.progressMeasureStatus,
+        isAvailable: activity.isAvailable,
+        isHiddenFromChoice: activity.isHiddenFromChoice,
+        location: activity.location,
+        attemptAbsoluteStartTime: activity.attemptAbsoluteStartTime,
+        objectives: activity.getObjectiveStateSnapshot(),
+        auxiliaryResources: activity.auxiliaryResources,
+        selectionRandomizationState: {
+          selectionCountStatus: activity.sequencingControls.selectionCountStatus,
+          reorderChildren: activity.sequencingControls.reorderChildren,
+          childOrder: activity.children.map((child) => child.id),
+          selectedChildIds: activity.children.filter((child) => child.isAvailable).map((child) => child.id),
+          hiddenFromChoiceChildIds: activity.children.filter((child) => child.isHiddenFromChoice).map((child) => child.id)
+        }
+      };
+      for (const child of activity.children) {
+        serializeActivity(child);
+      }
+    };
+    if (this.activityTree.root) {
+      serializeActivity(this.activityTree.root);
+    }
+    return states;
+  }
+  /**
+   * Deserialize Activity States
+   * Restores activity states from serialized data
+   * @param {Record<string, ActivityStateData>} states - Serialized activity states
+   */
+  deserializeActivities(states) {
+    const restoreActivity = (activity) => {
+      const state = states[activity.id];
+      if (state) {
+        activity.isActive = state.isActive || false;
+        activity.isSuspended = state.isSuspended || false;
+        activity.isCompleted = state.isCompleted || false;
+        activity.completionStatus = state.completionStatus || "unknown";
+        activity.successStatus = state.successStatus || "unknown";
+        activity.attemptCount = state.attemptCount || 0;
+        activity.attemptCompletionAmount = state.attemptCompletionAmount || 0;
+        activity.attemptAbsoluteDuration = state.attemptAbsoluteDuration || "PT0H0M0S";
+        activity.attemptExperiencedDuration = state.attemptExperiencedDuration || "PT0H0M0S";
+        activity.activityAbsoluteDuration = state.activityAbsoluteDuration || "PT0H0M0S";
+        activity.activityExperiencedDuration = state.activityExperiencedDuration || "PT0H0M0S";
+        activity.objectiveSatisfiedStatus = state.objectiveSatisfiedStatus || false;
+        activity.objectiveMeasureStatus = state.objectiveMeasureStatus || false;
+        activity.objectiveNormalizedMeasure = state.objectiveNormalizedMeasure || 0;
+        activity.progressMeasure = state.progressMeasure ?? 0;
+        activity.progressMeasureStatus = state.progressMeasureStatus || false;
+        activity.isAvailable = state.isAvailable !== false;
+        activity.isHiddenFromChoice = state.isHiddenFromChoice === true;
+        activity.location = state.location || "";
+        activity.attemptAbsoluteStartTime = state.attemptAbsoluteStartTime || "";
+        if (Array.isArray(state.auxiliaryResources)) {
+          activity.auxiliaryResources = state.auxiliaryResources;
+        }
+        if (state.objectives) {
+          activity.applyObjectiveStateSnapshot(state.objectives);
+        }
+      }
+      for (const child of activity.children) {
+        restoreActivity(child);
+      }
+      if (state?.selectionRandomizationState) {
+        const selectionState = state.selectionRandomizationState;
+        const sequencingControls = activity.sequencingControls;
+        if (selectionState.selectionCountStatus !== void 0) {
+          sequencingControls.selectionCountStatus = selectionState.selectionCountStatus;
+        }
+        if (selectionState.reorderChildren !== void 0) {
+          sequencingControls.reorderChildren = selectionState.reorderChildren;
+        }
+        if (selectionState.childOrder && selectionState.childOrder.length > 0) {
+          activity.setChildOrder(selectionState.childOrder);
+        }
+        const selectedSet = Array.isArray(selectionState.selectedChildIds) ? new Set(selectionState.selectedChildIds) : null;
+        const hiddenSet = Array.isArray(selectionState.hiddenFromChoiceChildIds) ? new Set(selectionState.hiddenFromChoiceChildIds) : null;
+        if (selectedSet || hiddenSet) {
+          for (const child of activity.children) {
+            if (selectedSet) {
+              const isSelected = selectedSet.has(child.id);
+              child.isAvailable = isSelected;
+              if (!hiddenSet) {
+                child.isHiddenFromChoice = !isSelected;
+              }
+            }
+            if (hiddenSet) {
+              child.isHiddenFromChoice = hiddenSet.has(child.id);
+            }
+          }
+        }
+        activity.setProcessedChildren(
+          activity.children.filter((child) => child.isAvailable)
+        );
+      } else {
+        activity.resetProcessedChildren();
+      }
+    };
+    if (this.activityTree.root) {
+      restoreActivity(this.activityTree.root);
+    }
+  }
+  /**
+   * Get Navigation State
+   * Returns current navigation validity and ADL nav state
+   * @return {NavigationState | null} - Navigation state
+   */
+  getNavigationState() {
+    if (!this.adlNav) {
+      return null;
+    }
+    const hideLmsUi = this.getEffectiveHideLmsUiCallback ? this.getEffectiveHideLmsUiCallback(this.activityTree.currentActivity) : [];
+    const auxiliaryResources = this.getEffectiveAuxiliaryResourcesCallback ? this.getEffectiveAuxiliaryResourcesCallback(
+      this.activityTree.currentActivity
+    ) : [];
+    return {
+      request: this.adlNav.request || "_none_",
+      requestValid: {
+        continue: this.adlNav.request_valid?.continue || "false",
+        previous: this.adlNav.request_valid?.previous || "false",
+        // choice and jump are dynamically evaluated at runtime, so we store "unknown"
+        choice: "unknown",
+        jump: "unknown",
+        exit: this.adlNav.request_valid?.exit || "false",
+        exitAll: this.adlNav.request_valid?.exitAll || "false",
+        abandon: this.adlNav.request_valid?.abandon || "false",
+        abandonAll: this.adlNav.request_valid?.abandonAll || "false",
+        suspendAll: this.adlNav.request_valid?.suspendAll || "false"
+      },
+      hideLmsUi,
+      auxiliaryResources
+    };
+  }
+  /**
+   * Restore Navigation State
+   * Restores ADL navigation state
+   * @param {NavigationState} navState - Navigation state to restore
+   */
+  restoreNavigationState(navState) {
+    if (!this.adlNav || !navState) {
+      return;
+    }
+    try {
+      if (navState.requestValid) {
+        const requestValid = navState.requestValid;
+        this.adlNav.request_valid.continue = requestValid.continue || "false";
+        this.adlNav.request_valid.previous = requestValid.previous || "false";
+        this.adlNav.request_valid.exit = requestValid.exit || "false";
+        this.adlNav.request_valid.exitAll = requestValid.exitAll || "false";
+        this.adlNav.request_valid.abandon = requestValid.abandon || "false";
+        this.adlNav.request_valid.abandonAll = requestValid.abandonAll || "false";
+        this.adlNav.request_valid.suspendAll = requestValid.suspendAll || "false";
+      }
+    } catch (error) {
+      console.warn(`Could not fully restore navigation state: ${error}`);
+    }
+  }
+  /**
+   * Get complete suspension state including activity tree and global objectives
+   * Captures all state needed to restore sequencing after suspend/resume
+   * @return {SuspensionState} - Complete suspension state
+   */
+  getSuspensionState() {
+    const state = {
+      activityTree: this.activityTree.root ? this.activityTree.root.getSuspensionState() : null,
+      currentActivityId: this.activityTree.currentActivity?.id || null,
+      suspendedActivityId: this.activityTree.suspendedActivity?.id || null,
+      globalObjectives: this.globalObjectiveService.getSnapshot(),
+      timestamp: (/* @__PURE__ */ new Date()).toISOString()
+    };
+    this.fireEvent("onSuspensionStateCaptured", {
+      hasActivityTree: !!state.activityTree,
+      currentActivityId: state.currentActivityId,
+      suspendedActivityId: state.suspendedActivityId,
+      globalObjectiveCount: Object.keys(state.globalObjectives).length,
+      timestamp: state.timestamp
+    });
+    return state;
+  }
+  /**
+   * Restore complete suspension state including activity tree and global objectives
+   * Restores all state needed to resume from suspended state
+   * @param {SuspensionState} state - Suspension state to restore
+   */
+  restoreSuspensionState(state) {
+    if (!state) {
+      this.fireEvent("onSuspensionStateRestoreError", {
+        error: "No suspension state provided",
+        timestamp: (/* @__PURE__ */ new Date()).toISOString()
+      });
+      return;
+    }
+    try {
+      if (state.globalObjectives) {
+        this.globalObjectiveService.restoreSnapshot(state.globalObjectives);
+      }
+      if (state.activityTree && this.activityTree.root) {
+        this.activityTree.root.restoreSuspensionState(state.activityTree);
+      }
+      if (state.currentActivityId) {
+        const currentActivity = this.activityTree.getActivity(
+          state.currentActivityId
+        );
+        if (currentActivity) {
+          this.activityTree.currentActivity = currentActivity;
+        }
+      }
+      if (state.suspendedActivityId) {
+        const suspendedActivity = this.activityTree.getActivity(
+          state.suspendedActivityId
+        );
+        if (suspendedActivity) {
+          this.activityTree.suspendedActivity = suspendedActivity;
+        }
+      }
+      this.fireEvent("onSuspensionStateRestored", {
+        currentActivityId: state.currentActivityId,
+        suspendedActivityId: state.suspendedActivityId,
+        globalObjectiveCount: state.globalObjectives ? Object.keys(state.globalObjectives).length : 0,
+        originalTimestamp: state.timestamp,
+        restoreTimestamp: (/* @__PURE__ */ new Date()).toISOString()
+      });
+    } catch (error) {
+      this.fireEvent("onSuspensionStateRestoreError", {
+        error: error instanceof Error ? error.message : String(error),
+        timestamp: (/* @__PURE__ */ new Date()).toISOString()
+      });
+      throw error;
+    }
+  }
+  /**
+   * Fire a sequencing event
+   * @param {string} eventType - The type of event
+   * @param {any} data - Event data
+   */
+  fireEvent(eventType, data) {
+    try {
+      if (this.eventCallback) {
+        this.eventCallback(eventType, data);
+      }
+    } catch (error) {
+      console.warn(`Failed to fire state manager event ${eventType}: ${error}`);
+    }
+  }
+}
+
+class DeliveryValidator {
+  constructor(activityTree, eventCallback = null, options) {
+    this.contentDeliveredGetter = null;
+    this.activityTree = activityTree;
+    this.eventCallback = eventCallback;
+    this.now = options?.now || (() => /* @__PURE__ */ new Date());
+  }
+  /**
+   * Set getter for content delivered flag
+   */
+  setContentDeliveredGetter(getter) {
+    this.contentDeliveredGetter = getter;
+  }
+  /**
+   * Validate Activity Tree State Consistency
+   * @param {Activity} activity - Activity to validate
+   * @return {StateConsistencyResult} - Consistency result
+   */
+  validateTreeConsistency(activity) {
     if (!this.activityTree.root) {
       return { consistent: false, exception: "DB.1.1-4" };
     }
@@ -19202,12 +19689,11 @@ class OverallSequencingProcess {
   }
   /**
    * Validate Resource Constraints
-   * Priority 4 Gap: Resource Constraint Checking
    * @param {Activity} activity - Activity to validate
-   * @return {{available: boolean, exception: string | null}} - Resource availability result
+   * @return {ResourceConstraintResult} - Resource availability result
    */
-  validateResourceConstraints(activity) {
-    const requiredResources = this.getActivityRequiredResources(activity);
+  validateResources(activity) {
+    const requiredResources = this.getRequiredResources(activity);
     for (const resource of requiredResources) {
       if (!this.isResourceAvailable(resource)) {
         return {
@@ -19217,7 +19703,7 @@ class OverallSequencingProcess {
         };
       }
     }
-    const systemResourceCheck = this.checkSystemResourceLimits();
+    const systemResourceCheck = this.checkSystemLimits();
     if (!systemResourceCheck.adequate) {
       return {
         available: false,
@@ -19229,12 +19715,12 @@ class OverallSequencingProcess {
   }
   /**
    * Validate Concurrent Delivery Prevention
-   * Priority 4 Gap: Prevent Multiple Simultaneous Deliveries
    * @param {Activity} activity - Activity to validate
-   * @return {{allowed: boolean, exception: string | null}} - Concurrency check result
+   * @return {ConcurrentDeliveryResult} - Concurrency check result
    */
-  validateConcurrentDeliveryPrevention(activity) {
-    if (this.contentDelivered && this.activityTree.currentActivity && this.activityTree.currentActivity !== activity) {
+  validateConcurrentDelivery(activity) {
+    const contentDelivered = this.contentDeliveredGetter ? this.contentDeliveredGetter() : false;
+    if (contentDelivered && this.activityTree.currentActivity && this.activityTree.currentActivity !== activity) {
       return {
         allowed: false,
         exception: "DB.1.1-10"
@@ -19259,12 +19745,11 @@ class OverallSequencingProcess {
   }
   /**
    * Validate Activity Dependencies
-   * Priority 4 Gap: Dependency Resolution
    * @param {Activity} activity - Activity to validate
-   * @return {{satisfied: boolean, exception: string | null}} - Dependency check result
+   * @return {DependencyResult} - Dependency check result
    */
-  validateActivityDependencies(activity) {
-    const prerequisites = this.getActivityPrerequisites(activity);
+  validateDependencies(activity) {
+    const prerequisites = this.getPrerequisites(activity);
     for (const prerequisite of prerequisites) {
       if (!this.isPrerequisiteSatisfied(prerequisite, activity)) {
         return {
@@ -19295,7 +19780,101 @@ class OverallSequencingProcess {
     return { satisfied: true, exception: null };
   }
   /**
-   * Helper methods for delivery request validation
+   * Check Activity Process (UP.5)
+   * Validates if an activity can be delivered based on sequencing rules and limit conditions
+   * Note: Cluster/leaf validation is handled in DB.1.1 Step 1, not here
+   * @param {Activity} activity - The activity to check
+   * @return {boolean} - True if activity is valid (not disabled, limits not violated)
+   */
+  checkActivity(activity) {
+    if (!activity.isAvailable) {
+      return false;
+    }
+    if (!this.checkLimitConditions(activity)) {
+      return false;
+    }
+    return true;
+  }
+  /**
+   * Limit Conditions Check Process (UP.1)
+   * Checks if any limit conditions are violated for the activity
+   * @param {Activity} activity - The activity to check limit conditions for
+   * @return {boolean} - True if limit conditions are met, false if violated
+   */
+  checkLimitConditions(activity) {
+    let result = true;
+    let failureReason = "";
+    if (activity.attemptLimit !== null && activity.attemptLimit > 0) {
+      if (activity.attemptCount >= activity.attemptLimit) {
+        result = false;
+        failureReason = "Attempt limit exceeded";
+      }
+    }
+    if (result && activity.attemptAbsoluteDurationLimit) {
+      const limitDuration = getDurationAsSeconds(
+        activity.attemptAbsoluteDurationLimit,
+        scorm2004_regex.CMITimespan
+      );
+      if (limitDuration > 0) {
+        const currentDuration = getDurationAsSeconds(
+          activity.attemptAbsoluteDuration || "PT0H0M0S",
+          scorm2004_regex.CMITimespan
+        );
+        if (currentDuration >= limitDuration) {
+          result = false;
+          failureReason = "Attempt duration limit exceeded";
+        }
+      }
+    }
+    if (result && activity.activityAbsoluteDurationLimit) {
+      const limitDuration = getDurationAsSeconds(
+        activity.activityAbsoluteDurationLimit,
+        scorm2004_regex.CMITimespan
+      );
+      if (limitDuration > 0) {
+        const currentDuration = getDurationAsSeconds(
+          activity.activityAbsoluteDuration || "PT0H0M0S",
+          scorm2004_regex.CMITimespan
+        );
+        if (currentDuration >= limitDuration) {
+          result = false;
+          failureReason = "Activity duration limit exceeded";
+        }
+      }
+    }
+    if (result && activity.beginTimeLimit) {
+      const currentTime = this.now();
+      const beginTime = new Date(activity.beginTimeLimit);
+      if (currentTime < beginTime) {
+        result = false;
+        failureReason = "Not yet time to begin";
+      }
+    }
+    if (result && activity.endTimeLimit) {
+      const currentTime = this.now();
+      const endTime = new Date(activity.endTimeLimit);
+      if (currentTime > endTime) {
+        result = false;
+        failureReason = "Time limit expired";
+      }
+    }
+    this.fireEvent("onLimitConditionCheck", {
+      activity,
+      result,
+      failureReason,
+      checks: {
+        attemptLimit: activity.attemptLimit,
+        attemptCount: activity.attemptCount,
+        attemptDurationLimit: activity.attemptAbsoluteDurationLimit,
+        activityDurationLimit: activity.activityAbsoluteDurationLimit,
+        beginTimeLimit: activity.beginTimeLimit,
+        endTimeLimit: activity.endTimeLimit
+      }
+    });
+    return result;
+  }
+  /**
+   * Check if activity is part of tree
    */
   isActivityPartOfTree(activity, root) {
     if (activity === root) {
@@ -19308,6 +19887,9 @@ class OverallSequencingProcess {
     }
     return false;
   }
+  /**
+   * Get all active activities in the tree
+   */
   getActiveActivities() {
     const activeActivities = [];
     if (this.activityTree.root) {
@@ -19323,7 +19905,10 @@ class OverallSequencingProcess {
       this.collectActiveActivities(child, activeActivities);
     }
   }
-  getActivityRequiredResources(activity) {
+  /**
+   * Get required resources for activity
+   */
+  getRequiredResources(activity) {
     const resources = [];
     const activityInfo = (activity.title + " " + activity.location).toLowerCase();
     if (activityInfo.includes("video") || activityInfo.includes("multimedia")) {
@@ -19349,6 +19934,9 @@ class OverallSequencingProcess {
     }
     return resources;
   }
+  /**
+   * Check if resource is available
+   */
   isResourceAvailable(resource) {
     try {
       switch (resource) {
@@ -19357,7 +19945,9 @@ class OverallSequencingProcess {
         case "audio-codec":
           return !!document.createElement("audio").canPlayType;
         case "flash-plugin":
-          return navigator.plugins && Array.from(navigator.plugins).some((plugin) => plugin.name === "Shockwave Flash");
+          return navigator.plugins && Array.from(navigator.plugins).some(
+            (plugin) => plugin.name === "Shockwave Flash"
+          );
         case "java-runtime":
           return navigator.plugins && Array.from(navigator.plugins).some((plugin) => plugin.name === "Java");
         case "high-bandwidth":
@@ -19378,7 +19968,10 @@ class OverallSequencingProcess {
       return false;
     }
   }
-  checkSystemResourceLimits() {
+  /**
+   * Check system resource limits
+   */
+  checkSystemLimits() {
     try {
       let adequate = true;
       if ("memory" in performance) {
@@ -19418,12 +20011,6 @@ class OverallSequencingProcess {
     if (typeof window !== "undefined" && window.pendingScormRequests) {
       return window.pendingScormRequests > 0;
     }
-    if (this.eventCallback) {
-      try {
-        this.eventCallback("check_pending_requests", {});
-      } catch (error) {
-      }
-    }
     return false;
   }
   isDeliveryLocked() {
@@ -19433,13 +20020,16 @@ class OverallSequencingProcess {
     if (this.activityTree && this.activityTree.terminationInProgress) {
       return true;
     }
-    const resourceCheck = this.checkSystemResourceLimits();
+    const resourceCheck = this.checkSystemLimits();
     if (!resourceCheck.adequate) {
       return true;
     }
     return !!(typeof window !== "undefined" && window.scormMaintenanceMode);
   }
-  getActivityPrerequisites(activity) {
+  /**
+   * Get activity prerequisites
+   */
+  getPrerequisites(activity) {
     const prerequisites = [];
     if (activity.sequencingRules && activity.sequencingRules.preConditionRules) {
       for (const rule of activity.sequencingRules.preConditionRules) {
@@ -19469,6 +20059,9 @@ class OverallSequencingProcess {
     }
     return Array.from(new Set(prerequisites));
   }
+  /**
+   * Check if prerequisite is satisfied
+   */
   isPrerequisiteSatisfied(prerequisiteId, _activity) {
     const prerequisite = this.activityTree.getActivity(prerequisiteId);
     if (!prerequisite) {
@@ -19476,6 +20069,9 @@ class OverallSequencingProcess {
     }
     return prerequisite.completionStatus === "completed";
   }
+  /**
+   * Get objective dependencies
+   */
   getObjectiveDependencies(activity) {
     const dependencies = [];
     const objectives = activity.objectives;
@@ -19507,6 +20103,9 @@ class OverallSequencingProcess {
     }
     return Array.from(new Set(dependencies));
   }
+  /**
+   * Check if objective dependency is satisfied
+   */
   isObjectiveDependencySatisfied(objectiveId) {
     if (this.activityTree && this.activityTree.globalObjectives) {
       const globalObjectives = this.activityTree.globalObjectives;
@@ -19546,14 +20145,16 @@ class OverallSequencingProcess {
                 case "objectiveStatusKnown":
                 case "objectiveSatisfied": {
                   const objectiveId = condition.referencedObjectiveID || activity.id;
-                  if (!this.isObjectiveDependencySatisfied(objectiveId)) satisfied = false;
+                  if (!this.isObjectiveDependencySatisfied(objectiveId))
+                    satisfied = false;
                   break;
                 }
                 case "attemptLimitExceeded":
                   if (activity.attemptLimit === null) satisfied = false;
                   break;
                 case "timeLimitExceeded":
-                  if (!activity.attemptAbsoluteDurationLimit && !activity.activityAbsoluteDurationLimit) satisfied = false;
+                  if (!activity.attemptAbsoluteDurationLimit && !activity.activityAbsoluteDurationLimit)
+                    satisfied = false;
                   break;
                 case "always":
                 case "never":
@@ -19570,9 +20171,12 @@ class OverallSequencingProcess {
           if (rule.conditions && rule.conditions.length > 0) {
             for (const condition of rule.conditions) {
               const conditionType = condition.conditionType || condition.condition;
-              if (["objectiveStatusKnown", "objectiveSatisfied"].includes(conditionType)) {
+              if (["objectiveStatusKnown", "objectiveSatisfied"].includes(
+                conditionType
+              )) {
                 const objectiveId = condition.referencedObjectiveID || activity.id;
-                if (!this.isObjectiveDependencySatisfied(objectiveId)) satisfied = false;
+                if (!this.isObjectiveDependencySatisfied(objectiveId))
+                  satisfied = false;
               }
             }
           }
@@ -19604,267 +20208,363 @@ class OverallSequencingProcess {
     return getDurationAsSeconds(duration, scorm2004_regex.CMITimespan) / 60;
   }
   /**
-   * INTEGRATION: Initialize Global Objective Map
-   * Sets up the global objective map for cross-activity objective synchronization
+   * Fire a sequencing event
+   * @param {string} eventType - The type of event
+   * @param {any} data - Event data
    */
-  initializeGlobalObjectiveMap() {
+  fireEvent(eventType, data) {
     try {
-      this.globalObjectiveMap.clear();
-      if (this.activityTree.root) {
-        this.collectGlobalObjectives(this.activityTree.root);
+      if (this.eventCallback) {
+        this.eventCallback(eventType, data);
       }
-      this.fireEvent("onGlobalObjectiveMapInitialized", {
-        objectiveCount: this.globalObjectiveMap.size,
-        timestamp: (/* @__PURE__ */ new Date()).toISOString()
-      });
     } catch (error) {
-      this.fireEvent("onGlobalObjectiveMapError", {
-        error: error instanceof Error ? error.message : String(error),
-        timestamp: (/* @__PURE__ */ new Date()).toISOString()
-      });
+      console.warn(`Failed to fire delivery validator event ${eventType}: ${error}`);
     }
   }
-  /**
-   * INTEGRATION: Collect Global Objectives
-   * Recursively collects global objectives from the activity tree
-   * @param {Activity} activity - Activity to collect objectives from
-   */
-  collectGlobalObjectives(activity) {
-    const objectives = activity.getAllObjectives();
-    if (objectives.length === 0) {
-      const defaultId = `${activity.id}_default_objective`;
-      if (!this.globalObjectiveMap.has(defaultId)) {
-        this.globalObjectiveMap.set(defaultId, {
-          id: defaultId,
-          satisfiedStatus: activity.objectiveSatisfiedStatus,
-          satisfiedStatusKnown: activity.objectiveMeasureStatus,
-          normalizedMeasure: activity.objectiveNormalizedMeasure,
-          normalizedMeasureKnown: activity.objectiveMeasureStatus,
-          progressMeasure: activity.progressMeasure,
-          progressMeasureKnown: activity.progressMeasureStatus,
-          completionStatus: activity.completionStatus,
-          completionStatusKnown: activity.completionStatus !== CompletionStatus.UNKNOWN,
-          readSatisfiedStatus: true,
-          writeSatisfiedStatus: true,
-          readNormalizedMeasure: true,
-          writeNormalizedMeasure: true,
-          readCompletionStatus: true,
-          writeCompletionStatus: true,
-          readProgressMeasure: true,
-          writeProgressMeasure: true,
-          satisfiedByMeasure: activity.scaledPassingScore !== null,
-          minNormalizedMeasure: activity.scaledPassingScore,
-          updateAttemptData: true
-        });
-      }
+}
+
+class OverallSequencingProcess {
+  constructor(activityTree, sequencingProcess, rollupProcess, adlNav = null, eventCallback = null, options) {
+    this.eventCallback = null;
+    this.activityTree = activityTree;
+    this.sequencingProcess = sequencingProcess;
+    this.rollupProcess = rollupProcess;
+    this.adlNav = adlNav;
+    this.eventCallback = eventCallback;
+    this.enhancedDeliveryValidation = options?.enhancedDeliveryValidation === true;
+    this.is4thEdition = options?.is4thEdition || false;
+    this.globalObjectiveService = new GlobalObjectiveService(eventCallback || void 0);
+    this.globalObjectiveService.initialize(activityTree.root);
+    const deliveryValidatorOptions = {};
+    if (options?.now) {
+      deliveryValidatorOptions.now = options.now;
     }
-    for (const objective of objectives) {
-      const mapInfos = objective.mapInfo.length > 0 ? objective.mapInfo : [{
-        targetObjectiveID: objective.id,
-        readSatisfiedStatus: true,
-        writeSatisfiedStatus: true,
-        readNormalizedMeasure: true,
-        writeNormalizedMeasure: true,
-        readProgressMeasure: true,
-        writeProgressMeasure: true,
-        readCompletionStatus: true,
-        writeCompletionStatus: true,
-        updateAttemptData: objective.isPrimary
-      }];
-      for (const mapInfo of mapInfos) {
-        const targetId = mapInfo.targetObjectiveID || objective.id;
-        if (!this.globalObjectiveMap.has(targetId)) {
-          this.globalObjectiveMap.set(targetId, {
-            id: targetId,
-            satisfiedStatus: objective.satisfiedStatus,
-            satisfiedStatusKnown: objective.measureStatus,
-            normalizedMeasure: objective.normalizedMeasure,
-            normalizedMeasureKnown: objective.measureStatus,
-            progressMeasure: objective.progressMeasure,
-            progressMeasureKnown: objective.progressMeasureStatus,
-            completionStatus: objective.completionStatus,
-            completionStatusKnown: objective.completionStatus !== CompletionStatus.UNKNOWN,
-            readSatisfiedStatus: mapInfo.readSatisfiedStatus ?? false,
-            writeSatisfiedStatus: mapInfo.writeSatisfiedStatus ?? false,
-            readNormalizedMeasure: mapInfo.readNormalizedMeasure ?? false,
-            writeNormalizedMeasure: mapInfo.writeNormalizedMeasure ?? false,
-            readProgressMeasure: mapInfo.readProgressMeasure ?? false,
-            writeProgressMeasure: mapInfo.writeProgressMeasure ?? false,
-            readCompletionStatus: mapInfo.readCompletionStatus ?? false,
-            writeCompletionStatus: mapInfo.writeCompletionStatus ?? false,
-            readRawScore: mapInfo.readRawScore ?? false,
-            writeRawScore: mapInfo.writeRawScore ?? false,
-            readMinScore: mapInfo.readMinScore ?? false,
-            writeMinScore: mapInfo.writeMinScore ?? false,
-            readMaxScore: mapInfo.readMaxScore ?? false,
-            writeMaxScore: mapInfo.writeMaxScore ?? false,
-            satisfiedByMeasure: objective.satisfiedByMeasure,
-            minNormalizedMeasure: objective.minNormalizedMeasure,
-            updateAttemptData: mapInfo.updateAttemptData ?? objective.isPrimary
-          });
+    this.deliveryValidator = new DeliveryValidator(
+      activityTree,
+      eventCallback,
+      deliveryValidatorOptions
+    );
+    const terminationOptions = {};
+    if (options?.getCMIData) {
+      terminationOptions.getCMIData = options.getCMIData;
+    }
+    if (options?.is4thEdition !== void 0) {
+      terminationOptions.is4thEdition = options.is4thEdition;
+    }
+    this.terminationHandler = new TerminationHandler(
+      activityTree,
+      sequencingProcess,
+      rollupProcess,
+      this.globalObjectiveService.getMap(),
+      eventCallback,
+      terminationOptions
+    );
+    const deliveryOptions = {};
+    if (options?.now) {
+      deliveryOptions.now = options.now;
+    }
+    if (options?.defaultHideLmsUi) {
+      deliveryOptions.defaultHideLmsUi = options.defaultHideLmsUi;
+    }
+    if (options?.defaultAuxiliaryResources) {
+      deliveryOptions.defaultAuxiliaryResources = options.defaultAuxiliaryResources;
+    }
+    this.deliveryHandler = new DeliveryHandler(
+      activityTree,
+      rollupProcess,
+      this.globalObjectiveService.getMap(),
+      adlNav,
+      eventCallback,
+      deliveryOptions
+    );
+    this.navigationValidityService = new NavigationValidityService(
+      activityTree,
+      sequencingProcess,
+      adlNav,
+      eventCallback
+    );
+    this.stateManager = new SequencingStateManager(
+      activityTree,
+      this.globalObjectiveService,
+      rollupProcess,
+      adlNav,
+      eventCallback
+    );
+    this.navigationLookAhead = this.navigationValidityService.getNavigationLookAhead();
+    this.setupCallbacks();
+  }
+  /**
+   * Set up callbacks between components
+   */
+  setupCallbacks() {
+    this.terminationHandler.setInvalidateCacheCallback(() => {
+      this.navigationLookAhead.invalidateCache();
+    });
+    this.deliveryHandler.setCheckActivityCallback(
+      (activity) => this.deliveryValidator.checkActivity(activity)
+    );
+    this.deliveryHandler.setInvalidateCacheCallback(() => {
+      this.navigationLookAhead.invalidateCache();
+    });
+    this.deliveryHandler.setUpdateNavigationValidityCallback(() => {
+      this.navigationValidityService.updateNavigationValidity();
+    });
+    this.deliveryHandler.setClearSuspendedActivityCallback(() => {
+      this.terminationHandler.clearSuspendedActivity();
+    });
+    this.deliveryValidator.setContentDeliveredGetter(
+      () => this.deliveryHandler.hasContentBeenDelivered()
+    );
+    this.navigationValidityService.setGetEffectiveHideLmsUiCallback(
+      (activity) => this.deliveryHandler.getEffectiveHideLmsUi(activity)
+    );
+    this.stateManager.setGetEffectiveHideLmsUiCallback(
+      (activity) => this.deliveryHandler.getEffectiveHideLmsUi(activity)
+    );
+    this.stateManager.setGetEffectiveAuxiliaryResourcesCallback(
+      (activity) => this.deliveryHandler.getEffectiveAuxiliaryResources(activity)
+    );
+    this.stateManager.setContentDeliveredAccessors(
+      () => this.deliveryHandler.hasContentBeenDelivered(),
+      (value) => this.deliveryHandler.setContentDelivered(value)
+    );
+  }
+  /**
+   * Overall Sequencing Process
+   * Main entry point for processing navigation requests
+   * @spec SN Book: OP.1 (Overall Sequencing Process)
+   * @param {NavigationRequestType} navigationRequest - The navigation request
+   * @param {string | null} targetActivityId - Target activity for choice/jump requests
+   * @param {string} exitType - The cmi.exit value (logout, normal, suspend, time-out, or empty)
+   * @return {DeliveryRequest} - The delivery request result
+   */
+  processNavigationRequest(navigationRequest, targetActivityId = null, exitType) {
+    const navResult = this.navigationValidityService.validateRequest(
+      navigationRequest,
+      targetActivityId
+    );
+    if (!navResult.valid) {
+      return new DeliveryRequest(false, null, navResult.exception);
+    }
+    if (navResult.terminationRequest) {
+      const hadSequencingRequest = !!navResult.sequencingRequest;
+      const termResult = this.terminationHandler.processTerminationRequest(
+        navResult.terminationRequest,
+        hadSequencingRequest,
+        exitType
+      );
+      if (!termResult.valid) {
+        return new DeliveryRequest(false, null, termResult.exception || "TB.2.3-1");
+      }
+      if (termResult.sequencingRequest !== null) {
+        if (hadSequencingRequest || termResult.sequencingRequest !== SequencingRequestType.EXIT) {
+          navResult.sequencingRequest = termResult.sequencingRequest;
         }
       }
+      if (!navResult.sequencingRequest) {
+        if (navResult.terminationRequest === SequencingRequestType.EXIT_ALL || navResult.terminationRequest === SequencingRequestType.ABANDON_ALL) {
+          this.fireEvent("onSequencingSessionEnd", {
+            reason: navResult.terminationRequest === SequencingRequestType.EXIT_ALL ? "exit_all" : "abandon_all",
+            navigationRequest
+          });
+        }
+        return new DeliveryRequest(true, null);
+      }
     }
-    for (const child of activity.children) {
-      this.collectGlobalObjectives(child);
+    if (navResult.sequencingRequest) {
+      const seqResult = this.sequencingProcess.sequencingRequestProcess(
+        navResult.sequencingRequest,
+        navResult.targetActivityId
+      );
+      if (seqResult.endSequencingSession) {
+        this.fireEvent("onSequencingSessionEnd", {
+          reason: "end_of_content",
+          exception: seqResult.exception,
+          navigationRequest
+        });
+        return new DeliveryRequest(
+          false,
+          null,
+          seqResult.exception || "SESSION_ENDED"
+        );
+      }
+      if (seqResult.exception) {
+        return new DeliveryRequest(false, null, seqResult.exception);
+      }
+      if (seqResult.deliveryRequest === DeliveryRequestType.DELIVER && seqResult.targetActivity) {
+        if (this.activityTree.root) {
+          const isConsistent = this.rollupProcess.validateRollupStateConsistency(
+            this.activityTree.root
+          );
+          if (!isConsistent) {
+            this.fireEvent("onSequencingDebug", {
+              message: "Rollup state inconsistency detected before delivery",
+              activityId: this.activityTree.root.id
+            });
+          }
+        }
+        this.rollupProcess.processGlobalObjectiveMapping(
+          seqResult.targetActivity,
+          this.globalObjectiveService.getMap()
+        );
+        return this.processDelivery(seqResult.targetActivity);
+      }
     }
+    return new DeliveryRequest(false, null, "OP.1-1");
   }
   /**
-   * INTEGRATION: Get Global Objective Map
-   * Returns the current global objective map for external access
+   * Process delivery of an activity
+   * @param {Activity} targetActivity - The activity to deliver
+   * @return {DeliveryRequest} - The delivery result
+   */
+  processDelivery(targetActivity) {
+    if (this.enhancedDeliveryValidation) {
+      const stateCheck = this.deliveryValidator.validateTreeConsistency(targetActivity);
+      if (!stateCheck.consistent) {
+        return new DeliveryRequest(false, null, stateCheck.exception);
+      }
+      const resourceCheck = this.deliveryValidator.validateResources(targetActivity);
+      if (!resourceCheck.available) {
+        return new DeliveryRequest(false, null, resourceCheck.exception);
+      }
+      const concurrentCheck = this.deliveryValidator.validateConcurrentDelivery(targetActivity);
+      if (!concurrentCheck.allowed) {
+        return new DeliveryRequest(false, null, concurrentCheck.exception);
+      }
+      const dependencyCheck = this.deliveryValidator.validateDependencies(targetActivity);
+      if (!dependencyCheck.satisfied) {
+        return new DeliveryRequest(false, null, dependencyCheck.exception);
+      }
+    }
+    const deliveryResult = this.deliveryHandler.processDeliveryRequest(targetActivity);
+    if (deliveryResult.valid) {
+      this.deliveryHandler.contentDeliveryEnvironmentProcess(deliveryResult.targetActivity);
+      this.navigationLookAhead.invalidateCache();
+      if (this.activityTree.root) {
+        this.rollupProcess.validateRollupStateConsistency(this.activityTree.root);
+      }
+    }
+    return deliveryResult;
+  }
+  // ========== Public API Methods ==========
+  /**
+   * Check if content has been delivered
+   */
+  hasContentBeenDelivered() {
+    return this.deliveryHandler.hasContentBeenDelivered();
+  }
+  /**
+   * Check if content delivery is currently in progress
+   */
+  isDeliveryInProgress() {
+    return this.deliveryHandler.isDeliveryInProgress();
+  }
+  /**
+   * Reset content delivered flag
+   */
+  resetContentDelivered() {
+    this.deliveryHandler.resetContentDelivered();
+  }
+  /**
+   * Set content delivered flag
+   * @param {boolean} value - The value to set
+   */
+  setContentDelivered(value) {
+    this.deliveryHandler.setContentDelivered(value);
+  }
+  /**
+   * Update navigation validity in ADL nav
+   */
+  updateNavigationValidity() {
+    this.navigationValidityService.updateNavigationValidity();
+  }
+  /**
+   * Synchronize global objectives from activity states
+   */
+  synchronizeGlobalObjectives() {
+    this.globalObjectiveService.synchronize(
+      this.activityTree.root,
+      this.rollupProcess
+    );
+  }
+  /**
+   * Get the global objective map
    * @return {Map<string, any>} - Current global objective map
    */
   getGlobalObjectiveMap() {
-    return this.globalObjectiveMap;
+    return this.globalObjectiveService.getMap();
   }
   /**
-   * INTEGRATION: Snapshot the Global Objective Map
-   * Provides a serializable copy for persistence consumers
-   * @return {Record<string, any>} - Plain-object snapshot of global objectives
+   * Get a snapshot of the global objective map
+   * @return {Record<string, any>} - Plain-object snapshot
    */
   getGlobalObjectiveMapSnapshot() {
-    return this.serializeGlobalObjectiveMap();
+    return this.globalObjectiveService.getSnapshot();
   }
   /**
-   * INTEGRATION: Restore Global Objective Map
-   * Replaces the current map contents with persisted data
-   * @param {Record<string, any>} snapshot - Serialized global objective map
+   * Restore global objective map from snapshot
+   * @param {Record<string, any>} snapshot - Snapshot to restore
    */
   restoreGlobalObjectiveMapSnapshot(snapshot) {
-    this.restoreGlobalObjectiveMap(snapshot);
+    this.globalObjectiveService.restoreSnapshot(snapshot);
   }
   /**
-   * INTEGRATION: Update Global Objective
-   * Updates a specific global objective with new data
-   * @param {string} objectiveId - Objective ID to update
+   * Update a specific global objective
+   * @param {string} objectiveId - Objective ID
    * @param {any} objectiveData - New objective data
    */
   updateGlobalObjective(objectiveId, objectiveData) {
-    try {
-      this.globalObjectiveMap.set(objectiveId, {
-        ...this.globalObjectiveMap.get(objectiveId),
-        ...objectiveData,
-        lastUpdated: (/* @__PURE__ */ new Date()).toISOString()
-      });
-      this.fireEvent("onGlobalObjectiveUpdated", {
-        objectiveId,
-        data: objectiveData,
-        timestamp: (/* @__PURE__ */ new Date()).toISOString()
-      });
-    } catch (error) {
-      this.fireEvent("onGlobalObjectiveUpdateError", {
-        objectiveId,
-        error: error instanceof Error ? error.message : String(error),
-        timestamp: (/* @__PURE__ */ new Date()).toISOString()
-      });
-    }
-  }
-  serializeGlobalObjectiveMap() {
-    const serialized = {};
-    this.globalObjectiveMap.forEach((data, id) => {
-      serialized[id] = { ...data };
-    });
-    return serialized;
-  }
-  restoreGlobalObjectiveMap(mapData) {
-    this.globalObjectiveMap.clear();
-    if (!mapData) {
-      return;
-    }
-    for (const [id, data] of Object.entries(mapData)) {
-      this.globalObjectiveMap.set(id, { ...data });
-    }
+    this.globalObjectiveService.updateObjective(objectiveId, objectiveData);
   }
   /**
-   * Get complete suspension state including activity tree and global objectives
-   * Captures all state needed to restore sequencing after suspend/resume
-   * @return {object} - Complete suspension state
+   * Get Sequencing State for Persistence
+   * @return {SequencingState} - Serializable sequencing state
+   */
+  getSequencingState() {
+    return this.stateManager.getState();
+  }
+  /**
+   * Restore Sequencing State from Persistence
+   * @param {SequencingState} state - State to restore
+   * @return {boolean} - True if successful
+   */
+  restoreSequencingState(state) {
+    return this.stateManager.restoreState(state);
+  }
+  /**
+   * Get complete suspension state
+   * @return {SuspensionState} - Complete suspension state
    */
   getSuspensionState() {
-    const state = {
-      activityTree: this.activityTree.root ? this.activityTree.root.getSuspensionState() : null,
-      currentActivityId: this.activityTree.currentActivity?.id || null,
-      suspendedActivityId: this.activityTree.suspendedActivity?.id || null,
-      globalObjectives: this.serializeGlobalObjectiveMap(),
-      timestamp: (/* @__PURE__ */ new Date()).toISOString()
-    };
-    this.fireEvent("onSuspensionStateCaptured", {
-      hasActivityTree: !!state.activityTree,
-      currentActivityId: state.currentActivityId,
-      suspendedActivityId: state.suspendedActivityId,
-      globalObjectiveCount: Object.keys(state.globalObjectives).length,
-      timestamp: state.timestamp
-    });
-    return state;
+    return this.stateManager.getSuspensionState();
   }
   /**
-   * Restore complete suspension state including activity tree and global objectives
-   * Restores all state needed to resume from suspended state
-   * @param {any} state - Suspension state to restore
+   * Restore complete suspension state
+   * @param {SuspensionState} state - Suspension state to restore
    */
   restoreSuspensionState(state) {
-    if (!state) {
-      this.fireEvent("onSuspensionStateRestoreError", {
-        error: "No suspension state provided",
-        timestamp: (/* @__PURE__ */ new Date()).toISOString()
-      });
-      return;
-    }
-    try {
-      if (state.globalObjectives) {
-        this.restoreGlobalObjectiveMap(state.globalObjectives);
-      }
-      if (state.activityTree && this.activityTree.root) {
-        this.activityTree.root.restoreSuspensionState(state.activityTree);
-      }
-      if (state.currentActivityId) {
-        const currentActivity = this.activityTree.getActivity(state.currentActivityId);
-        if (currentActivity) {
-          this.activityTree.currentActivity = currentActivity;
-        }
-      }
-      if (state.suspendedActivityId) {
-        const suspendedActivity = this.activityTree.getActivity(state.suspendedActivityId);
-        if (suspendedActivity) {
-          this.activityTree.suspendedActivity = suspendedActivity;
-        }
-      }
-      this.fireEvent("onSuspensionStateRestored", {
-        currentActivityId: state.currentActivityId,
-        suspendedActivityId: state.suspendedActivityId,
-        globalObjectiveCount: state.globalObjectives ? Object.keys(state.globalObjectives).length : 0,
-        originalTimestamp: state.timestamp,
-        restoreTimestamp: (/* @__PURE__ */ new Date()).toISOString()
-      });
-    } catch (error) {
-      this.fireEvent("onSuspensionStateRestoreError", {
-        error: error instanceof Error ? error.message : String(error),
-        timestamp: (/* @__PURE__ */ new Date()).toISOString()
-      });
-      throw error;
-    }
+    this.stateManager.restoreSuspensionState(state);
   }
   /**
    * Get navigation look-ahead predictions
-   * Provides UI with navigation button states before user interaction
    * @return {NavigationPredictions} - Current navigation predictions
    */
   getNavigationLookAhead() {
-    return this.navigationLookAhead.getAllPredictions();
+    return this.navigationValidityService.getAllPredictions();
   }
   /**
    * Predict if Continue navigation would succeed
    * @return {boolean} - True if Continue would succeed
    */
   predictContinueEnabled() {
-    return this.navigationLookAhead.predictContinueEnabled();
+    return this.navigationValidityService.predictContinueEnabled();
   }
   /**
    * Predict if Previous navigation would succeed
    * @return {boolean} - True if Previous would succeed
    */
   predictPreviousEnabled() {
-    return this.navigationLookAhead.predictPreviousEnabled();
+    return this.navigationValidityService.predictPreviousEnabled();
   }
   /**
    * Predict if choice to specific activity would succeed
@@ -19872,33 +20572,23 @@ class OverallSequencingProcess {
    * @return {boolean} - True if choice would succeed
    */
   predictChoiceEnabled(activityId) {
-    return this.navigationLookAhead.predictChoiceEnabled(activityId);
+    return this.navigationValidityService.predictChoiceEnabled(activityId);
   }
   /**
    * Get list of all activities that can be chosen
    * @return {string[]} - Array of activity IDs available for choice
    */
   getAvailableChoices() {
-    return this.navigationLookAhead.getAvailableChoices();
+    return this.navigationValidityService.getAvailableChoices();
   }
   /**
    * Invalidate navigation prediction cache
-   * Called when state changes that affect navigation
    */
   invalidateNavigationCache() {
-    this.navigationLookAhead.invalidateCache();
+    this.navigationValidityService.invalidateCache();
   }
   /**
    * Apply delivery controls for auto-completion and auto-satisfaction
-   * This method implements the completionSetByContent and objectiveSetByContent
-   * delivery controls as specified in SCORM 2004 Section 11.
-   *
-   * When completionSetByContent is false and the content doesn't set completion
-   * status, the LMS should automatically mark the activity as completed.
-   *
-   * When objectiveSetByContent is false and the content doesn't set success
-   * status, the LMS should automatically mark the activity as satisfied (passed).
-   *
    * @param {Activity} activity - The activity to apply delivery controls to
    */
   applyDeliveryControls(activity) {
@@ -19913,6 +20603,93 @@ class OverallSequencingProcess {
         activity.successStatus = SuccessStatus.PASSED;
         activity.wasAutoSatisfied = true;
       }
+    }
+  }
+  /**
+   * Get effective hideLmsUi for an activity
+   * @param {Activity | null} activity - The activity
+   * @return {HideLmsUiItem[]} - Ordered list of hideLmsUi directives
+   */
+  getEffectiveHideLmsUi(activity) {
+    return this.deliveryHandler.getEffectiveHideLmsUi(activity);
+  }
+  /**
+   * Get effective auxiliary resources for an activity
+   * @param {Activity | null} activity - The activity
+   * @return {AuxiliaryResource[]} - Merged auxiliary resources
+   */
+  getEffectiveAuxiliaryResources(activity) {
+    return this.deliveryHandler.getEffectiveAuxiliaryResources(activity);
+  }
+  /**
+   * Get content activity data for a delivered activity
+   * @param {Activity} activity - The activity
+   * @return {ContentActivityData} - Content activity data
+   */
+  getContentActivityData(activity) {
+    return this.deliveryHandler.getContentActivityData(activity);
+  }
+  // ========== Backward Compatibility Delegations ==========
+  // These methods delegate to the extracted handlers for backward compatibility
+  /**
+   * Termination Request Process
+   * Delegates to TerminationHandler for backward compatibility
+   * @spec SN Book: TB.2.3 (Termination Request Process)
+   * @param {SequencingRequestType} request - The termination request
+   * @param {boolean} hasSequencingRequest - Whether a sequencing request follows
+   * @param {string} exitType - The cmi.exit value
+   * @return {TerminationResult} - Termination result with sequencing request
+   */
+  terminationRequestProcess(request, hasSequencingRequest, exitType) {
+    return this.terminationHandler.processTerminationRequest(
+      request,
+      hasSequencingRequest,
+      exitType
+    );
+  }
+  /**
+   * Content Delivery Environment Process
+   * Delegates to DeliveryHandler for backward compatibility
+   * @spec SN Book: DB.2 (Content Delivery Environment Process)
+   * @param {Activity} activity - The activity to initialize for delivery
+   */
+  contentDeliveryEnvironmentProcess(activity) {
+    this.deliveryHandler.contentDeliveryEnvironmentProcess(activity);
+  }
+  /**
+   * End Attempt Process
+   * Delegates to TerminationHandler for backward compatibility
+   * @spec SN Book: UP.4 (End Attempt Process)
+   * @param {Activity} activity - The activity whose attempt is ending
+   */
+  endAttemptProcess(activity) {
+    this.terminationHandler.endAttempt(activity);
+  }
+  /**
+   * Handle EXIT Termination
+   * Delegates to TerminationHandler for backward compatibility
+   * @param {Activity} currentActivity - The activity being terminated
+   * @param {boolean} hasSequencingRequest - Whether a sequencing request follows
+   * @return {TerminationResult} - The termination result
+   */
+  handleExitTermination(currentActivity, hasSequencingRequest) {
+    return this.terminationHandler.handleExitTermination(
+      currentActivity,
+      hasSequencingRequest
+    );
+  }
+  /**
+   * Fire a sequencing event
+   * @param {string} eventType - The type of event
+   * @param {any} data - Event data
+   */
+  fireEvent(eventType, data) {
+    try {
+      if (this.eventCallback) {
+        this.eventCallback(eventType, data);
+      }
+    } catch (error) {
+      console.warn(`Failed to fire sequencing event ${eventType}: ${error}`);
     }
   }
 }
