@@ -30,14 +30,14 @@ export class FlowRequestHandler {
   public handleStart(): SequencingResult {
     const result = new SequencingResult();
 
-    // Check if there's already a current activity
-    if (this.activityTree.currentActivity) {
+    // SB.2.5-1: Check if there's a root (activity tree)
+    if (!this.activityTree.root) {
       result.exception = "SB.2.5-1";
       return result;
     }
 
-    // Check if there's a root
-    if (!this.activityTree.root) {
+    // SB.2.5-2: Check if sequencing session has already begun
+    if (this.activityTree.currentActivity) {
       result.exception = "SB.2.5-2";
       return result;
     }
@@ -110,15 +110,13 @@ export class FlowRequestHandler {
       FlowSubprocessMode.FORWARD
     );
 
-    // Check for end of session
-    if (flowResult.endSequencingSession) {
-      result.endSequencingSession = true;
-      return result;
-    }
+    // Propagate endSequencingSession flag
+    result.endSequencingSession = flowResult.endSequencingSession;
 
     // Check if we found a deliverable activity
     if (!flowResult.deliverable || !flowResult.identifiedActivity) {
-      result.exception = flowResult.exception || "SB.2.7-3";
+      // SB.2.7-2 when no activity available (regardless of endSequencingSession)
+      result.exception = flowResult.exception || "SB.2.7-2";
       return result;
     }
 

@@ -64,7 +64,7 @@ describe("SequencingProcess (Refactored)", () => {
         const result = sequencingProcess.sequencingRequestProcess(
           SequencingRequestType.START
         );
-        expect(result.exception).toBe("SB.2.5-1");
+        expect(result.exception).toBe("SB.2.5-2"); // SB.2.5-2: Session already begun
       });
     });
 
@@ -143,8 +143,8 @@ describe("SequencingProcess (Refactored)", () => {
     describe("CHOICE request", () => {
       it("should navigate to chosen activity", () => {
         activityTree.currentActivity = lesson1;
-        lesson1.isActive = true;
-        chapter1.isActive = true;
+        lesson1.isActive = false; // Activity must be terminated for CHOICE
+        chapter1.isActive = false;
 
         const result = sequencingProcess.sequencingRequestProcess(
           SequencingRequestType.CHOICE,
@@ -424,8 +424,8 @@ describe("SequencingProcess (Refactored)", () => {
 
     it("should handle choiceExit constraints", () => {
       chapter1.sequencingControls.choiceExit = false;
-      chapter1.isActive = true;
-      lesson1.isActive = true;
+      chapter1.isActive = true; // Ancestor must be active for choiceExit to apply
+      lesson1.isActive = false; // Current must be terminated for CHOICE to proceed
       activityTree.currentActivity = lesson1;
 
       // Choice within chapter1 should work
@@ -435,12 +435,12 @@ describe("SequencingProcess (Refactored)", () => {
       );
       expect(withinResult.deliveryRequest).toBe(DeliveryRequestType.DELIVER);
 
-      // Reset state for next test - set lesson1 back as current and active
-      lesson1.isActive = true;
+      // Reset state for next test
+      lesson1.isActive = false; // Current must be terminated
       chapter1.isActive = true;
       activityTree.currentActivity = lesson1;
 
-      // Choice outside chapter1 should fail
+      // Choice outside chapter1 should fail with SB.2.9-8
       const outsideResult = sequencingProcess.sequencingRequestProcess(
         SequencingRequestType.CHOICE,
         "lesson3"
@@ -465,7 +465,7 @@ describe("SequencingProcess (Refactored)", () => {
       const testProcess = new SequencingProcess(testTree);
 
       testChapter.sequencingControls.constrainChoice = true;
-      testLesson1.isActive = true;
+      testLesson1.isActive = false; // Current must be terminated for CHOICE
       testTree.currentActivity = testLesson1;
 
       // Choice to immediate next should work
@@ -477,7 +477,7 @@ describe("SequencingProcess (Refactored)", () => {
 
       // Refresh current activity
       testTree.currentActivity = testLesson1;
-      testLesson1.isActive = true;
+      testLesson1.isActive = false; // Current must be terminated for CHOICE
 
       // Choice skipping test-lesson2 should fail
       const skipResult = testProcess.sequencingRequestProcess(

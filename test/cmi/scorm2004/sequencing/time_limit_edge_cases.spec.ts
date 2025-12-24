@@ -599,13 +599,13 @@ describe("Time Limit Edge Cases (UP.1)", () => {
   describe("parseISO8601Duration - Enhanced Format Support", () => {
     it("should parse full ISO 8601 duration with all components (P1Y2M3DT4H5M6S)", () => {
       // This is tested indirectly through timeLimitExceeded
-      // Setup: Complex duration
+      // Setup: Complex duration - P1Y2M3DT4H5M6S = ~428 days
+      // 1 year (365 days) + 2 months (60 days) + 3 days + 4 hours + 5 minutes + 6 seconds
       testActivity.timeLimitDuration = "P1Y2M3DT4H5M6S";
 
-      // Mock time: way over limit
+      // Mock time: way over limit (450 days > 428 days)
       const startTime = new Date("2025-01-01T12:00:00.000Z");
-      // 1 year + 2 months + 3 days + 4 hours + 5 minutes + 6 seconds ≈ 396 days
-      const currentTime = new Date("2026-02-05T12:00:00.000Z"); // Approx 1 year 1 month later
+      const currentTime = new Date("2026-03-27T12:00:00.000Z"); // ~450 days later
       testActivity.attemptAbsoluteStartTime = startTime.toISOString();
       sequencingProcess.now = () => currentTime;
 

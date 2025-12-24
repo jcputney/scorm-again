@@ -42,13 +42,13 @@ describe("FlowRequestHandler", () => {
     it("should return exception when current activity exists", () => {
       activityTree.currentActivity = lesson1;
       const result = handler.handleStart();
-      expect(result.exception).toBe("SB.2.5-1");
+      expect(result.exception).toBe("SB.2.5-2"); // SB.2.5-2: Session already begun
     });
 
     it("should return exception when no root", () => {
       activityTree.root = null;
       const result = handler.handleStart();
-      expect(result.exception).toBe("SB.2.5-2");
+      expect(result.exception).toBe("SB.2.5-1"); // SB.2.5-1: No activity tree
     });
 
     it("should return exception when no deliverable activity", () => {

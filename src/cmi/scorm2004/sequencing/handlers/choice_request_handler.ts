@@ -47,6 +47,12 @@ export class ChoiceRequestHandler {
       return result;
     }
 
+    // SB.2.9-6: Check if current activity is terminated
+    if (currentActivity && currentActivity.isActive) {
+      result.exception = "SB.2.9-6";
+      return result;
+    }
+
     // Validate choice constraints
     const validation = this.constraintValidator.validateChoice(
       currentActivity,

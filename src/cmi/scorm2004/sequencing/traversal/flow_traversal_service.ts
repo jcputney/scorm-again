@@ -381,6 +381,15 @@ export class FlowTraversalService {
    * @return {Activity | null} - The first deliverable activity
    */
   public findFirstDeliverableActivity(cluster: Activity): Activity | null {
+    // If the cluster itself is a leaf (no children), check if it can be delivered
+    if (cluster.children.length === 0) {
+      if (this.checkActivityProcess(cluster)) {
+        return cluster;
+      }
+      return null;
+    }
+
+    // Otherwise, look for a deliverable child
     this.ensureSelectionAndRandomization(cluster);
     const availableChildren = cluster.getAvailableChildren();
 
