@@ -1,5 +1,5 @@
 ---
-name: Node.js CI
+name: Build and Test Pipeline
 permissions:
   contents: write
   pull-requests: write
@@ -14,9 +14,29 @@ on:
   push:
     branches:
       - master
+    paths:
+      - 'src/**'
+      - 'test/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - 'vitest.config.ts'
+      - 'playwright.config.ts'
+      - 'rollup.config.mjs'
+      - '.github/workflows/main.yml'
   pull_request:
     branches:
       - master
+    paths:
+      - 'src/**'
+      - 'test/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - 'vitest.config.ts'
+      - 'playwright.config.ts'
+      - 'rollup.config.mjs'
+      - '.github/workflows/main.yml'
   workflow_dispatch:
 
 jobs:
@@ -190,7 +210,7 @@ jobs:
   # Merge coverage from all shards - runs only on master after integration tests complete
   merge-integration-coverage:
     name: Merge Coverage Reports
-    needs: [build-and-unit, integration-tests]
+    needs: [ build-and-unit, integration-tests ]
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
