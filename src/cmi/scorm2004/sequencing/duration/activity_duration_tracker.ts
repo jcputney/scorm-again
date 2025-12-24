@@ -29,10 +29,8 @@ export interface DurationState {
 export class ActivityDurationTracker {
   private _cmiElement: string;
 
-  // Duration limits (constraints)
-  private _attemptAbsoluteDuration: string = "PT0H0M0S";
+  // Duration experienced (time learner has spent)
   private _attemptExperiencedDuration: string = "PT0H0M0S";
-  private _activityAbsoluteDuration: string = "PT0H0M0S";
   private _activityExperiencedDuration: string = "PT0H0M0S";
 
   // Duration tracking fields (separate from limits) - actual calculated values
@@ -46,7 +44,7 @@ export class ActivityDurationTracker {
   private _attemptStartTimestampUtc: string | null = null;
   private _activityEndedDate: Date | null = null;
 
-  // Duration limit settings
+  // Duration limit settings (also used as attemptAbsoluteDuration/activityAbsoluteDuration aliases)
   private _attemptAbsoluteDurationLimit: string | null = null;
   private _activityAbsoluteDurationLimit: string | null = null;
 
@@ -319,9 +317,7 @@ export class ActivityDurationTracker {
    * Reset all duration fields to their default values
    */
   reset(): void {
-    this._attemptAbsoluteDuration = "PT0H0M0S";
     this._attemptExperiencedDuration = "PT0H0M0S";
-    this._activityAbsoluteDuration = "PT0H0M0S";
     this._activityExperiencedDuration = "PT0H0M0S";
     this._attemptAbsoluteDurationValue = "PT0H0M0S";
     this._attemptExperiencedDurationValue = "PT0H0M0S";
@@ -330,6 +326,8 @@ export class ActivityDurationTracker {
     this._activityStartTimestampUtc = null;
     this._attemptStartTimestampUtc = null;
     this._activityEndedDate = null;
+    this._attemptAbsoluteDurationLimit = null;
+    this._activityAbsoluteDurationLimit = null;
   }
 
   /**
@@ -338,9 +336,9 @@ export class ActivityDurationTracker {
    */
   getState(): DurationState {
     return {
-      attemptAbsoluteDuration: this._attemptAbsoluteDuration,
+      attemptAbsoluteDuration: this.attemptAbsoluteDuration,
       attemptExperiencedDuration: this._attemptExperiencedDuration,
-      activityAbsoluteDuration: this._activityAbsoluteDuration,
+      activityAbsoluteDuration: this.activityAbsoluteDuration,
       activityExperiencedDuration: this._activityExperiencedDuration,
       attemptAbsoluteDurationValue: this._attemptAbsoluteDurationValue,
       attemptExperiencedDurationValue: this._attemptExperiencedDurationValue,
@@ -359,14 +357,16 @@ export class ActivityDurationTracker {
    * @param {Partial<DurationState>} state
    */
   setState(state: Partial<DurationState>): void {
+    // attemptAbsoluteDuration is an alias for attemptAbsoluteDurationLimit
     if (state.attemptAbsoluteDuration !== undefined) {
-      this._attemptAbsoluteDuration = state.attemptAbsoluteDuration;
+      this._attemptAbsoluteDurationLimit = state.attemptAbsoluteDuration;
     }
     if (state.attemptExperiencedDuration !== undefined) {
       this._attemptExperiencedDuration = state.attemptExperiencedDuration;
     }
+    // activityAbsoluteDuration is an alias for activityAbsoluteDurationLimit
     if (state.activityAbsoluteDuration !== undefined) {
-      this._activityAbsoluteDuration = state.activityAbsoluteDuration;
+      this._activityAbsoluteDurationLimit = state.activityAbsoluteDuration;
     }
     if (state.activityExperiencedDuration !== undefined) {
       this._activityExperiencedDuration = state.activityExperiencedDuration;
@@ -392,6 +392,7 @@ export class ActivityDurationTracker {
     if (state.activityEndedDate !== undefined) {
       this._activityEndedDate = state.activityEndedDate;
     }
+    // Also handle explicit limit fields (these take precedence if both are set)
     if (state.attemptAbsoluteDurationLimit !== undefined) {
       this._attemptAbsoluteDurationLimit = state.attemptAbsoluteDurationLimit;
     }
