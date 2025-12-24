@@ -107,7 +107,7 @@ export class SequencingProcess {
     this.retryHandler = new RetryRequestHandler(this.activityTree, this.traversalService);
   }
 
-  private _getAttemptElapsedSecondsHook?: (activity: Activity) => number;
+  private _getAttemptElapsedSecondsHook: ((activity: Activity) => number) | undefined;
 
   /**
    * Get/set the elapsed seconds hook (used for time-based rules)

@@ -23,8 +23,8 @@ export interface PostConditionResult {
  * Options for RuleEvaluationEngine
  */
 export interface RuleEvaluationOptions {
-  now?: () => Date;
-  getAttemptElapsedSecondsHook?: (activity: Activity) => number;
+  now?: (() => Date) | undefined;
+  getAttemptElapsedSecondsHook?: ((activity: Activity) => number) | undefined;
 }
 
 /**

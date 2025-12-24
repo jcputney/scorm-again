@@ -112,6 +112,15 @@ export class ChoiceConstraintValidator {
         return { valid: false, exception: "SB.2.9-5" };
       }
 
+      // Check preventActivation constraint at parent level
+      // This applies even when there's no current activity
+      if (activity.parent && activity.parent.sequencingControls.preventActivation) {
+        // Target must have been previously attempted
+        if (targetActivity.attemptCount === 0 && !targetActivity.isActive) {
+          return { valid: false, exception: "SB.2.9-6" };
+        }
+      }
+
       activity = activity.parent;
     }
 
