@@ -7,7 +7,8 @@ import { ADLNav } from "../adl";
 // Import extracted services
 import { ActivityTreeQueries } from "./utils/activity_tree_queries";
 import { ChoiceConstraintValidator } from "./validators/choice_constraint_validator";
-import { RuleEvaluationEngine, PostConditionResult } from "./rules/rule_evaluation_engine";
+import { RuleEvaluationEngine } from "./rules/rule_evaluation_engine";
+import type { PostConditionResult } from "./rules/rule_evaluation_engine";
 import { FlowTraversalService } from "./traversal/flow_traversal_service";
 import {
   FlowRequestHandler,
@@ -28,7 +29,7 @@ export { SequencingRequestType, DeliveryRequestType, SequencingResult };
  * Result of Post-Condition Rule Evaluation (TB.2.2)
  * Re-exported for backward compatibility
  */
-export { PostConditionResult };
+export type { PostConditionResult };
 
 /**
  * Options for SequencingProcess
