@@ -573,7 +573,7 @@ export class TerminationHandler {
 
     for (const rule of exitRules) {
       // Evaluate the rule conditions
-      let conditionsMet = true;
+      let conditionsMet: boolean;
 
       // Check rule condition combination
       if (rule.conditionCombination === "all") {
@@ -744,7 +744,7 @@ export class TerminationHandler {
 
     for (const rule of exitRules) {
       // Evaluate the rule conditions
-      let conditionsMet = true;
+      let conditionsMet: boolean;
 
       // Check rule condition combination
       if (rule.conditionCombination === "all") {
