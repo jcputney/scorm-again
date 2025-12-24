@@ -1209,37 +1209,67 @@ describe("SCORM 2004 API Tests", () => {
   describe("checkCorrectResponseValue()", () => {
     it("should properly handle the true-false response type for unknown value", (): void => {
       const scorm2004API = basicApi();
-      scorm2004API["_responseValidator"].checkCorrectResponseValue("api", "true-false", ["unknown"], "true");
+      scorm2004API["_responseValidator"].checkCorrectResponseValue(
+        "api",
+        "true-false",
+        ["unknown"],
+        "true",
+      );
       expect(scorm2004API.lmsGetLastError()).toEqual(String(406));
     });
 
     it("should properly handle the true-false response type for correct value", (): void => {
       const scorm2004API = basicApi();
-      scorm2004API["_responseValidator"].checkCorrectResponseValue("api", "true-false", ["true"], "true");
+      scorm2004API["_responseValidator"].checkCorrectResponseValue(
+        "api",
+        "true-false",
+        ["true"],
+        "true",
+      );
       expect(scorm2004API.lmsGetLastError()).toEqual(String(0));
     });
 
     it("should properly handle the choice response type for value over 4000 characters", (): void => {
       const scorm2004API = basicApi();
-      scorm2004API["_responseValidator"].checkCorrectResponseValue("api", "choice", ["x".repeat(4001)], "true");
+      scorm2004API["_responseValidator"].checkCorrectResponseValue(
+        "api",
+        "choice",
+        ["x".repeat(4001)],
+        "true",
+      );
       expect(scorm2004API.lmsGetLastError()).toEqual(String(406));
     });
 
     it("should properly handle the choice response type for correct value", () => {
       const scorm2004API = basicApi();
-      scorm2004API["_responseValidator"].checkCorrectResponseValue("api", "choice", ["true"], "true");
+      scorm2004API["_responseValidator"].checkCorrectResponseValue(
+        "api",
+        "choice",
+        ["true"],
+        "true",
+      );
       expect(scorm2004API.lmsGetLastError()).toEqual(String(0));
     });
 
     it("should properly handle the fill-in response type for correct value", () => {
       const scorm2004API = basicApi();
-      scorm2004API["_responseValidator"].checkCorrectResponseValue("api", "fill-in", ["true"], "true");
+      scorm2004API["_responseValidator"].checkCorrectResponseValue(
+        "api",
+        "fill-in",
+        ["true"],
+        "true",
+      );
       expect(scorm2004API.lmsGetLastError()).toEqual(String(0));
     });
 
     it("should properly handle the long-fill-in response type for correct value", () => {
       const scorm2004API = basicApi();
-      scorm2004API["_responseValidator"].checkCorrectResponseValue("api", "long-fill-in", ["true"], "true");
+      scorm2004API["_responseValidator"].checkCorrectResponseValue(
+        "api",
+        "long-fill-in",
+        ["true"],
+        "true",
+      );
       expect(scorm2004API.lmsGetLastError()).toEqual(String(0));
     });
 

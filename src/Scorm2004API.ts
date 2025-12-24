@@ -111,7 +111,13 @@ class Scorm2004API extends BaseAPI {
         interaction_type: string,
         nodes: Array<any>,
         value: any,
-      ) => this._responseValidator.checkCorrectResponseValue(CMIElement, interaction_type, nodes, value),
+      ) =>
+        this._responseValidator.checkCorrectResponseValue(
+          CMIElement,
+          interaction_type,
+          nodes,
+          value,
+        ),
     };
     this._responseValidator = new Scorm2004ResponseValidator(validationContext);
 

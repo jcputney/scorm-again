@@ -251,11 +251,11 @@ export default abstract class BaseAPI implements IBaseAPI {
       throwSCORMError: (element: string, errorCode: number, message?: string) =>
         this.throwSCORMError(element, errorCode, message),
       isInitialized: () => this.isInitialized(),
-      validateCorrectResponse: (CMIElement: string, value: any) =>
+      validateCorrectResponse: (CMIElement: string, value: string) =>
         this.validateCorrectResponse(CMIElement, value),
-      checkForDuplicateId: (CMIElement: string, value: any) =>
+      checkForDuplicateId: (CMIElement: string, value: string) =>
         this._checkForDuplicateId(CMIElement, value),
-      getChildElement: (CMIElement: string, value: any, foundFirstIndex: boolean) =>
+      getChildElement: (CMIElement: string, value: string, foundFirstIndex: boolean) =>
         this.getChildElement(CMIElement, value, foundFirstIndex),
       apiLog: (methodName: string, message: string, level: LogLevelEnum) =>
         this.apiLog(methodName, message, level),

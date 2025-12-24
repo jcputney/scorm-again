@@ -131,6 +131,8 @@ describe("BaseAPI", () => {
       COMMIT_AFTER_TERM: 143,
       TERMINATION_BEFORE_INIT: 112,
       MULTIPLE_TERMINATION: 113,
+      CHILDREN_ERROR: 202,
+      COUNT_ERROR: 203,
     };
 
     // Stub the logging service

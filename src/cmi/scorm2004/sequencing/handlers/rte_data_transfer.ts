@@ -1,5 +1,5 @@
 import { Activity } from "../activity";
-import { CompletionStatus } from "../../../../constants/enums";
+import { CompletionStatus, SuccessStatus } from "../../../../constants/enums";
 
 /**
  * Interface for CMI data provided for RTE data transfer
@@ -39,14 +39,65 @@ export interface ScoreData {
 }
 
 /**
- * Context interface for RTE data transfer operations
+ * Event data emitted during RTE data transfer operations
+ */
+export interface RteTransferEventData {
+  /** The activity ID that received the transferred data */
+  activityId: string;
+  /** ISO timestamp of when the transfer occurred */
+  timestamp: string;
+}
+
+/**
+ * Context interface for RTE data transfer operations.
+ *
+ * Provides callbacks to access CMI data and fire events during transfer.
+ * All callbacks are invoked synchronously during the transfer process.
+ *
+ * @remarks
+ * This interface enables dependency injection, making the RteDataTransferService
+ * testable in isolation without requiring a full TerminationHandler instance.
  */
 export interface RteDataTransferContext {
-  /** Function to get CMI data from the runtime environment */
-  getCMIData: (() => CMIDataForTransfer) | null;
+  /** Function to get CMI data from the runtime environment. May return null if no data available. */
+  getCMIData: (() => CMIDataForTransfer | null) | null;
 
   /** Event callback for firing transfer events */
-  fireEvent: (eventType: string, data?: any) => void;
+  fireEvent: (eventType: string, data?: RteTransferEventData) => void;
+}
+
+/** Valid completion status values per SCORM 2004 specification */
+const VALID_COMPLETION_STATUSES: readonly string[] = [
+  CompletionStatus.COMPLETED,
+  CompletionStatus.INCOMPLETE,
+  CompletionStatus.UNKNOWN,
+];
+
+/** Valid success status values per SCORM 2004 specification */
+const VALID_SUCCESS_STATUSES: readonly string[] = [
+  SuccessStatus.PASSED,
+  SuccessStatus.FAILED,
+  SuccessStatus.UNKNOWN,
+];
+
+/**
+ * Validates and returns a CompletionStatus value, or null if invalid
+ */
+function validateCompletionStatus(value: string | undefined): CompletionStatus | null {
+  if (value && VALID_COMPLETION_STATUSES.includes(value)) {
+    return value as CompletionStatus;
+  }
+  return null;
+}
+
+/**
+ * Validates and returns a SuccessStatus value, or null if invalid
+ */
+function validateSuccessStatus(value: string | undefined): SuccessStatus | null {
+  if (value && VALID_SUCCESS_STATUSES.includes(value)) {
+    return value as SuccessStatus;
+  }
+  return null;
 }
 
 /**
@@ -106,8 +157,9 @@ export class RteDataTransferService {
    */
   public transferPrimaryObjective(activity: Activity, cmiData: CMIDataForTransfer): void {
     // Transfer completion status
-    if (cmiData.completion_status && cmiData.completion_status !== "unknown") {
-      activity.completionStatus = cmiData.completion_status as CompletionStatus;
+    const validatedCompletionStatus = validateCompletionStatus(cmiData.completion_status);
+    if (validatedCompletionStatus && validatedCompletionStatus !== CompletionStatus.UNKNOWN) {
+      activity.completionStatus = validatedCompletionStatus;
       activity.attemptProgressStatus = true;
     }
 
@@ -118,12 +170,13 @@ export class RteDataTransferService {
     let normalizedScore = 0;
 
     // Transfer success status
-    if (cmiData.success_status && cmiData.success_status !== "unknown") {
-      successStatus = cmiData.success_status === "passed";
+    const validatedSuccessStatus = validateSuccessStatus(cmiData.success_status);
+    if (validatedSuccessStatus && validatedSuccessStatus !== SuccessStatus.UNKNOWN) {
+      successStatus = validatedSuccessStatus === SuccessStatus.PASSED;
       hasSuccessStatus = true;
       activity.objectiveSatisfiedStatus = successStatus;
       activity.objectiveSatisfiedStatusKnown = true; // Mark as known when transferred from CMI
-      activity.successStatus = cmiData.success_status as "passed" | "failed" | "unknown";
+      activity.successStatus = validatedSuccessStatus;
       // Set measureStatus to true so global objective mapping can write to global map
       // Per SCORM 2004 SN Book, when success_status is known, the objective has known status
       activity.objectiveMeasureStatus = true;
@@ -206,15 +259,17 @@ export class RteDataTransferService {
       let normalizedScore = 0;
 
       // Transfer success status (only if changed during runtime)
-      if (cmiObjective.success_status && cmiObjective.success_status !== "unknown") {
-        successStatus = cmiObjective.success_status === "passed";
+      const validatedObjSuccessStatus = validateSuccessStatus(cmiObjective.success_status);
+      if (validatedObjSuccessStatus && validatedObjSuccessStatus !== SuccessStatus.UNKNOWN) {
+        successStatus = validatedObjSuccessStatus === SuccessStatus.PASSED;
         hasSuccessStatus = true;
         activityObjective.progressStatus = true;
       }
 
       // Transfer completion status
-      if (cmiObjective.completion_status && cmiObjective.completion_status !== "unknown") {
-        activityObjective.completionStatus = cmiObjective.completion_status as CompletionStatus;
+      const validatedObjCompletionStatus = validateCompletionStatus(cmiObjective.completion_status);
+      if (validatedObjCompletionStatus && validatedObjCompletionStatus !== CompletionStatus.UNKNOWN) {
+        activityObjective.completionStatus = validatedObjCompletionStatus;
       }
 
       // Transfer score (with normalization)

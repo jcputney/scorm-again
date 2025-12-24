@@ -4,51 +4,70 @@ import { global_constants, LogLevelEnum } from "../constants";
 import { StringKeyMap, stringMatches } from "../utilities";
 import { ErrorCode } from "../constants/error_codes";
 
+/** Prefix for SCORM 2004 target attribute syntax */
+const TARGET_ATTRIBUTE_PREFIX = "{target=";
+
 /**
- * Helper function to safely get an error code.
- * Returns the error code value directly (may be undefined for missing keys).
- * Uses type assertion to satisfy TypeScript while preserving original behavior.
+ * Helper function to safely get an error code with validation.
+ * Returns the error code value, or falls back to GENERAL error code if key is missing.
+ * Logs a warning for unknown keys to help catch typos during development.
  */
 function getErrorCode(errorCodes: ErrorCode, key: string): number {
-  return errorCodes[key] as number;
+  const code = errorCodes[key];
+  if (code === undefined) {
+    // Log warning in development to catch typos in error code keys
+    if (typeof console !== "undefined" && console.warn) {
+      console.warn(`CMIValueAccessService: Unknown error code key: ${key}`);
+    }
+    return errorCodes["GENERAL"] ?? 0;
+  }
+  return code;
 }
 
 /**
  * Context interface for CMI value access operations.
- * Provides callbacks to the API for error handling and validation.
+ *
+ * Provides callbacks to the API for error handling, validation, and data model access.
+ * All callbacks are invoked synchronously during CMI path traversal.
+ * Error states should be communicated through the API's error handling mechanism
+ * (throwSCORMError and setLastErrorCode).
+ *
+ * @remarks
+ * This interface enables dependency injection, making the CMIValueAccessService
+ * testable in isolation without requiring a full API instance.
  */
 export interface CMIValueAccessContext {
   /** Error codes for the API (SCORM 1.2 or 2004) */
-  errorCodes: ErrorCode;
+  readonly errorCodes: ErrorCode;
 
-  /** Get the last error code */
+  /** Get the last error code as a string */
   getLastErrorCode: () => string;
 
   /** Set the last error code */
   setLastErrorCode: (errorCode: string) => void;
 
-  /** Throw a SCORM error */
+  /** Throw a SCORM error - sets error code and optionally logs diagnostic info */
   throwSCORMError: (element: string, errorCode: number, message?: string) => void;
 
-  /** Check if the API is initialized */
+  /** Check if the API is initialized (LMSInitialize/Initialize called) */
   isInitialized: () => boolean;
 
-  /** Validate a correct response value */
-  validateCorrectResponse: (CMIElement: string, value: any) => void;
+  /** Validate a correct response value for SCORM 2004 interactions */
+  validateCorrectResponse: (CMIElement: string, value: string) => void;
 
-  /** Check for duplicate ID in objectives/interactions */
-  checkForDuplicateId: (CMIElement: string, value: any) => boolean;
+  /** Check for duplicate ID in objectives/interactions arrays */
+  checkForDuplicateId: (CMIElement: string, value: string) => boolean;
 
-  /** Get a child element for array operations */
-  getChildElement: (CMIElement: string, value: any, foundFirstIndex: boolean) => BaseCMI | null;
+  /** Get or create a child element for array operations */
+  getChildElement: (CMIElement: string, value: string, foundFirstIndex: boolean) => BaseCMI | null;
 
-  /** Log an API message */
+  /** Log an API message at the specified level */
   apiLog: (methodName: string, message: string, level: LogLevelEnum) => void;
 
-  /** Check if an object has a property (safe check) */
+  /** Check if an object has a property (safe prototype-aware check) */
   checkObjectHasProperty: (obj: StringKeyMap, attr: string) => boolean;
 
-  /** The CMI/ADL data model root object */
+  /** Get the CMI/ADL data model root object */
   getDataModel: () => StringKeyMap;
 }
 
@@ -72,15 +91,25 @@ export class CMIValueAccessService {
   }
 
   /**
+   * Gets the appropriate error code for undefined data model elements.
+   * SCORM 2004 uses UNDEFINED_DATA_MODEL, SCORM 1.2 uses GENERAL.
+   */
+  private getUndefinedDataModelErrorCode(scorm2004: boolean): number {
+    return scorm2004
+      ? getErrorCode(this.context.errorCodes, "UNDEFINED_DATA_MODEL")
+      : getErrorCode(this.context.errorCodes, "GENERAL");
+  }
+
+  /**
    * Sets a value on a CMI element path
    *
    * @param {string} methodName - The API method name for logging
    * @param {boolean} scorm2004 - Whether this is SCORM 2004
    * @param {string} CMIElement - The CMI element path
-   * @param {any} value - The value to set
+   * @param {string} value - The value to set (all SCORM values are strings)
    * @return {string} "true" or "false"
    */
-  setCMIValue(methodName: string, scorm2004: boolean, CMIElement: string, value: any): string {
+  setCMIValue(methodName: string, scorm2004: boolean, CMIElement: string, value: string): string {
     if (!CMIElement || CMIElement === "") {
       if (scorm2004) {
         this.context.throwSCORMError(
@@ -100,9 +129,7 @@ export class CMIValueAccessService {
     let foundFirstIndex = false;
 
     const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
-    const invalidErrorCode = scorm2004
-      ? getErrorCode(this.context.errorCodes, "UNDEFINED_DATA_MODEL")
-      : getErrorCode(this.context.errorCodes, "GENERAL");
+    const invalidErrorCode = this.getUndefinedDataModelErrorCode(scorm2004);
 
     for (let idx = 0; idx < structure.length; idx++) {
       const attribute = structure[idx]!;
@@ -160,9 +187,13 @@ export class CMIValueAccessService {
    * @param {string} methodName - The API method name for logging
    * @param {boolean} scorm2004 - Whether this is SCORM 2004
    * @param {string} CMIElement - The CMI element path
-   * @return {any} The value at the element path
+   * @return The value at the element path, or empty string on error (per SCORM spec)
    */
-  getCMIValue(methodName: string, scorm2004: boolean, CMIElement: string): any {
+  getCMIValue(
+    methodName: string,
+    scorm2004: boolean,
+    CMIElement: string,
+  ): string | StringKeyMap | BaseCMI {
     if (!CMIElement || CMIElement === "") {
       if (scorm2004) {
         this.context.throwSCORMError(
@@ -190,9 +221,7 @@ export class CMIValueAccessService {
 
     const uninitializedErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) has not been initialized.`;
     const invalidErrorMessage = `The data model element passed to ${methodName} (${CMIElement}) is not a valid SCORM data model element.`;
-    const invalidErrorCode = scorm2004
-      ? getErrorCode(this.context.errorCodes, "UNDEFINED_DATA_MODEL")
-      : getErrorCode(this.context.errorCodes, "GENERAL");
+    const invalidErrorCode = this.getUndefinedDataModelErrorCode(scorm2004);
 
     for (let idx = 0; idx < structure.length; idx++) {
       attribute = structure[idx]!;
@@ -213,7 +242,7 @@ export class CMIValueAccessService {
       }
 
       if (validationResult.error) {
-        return;
+        return "";
       }
 
       // Traverse to the next level
@@ -239,7 +268,7 @@ export class CMIValueAccessService {
         );
 
         if (arrayResult.error) {
-          return;
+          return "";
         }
 
         refObject = arrayResult.refObject;
@@ -257,13 +286,18 @@ export class CMIValueAccessService {
             undefined,
           );
         } else if (attribute === "_count") {
-          this.context.throwSCORMError(CMIElement, getErrorCode(this.context.errorCodes, "COUNT_ERROR"), undefined);
+          this.context.throwSCORMError(
+            CMIElement,
+            getErrorCode(this.context.errorCodes, "COUNT_ERROR"),
+            undefined,
+          );
         }
       }
       // SCORM 2004 keyword errors are handled during traversal
-    } else {
-      return refObject;
+      return "";
     }
+
+    return refObject;
   }
 
   /**
@@ -272,24 +306,24 @@ export class CMIValueAccessService {
   private setFinalAttribute(
     refObject: StringKeyMap | BaseCMI,
     attribute: string,
-    value: any,
+    value: string,
     CMIElement: string,
     scorm2004: boolean,
     invalidErrorCode: number,
     invalidErrorMessage: string,
   ): string {
-    // Handle SCORM 2004 target attribute
-    if (scorm2004 && attribute && attribute.substring(0, 8) === "{target=") {
+    // Handle SCORM 2004 target attribute syntax: {target=identifier}
+    // Target attributes are used for global objective mapping and are read-only after initialization
+    if (scorm2004 && attribute?.startsWith(TARGET_ATTRIBUTE_PREFIX)) {
       if (this.context.isInitialized()) {
-        this.context.throwSCORMError(CMIElement, getErrorCode(this.context.errorCodes, "READ_ONLY_ELEMENT"));
+        this.context.throwSCORMError(
+          CMIElement,
+          getErrorCode(this.context.errorCodes, "READ_ONLY_ELEMENT"),
+        );
         return global_constants.SCORM_FALSE;
-      } else {
-        refObject = {
-          ...refObject,
-          attribute: value,
-        };
-        return global_constants.SCORM_TRUE;
       }
+      // Before initialization, target writes are allowed but no-op (targets are resolved during read)
+      return global_constants.SCORM_TRUE;
     }
 
     // Validate attribute exists
@@ -309,7 +343,10 @@ export class CMIValueAccessService {
     ) {
       this.context.validateCorrectResponse(CMIElement, value);
       if (this.context.getLastErrorCode() !== "0") {
-        this.context.throwSCORMError(CMIElement, getErrorCode(this.context.errorCodes, "TYPE_MISMATCH"));
+        this.context.throwSCORMError(
+          CMIElement,
+          getErrorCode(this.context.errorCodes, "TYPE_MISMATCH"),
+        );
         return global_constants.SCORM_FALSE;
       }
     }
@@ -330,7 +367,10 @@ export class CMIValueAccessService {
       if (scorm2004 && attribute === "id" && this.context.isInitialized()) {
         const duplicateError = this.context.checkForDuplicateId(CMIElement, value);
         if (duplicateError) {
-          this.context.throwSCORMError(CMIElement, getErrorCode(this.context.errorCodes, "GENERAL_SET_FAILURE"));
+          this.context.throwSCORMError(
+            CMIElement,
+            getErrorCode(this.context.errorCodes, "GENERAL_SET_FAILURE"),
+          );
           return global_constants.SCORM_FALSE;
         }
       }
@@ -350,7 +390,7 @@ export class CMIValueAccessService {
     refObject: StringKeyMap | BaseCMI,
     structure: string[],
     idx: number,
-    value: any,
+    value: string,
     CMIElement: string,
     scorm2004: boolean,
     foundFirstIndex: boolean,
@@ -404,7 +444,7 @@ export class CMIValueAccessService {
     refObject: CMIArray,
     structure: string[],
     idx: number,
-    value: any,
+    value: string,
     CMIElement: string,
     scorm2004: boolean,
     foundFirstIndex: boolean,
@@ -486,11 +526,12 @@ export class CMIValueAccessService {
       }
     } else {
       // Handle SCORM 2004 target validation
+      const attrStr = String(attribute);
       if (
-        String(attribute).substring(0, 8) === "{target=" &&
+        attrStr.startsWith(TARGET_ATTRIBUTE_PREFIX) &&
         typeof refObject._isTargetValid == "function"
       ) {
-        const target = String(attribute).substring(8, String(attribute).length - 1);
+        const target = attrStr.substring(TARGET_ATTRIBUTE_PREFIX.length, attrStr.length - 1);
         return { error: false, returnValue: refObject._isTargetValid(target) };
       } else if (
         typeof attribute === "undefined" ||
