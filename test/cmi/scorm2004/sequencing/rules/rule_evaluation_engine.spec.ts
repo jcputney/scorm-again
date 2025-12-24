@@ -1,13 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { RuleEvaluationEngine, PostConditionResult } from "../../../../../src/cmi/scorm2004/sequencing/rules/rule_evaluation_engine";
+import { RuleEvaluationEngine } from "../../../../../src/cmi/scorm2004/sequencing/rules/rule_evaluation_engine";
 import { SequencingRequestType } from "../../../../../src/cmi/scorm2004/sequencing/rules/sequencing_request_types";
 import { Activity } from "../../../../../src/cmi/scorm2004/sequencing/activity";
 import {
   SequencingRule,
   RuleActionType,
   RuleCondition,
-  RuleConditionType,
-  RuleConditionOperator
+  RuleConditionType
 } from "../../../../../src/cmi/scorm2004/sequencing/sequencing_rules";
 
 describe("RuleEvaluationEngine", () => {

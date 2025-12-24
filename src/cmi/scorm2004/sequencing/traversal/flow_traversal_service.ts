@@ -6,7 +6,6 @@ import {
   FlowSubprocessMode
 } from "../rules/sequencing_request_types";
 import { SelectionRandomization } from "../selection_randomization";
-import { RuleActionType } from "../sequencing_rules";
 
 /**
  * Result of flow tree traversal
