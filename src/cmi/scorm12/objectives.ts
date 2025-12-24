@@ -1,11 +1,13 @@
 import { BaseCMI } from "../common/base_cmi";
 import { CMIScore } from "../common/score";
-import { scorm12_constants } from "../../constants/api_constants";
-import { scorm12_regex } from "../../constants/regex";
-import { scorm12_errors } from "../../constants/error_codes";
+import { CMIArray } from "../common/array";
 import { Scorm12ValidationError } from "../../exceptions/scorm12_exceptions";
 import { check12ValidFormat } from "./validation";
-import { CMIArray } from "../common/array";
+import {
+  scorm12_constants,
+  scorm12_errors,
+  scorm12_regex,
+} from "../../constants";
 
 /**
  * Class representing SCORM 1.2's `cmi.objectives` object

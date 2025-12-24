@@ -6,14 +6,25 @@ export * from "./Scorm2004API";
 export * from "./CrossFrameAPI";
 export * from "./CrossFrameLMS";
 
-// Export types
-export * from "./constants/api_constants";
-export * from "./constants/error_codes";
-export * from "./constants/language_constants";
-export * from "./constants/regex";
-export * from "./constants/response_constants";
+// Constants (using barrel export)
+export * from "./constants";
+
+// Utilities
 export * from "./utilities";
 
 // Type definitions
+export * from "./types";
+
+// Interfaces
+export * from "./interfaces";
+
+// Exceptions
+export * from "./exceptions";
+
+// CMI models (selective exports to avoid name conflicts between scorm12/scorm2004)
 export * from "./cmi/scorm12/nav";
 export * from "./cmi/scorm2004/adl";
+export * from "./cmi/common";
+
+// Services
+export * from "./services";

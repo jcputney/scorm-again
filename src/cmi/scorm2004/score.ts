@@ -2,12 +2,14 @@
  * Class for SCORM 2004's cmi *.score object
  */
 import { CMIScore } from "../common/score";
-import { scorm2004_constants } from "../../constants/api_constants";
-import { scorm2004_errors } from "../../constants/error_codes";
-import { scorm2004_regex } from "../../constants/regex";
 import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
 import { check2004ValidFormat, check2004ValidRange } from "./validation";
-import { ScoreObject } from "../../types/api_types";
+import {
+  scorm2004_constants,
+  scorm2004_errors,
+  scorm2004_regex,
+} from "../../constants";
+import { ScoreObject } from "../../types";
 
 export class Scorm2004CMIScore extends CMIScore {
   private _scaled = "";

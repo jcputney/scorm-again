@@ -1,9 +1,9 @@
 /**
  * Class representing learner properties for SCORM 2004's cmi object
  */
-import { scorm2004_errors } from "../../constants/error_codes";
-import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
 import { BaseCMI } from "../common/base_cmi";
+import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
+import { scorm2004_errors } from "../../constants";
 
 /**
  * Class representing learner properties for SCORM 2004's cmi object

@@ -1,10 +1,12 @@
-import { scorm12_constants } from "../../constants/api_constants";
-import { scorm12_regex } from "../../constants/regex";
 import { BaseCMI } from "./base_cmi";
-import { scorm12_errors } from "../../constants/error_codes";
 import { BaseScormValidationError } from "../../exceptions";
-import { validationService } from "../../services/ValidationService";
-import { ScoreObject } from "../../types/api_types";
+import {
+  scorm12_constants,
+  scorm12_errors,
+  scorm12_regex,
+} from "../../constants";
+import { validationService } from "../../services";
+import { ScoreObject } from "../../types";
 
 /**
  * Base class for cmi *.score objects

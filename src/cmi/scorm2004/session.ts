@@ -1,12 +1,11 @@
 /**
  * Class representing session properties for SCORM 2004's cmi object
  */
-import { scorm2004_regex } from "../../constants/regex";
-import { scorm2004_errors } from "../../constants/error_codes";
-import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
 import { BaseCMI } from "../common/base_cmi";
+import { Scorm2004ValidationError } from "../../exceptions/scorm2004_exceptions";
 import { check2004ValidFormat } from "./validation";
-import * as Util from "../../utilities";
+import { scorm2004_errors, scorm2004_regex } from "../../constants";
+import { addTwoDurations, getSecondsAsISODuration } from "../../utilities";
 
 /**
  * Class representing session properties for SCORM 2004's cmi object
@@ -149,10 +148,10 @@ export class CMISession extends BaseCMI {
     let sessionTime = this._session_time;
     if (typeof start_time !== "undefined") {
       const seconds = new Date().getTime() - start_time;
-      sessionTime = Util.getSecondsAsISODuration(seconds / 1000);
+      sessionTime = getSecondsAsISODuration(seconds / 1000);
     }
 
-    return Util.addTwoDurations(this._total_time, sessionTime, scorm2004_regex.CMITimespan);
+    return addTwoDurations(this._total_time, sessionTime, scorm2004_regex.CMITimespan);
   }
 
   /**

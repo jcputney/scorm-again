@@ -1,14 +1,16 @@
-import { scorm12_constants } from "../../constants/api_constants";
-import { scorm12_errors } from "../../constants/error_codes";
-import { scorm12_regex } from "../../constants/regex";
-import { Scorm12ValidationError } from "../../exceptions/scorm12_exceptions";
 import { BaseRootCMI } from "../common/base_cmi";
+import { Scorm12ValidationError } from "../../exceptions/scorm12_exceptions";
 import { check12ValidFormat } from "./validation";
 import { CMICore } from "./core";
 import { CMIObjectives } from "./objectives";
 import { CMIStudentData } from "./student_data";
 import { CMIStudentPreference } from "./student_preference";
 import { CMIInteractions } from "./interactions";
+import {
+  scorm12_constants,
+  scorm12_errors,
+  scorm12_regex,
+} from "../../constants";
 
 /**
  * Class representing the cmi object for SCORM 1.2

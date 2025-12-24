@@ -1,8 +1,7 @@
 import { BaseCMI } from "../common/base_cmi";
-import { scorm12_constants } from "../../constants/api_constants";
 import { Scorm12ValidationError } from "../../exceptions/scorm12_exceptions";
-import { scorm12_errors } from "../../constants/error_codes";
-import { validationService } from "../../services/ValidationService";
+import { scorm12_constants, scorm12_errors } from "../../constants";
+import { validationService } from "../../services";
 
 /**
  * Class representing the SCORM 1.2 cmi.student_preference object

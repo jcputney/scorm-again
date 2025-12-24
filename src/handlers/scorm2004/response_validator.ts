@@ -3,10 +3,13 @@ import {
   CMIInteractionsCorrectResponsesObject,
   CMIInteractionsObject,
 } from "../../cmi/scorm2004/interactions";
-import { CorrectResponses, ResponseType } from "../../constants/response_constants";
-import { scorm2004_errors } from "../../constants/error_codes";
-import { scorm2004_regex } from "../../constants/regex";
-import ValidLanguages from "../../constants/language_constants";
+import {
+  CorrectResponses,
+  ResponseType,
+  scorm2004_errors,
+  scorm2004_regex,
+  ValidLanguages,
+} from "../../constants";
 
 /**
  * Context interface for error handling callbacks

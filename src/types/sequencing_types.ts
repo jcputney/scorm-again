@@ -2,6 +2,7 @@
  * Types for SCORM 2004 sequencing configuration
  */
 
+import { IActivity } from "./activity_types";
 import {
   RuleActionType,
   RuleConditionOperator,
@@ -238,15 +239,16 @@ export type SequencingSettings = {
 };
 
 /**
- * Interface for sequencing event listeners (re-exported for convenience)
+ * Interface for sequencing event listeners.
+ * Uses IActivity interface to provide type safety without circular dependencies.
  */
 export interface SequencingEventListeners {
-  onSequencingStart?: (activity: any) => void;
+  onSequencingStart?: (activity: IActivity) => void;
   onSequencingEnd?: () => void;
-  onActivityDelivery?: (activity: any) => void;
-  onActivityUnload?: (activity: any) => void;
+  onActivityDelivery?: (activity: IActivity) => void;
+  onActivityUnload?: (activity: IActivity) => void;
   onNavigationRequest?: (request: string, target?: string) => void;
-  onRollupComplete?: (activity: any) => void;
+  onRollupComplete?: (activity: IActivity) => void;
   onSequencingError?: (error: string, context?: string) => void;
   onSequencingSessionEnd?: (data: {
     reason: string;
@@ -280,11 +282,15 @@ export interface SequencingEventListeners {
     currentActivity: string | null;
     validRequests: string[];
   }) => void;
-  onLimitConditionCheck?: (activity: any, result: boolean) => void;
+  onLimitConditionCheck?: (activity: IActivity, result: boolean) => void;
   onStateInconsistency?: (data: { activity: string; issue: string }) => void;
   onGlobalObjectiveMapInitialized?: (data: { count: number }) => void;
   onGlobalObjectiveMapError?: (data: { error: string }) => void;
   onGlobalObjectiveUpdated?: (data: { objectiveId: string; field: string; value: any }) => void;
   onGlobalObjectiveUpdateError?: (data: { objectiveId: string; error: string }) => void;
   onSequencingDebug?: (event: string, data?: any) => void;
+  // Enhanced debugging events
+  onActivityAttemptStart?: (activity: IActivity) => void;
+  onActivityAttemptEnd?: (activity: IActivity) => void;
+  onSequencingStateChange?: (state: any) => void;
 }

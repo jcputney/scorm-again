@@ -1,5 +1,5 @@
-import { CMI } from "../../cmi/scorm2004/cmi";
 import { BaseCMI } from "../../cmi/common/base_cmi";
+import { CMI } from "../../cmi/scorm2004/cmi";
 import { CMIObjectivesObject } from "../../cmi/scorm2004/objectives";
 import {
   CMIInteractionsCorrectResponsesObject,
@@ -8,9 +8,12 @@ import {
 } from "../../cmi/scorm2004/interactions";
 import { CMICommentsObject } from "../../cmi/scorm2004/comments";
 import { ADLDataObject } from "../../cmi/scorm2004/adl";
-import { CorrectResponses } from "../../constants/response_constants";
-import { scorm2004_errors } from "../../constants/error_codes";
-import { CompletionStatus, SuccessStatus } from "../../constants/enums";
+import {
+  CompletionStatus,
+  CorrectResponses,
+  scorm2004_errors,
+  SuccessStatus,
+} from "../../constants";
 import { stringMatches } from "../../utilities";
 import { Scorm2004ResponseValidator } from "./response_validator";
 

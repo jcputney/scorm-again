@@ -1,11 +1,17 @@
 import { BaseCMI } from "../common/base_cmi";
 import { CMIScore } from "../common/score";
-import { scorm12_constants } from "../../constants/api_constants";
-import { scorm12_regex } from "../../constants/regex";
-import { scorm12_errors } from "../../constants/error_codes";
 import { Scorm12ValidationError } from "../../exceptions/scorm12_exceptions";
 import { check12ValidFormat } from "../scorm12/validation";
-import * as Util from "../../utilities";
+import {
+  scorm12_constants,
+  scorm12_errors,
+  scorm12_regex,
+} from "../../constants";
+import {
+  addHHMMSSTimeStrings,
+  getSecondsAsHHMMSS,
+  getTimeAsSeconds,
+} from "../../utilities";
 
 /**
  * Class representing the `cmi.core` object
@@ -281,8 +287,8 @@ export class CMICore extends BaseCMI {
         )
       ) {
         if (total_time) {
-          const totalSeconds = Util.getTimeAsSeconds(total_time, scorm12_regex.CMITimespan);
-          this._total_time = Util.getSecondsAsHHMMSS(totalSeconds);
+          const totalSeconds = getTimeAsSeconds(total_time, scorm12_regex.CMITimespan);
+          this._total_time = getSecondsAsHHMMSS(totalSeconds);
         } else {
           this._total_time = total_time;
         }
@@ -391,8 +397,8 @@ export class CMICore extends BaseCMI {
         scorm12_regex.CMITimespan,
       )
     ) {
-      const totalSeconds = Util.getTimeAsSeconds(session_time, scorm12_regex.CMITimespan);
-      this._session_time = Util.getSecondsAsHHMMSS(totalSeconds);
+      const totalSeconds = getTimeAsSeconds(session_time, scorm12_regex.CMITimespan);
+      this._session_time = getSecondsAsHHMMSS(totalSeconds);
     }
   }
 
@@ -435,10 +441,10 @@ export class CMICore extends BaseCMI {
     let sessionTime = this._session_time;
     if (typeof start_time !== "undefined") {
       const seconds = new Date().getTime() - start_time;
-      sessionTime = Util.getSecondsAsHHMMSS(seconds / 1000);
+      sessionTime = getSecondsAsHHMMSS(seconds / 1000);
     }
 
-    return Util.addHHMMSSTimeStrings(
+    return addHHMMSSTimeStrings(
       this._total_time,
       sessionTime,
       new RegExp(scorm12_regex.CMITimespan),

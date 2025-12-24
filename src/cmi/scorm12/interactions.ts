@@ -1,11 +1,13 @@
 import { CMIArray } from "../common/array";
-import { scorm12_constants } from "../../constants/api_constants";
-import { scorm12_errors } from "../../constants/error_codes";
-import { Scorm12ValidationError } from "../../exceptions/scorm12_exceptions";
 import { BaseCMI } from "../common/base_cmi";
+import { Scorm12ValidationError } from "../../exceptions/scorm12_exceptions";
 import { check12ValidFormat, check12ValidRange } from "./validation";
-import { scorm12_regex } from "../../constants/regex";
-import * as Util from "../../utilities";
+import {
+  scorm12_constants,
+  scorm12_errors,
+  scorm12_regex,
+} from "../../constants";
+import { getSecondsAsHHMMSS, getTimeAsSeconds } from "../../utilities";
 
 /**
  * Class representing the SCORM 1.2 `cmi.interactions`
@@ -299,8 +301,8 @@ export class CMIInteractionsObject extends BaseCMI {
    */
   set latency(latency: string) {
     if (check12ValidFormat(this._cmi_element + ".latency", latency, scorm12_regex.CMITimespan)) {
-      const totalSeconds = Util.getTimeAsSeconds(latency, scorm12_regex.CMITimespan);
-      this._latency = Util.getSecondsAsHHMMSS(totalSeconds);
+      const totalSeconds = getTimeAsSeconds(latency, scorm12_regex.CMITimespan);
+      this._latency = getSecondsAsHHMMSS(totalSeconds);
     }
   }
 

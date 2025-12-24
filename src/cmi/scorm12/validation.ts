@@ -1,6 +1,6 @@
 import { checkValidFormat, checkValidRange } from "../common/validation";
-import { scorm12_errors } from "../../constants/error_codes";
 import { Scorm12ValidationError } from "../../exceptions/scorm12_exceptions";
+import { scorm12_errors } from "../../constants";
 
 /**
  * Helper method, no reason to have to pass the same error codes every time
