@@ -3,115 +3,47 @@ import { ActivityTree } from "./activity_tree";
 import { SequencingRules } from "./sequencing_rules";
 import { SequencingControls } from "./sequencing_controls";
 import { ADLNav } from "../adl";
-export declare enum SequencingRequestType {
-    START = "start",
-    RESUME_ALL = "resumeAll",
-    CONTINUE = "continue",
-    PREVIOUS = "previous",
-    CHOICE = "choice",
-    JUMP = "jump",
-    EXIT = "exit",
-    EXIT_PARENT = "exitParent",
-    EXIT_ALL = "exitAll",
-    ABANDON = "abandon",
-    ABANDON_ALL = "abandonAll",
-    SUSPEND_ALL = "suspendAll",
-    RETRY = "retry",
-    RETRY_ALL = "retryAll"
-}
-export declare enum DeliveryRequestType {
-    DELIVER = "deliver",
-    DO_NOT_DELIVER = "doNotDeliver"
-}
-export declare class SequencingResult {
-    deliveryRequest: DeliveryRequestType;
-    targetActivity: Activity | null;
-    exception: string | null;
-    endSequencingSession: boolean;
-    constructor(deliveryRequest?: DeliveryRequestType, targetActivity?: Activity | null, exception?: string | null, endSequencingSession?: boolean);
-}
-export interface PostConditionResult {
-    sequencingRequest: SequencingRequestType | null;
-    terminationRequest: SequencingRequestType | null;
+import { ActivityTreeQueries } from "./utils/activity_tree_queries";
+import { ChoiceConstraintValidator } from "./validators/choice_constraint_validator";
+import { RuleEvaluationEngine } from "./rules/rule_evaluation_engine";
+import type { PostConditionResult } from "./rules/rule_evaluation_engine";
+import { FlowTraversalService } from "./traversal/flow_traversal_service";
+import { SequencingRequestType, DeliveryRequestType, SequencingResult } from "./rules/sequencing_request_types";
+export { SequencingRequestType, DeliveryRequestType, SequencingResult };
+export type { PostConditionResult };
+export interface SequencingProcessOptions {
+    now?: () => Date;
+    getAttemptElapsedSeconds?: (activity: Activity) => number;
+    getActivityElapsedSeconds?: (activity: Activity) => number;
 }
 export declare class SequencingProcess {
     private activityTree;
-    private sequencingRules;
-    private sequencingControls;
-    private adlNav;
-    private now;
-    private getAttemptElapsedSecondsHook;
-    private getActivityElapsedSecondsHook;
-    constructor(activityTree: ActivityTree, sequencingRules?: SequencingRules | null, sequencingControls?: SequencingControls | null, adlNav?: ADLNav | null, options?: {
-        now?: () => Date;
-        getAttemptElapsedSeconds?: (activity: Activity) => number;
-        getActivityElapsedSeconds?: (activity: Activity) => number;
-    });
+    private treeQueries;
+    private constraintValidator;
+    private ruleEngine;
+    private traversalService;
+    private flowHandler;
+    private choiceHandler;
+    private exitHandler;
+    private retryHandler;
+    private _now;
+    get now(): () => Date;
+    set now(fn: () => Date);
+    private _getAttemptElapsedSecondsHook;
+    get getAttemptElapsedSecondsHook(): ((activity: Activity) => number) | undefined;
+    set getAttemptElapsedSecondsHook(fn: ((activity: Activity) => number) | undefined);
+    constructor(activityTree: ActivityTree, _sequencingRules?: SequencingRules | null, _sequencingControls?: SequencingControls | null, _adlNav?: ADLNav | null, options?: SequencingProcessOptions);
     sequencingRequestProcess(request: SequencingRequestType, targetActivityId?: string | null): SequencingResult;
-    private startSequencingRequestProcess;
-    private findFirstDeliverableActivity;
-    private resumeAllSequencingRequestProcess;
-    private continueSequencingRequestProcess;
-    private previousSequencingRequestProcess;
-    private choiceSequencingRequestProcess;
-    private jumpSequencingRequestProcess;
-    private exitSequencingRequestProcess;
-    private exitAllSequencingRequestProcess;
-    private abandonSequencingRequestProcess;
-    private abandonAllSequencingRequestProcess;
-    private suspendAllSequencingRequestProcess;
-    private retrySequencingRequestProcess;
-    private retryAllSequencingRequestProcess;
-    private ensureSelectionAndRandomization;
-    private flowActivityTraversalSubprocess;
-    private checkActivityProcess;
-    private terminateDescendentAttemptsProcess;
-    private exitActionRulesSubprocess;
-    private processDeferredExitAction;
-    private postConditionRulesSubprocess;
-    private validateSequencingRequest;
-    private validateRequestSpecificConstraints;
-    private limitConditionsCheckProcess;
-    private parseISO8601Duration;
-    private sequencingRulesCheckProcess;
-    private sequencingRulesCheckSubprocess;
-    private isActivityInTree;
-    private isActivity1AParentOfActivity2;
-    private findCommonAncestor;
-    private flowSubprocess;
-    private flowTreeTraversalSubprocess;
-    private choiceFlowSubprocess;
-    private choiceFlowTreeTraversalSubprocess;
-    private enhancedChoiceActivityTraversalSubprocess;
-    private choiceActivityTraversalSubprocess;
     evaluatePostConditionRules(activity: Activity): PostConditionResult;
-    private validateChoiceFlowConstraints;
-    private meetsChoiceFlowConstraints;
-    private validateChoiceTraversalConstraints;
-    private validateConstrainedChoiceBoundaries;
-    private validateConstrainChoiceForFlow;
-    private evaluateConstrainChoiceForTraversal;
-    private findChildInPathToActivity;
-    private evaluateForwardOnlyForChoice;
-    private checkConstrainedChoiceBoundary;
-    private getCurrentActivity;
-    private isActivityAvailableForChoice;
-    private isActivityMandatory;
-    private isActivityCompleted;
-    private validateActivityChoiceState;
-    private hasBackwardChoiceException;
-    private hasChoiceBoundaryViolation;
-    private evaluateRuleConditions;
-    private getAttemptElapsedSeconds;
-    private isActivityLastOverall;
-    private checkForwardOnlyViolationAtAllLevels;
     canActivityBeDelivered(activity: Activity): boolean;
     validateNavigationRequest(request: SequencingRequestType, targetActivityId?: string | null, currentActivity?: Activity | null): {
         valid: boolean;
         exception: string | null;
     };
-    private validateChoicePathConstraints;
-    private validateConstraintsAtAncestorLevel;
     getAvailableChoices(): Activity[];
+    getTreeQueries(): ActivityTreeQueries;
+    getConstraintValidator(): ChoiceConstraintValidator;
+    getRuleEngine(): RuleEvaluationEngine;
+    getTraversalService(): FlowTraversalService;
 }
 //# sourceMappingURL=sequencing_process.d.ts.map

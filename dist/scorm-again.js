@@ -8588,6 +8588,12 @@ ${stackTrace}`);
       }
     }
     /**
+     * Allow integrators to set an elapsed seconds hook for time limit calculations
+     */
+    static setElapsedSecondsHook(hook) {
+      _RuleCondition._getElapsedSecondsHook = hook;
+    }
+    /**
      * Called when the API needs to be reset
      */
     reset() {
@@ -8743,17 +8749,46 @@ ${stackTrace}`);
      * @private
      */
     evaluateTimeLimitExceeded(activity) {
-      const timeLimitDuration = activity.timeLimitDuration;
-      if (!timeLimitDuration) {
+      let limit = activity.timeLimitDuration;
+      if (!limit && activity.attemptAbsoluteDurationLimit) {
+        limit = activity.attemptAbsoluteDurationLimit;
+      }
+      if (!limit) {
         return false;
       }
-      const durationMs = this.parseISO8601Duration(timeLimitDuration);
-      if (durationMs === 0) {
+      const limitSeconds = getDurationAsSeconds(limit, scorm2004_regex.CMITimespan);
+      if (limitSeconds <= 0) {
         return false;
       }
-      const attemptDuration = activity.attemptExperiencedDuration;
-      const attemptDurationMs = this.parseISO8601Duration(attemptDuration);
-      return attemptDurationMs > durationMs;
+      let elapsedSeconds = 0;
+      if (_RuleCondition._getElapsedSecondsHook) {
+        try {
+          const hookResult = _RuleCondition._getElapsedSecondsHook(activity);
+          if (typeof hookResult === "number" && !Number.isNaN(hookResult) && hookResult >= 0) {
+            elapsedSeconds = hookResult;
+          }
+        } catch {
+          elapsedSeconds = 0;
+        }
+      }
+      if (elapsedSeconds === 0 && activity.attemptExperiencedDuration) {
+        const attemptDurationSeconds = getDurationAsSeconds(activity.attemptExperiencedDuration, scorm2004_regex.CMITimespan);
+        if (attemptDurationSeconds > 0) {
+          elapsedSeconds = attemptDurationSeconds;
+        }
+      }
+      if (elapsedSeconds === 0 && activity.attemptAbsoluteStartTime) {
+        try {
+          const start = new Date(activity.attemptAbsoluteStartTime).getTime();
+          const nowMs = _RuleCondition._now().getTime();
+          if (!Number.isNaN(start) && !Number.isNaN(nowMs) && nowMs >= start) {
+            elapsedSeconds = (nowMs - start) / 1e3;
+          }
+        } catch {
+          elapsedSeconds = 0;
+        }
+      }
+      return elapsedSeconds > limitSeconds;
     }
     /**
      * Evaluate if activity is outside available time range
@@ -8811,6 +8846,8 @@ ${stackTrace}`);
   };
   // Optional, overridable provider for current time (LMS may set via SequencingService)
   _RuleCondition._now = () => /* @__PURE__ */new Date();
+  // Optional, overridable hook for getting elapsed seconds
+  _RuleCondition._getElapsedSecondsHook = void 0;
   let RuleCondition = _RuleCondition;
   class SequencingRule extends BaseCMI {
     /**
@@ -13490,6 +13527,989 @@ ${stackTrace}`);
     }
   }
 
+  class ActivityTreeQueries {
+    constructor(activityTree) {
+      this.activityTree = activityTree;
+    }
+    /**
+     * Check if activity is in the activity tree
+     * @param {Activity} activity - Activity to check
+     * @return {boolean} - True if activity is in the tree
+     */
+    isInTree(activity) {
+      return this.activityTree.getAllActivities().includes(activity);
+    }
+    /**
+     * Check if activity1 is a parent (ancestor) of activity2
+     * Used for choiceExit validation to determine if target is within a subtree
+     * @param {Activity} ancestor - Potential parent/ancestor activity
+     * @param {Activity} descendant - Potential child/descendant activity
+     * @return {boolean} - True if ancestor is an ancestor of descendant
+     */
+    isAncestorOf(ancestor, descendant) {
+      let current = descendant;
+      while (current) {
+        if (current === ancestor) {
+          return true;
+        }
+        current = current.parent;
+      }
+      return false;
+    }
+    /**
+     * Find common ancestor of two activities
+     * @param {Activity | null} activity1 - First activity
+     * @param {Activity | null} activity2 - Second activity
+     * @return {Activity | null} - Common ancestor or null
+     */
+    findCommonAncestor(activity1, activity2) {
+      if (!activity1 || !activity2) {
+        return null;
+      }
+      const ancestors1 = [];
+      let current = activity1;
+      while (current) {
+        ancestors1.push(current);
+        current = current.parent;
+      }
+      current = activity2;
+      while (current) {
+        if (ancestors1.includes(current)) {
+          return current;
+        }
+        current = current.parent;
+      }
+      return null;
+    }
+    /**
+     * Find which child of ancestor is in the path to the target activity
+     * Used for multi-level constraint validation
+     * @param {Activity} ancestor - The ancestor activity
+     * @param {Activity} target - The target activity
+     * @return {Activity | null} - The child in the path, or null
+     */
+    findChildInPath(ancestor, target) {
+      let current = target;
+      while (current && current.parent) {
+        if (current.parent === ancestor) {
+          return current;
+        }
+        current = current.parent;
+      }
+      return null;
+    }
+    /**
+     * Check if activity is the last activity in a forward preorder tree traversal
+     * Per SB.2.1 step 3.1: An activity is last overall if it's a leaf with no next siblings
+     * anywhere in its ancestor chain
+     * @param {Activity} activity - The activity to check
+     * @return {boolean} - True if this is the last activity in the tree
+     */
+    isLastInTree(activity) {
+      if (activity.children.length > 0) {
+        return false;
+      }
+      let current = activity;
+      while (current) {
+        if (this.activityTree.getNextSibling(current)) {
+          return false;
+        }
+        current = current.parent;
+      }
+      return true;
+    }
+    /**
+     * Find the currently active activity within a parent's children
+     * @param {Activity} parent - The parent activity
+     * @return {Activity | null} - The active child or null
+     */
+    getCurrentInParent(parent) {
+      if (parent.children) {
+        for (const child of parent.children) {
+          if (child.isActive) {
+            return child;
+          }
+        }
+      }
+      return null;
+    }
+    /**
+     * Check if activity is mandatory (cannot be skipped)
+     * In SCORM 2004, this is typically determined by sequencing rules
+     * @param {Activity} activity - Activity to check
+     * @return {boolean} - True if activity is mandatory
+     */
+    isMandatory(activity) {
+      if (activity.sequencingRules && activity.sequencingRules.preConditionRules) {
+        for (const rule of activity.sequencingRules.preConditionRules) {
+          if (rule.action === "skip" && rule.conditions && rule.conditions.length === 0) {
+            return false;
+          }
+        }
+      }
+      return activity.mandatory === true;
+    }
+    /**
+     * Check if activity is completed
+     * @param {Activity} activity - Activity to check
+     * @return {boolean} - True if activity is completed
+     */
+    isCompleted(activity) {
+      return activity.completionStatus === "completed" || activity.completionStatus === "passed" || activity.successStatus === "passed";
+    }
+    /**
+     * Check if activity is available for choice according to SCORM 2004 rules
+     * @param {Activity} activity - Activity to check
+     * @return {boolean} - True if activity is available for choice
+     */
+    isAvailableForChoice(activity) {
+      return activity.isVisible && !activity.isHiddenFromChoice && activity.isAvailable && (activity.sequencingControls ? activity.sequencingControls.choice : true);
+    }
+    /**
+     * Get all ancestors of an activity from child to root
+     * @param {Activity} activity - The activity to get ancestors for
+     * @return {Activity[]} - Array of ancestors from immediate parent to root
+     */
+    getAncestors(activity) {
+      const ancestors = [];
+      let current = activity.parent;
+      while (current) {
+        ancestors.push(current);
+        current = current.parent;
+      }
+      return ancestors;
+    }
+    /**
+     * Get the path from an activity to the root
+     * @param {Activity} activity - The activity
+     * @return {Activity[]} - Array from the activity to root (inclusive)
+     */
+    getPathToRoot(activity) {
+      const path = [activity];
+      let current = activity.parent;
+      while (current) {
+        path.push(current);
+        current = current.parent;
+      }
+      return path;
+    }
+    /**
+     * Check if an activity is a leaf (has no children)
+     * @param {Activity} activity - Activity to check
+     * @return {boolean} - True if activity is a leaf
+     */
+    isLeaf(activity) {
+      return activity.children.length === 0;
+    }
+    /**
+     * Check if an activity is a cluster (has children)
+     * @param {Activity} activity - Activity to check
+     * @return {boolean} - True if activity is a cluster
+     */
+    isCluster(activity) {
+      return activity.children.length > 0;
+    }
+    /**
+     * Get the depth of an activity in the tree (root = 0)
+     * @param {Activity} activity - Activity to get depth for
+     * @return {number} - Depth in tree
+     */
+    getDepth(activity) {
+      let depth = 0;
+      let current = activity.parent;
+      while (current) {
+        depth++;
+        current = current.parent;
+      }
+      return depth;
+    }
+  }
+
+  class ChoiceConstraintValidator {
+    constructor(activityTree, treeQueries) {
+      this.activityTree = activityTree;
+      this.treeQueries = treeQueries;
+    }
+    /**
+     * Main entry point - consolidates ALL constraint validation for choice navigation
+     * @param {Activity | null} currentActivity - Current activity (may be null if no session started)
+     * @param {Activity} targetActivity - Target activity for the choice
+     * @param {ChoiceValidationOptions} options - Validation options
+     * @return {ConstraintValidationResult} - Validation result with exception if invalid
+     */
+    validateChoice(currentActivity, targetActivity) {
+      let options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+      if (!this.treeQueries.isInTree(targetActivity)) {
+        return {
+          valid: false,
+          exception: "SB.2.9-2"
+        };
+      }
+      if (targetActivity === this.activityTree.root) {
+        return {
+          valid: false,
+          exception: "SB.2.9-3"
+        };
+      }
+      const pathValidation = this.validatePathToRoot(targetActivity);
+      if (!pathValidation.valid) {
+        return pathValidation;
+      }
+      if (options.checkAvailability && !targetActivity.isAvailable) {
+        return {
+          valid: false,
+          exception: "SB.2.9-7"
+        };
+      }
+      if (!currentActivity) {
+        return {
+          valid: true,
+          exception: null
+        };
+      }
+      const choiceExitValidation = this.validateChoiceExit(currentActivity, targetActivity);
+      if (!choiceExitValidation.valid) {
+        return choiceExitValidation;
+      }
+      const ancestorValidation = this.validateAncestorConstraints(currentActivity, targetActivity);
+      if (!ancestorValidation.valid) {
+        return ancestorValidation;
+      }
+      return {
+        valid: true,
+        exception: null
+      };
+    }
+    /**
+     * Validate path to root - check hidden from choice and choice control
+     * @param {Activity} targetActivity - Target activity
+     * @return {ConstraintValidationResult} - Validation result
+     */
+    validatePathToRoot(targetActivity) {
+      let activity = targetActivity;
+      while (activity) {
+        if (activity.isHiddenFromChoice) {
+          return {
+            valid: false,
+            exception: "SB.2.9-4"
+          };
+        }
+        if (activity.parent && !activity.parent.sequencingControls.choice) {
+          return {
+            valid: false,
+            exception: "SB.2.9-5"
+          };
+        }
+        if (activity.parent && activity.parent.sequencingControls.preventActivation) {
+          if (targetActivity.attemptCount === 0 && !targetActivity.isActive) {
+            return {
+              valid: false,
+              exception: "SB.2.9-6"
+            };
+          }
+        }
+        activity = activity.parent;
+      }
+      return {
+        valid: true,
+        exception: null
+      };
+    }
+    /**
+     * Validate choiceExit constraint at all ancestor levels
+     * Per SCORM spec: choiceExit only applies when we're actively IN that ancestor's subtree
+     * @param {Activity} currentActivity - Current activity
+     * @param {Activity} targetActivity - Target activity
+     * @return {ConstraintValidationResult} - Validation result
+     */
+    validateChoiceExit(currentActivity, targetActivity) {
+      let currentAncestor = currentActivity.parent;
+      while (currentAncestor) {
+        if (currentAncestor.isActive && !currentAncestor.sequencingControls.choiceExit) {
+          if (!this.treeQueries.isAncestorOf(currentAncestor, targetActivity)) {
+            return {
+              valid: false,
+              exception: "SB.2.9-8"
+            };
+          }
+          break;
+        }
+        currentAncestor = currentAncestor.parent;
+      }
+      return {
+        valid: true,
+        exception: null
+      };
+    }
+    /**
+     * Validate constraints at all ancestor levels
+     * Checks forwardOnly, constrainChoice, preventActivation
+     * @param {Activity} currentActivity - Current activity
+     * @param {Activity} targetActivity - Target activity
+     * @return {ConstraintValidationResult} - Validation result
+     */
+    validateAncestorConstraints(currentActivity, targetActivity) {
+      let ancestorActivity = targetActivity.parent;
+      while (ancestorActivity) {
+        const validation = this.validateConstraintsAtLevel(ancestorActivity, currentActivity, targetActivity);
+        if (!validation.valid) {
+          return validation;
+        }
+        ancestorActivity = ancestorActivity.parent;
+      }
+      return {
+        valid: true,
+        exception: null
+      };
+    }
+    /**
+     * Validate constraints at a specific ancestor level
+     * @param {Activity} ancestor - The ancestor to check
+     * @param {Activity} currentActivity - Current activity
+     * @param {Activity} targetActivity - Target activity
+     * @return {ConstraintValidationResult} - Validation result
+     */
+    validateConstraintsAtLevel(ancestor, currentActivity, targetActivity) {
+      const targetChild = this.treeQueries.findChildInPath(ancestor, targetActivity);
+      const currentChild = this.treeQueries.findChildInPath(ancestor, currentActivity);
+      if (!targetChild || !currentChild) {
+        return {
+          valid: true,
+          exception: null
+        };
+      }
+      const siblings = ancestor.children;
+      const targetIndex = siblings.indexOf(targetChild);
+      const currentIndex = siblings.indexOf(currentChild);
+      if (targetIndex === -1 || currentIndex === -1) {
+        return {
+          valid: true,
+          exception: null
+        };
+      }
+      if (ancestor.sequencingControls.forwardOnly && targetIndex < currentIndex) {
+        return {
+          valid: false,
+          exception: "SB.2.9-5"
+        };
+      }
+      if (targetIndex > currentIndex) {
+        for (let i = currentIndex + 1; i < targetIndex; i++) {
+          const intermediateChild = siblings[i];
+          if (intermediateChild && this.treeQueries.isMandatory(intermediateChild) && !this.treeQueries.isCompleted(intermediateChild)) {
+            return {
+              valid: false,
+              exception: "SB.2.9-6"
+            };
+          }
+        }
+      }
+      if (ancestor.sequencingControls.constrainChoice) {
+        if (targetIndex > currentIndex + 1) {
+          return {
+            valid: false,
+            exception: "SB.2.9-7"
+          };
+        }
+        if (targetIndex < currentIndex) {
+          if (targetActivity.completionStatus !== "completed" && targetActivity.completionStatus !== "passed") {
+            return {
+              valid: false,
+              exception: "SB.2.9-7"
+            };
+          }
+        }
+      }
+      if (ancestor.sequencingControls.preventActivation) {
+        if (targetActivity.attemptCount === 0 && !targetActivity.isActive) {
+          return {
+            valid: false,
+            exception: "SB.2.9-6"
+          };
+        }
+      }
+      return {
+        valid: true,
+        exception: null
+      };
+    }
+    /**
+     * Check forwardOnly violation at ALL ancestor levels
+     * This is critical for Previous request validation
+     * @param {Activity} fromActivity - The activity to check from
+     * @return {ConstraintValidationResult} - Violation info or valid result
+     */
+    checkForwardOnlyViolation(fromActivity) {
+      let current = fromActivity.parent;
+      while (current) {
+        if (current.sequencingControls.forwardOnly) {
+          return {
+            valid: false,
+            exception: "SB.2.9-5"
+          };
+        }
+        current = current.parent;
+      }
+      return {
+        valid: true,
+        exception: null
+      };
+    }
+    /**
+     * Validate activity is available for choice navigation
+     * @param {Activity} activity - Activity to check
+     * @return {boolean} - True if available for choice
+     */
+    isAvailableForChoice(activity) {
+      return this.treeQueries.isAvailableForChoice(activity);
+    }
+    /**
+     * Validate choice flow constraints for flow tree traversal
+     * @param {Activity} fromActivity - Activity to traverse from
+     * @param {Activity[]} children - Available children
+     * @return {{ valid: boolean; validChildren: Activity[] }} - Valid children that meet constraints
+     */
+    validateFlowConstraints(fromActivity, children) {
+      const validChildren = [];
+      for (const child of children) {
+        if (this.meetsFlowConstraints(child, fromActivity)) {
+          validChildren.push(child);
+        }
+      }
+      return {
+        valid: validChildren.length > 0,
+        validChildren
+      };
+    }
+    /**
+     * Check if activity meets flow constraints
+     * @param {Activity} activity - Activity to check
+     * @param {Activity} parent - Parent activity
+     * @return {boolean} - True if constraints are met
+     */
+    meetsFlowConstraints(activity, parent) {
+      if (!activity.isAvailable || activity.isHiddenFromChoice) {
+        return false;
+      }
+      if (parent.sequencingControls.constrainChoice) {
+        return this.validateConstrainChoiceForFlow(activity, parent);
+      }
+      return true;
+    }
+    /**
+     * Validate constrainChoice for flow scenarios
+     * @param {Activity} activity - Activity to validate
+     * @param {Activity} parent - Parent activity
+     * @return {boolean} - True if valid
+     */
+    validateConstrainChoiceForFlow(activity, parent) {
+      if (!parent.sequencingControls || !parent.sequencingControls.constrainChoice) {
+        return true;
+      }
+      const children = parent.children;
+      if (!children || children.length === 0) {
+        return true;
+      }
+      const targetIndex = children.indexOf(activity);
+      if (targetIndex === -1) {
+        return false;
+      }
+      const currentActivity = this.treeQueries.getCurrentInParent(parent);
+      if (!currentActivity) {
+        return this.isAvailableForChoice(activity);
+      }
+      const currentIndex = children.indexOf(currentActivity);
+      if (currentIndex === -1) {
+        return true;
+      }
+      if (parent.sequencingControls.flow) {
+        if (parent.sequencingControls.forwardOnly && targetIndex < currentIndex) {
+          if (activity.completionStatus === "completed" || activity.completionStatus === "passed") {
+            return true;
+          }
+          return false;
+        }
+        if (targetIndex >= currentIndex) {
+          if (targetIndex === currentIndex || targetIndex === currentIndex + 1) {
+            return this.isAvailableForChoice(activity);
+          }
+          return false;
+        }
+        if (targetIndex < currentIndex) {
+          return (activity.completionStatus === "completed" || activity.completionStatus === "passed") && this.isAvailableForChoice(activity);
+        }
+        return false;
+      } else {
+        return this.isAvailableForChoice(activity) && (activity.completionStatus === "completed" || activity.completionStatus === "unknown" || activity.completionStatus === "incomplete");
+      }
+    }
+    /**
+     * Validate traversal constraints for choice navigation
+     * @param {Activity} activity - Activity to validate
+     * @return {{ canTraverse: boolean; canTraverseInto: boolean }} - Traversal permissions
+     */
+    validateTraversalConstraints(activity) {
+      let canTraverse = true;
+      let canTraverseInto = true;
+      if (activity.parent?.sequencingControls.constrainChoice) {
+        canTraverse = this.evaluateConstrainChoiceForTraversal(activity);
+      }
+      if (activity.sequencingControls && activity.sequencingControls.stopForwardTraversal) {
+        canTraverseInto = false;
+      }
+      if (activity.parent?.sequencingControls.forwardOnly) {
+        canTraverseInto = this.evaluateForwardOnlyForChoice(activity);
+      }
+      return {
+        canTraverse,
+        canTraverseInto
+      };
+    }
+    /**
+     * Evaluate constrainChoice for traversal
+     * @param {Activity} activity - Activity to evaluate
+     * @return {boolean} - True if traversal is allowed
+     */
+    evaluateConstrainChoiceForTraversal(activity) {
+      if (!activity.parent) {
+        return true;
+      }
+      let currentAncestor = activity.parent;
+      while (currentAncestor) {
+        if (currentAncestor.sequencingControls && currentAncestor.sequencingControls.constrainChoice) {
+          const ancestorChildren = currentAncestor.children;
+          const childInPath = this.treeQueries.findChildInPath(currentAncestor, activity);
+          if (childInPath) {
+            const childIndex = ancestorChildren.indexOf(childInPath);
+            const currentAtLevel = this.treeQueries.getCurrentInParent(currentAncestor);
+            if (currentAtLevel) {
+              const currentIndex = ancestorChildren.indexOf(currentAtLevel);
+              if (currentIndex !== -1 && childIndex !== -1) {
+                if (currentIndex < childIndex) {
+                  for (let i = currentIndex + 1; i < childIndex; i++) {
+                    const intermediateActivity = ancestorChildren[i];
+                    if (intermediateActivity && this.treeQueries.isMandatory(intermediateActivity) && !this.treeQueries.isCompleted(intermediateActivity)) {
+                      return false;
+                    }
+                  }
+                }
+                if (currentAncestor.sequencingControls.forwardOnly && childIndex < currentIndex) {
+                  if (!this.treeQueries.isCompleted(activity)) {
+                    return false;
+                  }
+                }
+              }
+            }
+          }
+        }
+        currentAncestor = currentAncestor.parent;
+      }
+      return this.isAvailableForChoice(activity);
+    }
+    /**
+     * Evaluate forwardOnly for choice scenarios
+     * @param {Activity} activity - Activity to evaluate
+     * @return {boolean} - True if allowed
+     */
+    evaluateForwardOnlyForChoice(activity) {
+      if (!activity.parent) {
+        return true;
+      }
+      const parent = activity.parent;
+      if (!parent.sequencingControls || !parent.sequencingControls.forwardOnly) {
+        return true;
+      }
+      const siblings = parent.children;
+      if (!siblings || siblings.length === 0) {
+        return true;
+      }
+      const targetIndex = siblings.indexOf(activity);
+      if (targetIndex === -1) {
+        return false;
+      }
+      const currentActivity = this.treeQueries.getCurrentInParent(parent);
+      if (!currentActivity) {
+        return this.isAvailableForChoice(activity);
+      }
+      const currentIndex = siblings.indexOf(currentActivity);
+      if (currentIndex === -1) {
+        return true;
+      }
+      if (targetIndex < currentIndex) {
+        if (activity.completionStatus === "completed" || activity.completionStatus === "passed") {
+          if (activity.sequencingControls && activity.sequencingControls.choice) {
+            return true;
+          }
+        }
+        return false;
+      }
+      return this.isAvailableForChoice(activity);
+    }
+    /**
+     * Check for time-based constraint boundary violations
+     * @param {Activity} targetActivity - Target activity
+     * @param {Date} now - Current time
+     * @return {boolean} - True if there is a boundary violation
+     */
+    hasTimeBoundaryViolation(targetActivity, now) {
+      if (targetActivity.beginTimeLimit) {
+        try {
+          const beginTime = new Date(targetActivity.beginTimeLimit);
+          if (now < beginTime) {
+            return true;
+          }
+        } catch {}
+      }
+      if (targetActivity.endTimeLimit) {
+        try {
+          const endTime = new Date(targetActivity.endTimeLimit);
+          if (now > endTime) {
+            return true;
+          }
+        } catch {}
+      }
+      return false;
+    }
+    /**
+     * Check for attempt limit violations
+     * @param {Activity} targetActivity - Target activity
+     * @return {boolean} - True if attempt limit exceeded
+     */
+    hasAttemptLimitViolation(targetActivity) {
+      return !!(targetActivity.attemptLimit && targetActivity.attemptCount >= targetActivity.attemptLimit);
+    }
+  }
+
+  var SequencingRequestType = /* @__PURE__ */(SequencingRequestType2 => {
+    SequencingRequestType2["START"] = "start";
+    SequencingRequestType2["RESUME_ALL"] = "resumeAll";
+    SequencingRequestType2["CONTINUE"] = "continue";
+    SequencingRequestType2["PREVIOUS"] = "previous";
+    SequencingRequestType2["CHOICE"] = "choice";
+    SequencingRequestType2["JUMP"] = "jump";
+    SequencingRequestType2["EXIT"] = "exit";
+    SequencingRequestType2["EXIT_PARENT"] = "exitParent";
+    SequencingRequestType2["EXIT_ALL"] = "exitAll";
+    SequencingRequestType2["ABANDON"] = "abandon";
+    SequencingRequestType2["ABANDON_ALL"] = "abandonAll";
+    SequencingRequestType2["SUSPEND_ALL"] = "suspendAll";
+    SequencingRequestType2["RETRY"] = "retry";
+    SequencingRequestType2["RETRY_ALL"] = "retryAll";
+    return SequencingRequestType2;
+  })(SequencingRequestType || {});
+  var DeliveryRequestType = /* @__PURE__ */(DeliveryRequestType2 => {
+    DeliveryRequestType2["DELIVER"] = "deliver";
+    DeliveryRequestType2["DO_NOT_DELIVER"] = "doNotDeliver";
+    return DeliveryRequestType2;
+  })(DeliveryRequestType || {});
+  class SequencingResult {
+    constructor() {
+      let deliveryRequest = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "doNotDeliver";
+      let targetActivity = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+      let exception = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+      let endSequencingSession = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
+      this.deliveryRequest = deliveryRequest;
+      this.targetActivity = targetActivity;
+      this.exception = exception;
+      this.endSequencingSession = endSequencingSession;
+    }
+  }
+  class FlowSubprocessResult {
+    constructor(identifiedActivity, deliverable) {
+      let exception = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+      let endSequencingSession = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
+      this.identifiedActivity = identifiedActivity;
+      this.deliverable = deliverable;
+      this.exception = exception;
+      this.endSequencingSession = endSequencingSession;
+    }
+  }
+  class ChoiceTraversalResult {
+    constructor(activity) {
+      let exception = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+      this.activity = activity;
+      this.exception = exception;
+    }
+  }
+  var FlowSubprocessMode = /* @__PURE__ */(FlowSubprocessMode2 => {
+    FlowSubprocessMode2["FORWARD"] = "forward";
+    FlowSubprocessMode2["BACKWARD"] = "backward";
+    return FlowSubprocessMode2;
+  })(FlowSubprocessMode || {});
+
+  class RuleEvaluationEngine {
+    constructor() {
+      let options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+      this.now = options.now || (() => /* @__PURE__ */new Date());
+      this.getAttemptElapsedSecondsHook = options.getAttemptElapsedSecondsHook || null;
+    }
+    /**
+     * Sequencing Rules Check Process (UP.2)
+     * General process for evaluating a set of sequencing rules
+     * @param {Activity} activity - The activity to evaluate rules for
+     * @param {SequencingRule[]} rules - The rules to evaluate
+     * @return {RuleActionType | null} - The action to take, or null if no rules apply
+     */
+    checkSequencingRules(activity, rules) {
+      for (const rule of rules) {
+        if (this.checkRuleSubprocess(activity, rule)) {
+          return rule.action;
+        }
+      }
+      return null;
+    }
+    /**
+     * Sequencing Rules Check Subprocess (UP.2.1)
+     * Evaluates individual sequencing rule conditions
+     * @param {Activity} activity - The activity to evaluate the rule for
+     * @param {SequencingRule} rule - The rule to evaluate
+     * @return {boolean} - True if all rule conditions are met
+     */
+    checkRuleSubprocess(activity, rule) {
+      if (rule.conditions.length === 0) {
+        return true;
+      }
+      const conditionCombination = rule.conditionCombination;
+      if (conditionCombination === "all" || conditionCombination === RuleConditionOperator.AND) {
+        return rule.conditions.every(condition => condition.evaluate(activity));
+      } else if (conditionCombination === "any" || conditionCombination === RuleConditionOperator.OR) {
+        return rule.conditions.some(condition => condition.evaluate(activity));
+      }
+      return false;
+    }
+    /**
+     * Exit Action Rules Subprocess (TB.2.1)
+     * Evaluates the exit condition rules for an activity
+     * @param {Activity} activity - The activity to evaluate exit rules for
+     * @return {RuleActionType | null} - The exit action to process, if any
+     */
+    evaluateExitRules(activity) {
+      const exitAction = this.checkSequencingRules(activity, activity.sequencingRules.exitConditionRules);
+      if (exitAction === RuleActionType.EXIT || exitAction === RuleActionType.EXIT_PARENT || exitAction === RuleActionType.EXIT_ALL) {
+        return exitAction;
+      }
+      return null;
+    }
+    /**
+     * Post Condition Rules Subprocess (TB.2.2)
+     * Evaluates the post-condition rules for an activity after delivery
+     * @param {Activity} activity - The activity to evaluate post-condition rules for
+     * @return {RuleActionType | null} - The action to take, if any
+     */
+    evaluatePostConditionAction(activity) {
+      const postAction = this.checkSequencingRules(activity, activity.sequencingRules.postConditionRules);
+      const validActions = [RuleActionType.EXIT_PARENT, RuleActionType.EXIT_ALL, RuleActionType.RETRY, RuleActionType.RETRY_ALL, RuleActionType.CONTINUE, RuleActionType.PREVIOUS, RuleActionType.STOP_FORWARD_TRAVERSAL];
+      if (postAction && validActions.includes(postAction)) {
+        return postAction;
+      }
+      return null;
+    }
+    /**
+     * Evaluate post-condition rules and map to sequencing/termination requests
+     * @param {Activity} activity - The activity to evaluate
+     * @return {PostConditionResult} - The post-condition result with sequencing and termination requests
+     */
+    evaluatePostConditions(activity) {
+      const postAction = this.evaluatePostConditionAction(activity);
+      if (!postAction) {
+        return {
+          sequencingRequest: null,
+          terminationRequest: null
+        };
+      }
+      switch (postAction) {
+        case RuleActionType.EXIT_PARENT:
+          return {
+            sequencingRequest: null,
+            terminationRequest: SequencingRequestType.EXIT_PARENT
+          };
+        case RuleActionType.EXIT_ALL:
+          return {
+            sequencingRequest: null,
+            terminationRequest: SequencingRequestType.EXIT_ALL
+          };
+        case RuleActionType.RETRY:
+          return {
+            sequencingRequest: SequencingRequestType.RETRY,
+            terminationRequest: null
+          };
+        case RuleActionType.RETRY_ALL:
+          return {
+            sequencingRequest: SequencingRequestType.RETRY,
+            terminationRequest: SequencingRequestType.EXIT_ALL
+          };
+        case RuleActionType.CONTINUE:
+          return {
+            sequencingRequest: SequencingRequestType.CONTINUE,
+            terminationRequest: null
+          };
+        case RuleActionType.PREVIOUS:
+          return {
+            sequencingRequest: SequencingRequestType.PREVIOUS,
+            terminationRequest: null
+          };
+        case RuleActionType.STOP_FORWARD_TRAVERSAL:
+          activity.sequencingControls.stopForwardTraversal = true;
+          return {
+            sequencingRequest: null,
+            terminationRequest: null
+          };
+        default:
+          return {
+            sequencingRequest: null,
+            terminationRequest: null
+          };
+      }
+    }
+    /**
+     * Limit Conditions Check Process (UP.1)
+     * Checks if an activity has exceeded its limit conditions
+     * @param {Activity} activity - The activity to check
+     * @return {boolean} - True if limit conditions are violated
+     */
+    checkLimitConditions(activity) {
+      if (activity.attemptLimit !== null && activity.attemptCount >= activity.attemptLimit) {
+        return true;
+      }
+      if (activity.attemptAbsoluteDurationLimit !== null) {
+        const attemptLimitMs = this.parseDuration(activity.attemptAbsoluteDurationLimit);
+        if (attemptLimitMs > 0) {
+          const attemptDurationMs = this.parseDuration(activity.attemptExperiencedDuration);
+          if (attemptDurationMs >= attemptLimitMs) {
+            return true;
+          }
+        }
+      }
+      if (activity.activityAbsoluteDurationLimit !== null) {
+        const activityLimitMs = this.parseDuration(activity.activityAbsoluteDurationLimit);
+        if (activityLimitMs > 0) {
+          const activityDurationMs = this.parseDuration(activity.activityExperiencedDuration);
+          if (activityDurationMs >= activityLimitMs) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+    /**
+     * Parse ISO 8601 duration to milliseconds
+     * @param {string} duration - ISO 8601 duration string
+     * @return {number} - Duration in milliseconds
+     */
+    parseDuration(duration) {
+      if (!duration || typeof duration !== "string") {
+        return 0;
+      }
+      const regex = /^P(?:(\d+(?:\.\d+)?)Y)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)W)?(?:(\d+(?:\.\d+)?)D)?(?:T(?:(\d+(?:\.\d+)?)H)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)S)?)?$/;
+      const matches = duration.match(regex);
+      if (!matches || duration === "P" || duration.endsWith("T")) {
+        return 0;
+      }
+      const years = parseFloat(matches[1] || "0");
+      const months = parseFloat(matches[2] || "0");
+      const weeks = parseFloat(matches[3] || "0");
+      const days = parseFloat(matches[4] || "0");
+      const hours = parseFloat(matches[5] || "0");
+      const minutes = parseFloat(matches[6] || "0");
+      const seconds = parseFloat(matches[7] || "0");
+      let totalMs = 0;
+      totalMs += years * 365.25 * 24 * 3600 * 1e3;
+      totalMs += months * 30.44 * 24 * 3600 * 1e3;
+      totalMs += weeks * 7 * 24 * 3600 * 1e3;
+      totalMs += days * 24 * 3600 * 1e3;
+      totalMs += hours * 3600 * 1e3;
+      totalMs += minutes * 60 * 1e3;
+      totalMs += seconds * 1e3;
+      return totalMs;
+    }
+    /**
+     * Get elapsed attempt seconds for an activity
+     * @param {Activity} activity - The activity
+     * @return {number} - Elapsed seconds
+     */
+    getElapsedSeconds(activity) {
+      if (this.getAttemptElapsedSecondsHook) {
+        try {
+          return this.getAttemptElapsedSecondsHook(activity) || 0;
+        } catch {
+          return 0;
+        }
+      }
+      if (activity.attemptAbsoluteStartTime) {
+        const start = new Date(activity.attemptAbsoluteStartTime).getTime();
+        const nowMs = this.now().getTime();
+        if (!Number.isNaN(start) && nowMs > start) {
+          return Math.max(0, (nowMs - start) / 1e3);
+        }
+      }
+      return 0;
+    }
+    /**
+     * Check if time limit has been exceeded
+     * @param {Activity} activity - The activity to check
+     * @return {boolean} - True if time limit exceeded
+     */
+    isTimeLimitExceeded(activity) {
+      let limit = activity.timeLimitDuration;
+      if (!limit && activity.attemptAbsoluteDurationLimit) {
+        limit = activity.attemptAbsoluteDurationLimit;
+      }
+      if (!limit) {
+        return false;
+      }
+      const limitSeconds = getDurationAsSeconds(limit, scorm2004_regex.CMITimespan);
+      if (limitSeconds <= 0) {
+        return false;
+      }
+      const elapsedSeconds = this.getElapsedSeconds(activity);
+      return elapsedSeconds > limitSeconds;
+    }
+    /**
+     * Check if activity is outside available time range
+     * @param {Activity} activity - The activity to check
+     * @return {boolean} - True if outside time range
+     */
+    isOutsideAvailableTimeRange(activity) {
+      const now = this.now();
+      if (activity.beginTimeLimit) {
+        try {
+          const beginDate = new Date(activity.beginTimeLimit);
+          if (!Number.isNaN(beginDate.getTime()) && now < beginDate) {
+            return true;
+          }
+        } catch {}
+      }
+      if (activity.endTimeLimit) {
+        try {
+          const endDate = new Date(activity.endTimeLimit);
+          if (!Number.isNaN(endDate.getTime()) && now > endDate) {
+            return true;
+          }
+        } catch {}
+      }
+      return false;
+    }
+    /**
+     * Evaluate pre-condition rules and check if activity can be delivered
+     * @param {Activity} activity - The activity to check
+     * @return {{ canDeliver: boolean; wasSkipped: boolean }} - Delivery check result
+     */
+    canDeliverActivity(activity) {
+      if (this.checkLimitConditions(activity)) {
+        return {
+          canDeliver: false,
+          wasSkipped: false
+        };
+      }
+      const preConditionResult = this.checkSequencingRules(activity, activity.sequencingRules.preConditionRules);
+      const wasSkipped = preConditionResult === RuleActionType.SKIP;
+      return {
+        canDeliver: preConditionResult !== RuleActionType.SKIP && preConditionResult !== RuleActionType.DISABLED,
+        wasSkipped
+      };
+    }
+  }
+
   class SelectionRandomization {
     /**
      * Select Children Process (SR.1)
@@ -13646,931 +14666,17 @@ ${stackTrace}`);
     }
   }
 
-  var SequencingRequestType = /* @__PURE__ */(SequencingRequestType2 => {
-    SequencingRequestType2["START"] = "start";
-    SequencingRequestType2["RESUME_ALL"] = "resumeAll";
-    SequencingRequestType2["CONTINUE"] = "continue";
-    SequencingRequestType2["PREVIOUS"] = "previous";
-    SequencingRequestType2["CHOICE"] = "choice";
-    SequencingRequestType2["JUMP"] = "jump";
-    SequencingRequestType2["EXIT"] = "exit";
-    SequencingRequestType2["EXIT_PARENT"] = "exitParent";
-    SequencingRequestType2["EXIT_ALL"] = "exitAll";
-    SequencingRequestType2["ABANDON"] = "abandon";
-    SequencingRequestType2["ABANDON_ALL"] = "abandonAll";
-    SequencingRequestType2["SUSPEND_ALL"] = "suspendAll";
-    SequencingRequestType2["RETRY"] = "retry";
-    SequencingRequestType2["RETRY_ALL"] = "retryAll";
-    return SequencingRequestType2;
-  })(SequencingRequestType || {});
-  var DeliveryRequestType = /* @__PURE__ */(DeliveryRequestType2 => {
-    DeliveryRequestType2["DELIVER"] = "deliver";
-    DeliveryRequestType2["DO_NOT_DELIVER"] = "doNotDeliver";
-    return DeliveryRequestType2;
-  })(DeliveryRequestType || {});
-  class SequencingResult {
-    constructor() {
-      let deliveryRequest = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "doNotDeliver";
-      let targetActivity = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-      let exception = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
-      let endSequencingSession = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
-      this.deliveryRequest = deliveryRequest;
-      this.targetActivity = targetActivity;
-      this.exception = exception;
-      this.endSequencingSession = endSequencingSession;
-    }
-  }
-  class FlowSubprocessResult {
-    constructor(identifiedActivity, deliverable) {
-      let exception = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
-      let endSequencingSession = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
-      this.identifiedActivity = identifiedActivity;
-      this.deliverable = deliverable;
-      this.exception = exception;
-      this.endSequencingSession = endSequencingSession;
-    }
-  }
-  class ChoiceTraversalResult {
-    constructor(activity) {
-      let exception = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-      this.activity = activity;
-      this.exception = exception;
-    }
-  }
-  class SequencingProcess {
-    constructor(activityTree, sequencingRules, sequencingControls) {
-      let adlNav = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
-      let options = arguments.length > 4 ? arguments[4] : undefined;
+  class FlowTraversalService {
+    constructor(activityTree, ruleEngine) {
       this.activityTree = activityTree;
-      this.sequencingRules = sequencingRules || null;
-      this.sequencingControls = sequencingControls || null;
-      this.adlNav = adlNav;
-      this.now = options?.now || (() => /* @__PURE__ */new Date());
-      this.getAttemptElapsedSecondsHook = options?.getAttemptElapsedSeconds;
-      this.getActivityElapsedSecondsHook = options?.getActivityElapsedSeconds;
+      this.ruleEngine = ruleEngine;
     }
     /**
-     * Main Sequencing Request Process (SB.2.12)
-     * This is the main entry point for all navigation requests
-     * @param {SequencingRequestType} request - The sequencing request
-     * @param {string} targetActivityId - The target activity ID (for choice/jump)
-     * @return {SequencingResult} - The result of the sequencing process
-     */
-    sequencingRequestProcess(request) {
-      let targetActivityId = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-      const result = new SequencingResult();
-      const currentActivity = this.activityTree.currentActivity;
-      this.activityTree.suspendedActivity;
-      switch (request) {
-        case "start" /* START */:
-          return this.startSequencingRequestProcess();
-        case "resumeAll" /* RESUME_ALL */:
-          return this.resumeAllSequencingRequestProcess();
-        case "continue" /* CONTINUE */:
-          if (!currentActivity) {
-            result.exception = "SB.2.12-1";
-            return result;
-          }
-          return this.continueSequencingRequestProcess(currentActivity);
-        case "previous" /* PREVIOUS */:
-          if (!currentActivity) {
-            result.exception = "SB.2.12-1";
-            return result;
-          }
-          return this.previousSequencingRequestProcess(currentActivity);
-        case "choice" /* CHOICE */:
-          if (!targetActivityId) {
-            result.exception = "SB.2.12-5";
-            return result;
-          }
-          return this.choiceSequencingRequestProcess(targetActivityId, currentActivity);
-        case "jump" /* JUMP */:
-          if (!targetActivityId) {
-            result.exception = "SB.2.12-5";
-            return result;
-          }
-          return this.jumpSequencingRequestProcess(targetActivityId);
-        case "exit" /* EXIT */:
-          if (!currentActivity) {
-            result.exception = "SB.2.12-1";
-            return result;
-          }
-          return this.exitSequencingRequestProcess(currentActivity);
-        case "exitAll" /* EXIT_ALL */:
-          if (!currentActivity) {
-            result.exception = "SB.2.12-1";
-            return result;
-          }
-          return this.exitAllSequencingRequestProcess();
-        case "abandon" /* ABANDON */:
-          if (!currentActivity) {
-            result.exception = "SB.2.12-1";
-            return result;
-          }
-          return this.abandonSequencingRequestProcess(currentActivity);
-        case "abandonAll" /* ABANDON_ALL */:
-          if (!currentActivity) {
-            result.exception = "SB.2.12-1";
-            return result;
-          }
-          return this.abandonAllSequencingRequestProcess();
-        case "suspendAll" /* SUSPEND_ALL */:
-          if (!currentActivity) {
-            result.exception = "SB.2.12-1";
-            return result;
-          }
-          return this.suspendAllSequencingRequestProcess(currentActivity);
-        case "retry" /* RETRY */:
-          if (!currentActivity) {
-            result.exception = "SB.2.12-1";
-            return result;
-          }
-          return this.retrySequencingRequestProcess(currentActivity);
-        case "retryAll" /* RETRY_ALL */:
-          return this.retryAllSequencingRequestProcess();
-        default:
-          result.exception = "SB.2.12-6";
-          return result;
-      }
-    }
-    /**
-     * Start Sequencing Request Process (SB.2.5)
-     * Determines the first activity to deliver when starting
-     * Uses Flow Activity Traversal Subprocess (SB.2.2) to respect flow controls
-     * @return {SequencingResult}
-     */
-    startSequencingRequestProcess() {
-      const result = new SequencingResult();
-      const root = this.activityTree.root;
-      if (!root) {
-        result.exception = "SB.2.5-1";
-        return result;
-      }
-      if (this.activityTree.currentActivity !== null) {
-        result.exception = "SB.2.5-2";
-        return result;
-      }
-      const deliverableActivity = this.flowActivityTraversalSubprocess(root, true,
-      // direction: forward
-      true,
-      // considerChildren: true
-      "forward" /* FORWARD */);
-      if (!deliverableActivity) {
-        result.exception = "SB.2.5-3";
-        return result;
-      }
-      result.deliveryRequest = "deliver" /* DELIVER */;
-      result.targetActivity = deliverableActivity;
-      return result;
-    }
-    /**
-     * Find First Deliverable Activity
-     * Recursively searches from the given activity to find the first deliverable leaf
-     * @deprecated This method is deprecated - use flowActivityTraversalSubprocess instead
-     * @param {Activity} activity - The activity to start searching from
-     * @return {Activity | null} - The first deliverable activity, or null if none found
-     */
-    findFirstDeliverableActivity(activity) {
-      if (activity.children.length === 0) {
-        if (this.checkActivityProcess(activity)) {
-          return activity;
-        }
-        return null;
-      }
-      this.ensureSelectionAndRandomization(activity);
-      const children = activity.getAvailableChildren();
-      for (const child of children) {
-        const deliverable = this.findFirstDeliverableActivity(child);
-        if (deliverable) {
-          return deliverable;
-        }
-      }
-      return null;
-    }
-    /**
-     * Resume All Sequencing Request Process (SB.2.6)
-     * Resumes a suspended session
-     * @return {SequencingResult}
-     */
-    resumeAllSequencingRequestProcess() {
-      const result = new SequencingResult();
-      const suspendedActivity = this.activityTree.suspendedActivity;
-      if (!suspendedActivity) {
-        result.exception = "SB.2.6-1";
-        return result;
-      }
-      if (this.activityTree.currentActivity !== null) {
-        result.exception = "SB.2.6-2";
-        return result;
-      }
-      result.deliveryRequest = "deliver" /* DELIVER */;
-      result.targetActivity = suspendedActivity;
-      return result;
-    }
-    /**
-     * Continue Sequencing Request Process (SB.2.7)
-     * Processes continue navigation request
-     * @param {Activity} currentActivity - The current activity
-     * @return {SequencingResult}
-     */
-    continueSequencingRequestProcess(currentActivity) {
-      const result = new SequencingResult();
-      if (currentActivity.isActive) {
-        result.exception = "SB.2.7-1";
-        return result;
-      }
-      if (currentActivity.parent && !currentActivity.parent.sequencingControls.flow) {
-        result.exception = "SB.2.7-2";
-        return result;
-      }
-      const flowResult = this.flowSubprocess(currentActivity, "forward" /* FORWARD */);
-      if (!flowResult.deliverable) {
-        result.exception = flowResult.exception || "SB.2.7-2";
-        result.endSequencingSession = flowResult.endSequencingSession;
-        return result;
-      }
-      result.deliveryRequest = "deliver" /* DELIVER */;
-      result.targetActivity = flowResult.identifiedActivity;
-      result.endSequencingSession = false;
-      return result;
-    }
-    /**
-     * Previous Sequencing Request Process (SB.2.8)
-     * Processes previous navigation request
-     * @param {Activity} currentActivity - The current activity
-     * @return {SequencingResult}
-     */
-    previousSequencingRequestProcess(currentActivity) {
-      const result = new SequencingResult();
-      if (currentActivity.isActive) {
-        result.exception = "SB.2.8-1";
-        return result;
-      }
-      if (currentActivity.parent && !currentActivity.parent.sequencingControls.flow) {
-        result.exception = "SB.2.8-2";
-        return result;
-      }
-      const forwardOnlyViolation = this.checkForwardOnlyViolationAtAllLevels(currentActivity);
-      if (forwardOnlyViolation) {
-        result.exception = forwardOnlyViolation.exception;
-        return result;
-      }
-      const flowResult = this.flowSubprocess(currentActivity, "backward" /* BACKWARD */);
-      if (!flowResult.deliverable) {
-        result.exception = flowResult.exception || "SB.2.8-2";
-        result.endSequencingSession = flowResult.endSequencingSession;
-        return result;
-      }
-      result.deliveryRequest = "deliver" /* DELIVER */;
-      result.targetActivity = flowResult.identifiedActivity;
-      result.endSequencingSession = false;
-      return result;
-    }
-    /**
-     * Choice Sequencing Request Process (SB.2.9)
-     * Processes choice navigation request
-     * @param {string} targetActivityId - The target activity ID
-     * @param {Activity | null} currentActivity - The current activity
-     * @return {SequencingResult}
-     */
-    choiceSequencingRequestProcess(targetActivityId, currentActivity) {
-      const result = new SequencingResult();
-      let targetActivity = this.activityTree.getActivity(targetActivityId);
-      if (!targetActivity) {
-        result.exception = "SB.2.9-1";
-        return result;
-      }
-      if (!this.isActivityInTree(targetActivity)) {
-        result.exception = "SB.2.9-2";
-        return result;
-      }
-      if (targetActivity === this.activityTree.root) {
-        result.exception = "SB.2.9-3";
-        return result;
-      }
-      let activity = targetActivity;
-      while (activity) {
-        if (activity.isHiddenFromChoice) {
-          result.exception = "SB.2.9-4";
-          return result;
-        }
-        if (activity.parent && !activity.parent.sequencingControls.choice) {
-          result.exception = "SB.2.9-5";
-          return result;
-        }
-        activity = activity.parent;
-      }
-      if (currentActivity && currentActivity.isActive) {
-        result.exception = "SB.2.9-6";
-        return result;
-      }
-      if (!targetActivity.isAvailable) {
-        result.exception = "SB.2.9-7";
-        return result;
-      }
-      if (currentActivity) {
-        let currentAncestor = currentActivity.parent;
-        while (currentAncestor) {
-          if (currentAncestor.isActive && !currentAncestor.sequencingControls.choiceExit) {
-            if (!this.isActivity1AParentOfActivity2(currentAncestor, targetActivity)) {
-              result.exception = "SB.2.9-8";
-              return result;
-            }
-            break;
-          }
-          currentAncestor = currentAncestor.parent;
-        }
-      }
-      const commonAncestor = this.findCommonAncestor(currentActivity, targetActivity);
-      let ancestorActivity = targetActivity.parent;
-      while (ancestorActivity) {
-        const targetChild = this.findChildInPathToActivity(ancestorActivity, targetActivity);
-        const currentChild = currentActivity ? this.findChildInPathToActivity(ancestorActivity, currentActivity) : null;
-        if (targetChild && currentChild) {
-          const siblings = ancestorActivity.children;
-          const targetIndex = siblings.indexOf(targetChild);
-          const currentIndex = siblings.indexOf(currentChild);
-          if (targetIndex !== -1 && currentIndex !== -1) {
-            if (ancestorActivity.sequencingControls.forwardOnly && targetIndex < currentIndex) {
-              result.exception = "SB.2.9-5";
-              return result;
-            }
-            if (targetIndex > currentIndex) {
-              for (let i = currentIndex + 1; i < targetIndex; i++) {
-                const intermediateChild = siblings[i];
-                if (intermediateChild && this.isActivityMandatory(intermediateChild) && !this.isActivityCompleted(intermediateChild)) {
-                  result.exception = "SB.2.9-6";
-                  return result;
-                }
-              }
-            }
-            if (ancestorActivity.sequencingControls.constrainChoice) {
-              if (targetIndex > currentIndex + 1) {
-                result.exception = "SB.2.9-7";
-                return result;
-              }
-              if (targetIndex < currentIndex) {
-                if (targetActivity.completionStatus !== "completed" && targetActivity.completionStatus !== "passed") {
-                  result.exception = "SB.2.9-7";
-                  return result;
-                }
-              }
-            }
-          }
-        }
-        if (ancestorActivity.sequencingControls.preventActivation) {
-          if (targetActivity.attemptCount === 0 && !targetActivity.isActive) {
-            result.exception = "SB.2.9-6";
-            return result;
-          }
-        }
-        ancestorActivity = ancestorActivity.parent;
-      }
-      if (currentActivity) {
-        this.terminateDescendentAttemptsProcess(commonAncestor || this.activityTree.root);
-      }
-      const activityPath = [];
-      activity = targetActivity;
-      while (activity && activity !== commonAncestor) {
-        activityPath.unshift(activity);
-        activity = activity.parent;
-      }
-      for (const pathActivity of activityPath) {
-        if (!this.checkActivityProcess(pathActivity)) {
-          return result;
-        }
-      }
-      if (targetActivity.children.length > 0) {
-        const flowResult = this.choiceFlowSubprocess(targetActivity, commonAncestor);
-        if (!flowResult) {
-          result.exception = "SB.2.9-7";
-          return result;
-        }
-        targetActivity = flowResult;
-      }
-      result.deliveryRequest = "deliver" /* DELIVER */;
-      result.targetActivity = targetActivity;
-      return result;
-    }
-    /**
-     * Jump Sequencing Request Process (SB.2.13)
-     * Processes jump navigation request - SCORM 2004 4th Edition
-     * @param {string} targetActivityId - The target activity ID
-     * @return {SequencingResult}
-     */
-    jumpSequencingRequestProcess(targetActivityId) {
-      const result = new SequencingResult();
-      const targetActivity = this.activityTree.getActivity(targetActivityId);
-      if (!targetActivity) {
-        result.exception = "SB.2.13-1";
-        return result;
-      }
-      if (!this.isActivityInTree(targetActivity)) {
-        result.exception = "SB.2.13-2";
-        return result;
-      }
-      if (!targetActivity.isAvailable) {
-        result.exception = "SB.2.13-3";
-        return result;
-      }
-      result.deliveryRequest = "deliver" /* DELIVER */;
-      result.targetActivity = targetActivity;
-      return result;
-    }
-    /**
-     * Exit Sequencing Request Process
-     * @param {Activity} currentActivity - The current activity
-     * @return {SequencingResult}
-     */
-    exitSequencingRequestProcess(currentActivity) {
-      const result = new SequencingResult();
-      if (!currentActivity.parent) {
-        result.exception = "SB.2.11-1";
-        return result;
-      }
-      if (!currentActivity.parent.sequencingControls.choiceExit) {
-        result.exception = "SB.2.11-2";
-        return result;
-      }
-      this.terminateDescendentAttemptsProcess(currentActivity);
-      return result;
-    }
-    /**
-     * Exit All Sequencing Request Process
-     * @return {SequencingResult}
-     */
-    exitAllSequencingRequestProcess() {
-      const result = new SequencingResult();
-      if (this.activityTree.root) {
-        this.terminateDescendentAttemptsProcess(this.activityTree.root);
-      }
-      return result;
-    }
-    /**
-     * Abandon Sequencing Request Process
-     * @param {Activity} currentActivity - The current activity
-     * @return {SequencingResult}
-     */
-    abandonSequencingRequestProcess(currentActivity) {
-      const result = new SequencingResult();
-      currentActivity.isActive = false;
-      this.activityTree.currentActivity = currentActivity.parent;
-      return result;
-    }
-    /**
-     * Abandon All Sequencing Request Process
-     * @return {SequencingResult}
-     */
-    abandonAllSequencingRequestProcess() {
-      const result = new SequencingResult();
-      this.activityTree.currentActivity = null;
-      return result;
-    }
-    /**
-     * Suspend All Sequencing Request Process
-     * @param {Activity} currentActivity - The current activity
-     * @return {SequencingResult}
-     */
-    suspendAllSequencingRequestProcess(currentActivity) {
-      const result = new SequencingResult();
-      if (currentActivity !== this.activityTree.root) {
-        currentActivity.isSuspended = true;
-        this.activityTree.suspendedActivity = currentActivity;
-        this.activityTree.currentActivity = null;
-      } else {
-        result.exception = "SB.2.15-1";
-      }
-      return result;
-    }
-    /**
-     * Retry Sequencing Request Process (SB.2.10)
-     * @param {Activity} currentActivity - The current activity
-     * @return {SequencingResult}
-     */
-    retrySequencingRequestProcess(currentActivity) {
-      const result = new SequencingResult();
-      if (currentActivity.isActive || currentActivity.isSuspended) {
-        result.exception = "SB.2.10-2";
-        return result;
-      }
-      if (currentActivity.children.length > 0) {
-        this.ensureSelectionAndRandomization(currentActivity);
-        const availableChildren = currentActivity.getAvailableChildren();
-        let deliverableActivity = null;
-        for (const child of availableChildren) {
-          deliverableActivity = this.flowActivityTraversalSubprocess(child, true,
-          // direction: forward
-          true,
-          // considerChildren: true
-          "forward" /* FORWARD */);
-          if (deliverableActivity) {
-            break;
-          }
-        }
-        if (!deliverableActivity) {
-          result.exception = "SB.2.10-3";
-          return result;
-        }
-        result.deliveryRequest = "deliver" /* DELIVER */;
-        result.targetActivity = deliverableActivity;
-        return result;
-      }
-      this.terminateDescendentAttemptsProcess(currentActivity);
-      result.deliveryRequest = "deliver" /* DELIVER */;
-      result.targetActivity = currentActivity;
-      return result;
-    }
-    /**
-     * Retry All Sequencing Request Process
-     * @return {SequencingResult}
-     */
-    retryAllSequencingRequestProcess() {
-      this.activityTree.currentActivity = null;
-      return this.startSequencingRequestProcess();
-    }
-    /**
-     * Ensure selection and randomization is applied to an activity
-     * @param {Activity} activity - The activity to process
-     */
-    ensureSelectionAndRandomization(activity) {
-      if (activity.getAvailableChildren() === activity.children && (SelectionRandomization.isSelectionNeeded(activity) || SelectionRandomization.isRandomizationNeeded(activity))) {
-        SelectionRandomization.applySelectionAndRandomization(activity, activity.isNewAttempt);
-      }
-    }
-    /**
-     * Flow Activity Traversal Subprocess
-     * Checks if an activity can be delivered and flows into clusters if needed
-     * @spec SN Book: UP.1 (Utility Process - Flow Activity Traversal Subprocess)
-     * @spec Reference: SB.2.2
-     */
-    flowActivityTraversalSubprocess(activity, _direction, considerChildren, mode) {
-      const parent = activity.parent;
-      if (parent && !parent.sequencingControls.flow) {
-        return null;
-      }
-      if (!activity.isAvailable) {
-        return null;
-      }
-      if (mode === "forward" /* FORWARD */ && activity.sequencingControls.stopForwardTraversal) {
-        return null;
-      }
-      if (considerChildren) {
-        this.ensureSelectionAndRandomization(activity);
-        const availableChildren = activity.getAvailableChildren();
-        for (const child of availableChildren) {
-          const deliverable = this.flowActivityTraversalSubprocess(child, mode === "forward" /* FORWARD */, true, mode);
-          if (deliverable) {
-            return deliverable;
-          }
-        }
-      }
-      if (activity.children.length === 0) {
-        const canDeliver = this.checkActivityProcess(activity);
-        if (canDeliver) {
-          return activity;
-        }
-        return null;
-      }
-      return null;
-    }
-    /**
-     * Check Activity Process (SB.2.3)
-     * Validates if an activity can be delivered
-     */
-    checkActivityProcess(activity) {
-      if (!activity.isAvailable) {
-        return false;
-      }
-      if (activity.children.length === 0 && !activity.isVisible) {
-        return false;
-      }
-      const limitViolated = this.limitConditionsCheckProcess(activity);
-      if (limitViolated) {
-        return false;
-      }
-      const preConditionResult = this.sequencingRulesCheckProcess(activity, activity.sequencingRules.preConditionRules);
-      activity.wasSkipped = preConditionResult === RuleActionType.SKIP;
-      return preConditionResult !== RuleActionType.SKIP && preConditionResult !== RuleActionType.DISABLED;
-    }
-    /**
-     * Terminate Descendent Attempts Process (SB.2.4)
-     * Ends attempts on an activity and its descendants
-     */
-    terminateDescendentAttemptsProcess(activity) {
-      let skipExitRules = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-      let exitAction = null;
-      if (!skipExitRules) {
-        exitAction = this.exitActionRulesSubprocess(activity);
-      }
-      activity.isActive = false;
-      for (const child of activity.children) {
-        this.terminateDescendentAttemptsProcess(child, skipExitRules);
-      }
-      if (exitAction && !skipExitRules) {
-        this.processDeferredExitAction(exitAction, activity);
-      }
-    }
-    /**
-     * Exit Action Rules Subprocess (TB.2.1)
-     * Evaluates the exit condition rules for an activity
-     * @param {Activity} activity - The activity to evaluate exit rules for
-     * @return {RuleActionType | null} - The exit action to process, if any
-     * @private
-     */
-    exitActionRulesSubprocess(activity) {
-      const exitAction = this.sequencingRulesCheckProcess(activity, activity.sequencingRules.exitConditionRules);
-      if (exitAction === RuleActionType.EXIT || exitAction === RuleActionType.EXIT_PARENT || exitAction === RuleActionType.EXIT_ALL) {
-        return exitAction;
-      }
-      return null;
-    }
-    /**
-     * Process deferred exit action after termination
-     * @param {RuleActionType} exitAction - The exit action to process
-     * @param {Activity} activity - The activity that triggered the exit action
-     * @private
-     */
-    processDeferredExitAction(exitAction, activity) {
-      switch (exitAction) {
-        case RuleActionType.EXIT:
-          break;
-        case RuleActionType.EXIT_PARENT:
-          if (activity.parent && activity.parent.isActive) {
-            this.terminateDescendentAttemptsProcess(activity.parent, true);
-          }
-          break;
-        case RuleActionType.EXIT_ALL:
-          if (this.activityTree.root && this.activityTree.root !== activity) {
-            const allActivities = this.activityTree.getAllActivities();
-            const anyActive = allActivities.some(a => a.isActive);
-            if (anyActive) {
-              this.terminateDescendentAttemptsProcess(this.activityTree.root, true);
-            }
-          }
-          break;
-      }
-    }
-    /**
-     * Post Condition Rules Subprocess (TB.2.2)
-     * Evaluates the post-condition rules for an activity after delivery
-     * @param {Activity} activity - The activity to evaluate post-condition rules for
-     * @return {RuleActionType | null} - The action to take, if any
-     * @private
-     */
-    postConditionRulesSubprocess(activity) {
-      const postAction = this.sequencingRulesCheckProcess(activity, activity.sequencingRules.postConditionRules);
-      const validActions = [RuleActionType.EXIT_PARENT, RuleActionType.EXIT_ALL, RuleActionType.RETRY, RuleActionType.RETRY_ALL, RuleActionType.CONTINUE, RuleActionType.PREVIOUS, RuleActionType.STOP_FORWARD_TRAVERSAL];
-      if (postAction && validActions.includes(postAction)) {
-        return postAction;
-      }
-      return null;
-    }
-    /**
-     * Validate Sequencing Request
-     * Priority 3 Gap: Comprehensive sequencing request validation
-     * @param {SequencingRequestType} request - The sequencing request
-     * @param {string | null} targetActivityId - Target activity ID
-     * @return {{valid: boolean, exception: string | null}} - Validation result
-     */
-    validateSequencingRequest(request, targetActivityId) {
-      const validRequestTypes = Object.values(SequencingRequestType);
-      if (!validRequestTypes.includes(request)) {
-        return {
-          valid: false,
-          exception: "SB.2.12-6"
-        };
-      }
-      if ((request === "choice" /* CHOICE */ || request === "jump" /* JUMP */) && !targetActivityId) {
-        return {
-          valid: false,
-          exception: "SB.2.12-5"
-        };
-      }
-      const requestSpecificValidation = this.validateRequestSpecificConstraints(request, targetActivityId);
-      if (!requestSpecificValidation.valid) {
-        return requestSpecificValidation;
-      }
-      return {
-        valid: true,
-        exception: null
-      };
-    }
-    /**
-     * Validate Request-Specific Constraints
-     * @param {SequencingRequestType} request - The sequencing request
-     * @param {string | null} targetActivityId - Target activity ID
-     * @return {{valid: boolean, exception: string | null}} - Validation result
-     */
-    validateRequestSpecificConstraints(request, targetActivityId) {
-      const currentActivity = this.activityTree.currentActivity;
-      switch (request) {
-        case "continue" /* CONTINUE */:
-        case "previous" /* PREVIOUS */:
-        case "exit" /* EXIT */:
-        case "exitAll" /* EXIT_ALL */:
-        case "abandon" /* ABANDON */:
-        case "abandonAll" /* ABANDON_ALL */:
-        case "suspendAll" /* SUSPEND_ALL */:
-        case "retry" /* RETRY */:
-          if (!currentActivity) {
-            return {
-              valid: false,
-              exception: "SB.2.12-1"
-            };
-          }
-          break;
-        case "choice" /* CHOICE */:
-          if (targetActivityId) {
-            const targetActivity = this.activityTree.getActivity(targetActivityId);
-            if (!targetActivity) {
-              return {
-                valid: false,
-                exception: "SB.2.9-1"
-              };
-            }
-          }
-          break;
-        case "jump" /* JUMP */:
-          if (targetActivityId) {
-            const targetActivity = this.activityTree.getActivity(targetActivityId);
-            if (!targetActivity) {
-              return {
-                valid: false,
-                exception: "SB.2.13-1"
-              };
-            }
-          }
-          break;
-      }
-      return {
-        valid: true,
-        exception: null
-      };
-    }
-    /**
-     * Limit Conditions Check Process (UP.1)
-     * Checks if an activity has exceeded its limit conditions (attempt limit or duration limits)
-     * @param {Activity} activity - The activity to check
-     * @return {boolean} - True if limit conditions are violated, false otherwise
-     * @private
-     */
-    limitConditionsCheckProcess(activity) {
-      if (activity.attemptLimit !== null && activity.attemptCount >= activity.attemptLimit) {
-        return true;
-      }
-      if (activity.attemptAbsoluteDurationLimit !== null) {
-        const attemptLimitMs = this.parseISO8601Duration(activity.attemptAbsoluteDurationLimit);
-        if (attemptLimitMs > 0) {
-          const attemptDurationMs = this.parseISO8601Duration(activity.attemptExperiencedDuration);
-          if (attemptDurationMs >= attemptLimitMs) {
-            return true;
-          }
-        }
-      }
-      if (activity.activityAbsoluteDurationLimit !== null) {
-        const activityLimitMs = this.parseISO8601Duration(activity.activityAbsoluteDurationLimit);
-        if (activityLimitMs > 0) {
-          const activityDurationMs = this.parseISO8601Duration(activity.activityExperiencedDuration);
-          if (activityDurationMs >= activityLimitMs) {
-            return true;
-          }
-        }
-      }
-      return false;
-    }
-    /**
-     * Parse ISO 8601 duration to milliseconds
-     * Supports full ISO 8601 duration format with years, months, weeks, days, hours, minutes, and seconds
-     * Reference: SCORM 2004 4th Edition ValidTimeInterval function
-     * @param {string} duration - ISO 8601 duration string (e.g., "P1Y2M3DT4H5M6.5S")
-     * @return {number} - Duration in milliseconds (returns 0 for invalid strings)
-     * @private
-     */
-    parseISO8601Duration(duration) {
-      if (!duration || typeof duration !== "string") {
-        return 0;
-      }
-      const regex = /^P(?:(\d+(?:\.\d+)?)Y)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)W)?(?:(\d+(?:\.\d+)?)D)?(?:T(?:(\d+(?:\.\d+)?)H)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)S)?)?$/;
-      const matches = duration.match(regex);
-      if (!matches) {
-        return 0;
-      }
-      if (duration === "P") {
-        return 0;
-      }
-      if (duration.endsWith("T")) {
-        return 0;
-      }
-      const years = parseFloat(matches[1] || "0");
-      const months = parseFloat(matches[2] || "0");
-      const weeks = parseFloat(matches[3] || "0");
-      const days = parseFloat(matches[4] || "0");
-      const hours = parseFloat(matches[5] || "0");
-      const minutes = parseFloat(matches[6] || "0");
-      const seconds = parseFloat(matches[7] || "0");
-      let totalMs = 0;
-      totalMs += years * 365.25 * 24 * 3600 * 1e3;
-      totalMs += months * 30.44 * 24 * 3600 * 1e3;
-      totalMs += weeks * 7 * 24 * 3600 * 1e3;
-      totalMs += days * 24 * 3600 * 1e3;
-      totalMs += hours * 3600 * 1e3;
-      totalMs += minutes * 60 * 1e3;
-      totalMs += seconds * 1e3;
-      return totalMs;
-    }
-    /**
-     * Sequencing Rules Check Process (UP.2)
-     * General process for evaluating a set of sequencing rules
-     * @param {Activity} activity - The activity to evaluate rules for
-     * @param {SequencingRule[]} rules - The rules to evaluate
-     * @return {RuleActionType | null} - The action to take, or null if no rules apply
-     * @private
-     */
-    sequencingRulesCheckProcess(activity, rules) {
-      for (const rule of rules) {
-        if (this.sequencingRulesCheckSubprocess(activity, rule)) {
-          return rule.action;
-        }
-      }
-      return null;
-    }
-    /**
-     * Sequencing Rules Check Subprocess (UP.2.1)
-     * Evaluates individual sequencing rule conditions
-     * @param {Activity} activity - The activity to evaluate the rule for
-     * @param {SequencingRule} rule - The rule to evaluate
-     * @return {boolean} - True if all rule conditions are met
-     * @private
-     */
-    sequencingRulesCheckSubprocess(activity, rule) {
-      if (rule.conditions.length === 0) {
-        return true;
-      }
-      const conditionCombination = rule.conditionCombination;
-      if (conditionCombination === "all" || conditionCombination === RuleConditionOperator.AND) {
-        return rule.conditions.every(condition => {
-          return condition.evaluate(activity);
-        });
-      } else if (conditionCombination === "any" || conditionCombination === RuleConditionOperator.OR) {
-        return rule.conditions.some(condition => {
-          return condition.evaluate(activity);
-        });
-      }
-      return false;
-    }
-    /**
-     * Check if activity is in the activity tree
-     */
-    isActivityInTree(activity) {
-      return this.activityTree.getAllActivities().includes(activity);
-    }
-    /**
-     * Check if activity1 is a parent (ancestor) of activity2
-     * Used for choiceExit validation to determine if target is within a subtree
-     * @param {Activity} activity1 - Potential parent/ancestor activity
-     * @param {Activity} activity2 - Potential child/descendant activity
-     * @return {boolean} - True if activity1 is an ancestor of activity2
-     */
-    isActivity1AParentOfActivity2(activity1, activity2) {
-      let current = activity2;
-      while (current) {
-        if (current === activity1) {
-          return true;
-        }
-        current = current.parent;
-      }
-      return false;
-    }
-    /**
-     * Find common ancestor of two activities
-     */
-    findCommonAncestor(activity1, activity2) {
-      if (!activity1 || !activity2) {
-        return null;
-      }
-      const ancestors1 = [];
-      let current = activity1;
-      while (current) {
-        ancestors1.push(current);
-        current = current.parent;
-      }
-      current = activity2;
-      while (current) {
-        if (ancestors1.includes(current)) {
-          return current;
-        }
-        current = current.parent;
-      }
-      return null;
-    }
-    /**
-     * Flow Subprocess
+     * Flow Subprocess (SB.2.3)
      * Traverses the activity tree in the specified direction to find a deliverable activity
-     * @spec SN Book: UP.2 (Utility Process - Flow Sub-Process)
-     * @spec Reference: SB.2.3
      * @param {Activity} fromActivity - The activity to flow from
      * @param {FlowSubprocessMode} direction - The flow direction
-     * @return {FlowSubprocessResult} - Result containing the deliverable activity and session end flag
+     * @return {FlowSubprocessResult} - Result containing the deliverable activity
      */
     flowSubprocess(fromActivity, direction) {
       let candidateActivity = fromActivity;
@@ -14582,7 +14688,7 @@ ${stackTrace}`);
           let exceptionCode = null;
           if (traversalResult.exception) {
             exceptionCode = traversalResult.exception;
-          } else if (direction === "backward" /* BACKWARD */) {
+          } else if (direction === FlowSubprocessMode.BACKWARD) {
             exceptionCode = "SB.2.1-3";
           } else if (lastCandidateHadNoChildren) {
             exceptionCode = "SB.2.1-2";
@@ -14590,9 +14696,7 @@ ${stackTrace}`);
           return new FlowSubprocessResult(candidateActivity, false, exceptionCode, traversalResult.endSequencingSession);
         }
         lastCandidateHadNoChildren = traversalResult.activity.children.length > 0 && traversalResult.activity.getAvailableChildren().length === 0;
-        const deliverable = this.flowActivityTraversalSubprocess(traversalResult.activity, direction === "forward" /* FORWARD */, true,
-        // consider children
-        direction);
+        const deliverable = this.flowActivityTraversalSubprocess(traversalResult.activity, direction === FlowSubprocessMode.FORWARD, true, direction);
         if (deliverable) {
           return new FlowSubprocessResult(deliverable, true, null, false);
         }
@@ -14602,828 +14706,202 @@ ${stackTrace}`);
       return new FlowSubprocessResult(null, false, null, false);
     }
     /**
-     * Flow Tree Traversal Subprocess
+     * Flow Tree Traversal Subprocess (SB.2.1)
      * Traverses the activity tree to find the next activity in the specified direction
-     * @spec SN Book: UP.3 (Utility Process - Flow Tree Traversal Subprocess)
-     * @spec Reference: SB.2.1
      * @param {Activity} fromActivity - The activity to traverse from
      * @param {FlowSubprocessMode} direction - The traversal direction
-     * @param {boolean} skipChildren - Whether to skip checking children (for continuing from current)
-     * @return {{ activity: Activity | null; endSequencingSession: boolean; exception?: string }} - The next activity, session end flag, and optional exception
+     * @param {boolean} skipChildren - Whether to skip checking children
+     * @return {FlowTreeTraversalResult} - The next activity and flags
      */
     flowTreeTraversalSubprocess(fromActivity, direction) {
       let skipChildren = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-      if (direction === "forward" /* FORWARD */) {
-        if (skipChildren && this.isActivityLastOverall(fromActivity)) {
-          if (this.activityTree.root) {
-            this.terminateDescendentAttemptsProcess(this.activityTree.root);
-          }
-          return {
-            activity: null,
-            endSequencingSession: true
-          };
-        }
-        if (!skipChildren) {
-          this.ensureSelectionAndRandomization(fromActivity);
-          const children = fromActivity.getAvailableChildren();
-          if (children.length > 0) {
-            return {
-              activity: children[0] || null,
-              endSequencingSession: false
-            };
-          }
-        }
-        let current = fromActivity;
-        while (current) {
-          const nextSibling = this.activityTree.getNextSibling(current);
-          if (nextSibling) {
-            return {
-              activity: nextSibling,
-              endSequencingSession: false
-            };
-          }
-          current = current.parent;
-        }
+      if (direction === FlowSubprocessMode.FORWARD) {
+        return this.traverseForward(fromActivity, skipChildren);
+      } else {
+        return this.traverseBackward(fromActivity);
+      }
+    }
+    /**
+     * Traverse forward in the activity tree
+     * @param {Activity} fromActivity - Starting activity
+     * @param {boolean} skipChildren - Whether to skip children
+     * @return {FlowTreeTraversalResult}
+     */
+    traverseForward(fromActivity, skipChildren) {
+      if (skipChildren && this.isActivityLastOverall(fromActivity)) {
         if (this.activityTree.root) {
-          this.terminateDescendentAttemptsProcess(this.activityTree.root);
+          this.terminateDescendentAttempts(this.activityTree.root);
         }
         return {
           activity: null,
           endSequencingSession: true
         };
-      } else {
-        if (fromActivity.parent && fromActivity.parent.sequencingControls.forwardOnly) {
+      }
+      if (!skipChildren) {
+        this.ensureSelectionAndRandomization(fromActivity);
+        const children = fromActivity.getAvailableChildren();
+        if (children.length > 0) {
           return {
-            activity: null,
-            endSequencingSession: false,
-            exception: "SB.2.1-4"
-          };
-        }
-        const previousSibling = this.activityTree.getPreviousSibling(fromActivity);
-        if (previousSibling) {
-          let lastDescendant = previousSibling;
-          let descendIterations = 0;
-          const maxDescendIterations = 1e4;
-          while (true) {
-            if (++descendIterations > maxDescendIterations) {
-              throw new Error(`[SEQ-PROC] Infinite loop detected in backward traversal (descending to last child). Exceeded ${maxDescendIterations} iterations. Tree may have circular references.`);
-            }
-            this.ensureSelectionAndRandomization(lastDescendant);
-            const children = lastDescendant.getAvailableChildren();
-            if (children.length === 0) {
-              break;
-            }
-            const lastChild = children[children.length - 1];
-            if (!lastChild) break;
-            lastDescendant = lastChild;
-          }
-          return {
-            activity: lastDescendant,
+            activity: children[0] || null,
             endSequencingSession: false
           };
         }
-        let current = fromActivity;
-        let ancestorIterations = 0;
-        const maxAncestorIterations = 1e4;
-        while (current && current.parent) {
-          if (++ancestorIterations > maxAncestorIterations) {
-            throw new Error(`[SEQ-PROC] Infinite loop detected in backward traversal (ascending to ancestors). Exceeded ${maxAncestorIterations} iterations. Tree may have circular references.`);
-          }
-          const parentPreviousSibling = this.activityTree.getPreviousSibling(current.parent);
-          if (parentPreviousSibling) {
-            let lastDescendant = parentPreviousSibling;
-            let descendIterations = 0;
-            const maxDescendIterations = 1e4;
-            while (true) {
-              if (++descendIterations > maxDescendIterations) {
-                throw new Error(`[SEQ-PROC] Infinite loop detected in backward traversal (descending to last child). Exceeded ${maxDescendIterations} iterations. Tree may have circular references.`);
-              }
-              this.ensureSelectionAndRandomization(lastDescendant);
-              const children = lastDescendant.getAvailableChildren();
-              if (children.length === 0) {
-                break;
-              }
-              const lastChild = children[children.length - 1];
-              if (!lastChild) break;
-              lastDescendant = lastChild;
-            }
-            return {
-              activity: lastDescendant,
-              endSequencingSession: false
-            };
-          }
-          current = current.parent;
-        }
-        return {
-          activity: null,
-          endSequencingSession: false
-        };
       }
-    }
-    /**
-     * Choice Flow Subprocess (SB.2.9.1)
-     * Handles the flow logic specific to choice navigation requests
-     * @param {Activity} targetActivity - The target activity for the choice
-     * @param {Activity | null} commonAncestor - The common ancestor between current and target
-     * @return {Activity | null} - The activity to deliver, or null if flow fails
-     */
-    choiceFlowSubprocess(targetActivity, commonAncestor) {
-      if (targetActivity.children.length === 0) {
-        return targetActivity;
-      }
-      return this.choiceFlowTreeTraversalSubprocess(targetActivity);
-    }
-    /**
-     * Enhanced Choice Flow Tree Traversal Subprocess (SB.2.9.2)
-     * Priority 3 Gap: Choice Flow Tree Traversal with complete constraint validation
-     * @param {Activity} fromActivity - The cluster activity to traverse from
-     * @return {Activity | null} - A leaf activity for delivery, or null if none found
-     */
-    choiceFlowTreeTraversalSubprocess(fromActivity) {
-      this.ensureSelectionAndRandomization(fromActivity);
-      const children = fromActivity.getAvailableChildren();
-      const constraintValidation = this.validateChoiceFlowConstraints(fromActivity, children);
-      if (!constraintValidation.valid) {
-        return null;
-      }
-      for (const child of constraintValidation.validChildren) {
-        const traversalResult = this.enhancedChoiceActivityTraversalSubprocess(child);
-        if (traversalResult.activity) {
-          return traversalResult.activity;
-        }
-      }
-      return null;
-    }
-    /**
-     * Enhanced Choice Activity Traversal Subprocess (SB.2.4)
-     * Priority 3 Gap: Choice Activity Traversal with stopForwardTraversal and forwardOnly checks
-     * @param {Activity} activity - The activity to check and possibly traverse
-     * @param {boolean} isBackwardTraversal - Whether this is a backward traversal (default: false)
-     * @return {ChoiceTraversalResult} - Result with deliverable activity or exception
-     */
-    enhancedChoiceActivityTraversalSubprocess(activity) {
-      let isBackwardTraversal = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-      if (isBackwardTraversal && activity === this.activityTree.root) {
-        return new ChoiceTraversalResult(null, "SB.2.4-3");
-      }
-      if (!activity.isAvailable) {
-        return new ChoiceTraversalResult(null, null);
-      }
-      if (activity.isHiddenFromChoice) {
-        return new ChoiceTraversalResult(null, null);
-      }
-      if (activity.sequencingControls && activity.sequencingControls.stopForwardTraversal) {
-        return new ChoiceTraversalResult(null, "SB.2.4-1");
-      }
-      const traversalValidation = this.validateChoiceTraversalConstraints(activity);
-      if (!traversalValidation.canTraverse) {
-        return new ChoiceTraversalResult(null, null);
-      }
-      if (activity.children.length === 0) {
-        if (this.checkActivityProcess(activity)) {
-          return new ChoiceTraversalResult(activity, null);
-        }
-        return new ChoiceTraversalResult(null, null);
-      }
-      if (activity.parent?.sequencingControls.constrainChoice && !traversalValidation.canTraverseInto) {
-        return new ChoiceTraversalResult(null, "SB.2.4-2");
-      }
-      if (traversalValidation.canTraverseInto) {
-        const flowResult = this.choiceFlowTreeTraversalSubprocess(activity);
-        return new ChoiceTraversalResult(flowResult, null);
-      }
-      return new ChoiceTraversalResult(null, null);
-    }
-    /**
-     * Original Choice Activity Traversal Subprocess for backwards compatibility
-     */
-    choiceActivityTraversalSubprocess(activity) {
-      const result = this.enhancedChoiceActivityTraversalSubprocess(activity);
-      return result.activity;
-    }
-    /**
-     * Evaluate post-condition rules for the current activity
-     * This should be called after an activity has been delivered and the learner has interacted with it
-     * @param {Activity} activity - The activity to evaluate
-     * @return {PostConditionResult} - The post-condition result with sequencing and termination requests
-     */
-    evaluatePostConditionRules(activity) {
-      const postAction = this.postConditionRulesSubprocess(activity);
-      if (!postAction) {
-        return {
-          sequencingRequest: null,
-          terminationRequest: null
-        };
-      }
-      switch (postAction) {
-        case RuleActionType.EXIT_PARENT:
+      let current = fromActivity;
+      while (current) {
+        const nextSibling = this.activityTree.getNextSibling(current);
+        if (nextSibling) {
           return {
-            sequencingRequest: null,
-            terminationRequest: "exitParent" /* EXIT_PARENT */
+            activity: nextSibling,
+            endSequencingSession: false
           };
-        case RuleActionType.EXIT_ALL:
-          return {
-            sequencingRequest: null,
-            terminationRequest: "exitAll" /* EXIT_ALL */
-          };
-        case RuleActionType.RETRY:
-          return {
-            sequencingRequest: "retry" /* RETRY */,
-            terminationRequest: null
-          };
-        case RuleActionType.RETRY_ALL:
-          return {
-            sequencingRequest: "retry" /* RETRY */,
-            terminationRequest: "exitAll" /* EXIT_ALL */
-          };
-        case RuleActionType.CONTINUE:
-          return {
-            sequencingRequest: "continue" /* CONTINUE */,
-            terminationRequest: null
-          };
-        case RuleActionType.PREVIOUS:
-          return {
-            sequencingRequest: "previous" /* PREVIOUS */,
-            terminationRequest: null
-          };
-        case RuleActionType.STOP_FORWARD_TRAVERSAL:
-          activity.sequencingControls.stopForwardTraversal = true;
-          return {
-            sequencingRequest: null,
-            terminationRequest: null
-          };
-        default:
-          return {
-            sequencingRequest: null,
-            terminationRequest: null
-          };
-      }
-    }
-    /**
-     * Validate Choice Flow Constraints
-     * Priority 3 Gap: Choice Flow Tree Traversal constraint validation
-     * @param {Activity} fromActivity - Activity to traverse from
-     * @param {Activity[]} children - Available children
-     * @return {{valid: boolean, validChildren: Activity[]}} - Validation result
-     */
-    validateChoiceFlowConstraints(fromActivity, children) {
-      const validChildren = [];
-      for (const child of children) {
-        if (this.meetsChoiceFlowConstraints(child, fromActivity)) {
-          validChildren.push(child);
-        }
-      }
-      return {
-        valid: validChildren.length > 0,
-        validChildren
-      };
-    }
-    /**
-     * Check if activity meets choice flow constraints
-     * @param {Activity} activity - Activity to check
-     * @param {Activity} parent - Parent activity
-     * @return {boolean} - True if constraints are met
-     */
-    meetsChoiceFlowConstraints(activity, parent) {
-      if (!activity.isAvailable || activity.isHiddenFromChoice) {
-        return false;
-      }
-      if (parent.sequencingControls.constrainChoice) {
-        return this.validateConstrainChoiceForFlow(activity, parent);
-      }
-      return true;
-    }
-    /**
-     * Validate Choice Traversal Constraints
-     * Priority 3 Gap: stopForwardTraversal and forwardOnly checks
-     * @param {Activity} activity - Activity to validate
-     * @return {{canTraverse: boolean, canTraverseInto: boolean}} - Traversal permissions
-     */
-    validateChoiceTraversalConstraints(activity) {
-      let canTraverse = true;
-      let canTraverseInto = true;
-      if (activity.parent?.sequencingControls.constrainChoice) {
-        canTraverse = this.evaluateConstrainChoiceForTraversal(activity);
-      }
-      if (activity.sequencingControls && activity.sequencingControls.stopForwardTraversal) {
-        canTraverseInto = false;
-      }
-      if (activity.parent?.sequencingControls.forwardOnly) {
-        canTraverseInto = this.evaluateForwardOnlyForChoice(activity);
-      }
-      return {
-        canTraverse,
-        canTraverseInto
-      };
-    }
-    /**
-     * Validate Constrained Choice Boundaries
-     * Priority 3 Gap: Proper choice boundary checking
-     * @param {Activity | null} currentActivity - Current activity
-     * @param {Activity} targetActivity - Target activity
-     * @return {{valid: boolean, exception: string | null}} - Validation result
-     */
-    validateConstrainedChoiceBoundaries(currentActivity, targetActivity) {
-      let activity = targetActivity;
-      while (activity) {
-        if (activity.isHiddenFromChoice) {
-          return {
-            valid: false,
-            exception: "SB.2.9-4"
-          };
-        }
-        if (activity.parent && !activity.parent.sequencingControls.choice) {
-          return {
-            valid: false,
-            exception: "SB.2.9-5"
-          };
-        }
-        if (activity.parent?.sequencingControls.constrainChoice) {
-          const boundaryCheck = this.checkConstrainedChoiceBoundary(currentActivity, activity, activity.parent);
-          if (!boundaryCheck.valid) {
-            return boundaryCheck;
-          }
-        }
-        activity = activity.parent;
-      }
-      return {
-        valid: true,
-        exception: null
-      };
-    }
-    /**
-     * Helper methods for enhanced choice processing
-     */
-    validateConstrainChoiceForFlow(activity, parent) {
-      if (!parent.sequencingControls || !parent.sequencingControls.constrainChoice) {
-        return true;
-      }
-      const children = parent.children;
-      if (!children || children.length === 0) {
-        return true;
-      }
-      const targetIndex = children.indexOf(activity);
-      if (targetIndex === -1) {
-        return false;
-      }
-      const currentActivity = this.getCurrentActivity(parent);
-      if (!currentActivity) {
-        return this.isActivityAvailableForChoice(activity);
-      }
-      const currentIndex = children.indexOf(currentActivity);
-      if (currentIndex === -1) {
-        return true;
-      }
-      if (parent.sequencingControls.flow) {
-        if (parent.sequencingControls.forwardOnly && targetIndex < currentIndex) {
-          if (activity.completionStatus === "completed" || activity.completionStatus === "passed") {
-            return true;
-          }
-          return false;
-        }
-        if (targetIndex >= currentIndex) {
-          if (targetIndex === currentIndex || targetIndex === currentIndex + 1) {
-            return this.isActivityAvailableForChoice(activity);
-          }
-          return false;
-        }
-        if (targetIndex < currentIndex) {
-          return (activity.completionStatus === "completed" || activity.completionStatus === "passed") && this.isActivityAvailableForChoice(activity);
-        }
-        return false;
-      } else {
-        return this.isActivityAvailableForChoice(activity) && (activity.completionStatus === "completed" || activity.completionStatus === "unknown" || activity.completionStatus === "incomplete");
-      }
-    }
-    evaluateConstrainChoiceForTraversal(activity) {
-      if (!activity.parent) {
-        return true;
-      }
-      let currentAncestor = activity.parent;
-      while (currentAncestor) {
-        if (currentAncestor.sequencingControls && currentAncestor.sequencingControls.constrainChoice) {
-          const ancestorChildren = currentAncestor.children;
-          const childInPath = this.findChildInPathToActivity(currentAncestor, activity);
-          if (childInPath) {
-            const childIndex = ancestorChildren.indexOf(childInPath);
-            const currentAtLevel = this.getCurrentActivity(currentAncestor);
-            if (currentAtLevel) {
-              const currentIndex = ancestorChildren.indexOf(currentAtLevel);
-              if (currentIndex !== -1 && childIndex !== -1) {
-                if (currentIndex < childIndex) {
-                  for (let i = currentIndex + 1; i < childIndex; i++) {
-                    const intermediateActivity = ancestorChildren[i];
-                    if (intermediateActivity && this.isActivityMandatory(intermediateActivity) && !this.isActivityCompleted(intermediateActivity)) {
-                      return false;
-                    }
-                  }
-                }
-                if (currentAncestor.sequencingControls.forwardOnly && childIndex < currentIndex) {
-                  if (!this.isActivityCompleted(activity)) {
-                    return false;
-                  }
-                }
-              }
-            }
-          }
-        }
-        currentAncestor = currentAncestor.parent;
-      }
-      if (!this.isActivityAvailableForChoice(activity)) {
-        return false;
-      }
-      return this.validateActivityChoiceState(activity);
-    }
-    /**
-     * Find which child of ancestor is in the path to the target activity
-     * Used for multi-level constraint validation
-     */
-    findChildInPathToActivity(ancestor, target) {
-      let current = target;
-      while (current && current.parent) {
-        if (current.parent === ancestor) {
-          return current;
         }
         current = current.parent;
       }
-      return null;
+      if (this.activityTree.root) {
+        this.terminateDescendentAttempts(this.activityTree.root);
+      }
+      return {
+        activity: null,
+        endSequencingSession: true
+      };
     }
-    evaluateForwardOnlyForChoice(activity) {
-      if (!activity.parent) {
-        return true;
-      }
-      const parent = activity.parent;
-      if (!parent.sequencingControls || !parent.sequencingControls.forwardOnly) {
-        return true;
-      }
-      const siblings = parent.children;
-      if (!siblings || siblings.length === 0) {
-        return true;
-      }
-      const targetIndex = siblings.indexOf(activity);
-      if (targetIndex === -1) {
-        return false;
-      }
-      const currentActivity = this.getCurrentActivity(parent);
-      if (!currentActivity) {
-        return this.isActivityAvailableForChoice(activity);
-      }
-      const currentIndex = siblings.indexOf(currentActivity);
-      if (currentIndex === -1) {
-        return true;
-      }
-      if (targetIndex < currentIndex) {
-        if (activity.completionStatus === "completed" || activity.completionStatus === "passed") {
-          if (activity.sequencingControls && activity.sequencingControls.choice) {
-            return true;
-          }
-        }
-        if (this.hasBackwardChoiceException(activity, parent)) {
-          return true;
-        }
-        return false;
-      }
-      return this.isActivityAvailableForChoice(activity);
-    }
-    checkConstrainedChoiceBoundary(currentActivity, activity, parent) {
-      try {
-        if (!currentActivity) {
-          if (this.isActivityAvailableForChoice(activity)) {
-            return {
-              valid: true,
-              exception: null
-            };
-          } else {
-            return {
-              valid: false,
-              exception: "SB.2.9-7"
-            };
-          }
-        }
-        if (!parent.sequencingControls || !parent.sequencingControls.constrainChoice) {
-          if (this.isActivityAvailableForChoice(activity)) {
-            return {
-              valid: true,
-              exception: null
-            };
-          } else {
-            return {
-              valid: false,
-              exception: "SB.2.9-7"
-            };
-          }
-        }
-        const siblings = parent.children;
-        if (!siblings || siblings.length === 0) {
-          return {
-            valid: true,
-            exception: null
-          };
-        }
-        const currentIndex = siblings.indexOf(currentActivity);
-        const targetIndex = siblings.indexOf(activity);
-        if (currentIndex === -1 || targetIndex === -1) {
-          return {
-            valid: false,
-            exception: "SB.2.9-2"
-          };
-        }
-        if (parent.sequencingControls.flow) {
-          if (parent.sequencingControls.forwardOnly && targetIndex < currentIndex) {
-            if (activity.completionStatus !== "completed" && activity.completionStatus !== "passed") {
-              return {
-                valid: false,
-                exception: "SB.2.9-5"
-              };
-            }
-          }
-          if (targetIndex > currentIndex) {
-            for (let i = currentIndex + 1; i < targetIndex; i++) {
-              const intermediateActivity = siblings[i];
-              if (intermediateActivity && this.isActivityMandatory(intermediateActivity) && !this.isActivityCompleted(intermediateActivity)) {
-                return {
-                  valid: false,
-                  exception: "SB.2.9-6"
-                };
-              }
-            }
-          }
-          if (targetIndex < currentIndex && !parent.sequencingControls.forwardOnly) {
-            for (let i = targetIndex + 1; i < currentIndex; i++) {
-              const intermediateActivity = siblings[i];
-              if (intermediateActivity && this.isActivityMandatory(intermediateActivity) && !this.isActivityCompleted(intermediateActivity)) {
-                return {
-                  valid: false,
-                  exception: "SB.2.9-6"
-                };
-              }
-            }
-          }
-          if (targetIndex > currentIndex + 1) {
-            return {
-              valid: false,
-              exception: "SB.2.9-7"
-            };
-          }
-        }
-        if (!this.isActivityAvailableForChoice(activity)) {
-          return {
-            valid: false,
-            exception: "Activity not available for choice"
-          };
-        }
-        if (this.hasChoiceBoundaryViolation(currentActivity, activity, parent)) {
-          return {
-            valid: false,
-            exception: "Choice boundary constraint violation"
-          };
-        }
+    /**
+     * Traverse backward in the activity tree
+     * @param {Activity} fromActivity - Starting activity
+     * @return {FlowTreeTraversalResult}
+     */
+    traverseBackward(fromActivity) {
+      if (fromActivity.parent && fromActivity.parent.sequencingControls.forwardOnly) {
         return {
-          valid: true,
-          exception: null
-        };
-      } catch (error) {
-        return {
-          valid: false,
-          exception: `Boundary check error: ${error}`
+          activity: null,
+          endSequencingSession: false,
+          exception: "SB.2.1-4"
         };
       }
+      const previousSibling = this.activityTree.getPreviousSibling(fromActivity);
+      if (previousSibling) {
+        return {
+          activity: this.getLastDescendant(previousSibling),
+          endSequencingSession: false
+        };
+      }
+      let current = fromActivity;
+      let ancestorIterations = 0;
+      const maxIterations = 1e4;
+      while (current && current.parent) {
+        if (++ancestorIterations > maxIterations) {
+          throw new Error("Infinite loop detected in backward traversal");
+        }
+        const parentPreviousSibling = this.activityTree.getPreviousSibling(current.parent);
+        if (parentPreviousSibling) {
+          return {
+            activity: this.getLastDescendant(parentPreviousSibling),
+            endSequencingSession: false
+          };
+        }
+        current = current.parent;
+      }
+      return {
+        activity: null,
+        endSequencingSession: false
+      };
     }
     /**
-     * Helper methods for constraint validation
+     * Get the last descendant of an activity
+     * @param {Activity} activity - The activity
+     * @return {Activity} - The last descendant
      */
-    getCurrentActivity(parent) {
-      if (parent.children) {
-        for (const child of parent.children) {
-          if (child.isActive) {
-            return child;
-          }
+    getLastDescendant(activity) {
+      let lastDescendant = activity;
+      let iterations = 0;
+      const maxIterations = 1e4;
+      while (true) {
+        if (++iterations > maxIterations) {
+          throw new Error("Infinite loop detected while getting last descendant");
         }
-      }
-      return null;
-    }
-    isActivityAvailableForChoice(activity) {
-      return activity.isVisible && !activity.isHiddenFromChoice && activity.isAvailable && (activity.sequencingControls ? activity.sequencingControls.choice : true);
-    }
-    isActivityMandatory(activity) {
-      if (activity.sequencingRules && activity.sequencingRules.preConditionRules) {
-        for (const rule of activity.sequencingRules.preConditionRules) {
-          if (rule.action === "skip" && rule.conditions && rule.conditions.length === 0) {
-            return false;
-          }
+        this.ensureSelectionAndRandomization(lastDescendant);
+        const children = lastDescendant.getAvailableChildren();
+        if (children.length === 0) {
+          break;
         }
+        const lastChild = children[children.length - 1];
+        if (!lastChild) break;
+        lastDescendant = lastChild;
       }
-      return activity.mandatory === true;
-    }
-    isActivityCompleted(activity) {
-      return activity.completionStatus === "completed" || activity.completionStatus === "passed" || activity.successStatus === "passed";
-    }
-    validateActivityChoiceState(activity) {
-      if (!this.isActivityAvailableForChoice(activity)) {
-        return false;
-      }
-      if (activity.sequencingRules && activity.sequencingRules.preConditionRules) {
-        for (const rule of activity.sequencingRules.preConditionRules) {
-          if (rule.action === RuleActionType.DISABLED || rule.action === RuleActionType.HIDE_FROM_CHOICE) {
-            const combinationMode = rule.conditionCombination || "all";
-            if (this.evaluateRuleConditions(rule.conditions || [], activity, combinationMode)) {
-              return false;
-            }
-          }
-        }
-      }
-      return true;
-    }
-    hasBackwardChoiceException(activity, parent) {
-      if (parent.sequencingRules && parent.sequencingRules.preConditionRules) {
-        for (const rule of parent.sequencingRules.preConditionRules) {
-          if (rule.action === "exitParent" || rule.action === "retry") {
-            const combinationMode = rule.conditionCombination || "all";
-            return this.evaluateRuleConditions(rule.conditions || [], activity, combinationMode);
-          }
-        }
-      }
-      return activity.allowBackwardChoice === true;
-    }
-    hasChoiceBoundaryViolation(currentActivity, targetActivity, parent) {
-      if (targetActivity.timeLimitAction && targetActivity.beginTimeLimit) {
-        const now = this.now();
-        const beginTime = new Date(targetActivity.beginTimeLimit);
-        if (now < beginTime) {
-          return true;
-        }
-      }
-      if (targetActivity.endTimeLimit) {
-        const now = this.now();
-        const endTime = new Date(targetActivity.endTimeLimit);
-        if (now > endTime) {
-          return true;
-        }
-      }
-      return !!(targetActivity.attemptLimit && targetActivity.attemptCount >= targetActivity.attemptLimit);
-    }
-    evaluateRuleConditions(conditions, activity) {
-      let combinationMode = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : "all";
-      if (conditions.length === 0) {
-        return true;
-      }
-      const conditionResults = [];
-      for (const condition of conditions) {
-        const conditionType = condition.condition || condition.conditionType;
-        let result = false;
-        const referencedObjectiveId = condition.referencedObjective;
-        const referencedObjective = referencedObjectiveId && activity.objectives ? activity.objectives.find(obj => obj.id === referencedObjectiveId) || (activity.primaryObjective?.id === referencedObjectiveId ? activity.primaryObjective : null) : null;
-        switch (conditionType) {
-          case "always":
-            result = true;
-            break;
-          case "never":
-            result = false;
-            break;
-          case "activityAttempted":
-          case "attempted":
-            result = activity.attemptCount > 0;
-            break;
-          case "activityCompleted":
-          case "completed":
-            result = this.isActivityCompleted(activity);
-            break;
-          case "satisfied":
-            result = referencedObjective ? referencedObjective.satisfiedStatus === true : activity.objectiveSatisfiedStatus === true;
-            break;
-          case "objectiveStatusKnown":
-          case "objectiveMeasureKnown":
-            result = referencedObjective ? referencedObjective.measureStatus === true : activity.objectiveMeasureStatus === true;
-            break;
-          case "objectiveMeasureGreaterThan":
-            if (referencedObjective ? referencedObjective.measureStatus : activity.objectiveMeasureStatus) {
-              const threshold = condition.measureThreshold || 0;
-              const measure = referencedObjective ? referencedObjective.normalizedMeasure : activity.objectiveNormalizedMeasure;
-              result = measure > threshold;
-            }
-            break;
-          case "objectiveMeasureLessThan":
-            if (referencedObjective ? referencedObjective.measureStatus : activity.objectiveMeasureStatus) {
-              const threshold = condition.measureThreshold || 0;
-              const measure = referencedObjective ? referencedObjective.normalizedMeasure : activity.objectiveNormalizedMeasure;
-              result = measure < threshold;
-            }
-            break;
-          case "progressKnown":
-            result = activity.completionStatus !== "unknown";
-            break;
-          case "attemptLimitExceeded":
-            result = activity.hasAttemptLimitExceeded();
-            break;
-          case "timeLimitExceeded":
-            {
-              let limit = activity.timeLimitDuration;
-              if (!limit && activity.attemptAbsoluteDurationLimit) {
-                limit = activity.attemptAbsoluteDurationLimit;
-              }
-              if (!limit) {
-                result = false;
-                break;
-              }
-              const limitSeconds = getDurationAsSeconds(limit, scorm2004_regex.CMITimespan);
-              if (limitSeconds <= 0) {
-                result = false;
-                break;
-              }
-              let elapsedSeconds = 0;
-              if (this.getAttemptElapsedSecondsHook) {
-                try {
-                  const hookResult = this.getAttemptElapsedSecondsHook(activity);
-                  if (typeof hookResult === "number" && !Number.isNaN(hookResult) && hookResult >= 0) {
-                    elapsedSeconds = hookResult;
-                  }
-                } catch (error) {
-                  elapsedSeconds = 0;
-                }
-              }
-              if (elapsedSeconds === 0 && activity.attemptAbsoluteStartTime) {
-                try {
-                  const start = new Date(activity.attemptAbsoluteStartTime).getTime();
-                  const nowMs = this.now().getTime();
-                  if (!Number.isNaN(start) && !Number.isNaN(nowMs) && nowMs >= start) {
-                    elapsedSeconds = (nowMs - start) / 1e3;
-                  }
-                } catch (error) {
-                  elapsedSeconds = 0;
-                }
-              }
-              result = elapsedSeconds > limitSeconds;
-              break;
-            }
-          case "outsideAvailableTimeRange":
-            {
-              result = false;
-              const now = this.now();
-              if (activity.beginTimeLimit) {
-                try {
-                  const beginDate = new Date(activity.beginTimeLimit);
-                  if (!Number.isNaN(beginDate.getTime())) {
-                    if (now < beginDate) {
-                      result = true;
-                    }
-                  }
-                } catch (error) {}
-              }
-              if (!result && activity.endTimeLimit) {
-                try {
-                  const endDate = new Date(activity.endTimeLimit);
-                  if (!Number.isNaN(endDate.getTime())) {
-                    if (now > endDate) {
-                      result = true;
-                    }
-                  }
-                } catch (error) {}
-              }
-              break;
-            }
-          default:
-            result = false;
-            break;
-        }
-        if (condition.operator === "not" || condition.not === true) {
-          result = !result;
-        }
-        conditionResults.push(result);
-      }
-      if (combinationMode === "all" || combinationMode === "and") {
-        return conditionResults.every(result => result);
-      } else if (combinationMode === "any" || combinationMode === "or") {
-        return conditionResults.some(result => result);
-      } else {
-        return conditionResults.every(result => result);
-      }
+      return lastDescendant;
     }
     /**
-     * Get elapsed attempt seconds for an activity using hook or timestamps
-     */
-    getAttemptElapsedSeconds(activity) {
-      if (this.getAttemptElapsedSecondsHook) {
-        try {
-          return this.getAttemptElapsedSecondsHook(activity) || 0;
-        } catch {
-          return 0;
-        }
-      }
-      if (activity.attemptAbsoluteStartTime) {
-        const start = new Date(activity.attemptAbsoluteStartTime).getTime();
-        const nowMs = this.now().getTime();
-        if (!Number.isNaN(start) && nowMs > start) {
-          return Math.max(0, (nowMs - start) / 1e3);
-        }
-      }
-      return 0;
-    }
-    /**
-     * Check if activity is the last activity in a forward preorder tree traversal
-     * Per SB.2.1 step 3.1: An activity is last overall if it's a leaf with no next siblings
-     * anywhere in its ancestor chain
+     * Flow Activity Traversal Subprocess (SB.2.2)
+     * Checks if an activity can be delivered and flows into clusters if needed
      * @param {Activity} activity - The activity to check
-     * @return {boolean} - True if this is the last activity in the tree
+     * @param {boolean} _direction - Direction (unused but part of spec)
+     * @param {boolean} considerChildren - Whether to consider children
+     * @param {FlowSubprocessMode} mode - The flow mode
+     * @return {Activity | null} - The deliverable activity or null
+     */
+    flowActivityTraversalSubprocess(activity, _direction, considerChildren, mode) {
+      const parent = activity.parent;
+      if (parent && !parent.sequencingControls.flow) {
+        return null;
+      }
+      if (!activity.isAvailable) {
+        return null;
+      }
+      if (mode === FlowSubprocessMode.FORWARD && activity.sequencingControls.stopForwardTraversal) {
+        return null;
+      }
+      if (considerChildren) {
+        this.ensureSelectionAndRandomization(activity);
+        const availableChildren = activity.getAvailableChildren();
+        for (const child of availableChildren) {
+          const deliverable = this.flowActivityTraversalSubprocess(child, mode === FlowSubprocessMode.FORWARD, true, mode);
+          if (deliverable) {
+            return deliverable;
+          }
+        }
+      }
+      if (activity.children.length === 0) {
+        if (this.checkActivityProcess(activity)) {
+          return activity;
+        }
+        return null;
+      }
+      return null;
+    }
+    /**
+     * Check Activity Process (SB.2.3)
+     * Validates if an activity can be delivered
+     * @param {Activity} activity - The activity to check
+     * @return {boolean} - True if activity can be delivered
+     */
+    checkActivityProcess(activity) {
+      if (!activity.isAvailable) {
+        return false;
+      }
+      if (activity.children.length === 0 && !activity.isVisible) {
+        return false;
+      }
+      if (this.ruleEngine.checkLimitConditions(activity)) {
+        return false;
+      }
+      const deliveryCheck = this.ruleEngine.canDeliverActivity(activity);
+      activity.wasSkipped = deliveryCheck.wasSkipped;
+      return deliveryCheck.canDeliver;
+    }
+    /**
+     * Ensure selection and randomization is applied to an activity
+     * @param {Activity} activity - The activity to process
+     */
+    ensureSelectionAndRandomization(activity) {
+      if (activity.getAvailableChildren() === activity.children && (SelectionRandomization.isSelectionNeeded(activity) || SelectionRandomization.isRandomizationNeeded(activity))) {
+        SelectionRandomization.applySelectionAndRandomization(activity, activity.isNewAttempt);
+      }
+    }
+    /**
+     * Check if activity is the last activity in the tree (forward preorder)
+     * @param {Activity} activity - The activity to check
+     * @return {boolean} - True if last in tree
      */
     isActivityLastOverall(activity) {
       if (activity.children.length > 0) {
@@ -15439,38 +14917,710 @@ ${stackTrace}`);
       return true;
     }
     /**
-     * Check forwardOnly violation at ALL ancestor levels (multi-level validation)
-     * This is critical for complex activity trees where forwardOnly may be set at different levels
-     * Returns the first violation found, or null if no violations
-     * @param {Activity} fromActivity - The activity to check from
-     * @return {{exception: string} | null} - Violation info or null
+     * Terminate descendent attempts (simplified version)
+     * Full version with exit rules is in SequencingProcess
+     * @param {Activity} activity - The activity
      */
-    checkForwardOnlyViolationAtAllLevels(fromActivity) {
-      let current = fromActivity.parent;
+    terminateDescendentAttempts(activity) {
+      activity.isActive = false;
+      for (const child of activity.children) {
+        this.terminateDescendentAttempts(child);
+      }
+    }
+    /**
+     * Find the first deliverable activity from a cluster
+     * Used for START and RETRY_ALL requests
+     * @param {Activity} cluster - The cluster activity
+     * @return {Activity | null} - The first deliverable activity
+     */
+    findFirstDeliverableActivity(cluster) {
+      if (cluster.children.length === 0) {
+        if (this.checkActivityProcess(cluster)) {
+          return cluster;
+        }
+        return null;
+      }
+      this.ensureSelectionAndRandomization(cluster);
+      const availableChildren = cluster.getAvailableChildren();
+      for (const child of availableChildren) {
+        const deliverable = this.flowActivityTraversalSubprocess(child, true, true, FlowSubprocessMode.FORWARD);
+        if (deliverable) {
+          return deliverable;
+        }
+      }
+      return null;
+    }
+    /**
+     * Can activity be delivered (public wrapper)
+     * @param {Activity} activity - The activity
+     * @return {boolean} - True if can be delivered
+     */
+    canDeliver(activity) {
+      return this.checkActivityProcess(activity);
+    }
+  }
+
+  class FlowRequestHandler {
+    constructor(activityTree, traversalService) {
+      this.activityTree = activityTree;
+      this.traversalService = traversalService;
+    }
+    /**
+     * Start Sequencing Request Process (SB.2.5)
+     * Initiates a new sequencing session from the root
+     * @return {SequencingResult}
+     */
+    handleStart() {
+      const result = new SequencingResult();
+      if (!this.activityTree.root) {
+        result.exception = "SB.2.5-1";
+        return result;
+      }
+      if (this.activityTree.currentActivity) {
+        result.exception = "SB.2.5-2";
+        return result;
+      }
+      const deliverableActivity = this.traversalService.findFirstDeliverableActivity(this.activityTree.root);
+      if (!deliverableActivity) {
+        result.exception = "SB.2.5-3";
+        return result;
+      }
+      result.deliveryRequest = DeliveryRequestType.DELIVER;
+      result.targetActivity = deliverableActivity;
+      return result;
+    }
+    /**
+     * Resume All Sequencing Request Process (SB.2.6)
+     * Resumes a suspended sequencing session
+     * @return {SequencingResult}
+     */
+    handleResumeAll() {
+      const result = new SequencingResult();
+      if (!this.activityTree.suspendedActivity) {
+        result.exception = "SB.2.6-1";
+        return result;
+      }
+      if (this.activityTree.currentActivity) {
+        result.exception = "SB.2.6-2";
+        return result;
+      }
+      result.deliveryRequest = DeliveryRequestType.DELIVER;
+      result.targetActivity = this.activityTree.suspendedActivity;
+      return result;
+    }
+    /**
+     * Continue Sequencing Request Process (SB.2.7)
+     * Navigates to the next activity in forward flow
+     * @param {Activity} currentActivity - The current activity
+     * @return {SequencingResult}
+     */
+    handleContinue(currentActivity) {
+      const result = new SequencingResult();
+      if (currentActivity.isActive) {
+        result.exception = "SB.2.7-1";
+        return result;
+      }
+      if (currentActivity.parent && !currentActivity.parent.sequencingControls.flow) {
+        result.exception = "SB.2.7-2";
+        return result;
+      }
+      const flowResult = this.traversalService.flowSubprocess(currentActivity, FlowSubprocessMode.FORWARD);
+      result.endSequencingSession = flowResult.endSequencingSession;
+      if (!flowResult.deliverable || !flowResult.identifiedActivity) {
+        result.exception = flowResult.exception || "SB.2.7-2";
+        return result;
+      }
+      result.deliveryRequest = DeliveryRequestType.DELIVER;
+      result.targetActivity = flowResult.identifiedActivity;
+      return result;
+    }
+    /**
+     * Previous Sequencing Request Process (SB.2.8)
+     * Navigates to the previous activity in backward flow
+     * @param {Activity} currentActivity - The current activity
+     * @return {SequencingResult}
+     */
+    handlePrevious(currentActivity) {
+      const result = new SequencingResult();
+      if (currentActivity.isActive) {
+        result.exception = "SB.2.8-1";
+        return result;
+      }
+      if (currentActivity.parent && !currentActivity.parent.sequencingControls.flow) {
+        result.exception = "SB.2.8-2";
+        return result;
+      }
+      const forwardOnlyViolation = this.checkForwardOnlyViolation(currentActivity);
+      if (forwardOnlyViolation) {
+        result.exception = forwardOnlyViolation;
+        return result;
+      }
+      const flowResult = this.traversalService.flowSubprocess(currentActivity, FlowSubprocessMode.BACKWARD);
+      if (!flowResult.deliverable || !flowResult.identifiedActivity) {
+        result.exception = flowResult.exception || "SB.2.8-3";
+        return result;
+      }
+      result.deliveryRequest = DeliveryRequestType.DELIVER;
+      result.targetActivity = flowResult.identifiedActivity;
+      return result;
+    }
+    /**
+     * Check forwardOnly violation at all ancestor levels
+     * @param {Activity} activity - The activity to check
+     * @return {string | null} - Exception code or null
+     */
+    checkForwardOnlyViolation(activity) {
+      let current = activity.parent;
       while (current) {
         if (current.sequencingControls.forwardOnly) {
-          return {
-            exception: "SB.2.9-5"
-          };
+          return "SB.2.9-5";
         }
         current = current.parent;
       }
       return null;
     }
+  }
+
+  class ChoiceRequestHandler {
+    constructor(activityTree, constraintValidator, traversalService, treeQueries) {
+      this.activityTree = activityTree;
+      this.constraintValidator = constraintValidator;
+      this.traversalService = traversalService;
+      this.treeQueries = treeQueries;
+    }
     /**
-     * Check if an activity can be delivered (public wrapper for checkActivityProcess)
-     * Used by NavigationLookAhead to properly evaluate preConditionRules
+     * Choice Sequencing Request Process (SB.2.9)
+     * Processes a choice navigation request to a specific activity
+     * @param {string} targetActivityId - The target activity ID
+     * @param {Activity | null} currentActivity - Current activity (may be null)
+     * @return {SequencingResult}
+     */
+    handleChoice(targetActivityId, currentActivity) {
+      const result = new SequencingResult();
+      const targetActivity = this.activityTree.getActivity(targetActivityId);
+      if (!targetActivity) {
+        result.exception = "SB.2.9-1";
+        return result;
+      }
+      if (currentActivity && currentActivity.isActive) {
+        result.exception = "SB.2.9-6";
+        return result;
+      }
+      const validation = this.constraintValidator.validateChoice(currentActivity, targetActivity, {
+        checkAvailability: true
+      });
+      if (!validation.valid) {
+        result.exception = validation.exception;
+        return result;
+      }
+      const commonAncestor = this.treeQueries.findCommonAncestor(currentActivity, targetActivity);
+      if (currentActivity) {
+        this.terminateDescendentAttemptsProcess(commonAncestor || this.activityTree.root);
+      }
+      const activityPath = this.buildActivityPath(targetActivity, commonAncestor);
+      for (const pathActivity of activityPath) {
+        if (!this.traversalService.checkActivityProcess(pathActivity)) {
+          return result;
+        }
+      }
+      let deliveryTarget = targetActivity;
+      if (targetActivity.children.length > 0) {
+        const flowResult = this.choiceFlowSubprocess(targetActivity);
+        if (!flowResult) {
+          result.exception = "SB.2.9-7";
+          return result;
+        }
+        deliveryTarget = flowResult;
+      }
+      result.deliveryRequest = DeliveryRequestType.DELIVER;
+      result.targetActivity = deliveryTarget;
+      return result;
+    }
+    /**
+     * Jump Sequencing Request Process (SB.2.13)
+     * Processes a jump navigation request (SCORM 2004 4th Edition)
+     * Jump bypasses most sequencing rules
+     * @param {string} targetActivityId - The target activity ID
+     * @return {SequencingResult}
+     */
+    handleJump(targetActivityId) {
+      const result = new SequencingResult();
+      const targetActivity = this.activityTree.getActivity(targetActivityId);
+      if (!targetActivity) {
+        result.exception = "SB.2.13-1";
+        return result;
+      }
+      if (!this.treeQueries.isInTree(targetActivity)) {
+        result.exception = "SB.2.13-2";
+        return result;
+      }
+      if (!targetActivity.isAvailable) {
+        result.exception = "SB.2.13-3";
+        return result;
+      }
+      result.deliveryRequest = DeliveryRequestType.DELIVER;
+      result.targetActivity = targetActivity;
+      return result;
+    }
+    /**
+     * Get all activities available for choice navigation
+     * @return {Activity[]} - Array of available activities
+     */
+    getAvailableChoices() {
+      const allActivities = this.activityTree.getAllActivities();
+      const currentActivity = this.activityTree.currentActivity;
+      const availableActivities = [];
+      for (const activity of allActivities) {
+        if (activity === this.activityTree.root) {
+          continue;
+        }
+        if (activity.isHiddenFromChoice || !activity.isAvailable || !activity.isVisible) {
+          continue;
+        }
+        if (activity.parent && !activity.parent.sequencingControls.choice) {
+          continue;
+        }
+        const validation = this.constraintValidator.validateChoice(currentActivity, activity);
+        if (validation.valid) {
+          availableActivities.push(activity);
+        }
+      }
+      return availableActivities;
+    }
+    /**
+     * Build the activity path from target to common ancestor
+     * @param {Activity} targetActivity - Target activity
+     * @param {Activity | null} commonAncestor - Common ancestor
+     * @return {Activity[]} - Path of activities
+     */
+    buildActivityPath(targetActivity, commonAncestor) {
+      const activityPath = [];
+      let activity = targetActivity;
+      while (activity && activity !== commonAncestor) {
+        activityPath.unshift(activity);
+        activity = activity.parent;
+      }
+      return activityPath;
+    }
+    /**
+     * Choice Flow Subprocess (SB.2.9.1)
+     * Handles the flow logic specific to choice navigation requests
+     * @param {Activity} targetActivity - The target activity for the choice
+     * @return {Activity | null} - The activity to deliver, or null if flow fails
+     */
+    choiceFlowSubprocess(targetActivity) {
+      if (targetActivity.children.length === 0) {
+        return targetActivity;
+      }
+      return this.choiceFlowTreeTraversal(targetActivity);
+    }
+    /**
+     * Choice Flow Tree Traversal (SB.2.9.2)
+     * Traverses into a cluster to find a deliverable leaf
+     * @param {Activity} fromActivity - The cluster to traverse from
+     * @return {Activity | null} - A leaf activity for delivery, or null
+     */
+    choiceFlowTreeTraversal(fromActivity) {
+      this.traversalService.ensureSelectionAndRandomization(fromActivity);
+      const children = fromActivity.getAvailableChildren();
+      const validChildren = this.constraintValidator.validateFlowConstraints(fromActivity, children);
+      if (!validChildren.valid) {
+        return null;
+      }
+      for (const child of validChildren.validChildren) {
+        const traversalResult = this.enhancedChoiceTraversal(child);
+        if (traversalResult.activity) {
+          return traversalResult.activity;
+        }
+      }
+      return null;
+    }
+    /**
+     * Enhanced Choice Activity Traversal (SB.2.4)
+     * Traverses with stopForwardTraversal and forwardOnly checks
+     * @param {Activity} activity - The activity to traverse
+     * @param {boolean} isBackwardTraversal - Whether this is backward traversal
+     * @return {ChoiceTraversalResult} - Result with activity or exception
+     */
+    enhancedChoiceTraversal(activity) {
+      let isBackwardTraversal = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+      if (isBackwardTraversal && activity === this.activityTree.root) {
+        return new ChoiceTraversalResult(null, "SB.2.4-3");
+      }
+      if (!activity.isAvailable) {
+        return new ChoiceTraversalResult(null, null);
+      }
+      if (activity.isHiddenFromChoice) {
+        return new ChoiceTraversalResult(null, null);
+      }
+      if (activity.sequencingControls && activity.sequencingControls.stopForwardTraversal) {
+        return new ChoiceTraversalResult(null, "SB.2.4-1");
+      }
+      const traversalValidation = this.constraintValidator.validateTraversalConstraints(activity);
+      if (!traversalValidation.canTraverse) {
+        return new ChoiceTraversalResult(null, null);
+      }
+      if (activity.children.length === 0) {
+        if (this.traversalService.checkActivityProcess(activity)) {
+          return new ChoiceTraversalResult(activity, null);
+        }
+        return new ChoiceTraversalResult(null, null);
+      }
+      if (activity.parent?.sequencingControls.constrainChoice && !traversalValidation.canTraverseInto) {
+        return new ChoiceTraversalResult(null, "SB.2.4-2");
+      }
+      if (traversalValidation.canTraverseInto) {
+        const flowResult = this.choiceFlowTreeTraversal(activity);
+        return new ChoiceTraversalResult(flowResult, null);
+      }
+      return new ChoiceTraversalResult(null, null);
+    }
+    /**
+     * Terminate descendent attempts (simplified)
+     * @param {Activity} activity - The activity
+     */
+    terminateDescendentAttemptsProcess(activity) {
+      activity.isActive = false;
+      for (const child of activity.children) {
+        this.terminateDescendentAttemptsProcess(child);
+      }
+    }
+  }
+
+  class ExitRequestHandler {
+    constructor(activityTree, ruleEngine) {
+      this.activityTree = activityTree;
+      this.ruleEngine = ruleEngine;
+    }
+    /**
+     * Exit Sequencing Request Process (SB.2.11)
+     * @param {Activity} currentActivity - The current activity
+     * @return {SequencingResult}
+     */
+    handleExit(currentActivity) {
+      const result = new SequencingResult();
+      if (!currentActivity.parent) {
+        result.exception = "SB.2.11-1";
+        return result;
+      }
+      if (!currentActivity.parent.sequencingControls.choiceExit) {
+        result.exception = "SB.2.11-2";
+        return result;
+      }
+      this.terminateDescendentAttempts(currentActivity);
+      return result;
+    }
+    /**
+     * Exit All Sequencing Request Process
+     * @return {SequencingResult}
+     */
+    handleExitAll() {
+      const result = new SequencingResult();
+      if (this.activityTree.root) {
+        this.terminateDescendentAttempts(this.activityTree.root);
+      }
+      return result;
+    }
+    /**
+     * Abandon Sequencing Request Process
+     * @param {Activity} currentActivity - The current activity
+     * @return {SequencingResult}
+     */
+    handleAbandon(currentActivity) {
+      const result = new SequencingResult();
+      currentActivity.isActive = false;
+      this.activityTree.currentActivity = currentActivity.parent;
+      return result;
+    }
+    /**
+     * Abandon All Sequencing Request Process
+     * @return {SequencingResult}
+     */
+    handleAbandonAll() {
+      const result = new SequencingResult();
+      this.activityTree.currentActivity = null;
+      return result;
+    }
+    /**
+     * Suspend All Sequencing Request Process (SB.2.15)
+     * @param {Activity} currentActivity - The current activity
+     * @return {SequencingResult}
+     */
+    handleSuspendAll(currentActivity) {
+      const result = new SequencingResult();
+      if (currentActivity === this.activityTree.root) {
+        result.exception = "SB.2.15-1";
+        return result;
+      }
+      currentActivity.isSuspended = true;
+      this.activityTree.suspendedActivity = currentActivity;
+      this.activityTree.currentActivity = null;
+      return result;
+    }
+    /**
+     * Terminate descendent attempts with exit rule evaluation
+     * @param {Activity} activity - The activity
+     * @param {boolean} skipExitRules - Whether to skip exit rules
+     */
+    terminateDescendentAttempts(activity) {
+      let skipExitRules = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+      let exitAction = null;
+      if (!skipExitRules) {
+        exitAction = this.ruleEngine.evaluateExitRules(activity);
+      }
+      activity.isActive = false;
+      for (const child of activity.children) {
+        this.terminateDescendentAttempts(child, skipExitRules);
+      }
+      if (exitAction && !skipExitRules) {
+        this.processDeferredExitAction(exitAction, activity);
+      }
+    }
+    /**
+     * Process deferred exit action
+     * @param {RuleActionType} exitAction - The exit action
+     * @param {Activity} activity - The activity
+     */
+    processDeferredExitAction(exitAction, activity) {
+      switch (exitAction) {
+        case RuleActionType.EXIT:
+          break;
+        case RuleActionType.EXIT_PARENT:
+          if (activity.parent && activity.parent.isActive) {
+            this.terminateDescendentAttempts(activity.parent, true);
+          }
+          break;
+        case RuleActionType.EXIT_ALL:
+          if (this.activityTree.root && this.activityTree.root !== activity) {
+            const allActivities = this.activityTree.getAllActivities();
+            const anyActive = allActivities.some(a => a.isActive);
+            if (anyActive) {
+              this.terminateDescendentAttempts(this.activityTree.root, true);
+            }
+          }
+          break;
+      }
+    }
+  }
+
+  class RetryRequestHandler {
+    constructor(activityTree, traversalService) {
+      this.activityTree = activityTree;
+      this.traversalService = traversalService;
+    }
+    /**
+     * Retry Sequencing Request Process (SB.2.10)
+     * @param {Activity} currentActivity - The current activity
+     * @return {SequencingResult}
+     */
+    handleRetry(currentActivity) {
+      const result = new SequencingResult();
+      if (currentActivity.isActive || currentActivity.isSuspended) {
+        result.exception = "SB.2.10-2";
+        return result;
+      }
+      if (currentActivity.children.length > 0) {
+        this.traversalService.ensureSelectionAndRandomization(currentActivity);
+        const availableChildren = currentActivity.getAvailableChildren();
+        let deliverableActivity = null;
+        for (const child of availableChildren) {
+          deliverableActivity = this.traversalService.flowActivityTraversalSubprocess(child, true, true, FlowSubprocessMode.FORWARD);
+          if (deliverableActivity) {
+            break;
+          }
+        }
+        if (!deliverableActivity) {
+          result.exception = "SB.2.10-3";
+          return result;
+        }
+        result.deliveryRequest = DeliveryRequestType.DELIVER;
+        result.targetActivity = deliverableActivity;
+        return result;
+      }
+      this.terminateDescendentAttempts(currentActivity);
+      result.deliveryRequest = DeliveryRequestType.DELIVER;
+      result.targetActivity = currentActivity;
+      return result;
+    }
+    /**
+     * Retry All Sequencing Request Process
+     * Clears current activity and restarts from the root
+     * @return {SequencingResult}
+     */
+    handleRetryAll() {
+      this.activityTree.currentActivity = null;
+      if (!this.activityTree.root) {
+        const result2 = new SequencingResult();
+        result2.exception = "SB.2.10-1";
+        return result2;
+      }
+      const deliverableActivity = this.traversalService.findFirstDeliverableActivity(this.activityTree.root);
+      const result = new SequencingResult();
+      if (!deliverableActivity) {
+        result.exception = "SB.2.10-3";
+        return result;
+      }
+      result.deliveryRequest = DeliveryRequestType.DELIVER;
+      result.targetActivity = deliverableActivity;
+      return result;
+    }
+    /**
+     * Terminate descendent attempts (simplified)
+     * @param {Activity} activity - The activity
+     */
+    terminateDescendentAttempts(activity) {
+      activity.isActive = false;
+      for (const child of activity.children) {
+        this.terminateDescendentAttempts(child);
+      }
+    }
+  }
+
+  class SequencingProcess {
+    /**
+     * Get/set the current time function (used for testing time-dependent logic)
+     */
+    get now() {
+      return this._now;
+    }
+    set now(fn) {
+      this._now = fn;
+      RuleCondition.setNowProvider(fn);
+      this.ruleEngine = new RuleEvaluationEngine({
+        now: fn,
+        getAttemptElapsedSecondsHook: this._getAttemptElapsedSecondsHook
+      });
+      this.traversalService = new FlowTraversalService(this.activityTree, this.ruleEngine);
+      this.flowHandler = new FlowRequestHandler(this.activityTree, this.traversalService);
+      this.choiceHandler = new ChoiceRequestHandler(this.activityTree, this.constraintValidator, this.traversalService, this.treeQueries);
+      this.retryHandler = new RetryRequestHandler(this.activityTree, this.traversalService);
+    }
+    /**
+     * Get/set the elapsed seconds hook (used for time-based rules)
+     */
+    get getAttemptElapsedSecondsHook() {
+      return this._getAttemptElapsedSecondsHook;
+    }
+    set getAttemptElapsedSecondsHook(fn) {
+      this._getAttemptElapsedSecondsHook = fn;
+      RuleCondition.setElapsedSecondsHook(fn);
+      this.ruleEngine = new RuleEvaluationEngine({
+        now: this._now,
+        getAttemptElapsedSecondsHook: fn
+      });
+      this.traversalService = new FlowTraversalService(this.activityTree, this.ruleEngine);
+      this.flowHandler = new FlowRequestHandler(this.activityTree, this.traversalService);
+      this.choiceHandler = new ChoiceRequestHandler(this.activityTree, this.constraintValidator, this.traversalService, this.treeQueries);
+      this.retryHandler = new RetryRequestHandler(this.activityTree, this.traversalService);
+    }
+    constructor(activityTree, _sequencingRules, _sequencingControls) {
+      let options = arguments.length > 4 ? arguments[4] : undefined;
+      this.activityTree = activityTree;
+      this._now = options?.now || (() => /* @__PURE__ */new Date());
+      this._getAttemptElapsedSecondsHook = options?.getAttemptElapsedSeconds;
+      this.treeQueries = new ActivityTreeQueries(activityTree);
+      this.ruleEngine = new RuleEvaluationEngine({
+        now: this._now,
+        getAttemptElapsedSecondsHook: this._getAttemptElapsedSecondsHook
+      });
+      this.constraintValidator = new ChoiceConstraintValidator(activityTree, this.treeQueries);
+      this.traversalService = new FlowTraversalService(activityTree, this.ruleEngine);
+      this.flowHandler = new FlowRequestHandler(activityTree, this.traversalService);
+      this.choiceHandler = new ChoiceRequestHandler(activityTree, this.constraintValidator, this.traversalService, this.treeQueries);
+      this.exitHandler = new ExitRequestHandler(activityTree, this.ruleEngine);
+      this.retryHandler = new RetryRequestHandler(activityTree, this.traversalService);
+    }
+    /**
+     * Main Sequencing Request Process (SB.2.12)
+     * This is the main entry point for all navigation requests
+     * @param {SequencingRequestType} request - The sequencing request
+     * @param {string | null} targetActivityId - Target activity ID (for CHOICE and JUMP)
+     * @return {SequencingResult}
+     */
+    sequencingRequestProcess(request) {
+      let targetActivityId = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+      const currentActivity = this.activityTree.currentActivity;
+      switch (request) {
+        case SequencingRequestType.START:
+          return this.flowHandler.handleStart();
+        case SequencingRequestType.RESUME_ALL:
+          return this.flowHandler.handleResumeAll();
+        case SequencingRequestType.CONTINUE:
+          if (!currentActivity) {
+            return new SequencingResult(DeliveryRequestType.DO_NOT_DELIVER, null, "SB.2.12-1");
+          }
+          return this.flowHandler.handleContinue(currentActivity);
+        case SequencingRequestType.PREVIOUS:
+          if (!currentActivity) {
+            return new SequencingResult(DeliveryRequestType.DO_NOT_DELIVER, null, "SB.2.12-1");
+          }
+          return this.flowHandler.handlePrevious(currentActivity);
+        case SequencingRequestType.CHOICE:
+          if (!targetActivityId) {
+            return new SequencingResult(DeliveryRequestType.DO_NOT_DELIVER, null, "SB.2.12-5");
+          }
+          return this.choiceHandler.handleChoice(targetActivityId, currentActivity);
+        case SequencingRequestType.JUMP:
+          if (!targetActivityId) {
+            return new SequencingResult(DeliveryRequestType.DO_NOT_DELIVER, null, "SB.2.12-5");
+          }
+          return this.choiceHandler.handleJump(targetActivityId);
+        case SequencingRequestType.EXIT:
+          if (!currentActivity) {
+            return new SequencingResult(DeliveryRequestType.DO_NOT_DELIVER, null, "SB.2.12-1");
+          }
+          return this.exitHandler.handleExit(currentActivity);
+        case SequencingRequestType.EXIT_ALL:
+          if (!currentActivity) {
+            return new SequencingResult(DeliveryRequestType.DO_NOT_DELIVER, null, "SB.2.12-1");
+          }
+          return this.exitHandler.handleExitAll();
+        case SequencingRequestType.ABANDON:
+          if (!currentActivity) {
+            return new SequencingResult(DeliveryRequestType.DO_NOT_DELIVER, null, "SB.2.12-1");
+          }
+          return this.exitHandler.handleAbandon(currentActivity);
+        case SequencingRequestType.ABANDON_ALL:
+          if (!currentActivity) {
+            return new SequencingResult(DeliveryRequestType.DO_NOT_DELIVER, null, "SB.2.12-1");
+          }
+          return this.exitHandler.handleAbandonAll();
+        case SequencingRequestType.SUSPEND_ALL:
+          if (!currentActivity) {
+            return new SequencingResult(DeliveryRequestType.DO_NOT_DELIVER, null, "SB.2.12-1");
+          }
+          return this.exitHandler.handleSuspendAll(currentActivity);
+        case SequencingRequestType.RETRY:
+          if (!currentActivity) {
+            return new SequencingResult(DeliveryRequestType.DO_NOT_DELIVER, null, "SB.2.12-1");
+          }
+          return this.retryHandler.handleRetry(currentActivity);
+        case SequencingRequestType.RETRY_ALL:
+          return this.retryHandler.handleRetryAll();
+        default:
+          return new SequencingResult(DeliveryRequestType.DO_NOT_DELIVER, null, "SB.2.12-6");
+      }
+    }
+    /**
+     * Evaluate post-condition rules for the current activity
+     * @param {Activity} activity - The activity to evaluate
+     * @return {PostConditionResult} - The post-condition result
+     */
+    evaluatePostConditionRules(activity) {
+      return this.ruleEngine.evaluatePostConditions(activity);
+    }
+    /**
+     * Check if an activity can be delivered
      * @param {Activity} activity - The activity to check
      * @return {boolean} - True if the activity can be delivered
      */
     canActivityBeDelivered(activity) {
-      return this.checkActivityProcess(activity);
+      return this.traversalService.canDeliver(activity);
     }
     /**
      * Validate navigation request before expensive operations
-     * Provides early validation to catch invalid requests quickly
      * @param {SequencingRequestType} request - The navigation request
-     * @param {string | null} targetActivityId - Target activity ID for choice/jump
+     * @param {string | null} targetActivityId - Target activity ID
      * @param {Activity | null} currentActivity - Current activity
      * @return {{valid: boolean, exception: string | null}} - Validation result
      */
@@ -15485,8 +15635,8 @@ ${stackTrace}`);
         };
       }
       switch (request) {
-        case "continue" /* CONTINUE */:
-        case "previous" /* PREVIOUS */:
+        case SequencingRequestType.CONTINUE:
+        case SequencingRequestType.PREVIOUS:
           {
             if (!currentActivity) {
               return {
@@ -15497,27 +15647,24 @@ ${stackTrace}`);
             if (currentActivity.isActive) {
               return {
                 valid: false,
-                exception: request === "continue" /* CONTINUE */ ? "SB.2.7-1" : "SB.2.8-1"
+                exception: request === SequencingRequestType.CONTINUE ? "SB.2.7-1" : "SB.2.8-1"
               };
             }
             if (currentActivity.parent && !currentActivity.parent.sequencingControls.flow) {
               return {
                 valid: false,
-                exception: request === "continue" /* CONTINUE */ ? "SB.2.7-2" : "SB.2.8-2"
+                exception: request === SequencingRequestType.CONTINUE ? "SB.2.7-2" : "SB.2.8-2"
               };
             }
-            if (request === "previous" /* PREVIOUS */) {
-              const forwardOnlyViolation = this.checkForwardOnlyViolationAtAllLevels(currentActivity);
-              if (forwardOnlyViolation) {
-                return {
-                  valid: false,
-                  exception: forwardOnlyViolation.exception
-                };
+            if (request === SequencingRequestType.PREVIOUS) {
+              const forwardOnlyViolation = this.constraintValidator.checkForwardOnlyViolation(currentActivity);
+              if (!forwardOnlyViolation.valid) {
+                return forwardOnlyViolation;
               }
             }
             break;
           }
-        case "choice" /* CHOICE */:
+        case SequencingRequestType.CHOICE:
           {
             if (!targetActivityId) {
               return {
@@ -15532,17 +15679,19 @@ ${stackTrace}`);
                 exception: "SB.2.9-1"
               };
             }
-            const choicePathValidation = this.validateChoicePathConstraints(currentActivity, targetActivity);
-            if (!choicePathValidation.valid) {
-              return choicePathValidation;
+            const choiceValidation = this.constraintValidator.validateChoice(currentActivity, targetActivity, {
+              checkAvailability: true
+            });
+            if (!choiceValidation.valid) {
+              return choiceValidation;
             }
-            if (!this.checkActivityProcess(targetActivity)) {
+            if (!this.traversalService.canDeliver(targetActivity)) {
               return {
                 valid: false,
                 exception: "SB.2.9-6"
               };
             }
-            const preConditionResult = this.sequencingRulesCheckProcess(targetActivity, targetActivity.sequencingRules.preConditionRules);
+            const preConditionResult = this.ruleEngine.checkSequencingRules(targetActivity, targetActivity.sequencingRules.preConditionRules);
             if (preConditionResult === RuleActionType.HIDE_FROM_CHOICE) {
               return {
                 valid: false,
@@ -15551,7 +15700,7 @@ ${stackTrace}`);
             }
             break;
           }
-        case "jump" /* JUMP */:
+        case SequencingRequestType.JUMP:
           {
             if (!targetActivityId) {
               return {
@@ -15575,206 +15724,24 @@ ${stackTrace}`);
       };
     }
     /**
-     * Validate choice path constraints across ALL ancestors
-     * Checks forwardOnly, constrainChoice, preventActivation, choiceExit, and hiddenFromChoice at each level
-     * @param {Activity | null} currentActivity - Current activity
-     * @param {Activity} targetActivity - Target activity for choice
-     * @return {{valid: boolean, exception: string | null}} - Validation result
-     */
-    validateChoicePathConstraints(currentActivity, targetActivity) {
-      if (!this.isActivityInTree(targetActivity)) {
-        return {
-          valid: false,
-          exception: "SB.2.9-2"
-        };
-      }
-      if (targetActivity === this.activityTree.root) {
-        return {
-          valid: false,
-          exception: "SB.2.9-3"
-        };
-      }
-      let activity = targetActivity;
-      while (activity) {
-        if (activity.isHiddenFromChoice) {
-          return {
-            valid: false,
-            exception: "SB.2.9-4"
-          };
-        }
-        if (activity.parent && !activity.parent.sequencingControls.choice) {
-          return {
-            valid: false,
-            exception: "SB.2.9-5"
-          };
-        }
-        activity = activity.parent;
-      }
-      if (!currentActivity) {
-        if (!targetActivity.isAvailable) {
-          return {
-            valid: false,
-            exception: "SB.2.9-7"
-          };
-        }
-        return {
-          valid: true,
-          exception: null
-        };
-      }
-      let currentAncestor = currentActivity.parent;
-      while (currentAncestor) {
-        if (currentAncestor.isActive && !currentAncestor.sequencingControls.choiceExit) {
-          if (!this.isActivity1AParentOfActivity2(currentAncestor, targetActivity)) {
-            return {
-              valid: false,
-              exception: "SB.2.9-8"
-            };
-          }
-          break;
-        }
-        currentAncestor = currentAncestor.parent;
-      }
-      let ancestorActivity = targetActivity.parent;
-      while (ancestorActivity) {
-        const validation = this.validateConstraintsAtAncestorLevel(ancestorActivity, currentActivity, targetActivity);
-        if (!validation.valid) {
-          return validation;
-        }
-        ancestorActivity = ancestorActivity.parent;
-      }
-      return {
-        valid: true,
-        exception: null
-      };
-    }
-    /**
-     * Validate constraints at a specific ancestor level
-     * Checks forwardOnly, constrainChoice, and preventActivation for this ancestor
-     * @param {Activity} ancestor - The ancestor to check constraints for
-     * @param {Activity} currentActivity - Current activity
-     * @param {Activity} targetActivity - Target activity
-     * @return {{valid: boolean, exception: string | null}} - Validation result
-     */
-    validateConstraintsAtAncestorLevel(ancestor, currentActivity, targetActivity) {
-      const targetChild = this.findChildInPathToActivity(ancestor, targetActivity);
-      const currentChild = this.findChildInPathToActivity(ancestor, currentActivity);
-      if (!targetChild || !currentChild) {
-        return {
-          valid: true,
-          exception: null
-        };
-      }
-      const siblings = ancestor.children;
-      const targetIndex = siblings.indexOf(targetChild);
-      const currentIndex = siblings.indexOf(currentChild);
-      if (targetIndex === -1 || currentIndex === -1) {
-        return {
-          valid: true,
-          exception: null
-        };
-      }
-      if (ancestor.sequencingControls.forwardOnly && targetIndex < currentIndex) {
-        return {
-          valid: false,
-          exception: "SB.2.9-5"
-        };
-      }
-      if (targetIndex > currentIndex) {
-        for (let i = currentIndex + 1; i < targetIndex; i++) {
-          const intermediateChild = siblings[i];
-          if (intermediateChild && this.isActivityMandatory(intermediateChild) && !this.isActivityCompleted(intermediateChild)) {
-            return {
-              valid: false,
-              exception: "SB.2.9-6"
-            };
-          }
-        }
-      }
-      if (ancestor.sequencingControls.constrainChoice) {
-        if (targetIndex > currentIndex + 1) {
-          return {
-            valid: false,
-            exception: "SB.2.9-7"
-          };
-        }
-        if (targetIndex < currentIndex) {
-          if (targetActivity.completionStatus !== "completed" && targetActivity.completionStatus !== "passed") {
-            return {
-              valid: false,
-              exception: "SB.2.9-7"
-            };
-          }
-        }
-      }
-      if (ancestor.sequencingControls.preventActivation) {
-        if (targetActivity.attemptCount === 0 && !targetActivity.isActive) {
-          return {
-            valid: false,
-            exception: "SB.2.9-6"
-          };
-        }
-      }
-      return {
-        valid: true,
-        exception: null
-      };
-    }
-    /**
      * Get all available activities that can be selected via choice navigation
-     * Excludes activities that are:
-     * - Hidden from choice (isHiddenFromChoice = true)
-     * - Not available (isAvailable = false)
-     * - Outside choiceExit=false boundaries
-     * - Blocked by other sequencing constraints
-     *
-     * This method is useful for UIs that need to show available navigation options
-     *
      * @return {Activity[]} - Array of activities available for choice
      */
     getAvailableChoices() {
-      const allActivities = this.activityTree.getAllActivities();
-      const currentActivity = this.activityTree.currentActivity;
-      const availableActivities = [];
-      for (const activity of allActivities) {
-        if (activity === this.activityTree.root) {
-          continue;
-        }
-        if (activity.isHiddenFromChoice) {
-          continue;
-        }
-        if (!activity.isAvailable) {
-          continue;
-        }
-        if (!activity.isVisible) {
-          continue;
-        }
-        if (activity.parent && !activity.parent.sequencingControls.choice) {
-          continue;
-        }
-        if (currentActivity) {
-          let blocked = false;
-          let currentAncestor = currentActivity.parent;
-          while (currentAncestor) {
-            if (currentAncestor.isActive && !currentAncestor.sequencingControls.choiceExit) {
-              if (!this.isActivity1AParentOfActivity2(currentAncestor, activity)) {
-                blocked = true;
-                break;
-              }
-              break;
-            }
-            currentAncestor = currentAncestor.parent;
-          }
-          if (blocked) {
-            continue;
-          }
-        }
-        const validation = this.validateChoicePathConstraints(currentActivity, activity);
-        if (validation.valid) {
-          availableActivities.push(activity);
-        }
-      }
-      return availableActivities;
+      return this.choiceHandler.getAvailableChoices();
+    }
+    // Expose services for advanced use cases
+    getTreeQueries() {
+      return this.treeQueries;
+    }
+    getConstraintValidator() {
+      return this.constraintValidator;
+    }
+    getRuleEngine() {
+      return this.ruleEngine;
+    }
+    getTraversalService() {
+      return this.traversalService;
     }
   }
 

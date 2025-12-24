@@ -42,8 +42,10 @@ export declare class RuleCondition extends BaseCMI {
     private _parameters;
     private _referencedObjective;
     private static _now;
+    private static _getElapsedSecondsHook;
     constructor(condition?: RuleConditionType, operator?: RuleConditionOperator | null, parameters?: Map<string, any>);
     static setNowProvider(now: () => Date): void;
+    static setElapsedSecondsHook(hook: ((activity: Activity) => number) | undefined): void;
     reset(): void;
     get condition(): RuleConditionType;
     set condition(condition: RuleConditionType);
