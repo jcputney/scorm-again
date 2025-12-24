@@ -3,7 +3,10 @@ import {
   SequencingStatePersistence,
   PersistenceContext,
 } from "../../src/persistence/sequencing_state_persistence";
-import { GlobalObjectiveManager, GlobalObjectiveContext } from "../../src/objectives/global_objective_manager";
+import {
+  GlobalObjectiveManager,
+  GlobalObjectiveContext,
+} from "../../src/objectives/global_objective_manager";
 import { CMIObjectivesObject } from "../../src/cmi/scorm2004/objectives";
 import { ADL } from "../../src/cmi/scorm2004/adl";
 import { Sequencing } from "../../src/cmi/scorm2004/sequencing/sequencing";
@@ -53,16 +56,20 @@ function createMockSequencingService(overallProcess?: ReturnType<typeof createMo
 }
 
 // Helper to create mock settings
-function createMockSettings(persistenceConfig?: Partial<Settings["sequencingStatePersistence"]>): Settings {
+function createMockSettings(
+  persistenceConfig?: Partial<Settings["sequencingStatePersistence"]>,
+): Settings {
   return {
-    sequencingStatePersistence: persistenceConfig ? {
-      stateVersion: "1.0",
-      persistence: {
-        saveState: vi.fn().mockResolvedValue(true),
-        loadState: vi.fn().mockResolvedValue(null),
-      },
-      ...persistenceConfig,
-    } : undefined,
+    sequencingStatePersistence: persistenceConfig
+      ? {
+          stateVersion: "1.0",
+          persistence: {
+            saveState: vi.fn().mockResolvedValue(true),
+            loadState: vi.fn().mockResolvedValue(null),
+          },
+          ...persistenceConfig,
+        }
+      : undefined,
     courseId: "test-course",
   } as Settings;
 }
@@ -491,7 +498,9 @@ describe("SequencingStatePersistence", () => {
       const mockOverallProcess = createMockOverallProcess({
         globalObjectiveMap,
       });
-      (mockOverallProcess.getGlobalObjectiveMapSnapshot as ReturnType<typeof vi.fn>).mockReturnValue({
+      (
+        mockOverallProcess.getGlobalObjectiveMapSnapshot as ReturnType<typeof vi.fn>
+      ).mockReturnValue({
         global1: { id: "global1", satisfiedStatus: true },
       });
       const mockService = createMockSequencingService(mockOverallProcess);
@@ -554,7 +563,9 @@ describe("SequencingStatePersistence", () => {
 
       persistence.deserializeSequencingState(stateData);
 
-      expect(mockOverallProcess.restoreSequencingState).toHaveBeenCalledWith({ currentActivityId: "act1" });
+      expect(mockOverallProcess.restoreSequencingState).toHaveBeenCalledWith({
+        currentActivityId: "act1",
+      });
       expect(mockOverallProcess.setContentDelivered).toHaveBeenCalledWith(true);
     });
 

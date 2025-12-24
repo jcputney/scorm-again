@@ -8,6 +8,14 @@ import {
   RollupRule,
   RollupCondition,
 } from "../../../../../src/cmi/scorm2004/sequencing/rollup_rules";
+import { CompletionStatus } from "../../../../../src/constants/enums";
+
+// Helper to create a mock RollupCondition with a typed evaluate function
+function createMockCondition(evaluateFn: (activity: Activity) => boolean): RollupCondition {
+  return {
+    evaluate: evaluateFn,
+  } as unknown as RollupCondition;
+}
 
 describe("RollupRuleEvaluator", () => {
   let evaluator: RollupRuleEvaluator;
@@ -65,9 +73,9 @@ describe("RollupRuleEvaluator", () => {
 
       it("should return false when not all children satisfy conditions", () => {
         // Create conditions that check objectiveSatisfiedStatus
-        const conditionThatChecksSatisfied: RollupCondition = {
-          evaluate: (activity: Activity) => activity.objectiveSatisfiedStatus === true,
-        } as unknown as RollupCondition;
+        const conditionThatChecksSatisfied = createMockCondition(
+          (activity: Activity) => activity.objectiveSatisfiedStatus === true,
+        );
 
         child1.objectiveSatisfiedStatus = true;
         child2.objectiveSatisfiedStatus = false;
@@ -112,11 +120,11 @@ describe("RollupRuleEvaluator", () => {
 
     describe("with COMPLETED action", () => {
       it("should evaluate completed rule correctly", () => {
-        child1.completionStatus = "completed" as any;
+        child1.completionStatus = CompletionStatus.COMPLETED;
         child1.progressMeasureStatus = true;
-        child2.completionStatus = "completed" as any;
+        child2.completionStatus = CompletionStatus.COMPLETED;
         child2.progressMeasureStatus = true;
-        child3.completionStatus = "completed" as any;
+        child3.completionStatus = CompletionStatus.COMPLETED;
         child3.progressMeasureStatus = true;
 
         const rule: RollupRule = {
@@ -135,11 +143,11 @@ describe("RollupRuleEvaluator", () => {
 
     describe("with INCOMPLETE action", () => {
       it("should evaluate incomplete rule correctly", () => {
-        child1.completionStatus = "incomplete" as any;
+        child1.completionStatus = CompletionStatus.INCOMPLETE;
         child1.progressMeasureStatus = true;
-        child2.completionStatus = "incomplete" as any;
+        child2.completionStatus = CompletionStatus.INCOMPLETE;
         child2.progressMeasureStatus = true;
-        child3.completionStatus = "incomplete" as any;
+        child3.completionStatus = CompletionStatus.INCOMPLETE;
         child3.progressMeasureStatus = true;
 
         const rule: RollupRule = {

@@ -12,7 +12,9 @@ import { OverallSequencingProcess } from "../../src/cmi/scorm2004/sequencing/ove
 import { Sequencing } from "../../src/cmi/scorm2004/sequencing/sequencing";
 
 // Helper to create mock context
-function createMockContext(overrides: Partial<GlobalObjectiveContext> = {}): GlobalObjectiveContext {
+function createMockContext(
+  overrides: Partial<GlobalObjectiveContext> = {},
+): GlobalObjectiveContext {
   return {
     getSettings: vi.fn().mockReturnValue({ globalObjectiveIds: [] }),
     cmi: {
@@ -123,7 +125,9 @@ describe("GlobalObjectiveManager", () => {
       const settings: Settings = { globalObjectiveIds: ["existing1"] } as Settings;
       mockContext.getSettings = vi.fn().mockReturnValue(settings);
       mockContext.sequencingService = {
-        getOverallSequencingProcess: vi.fn().mockReturnValue(createMockOverallProcess(globalObjectiveMap)),
+        getOverallSequencingProcess: vi
+          .fn()
+          .mockReturnValue(createMockOverallProcess(globalObjectiveMap)),
       } as unknown as SequencingService;
 
       manager.syncGlobalObjectiveIdsFromSequencing();
@@ -140,7 +144,9 @@ describe("GlobalObjectiveManager", () => {
       const settings: Settings = { globalObjectiveIds: undefined } as unknown as Settings;
       mockContext.getSettings = vi.fn().mockReturnValue(settings);
       mockContext.sequencingService = {
-        getOverallSequencingProcess: vi.fn().mockReturnValue(createMockOverallProcess(globalObjectiveMap)),
+        getOverallSequencingProcess: vi
+          .fn()
+          .mockReturnValue(createMockOverallProcess(globalObjectiveMap)),
       } as unknown as SequencingService;
 
       manager.syncGlobalObjectiveIdsFromSequencing();
@@ -174,7 +180,9 @@ describe("GlobalObjectiveManager", () => {
 
     it("should skip existing objectives", () => {
       manager.globalObjectives = [{ id: "existing" } as CMIObjectivesObject];
-      (mockContext.cmi.objectives.findObjectiveById as ReturnType<typeof vi.fn>).mockReturnValue({ id: "existing" });
+      (mockContext.cmi.objectives.findObjectiveById as ReturnType<typeof vi.fn>).mockReturnValue({
+        id: "existing",
+      });
 
       manager.restoreGlobalObjectivesToCMI();
 
@@ -182,14 +190,16 @@ describe("GlobalObjectiveManager", () => {
     });
 
     it("should restore objective with id only", () => {
-      manager.globalObjectives = [{
-        id: "obj1",
-        success_status: "unknown",
-        completion_status: "unknown",
-        score: { scaled: "", raw: "", min: "", max: "" },
-        progress_measure: "",
-        description: "",
-      } as CMIObjectivesObject];
+      manager.globalObjectives = [
+        {
+          id: "obj1",
+          success_status: "unknown",
+          completion_status: "unknown",
+          score: { scaled: "", raw: "", min: "", max: "" },
+          progress_measure: "",
+          description: "",
+        } as CMIObjectivesObject,
+      ];
 
       manager.restoreGlobalObjectivesToCMI();
 
@@ -204,14 +214,16 @@ describe("GlobalObjectiveManager", () => {
     });
 
     it("should restore objective with all properties", () => {
-      manager.globalObjectives = [{
-        id: "obj1",
-        success_status: "passed",
-        completion_status: "completed",
-        score: { scaled: "0.85", raw: "85", min: "0", max: "100" },
-        progress_measure: "0.9",
-        description: "Test Objective",
-      } as CMIObjectivesObject];
+      manager.globalObjectives = [
+        {
+          id: "obj1",
+          success_status: "passed",
+          completion_status: "completed",
+          score: { scaled: "0.85", raw: "85", min: "0", max: "100" },
+          progress_measure: "0.9",
+          description: "Test Objective",
+        } as CMIObjectivesObject,
+      ];
 
       manager.restoreGlobalObjectivesToCMI();
 
@@ -272,14 +284,16 @@ describe("GlobalObjectiveManager", () => {
     });
 
     it("should skip null score values", () => {
-      manager.globalObjectives = [{
-        id: "obj1",
-        success_status: "unknown",
-        completion_status: "unknown",
-        score: { scaled: null, raw: null, min: null, max: null },
-        progress_measure: null,
-        description: "",
-      } as unknown as CMIObjectivesObject];
+      manager.globalObjectives = [
+        {
+          id: "obj1",
+          success_status: "unknown",
+          completion_status: "unknown",
+          score: { scaled: null, raw: null, min: null, max: null },
+          progress_measure: null,
+          description: "",
+        } as unknown as CMIObjectivesObject,
+      ];
 
       manager.restoreGlobalObjectivesToCMI();
 
@@ -545,9 +559,21 @@ describe("GlobalObjectiveManager", () => {
 
   describe("buildCMIObjectivesFromMap", () => {
     it("should return empty array for null/invalid snapshot", () => {
-      expect(manager.buildCMIObjectivesFromMap(null as unknown as Record<string, GlobalObjectiveMapEntry>)).toEqual([]);
-      expect(manager.buildCMIObjectivesFromMap(undefined as unknown as Record<string, GlobalObjectiveMapEntry>)).toEqual([]);
-      expect(manager.buildCMIObjectivesFromMap("invalid" as unknown as Record<string, GlobalObjectiveMapEntry>)).toEqual([]);
+      expect(
+        manager.buildCMIObjectivesFromMap(
+          null as unknown as Record<string, GlobalObjectiveMapEntry>,
+        ),
+      ).toEqual([]);
+      expect(
+        manager.buildCMIObjectivesFromMap(
+          undefined as unknown as Record<string, GlobalObjectiveMapEntry>,
+        ),
+      ).toEqual([]);
+      expect(
+        manager.buildCMIObjectivesFromMap(
+          "invalid" as unknown as Record<string, GlobalObjectiveMapEntry>,
+        ),
+      ).toEqual([]);
     });
 
     it("should skip invalid entries", () => {
@@ -1025,7 +1051,9 @@ describe("GlobalObjectiveManager", () => {
         getCurrentActivity: vi.fn().mockReturnValue(activity),
       } as unknown as Sequencing;
 
-      manager.syncCmiToSequencingActivity(CompletionStatus.UNKNOWN, SuccessStatus.UNKNOWN, { scaled: 0.85 });
+      manager.syncCmiToSequencingActivity(CompletionStatus.UNKNOWN, SuccessStatus.UNKNOWN, {
+        scaled: 0.85,
+      });
 
       expect(primaryObjective.normalizedMeasure).toBe(0.85);
       expect(primaryObjective.measureStatus).toBe(true);
@@ -1049,7 +1077,11 @@ describe("GlobalObjectiveManager", () => {
         getCurrentActivity: vi.fn().mockReturnValue(activity),
       } as unknown as Sequencing;
 
-      manager.syncCmiToSequencingActivity(CompletionStatus.UNKNOWN, SuccessStatus.UNKNOWN, undefined);
+      manager.syncCmiToSequencingActivity(
+        CompletionStatus.UNKNOWN,
+        SuccessStatus.UNKNOWN,
+        undefined,
+      );
 
       expect(primaryObjective.normalizedMeasure).toBe(0.5); // Unchanged
     });
@@ -1072,7 +1104,9 @@ describe("GlobalObjectiveManager", () => {
         getCurrentActivity: vi.fn().mockReturnValue(activity),
       } as unknown as Sequencing;
 
-      manager.syncCmiToSequencingActivity(CompletionStatus.UNKNOWN, SuccessStatus.UNKNOWN, { scaled: null });
+      manager.syncCmiToSequencingActivity(CompletionStatus.UNKNOWN, SuccessStatus.UNKNOWN, {
+        scaled: null,
+      });
 
       expect(primaryObjective.normalizedMeasure).toBe(0.5); // Unchanged
     });

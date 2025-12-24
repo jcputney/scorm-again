@@ -22,7 +22,7 @@ function createMockActivity(options: Partial<{
   };
 }> = {}): Activity {
   return {
-    id: options.id ?? `activity-${Math.random().toString(36).substr(2, 9)}`,
+    id: options.id ?? `activity-${Math.random().toString(36).substring(2, 11)}`,
     children: options.children ?? [],
     sequencingControls: {
       flow: options.sequencingControls?.flow ?? false,
